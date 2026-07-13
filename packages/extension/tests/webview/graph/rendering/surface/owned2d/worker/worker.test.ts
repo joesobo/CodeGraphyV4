@@ -73,10 +73,10 @@ describe('owned graph layout worker command routing', () => {
     send({ type: 'reheat', alpha: 0.5, mutationRevision: 9 });
     send({ type: 'pause', mutationRevision: 10 });
     send({ type: 'resume', mutationRevision: 11 });
-    send({ type: 'tick', elapsedMs: 1000 / 60, revision: 99 });
+    send({ type: 'tick', revision: 99 });
     expect(scope.postMessage.mock.calls.filter(call => call[0].type === 'tick')).toHaveLength(0);
 
-    send({ type: 'tick', elapsedMs: 1000 / 60, revision: 4 });
+    send({ type: 'tick', revision: 4 });
     const tickMessages = () => scope.postMessage.mock.calls
       .map(call => call[0])
       .filter(message => message.type === 'tick') as GraphLayoutWorkerTickMessage[];
@@ -90,13 +90,12 @@ describe('owned graph layout worker command routing', () => {
     expect(Number.isFinite(firstMessage.alpha)).toBe(true);
     expect(Number.isFinite(new Float32Array(firstMessage.buffers.x)[0])).toBe(true);
 
-    send({ type: 'tick', elapsedMs: 1000 / 60, revision: 4 });
+    send({ type: 'tick', revision: 4 });
     const secondMessage = tickMessages()[1];
     expect(secondMessage.buffers).toBe(second);
 
     send({
       type: 'tick',
-      elapsedMs: 1000 / 60,
       recycledBuffers: [first],
       revision: 4,
     });

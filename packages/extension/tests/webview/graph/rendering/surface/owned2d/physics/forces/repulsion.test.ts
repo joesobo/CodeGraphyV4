@@ -68,7 +68,7 @@ function compareBarnesHutLayout(nodeCount: number, tickCount: number) {
 
   for (let tick = 0; tick < tickCount; tick += 1) {
     reference.tick();
-    engine.tick(1000 / 60);
+    engine.tick();
   }
 
   let squaredError = 0;
@@ -104,7 +104,7 @@ function deterministicBarnesHutTrajectory(): { x: Float32Array; y: Float32Array 
     chargeStrength: -30,
     collisionIterations: 0,
   });
-  for (let tick = 0; tick < 10; tick += 1) engine.tick(1000 / 60);
+  for (let tick = 0; tick < 10; tick += 1) engine.tick();
   return { x: new Float32Array(engine.x), y: new Float32Array(engine.y) };
 }
 
@@ -177,7 +177,7 @@ describe('owned graph many-body force', () => {
       chargeTheta: 0,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     referenceNodes.forEach((node, index) => {
       expect(engine.x[index]).toBeCloseTo(node.x as number, 4);
@@ -223,7 +223,7 @@ describe('owned graph many-body force', () => {
     });
 
     reference.tick();
-    engine.tick(1000 / 60);
+    engine.tick();
 
     referenceNodes.forEach((node, index) => {
       expect(engine.x[index]).toBeCloseTo(node.x as number, 5);

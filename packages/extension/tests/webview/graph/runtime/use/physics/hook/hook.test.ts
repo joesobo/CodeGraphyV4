@@ -3,13 +3,13 @@ import { ownedLayout } from '../../../ownedPhysicsFixture';
 
 describe('owned physics controls', () => {
   it('starts in the default running state', () => {
-    expect(ownedLayout().engine.tick(1000 / 60).steps).toBeGreaterThan(0);
+    expect(ownedLayout().engine.tick().steps).toBeGreaterThan(0);
   });
 
   it('honors explicit pause state', () => {
     const engine = ownedLayout().engine;
     engine.pause();
-    expect(engine.tick(1000 / 60).steps).toBe(0);
+    expect(engine.tick().steps).toBe(0);
   });
 
   it('pauses and reheats without advancing while paused', () => {
@@ -17,7 +17,7 @@ describe('owned physics controls', () => {
     engine.pause();
     engine.reheat();
     expect(engine.settled).toBe(false);
-    expect(engine.tick(1000 / 60).steps).toBe(0);
+    expect(engine.tick().steps).toBe(0);
   });
 
   it('resumes and reheats the graph animation', () => {
@@ -25,7 +25,7 @@ describe('owned physics controls', () => {
     engine.pause();
     engine.resume();
     engine.reheat();
-    expect(engine.tick(1000 / 60).steps).toBeGreaterThan(0);
+    expect(engine.tick().steps).toBeGreaterThan(0);
   });
 
   it('reheats through the required owned engine contract', () => {

@@ -37,7 +37,7 @@ describe('graph layout engine', () => {
       edgeTargets: new Uint32Array(),
     });
 
-    expect(engine.tick(1000 / 60)).toEqual({ moving: false, settled: true, steps: 0 });
+    expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
   it('cools D3 alpha within the Obsidian-like release-settle window', () => {
@@ -54,10 +54,10 @@ describe('graph layout engine', () => {
       chargeStrength: 0,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
-    expect(engine.alpha).toBeCloseTo(Math.pow(0.001, 1 / 150), 12);
-    for (let tick = 1; tick < 160; tick += 1) engine.tick(1000 / 60);
+    expect(engine.alpha).toBeCloseTo(Math.pow(0.001, 1 / 300), 12);
+    for (let tick = 1; tick < 310; tick += 1) engine.tick();
     expect(engine.settled).toBe(true);
   });
 
@@ -66,21 +66,28 @@ describe('graph layout engine', () => {
     const second = createGraphLayoutEngine(lineGraph(64));
 
     for (let tick = 0; tick < 300; tick += 1) {
-      first.tick(1000 / 60);
-      second.tick(1000 / 60);
+      first.tick();
+      second.tick();
     }
 
     expect(positionHash(first.x, first.y)).toBe(positionHash(second.x, second.y));
   });
 
-  it('produces the same fixed-step layout at 30fps and 120fps tick cadence', () => {
-    const at30Fps = createGraphLayoutEngine(lineGraph(64));
-    const at120Fps = createGraphLayoutEngine(lineGraph(64));
+  it('advances one fixed simulation step per display-frame tick', () => {
+    const sixtyFrames = createGraphLayoutEngine(lineGraph(64));
+    const repeatedSixtyFrames = createGraphLayoutEngine(lineGraph(64));
+    const twoHundredFortyFrames = createGraphLayoutEngine(lineGraph(64));
 
-    for (let frame = 0; frame < 60; frame += 1) at30Fps.tick(1000 / 30);
-    for (let frame = 0; frame < 240; frame += 1) at120Fps.tick(1000 / 120);
+    for (let frame = 0; frame < 60; frame += 1) {
+      sixtyFrames.tick();
+      repeatedSixtyFrames.tick();
+    }
+    for (let frame = 0; frame < 240; frame += 1) twoHundredFortyFrames.tick();
 
-    expect(positionHash(at30Fps.x, at30Fps.y)).toBe(positionHash(at120Fps.x, at120Fps.y));
+    expect(positionHash(sixtyFrames.x, sixtyFrames.y))
+      .toBe(positionHash(repeatedSixtyFrames.x, repeatedSixtyFrames.y));
+    expect(positionHash(sixtyFrames.x, sixtyFrames.y))
+      .not.toBe(positionHash(twoHundredFortyFrames.x, twoHundredFortyFrames.y));
   });
 
   it('keeps coincident nodes finite with bounded energy', () => {
@@ -94,7 +101,7 @@ describe('graph layout engine', () => {
       edgeTargets: new Uint32Array(),
     });
 
-    for (let tick = 0; tick < 600; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 600; tick += 1) engine.tick();
 
     const values = [...engine.x, ...engine.y, ...engine.vx, ...engine.vy];
     const energy = engine.vx.reduce(
@@ -122,7 +129,7 @@ describe('graph layout engine', () => {
       chargeStrength: 0,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(Math.hypot(engine.x[1] - engine.x[0], engine.y[1] - engine.y[0]))
       .toBeGreaterThanOrEqual(21.99);
@@ -147,7 +154,7 @@ describe('graph layout engine', () => {
       chargeStrength: 0,
     });
 
-    for (let tick = 0; tick < 600; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 600; tick += 1) engine.tick();
 
     let closestDistance = Number.POSITIVE_INFINITY;
     for (let first = 0; first < nodeCount; first += 1) {
@@ -176,7 +183,7 @@ describe('graph layout engine', () => {
       chargeStrength: -250,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.vx[0]).toBeLessThan(0);
     expect(engine.vx[1]).toBeGreaterThan(0);
@@ -198,7 +205,7 @@ describe('graph layout engine', () => {
     });
     engine.pin(0);
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.x[0]).toBe(0);
     expect(engine.vx[0]).toBe(0);
@@ -221,7 +228,7 @@ describe('graph layout engine', () => {
       chargeStrength: -250,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.vx[0]).toBeLessThan(0);
     expect(engine.vx[1]).toBe(0);
@@ -239,7 +246,7 @@ describe('graph layout engine', () => {
       targetY: new Float32Array([Number.NaN]),
     }, { centralGravity: 0, chargeStrength: 0 });
 
-    for (let tick = 0; tick < 30; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 30; tick += 1) engine.tick();
 
     expect(engine.x[0]).toBeGreaterThan(0);
     expect(engine.y[0]).toBe(0);
@@ -267,8 +274,8 @@ describe('graph layout engine', () => {
       chargeStrength: 0,
     });
 
-    highDecay.tick(1000 / 60);
-    lowDecay.tick(1000 / 60);
+    highDecay.tick();
+    lowDecay.tick();
 
     expect(highDecay.vx[0]).toBeCloseTo(3);
     expect(lowDecay.vx[0]).toBeCloseTo(9);
@@ -288,11 +295,11 @@ describe('graph layout engine', () => {
       collisionIterations: 0,
       chargeStrength: 0,
     });
-    for (let tick = 0; tick < 320; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) engine.tick();
     const coldAlpha = engine.alpha;
 
     engine.setAlphaTarget(0.3);
-    for (let tick = 0; tick < 10; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 10; tick += 1) engine.tick();
 
     expect(engine.settled).toBe(false);
     expect(engine.alpha).toBeGreaterThan(coldAlpha);
@@ -300,7 +307,7 @@ describe('graph layout engine', () => {
 
     engine.setAlphaTarget(0);
     const warmAlpha = engine.alpha;
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.alpha).toBeLessThan(warmAlpha);
   });
@@ -317,13 +324,13 @@ describe('graph layout engine', () => {
       centralGravity: 0,
       chargeStrength: 0,
     });
-    for (let tick = 0; tick < 320; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) engine.tick();
     expect(engine.settled).toBe(true);
 
     engine.setConfig({ centralGravity: 1 });
     expect(engine.settled).toBe(false);
     expect(engine.alpha).toBeCloseTo(0.3);
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.x[0]).toBeLessThan(100);
   });
@@ -333,14 +340,14 @@ describe('graph layout engine', () => {
     engine.setNodePosition(1, 25, -10);
     engine.pin(1);
 
-    for (let tick = 0; tick < 60; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 60; tick += 1) engine.tick();
 
     expect(engine.flags[1] & GraphNodeFlag.Pinned).toBe(GraphNodeFlag.Pinned);
     expect([engine.x[1], engine.y[1]]).toEqual([25, -10]);
 
     engine.release(1);
     engine.reheat();
-    for (let tick = 0; tick < 60; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 60; tick += 1) engine.tick();
 
     expect([engine.x[1], engine.y[1]]).not.toEqual([25, -10]);
   });
@@ -351,14 +358,14 @@ describe('graph layout engine', () => {
     const initialY = [...engine.y];
 
     engine.pause();
-    const pausedTick = engine.tick(1_000);
+    const pausedTick = engine.tick();
 
     expect(pausedTick.moving).toBe(false);
     expect([...engine.x]).toEqual(initialX);
     expect([...engine.y]).toEqual(initialY);
 
     engine.resume();
-    engine.tick(1000 / 60);
+    engine.tick();
     expect([...engine.x]).not.toEqual(initialX);
   });
 });

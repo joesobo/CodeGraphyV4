@@ -55,17 +55,17 @@ describe('owned physics lifecycle integration', () => {
     lowDamping.setKinematics(lowDamping.x, lowDamping.y, Float32Array.of(10), Float32Array.of(0));
     applyOwnedPhysicsSettings(highDamping, { ...DEFAULT_PHYSICS_SETTINGS, damping: 0.7, centerForce: 0, repelForce: 0 });
     applyOwnedPhysicsSettings(lowDamping, { ...DEFAULT_PHYSICS_SETTINGS, damping: 0.1, centerForce: 0, repelForce: 0 });
-    highDamping.tick(1000 / 60);
-    lowDamping.tick(1000 / 60);
+    highDamping.tick();
+    lowDamping.tick();
     expect(highDamping.vx[0]).toBeLessThan(lowDamping.vx[0]);
   });
 
   it('syncs pause and resume requests to the active engine', () => {
     const engine = layout().engine;
     engine.pause();
-    expect(engine.tick(1000 / 60).steps).toBe(0);
+    expect(engine.tick().steps).toBe(0);
     engine.resume();
-    expect(engine.tick(1000 / 60).steps).toBeGreaterThan(0);
+    expect(engine.tick().steps).toBeGreaterThan(0);
   });
 
   it('passes current physics settings to plugin force adapters', () => {

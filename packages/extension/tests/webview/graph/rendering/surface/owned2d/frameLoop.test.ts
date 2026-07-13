@@ -60,7 +60,6 @@ describe('owned graph frame loop', () => {
       recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
-      skipPhysicsFrameRef: { current: false },
     } as unknown as OwnedGraphFrameLoopRuntime;
 
     const loop = startOwnedGraphFrameLoop(
@@ -74,7 +73,7 @@ describe('owned graph frame loop', () => {
     expect(runtime.fpsRef.current).toBe(57);
     expect(publishFps).toHaveBeenCalledWith(publishedSample);
 
-    vi.mocked(renderOwnedGraphFrame).mockReturnValue(120);
+    vi.mocked(renderOwnedGraphFrame).mockImplementation(() => undefined);
     runtime.requestFrameRef.current();
     scheduledFrame?.(120);
     expect(record).toHaveBeenCalledOnce();
@@ -99,7 +98,6 @@ describe('owned graph frame loop', () => {
       recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
-      skipPhysicsFrameRef: { current: false },
     } as unknown as OwnedGraphFrameLoopRuntime;
     const canvas = document.createElement('canvas');
 

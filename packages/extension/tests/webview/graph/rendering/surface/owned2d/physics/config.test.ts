@@ -39,7 +39,6 @@ describe('default graph physics configuration', () => {
     const merge = (update: Parameters<typeof mergeGraphLayoutConfig>[1]) => (
       mergeGraphLayoutConfig({ ...DEFAULT_GRAPH_LAYOUT_CONFIG }, update)
     );
-    expect(() => merge({ fixedTimeStepMs: 0 })).toThrow('time step');
     expect(() => merge({ linkDistance: 0 })).toThrow('link distance');
     expect(() => merge({ velocityDecay: -0.1 })).toThrow('velocity decay');
     expect(() => merge({ velocityDecay: 1.1 })).toThrow('velocity decay');

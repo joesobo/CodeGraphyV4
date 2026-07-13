@@ -19,11 +19,9 @@ export interface OwnedGraphControlsRuntime {
   positionVersionRef: MutableRefObject<number>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
-  skipPhysicsFrameRef: MutableRefObject<boolean>;
 }
 
 function invalidateCamera(runtime: OwnedGraphControlsRuntime): void {
-  runtime.skipPhysicsFrameRef.current = true;
   runtime.requestFrameRef.current();
 }
 

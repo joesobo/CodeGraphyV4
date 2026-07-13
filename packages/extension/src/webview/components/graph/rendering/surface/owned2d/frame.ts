@@ -51,7 +51,6 @@ export interface OwnedGraphFrameRuntime {
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
   recordRenderedFrame(this: void, timestamp: number): void;
-  skipPhysicsFrameRef: MutableRefObject<boolean>;
   styleVersionRef: MutableRefObject<number>;
   synchronizedPositionVersionRef: MutableRefObject<number>;
   onRendererError(this: void, message: string): void;
@@ -112,14 +111,9 @@ function applyOwnedPluginForces(
 function advanceOwnedGraphPhysics(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
-  elapsedMs: number,
 ): GraphLayoutTickResult {
-  const skipPhysics = runtime.skipPhysicsFrameRef.current;
-  runtime.skipPhysicsFrameRef.current = false;
   applyOwnedPluginForces(runtime, layout);
-  const tick = skipPhysics
-    ? { moving: !layout.engine.settled, settled: layout.engine.settled, steps: 0 }
-    : layout.engine.tick(elapsedMs);
+  const tick = layout.engine.tick();
   if (tick.steps > 0) runtime.positionVersionRef.current += 1;
   return tick;
 }
@@ -303,12 +297,10 @@ export function renderOwnedGraphFrame(
   runtime: OwnedGraphFrameRuntime,
   canvas: HTMLCanvasElement,
   timestamp: number,
-  previousTimestamp: number | null,
-): number | null {
+): void {
   const layout = runtime.layoutRef.current;
   const context = canvas.getContext('2d');
-  if (!layout || !context) return previousTimestamp;
-  const elapsedMs = previousTimestamp === null ? 1000 / 60 : timestamp - previousTimestamp;
+  if (!layout || !context) return;
   const samples = performanceSamples();
   const timings: FrameTimings = {
     physicsStartedAt: timedNow(samples),
@@ -317,7 +309,7 @@ export function renderOwnedGraphFrame(
     gpuStartedAt: 0,
     gpuEndedAt: 0,
   };
-  const tick = advanceOwnedGraphPhysics(runtime, layout, elapsedMs);
+  const tick = advanceOwnedGraphPhysics(runtime, layout);
   timings.physicsEndedAt = timedNow(samples);
   synchronizeOwnedFrameState(runtime, layout);
   const renderSample = layout.engine.sampleRenderPositions?.(timestamp);
@@ -342,5 +334,4 @@ export function renderOwnedGraphFrame(
   if (shouldContinueOwnedGraphFrames(runtime, tick, renderSample)) {
     runtime.requestFrameRef.current();
   }
-  return timestamp;
 }

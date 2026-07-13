@@ -11,16 +11,16 @@ describe('worker-hosted graph layout lifecycle', () => {
     const { engine, worker } = createEngine();
     const [first, second] = outputBuffers(worker);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     expect(tickCommands(worker)[0].recycledBuffers).toBeUndefined();
     publishTick(worker, first);
     expect(tickCommands(worker)).toHaveLength(1);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     expect(tickCommands(worker)[1].recycledBuffers).toBeUndefined();
     publishTick(worker, second);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     expect(tickCommands(worker)[2].recycledBuffers).toEqual([first]);
   });
 
@@ -28,7 +28,7 @@ describe('worker-hosted graph layout lifecycle', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     engine.setNodePosition(0, 25, 30);
     engine.pin(0);
     engine.release(0);
@@ -38,7 +38,7 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(engine.y[0]).toBe(30);
     expect(tickCommands(worker)).toHaveLength(1);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     expect(tickCommands(worker)[1].recycledBuffers).toEqual([first]);
   });
 
@@ -46,7 +46,7 @@ describe('worker-hosted graph layout lifecycle', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     engine.setKinematics(
       Float32Array.of(12),
       Float32Array.of(13),
@@ -60,35 +60,37 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(worker.messages).toContainEqual(expect.objectContaining({ type: 'setKinematics' }));
   });
 
-  it('accumulates RAF elapsed time while a worker tick is in flight', () => {
+  it('coalesces display-frame ticks while a worker request is in flight', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
 
-    engine.tick(7);
-    engine.tick(7);
-    engine.tick(7);
-    publishTick(worker, first, {
-      result: { moving: true, settled: false, steps: 0 },
-    });
-    engine.tick(7);
+    engine.tick();
+    engine.tick();
+    engine.tick();
+    expect(tickCommands(worker)).toHaveLength(1);
 
-    expect(tickCommands(worker).map(command => command.elapsedMs)).toEqual([7, 21]);
+    publishTick(worker, first);
+    engine.tick();
+
+    expect(tickCommands(worker)).toHaveLength(2);
+    expect(tickCommands(worker)[0]).not.toHaveProperty('elapsedMs');
+    expect(tickCommands(worker)[1]).not.toHaveProperty('elapsedMs');
   });
 
-  it('does not replay paused or obsolete-topology elapsed time', () => {
+  it('does not submit ticks while paused or replay obsolete topology demand', () => {
     const paused = createEngine();
     const [first] = outputBuffers(paused.worker);
-    paused.engine.tick(7);
+    paused.engine.tick();
     publishTick(paused.worker, first);
     paused.engine.pause();
-    paused.engine.tick(100);
+    paused.engine.tick();
     paused.engine.resume();
-    paused.engine.tick(9);
-    expect(tickCommands(paused.worker).map(command => command.elapsedMs)).toEqual([7, 9]);
+    paused.engine.tick();
+    expect(tickCommands(paused.worker)).toHaveLength(2);
 
     const replaced = createEngine();
-    replaced.engine.tick(7);
-    replaced.engine.tick(100);
+    replaced.engine.tick();
+    replaced.engine.tick();
     replaced.engine.setGraph({
       nodeIds: ['a', 'b'],
       initialX: Float32Array.of(0, 1),
@@ -97,8 +99,8 @@ describe('worker-hosted graph layout lifecycle', () => {
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
     });
-    replaced.engine.tick(9);
-    expect(tickCommands(replaced.worker).map(command => command.elapsedMs)).toEqual([7, 9]);
+    replaced.engine.tick();
+    expect(tickCommands(replaced.worker).map(command => command.revision)).toEqual([0, 1]);
   });
 
   it('recycles zero-step results without publishing false position updates', () => {
@@ -108,7 +110,7 @@ describe('worker-hosted graph layout lifecycle', () => {
     const [first] = outputBuffers(worker);
     const version = engine.sampleRenderPositions?.(0).version;
 
-    engine.tick(7);
+    engine.tick();
     publishTick(worker, first, {
       result: { moving: true, settled: false, steps: 0 },
     }, 50);
@@ -117,7 +119,7 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(engine.sampleRenderPositions?.(10).version).toBe(version);
     expect(onUpdate).not.toHaveBeenCalled();
     expect(onFrameRequest).toHaveBeenCalledOnce();
-    engine.tick(10);
+    engine.tick();
     expect(tickCommands(worker)[1].recycledBuffers).toEqual([first]);
   });
 
@@ -126,7 +128,7 @@ describe('worker-hosted graph layout lifecycle', () => {
     const { engine, worker } = createEngine(onUpdate);
     const [first] = outputBuffers(worker);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     publishTick(worker, first, {
       alpha: 0.25,
       result: { moving: true, settled: false, steps: 1 },
@@ -136,14 +138,14 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(onUpdate).toHaveBeenCalledOnce();
     expect(tickCommands(worker)).toHaveLength(1);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     expect(tickCommands(worker)).toHaveLength(2);
   });
 
   it('invalidates render positions after direct movement and fallback ticks', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
-    engine.tick(1000 / 60);
+    engine.tick();
     publishTick(worker, first, {}, 10);
     const initial = engine.sampleRenderPositions?.(performance.now());
     const initialVersion = initial?.version ?? 0;
@@ -156,7 +158,7 @@ describe('worker-hosted graph layout lifecycle', () => {
 
     worker.onerror?.({ message: 'boom' } as ErrorEvent);
     engine.resume();
-    engine.tick(1000 / 60);
+    engine.tick();
     const fallback = engine.sampleRenderPositions?.(performance.now());
     expect(fallback?.version).toBeGreaterThan(dragged?.version ?? 0);
   });
@@ -164,7 +166,7 @@ describe('worker-hosted graph layout lifecycle', () => {
   it('wakes settled physics after external kinematics and keeps worker alpha authoritative', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
-    engine.tick(1000 / 60);
+    engine.tick();
     publishTick(worker, first, {
       alpha: 0.2,
       result: { moving: false, settled: true, steps: 1 },
@@ -180,7 +182,7 @@ describe('worker-hosted graph layout lifecycle', () => {
       Float32Array.of(1),
       Float32Array.of(2),
     );
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.settled).toBe(false);
     expect(tickCommands(worker)).toHaveLength(2);
@@ -193,11 +195,11 @@ describe('worker-hosted graph layout lifecycle', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
 
-    engine.tick(1000 / 60);
+    engine.tick();
     publishTick(worker, first, {
       result: { moving: false, settled: true, steps: 1 },
     });
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.settled).toBe(true);
     expect(tickCommands(worker)).toHaveLength(1);
@@ -206,7 +208,7 @@ describe('worker-hosted graph layout lifecycle', () => {
   it('discards old-sized buffers after a topology revision', () => {
     const { engine, worker } = createEngine();
     const [oldBuffer] = outputBuffers(worker);
-    engine.tick(1000 / 60);
+    engine.tick();
     engine.setGraph({
       nodeIds: ['a', 'b'],
       initialX: Float32Array.of(0, 1),
@@ -216,7 +218,7 @@ describe('worker-hosted graph layout lifecycle', () => {
       edgeTargets: new Uint32Array(),
     });
     publishTick(worker, oldBuffer);
-    engine.tick(1000 / 60);
+    engine.tick();
 
     const initCommands = worker.messages.filter(command => command.type === 'init');
     const latestInit = initCommands.at(-1)!;
@@ -240,7 +242,7 @@ describe('worker-hosted graph layout lifecycle', () => {
       revision: 0,
       type: 'error',
     } } as MessageEvent);
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(worker.terminate).not.toHaveBeenCalled();
     expect(tickCommands(worker).at(-1)?.revision).toBe(1);
@@ -249,12 +251,12 @@ describe('worker-hosted graph layout lifecycle', () => {
   it('continues from the latest accepted state when the worker fails', () => {
     const { engine, worker } = createEngine();
     const [first] = outputBuffers(worker);
-    engine.tick(1000 / 60);
+    engine.tick();
     publishTick(worker, first);
 
     worker.onerror?.({ message: 'boom' } as ErrorEvent);
     const before = engine.x[0];
-    const result = engine.tick(1000 / 60);
+    const result = engine.tick();
 
     expect(worker.terminate).toHaveBeenCalledOnce();
     expect(Number.isFinite(engine.x[0])).toBe(true);

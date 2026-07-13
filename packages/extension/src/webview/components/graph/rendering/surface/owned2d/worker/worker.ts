@@ -62,7 +62,7 @@ const commandHandlers = {
   tick: (command) => {
     if (command.revision !== revision) return;
     if (command.recycledBuffers) availableOutputBuffers.push(...command.recycledBuffers);
-    postTick(requireEngine().tick(command.elapsedMs));
+    postTick(requireEngine().tick());
   },
   setConfig: (command) => {
     requireEngine().setConfig(command.config);

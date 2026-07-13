@@ -5,7 +5,7 @@ import { generateSyntheticGraph } from '../../src/fixture/generate';
 
 const NODE_COUNT = 500;
 const PACKAGE_SIZE = 128;
-const TICK_MS = 1000 / 60;
+const SETTLEMENT_TICKS = 310;
 
 function createFixtureEngine() {
   const graph = generateSyntheticGraph({ nodeCount: NODE_COUNT, seed: 307 });
@@ -109,7 +109,7 @@ describe('500-node owned physics feel', () => {
   it('settles topology-local relationships into visible package clusters', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
 
-    for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
+    for (let tick = 0; tick < SETTLEMENT_TICKS; tick += 1) engine.tick();
 
     expect(engine.settled).toBe(true);
     expect(nearestPackagePurity(engine.x, engine.y)).toBeGreaterThanOrEqual(0.7);
@@ -128,11 +128,11 @@ describe('500-node owned physics feel', () => {
 
     for (const change of changes) {
       while (currentTick < change.tick) {
-        engine.tick(TICK_MS);
+        engine.tick();
         currentTick += 1;
       }
       engine.setConfig(change.config);
-      engine.tick(TICK_MS);
+      engine.tick();
       currentTick += 1;
       expect(maximumSpeed(engine)).toBeGreaterThan(0.1);
       expect(maximumSpeed(engine)).toBeLessThanOrEqual(30);
@@ -141,7 +141,7 @@ describe('500-node owned physics feel', () => {
 
   it('keeps a high-degree hub stable while a connected leaf is dragged', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
-    for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
+    for (let tick = 0; tick < SETTLEMENT_TICKS; tick += 1) engine.tick();
     const neighbors = adjacency(engine);
     let hub = 0;
     for (let index = 1; index < neighbors.length; index += 1) {
@@ -157,7 +157,7 @@ describe('500-node owned physics feel', () => {
     engine.pin(leaf);
     engine.setNodePosition(leaf, engine.x[leaf] + dragDistance, engine.y[leaf]);
     engine.setAlphaTarget(0.3);
-    for (let tick = 0; tick < 12; tick += 1) engine.tick(TICK_MS);
+    for (let tick = 0; tick < 12; tick += 1) engine.tick();
 
     const hubDisplacement = Math.hypot(
       engine.x[hub] - initialHubX,
@@ -168,7 +168,7 @@ describe('500-node owned physics feel', () => {
 
   it('ripples a hub drag through nearby relationships and settles after release', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
-    for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
+    for (let tick = 0; tick < SETTLEMENT_TICKS; tick += 1) engine.tick();
     const neighbors = adjacency(engine);
     let hub = 0;
     for (let index = 1; index < neighbors.length; index += 1) {
@@ -187,7 +187,8 @@ describe('500-node owned physics feel', () => {
     engine.pin(hub);
     engine.setNodePosition(hub, engine.x[hub] + 120, engine.y[hub]);
     engine.setAlphaTarget(0.3);
-    engine.tick(TICK_MS);
+    engine.tick();
+    engine.tick();
 
     const oneHopDisplacement = meanDisplacement(oneHop, engine, initialX, initialY);
     const twoHopDisplacement = meanDisplacement(twoHop, engine, initialX, initialY);
@@ -198,7 +199,7 @@ describe('500-node owned physics feel', () => {
     engine.setAlphaTarget(0);
     let releaseTicks = 0;
     while (!engine.settled && releaseTicks < 180) {
-      engine.tick(TICK_MS);
+      engine.tick();
       releaseTicks += 1;
     }
     expect(engine.settled).toBe(true);

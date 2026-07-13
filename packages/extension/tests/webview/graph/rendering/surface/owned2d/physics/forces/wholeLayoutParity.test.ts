@@ -86,7 +86,7 @@ describe('owned graph whole-layout D3 parity', () => {
 
     for (let tick = 0; tick < 5; tick += 1) {
       reference.tick();
-      engine.tick(1000 / 60);
+      engine.tick();
     }
 
     let squaredError = 0;

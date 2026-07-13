@@ -80,7 +80,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const fpsSamplerRef = useRef<RenderedFrameFpsSampler | null>(null);
   if (!fpsSamplerRef.current) fpsSamplerRef.current = createRenderedFrameFpsSampler();
   const requestFrameRef = useRef<() => void>(() => undefined);
-  const skipPhysicsFrameRef = useRef(false);
   const ctrlClickSessionRef = useRef<CtrlClickSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
@@ -169,7 +168,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       rendererOperationalRef,
       requestFrameRef,
       recordRenderedFrame: () => undefined,
-      skipPhysicsFrameRef,
       styleVersionRef,
       synchronizedPositionVersionRef,
       publishFps: sample => publishOwnedGraphFps(sample, fpsOutputRef.current),
@@ -233,7 +231,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     propsRef,
     requestFrameRef,
     setLinkTooltip,
-    skipPhysicsFrameRef,
     synchronizedPositionVersionRef,
   });
 

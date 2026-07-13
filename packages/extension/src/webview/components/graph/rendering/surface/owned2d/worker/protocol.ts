@@ -20,7 +20,6 @@ export type GraphLayoutWorkerCommand =
   }
   | {
     type: 'tick';
-    elapsedMs: number;
     recycledBuffers?: GraphLayoutTransferBuffers[];
     revision: number;
   }

@@ -17,6 +17,6 @@ describe('owned physics control flow', () => {
   it('does not advance animation while physics is paused', () => {
     const engine = createOwnedGraphLayout([ownedNode('a')], [], DEFAULT_PHYSICS_SETTINGS).engine;
     engine.pause();
-    expect(engine.tick(1000 / 60).steps).toBe(0);
+    expect(engine.tick().steps).toBe(0);
   });
 });

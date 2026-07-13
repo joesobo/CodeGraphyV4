@@ -1,9 +1,7 @@
 import type { GraphLayoutConfig } from './contracts';
 
-export const BASE_FRAME_MS = 1000 / 60;
-
 export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
-  alphaDecay: 1 - Math.pow(0.001, 1 / 150),
+  alphaDecay: 1 - Math.pow(0.001, 1 / 300),
   alphaMinimum: 0.001,
   centralGravity: 0.1,
   chargeDistanceMax: Number.POSITIVE_INFINITY,
@@ -14,13 +12,10 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   collisionPadding: 0,
   collisionStrength: 1,
   constraintForce: 0.12,
-  fixedTimeStepMs: BASE_FRAME_MS,
   initializationSpacing: 12,
   linkDistance: 80,
   linkStrength: 1,
   maximumCollisionNeighbors: 128,
-  maximumElapsedMs: 250,
-  maximumSubSteps: 2,
   settleSpeed: 1.5,
   settleSteps: 8,
   velocityDecay: 0.4,
@@ -52,8 +47,8 @@ function assertChargeConfig(config: GraphLayoutConfig): void {
 }
 
 function assertIntegrationConfig(config: GraphLayoutConfig): void {
-  if (config.fixedTimeStepMs <= 0 || config.linkDistance <= 0) {
-    throw new Error('Graph layout time step and link distance must be positive');
+  if (config.linkDistance <= 0) {
+    throw new Error('Graph layout link distance must be positive');
   }
   if (config.velocityDecay < 0 || config.velocityDecay > 1) {
     throw new Error('Graph layout velocity decay must be between zero and one');

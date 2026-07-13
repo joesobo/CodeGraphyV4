@@ -40,7 +40,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private failed = false;
   private mutationRevision = 0;
   private paused = false;
-  private pendingElapsedMs = 0;
   private kinematicsBuffersCreated = false;
   private kinematicsPending = false;
   private readonly pendingRecycle: GraphLayoutTransferBuffers[] = [];
@@ -94,7 +93,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.revision += 1;
     this.mutationRevision = 0;
     this.tickInFlight = false;
-    this.pendingElapsedMs = 0;
     this.currentBuffers = undefined;
     this.pendingRecycle.length = 0;
     this.availableKinematicsBuffers = [];
@@ -123,25 +121,19 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.vx.set(vx);
     this.vy.set(vy);
     this.settled = false;
-    this.pendingElapsedMs = 0;
     this.interpolator.reset(this.x, this.y, performance.now());
     this.mutationRevision += 1;
     this.postKinematics();
   }
 
-  tick(elapsedMs: number): GraphLayoutTickResult {
+  tick(): GraphLayoutTickResult {
     if (this.failed) {
-      const result = this.fallback.tick(elapsedMs);
+      const result = this.fallback.tick();
       this.copyFallbackState();
       return result;
     }
-    if (!this.paused && !this.settled) {
-      this.pendingElapsedMs += Math.max(0, elapsedMs);
-      if (!this.tickInFlight && !this.kinematicsPending) {
-        const pendingElapsedMs = this.pendingElapsedMs;
-        this.pendingElapsedMs = 0;
-        this.postTick(pendingElapsedMs);
-      }
+    if (!this.paused && !this.settled && !this.tickInFlight && !this.kinematicsPending) {
+      this.postTick();
     }
     return { moving: false, settled: this.settled, steps: 0 };
   }
@@ -211,7 +203,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
 
   pause(): void {
     this.paused = true;
-    this.pendingElapsedMs = 0;
     this.fallback.pause();
     this.mutationRevision += 1;
     this.post({ type: 'pause', mutationRevision: this.mutationRevision });
@@ -271,12 +262,11 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     }, transferBufferList(buffers));
   }
 
-  private postTick(elapsedMs: number): void {
+  private postTick(): void {
     const recycledBuffers = this.pendingRecycle.splice(0);
     this.tickInFlight = true;
     this.post({
       type: 'tick',
-      elapsedMs,
       recycledBuffers: recycledBuffers.length > 0 ? recycledBuffers : undefined,
       revision: this.revision,
     }, graphLayoutOutputTransfers(recycledBuffers));
@@ -313,7 +303,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.settled = message.result.settled;
     if (message.result.steps === 0) {
       this.pendingRecycle.push(message.buffers);
-      if (this.settled) this.pendingElapsedMs = 0;
       this.onFrameRequest();
       return;
     }
@@ -335,7 +324,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.y = nextY;
     this.vx = nextVx;
     this.vy = nextVy;
-    if (this.settled) this.pendingElapsedMs = 0;
     this.onUpdate();
   }
 

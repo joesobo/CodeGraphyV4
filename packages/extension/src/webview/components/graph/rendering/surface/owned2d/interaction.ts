@@ -53,7 +53,6 @@ interface OwnedGraphInteractionRuntime {
   propsRef: MutableRefObject<Surface2dProps>;
   requestFrameRef: MutableRefObject<() => void>;
   setLinkTooltip: Dispatch<SetStateAction<LinkTooltip | null>>;
-  skipPhysicsFrameRef: MutableRefObject<boolean>;
   synchronizedPositionVersionRef: MutableRefObject<number>;
 }
 
@@ -390,7 +389,6 @@ function zoomAtPointer(
   runtime.cameraRef.current.zoom = nextZoom;
   runtime.cameraRef.current.centerX = world.x - (screen.x - size.width / 2) / nextZoom;
   runtime.cameraRef.current.centerY = world.y - (screen.y - size.height / 2) / nextZoom;
-  runtime.skipPhysicsFrameRef.current = true;
   runtime.requestFrameRef.current();
 }
 

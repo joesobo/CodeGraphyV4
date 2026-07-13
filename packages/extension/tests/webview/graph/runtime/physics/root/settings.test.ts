@@ -45,7 +45,7 @@ describe('owned physics settings', () => {
 
   it('reheats typed physics when settings are applied', () => {
     const layout = engine();
-    for (let tick = 0; tick < 320; tick += 1) layout.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) layout.tick();
     expect(layout.settled).toBe(true);
 
     applyOwnedPhysicsSettings(layout, { ...DEFAULT_PHYSICS_SETTINGS, centerForce: 1 });
@@ -68,7 +68,7 @@ describe('owned physics settings', () => {
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
     }, { centralGravity: 0, collisionIterations: 0, velocityDecay: 0 });
-    layout.tick(1000 / 60);
+    layout.tick();
     expect(layout.vx[0]).toBeLessThan(0);
     expect(layout.vx[1]).toBe(0);
   });
