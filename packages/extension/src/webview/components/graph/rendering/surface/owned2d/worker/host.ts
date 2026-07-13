@@ -171,7 +171,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
 
   pin(index: number): void {
     this.fallback.pin(index);
-    this.flags[index] |= GraphNodeFlag.Pinned;
     this.mutationRevision += 1;
     this.post({ type: 'pin', index, mutationRevision: this.mutationRevision });
   }
@@ -179,15 +178,12 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   release(index: number): void {
     this.flushNodePositions();
     this.fallback.release(index);
-    this.flags[index] &= ~GraphNodeFlag.Pinned;
     this.mutationRevision += 1;
     this.post({ type: 'release', index, mutationRevision: this.mutationRevision });
   }
 
   setHidden(index: number, hidden: boolean): void {
     this.fallback.setHidden(index, hidden);
-    if (hidden) this.flags[index] |= GraphNodeFlag.Hidden;
-    else this.flags[index] &= ~GraphNodeFlag.Hidden;
     this.settled = false;
     this.mutationRevision += 1;
     this.structuralRevision += 1;
@@ -331,35 +327,19 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     if (message.revision !== this.revision) return;
     this.tickInFlight = false;
     if (message.structuralRevision !== this.structuralRevision) {
-      this.pendingRecycle.push(message.buffers);
-      this.onFrameRequest();
+      this.recycleRejectedTick(message);
       return;
     }
-    if (message.mutationRevision === this.mutationRevision) {
-      this.currentAlpha = message.alpha;
-      this.settled = message.result.settled;
-    } else {
-      this.settled = false;
-    }
+    this.applyTickMetadata(message);
     if (message.result.steps === 0) {
-      this.pendingRecycle.push(message.buffers);
-      this.onFrameRequest();
+      this.recycleRejectedTick(message);
       return;
     }
     const nextX = new Float32Array(message.buffers.x);
     const nextY = new Float32Array(message.buffers.y);
     const nextVx = new Float32Array(message.buffers.vx);
     const nextVy = new Float32Array(message.buffers.vy);
-    for (let index = 0; index < this.flags.length; index += 1) {
-      const directlyMovedAfterTick = this.directPositionRevision[index]
-        > message.mutationRevision;
-      const pinned = (this.flags[index] & GraphNodeFlag.Pinned) !== 0;
-      if (!directlyMovedAfterTick && !pinned) continue;
-      nextX[index] = this.x[index];
-      nextY[index] = this.y[index];
-      nextVx[index] = pinned ? 0 : this.vx[index];
-      nextVy[index] = pinned ? 0 : this.vy[index];
-    }
+    this.preserveAuthoritativeKinematics(message, nextX, nextY, nextVx, nextVy);
     this.interpolator.accept(nextX, nextY, performance.now());
     this.recycleCurrentBuffers();
     this.currentBuffers = message.buffers;
@@ -368,6 +348,39 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.vx = nextVx;
     this.vy = nextVy;
     this.onUpdate();
+  }
+
+  private applyTickMetadata(message: GraphLayoutWorkerTickMessage): void {
+    if (message.mutationRevision === this.mutationRevision) {
+      this.currentAlpha = message.alpha;
+      this.settled = message.result.settled;
+    } else {
+      this.settled = false;
+    }
+  }
+
+  private preserveAuthoritativeKinematics(
+    message: GraphLayoutWorkerTickMessage,
+    nextX: Float32Array,
+    nextY: Float32Array,
+    nextVx: Float32Array,
+    nextVy: Float32Array,
+  ): void {
+    for (const [index, flag] of this.flags.entries()) {
+      const directlyMovedAfterTick = this.directPositionRevision[index]
+        > message.mutationRevision;
+      const pinned = (flag & GraphNodeFlag.Pinned) !== 0;
+      if (!directlyMovedAfterTick && !pinned) continue;
+      nextX[index] = this.x[index];
+      nextY[index] = this.y[index];
+      nextVx[index] = pinned ? 0 : this.vx[index];
+      nextVy[index] = pinned ? 0 : this.vy[index];
+    }
+  }
+
+  private recycleRejectedTick(message: GraphLayoutWorkerTickMessage): void {
+    this.pendingRecycle.push(message.buffers);
+    this.onFrameRequest();
   }
 
   private recycleCurrentBuffers(): void {
@@ -383,7 +396,6 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.worker.terminate();
     this.fallback.setKinematics(this.x, this.y, this.vx, this.vy);
     this.fallback.setAlpha(this.currentAlpha);
-    if (this.paused) this.fallback.pause();
     console.warn('[CodeGraphy] Layout worker failed; using main-thread physics.', message);
     this.onUpdate();
   }
