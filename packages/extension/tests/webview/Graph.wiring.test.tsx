@@ -243,7 +243,7 @@ describe('Graph wiring', () => {
 			callbacks: expect.objectContaining({
 				getArrowColor: expect.any(Function),
 				getLinkColor: expect.any(Function),
-				getLinkOpacity: vi.fn(() => 0.3),
+				getLinkOpacity: expect.any(Function),
 			}),
 			graphDataLayoutKey: expect.any(String),
 			graphState: expect.objectContaining({

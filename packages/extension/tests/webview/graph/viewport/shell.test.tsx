@@ -353,7 +353,7 @@ describe('graph/viewport/shell', () => {
 				fg2dRef: graphState.renderer.fg2dRef,
 				getArrowColor: callbacks.getArrowColor,
 				getLinkColor: callbacks.getLinkColor,
-				getLinkOpacity: vi.fn(() => 0.3),
+				getLinkOpacity: callbacks.getLinkOpacity,
 				getParticleColor: callbacks.getParticleColor,
 				onRenderFramePost: expect.any(Function),
 				particleSize: 3,
