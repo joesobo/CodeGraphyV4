@@ -74,9 +74,12 @@ function webGpuHarness() {
   const pipeline = { getBindGroupLayout: vi.fn(() => ({})) };
   const device = {
     createBindGroup: vi.fn(() => ({})),
-    createBuffer: vi.fn(() => ({ destroy: vi.fn() })),
+    createBuffer: vi.fn((descriptor: GPUBufferDescriptor) => ({
+      destroy: vi.fn(),
+      label: descriptor.label,
+    })),
     createCommandEncoder: vi.fn(() => encoder),
-    createRenderPipeline: vi.fn(() => pipeline),
+    createRenderPipeline: vi.fn((_descriptor: GPURenderPipelineDescriptor) => pipeline),
     createShaderModule: vi.fn(() => ({})),
     destroy: vi.fn(),
     limits: { maxTextureDimension2D: 100 },
@@ -100,7 +103,7 @@ function webGpuHarness() {
   Object.defineProperty(navigator, 'gpu', { configurable: true, value: gpu });
   const canvas = document.createElement('canvas');
   Object.defineProperty(canvas, 'getContext', { value: () => context });
-  return { adapter, canvas, draw, gpu, writeBuffer };
+  return { adapter, canvas, device, draw, gpu, pass, writeBuffer };
 }
 
 function rendererFrame() {
@@ -169,26 +172,52 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     renderer!.render(frame);
 
     expect([harness.canvas.width, harness.canvas.height]).toEqual([100, 100]);
-    expect(harness.writeBuffer).toHaveBeenCalledTimes(3);
-    const nodeValues = harness.writeBuffer.mock.calls[1][2] as Float32Array;
-    expect(Array.from(nodeValues.slice(0, 4))).toEqual([1, 2, 5, 6]);
-    const linkCall = harness.writeBuffer.mock.calls[2];
-    const linkValues = new Float32Array(
-      linkCall[2] as ArrayBuffer,
-      linkCall[3] as number,
-      (linkCall[4] as number) / Float32Array.BYTES_PER_ELEMENT,
-    );
-    expect(Array.from(linkValues.slice(0, 5))).toEqual([1, 2, 3, 4, 1]);
-    expect(linkValues[5]).toBeCloseTo(0.2);
-    expect(linkValues[14]).toBeCloseTo(6.47, 2);
-    expect(linkValues[15]).toBeCloseTo(12.69, 2);
-    expect(linkValues[16]).toBe(1);
+    const pipelineStrides = harness.device.createRenderPipeline.mock.calls.map(call =>
+      Array.from(call[0].vertex.buffers ?? [], buffer => buffer?.arrayStride));
+    expect(pipelineStrides).toEqual([[8, 52], [24, 44]]);
+    expect(harness.writeBuffer.mock.calls.map(call => [
+      call[0].label,
+      call[4] ?? (call[2] as ArrayBufferView).byteLength,
+    ])).toEqual([
+      ['CodeGraphy camera uniform', 32],
+      ['CodeGraphy node positions', 16],
+      ['CodeGraphy node styles', 104],
+      ['CodeGraphy link geometry', 24],
+      ['CodeGraphy link styles', 44],
+    ]);
     expect(harness.draw).toHaveBeenNthCalledWith(1, 30, 1);
     expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
+    expect(harness.pass.setVertexBuffer.mock.calls.map(call => [call[0], call[1].label]))
+      .toEqual([
+        [0, 'CodeGraphy link geometry'],
+        [1, 'CodeGraphy link styles'],
+        [0, 'CodeGraphy node positions'],
+        [1, 'CodeGraphy node styles'],
+      ]);
 
+    harness.writeBuffer.mockClear();
+    frame.nodes[0].x = 2;
+    frame.positionVersion += 1;
     renderer!.render(frame);
-    expect(harness.writeBuffer).toHaveBeenCalledTimes(4);
+    expect(harness.writeBuffer.mock.calls.map(call => [
+      call[0].label,
+      call[4] ?? (call[2] as ArrayBufferView).byteLength,
+    ])).toEqual([
+      ['CodeGraphy camera uniform', 32],
+      ['CodeGraphy node positions', 16],
+      ['CodeGraphy link geometry', 24],
+    ]);
+
+    harness.writeBuffer.mockClear();
+    frame.styleVersion += 1;
+    renderer!.render(frame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
+      'CodeGraphy camera uniform',
+      'CodeGraphy node styles',
+      'CodeGraphy link geometry',
+      'CodeGraphy link styles',
+    ]);
     await Promise.resolve();
-    expect(onFrameComplete).toHaveBeenCalledTimes(2);
+    expect(onFrameComplete).toHaveBeenCalledTimes(3);
   });
 });
