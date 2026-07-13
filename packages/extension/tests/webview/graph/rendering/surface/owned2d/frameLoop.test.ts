@@ -42,7 +42,7 @@ describe('owned graph frame loop', () => {
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       engineStopNotifiedRef: { current: false },
       fpsRef: { current: null },
-      fpsSamplerRef: { current: { fps: 57, record, reset: vi.fn() } },
+      fpsSamplerRef: { current: { fps: 57, frameTimeMs: 17.5, record, reset: vi.fn() } },
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: null },
@@ -63,7 +63,7 @@ describe('owned graph frame loop', () => {
 
     expect(record).toHaveBeenCalledWith(100);
     expect(runtime.fpsRef.current).toBe(57);
-    expect(publishFps).toHaveBeenCalledWith(57);
+    expect(publishFps).toHaveBeenCalledWith(57, 17.5);
 
     vi.mocked(renderOwnedGraphFrame).mockReturnValue(120);
     runtime.requestFrameRef.current();

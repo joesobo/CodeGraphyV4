@@ -10,6 +10,20 @@ describe('owned graph rendered-frame FPS sampler', () => {
     expect(sampler.fps).toBe(50);
   });
 
+  it('exposes the smoothed frame time in milliseconds', () => {
+    const sampler = createRenderedFrameFpsSampler();
+
+    expect(sampler.frameTimeMs).toBeNull();
+    sampler.record(0);
+    sampler.record(20);
+    sampler.record(60);
+
+    // EMA duration = 20 + 0.2 * (40 - 20) = 24ms.
+    expect(sampler.frameTimeMs).toBeCloseTo(24, 8);
+    sampler.reset();
+    expect(sampler.frameTimeMs).toBeNull();
+  });
+
   it('smooths frame duration with an exponential moving average', () => {
     const sampler = createRenderedFrameFpsSampler();
 

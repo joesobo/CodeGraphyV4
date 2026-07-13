@@ -52,10 +52,13 @@ function resetOwnedGraphFps(
 
 function publishOwnedGraphFps(
   fps: number,
+  frameTimeMs: number | null,
   output: HTMLOutputElement | null,
 ): void {
   if (!output) return;
-  output.textContent = `${Math.round(fps)} FPS`;
+  output.textContent = frameTimeMs === null
+    ? `${Math.round(fps)} FPS`
+    : `${Math.round(fps)} FPS · ${frameTimeMs.toFixed(1)} ms`;
   output.hidden = false;
 }
 
@@ -164,7 +167,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       recordRenderedFrame: () => undefined,
       skipPhysicsFrameRef,
       styleVersionRef,
-      publishFps: fps => publishOwnedGraphFps(fps, fpsOutputRef.current),
+      publishFps: (fps, frameTimeMs) => publishOwnedGraphFps(fps, frameTimeMs, fpsOutputRef.current),
       onRendererError: message => {
         resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
         setRendererError(message);

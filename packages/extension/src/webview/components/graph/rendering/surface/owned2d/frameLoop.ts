@@ -10,7 +10,7 @@ export interface OwnedGraphFrameLoopRuntime
   fpsRef: MutableRefObject<number | null>;
   fpsSamplerRef: MutableRefObject<RenderedFrameFpsSampler | null>;
   frameRequestedRef: MutableRefObject<boolean>;
-  publishFps(this: void, fps: number): void;
+  publishFps(this: void, fps: number, frameTimeMs: number | null): void;
 }
 
 export interface OwnedGraphFrameLoop {
@@ -38,7 +38,7 @@ export function startOwnedGraphFrameLoop(
     if (!sampler) return;
     const publishedFps = sampler.record(timestamp);
     runtime.fpsRef.current = sampler.fps;
-    if (publishedFps !== undefined) runtime.publishFps(publishedFps);
+    if (publishedFps !== undefined) runtime.publishFps(publishedFps, sampler.frameTimeMs);
   };
 
   const renderFrame = (timestamp: number): void => {
