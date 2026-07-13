@@ -39,11 +39,11 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     const defaults = createDefaultCodeGraphyRepoSettings();
     const settings = createDefaultCodeGraphyRepoSettings();
 
-    const updated = createUpdatedSettings(defaults, settings, 'physics.damping', 0.4);
+    const updated = createUpdatedSettings(defaults, settings, 'physics.damping', 0.2);
 
-    expect(updated.physics.damping).toBe(0.4);
+    expect(updated.physics.damping).toBe(0.2);
     expect(updated.physics.linkDistance).toBe(80);
-    expect(settings.physics.damping).toBe(0.7);
+    expect(settings.physics.damping).toBe(0.4);
   });
 
   it('reads, normalizes, merges, and rewrites persisted settings when the shape changed', () => {

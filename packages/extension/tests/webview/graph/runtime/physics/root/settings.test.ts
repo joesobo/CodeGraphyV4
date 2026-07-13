@@ -28,7 +28,7 @@ describe('owned physics settings', () => {
       centralGravity: 0.1,
       chargeStrength: -250,
       linkDistance: 80,
-      linkStrength: 0.15,
+      linkStrength: 1,
       velocityDecay: 0.4,
     });
   });

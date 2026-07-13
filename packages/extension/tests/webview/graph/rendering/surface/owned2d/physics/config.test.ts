@@ -7,7 +7,7 @@ describe('default graph physics configuration', () => {
       chargeStrength: -250,
       maximumCollisionNeighbors: 128,
       linkDistance: 80,
-      linkStrength: 0.15,
+      linkStrength: 1,
       velocityDecay: 0.4,
       centralGravity: 0.1,
     });

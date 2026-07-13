@@ -17,8 +17,8 @@ export function integrateGraphLayout(
       state.vy[index] = 0;
       continue;
     }
-    state.vx[index] += -state.x[index] * config.centralGravity * alpha * 0.001;
-    state.vy[index] += -state.y[index] * config.centralGravity * alpha * 0.001;
+    state.vx[index] += -state.x[index] * config.centralGravity * alpha;
+    state.vy[index] += -state.y[index] * config.centralGravity * alpha;
     const constraintAlpha = Math.max(alpha, 0.1);
     if (Number.isFinite(state.targetX[index])) {
       state.vx[index] += (state.targetX[index] - state.x[index])

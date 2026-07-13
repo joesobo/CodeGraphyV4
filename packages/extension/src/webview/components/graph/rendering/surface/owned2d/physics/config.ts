@@ -14,7 +14,7 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   fixedTimeStepMs: BASE_FRAME_MS,
   initializationSpacing: 12,
   linkDistance: 80,
-  linkStrength: 0.15,
+  linkStrength: 1,
   maximumCollisionNeighbors: 128,
   maximumElapsedMs: 250,
   maximumSubSteps: 2,

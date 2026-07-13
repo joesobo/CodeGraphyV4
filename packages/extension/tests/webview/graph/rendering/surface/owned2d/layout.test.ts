@@ -21,7 +21,7 @@ const DEFAULT_SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
   damping: 0.4,
   linkDistance: 80,
-  linkForce: 0.15,
+  linkForce: 1,
   repelForce: 10,
 };
 
