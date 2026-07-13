@@ -74,9 +74,25 @@ snapshots, so a graph simulating at 20–30 steps/s still moves smoothly at
 display rate. Interpolation is render-only; picking, physics, and persisted
 positions use the authoritative simulation state.
 
-After items 1–3 land, re-verify drag feel against Obsidian: during drag the
-simulation should hold `alphaTarget ≈ 0.3` (d3's drag convention) so
-neighbors follow immediately, returning to 0 on release.
+### 3b. Step the simulation at display rate (drag-follow feel)
+
+Separate from raw performance: even at 144 FPS, neighbors follow a dragged
+node noticeably slower than Obsidian. Root cause: d3/Obsidian advance one
+simulation step per animation frame (144 steps/s on a 144 Hz display), while
+our fixed-timestep accumulator caps the simulation at 60 steps/s regardless
+of render rate — 2.4× fewer convergence steps per wall-second. The force
+math and drag `alphaTarget 0.3` already match d3; the step *rate* does not.
+
+Fix: run one fixed-size physics step per rendered frame (d3 semantics —
+settle speed tracks refresh rate, which is the Obsidian feel), instead of
+accumulating wall-clock time toward 60 Hz. The step itself stays fixed-size
+and iteration order stays fixed, so determinism per step count is preserved;
+scripted tests keep driving explicit step counts. Worker pacing follows the
+render loop's frame callbacks rather than an internal 60 Hz cadence.
+
+Also align `alphaDecay` with d3's default (~300 ticks to settle,
+`1 - 0.001^(1/300)`); ours settles in ~150 ticks, cutting the post-release
+glide short.
 
 ### 4. Lazy picker rebuilds
 
