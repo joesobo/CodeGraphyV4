@@ -34,7 +34,6 @@ function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayou
   const nodes = currentProps.sharedProps.graphData.nodes;
   const links = currentProps.sharedProps.graphData.links;
   const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
-  const allowWorker = (currentProps.graphViewContributions?.forces.length ?? 0) === 0;
   const current = runtime.layoutRef.current;
   const updated = current && updateOwnedGraphLayout(
     current,
@@ -43,7 +42,6 @@ function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayou
     settings,
     currentProps.sharedProps.dagMode ?? null,
     currentProps.sharedProps.dagLevelDistance ?? 60,
-    allowWorker,
   );
   if (current && updated) return current;
   current?.engine.dispose?.();
@@ -57,7 +55,7 @@ function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayou
       runtime.positionVersionRef.current += 1;
       runtime.requestFrameRef.current();
     },
-    allowWorker,
+    () => runtime.requestFrameRef.current(),
   );
   runtime.layoutRef.current = layout;
   return layout;

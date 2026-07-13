@@ -22,7 +22,10 @@ export interface GraphLayoutConfig {
   alphaDecay: number;
   alphaMinimum: number;
   centralGravity: number;
+  chargeDistanceMax: number;
+  chargeDistanceMin: number;
   chargeStrength: number;
+  chargeTheta: number;
   collisionIterations: number;
   collisionPadding: number;
   collisionStrength: number;
@@ -45,6 +48,13 @@ export interface GraphLayoutTickResult {
   steps: number;
 }
 
+export interface GraphLayoutRenderSample {
+  needsFrame: boolean;
+  version: number;
+  x: Float32Array;
+  y: Float32Array;
+}
+
 export interface GraphLayoutEngine {
   readonly nodeIds: readonly string[];
   readonly x: Float32Array;
@@ -61,6 +71,7 @@ export interface GraphLayoutEngine {
   readonly settled: boolean;
   readonly alpha: number;
   getNodeIndex(nodeId: string): number | undefined;
+  sampleRenderPositions?(timestamp: number): GraphLayoutRenderSample;
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void;
@@ -69,6 +80,7 @@ export interface GraphLayoutEngine {
   pin(index: number): void;
   release(index: number): void;
   setHidden(index: number, hidden: boolean): void;
+  setAlpha(alpha: number): void;
   setAlphaTarget(alpha: number): void;
   reheat(alpha?: number): void;
   pause(): void;

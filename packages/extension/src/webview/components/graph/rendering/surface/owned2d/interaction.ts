@@ -11,7 +11,7 @@ import { clampOwnedGraphZoom, screenToGraph, type OwnedGraphCamera } from './cam
 import { canvasSize, localCanvasPointer } from './canvasGeometry';
 import type { Surface2dProps } from './contracts';
 import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
-import type { OwnedGraphLayout } from './layout';
+import { syncOwnedLayoutNodesAtVersion, type OwnedGraphLayout } from './layout';
 import type { OwnedGraphLinkPicker } from './linkPicking';
 import type { OwnedGraphNodePicker } from './picking';
 
@@ -54,6 +54,7 @@ interface OwnedGraphInteractionRuntime {
   requestFrameRef: MutableRefObject<() => void>;
   setLinkTooltip: Dispatch<SetStateAction<LinkTooltip | null>>;
   skipPhysicsFrameRef: MutableRefObject<boolean>;
+  synchronizedPositionVersionRef: MutableRefObject<number>;
 }
 
 export interface OwnedGraphInteractionHandlers {
@@ -78,11 +79,23 @@ function screenToWorld(
   return screenToGraph(camera, size.width, size.height, screen.x, screen.y);
 }
 
+function synchronizeAuthoritativeNodes(
+  runtime: OwnedGraphInteractionRuntime,
+  layout: OwnedGraphLayout,
+): void {
+  runtime.synchronizedPositionVersionRef.current = syncOwnedLayoutNodesAtVersion(
+    layout,
+    runtime.positionVersionRef.current,
+    runtime.synchronizedPositionVersionRef.current,
+  );
+}
+
 function pickNode(
   runtime: OwnedGraphInteractionRuntime,
   layout: OwnedGraphLayout,
   world: { x: number; y: number },
 ) {
+  synchronizeAuthoritativeNodes(runtime, layout);
   if (runtime.pickerPositionVersionRef.current !== runtime.positionVersionRef.current) {
     runtime.pickerRef.current.rebuild(layout.nodes);
     runtime.pickerPositionVersionRef.current = runtime.positionVersionRef.current;
@@ -95,6 +108,7 @@ function pickLink(
   layout: OwnedGraphLayout,
   world: { x: number; y: number },
 ) {
+  synchronizeAuthoritativeNodes(runtime, layout);
   if (runtime.linkPickerPositionVersionRef.current !== runtime.positionVersionRef.current) {
     runtime.linkPickerRef.current.rebuild(layout.links);
     runtime.linkPickerPositionVersionRef.current = runtime.positionVersionRef.current;

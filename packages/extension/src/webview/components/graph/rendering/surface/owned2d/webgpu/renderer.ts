@@ -31,6 +31,8 @@ export interface OwnedWebGpuFrame {
   links: readonly FGLink[];
   nodes: readonly FGNode[];
   positionVersion: number;
+  renderX?: Float32Array;
+  renderY?: Float32Array;
   styleVersion: number;
 }
 
@@ -180,6 +182,7 @@ export class OwnedWebGpuRenderer {
   private linkStyleValues = new Float32Array();
   private linkWidthAccessor: OwnedWebGpuFrame['getLinkWidth'] | undefined;
   private readonly linkCameraBindGroup: GPUBindGroup;
+  private nodeIndexByNode = new WeakMap<FGNode, number>();
   private nodePositionValues = new Float32Array();
   private readonly nodePositionStream: VertexStream;
   private nodeStyleByNode = new WeakMap<FGNode, OwnedGraphNodeStyle>();
@@ -382,11 +385,13 @@ export class OwnedWebGpuRenderer {
   private updateNodeStyleCache(frame: OwnedWebGpuFrame): void {
     this.uploadedStyleVersion = frame.styleVersion;
     this.styledNodes = frame.nodes;
+    this.nodeIndexByNode = new WeakMap();
     this.nodeStyleByNode = new WeakMap();
     this.nodeStyles = new Float32Array(frame.nodes.length * NODE_STYLE_FLOATS);
     for (let index = 0; index < frame.nodes.length; index += 1) {
       const node = frame.nodes[index];
       const style = frame.getNodeStyle(node);
+      this.nodeIndexByNode.set(node, index);
       this.nodeStyleByNode.set(node, style);
       this.writeNodeStyle(index, style);
     }
@@ -458,8 +463,8 @@ export class OwnedWebGpuRenderer {
     }
     for (let index = 0; index < frame.nodes.length; index += 1) {
       const offset = index * NODE_POSITION_FLOATS;
-      this.nodePositionValues[offset] = frame.nodes[index].x ?? 0;
-      this.nodePositionValues[offset + 1] = frame.nodes[index].y ?? 0;
+      this.nodePositionValues[offset] = frame.renderX?.[index] ?? frame.nodes[index].x ?? 0;
+      this.nodePositionValues[offset + 1] = frame.renderY?.[index] ?? frame.nodes[index].y ?? 0;
     }
   }
 
@@ -475,21 +480,24 @@ export class OwnedWebGpuRenderer {
     const source = endpointNode(link.source);
     const target = endpointNode(link.target);
     if (!source || !target) return false;
-    const sourceStyle = this.nodeStyleByNode.get(source);
-    const targetStyle = this.nodeStyleByNode.get(target);
-    if (!sourceStyle || !targetStyle) return false;
+    const sourceIndex = this.nodeIndexByNode.get(source);
+    const targetIndex = this.nodeIndexByNode.get(target);
+    if (sourceIndex === undefined || targetIndex === undefined) return false;
     const curvature = link.curvature ?? 0;
     if (writeGeometry) {
-      const sourceX = source.x ?? 0;
-      const sourceY = source.y ?? 0;
-      const targetX = target.x ?? 0;
-      const targetY = target.y ?? 0;
+      const sourceX = frame.renderX?.[sourceIndex] ?? source.x ?? 0;
+      const sourceY = frame.renderY?.[sourceIndex] ?? source.y ?? 0;
+      const targetX = frame.renderX?.[targetIndex] ?? target.x ?? 0;
+      const targetY = frame.renderY?.[targetIndex] ?? target.y ?? 0;
       const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
       this.linkGeometryValues[offset] = sourceX;
       this.linkGeometryValues[offset + 1] = sourceY;
       this.linkGeometryValues[offset + 2] = targetX;
       this.linkGeometryValues[offset + 3] = targetY;
       if (writeArrows) {
+        const sourceStyle = this.nodeStyleByNode.get(source);
+        const targetStyle = this.nodeStyleByNode.get(target);
+        if (!sourceStyle || !targetStyle) return false;
         writeOwnedArrowCurveParameters(
           this.linkGeometryValues,
           offset + 4,

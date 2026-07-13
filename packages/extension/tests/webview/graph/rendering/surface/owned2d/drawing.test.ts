@@ -41,6 +41,63 @@ describe('drawOwnedGraphOverlay', () => {
     expect(nodeLabelCanvasObject).toHaveBeenCalledOnce();
   });
 
+  it('draws particles on interpolated edge paths', () => {
+    const context = {
+      arc: vi.fn(),
+      beginPath: vi.fn(),
+      fill: vi.fn(),
+      fillStyle: '',
+    } as unknown as CanvasRenderingContext2D;
+    const source = node();
+    const target = { ...node(), id: 'b', x: 100 };
+
+    drawOwnedGraphOverlay({
+      context,
+      directionMode: 'particles',
+      getLinkParticles: () => 1,
+      getNodeIndex: id => id === 'a' ? 0 : 1,
+      getParticleColor: () => '#fff',
+      globalScale: 1,
+      links: [{ source, target, id: 'a-b' } as never],
+      nodes: [source, target],
+      nodeLabelCanvasObject: vi.fn(),
+      particleSize: 1,
+      particleSpeed: 0,
+      renderX: Float32Array.of(20, 120),
+      renderY: Float32Array.of(10, 10),
+      timestamp: 0,
+      viewport: { minimumX: 0, maximumX: 140, minimumY: 0, maximumY: 20 },
+    });
+
+    expect(context.arc).toHaveBeenCalledWith(20, 10, 1, 0, Math.PI * 2);
+    expect([source.x, source.y, target.x, target.y]).toEqual([0, 0, 100, 0]);
+  });
+
+  it('draws overlays at interpolated positions without changing authoritative nodes', () => {
+    const rendered: Array<{ x: number | undefined; y: number | undefined }> = [];
+    const graphNode = node();
+
+    drawOwnedGraphOverlay({
+      context: {} as CanvasRenderingContext2D,
+      directionMode: 'none',
+      getLinkParticles: vi.fn(),
+      getParticleColor: vi.fn(),
+      globalScale: 1,
+      links: [],
+      nodes: [graphNode],
+      nodeLabelCanvasObject: current => rendered.push({ x: current.x, y: current.y }),
+      particleSize: 1,
+      particleSpeed: 1,
+      renderX: Float32Array.of(25),
+      renderY: Float32Array.of(30),
+      timestamp: 0,
+      viewport: { minimumX: 20, maximumX: 30, minimumY: 25, maximumY: 35 },
+    });
+
+    expect(rendered).toEqual([{ x: 25, y: 30 }]);
+    expect([graphNode.x, graphNode.y]).toEqual([0, 0]);
+  });
+
   it('draws decorations only for nodes inside the viewport', () => {
     const nodeLabelCanvasObject = vi.fn();
     const visible = node();

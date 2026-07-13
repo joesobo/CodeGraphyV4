@@ -14,8 +14,6 @@ import { createWorkerHostedGraphLayoutEngine } from './worker/host';
 
 export { ownedNodeCollisionRadius } from './collisionRadius';
 
-const WORKER_LAYOUT_NODE_THRESHOLD = 5_000;
-
 export interface OwnedGraphLayout {
   engine: GraphLayoutEngine;
   kind: 'main-thread' | 'worker';
@@ -127,8 +125,8 @@ function buildOwnedGraphLayoutData(
   return { input, resolvedLinks };
 }
 
-function shouldUseWorker(nodeCount: number, allowWorker: boolean): boolean {
-  return allowWorker && nodeCount >= WORKER_LAYOUT_NODE_THRESHOLD && typeof Worker !== 'undefined';
+function workerAvailable(): boolean {
+  return typeof Worker !== 'undefined';
 }
 
 export function createOwnedGraphLayout(
@@ -138,7 +136,7 @@ export function createOwnedGraphLayout(
   dagMode: DagMode = null,
   dagLevelDistance = 60,
   onWorkerUpdate: () => void = () => undefined,
-  allowWorker = true,
+  onWorkerFrameRequest: () => void = onWorkerUpdate,
 ): OwnedGraphLayout {
   const { input, resolvedLinks } = buildOwnedGraphLayoutData(
     nodes,
@@ -146,14 +144,30 @@ export function createOwnedGraphLayout(
     dagMode,
     dagLevelDistance,
   );
-  const useWorker = shouldUseWorker(nodes.length, allowWorker);
-  const engine = useWorker
-    ? createWorkerHostedGraphLayoutEngine(input, onWorkerUpdate)
-    : createGraphLayoutEngine(input);
+  let engine: GraphLayoutEngine;
+  let kind: OwnedGraphLayout['kind'] = 'main-thread';
+  if (workerAvailable()) {
+    try {
+      engine = createWorkerHostedGraphLayoutEngine(
+        input,
+        onWorkerUpdate,
+        onWorkerFrameRequest,
+      );
+      kind = 'worker';
+    } catch (error) {
+      console.warn(
+        '[CodeGraphy] Layout worker could not start; using main-thread physics.',
+        error,
+      );
+      engine = createGraphLayoutEngine(input);
+    }
+  } else {
+    engine = createGraphLayoutEngine(input);
+  }
   applyOwnedPhysicsSettings(engine, settings);
   engine.reheat();
 
-  return { engine, kind: useWorker ? 'worker' : 'main-thread', links: resolvedLinks, nodes };
+  return { engine, kind, links: resolvedLinks, nodes };
 }
 
 function sameBuffer(first: ArrayLike<number>, second: ArrayLike<number>): boolean {
@@ -171,11 +185,7 @@ export function updateOwnedGraphLayout(
   settings: IPhysicsSettings,
   dagMode: DagMode = null,
   dagLevelDistance = 60,
-  allowWorker = true,
 ): boolean {
-  const nextKind = shouldUseWorker(nodes.length, allowWorker) ? 'worker' : 'main-thread';
-  if (nextKind !== layout.kind) return false;
-
   const previousIndexes = new Map(layout.engine.nodeIds.map((id, index) => [id, index]));
   for (const node of nodes) {
     const index = previousIndexes.get(node.id);
@@ -215,6 +225,16 @@ export function updateOwnedGraphLayout(
   }
   syncOwnedLayoutNodes(layout);
   return true;
+}
+
+export function syncOwnedLayoutNodesAtVersion(
+  layout: OwnedGraphLayout,
+  positionVersion: number,
+  synchronizedVersion: number,
+): number {
+  if (synchronizedVersion === positionVersion) return synchronizedVersion;
+  syncOwnedLayoutNodes(layout);
+  return positionVersion;
 }
 
 export function syncOwnedLayoutNodes(layout: OwnedGraphLayout): void {

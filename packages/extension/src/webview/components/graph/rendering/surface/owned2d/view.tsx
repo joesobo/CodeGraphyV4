@@ -88,6 +88,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const engineStopNotifiedRef = useRef(false);
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
+  const synchronizedPositionVersionRef = useRef(-1);
   const styleVersionRef = useRef(0);
   const styledPropsRef = useRef<Surface2dProps | null>(null);
   const linkPickerPositionVersionRef = useRef(-1);
@@ -95,6 +96,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pickerPositionVersionRef = useRef(-1);
   const pickerRef = useRef(new OwnedGraphNodePicker());
   const pluginForcesRef = useRef(createOwnedGraphPluginForces());
+  const pluginKinematicsVersionRef = useRef(-1);
   const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
   const [rendererStatus, setRendererStatus] = useState<OwnedGraphRendererStatus>('initializing');
   const [rendererError, setRendererError] = useState<string | null>(null);
@@ -160,9 +162,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       frameRequestedRef,
       gpuRendererRef,
       layoutRef,
-      pickerPositionVersionRef,
-      pickerRef,
       pluginForcesRef,
+      pluginKinematicsVersionRef,
       positionVersionRef,
       propsRef,
       rendererOperationalRef,
@@ -170,6 +171,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       recordRenderedFrame: () => undefined,
       skipPhysicsFrameRef,
       styleVersionRef,
+      synchronizedPositionVersionRef,
       publishFps: sample => publishOwnedGraphFps(sample, fpsOutputRef.current),
       onRendererError: message => {
         resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
@@ -232,6 +234,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     requestFrameRef,
     setLinkTooltip,
     skipPhysicsFrameRef,
+    synchronizedPositionVersionRef,
   });
 
   const fpsSample = props.showFps ? fpsSamplerRef.current?.sample() ?? null : null;
