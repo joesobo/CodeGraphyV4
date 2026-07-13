@@ -15,6 +15,7 @@ import type { GraphRuntime } from '../runtime/use/state';
 import type { FGLink, FGNode } from '../model/build';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { OwnedGraphNodeStyle } from './surface/owned2d/contracts';
+import { NodeLabelSpriteCache } from './node/labelSprite';
 
 export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;
@@ -90,6 +91,10 @@ export function useGraphCallbacks({
     triggerImageRerender,
   });
   const callbacksRef = useRef<UseGraphCallbacksResult | null>(null);
+  const labelSpriteCacheRef = useRef<NodeLabelSpriteCache | null>(null);
+  if (labelSpriteCacheRef.current === null) {
+    labelSpriteCacheRef.current = new NodeLabelSpriteCache();
+  }
 
   contextRef.current = {
     pluginHost,
@@ -108,6 +113,7 @@ export function useGraphCallbacks({
           node,
           ctx,
           globalScale,
+          labelSpriteCacheRef.current!,
         );
       },
       getLinkColor(link) {
