@@ -1,6 +1,7 @@
 import { renderNodeCollapseIndicator } from '../node/collapseIndicator';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
+import type { NodeLabelSpriteProvider } from '../node/labelSprite';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
@@ -52,6 +53,7 @@ export function renderNodeCanvasLabel(
   node: FGNode,
   ctx: CanvasRenderingContext2D,
   globalScale: number,
+  labelSpriteCache: NodeLabelSpriteProvider,
 ): void {
   const isHighlighted = isNodeHighlighted(dependencies, node.id);
   const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
@@ -71,6 +73,7 @@ export function renderNodeCanvasLabel(
       isHighlighted,
       node,
       opacity,
+      spriteCache: labelSpriteCache,
     });
   }
   ctx.globalAlpha = opacity;

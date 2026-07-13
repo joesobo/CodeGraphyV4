@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
 import type { WebviewPluginHost } from '../../../../../src/webview/pluginHost/manager';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
+import type { NodeLabelSpriteProvider } from '../../../../../src/webview/components/graph/rendering/node/labelSprite';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
 import {
   getNodeCanvasStyle,
@@ -77,6 +78,10 @@ function createContext(): CanvasRenderingContext2D {
   } as unknown as CanvasRenderingContext2D;
 }
 
+const labelSpriteCache = {
+  get: () => ({ cssHeight: 15, cssWidth: 26, image: {} as CanvasImageSource }),
+} satisfies NodeLabelSpriteProvider;
+
 describe('graph/rendering/nodes/canvas2d', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -122,13 +127,19 @@ describe('graph/rendering/nodes/canvas2d', () => {
     const context = createContext();
     const node = createNode();
 
-    renderNodeCanvasLabel(createDependencies(), node, context, 1);
-    expect(context.fillText).toHaveBeenCalledWith('app.ts', expect.any(Number), expect.any(Number));
+    renderNodeCanvasLabel(createDependencies(), node, context, 1, labelSpriteCache);
+    expect(context.drawImage).toHaveBeenCalled();
     expect(context.save).toHaveBeenCalledOnce();
     expect(context.restore).toHaveBeenCalledOnce();
 
-    vi.mocked(context.fillText).mockClear();
-    renderNodeCanvasLabel(createDependencies({ showLabels: false }), node, context, 1);
-    expect(context.fillText).not.toHaveBeenCalled();
+    vi.mocked(context.drawImage).mockClear();
+    renderNodeCanvasLabel(
+      createDependencies({ showLabels: false }),
+      node,
+      context,
+      1,
+      labelSpriteCache,
+    );
+    expect(context.drawImage).not.toHaveBeenCalled();
   });
 });
