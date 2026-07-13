@@ -3,7 +3,7 @@ import type { GraphLayoutConfig } from './contracts';
 export const BASE_FRAME_MS = 1000 / 60;
 
 export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
-  alphaDecay: 1 - Math.pow(0.001, 1 / 300),
+  alphaDecay: 1 - Math.pow(0.001, 1 / 150),
   alphaMinimum: 0.001,
   centralGravity: 0.1,
   chargeStrength: -250,

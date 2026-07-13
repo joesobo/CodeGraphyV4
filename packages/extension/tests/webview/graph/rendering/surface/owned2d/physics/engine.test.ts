@@ -40,7 +40,7 @@ describe('graph layout engine', () => {
     expect(engine.tick(1000 / 60)).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
-  it('uses the D3 300-tick alpha cooling schedule', () => {
+  it('cools D3 alpha within the Obsidian-like release-settle window', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['node-0'],
       initialX: Float32Array.of(0),
@@ -56,7 +56,9 @@ describe('graph layout engine', () => {
 
     engine.tick(1000 / 60);
 
-    expect(engine.alpha).toBeCloseTo(Math.pow(0.001, 1 / 300), 12);
+    expect(engine.alpha).toBeCloseTo(Math.pow(0.001, 1 / 150), 12);
+    for (let tick = 1; tick < 160; tick += 1) engine.tick(1000 / 60);
+    expect(engine.settled).toBe(true);
   });
 
   it('produces identical positions for identical input and fixed ticks', () => {
