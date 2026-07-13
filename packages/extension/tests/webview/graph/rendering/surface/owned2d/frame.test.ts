@@ -69,8 +69,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     gpuRendererRef: { current: renderer },
     layoutRef: { current: layout },
     onRendererError: vi.fn(),
-    pickerPositionVersionRef: { current: -1 },
-    pickerRef: { current: { rebuild: vi.fn() } as never },
+    pluginKinematicsVersionRef: { current: -1 },
     pluginForcesRef: { current: {
       active: () => true,
       dispose: vi.fn(),
@@ -89,6 +88,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     recordRenderedFrame: vi.fn(),
     skipPhysicsFrameRef: { current: false },
     styleVersionRef: { current: 1 },
+    synchronizedPositionVersionRef: { current: -1 },
   };
   return { layout, node, runtime };
 }
@@ -117,7 +117,6 @@ describe('owned graph frame execution', () => {
     expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalled();
     expect([layout.engine.x[0], layout.engine.y[0]]).not.toEqual([0, 0]);
     expect(node.x).toBe(layout.engine.x[0]);
-    expect(runtime.pickerRef.current.rebuild).toHaveBeenCalledWith([node]);
     expect(renderer.render).toHaveBeenCalledOnce();
     expect(submittedFrame).toMatchObject({ positionVersion: 1, styleVersion: 1 });
     expect(runtime.propsRef.current.nodeLabelCanvasObject).toHaveBeenCalledWith(
@@ -134,6 +133,45 @@ describe('owned graph frame execution', () => {
       syncMs: expect.any(Number),
     }));
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
+  });
+
+  it('renders interpolated worker positions while keeping layout nodes authoritative', () => {
+    let submittedFrame: OwnedWebGpuFrame | undefined;
+    const renderer = {
+      render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
+    } as unknown as OwnedWebGpuRenderer;
+    const { layout, node, runtime } = runtimeFixture(renderer);
+    runtime.pluginForcesRef.current.active = () => false;
+    layout.engine.pause();
+    layout.engine.sampleRenderPositions = vi.fn(() => ({
+      needsFrame: true,
+      version: 7,
+      x: Float32Array.of(100),
+      y: Float32Array.of(200),
+    }));
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 150, 100);
+
+    expect(submittedFrame?.renderX?.[0]).toBe(100);
+    expect(submittedFrame?.renderY?.[0]).toBe(200);
+    expect(submittedFrame?.positionVersion).toBe(7);
+    expect(node.x).toBe(layout.engine.x[0]);
+    expect(runtime.requestFrameRef.current).toHaveBeenCalled();
+  });
+
+  it('bridges plugin kinematics once per worker snapshot without invalidating in-flight ticks', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { layout, runtime } = runtimeFixture(renderer);
+    layout.kind = 'worker';
+    vi.spyOn(layout.engine, 'tick').mockReturnValue({ moving: true, settled: false, steps: 0 });
+    const setKinematics = vi.spyOn(layout.engine, 'setKinematics');
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100, null);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 116, 100);
+
+    expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalledOnce();
+    expect(setKinematics).toHaveBeenCalledOnce();
+    expect(runtime.positionVersionRef.current).toBe(1);
   });
 
   it('submits only enough idle frames to establish the initial FPS sample', () => {

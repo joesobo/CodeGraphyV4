@@ -6,7 +6,10 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   alphaDecay: 1 - Math.pow(0.001, 1 / 150),
   alphaMinimum: 0.001,
   centralGravity: 0.1,
+  chargeDistanceMax: Number.POSITIVE_INFINITY,
+  chargeDistanceMin: 1,
   chargeStrength: -250,
+  chargeTheta: 0.9,
   collisionIterations: 4,
   collisionPadding: 0,
   collisionStrength: 1,
@@ -23,22 +26,47 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   velocityDecay: 0.4,
 };
 
+function assertFiniteConfig(config: GraphLayoutConfig): void {
+  for (const [key, value] of Object.entries(config)) {
+    const infiniteChargeDistance = key === 'chargeDistanceMax'
+      && value === Number.POSITIVE_INFINITY;
+    if (!Number.isFinite(value) && !infiniteChargeDistance) {
+      throw new Error(`Graph layout config ${key} must be finite`);
+    }
+  }
+}
+
+function assertChargeConfig(config: GraphLayoutConfig): void {
+  if (config.chargeStrength > 0) {
+    throw new Error('Graph layout charge strength must be zero or negative');
+  }
+  if (
+    config.chargeDistanceMin < 0
+    || config.chargeDistanceMax < config.chargeDistanceMin
+  ) {
+    throw new Error('Graph layout charge distance range is invalid');
+  }
+  if (config.chargeTheta < 0) {
+    throw new Error('Graph layout charge theta must be non-negative');
+  }
+}
+
+function assertIntegrationConfig(config: GraphLayoutConfig): void {
+  if (config.fixedTimeStepMs <= 0 || config.linkDistance <= 0) {
+    throw new Error('Graph layout time step and link distance must be positive');
+  }
+  if (config.velocityDecay < 0 || config.velocityDecay > 1) {
+    throw new Error('Graph layout velocity decay must be between zero and one');
+  }
+}
+
 export function mergeGraphLayoutConfig(
   current: GraphLayoutConfig,
   update: Partial<GraphLayoutConfig>,
 ): GraphLayoutConfig {
   const next = { ...current, ...update };
-  for (const [key, value] of Object.entries(next)) {
-    if (!Number.isFinite(value)) throw new Error(`Graph layout config ${key} must be finite`);
-  }
-  if (next.fixedTimeStepMs <= 0 || next.linkDistance <= 0) {
-    throw new Error('Graph layout time step and link distance must be positive');
-  }
-  if (next.chargeStrength > 0) {
-    throw new Error('Graph layout charge strength must be zero or negative');
-  }
-  if (next.velocityDecay < 0 || next.velocityDecay > 1) {
-    throw new Error('Graph layout velocity decay must be between zero and one');
-  }
+  assertFiniteConfig(next);
+  assertChargeConfig(next);
+  assertIntegrationConfig(next);
   return next;
 }

@@ -9,6 +9,7 @@ import {
 } from './contracts';
 import { applyCenterForces } from './forces/center';
 import { applyCollisionForces } from './forces/collision';
+import { FlatBarnesHutTree } from './forces/barnesHut';
 import { applyLinkForces } from './forces/link';
 import { applyRepulsionForces } from './forces/repulsion';
 import { integrateGraphLayout } from './integration';
@@ -28,6 +29,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
   private nodeIndexes = new Map<string, number>();
   private collisionGrid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.initializationSpacing);
+  private readonly repulsionTree = new FlatBarnesHutTree();
   private simulationAlpha = 1;
   private simulationAlphaTarget = 0;
   private accumulatorMs = 0;
@@ -117,6 +119,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.y.set(y);
     this.vx.set(vx);
     this.vy.set(vy);
+    this.settled = false;
+    this.settledStepCount = 0;
   }
 
   setNodePosition(index: number, x: number, y: number): void {
@@ -156,6 +160,13 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.reheat();
   }
 
+  setAlpha(alpha: number): void {
+    if (!Number.isFinite(alpha) || alpha < 0) {
+      throw new Error('Graph layout alpha must be a non-negative finite number');
+    }
+    this.simulationAlpha = alpha;
+  }
+
   setAlphaTarget(alpha: number): void {
     if (!Number.isFinite(alpha) || alpha < 0) {
       throw new Error('Graph layout alpha target must be a non-negative finite number');
@@ -183,7 +194,12 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.simulationAlpha += (this.simulationAlphaTarget - this.simulationAlpha)
       * this.config.alphaDecay;
     applyLinkForces(this.state, this.config, this.simulationAlpha);
-    applyRepulsionForces(this.state, this.config, this.simulationAlpha);
+    applyRepulsionForces(
+      this.repulsionTree,
+      this.state,
+      this.config,
+      this.simulationAlpha,
+    );
     applyCenterForces(this.state, this.config, this.simulationAlpha);
     const maximumVelocity = integrateGraphLayout(this.state, this.config, this.simulationAlpha);
     const collisionIterations = this.simulationAlpha < 0.1

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../../src/webview/components/graph/model/build';
 import {
+  type OwnedWebGpuFrame,
   OwnedWebGpuRenderer,
   parseWebGpuColor,
   webGpuNodeShapeCode,
@@ -106,7 +107,7 @@ function webGpuHarness() {
   return { adapter, canvas, device, draw, gpu, pass, writeBuffer };
 }
 
-function rendererFrame() {
+function rendererFrame(): OwnedWebGpuFrame {
   const source = { id: 'a', x: 1, y: 2 } as FGNode;
   const target = { id: 'b', x: 103, y: 4 } as FGNode;
   const link = { bidirectional: true, curvature: 0.2, source, target } as FGLink;
@@ -244,6 +245,31 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     ]);
     await Promise.resolve();
     expect(onFrameComplete).toHaveBeenCalledTimes(3);
+  });
+
+  it('uploads sampled render positions for both nodes and edge endpoints', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    frame.renderX = Float32Array.of(11, 113);
+    frame.renderY = Float32Array.of(12, 14);
+
+    renderer!.render(frame);
+
+    const uploadedFloats = (label: string): Float32Array => {
+      const call = harness.writeBuffer.mock.calls.find(candidate => candidate[0].label === label)!;
+      return new Float32Array(
+        call[2] as ArrayBuffer,
+        call[3] as number,
+        (call[4] as number) / Float32Array.BYTES_PER_ELEMENT,
+      );
+    };
+    expect(Array.from(uploadedFloats('CodeGraphy node positions'))).toEqual([11, 12, 113, 14]);
+    expect(Array.from(uploadedFloats('CodeGraphy link geometry').slice(0, 4)))
+      .toEqual([11, 12, 113, 14]);
   });
 
   it('does not submit arrow vertices below the graph-detail zoom cutoff', async () => {
