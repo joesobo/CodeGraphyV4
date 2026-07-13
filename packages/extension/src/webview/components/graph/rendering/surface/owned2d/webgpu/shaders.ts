@@ -1,3 +1,8 @@
+import { DIRECTIONAL_ARROW_LENGTH_2D } from '../../../link/contracts';
+
+const ARROW_HALF_WIDTH = DIRECTIONAL_ARROW_LENGTH_2D / 1.6 / 2;
+const ARROW_VERTEX_LENGTH = DIRECTIONAL_ARROW_LENGTH_2D * 0.2;
+
 const CAMERA_UNIFORM = /* wgsl */ `
 struct CameraUniform {
   center: vec2f,
@@ -116,6 +121,7 @@ fn vertexMain(
   @location(3) color: vec4f,
   @location(4) arrowColor: vec4f,
   @location(5) arrowPositionAndBidirectional: vec2f,
+  @location(6) arrowEndpointInsets: vec2f,
 ) -> VertexOutput {
   let graphDelta = graphDestination - graphSource;
   let graphDistance = length(graphDelta);
@@ -126,25 +132,28 @@ fn vertexMain(
 
   var output: VertexOutput;
   if (vertexIndex >= 24u) {
-    let arrowAlong = array<f32, 3>(1.0, -0.6, -0.6);
-    let arrowSide = array<f32, 3>(0.0, 0.55, -0.55);
-    let reverseArrow = vertexIndex >= 27u;
-    let corner = (vertexIndex - 24u) % 3u;
-    let arrowPosition = select(
-      arrowPositionAndBidirectional.x,
-      1.0 - arrowPositionAndBidirectional.x,
-      reverseArrow,
+    let arrowAlong = array<f32, 6>(
+      0.0, -${DIRECTIONAL_ARROW_LENGTH_2D}, -${ARROW_VERTEX_LENGTH},
+      0.0, -${ARROW_VERTEX_LENGTH}, -${DIRECTIONAL_ARROW_LENGTH_2D},
     );
+    let arrowSide = array<f32, 6>(
+      0.0, ${ARROW_HALF_WIDTH}, 0.0,
+      0.0, 0.0, -${ARROW_HALF_WIDTH},
+    );
+    let reverseArrow = vertexIndex >= 30u;
+    let corner = (vertexIndex - 24u) % 6u;
+    let arrowPosition = select(1.0, 0.0, reverseArrow);
     let graphPosition = curvePoint(graphSource, graphDestination, control, arrowPosition);
     var graphTangent = curveTangent(graphSource, graphDestination, control, arrowPosition);
     if (reverseArrow) { graphTangent = -graphTangent; }
-    let rawTangent = graphTangent * camera.graphToClip * vec2f(1.0, -1.0);
-    let tangent = rawTangent * inverseSqrt(max(dot(rawTangent, rawTangent), 0.0000001));
+    let tangentLengthSquared = max(dot(graphTangent, graphTangent), 0.0000001);
+    let tangent = graphTangent * inverseSqrt(tangentLengthSquared);
     let normal = vec2f(-tangent.y, tangent.x);
-    let center = (graphPosition - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
+    let endpointInset = select(arrowEndpointInsets.y, arrowEndpointInsets.x, reverseArrow);
+    let tip = graphPosition - tangent * endpointInset;
+    let graphVertex = tip + tangent * arrowAlong[corner] + normal * arrowSide[corner];
     output.position = vec4f(
-      center + tangent * camera.pixelToClip * 12.0 * arrowAlong[corner]
-        + normal * camera.pixelToClip * 12.0 * arrowSide[corner],
+      (graphVertex - camera.center) * camera.graphToClip * vec2f(1.0, -1.0),
       0.0,
       1.0,
     );
