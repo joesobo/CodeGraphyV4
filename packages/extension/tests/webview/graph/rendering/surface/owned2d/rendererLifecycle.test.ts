@@ -40,6 +40,7 @@ function runtimeHarness(): Harness {
       requestFrameRef: { current: vi.fn() },
       onError: vi.fn(),
       onReady: vi.fn(),
+      onRecovering: vi.fn(),
     },
   };
 }
@@ -102,9 +103,12 @@ describe('owned WebGPU renderer lifecycle', () => {
     expect(runtime.onReady).not.toHaveBeenCalled();
   });
 
-  it('disposes before reporting device loss and requests an error frame', async () => {
+  it('recreates the renderer after device loss before surfacing an error', async () => {
     const renderer = { dispose: vi.fn() };
-    rendererHarness.create.mockResolvedValue(renderer);
+    const replacement = { dispose: vi.fn() };
+    rendererHarness.create
+      .mockResolvedValueOnce(renderer)
+      .mockResolvedValueOnce(replacement);
     const { engine, runtime } = runtimeHarness();
     startOwnedGraphRendererLifecycle(runtime, document.createElement('canvas'));
     await flushLifecycle();
@@ -113,13 +117,58 @@ describe('owned WebGPU renderer lifecycle', () => {
     };
 
     options.onDeviceLost('GPU reset');
+    await flushLifecycle();
 
     expect(renderer.dispose).toHaveBeenCalledOnce();
-    expect(runtime.gpuRendererRef.current).toBeNull();
-    expect(runtime.rendererOperationalRef.current).toBe(false);
+    expect(rendererHarness.create).toHaveBeenCalledTimes(2);
+    expect(runtime.gpuRendererRef.current).toBe(replacement);
+    expect(runtime.rendererOperationalRef.current).toBe(true);
     expect(engine.pause).toHaveBeenCalledOnce();
-    expect(runtime.onError).toHaveBeenCalledWith('GPU reset');
+    expect(engine.resume).toHaveBeenCalledTimes(2);
+    expect(runtime.onRecovering).toHaveBeenCalledOnce();
+    expect(runtime.onError).not.toHaveBeenCalled();
     expect(runtime.requestFrameRef.current).toHaveBeenCalledTimes(2);
+  });
+
+  it('surfaces device loss after two replacement attempts fail', async () => {
+    const renderer = { dispose: vi.fn() };
+    rendererHarness.create
+      .mockResolvedValueOnce(renderer)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const { runtime } = runtimeHarness();
+    startOwnedGraphRendererLifecycle(runtime, document.createElement('canvas'));
+    await flushLifecycle();
+    const options = rendererHarness.create.mock.calls[0][1] as {
+      onDeviceLost(message: string): void;
+    };
+
+    options.onDeviceLost('GPU reset');
+    await flushLifecycle();
+    await flushLifecycle();
+
+    expect(rendererHarness.create).toHaveBeenCalledTimes(3);
+    expect(runtime.onRecovering).toHaveBeenCalledTimes(2);
+    expect(runtime.onError).toHaveBeenCalledWith('WebGPU is unavailable in this environment.');
+    expect(runtime.rendererOperationalRef.current).toBe(false);
+  });
+
+  it('ignores stale loss callbacks after a replacement activates', async () => {
+    rendererHarness.create.mockResolvedValue({ dispose: vi.fn() });
+    const { runtime } = runtimeHarness();
+    startOwnedGraphRendererLifecycle(runtime, document.createElement('canvas'));
+    await flushLifecycle();
+    const firstOptions = rendererHarness.create.mock.calls[0][1] as {
+      onDeviceLost(message: string): void;
+    };
+
+    firstOptions.onDeviceLost('first reset');
+    await flushLifecycle();
+    firstOptions.onDeviceLost('stale reset');
+    await flushLifecycle();
+
+    expect(rendererHarness.create).toHaveBeenCalledTimes(2);
+    expect(runtime.onError).not.toHaveBeenCalled();
   });
 
   it('retries pending frame demand only while active', async () => {

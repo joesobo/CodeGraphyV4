@@ -338,7 +338,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(setAlphaTarget).toHaveBeenLastCalledWith(0);
   });
 
-  it('disposes WebGPU resources and drains rendering when the device is lost', async () => {
+  it('recreates WebGPU resources when the device is lost', async () => {
     const frames: FrameRequestCallback[] = [];
     vi.mocked(requestAnimationFrame).mockImplementation(callback => {
       frames.push(callback);
@@ -382,11 +382,17 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     };
 
     act(() => options.onDeviceLost('GPU reset'));
-    act(() => frames.shift()?.(1000 / 60));
 
-    expect(frames).toHaveLength(0);
+    expect(container.firstElementChild).toHaveAttribute(
+      'data-codegraphy-renderer',
+      'initializing',
+    );
     expect(rendererHarness.dispose).toHaveBeenCalledOnce();
-    expect(await screen.findByTestId('graph-webgpu-error')).toHaveTextContent('GPU reset');
+    await waitFor(() => {
+      expect(rendererHarness.create).toHaveBeenCalledTimes(2);
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
   it('shows sampled FPS only while the Performance toggle is enabled', async () => {
@@ -444,7 +450,10 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     const options = rendererHarness.create.mock.calls[0][1] as {
       onDeviceLost(message: string): void;
     };
-    act(() => options.onDeviceLost('GPU reset'));
+    await act(async () => {
+      options.onDeviceLost('GPU reset');
+      await Promise.resolve();
+    });
     expect(screen.getByTestId('graph-fps')).not.toBeVisible();
     expect(props.fg2dRef.current?.getFps()).toBeNull();
 
