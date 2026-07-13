@@ -5,6 +5,7 @@ import type { NodeLabelSpriteProvider } from '../node/labelSprite';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
+import { shouldRenderGraphDetails } from '../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/contracts';
 
 function isNodeHighlighted(
@@ -64,7 +65,7 @@ export function renderNodeCanvasLabel(
   ctx.globalAlpha = opacity;
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
   renderNodeCollapseIndicator(ctx, node, globalScale, appearance);
-  if (dependencies.showLabelsRef.current) {
+  if (dependencies.showLabelsRef.current && shouldRenderGraphDetails(globalScale)) {
     renderNodeLabel({
       appearance,
       ctx,

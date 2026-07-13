@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import type { OwnedGraphNodeStyle } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
 import {
   OWNED_ARROW_HALF_WIDTH,
   OWNED_ARROW_LENGTH,
-  ownedArrowEndpointInsets,
+  ownedArrowCurveParameters,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/arrowGeometry';
+import {
+  ownedLinkGeometry,
+  pointOnOwnedLink,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkGeometry';
 
 function style(overrides: Partial<OwnedGraphNodeStyle> = {}): OwnedGraphNodeStyle {
   return {
@@ -21,6 +26,18 @@ function style(overrides: Partial<OwnedGraphNodeStyle> = {}): OwnedGraphNodeStyl
   };
 }
 
+function geometry(
+  source: { x: number; y: number },
+  target: { x: number; y: number },
+  curvature: number,
+) {
+  return ownedLinkGeometry({
+    curvature,
+    source: { id: 'source', ...source } as FGNode,
+    target: { id: 'target', ...target } as FGNode,
+  } as FGLink)!;
+}
+
 describe('owned graph arrow endpoint geometry', () => {
   it('uses compact twelve-unit triangle proportions', () => {
     expect({
@@ -29,56 +46,100 @@ describe('owned graph arrow endpoint geometry', () => {
     }).toEqual({ halfWidth: 3.75, length: 12 });
   });
 
-  it('places straight arrows on circular and rectangular node boundaries', () => {
-    expect(ownedArrowEndpointInsets(
+  it('places straight arrow tips on circular and rectangular node boundaries', () => {
+    const parameters = ownedArrowCurveParameters(
       { x: 0, y: 0 },
       { x: 100, y: 0 },
       0,
       style(),
       style({ height: 10, shape: 'rectangle', width: 40 }),
-    )).toEqual({ source: 10, target: 20 });
+    );
+
+    expect(parameters.source).toBeCloseTo(0.1, 6);
+    expect(parameters.target).toBeCloseTo(0.8, 6);
   });
 
-  it('uses the curved endpoint tangents when finding elliptical boundaries', () => {
-    const insets = ownedArrowEndpointInsets(
-      { x: 0, y: 0 },
-      { x: 100, y: 0 },
+  it('keeps curved arrow tips on both the curve and elliptical node boundaries', () => {
+    const source = { x: 0, y: 0 };
+    const target = { x: 100, y: 0 };
+    const parameters = ownedArrowCurveParameters(
+      source,
+      target,
       0.5,
       style({ height: 10, width: 20 }),
       style({ height: 10, width: 20 }),
     );
+    const linkGeometry = geometry(source, target, 0.5);
 
-    expect(insets.source).toBeCloseTo(Math.sqrt(40), 5);
-    expect(insets.target).toBeCloseTo(Math.sqrt(40), 5);
+    for (const [center, position] of [
+      [source, parameters.source],
+      [target, parameters.target],
+    ] as const) {
+      const tip = pointOnOwnedLink(linkGeometry, position);
+      expect(((tip.x - center.x) / 10) ** 2 + ((tip.y - center.y) / 5) ** 2)
+        .toBeCloseTo(1, 3);
+    }
   });
 
   it('matches triangle, hexagon, star, and rounded-rectangle boundaries', () => {
-    const targetInset = (targetStyle: Partial<OwnedGraphNodeStyle>, target = { x: 100, y: 0 }) => (
-      ownedArrowEndpointInsets(
+    const targetDistance = (
+      targetStyle: Partial<OwnedGraphNodeStyle>,
+      target = { x: 100, y: 0 },
+    ) => {
+      const parameters = ownedArrowCurveParameters(
         { x: 0, y: 0 },
         target,
         0,
         style(),
         style(targetStyle),
-      ).target
-    );
+      );
+      const tip = pointOnOwnedLink(geometry({ x: 0, y: 0 }, target, 0), parameters.target);
+      return Math.hypot(target.x - tip.x, target.y - tip.y);
+    };
 
-    expect(targetInset({ shape: 'triangle' })).toBeCloseTo(10 / Math.sqrt(3), 5);
-    expect(targetInset({ shape: 'hexagon' })).toBeCloseTo(10 / 0.866025, 5);
-    expect(targetInset({ shape: 'star' })).toBeCloseTo(4.8, 5);
-    expect(targetInset(
+    expect(targetDistance({ shape: 'triangle' })).toBeCloseTo(10 / Math.sqrt(3), 3);
+    expect(targetDistance({ shape: 'hexagon' })).toBeCloseTo(10 / 0.866025, 3);
+    expect(targetDistance({ shape: 'star' })).toBeCloseTo(4.8, 3);
+    expect(targetDistance(
       { cornerRadius: 4, shape: 'rectangle' },
       { x: 100, y: 100 },
-    )).toBeCloseTo(6 * Math.sqrt(2) + 4, 5);
+    )).toBeCloseTo(6 * Math.sqrt(2) + 4, 3);
   });
 
-  it('places self-loop arrows on separate source and target boundaries', () => {
-    expect(ownedArrowEndpointInsets(
-      { x: 5, y: 5 },
-      { x: 5, y: 5 },
+  it('keeps self-loop tips on large asymmetric ellipse boundaries', () => {
+    const endpoint = { x: 5, y: 5 };
+    const ellipseStyle = style({ height: 47, width: 71 });
+    const parameters = ownedArrowCurveParameters(
+      endpoint,
+      endpoint,
+      0.8,
+      ellipseStyle,
+      ellipseStyle,
+    );
+    const linkGeometry = geometry(endpoint, endpoint, 0.8);
+
+    for (const position of [parameters.source, parameters.target]) {
+      const tip = pointOnOwnedLink(linkGeometry, position);
+      expect(((tip.x - endpoint.x) / 35.5) ** 2 + ((tip.y - endpoint.y) / 23.5) ** 2)
+        .toBeCloseTo(1, 3);
+    }
+  });
+
+  it('places self-loop tips on the top and right sides of an asymmetric node', () => {
+    const endpoint = { x: 5, y: 5 };
+    const asymmetricStyle = style({ height: 20, shape: 'rectangle', width: 30 });
+    const parameters = ownedArrowCurveParameters(
+      endpoint,
+      endpoint,
       0.5,
-      style(),
-      style({ height: 10, shape: 'rectangle', width: 40 }),
-    )).toEqual({ source: 10, target: 20 });
+      asymmetricStyle,
+      asymmetricStyle,
+    );
+    const linkGeometry = geometry(endpoint, endpoint, 0.5);
+    const sourceTip = pointOnOwnedLink(linkGeometry, parameters.source);
+    const targetTip = pointOnOwnedLink(linkGeometry, parameters.target);
+
+    expect(sourceTip.y).toBeCloseTo(-5, 1);
+    expect(targetTip.x).toBeCloseTo(20, 1);
   });
 });

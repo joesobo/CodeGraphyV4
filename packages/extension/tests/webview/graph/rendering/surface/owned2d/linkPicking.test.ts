@@ -32,8 +32,8 @@ describe('owned graph link picking', () => {
   it('follows curved link geometry and returns the nearest overlap', () => {
     const upward = link(0.5);
     const straight = link();
-    expect(distanceToOwnedLink(upward, { x: 50, y: 25 })).toBeLessThan(1);
-    expect(pickOwnedGraphLink([straight, upward], { x: 50, y: 24 }, 1)?.link).toBe(upward);
+    expect(distanceToOwnedLink(upward, { x: 50, y: -25 })).toBeLessThan(1);
+    expect(pickOwnedGraphLink([straight, upward], { x: 50, y: -24 }, 1)?.link).toBe(upward);
   });
 
   it('indexes long diagonals by path length rather than bounding-box area', () => {
@@ -54,7 +54,7 @@ describe('owned graph link picking', () => {
     const picker = new OwnedGraphLinkPicker();
     picker.rebuild([straight, curved]);
 
-    expect(picker.pick({ x: 50, y: 100 }, 1)?.link).toBe(curved);
+    expect(picker.pick({ x: 50, y: -100 }, 1)?.link).toBe(curved);
     expect(picker.pick({ x: 50, y: 0 }, 1)?.link).toBe(straight);
 
     (straight.source as FGNode).x = 1_000;

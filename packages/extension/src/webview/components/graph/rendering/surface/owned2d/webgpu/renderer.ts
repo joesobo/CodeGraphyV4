@@ -2,10 +2,11 @@
 
 import type { DirectionMode, NodeShape2D } from '../../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../../model/build';
+import { graphDetailOpacity } from '../../../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../contracts';
 import type { OwnedGraphCamera } from '../camera';
-import { ownedArrowEndpointInsets } from '../arrowGeometry';
-import { LINK_SHADER, NODE_SHADER } from './shaders';
+import { writeOwnedArrowCurveParameters } from '../arrowGeometry';
+import { LINK_SHADER, NODE_SHADER, OWNED_LINK_SEGMENTS } from './shaders';
 
 const NODE_POSITION_FLOATS = 2;
 const NODE_STYLE_FLOATS = 13;
@@ -125,6 +126,27 @@ function blendState(): GPUBlendState {
   };
 }
 
+function linkVertexBuffers(): GPUVertexBufferLayout[] {
+  return [{
+    arrayStride: LINK_GEOMETRY_FLOATS * FLOAT_BYTES,
+    stepMode: 'instance',
+    attributes: [
+      { shaderLocation: 0, offset: 0, format: 'float32x2' },
+      { shaderLocation: 1, offset: 2 * FLOAT_BYTES, format: 'float32x2' },
+      { shaderLocation: 5, offset: 4 * FLOAT_BYTES, format: 'float32x2' },
+    ],
+  }, {
+    arrayStride: LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
+    stepMode: 'instance',
+    attributes: [
+      { shaderLocation: 2, offset: 0, format: 'float32x2' },
+      { shaderLocation: 3, offset: 2 * FLOAT_BYTES, format: 'float32x4' },
+      { shaderLocation: 4, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
+      { shaderLocation: 6, offset: 10 * FLOAT_BYTES, format: 'float32' },
+    ],
+  }];
+}
+
 interface VertexStream {
   buffer: GPUBuffer;
   capacity: number;
@@ -144,6 +166,7 @@ function createVertexStream(device: GPUDevice, label: string): VertexStream {
 }
 
 export class OwnedWebGpuRenderer {
+  private readonly arrowCameraBindGroup: GPUBindGroup;
   private readonly cameraBuffer: GPUBuffer;
   private readonly cameraValues = new Float32Array(8);
   private styledNodes: readonly FGNode[] | undefined;
@@ -164,6 +187,7 @@ export class OwnedWebGpuRenderer {
   private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
   private renderedLinkCount = 0;
+  private uploadedArrowsVisible = false;
   private uploadedEdgeStride = 1;
   private uploadedLinks: readonly FGLink[] | undefined;
   private uploadedNodes: readonly FGNode[] | undefined;
@@ -176,6 +200,7 @@ export class OwnedWebGpuRenderer {
     private readonly canvas: HTMLCanvasElement,
     private readonly context: GPUCanvasContext,
     private readonly device: GPUDevice,
+    private readonly arrowPipeline: GPURenderPipeline,
     private readonly linkPipeline: GPURenderPipeline,
     private readonly nodePipeline: GPURenderPipeline,
     private readonly onFrameComplete: () => void,
@@ -184,6 +209,11 @@ export class OwnedWebGpuRenderer {
       label: 'CodeGraphy camera uniform',
       size: this.cameraValues.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this.arrowCameraBindGroup = device.createBindGroup({
+      label: 'CodeGraphy arrow camera bind group',
+      layout: arrowPipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
     });
     this.linkCameraBindGroup = device.createBindGroup({
       label: 'CodeGraphy link camera bind group',
@@ -265,29 +295,27 @@ export class OwnedWebGpuRenderer {
       label: 'CodeGraphy link pipeline',
       layout: 'auto',
       vertex: {
-        entryPoint: 'vertexMain',
+        entryPoint: 'linkVertexMain',
         module: linkModule,
-        buffers: [{
-          arrayStride: LINK_GEOMETRY_FLOATS * FLOAT_BYTES,
-          stepMode: 'instance',
-          attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 2 * FLOAT_BYTES, format: 'float32x2' },
-            { shaderLocation: 5, offset: 4 * FLOAT_BYTES, format: 'float32x2' },
-          ],
-        }, {
-          arrayStride: LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
-          stepMode: 'instance',
-          attributes: [
-            { shaderLocation: 2, offset: 0, format: 'float32x2' },
-            { shaderLocation: 3, offset: 2 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 4, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 6, offset: 10 * FLOAT_BYTES, format: 'float32' },
-          ],
-        }],
+        buffers: linkVertexBuffers(),
       },
       fragment: {
-        entryPoint: 'fragmentMain',
+        entryPoint: 'linkFragmentMain',
+        module: linkModule,
+        targets: [{ format, blend: blendState() }],
+      },
+      primitive: { topology: 'triangle-strip' },
+    });
+    const arrowPipeline = device.createRenderPipeline({
+      label: 'CodeGraphy arrow pipeline',
+      layout: 'auto',
+      vertex: {
+        entryPoint: 'arrowVertexMain',
+        module: linkModule,
+        buffers: linkVertexBuffers(),
+      },
+      fragment: {
+        entryPoint: 'arrowFragmentMain',
         module: linkModule,
         targets: [{ format, blend: blendState() }],
       },
@@ -302,6 +330,7 @@ export class OwnedWebGpuRenderer {
       canvas,
       context,
       device,
+      arrowPipeline,
       linkPipeline,
       nodePipeline,
       options.onFrameComplete,
@@ -414,6 +443,7 @@ export class OwnedWebGpuRenderer {
     this.cameraValues[3] = frame.camera.zoom * 2 / frame.cssHeight;
     this.cameraValues[4] = 2 / frame.cssWidth;
     this.cameraValues[5] = 2 / frame.cssHeight;
+    this.cameraValues[6] = graphDetailOpacity(frame.camera.zoom);
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
   }
 
@@ -439,6 +469,7 @@ export class OwnedWebGpuRenderer {
     renderedIndex: number,
     writeGeometry: boolean,
     writeStyle: boolean,
+    writeArrows: boolean,
   ): boolean {
     const link = frame.links[linkIndex];
     const source = endpointNode(link.source);
@@ -449,20 +480,28 @@ export class OwnedWebGpuRenderer {
     if (!sourceStyle || !targetStyle) return false;
     const curvature = link.curvature ?? 0;
     if (writeGeometry) {
-      const endpointInsets = ownedArrowEndpointInsets(
-        { x: source.x ?? 0, y: source.y ?? 0 },
-        { x: target.x ?? 0, y: target.y ?? 0 },
-        curvature,
-        sourceStyle,
-        targetStyle,
-      );
+      const sourceX = source.x ?? 0;
+      const sourceY = source.y ?? 0;
+      const targetX = target.x ?? 0;
+      const targetY = target.y ?? 0;
       const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
-      this.linkGeometryValues[offset] = source.x ?? 0;
-      this.linkGeometryValues[offset + 1] = source.y ?? 0;
-      this.linkGeometryValues[offset + 2] = target.x ?? 0;
-      this.linkGeometryValues[offset + 3] = target.y ?? 0;
-      this.linkGeometryValues[offset + 4] = endpointInsets.source;
-      this.linkGeometryValues[offset + 5] = endpointInsets.target;
+      this.linkGeometryValues[offset] = sourceX;
+      this.linkGeometryValues[offset + 1] = sourceY;
+      this.linkGeometryValues[offset + 2] = targetX;
+      this.linkGeometryValues[offset + 3] = targetY;
+      if (writeArrows) {
+        writeOwnedArrowCurveParameters(
+          this.linkGeometryValues,
+          offset + 4,
+          sourceX,
+          sourceY,
+          targetX,
+          targetY,
+          curvature,
+          sourceStyle,
+          targetStyle,
+        );
+      }
     }
     if (writeStyle) {
       const offset = renderedIndex * LINK_INSTANCE_STYLE_FLOATS;
@@ -483,6 +522,7 @@ export class OwnedWebGpuRenderer {
     edgeStride: number,
     writeGeometry: boolean,
     writeStyle: boolean,
+    writeArrows: boolean,
   ): void {
     if (writeGeometry) {
       const required = frame.links.length * LINK_GEOMETRY_FLOATS;
@@ -504,6 +544,7 @@ export class OwnedWebGpuRenderer {
         this.renderedLinkCount,
         writeGeometry,
         writeStyle,
+        writeArrows,
       )) this.renderedLinkCount += 1;
     }
   }
@@ -524,7 +565,12 @@ export class OwnedWebGpuRenderer {
     );
   }
 
-  private updateGraphCacheIdentity(frame: OwnedWebGpuFrame, edgeStride: number): void {
+  private updateGraphCacheIdentity(
+    frame: OwnedWebGpuFrame,
+    edgeStride: number,
+    arrowsVisible: boolean,
+  ): void {
+    this.uploadedArrowsVisible = arrowsVisible;
     this.uploadedEdgeStride = edgeStride;
     this.uploadedPositionVersion = frame.positionVersion;
     this.uploadedNodes = frame.nodes;
@@ -536,7 +582,13 @@ export class OwnedWebGpuRenderer {
     const graphChanged = this.uploadedNodes !== frame.nodes || this.uploadedLinks !== frame.links;
     const positionsChanged = graphChanged || this.uploadedPositionVersion !== frame.positionVersion;
     const edgeStrideChanged = this.uploadedEdgeStride !== edgeStride;
-    const linkGeometryChanged = positionsChanged || stylesChanged || edgeStrideChanged;
+    const arrowsVisible = frame.directionMode === 'arrows'
+      && graphDetailOpacity(frame.camera.zoom) > 0;
+    const needsArrowGeometry = arrowsVisible && !this.uploadedArrowsVisible;
+    const linkGeometryChanged = positionsChanged
+      || stylesChanged
+      || edgeStrideChanged
+      || needsArrowGeometry;
     const linkStylesChanged = stylesChanged || edgeStrideChanged;
 
     if (positionsChanged) {
@@ -551,7 +603,13 @@ export class OwnedWebGpuRenderer {
       this.uploadVertexStream(this.nodeStyleStream, this.nodeStyles, this.nodeStyles.byteLength);
     }
     if (linkGeometryChanged || linkStylesChanged) {
-      this.packLinkInstances(frame, edgeStride, linkGeometryChanged, linkStylesChanged);
+      this.packLinkInstances(
+        frame,
+        edgeStride,
+        linkGeometryChanged,
+        linkStylesChanged,
+        arrowsVisible,
+      );
     }
     if (linkGeometryChanged) {
       this.uploadVertexStream(
@@ -567,7 +625,7 @@ export class OwnedWebGpuRenderer {
         this.renderedLinkCount * LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
       );
     }
-    this.updateGraphCacheIdentity(frame, edgeStride);
+    this.updateGraphCacheIdentity(frame, edgeStride, arrowsVisible);
   }
 
   private drawLinks(pass: GPURenderPassEncoder, frame: OwnedWebGpuFrame): void {
@@ -576,7 +634,13 @@ export class OwnedWebGpuRenderer {
     pass.setBindGroup(0, this.linkCameraBindGroup);
     pass.setVertexBuffer(0, this.linkGeometryStream.buffer);
     pass.setVertexBuffer(1, this.linkStyleStream.buffer);
-    pass.draw(frame.directionMode === 'arrows' ? 30 : 24, this.renderedLinkCount);
+    pass.draw((OWNED_LINK_SEGMENTS + 1) * 2, this.renderedLinkCount);
+    if (frame.directionMode !== 'arrows' || graphDetailOpacity(frame.camera.zoom) === 0) return;
+    pass.setPipeline(this.arrowPipeline);
+    pass.setBindGroup(0, this.arrowCameraBindGroup);
+    pass.setVertexBuffer(0, this.linkGeometryStream.buffer);
+    pass.setVertexBuffer(1, this.linkStyleStream.buffer);
+    pass.draw(6, this.renderedLinkCount);
   }
 
   private drawNodes(pass: GPURenderPassEncoder, frame: OwnedWebGpuFrame): void {

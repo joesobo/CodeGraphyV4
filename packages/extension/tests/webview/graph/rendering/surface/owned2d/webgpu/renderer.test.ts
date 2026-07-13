@@ -108,7 +108,7 @@ function webGpuHarness() {
 
 function rendererFrame() {
   const source = { id: 'a', x: 1, y: 2 } as FGNode;
-  const target = { id: 'b', x: 3, y: 4 } as FGNode;
+  const target = { id: 'b', x: 103, y: 4 } as FGNode;
   const link = { bidirectional: true, curvature: 0.2, source, target } as FGLink;
   return {
     backgroundColor: '#010203',
@@ -174,7 +174,9 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect([harness.canvas.width, harness.canvas.height]).toEqual([100, 100]);
     const pipelineStrides = harness.device.createRenderPipeline.mock.calls.map(call =>
       Array.from(call[0].vertex.buffers ?? [], buffer => buffer?.arrayStride));
-    expect(pipelineStrides).toEqual([[8, 52], [24, 44]]);
+    expect(pipelineStrides).toEqual([[8, 52], [24, 44], [24, 44]]);
+    expect(harness.device.createRenderPipeline.mock.calls.map(call => call[0].primitive?.topology))
+      .toEqual(['triangle-list', 'triangle-strip', 'triangle-list']);
     expect(harness.writeBuffer.mock.calls.map(call => [
       call[0].label,
       call[4] ?? (call[2] as ArrayBufferView).byteLength,
@@ -193,20 +195,25 @@ describe('OwnedWebGpuRenderer frame submission', () => {
         (call[4] as number) / Float32Array.BYTES_PER_ELEMENT,
       );
     };
-    expect(Array.from(uploadedFloats('CodeGraphy node positions'))).toEqual([1, 2, 3, 4]);
+    expect(Array.from(uploadedFloats('CodeGraphy node positions'))).toEqual([1, 2, 103, 4]);
     expect(Array.from(uploadedFloats('CodeGraphy node styles').slice(0, 2))).toEqual([5, 6]);
     const linkGeometry = uploadedFloats('CodeGraphy link geometry');
-    expect(Array.from(linkGeometry.slice(0, 4))).toEqual([1, 2, 3, 4]);
-    expect(linkGeometry[4]).toBeCloseTo(6.47, 2);
-    expect(linkGeometry[5]).toBeCloseTo(12.69, 2);
+    expect(Array.from(linkGeometry.slice(0, 4))).toEqual([1, 2, 103, 4]);
+    expect(linkGeometry[4]).toBeGreaterThan(0);
+    expect(linkGeometry[4]).toBeLessThan(0.5);
+    expect(linkGeometry[5]).toBeGreaterThan(0.5);
+    expect(linkGeometry[5]).toBeLessThan(1);
     const linkStyle = uploadedFloats('CodeGraphy link styles');
     expect(linkStyle[0]).toBe(1);
     expect(linkStyle[1]).toBeCloseTo(0.2);
     expect(linkStyle[10]).toBe(1);
-    expect(harness.draw).toHaveBeenNthCalledWith(1, 30, 1);
-    expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
+    expect(harness.draw).toHaveBeenNthCalledWith(1, 34, 1);
+    expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 1);
+    expect(harness.draw).toHaveBeenNthCalledWith(3, 6, 2);
     expect(harness.pass.setVertexBuffer.mock.calls.map(call => [call[0], call[1].label]))
       .toEqual([
+        [0, 'CodeGraphy link geometry'],
+        [1, 'CodeGraphy link styles'],
         [0, 'CodeGraphy link geometry'],
         [1, 'CodeGraphy link styles'],
         [0, 'CodeGraphy node positions'],
@@ -237,5 +244,59 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     ]);
     await Promise.resolve();
     expect(onFrameComplete).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not submit arrow vertices below the graph-detail zoom cutoff', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    frame.camera.zoom = 0.35;
+
+    renderer!.render(frame);
+
+    expect(harness.draw).toHaveBeenNthCalledWith(1, 34, 1);
+    expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
+    expect(harness.draw).toHaveBeenCalledTimes(2);
+    const hiddenGeometryCall = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy link geometry',
+    )!;
+    const hiddenGeometry = new Float32Array(
+      hiddenGeometryCall[2] as ArrayBuffer,
+      hiddenGeometryCall[3] as number,
+      (hiddenGeometryCall[4] as number) / Float32Array.BYTES_PER_ELEMENT,
+    );
+    expect(Array.from(hiddenGeometry.slice(4, 6))).toEqual([0, 0]);
+
+    harness.draw.mockClear();
+    harness.writeBuffer.mockClear();
+    frame.camera.zoom = 0.95;
+    renderer!.render(frame);
+
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
+      'CodeGraphy camera uniform',
+      'CodeGraphy link geometry',
+    ]);
+    const cameraValues = harness.writeBuffer.mock.calls[0][2] as Float32Array;
+    expect(cameraValues[6]).toBeCloseTo(0.5);
+    const visibleGeometryCall = harness.writeBuffer.mock.calls[1];
+    const visibleGeometry = new Float32Array(
+      visibleGeometryCall[2] as ArrayBuffer,
+      visibleGeometryCall[3] as number,
+      (visibleGeometryCall[4] as number) / Float32Array.BYTES_PER_ELEMENT,
+    );
+    expect(visibleGeometry[4]).toBeGreaterThan(0);
+    expect(visibleGeometry[5]).toBeGreaterThan(0.5);
+    expect(harness.draw).toHaveBeenNthCalledWith(1, 34, 1);
+    expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 1);
+    expect(harness.draw).toHaveBeenNthCalledWith(3, 6, 2);
+
+    harness.writeBuffer.mockClear();
+    frame.camera.zoom = 0.35;
+    renderer!.render(frame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .toEqual(['CodeGraphy camera uniform']);
   });
 });
