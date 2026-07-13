@@ -40,6 +40,25 @@ describe('graph layout engine', () => {
     expect(engine.tick(1000 / 60)).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
+  it('uses the D3 300-tick alpha cooling schedule', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node-0'],
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(0),
+      radii: Float32Array.of(1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 0,
+      gravitationalConstant: 0,
+    });
+
+    engine.tick(1000 / 60);
+
+    expect(engine.alpha).toBeCloseTo(Math.pow(0.001, 1 / 300), 12);
+  });
+
   it('produces identical positions for identical input and fixed ticks', () => {
     const first = createGraphLayoutEngine(lineGraph(64));
     const second = createGraphLayoutEngine(lineGraph(64));
@@ -254,6 +273,36 @@ describe('graph layout engine', () => {
     expect(highDamping.vx[0]).toBeLessThan(lowDamping.vx[0]);
   });
 
+  it('warms toward an alpha target during interaction and cools after release', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node-0'],
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(0),
+      radii: Float32Array.of(1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 0,
+      gravitationalConstant: 0,
+    });
+    for (let tick = 0; tick < 320; tick += 1) engine.tick(1000 / 60);
+    const coldAlpha = engine.alpha;
+
+    engine.setAlphaTarget(0.3);
+    for (let tick = 0; tick < 10; tick += 1) engine.tick(1000 / 60);
+
+    expect(engine.settled).toBe(false);
+    expect(engine.alpha).toBeGreaterThan(coldAlpha);
+    expect(engine.alpha).toBeLessThan(0.3);
+
+    engine.setAlphaTarget(0);
+    const warmAlpha = engine.alpha;
+    engine.tick(1000 / 60);
+
+    expect(engine.alpha).toBeLessThan(warmAlpha);
+  });
+
   it('reheats settled physics when force settings change', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['node-0'],
@@ -266,7 +315,7 @@ describe('graph layout engine', () => {
       centralGravity: 0,
       gravitationalConstant: 0,
     });
-    for (let tick = 0; tick < 300; tick += 1) engine.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) engine.tick(1000 / 60);
     expect(engine.settled).toBe(true);
 
     engine.setConfig({ centralGravity: 1 });

@@ -20,6 +20,7 @@ export type GraphLayoutWorkerCommand =
   | { type: 'pin'; index: number; mutationRevision: number }
   | { type: 'release'; index: number; mutationRevision: number }
   | { type: 'setHidden'; index: number; hidden: boolean; mutationRevision: number }
+  | { type: 'setAlphaTarget'; alpha: number; mutationRevision: number }
   | { type: 'reheat'; alpha?: number; mutationRevision: number }
   | { type: 'pause'; mutationRevision: number }
   | { type: 'resume'; mutationRevision: number };

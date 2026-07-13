@@ -87,6 +87,10 @@ const commandHandlers = {
     requireEngine().setHidden(command.index, command.hidden);
     setMutationRevision(command);
   },
+  setAlphaTarget: (command) => {
+    requireEngine().setAlphaTarget(command.alpha);
+    setMutationRevision(command);
+  },
   reheat: (command) => {
     requireEngine().reheat(command.alpha);
     setMutationRevision(command);

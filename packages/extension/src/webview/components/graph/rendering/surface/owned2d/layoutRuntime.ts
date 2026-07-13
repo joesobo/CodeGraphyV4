@@ -92,6 +92,7 @@ function finishRemovedPointerNode(
     runtime.propsRef.current.sharedProps.onNodeDragEnd?.(session.node);
   }
   releaseOwnedDraggedNodes(layout, indexes);
+  layout.engine.setAlphaTarget(0);
   runtime.pointerSessionRef.current = null;
 }
 
