@@ -1,20 +1,18 @@
 import type { GraphLayoutConfig, GraphLayoutState } from '../contracts';
 import { deterministicDirection } from '../initialization';
-import type { UniformGrid } from '../spatialGrid';
 import { isNodeHidden, isNodePinned } from './velocity';
 
 export function applyRepulsionForces(
   state: GraphLayoutState,
   config: GraphLayoutConfig,
   alpha: number,
-  grid: UniformGrid,
 ): void {
-  for (let index = 0; index < state.x.length; index += 1) {
-    if (isNodeHidden(state, index)) continue;
-    grid.forEachNearby(index, config.maximumNeighbors, otherIndex => {
-      if (otherIndex <= index || isNodeHidden(state, otherIndex)) return;
-      applyRepulsionPair(state, config, alpha, index, otherIndex);
-    });
+  for (let first = 0; first < state.x.length; first += 1) {
+    if (isNodeHidden(state, first)) continue;
+    for (let second = first + 1; second < state.x.length; second += 1) {
+      if (isNodeHidden(state, second)) continue;
+      applyRepulsionPair(state, config, alpha, first, second);
+    }
   }
 }
 
@@ -41,12 +39,8 @@ function applyRepulsionPair(
   );
   const directionX = dx / distance;
   const directionY = dy / distance;
-  const firstMultiplier = isNodePinned(state, first)
-    ? 0
-    : state.chargeStrengthMultipliers[first];
-  const secondMultiplier = isNodePinned(state, second)
-    ? 0
-    : state.chargeStrengthMultipliers[second];
+  const firstMultiplier = state.chargeStrengthMultipliers[first];
+  const secondMultiplier = state.chargeStrengthMultipliers[second];
   if (!isNodePinned(state, first)) {
     state.vx[first] -= directionX * repelImpulse * secondMultiplier;
     state.vy[first] -= directionY * repelImpulse * secondMultiplier;

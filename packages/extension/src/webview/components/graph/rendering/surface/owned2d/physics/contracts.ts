@@ -33,7 +33,6 @@ export interface GraphLayoutConfig {
   springConstant: number;
   maximumCollisionNeighbors: number;
   maximumElapsedMs: number;
-  maximumNeighbors: number;
   maximumSpeed: number;
   maximumSubSteps: number;
   gravitationalConstant: number;

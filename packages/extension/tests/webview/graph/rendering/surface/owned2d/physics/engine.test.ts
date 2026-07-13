@@ -140,6 +140,50 @@ describe('graph layout engine', () => {
     expect(closestDistance).toBeGreaterThanOrEqual(radius * 2 + collisionPadding - 0.5);
   });
 
+  it('applies many-body repulsion across the entire graph', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['left', 'right'],
+      initialX: Float32Array.of(-500, 500),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(1, 1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 0,
+      damping: 0,
+      gravitationalConstant: -250,
+    });
+
+    engine.tick(1000 / 60);
+
+    expect(engine.vx[0]).toBeLessThan(0);
+    expect(engine.vx[1]).toBeGreaterThan(0);
+  });
+
+  it('keeps pinned nodes fixed while their charge still repels movable nodes', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['pinned', 'movable'],
+      initialX: Float32Array.of(0, 20),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(1, 1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 0,
+      damping: 0,
+      gravitationalConstant: -250,
+    });
+    engine.pin(0);
+
+    engine.tick(1000 / 60);
+
+    expect(engine.x[0]).toBe(0);
+    expect(engine.vx[0]).toBe(0);
+    expect(engine.vx[1]).toBeGreaterThan(0);
+  });
+
   it('applies per-node plugin charge multipliers to repulsion sources', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['disabled-source', 'normal-source'],
