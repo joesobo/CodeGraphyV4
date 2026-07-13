@@ -33,6 +33,32 @@ fallback, zero-copy worker ticks, and snapshot interpolation for rendering.
 
 ## Work items, in order
 
+### 0. Stop discarding worker ticks during drag (critical bug)
+
+Observed on the CodeGraphy monorepo (2,593 nodes): dragging a node moves no
+neighbors at all, and on release the graph freezes then teleports into its
+settled positions.
+
+Cause, in `owned2d/worker/host.ts`: `handleTickMessage` discards the whole
+tick snapshot whenever `message.mutationRevision !== this.mutationRevision`.
+Every pointermove during a drag bumps the revision twice (`setNodePosition`
+and `pin` in `interaction.ts`), so during any drag every tick result arrives
+stale and is dropped — the worker simulates the ripple and the host throws
+it away. Meanwhile the worker keeps integrating unseen at `alphaTarget 0.3`,
+so the first accepted snapshot after release jumps ("teleport").
+
+Fix:
+- Split the revision. Kinematic mutations (`setNodePosition`, `pin`,
+  `release`, `setAlpha*`, `reheat`) must NOT cause tick results to be
+  discarded — the pinned-node overwrite that already follows acceptance
+  keeps the dragged node authoritative. Only structural changes
+  (`init`/`setGraph`, `setConfig`, `setHidden`) may invalidate a tick.
+- Pin once at drag start instead of on every pointermove, and coalesce
+  `setNodePosition` posts to one per animation frame.
+
+Acceptance: dragging a hub on a large graph visibly pulls its neighbors
+while the pointer is moving, and release glides smoothly — no teleport.
+
 ### 1. Step the simulation at display rate (the drag-follow fix)
 
 Even at 144 FPS, neighbors follow a dragged node slower than Obsidian. The
@@ -68,7 +94,11 @@ alpha), no new render passes.
 
 Below a zoom threshold draw no labels (small fade band above it, like
 Obsidian). A fully zoomed-out large graph currently still draws every label
-sprite; past the threshold that work should be zero.
+sprite; past the threshold that work should be zero. This is the prime
+suspect for the measured 44.5 ms frames on the zoomed-out monorepo view
+(2,593 labels drawn per frame) — confirm with the
+`__CODEGRAPHY_WEBGPU_PERF__` sample split (`overlayMs` vs `gpuMs` vs
+`physicsMs`) before and after.
 
 ### 4. Edge hover at distance
 
