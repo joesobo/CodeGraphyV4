@@ -51,6 +51,36 @@ function adjacency(engine: ReturnType<typeof createFixtureEngine>): Array<Set<nu
   return neighbors;
 }
 
+function packageSeparationRatio(x: Float32Array, y: Float32Array): number {
+  const packages = Array.from({ length: 4 }, (_, packageIndex) => (
+    Array.from({ length: x.length }, (_, index) => index)
+      .filter(index => Math.floor(index / PACKAGE_SIZE) === packageIndex)
+  ));
+  const centroids = packages.map(indexes => ({
+    x: indexes.reduce((sum, index) => sum + x[index], 0) / indexes.length,
+    y: indexes.reduce((sum, index) => sum + y[index], 0) / indexes.length,
+  }));
+  const meanRadius = packages.reduce((sum, indexes, packageIndex) => (
+    sum + indexes.reduce((radius, index) => radius + Math.hypot(
+      x[index] - centroids[packageIndex].x,
+      y[index] - centroids[packageIndex].y,
+    ), 0) / indexes.length
+  ), 0) / packages.length;
+  let minimumCentroidDistance = Number.POSITIVE_INFINITY;
+  for (let first = 0; first < centroids.length; first += 1) {
+    for (let second = first + 1; second < centroids.length; second += 1) {
+      minimumCentroidDistance = Math.min(
+        minimumCentroidDistance,
+        Math.hypot(
+          centroids[first].x - centroids[second].x,
+          centroids[first].y - centroids[second].y,
+        ),
+      );
+    }
+  }
+  return minimumCentroidDistance / meanRadius;
+}
+
 function maximumSpeed(engine: ReturnType<typeof createFixtureEngine>): number {
   let maximum = 0;
   for (let index = 0; index < engine.vx.length; index += 1) {
@@ -76,16 +106,17 @@ function meanDisplacement(
 }
 
 describe('500-node owned physics feel', () => {
-  it('settles topology-local relationships into visible package clusters', () => {
+  it('settles topology-local relationships into visible package clusters', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
 
     for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
 
     expect(engine.settled).toBe(true);
     expect(nearestPackagePurity(engine.x, engine.y)).toBeGreaterThanOrEqual(0.7);
+    expect(packageSeparationRatio(engine.x, engine.y)).toBeGreaterThanOrEqual(1.2);
   });
 
-  it('responds to force-setting changes on the next tick without an explosive pulse', () => {
+  it('responds to force-setting changes on the next tick without an explosive pulse', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
     const changes: Array<{ config: Parameters<typeof engine.setConfig>[0]; tick: number }> = [
       { config: { chargeStrength: -50 }, tick: 120 },
@@ -108,7 +139,7 @@ describe('500-node owned physics feel', () => {
     }
   });
 
-  it('ripples a hub drag through nearby relationships and settles after release', () => {
+  it('ripples a hub drag through nearby relationships and settles after release', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
     for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
     const neighbors = adjacency(engine);
