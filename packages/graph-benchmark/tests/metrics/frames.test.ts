@@ -7,6 +7,10 @@ describe('summarizeRenderedFrames', () => {
     expect(estimateRefreshRate([7.1, 6.9, 7, 8])).toBeCloseTo(142.857, 3);
   });
 
+  it('caps refresh utilization at the measured presentation ceiling', () => {
+    expect(summarizeRenderedFrames([10, 10], 20, 60).refreshUtilization).toBe(1);
+  });
+
   it('reports FPS, percentiles, and missed frame budgets', () => {
     const summary = summarizeRenderedFrames([10, 16, 20, 40], 86, 60);
 

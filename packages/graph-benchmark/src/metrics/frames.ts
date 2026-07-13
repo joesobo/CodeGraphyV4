@@ -18,7 +18,7 @@ export function summarizeRenderedFrames(
   return {
     fps,
     refreshRateHz,
-    refreshUtilization: fps / refreshRateHz,
+    refreshUtilization: Math.min(1, fps / refreshRateHz),
     frameTimeMs: {
       ...summarizeDistribution(frameTimesMs),
       over16ms: frameTimesMs.filter((frameTime) => frameTime > 16.67).length,
