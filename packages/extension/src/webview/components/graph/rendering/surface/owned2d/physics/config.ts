@@ -17,7 +17,6 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   springConstant: 0.15,
   maximumCollisionNeighbors: 128,
   maximumElapsedMs: 250,
-  maximumNeighbors: 24,
   maximumSpeed: 80,
   maximumSubSteps: 2,
   gravitationalConstant: -250,

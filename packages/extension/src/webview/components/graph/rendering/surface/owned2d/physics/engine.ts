@@ -26,7 +26,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
   private nodeIndexes = new Map<string, number>();
   private collisionGrid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.initializationSpacing);
-  private grid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.springLength);
   private simulationAlpha = 1;
   private accumulatorMs = 0;
   private settledStepCount = 0;
@@ -63,15 +62,12 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       this.nodeIndexes.set(nodeId, index);
     });
     this.state = createGraphLayoutState(input, this.config);
-    this.grid = new UniformGrid(this.gridCellSize());
     this.collisionGrid = new UniformGrid(this.collisionCellSize());
-    this.rebuildGrid();
     this.reheat();
   }
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.config = mergeGraphLayoutConfig(this.config, config);
-    this.grid = new UniformGrid(this.gridCellSize());
     this.collisionGrid = new UniformGrid(this.collisionCellSize());
     if (this.x.length > 0) this.reheat();
   }
@@ -169,9 +165,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   resume(): void { this.paused = false; }
 
   private step(): void {
-    this.rebuildGrid();
     applyLinkForces(this.state, this.config, this.simulationAlpha);
-    applyRepulsionForces(this.state, this.config, this.simulationAlpha, this.grid);
+    applyRepulsionForces(this.state, this.config, this.simulationAlpha);
     const maximumVelocity = integrateGraphLayout(this.state, this.config, this.simulationAlpha);
     const collisionIterations = this.simulationAlpha < 0.1
       ? Math.max(this.config.collisionIterations, 16)
@@ -194,16 +189,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.settled = this.settledStepCount >= this.config.settleSteps;
   }
 
-  private rebuildGrid(): void {
-    this.grid.rebuild(this.x, this.y, this.flags, GraphNodeFlag.Hidden);
-  }
-
   private collisionCellSize(): number {
     return this.maximumRadius() * 2 + this.config.collisionPadding;
-  }
-
-  private gridCellSize(): number {
-    return Math.max(this.config.springLength, this.collisionCellSize());
   }
 
   private maximumRadius(): number {
