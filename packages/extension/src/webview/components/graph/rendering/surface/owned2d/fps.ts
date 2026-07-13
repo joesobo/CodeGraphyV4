@@ -4,6 +4,7 @@ const PUBLICATION_INTERVAL_MS = 500;
 
 export interface RenderedFrameFpsSampler {
   readonly fps: number | null;
+  readonly frameTimeMs: number | null;
   record(timestamp: number): number | undefined;
   reset(): void;
 }
@@ -17,6 +18,9 @@ export function createRenderedFrameFpsSampler(): RenderedFrameFpsSampler {
   return {
     get fps(): number | null {
       return currentFps;
+    },
+    get frameTimeMs(): number | null {
+      return averageFrameDurationMs;
     },
     record(timestamp: number): number | undefined {
       if (!Number.isFinite(timestamp)) return undefined;
