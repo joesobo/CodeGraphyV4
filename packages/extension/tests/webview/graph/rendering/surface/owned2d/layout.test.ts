@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
@@ -210,6 +210,7 @@ describe('owned graph group dragging', () => {
       node('permanent', { x: 50, y: 60, isDragging: true, isPinned: true }),
     ];
     const layout = createOwnedGraphLayout(nodes, [], DEFAULT_SETTINGS);
+    const pin = vi.spyOn(layout.engine, 'pin');
     nodes[0].x = 110;
     nodes[0].y = 120;
     nodes[1].x = 130;
@@ -227,6 +228,10 @@ describe('owned graph group dragging', () => {
       GraphNodeFlag.Pinned,
       GraphNodeFlag.Pinned,
     ]);
+    expect(pin).toHaveBeenCalledTimes(3);
+
+    synchronizeOwnedDraggedNodes(layout, draggedIndexes);
+    expect(pin).toHaveBeenCalledTimes(3);
 
     releaseOwnedDraggedNodes(layout, draggedIndexes);
     expect(Array.from(layout.engine.flags)).toEqual([0, 0, GraphNodeFlag.Pinned]);

@@ -24,6 +24,8 @@ import {
   transferableGraphLayoutInput,
 } from './transferBuffers';
 
+const PENDING_MUTATION_REVISION = 0xffff_ffff;
+
 class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   x: Float32Array;
   y: Float32Array;
@@ -36,15 +38,18 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private availableKinematicsBuffers: GraphLayoutTransferBuffers[] = [];
   private currentAlpha: number;
   private currentBuffers: GraphLayoutTransferBuffers | undefined;
+  private directPositionRevision: Uint32Array;
   private disposed = false;
   private failed = false;
   private mutationRevision = 0;
   private paused = false;
+  private readonly pendingNodePositions = new Map<number, { x: number; y: number }>();
   private kinematicsBuffersCreated = false;
   private kinematicsPending = false;
   private readonly pendingRecycle: GraphLayoutTransferBuffers[] = [];
   private interpolator: GraphLayoutSnapshotInterpolator;
   private revision = 0;
+  private structuralRevision = 0;
   private tickInFlight = false;
 
   constructor(
@@ -58,6 +63,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.y = new Float32Array(this.fallback.y);
     this.vx = new Float32Array(this.fallback.vx);
     this.vy = new Float32Array(this.fallback.vy);
+    this.directPositionRevision = new Uint32Array(this.x.length);
     this.interpolator = new GraphLayoutSnapshotInterpolator(
       this.x,
       this.y,
@@ -92,9 +98,12 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.copyFallbackState();
     this.revision += 1;
     this.mutationRevision = 0;
+    this.structuralRevision = 0;
+    this.directPositionRevision = new Uint32Array(this.x.length);
     this.tickInFlight = false;
     this.currentBuffers = undefined;
     this.pendingRecycle.length = 0;
+    this.pendingNodePositions.clear();
     this.availableKinematicsBuffers = [];
     this.kinematicsBuffersCreated = false;
     this.kinematicsPending = false;
@@ -107,10 +116,17 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     if (this.x.length > 0) this.currentAlpha = Math.max(this.currentAlpha, 0.3);
     this.settled = false;
     this.mutationRevision += 1;
-    this.post({ type: 'setConfig', config, mutationRevision: this.mutationRevision });
+    this.structuralRevision += 1;
+    this.post({
+      type: 'setConfig',
+      config,
+      mutationRevision: this.mutationRevision,
+      structuralRevision: this.structuralRevision,
+    });
   }
 
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void {
+    this.pendingNodePositions.clear();
     if (this.failed) {
       this.fallback.setKinematics(x, y, vx, vy);
       this.copyFallbackState();
@@ -123,6 +139,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.settled = false;
     this.interpolator.reset(this.x, this.y, performance.now());
     this.mutationRevision += 1;
+    this.directPositionRevision.fill(this.mutationRevision);
     this.postKinematics();
   }
 
@@ -132,6 +149,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
       this.copyFallbackState();
       return result;
     }
+    this.flushNodePositions();
     if (!this.paused && !this.settled && !this.tickInFlight && !this.kinematicsPending) {
       this.postTick();
     }
@@ -146,14 +164,9 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.vy[index] = 0;
     this.interpolator.directPosition(index, x, y);
     this.settled = false;
-    this.mutationRevision += 1;
-    this.post({
-      type: 'setNodePosition',
-      index,
-      mutationRevision: this.mutationRevision,
-      x,
-      y,
-    });
+    if (this.failed) return;
+    this.directPositionRevision[index] = PENDING_MUTATION_REVISION;
+    this.pendingNodePositions.set(index, { x, y });
   }
 
   pin(index: number): void {
@@ -164,6 +177,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   }
 
   release(index: number): void {
+    this.flushNodePositions();
     this.fallback.release(index);
     this.flags[index] &= ~GraphNodeFlag.Pinned;
     this.mutationRevision += 1;
@@ -176,7 +190,14 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     else this.flags[index] &= ~GraphNodeFlag.Hidden;
     this.settled = false;
     this.mutationRevision += 1;
-    this.post({ type: 'setHidden', index, hidden, mutationRevision: this.mutationRevision });
+    this.structuralRevision += 1;
+    this.post({
+      type: 'setHidden',
+      index,
+      hidden,
+      mutationRevision: this.mutationRevision,
+      structuralRevision: this.structuralRevision,
+    });
   }
 
   setAlpha(alpha: number): void {
@@ -239,6 +260,23 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.worker.postMessage(command, transfer);
   }
 
+  private flushNodePositions(): void {
+    if (this.pendingNodePositions.size === 0 || this.disposed || this.failed) return;
+    this.mutationRevision += 1;
+    const mutationRevision = this.mutationRevision;
+    for (const [index, position] of this.pendingNodePositions) {
+      this.directPositionRevision[index] = mutationRevision;
+      this.post({
+        type: 'setNodePosition',
+        index,
+        mutationRevision,
+        x: position.x,
+        y: position.y,
+      });
+    }
+    this.pendingNodePositions.clear();
+  }
+
   private postKinematics(): void {
     if (!this.kinematicsBuffersCreated) {
       this.availableKinematicsBuffers = createGraphLayoutTransferBufferPair(this.x.length);
@@ -294,13 +332,17 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private handleTickMessage(message: GraphLayoutWorkerTickMessage): void {
     if (message.revision !== this.revision) return;
     this.tickInFlight = false;
-    if (message.mutationRevision !== this.mutationRevision) {
+    if (message.structuralRevision !== this.structuralRevision) {
       this.pendingRecycle.push(message.buffers);
       this.onFrameRequest();
       return;
     }
-    this.currentAlpha = message.alpha;
-    this.settled = message.result.settled;
+    if (message.mutationRevision === this.mutationRevision) {
+      this.currentAlpha = message.alpha;
+      this.settled = message.result.settled;
+    } else {
+      this.settled = false;
+    }
     if (message.result.steps === 0) {
       this.pendingRecycle.push(message.buffers);
       this.onFrameRequest();
@@ -311,11 +353,14 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     const nextVx = new Float32Array(message.buffers.vx);
     const nextVy = new Float32Array(message.buffers.vy);
     for (let index = 0; index < this.flags.length; index += 1) {
-      if ((this.flags[index] & GraphNodeFlag.Pinned) === 0) continue;
+      const directlyMovedAfterTick = this.directPositionRevision[index]
+        > message.mutationRevision;
+      const pinned = (this.flags[index] & GraphNodeFlag.Pinned) !== 0;
+      if (!directlyMovedAfterTick && !pinned) continue;
       nextX[index] = this.x[index];
       nextY[index] = this.y[index];
-      nextVx[index] = 0;
-      nextVy[index] = 0;
+      nextVx[index] = pinned ? 0 : this.vx[index];
+      nextVy[index] = pinned ? 0 : this.vy[index];
     }
     this.interpolator.accept(nextX, nextY, performance.now());
     this.recycleCurrentBuffers();

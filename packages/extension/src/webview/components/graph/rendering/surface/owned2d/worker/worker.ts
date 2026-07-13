@@ -13,6 +13,7 @@ import { transferBufferList } from './protocol';
 let engine: GraphLayoutEngine | undefined;
 let mutationRevision = 0;
 let revision = 0;
+let structuralRevision = 0;
 let availableOutputBuffers: GraphLayoutTransferBuffers[] = [];
 
 function requireEngine(): GraphLayoutEngine {
@@ -34,6 +35,7 @@ function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
     type: 'tick',
     mutationRevision,
     revision,
+    structuralRevision,
     result,
   };
   self.postMessage(message, { transfer: transferBufferList(buffers) });
@@ -52,10 +54,19 @@ function setMutationRevision(command: { mutationRevision: number }): void {
   mutationRevision = command.mutationRevision;
 }
 
+function setStructuralRevision(command: {
+  mutationRevision: number;
+  structuralRevision: number;
+}): void {
+  setMutationRevision(command);
+  structuralRevision = command.structuralRevision;
+}
+
 const commandHandlers = {
   init: (command) => {
     revision = command.revision;
     mutationRevision = 0;
+    structuralRevision = 0;
     engine = createGraphLayoutEngine(command.input);
     availableOutputBuffers = [...command.outputBuffers];
   },
@@ -66,7 +77,7 @@ const commandHandlers = {
   },
   setConfig: (command) => {
     requireEngine().setConfig(command.config);
-    setMutationRevision(command);
+    setStructuralRevision(command);
   },
   setKinematics: (command) => {
     requireEngine().setKinematics(
@@ -96,7 +107,7 @@ const commandHandlers = {
   },
   setHidden: (command) => {
     requireEngine().setHidden(command.index, command.hidden);
-    setMutationRevision(command);
+    setStructuralRevision(command);
   },
   setAlpha: (command) => {
     requireEngine().setAlpha(command.alpha);

@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import type { GraphLayoutInput } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/contracts';
 import type {
   GraphLayoutTransferBuffers,
   GraphLayoutWorkerCommand,
@@ -38,15 +39,21 @@ vi.mock('../../../../../../../src/webview/components/graph/rendering/surface/own
 
 import { createWorkerHostedGraphLayoutEngine } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/worker/host';
 
-export function createEngine(onUpdate = vi.fn(), onFrameRequest = onUpdate) {
-  const engine = createWorkerHostedGraphLayoutEngine({
-    nodeIds: ['a'],
-    initialX: Float32Array.of(0),
-    initialY: Float32Array.of(0),
-    radii: Float32Array.of(4),
-    edgeSources: new Uint32Array(),
-    edgeTargets: new Uint32Array(),
-  }, onUpdate, onFrameRequest);
+const DEFAULT_INPUT: GraphLayoutInput = {
+  nodeIds: ['a'],
+  initialX: Float32Array.of(0),
+  initialY: Float32Array.of(0),
+  radii: Float32Array.of(4),
+  edgeSources: new Uint32Array(),
+  edgeTargets: new Uint32Array(),
+};
+
+export function createEngine(
+  onUpdate = vi.fn(),
+  onFrameRequest = onUpdate,
+  input: GraphLayoutInput = DEFAULT_INPUT,
+) {
+  const engine = createWorkerHostedGraphLayoutEngine(input, onUpdate, onFrameRequest);
   return { engine, onFrameRequest, onUpdate, worker: workerHarness.instances.at(-1)! };
 }
 
@@ -71,6 +78,7 @@ export function publishTick(
     buffers,
     mutationRevision: 0,
     revision: 0,
+    structuralRevision: 0,
     result: { moving: true, settled: false, steps: 1 },
     type: 'tick',
     ...overrides,

@@ -52,7 +52,12 @@ describe('owned graph layout worker command routing', () => {
         edgeTargets: new Uint32Array(),
       },
     });
-    send({ type: 'setConfig', config: { centralGravity: 0 }, mutationRevision: 1 });
+    send({
+      type: 'setConfig',
+      config: { centralGravity: 0 },
+      mutationRevision: 1,
+      structuralRevision: 1,
+    });
     const kinematics = outputSet();
     new Float32Array(kinematics.x)[0] = 10;
     new Float32Array(kinematics.y)[0] = 20;
@@ -67,7 +72,13 @@ describe('owned graph layout worker command routing', () => {
     send({ type: 'setNodePosition', index: 0, mutationRevision: 3, x: 30, y: 40 });
     send({ type: 'pin', index: 0, mutationRevision: 4 });
     send({ type: 'release', index: 0, mutationRevision: 5 });
-    send({ type: 'setHidden', index: 0, hidden: false, mutationRevision: 6 });
+    send({
+      type: 'setHidden',
+      index: 0,
+      hidden: false,
+      mutationRevision: 6,
+      structuralRevision: 2,
+    });
     send({ type: 'setAlpha', alpha: 0.4, mutationRevision: 7 });
     send({ type: 'setAlphaTarget', alpha: 0.2, mutationRevision: 8 });
     send({ type: 'reheat', alpha: 0.5, mutationRevision: 9 });
@@ -85,6 +96,7 @@ describe('owned graph layout worker command routing', () => {
       buffers: first,
       mutationRevision: 11,
       revision: 4,
+      structuralRevision: 2,
       type: 'tick',
     });
     expect(Number.isFinite(firstMessage.alpha)).toBe(true);

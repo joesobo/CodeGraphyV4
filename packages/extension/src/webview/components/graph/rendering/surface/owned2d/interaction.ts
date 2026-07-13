@@ -145,7 +145,7 @@ function beginPointerSession(
   const picked = pickNode(runtime, layout, world);
   const pickedLink = picked ? undefined : pickLink(runtime, layout, world);
   runtime.pointerSessionRef.current = {
-    draggedIndexes: new Set(picked ? [picked.index] : []),
+    draggedIndexes: new Set(),
     index: picked?.index ?? null,
     nodeId: picked?.node.id ?? null,
     link: pickedLink?.link ?? null,
@@ -155,9 +155,6 @@ function beginPointerSession(
     startScreen: screen,
   };
   if (!picked) return;
-  layout.engine.pin(picked.index);
-  picked.node.fx = picked.node.x;
-  picked.node.fy = picked.node.y;
   event.currentTarget.setPointerCapture(event.pointerId);
 }
 
@@ -197,12 +194,13 @@ function moveDraggedNode(
   if (!session.moved && !crossedDragThreshold) return true;
   if (!session.moved) {
     session.moved = true;
+    layout.engine.pin(session.index);
+    session.draggedIndexes.add(session.index);
     layout.engine.setAlphaTarget(0.3);
   }
   session.lastWorld = world;
   layout.engine.setNodePosition(session.index, world.x, world.y);
   runtime.positionVersionRef.current += 1;
-  layout.engine.pin(session.index);
   node.x = world.x;
   node.y = world.y;
   node.fx = world.x;

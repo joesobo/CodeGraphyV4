@@ -24,20 +24,51 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(tickCommands(worker)[2].recycledBuffers).toEqual([first]);
   });
 
-  it('recycles a mutation-stale result on the next RAF-demanded tick', () => {
-    const { engine, worker } = createEngine();
+  it('publishes neighbor motion from an in-flight tick without moving a directly dragged node', () => {
+    const onUpdate = vi.fn();
+    const { engine, worker } = createEngine(onUpdate, onUpdate, {
+      nodeIds: ['dragged', 'neighbor'],
+      initialX: Float32Array.of(0, 10),
+      initialY: Float32Array.of(0, 10),
+      radii: Float32Array.of(4, 4),
+      edgeSources: Uint32Array.of(0),
+      edgeTargets: Uint32Array.of(1),
+    });
     const [first] = outputBuffers(worker);
 
     engine.tick();
-    engine.setNodePosition(0, 25, 30);
     engine.pin(0);
+    engine.setAlphaTarget(0.3);
+    engine.setNodePosition(0, 25, 30);
     engine.release(0);
+    engine.setAlphaTarget(0);
+    new Float32Array(first.x).set([5, 15]);
+    new Float32Array(first.y).set([6, 16]);
+    publishTick(worker, first, {
+      result: { moving: false, settled: true, steps: 1 },
+    });
+
+    expect(Array.from(engine.x)).toEqual([25, 15]);
+    expect(Array.from(engine.y)).toEqual([30, 16]);
+    expect(engine.settled).toBe(false);
+    expect(onUpdate).toHaveBeenCalledOnce();
+    engine.tick();
+    expect(tickCommands(worker)).toHaveLength(2);
+  });
+
+  it('recycles a tick snapshot invalidated by a structural configuration change', () => {
+    const onUpdate = vi.fn();
+    const onFrameRequest = vi.fn();
+    const { engine, worker } = createEngine(onUpdate, onFrameRequest);
+    const [first] = outputBuffers(worker);
+
+    engine.tick();
+    engine.setConfig({ centralGravity: 0.2 });
     publishTick(worker, first);
 
-    expect(engine.x[0]).toBe(25);
-    expect(engine.y[0]).toBe(30);
-    expect(tickCommands(worker)).toHaveLength(1);
-
+    expect(engine.x[0]).toBe(0);
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(onFrameRequest).toHaveBeenCalledOnce();
     engine.tick();
     expect(tickCommands(worker)[1].recycledBuffers).toEqual([first]);
   });
@@ -58,6 +89,23 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(Array.from(engine.x)).toEqual([12]);
     expect(Array.from(engine.y)).toEqual([13]);
     expect(worker.messages).toContainEqual(expect.objectContaining({ type: 'setKinematics' }));
+  });
+
+  it('coalesces direct drag positions to the latest worker command per display frame', () => {
+    const { engine, worker } = createEngine();
+
+    engine.setNodePosition(0, 10, 20);
+    engine.setNodePosition(0, 30, 40);
+
+    expect(worker.messages.filter(command => command.type === 'setNodePosition')).toHaveLength(0);
+    engine.tick();
+    expect(worker.messages.filter(command => command.type === 'setNodePosition')).toEqual([{
+      type: 'setNodePosition',
+      index: 0,
+      mutationRevision: 1,
+      x: 30,
+      y: 40,
+    }]);
   });
 
   it('coalesces display-frame ticks while a worker request is in flight', () => {
