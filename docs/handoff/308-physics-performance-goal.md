@@ -1,14 +1,15 @@
-# Physics Performance Goal: 60+ FPS Interactive Force Layout at 10,000 Nodes
+# Physics Performance Goal: Smooth Interactive Force Layout on Large Graphs
 
 PR: https://github.com/joesobo/CodeGraphyV4/pull/308
 
 ## Goal
 
-A 10,000-node graph with edges should render at 60+ FPS while the force
-simulation is running and the user is dragging nodes. Dragging must feel like
-the current 500-node experience: neighbors ripple, clusters form naturally,
-and the layout glides to rest. This is a stretch goal — get as close as
-possible without changing how the graph feels.
+Make the force simulation scale to large graphs (thousands of nodes) while
+dragging stays responsive and feels like the current 500-node experience:
+neighbors ripple, clusters form naturally, and the layout glides to rest.
+The work items below are the goal — land them correctly and cheaply; do NOT
+build or run large-scale performance test suites to prove the numbers.
+Validate with the existing fast unit/reference tests and small fixtures.
 
 ## Hard constraints (owner decisions)
 
@@ -74,9 +75,12 @@ ms per step. This item alone may reach the goal.
 
 ### 2. Worker improvements
 
-- Lower `WORKER_LAYOUT_NODE_THRESHOLD` (currently 5,000 in
-  `.../owned2d/layout.ts`) to ~1,000 so mid-sized graphs also simulate off
-  the main thread. Re-tune the exact threshold by measurement after item 1.
+- Always run physics in the worker: remove `WORKER_LAYOUT_NODE_THRESHOLD`
+  (currently 5,000 in `.../owned2d/layout.ts`) and the size gate entirely.
+  The synchronous engine remains only as the automatic fallback when
+  `Worker` is unavailable or the worker fails (existing plumbing). Drag
+  responsiveness is preserved because `setNodePosition` already applies the
+  dragged node's position to the main-thread copy synchronously.
 - Eliminate per-tick allocations in the worker protocol
   (`.../owned2d/worker/host.ts` and `worker/worker.ts`): each tick currently
   allocates fresh Float32Arrays in both directions. Use transferable
@@ -124,7 +128,8 @@ work should be zero.
   whole-layout comparison added in item 1).
 - Deterministic: repeated runs of the same scenario produce identical
   layouts.
-- Measured on the deterministic 10k fixture: physics step time (the
-  `physicsMs` perf sample) in single-digit milliseconds, and scripted drag
-  stays at or above 60 FPS on hardware WebGPU.
-- Existing benchmark tiers re-baselined, same gate criteria.
+- Repulsion complexity is O(n log n) by construction (quadtree), verified by
+  unit tests on tree build/traversal — not by large-scale benchmark runs.
+- Do not add or run large performance suites as part of this work; the
+  owner will assess real-world performance by hand, and the existing
+  benchmark tiers get re-baselined separately afterward.
