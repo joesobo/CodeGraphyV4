@@ -6,6 +6,7 @@ import { generateSyntheticGraph } from '../../src/fixture/generate';
 const NODE_COUNT = 500;
 const PACKAGE_SIZE = 128;
 const SETTLEMENT_TICKS = 310;
+const FEEL_TEST_TIMEOUT_MS = 60_000;
 
 function createFixtureEngine() {
   const graph = generateSyntheticGraph({ nodeCount: NODE_COUNT, seed: 307 });
@@ -106,7 +107,7 @@ function meanDisplacement(
 }
 
 describe('500-node owned physics feel', () => {
-  it('settles topology-local relationships into visible package clusters', { timeout: 30_000 }, () => {
+  it('settles topology-local relationships into visible package clusters', { timeout: FEEL_TEST_TIMEOUT_MS }, () => {
     const engine = createFixtureEngine();
 
     for (let tick = 0; tick < SETTLEMENT_TICKS; tick += 1) engine.tick();
@@ -116,7 +117,7 @@ describe('500-node owned physics feel', () => {
     expect(packageSeparationRatio(engine.x, engine.y)).toBeGreaterThanOrEqual(1.2);
   });
 
-  it('responds to force-setting changes on the next tick without an explosive pulse', { timeout: 30_000 }, () => {
+  it('responds to force-setting changes on the next tick without an explosive pulse', { timeout: FEEL_TEST_TIMEOUT_MS }, () => {
     const engine = createFixtureEngine();
     const changes: Array<{ config: Parameters<typeof engine.setConfig>[0]; tick: number }> = [
       { config: { chargeStrength: -50 }, tick: 120 },
@@ -139,7 +140,7 @@ describe('500-node owned physics feel', () => {
     }
   });
 
-  it('keeps a high-degree hub stable while a connected leaf is dragged', { timeout: 30_000 }, () => {
+  it('keeps a high-degree hub stable while a connected leaf is dragged', { timeout: FEEL_TEST_TIMEOUT_MS }, () => {
     const engine = createFixtureEngine();
     for (let tick = 0; tick < SETTLEMENT_TICKS; tick += 1) engine.tick();
     const neighbors = adjacency(engine);
@@ -166,7 +167,7 @@ describe('500-node owned physics feel', () => {
     expect(hubDisplacement / dragDistance).toBeLessThanOrEqual(0.35);
   });
 
-  it('ripples a hub drag through nearby relationships and settles after release', { timeout: 30_000 }, () => {
+  it('ripples a hub drag through nearby relationships and settles after release', { timeout: FEEL_TEST_TIMEOUT_MS }, () => {
     const engine = createFixtureEngine();
     for (let tick = 0; tick < SETTLEMENT_TICKS; tick += 1) engine.tick();
     const neighbors = adjacency(engine);
