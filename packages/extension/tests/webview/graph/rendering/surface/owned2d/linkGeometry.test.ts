@@ -29,7 +29,7 @@ describe('owned edge geometry', () => {
 
     traceOwnedLink(context, geometry);
 
-    expect(midpoint).toMatchObject({ x: 50, y: 25 });
+    expect(midpoint).toMatchObject({ x: 50, y: -25 });
     expect(context.quadraticCurveTo).toHaveBeenCalledOnce();
     expect(context.bezierCurveTo).not.toHaveBeenCalled();
   });

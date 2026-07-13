@@ -1,5 +1,6 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
+import { graphDetailOpacity } from '../detailVisibility';
 import type { FGNode } from '../../model/build';
 import type { NodeLabelSpriteProvider } from './labelSprite';
 
@@ -24,8 +25,8 @@ export function renderNodeLabel({
   opacity,
   spriteCache,
 }: RenderNodeLabelOptions): void {
-  const labelOpacity = Math.min(1, Math.max(0, (globalScale - 0.35) / 1.2));
-  if (labelOpacity <= 0.01) return;
+  const labelOpacity = graphDetailOpacity(globalScale);
+  if (labelOpacity === 0) return;
   const nodeHalfHeight = node.shapeSize2D?.height
     ? node.shapeSize2D.height / 2
     : node.size;

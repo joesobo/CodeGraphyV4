@@ -41,8 +41,8 @@ export function ownedLinkGeometry(link: FGLink): OwnedLinkGeometry | undefined {
   return {
     source,
     target,
-    controlX: ((source.x as number) + (target.x as number)) / 2 + (-dy / distance) * offset,
-    controlY: ((source.y as number) + (target.y as number)) / 2 + (dx / distance) * offset,
+    controlX: ((source.x as number) + (target.x as number)) / 2 + (dy / distance) * offset,
+    controlY: ((source.y as number) + (target.y as number)) / 2 - (dx / distance) * offset,
   };
 }
 

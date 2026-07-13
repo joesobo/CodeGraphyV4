@@ -1,4 +1,5 @@
 import type { OwnedGraphNodeStyle } from './contracts';
+import { OWNED_SELF_LOOP_RADIUS } from './linkGeometry';
 
 export const OWNED_ARROW_LENGTH = 12;
 export const OWNED_ARROW_HALF_WIDTH = OWNED_ARROW_LENGTH / 1.6 / 2;
@@ -8,7 +9,7 @@ interface GraphPoint {
   y: number;
 }
 
-export interface OwnedArrowEndpointInsets {
+export interface OwnedArrowCurveParameters {
   source: number;
   target: number;
 }
@@ -95,37 +96,221 @@ function nodeBoundaryDistance(
   }
 }
 
-function unitVector(x: number, y: number): GraphPoint | undefined {
-  const length = Math.hypot(x, y);
-  if (length === 0) return undefined;
-  return { x: x / length, y: y / length };
+function curveCoordinate(
+  source: number,
+  target: number,
+  firstControl: number,
+  secondControl: number,
+  cubic: boolean,
+  position: number,
+): number {
+  const inverse = 1 - position;
+  if (cubic) {
+    return inverse ** 3 * source
+      + 3 * inverse * inverse * position * firstControl
+      + 3 * inverse * position * position * secondControl
+      + position ** 3 * target;
+  }
+  return inverse * inverse * source
+    + 2 * inverse * position * firstControl
+    + position * position * target;
 }
 
-export function ownedArrowEndpointInsets(
+function curveTangentCoordinate(
+  source: number,
+  target: number,
+  firstControl: number,
+  secondControl: number,
+  cubic: boolean,
+  position: number,
+): number {
+  const inverse = 1 - position;
+  if (cubic) {
+    return 3 * inverse * inverse * (firstControl - source)
+      + 6 * inverse * position * (secondControl - firstControl)
+      + 3 * position * position * (target - secondControl);
+  }
+  return 2 * inverse * (firstControl - source)
+    + 2 * position * (target - firstControl);
+}
+
+function correctedBoundaryOffset(
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+  firstControlX: number,
+  firstControlY: number,
+  secondControlX: number,
+  secondControlY: number,
+  cubic: boolean,
+  fromSource: boolean,
+  tangentX: number,
+  tangentY: number,
+  style: OwnedGraphNodeStyle,
+): number {
+  const centerX = fromSource ? sourceX : targetX;
+  const centerY = fromSource ? sourceY : targetY;
+  const outwardX = fromSource ? tangentX : -tangentX;
+  const outwardY = fromSource ? tangentY : -tangentY;
+  const tangentLength = Math.hypot(outwardX, outwardY);
+  if (tangentLength === 0) return 0;
+  let offset = Math.min(
+    0.5,
+    nodeBoundaryDistance(style, outwardX / tangentLength, outwardY / tangentLength)
+      / tangentLength,
+  );
+  let inside = 0;
+  let outside = 0.5;
+  for (let correction = 0; correction < 8; correction += 1) {
+    const position = fromSource ? offset : 1 - offset;
+    const pointX = curveCoordinate(
+      sourceX,
+      targetX,
+      firstControlX,
+      secondControlX,
+      cubic,
+      position,
+    );
+    const pointY = curveCoordinate(
+      sourceY,
+      targetY,
+      firstControlY,
+      secondControlY,
+      cubic,
+      position,
+    );
+    const deltaX = pointX - centerX;
+    const deltaY = pointY - centerY;
+    const distance = Math.hypot(deltaX, deltaY);
+    if (distance === 0) return 0;
+    const boundary = nodeBoundaryDistance(style, deltaX / distance, deltaY / distance);
+    const curveTangentX = curveTangentCoordinate(
+      sourceX,
+      targetX,
+      firstControlX,
+      secondControlX,
+      cubic,
+      position,
+    );
+    const curveTangentY = curveTangentCoordinate(
+      sourceY,
+      targetY,
+      firstControlY,
+      secondControlY,
+      cubic,
+      position,
+    );
+    const offsetTangentX = fromSource ? curveTangentX : -curveTangentX;
+    const offsetTangentY = fromSource ? curveTangentY : -curveTangentY;
+    const radialDerivative = (
+      deltaX * offsetTangentX + deltaY * offsetTangentY
+    ) / distance;
+    const error = distance - boundary;
+    if (error >= 0) {
+      outside = offset;
+    } else {
+      inside = offset;
+    }
+    const newton = offset - error / radialDerivative;
+    offset = radialDerivative > 0.000001
+      && Number.isFinite(newton)
+      && newton > inside
+      && newton < outside
+      ? newton
+      : (inside + outside) / 2;
+  }
+  return offset;
+}
+
+export function writeOwnedArrowCurveParameters(
+  output: Float32Array,
+  offset: number,
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+  curvature: number,
+  sourceStyle: OwnedGraphNodeStyle,
+  targetStyle: OwnedGraphNodeStyle,
+): void {
+  const deltaX = targetX - sourceX;
+  const deltaY = targetY - sourceY;
+  const distance = Math.hypot(deltaX, deltaY);
+  if (distance > 0 && curvature === 0) {
+    const directionX = deltaX / distance;
+    const directionY = deltaY / distance;
+    output[offset] = Math.min(
+      1,
+      nodeBoundaryDistance(sourceStyle, directionX, directionY) / distance,
+    );
+    output[offset + 1] = Math.max(
+      0,
+      1 - nodeBoundaryDistance(targetStyle, -directionX, -directionY) / distance,
+    );
+    return;
+  }
+
+  const cubic = distance === 0;
+  const radius = Math.max(0.5, Math.abs(curvature)) * OWNED_SELF_LOOP_RADIUS;
+  const firstControlX = cubic ? sourceX : (sourceX + targetX) / 2 + deltaY * curvature;
+  const firstControlY = cubic ? sourceY - radius : (sourceY + targetY) / 2 - deltaX * curvature;
+  const secondControlX = cubic ? sourceX + radius : firstControlX;
+  const secondControlY = cubic ? sourceY : firstControlY;
+  const sourceTangentX = (cubic ? 3 : 2) * (firstControlX - sourceX);
+  const sourceTangentY = (cubic ? 3 : 2) * (firstControlY - sourceY);
+  const targetTangentX = (cubic ? 3 : 2) * (targetX - secondControlX);
+  const targetTangentY = (cubic ? 3 : 2) * (targetY - secondControlY);
+  output[offset] = correctedBoundaryOffset(
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    firstControlX,
+    firstControlY,
+    secondControlX,
+    secondControlY,
+    cubic,
+    true,
+    sourceTangentX,
+    sourceTangentY,
+    sourceStyle,
+  );
+  output[offset + 1] = 1 - correctedBoundaryOffset(
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    firstControlX,
+    firstControlY,
+    secondControlX,
+    secondControlY,
+    cubic,
+    false,
+    targetTangentX,
+    targetTangentY,
+    targetStyle,
+  );
+}
+
+export function ownedArrowCurveParameters(
   source: GraphPoint,
   target: GraphPoint,
   curvature: number,
   sourceStyle: OwnedGraphNodeStyle,
   targetStyle: OwnedGraphNodeStyle,
-): OwnedArrowEndpointInsets {
-  const deltaX = target.x - source.x;
-  const deltaY = target.y - source.y;
-  if (deltaX === 0 && deltaY === 0) {
-    return {
-      source: nodeBoundaryDistance(sourceStyle, 0, -1),
-      target: nodeBoundaryDistance(targetStyle, -1, 0),
-    };
-  }
-  const controlX = (source.x + target.x) / 2 - deltaY * curvature;
-  const controlY = (source.y + target.y) / 2 + deltaX * curvature;
-  const sourceDirection = unitVector(controlX - source.x, controlY - source.y);
-  const targetDirection = unitVector(target.x - controlX, target.y - controlY);
-  return {
-    source: sourceDirection
-      ? nodeBoundaryDistance(sourceStyle, sourceDirection.x, sourceDirection.y)
-      : 0,
-    target: targetDirection
-      ? nodeBoundaryDistance(targetStyle, -targetDirection.x, -targetDirection.y)
-      : 0,
-  };
+): OwnedArrowCurveParameters {
+  const output = new Float32Array(2);
+  writeOwnedArrowCurveParameters(
+    output,
+    0,
+    source.x,
+    source.y,
+    target.x,
+    target.y,
+    curvature,
+    sourceStyle,
+    targetStyle,
+  );
+  return { source: output[0], target: output[1] };
 }
