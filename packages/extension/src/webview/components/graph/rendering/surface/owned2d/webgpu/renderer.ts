@@ -9,8 +9,8 @@ import { LINK_SHADER, NODE_SHADER } from './shaders';
 
 const NODE_FLOATS = 15;
 const NODE_STYLE_FLOATS = 13;
-const LINK_FLOATS = 18;
-const LINK_STYLE_FLOATS = 10;
+const LINK_FLOATS = 17;
+const LINK_STYLE_FLOATS = 9;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
 // Bound queue growth while allowing triple-buffered compositors to overlap work.
 const MAX_PENDING_FRAMES = 3;
@@ -23,7 +23,6 @@ export interface OwnedWebGpuFrame {
   devicePixelRatio: number;
   directionMode: DirectionMode;
   getArrowColor(this: void, link: FGLink): string;
-  getArrowRelPos(this: void, link: FGLink): number;
   getLinkColor(this: void, link: FGLink): string;
   getLinkWidth(this: void, link: FGLink): number;
   getNodeStyle(this: void, node: FGNode): OwnedGraphNodeStyle;
@@ -90,10 +89,6 @@ export function parseWebGpuColor(color: string): [number, number, number, number
   return [0, 0, 0, 1];
 }
 
-export function normalizeOwnedArrowPosition(position: number): number {
-  return Number.isFinite(position) ? Math.min(1, Math.max(0, position)) : 1;
-}
-
 export function webGpuNodeShapeCode(shape: NodeShape2D): number {
   switch (shape) {
     case 'circle': return 0;
@@ -135,7 +130,6 @@ export class OwnedWebGpuRenderer {
   private styledNodes: readonly FGNode[] | undefined;
   private linkBuffer: GPUBuffer;
   private linkArrowColorAccessor: OwnedWebGpuFrame['getArrowColor'] | undefined;
-  private linkArrowPositionAccessor: OwnedWebGpuFrame['getArrowRelPos'] | undefined;
   private linkBufferSize = 256;
   private linkColorAccessor: OwnedWebGpuFrame['getLinkColor'] | undefined;
   private linkStyleLinks: readonly FGLink[] | undefined;
@@ -265,8 +259,7 @@ export class OwnedWebGpuRenderer {
             { shaderLocation: 2, offset: 4 * FLOAT_BYTES, format: 'float32x2' },
             { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
             { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 5, offset: 14 * FLOAT_BYTES, format: 'float32x2' },
-            { shaderLocation: 6, offset: 16 * FLOAT_BYTES, format: 'float32x2' },
+            { shaderLocation: 5, offset: 14 * FLOAT_BYTES, format: 'float32x3' },
           ],
         }],
       },
@@ -328,7 +321,6 @@ export class OwnedWebGpuRenderer {
       && this.styledNodes === frame.nodes
       && this.linkStyleLinks === frame.links
       && this.linkArrowColorAccessor === frame.getArrowColor
-      && this.linkArrowPositionAccessor === frame.getArrowRelPos
       && this.linkColorAccessor === frame.getLinkColor
       && this.linkWidthAccessor === frame.getLinkWidth;
   }
@@ -365,13 +357,11 @@ export class OwnedWebGpuRenderer {
     this.linkStyles[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);
     this.linkStyles.set(cachedWebGpuColor(frame.getLinkColor(link)), offset + 1);
     this.linkStyles.set(cachedWebGpuColor(frame.getArrowColor(link)), offset + 5);
-    this.linkStyles[offset + 9] = normalizeOwnedArrowPosition(frame.getArrowRelPos(link));
   }
 
   private updateLinkStyleCache(frame: OwnedWebGpuFrame): void {
     this.linkStyleLinks = frame.links;
     this.linkArrowColorAccessor = frame.getArrowColor;
-    this.linkArrowPositionAccessor = frame.getArrowRelPos;
     this.linkColorAccessor = frame.getLinkColor;
     this.linkWidthAccessor = frame.getLinkWidth;
     this.linkStyles = new Float32Array(frame.links.length * LINK_STYLE_FLOATS);
@@ -474,9 +464,9 @@ export class OwnedWebGpuRenderer {
       this.linkStyles.subarray(styleOffset + 1, styleOffset + LINK_STYLE_FLOATS),
       offset + 6,
     );
-    this.linkValues[offset + 15] = link.bidirectional ? 1 : 0;
-    this.linkValues[offset + 16] = endpointInsets.source;
-    this.linkValues[offset + 17] = endpointInsets.target;
+    this.linkValues[offset + 14] = endpointInsets.source;
+    this.linkValues[offset + 15] = endpointInsets.target;
+    this.linkValues[offset + 16] = link.bidirectional ? 1 : 0;
     this.renderedLinkCount += 1;
     return true;
   }

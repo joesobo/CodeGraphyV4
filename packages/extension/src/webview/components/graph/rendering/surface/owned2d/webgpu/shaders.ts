@@ -1,7 +1,9 @@
-import { DIRECTIONAL_ARROW_LENGTH_2D } from '../../../link/contracts';
-
-const ARROW_HALF_WIDTH = DIRECTIONAL_ARROW_LENGTH_2D / 1.6 / 2;
-const ARROW_VERTEX_LENGTH = DIRECTIONAL_ARROW_LENGTH_2D * 0.2;
+import {
+  OWNED_ARROW_HALF_WIDTH,
+  OWNED_ARROW_LENGTH,
+  OWNED_ARROW_VERTEX_LENGTH,
+} from '../arrowGeometry';
+import { OWNED_SELF_LOOP_RADIUS } from '../linkGeometry';
 
 const CAMERA_UNIFORM = /* wgsl */ `
 struct CameraUniform {
@@ -102,13 +104,42 @@ struct VertexOutput {
   @location(0) color: vec4f,
 };
 
-fn curvePoint(source: vec2f, destination: vec2f, control: vec2f, t: f32) -> vec2f {
+fn curvePoint(
+  source: vec2f,
+  destination: vec2f,
+  control: vec2f,
+  curvature: f32,
+  t: f32,
+) -> vec2f {
   let inverse = 1.0 - t;
+  if (distance(source, destination) <= 0.0001) {
+    let radius = max(0.5, abs(curvature)) * ${OWNED_SELF_LOOP_RADIUS};
+    let firstControl = source + vec2f(0.0, -radius);
+    let secondControl = source + vec2f(radius, 0.0);
+    return inverse * inverse * inverse * source
+      + 3.0 * inverse * inverse * t * firstControl
+      + 3.0 * inverse * t * t * secondControl
+      + t * t * t * destination;
+  }
   return inverse * inverse * source + 2.0 * inverse * t * control + t * t * destination;
 }
 
-fn curveTangent(source: vec2f, destination: vec2f, control: vec2f, t: f32) -> vec2f {
+fn curveTangent(
+  source: vec2f,
+  destination: vec2f,
+  control: vec2f,
+  curvature: f32,
+  t: f32,
+) -> vec2f {
   let inverse = 1.0 - t;
+  if (distance(source, destination) <= 0.0001) {
+    let radius = max(0.5, abs(curvature)) * ${OWNED_SELF_LOOP_RADIUS};
+    let firstControl = source + vec2f(0.0, -radius);
+    let secondControl = source + vec2f(radius, 0.0);
+    return 3.0 * inverse * inverse * (firstControl - source)
+      + 6.0 * inverse * t * (secondControl - firstControl)
+      + 3.0 * t * t * (destination - secondControl);
+  }
   return 2.0 * inverse * (control - source) + 2.0 * t * (destination - control);
 }
 
@@ -120,8 +151,7 @@ fn vertexMain(
   @location(2) halfWidthAndCurvature: vec2f,
   @location(3) color: vec4f,
   @location(4) arrowColor: vec4f,
-  @location(5) arrowPositionAndBidirectional: vec2f,
-  @location(6) arrowEndpointInsets: vec2f,
+  @location(5) arrowEndpointInsetsAndBidirectional: vec3f,
 ) -> VertexOutput {
   let graphDelta = graphDestination - graphSource;
   let graphDistance = length(graphDelta);
@@ -133,23 +163,39 @@ fn vertexMain(
   var output: VertexOutput;
   if (vertexIndex >= 24u) {
     let arrowAlong = array<f32, 6>(
-      0.0, -${DIRECTIONAL_ARROW_LENGTH_2D}, -${ARROW_VERTEX_LENGTH},
-      0.0, -${ARROW_VERTEX_LENGTH}, -${DIRECTIONAL_ARROW_LENGTH_2D},
+      0.0, -${OWNED_ARROW_LENGTH}, -${OWNED_ARROW_VERTEX_LENGTH},
+      0.0, -${OWNED_ARROW_VERTEX_LENGTH}, -${OWNED_ARROW_LENGTH},
     );
     let arrowSide = array<f32, 6>(
-      0.0, ${ARROW_HALF_WIDTH}, 0.0,
-      0.0, 0.0, -${ARROW_HALF_WIDTH},
+      0.0, ${OWNED_ARROW_HALF_WIDTH}, 0.0,
+      0.0, 0.0, -${OWNED_ARROW_HALF_WIDTH},
     );
     let reverseArrow = vertexIndex >= 30u;
     let corner = (vertexIndex - 24u) % 6u;
     let arrowPosition = select(1.0, 0.0, reverseArrow);
-    let graphPosition = curvePoint(graphSource, graphDestination, control, arrowPosition);
-    var graphTangent = curveTangent(graphSource, graphDestination, control, arrowPosition);
+    let graphPosition = curvePoint(
+      graphSource,
+      graphDestination,
+      control,
+      halfWidthAndCurvature.y,
+      arrowPosition,
+    );
+    var graphTangent = curveTangent(
+      graphSource,
+      graphDestination,
+      control,
+      halfWidthAndCurvature.y,
+      arrowPosition,
+    );
     if (reverseArrow) { graphTangent = -graphTangent; }
     let tangentLengthSquared = max(dot(graphTangent, graphTangent), 0.0000001);
     let tangent = graphTangent * inverseSqrt(tangentLengthSquared);
     let normal = vec2f(-tangent.y, tangent.x);
-    let endpointInset = select(arrowEndpointInsets.y, arrowEndpointInsets.x, reverseArrow);
+    let endpointInset = select(
+      arrowEndpointInsetsAndBidirectional.y,
+      arrowEndpointInsetsAndBidirectional.x,
+      reverseArrow,
+    );
     let tip = graphPosition - tangent * endpointInset;
     let graphVertex = tip + tangent * arrowAlong[corner] + normal * arrowSide[corner];
     output.position = vec4f(
@@ -158,7 +204,9 @@ fn vertexMain(
       1.0,
     );
     output.color = arrowColor;
-    if (reverseArrow && arrowPositionAndBidirectional.y < 0.5) { output.color.a = 0.0; }
+    if (reverseArrow && arrowEndpointInsetsAndBidirectional.z < 0.5) {
+      output.color.a = 0.0;
+    }
     return output;
   }
 
@@ -168,8 +216,20 @@ fn vertexMain(
   let segment = f32(vertexIndex / 6u);
   let corner = vertexIndex % 6u;
   let t = (segment + along[corner]) / segmentCount;
-  let graphPosition = curvePoint(graphSource, graphDestination, control, t);
-  let graphTangent = curveTangent(graphSource, graphDestination, control, t);
+  let graphPosition = curvePoint(
+    graphSource,
+    graphDestination,
+    control,
+    halfWidthAndCurvature.y,
+    t,
+  );
+  let graphTangent = curveTangent(
+    graphSource,
+    graphDestination,
+    control,
+    halfWidthAndCurvature.y,
+    t,
+  );
   let tangent = graphTangent * camera.graphToClip * vec2f(1.0, -1.0);
   let lengthSquared = max(dot(tangent, tangent), 0.0000001);
   let normal = vec2f(-tangent.y, tangent.x) * inverseSqrt(lengthSquared);

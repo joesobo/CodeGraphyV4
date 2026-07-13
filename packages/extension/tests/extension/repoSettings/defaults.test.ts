@@ -48,7 +48,6 @@ describe('extension/repoSettings/defaults', () => {
         linkForce: 1,
         damping: 0.4,
         centerForce: 0.1,
-        chargeRange: 200,
       },
     });
   });

@@ -38,5 +38,4 @@ export const PHYSICS_SETTINGS_KEYS = new Set([
   'linkForce',
   'damping',
   'centerForce',
-  'chargeRange',
 ]);

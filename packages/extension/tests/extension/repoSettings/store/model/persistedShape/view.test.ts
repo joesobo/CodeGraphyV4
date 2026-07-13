@@ -250,7 +250,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         linkForce: 0.5,
         damping: 0.2,
         centerForce: 0.1,
-        chargeRange: 500,
       },
     });
   });

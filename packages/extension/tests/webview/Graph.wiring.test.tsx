@@ -149,14 +149,10 @@ function createInteractionRuntime() {
 function createCallbacks() {
 	return {
 		getArrowColor: vi.fn(),
-		getArrowRelPos: vi.fn(),
 		getLinkColor: vi.fn(),
 		getLinkParticles: vi.fn(),
 		getLinkWidth: vi.fn(),
 		getParticleColor: vi.fn(),
-		linkCanvasObject: vi.fn(),
-		nodeCanvasObject: vi.fn(),
-		nodePointerAreaPaint: vi.fn(),
 	};
 }
 
@@ -170,7 +166,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
 		nodeSizeMode: 'connections',
 		particleSize: 2,
 		particleSpeed: 0.1,
-		physicsPaused: false,
 		physicsSettings: {
 			repelForce: 50,
 			centerForce: 0.1,
@@ -247,7 +242,6 @@ describe('Graph wiring', () => {
 			callbacks: expect.objectContaining({
 				getArrowColor: expect.any(Function),
 				getLinkColor: expect.any(Function),
-				nodeCanvasObject: expect.any(Function),
 			}),
 			graphDataLayoutKey: expect.any(String),
 			graphState: expect.objectContaining({

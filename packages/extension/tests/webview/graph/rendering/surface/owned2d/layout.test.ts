@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
-  canRunOwnedGraphPhysics,
   createOwnedGraphLayout,
   ownedNodeCollisionRadius,
   toOwnedPhysicsConfig,
@@ -56,12 +55,6 @@ function run(engine: ReturnType<typeof createGraphLayoutEngine>, ticks = 240): v
 }
 
 describe('owned graph layout settings', () => {
-  it('runs physics only while the sole renderer is operational and the user has not paused it', () => {
-    expect(canRunOwnedGraphPhysics(true, false)).toBe(true);
-    expect(canRunOwnedGraphPhysics(false, false)).toBe(false);
-    expect(canRunOwnedGraphPhysics(true, true)).toBe(false);
-  });
-
   it('maps every existing force setting to its semantic engine value', () => {
     expect(toOwnedPhysicsConfig({
       centerForce: 1,

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../../src/webview/components/graph/model/build';
 import {
-  normalizeOwnedArrowPosition,
   OwnedWebGpuRenderer,
   parseWebGpuColor,
   webGpuNodeShapeCode,
@@ -38,13 +37,6 @@ describe('owned WebGPU renderer color parsing', () => {
 
   it('uses opaque black for unsupported CSS colors', () => {
     expect(parseWebGpuColor('not-a-color')).toEqual([0, 0, 0, 1]);
-  });
-
-  it('clamps directional-arrow positions to the public link contract', () => {
-    expect(normalizeOwnedArrowPosition(-1)).toBe(0);
-    expect(normalizeOwnedArrowPosition(0.65)).toBe(0.65);
-    expect(normalizeOwnedArrowPosition(2)).toBe(1);
-    expect(normalizeOwnedArrowPosition(Number.NaN)).toBe(1);
   });
 
   it('encodes every supported node shape for the GPU SDF shader', () => {
@@ -123,7 +115,6 @@ function rendererFrame() {
     devicePixelRatio: 2,
     directionMode: 'arrows' as const,
     getArrowColor: () => '#aabbcc',
-    getArrowRelPos: () => 0.75,
     getLinkColor: () => '#112233',
     getLinkWidth: () => 2,
     getNodeStyle: (node: FGNode) => ({
@@ -189,10 +180,9 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     );
     expect(Array.from(linkValues.slice(0, 5))).toEqual([1, 2, 3, 4, 1]);
     expect(linkValues[5]).toBeCloseTo(0.2);
-    expect(linkValues[14]).toBe(0.75);
-    expect(linkValues[15]).toBe(1);
-    expect(linkValues[16]).toBeCloseTo(6.53, 2);
-    expect(linkValues[17]).toBeCloseTo(12.69, 2);
+    expect(linkValues[14]).toBeCloseTo(6.47, 2);
+    expect(linkValues[15]).toBeCloseTo(12.69, 2);
+    expect(linkValues[16]).toBe(1);
     expect(harness.draw).toHaveBeenNthCalledWith(1, 36, 1);
     expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
 

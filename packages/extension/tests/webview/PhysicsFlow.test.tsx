@@ -33,7 +33,6 @@ function resetStore() {
     directionMode: 'arrows',
     particleSpeed: 0.005,
     particleSize: 4,
-    physicsPaused: false,
     showLabels: true,
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },

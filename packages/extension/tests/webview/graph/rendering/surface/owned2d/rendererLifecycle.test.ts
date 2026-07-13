@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import type { OwnedGraphRendererLifecycleRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/rendererLifecycle';
 import type { GraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { createDefaultSurfaceProps } from '../view/surfaceFixture';
 
 const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
@@ -37,7 +36,6 @@ function runtimeHarness(): Harness {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: layout },
-      propsRef: { current: createDefaultSurfaceProps() },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
       onError: vi.fn(),

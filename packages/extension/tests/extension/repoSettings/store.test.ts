@@ -66,17 +66,16 @@ describe('extension/repoSettings/store', () => {
     tempDirectories.push(workspaceRoot);
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
-    await store.update('physics.chargeRange', 450);
+    await store.update('physics.linkDistance', 450);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('physics.chargeRange', 0)).toBe(450);
+    expect(store.get('physics.linkDistance', 0)).toBe(450);
     expect(persisted.physics).toEqual({
       repelForce: 10,
-      linkDistance: 80,
+      linkDistance: 450,
       linkForce: 1,
       damping: 0.4,
       centerForce: 0.1,
-      chargeRange: 450,
     });
   });
 

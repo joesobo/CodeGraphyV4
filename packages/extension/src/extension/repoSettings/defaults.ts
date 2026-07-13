@@ -3,6 +3,10 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
+  DEFAULT_PHYSICS_SETTINGS,
+  type IPhysicsSettings,
+} from '../../shared/settings/physics';
+import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
@@ -43,14 +47,7 @@ export interface ICodeGraphyRepoSettings {
   depthLimit: number;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
-  physics: {
-    repelForce: number;
-    linkDistance: number;
-    linkForce: number;
-    damping: number;
-    centerForce: number;
-    chargeRange: number;
-  };
+  physics: IPhysicsSettings;
 }
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
@@ -88,13 +85,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     depthLimit: 1,
     dagMode: null,
     nodeSizeMode: 'connections',
-    physics: {
-      repelForce: 10,
-      linkDistance: 80,
-      linkForce: 1,
-      damping: 0.4,
-      centerForce: 0.1,
-      chargeRange: 200,
-    },
+    physics: { ...DEFAULT_PHYSICS_SETTINGS },
   };
 }

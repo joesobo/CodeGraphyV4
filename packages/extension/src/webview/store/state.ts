@@ -47,7 +47,6 @@ export interface GraphState {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
-  physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;
   graphViewportScale: number | null;
@@ -104,7 +103,6 @@ export interface GraphState {
   setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
-  setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setCssSnippets: (snippets: Record<string, boolean>) => void;

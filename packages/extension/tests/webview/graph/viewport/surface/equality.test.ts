@@ -7,7 +7,6 @@ function viewportProps(): ViewportSurfaceProps {
     canvasBackgroundColor: '#fff',
     directionMode: 'arrows',
     surface2dProps: {
-      physicsPaused: false,
       physicsSettings: {
         centerForce: 0.1,
         damping: 0.7,
@@ -20,18 +19,14 @@ function viewportProps(): ViewportSurfaceProps {
 }
 
 describe('viewport surface equality', () => {
-  it('rerenders when owned physics settings or pause state change', () => {
+  it('rerenders when owned physics settings change', () => {
     const previous = viewportProps();
     const changedSettings = viewportProps();
     changedSettings.surface2dProps.physicsSettings = {
       ...changedSettings.surface2dProps.physicsSettings!,
       centerForce: 0.25,
     };
-    const paused = viewportProps();
-    paused.surface2dProps.physicsPaused = true;
-
     expect(areViewportSurfacePropsEqual(previous, changedSettings)).toBe(false);
-    expect(areViewportSurfacePropsEqual(previous, paused)).toBe(false);
   });
 
   it('rerenders when owned renderer callbacks or plugin contributions change', () => {

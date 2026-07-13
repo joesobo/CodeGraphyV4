@@ -7,7 +7,6 @@ import { releaseOwnedDraggedNodes } from './drag';
 import type { PointerSession } from './interaction';
 import {
   applyOwnedPhysicsSettings,
-  canRunOwnedGraphPhysics,
   createOwnedGraphLayout,
   syncOwnedLayoutNodes,
   updateOwnedGraphLayout,
@@ -136,10 +135,7 @@ function enforcePhysicsPolicy(
   runtime: OwnedGraphLayoutRuntime,
   layout: OwnedGraphLayout,
 ): void {
-  if (!canRunOwnedGraphPhysics(
-    runtime.rendererOperationalRef.current,
-    runtime.propsRef.current.physicsPaused,
-  )) layout.engine.pause();
+  if (!runtime.rendererOperationalRef.current) layout.engine.pause();
 }
 
 export function reconcileOwnedGraphRuntime(runtime: OwnedGraphLayoutRuntime): void {
@@ -169,23 +165,6 @@ export function applyOwnedGraphRuntimePhysicsSettings(
     settings,
   );
   runtime.engineStopNotifiedRef.current = false;
-  runtime.requestFrameRef.current();
-}
-
-export function applyOwnedGraphRuntimePhysicsPolicy(
-  runtime: OwnedGraphLayoutRuntime,
-): void {
-  const layout = runtime.layoutRef.current;
-  if (!layout) return;
-  if (canRunOwnedGraphPhysics(
-    runtime.rendererOperationalRef.current,
-    runtime.propsRef.current.physicsPaused,
-  )) {
-    layout.engine.resume();
-    runtime.engineStopNotifiedRef.current = false;
-  } else {
-    layout.engine.pause();
-  }
   runtime.requestFrameRef.current();
 }
 

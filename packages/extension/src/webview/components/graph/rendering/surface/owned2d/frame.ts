@@ -10,7 +10,6 @@ import {
   type OwnedGraphDrawingOptions,
 } from './drawing';
 import {
-  canRunOwnedGraphPhysics,
   syncOwnedLayoutNodes,
   type OwnedGraphLayout,
 } from './layout';
@@ -90,11 +89,10 @@ function advanceOwnedGraphPhysics(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
   elapsedMs: number,
-  canRunPhysics: boolean,
 ): GraphLayoutTickResult {
   const skipPhysics = runtime.skipPhysicsFrameRef.current;
   runtime.skipPhysicsFrameRef.current = false;
-  if (canRunPhysics && runtime.pluginForcesRef.current.active()) {
+  if (runtime.rendererOperationalRef.current && runtime.pluginForcesRef.current.active()) {
     syncOwnedLayoutNodes(layout);
     runtime.pluginForcesRef.current.tick(layout.engine.alpha);
     importPluginKinematics(layout);
@@ -163,7 +161,6 @@ function submitOwnedWebGpuFrame(
       devicePixelRatio: prepared.devicePixelRatio,
       directionMode: props.directionMode,
       getArrowColor: props.getArrowColor,
-      getArrowRelPos: props.getArrowRelPos,
       getLinkColor: props.getLinkColor,
       getLinkWidth: props.getLinkWidth,
       getNodeStyle: props.getNodeStyle ?? defaultNodeStyle,
@@ -268,10 +265,9 @@ function notifyOwnedGraphSettlement(
 function shouldContinueOwnedGraphFrames(
   runtime: OwnedGraphFrameRuntime,
   tick: GraphLayoutTickResult,
-  canRunPhysics: boolean,
 ): boolean {
   return runtime.rendererOperationalRef.current && (
-    (!tick.settled && canRunPhysics)
+    tick.moving
     || runtime.propsRef.current.directionMode === 'particles'
     || (runtime.propsRef.current.showFps === true && runtime.fpsRef.current === null)
   );
@@ -287,10 +283,6 @@ export function renderOwnedGraphFrame(
   const context = canvas.getContext('2d');
   if (!layout || !context) return previousTimestamp;
   const elapsedMs = previousTimestamp === null ? 1000 / 60 : timestamp - previousTimestamp;
-  const canRunPhysics = canRunOwnedGraphPhysics(
-    runtime.rendererOperationalRef.current,
-    runtime.propsRef.current.physicsPaused,
-  );
   const samples = performanceSamples();
   const timings: FrameTimings = {
     physicsStartedAt: timedNow(samples),
@@ -299,7 +291,7 @@ export function renderOwnedGraphFrame(
     gpuStartedAt: 0,
     gpuEndedAt: 0,
   };
-  const tick = advanceOwnedGraphPhysics(runtime, layout, elapsedMs, canRunPhysics);
+  const tick = advanceOwnedGraphPhysics(runtime, layout, elapsedMs);
   timings.physicsEndedAt = timedNow(samples);
   synchronizeOwnedFrameState(runtime, layout);
   timings.syncEndedAt = timedNow(samples);
@@ -313,7 +305,7 @@ export function renderOwnedGraphFrame(
   drawOwnedGraphDecorationLayer(runtime, layout, prepared, timestamp, gpuRendered);
   recordOwnedGraphFrameMetrics(samples, timings);
   notifyOwnedGraphSettlement(runtime, tick);
-  if (shouldContinueOwnedGraphFrames(runtime, tick, canRunPhysics)) {
+  if (shouldContinueOwnedGraphFrames(runtime, tick)) {
     runtime.requestFrameRef.current();
   }
   return timestamp;

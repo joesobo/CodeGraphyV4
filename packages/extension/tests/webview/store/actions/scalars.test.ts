@@ -13,7 +13,6 @@ describe('webview/store/actions/scalars', () => {
     actions.setDirectionColor('#00ff00');
     actions.setParticleSpeed(0.02);
     actions.setParticleSize(8);
-    actions.setPhysicsPaused(true);
     actions.setBidirectionalMode('combined');
     actions.setDepthMode(true);
     actions.setDagMode('td');
@@ -28,7 +27,6 @@ describe('webview/store/actions/scalars', () => {
       maxFiles: 1200,
       particleSize: 8,
       particleSpeed: 0.02,
-      physicsPaused: true,
     });
   });
 });

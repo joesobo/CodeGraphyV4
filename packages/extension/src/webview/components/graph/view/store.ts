@@ -11,7 +11,6 @@ export type GraphViewStoreState = Pick<
   | 'nodeSizeMode'
   | 'particleSize'
   | 'particleSpeed'
-  | 'physicsPaused'
   | 'physicsSettings'
   | 'pluginContextMenuItems'
   | 'pluginStatuses'
@@ -31,7 +30,6 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     nodeSizeMode: useGraphStore(state => state.nodeSizeMode),
     particleSize: useGraphStore(state => state.particleSize),
     particleSpeed: useGraphStore(state => state.particleSpeed),
-    physicsPaused: useGraphStore(state => state.physicsPaused),
     physicsSettings: useGraphStore(state => state.physicsSettings),
     pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
     pluginStatuses: useGraphStore(state => state.pluginStatuses),
