@@ -51,7 +51,7 @@ function twoNodeEngine(initialDistance: number) {
 }
 
 function run(engine: ReturnType<typeof createGraphLayoutEngine>, ticks = 240): void {
-  for (let index = 0; index < ticks; index += 1) engine.tick(1000 / 60);
+  for (let index = 0; index < ticks; index += 1) engine.tick();
 }
 
 describe('owned graph layout settings', () => {

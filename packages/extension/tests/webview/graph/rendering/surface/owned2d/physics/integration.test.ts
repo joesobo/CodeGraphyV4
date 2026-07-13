@@ -34,7 +34,7 @@ describe('owned graph integration', () => {
       velocityDecay: 0.4,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     referenceNodes.forEach((node, index) => {
       expect(engine.x[index]).toBeCloseTo(node.x as number, 5);

@@ -29,7 +29,6 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
       positionVersionRef: { current: 0 },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
-      skipPhysicsFrameRef: { current: false },
     },
   };
 }
@@ -54,7 +53,7 @@ describe('owned graph controls', () => {
 
     controls.centerAt(10, 20);
     expect(fixture.runtime.cameraRef.current).toMatchObject({ centerX: 10, centerY: 20 });
-    expect(fixture.runtime.skipPhysicsFrameRef.current).toBe(true);
+    expect(fixture.runtime.requestFrameRef.current).toHaveBeenCalledOnce();
     expect(controls.getFps()).toBe(58);
     expect(controls.graph2ScreenCoords(10, 20)).toEqual({ x: 50, y: 40 });
     expect(controls.screen2GraphCoords(50, 40)).toEqual({ x: 10, y: 20 });

@@ -86,7 +86,6 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     rendererOperationalRef: { current: true },
     requestFrameRef: { current: vi.fn() },
     recordRenderedFrame: vi.fn(),
-    skipPhysicsFrameRef: { current: false },
     styleVersionRef: { current: 1 },
     synchronizedPositionVersionRef: { current: -1 },
   };
@@ -111,7 +110,7 @@ describe('owned graph frame execution', () => {
     (window as typeof window & { __CODEGRAPHY_WEBGPU_PERF__?: Array<Record<string, number>> })
       .__CODEGRAPHY_WEBGPU_PERF__ = samples;
 
-    expect(renderOwnedGraphFrame(runtime, canvasFixture(), 100, null)).toBe(100);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
     expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
 
     expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalled();
@@ -150,7 +149,7 @@ describe('owned graph frame execution', () => {
       y: Float32Array.of(200),
     }));
 
-    renderOwnedGraphFrame(runtime, canvasFixture(), 150, 100);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 150);
 
     expect(submittedFrame?.renderX?.[0]).toBe(100);
     expect(submittedFrame?.renderY?.[0]).toBe(200);
@@ -166,10 +165,13 @@ describe('owned graph frame execution', () => {
     vi.spyOn(layout.engine, 'tick').mockReturnValue({ moving: true, settled: false, steps: 0 });
     const setKinematics = vi.spyOn(layout.engine, 'setKinematics');
 
-    renderOwnedGraphFrame(runtime, canvasFixture(), 100, null);
-    renderOwnedGraphFrame(runtime, canvasFixture(), 116, 100);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 116);
 
     expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalledOnce();
+    expect(layout.engine.tick).toHaveBeenCalledTimes(2);
+    expect(layout.engine.tick).toHaveBeenNthCalledWith(1);
+    expect(layout.engine.tick).toHaveBeenNthCalledWith(2);
     expect(setKinematics).toHaveBeenCalledOnce();
     expect(runtime.positionVersionRef.current).toBe(1);
   });
@@ -180,14 +182,14 @@ describe('owned graph frame execution', () => {
     runtime.layoutRef.current?.engine.pause();
     runtime.propsRef.current.showFps = true;
 
-    renderOwnedGraphFrame(runtime, canvasFixture(), 100, null);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
 
     expect(runtime.recordRenderedFrame).toHaveBeenCalledWith(100);
     expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
 
     runtime.fpsRef.current = 50;
     vi.mocked(runtime.requestFrameRef.current).mockClear();
-    renderOwnedGraphFrame(runtime, canvasFixture(), 120, 100);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 120);
 
     expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
   });
@@ -197,7 +199,7 @@ describe('owned graph frame execution', () => {
     const { runtime } = runtimeFixture(renderer);
     runtime.layoutRef.current = null;
 
-    expect(renderOwnedGraphFrame(runtime, canvasFixture(), 100, 50)).toBe(50);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
     expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
     expect(renderer.render).not.toHaveBeenCalled();
   });
@@ -209,14 +211,14 @@ describe('owned graph frame execution', () => {
     } as unknown as OwnedWebGpuRenderer;
     const { layout, runtime } = runtimeFixture(renderer);
 
-    expect(renderOwnedGraphFrame(runtime, canvasFixture(), 100, null)).toBe(100);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
     expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
 
     expect(renderer.dispose).toHaveBeenCalledOnce();
     expect(runtime.gpuRendererRef.current).toBeNull();
     expect(runtime.rendererOperationalRef.current).toBe(false);
     expect(runtime.onRendererError).toHaveBeenCalledWith('submission failed');
-    expect(layout.engine.tick(1000 / 60).steps).toBe(0);
+    expect(layout.engine.tick().steps).toBe(0);
     expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
   });
 });

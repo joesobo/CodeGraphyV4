@@ -1,4 +1,3 @@
-import { BASE_FRAME_MS } from './config';
 import type { GraphLayoutConfig, GraphLayoutState } from './contracts';
 import { recoverFinitePosition } from './initialization';
 import { isNodeHidden, isNodePinned } from './forces/velocity';
@@ -8,7 +7,6 @@ export function integrateGraphLayout(
   config: GraphLayoutConfig,
   alpha: number,
 ): number {
-  const timeScale = config.fixedTimeStepMs / BASE_FRAME_MS;
   let maximumVelocity = 0;
 
   for (let index = 0; index < state.x.length; index += 1) {
@@ -32,8 +30,8 @@ export function integrateGraphLayout(
     state.vx[index] *= velocityRetention;
     state.vy[index] *= velocityRetention;
 
-    state.x[index] += state.vx[index] * timeScale;
-    state.y[index] += state.vy[index] * timeScale;
+    state.x[index] += state.vx[index];
+    state.y[index] += state.vy[index];
     recoverFinitePosition(state, index, config.initializationSpacing);
     maximumVelocity = Math.max(
       maximumVelocity,

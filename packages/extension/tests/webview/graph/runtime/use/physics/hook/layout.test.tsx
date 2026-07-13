@@ -14,7 +14,7 @@ describe('owned physics layout updates', () => {
   it('updates a running layout without pausing it', () => {
     const layout = ownedLayout();
     updateOwnedGraphLayout(layout, [ownedNode('a', { color: '#f00' })], [], DEFAULT_PHYSICS_SETTINGS);
-    expect(layout.engine.tick(1000 / 60).steps).toBeGreaterThan(0);
+    expect(layout.engine.tick().steps).toBeGreaterThan(0);
   });
 
   it('captures the initial layout without an extra engine', () => {

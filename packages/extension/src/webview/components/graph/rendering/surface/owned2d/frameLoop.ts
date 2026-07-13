@@ -31,7 +31,6 @@ export function startOwnedGraphFrameLoop(
   controlsRef: MutableRefObject<OwnedGraph2dControls | undefined>,
 ): OwnedGraphFrameLoop {
   let active = true;
-  let previousTimestamp: number | null = null;
 
   runtime.recordRenderedFrame = (timestamp: number): void => {
     const sampler = runtime.fpsSamplerRef.current;
@@ -45,7 +44,7 @@ export function startOwnedGraphFrameLoop(
     runtime.animationFrameRef.current = null;
     runtime.frameRequestedRef.current = false;
     if (!active) return;
-    previousTimestamp = renderOwnedGraphFrame(runtime, canvas, timestamp, previousTimestamp);
+    renderOwnedGraphFrame(runtime, canvas, timestamp);
   };
 
   runtime.requestFrameRef.current = () => {

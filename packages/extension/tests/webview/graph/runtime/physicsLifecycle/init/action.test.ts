@@ -43,13 +43,13 @@ describe('owned physics lifecycle actions', () => {
     const layout = createOwnedGraphLayout([], [], DEFAULT_PHYSICS_SETTINGS);
     expect(layout.engine.nodeIds).toEqual([]);
     expect(layout.engine.settled).toBe(false);
-    layout.engine.tick(1000 / 60);
+    layout.engine.tick();
     expect(layout.engine.settled).toBe(true);
   });
 
   it('reheats the owned engine when physics settings change', () => {
     const layout = ownedLayout();
-    for (let tick = 0; tick < 320; tick += 1) layout.engine.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) layout.engine.tick();
     expect(layout.engine.settled).toBe(true);
     applyOwnedPhysicsSettings(layout.engine, { ...DEFAULT_PHYSICS_SETTINGS, damping: 0.4 });
     expect(layout.engine.settled).toBe(false);

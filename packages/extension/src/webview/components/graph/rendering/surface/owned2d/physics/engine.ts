@@ -32,7 +32,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private readonly repulsionTree = new FlatBarnesHutTree();
   private simulationAlpha = 1;
   private simulationAlphaTarget = 0;
-  private accumulatorMs = 0;
   private settledStepCount = 0;
   private paused = false;
   settled = false;
@@ -77,32 +76,17 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     if (this.x.length > 0) this.reheat(0.3);
   }
 
-  tick(elapsedMs: number): GraphLayoutTickResult {
+  tick(): GraphLayoutTickResult {
     if (this.x.length === 0) {
       this.settled = true;
       return { moving: false, settled: true, steps: 0 };
     }
-    if (this.paused) {
+    if (this.paused || this.settled) {
       return { moving: false, settled: this.settled, steps: 0 };
     }
-    if (!Number.isFinite(elapsedMs) || elapsedMs < 0) {
-      throw new Error('Graph layout elapsed time must be a non-negative finite number');
-    }
 
-    this.accumulatorMs += Math.min(elapsedMs, this.config.maximumElapsedMs);
-    let steps = 0;
-    while (
-      this.accumulatorMs + Number.EPSILON >= this.config.fixedTimeStepMs
-      && steps < this.config.maximumSubSteps
-    ) {
-      this.step();
-      this.accumulatorMs -= this.config.fixedTimeStepMs;
-      steps += 1;
-    }
-    if (steps === this.config.maximumSubSteps) {
-      this.accumulatorMs %= this.config.fixedTimeStepMs;
-    }
-    return { moving: !this.settled, settled: this.settled, steps };
+    this.step();
+    return { moving: !this.settled, settled: this.settled, steps: 1 };
   }
 
   setKinematics(

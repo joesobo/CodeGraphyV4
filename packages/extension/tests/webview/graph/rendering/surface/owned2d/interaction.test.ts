@@ -61,7 +61,6 @@ describe('owned graph lazy interaction picking', () => {
       propsRef: { current: props },
       requestFrameRef: { current: vi.fn() },
       setLinkTooltip: vi.fn(),
-      skipPhysicsFrameRef: { current: false },
       synchronizedPositionVersionRef: { current: 0 },
     });
     const canvas = {

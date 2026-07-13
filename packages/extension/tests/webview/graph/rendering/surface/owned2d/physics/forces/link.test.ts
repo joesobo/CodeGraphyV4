@@ -60,7 +60,7 @@ describe('owned graph link force', () => {
       linkDistance: 50,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     referenceNodes.forEach((node, index) => {
       expect(engine.x[index]).toBeCloseTo(node.x as number, 5);
@@ -104,7 +104,7 @@ describe('owned graph link force', () => {
       velocityDecay: 0,
     });
 
-    engine.tick(1000 / 60);
+    engine.tick();
 
     expect(engine.x[0]).toBeCloseTo(referenceNodes[0].x as number, 5);
     expect(engine.x[1]).toBeCloseTo(referenceNodes[1].x as number, 5);

@@ -30,13 +30,10 @@ export interface GraphLayoutConfig {
   collisionPadding: number;
   collisionStrength: number;
   constraintForce: number;
-  fixedTimeStepMs: number;
   initializationSpacing: number;
   linkDistance: number;
   linkStrength: number;
   maximumCollisionNeighbors: number;
-  maximumElapsedMs: number;
-  maximumSubSteps: number;
   settleSpeed: number;
   settleSteps: number;
   velocityDecay: number;
@@ -75,7 +72,7 @@ export interface GraphLayoutEngine {
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void;
-  tick(elapsedMs: number): GraphLayoutTickResult;
+  tick(): GraphLayoutTickResult;
   setNodePosition(index: number, x: number, y: number): void;
   pin(index: number): void;
   release(index: number): void;
