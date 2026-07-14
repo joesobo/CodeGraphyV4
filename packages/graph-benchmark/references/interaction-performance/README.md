@@ -66,6 +66,21 @@ All four three-run tiers pass the headless checkpoint and settle completely. Rel
 
 The required real-editor pass used VS Code 1.128.0 with the graph in an editor and Files Explorer restored. Its untruncated 983-frame recording measured 0.39 ms active mean work, 60.00 displayed FPS on the available 60 Hz display, one-frame target and neighbor response, zero freezes and teleports, and active HUD agreement within 3.2%. The graph slept at imperceptible energy; one small settle-envelope rebound remains for the fixed-timestep M4 work. Evidence is in `m3-main-thread/`.
 
+## M4 fixed-timestep simulation
+
+Revision `21618b4aceb3e657b08d1964f003a1894be5fbfb` advances simulation from a wall-clock accumulator at a 144 Hz fixed timestep. Each frame performs at most four substeps; a soft 4 ms simulation CPU budget drops excess debt rather than entering a spiral of death. Active interaction guarantees at least one simulation step, while deliberate sleep, pause, resume, and renderer recovery reset clock debt to prevent wake jumps.
+
+| Fixture | Mean CPU frame | p95 | 1%-high | Sim / render | Sim steps / frame · steps/s | Potential / displayed FPS | Target / neighbor latency | Frozen / teleports | Settle violations | HUD max difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| tiny | 0.39 ms | 0.67 ms | 0.70 ms | 0.08 / 0.31 ms | 2.38 · 143.72 | 2,583 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 500 | 5.52 ms | 5.93 ms | 6.70 ms | 4.52 / 0.99 ms | 1.00 · 60.06 | 181 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 1k | 4.31 ms | 5.40 ms | 5.70 ms | 2.63 / 1.69 ms | 1.12 · 67.60 | 232 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 2.5k | 9.87 ms | 11.77 ms | 14.57 ms | 6.36 / 3.51 ms | 0.99 · 59.28 | 101 / 59.49 | 1 / 1 frames | 0 / 0 | 0 | 0.42% |
+
+Tiny proves the loops are genuinely decoupled: simulation runs at 143.72 steps/s and 2.38 steps per rendered frame while the 60 Hz display presents 60.00 FPS and CPU potential is 2,583 FPS. Expensive fixtures obey the CPU cap without building time debt. Every run settles completely at imperceptible energy with a monotonic envelope, including tiny's M1/M3 settle defect now reduced from one violation to zero.
+
+The required M4 real-editor pass independently confirms 144.43 simulation steps/s over a 60.00 Hz presentation (2.40 steps/frame), one-frame target and neighbor response, zero freezes and teleports, zero settle-envelope violations, and active HUD agreement within 0.60%. See `m4-fixed-timestep/` for the reports, validation JSON, screenshots, and GIF.
+
 Run the dashboard generator with:
 
 ```bash
