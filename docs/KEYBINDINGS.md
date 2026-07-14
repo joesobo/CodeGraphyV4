@@ -15,7 +15,7 @@ These shortcuts work when the Graph View is focused and no text input is active.
 | `Ctrl+Click` | Add/remove node from selection |
 | `Shift+Drag` | Box selection |
 | `V` | Toggle Depth Mode |
-| `Right-click` | Open context menu |
+| `Right-click` and release without dragging | Open context menu |
 
 ## VS Code commands
 

@@ -94,6 +94,14 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       ctrlKey: true,
       pointerId: 1,
     });
+    fireEvent.contextMenu(overlay, {
+      button: 0,
+      clientX: 50,
+      clientY: 50,
+      ctrlKey: true,
+    });
+    expect(props.sharedProps.onNodeClick).not.toHaveBeenCalled();
+    expect(props.sharedProps.onNodeRightClick).not.toHaveBeenCalled();
     fireEvent.pointerUp(overlay, {
       button: 0,
       clientX: 50,
@@ -113,6 +121,12 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       ctrlKey: true,
       pointerId: 2,
     });
+    fireEvent.contextMenu(overlay, {
+      button: 0,
+      clientX: 50,
+      clientY: 50,
+      ctrlKey: true,
+    });
     fireEvent.pointerMove(overlay, {
       buttons: 1,
       clientX: 60,
@@ -129,6 +143,95 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     });
 
     expect(props.sharedProps.onNodeClick).not.toHaveBeenCalled();
+    expect(props.sharedProps.onNodeRightClick).not.toHaveBeenCalled();
+  });
+
+  it('opens a right-clicked node menu only after an unmoved release', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const props = createDefaultSurfaceProps();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'context-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'context-node',
+      size: 8,
+      x: 0,
+      y: 0,
+    };
+    props.sharedProps.graphData = { links: [], nodes: [node] } as never;
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    const overlay = container.querySelectorAll('canvas')[1];
+    overlay.setPointerCapture = vi.fn();
+    overlay.hasPointerCapture = vi.fn(() => true);
+    overlay.releasePointerCapture = vi.fn();
+
+    fireEvent.pointerDown(overlay, { button: 2, buttons: 2, clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.contextMenu(overlay, { button: 2, buttons: 2, clientX: 50, clientY: 50 });
+    expect(props.sharedProps.onNodeRightClick).not.toHaveBeenCalled();
+
+    fireEvent.pointerUp(overlay, { button: 2, clientX: 50, clientY: 50, pointerId: 1 });
+    expect(props.sharedProps.onNodeRightClick).toHaveBeenCalledOnce();
+    expect(props.sharedProps.onNodeRightClick).toHaveBeenCalledWith(node, expect.any(MouseEvent));
+  });
+
+  it('pans with a right-button drag without opening a context menu', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const props = createDefaultSurfaceProps();
+    props.sharedProps.graphData = { links: [], nodes: [] } as never;
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    const overlay = container.querySelectorAll('canvas')[1];
+    overlay.setPointerCapture = vi.fn();
+    overlay.hasPointerCapture = vi.fn(() => true);
+    overlay.releasePointerCapture = vi.fn();
+
+    fireEvent.pointerDown(overlay, { button: 2, buttons: 2, clientX: 40, clientY: 50, pointerId: 1 });
+    fireEvent.contextMenu(overlay, { button: 2, buttons: 2, clientX: 40, clientY: 50 });
+    fireEvent.pointerMove(overlay, { button: 2, buttons: 2, clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(overlay, { button: 2, clientX: 50, clientY: 50, pointerId: 1 });
+
+    expect(props.sharedProps.onNodeRightClick).not.toHaveBeenCalled();
+    expect(props.sharedProps.onLinkRightClick).not.toHaveBeenCalled();
+    expect(props.sharedProps.onBackgroundRightClick).not.toHaveBeenCalled();
   });
 
   it('holds a warm alpha target during node drag and cools on release', async () => {
@@ -432,7 +535,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
-  it('shows potential and displayed performance while tracking remains always on', async () => {
+  it('shows compact potential performance while tracking remains always on', async () => {
     const frames: FrameRequestCallback[] = [];
     vi.mocked(requestAnimationFrame).mockImplementation(callback => {
       frames.push(callback);
@@ -478,7 +581,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     act(() => frames.shift()?.(20));
 
     const output = await screen.findByTestId('graph-fps');
-    expect(output).toHaveTextContent(/^Potential \d+ FPS · Displayed 50 FPS · \d+\.\d{2} ms avg$/);
+    expect(output).toHaveTextContent(/^\d+ FPS · \d+\.\d{2} ms$/);
     expect(output).not.toHaveTextContent('max');
     expect(output).not.toHaveTextContent('1% high');
     expect(output).not.toHaveTextContent('Sim');
@@ -494,7 +597,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(props.fg2dRef.current?.getFps()).toBe(50);
 
     rendered.rerender(<OwnedGraphSurface2d {...props} />);
-    expect(screen.getByTestId('graph-fps')).toHaveTextContent(/Displayed 50 FPS/);
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent(/^\d+ FPS · \d+\.\d{2} ms$/);
     const styleVersions = rendererHarness.render.mock.calls.map(
       ([frame]) => (frame as { styleVersion: number }).styleVersion,
     );
@@ -505,7 +608,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(props.fg2dRef.current?.getFps()).toBe(50);
 
     rendered.rerender(<OwnedGraphSurface2d {...props} />);
-    expect(screen.getByTestId('graph-fps')).toHaveTextContent(/Displayed 50 FPS/);
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent(/^\d+ FPS · \d+\.\d{2} ms$/);
 
     const options = rendererHarness.create.mock.calls[0][1] as {
       onDeviceLost(message: string): void;
@@ -516,7 +619,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     });
     expect(screen.getByTestId('graph-fps')).toBeVisible();
     expect(screen.getByTestId('graph-fps')).toHaveTextContent(
-      'Potential — FPS · Displayed Warming · — ms avg',
+      '— FPS · — ms',
     );
     expect(screen.getByTestId('graph-fps')).not.toHaveTextContent('Idle');
     expect(screen.getByTestId('graph-fps')).toHaveAttribute('data-performance-status', 'idle');

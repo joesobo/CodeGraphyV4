@@ -11,7 +11,7 @@ import type { Surface2dProps } from './contracts';
 import { type OwnedGraphLayout } from './layout';
 import {
   createOwnedGraphInteractionHandlers,
-  type CtrlClickSession,
+  type ContextGestureSession,
   type LinkTooltip,
   type PointerSession,
 } from './interaction';
@@ -62,14 +62,8 @@ function clearActivePerformanceData(output: HTMLOutputElement): void {
 }
 
 function formatOwnedGraphPerformance(sample: OwnedGraphPerformanceSample): string {
-  if (sample.status === 'idle') {
-    return 'Potential — FPS · Displayed Warming · — ms avg';
-  }
-  const displayed = sample.displayedFps === null
-    ? 'Warming'
-    : `${Math.round(sample.displayedFps)} FPS`;
-  return `Potential ${Math.round(sample.potentialFps)} FPS · Displayed ${displayed}`
-    + ` · ${sample.frameTimeMs.average.toFixed(2)} ms avg`;
+  if (sample.status === 'idle') return '— FPS · — ms';
+  return `${Math.round(sample.potentialFps)} FPS · ${sample.frameTimeMs.average.toFixed(2)} ms`;
 }
 
 function setActivePerformanceData(
@@ -143,7 +137,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     performanceRecorderRef.current = createOwnedGraphInteractionRecorder();
   }
   const requestFrameRef = useRef<() => void>(() => undefined);
-  const ctrlClickSessionRef = useRef<CtrlClickSession | null>(null);
+  const contextGestureSessionRef = useRef<ContextGestureSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const hoveredLinkRef = useRef<FGLink | null>(null);
@@ -311,7 +305,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const interactionHandlers = createOwnedGraphInteractionHandlers({
     cameraRef,
     clearLinkHover,
-    ctrlClickSessionRef,
+    contextGestureSessionRef,
     engineStopNotifiedRef,
     hoveredLinkRef,
     hoveredNodeRef,
