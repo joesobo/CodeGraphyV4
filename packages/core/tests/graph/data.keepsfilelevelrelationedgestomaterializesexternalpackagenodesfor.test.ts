@@ -64,7 +64,6 @@ describe('core/graph/data', () => {
           }],
         ]),
         showOrphans: true,
-        churnCounts: {},
         nodeVisibility: { symbol: true, 'symbol:function': true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
@@ -95,7 +94,7 @@ describe('core/graph/data', () => {
 
 
 
-    it('builds connected nodes and edges with cached size and churn counts', () => {
+    it('builds connected nodes and edges with cached file sizes', () => {
       const typescriptPlugin = createPlugin('plugin.typescript');
       const fileConnections = new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' }]],
@@ -110,9 +109,6 @@ describe('core/graph/data', () => {
         disabledPlugins: new Set(),
         fileConnections,
         showOrphans: true,
-        churnCounts: {
-          'src/index.ts': 2,
-        },
         workspaceRoot: '/workspace',
         getPluginForFile: () => typescriptPlugin,
       });
@@ -123,14 +119,12 @@ describe('core/graph/data', () => {
           label: 'index.ts',
           color: DEFAULT_NODE_COLOR,
           fileSize: 10,
-          churn: 2,
         },
         {
           id: 'src/utils.ts',
           label: 'utils.ts',
           color: DEFAULT_NODE_COLOR,
           fileSize: 20,
-          churn: 0,
         },
       ]);
       expect(graph.edges).toEqual([
@@ -172,7 +166,6 @@ describe('core/graph/data', () => {
         disabledPlugins: new Set(['plugin.python']),
         fileConnections,
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: (absolutePath) => {
           if (absolutePath.endsWith('.py')) {
@@ -232,7 +225,6 @@ describe('core/graph/data', () => {
         disabledPlugins: new Set(),
         fileConnections,
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => typescriptPlugin,
       });
@@ -279,7 +271,6 @@ describe('core/graph/data', () => {
         disabledPlugins: new Set(),
         fileConnections,
         showOrphans: false,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => typescriptPlugin,
       });
@@ -314,7 +305,6 @@ describe('core/graph/data', () => {
           ['src/utils.ts', []],
         ]),
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.typescript'),
       });
@@ -336,9 +326,6 @@ describe('core/graph/data', () => {
           ]],
         ]),
         showOrphans: true,
-        churnCounts: {
-          'src/index.ts': 2,
-        },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.typescript'),
       });
@@ -349,7 +336,6 @@ describe('core/graph/data', () => {
           label: 'index.ts',
           color: DEFAULT_NODE_COLOR,
           fileSize: 10,
-          churn: 2,
         },
         {
           id: 'pkg:fs',

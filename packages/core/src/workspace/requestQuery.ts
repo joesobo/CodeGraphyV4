@@ -121,7 +121,6 @@ export async function requestWorkspaceGraphQuery(
   );
   const graphData = buildWorkspaceGraphDataFromAnalysis({
     cacheFiles: cache.files,
-    churnCounts: {},
     directoryPaths: collectDirectoryPaths(Object.keys(cache.files)),
     disabledPlugins,
     fileAnalysis: filterInactivePluginFileAnalysis(fileAnalysis, activePluginIds),

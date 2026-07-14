@@ -92,7 +92,6 @@ describe('pipeline/serviceAdapters', () => {
 
     const graphData = buildWorkspacePipelineGraphData(
       cache as never,
-      { workspaceState: { get: vi.fn(() => undefined), update: vi.fn() } } as never,
       {
         getNodeDecorations: vi.fn(() => ({})),
         getAllPlugins: vi.fn(() => []),
@@ -113,58 +112,11 @@ describe('pipeline/serviceAdapters', () => {
     await expect(readWorkspacePipelineFileStat('/workspace/src/app.ts', fileSystem as never)).resolves.toEqual(stat);
   });
 
-  it('builds graph nodes with valid cached git history churn counts', () => {
-    const cache = {
-      files: {
-        'src/app.ts': { size: 12 },
-      },
-    };
-    const workspaceState = {
-      get: vi.fn(<T>(key: string): T | undefined => {
-        const values: Record<string, unknown> = {
-          'codegraphy.churn.index': {
-            version: 1,
-            head: 'abc123',
-            fileSet: 'src/app.ts',
-            counts: { 'src/app.ts': 5 },
-          },
-        };
-
-        return values[key] as T | undefined;
-      }),
-      update: vi.fn(),
-    };
-    const registry = {
-      getPluginForFile: vi.fn(() => undefined),
-      list: vi.fn(() => [
-        { plugin: { id: 'z.plugin', version: '2.0.0' } },
-        { plugin: { id: 'a.plugin', version: '1.0.0' } },
-      ]),
-    };
-
-    const graphData = buildWorkspacePipelineGraphData(
-      cache as never,
-      { workspaceState } as never,
-      registry as never,
-      new Map([['src/app.ts', []]]),
-      '/workspace',
-      true,
-    );
-
-    expect(graphData.nodes).toEqual([
-      expect.objectContaining({ id: 'src/app.ts', churn: 5 }),
-    ]);
-  });
-
   it('builds symbol-capable graph data from cached file analysis', () => {
     const cache = {
       files: {
         'src/player.gd': { size: 20 },
       },
-    };
-    const workspaceState = {
-      get: vi.fn(() => undefined),
-      update: vi.fn(),
     };
     const registry = {
       getPluginForFile: vi.fn(() => undefined),
@@ -173,7 +125,6 @@ describe('pipeline/serviceAdapters', () => {
 
     const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
       cache as never,
-      { workspaceState } as never,
       registry as never,
       new Map([
         ['src/player.gd', {
@@ -212,10 +163,6 @@ describe('pipeline/serviceAdapters', () => {
         'src/player.gd': { size: 20 },
       },
     };
-    const workspaceState = {
-      get: vi.fn(() => undefined),
-      update: vi.fn(),
-    };
     const registry = {
       getPluginForFile: vi.fn(() => undefined),
       list: vi.fn(() => []),
@@ -223,7 +170,6 @@ describe('pipeline/serviceAdapters', () => {
 
     const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
       cache as never,
-      { workspaceState } as never,
       registry as never,
       new Map([
         ['src/player.gd', {
@@ -259,10 +205,6 @@ describe('pipeline/serviceAdapters', () => {
         'src/organize.ts': { size: 8 },
       },
     };
-    const workspaceState = {
-      get: vi.fn(() => undefined),
-      update: vi.fn(),
-    };
     const registry = {
       getPluginForFile: vi.fn(() => undefined),
       list: vi.fn(() => []),
@@ -270,7 +212,6 @@ describe('pipeline/serviceAdapters', () => {
 
     const graphData = buildWorkspacePipelineGraphData(
       cache as never,
-      { workspaceState } as never,
       registry as never,
       new Map([
         ['src/app.ts', [
@@ -297,10 +238,6 @@ describe('pipeline/serviceAdapters', () => {
         'src/app.ts': { size: 12 },
       },
     };
-    const workspaceState = {
-      get: vi.fn(() => undefined),
-      update: vi.fn(),
-    };
     const registry = {
       getPluginForFile: vi.fn(() => undefined),
       list: vi.fn(() => []),
@@ -308,7 +245,6 @@ describe('pipeline/serviceAdapters', () => {
 
     const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
       cache as never,
-      { workspaceState } as never,
       registry as never,
       new Map([
         ['src/app.ts', {

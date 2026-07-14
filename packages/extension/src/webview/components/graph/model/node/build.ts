@@ -3,6 +3,7 @@ import type { ThemeKind } from '../../../../theme/useTheme';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../build';
+import { MAX_NODE_SIZE, MIN_NODE_SIZE } from '../sizing/calculations';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
@@ -112,9 +113,11 @@ function createGraphNodeStyle(
   const isFavorite = options.favorites.has(node.id);
   const isFocused = node.depthLevel === 0;
   const runtimePresentation = node as IGraphNode & RuntimeGraphNodePresentation;
+  const semanticSize = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE)
+    * getDepthSizeMultiplier(node.depthLevel);
   const size = typeof runtimePresentation.size === 'number'
     ? runtimePresentation.size
-    : (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
+    : Math.min(MAX_NODE_SIZE, Math.max(MIN_NODE_SIZE, semanticSize));
 
   return {
     baseOpacity: getNodeBaseOpacity(node),

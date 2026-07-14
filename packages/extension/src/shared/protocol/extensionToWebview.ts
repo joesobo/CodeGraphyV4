@@ -39,7 +39,6 @@ export interface IGraphViewContributionStatus {
 export interface IGraphNodeMetricsUpdate {
   id: IGraphNode['id'];
   fileSize: IGraphNode['fileSize'];
-  churn: IGraphNode['churn'];
 }
 
 export type ExtensionToWebviewMessage =

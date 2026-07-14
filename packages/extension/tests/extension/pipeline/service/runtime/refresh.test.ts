@@ -10,8 +10,8 @@ function createSource() {
     _buildGraphDataFromAnalysis: vi.fn(() => ({ nodes: [{ id: 'node' }], edges: [] })),
     _lastGraphData: {
       nodes: [
-        { id: 'src/a.ts', fileSize: 10, churn: 1 },
-        { id: 'src/a.ts#run:function', symbol: { filePath: 'src/a.ts' }, fileSize: 10, churn: 1 },
+        { id: 'src/a.ts', fileSize: 10 },
+        { id: 'src/a.ts#run:function', symbol: { filePath: 'src/a.ts' }, fileSize: 10 },
       ],
       edges: [{ from: 'src/a.ts', to: 'src/b.ts', kind: 'import' }],
     },
@@ -24,7 +24,7 @@ function createSource() {
       ...graphData,
       nodes: graphData.nodes.map(node => (
         node.id === 'src/a.ts' || node.symbol?.filePath === 'src/a.ts'
-          ? { ...node, fileSize: 12, churn: 1 }
+          ? { ...node, fileSize: 12 }
           : node
       )),
     })),
@@ -244,8 +244,8 @@ describe('pipeline/service/refresh', () => {
     expect(source._lastGraphData).toBe(graph);
     expect(graph).toEqual({
       nodes: [
-        { id: 'src/a.ts', fileSize: 12, churn: 1 },
-        { id: 'src/a.ts#run:function', symbol: { filePath: 'src/a.ts' }, fileSize: 12, churn: 1 },
+        { id: 'src/a.ts', fileSize: 12 },
+        { id: 'src/a.ts#run:function', symbol: { filePath: 'src/a.ts' }, fileSize: 12 },
       ],
       edges: [{ from: 'src/a.ts', to: 'src/b.ts', kind: 'import' }],
     });

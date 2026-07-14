@@ -353,29 +353,12 @@ describe('pipeline/service/refreshFacade', () => {
       notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
       list: vi.fn(() => [{ plugin: { id: 'plugin.a', version: '1.0.0' } }]),
     } as never;
-    const workspaceState = (
-      facade as unknown as {
-        _context: { workspaceState: { get: ReturnType<typeof vi.fn> } };
-      }
-    )._context.workspaceState;
-    workspaceState.get.mockImplementation((key: string) => {
-      if (key === 'codegraphy.churn.index') {
-        return {
-          version: 1,
-          head: 'abc123',
-          fileSet: 'src/a.ts',
-          counts: { 'src/a.ts': 7 },
-        };
-      }
-      return undefined;
-    });
-
     await facade.refreshChangedFiles(['/workspace/src/a.ts']);
 
     const [refreshSource] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
     expect(refreshSource._patchGraphDataNodeMetrics?.({
       nodes: [
-        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 10, churn: 1 },
+        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 10 },
         {
           color: '#fff',
           id: 'src/a.ts#run:function',
@@ -387,14 +370,13 @@ describe('pipeline/service/refreshFacade', () => {
             name: 'run',
           },
           fileSize: 10,
-          churn: 1,
         },
-        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4, churn: 2 },
+        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4 },
       ],
       edges: [],
     }, ['src/a.ts'])).toEqual({
       nodes: [
-        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 12, churn: 7 },
+        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 12 },
         {
           color: '#fff',
           id: 'src/a.ts#run:function',
@@ -406,9 +388,8 @@ describe('pipeline/service/refreshFacade', () => {
             name: 'run',
           },
           fileSize: 12,
-          churn: 7,
         },
-        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4, churn: 2 },
+        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4 },
       ],
       edges: [],
     });

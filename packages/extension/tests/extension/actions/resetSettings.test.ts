@@ -36,7 +36,7 @@ const SNAPSHOT: ISettingsSnapshot = {
   maxFiles: 321,
   showFps: true,
   verboseDiagnostics: true,
-  nodeSizeMode: 'churn',
+  nodeSizeMode: 'file-size',
 };
 
 describe('extension/actions/resetSettings', () => {
@@ -109,7 +109,7 @@ describe('extension/actions/resetSettings', () => {
       ['maxFiles', 321],
       ['showFps', true],
       ['verboseDiagnostics', true],
-      ['nodeSizeMode', 'churn'],
+      ['nodeSizeMode', 'file-size'],
     ]);
   });
 });

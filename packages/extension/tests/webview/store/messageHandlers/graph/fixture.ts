@@ -27,7 +27,7 @@ export function createState(
     showLabels: true,
     cssSnippets: {},
     graphViewportScale: null,
-    nodeSizeMode: 'uniform',
+    nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     depthMode: false,
     depthLimit: 2,

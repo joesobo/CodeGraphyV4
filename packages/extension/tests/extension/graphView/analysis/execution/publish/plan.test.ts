@@ -30,7 +30,7 @@ function createEdge(overrides: Partial<IGraphEdge> = {}): IGraphEdge {
 
 function createGraph(overrides: Partial<IGraphData> = {}): IGraphData {
   return {
-    nodes: [createNode({ fileSize: 10, churn: 1 })],
+    nodes: [createNode({ fileSize: 10 })],
     edges: [createEdge()],
     ...overrides,
   };
@@ -113,11 +113,11 @@ describe('extension/graphView/analysis/execution/publish/plan', () => {
         getRawGraphData: () => createGraph(),
         sendGraphNodeMetricsUpdated: () => {},
       }),
-      createGraph({ nodes: [createNode({ fileSize: 15, churn: 2 })] }),
+      createGraph({ nodes: [createNode({ fileSize: 15 })] }),
       true,
       'fresh',
     )).toMatchObject({
-      metricOnlyUpdate: [{ id: 'src/a.ts', fileSize: 15, churn: 2 }],
+      metricOnlyUpdate: [{ id: 'src/a.ts', fileSize: 15 }],
       reuseCurrentGraphPublication: false,
       shouldSendMetricPatch: true,
     });
@@ -127,11 +127,11 @@ describe('extension/graphView/analysis/execution/publish/plan', () => {
     expect(createGraphPublicationPlan(
       createState('incremental', { changedFilePaths: ['src/a.ts'] }),
       createHandlers({ getRawGraphData: () => createGraph() }),
-      createGraph({ nodes: [createNode({ fileSize: 15, churn: 2 })] }),
+      createGraph({ nodes: [createNode({ fileSize: 15 })] }),
       true,
       'fresh',
     )).toMatchObject({
-      metricOnlyUpdate: [{ id: 'src/a.ts', fileSize: 15, churn: 2 }],
+      metricOnlyUpdate: [{ id: 'src/a.ts', fileSize: 15 }],
       reuseCurrentGraphPublication: false,
       shouldSendMetricPatch: false,
     });

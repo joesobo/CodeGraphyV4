@@ -28,7 +28,6 @@ export interface ExportNodeEntry {
     pluginKind?: string;
   };
   fileSize?: number;
-  churn?: number;
   x?: number;
   y?: number;
 }

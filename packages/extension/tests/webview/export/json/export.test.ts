@@ -171,7 +171,6 @@ describe('buildExportData', () => {
         color: '#fff',
         legendIds: [],
         fileSize: undefined,
-        churn: undefined,
         x: undefined,
         y: undefined,
       },
@@ -182,7 +181,6 @@ describe('buildExportData', () => {
         color: '#fff',
         legendIds: ['g1'],
         fileSize: undefined,
-        churn: undefined,
         x: undefined,
         y: undefined,
       },
@@ -222,7 +220,6 @@ describe('buildExportData', () => {
         color: '#8B5CF6',
         legendIds: [],
         fileSize: undefined,
-        churn: undefined,
         x: undefined,
         y: undefined,
         symbol: {

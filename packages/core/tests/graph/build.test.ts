@@ -7,7 +7,7 @@ import {
 import * as workspaceGraphDataModule from '../../src/graph/data';
 
 describe('core/graph', () => {
-  it('passes churn counts through before building graph data', () => {
+  it('passes graph dependencies through before building graph data', () => {
     vi.spyOn(workspaceGraphDataModule, 'buildWorkspaceGraphData').mockReturnValue({
       nodes: [],
       edges: [],
@@ -16,7 +16,6 @@ describe('core/graph', () => {
     expect(
       buildWorkspacePipelineGraph({
         cacheFiles: {},
-        churnCounts: { 'src/index.ts': 3 },
         disabledPlugins: new Set<string>(['plugin.python']),
         fileConnections: new Map([['src/index.ts', []]]),
         getPluginForFile: vi.fn(),
@@ -33,7 +32,6 @@ describe('core/graph', () => {
       getPluginForFile: expect.any(Function),
       gitIgnoredPaths: [],
       showOrphans: true,
-      churnCounts: { 'src/index.ts': 3 },
       workspaceRoot: '/workspace',
     });
   });
@@ -54,7 +52,6 @@ describe('core/graph', () => {
         '/workspace',
         true,
         new Set(),
-        { 'src/index.ts': 1 },
       ),
     ).toEqual({ nodes: [], edges: [] });
 
@@ -66,7 +63,6 @@ describe('core/graph', () => {
       getPluginForFile: expect.any(Function),
       gitIgnoredPaths: [],
       showOrphans: true,
-      churnCounts: { 'src/index.ts': 1 },
       workspaceRoot: '/workspace',
     });
   });
@@ -86,7 +82,6 @@ describe('core/graph', () => {
     expect(
       buildWorkspacePipelineGraphFromAnalysis({
         cacheFiles: { 'src/index.ts': { size: 5 } },
-        churnCounts: { 'src/index.ts#run:function': 2 },
         disabledPlugins: new Set<string>(['plugin.python']),
         fileAnalysis,
         getPluginForFile: vi.fn(),
@@ -104,7 +99,6 @@ describe('core/graph', () => {
       gitIgnoredPaths: [],
       nodeVisibility: undefined,
       showOrphans: true,
-      churnCounts: { 'src/index.ts#run:function': 2 },
       workspaceRoot: '/workspace',
     });
   });

@@ -104,7 +104,6 @@ export async function indexCodeGraphyWorkspace(
     'build-graph',
     () => buildWorkspacePipelineGraphFromAnalysis({
       cacheFiles: cache.files,
-      churnCounts: {},
       directoryPaths: discoveryResult.directories ?? [],
       gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
       disabledPlugins,

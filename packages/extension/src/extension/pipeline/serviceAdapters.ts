@@ -6,7 +6,6 @@ import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/contracts';
-import { readCachedChurn } from '../churn/cache';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
@@ -103,7 +102,6 @@ export function analyzeWorkspacePipelineFiles(
 
 export function buildWorkspacePipelineGraphData(
   cache: IWorkspaceAnalysisCache,
-  context: vscode.ExtensionContext,
   registry: PluginRegistry,
   fileConnections: Map<string, IProjectedConnection[]>,
   workspaceRoot: string,
@@ -133,7 +131,6 @@ export function buildWorkspacePipelineGraphData(
     workspaceRoot,
     showOrphans,
     effectiveDisabledPlugins,
-    readCachedChurn(context.workspaceState) ?? {},
   );
 }
 
@@ -216,7 +213,6 @@ function filterWorkspacePipelineAnalysisByActivePlugins(
 
 export function buildWorkspacePipelineGraphDataFromAnalysis(
   cache: IWorkspaceAnalysisCache,
-  context: vscode.ExtensionContext,
   registry: PluginRegistry,
   fileAnalysis: Map<string, IFileAnalysisResult>,
   workspaceRoot: string,
@@ -240,7 +236,6 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   };
   return buildWorkspacePipelineGraphFromAnalysis({
     cacheFiles: source._cache.files,
-    churnCounts: readCachedChurn(context.workspaceState) ?? {},
     directoryPaths: source._lastDiscoveredDirectories ?? [],
     gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,

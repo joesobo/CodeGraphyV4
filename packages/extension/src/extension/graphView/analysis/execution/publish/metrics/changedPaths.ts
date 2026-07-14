@@ -40,10 +40,7 @@ export function hasChangedNodeMetricDifference(
       continue;
     }
 
-    if (
-      currentNode.fileSize !== nextNode.fileSize
-      || currentNode.churn !== nextNode.churn
-    ) {
+    if (currentNode.fileSize !== nextNode.fileSize) {
       return true;
     }
   }

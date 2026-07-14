@@ -2,32 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   MIN_NODE_SIZE,
   MAX_NODE_SIZE,
-  computeUniformSizes,
   computeConnectionSizes,
 } from '../../../../../src/webview/components/graph/model/sizing/calculations';
 
-describe('sizingCalculations constants', () => {
-  it('exports MIN_NODE_SIZE as 10', () => {
-    expect(MIN_NODE_SIZE).toBe(10);
-  });
-
-  it('exports MAX_NODE_SIZE as 40', () => {
-    expect(MAX_NODE_SIZE).toBe(40);
-  });
-});
-
-describe('computeUniformSizes', () => {
-  it('assigns default size (16) to every node', () => {
-    const sizes = computeUniformSizes([
-      { id: 'a.ts', label: 'a.ts', color: '#fff' },
-      { id: 'b.ts', label: 'b.ts', color: '#fff' },
-    ]);
-    expect(sizes.get('a.ts')).toBe(16);
-    expect(sizes.get('b.ts')).toBe(16);
-  });
-
-  it('returns empty map for empty node list', () => {
-    expect(computeUniformSizes([]).size).toBe(0);
+describe('semantic node size range', () => {
+  it('matches Obsidian’s bounded radius domain', () => {
+    expect(MIN_NODE_SIZE).toBe(8);
+    expect(MAX_NODE_SIZE).toBe(30);
   });
 });
 

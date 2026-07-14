@@ -72,7 +72,7 @@ describe('graph/model/runtimeContributions', () => {
     const graphData = buildGraphData({
       data,
       graphViewContributions,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
@@ -144,7 +144,7 @@ describe('graph/model/runtimeContributions', () => {
     const graphData = buildGraphData({
       data,
       graphViewContributions,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
@@ -186,7 +186,7 @@ describe('graph/model/runtimeContributions', () => {
     buildGraphData({
       data: { nodes: [], edges: [] },
       graphViewContributions,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',

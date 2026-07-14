@@ -22,20 +22,6 @@ describe('graph/model/build', () => {
     expect(resolveDirectionColor('blue')).toBe(DEFAULT_DIRECTION_COLOR);
   });
 
-  it('uses the default size for uniform node sizing', () => {
-    const sizes = calculateNodeSizes(
-      [
-        { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
-        { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
-      ],
-      [],
-      'uniform'
-    );
-
-    expect(sizes.get('a.ts')).toBe(16);
-    expect(sizes.get('b.ts')).toBe(16);
-  });
-
   it('scales connection-based node sizes from unique related nodes', () => {
     const leaves = Array.from({ length: 15 }, (_, index) => ({
       id: `leaf-${index}.ts`, label: `leaf-${index}.ts`, color: '#67E8F9',
@@ -60,8 +46,8 @@ describe('graph/model/build', () => {
       'file-size'
     );
 
-    expect(sizes.get('empty.ts')).toBe(16);
-    expect(sizes.get('zero.ts')).toBe(16);
+    expect(sizes.get('empty.ts')).toBe(8);
+    expect(sizes.get('zero.ts')).toBe(8);
   });
 
   it('returns lower opacity for deeper nodes', () => {
@@ -151,7 +137,7 @@ describe('graph/model/build', () => {
     const graphData = buildGraphData({
       appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#2563eb' },
       data,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'light',
       favorites: new Set(['favorite.ts']),
       bidirectionalMode: 'combined',

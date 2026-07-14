@@ -19,7 +19,6 @@ const GIT_IGNORED_REASON = 'Git ignored';
 
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;
-  churnCounts: Record<string, number>;
   connectedIds: ReadonlySet<string>;
   directoryPaths?: readonly string[];
   gitIgnoredPaths?: readonly string[];
@@ -88,7 +87,6 @@ export function buildWorkspaceGraphNodes(
 ): IGraphNode[] {
   const {
     cacheFiles,
-    churnCounts,
     connectedIds,
     directoryPaths = [],
     gitIgnoredPaths = [],
@@ -120,7 +118,6 @@ export function buildWorkspaceGraphNodes(
       label: path.basename(filePath),
       color: DEFAULT_NODE_COLOR,
       fileSize: cacheFiles[filePath]?.size,
-      churn: churnCounts[filePath] ?? 0,
       ...(gitIgnoredPathSet.has(filePath)
         ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
         : {}),
