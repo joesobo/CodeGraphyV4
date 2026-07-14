@@ -68,7 +68,6 @@ export interface OwnedGraphFrameRuntime {
     simulationMs: number,
     renderMs: number,
   ): void;
-  styleVersionRef: MutableRefObject<number>;
   synchronizedPositionVersionRef: MutableRefObject<number>;
   onRendererError(this: void, message: string): void;
 }
@@ -208,7 +207,7 @@ function submitOwnedWebGpuFrame(
       links: layout.links,
       nodes: layout.nodes,
       positionVersion: runtime.positionVersionRef.current,
-      styleVersion: runtime.styleVersionRef.current,
+      styleVersion: props.getStyleRevision?.() ?? 0,
     });
     return true;
   } catch (error) {

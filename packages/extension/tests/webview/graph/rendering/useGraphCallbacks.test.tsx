@@ -119,6 +119,25 @@ describe('graph/rendering/useGraphCallbacks', () => {
     );
   });
 
+  it('advances a semantic style revision only when style inputs change', () => {
+    const { refs, result, rerender } = renderUseGraphCallbacks();
+
+    expect(result.current.getStyleRevision()).toBe(1);
+    expect(result.current.getStyleRevision()).toBe(1);
+    refs.showLabelsRef.current = false;
+    rerender({
+      pluginHost: { name: 'new-overlay-host' } as never,
+      refs,
+      triggerImageRerender: vi.fn(),
+    });
+    expect(result.current.getStyleRevision()).toBe(1);
+
+    refs.highlightedNodeRef.current = 'node-2';
+    expect(result.current.getStyleRevision()).toBe(2);
+    refs.selectedNodesSetRef.current = new Set(['node-2']);
+    expect(result.current.getStyleRevision()).toBe(3);
+  });
+
   it('uses the directional color for arrows and particles', () => {
     renderingHarness.getGraphDirectionalColor.mockReturnValue('#aabbcc');
     const { refs, result } = renderUseGraphCallbacks();

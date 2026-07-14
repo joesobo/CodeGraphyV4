@@ -35,6 +35,7 @@ export function createGraphViewportSurfaceProps({
       getLinkWidth: callbacks.getLinkWidth,
       getNodeStyle: callbacks.getNodeStyle,
       getParticleColor: callbacks.getParticleColor,
+      getStyleRevision: callbacks.getStyleRevision,
       nodeLabelCanvasObject: callbacks.nodeLabelCanvasObject,
       onRenderFramePost,
       particleSize: viewState.particleSize,

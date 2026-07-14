@@ -55,6 +55,7 @@ export interface Surface2dProps {
   getLinkWidth: (this: void, link: FGLink) => number;
   getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getParticleColor: (this: void, link: FGLink) => string;
+  getStyleRevision?: (this: void) => number;
   nodeLabelCanvasObject?: (this: void, node: FGNode, context: CanvasRenderingContext2D, globalScale: number) => void;
   onRenderFramePost: (this: void, context: CanvasRenderingContext2D, globalScale: number) => void;
   particleSize: number;

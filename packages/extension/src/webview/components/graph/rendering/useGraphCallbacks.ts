@@ -44,6 +44,7 @@ export interface UseGraphCallbacksResult {
   getLinkWidth: (this: void, link: FGLink) => number;
   getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getParticleColor: (this: void, link: FGLink) => string;
+  getStyleRevision: (this: void) => number;
   nodeLabelCanvasObject?: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
 }
 
@@ -105,9 +106,40 @@ export function useGraphCallbacks({
   };
 
   if (callbacksRef.current === null) {
+    let styleRevision = 0;
+    let styleSnapshotInitialized = false;
+    let directionColor: unknown;
+    let edgeDecorations: unknown;
+    let graphAppearance: unknown;
+    let highlightedNeighbors: unknown;
+    let highlightedNode: unknown;
+    let nodeDecorations: unknown;
+    let selectedNodes: unknown;
     callbacksRef.current = {
       getNodeStyle(node) {
         return getNodeCanvasStyle(getNodeCanvasContext(contextRef.current), node);
+      },
+      getStyleRevision() {
+        const current = contextRef.current.refs;
+        const changed = !styleSnapshotInitialized
+          || directionColor !== current.directionColorRef.current
+          || edgeDecorations !== current.edgeDecorationsRef.current
+          || graphAppearance !== current.graphAppearanceRef.current
+          || highlightedNeighbors !== current.highlightedNeighborsRef.current
+          || highlightedNode !== current.highlightedNodeRef.current
+          || nodeDecorations !== current.nodeDecorationsRef.current
+          || selectedNodes !== current.selectedNodesSetRef.current;
+        if (!changed) return styleRevision;
+        styleSnapshotInitialized = true;
+        directionColor = current.directionColorRef.current;
+        edgeDecorations = current.edgeDecorationsRef.current;
+        graphAppearance = current.graphAppearanceRef.current;
+        highlightedNeighbors = current.highlightedNeighborsRef.current;
+        highlightedNode = current.highlightedNodeRef.current;
+        nodeDecorations = current.nodeDecorationsRef.current;
+        selectedNodes = current.selectedNodesSetRef.current;
+        styleRevision += 1;
+        return styleRevision;
       },
       nodeLabelCanvasObject(node, ctx, globalScale) {
         renderNodeCanvasLabel(
