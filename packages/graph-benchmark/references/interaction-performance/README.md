@@ -94,7 +94,13 @@ Fresh attribution at clean revision `3ad8cab63173533db9c51946f1b463fe9776ef0f` c
 
 Relative to M1, mean complete frame work improves 1.15× / 1.46× / 1.49× / 1.39× across tiny / 500 / 1k / 2.5k. The 500 and 1k tiers are comfortably inside the 6.9 ms 144 Hz CPU budget; 2.5k is inside the 16 ms budget and has moved 28% from M1 toward the 6.9 ms stretch target. Final attribution identifies physics at 6.29 ms/frame as the remaining 2.5k dominant cost; behavior-changing force approximations were not accepted after all hard budgets were cleared.
 
-The final real-editor pass in VS Code 1.128.0 records 144.53 simulation steps/s over exactly 60.00 displayed FPS, 0.36 ms active work, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 0.61%. The attached display is physically 60 Hz (`1920×1080 @ 60.00Hz`), so 144 Hz presentation cannot be observed on this host; 500/1k potential throughput and ≤6.9 ms CPU work prove the renderer is not the limiting factor. See `m5-final/` for final reports, before/after attribution, validation JSON, screenshots, and GIF.
+The final physical-display real-editor pass in VS Code 1.128.0 records 144.53 simulation steps/s over exactly 60.00 displayed FPS, 0.36 ms active work, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 0.61%. See `m5-final/` for final reports, before/after attribution, validation JSON, screenshots, and GIF.
+
+### High-refresh presentation gate
+
+Because the attached physical panel is limited to 60 Hz, the final presentation gate uses a compositor-backed macOS CoreGraphics display configured at 165 Hz. This is a headed, vsynced browser/editor path: neither Chromium's frame-rate limit nor GPU vsync is disabled. A separate 399-frame headed Chromium probe measures 165.00 Hz (6.06 ms mean rAF interval). Clean headed reports then measure **161.45 displayed FPS at 500**, **164.27 at 1k**, and **70.00 at 2.5k**, closing the 144 FPS 500/1k gate and sustained 60 FPS 2.5k gate. CPU work remains 4.26 / 2.62 / 8.13 ms respectively.
+
+The real VS Code 1.128.0 editor on the same 165 Hz compositor independently records **164.75 displayed FPS**, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 0.74%. The high-refresh pass also exposed and fixed a measurement defect: the settle envelope had used five frames, silently shrinking from about 80 ms at 60 Hz to 30 ms at 165 Hz; it now uses a refresh-independent 80 ms wall-clock window. Evidence and the explicit virtual-display provenance are committed under `m5-final/high-refresh/`.
 
 Run the dashboard generator with:
 

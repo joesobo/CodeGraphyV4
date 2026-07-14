@@ -4,6 +4,12 @@
   "updates": [
     {
       "milestone": "M5",
+      "title": "High-refresh presentation gate verified",
+      "summary": "Headed, vsynced runs on a compositor-backed 165 Hz macOS display measure 161.45 displayed FPS at 500, 164.27 at 1k, and 70.00 at 2.5k, closing both the 144 FPS and sustained 60 FPS gates. Real VS Code independently presents 164.75 FPS with one-frame target/neighbor response, zero freezes or teleports, monotonic settle, imperceptible sleep, and HUD agreement within 0.74%. The display is explicitly documented as virtual because the attached physical panel is limited to 60 Hz; no browser frame-rate or vsync bypass flags were used.",
+      "timestamp": "2026-07-14T01:11:00Z"
+    },
+    {
+      "milestone": "M5",
       "title": "Final ladder clears every CPU frame budget",
       "summary": "Clean final three-run reports at d6ce971b measure 0.27 / 5.19 / 3.58 / 7.95 ms for tiny / 500 / 1k / 2.5k — 1.15× / 1.46× / 1.49× / 1.39× faster than M1. Potential throughput is 3,720 / 193 / 279 / 126 FPS; the 60 Hz test display presents approximately 60 FPS. Every fixture has one-frame target and neighbor response, zero freezes, teleports, and settle violations, complete imperceptible sleep, and HUD agreement within 0.45%.",
       "timestamp": "2026-07-14T00:05:00Z"
@@ -242,6 +248,16 @@
     }
   ],
   "visuals": [
+    {
+      "caption": "M5 high-refresh real-editor drag: the active HUD presents 164 FPS on the 165 Hz compositor with one-frame target and neighbor response.",
+      "kind": "image",
+      "path": "references/interaction-performance/m5-final/high-refresh/real-editor-drag.png"
+    },
+    {
+      "caption": "M5 high-refresh real-editor explicit Idle HUD after monotonic, imperceptible settle.",
+      "kind": "image",
+      "path": "references/interaction-performance/m5-final/high-refresh/real-editor-idle.png"
+    },
     {
       "caption": "M5 final real-editor drag: 144.53 simulation steps/s, one-frame neighbor response, and the honest active HUD.",
       "kind": "image",
