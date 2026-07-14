@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-13T19:18:00Z",
+  "source": {
+    "revision": "a5b6360acb80b4657d8f07f99e3657a3ac6d2bf3",
+    "dirty": false
+  },
+  "environment": {
+    "product": "Visual Studio Code Extension Development Host",
+    "version": "1.128.0",
+    "platform": "darwin-arm64"
+  },
+  "setup": {
+    "graphView": "editor",
+    "sidebar": "Files Explorer",
+    "fixture": "examples/example-typescript",
+    "nodeCount": 18,
+    "edgeCount": 14
+  },
+  "observedDrag": {
+    "targetNodeId": "src/index.ts",
+    "neighborNodeIds": [
+      "src/palette.ts"
+    ],
+    "capturedDragSteps": 18,
+    "targetDragDistancePx": 229.74398914733166,
+    "neighborDragDistancePx": 143.48000423546824,
+    "neighborMovingCapturedSteps": 18
+  },
+  "interaction": {
+    "frozenFrameCount": 0,
+    "maximumJump": 10.266280358819241,
+    "neighborLatencyFrames": {
+      "maximum": 1,
+      "mean": 1,
+      "missedInputCount": 0,
+      "p95": 1,
+      "sampleCount": 18
+    },
+    "targetLatencyFrames": {
+      "maximum": 1,
+      "mean": 1,
+      "missedInputCount": 0,
+      "p95": 1,
+      "sampleCount": 18
+    },
+    "teleportFrameCount": 0
+  },
+  "timing": {
+    "cpuFrameTimeMs": {
+      "mean": 0.346483179553204,
+      "p50": 0.30000001192092896,
+      "p95": 0.5999999642372131,
+      "p99": 0.699999988079071,
+      "max": 1.199999988079071,
+      "sampleCount": 981
+    },
+    "displayedFps": 59.9971838056581,
+    "potentialFps": 2886.142990518377,
+    "presentationIntervalMs": {
+      "mean": 16.667448979591835,
+      "p50": 16.699999999999818,
+      "p95": 17.100000000000364,
+      "p99": 17.600000000000364,
+      "max": 17.699999999999818,
+      "sampleCount": 980
+    },
+    "renderMs": {
+      "mean": 0.278797145040514,
+      "p50": 0.30000001192092896,
+      "p95": 0.40000003576278687,
+      "p99": 0.5,
+      "max": 0.7999999523162842,
+      "sampleCount": 981
+    },
+    "simulationMs": {
+      "mean": 0.06768603451268997,
+      "p50": 0,
+      "p95": 0.20000004768371582,
+      "p99": 0.30000001192092896,
+      "max": 0.40000003576278687,
+      "sampleCount": 981
+    }
+  },
+  "settle": {
+    "durationMs": 11085.300000011921,
+    "energyAtSleep": 0.00001387185109030035,
+    "envelopeViolationCount": 1,
+    "maximumLateIncreaseRatio": 3.5140987803364396,
+    "monotonicEnvelope": false,
+    "sleptImperceptibly": true
+  },
+  "hud": {
+    "textDuringDrag": "Potential 2406 FPS · Displayed 60 FPS · Frame 0.42 ms avg · 1.20 ms max · 1% high 0.87 ms · Sim 0.12 ms avg · 0.40 ms max · 1% high 0.37 ms · Render 0.30 ms avg · 0.80 ms max · 1% high 0.60 ms",
+    "sampleDuringDrag": {
+      "status": "active",
+      "displayedFps": 60.00141179792466,
+      "frameTimeMs": {
+        "average": 0.4156249975785613,
+        "maximum": 1.199999988079071,
+        "onePercentHigh": 0.8666666944821676
+      },
+      "potentialFps": 2406.015051611472,
+      "renderTimeMs": {
+        "average": 0.2999999984167516,
+        "maximum": 0.7999999523162842,
+        "onePercentHigh": 0.5999999841054281
+      },
+      "sampleCount": 256,
+      "simulationTimeMs": {
+        "average": 0.11562499916180968,
+        "maximum": 0.40000003576278687,
+        "onePercentHigh": 0.3666667143503825
+      }
+    },
+    "agreementAgainstMatchingActiveWindow": {
+      "differencesPct": {
+        "displayedFps": 0.0023529965411010303,
+        "frameTimeAverage": 0.18832390699060167,
+        "potentialFps": 0.18796991470325897,
+        "renderAverage": 0.39215672402661117,
+        "simulationAverage": 0.33670001911161745
+      },
+      "sampleCount": 256,
+      "withinTenPercent": true
+    },
+    "finalText": "Idle",
+    "finalState": "idle"
+  },
+  "truncated": false
+}

@@ -4,8 +4,20 @@
   "updates": [
     {
       "milestone": "M1",
-      "title": "Instrumentation validated; clean baseline ladder next",
-      "summary": "A dirty-tree diagnostic tiny run measured 0.33 ms mean CPU frame time (~3,014 potential FPS), ~60 displayed FPS in headless Chromium, and HUD agreement within 1.34%. These are validation numbers only, not the committed M1 baseline.",
+      "title": "Trustworthy M1 baseline committed",
+      "summary": "Clean-source schema-v3 baselines now cover tiny, 500, 1k, and 2.5k. Mean drag work is 0.31 / 7.57 / 5.32 / 11.05 ms; potential FPS is 3,232 / 132 / 188 / 90 while headless displayed FPS stays near 60. The baseline exposes the work ahead: 500 misses the 6.9 ms budget, scaled fixtures show 3-frame neighbor latency and one frozen frame on average, and tiny settle has one envelope violation. Teleports are zero and HUD-vs-harness difference is at most 0.94%.",
+      "timestamp": "2026-07-13T19:20:00Z"
+    },
+    {
+      "milestone": "M1",
+      "title": "Real-editor ground truth captured",
+      "summary": "VS Code 1.128.0 was verified with the graph in the editor and Files Explorer restored in the sidebar. During an 18-step hub drag, the connected neighbor moved on all 18 captured steps (143 px total), target and neighbor latency were both one frame, freezes and teleports were zero, the HUD matched the corresponding telemetry window within 0.40%, and the final HUD state was Idle. The remaining non-monotonic settle is recorded as a baseline defect.",
+      "timestamp": "2026-07-13T19:18:00Z"
+    },
+    {
+      "milestone": "M1",
+      "title": "Instrumentation validated",
+      "summary": "Always-on HUD and harness telemetry now separate CPU potential FPS from elapsed displayed FPS, split simulation and render work, capture exact input-to-render motion and settle behavior, and publish explicit idle state.",
       "timestamp": "2026-07-13T18:30:00Z"
     },
     {
@@ -15,7 +27,44 @@
       "timestamp": "2026-07-13T17:45:00Z"
     }
   ],
-  "reports": [],
+  "reports": [
+    {
+      "fixture": "tiny",
+      "milestone": "M1 baseline",
+      "path": "references/interaction-performance/m1-baseline/tiny.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M1 baseline",
+      "path": "references/interaction-performance/m1-baseline/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M1 baseline",
+      "path": "references/interaction-performance/m1-baseline/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M1 baseline",
+      "path": "references/interaction-performance/m1-baseline/2.5k.json"
+    }
+  ],
   "attribution": [],
-  "visuals": []
+  "visuals": [
+    {
+      "caption": "M1 real-editor drag: editor graph with Files Explorer in the sidebar and the honest active HUD.",
+      "kind": "image",
+      "path": "references/interaction-performance/m1-baseline/real-editor-drag.png"
+    },
+    {
+      "caption": "M1 real-editor scripted hub drag, hold, release, and settle.",
+      "kind": "gif",
+      "path": "references/interaction-performance/m1-baseline/real-editor-drag.gif"
+    },
+    {
+      "caption": "M1 real-editor explicit Idle HUD after settle.",
+      "kind": "image",
+      "path": "references/interaction-performance/m1-baseline/real-editor-idle.png"
+    }
+  ]
 }
