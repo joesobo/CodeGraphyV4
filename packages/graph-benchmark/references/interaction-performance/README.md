@@ -7,8 +7,8 @@ This directory contains the committed evidence for the Obsidian-parity interacti
 - **Potential FPS** is `1000 / mean CPU frame work`, where CPU work includes the completed physics step plus synchronization, geometry/buffer preparation, GPU command encoding/submission, and overlay work.
 - **Displayed FPS** is rendered presentations divided by elapsed wall-clock time. Missing frames lower this value.
 - **Frame time** reports mean, p95, p99 (the 1%-high value), and maximum CPU milliseconds, with simulation and render distributions retained separately.
-- **Target latency** counts rendered frames from pointer movement to the dragged node reaching that input position.
-- **Neighbor latency** counts rendered frames from pointer movement to one-hop neighbor motion.
+- **Target latency** counts rendered frames after the pointer handler records an input until the dragged node reaches that input position. Each frame carries the latest handled-input sequence so an older frame whose rAF timestamp happens to follow the native event timestamp cannot be miscounted as post-input work.
+- **Neighbor latency** uses the same execution-order boundary and counts post-input rendered frames until one-hop neighbor motion.
 - **Freeze and teleport counts** use the versioned thresholds stored in each report's `configuration.interactionThresholds`.
 - **Settle continuity** evaluates a rolling RMS kinetic-energy envelope after release and records whether sleep energy is imperceptible.
 - **HUD agreement** independently recomputes metrics from raw frame records and compares them with the product HUD's rolling sample. Every displayed metric must be within 10%.

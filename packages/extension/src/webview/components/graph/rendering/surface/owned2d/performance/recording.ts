@@ -42,6 +42,7 @@ export interface OwnedGraphInteractionFrameInput {
 export interface OwnedGraphRecordedInteractionFrame {
   alpha: number;
   kineticEnergy: number;
+  latestInputSequence: number | null;
   neighbors: OwnedGraphRecordedPosition[];
   presentationTimestampMs: number;
   renderMs: number;
@@ -121,6 +122,7 @@ export function createOwnedGraphInteractionRecorder(
   let targetIndex: number | undefined;
   let neighborIndexes: Array<{ id: string; index: number | undefined }> = [];
   let inputSequence = 0;
+  let latestInputSequence: number | null = null;
 
   function refreshIndexes(nodeIds: readonly string[]): void {
     if (!recording || cachedNodeIds === nodeIds) return;
@@ -156,6 +158,7 @@ export function createOwnedGraphInteractionRecorder(
       recording.frames.push({
         alpha: input.alpha,
         kineticEnergy,
+        latestInputSequence,
         neighbors,
         presentationTimestampMs: input.presentationTimestampMs,
         renderMs: input.renderMs,
@@ -177,7 +180,8 @@ export function createOwnedGraphInteractionRecorder(
         recording.truncated = true;
         return;
       }
-      recording.inputs.push({ ...input, sequence: inputSequence });
+      latestInputSequence = inputSequence;
+      recording.inputs.push({ ...input, sequence: latestInputSequence });
       inputSequence += 1;
     },
     start: (recordingOptions) => {
@@ -192,12 +196,14 @@ export function createOwnedGraphInteractionRecorder(
       targetIndex = undefined;
       neighborIndexes = [];
       inputSequence = 0;
+      latestInputSequence = null;
     },
     stop: () => {
       if (!recording) return null;
       const result = cloneRecording(recording);
       recording = null;
       cachedNodeIds = null;
+      latestInputSequence = null;
       return result;
     },
   };
