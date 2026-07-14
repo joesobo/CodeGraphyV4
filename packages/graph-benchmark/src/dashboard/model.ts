@@ -59,10 +59,10 @@ export interface DashboardFixtureModel {
   fixture: string;
   baseline: DashboardMetricPoint;
   current: DashboardMetricPoint;
-  speedup: number | null;
+  potentialFpsIncreasePct: number | null;
   trend: Array<{
-    frameTimeMs: number;
     milestone: string;
+    potentialFps: number;
     revision: string;
   }>;
 }
@@ -129,12 +129,12 @@ export function buildDashboardModel(
       fixture,
       baseline,
       current,
-      speedup: points.length > 1 && current.frameTimeMs > 0
-        ? baseline.frameTimeMs / current.frameTimeMs
+      potentialFpsIncreasePct: points.length > 1 && baseline.potentialFps > 0
+        ? (current.potentialFps / baseline.potentialFps - 1) * 100
         : null,
       trend: points.map(point => ({
-        frameTimeMs: point.frameTimeMs,
         milestone: point.milestone,
+        potentialFps: point.potentialFps,
         revision: point.revision,
       })),
     };

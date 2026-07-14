@@ -309,6 +309,7 @@ function shouldContinueOwnedGraphFrames(
     runtime.pointerSessionRef.current !== null
     || tick.moving
     || runtime.propsRef.current.directionMode === 'particles'
+    || runtime.propsRef.current.showFps === true
   );
 }
 

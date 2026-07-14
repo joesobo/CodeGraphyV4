@@ -62,20 +62,14 @@ function clearActivePerformanceData(output: HTMLOutputElement): void {
 }
 
 function formatOwnedGraphPerformance(sample: OwnedGraphPerformanceSample): string {
-  if (sample.status === 'idle') return 'Idle';
+  if (sample.status === 'idle') {
+    return 'Potential — FPS · Displayed Warming · — ms avg';
+  }
   const displayed = sample.displayedFps === null
     ? 'Warming'
     : `${Math.round(sample.displayedFps)} FPS`;
   return `Potential ${Math.round(sample.potentialFps)} FPS · Displayed ${displayed}`
-    + ` · Frame ${sample.frameTimeMs.average.toFixed(2)} ms avg`
-    + ` · ${sample.frameTimeMs.maximum.toFixed(2)} ms max`
-    + ` · 1% high ${sample.frameTimeMs.onePercentHigh.toFixed(2)} ms`
-    + ` · Sim ${sample.simulationTimeMs.average.toFixed(2)} ms avg`
-    + ` · ${sample.simulationTimeMs.maximum.toFixed(2)} ms max`
-    + ` · 1% high ${sample.simulationTimeMs.onePercentHigh.toFixed(2)} ms`
-    + ` · Render ${sample.renderTimeMs.average.toFixed(2)} ms avg`
-    + ` · ${sample.renderTimeMs.maximum.toFixed(2)} ms max`
-    + ` · 1% high ${sample.renderTimeMs.onePercentHigh.toFixed(2)} ms`;
+    + ` · ${sample.frameTimeMs.average.toFixed(2)} ms avg`;
 }
 
 function setActivePerformanceData(
@@ -369,7 +363,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       {props.showFps ? (
         <output
           ref={fpsOutputRef}
-          className="pointer-events-none absolute bottom-2 left-2 rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
+          className="pointer-events-none absolute right-2 top-10 whitespace-nowrap rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
           data-codegraphy-overlay="fps"
           data-performance-status={performanceSample.status}
           data-testid="graph-fps"
