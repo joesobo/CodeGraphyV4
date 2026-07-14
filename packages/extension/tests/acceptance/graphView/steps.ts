@@ -686,7 +686,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the (.+) node is visibly outlined in orange$/, async (context, _step, match) => {
-    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]), 'orange');
   }),
 
   step(/^the (.+) node is no longer outlined$/, async (context, _step, match) => {

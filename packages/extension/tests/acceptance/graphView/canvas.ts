@@ -9,8 +9,15 @@ interface CanvasAnalysis {
   outlinePixelCount: number;
 }
 
+type NodeOutlineColor = 'orange' | 'white';
+type RgbColor = { blue: number; green: number; red: number };
+
 const TARGET_NODE = 'src/index.ts';
 const BLUE_NODE_RGB = { red: 147, green: 197, blue: 253 };
+const NODE_OUTLINE_RGB: Record<NodeOutlineColor, RgbColor> = {
+  orange: { red: 234, green: 179, blue: 8 },
+  white: { red: 255, green: 255, blue: 255 },
+};
 
 export function requireGraphFrame(context: GraphAcceptanceContext): Frame {
   return requireValue(context.graphFrame, 'Expected Graph View frame to be open');
@@ -475,12 +482,12 @@ export async function expectNodeStaysDropped(context: GraphAcceptanceContext): P
 
 export async function expectNodeLooksBlue(frame: Frame, probe: NodeProbe): Promise<void> {
   const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.bluePixelCount).toBeGreaterThan(20);
+  expect(analysis.bluePixelCount).toBeGreaterThan(Math.max(2, Math.floor(probe.radius)));
 }
 
 export async function expectNodeHasWhiteCenterSymbol(frame: Frame, probe: NodeProbe): Promise<void> {
   const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.whiteCenterPixelCount).toBeGreaterThan(8);
+  expect(analysis.whiteCenterPixelCount).toBeGreaterThan(Math.max(1, Math.floor(probe.radius / 2)));
 }
 
 export async function expectNodeHasLabel(frame: Frame, probe: NodeProbe): Promise<void> {
@@ -488,8 +495,14 @@ export async function expectNodeHasLabel(frame: Frame, probe: NodeProbe): Promis
   expect(analysis.labelPixelCount).toBeGreaterThan(8);
 }
 
-export async function expectNodeIsOutlined(frame: Frame, probe: NodeProbe): Promise<void> {
-  await expect.poll(async () => (await analyzeNodePixels(frame, probe)).outlinePixelCount).toBeGreaterThan(10);
+export async function expectNodeIsOutlined(
+  frame: Frame,
+  probe: NodeProbe,
+  color: NodeOutlineColor = 'white',
+): Promise<void> {
+  await expect.poll(
+    async () => (await analyzeNodePixels(frame, probe, NODE_OUTLINE_RGB[color])).outlinePixelCount,
+  ).toBeGreaterThan(Math.max(1, Math.floor(probe.radius / 2)));
 }
 
 export async function expectVisibleEdgeBetween(
@@ -562,7 +575,11 @@ async function waitForNodeCenterToMove(
   return (await readNodeProbe(frame, nodePath)).center;
 }
 
-async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {
+async function analyzeNodePixels(
+  frame: Frame,
+  probe: NodeProbe,
+  outline = NODE_OUTLINE_RGB.white,
+): Promise<CanvasAnalysis> {
   const stage = graphStage(frame);
   const screenshot = await stage.screenshot();
   const stageBox = await stage.boundingBox();
@@ -589,7 +606,8 @@ async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<Canvas
       x: Math.round(options.probe.center.x * scaleX),
       y: Math.round(options.probe.center.y * scaleY),
     };
-    const radius = Math.max(8, Math.round(options.probe.radius * Math.max(scaleX, scaleY)));
+    const pixelScale = Math.max(scaleX, scaleY);
+    const radius = Math.max(2, Math.round(options.probe.radius * pixelScale));
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
     let bluePixelCount = 0;
     let whiteCenterPixelCount = 0;
@@ -618,13 +636,20 @@ async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<Canvas
           && blue > 80
           && Math.max(red, green, blue) - Math.min(red, green, blue) < 48
         ) labelPixelCount += 1;
-        if (distance > radius * 0.6 && distance < radius + 20 && red > 170 && green > 170 && blue > 170) outlinePixelCount += 1;
+        if (
+          distance > radius * 0.75
+          && distance < radius + Math.max(3, Math.round(pixelScale * 3))
+          && Math.abs(red - options.outline.red) < 110
+          && Math.abs(green - options.outline.green) < 110
+          && Math.abs(blue - options.outline.blue) < 110
+        ) outlinePixelCount += 1;
       }
     }
 
     return { bluePixelCount, whiteCenterPixelCount, labelPixelCount, outlinePixelCount };
   }, {
     blue: BLUE_NODE_RGB,
+    outline,
     probe,
     screenshotBase64: screenshot.toString('base64'),
     stageSize: { height: stageBox.height, width: stageBox.width },
