@@ -129,17 +129,18 @@ describe('graph/rendering/nodes/canvas2d', () => {
 
     renderNodeCanvasLabel(createDependencies(), node, context, 1, labelSpriteCache);
     expect(context.drawImage).toHaveBeenCalled();
-    expect(context.save).toHaveBeenCalledOnce();
-    expect(context.restore).toHaveBeenCalledOnce();
+    expect(context.save).toHaveBeenCalledTimes(3);
+    expect(context.restore).toHaveBeenCalledTimes(3);
 
     vi.mocked(context.drawImage).mockClear();
     renderNodeCanvasLabel(
       createDependencies({ showLabels: false }),
       node,
       context,
-      1,
+      4,
       labelSpriteCache,
     );
     expect(context.drawImage).not.toHaveBeenCalled();
+    expect(context.scale).toHaveBeenLastCalledWith(0.5, 0.5);
   });
 });

@@ -7,6 +7,7 @@ import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
 import { shouldRenderGraphDetails } from '../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/contracts';
+import { ownedGraphNodeWorldScale } from '../surface/owned2d/visualSize';
 
 function isNodeHighlighted(
   dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,
@@ -49,6 +50,16 @@ export function getNodeCanvasStyle(
   };
 }
 
+function applyNodeVisualTransform(
+  context: CanvasRenderingContext2D,
+  node: FGNode,
+  visualScale: number,
+): void {
+  context.translate(node.x!, node.y!);
+  context.scale(visualScale, visualScale);
+  context.translate(-node.x!, -node.y!);
+}
+
 export function renderNodeCanvasLabel(
   dependencies: NodeCanvasRendererDependencies,
   node: FGNode,
@@ -61,10 +72,15 @@ export function renderNodeCanvasLabel(
   const baseOpacity = decoration?.opacity ?? (node.baseOpacity ?? 1);
   const opacity = getNodeCanvasOpacity(baseOpacity, isHighlighted);
   const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
+  const visualScale = ownedGraphNodeWorldScale(globalScale);
+  const effectiveGlobalScale = globalScale * visualScale;
   ctx.save();
   ctx.globalAlpha = opacity;
+  ctx.save();
+  applyNodeVisualTransform(ctx, node, visualScale);
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
-  renderNodeCollapseIndicator(ctx, node, globalScale, appearance);
+  renderNodeCollapseIndicator(ctx, node, effectiveGlobalScale, appearance);
+  ctx.restore();
   if (dependencies.showLabelsRef.current && shouldRenderGraphDetails(globalScale)) {
     renderNodeLabel({
       appearance,
@@ -75,10 +91,20 @@ export function renderNodeCanvasLabel(
       node,
       opacity,
       spriteCache: labelSpriteCache,
+      visualScale,
     });
   }
   ctx.globalAlpha = opacity;
-  renderNodePluginOverlay(dependencies.pluginHost, node, ctx, globalScale, decoration);
+  ctx.save();
+  applyNodeVisualTransform(ctx, node, visualScale);
+  renderNodePluginOverlay(
+    dependencies.pluginHost,
+    node,
+    ctx,
+    effectiveGlobalScale,
+    decoration,
+  );
+  ctx.restore();
   ctx.restore();
 }
 

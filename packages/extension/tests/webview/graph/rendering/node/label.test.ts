@@ -80,6 +80,30 @@ describe('renderNodeLabel', () => {
     expect(ctx.globalAlpha).toBeCloseTo(0.8 * ((1 - 0.35) / 1.2));
   });
 
+  it('positions labels beneath the zoom-compensated node boundary', () => {
+    const sprites = spriteCache();
+    const ctx = destinationContext();
+
+    renderNodeLabel({
+      ctx,
+      decoration: undefined,
+      globalScale: 4,
+      isHighlighted: true,
+      node: node(),
+      opacity: 1,
+      spriteCache: sprites.cache,
+      visualScale: 0.5,
+    });
+
+    expect(ctx.drawImage).toHaveBeenCalledWith(
+      sprites.spriteCanvas,
+      16.75,
+      35.5,
+      6.5,
+      3.75,
+    );
+  });
+
   it('does not rasterize labels below the zoom fade threshold', () => {
     const sprites = spriteCache();
     const ctx = destinationContext();

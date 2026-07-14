@@ -59,6 +59,20 @@ describe('owned graph arrow endpoint geometry', () => {
     expect(parameters.target).toBeCloseTo(0.8, 6);
   });
 
+  it('clips arrows to zoom-compensated node boundaries', () => {
+    const parameters = ownedArrowCurveParameters(
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      0,
+      style(),
+      style(),
+      0.5,
+    );
+
+    expect(parameters.source).toBeCloseTo(0.05, 6);
+    expect(parameters.target).toBeCloseTo(0.95, 6);
+  });
+
   it('keeps curved arrow tips on both the curve and elliptical node boundaries', () => {
     const source = { x: 0, y: 0 };
     const target = { x: 100, y: 0 };

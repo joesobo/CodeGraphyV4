@@ -13,6 +13,7 @@ export interface RenderNodeLabelOptions {
   node: FGNode;
   opacity: number;
   spriteCache: NodeLabelSpriteProvider;
+  visualScale?: number;
 }
 
 export function renderNodeLabel({
@@ -24,12 +25,13 @@ export function renderNodeLabel({
   node,
   opacity,
   spriteCache,
+  visualScale = 1,
 }: RenderNodeLabelOptions): void {
   const labelOpacity = graphDetailOpacity(globalScale);
   if (labelOpacity === 0) return;
-  const nodeHalfHeight = node.shapeSize2D?.height
+  const nodeHalfHeight = (node.shapeSize2D?.height
     ? node.shapeSize2D.height / 2
-    : node.size;
+    : node.size) * visualScale;
 
   const baseColor = isHighlighted
     ? appearance.labelForeground

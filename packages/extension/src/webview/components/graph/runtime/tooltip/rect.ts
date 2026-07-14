@@ -7,6 +7,7 @@ import {
 	DEFAULT_NODE_SIZE,
 	type FGNode,
 } from '../../model/build';
+import { ownedGraphNodeScreenRadius } from '../../rendering/surface/owned2d/visualSize';
 
 interface GraphTooltipRectOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;
@@ -29,7 +30,7 @@ export function getTooltipNodeRect(
 	const screen = graph.graph2ScreenCoords(node.x ?? 0, node.y ?? 0);
 	const rect = canvas.getBoundingClientRect();
 	const zoom = graph.zoom();
-	const radius = (node.size ?? DEFAULT_NODE_SIZE) * zoom;
+	const radius = ownedGraphNodeScreenRadius(node.size ?? DEFAULT_NODE_SIZE, zoom);
 
 	return {
 		x: screen.x + rect.left,
