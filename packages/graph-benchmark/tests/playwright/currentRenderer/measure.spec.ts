@@ -93,16 +93,17 @@ test('captures trustworthy frame and interaction metrics during a fixed syntheti
     expect(result.interactionAssessment.hudAgreement?.withinTenPercent).toBe(true);
     expect(result.interactionAssessment.truncated).toBe(false);
     expect(result.stageAttribution).toMatchObject({
-      physicsHome: 'worker',
+      physicsHome: 'main-thread',
       truncated: false,
       stages: {
         frameTotalCpu: { scope: 'frame-cpu' },
         geometryRebuild: { scope: 'frame-cpu' },
         gpuBufferWrites: { scope: 'frame-cpu' },
         gpuEncodeSubmit: { scope: 'frame-cpu' },
-        snapshotApply: { scope: 'host-async-cpu' },
-        workerRoundTrip: { scope: 'latency' },
-        workerSimulationCpu: { scope: 'worker-cpu' },
+        physicsStep: { scope: 'frame-cpu' },
+        snapshotApply: { eventCount: 0, scope: 'host-async-cpu' },
+        workerRoundTrip: { eventCount: 0, scope: 'latency' },
+        workerSimulationCpu: { eventCount: 0, scope: 'worker-cpu' },
       },
     });
     expect(result.stageAttribution?.renderedFrameCount).toBeGreaterThan(10);
@@ -111,9 +112,7 @@ test('captures trustworthy frame and interaction metrics during a fixed syntheti
       'geometryRebuild',
       'gpuBufferWrites',
       'gpuEncodeSubmit',
-      'snapshotApply',
-      'workerRoundTrip',
-      'workerSimulationCpu',
+      'physicsStep',
     ] as const) {
       expect(result.stageAttribution?.stages[stage].eventCount).toBeGreaterThan(0);
     }

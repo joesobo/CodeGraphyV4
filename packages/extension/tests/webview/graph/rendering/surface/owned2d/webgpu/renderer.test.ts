@@ -313,15 +313,17 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect((harness.writeBuffer.mock.calls[0][2] as Float32Array)[7]).toBe(-1);
   });
 
-  it('uploads sampled render positions for both nodes and edge endpoints', async () => {
+  it('uploads authoritative positions for both nodes and edge endpoints', async () => {
     const harness = webGpuHarness();
     const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
     const frame = rendererFrame();
-    frame.renderX = Float32Array.of(11, 113);
-    frame.renderY = Float32Array.of(12, 14);
+    frame.nodes[0].x = 11;
+    frame.nodes[0].y = 12;
+    frame.nodes[1].x = 113;
+    frame.nodes[1].y = 14;
 
     renderer!.render(frame);
 

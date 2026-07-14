@@ -12,7 +12,6 @@ import {
   updateOwnedGraphLayout,
   type OwnedGraphLayout,
 } from './layout';
-import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { OwnedGraphPluginForces } from './pluginForces';
 
 export interface OwnedGraphLayoutRuntime {
@@ -21,14 +20,12 @@ export interface OwnedGraphLayoutRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   hasFittedCameraRef: MutableRefObject<boolean>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
-  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
   positionVersionRef: MutableRefObject<number>;
   propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
-  setLayoutKind(kind: OwnedGraphLayout['kind']): void;
 }
 
 function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayout {
@@ -46,19 +43,12 @@ function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayou
     currentProps.sharedProps.dagLevelDistance ?? 60,
   );
   if (current && updated) return current;
-  current?.engine.dispose?.();
   const layout = createOwnedGraphLayout(
     nodes,
     links,
     settings,
     currentProps.sharedProps.dagMode ?? null,
     currentProps.sharedProps.dagLevelDistance ?? 60,
-    () => {
-      runtime.positionVersionRef.current += 1;
-      runtime.requestFrameRef.current();
-    },
-    () => runtime.requestFrameRef.current(),
-    runtime.performanceAttributionRef.current,
   );
   runtime.layoutRef.current = layout;
   return layout;
@@ -144,7 +134,6 @@ export function reconcileOwnedGraphRuntime(runtime: OwnedGraphLayoutRuntime): vo
   synchronizePluginForces(runtime, layout);
   reconcilePointerSession(runtime, layout);
   runtime.positionVersionRef.current += 1;
-  runtime.setLayoutKind(layout.kind);
   syncOwnedLayoutNodes(layout);
   fitInitialCamera(runtime, runtime.propsRef.current.sharedProps.graphData.nodes);
   enforcePhysicsPolicy(runtime, layout);
@@ -171,6 +160,5 @@ export function applyOwnedGraphRuntimePhysicsSettings(
 
 export function disposeOwnedGraphLayoutRuntime(runtime: OwnedGraphLayoutRuntime): void {
   runtime.pluginForcesRef.current.dispose();
-  runtime.layoutRef.current?.engine.dispose?.();
   runtime.layoutRef.current = null;
 }

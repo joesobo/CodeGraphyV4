@@ -57,7 +57,6 @@ describe('webview/graph/debug/install', () => {
     }));
     const stageProfiler = createOwnedGraphStageAttributionProfiler();
     stageProfiler.start();
-    stageProfiler.setPhysicsHome('worker');
     stageProfiler.recordRenderedFrame();
     stageProfiler.recordRenderedFrame();
     stageProfiler.recordRenderedFrame();
@@ -127,7 +126,7 @@ describe('webview/graph/debug/install', () => {
     });
     expect(startStageAttributionRecording).toHaveBeenCalledOnce();
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopStageAttributionRecording()).toMatchObject({
-      physicsHome: 'worker',
+      physicsHome: 'main-thread',
       renderedFrameCount: 3,
     });
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);

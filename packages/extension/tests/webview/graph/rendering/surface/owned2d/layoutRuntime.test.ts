@@ -7,7 +7,6 @@ import {
   type OwnedGraphLayoutRuntime,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layoutRuntime';
 import type { PointerSession } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/interaction';
-import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createDefaultSurfaceProps } from '../view/surfaceFixture';
 
 function node(id: string, overrides: Partial<FGNode> = {}): FGNode {
@@ -47,7 +46,6 @@ function runtime(): OwnedGraphLayoutRuntime {
     engineStopNotifiedRef: { current: true },
     hasFittedCameraRef: { current: false },
     layoutRef: { current: null },
-    performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
     pluginForcesRef: { current: {
       active: vi.fn(() => false),
       dispose: vi.fn(),
@@ -59,7 +57,6 @@ function runtime(): OwnedGraphLayoutRuntime {
     propsRef: { current: props },
     rendererOperationalRef: { current: true },
     requestFrameRef: { current: vi.fn() },
-    setLayoutKind: vi.fn(),
   };
 }
 
@@ -88,7 +85,6 @@ describe('owned graph layout runtime', () => {
 
     expect(state.hasFittedCameraRef.current).toBe(true);
     expect(state.layoutRef.current?.nodes.map(candidate => candidate.id)).toEqual(['a']);
-    expect(state.setLayoutKind).toHaveBeenLastCalledWith('main-thread');
     expect(state.requestFrameRef.current).toHaveBeenCalledTimes(2);
   });
 

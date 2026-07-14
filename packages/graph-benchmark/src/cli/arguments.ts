@@ -5,8 +5,6 @@ import {
 
 export type BenchmarkRenderer = 'current' | 'webgpu';
 
-export type BenchmarkPhysicsHome = 'auto' | 'main-thread';
-
 export interface BenchmarkArguments {
   attribution: boolean;
   fixture: SyntheticFixtureName;
@@ -17,7 +15,6 @@ export interface BenchmarkArguments {
   idleMs: number;
   baselinePath?: string;
   outputPath: string;
-  physicsHome: BenchmarkPhysicsHome;
   timeoutMs: number;
 }
 
@@ -57,10 +54,6 @@ function parseBoolean(value: string, option: string): boolean {
   throw new Error(`${option} must be true or false`);
 }
 
-function isPhysicsHome(value: string): value is BenchmarkPhysicsHome {
-  return value === 'auto' || value === 'main-thread';
-}
-
 export function parseBenchmarkArguments(arguments_: readonly string[]): BenchmarkArguments {
   let attribution = false;
   let fixture: SyntheticFixtureName | undefined;
@@ -71,7 +64,6 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
   let idleMs = DEFAULT_IDLE_MS;
   let baselinePath: string | undefined;
   let outputPath: string | undefined;
-  let physicsHome: BenchmarkPhysicsHome = 'auto';
   let timeoutMs = DEFAULT_TIMEOUT_MS;
 
   for (let index = 0; index < arguments_.length; index += 2) {
@@ -108,10 +100,6 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
       case '--output':
         outputPath = value;
         break;
-      case '--physics-home':
-        if (!isPhysicsHome(value)) throw new Error(`Unknown physics home: ${value}`);
-        physicsHome = value;
-        break;
       case '--timeout-ms':
         timeoutMs = parseInteger(value, option, 1);
         break;
@@ -133,7 +121,6 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
     idleMs,
     baselinePath,
     outputPath: outputPath ?? `reports/benchmarks/graph/${fixture}-${renderer}.json`,
-    physicsHome,
     timeoutMs,
   };
 }

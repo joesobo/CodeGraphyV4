@@ -17,7 +17,6 @@ function fixture(): { layout: OwnedGraphLayout; node: FGNode } {
         edgeSources: new Uint32Array(),
         edgeTargets: new Uint32Array(),
       }),
-      kind: 'main-thread',
       links: [],
       nodes: [node],
     },

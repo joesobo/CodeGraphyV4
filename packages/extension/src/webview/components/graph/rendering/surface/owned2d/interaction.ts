@@ -186,6 +186,7 @@ function beginPointerSession(
     node: picked?.node ?? null,
     startScreen: screen,
   };
+  runtime.requestFrameRef.current();
   recordInteractionInput(runtime, event, 'down', picked?.node.id ?? null, world);
   if (!picked) return;
   event.currentTarget.setPointerCapture(event.pointerId);

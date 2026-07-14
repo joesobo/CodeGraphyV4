@@ -10,14 +10,11 @@ import type { IPhysicsSettings } from '../../../../../../shared/settings/physics
 import type { FGLink, FGNode } from '../../../model/build';
 import { createOwnedDagTargets } from './dag';
 import { ownedNodeCollisionRadius } from './collisionRadius';
-import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
-import { createWorkerHostedGraphLayoutEngine } from './worker/host';
 
 export { ownedNodeCollisionRadius } from './collisionRadius';
 
 export interface OwnedGraphLayout {
   engine: GraphLayoutEngine;
-  kind: 'main-thread' | 'worker';
   links: FGLink[];
   nodes: FGNode[];
 }
@@ -126,19 +123,12 @@ function buildOwnedGraphLayoutData(
   return { input, resolvedLinks };
 }
 
-function workerAvailable(): boolean {
-  return typeof Worker !== 'undefined';
-}
-
 export function createOwnedGraphLayout(
   nodes: FGNode[],
   links: FGLink[],
   settings: IPhysicsSettings,
   dagMode: DagMode = null,
   dagLevelDistance = 60,
-  onWorkerUpdate: () => void = () => undefined,
-  onWorkerFrameRequest: () => void = onWorkerUpdate,
-  attributionProfiler?: OwnedGraphStageAttributionProfiler,
 ): OwnedGraphLayout {
   const { input, resolvedLinks } = buildOwnedGraphLayoutData(
     nodes,
@@ -146,31 +136,11 @@ export function createOwnedGraphLayout(
     dagMode,
     dagLevelDistance,
   );
-  let engine: GraphLayoutEngine;
-  let kind: OwnedGraphLayout['kind'] = 'main-thread';
-  if (workerAvailable()) {
-    try {
-      engine = createWorkerHostedGraphLayoutEngine(
-        input,
-        onWorkerUpdate,
-        onWorkerFrameRequest,
-        attributionProfiler,
-      );
-      kind = 'worker';
-    } catch (error) {
-      console.warn(
-        '[CodeGraphy] Layout worker could not start; using main-thread physics.',
-        error,
-      );
-      engine = createGraphLayoutEngine(input);
-    }
-  } else {
-    engine = createGraphLayoutEngine(input);
-  }
+  const engine = createGraphLayoutEngine(input);
   applyOwnedPhysicsSettings(engine, settings);
   engine.reheat();
 
-  return { engine, kind, links: resolvedLinks, nodes };
+  return { engine, links: resolvedLinks, nodes };
 }
 
 function sameBuffer(first: ArrayLike<number>, second: ArrayLike<number>): boolean {

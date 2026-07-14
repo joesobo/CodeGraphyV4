@@ -38,7 +38,6 @@ describe('owned graph lazy interaction picking', () => {
     });
     const layout: OwnedGraphLayout = {
       engine,
-      kind: 'main-thread',
       links: [],
       nodes: [graphNode],
     };
@@ -47,6 +46,7 @@ describe('owned graph lazy interaction picking', () => {
     const linkPicker = new OwnedGraphLinkPicker();
     const rebuildLink = vi.spyOn(linkPicker, 'rebuild');
     const props = createDefaultSurfaceProps();
+    const requestFrame = vi.fn();
     const performanceAttribution = createOwnedGraphStageAttributionProfiler();
     performanceAttribution.start();
     const handlers = createOwnedGraphInteractionHandlers({
@@ -66,7 +66,7 @@ describe('owned graph lazy interaction picking', () => {
       performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: props },
-      requestFrameRef: { current: vi.fn() },
+      requestFrameRef: { current: requestFrame },
       setLinkTooltip: vi.fn(),
       synchronizedPositionVersionRef: { current: 0 },
     });
@@ -86,6 +86,7 @@ describe('owned graph lazy interaction picking', () => {
     expect(graphNode.x).toBe(20);
     expect(rebuildNode).toHaveBeenCalledOnce();
     expect(rebuildLink).not.toHaveBeenCalled();
+    expect(requestFrame).toHaveBeenCalledOnce();
     expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(1);
   });
 
@@ -102,7 +103,6 @@ describe('owned graph lazy interaction picking', () => {
     const pin = vi.spyOn(engine, 'pin');
     const layout: OwnedGraphLayout = {
       engine,
-      kind: 'main-thread',
       links: [],
       nodes: [graphNode],
     };
@@ -147,6 +147,10 @@ describe('owned graph lazy interaction picking', () => {
     expect(pin).not.toHaveBeenCalled();
     handlers.handlePointerMove(pointer(54, 12));
     expect(pin).toHaveBeenCalledOnce();
+    expect(graphNode).toMatchObject({ x: 4, y: 0, fx: 4, fy: 0 });
+    expect(Array.from(engine.x)).toEqual([4]);
+    expect(runtime.positionVersionRef.current).toBe(1);
+    expect(runtime.requestFrameRef.current).toHaveBeenCalled();
     handlers.handlePointerMove(pointer(60, 14));
     expect(pin).toHaveBeenCalledOnce();
     handlers.handlePointerUp(pointer(60, 16));
@@ -172,7 +176,6 @@ describe('owned graph lazy interaction picking', () => {
     });
     const layout: OwnedGraphLayout = {
       engine,
-      kind: 'main-thread',
       links: [link],
       nodes: [source, target],
     };

@@ -16,7 +16,6 @@ describe('owned graph stage attribution profiler', () => {
     profiler.finishTiming('geometryRebuild', null);
     profiler.recordDuration('geometryRebuild', 2);
     profiler.recordRenderedFrame();
-    profiler.setPhysicsHome('worker');
 
     expect(profiler.stop()).toBeNull();
     expect(clock).not.toHaveBeenCalled();
@@ -29,7 +28,6 @@ describe('owned graph stage attribution profiler', () => {
     });
 
     profiler.start();
-    profiler.setPhysicsHome('worker');
     const startedAt = profiler.startTiming();
     profiler.finishTiming('geometryRebuild', startedAt);
     profiler.recordDuration('geometryRebuild', 3);
@@ -43,7 +41,7 @@ describe('owned graph stage attribution profiler', () => {
       schemaVersion: 1,
       startedAtMs: 100,
       endedAtMs: 120,
-      physicsHome: 'worker',
+      physicsHome: 'main-thread',
       renderedFrameCount: 2,
       truncated: false,
     });
