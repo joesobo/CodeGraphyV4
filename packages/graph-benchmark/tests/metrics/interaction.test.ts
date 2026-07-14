@@ -62,7 +62,7 @@ describe('interaction performance metrics', () => {
       truncated: false,
     }, activeHud(7), {
       ...DEFAULT_INTERACTION_THRESHOLDS,
-      settleEnvelopeWindowFrames: 1,
+      settleEnvelopeWindowMs: 1,
     });
 
     expect(assessment.timing.potentialFps).toBe(200);
@@ -89,6 +89,37 @@ describe('interaction performance metrics', () => {
     expect(assessment.settle.monotonicEnvelope).toBe(true);
     expect(assessment.settle.sleptImperceptibly).toBe(true);
     expect(assessment.hudAgreement?.withinTenPercent).toBe(true);
+  });
+
+  it('assesses settle over fixed wall-clock windows at 60 and 165 Hz', () => {
+    const assessAtRefreshRate = (refreshRateHz: number) => {
+      const intervalMs = 1_000 / refreshRateHz;
+      const frames: RecordedInteractionFrame[] = [];
+      for (let timestampMs = 0; timestampMs <= 500; timestampMs += intervalMs) {
+        const energy = timestampMs < 45
+          ? 10 + timestampMs * 0.2
+          : 19 * Math.exp(-(timestampMs - 45) / 60);
+        frames.push(frame(
+          timestampMs,
+          0,
+          0,
+          energy,
+          timestampMs + intervalMs > 500,
+        ));
+      }
+      return assessInteractionRecording({
+        frames,
+        inputs: [
+          { eventTimestampMs: 0, nodeId: 'hub', phase: 'up', sequence: 0, targetX: 0, targetY: 0 },
+        ],
+        neighborNodeIds: ['leaf'],
+        targetNodeId: 'hub',
+        truncated: false,
+      }, null, DEFAULT_INTERACTION_THRESHOLDS).settle;
+    };
+
+    expect(assessAtRefreshRate(60).envelopeViolationCount).toBe(0);
+    expect(assessAtRefreshRate(165).envelopeViolationCount).toBe(0);
   });
 
   it('makes dropped displayed frames visible without lowering CPU potential', () => {
@@ -129,7 +160,7 @@ describe('interaction performance metrics', () => {
       truncated: false,
     }, null, {
       ...DEFAULT_INTERACTION_THRESHOLDS,
-      settleEnvelopeWindowFrames: 1,
+      settleEnvelopeWindowMs: 1,
       teleportDistance: 100,
     });
 
