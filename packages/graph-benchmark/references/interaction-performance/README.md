@@ -102,7 +102,7 @@ Because the attached physical panel is limited to 60 Hz, the final presentation 
 
 The real VS Code 1.128.0 editor on the same 165 Hz compositor independently records **165.01 displayed FPS**, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 1.40%. The high-refresh pass also exposed and fixed a measurement defect: the settle envelope had used five frames, silently shrinking from about 80 ms at 60 Hz to 30 ms at 165 Hz; it now uses a refresh-independent 80 ms wall-clock window. Evidence and the explicit virtual-display provenance are committed under `m5-final/high-refresh/`.
 
-## M6 Obsidian sizing and D3 layout parity
+## M6 Obsidian sizing and named-layout experiment (historical)
 
 Revision `a466c9c7df9fde2cb36a89118578bdc692ef9add` replaces graph-relative connection sizing with Obsidian's stable `clamp(3 × sqrt(uniqueRelatedNodes + 1), 8, 30)` curve. Parallel and reverse relationships to the same node count once, and node-size changes rebuild through the authoritative graph model so rendering, collision, picking, and fit calculations share one radius.
 
@@ -115,12 +115,29 @@ The owned layout now also matches D3's exact deterministic phyllotaxis. Top Down
 | 1k | 4.00 ms | 4.80 ms | 5.00 ms | 3.06 / 0.94 ms | 250 / 60.00 | +33.1% | 1 / 1 frames | 0 / 0 | 0 | 1.82% |
 | 2.5k | 6.39 ms | 7.27 ms | 9.27 ms | 4.75 / 1.64 ms | 157 / 60.00 | +73.0% | 1 / 1 frames | 0 / 0 | 0 | 0% |
 
-All four clean three-run tiers pass and settle. The 2.5k result is now below the 6.9 ms stretch target as well as the 16 ms hard target. A real VS Code editor review captures Default, Top Down, Left to Right, and Radial Out layouts with Files Explorer visible. With Show FPS enabled, the compact HUD stays live after physics settles and measures 142–144 displayed FPS against an independent 144.00 Hz rAF probe, without frame-rate or vsync bypass flags. The diagnostic intentionally continues rendering while enabled; turning it off restores normal zero-idle-render behavior. Evidence is under `m6-obsidian-layout/`.
+All four clean three-run tiers pass and settle. The 2.5k result is now below the 6.9 ms stretch target as well as the 16 ms hard target. A real VS Code editor review captures Default, Top Down, Left to Right, and Radial Out layouts with Files Explorer visible. With Show FPS enabled, the compact HUD stays live after physics settles and measures 142–144 displayed FPS against an independent 144.00 Hz rAF probe, without frame-rate or vsync bypass flags. The diagnostic intentionally continues rendering while enabled; turning it off restores normal zero-idle-render behavior. Evidence is under `m6-obsidian-layout/`. M7 subsequently removes the named layouts after product review; these reports remain the historical experiment record.
+
+## M7 one default graph and zoom-stable sizing
+
+Revision `b4372a3f2846f36487b861f97ef211c8a22e9a52` keeps one implicit D3-style free-form layout. The Layout control, ranked/radial settings and protocol, layout target buffers, radial force, command, and shortcut are deleted rather than hidden.
+
+Node Size now exposes only Connections and File Size. Uniform and Git-history Churn are deleted together with Churn's hidden Git scan/cache and graph contracts. Both retained modes use one authoritative 8–30 semantic radius range: Connections keeps Obsidian's absolute `clamp(3 × sqrt(uniqueVisibleNeighbors + 1), 8, 30)` curve, while File Size maps distinguishable `log1p(bytes)` values into the same range and assigns missing or indistinguishable values to 8. Renderer-local inverse-square-root compensation produces `screenRadius = semanticRadius × sqrt(zoom)` without changing physics radii; WebGPU geometry, arrows, picking, labels/overlays, tooltips, and accessibility bounds use the same scale.
+
+The parity contract was checked against [Obsidian's official v1.12.7 application bundle](https://github.com/obsidianmd/obsidian-releases/releases/tag/v1.12.7): note radius is `nodeSizeMultiplier × clamp(3 × sqrt(weight + 1), 8, 30)`, the Node size multiplier has a 0.1–5 range and default 1, and renderer scale uses `sqrt(1 / zoom)`. Obsidian itself has one connection-derived weight rather than CodeGraphy's metric selector; File Size remains an intentional CodeGraphy metric projected into the same visual domain.
+
+| Fixture | Mean CPU frame | p95 | 1%-high | Sim / render | Potential / displayed FPS | M1 potential gain | Target / neighbor latency | Frozen / teleports | Settle violations | Visible HUD max difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| tiny | 0.36 ms | 0.60 ms | 0.70 ms | 0.07 / 0.29 ms | 2,775 / 60.00 | -14.1% | 1 / 1 frames | 0 / 0 | 0 | 0.88% |
+| 500 | 5.00 ms | 5.40 ms | 5.90 ms | 4.35 / 0.65 ms | 200 / 60.00 | +51.5% | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 1k | 4.06 ms | 4.90 ms | 5.10 ms | 3.08 / 0.97 ms | 247 / 60.00 | +31.1% | 1 / 1 frames | 0 / 0 | 0 | 2.47% |
+| 2.5k | 6.55 ms | 7.47 ms | 8.57 ms | 4.86 / 1.69 ms | 153 / 60.00 | +68.7% | 1 / 1 frames | 0 / 0 | 0 | 0% |
+
+Every clean three-run tier is complete, settled, and untruncated. The required VS Code 1.128.0 editor review confirms no Layout control, exactly two node-size choices, 8–30 bounds, stable semantic sizes across zoom, visible square-root compensation at 0.48×, a 78 px right-drag pan with no menu, a stationary menu only after release, and the simplified `x FPS · y ms` HUD. Evidence is under `m7-default-graph/`.
 
 Run the dashboard generator with:
 
 ```bash
-pnpm --filter graph-benchmark dashboard
+pnpm --filter @codegraphy-dev/graph-benchmark dashboard
 ```
 
 By default it writes static HTML and JSON to `~/pi-status/codegraphy-pr308-perf`. Set `CODEGRAPHY_DASHBOARD_DIR` to override the output directory.

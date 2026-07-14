@@ -1,0 +1,27 @@
+{
+  "revision": "b4372a3f2846f36487b861f97ef211c8a22e9a52",
+  "vscode": "1.128.0",
+  "layoutControlCount": 0,
+  "nodeSizeOptions": [
+    "Connections",
+    "File Size"
+  ],
+  "connections": {
+    "min": 8,
+    "max": 8
+  },
+  "fileSize": {
+    "min": 8,
+    "max": 30
+  },
+  "zoom": {
+    "before": 1.7221008643367752,
+    "after": 0.4806067459216057,
+    "semanticSize": 8,
+    "compensatedScreenRadius": 5.546064527120358,
+    "linearScreenRadius": 3.8448539673728455
+  },
+  "rightDragPanDeltaPx": 78.26040487490305,
+  "stationaryMenuOpenedAfterRelease": true,
+  "hudText": "4000 FPS · 0.25 ms"
+}

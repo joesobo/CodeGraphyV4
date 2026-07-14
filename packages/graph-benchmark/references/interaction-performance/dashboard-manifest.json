@@ -3,6 +3,12 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M7",
+      "title": "One default graph with zoom-stable sizing",
+      "summary": "Named layouts, Uniform sizing, and Git-history Churn sizing are removed. Connections and File Size now share one 8–30 semantic radius range, while Obsidian-style square-root zoom compensation keeps rendering, arrows, picking, overlays, tooltips, and accessibility bounds aligned. Clean tiny / 500 / 1k / 2.5k potential throughput is 2,775 / 200 / 247 / 153 FPS with 0.36 / 5.00 / 4.06 / 6.55 ms frame work, exact one-frame target and neighbor response, and zero freezes, teleports, or settle violations. VS Code verification also confirms release-time right-click panning and the compact `FPS · ms` HUD.",
+      "timestamp": "2026-07-14T18:54:00Z"
+    },
+    {
       "milestone": "M6",
       "title": "Obsidian sizing and D3 layouts verified",
       "summary": "Connections sizing now uses Obsidian's stable square-root curve over unique related nodes. D3 phyllotaxis, centered fixed-axis ranked layouts, and forceRadial rings share the owned physics path. Clean tiny / 500 / 1k / 2.5k potential throughput is 3,239 / 202 / 250 / 157 FPS — 0.2% / 52.9% / 33.1% / 73.0% above M1 — with 0.31 / 4.95 / 4.00 / 6.39 ms frame work, one-frame target and neighbor response, and zero freezes, teleports, or settle violations. In real VS Code, the opt-in HUD stays live after physics settles and follows a vsynced 144 Hz compositor at 142–144 displayed FPS without frame-rate bypass flags.",
@@ -187,6 +193,26 @@
       "fixture": "2.5k",
       "milestone": "M6 Obsidian/D3 parity",
       "path": "references/interaction-performance/m6-obsidian-layout/2.5k.json"
+    },
+    {
+      "fixture": "tiny",
+      "milestone": "M7 default graph",
+      "path": "references/interaction-performance/m7-default-graph/tiny.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M7 default graph",
+      "path": "references/interaction-performance/m7-default-graph/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M7 default graph",
+      "path": "references/interaction-performance/m7-default-graph/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M7 default graph",
+      "path": "references/interaction-performance/m7-default-graph/2.5k.json"
     }
   ],
   "attribution": [
@@ -275,24 +301,24 @@
   ],
   "visuals": [
     {
-      "caption": "M6 default force layout with Obsidian-sized related nodes and the compact live 144 Hz HUD beneath graph counts.",
+      "caption": "M7 default graph with connection sizing in the shared 8–30 semantic radius range.",
       "kind": "image",
-      "path": "references/interaction-performance/m6-obsidian-layout/default.png"
+      "path": "references/interaction-performance/m7-default-graph/real-editor-connections.png"
     },
     {
-      "caption": "M6 Top Down layout: centered D3/force-graph ranks with the perpendicular axis remaining force-directed.",
+      "caption": "M7 File Size mode maps logarithmic file sizes into the same 8–30 radius range.",
       "kind": "image",
-      "path": "references/interaction-performance/m6-obsidian-layout/top-down.png"
+      "path": "references/interaction-performance/m7-default-graph/real-editor-file-size.png"
     },
     {
-      "caption": "M6 Left to Right layout: fixed centered rank axis with force-directed cross-axis motion.",
+      "caption": "M7 zoomed-out File Size graph with square-root node compensation preserving legibility.",
       "kind": "image",
-      "path": "references/interaction-performance/m6-obsidian-layout/left-to-right.png"
+      "path": "references/interaction-performance/m7-default-graph/real-editor-file-size-zoomed-out.png"
     },
     {
-      "caption": "M6 Radial Out layout: D3 forceRadial rings with roots at the center and no prescribed angle.",
+      "caption": "M7 compact potential-throughput HUD: `x FPS · y ms` beneath graph counts.",
       "kind": "image",
-      "path": "references/interaction-performance/m6-obsidian-layout/radial-out.png"
+      "path": "references/interaction-performance/m7-default-graph/real-editor-performance-hud.png"
     },
     {
       "caption": "M5 high-refresh real-editor drag: the active HUD presents 165 FPS on the 165 Hz compositor with one-frame target and neighbor response.",
