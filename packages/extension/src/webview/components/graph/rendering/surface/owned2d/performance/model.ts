@@ -157,6 +157,7 @@ export function createOwnedGraphPerformanceMonitor(
         active = true;
       }
       addFrame(input);
+      if (count === 1 && lastActive !== undefined) return undefined;
       const firstDisplayedCadenceIsReady = lastPublicationSampleCount < 2 && count >= 2;
       if (
         !firstDisplayedCadenceIsReady
@@ -180,7 +181,9 @@ export function createOwnedGraphPerformanceMonitor(
       return activeSample();
     },
     setIdle: () => {
-      if (active && count > 0) lastActive = activeSample();
+      if (active && count > 0 && (count > 1 || lastActive === undefined)) {
+        lastActive = activeSample();
+      }
       active = false;
       clearWindow();
       return lastActive ? { status: 'idle', lastActive } : { status: 'idle' };
