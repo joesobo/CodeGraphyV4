@@ -10,6 +10,7 @@ const SURFACE_2D_PROP_KEYS = [
   'getLinkWidth',
   'getNodeStyle',
   'getParticleColor',
+  'getStyleRevision',
   'nodeLabelCanvasObject',
   'onRenderFramePost',
   'particleSize',

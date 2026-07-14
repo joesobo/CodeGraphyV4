@@ -95,7 +95,6 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     simulationClockRef: { current: createGraphLayoutFixedTimestepClock() },
     markPerformanceIdle: vi.fn(),
     recordRenderedFrame: vi.fn(),
-    styleVersionRef: { current: 1 },
     synchronizedPositionVersionRef: { current: -1 },
   };
   return { layout, node, recorder, runtime };

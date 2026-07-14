@@ -12,6 +12,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
     getLinkParticles: vi.fn(() => 2),
     getLinkWidth: vi.fn(() => 1),
     getParticleColor: vi.fn(() => '#ff0000'),
+    getStyleRevision: vi.fn(() => 1),
     nodeLabelCanvasObject: vi.fn(),
     onRenderFramePost: vi.fn(),
     particleSize: 4,

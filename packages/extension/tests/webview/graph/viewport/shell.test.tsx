@@ -197,6 +197,7 @@ function createCallbacks() {
 		getLinkParticles: vi.fn(),
 		getLinkWidth: vi.fn(),
 		getParticleColor: vi.fn(),
+		getStyleRevision: vi.fn(() => 1),
 	};
 }
 

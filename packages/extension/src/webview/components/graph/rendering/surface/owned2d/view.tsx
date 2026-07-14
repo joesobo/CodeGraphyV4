@@ -158,8 +158,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
   const synchronizedPositionVersionRef = useRef(-1);
-  const styleVersionRef = useRef(0);
-  const styledPropsRef = useRef<Surface2dProps | null>(null);
   const linkPickerPositionVersionRef = useRef(-1);
   const linkPickerRef = useRef(new OwnedGraphLinkPicker());
   const pickerPositionVersionRef = useRef(-1);
@@ -188,10 +186,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     requestFrameRef,
   }).current;
   propsRef.current = props;
-  if (styledPropsRef.current !== props) {
-    styledPropsRef.current = props;
-    styleVersionRef.current += 1;
-  }
 
   useEffect(() => {
     const gpuCanvas = gpuCanvasRef.current;
@@ -257,7 +251,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       simulationClockRef,
       markPerformanceIdle: () => undefined,
       recordRenderedFrame: () => undefined,
-      styleVersionRef,
       synchronizedPositionVersionRef,
       publishPerformance: sample => publishOwnedGraphPerformance(
         sample,
