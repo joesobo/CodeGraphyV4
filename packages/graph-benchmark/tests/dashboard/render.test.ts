@@ -13,7 +13,7 @@ describe('dashboard rendering', () => {
       ],
       fixtures: [{
         fixture: '500',
-        speedup: 2,
+        potentialFpsIncreasePct: 100,
         baseline: {
           milestone: 'M1', revision: 'a', frameTimeMs: 10, frameP95Ms: 11,
           onePercentHighMs: 12, frameMaxMs: 13, simulationMs: 4,
@@ -31,8 +31,8 @@ describe('dashboard rendering', () => {
           settleEnvelopeViolationCount: 0, hudDifferenceMaxPct: 1,
         },
         trend: [
-          { milestone: 'M1', revision: 'a', frameTimeMs: 10 },
-          { milestone: 'M3', revision: 'b', frameTimeMs: 5 },
+          { milestone: 'M1', potentialFps: 100, revision: 'a' },
+          { milestone: 'M3', potentialFps: 200, revision: 'b' },
         ],
       }],
       attribution: [{ fixture: '500', milestone: 'M2', stages: { physics: 2, render: 3 } }],
@@ -40,8 +40,13 @@ describe('dashboard rendering', () => {
     });
 
     expect(html.indexOf('Attribution captured.')).toBeLessThan(html.indexOf('Baseline captured.'));
-    expect(html).toContain('10.00 ms → 5.00 ms');
-    expect(html).toContain('2.00× faster');
+    expect(html).toContain('100.0 → 200.0 potential FPS');
+    expect(html).toContain('+100.0%');
+    expect(html).toContain('Potential FPS improvement by commit');
+    expect(html).toContain('aria-label="500 potential FPS trend"');
+    expect(html).toContain('M1 · <code>a</code> · 100.0 FPS');
+    expect(html).not.toContain('Frame-time trend by commit');
+    expect(html).not.toContain('class="budget"');
     expect(html).toContain('2.40 / frame');
     expect(html).toContain('144.0 steps/s');
     expect(html).toContain('physics');

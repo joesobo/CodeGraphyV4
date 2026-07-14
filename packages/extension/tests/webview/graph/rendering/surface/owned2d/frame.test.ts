@@ -239,6 +239,22 @@ describe('owned graph frame execution', () => {
     expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
   });
 
+  it('keeps live performance presentation running after physics settles', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { layout, runtime } = runtimeFixture(renderer);
+    runtime.propsRef.current.showFps = true;
+    vi.spyOn(layout.engine, 'tick').mockReturnValue({
+      moving: false,
+      settled: true,
+      steps: 0,
+    });
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
+
+    expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
+    expect(runtime.markPerformanceIdle).not.toHaveBeenCalled();
+  });
+
   it('does not advance frame time before layout prerequisites exist', () => {
     const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
     const { runtime } = runtimeFixture(renderer);

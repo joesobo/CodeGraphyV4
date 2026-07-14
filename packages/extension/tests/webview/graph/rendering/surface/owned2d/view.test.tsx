@@ -478,10 +478,13 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     act(() => frames.shift()?.(20));
 
     const output = await screen.findByTestId('graph-fps');
-    expect(output).toHaveTextContent(/Potential \d+ FPS · Displayed 50 FPS/);
-    expect(output).toHaveTextContent(/Frame .* ms avg · .* ms max · 1% high .* ms/);
-    expect(output).toHaveTextContent(/Sim .* ms avg · .* ms max · 1% high .* ms/);
-    expect(output).toHaveTextContent(/Render .* ms avg · .* ms max · 1% high .* ms/);
+    expect(output).toHaveTextContent(/^Potential \d+ FPS · Displayed 50 FPS · \d+\.\d{2} ms avg$/);
+    expect(output).not.toHaveTextContent('max');
+    expect(output).not.toHaveTextContent('1% high');
+    expect(output).not.toHaveTextContent('Sim');
+    expect(output).not.toHaveTextContent('Render');
+    expect(output).toHaveClass('right-2', 'top-10', 'whitespace-nowrap');
+    expect(output).not.toHaveClass('bottom-2', 'left-2');
     expect(output).toHaveAttribute('data-performance-status', 'active');
     expect(output).toHaveAttribute('data-displayed-fps', '50');
     expect(Number(output.dataset.potentialFps)).toBeGreaterThan(0);
@@ -512,7 +515,10 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       await Promise.resolve();
     });
     expect(screen.getByTestId('graph-fps')).toBeVisible();
-    expect(screen.getByTestId('graph-fps')).toHaveTextContent('Idle');
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent(
+      'Potential — FPS · Displayed Warming · — ms avg',
+    );
+    expect(screen.getByTestId('graph-fps')).not.toHaveTextContent('Idle');
     expect(screen.getByTestId('graph-fps')).toHaveAttribute('data-performance-status', 'idle');
     expect(props.fg2dRef.current?.getFps()).toBeNull();
   });

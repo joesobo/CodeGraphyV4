@@ -41,28 +41,27 @@ function metricRows(point: DashboardMetricPoint): string {
   ).join('');
 }
 
-function trendSvg(fixture: DashboardFixtureModel): string {
+function potentialFpsTrendSvg(fixture: DashboardFixtureModel): string {
   const width = 420;
   const height = 120;
-  const values = fixture.trend.map(point => point.frameTimeMs);
-  const maximum = Math.max(6.9, ...values);
+  const values = fixture.trend.map(point => point.potentialFps);
+  const maximum = Math.max(1, ...values) * 1.1;
   const points = fixture.trend.map((point, index) => {
     const x = fixture.trend.length === 1
       ? width / 2
       : 12 + index * ((width - 24) / (fixture.trend.length - 1));
-    const y = height - 12 - (point.frameTimeMs / maximum) * (height - 24);
+    const y = height - 12 - (point.potentialFps / maximum) * (height - 24);
     return `${x},${y}`;
   }).join(' ');
-  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(fixture.fixture)} frame-time trend">
-    <line x1="12" y1="${height - 12 - (6.9 / maximum) * (height - 24)}" x2="${width - 12}" y2="${height - 12 - (6.9 / maximum) * (height - 24)}" class="budget" />
+  return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(fixture.fixture)} potential FPS trend">
     <polyline points="${points}" class="trend" />
   </svg>`;
 }
 
 function fixtureSection(fixture: DashboardFixtureModel): string {
-  const comparison = fixture.speedup === null
-    ? '<p class="pending">Baseline established; speedup comparison begins at the next checkpoint.</p>'
-    : `<p class="speedup">${number(fixture.baseline.frameTimeMs)} ms → ${number(fixture.current.frameTimeMs)} ms · <strong>${number(fixture.speedup)}× faster</strong></p>`;
+  const comparison = fixture.potentialFpsIncreasePct === null
+    ? '<p class="pending">Baseline established; potential-FPS improvement begins at the next checkpoint.</p>'
+    : `<p class="improvement">${number(fixture.baseline.potentialFps, 1)} → ${number(fixture.current.potentialFps, 1)} potential FPS · <strong>${fixture.potentialFpsIncreasePct >= 0 ? '+' : ''}${number(fixture.potentialFpsIncreasePct, 1)}%</strong></p>`;
   return `<section>
     <h2>${escapeHtml(fixture.fixture)} nodes</h2>
     ${comparison}
@@ -70,9 +69,9 @@ function fixtureSection(fixture: DashboardFixtureModel): string {
       <article><h3>Baseline · ${escapeHtml(fixture.baseline.milestone)}</h3><table>${metricRows(fixture.baseline)}</table></article>
       <article><h3>Current · ${escapeHtml(fixture.current.milestone)}</h3><table>${metricRows(fixture.current)}</table></article>
     </div>
-    <h3>Frame-time trend by commit</h3>
-    ${trendSvg(fixture)}
-    <ol class="trend-labels">${fixture.trend.map(point => `<li>${escapeHtml(point.milestone)} · <code>${escapeHtml(point.revision.slice(0, 9))}</code> · ${number(point.frameTimeMs)} ms</li>`).join('')}</ol>
+    <h3>Potential FPS improvement by commit</h3>
+    ${potentialFpsTrendSvg(fixture)}
+    <ol class="trend-labels">${fixture.trend.map(point => `<li>${escapeHtml(point.milestone)} · <code>${escapeHtml(point.revision.slice(0, 9))}</code> · ${number(point.potentialFps, 1)} FPS</li>`).join('')}</ol>
   </section>`;
 }
 
@@ -98,7 +97,7 @@ export function renderDashboard(model: DashboardModel): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><meta http-equiv="refresh" content="20" />
 <title>${escapeHtml(model.title)}</title><style>
-:root{color-scheme:dark;font-family:ui-sans-serif,system-ui,sans-serif;background:#0d1117;color:#e6edf3}body{max-width:1180px;margin:auto;padding:24px}header,section{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px;margin-bottom:16px}h1,h2,h3{margin-top:0}.comparison{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}article{background:#0d1117;border:1px solid #30363d;border-radius:9px;padding:14px}.speedup{font-size:1.3rem;color:#3fb950}.pending,time{color:#d29922}table{width:100%;border-collapse:collapse}th{text-align:left}th,td{border-bottom:1px solid #30363d;padding:6px}.trend{fill:none;stroke:#58a6ff;stroke-width:3}.budget{stroke:#d29922;stroke-dasharray:5 5}.trend-labels{font-size:.85rem;color:#8b949e}.visuals{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}img{width:100%;border-radius:8px}code{background:#21262d;padding:2px 5px;border-radius:4px}
+:root{color-scheme:dark;font-family:ui-sans-serif,system-ui,sans-serif;background:#0d1117;color:#e6edf3}body{max-width:1180px;margin:auto;padding:24px}header,section{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px;margin-bottom:16px}h1,h2,h3{margin-top:0}.comparison{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}article{background:#0d1117;border:1px solid #30363d;border-radius:9px;padding:14px}.improvement{font-size:1.3rem;color:#3fb950}.pending,time{color:#d29922}table{width:100%;border-collapse:collapse}th{text-align:left}th,td{border-bottom:1px solid #30363d;padding:6px}.trend{fill:none;stroke:#58a6ff;stroke-width:3}.trend-labels{font-size:.85rem;color:#8b949e}.visuals{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}img{width:100%;border-radius:8px}code{background:#21262d;padding:2px 5px;border-radius:4px}
 </style></head><body>
 <header><h1>${escapeHtml(model.title)}</h1><p>Generated ${escapeHtml(model.generatedAt)} · refreshes every 20 seconds</p></header>
 <section><h2>Latest updates</h2>${updates || '<p class="pending">No milestone updates yet.</p>'}</section>

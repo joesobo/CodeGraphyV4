@@ -56,7 +56,7 @@ const manifest: DashboardManifest = {
 };
 
 describe('dashboard model', () => {
-  it('does not claim a speedup when only the M1 baseline exists', () => {
+  it('does not claim potential-FPS improvement when only the M1 baseline exists', () => {
     const model = buildDashboardModel(manifest, new Map([
       ['m1-500.json', report('baseline', 10)],
     ]));
@@ -65,11 +65,11 @@ describe('dashboard model', () => {
       fixture: '500',
       baseline: { frameTimeMs: 10 },
       current: { frameTimeMs: 10 },
-      speedup: null,
+      potentialFpsIncreasePct: null,
     });
   });
 
-  it('computes the current speedup and preserves commit trend points', () => {
+  it('computes potential-FPS improvement and preserves commit trend points', () => {
     const nextManifest: DashboardManifest = {
       ...manifest,
       reports: [
@@ -85,11 +85,11 @@ describe('dashboard model', () => {
     expect(model.fixtures[0]).toMatchObject({
       baseline: { revision: 'baseline' },
       current: { revision: 'current' },
-      speedup: 2,
+      potentialFpsIncreasePct: 100,
     });
     expect(model.fixtures[0].trend).toEqual([
-      { frameTimeMs: 10, milestone: 'M1', revision: 'baseline' },
-      { frameTimeMs: 5, milestone: 'M3', revision: 'current' },
+      { milestone: 'M1', potentialFps: 100, revision: 'baseline' },
+      { milestone: 'M3', potentialFps: 200, revision: 'current' },
     ]);
   });
 });

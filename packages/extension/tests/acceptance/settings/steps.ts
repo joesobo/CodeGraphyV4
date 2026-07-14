@@ -24,9 +24,9 @@ export const settingsAcceptanceSteps: Record<string, AcceptanceStepImplementatio
     await expect(frame.getByTestId('graph-fps')).toBeVisible();
     await expect.poll(() => frame.evaluate(() => {
       const fps = window.__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot().fps;
-      const displayedFps = Number.parseInt(
-        document.querySelector('[data-codegraphy-overlay="fps"]')?.textContent ?? '',
-        10,
+      const displayedFps = Number(
+        document.querySelector('[data-codegraphy-overlay="fps"]')
+          ?.getAttribute('data-displayed-fps'),
       );
       return typeof fps === 'number'
         && Number.isFinite(fps)
