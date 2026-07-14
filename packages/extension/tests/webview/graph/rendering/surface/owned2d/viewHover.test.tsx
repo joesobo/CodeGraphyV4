@@ -17,7 +17,7 @@ vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2
 
 import { OwnedGraphSurface2d } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/view';
 
-describe('OwnedGraphSurface2d edge hover', () => {
+describe('OwnedGraphSurface2d hover presentation', () => {
   beforeEach(() => {
     rendererHarness.create.mockReset();
     rendererHarness.create.mockResolvedValue({
@@ -72,6 +72,17 @@ describe('OwnedGraphSurface2d edge hover', () => {
     act(() => { props.fg2dRef.current?.zoom(1); });
 
     const overlay = container.querySelectorAll('canvas')[1];
+    fireEvent.pointerMove(overlay, { clientX: 50, clientY: 50, pointerId: 1 });
+    expect(screen.getByTestId('graph-edge-tooltip')).toHaveTextContent('Source → Target');
+
+    fireEvent.pointerDown(overlay, {
+      button: 0,
+      clientX: 50,
+      clientY: 50,
+      pointerId: 1,
+    });
+    expect(screen.queryByTestId('graph-edge-tooltip')).not.toBeInTheDocument();
+    fireEvent.pointerUp(overlay, { clientX: 50, clientY: 50, pointerId: 1 });
     fireEvent.pointerMove(overlay, { clientX: 50, clientY: 50, pointerId: 1 });
     expect(screen.getByTestId('graph-edge-tooltip')).toHaveTextContent('Source → Target');
 

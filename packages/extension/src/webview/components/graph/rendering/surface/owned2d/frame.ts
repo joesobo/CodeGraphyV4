@@ -1,6 +1,9 @@
 import type { MutableRefObject } from 'react';
 import type { FGLink, FGNode } from '../../../model/build';
-import type { OwnedGraphCamera } from './camera';
+import {
+  advanceOwnedGraphCameraTransition,
+  type OwnedGraphCamera,
+} from './camera';
 import { canvasSize } from './canvasGeometry';
 import type { OwnedGraphNodeStyle, Surface2dProps } from './contracts';
 import {
@@ -15,6 +18,11 @@ import {
 import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { PointerSession } from './interaction';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
+import {
+  advanceOwnedGraphNodeHover,
+  resetOwnedGraphNodeHover,
+  type OwnedGraphNodeHover,
+} from './nodeHover';
 import type { OwnedGraphPluginForces } from './pluginForces';
 import type { GraphLayoutTickResult } from './physics/contracts';
 import {
@@ -51,7 +59,9 @@ export interface OwnedGraphFrameRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   hoveredLinkRef: MutableRefObject<FGLink | null>;
+  hoveredNodeRef: MutableRefObject<FGNode | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  nodeHoverRef: MutableRefObject<OwnedGraphNodeHover>;
   performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
@@ -182,6 +192,33 @@ function failOwnedWebGpuFrame(
   runtime.onRendererError(error instanceof Error ? error.message : String(error));
 }
 
+function resolveOwnedHoveredNodeIndex(
+  runtime: OwnedGraphFrameRuntime,
+  layout: OwnedGraphLayout,
+): number {
+  const hover = runtime.nodeHoverRef.current;
+  const nodeId = hover.nodeId;
+  if (nodeId === null) return -1;
+  const index = layout.engine.getNodeIndex(nodeId);
+  if (index === undefined) {
+    const hoveredNode = runtime.hoveredNodeRef.current;
+    resetOwnedGraphNodeHover(hover);
+    if (hoveredNode?.id === nodeId) {
+      runtime.hoveredNodeRef.current = null;
+      runtime.propsRef.current.sharedProps.onNodeHover(null);
+    }
+    return -1;
+  }
+  const currentNode = layout.nodes[index];
+  if (hover.hovered
+    && runtime.hoveredNodeRef.current?.id === nodeId
+    && runtime.hoveredNodeRef.current !== currentNode) {
+    runtime.hoveredNodeRef.current = currentNode;
+    runtime.propsRef.current.sharedProps.onNodeHover(currentNode);
+  }
+  return index;
+}
+
 function submitOwnedWebGpuFrame(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
@@ -206,6 +243,8 @@ function submitOwnedWebGpuFrame(
       getLinkWidth: props.getLinkWidth,
       getNodeStyle: props.getNodeStyle ?? defaultNodeStyle,
       hoveredLink: runtime.hoveredLinkRef.current,
+      hoveredNodeIndex: resolveOwnedHoveredNodeIndex(runtime, layout),
+      hoveredNodeScale: runtime.nodeHoverRef.current.scale,
       links: layout.links,
       nodes: layout.nodes,
       nodeX: layout.engine.x,
@@ -307,6 +346,8 @@ function shouldContinueOwnedGraphFrames(
 ): boolean {
   return runtime.rendererOperationalRef.current && (
     runtime.pointerSessionRef.current !== null
+    || runtime.cameraRef.current.transition != null
+    || runtime.nodeHoverRef.current.transition !== null
     || tick.moving
     || runtime.propsRef.current.directionMode === 'particles'
     || runtime.propsRef.current.showFps === true
@@ -321,6 +362,8 @@ export function renderOwnedGraphFrame(
   const layout = runtime.layoutRef.current;
   const context = canvas.getContext('2d');
   if (!layout || !context) return;
+  advanceOwnedGraphCameraTransition(runtime.cameraRef.current, timestamp);
+  advanceOwnedGraphNodeHover(runtime.nodeHoverRef.current, timestamp);
   const attribution = runtime.performanceAttributionRef.current;
   const frameAttributionStartedAt = attribution.startTiming();
   const samples = performanceSamples();

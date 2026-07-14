@@ -11,6 +11,7 @@ const mockMethods = {
   stopStageAttributionRecording: vi.fn(() => null),
   zoomToFit: vi.fn(),
   zoom: vi.fn((scale?: number) => scale ?? 1),
+  zoomBy: vi.fn(),
   centerAt: vi.fn(),
   refresh: vi.fn(),
   d3ReheatSimulation: vi.fn(),

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import { advanceOwnedGraphCameraTransition } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
 import { createOwnedGraphControls, type OwnedGraphControlsRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/controls';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
@@ -101,5 +102,85 @@ describe('owned graph controls', () => {
     expect(fixture.runtime.positionVersionRef.current).toBe(1);
     expect(fixture.runtime.engineStopNotifiedRef.current).toBe(false);
     expect(fixture.runtime.requestFrameRef.current).toHaveBeenCalled();
+  });
+
+  it('honors camera durations for smooth zoom, centering, and fit', () => {
+    const fixture = runtime();
+    const canvas = document.createElement('canvas');
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({
+      bottom: 80,
+      height: 80,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    vi.spyOn(performance, 'now').mockReturnValue(100);
+    const controls = createOwnedGraphControls(fixture.runtime, canvas);
+
+    controls.centerAt(10, 20, 300);
+    controls.zoom(4, 300);
+    expect(fixture.runtime.cameraRef.current).toMatchObject({
+      centerX: 0,
+      centerY: 0,
+      zoom: 1,
+    });
+    expect(controls.zoom()).toBe(1);
+    expect(fixture.runtime.cameraRef.current.transition?.target.zoom).toBe(4);
+    expect(advanceOwnedGraphCameraTransition(
+      fixture.runtime.cameraRef.current,
+      250,
+    )).toBe(true);
+    expect(fixture.runtime.cameraRef.current.centerX).toBeCloseTo(8.75, 8);
+    expect(fixture.runtime.cameraRef.current.centerY).toBeCloseTo(17.5, 8);
+
+    controls.centerAt(0, 0, 0);
+    controls.zoom(1, 0);
+    controls.zoomToFit(300, 0);
+    expect(fixture.runtime.cameraRef.current.zoom).toBe(1);
+    expect(controls.zoom()).toBe(1);
+    expect(fixture.runtime.cameraRef.current.transition?.target.zoom).toBe(10);
+    expect(advanceOwnedGraphCameraTransition(
+      fixture.runtime.cameraRef.current,
+      400,
+    )).toBe(false);
+    expect(fixture.runtime.cameraRef.current).toMatchObject({
+      centerX: 0,
+      centerY: 0,
+      zoom: 10,
+    });
+  });
+
+  it('accumulates repeated zoom steps against the pending destination', () => {
+    const fixture = runtime();
+    const canvas = document.createElement('canvas');
+    vi.spyOn(performance, 'now').mockReturnValue(100);
+    const controls = createOwnedGraphControls(fixture.runtime, canvas);
+
+    controls.zoomBy(2, 300);
+    controls.zoomBy(2, 300);
+
+    expect(controls.zoom()).toBe(1);
+    expect(fixture.runtime.cameraRef.current.transition?.target.zoom).toBe(4);
+  });
+
+  it('applies camera commands immediately when reduced motion is preferred', () => {
+    const fixture = runtime();
+    const canvas = document.createElement('canvas');
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })));
+    const controls = createOwnedGraphControls(fixture.runtime, canvas);
+
+    controls.centerAt(10, 20, 300);
+    controls.zoom(2, 300);
+
+    expect(fixture.runtime.cameraRef.current).toMatchObject({
+      centerX: 10,
+      centerY: 20,
+      transition: null,
+      zoom: 2,
+    });
   });
 });

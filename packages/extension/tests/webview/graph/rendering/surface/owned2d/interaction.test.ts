@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import {
+  transitionOwnedGraphCamera,
+  type OwnedGraphCamera,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
 import { createOwnedGraphInteractionHandlers } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/interaction';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { OwnedGraphLinkPicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkPicking';
 import { OwnedGraphNodePicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/picking';
+import { createOwnedGraphNodeHover } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/nodeHover';
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
@@ -55,10 +60,11 @@ describe('owned graph lazy interaction picking', () => {
       contextGestureSessionRef: { current: null },
       engineStopNotifiedRef: { current: false },
       hoveredLinkRef: { current: null },
-      hoveredNodeRef: { current: null },
+      hoveredNodeRef: { current: graphNode },
       layoutRef: { current: layout },
       linkPickerPositionVersionRef: { current: -1 },
       linkPickerRef: { current: linkPicker },
+      nodeHoverRef: { current: createOwnedGraphNodeHover() },
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: picker },
       pointerSessionRef: { current: null },
@@ -84,6 +90,7 @@ describe('owned graph lazy interaction picking', () => {
     } as never);
 
     expect(graphNode.x).toBe(20);
+    expect(props.sharedProps.onNodeHover).toHaveBeenCalledWith(null);
     expect(rebuildNode).toHaveBeenCalledOnce();
     expect(rebuildLink).not.toHaveBeenCalled();
     expect(requestFrame).toHaveBeenCalledOnce();
@@ -118,6 +125,7 @@ describe('owned graph lazy interaction picking', () => {
       layoutRef: { current: layout },
       linkPickerPositionVersionRef: { current: -1 },
       linkPickerRef: { current: new OwnedGraphLinkPicker() },
+      nodeHoverRef: { current: createOwnedGraphNodeHover() },
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
@@ -184,7 +192,9 @@ describe('owned graph lazy interaction picking', () => {
     const hoveredLinkRef = { current: link as FGLink | null };
     const setLinkTooltip = vi.fn();
     const requestFrame = vi.fn();
-    const cameraRef = { current: { centerX: 0, centerY: 0, zoom: 0.49 } };
+    const cameraRef: { current: OwnedGraphCamera } = {
+      current: { centerX: 0, centerY: 0, zoom: 0.49 },
+    };
     const performanceAttribution = createOwnedGraphStageAttributionProfiler();
     performanceAttribution.start();
     const runtime = {
@@ -202,6 +212,7 @@ describe('owned graph lazy interaction picking', () => {
       layoutRef: { current: layout },
       linkPickerPositionVersionRef: { current: -1 },
       linkPickerRef: { current: linkPicker },
+      nodeHoverRef: { current: createOwnedGraphNodeHover() },
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
@@ -243,11 +254,13 @@ describe('owned graph lazy interaction picking', () => {
     move();
     expect(rebuildLink).toHaveBeenCalledTimes(2);
 
+    transitionOwnedGraphCamera(cameraRef.current, { zoom: 4 }, 300, 100);
     createOwnedGraphInteractionHandlers(runtime).handleWheel({
       currentTarget: canvas,
       deltaY: -1,
       nativeEvent: { clientX: 50, clientY: 50 },
     } as never);
+    expect(cameraRef.current.transition).toBeNull();
     expect(runtime.clearLinkHover).toHaveBeenCalledTimes(2);
     expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(7);
   });

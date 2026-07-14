@@ -1,10 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import { transitionOwnedGraphCamera } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
 import {
   renderOwnedGraphFrame,
   type OwnedGraphFrameRuntime,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import {
+  createOwnedGraphNodeHover,
+  setOwnedGraphNodeHover,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/nodeHover';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
@@ -72,7 +77,9 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     engineStopNotifiedRef: { current: false },
     gpuRendererRef: { current: renderer },
     hoveredLinkRef: { current: null },
+    hoveredNodeRef: { current: null },
     layoutRef: { current: layout },
+    nodeHoverRef: { current: createOwnedGraphNodeHover() },
     onRendererError: vi.fn(),
     performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
     performanceRecorderRef: { current: recorder },
@@ -253,6 +260,121 @@ describe('owned graph frame execution', () => {
 
     expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
     expect(runtime.markPerformanceIdle).not.toHaveBeenCalled();
+  });
+
+  it('renders camera transitions through settlement without leaving idle work', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { layout, runtime } = runtimeFixture(renderer);
+    vi.spyOn(layout.engine, 'tick').mockReturnValue({
+      moving: false,
+      settled: true,
+      steps: 0,
+    });
+    transitionOwnedGraphCamera(runtime.cameraRef.current, { zoom: 4 }, 300, 100);
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 250);
+    expect(runtime.cameraRef.current.zoom).toBeCloseTo(4 ** 0.875, 8);
+    expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
+    expect(runtime.markPerformanceIdle).not.toHaveBeenCalled();
+
+    vi.mocked(runtime.requestFrameRef.current).mockClear();
+    renderOwnedGraphFrame(runtime, canvasFixture(), 400);
+    expect(runtime.cameraRef.current.zoom).toBe(4);
+    expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
+    expect(runtime.markPerformanceIdle).toHaveBeenCalledOnce();
+  });
+
+  it('animates node hover emphasis without keeping settled frames alive', () => {
+    let submittedFrame: OwnedWebGpuFrame | undefined;
+    const renderer = {
+      render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
+    } as unknown as OwnedWebGpuRenderer;
+    const { layout, node, runtime } = runtimeFixture(renderer);
+    vi.spyOn(layout.engine, 'tick').mockReturnValue({
+      moving: false,
+      settled: true,
+      steps: 0,
+    });
+    setOwnedGraphNodeHover(runtime.nodeHoverRef.current, node.id, 100);
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 160);
+    expect(submittedFrame).toMatchObject({
+      hoveredNodeIndex: 0,
+      hoveredNodeScale: 1.05,
+    });
+    expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
+
+    vi.mocked(runtime.requestFrameRef.current).mockClear();
+    renderOwnedGraphFrame(runtime, canvasFixture(), 220);
+    expect(submittedFrame).toMatchObject({
+      hoveredNodeIndex: 0,
+      hoveredNodeScale: 1.1,
+    });
+    expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
+    expect(runtime.markPerformanceIdle).toHaveBeenCalledOnce();
+  });
+
+  it('resolves hover identity after graph reordering and clears removed nodes', () => {
+    let submittedFrame: OwnedWebGpuFrame | undefined;
+    const renderer = {
+      render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
+    } as unknown as OwnedWebGpuRenderer;
+    const { node, runtime } = runtimeFixture(renderer);
+    runtime.pluginForcesRef.current.active = () => false;
+    runtime.hoveredNodeRef.current = node;
+    setOwnedGraphNodeHover(runtime.nodeHoverRef.current, node.id, 100);
+
+    const replacementNode = { ...node };
+    const otherNode = { ...node, id: 'b', label: 'b' };
+    const reorderedEngine = createGraphLayoutEngine({
+      nodeIds: [otherNode.id, replacementNode.id],
+      initialX: Float32Array.of(20, 0),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(4, 4),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+    vi.spyOn(reorderedEngine, 'tick').mockReturnValue({
+      moving: false,
+      settled: true,
+      steps: 0,
+    });
+    runtime.layoutRef.current = {
+      engine: reorderedEngine,
+      links: [],
+      nodes: [otherNode, replacementNode],
+    };
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 220);
+    expect(submittedFrame?.hoveredNodeIndex).toBe(1);
+    expect(runtime.hoveredNodeRef.current).toBe(replacementNode);
+    expect(runtime.propsRef.current.sharedProps.onNodeHover)
+      .toHaveBeenCalledWith(replacementNode);
+
+    const removedEngine = createGraphLayoutEngine({
+      nodeIds: [otherNode.id],
+      initialX: Float32Array.of(20),
+      initialY: Float32Array.of(0),
+      radii: Float32Array.of(4),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+    vi.spyOn(removedEngine, 'tick').mockReturnValue({
+      moving: false,
+      settled: true,
+      steps: 0,
+    });
+    runtime.layoutRef.current = { engine: removedEngine, links: [], nodes: [otherNode] };
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 240);
+    expect(submittedFrame?.hoveredNodeIndex).toBe(-1);
+    expect(runtime.hoveredNodeRef.current).toBeNull();
+    expect(runtime.nodeHoverRef.current).toMatchObject({
+      nodeId: null,
+      scale: 1,
+      transition: null,
+    });
+    expect(runtime.propsRef.current.sharedProps.onNodeHover).toHaveBeenCalledWith(null);
   });
 
   it('does not advance frame time before layout prerequisites exist', () => {

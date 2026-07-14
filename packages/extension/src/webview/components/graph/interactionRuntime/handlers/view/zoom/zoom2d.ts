@@ -9,6 +9,5 @@ export function zoom2d(
   const forceGraph = dependencies.fg2dRef.current as GraphView2dControls | undefined;
   if (!forceGraph) return;
 
-  const currentZoom = forceGraph.zoom();
-  forceGraph.zoom(currentZoom * factor, ZOOM_DURATION_MS);
+  forceGraph.zoomBy(factor, ZOOM_DURATION_MS);
 }

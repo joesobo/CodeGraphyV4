@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
+  advanceOwnedGraphCameraTransition,
+  cancelOwnedGraphCameraTransition,
   clampOwnedGraphZoom,
   fitOwnedGraphCamera,
   graphToScreen,
   MAXIMUM_OWNED_GRAPH_ZOOM,
   MINIMUM_OWNED_GRAPH_ZOOM,
+  readOwnedGraphCameraTargetZoom,
   screenToGraph,
+  transitionOwnedGraphCamera,
   type OwnedGraphCamera,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
 
@@ -24,11 +28,13 @@ describe('owned graph camera', () => {
     }
   });
 
-  it('reports whether a non-empty graph was fitted', () => {
+  it('reports whether a non-empty graph was fitted and replaces pending motion', () => {
     const camera: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 
     expect(fitOwnedGraphCamera(camera, [], 500, 500)).toBe(false);
+    transitionOwnedGraphCamera(camera, { zoom: 4 }, 300, 100);
     expect(fitOwnedGraphCamera(camera, [{ x: 10, y: 20 }] as FGNode[], 500, 500)).toBe(true);
+    expect(camera.transition).toBeNull();
   });
 
   it('fits the full bounds of rectangular nodes', () => {
@@ -43,5 +49,46 @@ describe('owned graph camera', () => {
     const right = graphToScreen(camera, 500, 500, 200, 0);
     expect(left.x).toBeGreaterThanOrEqual(50);
     expect(right.x).toBeLessThanOrEqual(450);
+  });
+
+  it('eases camera position and zoom to an exact final pose', () => {
+    const camera: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
+
+    transitionOwnedGraphCamera(camera, {
+      centerX: 100,
+      centerY: 40,
+      zoom: 4,
+    }, 300, 1_000);
+    expect(camera).toMatchObject({ centerX: 0, centerY: 0, zoom: 1 });
+    expect(readOwnedGraphCameraTargetZoom(camera)).toBe(4);
+
+    expect(advanceOwnedGraphCameraTransition(camera, 1_150)).toBe(true);
+    expect(camera.centerX).toBeCloseTo(87.5, 8);
+    expect(camera.centerY).toBeCloseTo(35, 8);
+    expect(camera.zoom).toBeCloseTo(4 ** 0.875, 8);
+
+    expect(advanceOwnedGraphCameraTransition(camera, 1_300)).toBe(false);
+    expect(camera).toMatchObject({ centerX: 100, centerY: 40, zoom: 4 });
+    expect(readOwnedGraphCameraTargetZoom(camera)).toBe(4);
+  });
+
+  it('retargets combined camera commands and yields immediately to direct input', () => {
+    const camera: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
+
+    transitionOwnedGraphCamera(camera, { centerX: 80, centerY: -20 }, 300, 100);
+    transitionOwnedGraphCamera(camera, { zoom: 2 }, 300, 100);
+    advanceOwnedGraphCameraTransition(camera, 400);
+    expect(camera).toMatchObject({ centerX: 80, centerY: -20, zoom: 2 });
+
+    transitionOwnedGraphCamera(camera, { zoom: 4 }, 300, 500);
+    cancelOwnedGraphCameraTransition(camera);
+    expect(advanceOwnedGraphCameraTransition(camera, 650)).toBe(false);
+    expect(camera.zoom).toBe(2);
+
+    transitionOwnedGraphCamera(camera, { centerX: 5, zoom: 3 }, 0, 700);
+    expect(camera).toMatchObject({ centerX: 5, centerY: -20, zoom: 3 });
+
+    transitionOwnedGraphCamera(camera, { centerX: 5, zoom: 3 }, 300, 800);
+    expect(camera.transition).toBeNull();
   });
 });

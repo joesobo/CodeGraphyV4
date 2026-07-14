@@ -11,9 +11,9 @@
 | Right-click and release without dragging | Set Context Selection if needed and open the context menu without previewing or opening a file |
 | `Ctrl+Click` and release without dragging (macOS) | Open the context menu (same as right-click) |
 | Drag | Reposition the node for the current graph session |
-| Hover | Show tooltip with file details |
+| Hover | Gently enlarge the node and show its details; pressing down anywhere on the graph dismisses hover details before interaction begins |
 | Hover cursor | Pointer cursor |
-| `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
+| `Cmd+Click` (macOS) / `Ctrl+Click` (Windows and Linux) | Add or remove from selection |
 
 File and Folder Nodes that Git reports as ignored remain visible in the graph with muted styling, similar to VS Code Explorer. Tracked files and mixed folders are not dimmed just because their path matches text in `.gitignore`; the graph follows Git ignored state rather than raw ignore patterns.
 
@@ -24,13 +24,16 @@ File and Folder Nodes that Git reports as ignored remain visible in the graph wi
 | Left-drag | Box select multiple nodes |
 | Shift + left-drag | Add boxed nodes to the current selection |
 | Right-drag | Pan the view without opening a context menu |
-| Scroll | Zoom in/out |
+| Scroll | Zoom directly around the pointer |
 | Hover cursor | Default cursor |
 | Right-click and release without dragging | Open background context menu |
+| `Ctrl+Click` and release without dragging (macOS) | Open background context menu (same as right-click) |
+
+Zoom buttons ease between zoom levels, and Fit to Screen smoothly animates both the graph center and zoom. Direct pointer input interrupts an in-progress camera animation immediately, so wheel zooming and panning remain responsive.
 
 ## Context menu
 
-Right-click and release without dragging on the background, nodes, multi-node selections, or edges to access context-specific actions. The menu opens on release so a held right button can become a pan gesture instead:
+Right-click—or Control-click on macOS—and release without dragging on the background, nodes, multi-node selections, or edges to access context-specific actions. The menu opens on release so a held context button can become a pan gesture instead:
 
 | Action | Description | Undoable |
 |--------|-------------|----------|
@@ -60,7 +63,6 @@ Hover any node to see:
 - Last modified (relative timestamp like "2h ago")
 - Incoming relationships
 - Outgoing relationships
-- Visit count
 - Handling plugin
 
 ## Toolbar

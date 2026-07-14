@@ -40,6 +40,7 @@ export interface OwnedGraph2dControls {
   updateNode(nodeId: string, updates: Record<string, unknown>): boolean;
   zoom(): number;
   zoom(scale: number, durationMs?: number): unknown;
+  zoomBy(factor: number, durationMs?: number): unknown;
   zoomToFit(durationMs?: number, padding?: number): void;
 }
 

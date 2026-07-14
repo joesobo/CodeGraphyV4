@@ -8,13 +8,22 @@ import type {
 } from 'react';
 import type { FGLink, FGNode } from '../../../model/build';
 import { shouldEnableGraphEdgeHover } from '../../detailVisibility';
-import { clampOwnedGraphZoom, screenToGraph, type OwnedGraphCamera } from './camera';
+import {
+  cancelOwnedGraphCameraTransition,
+  clampOwnedGraphZoom,
+  screenToGraph,
+  type OwnedGraphCamera,
+} from './camera';
 import { canvasSize, localCanvasPointer } from './canvasGeometry';
 import type { Surface2dProps } from './contracts';
 import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import { syncOwnedLayoutNodesAtVersion, type OwnedGraphLayout } from './layout';
 import type { OwnedGraphLinkPicker } from './linkPicking';
 import type { OwnedGraphNodePicker } from './picking';
+import {
+  setOwnedGraphNodeHover,
+  type OwnedGraphNodeHover,
+} from './nodeHover';
 import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type {
   OwnedGraphInteractionPhase,
@@ -54,6 +63,7 @@ interface OwnedGraphInteractionRuntime {
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   linkPickerPositionVersionRef: MutableRefObject<number>;
   linkPickerRef: MutableRefObject<OwnedGraphLinkPicker>;
+  nodeHoverRef: MutableRefObject<OwnedGraphNodeHover>;
   pickerPositionVersionRef: MutableRefObject<number>;
   pickerRef: MutableRefObject<OwnedGraphNodePicker>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
@@ -158,10 +168,21 @@ function movedPastThreshold(
   return Math.hypot(current.x - start.x, current.y - start.y) > threshold;
 }
 
+function clearHoverForInteraction(runtime: OwnedGraphInteractionRuntime): boolean {
+  const hadNodeHover = runtime.hoveredNodeRef.current !== null;
+  runtime.hoveredNodeRef.current = null;
+  setOwnedGraphNodeHover(runtime.nodeHoverRef.current, null, performance.now());
+  if (hadNodeHover) runtime.propsRef.current.sharedProps.onNodeHover(null);
+  const hadLinkHover = runtime.clearLinkHover();
+  return hadNodeHover || hadLinkHover;
+}
+
 function beginPointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
+  cancelOwnedGraphCameraTransition(runtime.cameraRef.current);
+  const clearedHover = clearHoverForInteraction(runtime);
   const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
   const contextButton = event.button === 2
     ? 2
@@ -174,11 +195,18 @@ function beginPointerSession(
       startScreen: screen,
     };
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (clearedHover) runtime.requestFrameRef.current();
     return;
   }
-  if (event.button !== 0) return;
+  if (event.button !== 0) {
+    if (clearedHover) runtime.requestFrameRef.current();
+    return;
+  }
   const layout = runtime.layoutRef.current;
-  if (!layout) return;
+  if (!layout) {
+    if (clearedHover) runtime.requestFrameRef.current();
+    return;
+  }
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
   const picked = pickNode(runtime, layout, world);
   const pickedLink = picked ? undefined : pickLink(runtime, layout, world);
@@ -258,12 +286,18 @@ function updateHover(
   world: { x: number; y: number },
   screen: { x: number; y: number },
 ): void {
-  const hovered = pickNode(runtime, layout, world)?.node ?? null;
+  const pickedNode = pickNode(runtime, layout, world);
+  const hovered = pickedNode?.node ?? null;
   const hoveredLink = hovered || !shouldEnableGraphEdgeHover(runtime.cameraRef.current.zoom)
     ? null
     : pickLink(runtime, layout, world)?.link ?? null;
   if (hovered !== runtime.hoveredNodeRef.current) {
     runtime.hoveredNodeRef.current = hovered;
+    setOwnedGraphNodeHover(
+      runtime.nodeHoverRef.current,
+      pickedNode?.node.id ?? null,
+      performance.now(),
+    );
     runtime.propsRef.current.sharedProps.onNodeHover(hovered);
     runtime.requestFrameRef.current();
   }
@@ -437,6 +471,7 @@ function zoomAtPointer(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactWheelEvent<HTMLCanvasElement>,
 ): void {
+  cancelOwnedGraphCameraTransition(runtime.cameraRef.current);
   const canvas = event.currentTarget;
   const size = canvasSize(canvas);
   const screen = localCanvasPointer(canvas, event.nativeEvent);
@@ -460,6 +495,7 @@ function zoomAtPointer(
 function leavePointerSurface(runtime: OwnedGraphInteractionRuntime): void {
   if (!runtime.pointerSessionRef.current && runtime.hoveredNodeRef.current) {
     runtime.hoveredNodeRef.current = null;
+    setOwnedGraphNodeHover(runtime.nodeHoverRef.current, null, performance.now());
     runtime.propsRef.current.sharedProps.onNodeHover(null);
     runtime.requestFrameRef.current();
   }

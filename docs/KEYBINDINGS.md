@@ -12,7 +12,7 @@ These shortcuts work when the Graph View is focused and no text input is active.
 | `Ctrl+A` / `Cmd+A` | Select all nodes |
 | `Escape` | Deselect all nodes |
 | `Enter` | Open selected node(s) in editor |
-| `Ctrl+Click` | Add/remove node from selection |
+| `Cmd+Click` (macOS) / `Ctrl+Click` (Windows and Linux) | Add/remove node from selection |
 | `Shift+Drag` | Box selection |
 | `V` | Toggle Depth Mode |
 | `Right-click` and release without dragging | Open context menu |
