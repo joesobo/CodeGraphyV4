@@ -1,14 +1,17 @@
 import type { MutableRefObject } from 'react';
 import {
-  clampOwnedGraphZoom,
   fitOwnedGraphCamera,
   graphToScreen,
+  readOwnedGraphCameraTargetZoom,
   screenToGraph,
+  transitionOwnedGraphCamera,
   type OwnedGraphCamera,
+  type OwnedGraphCameraPose,
 } from './camera';
 import { canvasSize } from './canvasGeometry';
 import type { OwnedGraph2dControls } from './contracts';
 import type { OwnedGraphLayout } from './layout';
+import { graphMotionDuration } from './motion';
 import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { OwnedGraphPerformanceMonitor } from './performance/model';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
@@ -39,6 +42,21 @@ function invalidateCamera(runtime: OwnedGraphControlsRuntime): void {
   runtime.requestFrameRef.current();
 }
 
+function updateCamera(
+  runtime: OwnedGraphControlsRuntime,
+  target: Partial<OwnedGraphCameraPose>,
+  durationMs?: number,
+): void {
+  const duration = graphMotionDuration(durationMs);
+  transitionOwnedGraphCamera(
+    runtime.cameraRef.current,
+    target,
+    duration,
+    duration > 0 ? performance.now() : 0,
+  );
+  invalidateCamera(runtime);
+}
+
 function updateViewportNode(
   runtime: OwnedGraphControlsRuntime,
   nodeId: string,
@@ -58,10 +76,8 @@ export function createOwnedGraphControls(
   canvas: HTMLCanvasElement,
 ): OwnedGraph2dControls {
   const controls: OwnedGraph2dControls = {
-    centerAt: (x, y) => {
-      runtime.cameraRef.current.centerX = x;
-      runtime.cameraRef.current.centerY = y;
-      invalidateCamera(runtime);
+    centerAt: (x, y, durationMs) => {
+      updateCamera(runtime, { centerX: x, centerY: y }, durationMs);
     },
     d3ReheatSimulation: () => {
       runtime.layoutRef.current?.engine.reheat();
@@ -98,22 +114,31 @@ export function createOwnedGraphControls(
     stopInteractionRecording: () => runtime.performanceRecorderRef.current.stop(),
     stopStageAttributionRecording: () => runtime.performanceAttributionRef.current.stop(),
     updateNode: (nodeId, updates) => updateViewportNode(runtime, nodeId, updates),
-    zoom: ((scale?: number) => {
+    zoom: ((scale?: number, durationMs?: number) => {
       if (scale === undefined) return runtime.cameraRef.current.zoom;
-      runtime.cameraRef.current.zoom = clampOwnedGraphZoom(scale);
-      invalidateCamera(runtime);
+      updateCamera(runtime, { zoom: scale }, durationMs);
       return controls;
     }) as OwnedGraph2dControls['zoom'],
-    zoomToFit: (_durationMs, padding) => {
+    zoomBy: (factor, durationMs) => {
+      const destination = readOwnedGraphCameraTargetZoom(runtime.cameraRef.current);
+      updateCamera(runtime, { zoom: destination * factor }, durationMs);
+      return controls;
+    },
+    zoomToFit: (durationMs, padding) => {
       const size = canvasSize(canvas);
-      fitOwnedGraphCamera(
-        runtime.cameraRef.current,
+      const target: OwnedGraphCamera = { ...runtime.cameraRef.current, transition: null };
+      if (!fitOwnedGraphCamera(
+        target,
         runtime.layoutRef.current?.nodes ?? [],
         size.width,
         size.height,
         padding,
-      );
-      invalidateCamera(runtime);
+      )) return;
+      updateCamera(runtime, {
+        centerX: target.centerX,
+        centerY: target.centerY,
+        zoom: target.zoom,
+      }, durationMs);
     },
   };
   return controls;

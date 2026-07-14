@@ -39,6 +39,7 @@ export function createInteractionDependencies(
     stopStageAttributionRecording: vi.fn(() => null),
     updateNode: vi.fn(() => true),
     zoom: vi.fn(() => 1),
+    zoomBy: vi.fn(),
     zoomToFit: vi.fn(),
   } satisfies OwnedGraph2dControls;
 

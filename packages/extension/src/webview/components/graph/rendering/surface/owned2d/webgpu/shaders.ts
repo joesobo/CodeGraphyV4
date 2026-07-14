@@ -11,6 +11,9 @@ struct CameraUniform {
   pixelToClip: vec2f,
   arrowOpacity: f32,
   highlightedLinkIndex: f32,
+  hoveredNodeIndex: f32,
+  hoveredNodeScale: f32,
+  padding: vec2f,
 };
 @group(0) @binding(0) var<uniform> camera: CameraUniform;
 `;
@@ -29,6 +32,7 @@ struct VertexOutput {
 @vertex
 fn vertexMain(
   @builtin(vertex_index) vertexIndex: u32,
+  @builtin(instance_index) instanceIndex: u32,
   @location(0) graphCenter: vec2f,
   @location(1) graphHalfSize: vec2f,
   @location(2) fillColor: vec4f,
@@ -43,7 +47,9 @@ fn vertexMain(
   let center = (graphCenter - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
   let zoom = max(camera.graphToClip.x / camera.pixelToClip.x, 0.0001);
   let nodeScale = inverseSqrt(zoom);
-  let halfSize = max(graphHalfSize * nodeScale, vec2f(0.5 / zoom));
+  let hovered = abs(f32(instanceIndex) - camera.hoveredNodeIndex) < 0.5;
+  let hoverScale = select(1.0, camera.hoveredNodeScale, hovered);
+  let halfSize = max(graphHalfSize * nodeScale, vec2f(0.5 / zoom)) * hoverScale;
   var output: VertexOutput;
   output.position = vec4f(center + local * halfSize * camera.graphToClip, 0.0, 1.0);
   output.local = local;

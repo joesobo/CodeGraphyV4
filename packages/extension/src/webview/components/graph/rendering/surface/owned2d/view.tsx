@@ -35,6 +35,7 @@ import {
 } from './layoutRuntime';
 import { OwnedGraphLinkPicker } from './linkPicking';
 import { OwnedGraphNodePicker } from './picking';
+import { createOwnedGraphNodeHover } from './nodeHover';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { createGraphLayoutFixedTimestepClock } from './physics/fixedTimestep';
 import {
@@ -141,6 +142,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const hoveredLinkRef = useRef<FGLink | null>(null);
+  const nodeHoverRef = useRef(createOwnedGraphNodeHover());
   const engineStopNotifiedRef = useRef(false);
   const simulationClockRef = useRef(createGraphLayoutFixedTimestepClock());
   const hasFittedCameraRef = useRef(false);
@@ -226,7 +228,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       frameRequestedRef,
       gpuRendererRef,
       hoveredLinkRef,
+      hoveredNodeRef,
       layoutRef,
+      nodeHoverRef,
       performanceAttributionRef,
       performanceMonitorRef,
       performanceRecorderRef,
@@ -312,6 +316,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     layoutRef,
     linkPickerPositionVersionRef,
     linkPickerRef,
+    nodeHoverRef,
     pickerPositionVersionRef,
     pickerRef,
     pointerSessionRef,

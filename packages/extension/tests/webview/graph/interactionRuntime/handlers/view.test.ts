@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createViewHandlers } from '../../../../../src/webview/components/graph/interactionRuntime/handlers/view';
 import { createInteractionDependencies } from '../testUtils';
 
@@ -137,15 +137,13 @@ describe('graph/viewHandlers', () => {
     expect(dependencies.fg2dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
-  it('scales the current 2d zoom by the requested factor', () => {
+  it('scales the pending 2d zoom destination by the requested factor', () => {
     const dependencies = createInteractionDependencies();
-    const zoom = vi.mocked(dependencies.fg2dRef.current!.zoom);
-    zoom.mockImplementationOnce(() => 1.5);
 
     createViewHandlers(dependencies).zoomGraphView(0.5);
 
-    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(1);
-    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(2, 0.75, 150);
+    expect(dependencies.fg2dRef.current?.zoom).not.toHaveBeenCalled();
+    expect(dependencies.fg2dRef.current?.zoomBy).toHaveBeenCalledWith(0.5, 150);
   });
 
   it('does nothing when the 2d graph ref is missing during zoom', () => {

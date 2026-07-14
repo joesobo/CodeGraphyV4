@@ -37,6 +37,8 @@ export interface OwnedWebGpuFrame {
   getLinkWidth(this: void, link: FGLink): number;
   getNodeStyle(this: void, node: FGNode): OwnedGraphNodeStyle;
   hoveredLink?: FGLink | null;
+  hoveredNodeIndex: number;
+  hoveredNodeScale: number;
   links: readonly FGLink[];
   nodes: readonly FGNode[];
   nodeX: Float32Array;
@@ -176,7 +178,7 @@ function createVertexStream(device: GPUDevice, label: string): VertexStream {
 export class OwnedWebGpuRenderer {
   private readonly arrowCameraBindGroup: GPUBindGroup;
   private readonly cameraBuffer: GPUBuffer;
-  private readonly cameraValues = new Float32Array(8);
+  private readonly cameraValues = new Float32Array(12);
   private styledNodes: readonly FGNode[] | undefined;
   private linkArrowColorAccessor: OwnedWebGpuFrame['getArrowColor'] | undefined;
   private linkColorAccessor: OwnedWebGpuFrame['getLinkColor'] | undefined;
@@ -465,6 +467,10 @@ export class OwnedWebGpuRenderer {
     this.cameraValues[7] = frame.hoveredLink
       ? this.renderedLinkIndexByLink.get(frame.hoveredLink) ?? -1
       : -1;
+    this.cameraValues[8] = frame.hoveredNodeIndex;
+    this.cameraValues[9] = frame.hoveredNodeScale;
+    this.cameraValues[10] = 0;
+    this.cameraValues[11] = 0;
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
     this.attributionProfiler?.finishTiming('gpuBufferWrites', startedAt);
   }

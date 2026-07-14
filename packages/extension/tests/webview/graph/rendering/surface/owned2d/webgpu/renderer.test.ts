@@ -7,7 +7,7 @@ import {
   parseWebGpuColor,
   webGpuNodeShapeCode,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
-import { LINK_SHADER } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/shaders';
+import { LINK_SHADER, NODE_SHADER } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/shaders';
 
 function expectColor(actual: readonly number[], expected: readonly number[]): void {
   expect(actual).toHaveLength(expected.length);
@@ -137,6 +137,8 @@ function rendererFrame(): OwnedWebGpuFrame {
       shape: 'rectangle' as const,
       width: node === target ? 40 : 10,
     }),
+    hoveredNodeIndex: -1,
+    hoveredNodeScale: 1,
     links: [link],
     nodes: [source, target],
     nodeX: Float32Array.of(1, 103),
@@ -147,9 +149,12 @@ function rendererFrame(): OwnedWebGpuFrame {
 }
 
 describe('OwnedWebGpuRenderer frame submission', () => {
-  it('uses the hovered link uniform to emphasize one rendered instance', () => {
+  it('uses camera uniforms to emphasize hovered edge and node instances', () => {
     expect(LINK_SHADER).toContain('@builtin(instance_index) instanceIndex: u32');
     expect(LINK_SHADER).toContain('camera.highlightedLinkIndex');
+    expect(NODE_SHADER).toContain('@builtin(instance_index) instanceIndex: u32');
+    expect(NODE_SHADER).toContain('camera.hoveredNodeIndex');
+    expect(NODE_SHADER).toContain('camera.hoveredNodeScale');
   });
 
   it('requests a software WebGPU adapter when no native adapter is available', async () => {
@@ -198,7 +203,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       ['CodeGraphy node styles', 104],
       ['CodeGraphy link geometry', 24],
       ['CodeGraphy link styles', 44],
-      ['CodeGraphy camera uniform', 32],
+      ['CodeGraphy camera uniform', 48],
     ]);
     const uploadedFloats = (label: string): Float32Array => {
       const call = harness.writeBuffer.mock.calls.find(candidate => candidate[0].label === label)!;
@@ -245,7 +250,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     ])).toEqual([
       ['CodeGraphy node positions', 16],
       ['CodeGraphy link geometry', 24],
-      ['CodeGraphy camera uniform', 32],
+      ['CodeGraphy camera uniform', 48],
     ]);
 
     harness.writeBuffer.mockClear();
@@ -287,6 +292,31 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       gpuBufferWrites: { eventCount: 6 },
       gpuEncodeSubmit: { eventCount: 2 },
     });
+  });
+
+  it('highlights a hovered node with camera-only GPU updates', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    frame.hoveredNodeIndex = 1;
+    frame.hoveredNodeScale = 1.08;
+    renderer!.render(frame);
+
+    const cameraWrite = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy camera uniform',
+    )!;
+    const cameraValues = cameraWrite[2] as Float32Array;
+    expect(cameraValues[8]).toBe(1);
+    expect(cameraValues[9]).toBeCloseTo(1.08);
+
+    harness.writeBuffer.mockClear();
+    frame.hoveredNodeScale = 1.1;
+    renderer!.render(frame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .toEqual(['CodeGraphy camera uniform']);
   });
 
   it('highlights a hovered edge with camera-only GPU updates', async () => {

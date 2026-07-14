@@ -17,6 +17,7 @@ export interface GraphView2dControls {
   centerAt(x: number, y: number, durationMs?: number): void;
   zoom(scale: number, durationMs?: number): void;
   zoom(): number;
+  zoomBy(factor: number, durationMs?: number): void;
   zoomToFit(durationMs?: number, padding?: number): void;
 }
 
