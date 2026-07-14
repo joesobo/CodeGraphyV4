@@ -13,13 +13,10 @@ import {
   type OwnedGraphLayout,
 } from './layout';
 import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
+import type { PointerSession } from './interaction';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import type { OwnedGraphPluginForces } from './pluginForces';
-import type {
-  GraphLayoutPerformanceSample,
-  GraphLayoutRenderSample,
-  GraphLayoutTickResult,
-} from './physics/contracts';
+import type { GraphLayoutTickResult } from './physics/contracts';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface FramePerfSample extends Record<string, number> {
@@ -52,8 +49,8 @@ export interface OwnedGraphFrameRuntime {
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
+  pointerSessionRef: MutableRefObject<PointerSession | null>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
-  pluginKinematicsVersionRef: MutableRefObject<number>;
   positionVersionRef: MutableRefObject<number>;
   propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
@@ -100,14 +97,7 @@ function applyOwnedPluginForces(
 ): void {
   const active = runtime.rendererOperationalRef.current
     && runtime.pluginForcesRef.current.active();
-  if (!active) {
-    runtime.pluginKinematicsVersionRef.current = -1;
-    return;
-  }
-  if (
-    layout.kind === 'worker'
-    && runtime.pluginKinematicsVersionRef.current === runtime.positionVersionRef.current
-  ) return;
+  if (!active) return;
   syncOwnedLayoutNodes(layout);
   runtime.pluginForcesRef.current.tick(layout.engine.alpha);
   importPluginKinematics(layout);
@@ -117,13 +107,10 @@ function applyOwnedPluginForces(
     layout.engine.vx,
     layout.engine.vy,
   );
-  if (layout.kind === 'worker') runtime.positionVersionRef.current += 1;
-  runtime.pluginKinematicsVersionRef.current = runtime.positionVersionRef.current;
   runtime.synchronizedPositionVersionRef.current = runtime.positionVersionRef.current;
 }
 
 interface OwnedGraphPhysicsFrame {
-  engineSample: GraphLayoutPerformanceSample | undefined;
   simulationMs: number;
   tick: GraphLayoutTickResult;
 }
@@ -136,14 +123,9 @@ function advanceOwnedGraphPhysics(
   applyOwnedPluginForces(runtime, layout);
   const tick = layout.engine.tick();
   const hostElapsedMs = Math.max(0, performance.now() - startedAt);
-  const engineSample = layout.engine.consumePerformanceSample?.();
-  const asynchronousSimulationMs = engineSample && engineSample.roundTripMs > 0
-    ? engineSample.simulationCpuMs
-    : 0;
   if (tick.steps > 0) runtime.positionVersionRef.current += 1;
   return {
-    engineSample,
-    simulationMs: hostElapsedMs + asynchronousSimulationMs,
+    simulationMs: hostElapsedMs,
     tick,
   };
 }
@@ -193,7 +175,6 @@ function submitOwnedWebGpuFrame(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
   prepared: PreparedOverlayCanvas,
-  renderSample: GraphLayoutRenderSample | undefined,
 ): boolean {
   const renderer = runtime.gpuRendererRef.current;
   if (!renderer) return false;
@@ -214,9 +195,7 @@ function submitOwnedWebGpuFrame(
       hoveredLink: runtime.hoveredLinkRef.current,
       links: layout.links,
       nodes: layout.nodes,
-      positionVersion: renderSample?.version ?? runtime.positionVersionRef.current,
-      renderX: renderSample?.x,
-      renderY: renderSample?.y,
+      positionVersion: runtime.positionVersionRef.current,
       styleVersion: runtime.styleVersionRef.current,
     });
     return true;
@@ -231,7 +210,6 @@ function drawingOptions(
   layout: OwnedGraphLayout,
   prepared: PreparedOverlayCanvas,
   timestamp: number,
-  renderSample: GraphLayoutRenderSample | undefined,
 ): OwnedGraphDrawingOptions {
   const props = runtime.propsRef.current;
   const camera = runtime.cameraRef.current;
@@ -239,7 +217,6 @@ function drawingOptions(
     context: prepared.context,
     directionMode: props.directionMode,
     getLinkParticles: props.getLinkParticles,
-    getNodeIndex: nodeId => layout.engine.getNodeIndex(nodeId),
     getParticleColor: props.getParticleColor,
     globalScale: camera.zoom,
     links: layout.links,
@@ -247,8 +224,6 @@ function drawingOptions(
     nodeLabelCanvasObject: props.nodeLabelCanvasObject ?? (() => undefined),
     particleSize: props.particleSize,
     particleSpeed: props.particleSpeed,
-    renderX: renderSample?.x,
-    renderY: renderSample?.y,
     timestamp,
     viewport: {
       maximumX: camera.centerX + prepared.width / (2 * camera.zoom),
@@ -265,7 +240,6 @@ function drawOwnedGraphDecorationLayer(
   prepared: PreparedOverlayCanvas,
   timestamp: number,
   gpuRendered: boolean,
-  renderSample: GraphLayoutRenderSample | undefined,
 ): void {
   const context = prepared.context;
   const camera = runtime.cameraRef.current;
@@ -273,7 +247,7 @@ function drawOwnedGraphDecorationLayer(
   context.translate(prepared.width / 2, prepared.height / 2);
   context.scale(camera.zoom, camera.zoom);
   context.translate(-camera.centerX, -camera.centerY);
-  const options = drawingOptions(runtime, layout, prepared, timestamp, renderSample);
+  const options = drawingOptions(runtime, layout, prepared, timestamp);
   if (gpuRendered) drawOwnedGraphOverlay(options);
   runtime.propsRef.current.onRenderFramePost(context, camera.zoom);
   context.restore();
@@ -315,11 +289,10 @@ function notifyOwnedGraphSettlement(
 function shouldContinueOwnedGraphFrames(
   runtime: OwnedGraphFrameRuntime,
   tick: GraphLayoutTickResult,
-  renderSample: GraphLayoutRenderSample | undefined,
 ): boolean {
   return runtime.rendererOperationalRef.current && (
-    tick.moving
-    || renderSample?.needsFrame === true
+    runtime.pointerSessionRef.current !== null
+    || tick.moving
     || runtime.propsRef.current.directionMode === 'particles'
   );
 }
@@ -333,7 +306,6 @@ export function renderOwnedGraphFrame(
   const context = canvas.getContext('2d');
   if (!layout || !context) return;
   const attribution = runtime.performanceAttributionRef.current;
-  attribution.setPhysicsHome(layout.kind);
   const frameAttributionStartedAt = attribution.startTiming();
   const samples = performanceSamples();
   const timings: FrameTimings = {
@@ -346,31 +318,18 @@ export function renderOwnedGraphFrame(
   const physicsAttributionStartedAt = attribution.startTiming();
   const physicsFrame = advanceOwnedGraphPhysics(runtime, layout);
   attribution.finishTiming('physicsStep', physicsAttributionStartedAt);
-  if (layout.kind === 'worker' && physicsFrame.engineSample) {
-    attribution.recordDuration(
-      'workerSimulationCpu',
-      physicsFrame.engineSample.simulationCpuMs,
-    );
-    attribution.recordDuration(
-      'workerRoundTrip',
-      physicsFrame.engineSample.roundTripMs,
-    );
-  }
   const { tick } = physicsFrame;
   const physicsEndedAt = performance.now();
   timings.physicsEndedAt = timedNow(samples);
   const nodeSyncStartedAt = attribution.startTiming();
   synchronizeOwnedFrameState(runtime, layout);
   attribution.finishTiming('snapshotNodeSync', nodeSyncStartedAt);
-  const interpolationStartedAt = attribution.startTiming();
-  const renderSample = layout.engine.sampleRenderPositions?.(timestamp);
-  attribution.finishTiming('interpolatorSample', interpolationStartedAt);
   timings.syncEndedAt = timedNow(samples);
   const canvasPrepareStartedAt = attribution.startTiming();
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
   attribution.finishTiming('canvasPrepare', canvasPrepareStartedAt);
   timings.gpuStartedAt = timedNow(samples);
-  const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared, renderSample);
+  const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared);
   timings.gpuEndedAt = timedNow(samples);
   const overlayStartedAt = attribution.startTiming();
   drawOwnedGraphDecorationLayer(
@@ -379,7 +338,6 @@ export function renderOwnedGraphFrame(
     prepared,
     timestamp,
     gpuRendered,
-    renderSample,
   );
   attribution.finishTiming('overlay', overlayStartedAt);
   const frameEndedAt = performance.now();
@@ -392,8 +350,8 @@ export function renderOwnedGraphFrame(
       nodeIds: layout.engine.nodeIds,
       presentationTimestampMs: timestamp,
       renderMs,
-      renderedX: renderSample?.x ?? layout.engine.x,
-      renderedY: renderSample?.y ?? layout.engine.y,
+      renderedX: layout.engine.x,
+      renderedY: layout.engine.y,
       settled: tick.settled,
       simulationMs: physicsFrame.simulationMs,
       steps: tick.steps,
@@ -404,11 +362,10 @@ export function renderOwnedGraphFrame(
   }
   recordOwnedGraphFrameMetrics(samples, timings);
   notifyOwnedGraphSettlement(runtime, tick);
-  if (shouldContinueOwnedGraphFrames(runtime, tick, renderSample)) {
+  if (shouldContinueOwnedGraphFrames(runtime, tick)) {
     runtime.requestFrameRef.current();
   } else if (
     tick.settled
-    && renderSample?.needsFrame !== true
     && runtime.propsRef.current.directionMode !== 'particles'
   ) {
     runtime.markPerformanceIdle();

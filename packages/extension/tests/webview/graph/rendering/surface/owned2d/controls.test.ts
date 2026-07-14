@@ -18,7 +18,6 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
     }),
-    kind: 'main-thread',
     links: [],
     nodes: [node],
   };
@@ -78,7 +77,6 @@ describe('owned graph controls', () => {
     expect(fixture.runtime.performanceRecorderRef.current.active).toBe(true);
     expect(controls.stopInteractionRecording()).toMatchObject({ targetNodeId: 'node' });
     controls.startStageAttributionRecording();
-    fixture.runtime.performanceAttributionRef.current.setPhysicsHome('main-thread');
     fixture.runtime.performanceAttributionRef.current.recordDuration('physicsStep', 2);
     fixture.runtime.performanceAttributionRef.current.recordRenderedFrame();
     expect(controls.stopStageAttributionRecording()).toMatchObject({

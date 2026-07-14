@@ -208,14 +208,6 @@ async function runMeasurement(
 
   try {
     const page = await context.newPage();
-    if (options.physicsHome === 'main-thread') {
-      await page.addInitScript(() => {
-        Object.defineProperty(window, 'Worker', {
-          configurable: true,
-          value: undefined,
-        });
-      });
-    }
     const settlementTimeoutMs = options.attribution
       ? Math.min(options.timeoutMs, 30_000)
       : options.timeoutMs;

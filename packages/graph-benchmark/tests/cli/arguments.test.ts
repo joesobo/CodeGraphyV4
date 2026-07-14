@@ -23,8 +23,6 @@ describe('parseBenchmarkArguments', () => {
       'reports/baseline.json',
       '--output',
       'reports/two-and-a-half-thousand.json',
-      '--physics-home',
-      'main-thread',
       '--timeout-ms',
       '90000',
     ])).toEqual({
@@ -37,7 +35,6 @@ describe('parseBenchmarkArguments', () => {
       idleMs: 6_000,
       baselinePath: 'reports/baseline.json',
       outputPath: 'reports/two-and-a-half-thousand.json',
-      physicsHome: 'main-thread',
       timeoutMs: 90_000,
     });
   });
@@ -51,7 +48,6 @@ describe('parseBenchmarkArguments', () => {
       attribution: false,
       memoryCycles: 5,
       baselinePath: undefined,
-      physicsHome: 'auto',
     });
   });
 

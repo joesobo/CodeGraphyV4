@@ -27,7 +27,7 @@ export type OwnedGraphAttributionScope =
   | 'latency'
   | 'worker-cpu';
 
-export type OwnedGraphPhysicsHome = 'main-thread' | 'worker';
+export type OwnedGraphPhysicsHome = 'main-thread';
 
 const STAGE_SCOPES: Readonly<Record<
   OwnedGraphAttributionStage,
@@ -67,7 +67,7 @@ export interface OwnedGraphStageAttributionRecording {
   schemaVersion: 1;
   startedAtMs: number;
   endedAtMs: number;
-  physicsHome: OwnedGraphPhysicsHome | null;
+  physicsHome: OwnedGraphPhysicsHome;
   renderedFrameCount: number;
   stages: Readonly<Record<
     OwnedGraphAttributionStage,
@@ -81,7 +81,6 @@ export interface OwnedGraphStageAttributionProfiler {
   finishTiming(stage: OwnedGraphAttributionStage, startedAtMs: number | null): void;
   recordDuration(stage: OwnedGraphAttributionStage, durationMs: number): void;
   recordRenderedFrame(): void;
-  setPhysicsHome(home: OwnedGraphPhysicsHome): void;
   start(): void;
   startTiming(): number | null;
   stop(): Readonly<OwnedGraphStageAttributionRecording> | null;
@@ -101,7 +100,6 @@ interface StageAccumulator {
 
 interface ActiveRecording {
   accumulators: Record<OwnedGraphAttributionStage, StageAccumulator>;
-  physicsHome: OwnedGraphPhysicsHome | null;
   renderedFrameCount: number;
   startedAtMs: number;
   truncated: boolean;
@@ -186,13 +184,9 @@ export function createOwnedGraphStageAttributionProfiler(
     recordRenderedFrame: () => {
       if (recording) recording.renderedFrameCount += 1;
     },
-    setPhysicsHome: (home) => {
-      if (recording) recording.physicsHome = home;
-    },
     start: () => {
       recording = {
         accumulators: createAccumulators(),
-        physicsHome: null,
         renderedFrameCount: 0,
         startedAtMs: clock(),
         truncated: false,
@@ -219,7 +213,7 @@ export function createOwnedGraphStageAttributionProfiler(
         schemaVersion: 1 as const,
         startedAtMs: completed.startedAtMs,
         endedAtMs,
-        physicsHome: completed.physicsHome,
+        physicsHome: 'main-thread' as const,
         renderedFrameCount: completed.renderedFrameCount,
         stages,
         truncated: completed.truncated,

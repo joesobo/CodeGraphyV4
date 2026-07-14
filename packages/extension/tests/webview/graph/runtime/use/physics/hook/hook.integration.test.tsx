@@ -27,14 +27,6 @@ describe('owned physics lifecycle integration', () => {
     expect(requestAnimationFrame).not.toHaveBeenCalled();
   });
 
-  it('disposes active physics during cleanup', () => {
-    expect(() => layout().engine.dispose?.()).not.toThrow();
-  });
-
-  it('initializes synchronously without cancellation bookkeeping', () => {
-    expect(layout().kind).toBe('main-thread');
-  });
-
   it('does not rebuild the engine when settings and topology are unchanged', () => {
     const current = layout();
     const engine = current.engine;

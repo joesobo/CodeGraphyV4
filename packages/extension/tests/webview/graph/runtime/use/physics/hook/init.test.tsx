@@ -13,8 +13,4 @@ describe('owned physics initialization', () => {
     expect(layout.engine.nodeIds).toEqual([]);
   });
 
-  it('disposes the initialized engine during cleanup', () => {
-    const layout = createOwnedGraphLayout([ownedNode('a')], [], DEFAULT_PHYSICS_SETTINGS);
-    expect(() => layout.engine.dispose?.()).not.toThrow();
-  });
 });

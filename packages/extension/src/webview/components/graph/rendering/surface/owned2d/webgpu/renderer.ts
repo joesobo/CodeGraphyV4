@@ -37,8 +37,6 @@ export interface OwnedWebGpuFrame {
   links: readonly FGLink[];
   nodes: readonly FGNode[];
   positionVersion: number;
-  renderX?: Float32Array;
-  renderY?: Float32Array;
   styleVersion: number;
 }
 
@@ -485,8 +483,8 @@ export class OwnedWebGpuRenderer {
     }
     for (let index = 0; index < frame.nodes.length; index += 1) {
       const offset = index * NODE_POSITION_FLOATS;
-      this.nodePositionValues[offset] = frame.renderX?.[index] ?? frame.nodes[index].x ?? 0;
-      this.nodePositionValues[offset + 1] = frame.renderY?.[index] ?? frame.nodes[index].y ?? 0;
+      this.nodePositionValues[offset] = frame.nodes[index].x ?? 0;
+      this.nodePositionValues[offset + 1] = frame.nodes[index].y ?? 0;
     }
   }
 
@@ -507,10 +505,10 @@ export class OwnedWebGpuRenderer {
     if (sourceIndex === undefined || targetIndex === undefined) return false;
     const curvature = link.curvature ?? 0;
     if (writeGeometry) {
-      const sourceX = frame.renderX?.[sourceIndex] ?? source.x ?? 0;
-      const sourceY = frame.renderY?.[sourceIndex] ?? source.y ?? 0;
-      const targetX = frame.renderX?.[targetIndex] ?? target.x ?? 0;
-      const targetY = frame.renderY?.[targetIndex] ?? target.y ?? 0;
+      const sourceX = source.x ?? 0;
+      const sourceY = source.y ?? 0;
+      const targetX = target.x ?? 0;
+      const targetY = target.y ?? 0;
       const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
       this.linkGeometryValues[offset] = sourceX;
       this.linkGeometryValues[offset + 1] = sourceY;

@@ -49,7 +49,7 @@ The explicitly armed profiler performs no clock reads while disabled. Three clea
 
 **Decision:** main-thread physics wins. At 500 it is 1.40× faster and at 2.5k it is 1.09× faster, remains under the 16 ms requirement, removes 6.63–9.70 ms worker round-trip latency, and eliminates the measured neighbor lag and frozen frames. M3 therefore deletes the worker, interpolation, and transferable-buffer path rather than maintaining two physics homes. After physics, the next largest measured cost is the style + geometry rebuild (2.83 ms/frame at 2.5k), which is currently triggered almost every active frame.
 
-The raw reports and normalized stage summaries are under `m2-attribution/`. Reproduce an armed profile with `--attribution true`; use `--physics-home main-thread` to force the existing fallback for comparison.
+The raw reports and normalized stage summaries are under `m2-attribution/`. `--physics-home main-thread` was temporary decision scaffolding at the M2 revision; M3 removed the option together with the losing worker implementation. Current armed profiles use `--attribution true` and always report the sole main-thread home.
 
 Run the dashboard generator with:
 

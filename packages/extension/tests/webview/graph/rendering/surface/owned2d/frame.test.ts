@@ -59,7 +59,6 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   });
   const layout: OwnedGraphLayout = {
     engine,
-    kind: 'main-thread',
     links: [],
     nodes: [node],
   };
@@ -76,7 +75,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     onRendererError: vi.fn(),
     performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
     performanceRecorderRef: { current: recorder },
-    pluginKinematicsVersionRef: { current: -1 },
+    pointerSessionRef: { current: null },
     pluginForcesRef: { current: {
       active: () => true,
       dispose: vi.fn(),
@@ -158,7 +157,7 @@ describe('owned graph frame execution', () => {
       stages: {
         canvasPrepare: { eventCount: 1 },
         frameTotalCpu: { eventCount: 1 },
-        interpolatorSample: { eventCount: 1 },
+        interpolatorSample: { eventCount: 0 },
         overlay: { eventCount: 1 },
         physicsStep: { eventCount: 1 },
         snapshotNodeSync: { eventCount: 1 },
@@ -167,47 +166,39 @@ describe('owned graph frame execution', () => {
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
   });
 
-  it('renders interpolated worker positions while keeping layout nodes authoritative', () => {
+  it('renders user-driven positions and continues interaction when physics reports zero steps', () => {
     let submittedFrame: OwnedWebGpuFrame | undefined;
     const renderer = {
       render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
     } as unknown as OwnedWebGpuRenderer;
     const { layout, node, recorder, runtime } = runtimeFixture(renderer);
     runtime.pluginForcesRef.current.active = () => false;
-    layout.engine.pause();
-    layout.engine.sampleRenderPositions = vi.fn(() => ({
-      needsFrame: true,
-      version: 7,
-      x: Float32Array.of(100),
-      y: Float32Array.of(200),
-    }));
-
-    renderOwnedGraphFrame(runtime, canvasFixture(), 150);
-
-    expect(submittedFrame?.renderX?.[0]).toBe(100);
-    expect(submittedFrame?.renderY?.[0]).toBe(200);
-    expect(submittedFrame?.positionVersion).toBe(7);
-    expect(node.x).toBe(layout.engine.x[0]);
-    expect(runtime.requestFrameRef.current).toHaveBeenCalled();
-    expect(recorder.stop()?.frames[0]?.target).toEqual({ id: 'a', x: 100, y: 200 });
-  });
-
-  it('bridges plugin kinematics once per worker snapshot without invalidating in-flight ticks', () => {
-    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
-    const { layout, runtime } = runtimeFixture(renderer);
-    layout.kind = 'worker';
-    vi.spyOn(layout.engine, 'tick').mockReturnValue({ moving: true, settled: false, steps: 0 });
-    const setKinematics = vi.spyOn(layout.engine, 'setKinematics');
+    layout.engine.setNodePosition(0, 42, 24);
+    runtime.positionVersionRef.current += 1;
+    runtime.pointerSessionRef.current = {
+      draggedIndexes: new Set([0]),
+      index: 0,
+      lastWorld: { x: 42, y: 24 },
+      link: null,
+      moved: true,
+      node,
+      nodeId: node.id,
+      startScreen: { x: 0, y: 0 },
+    };
+    vi.spyOn(layout.engine, 'tick').mockReturnValue({
+      moving: false,
+      settled: false,
+      steps: 0,
+    });
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100);
-    renderOwnedGraphFrame(runtime, canvasFixture(), 116);
 
-    expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalledOnce();
-    expect(layout.engine.tick).toHaveBeenCalledTimes(2);
-    expect(layout.engine.tick).toHaveBeenNthCalledWith(1);
-    expect(layout.engine.tick).toHaveBeenNthCalledWith(2);
-    expect(setKinematics).toHaveBeenCalledOnce();
-    expect(runtime.positionVersionRef.current).toBe(1);
+    expect(renderer.render).toHaveBeenCalledOnce();
+    expect(submittedFrame).toMatchObject({ positionVersion: 1 });
+    expect(submittedFrame?.nodes[0]).toMatchObject({ x: 42, y: 24 });
+    expect(runtime.recordRenderedFrame).toHaveBeenCalledOnce();
+    expect(recorder.stop()?.frames[0]?.target).toEqual({ id: 'a', x: 42, y: 24 });
+    expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
   });
 
   it('marks performance idle only when the simulation deliberately settles', () => {

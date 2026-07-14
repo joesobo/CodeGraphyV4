@@ -163,8 +163,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pickerPositionVersionRef = useRef(-1);
   const pickerRef = useRef(new OwnedGraphNodePicker());
   const pluginForcesRef = useRef(createOwnedGraphPluginForces());
-  const pluginKinematicsVersionRef = useRef(-1);
-  const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
   const [rendererStatus, setRendererStatus] = useState<OwnedGraphRendererStatus>('initializing');
   const [rendererError, setRendererError] = useState<string | null>(null);
   const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
@@ -180,14 +178,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     engineStopNotifiedRef,
     hasFittedCameraRef,
     layoutRef,
-    performanceAttributionRef,
     pluginForcesRef,
     pointerSessionRef,
     positionVersionRef,
     propsRef,
     rendererOperationalRef,
     requestFrameRef,
-    setLayoutKind,
   }).current;
   propsRef.current = props;
   if (styledPropsRef.current !== props) {
@@ -249,8 +245,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       performanceAttributionRef,
       performanceMonitorRef,
       performanceRecorderRef,
+      pointerSessionRef,
       pluginForcesRef,
-      pluginKinematicsVersionRef,
       positionVersionRef,
       propsRef,
       rendererOperationalRef,
@@ -351,7 +347,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const view = (
     <div
       className="absolute inset-0"
-      data-codegraphy-layout={layoutKind}
+      data-codegraphy-layout="main-thread"
       data-codegraphy-renderer={rendererStatus}
       style={{ backgroundColor: props.backgroundColor }}
     >

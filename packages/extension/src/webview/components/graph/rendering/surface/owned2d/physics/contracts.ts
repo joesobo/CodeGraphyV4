@@ -45,19 +45,6 @@ export interface GraphLayoutTickResult {
   steps: number;
 }
 
-export interface GraphLayoutPerformanceSample {
-  roundTripMs: number;
-  simulationCpuMs: number;
-  steps: number;
-}
-
-export interface GraphLayoutRenderSample {
-  needsFrame: boolean;
-  version: number;
-  x: Float32Array;
-  y: Float32Array;
-}
-
 export interface GraphLayoutEngine {
   readonly nodeIds: readonly string[];
   readonly x: Float32Array;
@@ -74,8 +61,6 @@ export interface GraphLayoutEngine {
   readonly settled: boolean;
   readonly alpha: number;
   getNodeIndex(nodeId: string): number | undefined;
-  consumePerformanceSample?(): GraphLayoutPerformanceSample | undefined;
-  sampleRenderPositions?(timestamp: number): GraphLayoutRenderSample;
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void;
@@ -89,7 +74,6 @@ export interface GraphLayoutEngine {
   reheat(alpha?: number): void;
   pause(): void;
   resume(): void;
-  dispose?(): void;
 }
 
 export interface GraphLayoutState {
