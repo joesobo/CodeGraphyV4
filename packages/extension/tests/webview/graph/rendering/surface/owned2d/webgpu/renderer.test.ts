@@ -120,6 +120,8 @@ function rendererFrame(): OwnedWebGpuFrame {
     cssWidth: 200,
     devicePixelRatio: 2,
     directionMode: 'arrows' as const,
+    edgeSources: Uint32Array.of(0),
+    edgeTargets: Uint32Array.of(1),
     getArrowColor: () => '#aabbcc',
     getLinkColor: () => '#112233',
     getLinkOpacity: () => 0.3,
@@ -137,6 +139,8 @@ function rendererFrame(): OwnedWebGpuFrame {
     }),
     links: [link],
     nodes: [source, target],
+    nodeX: Float32Array.of(1, 103),
+    nodeY: Float32Array.of(2, 4),
     positionVersion: 1,
     styleVersion: 1,
   };
@@ -232,7 +236,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       ]);
 
     harness.writeBuffer.mockClear();
-    frame.nodes[0].x = 2;
+    frame.nodeX[0] = 2;
     frame.positionVersion += 1;
     renderer!.render(frame);
     expect(harness.writeBuffer.mock.calls.map(call => [
@@ -320,10 +324,10 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       onFrameComplete: vi.fn(),
     });
     const frame = rendererFrame();
-    frame.nodes[0].x = 11;
-    frame.nodes[0].y = 12;
-    frame.nodes[1].x = 113;
-    frame.nodes[1].y = 14;
+    frame.nodeX[0] = 11;
+    frame.nodeY[0] = 12;
+    frame.nodeX[1] = 113;
+    frame.nodeY[1] = 14;
 
     renderer!.render(frame);
 
