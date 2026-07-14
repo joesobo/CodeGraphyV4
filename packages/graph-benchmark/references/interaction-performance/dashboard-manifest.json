@@ -3,6 +3,18 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M4",
+      "title": "Simulation is decoupled from display cadence",
+      "summary": "A 144 Hz fixed-timestep accumulator now uses bounded catch-up, at most four substeps, a soft 4 ms simulation budget, and debt reset on sleep/recovery. Clean tiny runs prove decoupling: 143.72 simulation steps/s and 2.38 steps per rendered frame while presentation remains 60.00 FPS and potential throughput is 2,583 FPS. All four tiers pass with one-frame interaction, zero freezes/teleports/settle violations, complete imperceptible sleep, and 0.42% maximum HUD difference.",
+      "timestamp": "2026-07-13T23:06:00Z"
+    },
+    {
+      "milestone": "M4",
+      "title": "Real editor confirms monotonic settle",
+      "summary": "VS Code 1.128.0 in editor view with Files Explorer restored recorded 144.43 simulation steps/s across a 60.00 Hz presentation (2.40 steps/frame), proving the loops are independent in-product. The 867-frame drag has one-frame target and neighbor response, zero freezes and teleports, monotonic release energy with zero envelope violations, imperceptible sleep, and HUD agreement within 0.60%.",
+      "timestamp": "2026-07-13T23:05:00Z"
+    },
+    {
       "milestone": "M3",
       "title": "Worker round trip deleted; all clean tiers pass",
       "summary": "The measured losing worker, snapshot interpolation, and transferable-buffer implementation is deleted (2,200 lines removed), leaving one synchronous typed physics home and no postMessage interaction path. Clean three-run reports at 1c06ca50 measure 0.49 / 5.59 / 4.22 / 10.03 ms for tiny / 500 / 1k / 2.5k. Every fixture now has one-frame target and neighbor response, zero freezes and teleports, complete settling, and HUD agreement within 0.43%; 500 is 1.35× and 1k is 1.26× faster than M1.",
@@ -85,6 +97,26 @@
       "fixture": "2.5k",
       "milestone": "M3 main thread",
       "path": "references/interaction-performance/m3-main-thread/2.5k.json"
+    },
+    {
+      "fixture": "tiny",
+      "milestone": "M4 fixed timestep",
+      "path": "references/interaction-performance/m4-fixed-timestep/tiny.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M4 fixed timestep",
+      "path": "references/interaction-performance/m4-fixed-timestep/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M4 fixed timestep",
+      "path": "references/interaction-performance/m4-fixed-timestep/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M4 fixed timestep",
+      "path": "references/interaction-performance/m4-fixed-timestep/2.5k.json"
     }
   ],
   "attribution": [
@@ -144,6 +176,21 @@
     }
   ],
   "visuals": [
+    {
+      "caption": "M4 real-editor fixed-timestep drag: 144 simulation steps/s on a 60 Hz presentation with one-frame neighbor response.",
+      "kind": "image",
+      "path": "references/interaction-performance/m4-fixed-timestep/real-editor-drag.png"
+    },
+    {
+      "caption": "M4 real-editor drag and monotonic settle with zero freezes, teleports, or settle-envelope violations.",
+      "kind": "gif",
+      "path": "references/interaction-performance/m4-fixed-timestep/real-editor-drag.gif"
+    },
+    {
+      "caption": "M4 real-editor explicit Idle HUD after imperceptible sleep.",
+      "kind": "image",
+      "path": "references/interaction-performance/m4-fixed-timestep/real-editor-idle.png"
+    },
     {
       "caption": "M3 real-editor drag after deleting the worker round trip: one-frame target and neighbor response with the honest active HUD.",
       "kind": "image",
