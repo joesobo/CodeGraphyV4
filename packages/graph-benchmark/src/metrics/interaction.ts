@@ -62,7 +62,7 @@ export interface InteractionThresholds {
   imperceptibleEnergyPerNode: number;
   positionMatchDistance: number;
   settleEnvelopeToleranceRatio: number;
-  settleEnvelopeWindowFrames: number;
+  settleEnvelopeWindowMs: number;
   teleportDistance: number;
 }
 
@@ -71,7 +71,7 @@ export const DEFAULT_INTERACTION_THRESHOLDS: InteractionThresholds = {
   imperceptibleEnergyPerNode: 0.01,
   positionMatchDistance: 0.25,
   settleEnvelopeToleranceRatio: 0.05,
-  settleEnvelopeWindowFrames: 5,
+  settleEnvelopeWindowMs: 80,
   teleportDistance: 120,
 };
 
@@ -241,14 +241,27 @@ function settleAssessment(
     ? recording.frames.filter(frame => frame.presentationTimestampMs >= release.eventTimestampMs)
     : [];
   const envelopes: number[] = [];
-  const windowSize = Math.max(1, Math.floor(thresholds.settleEnvelopeWindowFrames));
-  for (let index = 0; index < settleFrames.length; index += windowSize) {
-    const window = settleFrames.slice(index, index + windowSize);
-    const rms = Math.sqrt(
+  const windowDurationMs = Math.max(1, thresholds.settleEnvelopeWindowMs);
+  let window: RecordedInteractionFrame[] = [];
+  let windowStartedAt = settleFrames[0]?.presentationTimestampMs ?? 0;
+  const publishWindow = () => {
+    if (window.length === 0) return;
+    envelopes.push(Math.sqrt(
       window.reduce((sum, frame) => sum + frame.kineticEnergy ** 2, 0) / window.length,
-    );
-    envelopes.push(rms);
+    ));
+    window = [];
+  };
+  for (const frame of settleFrames) {
+    if (
+      window.length > 0
+      && frame.presentationTimestampMs - windowStartedAt >= windowDurationMs
+    ) {
+      publishWindow();
+      windowStartedAt = frame.presentationTimestampMs;
+    }
+    window.push(frame);
   }
+  publishWindow();
   let envelopeViolationCount = 0;
   let maximumLateIncreaseRatio = 0;
   for (let index = 1; index < envelopes.length; index += 1) {
