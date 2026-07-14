@@ -91,6 +91,29 @@ describe('interaction performance metrics', () => {
     expect(assessment.hudAgreement?.withinTenPercent).toBe(true);
   });
 
+  it('bases HUD acceptance on the compact visible metrics', () => {
+    const hud = {
+      ...activeHud(2),
+      displayedFps: 1,
+      renderTimeMs: { average: 1, maximum: 1, onePercentHigh: 1 },
+      simulationTimeMs: { average: 1, maximum: 1, onePercentHigh: 1 },
+    };
+    const assessment = assessInteractionRecording({
+      frames: [frame(0, 0, 0, 1), frame(10, 0, 0, 0.01, true)],
+      inputs: [],
+      neighborNodeIds: ['leaf'],
+      targetNodeId: 'hub',
+      truncated: false,
+    }, hud, DEFAULT_INTERACTION_THRESHOLDS);
+
+    expect(assessment.hudAgreement?.differencesPct).toMatchObject({
+      displayedFps: expect.any(Number),
+      renderAverage: expect.any(Number),
+      simulationAverage: expect.any(Number),
+    });
+    expect(assessment.hudAgreement?.withinTenPercent).toBe(true);
+  });
+
   it('counts frames after input-handler order rather than native event time', () => {
     const assessment = assessInteractionRecording({
       frames: [

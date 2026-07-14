@@ -228,11 +228,11 @@ function requiredLatency(value: number | null): number {
 function maximumHudDifference(assessment: InteractionAssessment): number {
   const differences = assessment.hudAgreement?.differencesPct;
   if (!differences) return Number.MAX_SAFE_INTEGER;
-  const values = Object.values(differences);
-  if (values.some(value => value === null || !Number.isFinite(value))) {
+  const visibleValues = [differences.frameTimeAverage, differences.potentialFps];
+  if (visibleValues.some(value => value === null || !Number.isFinite(value))) {
     return Number.MAX_SAFE_INTEGER;
   }
-  return Math.max(...values as number[]);
+  return Math.max(...visibleValues as number[]);
 }
 
 function validateBaseline(options: {

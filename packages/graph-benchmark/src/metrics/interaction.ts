@@ -337,14 +337,16 @@ function hudAgreement(
       sample.simulationTimeMs.average,
     ),
   };
-  const finiteDifferences = Object.values(differences).filter(
-    (value): value is number => value !== null,
-  );
+  const visibleDifferences = [
+    differences.frameTimeAverage,
+    differences.potentialFps,
+  ];
   return {
     differencesPct: differences,
     sampleCount: window.length,
-    withinTenPercent: finiteDifferences.length === Object.keys(differences).length
-      && finiteDifferences.every(value => value <= 10),
+    withinTenPercent: visibleDifferences.every(
+      value => value !== null && Number.isFinite(value) && value <= 10,
+    ),
   };
 }
 
