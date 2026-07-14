@@ -81,6 +81,21 @@ Tiny proves the loops are genuinely decoupled: simulation runs at 143.72 steps/s
 
 The required M4 real-editor pass independently confirms 144.43 simulation steps/s over a 60.00 Hz presentation (2.40 steps/frame), one-frame target and neighbor response, zero freezes and teleports, zero settle-envelope violations, and active HUD agreement within 0.60%. See `m4-fixed-timestep/` for the reports, validation JSON, screenshots, and GIF.
 
+## M5 final throughput
+
+Fresh attribution at clean revision `3ad8cab63173533db9c51946f1b463fe9776ef0f` confirmed that physics was dominant and that false props-identity invalidation still spent 1.28 ms/frame rebuilding 2.5k styles. Revision `953ad1d1901d7c14960439c5199e680662a6edbb` replaced that broad signal with a semantic revision over the actual ref-backed style dependencies: attributed style rebuild cost falls to zero and complete attributed work improves 9.92 → 8.18 ms. Revision `d6ce971b2ae7478577399ad3efa9ec9881d0c46f` then packs node/link geometry directly from authoritative typed position and edge-index arrays, producing this final unarmed ladder:
+
+| Fixture | Mean CPU frame | p95 | 1%-high | Sim / render | Sim steps / frame · steps/s | Potential / displayed FPS | Target / neighbor latency | Frozen / teleports | Settle violations | HUD max difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| tiny | 0.27 ms | 0.50 ms | 0.60 ms | 0.07 / 0.20 ms | 2.38 · 143.72 | 3,720 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 500 | 5.19 ms | 5.60 ms | 6.10 ms | 4.56 / 0.63 ms | 1.00 · 60.11 | 193 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 1k | 3.58 ms | 4.60 ms | 4.87 ms | 2.68 / 0.90 ms | 1.11 · 66.91 | 279 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 2.5k | 7.95 ms | 9.40 ms | 12.13 ms | 6.28 / 1.67 ms | 0.99 · 59.73 | 126 / 59.96 | 1 / 1 frames | 0 / 0 | 0 | 0.44% |
+
+Relative to M1, mean complete frame work improves 1.15× / 1.46× / 1.49× / 1.39× across tiny / 500 / 1k / 2.5k. The 500 and 1k tiers are comfortably inside the 6.9 ms 144 Hz CPU budget; 2.5k is inside the 16 ms budget and has moved 28% from M1 toward the 6.9 ms stretch target. Final attribution identifies physics at 6.29 ms/frame as the remaining 2.5k dominant cost; behavior-changing force approximations were not accepted after all hard budgets were cleared.
+
+The final real-editor pass in VS Code 1.128.0 records 144.53 simulation steps/s over exactly 60.00 displayed FPS, 0.36 ms active work, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 0.61%. The attached display is physically 60 Hz (`1920×1080 @ 60.00Hz`), so 144 Hz presentation cannot be observed on this host; 500/1k potential throughput and ≤6.9 ms CPU work prove the renderer is not the limiting factor. See `m5-final/` for final reports, before/after attribution, validation JSON, screenshots, and GIF.
+
 Run the dashboard generator with:
 
 ```bash

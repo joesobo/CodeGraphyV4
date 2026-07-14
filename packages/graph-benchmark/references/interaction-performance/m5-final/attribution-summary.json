@@ -1,0 +1,881 @@
+{
+  "schemaVersion": 1,
+  "frameBudgetMs": 6.9,
+  "decision": "Eliminate false style invalidation first, then pack geometry from authoritative typed positions. Physics is the final dominant stage; behavior-changing approximation was rejected because all hard targets are met and 2.5k is already pushed materially toward the stretch budget.",
+  "profiles": {
+    "500": {
+      "before": {
+        "revision": "3ad8cab63173533db9c51946f1b463fe9776ef0f",
+        "averages": {
+          "cpuFrameTimeMs": 5.5041055564534505,
+          "cpuFrameP95Ms": 5.899999996026357,
+          "cpuFrameOnePercentHighMs": 6.633333325386047,
+          "cpuFrameMaxMs": 9.5,
+          "displayedFps": 60.00182571359995,
+          "dragFps": 59.55207063309113,
+          "frozenFrameCount": 0,
+          "hudDifferenceMaxPct": 0,
+          "neighborLatencyFrames": 1,
+          "potentialFps": 181.68261304418695,
+          "renderMs": 0.9942920776083307,
+          "settleEnvelopeViolationCount": 0,
+          "simulationMs": 4.5098134788451185,
+          "simulationStepsPerFrame": 0.9982174688057041,
+          "simulationStepsPerSecond": 60.05573359377569,
+          "targetLatencyFrames": 1,
+          "teleportFrameCount": 0,
+          "settleTimeMs": 5173.966666658719,
+          "idleCpuPct": 0.3231870510335169,
+          "heapAfterLoadBytes": 7361654.666666667,
+          "processAfterLoadBytes": 399458304,
+          "memoryAfterCyclesBytes": 399458304
+        },
+        "attribution": {
+          "schemaVersion": 1,
+          "physicsHome": "main-thread",
+          "runCount": 3,
+          "renderedFrameCount": 1120,
+          "stages": {
+            "frameTotalCpu": {
+              "scope": "frame-cpu",
+              "eventCount": 1120,
+              "totalMs": 6168.699999809265,
+              "meanEventMs": 5.507767856972558,
+              "p95EventMs": 5.900000035762787,
+              "maximumEventMs": 10.300000011920929,
+              "perRenderedFrameMs": 5.507767856972558,
+              "budgetPct": 79.82272256481968
+            },
+            "physicsStep": {
+              "scope": "frame-cpu",
+              "eventCount": 1120,
+              "totalMs": 5052.399999320507,
+              "meanEventMs": 4.511071427964739,
+              "p95EventMs": 4.900000035762787,
+              "maximumEventMs": 7.800000011920929,
+              "perRenderedFrameMs": 4.511071427964739,
+              "budgetPct": 65.37784678209766
+            },
+            "workerSimulationCpu": {
+              "scope": "worker-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "workerRoundTrip": {
+              "scope": "latency",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotApply": {
+              "scope": "host-async-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotNodeSync": {
+              "scope": "frame-cpu",
+              "eventCount": 1120,
+              "totalMs": 15.499999105930328,
+              "meanEventMs": 0.013839284916009222,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.013839284916009222,
+              "budgetPct": 0.20056934660882927
+            },
+            "interpolatorSample": {
+              "scope": "frame-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "styleCacheRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 286.10000163316727,
+              "meanEventMs": 0.2556747110215972,
+              "p95EventMs": 0.30000001192092896,
+              "maximumEventMs": 0.6000000238418579,
+              "perRenderedFrameMs": 0.25544643002961365,
+              "budgetPct": 3.702122174342227
+            },
+            "geometryRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 2237,
+              "totalMs": 380.39999932050705,
+              "meanEventMs": 0.17004917269580108,
+              "p95EventMs": 0.40000003576278687,
+              "maximumEventMs": 1,
+              "perRenderedFrameMs": 0.339642856536167,
+              "budgetPct": 4.922360239654594
+            },
+            "gpuBufferWrites": {
+              "scope": "frame-cpu",
+              "eventCount": 5595,
+              "totalMs": 12.799998998641968,
+              "meanEventMs": 0.0022877567468528987,
+              "p95EventMs": 0,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.011428570534501756,
+              "budgetPct": 0.16563145702176457
+            },
+            "gpuEncodeSubmit": {
+              "scope": "frame-cpu",
+              "eventCount": 1120,
+              "totalMs": 30.000000536441803,
+              "meanEventMs": 0.026785714764680182,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.20000004768371582,
+              "perRenderedFrameMs": 0.026785714764680182,
+              "budgetPct": 0.38819876470550985
+            },
+            "canvasPrepare": {
+              "scope": "frame-cpu",
+              "eventCount": 1120,
+              "totalMs": 4.300000190734863,
+              "meanEventMs": 0.0038392858845846993,
+              "p95EventMs": 0,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.0038392858845846993,
+              "budgetPct": 0.055641824414271
+            },
+            "overlay": {
+              "scope": "frame-cpu",
+              "eventCount": 1120,
+              "totalMs": 373.0000008940697,
+              "meanEventMs": 0.33303571508399077,
+              "p95EventMs": 0.5,
+              "maximumEventMs": 0.699999988079071,
+              "perRenderedFrameMs": 0.33303571508399077,
+              "budgetPct": 4.826604566434649
+            },
+            "pickingHover": {
+              "scope": "event",
+              "eventCount": 3,
+              "totalMs": 0.09999996423721313,
+              "meanEventMs": 0.03333332141240438,
+              "p95EventMs": 0.09999996423721313,
+              "maximumEventMs": 0.09999996423721313,
+              "perRenderedFrameMs": 0.00008928568235465459,
+              "budgetPct": 0.0012939953964442692
+            },
+            "reactReconciliation": {
+              "scope": "event",
+              "eventCount": 1119,
+              "totalMs": 68.90000003576279,
+              "meanEventMs": 0.0615728329184654,
+              "p95EventMs": 0.19999998807907104,
+              "maximumEventMs": 0.20000004768371582,
+              "perRenderedFrameMs": 0.0615178571747882,
+              "budgetPct": 0.8915631474606986
+            },
+            "propsRuntimeReconciliation": {
+              "scope": "event",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            }
+          },
+          "truncated": false
+        }
+      },
+      "afterStyleCache": {
+        "revision": "953ad1d1901d7c14960439c5199e680662a6edbb",
+        "averages": {
+          "cpuFrameTimeMs": 5.254066130963683,
+          "cpuFrameP95Ms": 5.699999988079071,
+          "cpuFrameOnePercentHighMs": 6.300000011920929,
+          "cpuFrameMaxMs": 9.133333325386047,
+          "displayedFps": 60.00193554630795,
+          "dragFps": 59.43536608214481,
+          "frozenFrameCount": 0,
+          "hudDifferenceMaxPct": 0,
+          "neighborLatencyFrames": 1,
+          "potentialFps": 190.3324175227298,
+          "renderMs": 0.6832886496433943,
+          "settleEnvelopeViolationCount": 0,
+          "simulationMs": 4.570777481320291,
+          "simulationStepsPerFrame": 0.9991063449508489,
+          "simulationStepsPerSecond": 60.10946589674936,
+          "targetLatencyFrames": 1,
+          "teleportFrameCount": 0,
+          "settleTimeMs": 5169.200000027816,
+          "idleCpuPct": 0.3233156927506297,
+          "heapAfterLoadBytes": 7365932,
+          "processAfterLoadBytes": 399714986.6666667,
+          "memoryAfterCyclesBytes": 399714986.6666667
+        },
+        "attribution": {
+          "schemaVersion": 1,
+          "physicsHome": "main-thread",
+          "runCount": 3,
+          "renderedFrameCount": 1119,
+          "stages": {
+            "frameTotalCpu": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 5882.700000405312,
+              "meanEventMs": 5.257104558002959,
+              "p95EventMs": 5.699999988079071,
+              "maximumEventMs": 9.800000011920929,
+              "perRenderedFrameMs": 5.257104558002959,
+              "budgetPct": 76.18992113047767
+            },
+            "physicsStep": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 5115.600001513958,
+              "meanEventMs": 4.571581770789954,
+              "p95EventMs": 5,
+              "maximumEventMs": 8,
+              "perRenderedFrameMs": 4.571581770789954,
+              "budgetPct": 66.25480827231817
+            },
+            "workerSimulationCpu": {
+              "scope": "worker-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "workerRoundTrip": {
+              "scope": "latency",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotApply": {
+              "scope": "host-async-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotNodeSync": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 16.300000071525574,
+              "meanEventMs": 0.014566577365080942,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.19999998807907104,
+              "perRenderedFrameMs": 0.014566577365080942,
+              "budgetPct": 0.21110981688523103
+            },
+            "interpolatorSample": {
+              "scope": "frame-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "styleCacheRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "geometryRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 2236,
+              "totalMs": 318.99999862909317,
+              "meanEventMs": 0.14266547344771607,
+              "p95EventMs": 0.3999999761581421,
+              "maximumEventMs": 1,
+              "perRenderedFrameMs": 0.28507595945406,
+              "budgetPct": 4.1315356442617395
+            },
+            "gpuBufferWrites": {
+              "scope": "frame-cpu",
+              "eventCount": 3355,
+              "totalMs": 10.899999678134918,
+              "meanEventMs": 0.003248882169339767,
+              "p95EventMs": 0,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.009740839748109846,
+              "budgetPct": 0.1411715905523166
+            },
+            "gpuEncodeSubmit": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 28.8000009059906,
+              "meanEventMs": 0.025737266225192672,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.19999998807907104,
+              "perRenderedFrameMs": 0.025737266225192672,
+              "budgetPct": 0.37300385833612565
+            },
+            "canvasPrepare": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 5.099999964237213,
+              "meanEventMs": 0.0045576407187106465,
+              "p95EventMs": 0.09999996423721313,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.0045576407187106465,
+              "budgetPct": 0.06605276403928473
+            },
+            "overlay": {
+              "scope": "frame-cpu",
+              "eventCount": 1119,
+              "totalMs": 371.39999985694885,
+              "meanEventMs": 0.3319034851268533,
+              "p95EventMs": 0.5,
+              "maximumEventMs": 1.899999976158142,
+              "perRenderedFrameMs": 0.3319034851268533,
+              "budgetPct": 4.810195436621062
+            },
+            "pickingHover": {
+              "scope": "event",
+              "eventCount": 3,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "reactReconciliation": {
+              "scope": "event",
+              "eventCount": 1119,
+              "totalMs": 68.90000063180923,
+              "meanEventMs": 0.06157283345112532,
+              "p95EventMs": 0.19999998807907104,
+              "maximumEventMs": 0.20000004768371582,
+              "perRenderedFrameMs": 0.06157283345112532,
+              "budgetPct": 0.8923599050887727
+            },
+            "propsRuntimeReconciliation": {
+              "scope": "event",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            }
+          },
+          "truncated": false
+        }
+      },
+      "final": {
+        "revision": "d6ce971b2ae7478577399ad3efa9ec9881d0c46f",
+        "averages": {
+          "cpuFrameTimeMs": 5.186189445846069,
+          "cpuFrameP95Ms": 5.600000023841858,
+          "cpuFrameOnePercentHighMs": 6.100000003973643,
+          "cpuFrameMaxMs": 9.799999992052713,
+          "displayedFps": 60.00214917827165,
+          "dragFps": 59.493926452875826,
+          "frozenFrameCount": 0,
+          "hudDifferenceMaxPct": 0,
+          "neighborLatencyFrames": 1,
+          "potentialFps": 192.82656035603353,
+          "renderMs": 0.6288335178653907,
+          "settleEnvelopeViolationCount": 0,
+          "simulationMs": 4.557355927980679,
+          "simulationStepsPerFrame": 0.999108734402852,
+          "simulationStepsPerSecond": 60.10968039593527,
+          "targetLatencyFrames": 1,
+          "teleportFrameCount": 0,
+          "settleTimeMs": 5170.299999992053,
+          "idleCpuPct": 0,
+          "heapAfterLoadBytes": 7364342.666666667,
+          "processAfterLoadBytes": 396285269.3333333,
+          "memoryAfterCyclesBytes": 396285269.3333333
+        }
+      }
+    },
+    "2.5k": {
+      "before": {
+        "revision": "3ad8cab63173533db9c51946f1b463fe9776ef0f",
+        "averages": {
+          "cpuFrameTimeMs": 9.9193420945186,
+          "cpuFrameP95Ms": 11.699999988079071,
+          "cpuFrameOnePercentHighMs": 14.399999996026358,
+          "cpuFrameMaxMs": 17.399999996026356,
+          "displayedFps": 59.45137116320607,
+          "dragFps": 58.75107047793377,
+          "frozenFrameCount": 0,
+          "hudDifferenceMaxPct": 0.40875547488803,
+          "neighborLatencyFrames": 1,
+          "potentialFps": 100.82014675667739,
+          "renderMs": 3.53233216870102,
+          "settleEnvelopeViolationCount": 0,
+          "simulationMs": 6.387009925817581,
+          "simulationStepsPerFrame": 0.9942804054467387,
+          "simulationStepsPerSecond": 59.23812443445354,
+          "targetLatencyFrames": 1,
+          "teleportFrameCount": 0,
+          "settleTimeMs": 8192.733333349228,
+          "idleCpuPct": 0.3234285757717549,
+          "heapAfterLoadBytes": 15813950.666666666,
+          "processAfterLoadBytes": 862366378.6666666,
+          "memoryAfterCyclesBytes": 862366378.6666666
+        },
+        "attribution": {
+          "schemaVersion": 1,
+          "physicsHome": "main-thread",
+          "runCount": 3,
+          "renderedFrameCount": 1400,
+          "stages": {
+            "frameTotalCpu": {
+              "scope": "frame-cpu",
+              "eventCount": 1400,
+              "totalMs": 13893.200001060963,
+              "meanEventMs": 9.923714286472116,
+              "p95EventMs": 11.899999976158142,
+              "maximumEventMs": 18.599999964237213,
+              "perRenderedFrameMs": 9.923714286472116,
+              "budgetPct": 143.8219461807553
+            },
+            "physicsStep": {
+              "scope": "frame-cpu",
+              "eventCount": 1400,
+              "totalMs": 8943.599999547005,
+              "meanEventMs": 6.388285713962146,
+              "p95EventMs": 8.399999976158142,
+              "maximumEventMs": 13.199999988079071,
+              "perRenderedFrameMs": 6.388285713962146,
+              "budgetPct": 92.58385092698762
+            },
+            "workerSimulationCpu": {
+              "scope": "worker-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "workerRoundTrip": {
+              "scope": "latency",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotApply": {
+              "scope": "host-async-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotNodeSync": {
+              "scope": "frame-cpu",
+              "eventCount": 1400,
+              "totalMs": 116.80000126361847,
+              "meanEventMs": 0.08342857233115605,
+              "p95EventMs": 0.19999998807907104,
+              "maximumEventMs": 1,
+              "perRenderedFrameMs": 0.08342857233115605,
+              "budgetPct": 1.2091097439297978
+            },
+            "interpolatorSample": {
+              "scope": "frame-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "styleCacheRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 1375,
+              "totalMs": 1789.7999993562698,
+              "meanEventMs": 1.3016727268045598,
+              "p95EventMs": 1.4000000357627869,
+              "maximumEventMs": 7.699999988079071,
+              "perRenderedFrameMs": 1.2784285709687642,
+              "budgetPct": 18.527950303895132
+            },
+            "geometryRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 2792,
+              "totalMs": 2089.5999985337257,
+              "meanEventMs": 0.7484240682427384,
+              "p95EventMs": 1.5999999642372131,
+              "maximumEventMs": 5.899999976158142,
+              "perRenderedFrameMs": 1.4925714275240898,
+              "budgetPct": 21.63146996411724
+            },
+            "gpuBufferWrites": {
+              "scope": "frame-cpu",
+              "eventCount": 6942,
+              "totalMs": 39.6000012755394,
+              "meanEventMs": 0.005704408135341314,
+              "p95EventMs": 0.09999996423721313,
+              "maximumEventMs": 0.20000004768371582,
+              "perRenderedFrameMs": 0.028285715196813856,
+              "budgetPct": 0.4099379014030994
+            },
+            "gpuEncodeSubmit": {
+              "scope": "frame-cpu",
+              "eventCount": 1400,
+              "totalMs": 42.400000154972076,
+              "meanEventMs": 0.030285714396408626,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.20000004768371582,
+              "perRenderedFrameMs": 0.030285714396408626,
+              "budgetPct": 0.4389233970494004
+            },
+            "canvasPrepare": {
+              "scope": "frame-cpu",
+              "eventCount": 1400,
+              "totalMs": 9.000000476837158,
+              "meanEventMs": 0.006428571769169398,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.006428571769169398,
+              "budgetPct": 0.0931677067995565
+            },
+            "overlay": {
+              "scope": "frame-cpu",
+              "eventCount": 1400,
+              "totalMs": 840.3000006079674,
+              "meanEventMs": 0.6002142861485481,
+              "p95EventMs": 0.7000000476837158,
+              "maximumEventMs": 5,
+              "perRenderedFrameMs": 0.6002142861485481,
+              "budgetPct": 8.698757770268813
+            },
+            "pickingHover": {
+              "scope": "event",
+              "eventCount": 3,
+              "totalMs": 0.09999996423721313,
+              "meanEventMs": 0.03333332141240438,
+              "p95EventMs": 0.09999996423721313,
+              "maximumEventMs": 0.09999996423721313,
+              "perRenderedFrameMs": 0.00007142854588372366,
+              "budgetPct": 0.0010351963171554154
+            },
+            "reactReconciliation": {
+              "scope": "event",
+              "eventCount": 1374,
+              "totalMs": 89.5999990105629,
+              "meanEventMs": 0.06521106187086091,
+              "p95EventMs": 0.19999998807907104,
+              "maximumEventMs": 1.199999988079071,
+              "perRenderedFrameMs": 0.06399999929325921,
+              "budgetPct": 0.9275362216414378
+            },
+            "propsRuntimeReconciliation": {
+              "scope": "event",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            }
+          },
+          "truncated": false
+        }
+      },
+      "afterStyleCache": {
+        "revision": "953ad1d1901d7c14960439c5199e680662a6edbb",
+        "averages": {
+          "cpuFrameTimeMs": 8.17597802730526,
+          "cpuFrameP95Ms": 9.633333345254263,
+          "cpuFrameOnePercentHighMs": 12.366666654745737,
+          "cpuFrameMaxMs": 13.166666646798452,
+          "displayedFps": 59.9572069538587,
+          "dragFps": 59.62352198550411,
+          "frozenFrameCount": 0,
+          "hudDifferenceMaxPct": 0.43006053570930614,
+          "neighborLatencyFrames": 1,
+          "potentialFps": 122.33473817804168,
+          "renderMs": 1.8877520894932338,
+          "settleEnvelopeViolationCount": 0,
+          "simulationMs": 6.288225937812026,
+          "simulationStepsPerFrame": 0.9947209498682459,
+          "simulationStepsPerSecond": 59.775895546737814,
+          "targetLatencyFrames": 1,
+          "teleportFrameCount": 0,
+          "settleTimeMs": 8187.033333341281,
+          "idleCpuPct": 0,
+          "heapAfterLoadBytes": 15814446.666666666,
+          "processAfterLoadBytes": 862426453.3333334,
+          "memoryAfterCyclesBytes": 862426453.3333334
+        },
+        "attribution": {
+          "schemaVersion": 1,
+          "physicsHome": "main-thread",
+          "runCount": 3,
+          "renderedFrameCount": 1326,
+          "stages": {
+            "frameTotalCpu": {
+              "scope": "frame-cpu",
+              "eventCount": 1326,
+              "totalMs": 10846.79999923706,
+              "meanEventMs": 8.180090497162187,
+              "p95EventMs": 10,
+              "maximumEventMs": 13.299999952316284,
+              "perRenderedFrameMs": 8.180090497162187,
+              "budgetPct": 118.55203619075631
+            },
+            "physicsStep": {
+              "scope": "frame-cpu",
+              "eventCount": 1326,
+              "totalMs": 8339.999998092651,
+              "meanEventMs": 6.289592758742573,
+              "p95EventMs": 7.899999976158142,
+              "maximumEventMs": 11.199999988079071,
+              "perRenderedFrameMs": 6.289592758742573,
+              "budgetPct": 91.15351824264597
+            },
+            "workerSimulationCpu": {
+              "scope": "worker-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "workerRoundTrip": {
+              "scope": "latency",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotApply": {
+              "scope": "host-async-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "snapshotNodeSync": {
+              "scope": "frame-cpu",
+              "eventCount": 1326,
+              "totalMs": 88.00000059604645,
+              "meanEventMs": 0.06636500799098526,
+              "p95EventMs": 0.19999998807907104,
+              "maximumEventMs": 1,
+              "perRenderedFrameMs": 0.06636500799098526,
+              "budgetPct": 0.961811710014279
+            },
+            "interpolatorSample": {
+              "scope": "frame-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "styleCacheRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "geometryRebuild": {
+              "scope": "frame-cpu",
+              "eventCount": 2638,
+              "totalMs": 1579.2000011205673,
+              "meanEventMs": 0.5986353302200786,
+              "p95EventMs": 1.300000011920929,
+              "maximumEventMs": 2.5,
+              "perRenderedFrameMs": 1.1909502270894172,
+              "budgetPct": 17.260148218687206
+            },
+            "gpuBufferWrites": {
+              "scope": "frame-cpu",
+              "eventCount": 3964,
+              "totalMs": 19.300000190734863,
+              "meanEventMs": 0.00486881942248609,
+              "p95EventMs": 0.09999996423721313,
+              "maximumEventMs": 0.19999998807907104,
+              "perRenderedFrameMs": 0.014555052934189188,
+              "budgetPct": 0.2109427961476694
+            },
+            "gpuEncodeSubmit": {
+              "scope": "frame-cpu",
+              "eventCount": 1326,
+              "totalMs": 39.29999899864197,
+              "meanEventMs": 0.029638008294601784,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.19999998807907104,
+              "perRenderedFrameMs": 0.029638008294601784,
+              "budgetPct": 0.42953635209567803
+            },
+            "canvasPrepare": {
+              "scope": "frame-cpu",
+              "eventCount": 1326,
+              "totalMs": 6.700000166893005,
+              "meanEventMs": 0.005052790472769989,
+              "p95EventMs": 0.10000002384185791,
+              "maximumEventMs": 0.10000002384185791,
+              "perRenderedFrameMs": 0.005052790472769989,
+              "budgetPct": 0.07322884743144911
+            },
+            "overlay": {
+              "scope": "frame-cpu",
+              "eventCount": 1326,
+              "totalMs": 750.3000000715256,
+              "meanEventMs": 0.565837104126339,
+              "p95EventMs": 0.699999988079071,
+              "maximumEventMs": 1.699999988079071,
+              "perRenderedFrameMs": 0.565837104126339,
+              "budgetPct": 8.200537740961435
+            },
+            "pickingHover": {
+              "scope": "event",
+              "eventCount": 3,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            },
+            "reactReconciliation": {
+              "scope": "event",
+              "eventCount": 1307,
+              "totalMs": 84.29999977350235,
+              "meanEventMs": 0.06449885216029254,
+              "p95EventMs": 0.19999998807907104,
+              "maximumEventMs": 0.30000001192092896,
+              "perRenderedFrameMs": 0.06357466046267146,
+              "budgetPct": 0.9213718907633544
+            },
+            "propsRuntimeReconciliation": {
+              "scope": "event",
+              "eventCount": 0,
+              "totalMs": 0,
+              "meanEventMs": 0,
+              "p95EventMs": 0,
+              "maximumEventMs": 0,
+              "perRenderedFrameMs": 0,
+              "budgetPct": 0
+            }
+          },
+          "truncated": false
+        }
+      },
+      "final": {
+        "revision": "d6ce971b2ae7478577399ad3efa9ec9881d0c46f",
+        "averages": {
+          "cpuFrameTimeMs": 7.953191200787043,
+          "cpuFrameP95Ms": 9.400000015894571,
+          "cpuFrameOnePercentHighMs": 12.133333345254263,
+          "cpuFrameMaxMs": 13.366666674613953,
+          "displayedFps": 59.95721240641604,
+          "dragFps": 59.60881755867834,
+          "frozenFrameCount": 0,
+          "hudDifferenceMaxPct": 0.4408774984665274,
+          "neighborLatencyFrames": 1,
+          "potentialFps": 125.75119772566802,
+          "renderMs": 1.6716263776055165,
+          "settleEnvelopeViolationCount": 0,
+          "simulationMs": 6.281564823181527,
+          "simulationStepsPerFrame": 0.9939838028073322,
+          "simulationStepsPerSecond": 59.73126386005262,
+          "targetLatencyFrames": 1,
+          "teleportFrameCount": 0,
+          "settleTimeMs": 8224.700000007948,
+          "idleCpuPct": 0.64803082817083,
+          "heapAfterLoadBytes": 15791937.333333334,
+          "processAfterLoadBytes": 847877461.3333334,
+          "memoryAfterCyclesBytes": 847877461.3333334
+        }
+      }
+    }
+  },
+  "improvements": {
+    "500": {
+      "attributedFrameMs": {
+        "before": 5.507767856972558,
+        "afterStyleCache": 5.257104558002959
+      },
+      "styleCacheMs": {
+        "before": 0.25544643002961365,
+        "afterStyleCache": 0
+      },
+      "finalFrameMs": 5.186189445846069
+    },
+    "2.5k": {
+      "attributedFrameMs": {
+        "before": 9.923714286472116,
+        "afterStyleCache": 8.180090497162187
+      },
+      "styleCacheMs": {
+        "before": 1.2784285709687642,
+        "afterStyleCache": 0
+      },
+      "geometryMs": {
+        "before": 1.4925714275240898,
+        "afterStyleCache": 1.1909502270894172
+      },
+      "finalFrameMs": 7.953191200787043,
+      "finalDominantStage": {
+        "name": "physicsStep",
+        "ms": 6.289592758742573
+      }
+    }
+  }
+}

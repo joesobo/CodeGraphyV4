@@ -3,6 +3,24 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M5",
+      "title": "Final ladder clears every CPU frame budget",
+      "summary": "Clean final three-run reports at d6ce971b measure 0.27 / 5.19 / 3.58 / 7.95 ms for tiny / 500 / 1k / 2.5k — 1.15× / 1.46× / 1.49× / 1.39× faster than M1. Potential throughput is 3,720 / 193 / 279 / 126 FPS; the 60 Hz test display presents approximately 60 FPS. Every fixture has one-frame target and neighbor response, zero freezes, teleports, and settle violations, complete imperceptible sleep, and HUD agreement within 0.45%.",
+      "timestamp": "2026-07-14T00:05:00Z"
+    },
+    {
+      "milestone": "M5",
+      "title": "Semantic style caching removes the largest render cost",
+      "summary": "Fresh attribution found false props-identity style invalidation costing 1.28 ms/frame at 2.5k. Semantic ref-backed revisions reduce 454–462 rebuilds per run to zero; typed position/edge packing then lowers geometry further. Attributed 2.5k work falls 9.92 → 8.18 ms after caching, and the final unarmed ladder reaches 7.95 ms. Physics is now the dominant 6.29 ms stage; the 2.5k stretch moved 28% toward 6.9 ms without quality-changing approximations.",
+      "timestamp": "2026-07-14T00:04:00Z"
+    },
+    {
+      "milestone": "M5",
+      "title": "Final real-editor interaction passes",
+      "summary": "VS Code 1.128.0 in editor view with Files Explorer restored records 144.53 simulation steps/s over exactly 60.00 displayed FPS, 0.36 ms active mean work, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 0.61%. The attached screenshots and GIF are final ground-truth presentation evidence.",
+      "timestamp": "2026-07-14T00:03:00Z"
+    },
+    {
       "milestone": "M4",
       "title": "Simulation is decoupled from display cadence",
       "summary": "A 144 Hz fixed-timestep accumulator now uses bounded catch-up, at most four substeps, a soft 4 ms simulation budget, and debt reset on sleep/recovery. Clean tiny runs prove decoupling: 143.72 simulation steps/s and 2.38 steps per rendered frame while presentation remains 60.00 FPS and potential throughput is 2,583 FPS. All four tiers pass with one-frame interaction, zero freezes/teleports/settle violations, complete imperceptible sleep, and 0.42% maximum HUD difference.",
@@ -117,6 +135,26 @@
       "fixture": "2.5k",
       "milestone": "M4 fixed timestep",
       "path": "references/interaction-performance/m4-fixed-timestep/2.5k.json"
+    },
+    {
+      "fixture": "tiny",
+      "milestone": "M5 final",
+      "path": "references/interaction-performance/m5-final/tiny.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M5 final",
+      "path": "references/interaction-performance/m5-final/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M5 final",
+      "path": "references/interaction-performance/m5-final/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M5 final",
+      "path": "references/interaction-performance/m5-final/2.5k.json"
     }
   ],
   "attribution": [
@@ -173,9 +211,52 @@
         "Picking / hover": 0,
         "React / props reconciliation": 0.06358695589005947
       }
+    },
+    {
+      "fixture": "500 · final cache",
+      "milestone": "M5",
+      "stages": {
+        "Main-thread physics step": 4.571581770789954,
+        "Snapshot + node sync": 0.014566577365080942,
+        "Semantic style rebuild": 0,
+        "Geometry rebuild": 0.28507595945406,
+        "GPU buffer writes + encode": 0.03547810597330252,
+        "Canvas + overlay": 0.3319034851268533,
+        "Picking / hover": 0,
+        "React / props reconciliation": 0.06157283345112532
+      }
+    },
+    {
+      "fixture": "2.5k · final cache",
+      "milestone": "M5",
+      "stages": {
+        "Main-thread physics step": 6.289592758742573,
+        "Snapshot + node sync": 0.06636500799098526,
+        "Semantic style rebuild": 0,
+        "Geometry rebuild": 1.1909502270894172,
+        "GPU buffer writes + encode": 0.0441930612294274,
+        "Canvas + overlay": 0.565837104126339,
+        "Picking / hover": 0,
+        "React / props reconciliation": 0.06357466046267146
+      }
     }
   ],
   "visuals": [
+    {
+      "caption": "M5 final real-editor drag: 144.53 simulation steps/s, one-frame neighbor response, and the honest active HUD.",
+      "kind": "image",
+      "path": "references/interaction-performance/m5-final/real-editor-drag.png"
+    },
+    {
+      "caption": "M5 final real-editor drag, hold, monotonic release, and imperceptible sleep with zero continuity defects.",
+      "kind": "gif",
+      "path": "references/interaction-performance/m5-final/real-editor-drag.gif"
+    },
+    {
+      "caption": "M5 final explicit Idle HUD after smooth settle.",
+      "kind": "image",
+      "path": "references/interaction-performance/m5-final/real-editor-idle.png"
+    },
     {
       "caption": "M4 real-editor fixed-timestep drag: 144 simulation steps/s on a 60 Hz presentation with one-frame neighbor response.",
       "kind": "image",
