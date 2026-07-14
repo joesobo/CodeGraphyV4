@@ -66,6 +66,7 @@ export interface CompletedBenchmarkRun {
       stageAttribution?: GraphStageAttributionRecording | null;
     };
     settleTimeMs: number;
+    initialSettlementObserved?: boolean;
     idleCpuPct: number;
     memory: {
       heapAfterLoadBytes: number;
