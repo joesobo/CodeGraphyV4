@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "assessmentRevision": "62b4d338bb285b96395172a1a38643f876f159d5",
+  "assessmentRevision": "fffd2ef52a8cbed3c423ab2d5151f64073d32d6a",
   "platform": "darwin-arm64",
   "host": "Poleskis-Mac-mini.local",
   "display": {
@@ -26,12 +26,12 @@
   },
   "benchmarkDisplayModes": {
     "500": {
-      "sourceRevision": "62b4d338bb285b96395172a1a38643f876f159d5",
+      "sourceRevision": "fffd2ef52a8cbed3c423ab2d5151f64073d32d6a",
       "configuredRefreshHz": 165,
       "measuredRefreshHzRange": [163.93442622951065, 166.66666666666666]
     },
     "1k": {
-      "sourceRevision": "62b4d338bb285b96395172a1a38643f876f159d5",
+      "sourceRevision": "fffd2ef52a8cbed3c423ab2d5151f64073d32d6a",
       "configuredRefreshHz": 165,
       "measuredRefreshHzRange": [163.93442622952287, 166.66666666666666]
     },
@@ -41,9 +41,9 @@
       "measuredRefreshHzRange": [144.92753623185348, 144.92753623185348]
     },
     "realEditor": {
-      "sourceRevision": "62b4d338bb285b96395172a1a38643f876f159d5",
+      "sourceRevision": "fffd2ef52a8cbed3c423ab2d5151f64073d32d6a",
       "configuredRefreshHz": 165,
-      "measuredDisplayedFps": 164.74685239753552
+      "measuredDisplayedFps": 165.00978871627976
     }
   }
 }

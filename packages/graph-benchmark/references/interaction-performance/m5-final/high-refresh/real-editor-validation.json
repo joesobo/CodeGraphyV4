@@ -1,5 +1,5 @@
 {
-  "revision": "62b4d338bb285b96395172a1a38643f876f159d5",
+  "revision": "fffd2ef52a8cbed3c423ab2d5151f64073d32d6a",
   "validation": "M5 high-refresh real-editor VS Code 1.128.0 on 165 Hz compositor",
   "editorView": true,
   "filesExplorerVisible": true,
@@ -7,53 +7,53 @@
   "neighborNodeIds": [
     "src/palette.ts"
   ],
-  "frameCount": 2065,
-  "activeFrameCount": 616,
+  "frameCount": 2180,
+  "activeFrameCount": 650,
   "inputCount": 20,
   "truncated": false,
   "activeHud": {
     "performance": {
       "status": "active",
-      "displayedFps": 163.81857895413077,
+      "displayedFps": 163.83962991518894,
       "frameTimeMs": {
-        "average": 0.24531249864958227,
-        "maximum": 0.6000000238418579,
-        "onePercentHigh": 0.6000000238418579
+        "average": 0.2289062519557774,
+        "maximum": 0.5,
+        "onePercentHigh": 0.5
       },
-      "potentialFps": 4076.4331434594146,
+      "potentialFps": 4368.600645268487,
       "renderTimeMs": {
-        "average": 0.21132812439464033,
+        "average": 0.1925781243480742,
         "maximum": 0.5,
         "onePercentHigh": 0.5
       },
       "sampleCount": 256,
       "simulationTimeMs": {
-        "average": 0.03398437425494194,
+        "average": 0.03632812760770321,
         "maximum": 0.20000004768371582,
-        "onePercentHigh": 0.1333333651224772
+        "onePercentHigh": 0.20000002781550089
       }
     },
-    "text": "Potential 4076 FPS · Displayed 164 FPS · Frame 0.25 ms avg · 0.60 ms max · 1% high 0.60 ms · Sim 0.03 ms avg · 0.20 ms max · 1% high 0.13 ms · Render 0.21 ms avg · 0.50 ms max · 1% high 0.50 ms"
+    "text": "Potential 4369 FPS · Displayed 164 FPS · Frame 0.23 ms avg · 0.50 ms max · 1% high 0.50 ms · Sim 0.04 ms avg · 0.20 ms max · 1% high 0.20 ms · Render 0.19 ms avg · 0.50 ms max · 1% high 0.50 ms"
   },
   "finalPerformance": {
     "status": "idle",
     "lastActive": {
       "status": "active",
-      "displayedFps": 162.49283119862358,
+      "displayedFps": 159.9849425936383,
       "frameTimeMs": {
-        "average": 0.2121093738824129,
-        "maximum": 0.5,
-        "onePercentHigh": 0.5
+        "average": 0.2113281232304871,
+        "maximum": 1,
+        "onePercentHigh": 0.7333333293596903
       },
-      "potentialFps": 4714.548827787168,
+      "potentialFps": 4731.977858476224,
       "renderTimeMs": {
-        "average": 0.1800781236961484,
-        "maximum": 0.5,
-        "onePercentHigh": 0.46666667858759564
+        "average": 0.18203124962747097,
+        "maximum": 1,
+        "onePercentHigh": 0.699999988079071
       },
       "sampleCount": 256,
       "simulationTimeMs": {
-        "average": 0.032031250186264515,
+        "average": 0.029296873603016138,
         "maximum": 0.19999998807907104,
         "onePercentHigh": 0.1333333452542623
       }
@@ -62,41 +62,41 @@
   "activeAssessment": {
     "timing": {
       "cpuFrameTimeMs": {
-        "mean": 0.24951298544546227,
-        "p50": 0.19999998807907104,
-        "p95": 0.5,
-        "p99": 0.6000000238418579,
-        "max": 0.6000000238418579,
-        "sampleCount": 616
-      },
-      "displayedFps": 164.74685239753552,
-      "potentialFps": 4007.807442224592,
-      "simulationStepCount": 620,
-      "simulationStepsPerFrame": 1.0064935064935066,
-      "simulationStepsPerSecond": 166.0862577015805,
-      "presentationIntervalMs": {
-        "mean": 6.069918699186991,
-        "p50": 6.099999999999909,
-        "p95": 7.199999999999818,
-        "p99": 7.5,
-        "max": 12.199999999999818,
-        "sampleCount": 615
-      },
-      "renderMs": {
-        "mean": 0.21185064780247675,
-        "p50": 0.19999998807907104,
+        "mean": 0.23523077102807852,
+        "p50": 0.20000004768371582,
         "p95": 0.40000003576278687,
         "p99": 0.5,
+        "max": 0.699999988079071,
+        "sampleCount": 650
+      },
+      "displayedFps": 165.00978871627976,
+      "potentialFps": 4251.144506432936,
+      "simulationStepCount": 651,
+      "simulationStepsPerFrame": 1.0015384615384615,
+      "simulationStepsPerSecond": 165.51829345808648,
+      "presentationIntervalMs": {
+        "mean": 6.06024653312789,
+        "p50": 6.099999999999454,
+        "p95": 7.399999999999636,
+        "p99": 7.599999999999909,
+        "max": 7.600000000000136,
+        "sampleCount": 649
+      },
+      "renderMs": {
+        "mean": 0.20107692397557772,
+        "p50": 0.19999998807907104,
+        "p95": 0.3999999761581421,
+        "p99": 0.5,
         "max": 0.6000000238418579,
-        "sampleCount": 616
+        "sampleCount": 650
       },
       "simulationMs": {
-        "mean": 0.0376623376429855,
+        "mean": 0.034153847052500796,
         "p50": 0,
         "p95": 0.10000002384185791,
-        "p99": 0.19999998807907104,
+        "p99": 0.10000002384185791,
         "max": 0.20000004768371582,
-        "sampleCount": 616
+        "sampleCount": 650
       }
     },
     "interaction": {
@@ -128,11 +128,11 @@
     },
     "hudAgreement": {
       "differencesPct": {
-        "displayedFps": 0.7387896697931972,
-        "frameTimeAverage": 2.847355649703433e-7,
-        "potentialFps": 2.8473556862355173e-7,
-        "renderAverage": 2.203498884095832e-7,
-        "simulationAverage": 6.851108698135403e-7
+        "displayedFps": 0.7067591878693874,
+        "frameTimeAverage": 1.0135135448070403,
+        "potentialFps": 1.0238908169205732,
+        "renderAverage": 1.3999999811649322,
+        "simulationAverage": 1.0869560499160096
       },
       "sampleCount": 256,
       "withinTenPercent": true
@@ -150,41 +150,41 @@
   "fullAssessment": {
     "timing": {
       "cpuFrameTimeMs": {
-        "mean": 0.18886198463509216,
+        "mean": 0.18495412873565603,
         "p50": 0.19999998807907104,
         "p95": 0.3999999761581421,
         "p99": 0.5,
-        "max": 0.6000000238418579,
-        "sampleCount": 2065
+        "max": 1,
+        "sampleCount": 2180
       },
-      "displayedFps": 164.92868272803548,
-      "potentialFps": 5294.871818339409,
-      "simulationStepCount": 875,
-      "simulationStepsPerFrame": 0.423728813559322,
-      "simulationStepsPerSecond": 69.91889408286387,
+      "displayedFps": 165.0007572315614,
+      "potentialFps": 5406.746023113876,
+      "simulationStepCount": 906,
+      "simulationStepsPerFrame": 0.41559633027522935,
+      "simulationStepsPerSecond": 68.60517946388005,
       "presentationIntervalMs": {
-        "mean": 6.063226744186046,
-        "p50": 6.099999999999454,
-        "p95": 7.100000000000364,
+        "mean": 6.0605782469022484,
+        "p50": 6.099999999998545,
+        "p95": 7.100000000000136,
         "p99": 7.5,
-        "max": 12.199999999999818,
-        "sampleCount": 2064
+        "max": 7.600000000000136,
+        "sampleCount": 2179
       },
       "renderMs": {
-        "mean": 0.17181597991370692,
+        "mean": 0.169541284633339,
         "p50": 0.19999998807907104,
         "p95": 0.30000001192092896,
         "p99": 0.40000003576278687,
-        "max": 0.6000000238418579,
-        "sampleCount": 2065
+        "max": 1,
+        "sampleCount": 2180
       },
       "simulationMs": {
-        "mean": 0.017046004721385226,
+        "mean": 0.01541284410231704,
         "p50": 0,
         "p95": 0.10000002384185791,
         "p99": 0.10000002384185791,
         "max": 0.20000004768371582,
-        "sampleCount": 2065
+        "sampleCount": 2180
       }
     },
     "interaction": {
@@ -207,8 +207,8 @@
       "teleportFrameCount": 0
     },
     "settle": {
-      "durationMs": 8778.70000001192,
-      "energyAtSleep": 0.000015248618505567165,
+      "durationMs": 9268.099999964237,
+      "energyAtSleep": 0.000015215073839870476,
       "envelopeViolationCount": 0,
       "maximumLateIncreaseRatio": 1,
       "monotonicEnvelope": true,

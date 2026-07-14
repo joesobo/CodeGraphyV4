@@ -5,7 +5,7 @@
     {
       "milestone": "M5",
       "title": "High-refresh presentation gate verified",
-      "summary": "Headed, vsynced runs on a compositor-backed 165 Hz macOS display measure 161.45 displayed FPS at 500, 164.27 at 1k, and 70.00 at 2.5k, closing both the 144 FPS and sustained 60 FPS gates. Real VS Code independently presents 164.75 FPS with one-frame target/neighbor response, zero freezes or teleports, monotonic settle, imperceptible sleep, and HUD agreement within 0.74%. The display is explicitly documented as virtual because the attached physical panel is limited to 60 Hz; no browser frame-rate or vsync bypass flags were used.",
+      "summary": "Headed, vsynced runs on a compositor-backed 165 Hz macOS display measure 161.35 displayed FPS at 500, 163.93 at 1k, and 70.00 at 2.5k, closing both the 144 FPS and sustained 60 FPS gates. Each 500/1k run records one-frame target and neighbor response after correcting the latency boundary to actual input-handler order. Real VS Code independently presents 165.01 FPS with one-frame target/neighbor response, zero freezes or teleports, monotonic settle, imperceptible sleep, and HUD agreement within 1.40%. The display is explicitly documented as virtual because the attached physical panel is limited to 60 Hz; no browser frame-rate or vsync bypass flags were used.",
       "timestamp": "2026-07-14T01:11:00Z"
     },
     {
@@ -249,7 +249,7 @@
   ],
   "visuals": [
     {
-      "caption": "M5 high-refresh real-editor drag: the active HUD presents 164 FPS on the 165 Hz compositor with one-frame target and neighbor response.",
+      "caption": "M5 high-refresh real-editor drag: the active HUD presents 165 FPS on the 165 Hz compositor with one-frame target and neighbor response.",
       "kind": "image",
       "path": "references/interaction-performance/m5-final/high-refresh/real-editor-drag.png"
     },
