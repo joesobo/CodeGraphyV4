@@ -354,7 +354,7 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(getFileStat).toHaveBeenCalledWith('/workspace/src/a.ts');
   });
 
-  it('delegates graph building helpers with cache, context, and registry state', () => {
+  it('delegates graph building helpers with cache and registry state', () => {
     const source = new TestInternalBase();
     const fileConnections = new Map([['src/a.ts', [{ from: 'a', to: 'b' }]]]);
     const fileAnalysis = new Map([['src/a.ts', { filePath: 'src/a.ts' }]]);
@@ -372,7 +372,6 @@ describe('extension/pipeline/service/internalBase', () => {
     });
     expect(buildWorkspacePipelineGraph).toHaveBeenCalledWith(
       source._cache,
-      expect.any(Object),
       source._registry,
       fileConnections,
       '/workspace',
@@ -395,7 +394,6 @@ describe('extension/pipeline/service/internalBase', () => {
     });
     expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenCalledWith(
       source._cache,
-      expect.any(Object),
       source._registry,
       fileAnalysis,
       '/workspace',

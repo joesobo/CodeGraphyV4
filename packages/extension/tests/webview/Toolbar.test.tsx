@@ -112,12 +112,12 @@ describe('Toolbar', () => {
     ]);
   });
 
-  it('sends UPDATE_NODE_SIZE_MODE for churn', async () => {
+  it('sends UPDATE_NODE_SIZE_MODE for File Size', async () => {
     render(<Toolbar />);
     fireEvent.click(screen.getByTitle('Node Size'));
-    fireEvent.click(await screen.findByRole('button', { name: /Churn/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /File Size/i }));
 
-    expect(findMessage('UPDATE_NODE_SIZE_MODE')?.payload.nodeSizeMode).toBe('churn');
+    expect(findMessage('UPDATE_NODE_SIZE_MODE')?.payload.nodeSizeMode).toBe('file-size');
   });
 
   it('opens graph-local panels from the rail buttons', () => {

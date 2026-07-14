@@ -100,9 +100,6 @@ export interface IGraphNode {
   /** File size in bytes. Used for 'file-size' node sizing mode. */
   fileSize?: number;
 
-  /** Number of Git history touches used for 'churn' node sizing mode. */
-  churn?: number;
-
   /**
    * Distance from the focused node when depth mode is active.
    * 0 = the focused node, 1 = direct neighbors, 2 = two hops away, etc.

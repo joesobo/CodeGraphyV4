@@ -31,7 +31,6 @@ export function buildSymbolNodesAndEdges(
   workspaceRoot: string,
   options: {
     cacheFiles?: Record<string, { size?: number }>;
-    churnCounts?: Record<string, number>;
     gitIgnoredPaths?: readonly string[];
   } = {},
 ): { containingFileIds: Set<string>; edges: IGraphEdge[]; nodes: IGraphNode[] } {
@@ -47,7 +46,6 @@ export function buildSymbolNodesAndEdges(
     const relativeFilePath = toRepoRelativeGraphPath(filePath, workspaceRoot);
     const containingFile = createContainingFileMetadata(relativeFilePath, {
       cacheFiles: options.cacheFiles,
-      churnCounts: options.churnCounts,
       gitIgnoredPathSet,
     });
 
@@ -95,13 +93,11 @@ function createContainingFileMetadata(
   relativeFilePath: string,
   options: {
     cacheFiles: Record<string, { size?: number }> | undefined;
-    churnCounts: Record<string, number> | undefined;
     gitIgnoredPathSet: ReadonlySet<string>;
   },
-): { churn: number; fileSize?: number; gitIgnored: boolean } {
+): { fileSize?: number; gitIgnored: boolean } {
   return {
     fileSize: options.cacheFiles?.[relativeFilePath]?.size,
-    churn: options.churnCounts?.[relativeFilePath] ?? 0,
     gitIgnored: options.gitIgnoredPathSet.has(relativeFilePath),
   };
 }

@@ -78,11 +78,10 @@ describe('graph view provider bootstrap helper', () => {
     expect(onDecorationsChanged).toHaveBeenCalledOnce();
   });
 
-  it('restores persisted modes', () => {
+  it('restores a current persisted node size mode', () => {
     const configuration = {
       get<T>(key: string, defaultValue: T): T {
-        if (key === 'dag') return 'horizontal' as T;
-        if (key === 'size') return 'churn' as T;
+        if (key === 'size') return 'file-size' as T;
         return defaultValue;
       },
     };
@@ -96,7 +95,7 @@ describe('graph view provider bootstrap helper', () => {
       }),
     ).toEqual({
       depthMode: false,
-      nodeSizeMode: 'churn',
+      nodeSizeMode: 'file-size',
     });
   });
 
@@ -118,15 +117,12 @@ describe('graph view provider bootstrap helper', () => {
     });
   });
 
-  it('migrates the old access-count node size mode to churn', () => {
+  it.each(['access-count', 'churn', 'uniform', 'unexpected'])('%s falls back to Connections', (persistedMode) => {
     expect(
       restoreGraphViewProviderState({
         configuration: {
           get<T>(key: string, defaultValue: T): T {
-            if (key === 'size') {
-              return 'access-count' as T;
-            }
-            return defaultValue;
+            return key === 'size' ? persistedMode as T : defaultValue;
           },
         },
         nodeSizeModeKey: 'size',
@@ -135,7 +131,7 @@ describe('graph view provider bootstrap helper', () => {
       }),
     ).toEqual({
       depthMode: false,
-      nodeSizeMode: 'churn',
+      nodeSizeMode: 'connections',
     });
   });
 

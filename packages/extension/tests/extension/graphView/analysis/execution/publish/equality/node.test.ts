@@ -25,11 +25,11 @@ describe('extension/graphView/analysis/execution/publish/equality/node', () => {
     expect(areNodesEqualIgnoringMetrics(node, node)).toBe(true);
   });
 
-  it('ignores file size and churn metric differences', () => {
+  it('ignores file size metric differences', () => {
     expect(
       areNodesEqualIgnoringMetrics(
-        createNode({ churn: 1, fileSize: 10 }),
-        createNode({ churn: 4, fileSize: 20 }),
+        createNode({ fileSize: 10 }),
+        createNode({ fileSize: 20 }),
       ),
     ).toBe(true);
   });

@@ -1,26 +1,16 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
-import { DEFAULT_NODE_SIZE } from '../node/display';
 
-export const MIN_NODE_SIZE = 10;
-export const MAX_NODE_SIZE = 40;
+export const MIN_NODE_SIZE = 8;
+export const MAX_NODE_SIZE = 30;
 
-/** Returns sizes where every node has the default uniform size. */
-export function computeUniformSizes(nodes: IGraphNode[]): Map<string, number> {
-  const sizes = new Map<string, number>();
-  for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
-  return sizes;
-}
-
-const OBSIDIAN_MIN_CONNECTION_SIZE = 8;
-const OBSIDIAN_MAX_CONNECTION_SIZE = 30;
 const OBSIDIAN_CONNECTION_SCALE = 3;
 
 function obsidianConnectionSize(relatedNodeCount: number): number {
   return Math.max(
-    OBSIDIAN_MIN_CONNECTION_SIZE,
+    MIN_NODE_SIZE,
     Math.min(
       OBSIDIAN_CONNECTION_SCALE * Math.sqrt(relatedNodeCount + 1),
-      OBSIDIAN_MAX_CONNECTION_SIZE,
+      MAX_NODE_SIZE,
     ),
   );
 }

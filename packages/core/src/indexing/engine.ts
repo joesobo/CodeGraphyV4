@@ -112,7 +112,6 @@ function buildWorkspaceEngineGraph(
 
   state.graph = buildWorkspacePipelineGraphFromAnalysis({
     cacheFiles: state.cache.files,
-    churnCounts: {},
     directoryPaths: state.discoveredDirectories,
     gitIgnoredPaths: state.discoveryResult.gitIgnoredPaths ?? [],
     disabledPlugins,

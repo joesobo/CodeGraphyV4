@@ -149,19 +149,6 @@ describe('node sizing', () => {
     expect(container.querySelector('div')).toBeInTheDocument();
   });
 
-  it('should render graph with nodeSizeMode uniform', () => {
-    const data: IGraphData = {
-      nodes: [
-        { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
-        { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
-      ],
-      edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' , kind: 'import', sources: [] }],
-    };
-    graphStore.setState({ nodeSizeMode: 'uniform' });
-    const { container } = render(<Graph data={data} />);
-    expect(container.querySelector('div')).toBeInTheDocument();
-  });
-
   it('should render graph with nodeSizeMode file-size', () => {
     const data: IGraphData = {
       nodes: [
@@ -188,24 +175,12 @@ describe('node sizing', () => {
     expect(container.querySelector('div')).toBeInTheDocument();
   });
 
-  it('should handle churn mode', () => {
-    const data: IGraphData = {
-      nodes: [
-        { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
-        { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
-      ],
-      edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' , kind: 'import', sources: [] }],
-    };
-    graphStore.setState({ nodeSizeMode: 'churn' });
-    const { container } = render(<Graph data={data} />);
-    expect(container.querySelector('div')).toBeInTheDocument();
-  });
 });
 
 describe('Export Functionality', () => {
   const mockData: IGraphData = {
     nodes: [
-      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', fileSize: 1234, churn: 5 },
+      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', fileSize: 1234 },
       { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9', fileSize: 567 },
     ],
     edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],

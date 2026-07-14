@@ -1,8 +1,6 @@
 import React from 'react';
 import {
-  mdiChartLine,
   mdiCheck,
-  mdiCircleMultipleOutline,
   mdiFileOutline,
   mdiHubOutline,
 } from '@mdi/js';
@@ -24,8 +22,6 @@ type NodeSizeModeOption = {
 const NODE_SIZE_MODES: NodeSizeModeOption[] = [
   { mode: 'connections', label: 'Connections', icon: mdiHubOutline },
   { mode: 'file-size', label: 'File Size', icon: mdiFileOutline },
-  { mode: 'churn', label: 'Churn', icon: mdiChartLine },
-  { mode: 'uniform', label: 'Uniform', icon: mdiCircleMultipleOutline },
 ];
 
 function getActiveNodeSizeMode(mode: NodeSizeMode): NodeSizeModeOption {

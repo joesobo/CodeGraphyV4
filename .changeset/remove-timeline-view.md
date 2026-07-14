@@ -4,4 +4,4 @@
 "@codegraphy-dev/extension": minor
 ---
 
-Remove Timeline and Graph Revision playback. CodeGraphy now opens one current-workspace graph surface, while Churn remains available as an independent node-size mode.
+Remove Timeline, Graph Revision playback, and Git-history Churn sizing. CodeGraphy now opens one current-workspace graph surface and sizes nodes by Connections or File Size.

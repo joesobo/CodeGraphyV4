@@ -3,7 +3,7 @@ import { DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import { buildWorkspaceGraphNodes } from '../../src/graph/nodes';
 
 describe('core/graph/nodes', () => {
-  it('builds nodes with labels, sizes, and churn counts', () => {
+  it('builds nodes with labels and file sizes', () => {
     const nodes = buildWorkspaceGraphNodes({
       cacheFiles: {
         'src/index.ts': { size: 12 },
@@ -12,9 +12,6 @@ describe('core/graph/nodes', () => {
       connectedIds: new Set<string>(['src/index.ts']),
       nodeIds: new Set<string>(['src/index.ts', 'src/utils.ts']),
       showOrphans: true,
-      churnCounts: {
-        'src/index.ts': 3,
-      },
     });
 
     expect(nodes).toEqual([
@@ -23,14 +20,12 @@ describe('core/graph/nodes', () => {
         label: 'index.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 12,
-        churn: 3,
       },
       {
         id: 'src/utils.ts',
         label: 'utils.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 7,
-        churn: 0,
       },
     ]);
   });
@@ -41,7 +36,6 @@ describe('core/graph/nodes', () => {
       connectedIds: new Set<string>(['src/index.ts']),
       nodeIds: new Set<string>(['src/index.ts', 'src/orphan.ts']),
       showOrphans: false,
-      churnCounts: {},
     });
 
     expect(nodes).toEqual([
@@ -50,7 +44,6 @@ describe('core/graph/nodes', () => {
         label: 'index.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: undefined,
-        churn: 0,
       },
     ]);
   });
@@ -60,7 +53,6 @@ describe('core/graph/nodes', () => {
       cacheFiles: {
         'generated/output.ts': { size: 12 },
       },
-      churnCounts: {},
       connectedIds: new Set<string>(),
       directoryPaths: ['generated'],
       gitIgnoredPaths: ['generated', 'generated/output.ts'],

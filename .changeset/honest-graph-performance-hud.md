@@ -2,4 +2,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Show a compact, continuously updating potential FPS, displayed FPS, and average frame-time HUD; size related nodes with Obsidian's stable square-root curve; and align the default force layout with D3 behavior.
+Show a compact, continuously updating graph-performance HUD; keep one D3-style force layout; and offer only Connections and File Size node sizing in a shared Obsidian-derived 8–30 radius range.

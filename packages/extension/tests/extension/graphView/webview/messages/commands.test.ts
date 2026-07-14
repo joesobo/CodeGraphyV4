@@ -83,11 +83,11 @@ describe('graph view command message', () => {
     const handlers = createHandlers();
 
     const handled = await applyCommandMessage(
-      { type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: 'uniform' } },
+      { type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: 'connections' } },
       handlers,
     );
 
-    expect(handlers.updateNodeSizeMode).toHaveBeenCalledWith('uniform');
+    expect(handlers.updateNodeSizeMode).toHaveBeenCalledWith('connections');
     expect(handled).toBe(true);
   });
 

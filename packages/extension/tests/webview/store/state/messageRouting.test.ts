@@ -238,7 +238,7 @@ describe('GraphStore message routing', () => {
           ],
         },
       ],
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
     });
 
     store.getState().handleExtensionMessage({
@@ -274,16 +274,16 @@ describe('GraphStore message routing', () => {
         ],
       },
     ]);
-    expect(store.getState().nodeSizeMode).toBe('uniform');
+    expect(store.getState().nodeSizeMode).toBe('connections');
   });
 
   it('handles NODE_SIZE_MODE_UPDATED messages', () => {
     store.getState().handleExtensionMessage({
       type: 'NODE_SIZE_MODE_UPDATED',
-      payload: { nodeSizeMode: 'churn' },
+      payload: { nodeSizeMode: 'file-size' },
     });
 
-    expect(store.getState().nodeSizeMode).toBe('churn');
+    expect(store.getState().nodeSizeMode).toBe('file-size');
   });
 
 });

@@ -30,7 +30,6 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: {},
         filePaths: [],
         fileSizes: {},
         graphData,
@@ -43,7 +42,6 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: { 'src/other.ts': 4 },
         filePaths: ['src/other.ts'],
         fileSizes: { 'src/other.ts': { size: 64 } },
         graphData,
@@ -54,12 +52,11 @@ describe('extension/pipeline/service/refresh/metrics', () => {
   it('patches matching node metrics while preserving unchanged nodes', () => {
     const unchangedNode = createNode({ id: 'src/unchanged.ts', label: 'unchanged.ts' });
     const graphData = createGraph([
-      createNode({ id: 'src\\a.ts', fileSize: 12, churn: 1 }),
+      createNode({ id: 'src\\a.ts', fileSize: 12 }),
       unchangedNode,
     ]);
 
     const patchedGraph = patchGraphDataNodeMetrics({
-      churnCounts: { 'src/a.ts': 4 },
       filePaths: ['src\\a.ts'],
       fileSizes: { 'src/a.ts': { size: 64 } },
       graphData,
@@ -67,7 +64,7 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
     expect(patchedGraph).not.toBe(graphData);
     expect(patchedGraph.nodes).toEqual([
-      createNode({ id: 'src\\a.ts', fileSize: 64, churn: 4 }),
+      createNode({ id: 'src\\a.ts', fileSize: 64 }),
       unchangedNode,
     ]);
     expect(patchedGraph.nodes[1]).toBe(unchangedNode);
@@ -89,7 +86,6 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: { 'src/users.ts': 7 },
         filePaths: ['src/users.ts'],
         fileSizes: { 'src/users.ts': { size: 128 } },
         graphData,
@@ -98,7 +94,6 @@ describe('extension/pipeline/service/refresh/metrics', () => {
       id: 'symbol:loadUser',
       nodeType: 'symbol',
       fileSize: 128,
-      churn: 7,
       symbol: {
         id: 'symbol:loadUser',
         name: 'loadUser',
@@ -123,14 +118,12 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: { 'src/a.ts': 3 },
         filePaths: ['src/a.ts'],
         fileSizes: { 'src/a.ts': { size: 20 } },
         graphData,
       }).nodes[0],
     ).toEqual(createNode({
       fileSize: 20,
-      churn: 3,
       symbol: {
         id: 'symbol:a',
         name: 'a',
@@ -141,11 +134,10 @@ describe('extension/pipeline/service/refresh/metrics', () => {
   });
 
   it('returns the same graph when matching metrics are unchanged', () => {
-    const graphData = createGraph([createNode({ fileSize: 64, churn: 2 })]);
+    const graphData = createGraph([createNode({ fileSize: 64 })]);
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: { 'src/a.ts': 2 },
         filePaths: ['src/a.ts'],
         fileSizes: { 'src/a.ts': { size: 64 } },
         graphData,
@@ -155,13 +147,12 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
   it('patches when only one metric changes', () => {
     const graphData = createGraph([
-      createNode({ id: 'src/size.ts', label: 'size.ts', fileSize: 10, churn: 2 }),
-      createNode({ id: 'src/churn.ts', label: 'churn.ts', fileSize: 20, churn: 1 }),
+      createNode({ id: 'src/size.ts', label: 'size.ts', fileSize: 10 }),
+      createNode({ id: 'src/churn.ts', label: 'churn.ts', fileSize: 20 }),
     ]);
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: { 'src/size.ts': 2, 'src/churn.ts': 5 },
         filePaths: ['src/size.ts', 'src/churn.ts'],
         fileSizes: {
           'src/size.ts': { size: 16 },
@@ -170,20 +161,19 @@ describe('extension/pipeline/service/refresh/metrics', () => {
         graphData,
       }).nodes,
     ).toEqual([
-      createNode({ id: 'src/size.ts', label: 'size.ts', fileSize: 16, churn: 2 }),
-      createNode({ id: 'src/churn.ts', label: 'churn.ts', fileSize: 20, churn: 5 }),
+      createNode({ id: 'src/size.ts', label: 'size.ts', fileSize: 16 }),
+      createNode({ id: 'src/churn.ts', label: 'churn.ts', fileSize: 20 }),
     ]);
   });
 
   it('preserves unchanged matched nodes when another matched node changes', () => {
     const graphData = createGraph([
-      createNode({ id: 'src/stable.ts', label: 'stable.ts', fileSize: 10, churn: 2 }),
-      createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 20, churn: 1 }),
+      createNode({ id: 'src/stable.ts', label: 'stable.ts', fileSize: 10 }),
+      createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 20 }),
     ]);
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: { 'src/stable.ts': 2, 'src/changed.ts': 5 },
         filePaths: ['src/stable.ts', 'src/changed.ts'],
         fileSizes: {
           'src/stable.ts': { size: 10 },
@@ -192,8 +182,8 @@ describe('extension/pipeline/service/refresh/metrics', () => {
         graphData,
       }).nodes,
     ).toEqual([
-      createNode({ id: 'src/stable.ts', label: 'stable.ts', fileSize: 10, churn: 2 }),
-      createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 20, churn: 5 }),
+      createNode({ id: 'src/stable.ts', label: 'stable.ts', fileSize: 10 }),
+      createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 20 }),
     ]);
   });
 
@@ -202,11 +192,10 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
     expect(
       patchGraphDataNodeMetrics({
-        churnCounts: {},
         filePaths: ['src/a.ts'],
         fileSizes: {},
         graphData,
       }).nodes[0],
-    ).toEqual(createNode({ fileSize: undefined, churn: 0 }));
+    ).toEqual(createNode({ fileSize: undefined }));
   });
 });

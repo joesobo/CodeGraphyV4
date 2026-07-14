@@ -6,8 +6,8 @@ describe('graph/model/build', () => {
   it('builds nodes and links from the graph data options', () => {
     const data: IGraphData = {
       nodes: [
-        { id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0, churn: 1 },
-        { id: 'favorite.ts', label: 'favorite.ts', color: '#80c0ff', churn: 5 },
+        { id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0 },
+        { id: 'favorite.ts', label: 'favorite.ts', color: '#80c0ff' },
       ],
       edges: [
         { id: 'focus.ts->favorite.ts', from: 'focus.ts', to: 'favorite.ts' , kind: 'import', sources: [] },
@@ -17,14 +17,14 @@ describe('graph/model/build', () => {
 
     const graphData = buildGraphData({
       data,
-      nodeSizeMode: 'churn',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(['favorite.ts']),
       bidirectionalMode: 'combined',
     });
 
-    expect(graphData.nodes.find(node => node.id === 'focus.ts')?.size).toBe(20.8);
-    expect(graphData.nodes.find(node => node.id === 'favorite.ts')?.size).toBe(40);
+    expect(graphData.nodes.find(node => node.id === 'focus.ts')?.size).toBe(10.4);
+    expect(graphData.nodes.find(node => node.id === 'favorite.ts')?.size).toBe(8);
     expect(graphData.links).toEqual([
       expect.objectContaining({
         id: 'favorite.ts<->focus.ts#import',
@@ -34,4 +34,32 @@ describe('graph/model/build', () => {
     ]);
   });
 
+  it('keeps focused nodes within the shared semantic size range', () => {
+    const leaves = Array.from({ length: 100 }, (_, index) => ({
+      id: `leaf-${index}.ts`,
+      label: `leaf-${index}.ts`,
+      color: '#80c0ff',
+    }));
+    const graphData = buildGraphData({
+      data: {
+        nodes: [
+          { id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0 },
+          ...leaves,
+        ],
+        edges: leaves.map(leaf => ({
+          id: `focus.ts->${leaf.id}`,
+          from: 'focus.ts',
+          to: leaf.id,
+          kind: 'import',
+          sources: [],
+        })),
+      },
+      nodeSizeMode: 'connections',
+      theme: 'dark',
+      favorites: new Set(),
+      bidirectionalMode: 'combined',
+    });
+
+    expect(graphData.nodes.find(node => node.id === 'focus.ts')?.size).toBe(30);
+  });
 });

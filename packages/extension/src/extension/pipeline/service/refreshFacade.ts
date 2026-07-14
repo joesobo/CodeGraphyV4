@@ -1,5 +1,4 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
-import { readCachedChurn } from '../../churn/cache';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
 import { refreshAnalysisScopeForFacade } from './refresh/modes/analysisScope';
 import { refreshChangedFilesForFacade } from './refresh/modes/changedFiles';
@@ -14,7 +13,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     filePaths: readonly string[],
   ): IGraphData {
     return patchGraphDataNodeMetrics({
-      churnCounts: readCachedChurn(this._context.workspaceState) ?? {},
       filePaths,
       fileSizes: this._cache.files,
       graphData,

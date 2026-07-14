@@ -26,29 +26,28 @@ describe('extension/graphView/analysis/execution/publish/metrics/updates', () =>
     ]));
   });
 
-  it('returns metric patches for changed file size and churn values', () => {
+  it('returns metric patches for changed file sizes', () => {
     expect(
       collectMetricOnlyGraphUpdates(
         [
-          createNode({ id: 'src/a.ts', fileSize: 10, churn: 1 }),
-          createNode({ id: 'src/b.ts', fileSize: 20, churn: 2 }),
+          createNode({ id: 'src/a.ts', fileSize: 10 }),
+          createNode({ id: 'src/b.ts', fileSize: 20 }),
         ],
         createNodeMap([
-          createNode({ id: 'src/a.ts', fileSize: 15, churn: 1 }),
-          createNode({ id: 'src/b.ts', fileSize: 20, churn: 3 }),
+          createNode({ id: 'src/a.ts', fileSize: 15 }),
+          createNode({ id: 'src/b.ts', fileSize: 20 }),
         ]),
       ),
     ).toEqual([
-      { id: 'src/a.ts', fileSize: 15, churn: 1 },
-      { id: 'src/b.ts', fileSize: 20, churn: 3 },
+      { id: 'src/a.ts', fileSize: 15 },
     ]);
   });
 
   it('returns undefined when no node metrics changed', () => {
     expect(
       collectMetricOnlyGraphUpdates(
-        [createNode({ fileSize: 10, churn: 1 })],
-        createNodeMap([createNode({ fileSize: 10, churn: 1 })]),
+        [createNode({ fileSize: 10 })],
+        createNodeMap([createNode({ fileSize: 10 })]),
       ),
     ).toBeUndefined();
   });
@@ -65,8 +64,8 @@ describe('extension/graphView/analysis/execution/publish/metrics/updates', () =>
   it('returns undefined when a changed node has non-metric differences', () => {
     expect(
       collectMetricOnlyGraphUpdates(
-        [createNode({ fileSize: 10, churn: 1 })],
-        createNodeMap([createNode({ label: 'renamed.ts', fileSize: 15, churn: 1 })]),
+        [createNode({ fileSize: 10 })],
+        createNodeMap([createNode({ label: 'renamed.ts', fileSize: 15 })]),
       ),
     ).toBeUndefined();
   });

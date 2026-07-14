@@ -79,7 +79,7 @@ function createOptions(
     edgeDecorations: undefined,
     favorites: new Set<string>(['src/alpha.ts']),
     nodeDecorations: undefined,
-    nodeSizeMode: 'uniform',
+    nodeSizeMode: 'connections',
     showLabels: true,
     theme: 'dark',
     ...overrides,
@@ -188,7 +188,7 @@ describe('graph/runtime/useGraphRuntime', () => {
   it('rebuilds graph data when node sizing changes and preserves positions', () => {
     const firstGraph = createBuiltGraph('alpha', 10);
     const secondGraph = createBuiltGraph('alpha', 30);
-    const initialOptions = createOptions({ nodeSizeMode: 'uniform' });
+    const initialOptions = createOptions({ nodeSizeMode: 'connections' });
     graphStateHarness.buildGraphData
       .mockReturnValueOnce(firstGraph)
       .mockReturnValueOnce(secondGraph);

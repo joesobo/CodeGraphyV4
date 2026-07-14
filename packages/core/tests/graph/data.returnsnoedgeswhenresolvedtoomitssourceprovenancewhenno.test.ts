@@ -32,7 +32,6 @@ describe('core/graph/data', () => {
           ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' }]],
         ]),
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.typescript'),
       });
@@ -54,7 +53,6 @@ describe('core/graph/data', () => {
           ['src/utils.ts', []],
         ]),
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.typescript'),
       });
@@ -96,7 +94,6 @@ describe('core/graph/data', () => {
           ['src/app.ts', []],
         ]),
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.typescript'),
       });
@@ -107,7 +104,6 @@ describe('core/graph/data', () => {
           label: 'app.ts',
           color: DEFAULT_NODE_COLOR,
           fileSize: 10,
-          churn: 0,
         },
         {
           id: 'src/new-folder',
@@ -129,7 +125,6 @@ describe('core/graph/data', () => {
           ['src/utils.ts', []],
         ]),
         showOrphans: true,
-        churnCounts: {},
         workspaceRoot: '/workspace',
         getPluginForFile: () => undefined,
       });

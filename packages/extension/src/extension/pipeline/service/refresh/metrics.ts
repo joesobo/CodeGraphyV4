@@ -6,7 +6,6 @@ interface GraphMetricPatchResult {
 }
 
 interface PatchGraphDataNodeMetricsInput {
-  churnCounts: Record<string, number>;
   filePaths: readonly string[];
   fileSizes: Record<string, { size?: number } | undefined>;
   graphData: IGraphData;
@@ -52,10 +51,9 @@ function patchGraphDataNodeMetric(
   }
 
   const fileSize = input.fileSizes[filePath]?.size;
-  const churn = input.churnCounts[filePath] ?? 0;
-  if (node.fileSize === fileSize && node.churn === churn) {
+  if (node.fileSize === fileSize) {
     return { changed: false, node };
   }
 
-  return { changed: true, node: { ...node, fileSize, churn } };
+  return { changed: true, node: { ...node, fileSize } };
 }

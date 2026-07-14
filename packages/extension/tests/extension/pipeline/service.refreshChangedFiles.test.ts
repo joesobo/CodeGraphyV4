@@ -251,7 +251,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
         label: 'keep.ts',
         color: '#A1A1AA',
         fileSize: undefined,
-        churn: 0,
       }],
       edges: [],
     });

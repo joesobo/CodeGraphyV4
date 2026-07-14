@@ -257,7 +257,6 @@ describe('graph view analysis execution publish', () => {
         label: 'index.ts',
         color: '#ffffff',
         fileSize: 100,
-        churn: 1,
       }],
       edges: [],
     };
@@ -267,7 +266,6 @@ describe('graph view analysis execution publish', () => {
         label: 'index.ts',
         color: '#ffffff',
         fileSize: 120,
-        churn: 2,
       }],
       edges: [],
     };
@@ -302,7 +300,6 @@ describe('graph view analysis execution publish', () => {
         label: 'index.ts',
         color: '#ffffff',
         fileSize: 100,
-        churn: 1,
       }],
       edges: [],
     };
@@ -312,7 +309,6 @@ describe('graph view analysis execution publish', () => {
         label: 'index.ts',
         color: '#ffffff',
         fileSize: 120,
-        churn: 2,
       }],
       edges: [],
     };
@@ -336,7 +332,7 @@ describe('graph view analysis execution publish', () => {
     publishAnalyzedGraph(state, handlers, nextGraphData, true);
 
     expect(sendGraphNodeMetricsUpdated).toHaveBeenCalledWith([
-      { id: 'src/index.ts', fileSize: 120, churn: 2 },
+      { id: 'src/index.ts', fileSize: 120 },
     ]);
     expect(handlers.sendGraphDataUpdated).not.toHaveBeenCalled();
   });
@@ -348,7 +344,6 @@ describe('graph view analysis execution publish', () => {
         label: 'index.ts',
         color: '#ffffff',
         fileSize: 100,
-        churn: 1,
       }],
       edges: [],
     };
@@ -358,7 +353,6 @@ describe('graph view analysis execution publish', () => {
         label: 'index.ts',
         color: '#ffffff',
         fileSize: 120,
-        churn: 2,
       }],
       edges: [],
     };
@@ -602,7 +596,7 @@ describe('graph view analysis execution publish', () => {
 
     expect(serializedUnrelatedEdgeCount).toBe(0);
     expect(sendGraphNodeMetricsUpdated).toHaveBeenCalledWith([
-      { id: 'src/index.ts', fileSize: 120, churn: undefined },
+      { id: 'src/index.ts', fileSize: 120 },
     ]);
   });
 

@@ -29,7 +29,6 @@ export interface IWorkspaceGraphDataOptions {
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   gitIgnoredPaths?: readonly string[];
   showOrphans: boolean;
-  churnCounts: Record<string, number>;
   workspaceRoot: string;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
 }
@@ -41,14 +40,13 @@ export interface IWorkspaceGraphAnalysisDataOptions extends Omit<IWorkspaceGraph
 
 function createContainingFileNode(
   filePath: string,
-  options: Pick<IWorkspaceGraphAnalysisDataOptions, 'cacheFiles' | 'churnCounts'>,
+  options: Pick<IWorkspaceGraphAnalysisDataOptions, 'cacheFiles'>,
 ): IGraphData['nodes'][number] {
   return {
     id: filePath,
     label: filePath.split('/').pop() ?? filePath,
     color: DEFAULT_NODE_COLOR,
     fileSize: options.cacheFiles[filePath]?.size,
-    churn: options.churnCounts[filePath] ?? 0,
   };
 }
 
@@ -100,7 +98,6 @@ function shouldIncludeSymbolEndpointRelations(
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {
   const {
     cacheFiles,
-    churnCounts,
     directoryPaths = [],
     disabledPlugins,
     fileConnections,
@@ -123,7 +120,6 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     gitIgnoredPaths,
     nodeIds,
     showOrphans,
-    churnCounts,
   });
 
   return { nodes, edges };
@@ -144,7 +140,6 @@ export function buildWorkspaceGraphDataFromAnalysis(
   const symbolGraph = projectSymbolGraph
     ? buildSymbolNodesAndEdges(fileAnalysis, options.workspaceRoot, {
         cacheFiles: options.cacheFiles,
-        churnCounts: options.churnCounts,
         gitIgnoredPaths: options.gitIgnoredPaths,
       })
     : { containingFileIds: new Set<string>(), edges: [], nodes: [] };
