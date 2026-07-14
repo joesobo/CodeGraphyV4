@@ -16,14 +16,16 @@ describe('dashboard rendering', () => {
         speedup: 2,
         baseline: {
           milestone: 'M1', revision: 'a', frameTimeMs: 10, frameP95Ms: 11,
-          onePercentHighMs: 12, frameMaxMs: 13, simulationMs: 4, renderMs: 6,
+          onePercentHighMs: 12, frameMaxMs: 13, simulationMs: 4,
+          simulationStepsPerFrame: null, simulationStepsPerSecond: null, renderMs: 6,
           potentialFps: 100, displayedFps: 60, targetLatencyFrames: 1,
           neighborLatencyFrames: 2, frozenFrameCount: 1, teleportFrameCount: 0,
           settleEnvelopeViolationCount: 1, hudDifferenceMaxPct: 2,
         },
         current: {
           milestone: 'M3', revision: 'b', frameTimeMs: 5, frameP95Ms: 6,
-          onePercentHighMs: 7, frameMaxMs: 8, simulationMs: 2, renderMs: 3,
+          onePercentHighMs: 7, frameMaxMs: 8, simulationMs: 2,
+          simulationStepsPerFrame: 2.4, simulationStepsPerSecond: 144, renderMs: 3,
           potentialFps: 200, displayedFps: 144, targetLatencyFrames: 1,
           neighborLatencyFrames: 1, frozenFrameCount: 0, teleportFrameCount: 0,
           settleEnvelopeViolationCount: 0, hudDifferenceMaxPct: 1,
@@ -40,6 +42,8 @@ describe('dashboard rendering', () => {
     expect(html.indexOf('Attribution captured.')).toBeLessThan(html.indexOf('Baseline captured.'));
     expect(html).toContain('10.00 ms → 5.00 ms');
     expect(html).toContain('2.00× faster');
+    expect(html).toContain('2.40 / frame');
+    expect(html).toContain('144.0 steps/s');
     expect(html).toContain('physics');
     expect(html).toContain('<svg');
     expect(html).toContain('images/drag.gif');

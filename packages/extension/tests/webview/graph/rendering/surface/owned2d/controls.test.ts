@@ -6,6 +6,7 @@ import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/
 import { createOwnedGraphPerformanceMonitor } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/model';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
 
 function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
   const node = { id: 'node', size: 4, x: 0, y: 0 } as FGNode;
@@ -42,6 +43,7 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
       positionVersionRef: { current: 0 },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
+      simulationClockRef: { current: createGraphLayoutFixedTimestepClock() },
     },
   };
 }

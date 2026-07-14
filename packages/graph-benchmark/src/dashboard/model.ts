@@ -42,6 +42,8 @@ export interface DashboardMetricPoint {
   onePercentHighMs: number;
   frameMaxMs: number;
   simulationMs: number;
+  simulationStepsPerFrame: number | null;
+  simulationStepsPerSecond: number | null;
   renderMs: number;
   potentialFps: number;
   displayedFps: number;
@@ -87,6 +89,12 @@ function metricPoint(
     onePercentHighMs: averages.cpuFrameOnePercentHighMs,
     frameMaxMs: averages.cpuFrameMaxMs,
     simulationMs: averages.simulationMs,
+    simulationStepsPerFrame: Number.isFinite(averages.simulationStepsPerFrame)
+      ? averages.simulationStepsPerFrame
+      : null,
+    simulationStepsPerSecond: Number.isFinite(averages.simulationStepsPerSecond)
+      ? averages.simulationStepsPerSecond
+      : null,
     renderMs: averages.renderMs,
     potentialFps: averages.potentialFps,
     displayedFps: averages.displayedFps,

@@ -47,6 +47,9 @@ const interactionAssessment = {
     presentationIntervalMs: null,
     renderMs: { mean: 3, p50: 3, p95: 4, p99: 4, max: 5, sampleCount: 20 },
     simulationMs: { mean: 2, p50: 2, p95: 2, p99: 3, max: 3, sampleCount: 20 },
+    simulationStepCount: 40,
+    simulationStepsPerFrame: 2,
+    simulationStepsPerSecond: 144,
   },
   interaction: {
     frozenFrameCount: 0,
@@ -178,6 +181,8 @@ describe('createAggregateBenchmarkReport', () => {
       renderMs: 3,
       settleEnvelopeViolationCount: 0,
       simulationMs: 2,
+      simulationStepsPerFrame: 2,
+      simulationStepsPerSecond: 144,
       targetLatencyFrames: 1,
       teleportFrameCount: 0,
       settleTimeMs: 1_100,

@@ -6,6 +6,7 @@ import {
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
@@ -91,6 +92,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     propsRef: { current: props },
     rendererOperationalRef: { current: true },
     requestFrameRef: { current: vi.fn() },
+    simulationClockRef: { current: createGraphLayoutFixedTimestepClock() },
     markPerformanceIdle: vi.fn(),
     recordRenderedFrame: vi.fn(),
     styleVersionRef: { current: 1 },
@@ -164,6 +166,23 @@ describe('owned graph frame execution', () => {
       },
     });
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
+  });
+
+  it('advances multiple fixed simulation steps between slower presentations', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { layout, recorder, runtime } = runtimeFixture(renderer);
+    runtime.pluginForcesRef.current.active = () => false;
+    const tick = vi.spyOn(layout.engine, 'tick').mockReturnValue({
+      moving: true,
+      settled: false,
+      steps: 1,
+    });
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 0);
+    renderOwnedGraphFrame(runtime, canvasFixture(), 1_000 / 60);
+
+    expect(tick).toHaveBeenCalledTimes(3);
+    expect(recorder.stop()?.frames.map(frame => frame.steps)).toEqual([1, 2]);
   });
 
   it('renders user-driven positions and continues interaction when physics reports zero steps', () => {

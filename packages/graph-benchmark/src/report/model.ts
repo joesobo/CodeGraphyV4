@@ -123,6 +123,8 @@ export interface BenchmarkAverages {
   renderMs: number;
   settleEnvelopeViolationCount: number;
   simulationMs: number;
+  simulationStepsPerFrame: number;
+  simulationStepsPerSecond: number;
   targetLatencyFrames: number;
   teleportFrameCount: number;
   settleTimeMs: number;
@@ -209,8 +211,13 @@ function metricDeltas(
   baseline: BenchmarkAverages,
 ): BenchmarkAverages {
   return Object.fromEntries(
-    (Object.keys(current) as Array<keyof BenchmarkAverages>)
-      .map(name => [name, current[name] - baseline[name]]),
+    (Object.keys(current) as Array<keyof BenchmarkAverages>).map((name) => {
+      const baselineValue = baseline[name];
+      return [
+        name,
+        current[name] - (Number.isFinite(baselineValue) ? baselineValue : current[name]),
+      ];
+    }),
   ) as unknown as BenchmarkAverages;
 }
 
@@ -311,6 +318,8 @@ export function createAggregateBenchmarkReport(options: {
       value => value.settle.envelopeViolationCount,
     ),
     simulationMs: assessments.map(value => value.timing.simulationMs.mean),
+    simulationStepsPerFrame: assessments.map(value => value.timing.simulationStepsPerFrame),
+    simulationStepsPerSecond: assessments.map(value => value.timing.simulationStepsPerSecond),
     targetLatencyFrames: assessments.map(value => requiredLatency(
       value.interaction.targetLatencyFrames.maximum,
     )),
