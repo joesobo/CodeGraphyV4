@@ -1,4 +1,7 @@
-import { renderNodeCollapseIndicator } from '../node/collapseIndicator';
+import {
+  renderNodeCollapseIndicator,
+  shouldRenderNodeCollapseIndicator,
+} from '../node/collapseIndicator';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import type { NodeLabelSpriteProvider } from '../node/labelSprite';
@@ -76,11 +79,13 @@ export function renderNodeCanvasLabel(
   const effectiveGlobalScale = globalScale * visualScale;
   ctx.save();
   ctx.globalAlpha = opacity;
-  ctx.save();
-  applyNodeVisualTransform(ctx, node, visualScale);
-  renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
-  renderNodeCollapseIndicator(ctx, node, effectiveGlobalScale, appearance);
-  ctx.restore();
+  if (node.imageUrl || shouldRenderNodeCollapseIndicator(node)) {
+    ctx.save();
+    applyNodeVisualTransform(ctx, node, visualScale);
+    renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
+    renderNodeCollapseIndicator(ctx, node, effectiveGlobalScale, appearance);
+    ctx.restore();
+  }
   if (dependencies.showLabelsRef.current && shouldRenderGraphDetails(globalScale)) {
     renderNodeLabel({
       appearance,
@@ -95,16 +100,18 @@ export function renderNodeCanvasLabel(
     });
   }
   ctx.globalAlpha = opacity;
-  ctx.save();
-  applyNodeVisualTransform(ctx, node, visualScale);
-  renderNodePluginOverlay(
-    dependencies.pluginHost,
-    node,
-    ctx,
-    effectiveGlobalScale,
-    decoration,
-  );
-  ctx.restore();
+  if (dependencies.pluginHost) {
+    ctx.save();
+    applyNodeVisualTransform(ctx, node, visualScale);
+    renderNodePluginOverlay(
+      dependencies.pluginHost,
+      node,
+      ctx,
+      effectiveGlobalScale,
+      decoration,
+    );
+    ctx.restore();
+  }
   ctx.restore();
 }
 

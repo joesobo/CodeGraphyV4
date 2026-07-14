@@ -123,16 +123,22 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(style.opacity).toBe(0.15);
   });
 
-  it('draws active Canvas overlays and honors the label toggle', () => {
+  it('draws labels without applying unused per-node transforms', () => {
     const context = createContext();
     const node = createNode();
 
-    renderNodeCanvasLabel(createDependencies(), node, context, 1, labelSpriteCache);
-    expect(context.drawImage).toHaveBeenCalled();
-    expect(context.save).toHaveBeenCalledTimes(3);
-    expect(context.restore).toHaveBeenCalledTimes(3);
+    renderNodeCanvasLabel(createDependencies(), node, context, 4, labelSpriteCache);
 
-    vi.mocked(context.drawImage).mockClear();
+    expect(context.drawImage).toHaveBeenCalled();
+    expect(context.save).toHaveBeenCalledOnce();
+    expect(context.restore).toHaveBeenCalledOnce();
+    expect(context.scale).not.toHaveBeenCalled();
+  });
+
+  it('applies zoom compensation only when a node has a scaled overlay', () => {
+    const context = createContext();
+    const node = createNode({ imageUrl: 'missing-image.svg' });
+
     renderNodeCanvasLabel(
       createDependencies({ showLabels: false }),
       node,
@@ -140,7 +146,9 @@ describe('graph/rendering/nodes/canvas2d', () => {
       4,
       labelSpriteCache,
     );
+
     expect(context.drawImage).not.toHaveBeenCalled();
+    expect(context.scale).toHaveBeenCalledOnce();
     expect(context.scale).toHaveBeenLastCalledWith(0.5, 0.5);
   });
 });
