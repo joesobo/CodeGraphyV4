@@ -22,6 +22,7 @@ function state(
     linkDegrees: new Uint32Array(x.length),
     targetX: new Float32Array(x.length).fill(Number.NaN),
     targetY: new Float32Array(x.length).fill(Number.NaN),
+    targetRadius: new Float32Array(x.length).fill(Number.NaN),
   };
 }
 

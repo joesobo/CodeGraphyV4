@@ -1,12 +1,13 @@
 # FPS Counter and d3-force-Style Physics
 
 Date: 2026-07-12
+Updated: 2026-07-14
 Status: Approved
 Branch context: builds on `feat/unified-webgpu-renderer` (PR #308), the unified owned-WebGPU renderer with typed-array physics.
 
 ## Goals
 
-1. A debug toggle under Settings → Performance that shows a live FPS readout in the bottom-left corner of the graph.
+1. A debug toggle under Settings → Performance that shows a compact, continuously updating performance readout beneath the graph counts.
 2. Make the graph behave like a proper force-directed layout in the style of react-force-graph and Obsidian — both of which are d3-force. We port d3-force's math into the existing typed-array engine rather than adopting an external library.
 
 ## Decisions (locked with owner)
@@ -24,14 +25,16 @@ Branch context: builds on `feat/unified-webgpu-renderer` (PR #308), the unified 
 
 ### Measurement
 
-- The owned-graph frame loop (`surface/owned2d/frameLoop.ts`) computes an exponential moving average of frame-to-frame deltas for rendered frames only (frames where a render was submitted, not idle rAF ticks).
-- The displayed value updates at most ~2 Hz so the counter never causes per-frame React re-renders. Implementation detail: the loop writes into a ref; a lightweight interval or throttled state set publishes to the overlay.
+- The owned-graph frame loop (`surface/owned2d/frameLoop.ts`) separately measures CPU potential FPS and elapsed rendered-frame cadence.
+- While **Show FPS** is enabled, presentation frames continue after physics settles so the readout remains live and follows display changes. With the toggle off, the graph still sleeps normally at zero idle render work.
+- The displayed value updates at most ~2 Hz and writes directly to the output element so the counter never causes per-frame React re-renders.
 - FPS is added to the `window.__CODEGRAPHY_GRAPH_DEBUG__` snapshot so tests assert on it without pixel reads.
 
 ### UI
 
-- Small monospace overlay pinned to the graph stage's bottom-left corner (zoom controls own the bottom-right), e.g. `57 FPS`.
-- `pointer-events: none`; mounted only while the toggle is on.
+- Small monospace overlay aligned beneath the top-right node and relationship counts.
+- Visible text is limited to potential FPS, displayed FPS, and average frame milliseconds.
+- `pointer-events: none`; mounted only while the toggle is on and never reports `Idle` while enabled.
 
 ### Testing
 
@@ -74,7 +77,7 @@ Config keys are renamed to match the new semantics: `gravitationalConstant → c
 
 ### Out of scope / unchanged
 
-- Collision force (works and feels good), pinning, DAG constraints, worker protocol, renderer, picking, camera.
+- Collision force (works and feels good), pinning, renderer, picking, camera.
 - GPU compute physics (future 100k+ program; force modules should stay 1-force-per-file so each maps to a WGSL kernel later, but no WGSL work now).
 
 ### Testing
@@ -85,6 +88,17 @@ Config keys are renamed to match the new semantics: `gravitationalConstant → c
   - Settle: alpha reaches `alphaMin` and node positions stop changing.
   - Drag ripple: dragging a node moves an undragged neighbor.
 - Benchmarks: re-run the deterministic tier ladder (500 → 10,000) after tuning and publish fresh baselines with the same pass criteria.
+
+## Node sizing and named-layout follow-up
+
+The 2026-07-14 owner review extended parity to the presentation contracts around the force engine:
+
+- **Connections** sizing follows Obsidian's stable related-node curve: `clamp(3 × sqrt(uniqueRelatedNodes + 1), 8, 30)`. Parallel and reverse edges to the same node count once, so unrelated graph growth cannot resize an existing node.
+- Node size is rebuilt through the immutable graph model so rendering, collision, picking, and fit calculations consume one authoritative radius.
+- Missing initial positions use D3's exact deterministic phyllotaxis: `10 × sqrt(0.5 + index)` at the golden angle.
+- **Top Down** and **Left to Right** center ranks around the origin and fix only the ranked axis, matching the former D3-powered `force-graph` behavior while leaving the perpendicular axis force-directed.
+- **Radial Out** uses a D3 `forceRadial` equivalent with roots at radius zero and no prescribed angle.
+- Cycles continue to use deterministic best-effort rank promotion because a Relationship Graph is not guaranteed to be acyclic.
 
 ## Risks
 

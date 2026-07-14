@@ -170,7 +170,6 @@ describe('graph/runtime/useGraphRuntime', () => {
       edgeDecorations: nextEdgeDecorations,
       favorites: initialOptions.favorites,
       nodeDecorations: nextNodeDecorations,
-      nodeSizeMode: 'file-size',
       showLabels: false,
       theme: 'light',
     }));
@@ -181,10 +180,36 @@ describe('graph/runtime/useGraphRuntime', () => {
     expect(result.current.directionModeRef.current).toBe('particles');
     expect(result.current.directionColorRef.current).toBe('#f59e0b');
     expect(result.current.favoritesRef.current).toBe(initialOptions.favorites);
-    expect(result.current.nodeSizeModeRef.current).toBe('file-size');
     expect(result.current.showLabelsRef.current).toBe(false);
     expect(result.current.nodeDecorationsRef.current).toBe(nextNodeDecorations);
     expect(result.current.edgeDecorationsRef.current).toBe(nextEdgeDecorations);
+  });
+
+  it('rebuilds graph data when node sizing changes and preserves positions', () => {
+    const firstGraph = createBuiltGraph('alpha', 10);
+    const secondGraph = createBuiltGraph('alpha', 30);
+    const initialOptions = createOptions({ nodeSizeMode: 'uniform' });
+    graphStateHarness.buildGraphData
+      .mockReturnValueOnce(firstGraph)
+      .mockReturnValueOnce(secondGraph);
+
+    const { result, rerender } = renderHook(
+      (options: GraphRuntimeOptions) => useGraphRuntime(options),
+      { initialProps: initialOptions },
+    );
+
+    rerender(createOptions({
+      data: initialOptions.data,
+      favorites: initialOptions.favorites,
+      nodeSizeMode: 'connections',
+    }));
+
+    expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(2);
+    expect(graphStateHarness.buildGraphData).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      nodeSizeMode: 'connections',
+      previousNodes: firstGraph.nodes,
+    }));
+    expect(result.current.renderer.graphData).toBe(secondGraph);
   });
 
   it('rebuilds graph data when the memo inputs change and passes forward previous nodes', () => {

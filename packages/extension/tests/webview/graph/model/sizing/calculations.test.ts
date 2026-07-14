@@ -32,65 +32,79 @@ describe('computeUniformSizes', () => {
 });
 
 describe('computeConnectionSizes', () => {
-  it('assigns minimum size to nodes with no edges', () => {
+  it('uses Obsidian bounded square-root sizing from unique related nodes', () => {
+    const leaves = Array.from({ length: 15 }, (_, index) => ({
+      color: '#fff',
+      id: `leaf-${index}.ts`,
+      label: `leaf-${index}.ts`,
+    }));
     const sizes = computeConnectionSizes(
-      [{ id: 'solo.ts', label: 'solo.ts', color: '#fff' }],
-      []
+      [{ id: 'hub.ts', label: 'hub.ts', color: '#fff' }, ...leaves],
+      leaves.map(leaf => ({ from: 'hub.ts', to: leaf.id })),
     );
-    expect(sizes.get('solo.ts')).toBe(MIN_NODE_SIZE);
+
+    expect(sizes.get('hub.ts')).toBe(12);
+    expect(sizes.get('leaf-0.ts')).toBe(8);
   });
 
-  it('assigns maximum size to the most connected node', () => {
+  it('clamps isolated and highly related nodes to Obsidian bounds', () => {
+    const leaves = Array.from({ length: 100 }, (_, index) => ({
+      color: '#fff',
+      id: `leaf-${index}.ts`,
+      label: `leaf-${index}.ts`,
+    }));
     const sizes = computeConnectionSizes(
       [
         { id: 'hub.ts', label: 'hub.ts', color: '#fff' },
-        { id: 'leaf.ts', label: 'leaf.ts', color: '#fff' },
+        { id: 'solo.ts', label: 'solo.ts', color: '#fff' },
+        ...leaves,
       ],
-      [{ from: 'hub.ts', to: 'leaf.ts' }]
+      leaves.map(leaf => ({ from: 'hub.ts', to: leaf.id })),
     );
-    expect(sizes.get('hub.ts')).toBe(MAX_NODE_SIZE);
+
+    expect(sizes.get('solo.ts')).toBe(8);
+    expect(sizes.get('hub.ts')).toBe(30);
   });
 
-  it('handles edge nodes not in the node list', () => {
-    const sizes = computeConnectionSizes(
-      [{ id: 'a.ts', label: 'a.ts', color: '#fff' }],
-      [{ from: 'a.ts', to: 'missing.ts' }]
-    );
-    // a.ts has 1 connection, but missing.ts is counted too even without a node entry
-    expect(sizes.get('a.ts')).toBeDefined();
-  });
-
-  it('counts each edge for both from and to nodes', () => {
+  it('counts parallel and reverse relationships to one neighbor only once', () => {
     const sizes = computeConnectionSizes(
       [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
-        { id: 'c.ts', label: 'c.ts', color: '#fff' },
       ],
       [
         { from: 'a.ts', to: 'b.ts' },
-        { from: 'a.ts', to: 'c.ts' },
-      ]
+        { from: 'a.ts', to: 'b.ts' },
+        { from: 'b.ts', to: 'a.ts' },
+      ],
     );
-    // a: 2 connections (from both), b: 1 (to), c: 1 (to)
-    expect(sizes.get('a.ts')).toBe(MAX_NODE_SIZE);
-    expect(sizes.get('b.ts')).toBe(sizes.get('c.ts'));
-    expect(sizes.get('b.ts')).toBeLessThan(MAX_NODE_SIZE);
+
+    expect(sizes.get('a.ts')).toBe(8);
+    expect(sizes.get('b.ts')).toBe(8);
   });
 
-  it('produces sizes between MIN_NODE_SIZE and MAX_NODE_SIZE', () => {
-    const sizes = computeConnectionSizes(
+  it('keeps a node size stable when an unrelated high-degree hub is added', () => {
+    const baseNodes = [
+      { id: 'a.ts', label: 'a.ts', color: '#fff' },
+      { id: 'b.ts', label: 'b.ts', color: '#fff' },
+    ];
+    const baseSize = computeConnectionSizes(
+      baseNodes,
+      [{ from: 'a.ts', to: 'b.ts' }],
+    ).get('a.ts');
+    const unrelatedLeaves = Array.from({ length: 40 }, (_, index) => ({
+      color: '#fff',
+      id: `unrelated-${index}.ts`,
+      label: `unrelated-${index}.ts`,
+    }));
+    const expandedSize = computeConnectionSizes(
+      [...baseNodes, { id: 'hub.ts', label: 'hub.ts', color: '#fff' }, ...unrelatedLeaves],
       [
-        { id: 'hub.ts', label: 'hub.ts', color: '#fff' },
-        { id: 'leaf.ts', label: 'leaf.ts', color: '#fff' },
+        { from: 'a.ts', to: 'b.ts' },
+        ...unrelatedLeaves.map(leaf => ({ from: 'hub.ts', to: leaf.id })),
       ],
-      [
-        { from: 'hub.ts', to: 'leaf.ts' },
-      ]
-    );
-    for (const size of sizes.values()) {
-      expect(size).toBeGreaterThanOrEqual(MIN_NODE_SIZE);
-      expect(size).toBeLessThanOrEqual(MAX_NODE_SIZE);
-    }
+    ).get('a.ts');
+
+    expect(expandedSize).toBe(baseSize);
   });
 });

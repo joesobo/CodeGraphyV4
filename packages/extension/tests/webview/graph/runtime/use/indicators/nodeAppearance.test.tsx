@@ -1,12 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
-import type { NodeSizeMode } from '../../../../../../src/shared/settings/modes';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
-  getDepthSizeMultiplier,
   type FGNode,
 } from '../../../../../../src/webview/components/graph/model/build';
 import {
@@ -43,7 +41,7 @@ function createGraphNode(id: string, overrides: Partial<FGNode> = {}): FGNode {
     id,
     isFavorite: false,
     label: id,
-    size: 0,
+    size: DEFAULT_NODE_SIZE,
     ...overrides,
   } as FGNode;
 }
@@ -66,7 +64,6 @@ describe('graph/runtime/useNodeAppearance', () => {
         ]),
         favorites: new Set(['favorite']),
         graphNodes,
-        nodeSizeMode: 'uniform',
         theme: 'dark',
       });
 
@@ -75,21 +72,21 @@ describe('graph/runtime/useNodeAppearance', () => {
         borderWidth: 4,
         color: '#112233',
         isFavorite: false,
-        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(0),
+        size: DEFAULT_NODE_SIZE,
       });
       expect(graphNodes[1]).toMatchObject({
         borderColor: FAVORITE_BORDER_COLOR,
         borderWidth: 3,
         color: '#445566',
         isFavorite: true,
-        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(2),
+        size: DEFAULT_NODE_SIZE,
       });
       expect(graphNodes[2]).toMatchObject({
         borderColor: '#778899',
         borderWidth: 2,
         color: '#778899',
         isFavorite: false,
-        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(1),
+        size: DEFAULT_NODE_SIZE,
       });
     });
 
@@ -109,7 +106,6 @@ describe('graph/runtime/useNodeAppearance', () => {
         ]),
         favorites: new Set<string>(),
         graphNodes,
-        nodeSizeMode: 'uniform',
         theme: 'light',
       });
 
@@ -139,7 +135,6 @@ describe('graph/runtime/useNodeAppearance', () => {
         ]),
         favorites: new Set<string>(),
         graphNodes: [knownNode, missingNode],
-        nodeSizeMode: 'uniform',
         theme: 'dark',
       })).not.toThrow();
 
@@ -148,7 +143,7 @@ describe('graph/runtime/useNodeAppearance', () => {
         borderWidth: 2,
         color: '#112233',
         isFavorite: false,
-        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(1),
+        size: DEFAULT_NODE_SIZE,
       });
       expect(missingNode).toMatchObject({
         borderColor: '#abcdef',
@@ -168,7 +163,6 @@ describe('graph/runtime/useNodeAppearance', () => {
         ]),
         favorites: new Set<string>(),
         graphNodes,
-        nodeSizeMode: 'uniform',
         theme: 'dark',
       });
 
@@ -177,7 +171,7 @@ describe('graph/runtime/useNodeAppearance', () => {
         borderWidth: 2,
         color: '#112233',
         isFavorite: false,
-        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(undefined),
+        size: DEFAULT_NODE_SIZE,
       });
     });
 
@@ -211,7 +205,6 @@ describe('graph/runtime/useNodeAppearance', () => {
         ]),
         favorites: new Set<string>(),
         graphNodes,
-        nodeSizeMode: 'uniform',
         theme: 'dark',
       });
 
@@ -253,7 +246,6 @@ describe('graph/runtime/useNodeAppearance', () => {
           dataRef,
           favorites,
           graphDataRef,
-          nodeSizeMode: 'uniform',
           theme,
         }),
         {
@@ -274,40 +266,39 @@ describe('graph/runtime/useNodeAppearance', () => {
       });
     });
 
-    it('does not introduce focused borders for nodes without a depth level when node size mode changes', () => {
-      const graphNodes = [createGraphNode('root')];
+    it('preserves model-owned size when appearance changes', () => {
+      const graphNodes = [createGraphNode('root', { size: 23 })];
       const dataRef = {
         current: createData([
           { color: '#112233', id: 'root', label: 'Root' },
         ]),
       };
       const graphDataRef = { current: { links: [], nodes: graphNodes } };
-      const favorites = new Set<string>();
 
       const { rerender } = renderHook(
-        ({ nodeSizeMode }: { nodeSizeMode: NodeSizeMode }) => useNodeAppearance({
+        ({ favorites }: { favorites: Set<string> }) => useNodeAppearance({
           dataRef,
           favorites,
           graphDataRef,
-          nodeSizeMode,
           theme: 'dark',
         }),
         {
-          initialProps: { nodeSizeMode: 'uniform' as NodeSizeMode },
+          initialProps: { favorites: new Set<string>() },
         },
       );
 
       expect(graphNodes[0]).toMatchObject({
         borderColor: '#112233',
         borderWidth: 2,
-        size: DEFAULT_NODE_SIZE,
+        size: 23,
       });
 
-      rerender({ nodeSizeMode: 'connections' as NodeSizeMode });
+      rerender({ favorites: new Set(['root']) });
 
       expect(graphNodes[0]).toMatchObject({
-        borderColor: '#112233',
-        borderWidth: 2,
+        borderColor: FAVORITE_BORDER_COLOR,
+        borderWidth: 3,
+        size: 23,
       });
     });
   });

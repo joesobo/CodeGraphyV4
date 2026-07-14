@@ -119,6 +119,7 @@ function buildOwnedGraphLayoutData(
     edgeTargets: Uint32Array.from(edgeTargets),
     targetX: dagTargets?.targetX,
     targetY: dagTargets?.targetY,
+    targetRadius: dagTargets?.targetRadius,
   };
   return { input, resolvedLinks };
 }
@@ -180,6 +181,10 @@ export function updateOwnedGraphLayout(
     && sameBuffer(layout.engine.edgeTargets, input.edgeTargets)
     && sameBuffer(layout.engine.targetX, input.targetX ?? new Float32Array(nodes.length).fill(Number.NaN))
     && sameBuffer(layout.engine.targetY, input.targetY ?? new Float32Array(nodes.length).fill(Number.NaN))
+    && sameBuffer(
+      layout.engine.targetRadius,
+      input.targetRadius ?? new Float32Array(nodes.length).fill(Number.NaN),
+    )
     && layout.engine.nodeIds.length === input.nodeIds.length
     && layout.engine.nodeIds.every((id, index) => id === input.nodeIds[index]);
   const physicsShapeUnchanged = sameBuffer(

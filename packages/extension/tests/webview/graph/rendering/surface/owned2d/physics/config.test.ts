@@ -10,8 +10,10 @@ describe('default graph physics configuration', () => {
       chargeStrength: -250,
       chargeTheta: 0.9,
       maximumCollisionNeighbors: 128,
+      initializationSpacing: 10,
       linkDistance: 80,
       linkStrength: 1,
+      radialStrength: 1,
       velocityDecay: 0.4,
       centralGravity: 0.1,
     });
@@ -42,6 +44,7 @@ describe('default graph physics configuration', () => {
     expect(() => merge({ linkDistance: 0 })).toThrow('link distance');
     expect(() => merge({ velocityDecay: -0.1 })).toThrow('velocity decay');
     expect(() => merge({ velocityDecay: 1.1 })).toThrow('velocity decay');
+    expect(() => merge({ radialStrength: -0.1 })).toThrow('radial strength');
     expect(() => merge({ centralGravity: Number.NaN })).toThrow('must be finite');
   });
 });

@@ -1,6 +1,7 @@
 import type { DagMode } from '../../../../../../shared/settings/modes';
 
 export interface OwnedDagTargets {
+  targetRadius: Float32Array;
   targetX: Float32Array;
   targetY: Float32Array;
 }
@@ -64,28 +65,23 @@ export function createOwnedDagTargets(
   if (!mode) return undefined;
   const distance = Math.max(1, levelDistance);
   const depths = computeDepths(nodeCount, edgeSources, edgeTargets);
+  const targetRadius = new Float32Array(nodeCount).fill(Number.NaN);
   const targetX = new Float32Array(nodeCount).fill(Number.NaN);
   const targetY = new Float32Array(nodeCount).fill(Number.NaN);
+  let maximumDepth = 0;
+  for (const depth of depths) maximumDepth = Math.max(maximumDepth, depth);
 
   if (mode === 'td' || mode === 'lr') {
     for (let index = 0; index < nodeCount; index += 1) {
-      if (mode === 'td') targetY[index] = depths[index] * distance;
-      else targetX[index] = depths[index] * distance;
+      const rankedPosition = (depths[index] - maximumDepth / 2) * distance;
+      if (mode === 'td') targetY[index] = rankedPosition;
+      else targetX[index] = rankedPosition;
     }
-    return { targetX, targetY };
+    return { targetRadius, targetX, targetY };
   }
 
-  const levelSizes = new Map<number, number>();
-  for (const depth of depths) levelSizes.set(depth, (levelSizes.get(depth) ?? 0) + 1);
-  const levelIndexes = new Map<number, number>();
   for (let index = 0; index < nodeCount; index += 1) {
-    const depth = depths[index];
-    const levelIndex = levelIndexes.get(depth) ?? 0;
-    levelIndexes.set(depth, levelIndex + 1);
-    const angle = (levelIndex / (levelSizes.get(depth) ?? 1)) * Math.PI * 2;
-    const radius = (depth + 1) * distance;
-    targetX[index] = Math.cos(angle) * radius;
-    targetY[index] = Math.sin(angle) * radius;
+    targetRadius[index] = depths[index] * distance;
   }
-  return { targetX, targetY };
+  return { targetRadius, targetX, targetY };
 }
