@@ -89,7 +89,6 @@ export interface GraphRuntime {
   highlightedNodeRef: MutableRefObject<string | null>;
   lastClickRef: MutableRefObject<{ nodeId: string; time: number } | null>;
   nodeDecorationsRef: MutableRefObject<Record<string, NodeDecorationPayload> | undefined>;
-  nodeSizeModeRef: MutableRefObject<NodeSizeMode>;
   renderer: GraphRuntimeRenderer;
   renderCaches: GraphRuntimeRenderCaches;
   selection: GraphRuntimeSelection;
@@ -138,7 +137,6 @@ export function useGraphRuntime({
   const favoritesRef = useRef(favorites);
   const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>(createEmptyRuntimeGraphData());
   const dataRef = useRef(data);
-  const nodeSizeModeRef = useRef(nodeSizeMode);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
   const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
   const lastGraphContextEventRef = useRef(0);
@@ -157,7 +155,6 @@ export function useGraphRuntime({
   directionColorRef.current = directionColor;
   favoritesRef.current = favorites;
   dataRef.current = data;
-  nodeSizeModeRef.current = nodeSizeMode;
   showLabelsRef.current = showLabels;
   nodeDecorationsRef.current = nodeDecorations;
   edgeDecorationsRef.current = edgeDecorations;
@@ -176,7 +173,7 @@ export function useGraphRuntime({
     const nextGraphData = buildGraphData({
       data,
       appearance,
-      nodeSizeMode: nodeSizeModeRef.current,
+      nodeSizeMode,
       theme: themeRef.current,
       favorites,
       graphViewContributions,
@@ -186,7 +183,7 @@ export function useGraphRuntime({
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions]);
+  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions, nodeSizeMode]);
 
   useEffect(() => {
     const visibleSelectedNodes = getVisibleSelection(selectedNodes, graphData.nodes);
@@ -218,7 +215,6 @@ export function useGraphRuntime({
     highlightedNodeRef,
     lastClickRef,
     nodeDecorationsRef,
-    nodeSizeModeRef,
     renderer: {
       containerRef,
       fg2dRef,

@@ -13,6 +13,7 @@ function state(): GraphLayoutState {
     radii: Float32Array.of(1, 1, 1),
     targetX: new Float32Array(3),
     targetY: new Float32Array(3),
+    targetRadius: new Float32Array(3),
     vx: new Float32Array(3),
     vy: new Float32Array(3),
     x: new Float32Array(3),

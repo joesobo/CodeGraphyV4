@@ -26,7 +26,6 @@ export function buildRenderingRuntimeOptions({
     dataRef: graphState.dataRef,
     favorites: viewState.favorites,
     graphDataRef: graphState.renderer.graphDataRef,
-    nodeSizeMode: viewState.nodeSizeMode,
     pluginHost,
     theme,
   };

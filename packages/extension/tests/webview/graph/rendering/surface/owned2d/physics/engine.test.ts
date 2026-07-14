@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 
+import { forceRadial, forceSimulation, type SimulationNodeDatum } from 'd3-force';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -29,6 +30,22 @@ function positionHash(x: Float32Array, y: Float32Array): string {
 }
 
 describe('graph layout engine', () => {
+  it('uses D3 deterministic phyllotaxis for missing positions', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node-0', 'node-1', 'node-2'],
+      radii: Float32Array.of(1, 1, 1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+
+    expect(engine.x[0]).toBeCloseTo(7.071_068, 5);
+    expect(engine.y[0]).toBeCloseTo(0, 5);
+    expect(engine.x[1]).toBeCloseTo(-9.030_888, 5);
+    expect(engine.y[1]).toBeCloseTo(8.273_033, 5);
+    expect(engine.x[2]).toBeCloseTo(1.382_322, 5);
+    expect(engine.y[2]).toBeCloseTo(-15.750_847, 5);
+  });
+
   it('treats an empty graph as settled', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: [],
@@ -234,22 +251,51 @@ describe('graph layout engine', () => {
     expect(engine.vx[1]).toBe(0);
   });
 
-  it('pulls nodes toward optional layout constraint targets', () => {
+  it('fixes the ranked axis while leaving the perpendicular axis force-directed', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['node-0'],
-      initialX: new Float32Array([0]),
-      initialY: new Float32Array([0]),
-      radii: new Float32Array([4]),
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(20),
+      initialVy: Float32Array.of(5),
+      radii: Float32Array.of(4),
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
-      targetX: new Float32Array([100]),
-      targetY: new Float32Array([Number.NaN]),
-    }, { centralGravity: 0, chargeStrength: 0 });
+      targetX: Float32Array.of(100),
+      targetY: Float32Array.of(Number.NaN),
+    }, { centralGravity: 0, collisionIterations: 0, chargeStrength: 0 });
 
-    for (let tick = 0; tick < 30; tick += 1) engine.tick();
+    engine.tick();
 
-    expect(engine.x[0]).toBeGreaterThan(0);
-    expect(engine.y[0]).toBe(0);
+    expect(engine.x[0]).toBe(100);
+    expect(engine.vx[0]).toBe(0);
+    expect(engine.y[0]).toBeGreaterThan(20);
+  });
+
+  it('matches D3 forceRadial for radial layout levels', () => {
+    const referenceNode: SimulationNodeDatum = { x: 50, y: 0, vx: 0, vy: 0 };
+    const reference = forceSimulation([referenceNode])
+      .stop()
+      .velocityDecay(0.4)
+      .force('radial', forceRadial<SimulationNodeDatum>(100).strength(1));
+    reference.tick();
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node-0'],
+      initialX: Float32Array.of(50),
+      initialY: Float32Array.of(0),
+      initialVx: Float32Array.of(0),
+      initialVy: Float32Array.of(0),
+      radii: Float32Array.of(4),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+      targetRadius: Float32Array.of(100),
+    }, { centralGravity: 0, collisionIterations: 0, chargeStrength: 0 });
+
+    engine.tick();
+
+    expect(engine.x[0]).toBeCloseTo(referenceNode.x!, 5);
+    expect(engine.y[0]).toBeCloseTo(referenceNode.y!, 5);
+    expect(engine.vx[0]).toBeCloseTo(referenceNode.vx!, 5);
+    expect(engine.vy[0]).toBeCloseTo(referenceNode.vy!, 5);
   });
 
   it('uses velocityDecay to suppress release velocity', () => {

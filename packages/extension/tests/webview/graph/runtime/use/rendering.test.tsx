@@ -49,7 +49,6 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
       dataRef,
       favorites: new Set(['favorite']),
       graphDataRef,
-      nodeSizeMode: 'uniform',
       pluginHost: pluginHost as never,
       theme: 'dark',
     }));
@@ -61,7 +60,6 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
       dataRef,
       favorites: new Set(['favorite']),
       graphDataRef,
-      nodeSizeMode: 'uniform',
       theme: 'dark',
     });
     expect(result.current.containerSize).toEqual({ height: 360, width: 640 });

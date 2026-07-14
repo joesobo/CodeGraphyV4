@@ -16,6 +16,7 @@ export interface GraphLayoutInput {
   flags?: Uint8Array;
   targetX?: Float32Array;
   targetY?: Float32Array;
+  targetRadius?: Float32Array;
 }
 
 export interface GraphLayoutConfig {
@@ -29,8 +30,8 @@ export interface GraphLayoutConfig {
   collisionIterations: number;
   collisionPadding: number;
   collisionStrength: number;
-  constraintForce: number;
   initializationSpacing: number;
+  radialStrength: number;
   linkDistance: number;
   linkStrength: number;
   maximumCollisionNeighbors: number;
@@ -58,6 +59,7 @@ export interface GraphLayoutEngine {
   readonly edgeTargets: Uint32Array;
   readonly targetX: Float32Array;
   readonly targetY: Float32Array;
+  readonly targetRadius: Float32Array;
   readonly settled: boolean;
   readonly alpha: number;
   getNodeIndex(nodeId: string): number | undefined;
@@ -89,4 +91,5 @@ export interface GraphLayoutState {
   linkDegrees: Uint32Array;
   targetX: Float32Array;
   targetY: Float32Array;
+  targetRadius: Float32Array;
 }

@@ -2,4 +2,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Show separate potential and displayed graph FPS with CPU frame-time, simulation, render, and explicit idle measurements in the Performance HUD.
+Show a compact, continuously updating potential FPS, displayed FPS, and average frame-time HUD; size related nodes with Obsidian's stable square-root curve; and align default, ranked, and radial graph layouts with D3 force behavior.

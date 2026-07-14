@@ -33,6 +33,7 @@ export function createGraphLayoutState(
   assertBufferLength(input.flags, nodeCount, 'flags');
   assertBufferLength(input.targetX, nodeCount, 'targetX');
   assertBufferLength(input.targetY, nodeCount, 'targetY');
+  assertBufferLength(input.targetRadius, nodeCount, 'targetRadius');
   if (input.edgeSources.length !== input.edgeTargets.length) {
     throw new Error('edge source and target buffers must have equal lengths');
   }
@@ -55,6 +56,9 @@ export function createGraphLayoutState(
       : new Float32Array(nodeCount).fill(Number.NaN),
     targetY: input.targetY
       ? new Float32Array(input.targetY)
+      : new Float32Array(nodeCount).fill(Number.NaN),
+    targetRadius: input.targetRadius
+      ? new Float32Array(input.targetRadius)
       : new Float32Array(nodeCount).fill(Number.NaN),
   };
 
@@ -111,7 +115,7 @@ function setInitialPosition(
   index: number,
   spacing: number,
 ): void {
-  const radius = spacing * Math.sqrt(index + 1);
+  const radius = spacing * Math.sqrt(0.5 + index);
   const angle = index * GOLDEN_ANGLE;
   state.x[index] = Math.cos(angle) * radius;
   state.y[index] = Math.sin(angle) * radius;

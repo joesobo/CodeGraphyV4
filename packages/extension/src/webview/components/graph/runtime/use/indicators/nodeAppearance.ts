@@ -6,10 +6,8 @@ import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import { ThemeKind, adjustColorForLightTheme } from '../../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appearance/model';
 import {
-	calculateNodeSizes,
 	FAVORITE_BORDER_COLOR,
 	FALLBACK_MUTED_NODE_COLOR,
-	getDepthSizeMultiplier,
 	type FGLink,
 	type FGNode,
 } from '../../../model/build';
@@ -19,7 +17,6 @@ interface UseNodeAppearanceOptions {
 	appearance?: GraphAppearance;
 	favorites: Set<string>;
 	graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
-	nodeSizeMode: string;
 	theme: ThemeKind;
 }
 
@@ -28,7 +25,6 @@ export interface ApplyNodeAppearanceOptions {
 	appearance?: GraphAppearance;
 	favorites: ReadonlySet<string>;
 	graphNodes: FGNode[];
-	nodeSizeMode: Parameters<typeof calculateNodeSizes>[2];
 	theme: ThemeKind;
 }
 
@@ -111,11 +107,9 @@ export function applyNodeAppearance({
 	appearance = DEFAULT_GRAPH_APPEARANCE,
 	favorites,
 	graphNodes,
-	nodeSizeMode,
 	theme,
 }: ApplyNodeAppearanceOptions): void {
 	const dataNodeMap = new Map(data.nodes.map(node => [node.id, node]));
-	const sizes = calculateNodeSizes(data.nodes, data.edges, nodeSizeMode);
 	const isLightTheme = theme === 'light';
 
 	for (const graphNode of graphNodes) {
@@ -130,7 +124,6 @@ export function applyNodeAppearance({
 		const isFavorite = favorites.has(graphNode.id);
 		const isFocused = depthLevel === 0;
 
-		graphNode.size = sizes.get(graphNode.id)! * getDepthSizeMultiplier(depthLevel);
 		graphNode.color = displayColor;
 		graphNode.baseOpacity = getNodeBaseOpacity(dataNode);
 		graphNode.isFavorite = isFavorite;
@@ -149,7 +142,6 @@ export function useNodeAppearance({
 	appearance = DEFAULT_GRAPH_APPEARANCE,
 	favorites,
 	graphDataRef,
-	nodeSizeMode,
 	theme,
 }: UseNodeAppearanceOptions): void {
 	useEffect(() => {
@@ -158,8 +150,7 @@ export function useNodeAppearance({
 			appearance,
 			favorites,
 			graphNodes: graphDataRef.current.nodes,
-			nodeSizeMode: nodeSizeMode as Parameters<typeof calculateNodeSizes>[2],
 			theme,
 		});
-	}, [appearance, dataRef, favorites, graphDataRef, nodeSizeMode, theme]);
+	}, [appearance, dataRef, favorites, graphDataRef, theme]);
 }

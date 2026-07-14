@@ -73,18 +73,16 @@ describe('calculateNodeSizes (mutation kill tests)', () => {
    * Kill L20:7 by ensuring connections mode produces different results.
    */
   it('dispatches connections mode with different sizes than uniform', () => {
-    const nodes = [
-      { id: 'hub.ts', label: 'hub.ts', color: '#fff' },
-      { id: 'leaf.ts', label: 'leaf.ts', color: '#fff' },
-    ];
-    const edges = [{ from: 'hub.ts', to: 'leaf.ts' }];
+    const leaves = Array.from({ length: 15 }, (_, index) => ({
+      id: `leaf-${index}.ts`, label: `leaf-${index}.ts`, color: '#fff',
+    }));
+    const nodes = [{ id: 'hub.ts', label: 'hub.ts', color: '#fff' }, ...leaves];
+    const edges = leaves.map(leaf => ({ from: 'hub.ts', to: leaf.id }));
 
     const connectionSizes = calculateNodeSizes(nodes, edges, 'connections');
     const uniformSizes = calculateNodeSizes(nodes, edges, 'uniform');
 
-    // In connections mode, hub (1 edge) gets MAX_NODE_SIZE (40)
-    // In uniform mode, all get 16
-    expect(connectionSizes.get('hub.ts')).toBe(40);
+    expect(connectionSizes.get('hub.ts')).toBe(12);
     expect(uniformSizes.get('hub.ts')).toBe(16);
     expect(connectionSizes.get('hub.ts')).not.toBe(uniformSizes.get('hub.ts'));
   });

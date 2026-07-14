@@ -15,7 +15,6 @@ export interface UseGraphRenderingRuntimeOptions {
   dataRef: MutableRefObject<IGraphData>;
   favorites: Set<string>;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
-  nodeSizeMode: string;
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
 }
@@ -31,7 +30,6 @@ export function useGraphRenderingRuntime({
   dataRef,
   favorites,
   graphDataRef,
-  nodeSizeMode,
   pluginHost,
   theme,
 }: UseGraphRenderingRuntimeOptions): UseGraphRenderingRuntimeResult {
@@ -43,7 +41,6 @@ export function useGraphRenderingRuntime({
     dataRef,
     favorites,
     graphDataRef,
-    nodeSizeMode,
     theme,
   });
 
