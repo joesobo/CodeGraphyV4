@@ -13,8 +13,8 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#039;');
 }
 
-function number(value: number, digits = 2): string {
-  return Number.isFinite(value) ? value.toFixed(digits) : '—';
+function number(value: number | null, digits = 2): string {
+  return value !== null && Number.isFinite(value) ? value.toFixed(digits) : '—';
 }
 
 function metricRows(point: DashboardMetricPoint): string {
@@ -24,6 +24,8 @@ function metricRows(point: DashboardMetricPoint): string {
     ['Frame 1%-high', `${number(point.onePercentHighMs)} ms`],
     ['Frame max', `${number(point.frameMaxMs)} ms`],
     ['Simulation', `${number(point.simulationMs)} ms`],
+    ['Simulation substeps', `${number(point.simulationStepsPerFrame)} / frame`],
+    ['Simulation rate', `${number(point.simulationStepsPerSecond, 1)} steps/s`],
     ['Render', `${number(point.renderMs)} ms`],
     ['Potential FPS', number(point.potentialFps, 1)],
     ['Displayed FPS', number(point.displayedFps, 1)],

@@ -3,6 +3,7 @@ import type { OwnedGraphLayout } from '../../../../../../src/webview/components/
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import type { OwnedGraphRendererLifecycleRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/rendererLifecycle';
 import type { GraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
 
 const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
@@ -40,6 +41,7 @@ function runtimeHarness(): Harness {
       performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
+      simulationClockRef: { current: createGraphLayoutFixedTimestepClock() },
       onError: vi.fn(),
       onReady: vi.fn(),
       onRecovering: vi.fn(),

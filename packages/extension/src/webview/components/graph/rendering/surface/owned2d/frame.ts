@@ -17,6 +17,11 @@ import type { PointerSession } from './interaction';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import type { OwnedGraphPluginForces } from './pluginForces';
 import type { GraphLayoutTickResult } from './physics/contracts';
+import {
+  advanceGraphLayoutFixedTimestep,
+  resetGraphLayoutFixedTimestepClock,
+  type GraphLayoutFixedTimestepClock,
+} from './physics/fixedTimestep';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface FramePerfSample extends Record<string, number> {
@@ -55,6 +60,7 @@ export interface OwnedGraphFrameRuntime {
   propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
+  simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
   markPerformanceIdle(this: void): void;
   recordRenderedFrame(
     this: void,
@@ -118,10 +124,16 @@ interface OwnedGraphPhysicsFrame {
 function advanceOwnedGraphPhysics(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
+  timestamp: number,
 ): OwnedGraphPhysicsFrame {
   const startedAt = performance.now();
   applyOwnedPluginForces(runtime, layout);
-  const tick = layout.engine.tick();
+  const tick = advanceGraphLayoutFixedTimestep(runtime.simulationClockRef.current, {
+    currentSettled: layout.engine.settled,
+    minimumSteps: runtime.pointerSessionRef.current === null ? 0 : 1,
+    step: () => layout.engine.tick(),
+    timestampMs: timestamp,
+  });
   const hostElapsedMs = Math.max(0, performance.now() - startedAt);
   if (tick.steps > 0) runtime.positionVersionRef.current += 1;
   return {
@@ -316,7 +328,7 @@ export function renderOwnedGraphFrame(
     gpuEndedAt: 0,
   };
   const physicsAttributionStartedAt = attribution.startTiming();
-  const physicsFrame = advanceOwnedGraphPhysics(runtime, layout);
+  const physicsFrame = advanceOwnedGraphPhysics(runtime, layout, timestamp);
   attribution.finishTiming('physicsStep', physicsAttributionStartedAt);
   const { tick } = physicsFrame;
   const physicsEndedAt = performance.now();
@@ -368,6 +380,7 @@ export function renderOwnedGraphFrame(
     tick.settled
     && runtime.propsRef.current.directionMode !== 'particles'
   ) {
+    resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
     runtime.markPerformanceIdle();
   }
 }

@@ -322,6 +322,11 @@ export function assessInteractionRecording(
     throw new Error('Interaction recording contains no rendered frames');
   }
   const frameTimes = recording.frames.map(frame => frame.totalCpuMs);
+  const simulationStepCount = recording.frames.reduce((sum, frame) => sum + frame.steps, 0);
+  const simulationElapsedMs = recording.frames.length > 1
+    ? recording.frames.at(-1)!.presentationTimestampMs
+      - recording.frames[0].presentationTimestampMs
+    : 0;
   const simulationTimes = recording.frames.map(frame => frame.simulationMs);
   const renderTimes = recording.frames.map(frame => frame.renderMs);
   const presentationIntervals = recording.frames.slice(1).map((frame, index) =>
@@ -333,6 +338,11 @@ export function assessInteractionRecording(
       cpuFrameTimeMs: summarizeDistribution(frameTimes),
       displayedFps: displayedFps(recording.frames),
       potentialFps: 1_000 / summarizeDistribution(frameTimes).mean,
+      simulationStepCount,
+      simulationStepsPerFrame: simulationStepCount / recording.frames.length,
+      simulationStepsPerSecond: simulationElapsedMs > 0
+        ? simulationStepCount * 1_000 / simulationElapsedMs
+        : 0,
       presentationIntervalMs: presentationIntervals.length > 0
         ? summarizeDistribution(presentationIntervals)
         : null,

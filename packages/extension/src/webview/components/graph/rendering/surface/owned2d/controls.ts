@@ -12,6 +12,10 @@ import type { OwnedGraphLayout } from './layout';
 import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { OwnedGraphPerformanceMonitor } from './performance/model';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
+import {
+  resetGraphLayoutFixedTimestepClock,
+  type GraphLayoutFixedTimestepClock,
+} from './physics/fixedTimestep';
 import { updateOwnedGraphViewportNode } from './viewportNode';
 
 export interface OwnedGraphControlsRuntime {
@@ -27,6 +31,7 @@ export interface OwnedGraphControlsRuntime {
   positionVersionRef: MutableRefObject<number>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
+  simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
 }
 
 function invalidateCamera(runtime: OwnedGraphControlsRuntime): void {
@@ -43,6 +48,7 @@ function updateViewportNode(
   if (!updated) return false;
   runtime.positionVersionRef.current += 1;
   runtime.engineStopNotifiedRef.current = false;
+  resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
   runtime.requestFrameRef.current();
   return true;
 }
@@ -60,6 +66,7 @@ export function createOwnedGraphControls(
     d3ReheatSimulation: () => {
       runtime.layoutRef.current?.engine.reheat();
       runtime.engineStopNotifiedRef.current = false;
+      resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
       runtime.requestFrameRef.current();
     },
     getFps: () => runtime.fpsRef.current,
@@ -70,12 +77,14 @@ export function createOwnedGraphControls(
     },
     pauseAnimation: () => {
       runtime.layoutRef.current?.engine.pause();
+      resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
       runtime.markPerformanceIdle();
     },
     refresh: () => runtime.requestFrameRef.current(),
     resumeAnimation: () => {
       if (!runtime.rendererOperationalRef.current) return;
       runtime.layoutRef.current?.engine.resume();
+      resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
       runtime.requestFrameRef.current();
     },
     screen2GraphCoords: (x, y) => {

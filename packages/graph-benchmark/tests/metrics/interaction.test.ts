@@ -67,6 +67,9 @@ describe('interaction performance metrics', () => {
 
     expect(assessment.timing.potentialFps).toBe(200);
     expect(assessment.timing.displayedFps).toBeCloseTo(107.142_857, 5);
+    expect(assessment.timing.simulationStepCount).toBe(6);
+    expect(assessment.timing.simulationStepsPerFrame).toBeCloseTo(6 / 7, 8);
+    expect(assessment.timing.simulationStepsPerSecond).toBeCloseTo(107.142_857, 5);
     expect(assessment.timing.cpuFrameTimeMs).toMatchObject({
       mean: 5,
       p95: 5,

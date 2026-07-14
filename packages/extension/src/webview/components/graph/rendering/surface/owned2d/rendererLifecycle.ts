@@ -1,6 +1,10 @@
 import type { MutableRefObject } from 'react';
 import type { OwnedGraphLayout } from './layout';
 import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
+import {
+  resetGraphLayoutFixedTimestepClock,
+  type GraphLayoutFixedTimestepClock,
+} from './physics/fixedTimestep';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 export type OwnedGraphRendererStatus = 'error' | 'initializing' | 'webgpu';
@@ -13,6 +17,7 @@ export interface OwnedGraphRendererLifecycleRuntime {
   performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
+  simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
   onError(this: void, message: string): void;
   onReady(this: void): void;
   onRecovering(this: void): void;
@@ -25,6 +30,7 @@ export interface OwnedGraphRendererLifecycle {
 function pauseOwnedGraphRendererPhysics(runtime: OwnedGraphRendererLifecycleRuntime): void {
   runtime.rendererOperationalRef.current = false;
   runtime.layoutRef.current?.engine.pause();
+  resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
 }
 
 function reportOwnedGraphRendererError(
@@ -48,6 +54,7 @@ function activateOwnedGraphRenderer(
 ): void {
   runtime.gpuRendererRef.current = renderer;
   runtime.rendererOperationalRef.current = true;
+  resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
   const layout = runtime.layoutRef.current;
   if (layout) {
     layout.engine.resume();
