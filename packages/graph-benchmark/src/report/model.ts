@@ -146,7 +146,7 @@ export interface AggregateGraphBenchmarkReport {
   averages: BenchmarkAverages;
   statistics: Record<keyof BenchmarkAverages, SampleStatistics>;
   unstableMetrics: Array<keyof BenchmarkAverages>;
-  memoryPlateau: MemoryPlateauAssessment;
+  memoryPlateau: MemoryPlateauAssessment | null;
   tierPassed: boolean;
   configuration: BenchmarkConfiguration;
   source: BenchmarkSource;
@@ -281,7 +281,12 @@ export function createAggregateBenchmarkReport(options: {
   const finalCycleMemory = options.runs.map((run) => {
     const samples = run.metrics.memory.afterCloseCycleBytes;
     const finalSample = samples[samples.length - 1];
-    if (!Number.isFinite(finalSample)) throw new Error('Completed run has no final memory-cycle sample');
+    if (options.configuration.memoryCycles === 0) {
+      return run.metrics.memory.processAfterLoadBytes;
+    }
+    if (!Number.isFinite(finalSample)) {
+      throw new Error('Completed run has no final memory-cycle sample');
+    }
     return finalSample;
   });
   const assessments = options.runs.map(run => run.metrics.drag.interactionAssessment);
@@ -322,9 +327,11 @@ export function createAggregateBenchmarkReport(options: {
   ) as unknown as BenchmarkAverages;
   const unstableMetrics = (Object.keys(statistics) as Array<keyof BenchmarkAverages>)
     .filter(name => (statistics[name].coefficientOfVariation ?? 0) > 0.1);
-  const memoryPlateau = assessMemoryPlateau(
-    options.runs.flatMap(run => run.metrics.memory.afterCloseCycleBytes),
-  );
+  const memoryPlateau = options.configuration.memoryCycles === 0
+    ? null
+    : assessMemoryPlateau(
+      options.runs.flatMap(run => run.metrics.memory.afterCloseCycleBytes),
+    );
   const validRuns = options.runs.every(run =>
     run.metrics.drag.responsive
     && run.metrics.drag.finitePositions
@@ -334,7 +341,9 @@ export function createAggregateBenchmarkReport(options: {
     && run.metrics.drag.settledCollisionViolationCount === 0
     && run.metrics.drag.releasedCollisionViolationCount === 0,
   );
-  const tierPassed = memoryPlateau.plateau && validRuns && averages.dragFps >= 30;
+  const tierPassed = (memoryPlateau?.plateau ?? true)
+    && validRuns
+    && averages.dragFps >= 30;
   const identity = fixtureIdentity(options.fixture);
   if (options.baseline) {
     validateBaseline({

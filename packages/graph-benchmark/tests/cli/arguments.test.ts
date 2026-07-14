@@ -47,6 +47,14 @@ describe('parseBenchmarkArguments', () => {
     });
   });
 
+  it('allows interaction-only runs to skip legacy memory-close cycles', () => {
+    expect(parseBenchmarkArguments([
+      '--fixture', '500',
+      '--renderer', 'current',
+      '--memory-cycles', '0',
+    ])).toMatchObject({ memoryCycles: 0 });
+  });
+
   it('rejects fewer than three runs because reported metrics are averages', () => {
     expect(() => parseBenchmarkArguments([
       '--fixture', '500',

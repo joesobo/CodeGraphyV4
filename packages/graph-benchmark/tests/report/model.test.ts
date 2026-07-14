@@ -229,6 +229,27 @@ describe('createAggregateBenchmarkReport', () => {
     expect(() => createReport(wrongTarget)).toThrow('drag target');
   });
 
+  it('supports interaction-only reports without legacy memory-close cycles', () => {
+    const runs = [createRun(1, 30), createRun(2, 36), createRun(3, 42)].map(run => ({
+      ...run,
+      metrics: {
+        ...run.metrics,
+        memory: { ...run.metrics.memory, afterCloseCycleBytes: [] },
+      },
+    }));
+    const report = createAggregateBenchmarkReport({
+      fixture: createSyntheticFixture('500', 307),
+      renderer: 'current',
+      environment,
+      runs,
+      configuration: { ...configuration, memoryCycles: 0 },
+      source,
+    });
+
+    expect(report.memoryPlateau).toBeNull();
+    expect(report.averages.memoryAfterCyclesBytes).toBe(1_200);
+  });
+
   it('validates all comparison-defining baseline identity', () => {
     const fixture = createSyntheticFixture('500', 307);
     const baseline = createBaseline();
