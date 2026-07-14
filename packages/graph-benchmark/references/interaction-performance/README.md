@@ -102,6 +102,21 @@ Because the attached physical panel is limited to 60 Hz, the final presentation 
 
 The real VS Code 1.128.0 editor on the same 165 Hz compositor independently records **165.01 displayed FPS**, one-frame target and neighbor response, zero freezes and teleports, monotonic zero-violation settle, imperceptible sleep, and HUD agreement within 1.40%. The high-refresh pass also exposed and fixed a measurement defect: the settle envelope had used five frames, silently shrinking from about 80 ms at 60 Hz to 30 ms at 165 Hz; it now uses a refresh-independent 80 ms wall-clock window. Evidence and the explicit virtual-display provenance are committed under `m5-final/high-refresh/`.
 
+## M6 Obsidian sizing and D3 layout parity
+
+Revision `a466c9c7df9fde2cb36a89118578bdc692ef9add` replaces graph-relative connection sizing with Obsidian's stable `clamp(3 × sqrt(uniqueRelatedNodes + 1), 8, 30)` curve. Parallel and reverse relationships to the same node count once, and node-size changes rebuild through the authoritative graph model so rendering, collision, picking, and fit calculations share one radius.
+
+The owned layout now also matches D3's exact deterministic phyllotaxis. Top Down and Left to Right center ranks around the origin and fix only the ranked axis, while Radial Out uses a D3-equivalent radial force with roots at radius zero and no prescribed angle. Deterministic best-effort cycle handling remains because a Relationship Graph is not guaranteed to be acyclic.
+
+| Fixture | Mean CPU frame | p95 | 1%-high | Sim / render | Potential / displayed FPS | M1 potential gain | Target / neighbor latency | Frozen / teleports | Settle violations | HUD max difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| tiny | 0.31 ms | 0.60 ms | 0.67 ms | 0.07 / 0.24 ms | 3,239 / 60.00 | +0.2% | 1 / 1 frames | 0 / 0 | 0 | 8.82% |
+| 500 | 4.95 ms | 5.27 ms | 6.13 ms | 4.35 / 0.61 ms | 202 / 60.00 | +52.9% | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 1k | 4.00 ms | 4.80 ms | 5.00 ms | 3.06 / 0.94 ms | 250 / 60.00 | +33.1% | 1 / 1 frames | 0 / 0 | 0 | 1.82% |
+| 2.5k | 6.39 ms | 7.27 ms | 9.27 ms | 4.75 / 1.64 ms | 157 / 60.00 | +73.0% | 1 / 1 frames | 0 / 0 | 0 | 0% |
+
+All four clean three-run tiers pass and settle. The 2.5k result is now below the 6.9 ms stretch target as well as the 16 ms hard target. A real VS Code editor review captures Default, Top Down, Left to Right, and Radial Out layouts with Files Explorer visible. With Show FPS enabled, the compact HUD stays live after physics settles and measures 142–144 displayed FPS against an independent 144.00 Hz rAF probe, without frame-rate or vsync bypass flags. The diagnostic intentionally continues rendering while enabled; turning it off restores normal zero-idle-render behavior. Evidence is under `m6-obsidian-layout/`.
+
 Run the dashboard generator with:
 
 ```bash
