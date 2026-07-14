@@ -78,6 +78,8 @@ test('captures trustworthy frame and interaction metrics during a fixed syntheti
     expect(result.responsive).toBe(true);
     expect(result.finitePositions).toBe(true);
     expect(result.releasedCollisionViolationCount).toBeGreaterThanOrEqual(0);
+    expect(result.releaseObservationMs).toBe(15_000);
+    expect(result.settledAfterRelease).toBe(true);
     expect(result.duringDragCollisionViolationCount)
       .toBeGreaterThanOrEqual(result.releasedCollisionViolationCount);
     expect(result.interactionAssessment.timing.potentialFps).toBeGreaterThan(0);

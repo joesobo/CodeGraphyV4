@@ -59,6 +59,8 @@ export interface CompletedBenchmarkRun {
       settledCollisionViolationCount: number;
       duringDragCollisionViolationCount: number;
       releasedCollisionViolationCount: number;
+      releaseObservationMs: number;
+      settledAfterRelease: boolean;
       interactionAssessment: InteractionAssessment;
     };
     settleTimeMs: number;
@@ -77,6 +79,7 @@ export interface BenchmarkConfiguration {
   targetNodeId: string;
   neighborNodeIds: string[];
   interactionThresholds: InteractionThresholds;
+  releaseObservationMs: number;
   viewport: {
     width: number;
     height: number;
@@ -325,6 +328,9 @@ export function createAggregateBenchmarkReport(options: {
   const validRuns = options.runs.every(run =>
     run.metrics.drag.responsive
     && run.metrics.drag.finitePositions
+    && run.metrics.drag.settledAfterRelease
+    && run.metrics.drag.interactionAssessment.hudAgreement?.withinTenPercent === true
+    && !run.metrics.drag.interactionAssessment.truncated
     && run.metrics.drag.settledCollisionViolationCount === 0
     && run.metrics.drag.releasedCollisionViolationCount === 0,
   );

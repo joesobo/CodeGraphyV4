@@ -8,6 +8,8 @@ import {
   type PerformanceHudSample,
 } from '../../metrics/interaction';
 
+export const RELEASE_SETTLE_OBSERVATION_MS = 15_000;
+
 export interface CurrentRendererSettlement {
   renderer: 'current';
   fixtureHash: string;
@@ -221,6 +223,8 @@ export async function runCurrentRendererSyntheticDrag(
   settledCollisionViolationCount: number;
   duringDragCollisionViolationCount: number;
   releasedCollisionViolationCount: number;
+  releaseObservationMs: number;
+  settledAfterRelease: boolean;
   interactionAssessment: ReturnType<typeof assessInteractionRecording>;
 }> {
   const centered = await page.evaluate((nodeId) =>
@@ -289,10 +293,17 @@ export async function runCurrentRendererSyntheticDrag(
   const stabilizationCount = await page.evaluate(() =>
     (window as BenchmarkPageWindow).__CODEGRAPHY_GRAPH_BENCHMARK__?.stabilizationCount ?? 0);
   await page.mouse.up({ button: 'left' });
-  await page.waitForFunction((previousCount) =>
-    ((window as BenchmarkPageWindow).__CODEGRAPHY_GRAPH_BENCHMARK__?.stabilizationCount ?? 0)
-      > previousCount,
-  stabilizationCount, { timeout: timeoutMs });
+  const releaseObservationMs = Math.min(timeoutMs, RELEASE_SETTLE_OBSERVATION_MS);
+  let settledAfterRelease = true;
+  try {
+    await page.waitForFunction((previousCount) =>
+      ((window as BenchmarkPageWindow).__CODEGRAPHY_GRAPH_BENCHMARK__?.stabilizationCount ?? 0)
+        > previousCount,
+    stabilizationCount, { timeout: releaseObservationMs });
+  } catch (error) {
+    if (!(error instanceof Error) || error.name !== 'TimeoutError') throw error;
+    settledAfterRelease = false;
+  }
   const released = await readCurrentCollisionState(page);
   const telemetry = await page.evaluate(() => {
     const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
@@ -329,6 +340,8 @@ export async function runCurrentRendererSyntheticDrag(
     settledCollisionViolationCount: settled.violations,
     duringDragCollisionViolationCount: duringDrag.violations,
     releasedCollisionViolationCount: released.violations,
+    releaseObservationMs,
+    settledAfterRelease,
     interactionAssessment,
   };
 }
