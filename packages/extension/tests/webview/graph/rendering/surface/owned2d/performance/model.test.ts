@@ -66,6 +66,25 @@ describe('owned graph performance monitor', () => {
     expect(monitor.sample()).toEqual(idle);
   });
 
+  it('does not replace a useful last-active cadence with one isolated idle render', () => {
+    const monitor = createOwnedGraphPerformanceMonitor();
+
+    monitor.recordFrame({ presentationTimestampMs: 0, renderMs: 3, simulationMs: 2 });
+    monitor.recordFrame({ presentationTimestampMs: 16, renderMs: 3, simulationMs: 2 });
+    monitor.recordFrame({ presentationTimestampMs: 32, renderMs: 3, simulationMs: 2 });
+    monitor.setIdle();
+    monitor.recordFrame({ presentationTimestampMs: 48, renderMs: 10, simulationMs: 10 });
+
+    expect(monitor.setIdle()).toMatchObject({
+      status: 'idle',
+      lastActive: {
+        displayedFps: 62.5,
+        frameTimeMs: { average: 5 },
+        sampleCount: 3,
+      },
+    });
+  });
+
   it('does not infer idle or erase an active stall from a long presentation gap', () => {
     const monitor = createOwnedGraphPerformanceMonitor();
 
