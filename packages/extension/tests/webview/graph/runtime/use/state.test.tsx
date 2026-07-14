@@ -201,12 +201,12 @@ describe('graph/runtime/useGraphRuntime', () => {
     rerender(createOptions({
       data: initialOptions.data,
       favorites: initialOptions.favorites,
-      nodeSizeMode: 'connections',
+      nodeSizeMode: 'file-size',
     }));
 
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(2);
     expect(graphStateHarness.buildGraphData).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      nodeSizeMode: 'connections',
+      nodeSizeMode: 'file-size',
       previousNodes: firstGraph.nodes,
     }));
     expect(result.current.renderer.graphData).toBe(secondGraph);
