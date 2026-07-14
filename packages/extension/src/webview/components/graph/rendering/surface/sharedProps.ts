@@ -1,4 +1,3 @@
-import type { DagMode } from '../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../model/build';
 
 export const INTERACTIVE_COOLDOWN_TICKS = 60;
@@ -12,8 +11,6 @@ export interface GraphSurfaceSharedProps {
   cooldownTicks: number;
   d3AlphaDecay: number;
   d3VelocityDecay: number;
-  dagLevelDistance: number | undefined;
-  dagMode: Exclude<DagMode, null> | undefined;
   graphData: { nodes: FGNode[]; links: FGLink[] };
   height: number | undefined;
   nodeId: 'id';
@@ -33,7 +30,6 @@ export interface GraphSurfaceSharedProps {
 
 export interface BuildSharedGraphPropsOptions {
   containerSize: GraphContainerSize;
-  dagMode: DagMode;
   graphData: { nodes: FGNode[]; links: FGLink[] };
   onBackgroundClick(this: void, event?: MouseEvent): void;
   onBackgroundRightClick(this: void, event: MouseEvent): void;
@@ -74,7 +70,5 @@ export function buildSharedGraphProps(
     cooldownTicks: INTERACTIVE_COOLDOWN_TICKS,
     nodeId: 'id',
     onNodeHover: options.onNodeHover,
-    dagMode: options.dagMode ?? undefined,
-    dagLevelDistance: options.dagMode ? 60 : undefined,
   };
 }

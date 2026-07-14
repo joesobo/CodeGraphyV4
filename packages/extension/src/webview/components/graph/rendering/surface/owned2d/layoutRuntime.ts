@@ -39,16 +39,12 @@ function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayou
     nodes,
     links,
     settings,
-    currentProps.sharedProps.dagMode ?? null,
-    currentProps.sharedProps.dagLevelDistance ?? 60,
   );
   if (current && updated) return current;
   const layout = createOwnedGraphLayout(
     nodes,
     links,
     settings,
-    currentProps.sharedProps.dagMode ?? null,
-    currentProps.sharedProps.dagLevelDistance ?? 60,
   );
   runtime.layoutRef.current = layout;
   return layout;

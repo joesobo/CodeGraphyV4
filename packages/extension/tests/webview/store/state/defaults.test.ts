@@ -34,7 +34,6 @@ describe('GraphStore initial state', () => {
     expect(state.disabledPluginFilterPatterns).toEqual([]);
     expect(state.depthLimit).toBe(1);
     expect(state.maxDepthLimit).toBe(10);
-    expect(state.dagMode).toBeNull();
     expect(state.maxFiles).toBe(DEFAULT_MAX_FILES);
   });
 

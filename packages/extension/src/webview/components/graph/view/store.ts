@@ -4,7 +4,6 @@ import type { GraphState } from '../../../store/state';
 export type GraphViewStoreState = Pick<
   GraphState,
   | 'bidirectionalMode'
-  | 'dagMode'
   | 'directionMode'
   | 'favorites'
   | 'graphViewContributionStatuses'
@@ -22,7 +21,6 @@ export type GraphViewStoreState = Pick<
 export function useGraphViewStoreState(): GraphViewStoreState {
   return {
     bidirectionalMode: useGraphStore(state => state.bidirectionalMode),
-    dagMode: useGraphStore(state => state.dagMode),
     depthMode: useGraphStore(state => state.depthMode),
     directionMode: useGraphStore(state => state.directionMode),
     favorites: useGraphStore(state => state.favorites),

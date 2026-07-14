@@ -28,13 +28,9 @@ import {
   handlePluginExportersUpdated,
   handlePluginToolbarActionsUpdated,
   handleGraphViewContributionsUpdated,
-  handleDagModeUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
-import {
-  handleToggleDepthMode,
-  handleCycleLayout,
-} from './messageHandlers/toolbar';
+import { handleToggleDepthMode } from './messageHandlers/toolbar';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 
 export const MESSAGE_HANDLERS: Record<
@@ -119,10 +115,7 @@ export const MESSAGE_HANDLERS: Record<
   GRAPH_VIEW_CONTRIBUTIONS_UPDATED: (msg) =>
     handleGraphViewContributionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>),
   PLUGIN_WEBVIEW_INJECT: () => undefined,
-  DAG_MODE_UPDATED: (msg) =>
-    handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),
   NODE_SIZE_MODE_UPDATED: (msg) =>
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),
   TOGGLE_DEPTH_MODE: handleToggleDepthMode,
-  CYCLE_LAYOUT: handleCycleLayout,
 };

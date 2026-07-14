@@ -47,8 +47,7 @@ export interface GraphViewProviderPublicMethods {
       | 'FIT_VIEW'
       | 'ZOOM_IN'
       | 'ZOOM_OUT'
-      | 'TOGGLE_DEPTH_MODE'
-      | 'CYCLE_LAYOUT',
+      | 'TOGGLE_DEPTH_MODE',
   ) => void;
   undo: () => Promise<string | undefined>;
   redo: () => Promise<string | undefined>;

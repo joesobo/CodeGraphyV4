@@ -92,7 +92,6 @@ describe('Workspace plugin data host', () => {
       particleSize: 4,
       depthMode: false,
       depthLimit: 1,
-      dagMode: null,
       nodeSizeMode: 'connections',
       physics: {
         repelForce: 13,

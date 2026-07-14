@@ -40,7 +40,6 @@ export function createState(
     pluginFilterGroups: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
-    dagMode: null,
     pluginStatuses: [],
     graphNodeTypes: [],
     graphEdgeTypes: [],

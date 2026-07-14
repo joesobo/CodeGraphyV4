@@ -15,12 +15,10 @@ describe('webview/store/actions/scalars', () => {
     actions.setParticleSize(8);
     actions.setBidirectionalMode('combined');
     actions.setDepthMode(true);
-    actions.setDagMode('td');
     actions.setMaxFiles(1200);
 
     expect(getState()).toMatchObject({
       bidirectionalMode: 'combined',
-      dagMode: 'td',
       depthMode: true,
       directionColor: '#00ff00',
       directionMode: 'particles',

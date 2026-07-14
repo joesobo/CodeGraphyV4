@@ -6,7 +6,6 @@ import { graphStore } from '../../../../src/webview/store/state';
 function resetStore(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     bidirectionalMode: 'separate',
-    dagMode: null,
     depthMode: false,
     directionColor: '#22c55e',
     directionMode: 'arrows',
@@ -49,7 +48,6 @@ describe('graph/store', () => {
 
     expect(result.current).toMatchObject({
       bidirectionalMode: 'separate',
-      dagMode: null,
       depthMode: true,
       directionMode: 'particles',
       nodeSizeMode: 'connections',

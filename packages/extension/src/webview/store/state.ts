@@ -19,7 +19,7 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
-import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type {
   PendingGroupUpdates,
@@ -63,7 +63,6 @@ export interface GraphState {
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
-  dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
@@ -107,7 +106,6 @@ export interface GraphState {
   setShowLabels: (show: boolean) => void;
   setCssSnippets: (snippets: Record<string, boolean>) => void;
   setDepthMode: (depthMode: boolean) => void;
-  setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
   setShowFps: (enabled: boolean) => void;
   setVerboseDiagnostics: (enabled: boolean) => void;

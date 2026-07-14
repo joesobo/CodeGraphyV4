@@ -43,13 +43,11 @@ describe('graph view provider listener settings context', () => {
       captureSettingsSnapshot: vi.fn(),
       createResetSettingsAction: vi.fn(),
       executeUndoAction: vi.fn(),
-      dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     };
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: 'TB',
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -81,7 +79,6 @@ describe('graph view provider listener settings context', () => {
           update: vi.fn(() => Promise.resolve()),
         },
       },
-      _dagMode: null,
       _nodeSizeMode: 'connections',
       _getPhysicsSettings: vi.fn(() => ({
         repelForce: 1,
@@ -108,7 +105,6 @@ describe('graph view provider listener settings context', () => {
       captureSettingsSnapshot,
       createResetSettingsAction,
       executeUndoAction,
-      dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     };
 
@@ -117,20 +113,14 @@ describe('graph view provider listener settings context', () => {
       dependencies as never,
     );
 
-    await context.updateDagMode('TB' as never);
     await context.updateNodeSizeMode('files' as never);
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
-    expect(repoSettings.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith('dagMode', 'TB');
     expect(repoSettings.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith(
       'nodeSizeMode',
       'files',
     );
-    expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'TB' },
-    });
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'files' },
@@ -152,7 +142,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -174,7 +163,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -199,7 +187,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -222,7 +209,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -241,7 +227,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -263,7 +248,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -284,7 +268,6 @@ describe('graph view provider listener settings context', () => {
       _analyzer: {
         reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
       },
-      _dagMode: null,
       _nodeSizeMode: 'connections',
       _getPhysicsSettings: vi.fn(() => ({
         repelForce: 1,
@@ -309,7 +292,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -335,7 +317,6 @@ describe('graph view provider listener settings context', () => {
       _analyzer: {
         reloadWorkspacePlugins: vi.fn(() => reload.promise),
       },
-      _dagMode: null,
       _nodeSizeMode: 'connections',
       _getPhysicsSettings: vi.fn(() => ({
         repelForce: 1,
@@ -360,7 +341,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -388,7 +368,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -410,7 +389,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -439,7 +417,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -461,7 +438,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -499,7 +475,6 @@ describe('graph view provider listener settings context', () => {
           update: vi.fn(() => Promise.resolve()),
         },
       },
-      _dagMode: null,
       _nodeSizeMode: 'connections',
       _getPhysicsSettings: vi.fn(() => ({
         repelForce: 1,
@@ -521,7 +496,6 @@ describe('graph view provider listener settings context', () => {
       captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
       createResetSettingsAction,
       executeUndoAction: vi.fn(() => Promise.resolve()),
-      dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     };
 
@@ -556,7 +530,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -580,7 +553,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -605,7 +577,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -629,7 +600,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -653,7 +623,6 @@ describe('graph view provider listener settings context', () => {
     const context = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -676,7 +645,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -700,7 +668,6 @@ describe('graph view provider listener settings context', () => {
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
         _depthMode: 'focused',
-        _dagMode: 'TB',
         _nodeSizeMode: 'files',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -723,7 +690,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );
@@ -734,14 +700,12 @@ describe('graph view provider listener settings context', () => {
     expect(sendGraphControls).toHaveBeenCalledOnce();
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
     expect(context.getDepthMode()).toBe('focused');
-    expect(context.getDagMode()).toBe('TB');
     expect(context.getNodeSizeMode()).toBe('files');
 
     const withoutGraphControls = createGraphViewProviderMessageSettingsContext(
       {
         _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
         _depthMode: null,
-        _dagMode: null,
         _nodeSizeMode: 'connections',
         _getPhysicsSettings: vi.fn(() => ({
           repelForce: 1,
@@ -763,7 +727,6 @@ describe('graph view provider listener settings context', () => {
         captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
         createResetSettingsAction: vi.fn(),
         executeUndoAction: vi.fn(() => Promise.resolve()),
-        dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
       } as never,
     );

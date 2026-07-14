@@ -11,7 +11,6 @@ const MUTABLE_STATE_KEYS = [
   '_analysisController',
   '_analysisRequestId',
   '_depthMode',
-  '_dagMode',
   '_nodeSizeMode',
   '_rawGraphData',
   '_viewContext',

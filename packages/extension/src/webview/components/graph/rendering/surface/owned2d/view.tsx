@@ -274,8 +274,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     );
   }, [
     clearLinkHover,
-    props.sharedProps.dagLevelDistance,
-    props.sharedProps.dagMode,
     props.sharedProps.graphData,
     props.graphViewContributions,
     layoutRuntime,

@@ -45,8 +45,6 @@ function createSharedProps() {
     cooldownTicks: 20,
     d3AlphaDecay: 0.0228,
     d3VelocityDecay: 0.7,
-    dagLevelDistance: undefined,
-    dagMode: undefined,
     graphData: { nodes: [], links: [] },
     height: 200,
     nodeId: 'id' as const,

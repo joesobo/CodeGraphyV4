@@ -4,7 +4,6 @@ const bootstrapState = vi.hoisted(() => ({
   initializeCalls: [] as unknown[],
   restoreValue: {
     depthMode: true,
-    dagMode: 'focus' as const,
     nodeSizeMode: 'connections' as const,
   },
 }));
@@ -27,7 +26,6 @@ describe('graphView/provider/runtime/state/bootstrap', () => {
     bootstrapState.initializeCalls = [];
     bootstrapState.restoreValue = {
       depthMode: true,
-      dagMode: 'focus',
       nodeSizeMode: 'connections',
     };
   });

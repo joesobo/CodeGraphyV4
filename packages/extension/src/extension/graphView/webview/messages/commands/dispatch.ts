@@ -1,5 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
-import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import { applyHistoryCommand } from './history';
 import { applyGraphDisplayCommand } from './modes';
 
@@ -10,7 +10,6 @@ export interface GraphViewCommandHandlers {
   showInformationMessage(message: string): void;
   setDepthMode?(depthMode: boolean): PromiseLike<void>;
   setDepthLimit(depthLimit: number): PromiseLike<void>;
-  updateDagMode(dagMode: DagMode): PromiseLike<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): PromiseLike<void>;
 }
 

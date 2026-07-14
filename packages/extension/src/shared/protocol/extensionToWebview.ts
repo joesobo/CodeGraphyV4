@@ -8,7 +8,6 @@ import type { IPluginStatus } from '../plugins/status';
 import type { IGraphControlsSnapshot } from '../graphControls/contracts';
 import type {
   BidirectionalEdgeMode,
-  DagMode,
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
@@ -135,7 +134,5 @@ export type ExtensionToWebviewMessage =
       }>;
     };
   }
-  | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
   | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
-  | { type: 'TOGGLE_DEPTH_MODE' }
-  | { type: 'CYCLE_LAYOUT' };
+  | { type: 'TOGGLE_DEPTH_MODE' };

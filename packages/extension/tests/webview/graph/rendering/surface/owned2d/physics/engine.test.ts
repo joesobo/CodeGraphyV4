@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 
-import { forceRadial, forceSimulation, type SimulationNodeDatum } from 'd3-force';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -249,53 +248,6 @@ describe('graph layout engine', () => {
 
     expect(engine.vx[0]).toBeLessThan(0);
     expect(engine.vx[1]).toBe(0);
-  });
-
-  it('fixes the ranked axis while leaving the perpendicular axis force-directed', () => {
-    const engine = createGraphLayoutEngine({
-      nodeIds: ['node-0'],
-      initialX: Float32Array.of(0),
-      initialY: Float32Array.of(20),
-      initialVy: Float32Array.of(5),
-      radii: Float32Array.of(4),
-      edgeSources: new Uint32Array(),
-      edgeTargets: new Uint32Array(),
-      targetX: Float32Array.of(100),
-      targetY: Float32Array.of(Number.NaN),
-    }, { centralGravity: 0, collisionIterations: 0, chargeStrength: 0 });
-
-    engine.tick();
-
-    expect(engine.x[0]).toBe(100);
-    expect(engine.vx[0]).toBe(0);
-    expect(engine.y[0]).toBeGreaterThan(20);
-  });
-
-  it('matches D3 forceRadial for radial layout levels', () => {
-    const referenceNode: SimulationNodeDatum = { x: 50, y: 0, vx: 0, vy: 0 };
-    const reference = forceSimulation([referenceNode])
-      .stop()
-      .velocityDecay(0.4)
-      .force('radial', forceRadial<SimulationNodeDatum>(100).strength(1));
-    reference.tick();
-    const engine = createGraphLayoutEngine({
-      nodeIds: ['node-0'],
-      initialX: Float32Array.of(50),
-      initialY: Float32Array.of(0),
-      initialVx: Float32Array.of(0),
-      initialVy: Float32Array.of(0),
-      radii: Float32Array.of(4),
-      edgeSources: new Uint32Array(),
-      edgeTargets: new Uint32Array(),
-      targetRadius: Float32Array.of(100),
-    }, { centralGravity: 0, collisionIterations: 0, chargeStrength: 0 });
-
-    engine.tick();
-
-    expect(engine.x[0]).toBeCloseTo(referenceNode.x!, 5);
-    expect(engine.y[0]).toBeCloseTo(referenceNode.y!, 5);
-    expect(engine.vx[0]).toBeCloseTo(referenceNode.vx!, 5);
-    expect(engine.vy[0]).toBeCloseTo(referenceNode.vy!, 5);
   });
 
   it('uses velocityDecay to suppress release velocity', () => {

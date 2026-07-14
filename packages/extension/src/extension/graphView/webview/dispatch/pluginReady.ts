@@ -1,7 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import { applyWebviewReady } from '../messages/ready';
 
 type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW_READY' }>;
@@ -14,7 +14,6 @@ export interface GraphViewPluginReadyContext {
   getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
   getDepthMode?(): boolean;
-  getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
@@ -52,7 +51,6 @@ export async function dispatchGraphViewPluginReadyMessage(
       showFps: context.getConfig('showFps', false),
       verboseDiagnostics: context.getConfig('verboseDiagnostics', false),
       depthMode: context.getDepthMode?.() ?? false,
-      dagMode: context.getDagMode(),
       nodeSizeMode: context.getNodeSizeMode(),
       focusedFile: context.getFocusedFile(),
       hasWorkspace: context.hasWorkspace(),

@@ -20,9 +20,6 @@ function state(
     edgeSources: new Uint32Array(),
     edgeTargets: new Uint32Array(),
     linkDegrees: new Uint32Array(x.length),
-    targetX: new Float32Array(x.length).fill(Number.NaN),
-    targetY: new Float32Array(x.length).fill(Number.NaN),
-    targetRadius: new Float32Array(x.length).fill(Number.NaN),
   };
 }
 

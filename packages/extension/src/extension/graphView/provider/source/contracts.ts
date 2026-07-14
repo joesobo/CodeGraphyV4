@@ -5,7 +5,7 @@ import { DecorationManager } from '../../../../core/plugins/decoration/manager';
 import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
 import type {
   GraphViewProviderAnalysisMethods,
@@ -102,7 +102,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _changedFilePaths?: string[];
   _viewRegistry: ViewRegistry;
   _depthMode: boolean;
-  _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _rawGraphData: IGraphData;
   _viewContext: IViewContext;

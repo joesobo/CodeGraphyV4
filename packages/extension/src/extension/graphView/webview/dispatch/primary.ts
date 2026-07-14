@@ -4,7 +4,7 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
@@ -56,7 +56,6 @@ export interface GraphViewPrimaryMessageContext {
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   getDepthMode(): boolean;
-  updateDagMode(dagMode: DagMode): Promise<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
   sendPhysicsSettings(): void;
   updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;

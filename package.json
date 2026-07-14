@@ -142,10 +142,6 @@
 			{
 				"command": "codegraphy.toggleDepthMode",
 				"title": "CodeGraphy: Toggle Depth Mode"
-			},
-			{
-				"command": "codegraphy.cycleLayout",
-				"title": "CodeGraphy: Cycle Layout"
 			}
 		],
 		"keybindings": [
@@ -189,11 +185,6 @@
 			{
 				"command": "codegraphy.toggleDepthMode",
 				"key": "v",
-				"when": "codegraphy.graphFocused"
-			},
-			{
-				"command": "codegraphy.cycleLayout",
-				"key": "l",
 				"when": "codegraphy.graphFocused"
 			}
 		],

@@ -3,7 +3,7 @@ import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/cont
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { createGraphStore } from '../../../../src/webview/store/state';
-import { clearSentMessages, findMessage } from '../../../helpers/sentMessages';
+import { clearSentMessages } from '../../../helpers/sentMessages';
 
 describe('GraphStore message routing', () => {
   let store: ReturnType<typeof createGraphStore>;
@@ -238,7 +238,6 @@ describe('GraphStore message routing', () => {
           ],
         },
       ],
-      dagMode: 'td',
       nodeSizeMode: 'uniform',
     });
 
@@ -275,7 +274,6 @@ describe('GraphStore message routing', () => {
         ],
       },
     ]);
-    expect(store.getState().dagMode).toBe('td');
     expect(store.getState().nodeSizeMode).toBe('uniform');
   });
 
@@ -288,11 +286,4 @@ describe('GraphStore message routing', () => {
     expect(store.getState().nodeSizeMode).toBe('churn');
   });
 
-  it('CYCLE_LAYOUT falls back to free-form when dagMode is outside the cycle', () => {
-    store.setState({ dagMode: 'invalid-mode' as never });
-
-    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-
-    expect(findMessage('UPDATE_DAG_MODE')?.payload.dagMode).toBeNull();
-  });
 });

@@ -1,5 +1,4 @@
 import type { IHandlerContext } from '../messageTypes';
-import { DAG_MODE_CYCLE } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
 export function handleToggleDepthMode(
@@ -17,14 +16,4 @@ export function handleToggleDepthMode(
       depthMode: !depthMode,
     },
   });
-}
-
-export function handleCycleLayout(
-  _message: ExtensionToWebviewMessage,
-  ctx: IHandlerContext,
-): void {
-  const { dagMode } = ctx.getState();
-  const idx = DAG_MODE_CYCLE.indexOf(dagMode);
-  const nextMode = DAG_MODE_CYCLE[(idx + 1) % DAG_MODE_CYCLE.length];
-  ctx.postMessage({ type: 'UPDATE_DAG_MODE', payload: { dagMode: nextMode } });
 }

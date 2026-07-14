@@ -27,7 +27,6 @@ export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'particleSize',
   'depthMode',
   'depthLimit',
-  'dagMode',
   'nodeSizeMode',
   'physics',
 ]);

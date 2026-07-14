@@ -38,7 +38,6 @@ function createOptions(
 ): BuildSharedGraphPropsOptions {
   return {
     containerSize: { height: 480, width: 640 },
-    dagMode: 'td',
     damping: 0.7,
     graphData: {
       links: [createLink()],
@@ -64,7 +63,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(normalizeGraphDimension(0)).toBeUndefined();
   });
 
-  it('builds the shared graph props for a sized DAG container', () => {
+  it('builds the shared graph props for a sized container', () => {
     const options = createOptions();
 
     const props = buildSharedGraphProps(options);
@@ -77,21 +76,16 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.d3AlphaDecay).toBe(0.0228);
     expect(props.warmupTicks).toBe(0);
     expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
-    expect(props.dagMode).toBe('td');
-    expect(props.dagLevelDistance).toBe(60);
   });
 
-  it('normalizes zero-sized containers and disables DAG props when dagMode is null', () => {
+  it('normalizes zero-sized containers', () => {
     const props = buildSharedGraphProps(createOptions({
       containerSize: { height: 0, width: 0 },
-      dagMode: null,
     }));
 
     expect(props.width).toBeUndefined();
     expect(props.height).toBeUndefined();
     expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
-    expect(props.dagMode).toBeUndefined();
-    expect(props.dagLevelDistance).toBeUndefined();
   });
 
   it('keeps positioned interactive graphs on the normal physics cooldown', () => {

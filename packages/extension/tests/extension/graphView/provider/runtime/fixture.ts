@@ -14,7 +14,6 @@ export function createContext(vscodeModule: typeof import('vscode')) {
 export function createRestoredState() {
   return {
     depthMode: false,
-    dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
 }

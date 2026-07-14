@@ -1,7 +1,7 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
 import { applyPluginContextMenuAction } from '../pluginMessages/contextMenu';
 import { applyPluginExporterAction } from '../pluginMessages/exporter';
@@ -15,7 +15,6 @@ export interface GraphViewPluginMessageContext {
   getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
   getDepthMode(): boolean;
-  getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;

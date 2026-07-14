@@ -53,12 +53,6 @@ export function handleGraphViewContributionsUpdated(
   return { graphViewContributionStatuses: message.payload.contributions };
 }
 
-export function handleDagModeUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>,
-): PartialState {
-  return { dagMode: message.payload.dagMode };
-}
-
 export function handleNodeSizeModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>,
 ): PartialState {

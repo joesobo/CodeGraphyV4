@@ -6,7 +6,7 @@ import type {
   IPluginFilterPatternGroup,
 } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
 import type { IViewContext } from '../../../../core/views/contracts';
@@ -66,7 +66,6 @@ export interface GraphViewProviderMessageListenerDependencies {
     analyzeAndSendData: () => Promise<void>,
   ): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
-  dagModeKey: string;
   nodeSizeModeKey: string;
 }
 
@@ -77,7 +76,6 @@ export interface GraphViewProviderMessageListenerSource {
   _graphData: IGraphData;
   _viewContext: IViewContext;
   _depthMode: boolean;
-  _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
@@ -195,7 +193,6 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
       analyzeAndSendData,
       ),
   executeUndoAction: action => getUndoManager().execute(action),
-  dagModeKey: 'dagMode',
   nodeSizeModeKey: 'nodeSizeMode',
 };
 

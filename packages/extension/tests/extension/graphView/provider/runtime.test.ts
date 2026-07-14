@@ -78,7 +78,6 @@ describe('graphView/provider/runtime', () => {
     );
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        dagModeKey: 'dagMode',
         depthModeKey: 'depthMode',
         nodeSizeModeKey: 'nodeSizeMode',
         fallbackNodeSizeMode: 'connections',

@@ -52,7 +52,6 @@ import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    dagMode: null,
     depthLimit: 1,
     depthMode: false,
     activePanel: 'none',
@@ -100,27 +99,17 @@ describe('Toolbar', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Workspace', 'Layout', 'Node Size', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Node Size', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Workspace',
-      'Layout',
       'Node Size',
       'Graph Scope',
       'Themes',
       'Plugins',
       'Settings',
     ]);
-  });
-
-  it('sends UPDATE_DAG_MODE from the layout popover', async () => {
-    render(<Toolbar />);
-
-    fireEvent.click(screen.getByTitle('Layout'));
-    fireEvent.click(await screen.findByRole('button', { name: /Radial Out/i }));
-
-    expect(findMessage('UPDATE_DAG_MODE')?.payload.dagMode).toBe('radialout');
   });
 
   it('sends UPDATE_NODE_SIZE_MODE for churn', async () => {

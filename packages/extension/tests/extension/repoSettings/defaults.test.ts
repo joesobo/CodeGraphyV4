@@ -40,7 +40,6 @@ describe('extension/repoSettings/defaults', () => {
       particleSize: 4,
       depthMode: false,
       depthLimit: 1,
-      dagMode: null,
       nodeSizeMode: 'connections',
       physics: {
         repelForce: 10,

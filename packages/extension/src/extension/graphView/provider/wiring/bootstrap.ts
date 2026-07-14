@@ -1,4 +1,4 @@
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import { savePluginExport } from '../../../export/pluginSave';
 
 interface GraphViewCoreViewLike {
@@ -54,7 +54,6 @@ interface InitializeGraphViewProviderServicesOptions {
 
 interface RestoreGraphViewProviderStateOptions {
   configuration: GraphViewConfigurationLike;
-  dagModeKey: string;
   nodeSizeModeKey: string;
   depthModeKey?: string;
   fallbackNodeSizeMode: NodeSizeMode;
@@ -109,20 +108,17 @@ export function initializeGraphViewProviderServices({
 
 export function restoreGraphViewProviderState({
   configuration,
-  dagModeKey,
   nodeSizeModeKey,
   depthModeKey,
   fallbackNodeSizeMode,
 }: RestoreGraphViewProviderStateOptions): {
   depthMode: boolean;
-  dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
   const depthMode = configuration.get<boolean>(depthModeKey ?? 'depthMode', false);
 
   return {
     depthMode,
-    dagMode: configuration.get<DagMode>(dagModeKey, null),
     nodeSizeMode: normalizeNodeSizeMode(
       configuration.get<PersistedNodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
     ),

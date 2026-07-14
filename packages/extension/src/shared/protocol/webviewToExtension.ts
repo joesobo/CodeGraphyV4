@@ -1,7 +1,6 @@
 import type { IGroup } from '../settings/groups';
 import type {
   BidirectionalEdgeMode,
-  DagMode,
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
@@ -123,5 +122,4 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'RUN_PLUGIN_EXPORT'; payload: { pluginId: string; index: number } }
   | { type: 'RUN_PLUGIN_TOOLBAR_ACTION'; payload: { pluginId: string; index: number; itemIndex: number } }
-  | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } }
   | { type: 'UPDATE_NODE_SIZE_MODE'; payload: { nodeSizeMode: NodeSizeMode } };

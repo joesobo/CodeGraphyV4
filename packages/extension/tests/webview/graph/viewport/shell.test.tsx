@@ -202,7 +202,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showFps' | 'showLabels'
+	'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showFps' | 'showLabels'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -214,7 +214,6 @@ function createViewState(): Pick<
 
 	return {
 		bidirectionalMode: 'separate',
-		dagMode: 'td',
 		depthMode: false,
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
@@ -251,8 +250,6 @@ describe('graph/viewport/shell', () => {
 				cooldownTicks: 500,
 				d3AlphaDecay: 0.0228,
 				d3VelocityDecay: 0.42,
-				dagLevelDistance: 60,
-				dagMode: 'td',
 				graphData: { nodes: [], links: [] },
 				height: 320,
 				nodeId: 'id',
@@ -358,7 +355,6 @@ describe('graph/viewport/shell', () => {
 				particleSize: 3,
 				particleSpeed: 0.2,
 				physicsSettings: viewState.physicsSettings,
-				sharedProps: expect.objectContaining({ dagMode: 'td' }),
 			}),
 			tooltipData: interactions.tooltipData,
 		}));

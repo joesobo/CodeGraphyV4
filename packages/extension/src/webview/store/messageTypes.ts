@@ -15,7 +15,7 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
-import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type {
   PendingGroupUpdates,
@@ -60,7 +60,6 @@ export interface IStoreFields {
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
-  dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
@@ -79,9 +78,6 @@ export interface IStoreFields {
   verboseDiagnostics: boolean;
   activeFilePath: string | null;
 }
-
-/** DAG mode cycle order: free-form → radialout → top-down → left-right */
-export const DAG_MODE_CYCLE: DagMode[] = [null, 'radialout', 'td', 'lr'];
 
 /** Context passed to handlers that need current state or side-effect capabilities. */
 export interface IHandlerContext {
