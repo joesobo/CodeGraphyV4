@@ -33,7 +33,7 @@ export function publishCurrentGraphAccessibilityItems({
     return;
   }
 
-  const signature = createGraphAccessibilitySignature(nodes, links);
+  const signature = createGraphAccessibilitySignature(nodes, links, graph?.zoom() ?? null);
   if (signature === lastAccessibilitySignatureRef.current) {
     accessibilityDirtyRef.current = false;
     return;
@@ -47,6 +47,7 @@ export function publishCurrentGraphAccessibilityItems({
 function createGraphAccessibilitySignature(
   nodes: readonly FGNode[],
   links: readonly FGLink[],
+  zoom: number | null,
 ): string {
   const nodeSignature = nodes
     .map(node => `${node.id}:${node.size}:${Number.isFinite(node.x) && Number.isFinite(node.y) ? 'ready' : 'pending'}`)
@@ -55,7 +56,7 @@ function createGraphAccessibilitySignature(
     .map(link => `${link.id}:${resolveLinkEndpoint(link.source)}:${resolveLinkEndpoint(link.target)}`)
     .join('|');
 
-  return `${nodeSignature}::${linkSignature}`;
+  return `${zoom ?? 'unavailable'}::${nodeSignature}::${linkSignature}`;
 }
 
 function resolveLinkEndpoint(endpoint: string | FGNode): string {
