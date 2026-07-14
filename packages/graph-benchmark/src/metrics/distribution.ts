@@ -10,6 +10,7 @@ export function summarizeDistribution(values: readonly number[]) {
 
   const sortedValues = [...values].sort((left, right) => left - right);
   return {
+    mean: values.reduce((sum, value) => sum + value, 0) / values.length,
     p50: nearestRank(sortedValues, 0.5),
     p95: nearestRank(sortedValues, 0.95),
     p99: nearestRank(sortedValues, 0.99),

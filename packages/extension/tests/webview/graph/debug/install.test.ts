@@ -45,6 +45,23 @@ describe('webview/graph/debug/install', () => {
     const centerAt = vi.fn();
     const zoom = vi.fn(() => 2);
     const zoomToFit = vi.fn();
+    const startInteractionRecording = vi.fn();
+    const stopInteractionRecording = vi.fn(() => ({
+      frames: [],
+      inputs: [],
+      neighborNodeIds: ['leaf'],
+      targetNodeId: 'hub',
+      truncated: false,
+    }));
+    const getPerformance = vi.fn(() => ({
+      status: 'active' as const,
+      displayedFps: 60,
+      potentialFps: 200,
+      frameTimeMs: { average: 5, maximum: 6, onePercentHigh: 6 },
+      renderTimeMs: { average: 3, maximum: 4, onePercentHigh: 4 },
+      sampleCount: 20,
+      simulationTimeMs: { average: 2, maximum: 2, onePercentHigh: 2 },
+    }));
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
 
     const install = () => installGraphDebugApi({
@@ -53,7 +70,10 @@ describe('webview/graph/debug/install', () => {
       fg2dRef: {
         current: {
           centerAt,
+          getPerformance,
           graph2ScreenCoords: (x, y) => ({ x, y }),
+          startInteractionRecording,
+          stopInteractionRecording,
           zoom,
           zoomToFit,
         },
@@ -68,6 +88,10 @@ describe('webview/graph/debug/install', () => {
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('a.ts', 1)).toBe(true);
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('missing.ts', 1)).toBe(false);
     win.__CODEGRAPHY_GRAPH_DEBUG__?.startRenderedFrameRecording();
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.startInteractionRecording({
+      neighborNodeIds: ['leaf'],
+      targetNodeId: 'hub',
+    });
     win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(10);
     cleanup?.();
     install();
@@ -77,6 +101,17 @@ describe('webview/graph/debug/install', () => {
     expect(zoomToFit).toHaveBeenCalledWith(300, 24);
     expect(zoom).toHaveBeenCalledWith(1, 0);
     expect(centerAt).toHaveBeenCalledWith(1, 2, 0);
+    expect(startInteractionRecording).toHaveBeenCalledWith({
+      neighborNodeIds: ['leaf'],
+      targetNodeId: 'hub',
+    });
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getPerformance()).toMatchObject({
+      status: 'active',
+      potentialFps: 200,
+    });
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopInteractionRecording()).toMatchObject({
+      targetNodeId: 'hub',
+    });
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);
 
     win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(40);

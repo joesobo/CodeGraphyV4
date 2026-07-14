@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe('owned graph frame loop', () => {
-  it('publishes sampled FPS only for submitted frames while the setting is enabled', () => {
+  it('publishes always-on frame performance and explicit idle state', () => {
     let scheduledFrame: FrameRequestCallback | undefined;
     vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
       scheduledFrame = callback;
@@ -32,31 +32,40 @@ describe('owned graph frame loop', () => {
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     vi.stubGlobal('ResizeObserver', ResizeObserverHarness);
     vi.mocked(renderOwnedGraphFrame).mockImplementation((runtime) => {
-      runtime.recordRenderedFrame(100);
-      return 100;
+      runtime.recordRenderedFrame(100, 2, 3);
     });
-    const publishedSample = { fps: 57, frameTimeMs: 17.5, onePercentLowFps: 31 };
-    const record = vi.fn(() => publishedSample);
-    const publishFps = vi.fn();
+    const publishedSample = {
+      status: 'active' as const,
+      displayedFps: 57,
+      potentialFps: 200,
+      frameTimeMs: { average: 5, maximum: 6, onePercentHigh: 6 },
+      renderTimeMs: { average: 3, maximum: 4, onePercentHigh: 4 },
+      sampleCount: 10,
+      simulationTimeMs: { average: 2, maximum: 2, onePercentHigh: 2 },
+    };
+    const idleSample = { status: 'idle' as const, lastActive: publishedSample };
+    const recordFrame = vi.fn(() => publishedSample);
+    const setIdle = vi.fn(() => idleSample);
+    const publishPerformance = vi.fn();
     const runtime = {
       animationFrameRef: { current: null },
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       engineStopNotifiedRef: { current: false },
       fpsRef: { current: null },
-      fpsSamplerRef: {
+      performanceMonitorRef: {
         current: {
-          fps: 57,
-          frameTimeMs: 17.5,
-          record,
+          recordFrame,
           reset: vi.fn(),
           sample: () => publishedSample,
+          setIdle,
         },
       },
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: null },
-      propsRef: { current: { showFps: true } },
-      publishFps,
+      propsRef: { current: { showFps: false } },
+      publishPerformance,
+      markPerformanceIdle: () => undefined,
       recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
@@ -69,14 +78,22 @@ describe('owned graph frame loop', () => {
     );
     scheduledFrame?.(100);
 
-    expect(record).toHaveBeenCalledWith(100);
+    expect(recordFrame).toHaveBeenCalledWith({
+      presentationTimestampMs: 100,
+      renderMs: 3,
+      simulationMs: 2,
+    });
     expect(runtime.fpsRef.current).toBe(57);
-    expect(publishFps).toHaveBeenCalledWith(publishedSample);
+    expect(publishPerformance).toHaveBeenCalledWith(publishedSample);
 
-    vi.mocked(renderOwnedGraphFrame).mockImplementation(() => undefined);
+    vi.mocked(renderOwnedGraphFrame).mockImplementation((runtime) => {
+      runtime.markPerformanceIdle();
+    });
     runtime.requestFrameRef.current();
     scheduledFrame?.(120);
-    expect(record).toHaveBeenCalledOnce();
+    expect(setIdle).toHaveBeenCalledOnce();
+    expect(runtime.fpsRef.current).toBeNull();
+    expect(publishPerformance).toHaveBeenLastCalledWith(idleSample);
 
     loop.dispose();
   });
@@ -95,6 +112,7 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: { canRender: () => false } },
       layoutRef: { current: null },
+      markPerformanceIdle: () => undefined,
       recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },

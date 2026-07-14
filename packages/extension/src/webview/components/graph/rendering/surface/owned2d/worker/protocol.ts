@@ -58,6 +58,7 @@ export type GraphLayoutWorkerCommand =
 export interface GraphLayoutWorkerTickMessage {
   alpha: number;
   buffers: GraphLayoutTransferBuffers;
+  simulationCpuMs: number;
   type: 'tick';
   mutationRevision: number;
   revision: number;

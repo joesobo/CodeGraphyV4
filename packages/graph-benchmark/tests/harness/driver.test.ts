@@ -4,6 +4,7 @@ import { createSyntheticFixture } from '../../src/fixture/presets';
 import {
   resolveGraphBenchmarkDriver,
   selectSyntheticDragTarget,
+  selectSyntheticDragTargetDetails,
 } from '../../src/harness/driver';
 
 describe('resolveGraphBenchmarkDriver', () => {
@@ -11,16 +12,24 @@ describe('resolveGraphBenchmarkDriver', () => {
     expect(resolveGraphBenchmarkDriver('current').renderer).toBe('current');
   });
 
-  it('selects the last connected fixture node independent of layout', () => {
-    const fixture = createSyntheticFixture('1k', 307);
-    const target = selectSyntheticDragTarget(fixture);
-    const connectedIds = new Set(fixture.graph.edges.flatMap(edge => [edge.from, edge.to]));
-    const expectedTarget = [...fixture.graph.nodes]
-      .reverse()
-      .find(node => connectedIds.has(node.id));
+  it('selects the highest-degree hub and its stable one-hop neighbors', () => {
+    const fixture = createSyntheticFixture('tiny', 307);
+    const selection = selectSyntheticDragTargetDetails(fixture);
 
-    expect(target).toBe(expectedTarget?.id);
-    expect(selectSyntheticDragTarget(createSyntheticFixture('1k', 307))).toBe(target);
+    expect(selection.targetNodeId).toBe('tiny/hub.ts');
+    expect(selection.neighborNodeIds).toEqual([
+      'tiny/leaf-0.ts',
+      'tiny/leaf-1.ts',
+      'tiny/leaf-2.ts',
+      'tiny/leaf-3.ts',
+      'tiny/leaf-4.ts',
+      'tiny/leaf-5.ts',
+      'tiny/leaf-6.ts',
+      'tiny/leaf-7.ts',
+    ]);
+    expect(selectSyntheticDragTarget(fixture)).toBe(selection.targetNodeId);
+    expect(selectSyntheticDragTargetDetails(createSyntheticFixture('tiny', 307)))
+      .toEqual(selection);
   });
 
   it('selects the owned WebGPU renderer driver explicitly', () => {

@@ -3,6 +3,7 @@ import {
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
+  type GraphLayoutPerformanceSample,
   type GraphLayoutRenderSample,
   type GraphLayoutTickResult,
 } from '../physics/contracts';
@@ -43,6 +44,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private failed = false;
   private mutationRevision = 0;
   private paused = false;
+  private performanceSample: GraphLayoutPerformanceSample | undefined;
   private readonly pendingNodePositions = new Map<number, { x: number; y: number }>();
   private kinematicsBuffersCreated = false;
   private kinematicsPending = false;
@@ -51,6 +53,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private revision = 0;
   private structuralRevision = 0;
   private tickInFlight = false;
+  private tickStartedAt: number | null = null;
 
   constructor(
     input: GraphLayoutInput,
@@ -89,6 +92,13 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     return this.fallback.getNodeIndex(nodeId);
   }
 
+  consumePerformanceSample(): GraphLayoutPerformanceSample | undefined {
+    if (this.failed) return this.fallback.consumePerformanceSample?.();
+    const sample = this.performanceSample;
+    this.performanceSample = undefined;
+    return sample;
+  }
+
   sampleRenderPositions(timestamp: number): GraphLayoutRenderSample {
     return this.interpolator.sample(timestamp, this.flags, this.failed);
   }
@@ -101,6 +111,8 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.structuralRevision = 0;
     this.directPositionRevision = new Uint32Array(this.x.length);
     this.tickInFlight = false;
+    this.tickStartedAt = null;
+    this.performanceSample = undefined;
     this.currentBuffers = undefined;
     this.pendingRecycle.length = 0;
     this.pendingNodePositions.clear();
@@ -297,6 +309,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private postTick(): void {
     const recycledBuffers = this.pendingRecycle.splice(0);
     this.tickInFlight = true;
+    this.tickStartedAt = performance.now();
     this.post({
       type: 'tick',
       recycledBuffers: recycledBuffers.length > 0 ? recycledBuffers : undefined,
@@ -325,7 +338,18 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
 
   private handleTickMessage(message: GraphLayoutWorkerTickMessage): void {
     if (message.revision !== this.revision) return;
+    const completedAt = performance.now();
     this.tickInFlight = false;
+    this.performanceSample = {
+      roundTripMs: this.tickStartedAt === null
+        ? 0
+        : Math.max(0, completedAt - this.tickStartedAt),
+      simulationCpuMs: Number.isFinite(message.simulationCpuMs)
+        ? Math.max(0, message.simulationCpuMs)
+        : 0,
+      steps: message.result.steps,
+    };
+    this.tickStartedAt = null;
     if (message.structuralRevision !== this.structuralRevision) {
       this.recycleRejectedTick(message);
       return;
@@ -340,7 +364,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     const nextVx = new Float32Array(message.buffers.vx);
     const nextVy = new Float32Array(message.buffers.vy);
     this.preserveAuthoritativeKinematics(message, nextX, nextY, nextVx, nextVy);
-    this.interpolator.accept(nextX, nextY, performance.now());
+    this.interpolator.accept(nextX, nextY, completedAt);
     this.recycleCurrentBuffers();
     this.currentBuffers = message.buffers;
     this.x = nextX;
@@ -393,6 +417,8 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     if (this.failed || this.disposed) return;
     this.failed = true;
     this.tickInFlight = false;
+    this.tickStartedAt = null;
+    this.performanceSample = undefined;
     this.worker.terminate();
     this.fallback.setKinematics(this.x, this.y, this.vx, this.vy);
     this.fallback.setAlpha(this.currentAlpha);

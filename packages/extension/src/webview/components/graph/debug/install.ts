@@ -96,6 +96,7 @@ export function installGraphDebugApi({
         ? getGraphDebugNodeScreenPosition(node, fg2dRef.current)
         : null;
     },
+    getPerformance: () => fg2dRef.current?.getPerformance?.() ?? { status: 'idle' },
     getSnapshot: () => buildGraphDebugSnapshot({
       containerRef,
       graph: fg2dRef.current,
@@ -103,7 +104,11 @@ export function installGraphDebugApi({
     }),
     openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
     recordRenderedFrame: renderedFrames.record,
+    startInteractionRecording: recordingOptions => {
+      fg2dRef.current?.startInteractionRecording?.(recordingOptions);
+    },
     startRenderedFrameRecording: renderedFrames.start,
+    stopInteractionRecording: () => fg2dRef.current?.stopInteractionRecording?.() ?? null,
     stopRenderedFrameRecording: renderedFrames.stop,
   };
 

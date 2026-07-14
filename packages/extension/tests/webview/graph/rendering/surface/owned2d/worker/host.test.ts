@@ -196,6 +196,25 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(onUpdate).not.toHaveBeenCalled();
   });
 
+  it('reports worker simulation CPU and host round-trip time once per completed tick', () => {
+    const { engine, worker } = createEngine();
+    const [first] = outputBuffers(worker);
+    const now = vi.spyOn(performance, 'now')
+      .mockReturnValueOnce(10)
+      .mockReturnValueOnce(18);
+
+    engine.tick();
+    publishTick(worker, first, { simulationCpuMs: 4 });
+
+    expect(engine.consumePerformanceSample?.()).toEqual({
+      roundTripMs: 8,
+      simulationCpuMs: 4,
+      steps: 1,
+    });
+    expect(engine.consumePerformanceSample?.()).toBeUndefined();
+    now.mockRestore();
+  });
+
   it('cycles two transferable output sets without allocating per tick', () => {
     const { engine, worker } = createEngine();
     const [first, second] = outputBuffers(worker);

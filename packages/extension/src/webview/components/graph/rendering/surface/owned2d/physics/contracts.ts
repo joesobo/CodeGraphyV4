@@ -45,6 +45,12 @@ export interface GraphLayoutTickResult {
   steps: number;
 }
 
+export interface GraphLayoutPerformanceSample {
+  roundTripMs: number;
+  simulationCpuMs: number;
+  steps: number;
+}
+
 export interface GraphLayoutRenderSample {
   needsFrame: boolean;
   version: number;
@@ -68,6 +74,7 @@ export interface GraphLayoutEngine {
   readonly settled: boolean;
   readonly alpha: number;
   getNodeIndex(nodeId: string): number | undefined;
+  consumePerformanceSample?(): GraphLayoutPerformanceSample | undefined;
   sampleRenderPositions?(timestamp: number): GraphLayoutRenderSample;
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;

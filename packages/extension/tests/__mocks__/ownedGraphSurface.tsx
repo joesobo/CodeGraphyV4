@@ -4,6 +4,9 @@ import type { Surface2dProps } from '../../src/webview/components/graph/renderin
 
 const mockMethods = {
   getFps: vi.fn(() => null),
+  getPerformance: vi.fn(() => ({ status: 'idle' as const })),
+  startInteractionRecording: vi.fn(),
+  stopInteractionRecording: vi.fn(() => null),
   zoomToFit: vi.fn(),
   zoom: vi.fn((scale?: number) => scale ?? 1),
   centerAt: vi.fn(),

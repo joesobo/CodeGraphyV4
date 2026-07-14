@@ -16,11 +16,13 @@ import {
   type PointerSession,
 } from './interaction';
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
+import { createOwnedGraphInteractionRecorder } from './performance/recording';
 import {
-  createRenderedFrameFpsSampler,
-  type RenderedFrameFpsSample,
-  type RenderedFrameFpsSampler,
-} from './fps';
+  createOwnedGraphPerformanceMonitor,
+  type OwnedGraphActivePerformanceSample,
+  type OwnedGraphPerformanceMonitor,
+  type OwnedGraphPerformanceSample,
+} from './performance/model';
 import {
   applyOwnedGraphRuntimePhysicsSettings,
   disposeOwnedGraphLayoutRuntime,
@@ -39,31 +41,79 @@ import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 
-function resetOwnedGraphFps(
-  sampler: RenderedFrameFpsSampler | null,
-  fpsRef: { current: number | null },
-  output: HTMLOutputElement | null,
+function clearActivePerformanceData(output: HTMLOutputElement): void {
+  delete output.dataset.displayedFps;
+  delete output.dataset.frameAverageMs;
+  delete output.dataset.frameMaximumMs;
+  delete output.dataset.frameOnePercentHighMs;
+  delete output.dataset.potentialFps;
+  delete output.dataset.renderAverageMs;
+  delete output.dataset.renderMaximumMs;
+  delete output.dataset.renderOnePercentHighMs;
+  delete output.dataset.sampleCount;
+  delete output.dataset.simulationAverageMs;
+  delete output.dataset.simulationMaximumMs;
+  delete output.dataset.simulationOnePercentHighMs;
+}
+
+function formatOwnedGraphPerformance(sample: OwnedGraphPerformanceSample): string {
+  if (sample.status === 'idle') return 'Idle';
+  const displayed = sample.displayedFps === null
+    ? 'Warming'
+    : `${Math.round(sample.displayedFps)} FPS`;
+  return `Potential ${Math.round(sample.potentialFps)} FPS · Displayed ${displayed}`
+    + ` · Frame ${sample.frameTimeMs.average.toFixed(2)} ms avg`
+    + ` · ${sample.frameTimeMs.maximum.toFixed(2)} ms max`
+    + ` · 1% high ${sample.frameTimeMs.onePercentHigh.toFixed(2)} ms`
+    + ` · Sim ${sample.simulationTimeMs.average.toFixed(2)} ms avg`
+    + ` · ${sample.simulationTimeMs.maximum.toFixed(2)} ms max`
+    + ` · 1% high ${sample.simulationTimeMs.onePercentHigh.toFixed(2)} ms`
+    + ` · Render ${sample.renderTimeMs.average.toFixed(2)} ms avg`
+    + ` · ${sample.renderTimeMs.maximum.toFixed(2)} ms max`
+    + ` · 1% high ${sample.renderTimeMs.onePercentHigh.toFixed(2)} ms`;
+}
+
+function setActivePerformanceData(
+  output: HTMLOutputElement,
+  sample: OwnedGraphActivePerformanceSample,
 ): void {
-  sampler?.reset();
-  fpsRef.current = null;
-  if (output) {
-    output.hidden = true;
-    output.textContent = '';
-  }
+  if (sample.displayedFps === null) delete output.dataset.displayedFps;
+  else output.dataset.displayedFps = String(sample.displayedFps);
+  output.dataset.frameAverageMs = String(sample.frameTimeMs.average);
+  output.dataset.frameMaximumMs = String(sample.frameTimeMs.maximum);
+  output.dataset.frameOnePercentHighMs = String(sample.frameTimeMs.onePercentHigh);
+  output.dataset.potentialFps = String(sample.potentialFps);
+  output.dataset.renderAverageMs = String(sample.renderTimeMs.average);
+  output.dataset.renderMaximumMs = String(sample.renderTimeMs.maximum);
+  output.dataset.renderOnePercentHighMs = String(sample.renderTimeMs.onePercentHigh);
+  output.dataset.sampleCount = String(sample.sampleCount);
+  output.dataset.simulationAverageMs = String(sample.simulationTimeMs.average);
+  output.dataset.simulationMaximumMs = String(sample.simulationTimeMs.maximum);
+  output.dataset.simulationOnePercentHighMs = String(
+    sample.simulationTimeMs.onePercentHigh,
+  );
 }
 
-function formatOwnedGraphFps(sample: RenderedFrameFpsSample): string {
-  return `${Math.round(sample.fps)} FPS · ${sample.frameTimeMs.toFixed(1)} ms`
-    + ` · 1% ${Math.round(sample.onePercentLowFps)}`;
-}
-
-function publishOwnedGraphFps(
-  sample: RenderedFrameFpsSample,
+function publishOwnedGraphPerformance(
+  sample: OwnedGraphPerformanceSample,
   output: HTMLOutputElement | null,
 ): void {
   if (!output) return;
-  output.textContent = formatOwnedGraphFps(sample);
+  output.dataset.performanceStatus = sample.status;
+  if (sample.status === 'active') setActivePerformanceData(output, sample);
+  else clearActivePerformanceData(output);
+  output.textContent = formatOwnedGraphPerformance(sample);
   output.hidden = false;
+}
+
+function resetOwnedGraphPerformance(
+  monitor: OwnedGraphPerformanceMonitor | null,
+  fpsRef: { current: number | null },
+  output: HTMLOutputElement | null,
+): void {
+  monitor?.reset();
+  fpsRef.current = null;
+  publishOwnedGraphPerformance({ status: 'idle' }, output);
 }
 
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
@@ -78,8 +128,16 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const frameRequestedRef = useRef(false);
   const fpsOutputRef = useRef<HTMLOutputElement>(null);
   const fpsRef = useRef<number | null>(null);
-  const fpsSamplerRef = useRef<RenderedFrameFpsSampler | null>(null);
-  if (!fpsSamplerRef.current) fpsSamplerRef.current = createRenderedFrameFpsSampler();
+  const performanceMonitorRef = useRef<OwnedGraphPerformanceMonitor | null>(null);
+  if (!performanceMonitorRef.current) {
+    performanceMonitorRef.current = createOwnedGraphPerformanceMonitor();
+  }
+  const performanceRecorderRef = useRef<ReturnType<
+    typeof createOwnedGraphInteractionRecorder
+  >>(null!);
+  if (!performanceRecorderRef.current) {
+    performanceRecorderRef.current = createOwnedGraphInteractionRecorder();
+  }
   const requestFrameRef = useRef<() => void>(() => undefined);
   const ctrlClickSessionRef = useRef<CtrlClickSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
@@ -138,7 +196,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       rendererOperationalRef,
       requestFrameRef,
       onError: message => {
-        resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
+        resetOwnedGraphPerformance(
+          performanceMonitorRef.current,
+          fpsRef,
+          fpsOutputRef.current,
+        );
         setRendererError(message);
         setRendererStatus('error');
       },
@@ -147,7 +209,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         setRendererStatus('webgpu');
       },
       onRecovering: () => {
-        resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
+        resetOwnedGraphPerformance(
+          performanceMonitorRef.current,
+          fpsRef,
+          fpsOutputRef.current,
+        );
         setRendererError(null);
         setRendererStatus('initializing');
       },
@@ -165,23 +231,32 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       clearLinkHover,
       engineStopNotifiedRef,
       fpsRef,
-      fpsSamplerRef,
       frameRequestedRef,
       gpuRendererRef,
       hoveredLinkRef,
       layoutRef,
+      performanceMonitorRef,
+      performanceRecorderRef,
       pluginForcesRef,
       pluginKinematicsVersionRef,
       positionVersionRef,
       propsRef,
       rendererOperationalRef,
       requestFrameRef,
+      markPerformanceIdle: () => undefined,
       recordRenderedFrame: () => undefined,
       styleVersionRef,
       synchronizedPositionVersionRef,
-      publishFps: sample => publishOwnedGraphFps(sample, fpsOutputRef.current),
+      publishPerformance: sample => publishOwnedGraphPerformance(
+        sample,
+        fpsOutputRef.current,
+      ),
       onRendererError: message => {
-        resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
+        resetOwnedGraphPerformance(
+          performanceMonitorRef.current,
+          fpsRef,
+          fpsOutputRef.current,
+        );
         setRendererError(message);
         setRendererStatus('error');
       },
@@ -218,7 +293,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   ]);
 
   useEffect(() => {
-    resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
+    if (props.showFps) {
+      publishOwnedGraphPerformance(
+        performanceMonitorRef.current?.sample() ?? { status: 'idle' },
+        fpsOutputRef.current,
+      );
+    }
     requestFrameRef.current();
   }, [props.showFps]);
 
@@ -239,6 +319,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     pickerPositionVersionRef,
     pickerRef,
     pointerSessionRef,
+    performanceRecorderRef,
     positionVersionRef,
     propsRef,
     requestFrameRef,
@@ -246,7 +327,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     synchronizedPositionVersionRef,
   });
 
-  const fpsSample = props.showFps ? fpsSamplerRef.current?.sample() ?? null : null;
+  const performanceSample = performanceMonitorRef.current?.sample()
+    ?? { status: 'idle' as const };
 
   return (
     <div
@@ -278,11 +360,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
           ref={fpsOutputRef}
           className="pointer-events-none absolute bottom-2 left-2 rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
           data-codegraphy-overlay="fps"
+          data-performance-status={performanceSample.status}
           data-testid="graph-fps"
-          hidden={fpsSample === null}
           style={{ zIndex: 20 }}
         >
-          {fpsSample === null ? '' : formatOwnedGraphFps(fpsSample)}
+          {formatOwnedGraphPerformance(performanceSample)}
         </output>
       ) : null}
       {rendererError ? (

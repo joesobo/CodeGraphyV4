@@ -4,6 +4,7 @@ import { createSyntheticFixture } from '../../src/fixture/presets';
 
 describe('createSyntheticFixture', () => {
   it.each([
+    ['tiny', 9],
     ['500', 500],
     ['1k', 1_000],
     ['2.5k', 2_500],

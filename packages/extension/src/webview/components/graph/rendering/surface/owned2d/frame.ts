@@ -12,6 +12,7 @@ import {
   syncOwnedLayoutNodesAtVersion,
   type OwnedGraphLayout,
 } from './layout';
+import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import type { OwnedGraphPluginForces } from './pluginForces';
 import type { GraphLayoutRenderSample, GraphLayoutTickResult } from './physics/contracts';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
@@ -41,17 +42,23 @@ interface PreparedOverlayCanvas {
 export interface OwnedGraphFrameRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
   engineStopNotifiedRef: MutableRefObject<boolean>;
-  fpsRef: MutableRefObject<number | null>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   hoveredLinkRef: MutableRefObject<FGLink | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
   pluginKinematicsVersionRef: MutableRefObject<number>;
   positionVersionRef: MutableRefObject<number>;
   propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
-  recordRenderedFrame(this: void, timestamp: number): void;
+  markPerformanceIdle(this: void): void;
+  recordRenderedFrame(
+    this: void,
+    timestamp: number,
+    simulationMs: number,
+    renderMs: number,
+  ): void;
   styleVersionRef: MutableRefObject<number>;
   synchronizedPositionVersionRef: MutableRefObject<number>;
   onRendererError(this: void, message: string): void;
@@ -109,14 +116,28 @@ function applyOwnedPluginForces(
   runtime.synchronizedPositionVersionRef.current = runtime.positionVersionRef.current;
 }
 
+interface OwnedGraphPhysicsFrame {
+  simulationMs: number;
+  tick: GraphLayoutTickResult;
+}
+
 function advanceOwnedGraphPhysics(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
-): GraphLayoutTickResult {
+): OwnedGraphPhysicsFrame {
+  const startedAt = performance.now();
   applyOwnedPluginForces(runtime, layout);
   const tick = layout.engine.tick();
+  const hostElapsedMs = Math.max(0, performance.now() - startedAt);
+  const engineSample = layout.engine.consumePerformanceSample?.();
+  const asynchronousSimulationMs = engineSample && engineSample.roundTripMs > 0
+    ? engineSample.simulationCpuMs
+    : 0;
   if (tick.steps > 0) runtime.positionVersionRef.current += 1;
-  return tick;
+  return {
+    simulationMs: hostElapsedMs + asynchronousSimulationMs,
+    tick,
+  };
 }
 
 function synchronizeOwnedFrameState(
@@ -292,7 +313,6 @@ function shouldContinueOwnedGraphFrames(
     tick.moving
     || renderSample?.needsFrame === true
     || runtime.propsRef.current.directionMode === 'particles'
-    || (runtime.propsRef.current.showFps === true && runtime.fpsRef.current === null)
   );
 }
 
@@ -312,7 +332,9 @@ export function renderOwnedGraphFrame(
     gpuStartedAt: 0,
     gpuEndedAt: 0,
   };
-  const tick = advanceOwnedGraphPhysics(runtime, layout);
+  const physicsFrame = advanceOwnedGraphPhysics(runtime, layout);
+  const { tick } = physicsFrame;
+  const physicsEndedAt = performance.now();
   timings.physicsEndedAt = timedNow(samples);
   synchronizeOwnedFrameState(runtime, layout);
   const renderSample = layout.engine.sampleRenderPositions?.(timestamp);
@@ -320,9 +342,6 @@ export function renderOwnedGraphFrame(
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
   timings.gpuStartedAt = timedNow(samples);
   const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared, renderSample);
-  if (gpuRendered && runtime.propsRef.current.showFps === true) {
-    runtime.recordRenderedFrame(timestamp);
-  }
   timings.gpuEndedAt = timedNow(samples);
   drawOwnedGraphDecorationLayer(
     runtime,
@@ -332,9 +351,33 @@ export function renderOwnedGraphFrame(
     gpuRendered,
     renderSample,
   );
+  const frameEndedAt = performance.now();
+  if (gpuRendered) {
+    const renderMs = Math.max(0, frameEndedAt - physicsEndedAt);
+    runtime.performanceRecorderRef.current.recordFrame({
+      alpha: layout.engine.alpha,
+      nodeIds: layout.engine.nodeIds,
+      presentationTimestampMs: timestamp,
+      renderMs,
+      renderedX: renderSample?.x ?? layout.engine.x,
+      renderedY: renderSample?.y ?? layout.engine.y,
+      settled: tick.settled,
+      simulationMs: physicsFrame.simulationMs,
+      steps: tick.steps,
+      vx: layout.engine.vx,
+      vy: layout.engine.vy,
+    });
+    runtime.recordRenderedFrame(timestamp, physicsFrame.simulationMs, renderMs);
+  }
   recordOwnedGraphFrameMetrics(samples, timings);
   notifyOwnedGraphSettlement(runtime, tick);
   if (shouldContinueOwnedGraphFrames(runtime, tick, renderSample)) {
     runtime.requestFrameRef.current();
+  } else if (
+    tick.settled
+    && renderSample?.needsFrame !== true
+    && runtime.propsRef.current.directionMode !== 'particles'
+  ) {
+    runtime.markPerformanceIdle();
   }
 }

@@ -9,6 +9,8 @@ import {
 import { canvasSize } from './canvasGeometry';
 import type { OwnedGraph2dControls } from './contracts';
 import type { OwnedGraphLayout } from './layout';
+import type { OwnedGraphPerformanceMonitor } from './performance/model';
+import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import { updateOwnedGraphViewportNode } from './viewportNode';
 
 export interface OwnedGraphControlsRuntime {
@@ -17,6 +19,9 @@ export interface OwnedGraphControlsRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   fpsRef: MutableRefObject<number | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  markPerformanceIdle(this: void): void;
+  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor | null>;
+  performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   positionVersionRef: MutableRefObject<number>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
@@ -56,11 +61,15 @@ export function createOwnedGraphControls(
       runtime.requestFrameRef.current();
     },
     getFps: () => runtime.fpsRef.current,
+    getPerformance: () => runtime.performanceMonitorRef.current?.sample() ?? { status: 'idle' },
     graph2ScreenCoords: (x, y) => {
       const size = canvasSize(canvas);
       return graphToScreen(runtime.cameraRef.current, size.width, size.height, x, y);
     },
-    pauseAnimation: () => runtime.layoutRef.current?.engine.pause(),
+    pauseAnimation: () => {
+      runtime.layoutRef.current?.engine.pause();
+      runtime.markPerformanceIdle();
+    },
     refresh: () => runtime.requestFrameRef.current(),
     resumeAnimation: () => {
       if (!runtime.rendererOperationalRef.current) return;
@@ -71,6 +80,10 @@ export function createOwnedGraphControls(
       const size = canvasSize(canvas);
       return screenToGraph(runtime.cameraRef.current, size.width, size.height, x, y);
     },
+    startInteractionRecording: options => {
+      runtime.performanceRecorderRef.current.start(options);
+    },
+    stopInteractionRecording: () => runtime.performanceRecorderRef.current.stop(),
     updateNode: (nodeId, updates) => updateViewportNode(runtime, nodeId, updates),
     zoom: ((scale?: number) => {
       if (scale === undefined) return runtime.cameraRef.current.zoom;

@@ -78,6 +78,7 @@ export function publishTick(
     buffers,
     mutationRevision: 0,
     revision: 0,
+    simulationCpuMs: 1,
     structuralRevision: 0,
     result: { moving: true, settled: false, steps: 1 },
     type: 'tick',

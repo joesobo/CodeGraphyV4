@@ -18,6 +18,7 @@ describe('summarizeRenderedFrames', () => {
     expect(summary.refreshRateHz).toBe(60);
     expect(summary.refreshUtilization).toBeCloseTo(0.7752, 4);
     expect(summary.frameTimeMs).toEqual({
+      mean: 21.5,
       p50: 16,
       p95: 40,
       p99: 40,
