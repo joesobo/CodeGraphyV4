@@ -15,6 +15,10 @@ import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import { syncOwnedLayoutNodesAtVersion, type OwnedGraphLayout } from './layout';
 import type { OwnedGraphLinkPicker } from './linkPicking';
 import type { OwnedGraphNodePicker } from './picking';
+import type {
+  OwnedGraphInteractionPhase,
+  OwnedGraphInteractionRecorder,
+} from './performance/recording';
 
 export interface CtrlClickSession {
   moved: boolean;
@@ -51,6 +55,7 @@ interface OwnedGraphInteractionRuntime {
   pickerPositionVersionRef: MutableRefObject<number>;
   pickerRef: MutableRefObject<OwnedGraphNodePicker>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
+  performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   positionVersionRef: MutableRefObject<number>;
   propsRef: MutableRefObject<Surface2dProps>;
   requestFrameRef: MutableRefObject<() => void>;
@@ -70,6 +75,25 @@ export interface OwnedGraphInteractionHandlers {
 
 const CTRL_PAN_DRAG_THRESHOLD_PX = 2;
 const NODE_DRAG_THRESHOLD_PX = 3;
+
+function recordInteractionInput(
+  runtime: OwnedGraphInteractionRuntime,
+  event: ReactPointerEvent<HTMLCanvasElement>,
+  phase: OwnedGraphInteractionPhase,
+  nodeId: string | null,
+  world: { x: number; y: number },
+): void {
+  const eventTimestampMs = Number.isFinite(event.nativeEvent.timeStamp)
+    ? event.nativeEvent.timeStamp
+    : performance.now();
+  runtime.performanceRecorderRef.current.recordInput({
+    eventTimestampMs,
+    nodeId,
+    phase,
+    targetX: world.x,
+    targetY: world.y,
+  });
+}
 
 function screenToWorld(
   camera: OwnedGraphCamera,
@@ -154,6 +178,7 @@ function beginPointerSession(
     node: picked?.node ?? null,
     startScreen: screen,
   };
+  recordInteractionInput(runtime, event, 'down', picked?.node.id ?? null, world);
   if (!picked) return;
   event.currentTarget.setPointerCapture(event.pointerId);
 }
@@ -253,6 +278,7 @@ function movePointerSession(
   if (!layout) return;
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
   const session = runtime.pointerSessionRef.current;
+  recordInteractionInput(runtime, event, 'move', session?.nodeId ?? null, world);
   if (moveDraggedNode(runtime, layout, session, screen, world)) return;
   if (session) {
     session.moved ||= movedPastThreshold(session.startScreen, screen, NODE_DRAG_THRESHOLD_PX);
@@ -323,6 +349,11 @@ function completePointerSession(
   if (completeCtrlClick(runtime, event)) return;
   const layout = runtime.layoutRef.current;
   const session = runtime.pointerSessionRef.current;
+  if (layout && session) {
+    const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
+    const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
+    recordInteractionInput(runtime, event, 'up', session.nodeId, world);
+  }
   runtime.pointerSessionRef.current = null;
   if (!layout || !session || routeSurfaceClick(runtime, session, event)) return;
   completeNodeSession(runtime, layout, session, event);

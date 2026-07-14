@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
+  "updates": [
+    {
+      "milestone": "M1",
+      "title": "Instrumentation validated; clean baseline ladder next",
+      "summary": "A dirty-tree diagnostic tiny run measured 0.33 ms mean CPU frame time (~3,014 potential FPS), ~60 displayed FPS in headless Chromium, and HUD agreement within 1.34%. These are validation numbers only, not the committed M1 baseline.",
+      "timestamp": "2026-07-13T18:30:00Z"
+    },
+    {
+      "milestone": "Setup",
+      "title": "PR #308 synced and baseline tests passed",
+      "summary": "The isolated worktree is synced to PR head. Extension and benchmark typechecks and unit-test baselines were green before M1 changes.",
+      "timestamp": "2026-07-13T17:45:00Z"
+    }
+  ],
+  "reports": [],
+  "attribution": [],
+  "visuals": []
+}

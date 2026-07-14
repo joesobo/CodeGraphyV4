@@ -4,6 +4,7 @@ import {
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
+  type GraphLayoutPerformanceSample,
   type GraphLayoutState,
   type GraphLayoutTickResult,
 } from './contracts';
@@ -34,6 +35,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private simulationAlphaTarget = 0;
   private settledStepCount = 0;
   private paused = false;
+  private performanceSample: GraphLayoutPerformanceSample | undefined;
   settled = false;
 
   constructor(input: GraphLayoutInput, config: Partial<GraphLayoutConfig> = {}) {
@@ -58,6 +60,12 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     return this.nodeIndexes.get(nodeId);
   }
 
+  consumePerformanceSample(): GraphLayoutPerformanceSample | undefined {
+    const sample = this.performanceSample;
+    this.performanceSample = undefined;
+    return sample;
+  }
+
   setGraph(input: GraphLayoutInput): void {
     this.nodeIds = [...input.nodeIds];
     this.nodeIndexes = new Map();
@@ -77,6 +85,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   }
 
   tick(): GraphLayoutTickResult {
+    this.performanceSample = undefined;
     if (this.x.length === 0) {
       this.settled = true;
       return { moving: false, settled: true, steps: 0 };
@@ -85,7 +94,13 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       return { moving: false, settled: this.settled, steps: 0 };
     }
 
+    const startedAt = performance.now();
     this.step();
+    this.performanceSample = {
+      roundTripMs: 0,
+      simulationCpuMs: Math.max(0, performance.now() - startedAt),
+      steps: 1,
+    };
     return { moving: !this.settled, settled: this.settled, steps: 1 };
   }
 

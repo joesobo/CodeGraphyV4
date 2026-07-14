@@ -4,6 +4,7 @@ import { createOwnedGraphInteractionHandlers } from '../../../../../../src/webvi
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { OwnedGraphLinkPicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkPicking';
 import { OwnedGraphNodePicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/picking';
+import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 import { createDefaultSurfaceProps } from '../view/surfaceFixture';
 
@@ -58,6 +59,7 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: picker },
       pointerSessionRef: { current: null },
+      performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: props },
       requestFrameRef: { current: vi.fn() },
@@ -99,6 +101,8 @@ describe('owned graph lazy interaction picking', () => {
       links: [],
       nodes: [graphNode],
     };
+    const recorder = createOwnedGraphInteractionRecorder();
+    recorder.start({ neighborNodeIds: [], targetNodeId: 'a' });
     const runtime = {
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       clearLinkHover: () => false,
@@ -112,6 +116,7 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
+      performanceRecorderRef: { current: recorder },
       positionVersionRef: { current: 0 },
       propsRef: { current: createDefaultSurfaceProps() },
       requestFrameRef: { current: vi.fn() },
@@ -121,21 +126,30 @@ describe('owned graph lazy interaction picking', () => {
     const handlers = createOwnedGraphInteractionHandlers(runtime);
     const canvas = {
       getBoundingClientRect: () => ({ height: 100, left: 0, top: 0, width: 100 }),
+      hasPointerCapture: vi.fn(() => true),
+      releasePointerCapture: vi.fn(),
       setPointerCapture: vi.fn(),
     } as unknown as HTMLCanvasElement;
-    const pointer = (clientX: number) => ({
+    const pointer = (clientX: number, timeStamp: number) => ({
       button: 0,
       currentTarget: canvas,
-      nativeEvent: { clientX, clientY: 50 },
+      nativeEvent: { clientX, clientY: 50, timeStamp },
       pointerId: 1,
     } as never);
 
-    handlers.handlePointerDown(pointer(50));
+    handlers.handlePointerDown(pointer(50, 10));
     expect(pin).not.toHaveBeenCalled();
-    handlers.handlePointerMove(pointer(54));
+    handlers.handlePointerMove(pointer(54, 12));
     expect(pin).toHaveBeenCalledOnce();
-    handlers.handlePointerMove(pointer(60));
+    handlers.handlePointerMove(pointer(60, 14));
     expect(pin).toHaveBeenCalledOnce();
+    handlers.handlePointerUp(pointer(60, 16));
+    expect(recorder.stop()?.inputs).toEqual([
+      expect.objectContaining({ eventTimestampMs: 10, nodeId: 'a', phase: 'down' }),
+      expect.objectContaining({ eventTimestampMs: 12, nodeId: 'a', phase: 'move' }),
+      expect.objectContaining({ eventTimestampMs: 14, nodeId: 'a', phase: 'move' }),
+      expect.objectContaining({ eventTimestampMs: 16, nodeId: 'a', phase: 'up' }),
+    ]);
   });
 
   it('skips distant edge hover and reuses the lazy link index while details are visible', () => {
@@ -180,6 +194,7 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
+      performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: createDefaultSurfaceProps() },
       requestFrameRef: { current: requestFrame },

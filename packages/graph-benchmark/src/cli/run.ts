@@ -16,13 +16,14 @@ import type { BenchmarkArguments } from './arguments';
 import { createSyntheticFixture } from '../fixture/presets';
 import {
   resolveGraphBenchmarkDriver,
-  selectSyntheticDragTarget,
+  selectSyntheticDragTargetDetails,
   SYNTHETIC_DRAG_PATH_ID,
   SYNTHETIC_DRAG_SCENARIO_ID,
   type GraphBenchmarkDriver,
 } from '../harness/driver';
 import type { GraphBenchmarkServer } from '../harness/currentRenderer/server';
 import { summarizeRenderedFrames } from '../metrics/frames';
+import { DEFAULT_INTERACTION_THRESHOLDS } from '../metrics/interaction';
 import {
   measureIdleProcessUsage,
   readStableProcessTreeResidentBytes,
@@ -98,11 +99,14 @@ function isTimeout(error: unknown): boolean {
 function benchmarkConfiguration(
   options: BenchmarkArguments,
   targetNodeId: string,
+  neighborNodeIds: string[],
 ): BenchmarkConfiguration {
   return {
     scenarioId: SYNTHETIC_DRAG_SCENARIO_ID,
     pathId: SYNTHETIC_DRAG_PATH_ID,
     targetNodeId,
+    neighborNodeIds: [...neighborNodeIds],
+    interactionThresholds: { ...DEFAULT_INTERACTION_THRESHOLDS },
     viewport,
     runCount: options.runs,
     idleMs: options.idleMs,
@@ -153,8 +157,8 @@ async function readBaselineReport(
     ? baselinePath
     : path.join(repositoryRoot, baselinePath);
   const report = JSON.parse(await readFile(absolutePath, 'utf8')) as AggregateGraphBenchmarkReport;
-  if (report.schemaVersion !== 2 || report.status !== 'complete') {
-    throw new Error(`Baseline is not a complete schema-v2 report: ${absolutePath}`);
+  if (report.schemaVersion !== 3 || report.status !== 'complete') {
+    throw new Error(`Baseline is not a complete schema-v3 report: ${absolutePath}`);
   }
   return { path: baselinePath, report };
 }
@@ -187,6 +191,7 @@ async function runMeasurement(
   serverUrl: string,
   browserPid: number,
   targetNodeId: string,
+  neighborNodeIds: string[],
 ): Promise<CompletedBenchmarkRun> {
   const context = await browser.newContext({
     deviceScaleFactor: viewport.deviceScaleFactor,
@@ -207,7 +212,12 @@ async function runMeasurement(
     heapAfterLoadBytes = heap.usedSize;
     processAfterLoadBytes = await readStableProcessTreeResidentBytes(browserPid);
     idleCpuPct = (await measureIdleProcessUsage(browserPid, options.idleMs)).cpuPct;
-    drag = await driver.runSyntheticDrag(page, targetNodeId, options.timeoutMs);
+    drag = await driver.runSyntheticDrag(
+      page,
+      targetNodeId,
+      neighborNodeIds,
+      options.timeoutMs,
+    );
   } finally {
     await context.close();
   }
@@ -254,8 +264,8 @@ export async function runGraphBenchmark(
   options: BenchmarkArguments,
 ): Promise<GraphBenchmarkRunResult> {
   const fixture = createSyntheticFixture(options.fixture, options.seed);
-  const targetNodeId = selectSyntheticDragTarget(fixture);
-  const configuration = benchmarkConfiguration(options, targetNodeId);
+  const { targetNodeId, neighborNodeIds } = selectSyntheticDragTargetDetails(fixture);
+  const configuration = benchmarkConfiguration(options, targetNodeId, neighborNodeIds);
   const source = await readBenchmarkSource();
   let browser: Browser | undefined;
   let browserServer: BrowserServer | undefined;
@@ -271,12 +281,10 @@ export async function runGraphBenchmark(
     stage = 'browser-launch';
     browserServer = await chromium.launchServer({
       headless: true,
-      args: options.renderer === 'webgpu'
-        ? [
-          '--enable-unsafe-webgpu',
-          ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
-        ]
-        : [],
+      args: [
+        '--enable-unsafe-webgpu',
+        ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
+      ],
     });
     const browserPid = browserServer.process().pid;
     if (!browserPid) throw new Error('Chromium benchmark process has no pid');
@@ -294,6 +302,7 @@ export async function runGraphBenchmark(
         server.url,
         browserPid,
         targetNodeId,
+        neighborNodeIds,
       ));
     }
 

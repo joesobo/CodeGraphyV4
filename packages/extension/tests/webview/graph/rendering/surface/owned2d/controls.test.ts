@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { createOwnedGraphControls, type OwnedGraphControlsRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/controls';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { createOwnedGraphPerformanceMonitor } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/model';
+import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 
 function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
@@ -19,6 +21,12 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
     links: [],
     nodes: [node],
   };
+  const performanceMonitor = createOwnedGraphPerformanceMonitor();
+  performanceMonitor.recordFrame({
+    presentationTimestampMs: 10,
+    renderMs: 3,
+    simulationMs: 2,
+  });
   return {
     node,
     runtime: {
@@ -27,6 +35,9 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
       engineStopNotifiedRef: { current: true },
       fpsRef: { current: 58 },
       layoutRef: { current: layout },
+      markPerformanceIdle: vi.fn(),
+      performanceMonitorRef: { current: performanceMonitor },
+      performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 0 },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
@@ -57,6 +68,13 @@ describe('owned graph controls', () => {
     expect(fixture.runtime.clearLinkHover).toHaveBeenCalledOnce();
     expect(fixture.runtime.requestFrameRef.current).toHaveBeenCalledOnce();
     expect(controls.getFps()).toBe(58);
+    expect(controls.getPerformance()).toMatchObject({
+      status: 'active',
+      potentialFps: 200,
+    });
+    controls.startInteractionRecording({ neighborNodeIds: [], targetNodeId: 'node' });
+    expect(fixture.runtime.performanceRecorderRef.current.active).toBe(true);
+    expect(controls.stopInteractionRecording()).toMatchObject({ targetNodeId: 'node' });
     expect(controls.graph2ScreenCoords(10, 20)).toEqual({ x: 50, y: 40 });
     expect(controls.screen2GraphCoords(50, 40)).toEqual({ x: 10, y: 20 });
     expect(controls.zoom(2)).toBe(controls);

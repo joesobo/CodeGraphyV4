@@ -1,6 +1,12 @@
 import type { Page } from '@playwright/test';
 
 import { estimateRefreshRate } from '../../metrics/frames';
+import {
+  assessInteractionRecording,
+  DEFAULT_INTERACTION_THRESHOLDS,
+  type InteractionRecording,
+  type PerformanceHudSample,
+} from '../../metrics/interaction';
 
 export interface CurrentRendererSettlement {
   renderer: 'current';
@@ -14,6 +20,7 @@ interface BenchmarkGraphDebugWindow extends Window {
   __CODEGRAPHY_GRAPH_DEBUG__?: {
     centerNode(nodeId: string, scale: number): boolean;
     getNodeScreenPosition(nodeId: string): { x: number; y: number } | null;
+    getPerformance(): PerformanceHudSample;
     getSnapshot(): {
       nodes: Array<{
         collisionRadius: number;
@@ -26,7 +33,12 @@ interface BenchmarkGraphDebugWindow extends Window {
       }>;
       zoom: number | null;
     };
+    startInteractionRecording(options: {
+      neighborNodeIds: string[];
+      targetNodeId: string;
+    }): void;
     startRenderedFrameRecording(): void;
+    stopInteractionRecording(): InteractionRecording | null;
     stopRenderedFrameRecording(): number[];
   };
 }
@@ -195,6 +207,7 @@ async function readCurrentCollisionState(page: Page): Promise<CollisionState> {
 export async function runCurrentRendererSyntheticDrag(
   page: Page,
   targetNodeId: string,
+  neighborNodeIds: string[],
   timeoutMs = 30_000,
 ): Promise<{
   durationMs: number;
@@ -208,6 +221,7 @@ export async function runCurrentRendererSyntheticDrag(
   settledCollisionViolationCount: number;
   duringDragCollisionViolationCount: number;
   releasedCollisionViolationCount: number;
+  interactionAssessment: ReturnType<typeof assessInteractionRecording>;
 }> {
   const centered = await page.evaluate((nodeId) =>
     (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.centerNode(nodeId, 1)
@@ -248,12 +262,16 @@ export async function runCurrentRendererSyntheticDrag(
       y: fixedStart.y + Math.sin(progress * Math.PI) * 72,
     };
   });
-  const startedAt = await page.evaluate(() => {
+  const startedAt = await page.evaluate(({ targetNodeId: target, neighborNodeIds: neighbors }) => {
     const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
     if (!debug) throw new Error('Graph debug API is unavailable');
     debug.startRenderedFrameRecording();
+    debug.startInteractionRecording({
+      neighborNodeIds: neighbors,
+      targetNodeId: target,
+    });
     return performance.now();
-  });
+  }, { targetNodeId, neighborNodeIds });
   await page.mouse.down({ button: 'left' });
   await runTimedMouseSteps(page, path);
   const dragWindow = await page.evaluate(() => {
@@ -276,6 +294,19 @@ export async function runCurrentRendererSyntheticDrag(
       > previousCount,
   stabilizationCount, { timeout: timeoutMs });
   const released = await readCurrentCollisionState(page);
+  const telemetry = await page.evaluate(() => {
+    const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
+    return {
+      hud: debug?.getPerformance() ?? null,
+      recording: debug?.stopInteractionRecording() ?? null,
+    };
+  });
+  if (!telemetry.recording) throw new Error('Interaction telemetry recording is unavailable');
+  const interactionAssessment = assessInteractionRecording(
+    telemetry.recording,
+    telemetry.hud,
+    DEFAULT_INTERACTION_THRESHOLDS,
+  );
 
   const timestamps = dragWindow.timestamps.filter(
     timestamp => timestamp >= startedAt && timestamp <= dragWindow.endedAt,
@@ -298,5 +329,6 @@ export async function runCurrentRendererSyntheticDrag(
     settledCollisionViolationCount: settled.violations,
     duringDragCollisionViolationCount: duringDrag.violations,
     releasedCollisionViolationCount: released.violations,
+    interactionAssessment,
   };
 }

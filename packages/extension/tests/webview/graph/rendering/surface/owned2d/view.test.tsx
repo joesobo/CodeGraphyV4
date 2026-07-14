@@ -400,7 +400,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
-  it('shows sampled FPS only while the Performance toggle is enabled', async () => {
+  it('shows potential and displayed performance while tracking remains always on', async () => {
     const frames: FrameRequestCallback[] = [];
     vi.mocked(requestAnimationFrame).mockImplementation(callback => {
       frames.push(callback);
@@ -445,15 +445,32 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     act(() => frames.shift()?.(0));
     act(() => frames.shift()?.(20));
 
-    expect(await screen.findByTestId('graph-fps')).toHaveTextContent('50 FPS · 20.0 ms · 1% 50');
+    const output = await screen.findByTestId('graph-fps');
+    expect(output).toHaveTextContent(/Potential \d+ FPS · Displayed 50 FPS/);
+    expect(output).toHaveTextContent(/Frame .* ms avg · .* ms max · 1% high .* ms/);
+    expect(output).toHaveTextContent(/Sim .* ms avg · .* ms max · 1% high .* ms/);
+    expect(output).toHaveTextContent(/Render .* ms avg · .* ms max · 1% high .* ms/);
+    expect(output).toHaveAttribute('data-performance-status', 'active');
+    expect(output).toHaveAttribute('data-displayed-fps', '50');
+    expect(Number(output.dataset.potentialFps)).toBeGreaterThan(0);
+    expect(Number(output.dataset.sampleCount)).toBeGreaterThan(0);
+    expect(Number(output.dataset.simulationMaximumMs)).toBeGreaterThanOrEqual(0);
+    expect(Number(output.dataset.renderOnePercentHighMs)).toBeGreaterThanOrEqual(0);
     expect(props.fg2dRef.current?.getFps()).toBe(50);
 
     rendered.rerender(<OwnedGraphSurface2d {...props} />);
-    expect(screen.getByTestId('graph-fps')).toHaveTextContent('50 FPS · 20.0 ms · 1% 50');
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent(/Displayed 50 FPS/);
     const styleVersions = rendererHarness.render.mock.calls.map(
       ([frame]) => (frame as { styleVersion: number }).styleVersion,
     );
     expect(new Set(styleVersions).size).toBe(1);
+
+    rendered.rerender(<OwnedGraphSurface2d {...props} showFps={false} />);
+    expect(screen.queryByTestId('graph-fps')).not.toBeInTheDocument();
+    expect(props.fg2dRef.current?.getFps()).toBe(50);
+
+    rendered.rerender(<OwnedGraphSurface2d {...props} />);
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent(/Displayed 50 FPS/);
 
     const options = rendererHarness.create.mock.calls[0][1] as {
       onDeviceLost(message: string): void;
@@ -462,12 +479,9 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       options.onDeviceLost('GPU reset');
       await Promise.resolve();
     });
-    expect(screen.getByTestId('graph-fps')).not.toBeVisible();
-    expect(props.fg2dRef.current?.getFps()).toBeNull();
-
-    rendered.rerender(<OwnedGraphSurface2d {...props} showFps={false} />);
-
-    expect(screen.queryByTestId('graph-fps')).not.toBeInTheDocument();
+    expect(screen.getByTestId('graph-fps')).toBeVisible();
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent('Idle');
+    expect(screen.getByTestId('graph-fps')).toHaveAttribute('data-performance-status', 'idle');
     expect(props.fg2dRef.current?.getFps()).toBeNull();
   });
 

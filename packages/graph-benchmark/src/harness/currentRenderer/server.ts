@@ -70,6 +70,7 @@ function benchmarkHtml(fixture: BenchmarkFixture, renderer: BenchmarkRenderer): 
             });
             state.startedAt = performance.now();
             postToWebview({ type: 'GRAPH_DATA_UPDATED', payload: graph });
+            postToWebview({ type: 'SHOW_FPS_UPDATED', payload: { showFps: true } });
             postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' });
           } catch (error) {
             state.error = error instanceof Error ? error.message : String(error);

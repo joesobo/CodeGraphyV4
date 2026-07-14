@@ -14,18 +14,45 @@ import {
   type GraphBenchmarkServer,
 } from './currentRenderer/server';
 
-export const SYNTHETIC_DRAG_SCENARIO_ID = 'synthetic-node-drag-v3' as const;
-export const SYNTHETIC_DRAG_PATH_ID = 'centered-node-sine-v1' as const;
+export const SYNTHETIC_DRAG_SCENARIO_ID = 'synthetic-node-drag-v4' as const;
+export const SYNTHETIC_DRAG_PATH_ID = 'centered-node-sine-v2' as const;
+
+export interface SyntheticDragTarget {
+  neighborNodeIds: string[];
+  targetNodeId: string;
+}
+
+export function selectSyntheticDragTargetDetails(
+  fixture: BenchmarkFixture,
+): SyntheticDragTarget {
+  const neighbors = new Map(
+    fixture.graph.nodes.map(node => [node.id, new Set<string>()]),
+  );
+  for (const edge of fixture.graph.edges) {
+    neighbors.get(edge.from)?.add(edge.to);
+    neighbors.get(edge.to)?.add(edge.from);
+  }
+  let targetNodeId: string | undefined;
+  let maximumDegree = 0;
+  for (const node of fixture.graph.nodes) {
+    const degree = neighbors.get(node.id)?.size ?? 0;
+    if (degree > maximumDegree) {
+      maximumDegree = degree;
+      targetNodeId = node.id;
+    }
+  }
+  if (!targetNodeId) throw new Error('Synthetic drag fixture has no connected node');
+  const neighborIds = neighbors.get(targetNodeId) ?? new Set<string>();
+  return {
+    neighborNodeIds: fixture.graph.nodes
+      .map(node => node.id)
+      .filter(nodeId => neighborIds.has(nodeId)),
+    targetNodeId,
+  };
+}
 
 export function selectSyntheticDragTarget(fixture: BenchmarkFixture): string {
-  const connectedNodeIds = new Set(
-    fixture.graph.edges.flatMap(edge => [edge.from, edge.to]),
-  );
-  for (let index = fixture.graph.nodes.length - 1; index >= 0; index -= 1) {
-    const node = fixture.graph.nodes[index];
-    if (node && connectedNodeIds.has(node.id)) return node.id;
-  }
-  throw new Error('Synthetic drag fixture has no connected node');
+  return selectSyntheticDragTargetDetails(fixture).targetNodeId;
 }
 
 export interface GraphBenchmarkDriver {
@@ -36,6 +63,7 @@ export interface GraphBenchmarkDriver {
   runSyntheticDrag(
     page: Page,
     targetNodeId: string,
+    neighborNodeIds: string[],
     timeoutMs: number,
   ): ReturnType<typeof runCurrentRendererSyntheticDrag>;
 }

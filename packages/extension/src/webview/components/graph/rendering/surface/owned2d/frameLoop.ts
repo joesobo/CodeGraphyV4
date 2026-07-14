@@ -2,15 +2,18 @@ import type { MutableRefObject } from 'react';
 import { createOwnedGraphControls, type OwnedGraphControlsRuntime } from './controls';
 import type { OwnedGraph2dControls } from './contracts';
 import { renderOwnedGraphFrame, type OwnedGraphFrameRuntime } from './frame';
-import type { RenderedFrameFpsSample, RenderedFrameFpsSampler } from './fps';
+import type {
+  OwnedGraphPerformanceMonitor,
+  OwnedGraphPerformanceSample,
+} from './performance/model';
 
 export interface OwnedGraphFrameLoopRuntime
   extends OwnedGraphFrameRuntime, OwnedGraphControlsRuntime {
   animationFrameRef: MutableRefObject<number | null>;
   fpsRef: MutableRefObject<number | null>;
-  fpsSamplerRef: MutableRefObject<RenderedFrameFpsSampler | null>;
   frameRequestedRef: MutableRefObject<boolean>;
-  publishFps(this: void, sample: RenderedFrameFpsSample): void;
+  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor | null>;
+  publishPerformance(this: void, sample: OwnedGraphPerformanceSample): void;
 }
 
 export interface OwnedGraphFrameLoop {
@@ -32,12 +35,31 @@ export function startOwnedGraphFrameLoop(
 ): OwnedGraphFrameLoop {
   let active = true;
 
-  runtime.recordRenderedFrame = (timestamp: number): void => {
-    const sampler = runtime.fpsSamplerRef.current;
-    if (!sampler) return;
-    const publishedSample = sampler.record(timestamp);
-    runtime.fpsRef.current = sampler.fps;
-    if (publishedSample !== undefined) runtime.publishFps(publishedSample);
+  runtime.recordRenderedFrame = (
+    timestamp: number,
+    simulationMs: number,
+    renderMs: number,
+  ): void => {
+    const monitor = runtime.performanceMonitorRef.current;
+    if (!monitor) return;
+    const publishedSample = monitor.recordFrame({
+      presentationTimestampMs: timestamp,
+      renderMs,
+      simulationMs,
+    });
+    if (publishedSample === undefined) return;
+    runtime.fpsRef.current = publishedSample.status === 'active'
+      ? publishedSample.displayedFps
+      : null;
+    runtime.publishPerformance(publishedSample);
+  };
+
+  runtime.markPerformanceIdle = (): void => {
+    const monitor = runtime.performanceMonitorRef.current;
+    if (!monitor) return;
+    const idleSample = monitor.setIdle();
+    runtime.fpsRef.current = null;
+    runtime.publishPerformance(idleSample);
   };
 
   const renderFrame = (timestamp: number): void => {

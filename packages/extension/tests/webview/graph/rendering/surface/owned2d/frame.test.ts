@@ -6,6 +6,7 @@ import {
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
 import { createDefaultSurfaceProps } from '../view/surfaceFixture';
 
@@ -29,6 +30,7 @@ function canvasFixture(): HTMLCanvasElement {
 function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   layout: OwnedGraphLayout;
   node: FGNode;
+  recorder: ReturnType<typeof createOwnedGraphInteractionRecorder>;
   runtime: OwnedGraphFrameRuntime;
 } {
   const node = {
@@ -62,14 +64,16 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   };
   const props = createDefaultSurfaceProps();
   props.sharedProps.graphData = { links: [], nodes: [node] };
+  const recorder = createOwnedGraphInteractionRecorder();
+  recorder.start({ neighborNodeIds: [], targetNodeId: node.id });
   const runtime: OwnedGraphFrameRuntime = {
     cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
     engineStopNotifiedRef: { current: false },
-    fpsRef: { current: null },
     gpuRendererRef: { current: renderer },
     hoveredLinkRef: { current: null },
     layoutRef: { current: layout },
     onRendererError: vi.fn(),
+    performanceRecorderRef: { current: recorder },
     pluginKinematicsVersionRef: { current: -1 },
     pluginForcesRef: { current: {
       active: () => true,
@@ -86,11 +90,12 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     propsRef: { current: props },
     rendererOperationalRef: { current: true },
     requestFrameRef: { current: vi.fn() },
+    markPerformanceIdle: vi.fn(),
     recordRenderedFrame: vi.fn(),
     styleVersionRef: { current: 1 },
     synchronizedPositionVersionRef: { current: -1 },
   };
-  return { layout, node, runtime };
+  return { layout, node, recorder, runtime };
 }
 
 afterEach(() => {
@@ -112,7 +117,6 @@ describe('owned graph frame execution', () => {
       .__CODEGRAPHY_WEBGPU_PERF__ = samples;
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100);
-    expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
 
     expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalled();
     expect([layout.engine.x[0], layout.engine.y[0]]).not.toEqual([0, 0]);
@@ -129,6 +133,14 @@ describe('owned graph frame execution', () => {
       1,
     );
     expect(runtime.propsRef.current.onRenderFramePost).toHaveBeenCalled();
+    expect(runtime.recordRenderedFrame).toHaveBeenCalledWith(
+      100,
+      expect.any(Number),
+      expect.any(Number),
+    );
+    const [, simulationMs, renderMs] = vi.mocked(runtime.recordRenderedFrame).mock.calls[0];
+    expect(simulationMs).toBeGreaterThanOrEqual(0);
+    expect(renderMs).toBeGreaterThan(0);
     expect(samples).toHaveLength(1);
     expect(samples[0]).toEqual(expect.objectContaining({
       gpuMs: expect.any(Number),
@@ -144,7 +156,7 @@ describe('owned graph frame execution', () => {
     const renderer = {
       render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
     } as unknown as OwnedWebGpuRenderer;
-    const { layout, node, runtime } = runtimeFixture(renderer);
+    const { layout, node, recorder, runtime } = runtimeFixture(renderer);
     runtime.pluginForcesRef.current.active = () => false;
     layout.engine.pause();
     layout.engine.sampleRenderPositions = vi.fn(() => ({
@@ -161,6 +173,7 @@ describe('owned graph frame execution', () => {
     expect(submittedFrame?.positionVersion).toBe(7);
     expect(node.x).toBe(layout.engine.x[0]);
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
+    expect(recorder.stop()?.frames[0]?.target).toEqual({ id: 'a', x: 100, y: 200 });
   });
 
   it('bridges plugin kinematics once per worker snapshot without invalidating in-flight ticks', () => {
@@ -181,21 +194,23 @@ describe('owned graph frame execution', () => {
     expect(runtime.positionVersionRef.current).toBe(1);
   });
 
-  it('submits only enough idle frames to establish the initial FPS sample', () => {
+  it('marks performance idle only when the simulation deliberately settles', () => {
     const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
-    const { runtime } = runtimeFixture(renderer);
-    runtime.layoutRef.current?.engine.pause();
-    runtime.propsRef.current.showFps = true;
+    const { layout, runtime } = runtimeFixture(renderer);
+    vi.spyOn(layout.engine, 'tick').mockReturnValue({
+      moving: false,
+      settled: true,
+      steps: 0,
+    });
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100);
 
-    expect(runtime.recordRenderedFrame).toHaveBeenCalledWith(100);
-    expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
-
-    runtime.fpsRef.current = 50;
-    vi.mocked(runtime.requestFrameRef.current).mockClear();
-    renderOwnedGraphFrame(runtime, canvasFixture(), 120);
-
+    expect(runtime.recordRenderedFrame).toHaveBeenCalledWith(
+      100,
+      expect.any(Number),
+      expect.any(Number),
+    );
+    expect(runtime.markPerformanceIdle).toHaveBeenCalledOnce();
     expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
   });
 

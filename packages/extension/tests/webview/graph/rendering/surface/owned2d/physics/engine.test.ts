@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   createGraphLayoutEngine,
@@ -38,6 +38,23 @@ describe('graph layout engine', () => {
     });
 
     expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
+  });
+
+  it('reports the CPU time used by the completed simulation step', () => {
+    const engine = createGraphLayoutEngine(lineGraph(2));
+    const now = vi.spyOn(performance, 'now')
+      .mockReturnValueOnce(10)
+      .mockReturnValueOnce(12.5);
+
+    engine.tick();
+
+    expect(engine.consumePerformanceSample?.()).toEqual({
+      roundTripMs: 0,
+      simulationCpuMs: 2.5,
+      steps: 1,
+    });
+    expect(engine.consumePerformanceSample?.()).toBeUndefined();
+    now.mockRestore();
   });
 
   it('cools D3 alpha within the Obsidian-like release-settle window', () => {

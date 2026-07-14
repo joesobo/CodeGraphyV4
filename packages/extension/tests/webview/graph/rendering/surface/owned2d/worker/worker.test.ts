@@ -104,6 +104,7 @@ describe('owned graph layout worker command routing', () => {
       type: 'tick',
     });
     expect(Number.isFinite(firstMessage.alpha)).toBe(true);
+    expect(firstMessage.simulationCpuMs).toBeGreaterThanOrEqual(0);
     expect(Number.isFinite(new Float32Array(firstMessage.buffers.x)[0])).toBe(true);
 
     send({ type: 'tick', revision: 4 });

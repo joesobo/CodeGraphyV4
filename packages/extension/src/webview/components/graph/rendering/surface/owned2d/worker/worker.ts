@@ -21,7 +21,10 @@ function requireEngine(): GraphLayoutEngine {
   return engine;
 }
 
-function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
+function postTick(
+  result: ReturnType<GraphLayoutEngine['tick']>,
+  simulationCpuMs: number,
+): void {
   const current = requireEngine();
   const buffers = availableOutputBuffers.shift();
   if (!buffers) throw new Error('Graph layout worker has no available output buffers');
@@ -35,6 +38,7 @@ function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
     type: 'tick',
     mutationRevision,
     revision,
+    simulationCpuMs,
     structuralRevision,
     result,
   };
@@ -73,7 +77,9 @@ const commandHandlers = {
   tick: (command) => {
     if (command.revision !== revision) return;
     if (command.recycledBuffers) availableOutputBuffers.push(...command.recycledBuffers);
-    postTick(requireEngine().tick());
+    const current = requireEngine();
+    const result = current.tick();
+    postTick(result, current.consumePerformanceSample?.()?.simulationCpuMs ?? 0);
   },
   setConfig: (command) => {
     requireEngine().setConfig(command.config);

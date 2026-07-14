@@ -4,6 +4,7 @@ import { generateSyntheticGraph } from './generate';
 import { hashGraphFixture } from './hash';
 
 export const SYNTHETIC_FIXTURE_PRESETS = {
+  'tiny': 9,
   '500': 500,
   '1k': 1_000,
   '2.5k': 2_500,
@@ -30,6 +31,31 @@ export interface BenchmarkFixture {
   fixtureHash: string;
 }
 
+function createTinyStarGraph(): IGraphData {
+  const hub = {
+    id: 'tiny/hub.ts',
+    label: 'hub.ts',
+    color: '#67E8F9',
+    nodeType: 'file' as const,
+  };
+  const leaves = Array.from({ length: 8 }, (_, index) => ({
+    id: `tiny/leaf-${index}.ts`,
+    label: `leaf-${index}.ts`,
+    color: '#93C5FD',
+    nodeType: 'file' as const,
+  }));
+  return {
+    nodes: [hub, ...leaves],
+    edges: leaves.map(leaf => ({
+      id: `${hub.id}->${leaf.id}#import`,
+      from: hub.id,
+      to: leaf.id,
+      kind: 'import',
+      sources: [],
+    })),
+  };
+}
+
 function countOrphans(graph: IGraphData): number {
   const connectedNodeIds = new Set<string>();
   graph.edges.forEach((edge) => {
@@ -46,10 +72,12 @@ export function createSyntheticFixture(
   name: SyntheticFixtureName,
   seed: number,
 ): BenchmarkFixture {
-  const graph = generateSyntheticGraph({
-    nodeCount: SYNTHETIC_FIXTURE_PRESETS[name],
-    seed,
-  });
+  const graph = name === 'tiny'
+    ? createTinyStarGraph()
+    : generateSyntheticGraph({
+      nodeCount: SYNTHETIC_FIXTURE_PRESETS[name],
+      seed,
+    });
 
   return {
     schemaVersion: 1,

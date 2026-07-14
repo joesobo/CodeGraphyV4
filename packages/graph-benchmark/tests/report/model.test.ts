@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { createSyntheticFixture } from '../../src/fixture/presets';
 import {
+  DEFAULT_INTERACTION_THRESHOLDS,
+  type InteractionAssessment,
+} from '../../src/metrics/interaction';
+import {
   createAggregateBenchmarkReport,
   createFailedAggregateBenchmarkReport,
   type AggregateGraphBenchmarkReport,
@@ -21,9 +25,11 @@ const environment = {
 
 const targetNodeId = 'packages/package-0000/src/file-000000.ts';
 const configuration = {
-  scenarioId: 'synthetic-node-drag-v3' as const,
-  pathId: 'centered-node-sine-v1' as const,
+  scenarioId: 'synthetic-node-drag-v4' as const,
+  pathId: 'centered-node-sine-v2' as const,
   targetNodeId,
+  neighborNodeIds: ['neighbor'],
+  interactionThresholds: { ...DEFAULT_INTERACTION_THRESHOLDS },
   viewport: { width: 1280, height: 720, deviceScaleFactor: 1 },
   runCount: 3,
   idleMs: 5_000,
@@ -32,7 +38,59 @@ const configuration = {
 };
 const source = { revision: 'abc123', dirty: false };
 
+const interactionAssessment = {
+  timing: {
+    cpuFrameTimeMs: { mean: 5, p50: 5, p95: 6, p99: 7, max: 8, sampleCount: 20 },
+    displayedFps: 100,
+    potentialFps: 200,
+    presentationIntervalMs: null,
+    renderMs: { mean: 3, p50: 3, p95: 4, p99: 4, max: 5, sampleCount: 20 },
+    simulationMs: { mean: 2, p50: 2, p95: 2, p99: 3, max: 3, sampleCount: 20 },
+  },
+  interaction: {
+    frozenFrameCount: 0,
+    maximumJump: 2,
+    neighborLatencyFrames: {
+      maximum: 2,
+      mean: 1.5,
+      missedInputCount: 0,
+      p95: 2,
+      sampleCount: 10,
+    },
+    targetLatencyFrames: {
+      maximum: 1,
+      mean: 1,
+      missedInputCount: 0,
+      p95: 1,
+      sampleCount: 10,
+    },
+    teleportFrameCount: 0,
+  },
+  settle: {
+    durationMs: 100,
+    energyAtSleep: 0,
+    envelopeViolationCount: 0,
+    maximumLateIncreaseRatio: 1,
+    monotonicEnvelope: true,
+    sleptImperceptibly: true,
+  },
+  hudAgreement: {
+    differencesPct: {
+      displayedFps: 0,
+      frameTimeAverage: 0,
+      potentialFps: 0,
+      renderAverage: 0,
+      simulationAverage: 0,
+    },
+    sampleCount: 20,
+    withinTenPercent: true,
+  },
+  thresholds: { ...DEFAULT_INTERACTION_THRESHOLDS },
+  truncated: false,
+} as InteractionAssessment;
+
 const frameTimeMs = {
+  mean: 16,
   p50: 16,
   p95: 17,
   p99: 20,
@@ -61,6 +119,7 @@ function createRun(run: number, dragFps: number): CompletedBenchmarkRun {
         settledCollisionViolationCount: 0,
         duringDragCollisionViolationCount: 2,
         releasedCollisionViolationCount: 0,
+        interactionAssessment,
       },
       settleTimeMs: 900 + run * 100,
       idleCpuPct: 1 + run,
@@ -103,7 +162,21 @@ describe('createAggregateBenchmarkReport', () => {
     });
 
     expect(report.averages).toEqual({
+      cpuFrameTimeMs: 5,
+      cpuFrameP95Ms: 6,
+      cpuFrameOnePercentHighMs: 7,
+      cpuFrameMaxMs: 8,
+      displayedFps: 100,
       dragFps: 36,
+      frozenFrameCount: 0,
+      hudDifferenceMaxPct: 0,
+      neighborLatencyFrames: 2,
+      potentialFps: 200,
+      renderMs: 3,
+      settleEnvelopeViolationCount: 0,
+      simulationMs: 2,
+      targetLatencyFrames: 1,
+      teleportFrameCount: 0,
       settleTimeMs: 1_100,
       idleCpuPct: 3,
       heapAfterLoadBytes: 120,
@@ -224,7 +297,7 @@ describe('createFailedAggregateBenchmarkReport', () => {
     });
 
     expect(report).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       status: 'failed',
       configuration,
       source,

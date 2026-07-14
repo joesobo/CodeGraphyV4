@@ -2,6 +2,10 @@ import { isDeepStrictEqual } from 'node:util';
 
 import type { BenchmarkRenderer } from '../cli/arguments';
 import type { BenchmarkFixture } from '../fixture/presets';
+import type {
+  InteractionAssessment,
+  InteractionThresholds,
+} from '../metrics/interaction';
 import {
   assessMemoryPlateau,
   type MemoryPlateauAssessment,
@@ -19,6 +23,7 @@ export interface BenchmarkEnvironment {
 }
 
 export interface DistributionMetrics {
+  mean: number;
   p50: number;
   p95: number;
   p99: number;
@@ -54,6 +59,7 @@ export interface CompletedBenchmarkRun {
       settledCollisionViolationCount: number;
       duringDragCollisionViolationCount: number;
       releasedCollisionViolationCount: number;
+      interactionAssessment: InteractionAssessment;
     };
     settleTimeMs: number;
     idleCpuPct: number;
@@ -66,9 +72,11 @@ export interface CompletedBenchmarkRun {
 }
 
 export interface BenchmarkConfiguration {
-  scenarioId: 'synthetic-node-drag-v3';
-  pathId: 'centered-node-sine-v1';
+  scenarioId: 'synthetic-node-drag-v4';
+  pathId: 'centered-node-sine-v2';
   targetNodeId: string;
+  neighborNodeIds: string[];
+  interactionThresholds: InteractionThresholds;
   viewport: {
     width: number;
     height: number;
@@ -96,7 +104,21 @@ interface FixtureIdentity {
 }
 
 export interface BenchmarkAverages {
+  cpuFrameTimeMs: number;
+  cpuFrameP95Ms: number;
+  cpuFrameOnePercentHighMs: number;
+  cpuFrameMaxMs: number;
+  displayedFps: number;
   dragFps: number;
+  frozenFrameCount: number;
+  hudDifferenceMaxPct: number;
+  neighborLatencyFrames: number;
+  potentialFps: number;
+  renderMs: number;
+  settleEnvelopeViolationCount: number;
+  simulationMs: number;
+  targetLatencyFrames: number;
+  teleportFrameCount: number;
   settleTimeMs: number;
   idleCpuPct: number;
   heapAfterLoadBytes: number;
@@ -113,7 +135,7 @@ export interface SampleStatistics {
 }
 
 export interface AggregateGraphBenchmarkReport {
-  schemaVersion: 2;
+  schemaVersion: 3;
   status: 'complete';
   renderer: BenchmarkRenderer;
   fixture: FixtureIdentity;
@@ -136,7 +158,7 @@ export interface AggregateGraphBenchmarkReport {
 }
 
 export interface FailedAggregateGraphBenchmarkReport {
-  schemaVersion: 2;
+  schemaVersion: 3;
   status: 'failed' | 'timeout';
   renderer: BenchmarkRenderer;
   fixture: FixtureIdentity;
@@ -180,14 +202,24 @@ function metricDeltas(
   current: BenchmarkAverages,
   baseline: BenchmarkAverages,
 ): BenchmarkAverages {
-  return {
-    dragFps: current.dragFps - baseline.dragFps,
-    settleTimeMs: current.settleTimeMs - baseline.settleTimeMs,
-    idleCpuPct: current.idleCpuPct - baseline.idleCpuPct,
-    heapAfterLoadBytes: current.heapAfterLoadBytes - baseline.heapAfterLoadBytes,
-    processAfterLoadBytes: current.processAfterLoadBytes - baseline.processAfterLoadBytes,
-    memoryAfterCyclesBytes: current.memoryAfterCyclesBytes - baseline.memoryAfterCyclesBytes,
-  };
+  return Object.fromEntries(
+    (Object.keys(current) as Array<keyof BenchmarkAverages>)
+      .map(name => [name, current[name] - baseline[name]]),
+  ) as unknown as BenchmarkAverages;
+}
+
+function requiredLatency(value: number | null): number {
+  return value ?? Number.MAX_SAFE_INTEGER;
+}
+
+function maximumHudDifference(assessment: InteractionAssessment): number {
+  const differences = assessment.hudAgreement?.differencesPct;
+  if (!differences) return Number.MAX_SAFE_INTEGER;
+  const values = Object.values(differences);
+  if (values.some(value => value === null || !Number.isFinite(value))) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+  return Math.max(...values as number[]);
 }
 
 function validateBaseline(options: {
@@ -249,8 +281,29 @@ export function createAggregateBenchmarkReport(options: {
     if (!Number.isFinite(finalSample)) throw new Error('Completed run has no final memory-cycle sample');
     return finalSample;
   });
+  const assessments = options.runs.map(run => run.metrics.drag.interactionAssessment);
   const sampleSets: Record<keyof BenchmarkAverages, number[]> = {
+    cpuFrameTimeMs: assessments.map(value => value.timing.cpuFrameTimeMs.mean),
+    cpuFrameP95Ms: assessments.map(value => value.timing.cpuFrameTimeMs.p95),
+    cpuFrameOnePercentHighMs: assessments.map(value => value.timing.cpuFrameTimeMs.p99),
+    cpuFrameMaxMs: assessments.map(value => value.timing.cpuFrameTimeMs.max),
+    displayedFps: assessments.map(value => value.timing.displayedFps),
     dragFps: options.runs.map(run => run.metrics.drag.fps),
+    frozenFrameCount: assessments.map(value => value.interaction.frozenFrameCount),
+    hudDifferenceMaxPct: assessments.map(maximumHudDifference),
+    neighborLatencyFrames: assessments.map(value => requiredLatency(
+      value.interaction.neighborLatencyFrames.maximum,
+    )),
+    potentialFps: assessments.map(value => value.timing.potentialFps),
+    renderMs: assessments.map(value => value.timing.renderMs.mean),
+    settleEnvelopeViolationCount: assessments.map(
+      value => value.settle.envelopeViolationCount,
+    ),
+    simulationMs: assessments.map(value => value.timing.simulationMs.mean),
+    targetLatencyFrames: assessments.map(value => requiredLatency(
+      value.interaction.targetLatencyFrames.maximum,
+    )),
+    teleportFrameCount: assessments.map(value => value.interaction.teleportFrameCount),
     settleTimeMs: options.runs.map(run => run.metrics.settleTimeMs),
     idleCpuPct: options.runs.map(run => run.metrics.idleCpuPct),
     heapAfterLoadBytes: options.runs.map(run => run.metrics.memory.heapAfterLoadBytes),
@@ -260,14 +313,10 @@ export function createAggregateBenchmarkReport(options: {
   const statistics = Object.fromEntries(
     Object.entries(sampleSets).map(([name, values]) => [name, sampleStatistics(values)]),
   ) as Record<keyof BenchmarkAverages, SampleStatistics>;
-  const averages: BenchmarkAverages = {
-    dragFps: statistics.dragFps.mean,
-    settleTimeMs: statistics.settleTimeMs.mean,
-    idleCpuPct: statistics.idleCpuPct.mean,
-    heapAfterLoadBytes: statistics.heapAfterLoadBytes.mean,
-    processAfterLoadBytes: statistics.processAfterLoadBytes.mean,
-    memoryAfterCyclesBytes: statistics.memoryAfterCyclesBytes.mean,
-  };
+  const averages = Object.fromEntries(
+    (Object.keys(statistics) as Array<keyof BenchmarkAverages>)
+      .map(name => [name, statistics[name].mean]),
+  ) as unknown as BenchmarkAverages;
   const unstableMetrics = (Object.keys(statistics) as Array<keyof BenchmarkAverages>)
     .filter(name => (statistics[name].coefficientOfVariation ?? 0) > 0.1);
   const memoryPlateau = assessMemoryPlateau(
@@ -292,7 +341,7 @@ export function createAggregateBenchmarkReport(options: {
   const baselineAverages = options.baseline?.report.averages ?? averages;
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     status: 'complete',
     renderer: options.renderer,
     fixture: identity,
@@ -327,7 +376,7 @@ export function createFailedAggregateBenchmarkReport(options: {
   timedOut: boolean;
 }): FailedAggregateGraphBenchmarkReport {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     status: options.timedOut ? 'timeout' : 'failed',
     renderer: options.renderer,
     fixture: fixtureIdentity(options.fixture),
