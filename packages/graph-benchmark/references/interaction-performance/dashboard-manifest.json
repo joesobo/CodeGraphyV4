@@ -3,6 +3,18 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M3",
+      "title": "Worker round trip deleted; all clean tiers pass",
+      "summary": "The measured losing worker, snapshot interpolation, and transferable-buffer implementation is deleted (2,200 lines removed), leaving one synchronous typed physics home and no postMessage interaction path. Clean three-run reports at 1c06ca50 measure 0.49 / 5.59 / 4.22 / 10.03 ms for tiny / 500 / 1k / 2.5k. Every fixture now has one-frame target and neighbor response, zero freezes and teleports, complete settling, and HUD agreement within 0.43%; 500 is 1.35× and 1k is 1.26× faster than M1.",
+      "timestamp": "2026-07-13T22:08:00Z"
+    },
+    {
+      "milestone": "M3",
+      "title": "Real editor confirms zero-round-trip interaction",
+      "summary": "VS Code 1.128.0 was rechecked with the graph in an editor and Files Explorer restored. The 983-frame recording has one-frame target and neighbor response, zero freezes and teleports, 0.39 ms active mean frame work, 60.00 displayed FPS on the 60 Hz display, and active HUD agreement within 3.2%. The graph slept imperceptibly; one small settle-envelope rebound remains for M4.",
+      "timestamp": "2026-07-13T22:07:00Z"
+    },
+    {
       "milestone": "M2",
       "title": "Cost attribution chooses main-thread physics",
       "summary": "Three-run profiles at clean revision 90540a889 show main-thread physics winning at both decision sizes: 500 improves 7.72 → 5.51 ms (1.40×), neighbor latency 2.33 → 1 frame, and freezes 0.67 → 0; 2.5k improves 11.07 → 10.15 ms (1.09×), neighbor latency 2.67 → 1, and freezes 1 → 0. Worker round trip costs 6.63 ms at 500 and 9.70 ms at 2.5k. M3 will delete the worker/interpolator/transfer path. Next biggest additive costs are physics, then per-frame style + geometry rebuilds.",
@@ -53,6 +65,26 @@
       "fixture": "2.5k",
       "milestone": "M1 baseline",
       "path": "references/interaction-performance/m1-baseline/2.5k.json"
+    },
+    {
+      "fixture": "tiny",
+      "milestone": "M3 main thread",
+      "path": "references/interaction-performance/m3-main-thread/tiny.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M3 main thread",
+      "path": "references/interaction-performance/m3-main-thread/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M3 main thread",
+      "path": "references/interaction-performance/m3-main-thread/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M3 main thread",
+      "path": "references/interaction-performance/m3-main-thread/2.5k.json"
     }
   ],
   "attribution": [
@@ -112,6 +144,21 @@
     }
   ],
   "visuals": [
+    {
+      "caption": "M3 real-editor drag after deleting the worker round trip: one-frame target and neighbor response with the honest active HUD.",
+      "kind": "image",
+      "path": "references/interaction-performance/m3-main-thread/real-editor-drag.png"
+    },
+    {
+      "caption": "M3 real-editor scripted drag, hold, release, and settle on the sole main-thread physics home.",
+      "kind": "gif",
+      "path": "references/interaction-performance/m3-main-thread/real-editor-drag.gif"
+    },
+    {
+      "caption": "M3 real-editor explicit Idle HUD after settle.",
+      "kind": "image",
+      "path": "references/interaction-performance/m3-main-thread/real-editor-idle.png"
+    },
     {
       "caption": "M1 real-editor drag: editor graph with Files Explorer in the sidebar and the honest active HUD.",
       "kind": "image",

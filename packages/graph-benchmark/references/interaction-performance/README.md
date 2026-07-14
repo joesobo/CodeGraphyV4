@@ -51,6 +51,21 @@ The explicitly armed profiler performs no clock reads while disabled. Three clea
 
 The raw reports and normalized stage summaries are under `m2-attribution/`. `--physics-home main-thread` was temporary decision scaffolding at the M2 revision; M3 removed the option together with the losing worker implementation. Current armed profiles use `--attribution true` and always report the sole main-thread home.
 
+## M3 zero-round-trip interaction
+
+Revision `1c06ca50ca8ae25a950862ca4a9a994b944b95a0` leaves the typed-array engine as the sole physics home and removes 2,200 lines of worker host, protocol, interpolation, transfer-buffer, and test machinery. Pointer-down wakes the frame loop, active pointer sessions independently keep it alive, and user-driven positions are rendered even when a physics tick reports zero steps.
+
+| Fixture | Mean CPU frame | p95 | 1%-high | Sim / render | Potential / displayed FPS | Target / neighbor latency | Frozen / teleports | Settle violations | HUD max difference |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| tiny | 0.49 ms | 0.60 ms | 0.70 ms | 0.07 / 0.42 ms | 2,060 / 60.00 | 1 / 1 frames | 0 / 0 | 1 | 0% |
+| 500 | 5.59 ms | 6.00 ms | 6.50 ms | 4.59 / 1.01 ms | 179 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 1k | 4.22 ms | 4.70 ms | 5.07 ms | 2.48 / 1.74 ms | 237 / 60.00 | 1 / 1 frames | 0 / 0 | 0 | 0% |
+| 2.5k | 10.03 ms | 11.57 ms | 15.00 ms | 6.49 / 3.53 ms | 100 / 59.51 | 1 / 1 frames | 0 / 0 | 0 | 0.42% |
+
+All four three-run tiers pass the headless checkpoint and settle completely. Relative to M1, mean frame work improves 1.35× at 500, 1.26× at 1k, and 1.10× at 2.5k while neighbor response improves from three frames to one and frozen frames fall from one to zero.
+
+The required real-editor pass used VS Code 1.128.0 with the graph in an editor and Files Explorer restored. Its untruncated 983-frame recording measured 0.39 ms active mean work, 60.00 displayed FPS on the available 60 Hz display, one-frame target and neighbor response, zero freezes and teleports, and active HUD agreement within 3.2%. The graph slept at imperceptible energy; one small settle-envelope rebound remains for the fixed-timestep M4 work. Evidence is in `m3-main-thread/`.
+
 Run the dashboard generator with:
 
 ```bash
