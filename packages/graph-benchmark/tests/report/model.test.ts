@@ -210,6 +210,37 @@ describe('createAggregateBenchmarkReport', () => {
     expect(report.runs).toEqual(runs);
   });
 
+  it('reports HUD difference from the compact visible metrics', () => {
+    const runs = [createRun(1, 30), createRun(2, 36), createRun(3, 42)];
+    for (const run of runs) {
+      run.metrics.drag.interactionAssessment = {
+        ...interactionAssessment,
+        hudAgreement: {
+          differencesPct: {
+            displayedFps: 40,
+            frameTimeAverage: 2,
+            potentialFps: 1,
+            renderAverage: 50,
+            simulationAverage: 60,
+          },
+          sampleCount: 20,
+          withinTenPercent: true,
+        },
+      };
+    }
+
+    const report = createAggregateBenchmarkReport({
+      fixture: createSyntheticFixture('500', 307),
+      renderer: 'current',
+      environment,
+      runs,
+      configuration,
+      source,
+    });
+
+    expect(report.averages.hudDifferenceMaxPct).toBe(2);
+  });
+
   it('requires every run to be responsive, finite, collision-free, and on target', () => {
     const fixture = createSyntheticFixture('500', 307);
     const createReport = (run: CompletedBenchmarkRun) => createAggregateBenchmarkReport({
