@@ -21,6 +21,7 @@ import {
   SYNTHETIC_DRAG_SCENARIO_ID,
   type GraphBenchmarkDriver,
 } from '../harness/driver';
+import { RELEASE_SETTLE_OBSERVATION_MS } from '../harness/currentRenderer/measure';
 import type { GraphBenchmarkServer } from '../harness/currentRenderer/server';
 import { summarizeRenderedFrames } from '../metrics/frames';
 import { DEFAULT_INTERACTION_THRESHOLDS } from '../metrics/interaction';
@@ -107,6 +108,7 @@ function benchmarkConfiguration(
     targetNodeId,
     neighborNodeIds: [...neighborNodeIds],
     interactionThresholds: { ...DEFAULT_INTERACTION_THRESHOLDS },
+    releaseObservationMs: RELEASE_SETTLE_OBSERVATION_MS,
     viewport,
     runCount: options.runs,
     idleMs: options.idleMs,
