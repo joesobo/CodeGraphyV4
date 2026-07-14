@@ -36,23 +36,18 @@ describe('graph/model/build', () => {
     expect(sizes.get('b.ts')).toBe(16);
   });
 
-  it('scales connection-based node sizes by edge count', () => {
+  it('scales connection-based node sizes from unique related nodes', () => {
+    const leaves = Array.from({ length: 15 }, (_, index) => ({
+      id: `leaf-${index}.ts`, label: `leaf-${index}.ts`, color: '#67E8F9',
+    }));
     const sizes = calculateNodeSizes(
-      [
-        { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
-        { id: 'leaf-a.ts', label: 'leaf-a.ts', color: '#67E8F9' },
-        { id: 'leaf-b.ts', label: 'leaf-b.ts', color: '#67E8F9' },
-      ],
-      [
-        { from: 'hub.ts', to: 'leaf-a.ts' },
-        { from: 'hub.ts', to: 'leaf-b.ts' },
-      ],
-      'connections'
+      [{ id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' }, ...leaves],
+      leaves.map(leaf => ({ from: 'hub.ts', to: leaf.id })),
+      'connections',
     );
 
-    expect(sizes.get('hub.ts')).toBe(40);
-    expect(sizes.get('leaf-a.ts')).toBe(25);
-    expect(sizes.get('leaf-b.ts')).toBe(25);
+    expect(sizes.get('hub.ts')).toBe(12);
+    expect(sizes.get('leaf-0.ts')).toBe(8);
   });
 
   it('returns default sizes when file-size mode has no positive file sizes', () => {

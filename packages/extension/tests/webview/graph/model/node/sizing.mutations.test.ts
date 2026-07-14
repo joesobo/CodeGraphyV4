@@ -32,15 +32,15 @@ describe('nodeSizing (mutation targets)', () => {
     });
 
     it('delegates to computeConnectionSizes for connections mode', () => {
+      const leaves = Array.from({ length: 15 }, (_, index) => ({
+        id: `leaf-${index}.ts`, label: `leaf-${index}.ts`, color: '#fff',
+      }));
       const sizes = calculateNodeSizes(
-        [
-          { id: 'hub.ts', label: 'hub.ts', color: '#fff' },
-          { id: 'leaf.ts', label: 'leaf.ts', color: '#fff' },
-        ],
-        [{ from: 'hub.ts', to: 'leaf.ts' }],
-        'connections'
+        [{ id: 'hub.ts', label: 'hub.ts', color: '#fff' }, ...leaves],
+        leaves.map(leaf => ({ from: 'hub.ts', to: leaf.id })),
+        'connections',
       );
-      expect(sizes.get('hub.ts')).toBe(40);
+      expect(sizes.get('hub.ts')).toBe(12);
     });
 
     it('delegates to computeChurnSizes for churn mode', () => {
