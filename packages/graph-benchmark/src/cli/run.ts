@@ -67,12 +67,15 @@ async function buildWebview(): Promise<void> {
   });
 }
 
-function createEnvironment(browserVersion = 'unavailable'): BenchmarkEnvironment {
+function createEnvironment(
+  headless: boolean,
+  browserVersion = 'unavailable',
+): BenchmarkEnvironment {
   return {
     browser: 'chromium',
     browserVersion,
     cpuModel: cpus()[0]?.model ?? 'unknown',
-    headless: true,
+    headless,
     hostname: hostname(),
     nodeVersion: process.version,
     osRelease: release(),
@@ -289,7 +292,7 @@ export async function runGraphBenchmark(
   let browserServer: BrowserServer | undefined;
   let server: GraphBenchmarkServer | undefined;
   let stage = 'build';
-  let environment = createEnvironment();
+  let environment = createEnvironment(options.headless);
   const completedRuns: CompletedBenchmarkRun[] = [];
 
   try {
@@ -298,7 +301,7 @@ export async function runGraphBenchmark(
     await buildWebview();
     stage = 'browser-launch';
     browserServer = await chromium.launchServer({
-      headless: true,
+      headless: options.headless,
       args: [
         '--enable-unsafe-webgpu',
         ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
@@ -307,7 +310,7 @@ export async function runGraphBenchmark(
     const browserPid = browserServer.process().pid;
     if (!browserPid) throw new Error('Chromium benchmark process has no pid');
     browser = await chromium.connect(browserServer.wsEndpoint());
-    environment = createEnvironment(browser.version());
+    environment = createEnvironment(options.headless, browser.version());
     server = await driver.startServer(fixture);
 
     for (let run = 1; run <= options.runs; run += 1) {

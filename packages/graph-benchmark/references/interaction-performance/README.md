@@ -13,7 +13,7 @@ This directory contains the committed evidence for the Obsidian-parity interacti
 - **Settle continuity** evaluates a rolling RMS kinetic-energy envelope after release and records whether sleep energy is imperceptible.
 - **HUD agreement** independently recomputes metrics from raw frame records and compares them with the product HUD's rolling sample. Every displayed metric must be within 10%.
 
-Headless Chromium on this machine presents near 60 Hz. Headless runs therefore prove CPU potential and honest dropped-frame accounting; the 144 Hz displayed-rate gate is verified in the real VS Code editor on the 144 Hz display.
+Headless Chromium on this machine presents near 60 Hz. Headless runs therefore prove CPU potential and honest dropped-frame accounting. Use `--headless false` on a high-refresh display when validating the displayed-rate gate; reports preserve headed/headless mode in `environment.headless`.
 
 ## M1 baseline
 

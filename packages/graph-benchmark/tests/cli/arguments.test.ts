@@ -9,6 +9,8 @@ describe('parseBenchmarkArguments', () => {
       'true',
       '--fixture',
       '2.5k',
+      '--headless',
+      'false',
       '--renderer',
       'current',
       '--seed',
@@ -28,6 +30,7 @@ describe('parseBenchmarkArguments', () => {
     ])).toEqual({
       attribution: true,
       fixture: '2.5k',
+      headless: false,
       renderer: 'current',
       seed: 42,
       runs: 5,
@@ -46,9 +49,18 @@ describe('parseBenchmarkArguments', () => {
     ])).toMatchObject({
       runs: 3,
       attribution: false,
+      headless: true,
       memoryCycles: 5,
       baselinePath: undefined,
     });
+  });
+
+  it('rejects invalid headed-mode values', () => {
+    expect(() => parseBenchmarkArguments([
+      '--fixture', '500',
+      '--renderer', 'current',
+      '--headless', 'sometimes',
+    ])).toThrow('--headless must be true or false');
   });
 
   it('allows interaction-only runs to skip legacy memory-close cycles', () => {

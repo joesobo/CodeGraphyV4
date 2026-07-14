@@ -8,6 +8,7 @@ export type BenchmarkRenderer = 'current' | 'webgpu';
 export interface BenchmarkArguments {
   attribution: boolean;
   fixture: SyntheticFixtureName;
+  headless: boolean;
   renderer: BenchmarkRenderer;
   seed: number;
   runs: number;
@@ -57,6 +58,7 @@ function parseBoolean(value: string, option: string): boolean {
 export function parseBenchmarkArguments(arguments_: readonly string[]): BenchmarkArguments {
   let attribution = false;
   let fixture: SyntheticFixtureName | undefined;
+  let headless = true;
   let renderer: BenchmarkRenderer | undefined;
   let seed = DEFAULT_SEED;
   let runs = DEFAULT_RUNS;
@@ -77,6 +79,9 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
       case '--fixture':
         if (!isFixtureName(value)) throw new Error(`Unknown fixture: ${value}`);
         fixture = value;
+        break;
+      case '--headless':
+        headless = parseBoolean(value, option);
         break;
       case '--renderer':
         if (!isRenderer(value)) throw new Error(`Unknown renderer: ${value}`);
@@ -114,6 +119,7 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
   return {
     attribution,
     fixture,
+    headless,
     renderer,
     seed,
     runs,
