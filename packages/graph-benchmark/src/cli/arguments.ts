@@ -78,7 +78,7 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
         runs = parseInteger(value, option, 3);
         break;
       case '--memory-cycles':
-        memoryCycles = parseInteger(value, option, 5);
+        memoryCycles = parseInteger(value, option, 0);
         break;
       case '--idle-ms':
         idleMs = parseInteger(value, option, 1_000);
