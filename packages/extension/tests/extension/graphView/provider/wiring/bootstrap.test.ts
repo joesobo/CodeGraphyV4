@@ -90,14 +90,12 @@ describe('graph view provider bootstrap helper', () => {
     expect(
       restoreGraphViewProviderState({
         configuration,
-        dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         depthModeKey: 'depth',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
       depthMode: false,
-      dagMode: 'horizontal',
       nodeSizeMode: 'churn',
     });
   });
@@ -110,14 +108,12 @@ describe('graph view provider bootstrap helper', () => {
             return defaultValue;
           },
         },
-        dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         depthModeKey: 'depth',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
       depthMode: false,
-      dagMode: null,
       nodeSizeMode: 'connections',
     });
   });
@@ -133,14 +129,12 @@ describe('graph view provider bootstrap helper', () => {
             return defaultValue;
           },
         },
-        dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         depthModeKey: 'depth',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
       depthMode: false,
-      dagMode: null,
       nodeSizeMode: 'churn',
     });
   });
@@ -156,13 +150,11 @@ describe('graph view provider bootstrap helper', () => {
             return defaultValue;
           },
         },
-        dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
       depthMode: true,
-      dagMode: null,
       nodeSizeMode: 'connections',
     });
   });

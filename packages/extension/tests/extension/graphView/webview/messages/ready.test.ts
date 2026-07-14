@@ -15,7 +15,6 @@ describe('graph view ready message', () => {
         maxFiles: 500,
         showFps: true,
         verboseDiagnostics: true,
-        dagMode: 'td',
         nodeSizeMode: 'connections',
         focusedFile: 'src/game/player.gd',
         hasWorkspace: false,
@@ -63,10 +62,6 @@ describe('graph view ready message', () => {
       payload: { verboseDiagnostics: true },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'td' },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'connections' },
     });
@@ -100,7 +95,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -136,7 +130,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -163,7 +156,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -195,7 +187,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -249,7 +240,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -287,7 +277,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -323,7 +312,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -344,7 +332,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,
@@ -364,7 +351,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: false,
@@ -385,7 +371,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
         hasWorkspace: true,

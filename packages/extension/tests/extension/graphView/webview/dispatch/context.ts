@@ -33,7 +33,6 @@ export function createPrimaryMessageContext(
     showWarningMessage: vi.fn(async () => 'Delete' as const),
     changeView: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
     sendPhysicsSettings: vi.fn(),
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),

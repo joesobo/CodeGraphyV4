@@ -265,36 +265,6 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
-  it('maps lowercase l to the cycle-layout store message', () => {
-    expect(getGraphKeyboardCommand({
-      key: 'l',
-      isMod: false,
-      shiftKey: false,
-      selectedNodeIds: [],
-      allNodeIds: [],
-      targetIsEditable: false,
-    })).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_LAYOUT' } }],
-    });
-  });
-
-  it('maps uppercase l to the cycle-layout store message', () => {
-    expect(getGraphKeyboardCommand({
-      key: 'L',
-      isMod: false,
-      shiftKey: false,
-      selectedNodeIds: [],
-      allNodeIds: [],
-      targetIsEditable: false,
-    })).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_LAYOUT' } }],
-    });
-  });
-
   it('ignores unsupported keys', () => {
     expect(getGraphKeyboardCommand({
       key: 'q',

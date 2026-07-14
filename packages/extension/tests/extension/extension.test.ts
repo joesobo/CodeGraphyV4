@@ -64,8 +64,8 @@ describe('Extension', () => {
       // + file watcher events (3) + gitignore watcher events (3)
       // + workspace file operation events (3) + file watchers (2)
       // + URI handler (1) + runtime bridge listener (1)
-      // + 15 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode, cycleLayout)
-      expect(mockContext.subscriptions.length).toBe(32);
+      // + 14 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode)
+      expect(mockContext.subscriptions.length).toBe(31);
     });
 
     it('should ignore workspace settings saves when deciding graph refresh', async () => {

@@ -7,7 +7,6 @@ export function createReadyState(context: GraphViewMessageListenerContext): Grap
     showFps: context.getConfig('showFps', false),
     verboseDiagnostics: context.getConfig('verboseDiagnostics', false),
     depthMode: context.getDepthMode?.() ?? false,
-    dagMode: context.getDagMode(),
     nodeSizeMode: context.getNodeSizeMode(),
     focusedFile: context.getFocusedFile(),
     hasWorkspace: context.hasWorkspace(),

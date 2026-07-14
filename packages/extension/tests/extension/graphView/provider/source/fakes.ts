@@ -120,7 +120,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _analysisController: undefined,
     _analysisRequestId: 1,
     _viewRegistry: { id: 'registry' },
-    _dagMode: null,
     _nodeSizeMode: 'connections',
     _rawGraphData: { nodes: [], edges: [] },
     _viewContext: {

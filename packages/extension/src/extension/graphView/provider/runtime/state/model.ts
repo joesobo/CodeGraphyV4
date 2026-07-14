@@ -9,7 +9,7 @@ import { DecorationManager } from '../../../../../core/plugins/decoration/manage
 import { EventBus } from '../../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import { WorkspacePipeline } from '../../../../pipeline/service/lifecycleFacade';
 import {
   createGraphViewProviderMethodContainers,
@@ -58,7 +58,6 @@ export class GraphViewProviderRuntime {
   protected _changedFilePaths!: string[];
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode!: boolean;
-  protected _dagMode!: DagMode;
   protected _nodeSizeMode!: NodeSizeMode;
   protected _rawGraphData!: IGraphData;
   protected _viewContext!: IViewContext;
@@ -222,7 +221,6 @@ export class GraphViewProviderRuntime {
     );
 
     this._depthMode = restoredState.depthMode;
-    this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
   }
 

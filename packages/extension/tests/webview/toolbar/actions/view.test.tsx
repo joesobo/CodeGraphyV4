@@ -67,7 +67,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Themes', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Workspace', 'Node Size', 'New...', 'Graph Scope', 'Themes', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders(props: Partial<React.ComponentProps<typeof ToolbarActions>> = {}) {
   return render(
@@ -113,7 +113,6 @@ describe('ToolbarActions', () => {
       graphIndexDetail: null,
       graphIsIndexing: false,
       graphIndexProgress: null,
-      dagMode: null,
       nodeSizeMode: 'connections',
       graphViewportScale: null,
       graphViewContributionStatuses: [],
@@ -132,7 +131,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByTestId('toolbar-graph-tools-group')).toBeInTheDocument();
     expect(screen.getByTestId('toolbar-system-group')).toBeInTheDocument();
     expect(screen.getByTitle('Index Workspace')).toBeInTheDocument();
-    expect(screen.getByTitle('Layout')).toBeInTheDocument();
     expect(screen.getByTitle('Node Size')).toBeInTheDocument();
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
@@ -216,12 +214,11 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Node Size', 'New...', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Workspace',
-      'Layout',
       'Node Size',
       'New...',
       'Graph Scope',

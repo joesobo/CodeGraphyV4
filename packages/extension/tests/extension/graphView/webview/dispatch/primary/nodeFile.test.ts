@@ -38,7 +38,6 @@ function createContext(
     showInformationMessage: vi.fn(),
     changeView: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
     sendPhysicsSettings: vi.fn(),
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),

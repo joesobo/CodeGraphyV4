@@ -4,6 +4,4 @@ export type NodeShape2D = 'circle' | 'square' | 'rectangle' | 'diamond' | 'trian
 
 export type DirectionMode = 'arrows' | 'particles' | 'none';
 
-export type DagMode = null | 'radialout' | 'td' | 'lr';
-
 export type BidirectionalEdgeMode = 'separate' | 'combined';

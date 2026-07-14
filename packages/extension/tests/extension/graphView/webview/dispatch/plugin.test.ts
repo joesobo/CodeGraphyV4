@@ -14,7 +14,6 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => []),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
-    getDagMode: vi.fn(() => null),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFocusedFile: vi.fn(() => undefined),
     hasWorkspace: vi.fn(() => false),

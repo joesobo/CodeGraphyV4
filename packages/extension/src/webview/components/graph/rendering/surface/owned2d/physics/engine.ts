@@ -12,11 +12,7 @@ import { applyCollisionForces } from './forces/collision';
 import { FlatBarnesHutTree } from './forces/barnesHut';
 import { applyLinkForces } from './forces/link';
 import { applyRepulsionForces } from './forces/repulsion';
-import { applyRadialForces } from './forces/radial';
-import {
-  enforceGraphLayoutAxisConstraints,
-  integrateGraphLayout,
-} from './integration';
+import { integrateGraphLayout } from './integration';
 import { createGraphLayoutState } from './initialization';
 import { updateVisibleLinkDegrees } from './linkDegrees';
 import { UniformGrid } from './spatialGrid';
@@ -54,9 +50,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   get flags(): Uint8Array { return this.state.flags; }
   get edgeSources(): Uint32Array { return this.state.edgeSources; }
   get edgeTargets(): Uint32Array { return this.state.edgeTargets; }
-  get targetX(): Float32Array { return this.state.targetX; }
-  get targetY(): Float32Array { return this.state.targetY; }
-  get targetRadius(): Float32Array { return this.state.targetRadius; }
   get alpha(): number { return this.simulationAlpha; }
 
   getNodeIndex(nodeId: string): number | undefined {
@@ -182,7 +175,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private step(): void {
     this.simulationAlpha += (this.simulationAlphaTarget - this.simulationAlpha)
       * this.config.alphaDecay;
-    enforceGraphLayoutAxisConstraints(this.state);
     applyLinkForces(this.state, this.config, this.simulationAlpha);
     applyRepulsionForces(
       this.repulsionTree,
@@ -191,7 +183,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       this.simulationAlpha,
     );
     applyCenterForces(this.state, this.config, this.simulationAlpha);
-    applyRadialForces(this.state, this.config, this.simulationAlpha);
     const maximumVelocity = integrateGraphLayout(this.state, this.config);
     const collisionIterations = this.simulationAlpha < 0.1
       ? Math.max(this.config.collisionIterations, 16)
@@ -202,7 +193,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       this.collisionGrid,
       collisionIterations,
     );
-    enforceGraphLayoutAxisConstraints(this.state);
     const calm = this.simulationAlpha <= this.config.alphaMinimum
       && maximumVelocity <= this.config.settleSpeed
       && collisionCorrectionCount === 0;

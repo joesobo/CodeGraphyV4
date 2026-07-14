@@ -5,10 +5,8 @@ import {
   type GraphLayoutInput,
 } from './physics/contracts';
 import { createGraphLayoutEngine } from './physics/engine';
-import type { DagMode } from '../../../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
-import { createOwnedDagTargets } from './dag';
 import { ownedNodeCollisionRadius } from './collisionRadius';
 
 export { ownedNodeCollisionRadius } from './collisionRadius';
@@ -53,8 +51,6 @@ interface OwnedGraphLayoutData {
 function buildOwnedGraphLayoutData(
   nodes: FGNode[],
   links: FGLink[],
-  dagMode: DagMode,
-  dagLevelDistance: number,
 ): OwnedGraphLayoutData {
   const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]));
   const initialX = new Float32Array(nodes.length);
@@ -99,13 +95,6 @@ function buildOwnedGraphLayoutData(
     edgeTargets.push(targetIndex);
   }
 
-  const dagTargets = createOwnedDagTargets(
-    nodes.length,
-    edgeSources,
-    edgeTargets,
-    dagMode,
-    dagLevelDistance,
-  );
   const input: GraphLayoutInput = {
     nodeIds: nodes.map((node) => node.id),
     initialX,
@@ -117,9 +106,6 @@ function buildOwnedGraphLayoutData(
     flags,
     edgeSources: Uint32Array.from(edgeSources),
     edgeTargets: Uint32Array.from(edgeTargets),
-    targetX: dagTargets?.targetX,
-    targetY: dagTargets?.targetY,
-    targetRadius: dagTargets?.targetRadius,
   };
   return { input, resolvedLinks };
 }
@@ -128,15 +114,8 @@ export function createOwnedGraphLayout(
   nodes: FGNode[],
   links: FGLink[],
   settings: IPhysicsSettings,
-  dagMode: DagMode = null,
-  dagLevelDistance = 60,
 ): OwnedGraphLayout {
-  const { input, resolvedLinks } = buildOwnedGraphLayoutData(
-    nodes,
-    links,
-    dagMode,
-    dagLevelDistance,
-  );
+  const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
   const engine = createGraphLayoutEngine(input);
   applyOwnedPhysicsSettings(engine, settings);
   engine.reheat();
@@ -157,8 +136,6 @@ export function updateOwnedGraphLayout(
   nodes: FGNode[],
   links: FGLink[],
   settings: IPhysicsSettings,
-  dagMode: DagMode = null,
-  dagLevelDistance = 60,
 ): boolean {
   const previousIndexes = new Map(layout.engine.nodeIds.map((id, index) => [id, index]));
   for (const node of nodes) {
@@ -176,15 +153,9 @@ export function updateOwnedGraphLayout(
     }
   }
 
-  const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links, dagMode, dagLevelDistance);
+  const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
   const topologyUnchanged = sameBuffer(layout.engine.edgeSources, input.edgeSources)
     && sameBuffer(layout.engine.edgeTargets, input.edgeTargets)
-    && sameBuffer(layout.engine.targetX, input.targetX ?? new Float32Array(nodes.length).fill(Number.NaN))
-    && sameBuffer(layout.engine.targetY, input.targetY ?? new Float32Array(nodes.length).fill(Number.NaN))
-    && sameBuffer(
-      layout.engine.targetRadius,
-      input.targetRadius ?? new Float32Array(nodes.length).fill(Number.NaN),
-    )
     && layout.engine.nodeIds.length === input.nodeIds.length
     && layout.engine.nodeIds.every((id, index) => id === input.nodeIds[index]);
   const physicsShapeUnchanged = sameBuffer(

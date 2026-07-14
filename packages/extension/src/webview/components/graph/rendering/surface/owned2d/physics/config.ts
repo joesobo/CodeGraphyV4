@@ -12,7 +12,6 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   collisionPadding: 0,
   collisionStrength: 1,
   initializationSpacing: 10,
-  radialStrength: 1,
   linkDistance: 80,
   linkStrength: 1,
   maximumCollisionNeighbors: 128,
@@ -52,9 +51,6 @@ function assertIntegrationConfig(config: GraphLayoutConfig): void {
   }
   if (config.velocityDecay < 0 || config.velocityDecay > 1) {
     throw new Error('Graph layout velocity decay must be between zero and one');
-  }
-  if (config.radialStrength < 0) {
-    throw new Error('Graph layout radial strength must be non-negative');
   }
 }
 

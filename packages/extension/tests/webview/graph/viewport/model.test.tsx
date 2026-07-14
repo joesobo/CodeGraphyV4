@@ -103,7 +103,6 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	| 'dagMode'
 	| 'favorites'
 	| 'physicsSettings'
 	| 'pluginContextMenuItems'
@@ -117,7 +116,6 @@ function createViewState(): Pick<
 	};
 
 	return {
-		dagMode: 'td',
 		favorites: new Set(['src/app.ts']),
 		physicsSettings,
 		pluginContextMenuItems: [],
@@ -152,7 +150,6 @@ describe('graph/viewport/model', () => {
 
 		expect(harness.buildGraphSharedPropsOptions).toHaveBeenCalledWith(expect.objectContaining({
 			containerSize: { width: 480, height: 320 },
-			dagMode: 'td',
 			damping: 0.42,
 			graphData,
 			handleEngineStop,
@@ -160,7 +157,6 @@ describe('graph/viewport/model', () => {
 		}));
 		expect(harness.buildSharedGraphProps).toHaveBeenCalledWith(expect.objectContaining({
 			containerSize: { width: 480, height: 320 },
-			dagMode: 'td',
 			damping: 0.42,
 			graphData,
 			handleEngineStop,

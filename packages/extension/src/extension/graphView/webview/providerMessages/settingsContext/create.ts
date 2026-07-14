@@ -15,7 +15,6 @@ import { createPluginGraphWorkScheduler } from '../../settingsMessages/pluginGra
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
   | 'getDepthMode'
-  | 'updateDagMode'
   | 'updateNodeSizeMode'
   | 'getConfig'
   | 'updateConfig'
@@ -38,7 +37,6 @@ type GraphViewProviderSettingsContext = Pick<
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
   | 'getMaxFiles'
-  | 'getDagMode'
   | 'getNodeSizeMode'
 >;
 
@@ -72,11 +70,6 @@ export function createGraphViewProviderMessageSettingsContext(
   });
 
   return {
-    updateDagMode: async dagMode => {
-      source._dagMode = dagMode;
-      await persistConfig(dependencies.dagModeKey, source._dagMode);
-      source._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: source._dagMode } });
-    },
     updateNodeSizeMode: async nodeSizeMode => {
       source._nodeSizeMode = nodeSizeMode;
       await persistConfig(dependencies.nodeSizeModeKey, source._nodeSizeMode);
@@ -157,7 +150,6 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getMaxFiles: () => config.get<number>('maxFiles', DEFAULT_MAX_FILES) ?? DEFAULT_MAX_FILES,
     getDepthMode: () => source._depthMode,
-    getDagMode: () => source._dagMode,
     getNodeSizeMode: () => source._nodeSizeMode,
   };
 }

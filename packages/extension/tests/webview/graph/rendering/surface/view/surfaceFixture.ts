@@ -22,8 +22,6 @@ export function createDefaultSurfaceProps(): Surface2dProps {
       cooldownTicks: 20,
       d3AlphaDecay: 0.0228,
       d3VelocityDecay: 0.7,
-      dagLevelDistance: undefined,
-      dagMode: undefined,
       graphData: { nodes: [], links: [] },
       height: 400,
       nodeId: 'id',

@@ -36,7 +36,6 @@ export interface GraphViewportModelOptions {
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
   viewState: Pick<
     GraphViewStoreState,
-    | 'dagMode'
     | 'favorites'
     | 'physicsSettings'
     | 'pluginContextMenuItems'
@@ -55,7 +54,6 @@ export function useGraphViewportModel({
   const sharedProps = useMemo(
     () => buildSharedGraphProps(buildGraphSharedPropsOptions({
       containerSize: viewportRuntime.containerSize,
-      dagMode: viewState.dagMode,
       damping: viewState.physicsSettings.damping,
       graphData: graphState.graphData,
       handleEngineStop,
@@ -66,7 +64,6 @@ export function useGraphViewportModel({
       handleEngineStop,
       interactions,
       viewportRuntime.containerSize,
-      viewState.dagMode,
       viewState.physicsSettings.damping,
     ],
   );

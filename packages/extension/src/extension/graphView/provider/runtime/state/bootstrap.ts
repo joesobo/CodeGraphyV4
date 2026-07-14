@@ -1,6 +1,6 @@
 import type * as vscode from 'vscode';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
-import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import type { GraphViewProviderMethodContainers } from '../../wiring/methodContainers';
 import {
   initializeGraphViewProviderRuntimeServices,
@@ -39,7 +39,6 @@ export function restorePersistedRuntimeState(
   fallbackNodeSizeMode: NodeSizeMode,
 ): {
   depthMode: boolean;
-  dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
   return restoreGraphViewProviderRuntimeState(context, fallbackNodeSizeMode);

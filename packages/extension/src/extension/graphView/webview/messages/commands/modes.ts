@@ -15,11 +15,6 @@ export async function applyGraphDisplayCommand(
     return true;
   }
 
-  if (message.type === 'UPDATE_DAG_MODE') {
-    await handlers.updateDagMode(message.payload.dagMode);
-    return true;
-  }
-
   if (message.type === 'UPDATE_NODE_SIZE_MODE') {
     await handlers.updateNodeSizeMode(message.payload.nodeSizeMode);
     return true;

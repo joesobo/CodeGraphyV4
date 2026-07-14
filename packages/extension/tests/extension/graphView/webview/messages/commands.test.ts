@@ -9,7 +9,6 @@ function createHandlers() {
     showInformationMessage: vi.fn(),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
   };
 }
@@ -77,18 +76,6 @@ describe('graph view command message', () => {
     );
 
     expect(handlers.setDepthMode).toHaveBeenCalledWith(true);
-    expect(handled).toBe(true);
-  });
-
-  it('updates dag mode', async () => {
-    const handlers = createHandlers();
-
-    const handled = await applyCommandMessage(
-      { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'td' } },
-      handlers,
-    );
-
-    expect(handlers.updateDagMode).toHaveBeenCalledWith('td');
     expect(handled).toBe(true);
   });
 

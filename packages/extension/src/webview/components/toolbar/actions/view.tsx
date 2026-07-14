@@ -6,7 +6,6 @@ import { IndexToolbarAction } from './indexAction';
 import { ToolbarPanelButtons } from './panelButtons';
 import { GRAPH_TOOL_PANEL_BUTTONS, SYSTEM_PANEL_BUTTONS } from './model';
 import { PluginToolbarActions } from '../plugin/Actions';
-import { LayoutModePopover } from '../LayoutModePopover';
 import { NodeSizeModePopover } from '../NodeSizeModePopover';
 import { CreateToolbarAction } from './create';
 
@@ -67,7 +66,6 @@ export function ToolbarActions({
       </div>
       <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
       <div className="flex flex-col items-center gap-1.5" data-codegraphy-region="toolbar-graph-tools" data-testid="toolbar-graph-tools-group">
-        <LayoutModePopover />
         <NodeSizeModePopover />
         <CreateToolbarAction
           graphViewContributions={graphViewContributions}

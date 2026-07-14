@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGraphData } from '@/shared/graph/contracts';
 import type { IGroup } from '@/shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
+import type { NodeSizeMode } from '@/shared/settings/modes';
 import type { ISettingsSnapshot } from '../../../../../src/shared/settings/snapshot';
 import type { IViewContext } from '@/core/views/contracts';
 import type { IUndoableAction } from '../../../../../src/extension/undoManager';
@@ -90,7 +90,6 @@ function createDependencies(): GraphViewProviderMessageListenerDependencies {
       createUndoableAction({ kind: 'reset-settings-action' }),
     ),
     executeUndoAction: vi.fn(() => Promise.resolve()),
-    dagModeKey: 'dagMode',
     nodeSizeModeKey: 'nodeSizeMode',
   };
 }
@@ -105,7 +104,6 @@ function createSource(
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _viewContext: { activePlugins: new Set() } satisfies IViewContext,
     _depthMode: false,
-    _dagMode: null,
     _nodeSizeMode: 'connections',
     _firstAnalysis: false,
     _webviewReadyNotified: false,
@@ -370,25 +368,15 @@ describe('graph view provider listener bridge', () => {
       configurationUpdate,
     } = await loadDefaultListenerHarness();
 
-    await context.updateDagMode('td' as DagMode);
     await context.updateNodeSizeMode('file-size' as NodeSizeMode);
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
     expect(configurationUpdate).toHaveBeenCalledWith(
-      'dagMode',
-      'td',
-      undefined,
-    );
-    expect(configurationUpdate).toHaveBeenCalledWith(
       'nodeSizeMode',
       'file-size',
       undefined,
     );
-    expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'td' },
-    });
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'file-size' },
@@ -426,7 +414,6 @@ describe('graph view provider listener bridge', () => {
     expect(execute).toHaveBeenCalledTimes(1);
 
     expect(context.getMaxFiles()).toBe(DEFAULT_MAX_FILES);
-    expect(context.getDagMode()).toBe('td');
     expect(context.getNodeSizeMode()).toBe('file-size');
     expect(configurationGet).toHaveBeenCalledWith('maxFiles', DEFAULT_MAX_FILES);
   });

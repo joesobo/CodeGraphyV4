@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
+import type { NodeSizeMode } from '@/shared/settings/modes';
 import {
   dispatchGraphViewPluginReadyMessage,
   type GraphViewPluginReadyContext,
@@ -15,7 +15,6 @@ function createContext(
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
     getDepthMode: vi.fn(() => false),
-    getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFocusedFile: vi.fn(() => undefined),
     hasWorkspace: vi.fn(() => false),

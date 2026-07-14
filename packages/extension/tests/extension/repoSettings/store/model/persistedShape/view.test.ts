@@ -199,7 +199,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       particleSize: 3,
       depthMode: true,
       depthLimit: 4,
-      dagMode: 'td',
       nodeSizeMode: 'churn',
       physics: {
         repelForce: 20,
@@ -242,7 +241,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       particleSize: 3,
       depthMode: true,
       depthLimit: 4,
-      dagMode: 'td',
       nodeSizeMode: 'churn',
       physics: {
         repelForce: 20,

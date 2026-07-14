@@ -18,7 +18,6 @@ const stateHarness = vi.hoisted(() => {
     initializeRuntimeStateServices: vi.fn(),
     restorePersistedRuntimeState: vi.fn(() => ({
       depthMode: true,
-      dagMode: 'focus' as const,
       nodeSizeMode: 'connections' as const,
     })),
     createGraphViewProviderMethodContainers: vi.fn(),
@@ -86,7 +85,6 @@ const stateHarness = vi.hoisted(() => {
     flagState: {
       _analyzerInitialized: false,
       _depthMode: false,
-      _dagMode: null,
       _nodeSizeMode: 'connections' as const,
       _firstAnalysis: true,
       _webviewReadyNotified: false,
@@ -286,7 +284,6 @@ describe('graphView/provider/runtime/state/model', () => {
       context as never,
     ) as TestRuntimeState & {
       _depthMode: boolean;
-      _dagMode: string | null;
       _nodeSizeMode: string;
       _pluginExtensionUris: Map<string, unknown>;
       _firstWorkspaceReadyPromise: Promise<void>;
@@ -318,7 +315,6 @@ describe('graphView/provider/runtime/state/model', () => {
     expect(stateHarness.assignGraphViewProviderPublicMethods).toHaveBeenCalledOnce();
     expect(runtime.viewRegistry).toBeDefined();
     expect(runtime._depthMode).toBe(true);
-    expect(runtime._dagMode).toBe('focus');
     expect(runtime._nodeSizeMode).toBe('connections');
     expect(runtime._pluginExtensionUris).toBeInstanceOf(Map);
     expect(runtime._methodContainers.settingsState._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();

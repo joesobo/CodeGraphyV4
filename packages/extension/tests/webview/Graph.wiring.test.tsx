@@ -160,7 +160,6 @@ function createCallbacks() {
 function resetStore(overrides: Record<string, unknown> = {}) {
 	graphStore.setState({
 		bidirectionalMode: 'separate',
-		dagMode: null,
 		directionColor: '#22c55e',
 		directionMode: 'arrows',
 		favorites: new Set<string>(),

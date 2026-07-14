@@ -305,24 +305,6 @@ describe('GraphStore', () => {
     expect(store.getState().activePanel).toBe('settings');
   });
 
-  it('has correct initial dagMode state', () => {
-    const state = store.getState();
-    expect(state.dagMode).toBeNull();
-  });
-
-  it('handles DAG_MODE_UPDATED message', () => {
-    store.getState().handleExtensionMessage({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'td' },
-    });
-    expect(store.getState().dagMode).toBe('td');
-  });
-
-  it('setDagMode updates dagMode', () => {
-    store.getState().setDagMode('lr');
-    expect(store.getState().dagMode).toBe('lr');
-  });
-
   it('TOGGLE_DEPTH_MODE enables depth mode when an index exists', () => {
     store.getState().handleExtensionMessage({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
@@ -362,44 +344,4 @@ describe('GraphStore', () => {
     expect(findMessage('UPDATE_DEPTH_MODE')).toBeUndefined();
   });
 
-  it('CYCLE_LAYOUT cycles through all DAG modes in order', () => {
-    // null → radialout
-    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-    let msg = findMessage('UPDATE_DAG_MODE');
-    expect(msg!.payload.dagMode).toBe('radialout');
-
-    // Simulate the echo: extension sets dagMode to radialout
-    store.getState().handleExtensionMessage({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'radialout' },
-    });
-
-    // radialout → td
-    clearSentMessages();
-    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-    msg = findMessage('UPDATE_DAG_MODE');
-    expect(msg!.payload.dagMode).toBe('td');
-
-    store.getState().handleExtensionMessage({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'td' },
-    });
-
-    // td → lr
-    clearSentMessages();
-    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-    msg = findMessage('UPDATE_DAG_MODE');
-    expect(msg!.payload.dagMode).toBe('lr');
-
-    store.getState().handleExtensionMessage({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'lr' },
-    });
-
-    // lr → null (wraps around)
-    clearSentMessages();
-    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-    msg = findMessage('UPDATE_DAG_MODE');
-    expect(msg!.payload.dagMode).toBeNull();
-  });
 });

@@ -89,16 +89,13 @@ Config keys are renamed to match the new semantics: `gravitationalConstant → c
   - Drag ripple: dragging a node moves an undragged neighbor.
 - Benchmarks: re-run the deterministic tier ladder (500 → 10,000) after tuning and publish fresh baselines with the same pass criteria.
 
-## Node sizing and named-layout follow-up
+## Node sizing and default-layout follow-up
 
 The 2026-07-14 owner review extended parity to the presentation contracts around the force engine:
 
 - **Connections** sizing follows Obsidian's stable related-node curve: `clamp(3 × sqrt(uniqueRelatedNodes + 1), 8, 30)`. Parallel and reverse edges to the same node count once, so unrelated graph growth cannot resize an existing node.
 - Node size is rebuilt through the immutable graph model so rendering, collision, picking, and fit calculations consume one authoritative radius.
-- Missing initial positions use D3's exact deterministic phyllotaxis: `10 × sqrt(0.5 + index)` at the golden angle.
-- **Top Down** and **Left to Right** center ranks around the origin and fix only the ranked axis, matching the former D3-powered `force-graph` behavior while leaving the perpendicular axis force-directed.
-- **Radial Out** uses a D3 `forceRadial` equivalent with roots at radius zero and no prescribed angle.
-- Cycles continue to use deterministic best-effort rank promotion because a Relationship Graph is not guaranteed to be acyclic.
+- The graph uses one free-form D3-style force layout. Missing initial positions use D3's exact deterministic phyllotaxis: `10 × sqrt(0.5 + index)` at the golden angle.
 
 ## Risks
 

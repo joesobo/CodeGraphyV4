@@ -16,7 +16,6 @@ function createContext(vscodeModule: typeof import('vscode')) {
 function createRestoredState() {
   return {
     depthMode: false,
-    dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
 }
@@ -202,7 +201,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect(sendDecorationsSpy).toHaveBeenCalledOnce();
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        dagModeKey: 'dagMode',
         depthModeKey: 'depthMode',
         nodeSizeModeKey: 'nodeSizeMode',
         fallbackNodeSizeMode: 'connections',

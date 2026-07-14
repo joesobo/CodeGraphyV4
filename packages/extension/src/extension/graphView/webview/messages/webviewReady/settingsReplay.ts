@@ -80,10 +80,6 @@ function sendWebviewReadySettingValues(
     payload: { depthMode: state.depthMode ?? false },
   });
   handlers.sendMessage({
-    type: 'DAG_MODE_UPDATED',
-    payload: { dagMode: state.dagMode },
-  });
-  handlers.sendMessage({
     type: 'NODE_SIZE_MODE_UPDATED',
     payload: { nodeSizeMode: state.nodeSizeMode },
   });

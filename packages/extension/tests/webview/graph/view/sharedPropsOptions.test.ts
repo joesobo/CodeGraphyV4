@@ -20,7 +20,6 @@ describe('graph/sharedPropsOptions', () => {
     expect(
       buildGraphSharedPropsOptions({
         containerSize: { width: 640, height: 360 },
-        dagMode: 'td',
         damping: 0.42,
         graphData: { links: [] as never, nodes: [] as never },
         handleEngineStop,
@@ -28,7 +27,6 @@ describe('graph/sharedPropsOptions', () => {
       }),
     ).toEqual({
       containerSize: { width: 640, height: 360 },
-      dagMode: 'td',
       damping: 0.42,
       graphData: { links: [], nodes: [] },
       onBackgroundClick: interactions.interactionHandlers.handleBackgroundClick,

@@ -26,7 +26,6 @@ describe('getNavCommands', () => {
     expect(ids).toContain('codegraphy.zoomIn');
     expect(ids).toContain('codegraphy.zoomOut');
     expect(ids).toContain('codegraphy.toggleDepthMode');
-    expect(ids).toContain('codegraphy.cycleLayout');
   });
 
   describe('open command', () => {
@@ -103,18 +102,6 @@ describe('getNavCommands', () => {
       cmd.handler();
 
       expect(provider.sendCommand).toHaveBeenCalledWith('TOGGLE_DEPTH_MODE');
-    });
-  });
-
-  describe('cycleLayout command', () => {
-    it('sends CYCLE_LAYOUT command to the provider', () => {
-      const provider = makeProvider();
-      const commands = getNavCommands(provider as never);
-      const cmd = commands.find((cmd) => cmd.id === 'codegraphy.cycleLayout')!;
-
-      cmd.handler();
-
-      expect(provider.sendCommand).toHaveBeenCalledWith('CYCLE_LAYOUT');
     });
   });
 

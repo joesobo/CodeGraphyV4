@@ -31,9 +31,6 @@ export function createGraphLayoutState(
   assertBufferLength(input.chargeStrengthMultipliers, nodeCount, 'chargeStrengthMultipliers');
   assertBufferLength(input.radii, nodeCount, 'radii');
   assertBufferLength(input.flags, nodeCount, 'flags');
-  assertBufferLength(input.targetX, nodeCount, 'targetX');
-  assertBufferLength(input.targetY, nodeCount, 'targetY');
-  assertBufferLength(input.targetRadius, nodeCount, 'targetRadius');
   if (input.edgeSources.length !== input.edgeTargets.length) {
     throw new Error('edge source and target buffers must have equal lengths');
   }
@@ -51,15 +48,6 @@ export function createGraphLayoutState(
     edgeSources: new Uint32Array(input.edgeSources),
     edgeTargets: new Uint32Array(input.edgeTargets),
     linkDegrees: new Uint32Array(nodeCount),
-    targetX: input.targetX
-      ? new Float32Array(input.targetX)
-      : new Float32Array(nodeCount).fill(Number.NaN),
-    targetY: input.targetY
-      ? new Float32Array(input.targetY)
-      : new Float32Array(nodeCount).fill(Number.NaN),
-    targetRadius: input.targetRadius
-      ? new Float32Array(input.targetRadius)
-      : new Float32Array(nodeCount).fill(Number.NaN),
   };
 
   for (let index = 0; index < nodeCount; index += 1) {

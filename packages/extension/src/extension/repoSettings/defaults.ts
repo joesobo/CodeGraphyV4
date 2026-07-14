@@ -1,6 +1,6 @@
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
   DEFAULT_PHYSICS_SETTINGS,
@@ -45,7 +45,6 @@ export interface ICodeGraphyRepoSettings {
   particleSize: number;
   depthMode: boolean;
   depthLimit: number;
-  dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
   physics: IPhysicsSettings;
 }
@@ -83,7 +82,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     particleSize: 4,
     depthMode: false,
     depthLimit: 1,
-    dagMode: null,
     nodeSizeMode: 'connections',
     physics: { ...DEFAULT_PHYSICS_SETTINGS },
   };
