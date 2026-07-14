@@ -1,0 +1,228 @@
+{
+  "revision": "62b4d338bb285b96395172a1a38643f876f159d5",
+  "validation": "M5 high-refresh real-editor VS Code 1.128.0 on 165 Hz compositor",
+  "editorView": true,
+  "filesExplorerVisible": true,
+  "targetNodeId": "src/index.ts",
+  "neighborNodeIds": [
+    "src/palette.ts"
+  ],
+  "frameCount": 2065,
+  "activeFrameCount": 616,
+  "inputCount": 20,
+  "truncated": false,
+  "activeHud": {
+    "performance": {
+      "status": "active",
+      "displayedFps": 163.81857895413077,
+      "frameTimeMs": {
+        "average": 0.24531249864958227,
+        "maximum": 0.6000000238418579,
+        "onePercentHigh": 0.6000000238418579
+      },
+      "potentialFps": 4076.4331434594146,
+      "renderTimeMs": {
+        "average": 0.21132812439464033,
+        "maximum": 0.5,
+        "onePercentHigh": 0.5
+      },
+      "sampleCount": 256,
+      "simulationTimeMs": {
+        "average": 0.03398437425494194,
+        "maximum": 0.20000004768371582,
+        "onePercentHigh": 0.1333333651224772
+      }
+    },
+    "text": "Potential 4076 FPS · Displayed 164 FPS · Frame 0.25 ms avg · 0.60 ms max · 1% high 0.60 ms · Sim 0.03 ms avg · 0.20 ms max · 1% high 0.13 ms · Render 0.21 ms avg · 0.50 ms max · 1% high 0.50 ms"
+  },
+  "finalPerformance": {
+    "status": "idle",
+    "lastActive": {
+      "status": "active",
+      "displayedFps": 162.49283119862358,
+      "frameTimeMs": {
+        "average": 0.2121093738824129,
+        "maximum": 0.5,
+        "onePercentHigh": 0.5
+      },
+      "potentialFps": 4714.548827787168,
+      "renderTimeMs": {
+        "average": 0.1800781236961484,
+        "maximum": 0.5,
+        "onePercentHigh": 0.46666667858759564
+      },
+      "sampleCount": 256,
+      "simulationTimeMs": {
+        "average": 0.032031250186264515,
+        "maximum": 0.19999998807907104,
+        "onePercentHigh": 0.1333333452542623
+      }
+    }
+  },
+  "activeAssessment": {
+    "timing": {
+      "cpuFrameTimeMs": {
+        "mean": 0.24951298544546227,
+        "p50": 0.19999998807907104,
+        "p95": 0.5,
+        "p99": 0.6000000238418579,
+        "max": 0.6000000238418579,
+        "sampleCount": 616
+      },
+      "displayedFps": 164.74685239753552,
+      "potentialFps": 4007.807442224592,
+      "simulationStepCount": 620,
+      "simulationStepsPerFrame": 1.0064935064935066,
+      "simulationStepsPerSecond": 166.0862577015805,
+      "presentationIntervalMs": {
+        "mean": 6.069918699186991,
+        "p50": 6.099999999999909,
+        "p95": 7.199999999999818,
+        "p99": 7.5,
+        "max": 12.199999999999818,
+        "sampleCount": 615
+      },
+      "renderMs": {
+        "mean": 0.21185064780247675,
+        "p50": 0.19999998807907104,
+        "p95": 0.40000003576278687,
+        "p99": 0.5,
+        "max": 0.6000000238418579,
+        "sampleCount": 616
+      },
+      "simulationMs": {
+        "mean": 0.0376623376429855,
+        "p50": 0,
+        "p95": 0.10000002384185791,
+        "p99": 0.19999998807907104,
+        "max": 0.20000004768371582,
+        "sampleCount": 616
+      }
+    },
+    "interaction": {
+      "frozenFrameCount": 0,
+      "maximumJump": 10.026929038108555,
+      "neighborLatencyFrames": {
+        "maximum": 1,
+        "mean": 1,
+        "missedInputCount": 0,
+        "p95": 1,
+        "sampleCount": 18
+      },
+      "targetLatencyFrames": {
+        "maximum": 1,
+        "mean": 1,
+        "missedInputCount": 0,
+        "p95": 1,
+        "sampleCount": 18
+      },
+      "teleportFrameCount": 0
+    },
+    "settle": {
+      "durationMs": 0,
+      "energyAtSleep": null,
+      "envelopeViolationCount": 0,
+      "maximumLateIncreaseRatio": 0,
+      "monotonicEnvelope": false,
+      "sleptImperceptibly": false
+    },
+    "hudAgreement": {
+      "differencesPct": {
+        "displayedFps": 0.7387896697931972,
+        "frameTimeAverage": 2.847355649703433e-7,
+        "potentialFps": 2.8473556862355173e-7,
+        "renderAverage": 2.203498884095832e-7,
+        "simulationAverage": 6.851108698135403e-7
+      },
+      "sampleCount": 256,
+      "withinTenPercent": true
+    },
+    "thresholds": {
+      "freezeDistance": 0.01,
+      "imperceptibleEnergyPerNode": 0.01,
+      "positionMatchDistance": 0.25,
+      "settleEnvelopeToleranceRatio": 0.05,
+      "settleEnvelopeWindowMs": 80,
+      "teleportDistance": 120
+    },
+    "truncated": false
+  },
+  "fullAssessment": {
+    "timing": {
+      "cpuFrameTimeMs": {
+        "mean": 0.18886198463509216,
+        "p50": 0.19999998807907104,
+        "p95": 0.3999999761581421,
+        "p99": 0.5,
+        "max": 0.6000000238418579,
+        "sampleCount": 2065
+      },
+      "displayedFps": 164.92868272803548,
+      "potentialFps": 5294.871818339409,
+      "simulationStepCount": 875,
+      "simulationStepsPerFrame": 0.423728813559322,
+      "simulationStepsPerSecond": 69.91889408286387,
+      "presentationIntervalMs": {
+        "mean": 6.063226744186046,
+        "p50": 6.099999999999454,
+        "p95": 7.100000000000364,
+        "p99": 7.5,
+        "max": 12.199999999999818,
+        "sampleCount": 2064
+      },
+      "renderMs": {
+        "mean": 0.17181597991370692,
+        "p50": 0.19999998807907104,
+        "p95": 0.30000001192092896,
+        "p99": 0.40000003576278687,
+        "max": 0.6000000238418579,
+        "sampleCount": 2065
+      },
+      "simulationMs": {
+        "mean": 0.017046004721385226,
+        "p50": 0,
+        "p95": 0.10000002384185791,
+        "p99": 0.10000002384185791,
+        "max": 0.20000004768371582,
+        "sampleCount": 2065
+      }
+    },
+    "interaction": {
+      "frozenFrameCount": 0,
+      "maximumJump": 10.026929038108555,
+      "neighborLatencyFrames": {
+        "maximum": 1,
+        "mean": 1,
+        "missedInputCount": 0,
+        "p95": 1,
+        "sampleCount": 18
+      },
+      "targetLatencyFrames": {
+        "maximum": 1,
+        "mean": 1,
+        "missedInputCount": 0,
+        "p95": 1,
+        "sampleCount": 18
+      },
+      "teleportFrameCount": 0
+    },
+    "settle": {
+      "durationMs": 8778.70000001192,
+      "energyAtSleep": 0.000015248618505567165,
+      "envelopeViolationCount": 0,
+      "maximumLateIncreaseRatio": 1,
+      "monotonicEnvelope": true,
+      "sleptImperceptibly": true
+    },
+    "hudAgreement": null,
+    "thresholds": {
+      "freezeDistance": 0.01,
+      "imperceptibleEnergyPerNode": 0.01,
+      "positionMatchDistance": 0.25,
+      "settleEnvelopeToleranceRatio": 0.05,
+      "settleEnvelopeWindowMs": 80,
+      "teleportDistance": 120
+    },
+    "truncated": false
+  }
+}
