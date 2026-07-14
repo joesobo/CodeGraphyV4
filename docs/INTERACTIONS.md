@@ -73,7 +73,7 @@ The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in 
 |---------|-------------|
 | Depth Mode toggle | Turns focused depth behavior on or off. |
 | Depth slider | Adjusts depth limit (1-5). Only visible when Depth Mode is active. |
-| Node size buttons | Switch node sizing between Connections and File Size. Both use the same 8–30 semantic radius range. |
+| Node size buttons | Switch node sizing between Connections and File Size. Both use the same 8–30 semantic radius range and square-root zoom compensation so nodes remain legible without overwhelming the graph. |
 | Nodes | Opens Graph Scope settings for core and plugin-added Node Types. |
 | Edges | Opens Graph Scope settings for Edge Types and shows current edge colors. |
 | Index Workspace / Re-index Workspace | Before indexing: runs Indexing and saves the Graph Cache. After indexing: rebuilds graph data and then refreshes layout. |

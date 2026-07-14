@@ -36,7 +36,7 @@ describe('getTooltipNodeRect', () => {
       y: -2,
     } as unknown as FGNode);
 
-    expect(rect).toEqual({ x: 55, y: -10, radius: 24 });
+    expect(rect).toEqual({ x: 55, y: -10, radius: 12 * Math.sqrt(2) });
   });
 
   it('falls back to zero graph coordinates and the default node size', () => {
@@ -73,7 +73,7 @@ describe('getTooltipNodeRect', () => {
     } as unknown as FGNode);
 
     expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0);
-    expect(rect).toEqual({ x: 13, y: 16, radius: DEFAULT_NODE_SIZE * 1.5 });
+    expect(rect).toEqual({ x: 13, y: 16, radius: DEFAULT_NODE_SIZE * Math.sqrt(1.5) });
   });
 
   it('returns null when the graph instance is unavailable', () => {

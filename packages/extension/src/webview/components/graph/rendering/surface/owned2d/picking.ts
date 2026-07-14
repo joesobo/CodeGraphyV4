@@ -3,6 +3,7 @@ import {
   getRectangularNodeArea2D,
   getRectangularNodeAreaRadius,
 } from '../../../model/node/rectangularArea';
+import { ownedGraphNodeWorldScale } from './visualSize';
 
 const PICK_CELL_SIZE = 64;
 
@@ -16,7 +17,7 @@ function pointerRadius(node: FGNode): number {
   const rectangularRadius = rectangularArea
     ? getRectangularNodeAreaRadius(rectangularArea)
     : 0;
-  return Math.max(2, rectangularRadius, (node.size ?? 0) + 2);
+  return Math.max(2, rectangularRadius, node.size ?? 0);
 }
 
 function cellKey(x: number, y: number): number {
@@ -51,8 +52,14 @@ export class OwnedGraphNodePicker {
   ): { index: number; node: FGNode } | undefined {
     let bestIndex = -1;
     let bestDistanceSquared = Number.POSITIVE_INFINITY;
-    const minimumScreenRadius = 4 / Math.max(globalScale, 0.01);
-    const queryRadius = Math.max(this.maximumNodeRadius, minimumScreenRadius);
+    const safeScale = Math.max(globalScale, 0.01);
+    const nodeVisualScale = ownedGraphNodeWorldScale(safeScale);
+    const screenPadding = 2 / safeScale;
+    const minimumScreenRadius = 4 / safeScale;
+    const queryRadius = Math.max(
+      this.maximumNodeRadius * nodeVisualScale + screenPadding,
+      minimumScreenRadius,
+    );
     const cellRadius = Math.max(1, Math.ceil(queryRadius / PICK_CELL_SIZE));
     const centerX = Math.floor(point.x / PICK_CELL_SIZE);
     const centerY = Math.floor(point.y / PICK_CELL_SIZE);
@@ -69,11 +76,12 @@ export class OwnedGraphNodePicker {
           const distanceSquared = dx * dx + dy * dy;
           const area = rectangularPointerArea(node);
           const hit = area
-            ? Math.abs(dx) <= area.width / 2 && Math.abs(dy) <= area.height / 2
+            ? Math.abs(dx) <= area.width * nodeVisualScale / 2 + screenPadding
+              && Math.abs(dy) <= area.height * nodeVisualScale / 2 + screenPadding
             : distanceSquared <= Math.max(
-              minimumScreenRadius,
-              (node.size ?? 0) + 2,
-            ) ** 2;
+                minimumScreenRadius,
+                (node.size ?? 0) * nodeVisualScale + screenPadding,
+              ) ** 2;
           if (hit && distanceSquared < bestDistanceSquared) {
             bestIndex = index;
             bestDistanceSquared = distanceSquared;

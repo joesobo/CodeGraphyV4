@@ -33,6 +33,16 @@ describe('owned graph spatial node picker', () => {
     expect(picker.pick({ x: 70, y: 0 }, 1)).toBeUndefined();
   });
 
+  it('picks against the zoom-compensated rendered radius', () => {
+    const picker = new OwnedGraphNodePicker();
+    picker.rebuild([{ id: 'node', x: 0, y: 0, size: 8 } as FGNode]);
+
+    expect(picker.pick({ x: 16, y: 0 }, 0.25)?.node.id).toBe('node');
+    expect(picker.pick({ x: 25, y: 0 }, 0.25)).toBeUndefined();
+    expect(picker.pick({ x: 4, y: 0 }, 4)?.node.id).toBe('node');
+    expect(picker.pick({ x: 5, y: 0 }, 4)).toBeUndefined();
+  });
+
   it('updates the index after layout positions change', () => {
     const node = { id: 'moving', x: 0, y: 0, size: 4 } as FGNode;
     const picker = new OwnedGraphNodePicker();

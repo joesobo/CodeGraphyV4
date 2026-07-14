@@ -65,9 +65,10 @@ function nodeBoundaryDistance(
   style: OwnedGraphNodeStyle,
   directionX: number,
   directionY: number,
+  visualScale: number,
 ): number {
-  const halfWidth = Math.max(0.5, style.width / 2);
-  const halfHeight = Math.max(0.5, style.height / 2);
+  const halfWidth = Math.max(0.5, style.width * visualScale / 2);
+  const halfHeight = Math.max(0.5, style.height * visualScale / 2);
   const localX = directionX / halfWidth;
   const localY = directionY / halfHeight;
   switch (style.shape) {
@@ -78,7 +79,7 @@ function nodeBoundaryDistance(
       return rectangleBoundary(
         halfWidth,
         halfHeight,
-        style.cornerRadius,
+        style.cornerRadius * visualScale,
         directionX,
         directionY,
       );
@@ -148,6 +149,7 @@ function correctedBoundaryOffset(
   tangentX: number,
   tangentY: number,
   style: OwnedGraphNodeStyle,
+  visualScale: number,
 ): number {
   const centerX = fromSource ? sourceX : targetX;
   const centerY = fromSource ? sourceY : targetY;
@@ -157,7 +159,7 @@ function correctedBoundaryOffset(
   if (tangentLength === 0) return 0;
   let offset = Math.min(
     0.5,
-    nodeBoundaryDistance(style, outwardX / tangentLength, outwardY / tangentLength)
+    nodeBoundaryDistance(style, outwardX / tangentLength, outwardY / tangentLength, visualScale)
       / tangentLength,
   );
   let inside = 0;
@@ -184,7 +186,12 @@ function correctedBoundaryOffset(
     const deltaY = pointY - centerY;
     const distance = Math.hypot(deltaX, deltaY);
     if (distance === 0) return 0;
-    const boundary = nodeBoundaryDistance(style, deltaX / distance, deltaY / distance);
+    const boundary = nodeBoundaryDistance(
+      style,
+      deltaX / distance,
+      deltaY / distance,
+      visualScale,
+    );
     const curveTangentX = curveTangentCoordinate(
       sourceX,
       targetX,
@@ -233,6 +240,7 @@ export function writeOwnedArrowCurveParameters(
   curvature: number,
   sourceStyle: OwnedGraphNodeStyle,
   targetStyle: OwnedGraphNodeStyle,
+  visualScale = 1,
 ): void {
   const deltaX = targetX - sourceX;
   const deltaY = targetY - sourceY;
@@ -242,11 +250,11 @@ export function writeOwnedArrowCurveParameters(
     const directionY = deltaY / distance;
     output[offset] = Math.min(
       1,
-      nodeBoundaryDistance(sourceStyle, directionX, directionY) / distance,
+      nodeBoundaryDistance(sourceStyle, directionX, directionY, visualScale) / distance,
     );
     output[offset + 1] = Math.max(
       0,
-      1 - nodeBoundaryDistance(targetStyle, -directionX, -directionY) / distance,
+      1 - nodeBoundaryDistance(targetStyle, -directionX, -directionY, visualScale) / distance,
     );
     return;
   }
@@ -275,6 +283,7 @@ export function writeOwnedArrowCurveParameters(
     sourceTangentX,
     sourceTangentY,
     sourceStyle,
+    visualScale,
   );
   output[offset + 1] = 1 - correctedBoundaryOffset(
     sourceX,
@@ -290,6 +299,7 @@ export function writeOwnedArrowCurveParameters(
     targetTangentX,
     targetTangentY,
     targetStyle,
+    visualScale,
   );
 }
 
@@ -299,6 +309,7 @@ export function ownedArrowCurveParameters(
   curvature: number,
   sourceStyle: OwnedGraphNodeStyle,
   targetStyle: OwnedGraphNodeStyle,
+  visualScale = 1,
 ): OwnedArrowCurveParameters {
   const output = new Float32Array(2);
   writeOwnedArrowCurveParameters(
@@ -311,6 +322,7 @@ export function ownedArrowCurveParameters(
     curvature,
     sourceStyle,
     targetStyle,
+    visualScale,
   );
   return { source: output[0], target: output[1] };
 }

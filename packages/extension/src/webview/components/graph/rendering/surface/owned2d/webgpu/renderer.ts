@@ -10,6 +10,7 @@ import type { OwnedGraphNodeStyle } from '../contracts';
 import type { OwnedGraphStageAttributionProfiler } from '../performance/attribution';
 import type { OwnedGraphCamera } from '../camera';
 import { writeOwnedArrowCurveParameters } from '../arrowGeometry';
+import { ownedGraphNodeWorldScale } from '../visualSize';
 import { LINK_SHADER, NODE_SHADER, OWNED_LINK_SEGMENTS } from './shaders';
 
 const NODE_POSITION_FLOATS = 2;
@@ -198,6 +199,7 @@ export class OwnedWebGpuRenderer {
   private renderedLinkIndexByLink = new WeakMap<FGLink, number>();
   private uploadedArrowsVisible = false;
   private uploadedEdgeStride = 1;
+  private uploadedNodeVisualScale = 1;
   private uploadedLinks: readonly FGLink[] | undefined;
   private uploadedNodes: readonly FGNode[] | undefined;
   private uploadedPositionVersion = -1;
@@ -491,6 +493,7 @@ export class OwnedWebGpuRenderer {
     writeGeometry: boolean,
     writeStyle: boolean,
     writeArrows: boolean,
+    nodeVisualScale: number,
   ): boolean {
     const link = frame.links[linkIndex];
     const sourceIndex = frame.edgeSources[linkIndex];
@@ -521,6 +524,7 @@ export class OwnedWebGpuRenderer {
           curvature,
           sourceStyle,
           targetStyle,
+          nodeVisualScale,
         );
       }
     }
@@ -544,6 +548,7 @@ export class OwnedWebGpuRenderer {
     writeGeometry: boolean,
     writeStyle: boolean,
     writeArrows: boolean,
+    nodeVisualScale: number,
   ): void {
     if (writeGeometry) {
       const required = frame.links.length * LINK_GEOMETRY_FLOATS;
@@ -567,6 +572,7 @@ export class OwnedWebGpuRenderer {
         writeGeometry,
         writeStyle,
         writeArrows,
+        nodeVisualScale,
       )) continue;
       this.renderedLinkIndexByLink.set(frame.links[index], this.renderedLinkCount);
       this.renderedLinkCount += 1;
@@ -596,8 +602,10 @@ export class OwnedWebGpuRenderer {
     frame: OwnedWebGpuFrame,
     edgeStride: number,
     arrowsVisible: boolean,
+    nodeVisualScale: number,
   ): void {
     this.uploadedArrowsVisible = arrowsVisible;
+    this.uploadedNodeVisualScale = nodeVisualScale;
     this.uploadedEdgeStride = edgeStride;
     this.uploadedPositionVersion = frame.positionVersion;
     this.uploadedNodes = frame.nodes;
@@ -611,11 +619,15 @@ export class OwnedWebGpuRenderer {
     const edgeStrideChanged = this.uploadedEdgeStride !== edgeStride;
     const arrowsVisible = frame.directionMode === 'arrows'
       && graphDetailOpacity(frame.camera.zoom) > 0;
+    const nodeVisualScale = ownedGraphNodeWorldScale(frame.camera.zoom);
     const needsArrowGeometry = arrowsVisible && !this.uploadedArrowsVisible;
+    const arrowScaleChanged = arrowsVisible
+      && this.uploadedNodeVisualScale !== nodeVisualScale;
     const linkGeometryChanged = positionsChanged
       || stylesChanged
       || edgeStrideChanged
-      || needsArrowGeometry;
+      || needsArrowGeometry
+      || arrowScaleChanged;
     const linkStylesChanged = stylesChanged || edgeStrideChanged;
 
     if (positionsChanged) {
@@ -639,6 +651,7 @@ export class OwnedWebGpuRenderer {
         linkGeometryChanged,
         linkStylesChanged,
         arrowsVisible,
+        nodeVisualScale,
       );
       this.attributionProfiler?.finishTiming('geometryRebuild', linkGeometryStartedAt);
     }
@@ -656,7 +669,7 @@ export class OwnedWebGpuRenderer {
         this.renderedLinkCount * LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
       );
     }
-    this.updateGraphCacheIdentity(frame, edgeStride, arrowsVisible);
+    this.updateGraphCacheIdentity(frame, edgeStride, arrowsVisible, nodeVisualScale);
   }
 
   private drawLinks(pass: GPURenderPassEncoder, frame: OwnedWebGpuFrame): void {

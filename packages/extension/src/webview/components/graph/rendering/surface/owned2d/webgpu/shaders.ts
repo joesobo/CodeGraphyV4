@@ -41,7 +41,9 @@ fn vertexMain(
   );
   let local = corners[vertexIndex];
   let center = (graphCenter - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
-  let halfSize = max(graphHalfSize, vec2f(0.5));
+  let zoom = max(camera.graphToClip.x / camera.pixelToClip.x, 0.0001);
+  let nodeScale = inverseSqrt(zoom);
+  let halfSize = max(graphHalfSize * nodeScale, vec2f(0.5 / zoom));
   var output: VertexOutput;
   output.position = vec4f(center + local * halfSize * camera.graphToClip, 0.0, 1.0);
   output.local = local;
