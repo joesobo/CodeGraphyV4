@@ -16,6 +16,10 @@ import {
   type PointerSession,
 } from './interaction';
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
+import {
+  createOwnedGraphStageAttributionProfiler,
+  type OwnedGraphStageAttributionProfiler,
+} from './performance/attribution';
 import { createOwnedGraphInteractionRecorder } from './performance/recording';
 import {
   createOwnedGraphPerformanceMonitor,
@@ -128,6 +132,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const frameRequestedRef = useRef(false);
   const fpsOutputRef = useRef<HTMLOutputElement>(null);
   const fpsRef = useRef<number | null>(null);
+  const performanceAttributionRef = useRef<OwnedGraphStageAttributionProfiler>(null!);
+  if (!performanceAttributionRef.current) {
+    performanceAttributionRef.current = createOwnedGraphStageAttributionProfiler();
+  }
+  const reactReconciliationStartedAt = performanceAttributionRef.current.startTiming();
   const performanceMonitorRef = useRef<OwnedGraphPerformanceMonitor | null>(null);
   if (!performanceMonitorRef.current) {
     performanceMonitorRef.current = createOwnedGraphPerformanceMonitor();
@@ -171,6 +180,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     engineStopNotifiedRef,
     hasFittedCameraRef,
     layoutRef,
+    performanceAttributionRef,
     pluginForcesRef,
     pointerSessionRef,
     positionVersionRef,
@@ -193,6 +203,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       frameRequestedRef,
       gpuRendererRef,
       layoutRef,
+      performanceAttributionRef,
       rendererOperationalRef,
       requestFrameRef,
       onError: message => {
@@ -235,6 +246,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       gpuRendererRef,
       hoveredLinkRef,
       layoutRef,
+      performanceAttributionRef,
       performanceMonitorRef,
       performanceRecorderRef,
       pluginForcesRef,
@@ -266,8 +278,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   }, [clearLinkHover, props.fg2dRef]);
 
   useEffect(() => {
+    const startedAt = performanceAttributionRef.current.startTiming();
     clearLinkHover();
     reconcileOwnedGraphRuntime(layoutRuntime);
+    performanceAttributionRef.current.finishTiming(
+      'propsRuntimeReconciliation',
+      startedAt,
+    );
   }, [
     clearLinkHover,
     props.sharedProps.dagLevelDistance,
@@ -319,6 +336,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     pickerPositionVersionRef,
     pickerRef,
     pointerSessionRef,
+    performanceAttributionRef,
     performanceRecorderRef,
     positionVersionRef,
     propsRef,
@@ -330,7 +348,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const performanceSample = performanceMonitorRef.current?.sample()
     ?? { status: 'idle' as const };
 
-  return (
+  const view = (
     <div
       className="absolute inset-0"
       data-codegraphy-layout={layoutKind}
@@ -402,4 +420,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       ) : null}
     </div>
   );
+  performanceAttributionRef.current.finishTiming(
+    'reactReconciliation',
+    reactReconciliationStartedAt,
+  );
+  return view;
 }

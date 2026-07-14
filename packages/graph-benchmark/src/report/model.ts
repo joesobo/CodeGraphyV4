@@ -2,6 +2,7 @@ import { isDeepStrictEqual } from 'node:util';
 
 import type { BenchmarkRenderer } from '../cli/arguments';
 import type { BenchmarkFixture } from '../fixture/presets';
+import type { GraphStageAttributionRecording } from '../metrics/attribution';
 import type {
   InteractionAssessment,
   InteractionThresholds,
@@ -62,6 +63,7 @@ export interface CompletedBenchmarkRun {
       releaseObservationMs: number;
       settledAfterRelease: boolean;
       interactionAssessment: InteractionAssessment;
+      stageAttribution?: GraphStageAttributionRecording | null;
     };
     settleTimeMs: number;
     idleCpuPct: number;

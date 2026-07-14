@@ -1,3 +1,4 @@
+import type { OwnedGraphStageAttributionRecording } from '../../rendering/surface/owned2d/performance/attribution';
 import type { OwnedGraphPerformanceSample } from '../../rendering/surface/owned2d/performance/model';
 import type {
   OwnedGraphInteractionRecording,
@@ -34,7 +35,9 @@ export interface GraphDebugControls {
   getPerformance?(this: void): OwnedGraphPerformanceSample;
   graph2ScreenCoords?(this: void, x: number, y: number): { x: number; y: number };
   startInteractionRecording?(this: void, options: OwnedGraphInteractionRecordingOptions): void;
+  startStageAttributionRecording?(this: void): void;
   stopInteractionRecording?(this: void): OwnedGraphInteractionRecording | null;
+  stopStageAttributionRecording?(this: void): Readonly<OwnedGraphStageAttributionRecording> | null;
   zoom?(this: void, scale?: number, durationMs?: number): number;
   zoomToFit?(this: void, durationMs?: number, padding?: number): void;
 }
@@ -50,6 +53,8 @@ export interface GraphDebugApi {
   recordRenderedFrame(this: void, timestamp: number): void;
   startInteractionRecording(this: void, options: OwnedGraphInteractionRecordingOptions): void;
   startRenderedFrameRecording(this: void): void;
+  startStageAttributionRecording(this: void): void;
   stopInteractionRecording(this: void): OwnedGraphInteractionRecording | null;
   stopRenderedFrameRecording(this: void): number[];
+  stopStageAttributionRecording(this: void): Readonly<OwnedGraphStageAttributionRecording> | null;
 }

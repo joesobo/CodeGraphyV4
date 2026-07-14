@@ -9,6 +9,7 @@ import {
 import { canvasSize } from './canvasGeometry';
 import type { OwnedGraph2dControls } from './contracts';
 import type { OwnedGraphLayout } from './layout';
+import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { OwnedGraphPerformanceMonitor } from './performance/model';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import { updateOwnedGraphViewportNode } from './viewportNode';
@@ -20,6 +21,7 @@ export interface OwnedGraphControlsRuntime {
   fpsRef: MutableRefObject<number | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   markPerformanceIdle(this: void): void;
+  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor | null>;
   performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   positionVersionRef: MutableRefObject<number>;
@@ -83,7 +85,9 @@ export function createOwnedGraphControls(
     startInteractionRecording: options => {
       runtime.performanceRecorderRef.current.start(options);
     },
+    startStageAttributionRecording: () => runtime.performanceAttributionRef.current.start(),
     stopInteractionRecording: () => runtime.performanceRecorderRef.current.stop(),
+    stopStageAttributionRecording: () => runtime.performanceAttributionRef.current.stop(),
     updateNode: (nodeId, updates) => updateViewportNode(runtime, nodeId, updates),
     zoom: ((scale?: number) => {
       if (scale === undefined) return runtime.cameraRef.current.zoom;

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../../src/webview/components/graph/model/build';
+import { createOwnedGraphStageAttributionProfiler } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import {
   type OwnedWebGpuFrame,
   OwnedWebGpuRenderer,
@@ -254,6 +255,34 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     ]);
     await Promise.resolve();
     expect(onFrameComplete).toHaveBeenCalledTimes(3);
+  });
+
+  it('attributes style, geometry, buffer-write, and encode work only while armed', async () => {
+    const harness = webGpuHarness();
+    let now = 0;
+    const attributionProfiler = createOwnedGraphStageAttributionProfiler({
+      clock: () => now += 1,
+    });
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      attributionProfiler,
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    attributionProfiler.start();
+
+    renderer!.render(frame);
+    renderer!.render(frame);
+    attributionProfiler.recordRenderedFrame();
+    attributionProfiler.recordRenderedFrame();
+    const recording = attributionProfiler.stop();
+
+    expect(recording?.stages).toMatchObject({
+      styleCacheRebuild: { eventCount: 1 },
+      geometryRebuild: { eventCount: 2 },
+      gpuBufferWrites: { eventCount: 6 },
+      gpuEncodeSubmit: { eventCount: 2 },
+    });
   });
 
   it('highlights a hovered edge with camera-only GPU updates', async () => {

@@ -12,9 +12,14 @@ import {
   syncOwnedLayoutNodesAtVersion,
   type OwnedGraphLayout,
 } from './layout';
+import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import type { OwnedGraphPluginForces } from './pluginForces';
-import type { GraphLayoutRenderSample, GraphLayoutTickResult } from './physics/contracts';
+import type {
+  GraphLayoutPerformanceSample,
+  GraphLayoutRenderSample,
+  GraphLayoutTickResult,
+} from './physics/contracts';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface FramePerfSample extends Record<string, number> {
@@ -45,6 +50,7 @@ export interface OwnedGraphFrameRuntime {
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   hoveredLinkRef: MutableRefObject<FGLink | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
   pluginKinematicsVersionRef: MutableRefObject<number>;
@@ -117,6 +123,7 @@ function applyOwnedPluginForces(
 }
 
 interface OwnedGraphPhysicsFrame {
+  engineSample: GraphLayoutPerformanceSample | undefined;
   simulationMs: number;
   tick: GraphLayoutTickResult;
 }
@@ -135,6 +142,7 @@ function advanceOwnedGraphPhysics(
     : 0;
   if (tick.steps > 0) runtime.positionVersionRef.current += 1;
   return {
+    engineSample,
     simulationMs: hostElapsedMs + asynchronousSimulationMs,
     tick,
   };
@@ -324,6 +332,9 @@ export function renderOwnedGraphFrame(
   const layout = runtime.layoutRef.current;
   const context = canvas.getContext('2d');
   if (!layout || !context) return;
+  const attribution = runtime.performanceAttributionRef.current;
+  attribution.setPhysicsHome(layout.kind);
+  const frameAttributionStartedAt = attribution.startTiming();
   const samples = performanceSamples();
   const timings: FrameTimings = {
     physicsStartedAt: timedNow(samples),
@@ -332,17 +343,36 @@ export function renderOwnedGraphFrame(
     gpuStartedAt: 0,
     gpuEndedAt: 0,
   };
+  const physicsAttributionStartedAt = attribution.startTiming();
   const physicsFrame = advanceOwnedGraphPhysics(runtime, layout);
+  attribution.finishTiming('physicsStep', physicsAttributionStartedAt);
+  if (layout.kind === 'worker' && physicsFrame.engineSample) {
+    attribution.recordDuration(
+      'workerSimulationCpu',
+      physicsFrame.engineSample.simulationCpuMs,
+    );
+    attribution.recordDuration(
+      'workerRoundTrip',
+      physicsFrame.engineSample.roundTripMs,
+    );
+  }
   const { tick } = physicsFrame;
   const physicsEndedAt = performance.now();
   timings.physicsEndedAt = timedNow(samples);
+  const nodeSyncStartedAt = attribution.startTiming();
   synchronizeOwnedFrameState(runtime, layout);
+  attribution.finishTiming('snapshotNodeSync', nodeSyncStartedAt);
+  const interpolationStartedAt = attribution.startTiming();
   const renderSample = layout.engine.sampleRenderPositions?.(timestamp);
+  attribution.finishTiming('interpolatorSample', interpolationStartedAt);
   timings.syncEndedAt = timedNow(samples);
+  const canvasPrepareStartedAt = attribution.startTiming();
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
+  attribution.finishTiming('canvasPrepare', canvasPrepareStartedAt);
   timings.gpuStartedAt = timedNow(samples);
   const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared, renderSample);
   timings.gpuEndedAt = timedNow(samples);
+  const overlayStartedAt = attribution.startTiming();
   drawOwnedGraphDecorationLayer(
     runtime,
     layout,
@@ -351,8 +381,11 @@ export function renderOwnedGraphFrame(
     gpuRendered,
     renderSample,
   );
+  attribution.finishTiming('overlay', overlayStartedAt);
   const frameEndedAt = performance.now();
   if (gpuRendered) {
+    attribution.finishTiming('frameTotalCpu', frameAttributionStartedAt);
+    attribution.recordRenderedFrame();
     const renderMs = Math.max(0, frameEndedAt - physicsEndedAt);
     runtime.performanceRecorderRef.current.recordFrame({
       alpha: layout.engine.alpha,

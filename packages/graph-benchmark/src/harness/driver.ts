@@ -65,6 +65,7 @@ export interface GraphBenchmarkDriver {
     targetNodeId: string,
     neighborNodeIds: string[],
     timeoutMs: number,
+    collectAttribution?: boolean,
   ): ReturnType<typeof runCurrentRendererSyntheticDrag>;
 }
 

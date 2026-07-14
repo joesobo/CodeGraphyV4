@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import type { OwnedGraphStageAttributionProfiler } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import type { GraphLayoutInput } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/contracts';
 import type {
   GraphLayoutTransferBuffers,
@@ -52,8 +53,14 @@ export function createEngine(
   onUpdate = vi.fn(),
   onFrameRequest = onUpdate,
   input: GraphLayoutInput = DEFAULT_INPUT,
+  attributionProfiler?: OwnedGraphStageAttributionProfiler,
 ) {
-  const engine = createWorkerHostedGraphLayoutEngine(input, onUpdate, onFrameRequest);
+  const engine = createWorkerHostedGraphLayoutEngine(
+    input,
+    onUpdate,
+    onFrameRequest,
+    attributionProfiler,
+  );
   return { engine, onFrameRequest, onUpdate, worker: workerHarness.instances.at(-1)! };
 }
 

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { createOwnedGraphStageAttributionProfiler } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import {
   GraphNodeFlag,
   type GraphLayoutEngine,
@@ -213,6 +214,24 @@ describe('worker-hosted graph layout lifecycle', () => {
     });
     expect(engine.consumePerformanceSample?.()).toBeUndefined();
     now.mockRestore();
+  });
+
+  it('attributes accepted worker snapshot application only while armed', () => {
+    const attributionProfiler = createOwnedGraphStageAttributionProfiler();
+    attributionProfiler.start();
+    const { engine, worker } = createEngine(
+      vi.fn(),
+      vi.fn(),
+      undefined,
+      attributionProfiler,
+    );
+    const [first] = outputBuffers(worker);
+
+    engine.tick();
+    publishTick(worker, first);
+    const recording = attributionProfiler.stop();
+
+    expect(recording?.stages.snapshotApply).toMatchObject({ eventCount: 1 });
   });
 
   it('cycles two transferable output sets without allocating per tick', () => {

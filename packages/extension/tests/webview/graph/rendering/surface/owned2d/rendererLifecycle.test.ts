@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import type { OwnedGraphRendererLifecycleRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/rendererLifecycle';
 import type { GraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 
@@ -36,6 +37,7 @@ function runtimeHarness(): Harness {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: layout },
+      performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
       onError: vi.fn(),

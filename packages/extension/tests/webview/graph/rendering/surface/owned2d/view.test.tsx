@@ -234,6 +234,38 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(setAlphaTarget).not.toHaveBeenCalledWith(0.3);
   });
 
+  it('attributes React and runtime reconciliation only during an armed session', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    const props = createDefaultSurfaceProps();
+    const rendered = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(props.fg2dRef.current).toBeDefined();
+    });
+    props.fg2dRef.current!.startStageAttributionRecording();
+
+    const nextProps = {
+      ...props,
+      sharedProps: {
+        ...props.sharedProps,
+        graphData: {
+          links: [...props.sharedProps.graphData.links],
+          nodes: [...props.sharedProps.graphData.nodes],
+        },
+      },
+    };
+    rendered.rerender(<OwnedGraphSurface2d {...nextProps} />);
+    expect(props.fg2dRef.current?.stopStageAttributionRecording()).toMatchObject({
+      stages: {
+        propsRuntimeReconciliation: { eventCount: 1 },
+        reactReconciliation: { eventCount: 1 },
+      },
+    });
+  });
+
   it('applies plugin viewport kinematics to the owned layout', async () => {
     rendererHarness.create.mockResolvedValue({
       canRender: () => true,

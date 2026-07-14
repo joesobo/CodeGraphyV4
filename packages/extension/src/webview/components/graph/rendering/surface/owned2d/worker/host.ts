@@ -17,6 +17,7 @@ import type {
   GraphLayoutWorkerTickMessage,
 } from './protocol';
 import { transferBufferList } from './protocol';
+import type { OwnedGraphStageAttributionProfiler } from '../performance/attribution';
 import { GraphLayoutSnapshotInterpolator } from './snapshotInterpolator';
 import {
   createGraphLayoutTransferBufferPair,
@@ -59,6 +60,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     input: GraphLayoutInput,
     private readonly onUpdate: () => void,
     private readonly onFrameRequest: () => void,
+    private readonly attributionProfiler?: OwnedGraphStageAttributionProfiler,
   ) {
     this.fallback = createGraphLayoutEngine(input);
     this.currentAlpha = this.fallback.alpha;
@@ -354,6 +356,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
       this.recycleRejectedTick(message);
       return;
     }
+    const snapshotApplyStartedAt = this.attributionProfiler?.startTiming() ?? null;
     this.applyTickMetadata(message);
     if (message.result.steps === 0) {
       this.recycleRejectedTick(message);
@@ -372,6 +375,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.vx = nextVx;
     this.vy = nextVy;
     this.onUpdate();
+    this.attributionProfiler?.finishTiming('snapshotApply', snapshotApplyStartedAt);
   }
 
   private applyTickMetadata(message: GraphLayoutWorkerTickMessage): void {
@@ -441,6 +445,12 @@ export function createWorkerHostedGraphLayoutEngine(
   input: GraphLayoutInput,
   onUpdate: () => void,
   onFrameRequest: () => void = onUpdate,
+  attributionProfiler?: OwnedGraphStageAttributionProfiler,
 ): GraphLayoutEngine {
-  return new WorkerHostedGraphLayoutEngine(input, onUpdate, onFrameRequest);
+  return new WorkerHostedGraphLayoutEngine(
+    input,
+    onUpdate,
+    onFrameRequest,
+    attributionProfiler,
+  );
 }

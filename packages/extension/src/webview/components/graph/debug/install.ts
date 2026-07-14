@@ -108,8 +108,13 @@ export function installGraphDebugApi({
       fg2dRef.current?.startInteractionRecording?.(recordingOptions);
     },
     startRenderedFrameRecording: renderedFrames.start,
+    startStageAttributionRecording: () => {
+      fg2dRef.current?.startStageAttributionRecording?.();
+    },
     stopInteractionRecording: () => fg2dRef.current?.stopInteractionRecording?.() ?? null,
     stopRenderedFrameRecording: renderedFrames.stop,
+    stopStageAttributionRecording: () =>
+      fg2dRef.current?.stopStageAttributionRecording?.() ?? null,
   };
 
   return () => {
