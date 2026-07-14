@@ -31,6 +31,7 @@ describe('owned graph interaction performance recording', () => {
       frames: [{
         alpha: 0.3,
         kineticEnergy: 45,
+        latestInputSequence: 0,
         neighbors: [{ id: 'leaf', x: 8, y: 9 }],
         presentationTimestampMs: 12,
         renderMs: 2,

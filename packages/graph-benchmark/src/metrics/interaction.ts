@@ -9,6 +9,7 @@ export interface RecordedPosition {
 export interface RecordedInteractionFrame {
   alpha: number;
   kineticEnergy: number;
+  latestInputSequence?: number | null;
   neighbors: RecordedPosition[];
   presentationTimestampMs: number;
   renderMs: number;
@@ -117,6 +118,26 @@ function summarizeLatency(values: readonly number[], missedInputCount: number): 
   };
 }
 
+function hasInputSequenceOrder(recording: InteractionRecording): boolean {
+  return recording.frames.some(frame => frame.latestInputSequence !== undefined);
+}
+
+function framesFollowingInput(
+  recording: InteractionRecording,
+  input: RecordedInteractionInput,
+): RecordedInteractionFrame[] {
+  if (!hasInputSequenceOrder(recording)) {
+    return recording.frames.filter(
+      frame => frame.presentationTimestampMs >= input.eventTimestampMs,
+    );
+  }
+  return recording.frames.filter(frame =>
+    frame.latestInputSequence !== undefined
+      && frame.latestInputSequence !== null
+      && frame.latestInputSequence >= input.sequence,
+  );
+}
+
 function targetLatency(
   recording: InteractionRecording,
   thresholds: InteractionThresholds,
@@ -124,9 +145,7 @@ function targetLatency(
   const latencies: number[] = [];
   let missed = 0;
   for (const input of recording.inputs.filter(entry => entry.phase === 'move')) {
-    const frames = recording.frames.filter(
-      frame => frame.presentationTimestampMs >= input.eventTimestampMs,
-    );
+    const frames = framesFollowingInput(recording, input);
     const index = frames.findIndex(frame => frame.target !== null && distance(frame.target, {
       x: input.targetX,
       y: input.targetY,
@@ -159,13 +178,16 @@ function neighborLatency(
 ): LatencySummary {
   const latencies: number[] = [];
   let missed = 0;
+  const sequenceOrdered = hasInputSequenceOrder(recording);
   for (const input of recording.inputs.filter(entry => entry.phase === 'move')) {
     const baseline = [...recording.frames]
       .reverse()
-      .find(frame => frame.presentationTimestampMs < input.eventTimestampMs);
-    const frames = recording.frames.filter(
-      frame => frame.presentationTimestampMs >= input.eventTimestampMs,
-    );
+      .find(frame => sequenceOrdered
+        ? frame.latestInputSequence === null
+          || (frame.latestInputSequence !== undefined
+            && frame.latestInputSequence < input.sequence)
+        : frame.presentationTimestampMs < input.eventTimestampMs);
+    const frames = framesFollowingInput(recording, input);
     if (!baseline) {
       missed += 1;
       continue;

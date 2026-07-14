@@ -91,6 +91,31 @@ describe('interaction performance metrics', () => {
     expect(assessment.hudAgreement?.withinTenPercent).toBe(true);
   });
 
+  it('counts frames after input-handler order rather than native event time', () => {
+    const assessment = assessInteractionRecording({
+      frames: [
+        { ...frame(10, 0, 0, 1), latestInputSequence: 0 },
+        { ...frame(16, 10, 1, 1), latestInputSequence: 1 },
+      ],
+      inputs: [
+        { eventTimestampMs: 0, nodeId: 'hub', phase: 'down', sequence: 0, targetX: 0, targetY: 0 },
+        { eventTimestampMs: 5, nodeId: 'hub', phase: 'move', sequence: 1, targetX: 10, targetY: 0 },
+      ],
+      neighborNodeIds: ['leaf'],
+      targetNodeId: 'hub',
+      truncated: false,
+    }, null, DEFAULT_INTERACTION_THRESHOLDS);
+
+    expect(assessment.interaction.targetLatencyFrames).toMatchObject({
+      maximum: 1,
+      missedInputCount: 0,
+    });
+    expect(assessment.interaction.neighborLatencyFrames).toMatchObject({
+      maximum: 1,
+      missedInputCount: 0,
+    });
+  });
+
   it('assesses settle over fixed wall-clock windows at 60 and 165 Hz', () => {
     const assessAtRefreshRate = (refreshRateHz: number) => {
       const intervalMs = 1_000 / refreshRateHz;
