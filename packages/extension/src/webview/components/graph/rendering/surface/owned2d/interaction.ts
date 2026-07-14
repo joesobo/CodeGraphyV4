@@ -21,7 +21,8 @@ import type {
   OwnedGraphInteractionRecorder,
 } from './performance/recording';
 
-export interface CtrlClickSession {
+export interface ContextGestureSession {
+  button: 0 | 2;
   moved: boolean;
   pointerId: number;
   startScreen: { x: number; y: number };
@@ -46,7 +47,7 @@ export interface LinkTooltip {
 interface OwnedGraphInteractionRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
   clearLinkHover(this: void): boolean;
-  ctrlClickSessionRef: MutableRefObject<CtrlClickSession | null>;
+  contextGestureSessionRef: MutableRefObject<ContextGestureSession | null>;
   engineStopNotifiedRef: MutableRefObject<boolean>;
   hoveredLinkRef: MutableRefObject<FGLink | null>;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
@@ -75,7 +76,7 @@ export interface OwnedGraphInteractionHandlers {
   handleWheel(this: void, event: ReactWheelEvent<HTMLCanvasElement>): void;
 }
 
-const CTRL_PAN_DRAG_THRESHOLD_PX = 2;
+const CONTEXT_GESTURE_DRAG_THRESHOLD_PX = 2;
 const NODE_DRAG_THRESHOLD_PX = 3;
 
 function recordInteractionInput(
@@ -161,16 +162,21 @@ function beginPointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
-  if (event.button !== 0) return;
   const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-  if (event.ctrlKey) {
-    runtime.ctrlClickSessionRef.current = {
+  const contextButton = event.button === 2
+    ? 2
+    : event.button === 0 && event.ctrlKey ? 0 : null;
+  if (contextButton !== null) {
+    runtime.contextGestureSessionRef.current = {
+      button: contextButton,
       moved: false,
       pointerId: event.pointerId,
       startScreen: screen,
     };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     return;
   }
+  if (event.button !== 0) return;
   const layout = runtime.layoutRef.current;
   if (!layout) return;
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
@@ -192,17 +198,17 @@ function beginPointerSession(
   event.currentTarget.setPointerCapture(event.pointerId);
 }
 
-function updateCtrlGesture(
+function updateContextGesture(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
   screen: { x: number; y: number },
 ): boolean {
-  const session = runtime.ctrlClickSessionRef.current;
+  const session = runtime.contextGestureSessionRef.current;
   if (!session || session.pointerId !== event.pointerId) return false;
   session.moved ||= movedPastThreshold(
     session.startScreen,
     screen,
-    CTRL_PAN_DRAG_THRESHOLD_PX,
+    CONTEXT_GESTURE_DRAG_THRESHOLD_PX,
   );
   return true;
 }
@@ -282,7 +288,7 @@ function movePointerSession(
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
   const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-  if (updateCtrlGesture(runtime, event, screen)) return;
+  if (updateContextGesture(runtime, event, screen)) return;
   const layout = runtime.layoutRef.current;
   if (!layout) return;
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
@@ -295,19 +301,44 @@ function movePointerSession(
   updateHover(runtime, layout, world, screen);
 }
 
-function completeCtrlClick(
+function releaseContextGestureCapture(
+  canvas: HTMLCanvasElement,
+  pointerId: number,
+): void {
+  if (canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId);
+}
+
+function routeContextGesture(
   runtime: OwnedGraphInteractionRuntime,
+  session: ContextGestureSession,
   event: ReactPointerEvent<HTMLCanvasElement>,
-): boolean {
-  const session = runtime.ctrlClickSessionRef.current;
-  if (!session || session.pointerId !== event.pointerId) return false;
-  runtime.ctrlClickSessionRef.current = null;
+): void {
   const layout = runtime.layoutRef.current;
-  if (!layout || session.moved) return true;
+  if (!layout || session.moved) return;
   const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
   const node = pickNode(runtime, layout, world)?.node;
+  const link = node ? undefined : pickLink(runtime, layout, world)?.link;
+  if (session.button === 2) {
+    if (node) runtime.propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
+    else if (link) runtime.propsRef.current.sharedProps.onLinkRightClick(link, event.nativeEvent);
+    else runtime.propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
+    return;
+  }
   if (node) runtime.propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
+  else if (link) runtime.propsRef.current.sharedProps.onLinkClick(link, event.nativeEvent);
+  else runtime.propsRef.current.sharedProps.onBackgroundClick(event.nativeEvent);
+}
+
+function completeContextGesture(
+  runtime: OwnedGraphInteractionRuntime,
+  event: ReactPointerEvent<HTMLCanvasElement>,
+): boolean {
+  const session = runtime.contextGestureSessionRef.current;
+  if (!session || session.pointerId !== event.pointerId) return false;
+  runtime.contextGestureSessionRef.current = null;
+  releaseContextGestureCapture(event.currentTarget, event.pointerId);
+  routeContextGesture(runtime, session, event);
   return true;
 }
 
@@ -355,7 +386,7 @@ function completePointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
-  if (completeCtrlClick(runtime, event)) return;
+  if (completeContextGesture(runtime, event)) return;
   const layout = runtime.layoutRef.current;
   const session = runtime.pointerSessionRef.current;
   if (layout && session) {
@@ -368,13 +399,14 @@ function completePointerSession(
   completeNodeSession(runtime, layout, session, event);
 }
 
-function cancelCtrlGesture(
+function cancelContextGesture(
   runtime: OwnedGraphInteractionRuntime,
-  pointerId: number,
+  event: ReactPointerEvent<HTMLCanvasElement>,
 ): boolean {
-  const session = runtime.ctrlClickSessionRef.current;
-  if (!session || session.pointerId !== pointerId) return false;
-  runtime.ctrlClickSessionRef.current = null;
+  const session = runtime.contextGestureSessionRef.current;
+  if (!session || session.pointerId !== event.pointerId) return false;
+  runtime.contextGestureSessionRef.current = null;
+  releaseContextGestureCapture(event.currentTarget, event.pointerId);
   return true;
 }
 
@@ -382,7 +414,7 @@ function cancelPointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
-  if (cancelCtrlGesture(runtime, event.pointerId)) return;
+  if (cancelContextGesture(runtime, event)) return;
   const layout = runtime.layoutRef.current;
   const session = runtime.pointerSessionRef.current;
   runtime.pointerSessionRef.current = null;
@@ -394,23 +426,11 @@ function cancelPointerSession(
   releasePointerSession(runtime, layout, session, event.currentTarget, event.pointerId);
 }
 
-function openContextMenu(
-  runtime: OwnedGraphInteractionRuntime,
+function suppressNativeContextMenu(
   event: ReactMouseEvent<HTMLCanvasElement>,
 ): void {
-  const layout = runtime.layoutRef.current;
-  if (!layout) return;
   event.preventDefault();
-  const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-  const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
-  const node = pickNode(runtime, layout, world)?.node;
-  if (node) {
-    runtime.propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
-    return;
-  }
-  const link = pickLink(runtime, layout, world)?.link;
-  if (link) runtime.propsRef.current.sharedProps.onLinkRightClick(link, event.nativeEvent);
-  else runtime.propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
+  event.stopPropagation();
 }
 
 function zoomAtPointer(
@@ -450,7 +470,7 @@ export function createOwnedGraphInteractionHandlers(
   runtime: OwnedGraphInteractionRuntime,
 ): OwnedGraphInteractionHandlers {
   return {
-    handleContextMenu: event => openContextMenu(runtime, event),
+    handleContextMenu: suppressNativeContextMenu,
     handlePointerCancel: event => cancelPointerSession(runtime, event),
     handlePointerDown: event => beginPointerSession(runtime, event),
     handlePointerLeave: () => leavePointerSurface(runtime),

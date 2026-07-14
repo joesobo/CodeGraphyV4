@@ -8,8 +8,8 @@
 |--------|--------|
 | Click | Select and focus the node; File Nodes also open the file in temporary preview |
 | Double-click | Select and focus the node; File Nodes also open the file as a persistent editor tab |
-| Right-click | Set Context Selection if needed and open the context menu without previewing or opening a file |
-| `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
+| Right-click and release without dragging | Set Context Selection if needed and open the context menu without previewing or opening a file |
+| `Ctrl+Click` and release without dragging (macOS) | Open the context menu (same as right-click) |
 | Drag | Reposition the node for the current graph session |
 | Hover | Show tooltip with file details |
 | Hover cursor | Pointer cursor |
@@ -23,14 +23,14 @@ File and Folder Nodes that Git reports as ignored remain visible in the graph wi
 |--------|--------|
 | Left-drag | Box select multiple nodes |
 | Shift + left-drag | Add boxed nodes to the current selection |
-| Right-drag | Pan the view |
+| Right-drag | Pan the view without opening a context menu |
 | Scroll | Zoom in/out |
 | Hover cursor | Default cursor |
-| Right-click | Open background context menu |
+| Right-click and release without dragging | Open background context menu |
 
 ## Context menu
 
-Right-click background, nodes, multi-node selections, or edges to access context-specific actions:
+Right-click and release without dragging on the background, nodes, multi-node selections, or edges to access context-specific actions. The menu opens on release so a held right button can become a pan gesture instead:
 
 | Action | Description | Undoable |
 |--------|-------------|----------|

@@ -52,7 +52,7 @@ describe('owned graph lazy interaction picking', () => {
     const handlers = createOwnedGraphInteractionHandlers({
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       clearLinkHover: () => false,
-      ctrlClickSessionRef: { current: null },
+      contextGestureSessionRef: { current: null },
       engineStopNotifiedRef: { current: false },
       hoveredLinkRef: { current: null },
       hoveredNodeRef: { current: null },
@@ -111,7 +111,7 @@ describe('owned graph lazy interaction picking', () => {
     const runtime = {
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       clearLinkHover: () => false,
-      ctrlClickSessionRef: { current: null },
+      contextGestureSessionRef: { current: null },
       engineStopNotifiedRef: { current: false },
       hoveredLinkRef: { current: null },
       hoveredNodeRef: { current: null },
@@ -195,7 +195,7 @@ describe('owned graph lazy interaction picking', () => {
         if (changed) setLinkTooltip(null);
         return changed;
       }),
-      ctrlClickSessionRef: { current: null },
+      contextGestureSessionRef: { current: null },
       engineStopNotifiedRef: { current: false },
       hoveredLinkRef,
       hoveredNodeRef: { current: null },

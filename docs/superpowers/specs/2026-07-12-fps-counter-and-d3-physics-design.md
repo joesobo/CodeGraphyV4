@@ -33,7 +33,7 @@ Branch context: builds on `feat/unified-webgpu-renderer` (PR #308), the unified 
 ### UI
 
 - Small monospace overlay aligned beneath the top-right node and relationship counts.
-- Visible text is limited to potential FPS, displayed FPS, and average frame milliseconds.
+- Visible text is limited to `x FPS · y ms`: potential CPU FPS and average complete-frame CPU milliseconds. Display cadence remains available to diagnostics but is not shown in the compact overlay.
 - `pointer-events: none`; mounted only while the toggle is on and never reports `Idle` while enabled.
 
 ### Testing
