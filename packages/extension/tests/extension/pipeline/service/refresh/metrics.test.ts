@@ -147,22 +147,22 @@ describe('extension/pipeline/service/refresh/metrics', () => {
 
   it('patches when only one metric changes', () => {
     const graphData = createGraph([
-      createNode({ id: 'src/size.ts', label: 'size.ts', fileSize: 10 }),
-      createNode({ id: 'src/churn.ts', label: 'churn.ts', fileSize: 20 }),
+      createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 10 }),
+      createNode({ id: 'src/stable.ts', label: 'stable.ts', fileSize: 20 }),
     ]);
 
     expect(
       patchGraphDataNodeMetrics({
-        filePaths: ['src/size.ts', 'src/churn.ts'],
+        filePaths: ['src/changed.ts', 'src/stable.ts'],
         fileSizes: {
-          'src/size.ts': { size: 16 },
-          'src/churn.ts': { size: 20 },
+          'src/changed.ts': { size: 16 },
+          'src/stable.ts': { size: 20 },
         },
         graphData,
       }).nodes,
     ).toEqual([
-      createNode({ id: 'src/size.ts', label: 'size.ts', fileSize: 16 }),
-      createNode({ id: 'src/churn.ts', label: 'churn.ts', fileSize: 20 }),
+      createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 16 }),
+      createNode({ id: 'src/stable.ts', label: 'stable.ts', fileSize: 20 }),
     ]);
   });
 
@@ -187,7 +187,7 @@ describe('extension/pipeline/service/refresh/metrics', () => {
     ]);
   });
 
-  it('defaults missing size and churn metrics without throwing', () => {
+  it('defaults a missing file-size metric without throwing', () => {
     const graphData = createGraph([createNode()]);
 
     expect(
