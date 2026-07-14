@@ -200,6 +200,7 @@ async function runMeasurement(
     viewport: { width: viewport.width, height: viewport.height },
   });
   let settleTimeMs: number;
+  let initialSettlementObserved = true;
   let heapAfterLoadBytes: number;
   let processAfterLoadBytes: number;
   let idleCpuPct: number;
@@ -215,8 +216,21 @@ async function runMeasurement(
         });
       });
     }
-    const settlement = await driver.waitForSettlement(page, serverUrl, options.timeoutMs);
-    settleTimeMs = settlement.settleTimeMs;
+    const settlementTimeoutMs = options.attribution
+      ? Math.min(options.timeoutMs, 30_000)
+      : options.timeoutMs;
+    try {
+      const settlement = await driver.waitForSettlement(
+        page,
+        serverUrl,
+        settlementTimeoutMs,
+      );
+      settleTimeMs = settlement.settleTimeMs;
+    } catch (error) {
+      if (!options.attribution || !isTimeout(error)) throw error;
+      initialSettlementObserved = false;
+      settleTimeMs = settlementTimeoutMs;
+    }
 
     const heap = await driver.measureHeapAfterSettlement(page);
     heapAfterLoadBytes = heap.usedSize;
@@ -261,6 +275,7 @@ async function runMeasurement(
         refreshUtilization: frameMetrics.refreshUtilization,
       },
       settleTimeMs,
+      initialSettlementObserved,
       idleCpuPct,
       memory: {
         heapAfterLoadBytes,
