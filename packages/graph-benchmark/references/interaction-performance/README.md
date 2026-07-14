@@ -36,6 +36,21 @@ pnpm --filter @codegraphy-dev/graph-benchmark bench:graph \
 
 The real-editor pass in VS Code 1.128.0 used the editor graph with Files Explorer restored in the sidebar. Its 18-step hub drag moved the connected neighbor on all 18 sampled steps, measured one-frame target and neighbor latency, zero freezes and teleports, and active HUD agreement within 0.40%. It also confirmed the explicit final `Idle` state and retained one non-monotonic settle-envelope violation as an honest baseline defect. See `m1-baseline/real-editor-validation.json`, the screenshots, and the GIF.
 
+## M2 attribution and physics-home decision
+
+The explicitly armed profiler performs no clock reads while disabled. Three clean-source runs per profile at revision `90540a889bafd1e556d91d981179a4915a0b602b` measured the worker and the existing main-thread fallback at the smallest failing fixture (500) and at 2.5k. Values below are milliseconds per rendered frame; worker round trip is latency, not additive frame CPU.
+
+| Fixture / home | Complete CPU frame | Physics CPU | Worker round trip | Snapshot / sync / interpolation | Style + geometry | GPU write + encode | Canvas + overlay | React / props | Neighbor latency / freezes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 500 / worker | 7.72 | 6.54 | 6.63 | 0.02 | 0.70 | 0.04 | 0.39 | 0.07 | 2.33 / 0.67 |
+| 500 / main thread | 5.51 | 4.50 | — | 0.01 | 0.59 | 0.04 | 0.35 | 0.06 | 1 / 0 |
+| 2.5k / worker | 11.07 | 7.50 | 9.70 | 0.11 | 2.78 | 0.06 | 0.61 | 0.06 | 2.67 / 1 |
+| 2.5k / main thread | 10.15 | 6.54 | — | 0.08 | 2.83 | 0.06 | 0.62 | 0.06 | 1 / 0 |
+
+**Decision:** main-thread physics wins. At 500 it is 1.40× faster and at 2.5k it is 1.09× faster, remains under the 16 ms requirement, removes 6.63–9.70 ms worker round-trip latency, and eliminates the measured neighbor lag and frozen frames. M3 therefore deletes the worker, interpolation, and transferable-buffer path rather than maintaining two physics homes. After physics, the next largest measured cost is the style + geometry rebuild (2.83 ms/frame at 2.5k), which is currently triggered almost every active frame.
+
+The raw reports and normalized stage summaries are under `m2-attribution/`. Reproduce an armed profile with `--attribution true`; use `--physics-home main-thread` to force the existing fallback for comparison.
+
 Run the dashboard generator with:
 
 ```bash

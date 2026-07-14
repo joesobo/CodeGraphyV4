@@ -3,6 +3,12 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M2",
+      "title": "Cost attribution chooses main-thread physics",
+      "summary": "Three-run profiles at clean revision 90540a889 show main-thread physics winning at both decision sizes: 500 improves 7.72 → 5.51 ms (1.40×), neighbor latency 2.33 → 1 frame, and freezes 0.67 → 0; 2.5k improves 11.07 → 10.15 ms (1.09×), neighbor latency 2.67 → 1, and freezes 1 → 0. Worker round trip costs 6.63 ms at 500 and 9.70 ms at 2.5k. M3 will delete the worker/interpolator/transfer path. Next biggest additive costs are physics, then per-frame style + geometry rebuilds.",
+      "timestamp": "2026-07-13T20:45:00Z"
+    },
+    {
       "milestone": "M1",
       "title": "Trustworthy M1 baseline committed",
       "summary": "Clean-source schema-v3 baselines now cover tiny, 500, 1k, and 2.5k. Mean drag work is 0.31 / 7.57 / 5.32 / 11.05 ms; potential FPS is 3,232 / 132 / 188 / 90 while headless displayed FPS stays near 60. The baseline exposes the work ahead: 500 misses the 6.9 ms budget, scaled fixtures show 3-frame neighbor latency and one frozen frame on average, and tiny settle has one envelope violation. Teleports are zero and HUD-vs-harness difference is at most 0.94%.",
@@ -49,7 +55,62 @@
       "path": "references/interaction-performance/m1-baseline/2.5k.json"
     }
   ],
-  "attribution": [],
+  "attribution": [
+    {
+      "fixture": "500 · worker",
+      "milestone": "M2",
+      "stages": {
+        "Worker simulation CPU": 6.541570026729917,
+        "Worker round trip (latency)": 6.625512934815767,
+        "Snapshot apply + node sync + interpolation": 0.023282783091015096,
+        "Style cache + geometry rebuild": 0.6957181096608674,
+        "GPU buffer writes + encode": 0.03978590498429978,
+        "Canvas + overlay": 0.3887600350550091,
+        "Picking / hover": 0,
+        "React / props reconciliation": 0.07252453125341995
+      }
+    },
+    {
+      "fixture": "500 · main thread",
+      "milestone": "M2",
+      "stages": {
+        "Main-thread physics step": 4.504378909613002,
+        "Snapshot apply + node sync + interpolation": 0.011706881324982835,
+        "Style cache + geometry rebuild": 0.5949061648775361,
+        "GPU buffer writes + encode": 0.036818589346018935,
+        "Canvas + overlay": 0.3498659507305735,
+        "Picking / hover": 0.00017873099917700718,
+        "React / props reconciliation": 0.06041108187657579
+      }
+    },
+    {
+      "fixture": "2.5k · worker",
+      "milestone": "M2",
+      "stages": {
+        "Worker simulation CPU": 7.502374669649985,
+        "Worker round trip (latency)": 9.704045734493588,
+        "Snapshot apply + node sync + interpolation": 0.10615655315897395,
+        "Style cache + geometry rebuild": 2.7751978884795934,
+        "GPU buffer writes + encode": 0.05998240994484465,
+        "Canvas + overlay": 0.6092348287476713,
+        "Picking / hover": 0,
+        "React / props reconciliation": 0.059806509194084714
+      }
+    },
+    {
+      "fixture": "2.5k · main thread",
+      "milestone": "M2",
+      "stages": {
+        "Main-thread physics step": 6.5368885873695435,
+        "Snapshot apply + node sync + interpolation": 0.08213315187427013,
+        "Style cache + geometry rebuild": 2.834850543057141,
+        "GPU buffer writes + encode": 0.06052989152300617,
+        "Canvas + overlay": 0.6218070654279512,
+        "Picking / hover": 0,
+        "React / props reconciliation": 0.06358695589005947
+      }
+    }
+  ],
   "visuals": [
     {
       "caption": "M1 real-editor drag: editor graph with Files Explorer in the sidebar and the honest active HUD.",
