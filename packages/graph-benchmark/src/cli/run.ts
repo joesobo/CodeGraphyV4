@@ -207,6 +207,14 @@ async function runMeasurement(
 
   try {
     const page = await context.newPage();
+    if (options.physicsHome === 'main-thread') {
+      await page.addInitScript(() => {
+        Object.defineProperty(window, 'Worker', {
+          configurable: true,
+          value: undefined,
+        });
+      });
+    }
     const settlement = await driver.waitForSettlement(page, serverUrl, options.timeoutMs);
     settleTimeMs = settlement.settleTimeMs;
 
@@ -219,6 +227,7 @@ async function runMeasurement(
       targetNodeId,
       neighborNodeIds,
       options.timeoutMs,
+      options.attribution,
     );
   } finally {
     await context.close();

@@ -7,6 +7,7 @@ import {
   graphDetailOpacity,
 } from '../../../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../contracts';
+import type { OwnedGraphStageAttributionProfiler } from '../performance/attribution';
 import type { OwnedGraphCamera } from '../camera';
 import { writeOwnedArrowCurveParameters } from '../arrowGeometry';
 import { LINK_SHADER, NODE_SHADER, OWNED_LINK_SEGMENTS } from './shaders';
@@ -42,6 +43,7 @@ export interface OwnedWebGpuFrame {
 }
 
 export interface OwnedWebGpuRendererOptions {
+  attributionProfiler?: OwnedGraphStageAttributionProfiler;
   onDeviceLost(this: void, message: string): void;
   onFrameComplete(this: void): void;
 }
@@ -214,6 +216,7 @@ export class OwnedWebGpuRenderer {
     private readonly linkPipeline: GPURenderPipeline,
     private readonly nodePipeline: GPURenderPipeline,
     private readonly onFrameComplete: () => void,
+    private readonly attributionProfiler?: OwnedGraphStageAttributionProfiler,
   ) {
     this.cameraBuffer = device.createBuffer({
       label: 'CodeGraphy camera uniform',
@@ -344,6 +347,7 @@ export class OwnedWebGpuRenderer {
       linkPipeline,
       nodePipeline,
       options.onFrameComplete,
+      options.attributionProfiler,
     );
       void device.lost.then(info => {
         if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
@@ -428,8 +432,10 @@ export class OwnedWebGpuRenderer {
 
   private updateStyleCaches(frame: OwnedWebGpuFrame): boolean {
     if (this.styleCachesMatch(frame)) return false;
+    const startedAt = this.attributionProfiler?.startTiming() ?? null;
     this.updateNodeStyleCache(frame);
     this.updateLinkStyleCache(frame);
+    this.attributionProfiler?.finishTiming('styleCacheRebuild', startedAt);
     return true;
   }
 
@@ -452,6 +458,7 @@ export class OwnedWebGpuRenderer {
   }
 
   private uploadCamera(frame: OwnedWebGpuFrame): void {
+    const startedAt = this.attributionProfiler?.startTiming() ?? null;
     this.cameraValues[0] = frame.camera.centerX;
     this.cameraValues[1] = frame.camera.centerY;
     this.cameraValues[2] = frame.camera.zoom * 2 / frame.cssWidth;
@@ -463,6 +470,7 @@ export class OwnedWebGpuRenderer {
       ? this.renderedLinkIndexByLink.get(frame.hoveredLink) ?? -1
       : -1;
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
+    this.attributionProfiler?.finishTiming('gpuBufferWrites', startedAt);
   }
 
   private edgeStride(frame: OwnedWebGpuFrame): number {
@@ -579,15 +587,18 @@ export class OwnedWebGpuRenderer {
     values: Float32Array,
     byteLength: number,
   ): void {
+    const startedAt = this.attributionProfiler?.startTiming() ?? null;
     this.ensureVertexStream(stream, byteLength);
-    if (byteLength === 0) return;
-    this.device.queue.writeBuffer(
-      stream.buffer,
-      0,
-      values.buffer,
-      values.byteOffset,
-      byteLength,
-    );
+    if (byteLength > 0) {
+      this.device.queue.writeBuffer(
+        stream.buffer,
+        0,
+        values.buffer,
+        values.byteOffset,
+        byteLength,
+      );
+    }
+    this.attributionProfiler?.finishTiming('gpuBufferWrites', startedAt);
   }
 
   private updateGraphCacheIdentity(
@@ -617,7 +628,9 @@ export class OwnedWebGpuRenderer {
     const linkStylesChanged = stylesChanged || edgeStrideChanged;
 
     if (positionsChanged) {
+      const nodeGeometryStartedAt = this.attributionProfiler?.startTiming() ?? null;
       this.packNodePositions(frame);
+      this.attributionProfiler?.finishTiming('geometryRebuild', nodeGeometryStartedAt);
       this.uploadVertexStream(
         this.nodePositionStream,
         this.nodePositionValues,
@@ -628,6 +641,7 @@ export class OwnedWebGpuRenderer {
       this.uploadVertexStream(this.nodeStyleStream, this.nodeStyles, this.nodeStyles.byteLength);
     }
     if (linkGeometryChanged || linkStylesChanged) {
+      const linkGeometryStartedAt = this.attributionProfiler?.startTiming() ?? null;
       this.packLinkInstances(
         frame,
         edgeStride,
@@ -635,6 +649,7 @@ export class OwnedWebGpuRenderer {
         linkStylesChanged,
         arrowsVisible,
       );
+      this.attributionProfiler?.finishTiming('geometryRebuild', linkGeometryStartedAt);
     }
     if (linkGeometryChanged) {
       this.uploadVertexStream(
@@ -678,6 +693,7 @@ export class OwnedWebGpuRenderer {
   }
 
   private submitRenderPass(frame: OwnedWebGpuFrame): void {
+    const startedAt = this.attributionProfiler?.startTiming() ?? null;
     const encoder = this.device.createCommandEncoder({ label: 'CodeGraphy graph frame' });
     const pass = encoder.beginRenderPass({
       label: 'CodeGraphy graph render pass',
@@ -692,6 +708,7 @@ export class OwnedWebGpuRenderer {
     this.drawNodes(pass, frame);
     pass.end();
     this.device.queue.submit([encoder.finish()]);
+    this.attributionProfiler?.finishTiming('gpuEncodeSubmit', startedAt);
   }
 
   private completeSubmittedFrame(): void {

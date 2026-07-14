@@ -6,6 +6,7 @@ import {
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
 import { createDefaultSurfaceProps } from '../view/surfaceFixture';
@@ -73,6 +74,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     hoveredLinkRef: { current: null },
     layoutRef: { current: layout },
     onRendererError: vi.fn(),
+    performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
     performanceRecorderRef: { current: recorder },
     pluginKinematicsVersionRef: { current: -1 },
     pluginForcesRef: { current: {
@@ -115,6 +117,7 @@ describe('owned graph frame execution', () => {
     const samples: Array<Record<string, number>> = [];
     (window as typeof window & { __CODEGRAPHY_WEBGPU_PERF__?: Array<Record<string, number>> })
       .__CODEGRAPHY_WEBGPU_PERF__ = samples;
+    runtime.performanceAttributionRef.current.start();
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100);
 
@@ -148,6 +151,19 @@ describe('owned graph frame execution', () => {
       physicsMs: expect.any(Number),
       syncMs: expect.any(Number),
     }));
+    const attribution = runtime.performanceAttributionRef.current.stop();
+    expect(attribution).toMatchObject({
+      physicsHome: 'main-thread',
+      renderedFrameCount: 1,
+      stages: {
+        canvasPrepare: { eventCount: 1 },
+        frameTotalCpu: { eventCount: 1 },
+        interpolatorSample: { eventCount: 1 },
+        overlay: { eventCount: 1 },
+        physicsStep: { eventCount: 1 },
+        snapshotNodeSync: { eventCount: 1 },
+      },
+    });
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
   });
 

@@ -15,6 +15,7 @@ import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import { syncOwnedLayoutNodesAtVersion, type OwnedGraphLayout } from './layout';
 import type { OwnedGraphLinkPicker } from './linkPicking';
 import type { OwnedGraphNodePicker } from './picking';
+import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type {
   OwnedGraphInteractionPhase,
   OwnedGraphInteractionRecorder,
@@ -55,6 +56,7 @@ interface OwnedGraphInteractionRuntime {
   pickerPositionVersionRef: MutableRefObject<number>;
   pickerRef: MutableRefObject<OwnedGraphNodePicker>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
+  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   positionVersionRef: MutableRefObject<number>;
   propsRef: MutableRefObject<Surface2dProps>;
@@ -120,12 +122,15 @@ function pickNode(
   layout: OwnedGraphLayout,
   world: { x: number; y: number },
 ) {
+  const startedAt = runtime.performanceAttributionRef.current.startTiming();
   synchronizeAuthoritativeNodes(runtime, layout);
   if (runtime.pickerPositionVersionRef.current !== runtime.positionVersionRef.current) {
     runtime.pickerRef.current.rebuild(layout.nodes);
     runtime.pickerPositionVersionRef.current = runtime.positionVersionRef.current;
   }
-  return runtime.pickerRef.current.pick(world, runtime.cameraRef.current.zoom);
+  const picked = runtime.pickerRef.current.pick(world, runtime.cameraRef.current.zoom);
+  runtime.performanceAttributionRef.current.finishTiming('pickingHover', startedAt);
+  return picked;
 }
 
 function pickLink(
@@ -133,12 +138,15 @@ function pickLink(
   layout: OwnedGraphLayout,
   world: { x: number; y: number },
 ) {
+  const startedAt = runtime.performanceAttributionRef.current.startTiming();
   synchronizeAuthoritativeNodes(runtime, layout);
   if (runtime.linkPickerPositionVersionRef.current !== runtime.positionVersionRef.current) {
     runtime.linkPickerRef.current.rebuild(layout.links);
     runtime.linkPickerPositionVersionRef.current = runtime.positionVersionRef.current;
   }
-  return runtime.linkPickerRef.current.pick(world, runtime.cameraRef.current.zoom);
+  const picked = runtime.linkPickerRef.current.pick(world, runtime.cameraRef.current.zoom);
+  runtime.performanceAttributionRef.current.finishTiming('pickingHover', startedAt);
+  return picked;
 }
 
 function movedPastThreshold(

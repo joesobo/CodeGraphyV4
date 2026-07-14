@@ -67,6 +67,8 @@ test('captures trustworthy frame and interaction metrics during a fixed syntheti
       page,
       selection.targetNodeId,
       selection.neighborNodeIds,
+      30_000,
+      true,
     );
 
     expect(result.durationMs).toBeGreaterThan(900);
@@ -90,6 +92,31 @@ test('captures trustworthy frame and interaction metrics during a fixed syntheti
       .toBeGreaterThan(0);
     expect(result.interactionAssessment.hudAgreement?.withinTenPercent).toBe(true);
     expect(result.interactionAssessment.truncated).toBe(false);
+    expect(result.stageAttribution).toMatchObject({
+      physicsHome: 'worker',
+      truncated: false,
+      stages: {
+        frameTotalCpu: { scope: 'frame-cpu' },
+        geometryRebuild: { scope: 'frame-cpu' },
+        gpuBufferWrites: { scope: 'frame-cpu' },
+        gpuEncodeSubmit: { scope: 'frame-cpu' },
+        snapshotApply: { scope: 'host-async-cpu' },
+        workerRoundTrip: { scope: 'latency' },
+        workerSimulationCpu: { scope: 'worker-cpu' },
+      },
+    });
+    expect(result.stageAttribution?.renderedFrameCount).toBeGreaterThan(10);
+    for (const stage of [
+      'frameTotalCpu',
+      'geometryRebuild',
+      'gpuBufferWrites',
+      'gpuEncodeSubmit',
+      'snapshotApply',
+      'workerRoundTrip',
+      'workerSimulationCpu',
+    ] as const) {
+      expect(result.stageAttribution?.stages[stage].eventCount).toBeGreaterThan(0);
+    }
   } finally {
     await server.close();
   }

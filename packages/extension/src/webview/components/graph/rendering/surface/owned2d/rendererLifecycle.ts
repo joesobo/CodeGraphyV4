@@ -1,5 +1,6 @@
 import type { MutableRefObject } from 'react';
 import type { OwnedGraphLayout } from './layout';
+import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 export type OwnedGraphRendererStatus = 'error' | 'initializing' | 'webgpu';
@@ -9,6 +10,7 @@ export interface OwnedGraphRendererLifecycleRuntime {
   frameRequestedRef: MutableRefObject<boolean>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
   onError(this: void, message: string): void;
@@ -89,6 +91,7 @@ export function startOwnedGraphRendererLifecycle(
   function createRenderer(recovering: boolean): void {
     const rendererGeneration = ++generation;
     void OwnedWebGpuRenderer.create(canvas, {
+      attributionProfiler: runtime.performanceAttributionRef.current,
       onDeviceLost: message => {
         if (!active || rendererGeneration !== generation) return;
         recoverRenderer(message || 'The WebGPU device was lost.');

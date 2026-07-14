@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 
+import type { GraphStageAttributionRecording } from '../../metrics/attribution';
 import { estimateRefreshRate } from '../../metrics/frames';
 import {
   assessInteractionRecording,
@@ -40,8 +41,10 @@ interface BenchmarkGraphDebugWindow extends Window {
       targetNodeId: string;
     }): void;
     startRenderedFrameRecording(): void;
+    startStageAttributionRecording(): void;
     stopInteractionRecording(): InteractionRecording | null;
     stopRenderedFrameRecording(): number[];
+    stopStageAttributionRecording(): GraphStageAttributionRecording | null;
   };
 }
 
@@ -211,6 +214,7 @@ export async function runCurrentRendererSyntheticDrag(
   targetNodeId: string,
   neighborNodeIds: string[],
   timeoutMs = 30_000,
+  collectAttribution = false,
 ): Promise<{
   durationMs: number;
   frameTimesMs: number[];
@@ -226,6 +230,7 @@ export async function runCurrentRendererSyntheticDrag(
   releaseObservationMs: number;
   settledAfterRelease: boolean;
   interactionAssessment: ReturnType<typeof assessInteractionRecording>;
+  stageAttribution: GraphStageAttributionRecording | null;
 }> {
   const centered = await page.evaluate((nodeId) =>
     (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.centerNode(nodeId, 1)
@@ -266,7 +271,11 @@ export async function runCurrentRendererSyntheticDrag(
       y: fixedStart.y + Math.sin(progress * Math.PI) * 72,
     };
   });
-  const startedAt = await page.evaluate(({ targetNodeId: target, neighborNodeIds: neighbors }) => {
+  const startedAt = await page.evaluate(({
+    targetNodeId: target,
+    neighborNodeIds: neighbors,
+    collectAttribution: shouldCollectAttribution,
+  }) => {
     const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
     if (!debug) throw new Error('Graph debug API is unavailable');
     debug.startRenderedFrameRecording();
@@ -274,8 +283,9 @@ export async function runCurrentRendererSyntheticDrag(
       neighborNodeIds: neighbors,
       targetNodeId: target,
     });
+    if (shouldCollectAttribution) debug.startStageAttributionRecording();
     return performance.now();
-  }, { targetNodeId, neighborNodeIds });
+  }, { targetNodeId, neighborNodeIds, collectAttribution });
   await page.mouse.down({ button: 'left' });
   await runTimedMouseSteps(page, path);
   const dragWindow = await page.evaluate(() => {
@@ -310,9 +320,13 @@ export async function runCurrentRendererSyntheticDrag(
     return {
       hud: debug?.getPerformance() ?? null,
       recording: debug?.stopInteractionRecording() ?? null,
+      stageAttribution: debug?.stopStageAttributionRecording() ?? null,
     };
   });
   if (!telemetry.recording) throw new Error('Interaction telemetry recording is unavailable');
+  if (collectAttribution && !telemetry.stageAttribution) {
+    throw new Error('Stage attribution recording is unavailable');
+  }
   const interactionAssessment = assessInteractionRecording(
     telemetry.recording,
     telemetry.hud,
@@ -343,5 +357,6 @@ export async function runCurrentRendererSyntheticDrag(
     releaseObservationMs,
     settledAfterRelease,
     interactionAssessment,
+    stageAttribution: telemetry.stageAttribution,
   };
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { installGraphDebugApi } from '../../../../src/webview/components/graph/debug/install';
+import { createOwnedGraphStageAttributionProfiler } from '../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 
 describe('webview/graph/debug/install', () => {
   it('returns undefined when graph debug mode is disabled', () => {
@@ -46,6 +47,7 @@ describe('webview/graph/debug/install', () => {
     const zoom = vi.fn(() => 2);
     const zoomToFit = vi.fn();
     const startInteractionRecording = vi.fn();
+    const startStageAttributionRecording = vi.fn();
     const stopInteractionRecording = vi.fn(() => ({
       frames: [],
       inputs: [],
@@ -53,6 +55,14 @@ describe('webview/graph/debug/install', () => {
       targetNodeId: 'hub',
       truncated: false,
     }));
+    const stageProfiler = createOwnedGraphStageAttributionProfiler();
+    stageProfiler.start();
+    stageProfiler.setPhysicsHome('worker');
+    stageProfiler.recordRenderedFrame();
+    stageProfiler.recordRenderedFrame();
+    stageProfiler.recordRenderedFrame();
+    const stageRecording = stageProfiler.stop();
+    const stopStageAttributionRecording = vi.fn(() => stageRecording);
     const getPerformance = vi.fn(() => ({
       status: 'active' as const,
       displayedFps: 60,
@@ -73,7 +83,9 @@ describe('webview/graph/debug/install', () => {
           getPerformance,
           graph2ScreenCoords: (x, y) => ({ x, y }),
           startInteractionRecording,
+          startStageAttributionRecording,
           stopInteractionRecording,
+          stopStageAttributionRecording,
           zoom,
           zoomToFit,
         },
@@ -92,6 +104,7 @@ describe('webview/graph/debug/install', () => {
       neighborNodeIds: ['leaf'],
       targetNodeId: 'hub',
     });
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.startStageAttributionRecording();
     win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(10);
     cleanup?.();
     install();
@@ -111,6 +124,11 @@ describe('webview/graph/debug/install', () => {
     });
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopInteractionRecording()).toMatchObject({
       targetNodeId: 'hub',
+    });
+    expect(startStageAttributionRecording).toHaveBeenCalledOnce();
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopStageAttributionRecording()).toMatchObject({
+      physicsHome: 'worker',
+      renderedFrameCount: 3,
     });
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);
 

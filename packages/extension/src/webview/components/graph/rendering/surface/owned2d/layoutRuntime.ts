@@ -12,6 +12,7 @@ import {
   updateOwnedGraphLayout,
   type OwnedGraphLayout,
 } from './layout';
+import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { OwnedGraphPluginForces } from './pluginForces';
 
 export interface OwnedGraphLayoutRuntime {
@@ -20,6 +21,7 @@ export interface OwnedGraphLayoutRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   hasFittedCameraRef: MutableRefObject<boolean>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
   positionVersionRef: MutableRefObject<number>;
@@ -56,6 +58,7 @@ function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayou
       runtime.requestFrameRef.current();
     },
     () => runtime.requestFrameRef.current(),
+    runtime.performanceAttributionRef.current,
   );
   runtime.layoutRef.current = layout;
   return layout;

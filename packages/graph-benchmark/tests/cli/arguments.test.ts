@@ -5,6 +5,8 @@ import { parseBenchmarkArguments } from '../../src/cli/arguments';
 describe('parseBenchmarkArguments', () => {
   it('parses the documented graph benchmark command options', () => {
     expect(parseBenchmarkArguments([
+      '--attribution',
+      'true',
       '--fixture',
       '2.5k',
       '--renderer',
@@ -21,9 +23,12 @@ describe('parseBenchmarkArguments', () => {
       'reports/baseline.json',
       '--output',
       'reports/two-and-a-half-thousand.json',
+      '--physics-home',
+      'main-thread',
       '--timeout-ms',
       '90000',
     ])).toEqual({
+      attribution: true,
       fixture: '2.5k',
       renderer: 'current',
       seed: 42,
@@ -32,6 +37,7 @@ describe('parseBenchmarkArguments', () => {
       idleMs: 6_000,
       baselinePath: 'reports/baseline.json',
       outputPath: 'reports/two-and-a-half-thousand.json',
+      physicsHome: 'main-thread',
       timeoutMs: 90_000,
     });
   });
@@ -42,8 +48,10 @@ describe('parseBenchmarkArguments', () => {
       '--renderer', 'current',
     ])).toMatchObject({
       runs: 3,
+      attribution: false,
       memoryCycles: 5,
       baselinePath: undefined,
+      physicsHome: 'auto',
     });
   });
 

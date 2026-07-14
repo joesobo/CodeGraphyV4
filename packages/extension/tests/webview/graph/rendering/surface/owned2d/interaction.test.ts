@@ -4,6 +4,7 @@ import { createOwnedGraphInteractionHandlers } from '../../../../../../src/webvi
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { OwnedGraphLinkPicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkPicking';
 import { OwnedGraphNodePicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/picking';
+import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 import { createDefaultSurfaceProps } from '../view/surfaceFixture';
@@ -46,6 +47,8 @@ describe('owned graph lazy interaction picking', () => {
     const linkPicker = new OwnedGraphLinkPicker();
     const rebuildLink = vi.spyOn(linkPicker, 'rebuild');
     const props = createDefaultSurfaceProps();
+    const performanceAttribution = createOwnedGraphStageAttributionProfiler();
+    performanceAttribution.start();
     const handlers = createOwnedGraphInteractionHandlers({
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       clearLinkHover: () => false,
@@ -59,6 +62,7 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: picker },
       pointerSessionRef: { current: null },
+      performanceAttributionRef: { current: performanceAttribution },
       performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: props },
@@ -82,6 +86,7 @@ describe('owned graph lazy interaction picking', () => {
     expect(graphNode.x).toBe(20);
     expect(rebuildNode).toHaveBeenCalledOnce();
     expect(rebuildLink).not.toHaveBeenCalled();
+    expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(1);
   });
 
   it('pins a node once when pointer movement crosses the drag threshold', () => {
@@ -116,6 +121,7 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
+      performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
       performanceRecorderRef: { current: recorder },
       positionVersionRef: { current: 0 },
       propsRef: { current: createDefaultSurfaceProps() },
@@ -176,6 +182,8 @@ describe('owned graph lazy interaction picking', () => {
     const setLinkTooltip = vi.fn();
     const requestFrame = vi.fn();
     const cameraRef = { current: { centerX: 0, centerY: 0, zoom: 0.49 } };
+    const performanceAttribution = createOwnedGraphStageAttributionProfiler();
+    performanceAttribution.start();
     const runtime = {
       cameraRef,
       clearLinkHover: vi.fn(() => {
@@ -194,6 +202,7 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
+      performanceAttributionRef: { current: performanceAttribution },
       performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: createDefaultSurfaceProps() },
@@ -237,5 +246,6 @@ describe('owned graph lazy interaction picking', () => {
       nativeEvent: { clientX: 50, clientY: 50 },
     } as never);
     expect(runtime.clearLinkHover).toHaveBeenCalledTimes(2);
+    expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(7);
   });
 });

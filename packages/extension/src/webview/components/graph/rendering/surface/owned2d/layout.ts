@@ -10,6 +10,7 @@ import type { IPhysicsSettings } from '../../../../../../shared/settings/physics
 import type { FGLink, FGNode } from '../../../model/build';
 import { createOwnedDagTargets } from './dag';
 import { ownedNodeCollisionRadius } from './collisionRadius';
+import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import { createWorkerHostedGraphLayoutEngine } from './worker/host';
 
 export { ownedNodeCollisionRadius } from './collisionRadius';
@@ -137,6 +138,7 @@ export function createOwnedGraphLayout(
   dagLevelDistance = 60,
   onWorkerUpdate: () => void = () => undefined,
   onWorkerFrameRequest: () => void = onWorkerUpdate,
+  attributionProfiler?: OwnedGraphStageAttributionProfiler,
 ): OwnedGraphLayout {
   const { input, resolvedLinks } = buildOwnedGraphLayoutData(
     nodes,
@@ -152,6 +154,7 @@ export function createOwnedGraphLayout(
         input,
         onWorkerUpdate,
         onWorkerFrameRequest,
+        attributionProfiler,
       );
       kind = 'worker';
     } catch (error) {
