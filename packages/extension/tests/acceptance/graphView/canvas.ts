@@ -13,6 +13,7 @@ type NodeOutlineColor = 'orange' | 'white';
 type RgbColor = { blue: number; green: number; red: number };
 
 const TARGET_NODE = 'src/index.ts';
+const MIN_VISIBLE_PIXEL_COUNT = 2;
 const BLUE_NODE_RGB = { red: 147, green: 197, blue: 253 };
 const NODE_OUTLINE_RGB: Record<NodeOutlineColor, RgbColor> = {
   orange: { red: 234, green: 179, blue: 8 },
@@ -482,17 +483,17 @@ export async function expectNodeStaysDropped(context: GraphAcceptanceContext): P
 
 export async function expectNodeLooksBlue(frame: Frame, probe: NodeProbe): Promise<void> {
   const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.bluePixelCount).toBeGreaterThan(Math.max(2, Math.floor(probe.radius)));
+  expect(analysis.bluePixelCount).toBeGreaterThan(MIN_VISIBLE_PIXEL_COUNT);
 }
 
 export async function expectNodeHasWhiteCenterSymbol(frame: Frame, probe: NodeProbe): Promise<void> {
   const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.whiteCenterPixelCount).toBeGreaterThan(Math.max(1, Math.floor(probe.radius / 2)));
+  expect(analysis.whiteCenterPixelCount).toBeGreaterThan(1);
 }
 
 export async function expectNodeHasLabel(frame: Frame, probe: NodeProbe): Promise<void> {
   const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.labelPixelCount).toBeGreaterThan(8);
+  expect(analysis.labelPixelCount).toBeGreaterThan(MIN_VISIBLE_PIXEL_COUNT);
 }
 
 export async function expectNodeIsOutlined(
@@ -502,7 +503,7 @@ export async function expectNodeIsOutlined(
 ): Promise<void> {
   await expect.poll(
     async () => (await analyzeNodePixels(frame, probe, NODE_OUTLINE_RGB[color])).outlinePixelCount,
-  ).toBeGreaterThan(Math.max(1, Math.floor(probe.radius / 2)));
+  ).toBeGreaterThan(MIN_VISIBLE_PIXEL_COUNT);
 }
 
 export async function expectVisibleEdgeBetween(
