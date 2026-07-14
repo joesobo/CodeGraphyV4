@@ -198,6 +198,8 @@ function submitOwnedWebGpuFrame(
       cssWidth: prepared.width,
       devicePixelRatio: prepared.devicePixelRatio,
       directionMode: props.directionMode,
+      edgeSources: layout.engine.edgeSources,
+      edgeTargets: layout.engine.edgeTargets,
       getArrowColor: props.getArrowColor,
       getLinkColor: props.getLinkColor,
       getLinkOpacity: props.getLinkOpacity,
@@ -206,6 +208,8 @@ function submitOwnedWebGpuFrame(
       hoveredLink: runtime.hoveredLinkRef.current,
       links: layout.links,
       nodes: layout.nodes,
+      nodeX: layout.engine.x,
+      nodeY: layout.engine.y,
       positionVersion: runtime.positionVersionRef.current,
       styleVersion: props.getStyleRevision?.() ?? 0,
     });

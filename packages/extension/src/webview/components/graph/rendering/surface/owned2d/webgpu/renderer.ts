@@ -28,6 +28,8 @@ export interface OwnedWebGpuFrame {
   cssWidth: number;
   devicePixelRatio: number;
   directionMode: DirectionMode;
+  edgeSources: Uint32Array;
+  edgeTargets: Uint32Array;
   getArrowColor(this: void, link: FGLink): string;
   getLinkColor(this: void, link: FGLink): string;
   getLinkOpacity(this: void, link: FGLink): number;
@@ -36,6 +38,8 @@ export interface OwnedWebGpuFrame {
   hoveredLink?: FGLink | null;
   links: readonly FGLink[];
   nodes: readonly FGNode[];
+  nodeX: Float32Array;
+  nodeY: Float32Array;
   positionVersion: number;
   styleVersion: number;
 }
@@ -108,10 +112,6 @@ export function webGpuNodeShapeCode(shape: NodeShape2D): number {
     case 'hexagon': return 5;
     case 'star': return 6;
   }
-}
-
-function endpointNode(endpoint: string | FGNode): FGNode | undefined {
-  return typeof endpoint === 'string' ? undefined : endpoint;
 }
 
 const colorCache = new Map<string, readonly [number, number, number, number]>();
@@ -188,10 +188,9 @@ export class OwnedWebGpuRenderer {
   private linkStyleValues = new Float32Array();
   private linkWidthAccessor: OwnedWebGpuFrame['getLinkWidth'] | undefined;
   private readonly linkCameraBindGroup: GPUBindGroup;
-  private nodeIndexByNode = new WeakMap<FGNode, number>();
   private nodePositionValues = new Float32Array();
   private readonly nodePositionStream: VertexStream;
-  private nodeStyleByNode = new WeakMap<FGNode, OwnedGraphNodeStyle>();
+  private nodeStylesByIndex: OwnedGraphNodeStyle[] = [];
   private readonly nodeStyleStream: VertexStream;
   private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
@@ -395,14 +394,11 @@ export class OwnedWebGpuRenderer {
   private updateNodeStyleCache(frame: OwnedWebGpuFrame): void {
     this.uploadedStyleVersion = frame.styleVersion;
     this.styledNodes = frame.nodes;
-    this.nodeIndexByNode = new WeakMap();
-    this.nodeStyleByNode = new WeakMap();
+    this.nodeStylesByIndex = new Array<OwnedGraphNodeStyle>(frame.nodes.length);
     this.nodeStyles = new Float32Array(frame.nodes.length * NODE_STYLE_FLOATS);
     for (let index = 0; index < frame.nodes.length; index += 1) {
-      const node = frame.nodes[index];
-      const style = frame.getNodeStyle(node);
-      this.nodeIndexByNode.set(node, index);
-      this.nodeStyleByNode.set(node, style);
+      const style = frame.getNodeStyle(frame.nodes[index]);
+      this.nodeStylesByIndex[index] = style;
       this.writeNodeStyle(index, style);
     }
   }
@@ -483,8 +479,8 @@ export class OwnedWebGpuRenderer {
     }
     for (let index = 0; index < frame.nodes.length; index += 1) {
       const offset = index * NODE_POSITION_FLOATS;
-      this.nodePositionValues[offset] = frame.nodes[index].x ?? 0;
-      this.nodePositionValues[offset + 1] = frame.nodes[index].y ?? 0;
+      this.nodePositionValues[offset] = frame.nodeX[index] ?? 0;
+      this.nodePositionValues[offset + 1] = frame.nodeY[index] ?? 0;
     }
   }
 
@@ -497,26 +493,23 @@ export class OwnedWebGpuRenderer {
     writeArrows: boolean,
   ): boolean {
     const link = frame.links[linkIndex];
-    const source = endpointNode(link.source);
-    const target = endpointNode(link.target);
-    if (!source || !target) return false;
-    const sourceIndex = this.nodeIndexByNode.get(source);
-    const targetIndex = this.nodeIndexByNode.get(target);
-    if (sourceIndex === undefined || targetIndex === undefined) return false;
+    const sourceIndex = frame.edgeSources[linkIndex];
+    const targetIndex = frame.edgeTargets[linkIndex];
+    if (sourceIndex >= frame.nodes.length || targetIndex >= frame.nodes.length) return false;
     const curvature = link.curvature ?? 0;
     if (writeGeometry) {
-      const sourceX = source.x ?? 0;
-      const sourceY = source.y ?? 0;
-      const targetX = target.x ?? 0;
-      const targetY = target.y ?? 0;
+      const sourceX = frame.nodeX[sourceIndex] ?? 0;
+      const sourceY = frame.nodeY[sourceIndex] ?? 0;
+      const targetX = frame.nodeX[targetIndex] ?? 0;
+      const targetY = frame.nodeY[targetIndex] ?? 0;
       const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
       this.linkGeometryValues[offset] = sourceX;
       this.linkGeometryValues[offset + 1] = sourceY;
       this.linkGeometryValues[offset + 2] = targetX;
       this.linkGeometryValues[offset + 3] = targetY;
       if (writeArrows) {
-        const sourceStyle = this.nodeStyleByNode.get(source);
-        const targetStyle = this.nodeStyleByNode.get(target);
+        const sourceStyle = this.nodeStylesByIndex[sourceIndex];
+        const targetStyle = this.nodeStylesByIndex[targetIndex];
         if (!sourceStyle || !targetStyle) return false;
         writeOwnedArrowCurveParameters(
           this.linkGeometryValues,
