@@ -72,8 +72,9 @@ function createSingleNodeInteractionFixture() {
     synchronizedPositionVersionRef: { current: 0 },
   };
   const handlers = createOwnedGraphInteractionHandlers(runtime);
+  const getBoundingClientRect = vi.fn(() => ({ height: 100, left: 0, top: 0, width: 100 }));
   const canvas = {
-    getBoundingClientRect: () => ({ height: 100, left: 0, top: 0, width: 100 }),
+    getBoundingClientRect,
     hasPointerCapture: vi.fn(() => true),
     releasePointerCapture: vi.fn(),
     setPointerCapture: vi.fn(),
@@ -85,7 +86,17 @@ function createSingleNodeInteractionFixture() {
     nativeEvent: { clientX, clientY: 50, timeStamp },
     pointerId: 1,
   } as never);
-  return { canvas, engine, graphNode, handlers, layout, pointer, props, runtime };
+  return {
+    canvas,
+    engine,
+    getBoundingClientRect,
+    graphNode,
+    handlers,
+    layout,
+    pointer,
+    props,
+    runtime,
+  };
 }
 
 describe('owned graph lazy interaction picking', () => {
@@ -172,6 +183,7 @@ describe('owned graph lazy interaction picking', () => {
     fixture.handlers.handlePointerMove(fixture.pointer(60, 14));
     expect(pin).toHaveBeenCalledOnce();
     fixture.handlers.handlePointerUp(fixture.pointer(60, 16));
+    expect(fixture.getBoundingClientRect).toHaveBeenCalledTimes(4);
     expect(recorder.stop()?.inputs).toEqual([
       expect.objectContaining({ eventTimestampMs: 10, nodeId: 'a', phase: 'down' }),
       expect.objectContaining({ eventTimestampMs: 12, nodeId: 'a', phase: 'move' }),
@@ -282,9 +294,10 @@ describe('owned graph lazy interaction picking', () => {
       setLinkTooltip,
       synchronizedPositionVersionRef: { current: 0 },
     };
-    const canvas = {
-      getBoundingClientRect: () => ({ height: 100, left: 0, top: 0, width: 100 }),
-    } as unknown as HTMLCanvasElement;
+    const getBoundingClientRect = vi.fn(
+      () => ({ height: 100, left: 0, top: 0, width: 100 }),
+    );
+    const canvas = { getBoundingClientRect } as unknown as HTMLCanvasElement;
     const move = () => createOwnedGraphInteractionHandlers(runtime).handlePointerMove({
       currentTarget: canvas,
       nativeEvent: { clientX: 50, clientY: 50 },
@@ -313,12 +326,14 @@ describe('owned graph lazy interaction picking', () => {
     expect(rebuildLink).toHaveBeenCalledTimes(2);
 
     transitionOwnedGraphCamera(cameraRef.current, { zoom: 4 }, 300, 100);
+    getBoundingClientRect.mockClear();
     createOwnedGraphInteractionHandlers(runtime).handleWheel({
       currentTarget: canvas,
       deltaY: -1,
       nativeEvent: { clientX: 50, clientY: 50 },
     } as never);
     expect(cameraRef.current.transition).toBeNull();
+    expect(getBoundingClientRect).toHaveBeenCalledOnce();
     expect(runtime.clearLinkHover).toHaveBeenCalledTimes(2);
     expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(7);
   });

@@ -3,10 +3,22 @@ export function canvasSize(canvas: HTMLCanvasElement): { width: number; height: 
   return { width: Math.max(1, bounds.width), height: Math.max(1, bounds.height) };
 }
 
-export function localCanvasPointer(
+export interface CanvasPointerGeometry {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
+export function canvasPointerGeometry(
   canvas: HTMLCanvasElement,
   event: Pick<PointerEvent | WheelEvent | MouseEvent, 'clientX' | 'clientY'>,
-): { x: number; y: number } {
+): CanvasPointerGeometry {
   const bounds = canvas.getBoundingClientRect();
-  return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+  return {
+    height: Math.max(1, bounds.height),
+    width: Math.max(1, bounds.width),
+    x: event.clientX - bounds.left,
+    y: event.clientY - bounds.top,
+  };
 }
