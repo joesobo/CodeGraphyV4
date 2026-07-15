@@ -1,8 +1,6 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 
-export type GraphViewRuntimeContributionContext = Record<never, never>;
-
 function appendUniqueNodes(
   target: IGraphNode[],
   nodeIds: Set<string>,
@@ -37,7 +35,6 @@ function appendUniqueEdges(
 export function applyGraphViewRuntimeContributions(
   data: IGraphData,
   contributions: CoreGraphViewContributionSet | undefined,
-  context: GraphViewRuntimeContributionContext = {},
 ): IGraphData {
   if (!contributions) {
     return data;
@@ -52,10 +49,7 @@ export function applyGraphViewRuntimeContributions(
     appendUniqueNodes(
       nodes,
       nodeIds,
-        entry.contribution.createNodes({
-          visibleGraph: { nodes, edges },
-          ...context,
-        }),
+      entry.contribution.createNodes({ visibleGraph: { nodes, edges } }),
     );
   }
 
@@ -64,10 +58,7 @@ export function applyGraphViewRuntimeContributions(
       edges,
       edgeIds,
       nodeIds,
-        entry.contribution.createEdges({
-          visibleGraph: { nodes, edges },
-          ...context,
-        }),
+      entry.contribution.createEdges({ visibleGraph: { nodes, edges } }),
     );
   }
 
@@ -77,7 +68,6 @@ export function applyGraphViewRuntimeContributions(
 export function applyGraphViewProjectionContributions(
   data: IGraphData,
   contributions: CoreGraphViewContributionSet | undefined,
-  context: GraphViewRuntimeContributionContext = {},
 ): IGraphData {
   if (!contributions) {
     return data;
@@ -87,7 +77,7 @@ export function applyGraphViewProjectionContributions(
     (
       visibleGraph: IGraphData,
       entry: CoreGraphViewContributionSet['projections'][number],
-    ) => entry.contribution.project({ visibleGraph, ...context }),
+    ) => entry.contribution.project({ visibleGraph }),
     data,
   );
 }

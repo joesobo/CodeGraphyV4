@@ -10,7 +10,7 @@ export function publishPluginGraphViewViewportState({
 }: {
   globalScale: number;
   graph: GraphViewport2dControls | undefined;
-  nodes: readonly FGNode[];
+  nodes: FGNode[];
   pluginHost: WebviewPluginHost | undefined;
 }): void {
   if (!pluginHost || pluginHost.hasGraphViewViewportConsumers?.() === false) return;
@@ -18,6 +18,6 @@ export function publishPluginGraphViewViewportState({
   pluginHost.setGraphViewViewportState(createGraphViewViewportState({
     globalScale,
     graph,
-    nodes: [...nodes],
+    nodes,
   }));
 }
