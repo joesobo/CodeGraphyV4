@@ -1,0 +1,81 @@
+{
+  "environment": {
+    "revision": "a7bb05085d91f4205c12bad40308451cc461c2fb",
+    "vscodeVersion": "1.128.1",
+    "physicsBackend": "wasm"
+  },
+  "graph": {
+    "nodes": 2690,
+    "semanticRadiusMinimum": 8,
+    "semanticRadiusMaximum": 30,
+    "connections": 5643,
+    "statsSource": "visible Graph View stats badge"
+  },
+  "zoomOne": {
+    "zoom": 1,
+    "settleMs": 2300,
+    "overlapCount": 0,
+    "maximumPenetrationPx": 0,
+    "minimumGapPx": 7.815013241819052,
+    "closestPair": {
+      "first": {
+        "id": "packages/extension/src/shared/graph/contracts.ts",
+        "size": 30
+      },
+      "second": {
+        "id": "packages/extension/src/extension/graphView/analysis/execution/publish/metrics/patch.ts",
+        "size": 8
+      },
+      "distancePx": 45.81501324181905,
+      "gapPx": 7.815013241819052
+    }
+  },
+  "zoomOutFirstRenderedFrame": {
+    "zoom": 0.5,
+    "overlapCount": 0,
+    "maximumPenetrationPx": 0,
+    "minimumGapPx": 5.538348007116997,
+    "closestPair": {
+      "first": {
+        "id": "packages/extension/src/webview/components/graph/model/build.ts",
+        "size": 25.80697580112788
+      },
+      "second": {
+        "id": "packages/extension/src/webview/components/graph/viewport/shell/scale.ts",
+        "size": 8
+      },
+      "distancePx": 29.443489847504036,
+      "gapPx": 5.538348007116997
+    }
+  },
+  "zoomOutSettled": {
+    "zoom": 0.5,
+    "settleMs": 500,
+    "overlapCount": 0,
+    "maximumPenetrationPx": 0,
+    "minimumGapPx": 5.536615525593739,
+    "closestPair": {
+      "first": {
+        "id": "packages/core/src/treeSitter/runtime/analyzeGo/file.ts",
+        "size": 9
+      },
+      "second": {
+        "id": "packages/core/src/treeSitter/runtime/analyzeJavaScript/file.ts",
+        "size": 9.486832980505138
+      },
+      "distancePx": 18.608780488772037,
+      "gapPx": 5.536615525593739
+    }
+  },
+  "screenshot": "fixed-codegraphy-monorepo.png",
+  "regression": {
+    "collisionScale": 1.4,
+    "denseCellCandidateCount": 130,
+    "largeRadius": 30,
+    "smallRadius": 8,
+    "preFixDistance": 40,
+    "requiredDistance": 53.2,
+    "preFixPairWasSkipped": true
+  },
+  "reportedScreenshot": "reported-overlap-closeup.png"
+}
