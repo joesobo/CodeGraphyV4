@@ -32,10 +32,7 @@ function updateNodeKinematics(
   index: number,
   node: FGNode,
 ): void {
-  const x = new Float32Array(layout.engine.x);
-  const y = new Float32Array(layout.engine.y);
-  const vx = new Float32Array(layout.engine.vx);
-  const vy = new Float32Array(layout.engine.vy);
+  const { x, y, vx, vy } = layout.engine;
   if (Number.isFinite(node.x)) x[index] = node.x as number;
   if (Number.isFinite(node.y)) y[index] = node.y as number;
   if (Number.isFinite(node.fx)) x[index] = node.fx as number;

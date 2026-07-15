@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   createGraphLayoutEngine,
@@ -201,6 +201,37 @@ describe('graph layout engine', () => {
     expect(replaced.y).toEqual(retained.y);
     expect(replaced.vx).toEqual(retained.vx);
     expect(replaced.vy).toEqual(retained.vy);
+  });
+
+  it('copies external kinematics but treats authoritative views as a change notification', () => {
+    const engine = createGraphLayoutEngine(lineGraph(3));
+    const setX = vi.spyOn(engine.x, 'set');
+    const setY = vi.spyOn(engine.y, 'set');
+    const setVx = vi.spyOn(engine.vx, 'set');
+    const setVy = vi.spyOn(engine.vy, 'set');
+    const externalX = Float32Array.of(1, 2, 3);
+    const externalY = Float32Array.of(4, 5, 6);
+    const externalVx = Float32Array.of(7, 8, 9);
+    const externalVy = Float32Array.of(10, 11, 12);
+
+    engine.setKinematics(externalX, externalY, externalVx, externalVy);
+
+    expect(setX).toHaveBeenCalledWith(externalX);
+    expect(setY).toHaveBeenCalledWith(externalY);
+    expect(setVx).toHaveBeenCalledWith(externalVx);
+    expect(setVy).toHaveBeenCalledWith(externalVy);
+    setX.mockClear();
+    setY.mockClear();
+    setVx.mockClear();
+    setVy.mockClear();
+
+    engine.setKinematics(engine.x, engine.y, engine.vx, engine.vy);
+
+    expect(setX).not.toHaveBeenCalled();
+    expect(setY).not.toHaveBeenCalled();
+    expect(setVx).not.toHaveBeenCalled();
+    expect(setVy).not.toHaveBeenCalled();
+    expect(engine.settled).toBe(false);
   });
 
   it('refreshes engine views after rare Barnes-Hut storage growth', () => {

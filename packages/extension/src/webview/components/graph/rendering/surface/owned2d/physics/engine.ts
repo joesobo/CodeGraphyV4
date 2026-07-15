@@ -110,13 +110,16 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     vy: Float32Array,
   ): void {
     const nodeCount = this.x.length;
-    if ([x, y, vx, vy].some(buffer => buffer.length !== nodeCount)) {
+    if (x.length !== nodeCount
+      || y.length !== nodeCount
+      || vx.length !== nodeCount
+      || vy.length !== nodeCount) {
       throw new Error('Graph layout kinematics must match node count');
     }
-    this.x.set(x);
-    this.y.set(y);
-    this.vx.set(vx);
-    this.vy.set(vy);
+    if (x !== this.x) this.x.set(x);
+    if (y !== this.y) this.y.set(y);
+    if (vx !== this.vx) this.vx.set(vx);
+    if (vy !== this.vy) this.vy.set(vy);
     this.settled = false;
     this.settledStepCount = 0;
   }
