@@ -183,7 +183,7 @@ describe('WebviewPluginHost', () => {
     secondApi.registerNodeRenderer('.ts', secondRenderer);
     firstDisposable.dispose();
 
-    expect(host.getNodeRenderer('.ts')).toBe(secondRenderer);
+    expect(host.getNodeRenderers('.ts')).toEqual([secondRenderer]);
   });
 
   it('returns type-specific node renderers with wildcard renderers', () => {
@@ -357,7 +357,7 @@ describe('WebviewPluginHost', () => {
     host.deliverMessage('acme.plugin', { type: 'PING', data: null });
 
     expect(document.querySelector('[data-cg-plugin="acme.plugin"]')).toBeNull();
-    expect(host.getNodeRenderer('.ts')).toBeUndefined();
+    expect(host.getNodeRenderers('.ts')).toEqual([]);
     expect(host.getTooltipContent({
       node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
       neighbors: [],
