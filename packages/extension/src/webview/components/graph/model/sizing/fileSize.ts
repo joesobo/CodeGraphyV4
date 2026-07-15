@@ -1,6 +1,5 @@
 import type { IGraphNode } from '../../../../../shared/graph/contracts';
 import { MIN_NODE_SIZE, MAX_NODE_SIZE } from './calculations';
-import { scaleMetricValue } from './range';
 
 export function computeFileSizeSizes(nodes: IGraphNode[]): Map<string, number> {
   const sizes = new Map<string, number>();
@@ -17,13 +16,9 @@ export function computeFileSizeSizes(nodes: IGraphNode[]): Map<string, number> {
   for (const node of nodes) {
     const fileSize = node.fileSize ?? 0;
     const size = fileSize > 0
-      ? scaleMetricValue(
-          Math.log1p(fileSize),
-          minimumLogSize,
-          range,
-          MIN_NODE_SIZE,
-          MAX_NODE_SIZE,
-        )
+      ? MIN_NODE_SIZE
+        + ((Math.log1p(fileSize) - minimumLogSize) / range)
+        * (MAX_NODE_SIZE - MIN_NODE_SIZE)
       : MIN_NODE_SIZE;
     sizes.set(node.id, size);
   }

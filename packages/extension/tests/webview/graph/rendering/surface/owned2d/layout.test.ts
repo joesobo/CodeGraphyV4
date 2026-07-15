@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/collisionRadius';
 import {
   createOwnedGraphLayout,
-  ownedNodeCollisionRadius,
   toOwnedPhysicsConfig,
   updateOwnedGraphLayout,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
