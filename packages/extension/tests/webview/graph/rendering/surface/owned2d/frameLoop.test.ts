@@ -65,8 +65,6 @@ describe('owned graph frame loop', () => {
       layoutRef: { current: null },
       propsRef: { current: { showFps: false } },
       publishPerformance,
-      markPerformanceIdle: () => undefined,
-      recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
     } as unknown as OwnedGraphFrameLoopRuntime;
@@ -76,6 +74,8 @@ describe('owned graph frame loop', () => {
       document.createElement('canvas'),
       { current: undefined },
     );
+    expect(runtime).not.toHaveProperty('recordRenderedFrame');
+    expect(runtime).not.toHaveProperty('markPerformanceIdle');
     scheduledFrame?.(100);
 
     expect(recordFrame).toHaveBeenCalledWith({
@@ -112,8 +112,6 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: { canRender: () => false } },
       layoutRef: { current: null },
-      markPerformanceIdle: () => undefined,
-      recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
     } as unknown as OwnedGraphFrameLoopRuntime;
