@@ -3,23 +3,28 @@ import type { OwnedGraphLayout } from './layout';
 
 type PinIntent = 'pin' | 'release' | 'unchanged';
 
+function hasPinnedPosition(node: FGNode): boolean {
+  return node.isDragging === true
+    || Number.isFinite(node.fx)
+    || Number.isFinite(node.fy);
+}
+
+function updatesPinState(updates: Record<string, unknown>): boolean {
+  return 'isPinned' in updates
+    || 'isDragging' in updates
+    || 'fx' in updates
+    || 'fy' in updates;
+}
+
 function resolvePinIntent(node: FGNode, updates: Record<string, unknown>): PinIntent {
   const explicitlyUnpinned = updates.isPinned === false;
   if (explicitlyUnpinned) {
     node.fx = undefined;
     node.fy = undefined;
   }
-  if (updates.isPinned === true || (!explicitlyUnpinned && (
-    node.isDragging === true
-    || Number.isFinite(node.fx)
-    || Number.isFinite(node.fy)
-  ))) return 'pin';
-  return 'isPinned' in updates
-    || 'isDragging' in updates
-    || 'fx' in updates
-    || 'fy' in updates
-    ? 'release'
-    : 'unchanged';
+  if (updates.isPinned === true) return 'pin';
+  if (!explicitlyUnpinned && hasPinnedPosition(node)) return 'pin';
+  return updatesPinState(updates) ? 'release' : 'unchanged';
 }
 
 function updateNodeKinematics(

@@ -3,7 +3,7 @@ import { render, act, screen } from '@testing-library/react';
 import Graph from '../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../src/shared/graph/contracts';
 import { graphStore } from '../../src/webview/store/state';
-import ForceGraph2D from '../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
@@ -22,7 +22,7 @@ describe('Graph', () => {
 
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
   });
 
   afterEach(() => {
@@ -77,7 +77,7 @@ describe('Graph', () => {
   });
 
   it('does not fit a newly rendered graph after physics stabilizes', () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.zoomToFit.mockClear();
 
     const { rerender } = render(<Graph data={mockData} />);
@@ -85,13 +85,13 @@ describe('Graph', () => {
     expect(methods.zoomToFit).not.toHaveBeenCalled();
 
     act(() => {
-      ForceGraph2D.simulateEngineStop();
+      OwnedGraphSurface.simulateEngineStop();
     });
 
     expect(methods.zoomToFit).not.toHaveBeenCalled();
 
     act(() => {
-      ForceGraph2D.simulateEngineStop();
+      OwnedGraphSurface.simulateEngineStop();
     });
 
     expect(methods.zoomToFit).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('Graph', () => {
     }} />);
 
     act(() => {
-      ForceGraph2D.simulateEngineStop();
+      OwnedGraphSurface.simulateEngineStop();
     });
 
     expect(methods.zoomToFit).not.toHaveBeenCalled();
@@ -188,12 +188,11 @@ describe('Export Functionality', () => {
 
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    ForceGraph2D.clearMockPositions();
   });
 
   it('should register message listener on mount', async () => {

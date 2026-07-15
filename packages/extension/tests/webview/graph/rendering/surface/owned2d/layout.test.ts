@@ -164,17 +164,17 @@ describe('owned graph dynamic updates', () => {
     );
 
     const recolored = [node('a', { color: '#ff0000' }), node('b')];
-    expect(updateOwnedGraphLayout(layout, recolored, [{
+    updateOwnedGraphLayout(layout, recolored, [{
       ...initialLinks[0],
       source: recolored[0],
       target: recolored[1],
-    }], DEFAULT_SETTINGS)).toBe(true);
+    }], DEFAULT_SETTINGS);
     expect(layout.engine).toBe(engine);
     expect(layout.nodes[0].color).toBe('#ff0000');
     expect(Array.from(layout.engine.x)).toEqual([100, 300]);
 
     const added = [...recolored, node('c', { x: 500, y: 600 })];
-    expect(updateOwnedGraphLayout(layout, added, [{
+    updateOwnedGraphLayout(layout, added, [{
       ...initialLinks[0],
       source: added[0],
       target: added[1],
@@ -185,7 +185,7 @@ describe('owned graph dynamic updates', () => {
       source: added[1],
       target: added[2],
       bidirectional: false,
-    }], DEFAULT_SETTINGS)).toBe(true);
+    }], DEFAULT_SETTINGS);
     expect(layout.engine).toBe(engine);
     expect(Array.from(layout.engine.x)).toEqual([100, 300, 500]);
     expect(Array.from(layout.engine.y)).toEqual([200, 400, 600]);

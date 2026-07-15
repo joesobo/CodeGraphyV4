@@ -4,7 +4,7 @@ import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
-import ForceGraph2D from '../../../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../../../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 
@@ -37,7 +37,7 @@ const selectionData: IGraphData = {
 describe('Graph context menu (background)', () => {
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
       pluginContextMenuItems: [],
@@ -47,7 +47,6 @@ describe('Graph context menu (background)', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    ForceGraph2D.clearMockPositions();
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
@@ -66,7 +65,7 @@ describe('Graph context menu (background)', () => {
     render(<Graph data={menuData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
     });
 
     await waitFor(() => {
@@ -107,7 +106,7 @@ describe('Graph context menu (background)', () => {
       render(<Graph data={menuData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 300, clientY: 300 });
+        OwnedGraphSurface.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 300, clientY: 300 });
       });
 
       await waitFor(() => {
@@ -123,7 +122,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -143,7 +142,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -163,7 +162,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -186,7 +185,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -205,14 +204,14 @@ describe('Graph context menu (background)', () => {
   });
 
   it('fits view in 2d when clicking Fit All Nodes', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.zoomToFit.mockClear();
 
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -241,7 +240,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -256,11 +255,11 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+      OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 500, clientY: 500 });
     });
 
@@ -276,11 +275,11 @@ describe('Graph context menu (background)', () => {
       render(<Graph data={selectionData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+        OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
       });
 
       await act(async () => {
-        ForceGraph2D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 500, clientY: 500 });
+        OwnedGraphSurface.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 500, clientY: 500 });
       });
 
       await waitFor(() => {

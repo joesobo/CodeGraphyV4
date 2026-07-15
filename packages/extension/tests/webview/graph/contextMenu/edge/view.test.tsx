@@ -4,7 +4,7 @@ import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
-import ForceGraph2D from '../../../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../../../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 
@@ -35,7 +35,7 @@ const edge = {
 describe('Graph context menu (edge)', () => {
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
       pluginContextMenuItems: [],
@@ -44,7 +44,6 @@ describe('Graph context menu (edge)', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    ForceGraph2D.clearMockPositions();
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
@@ -57,7 +56,7 @@ describe('Graph context menu (edge)', () => {
     render(<Graph data={menuData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
     });
 
     await waitFor(() => {
@@ -75,7 +74,7 @@ describe('Graph context menu (edge)', () => {
       render(<Graph data={menuData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateLinkClick(edge, { button: 0, ctrlKey: true, clientX: 210, clientY: 180 });
+        OwnedGraphSurface.simulateLinkClick(edge, { button: 0, ctrlKey: true, clientX: 210, clientY: 180 });
       });
 
       await waitFor(() => {
@@ -95,7 +94,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
     });
 
@@ -116,7 +115,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -139,7 +138,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -162,7 +161,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -185,7 +184,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -208,7 +207,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -239,7 +238,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 220, clientY: 210 });
     });
 

@@ -177,6 +177,76 @@ function clearHoverForInteraction(runtime: OwnedGraphInteractionRuntime): boolea
   return hadNodeHover || hadLinkHover;
 }
 
+function contextGestureButton(
+  event: ReactPointerEvent<HTMLCanvasElement>,
+): 0 | 2 | null {
+  if (event.button === 2) return 2;
+  return event.button === 0 && event.ctrlKey ? 0 : null;
+}
+
+function beginContextGesture(
+  runtime: OwnedGraphInteractionRuntime,
+  event: ReactPointerEvent<HTMLCanvasElement>,
+  screen: { x: number; y: number },
+  button: 0 | 2,
+): void {
+  runtime.contextGestureSessionRef.current = {
+    button,
+    moved: false,
+    pointerId: event.pointerId,
+    startScreen: screen,
+  };
+  event.currentTarget.setPointerCapture?.(event.pointerId);
+}
+
+function createPointerSession(
+  picked: { index: number; node: FGNode } | undefined,
+  link: FGLink | null,
+  world: { x: number; y: number },
+  screen: { x: number; y: number },
+): PointerSession {
+  if (!picked) {
+    return {
+      draggedIndexes: new Set(),
+      index: null,
+      nodeId: null,
+      link,
+      lastWorld: world,
+      moved: false,
+      node: null,
+      startScreen: screen,
+    };
+  }
+  return {
+    draggedIndexes: new Set(),
+    index: picked.index,
+    nodeId: picked.node.id,
+    link: null,
+    lastWorld: world,
+    moved: false,
+    node: picked.node,
+    startScreen: screen,
+  };
+}
+
+function beginPrimaryPointerSession(
+  runtime: OwnedGraphInteractionRuntime,
+  event: ReactPointerEvent<HTMLCanvasElement>,
+  screen: { x: number; y: number },
+): boolean {
+  const layout = runtime.layoutRef.current;
+  if (!layout) return false;
+  const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
+  const picked = pickNode(runtime, layout, world);
+  const link = picked ? null : pickLink(runtime, layout, world)?.link ?? null;
+  const session = createPointerSession(picked, link, world, screen);
+  runtime.pointerSessionRef.current = session;
+  runtime.requestFrameRef.current();
+  recordInteractionInput(runtime, event, 'down', session.nodeId, world);
+  if (picked) event.currentTarget.setPointerCapture(event.pointerId);
+  return true;
+}
+
 function beginPointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
@@ -184,46 +254,13 @@ function beginPointerSession(
   cancelOwnedGraphCameraTransition(runtime.cameraRef.current);
   const clearedHover = clearHoverForInteraction(runtime);
   const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-  const contextButton = event.button === 2
-    ? 2
-    : event.button === 0 && event.ctrlKey ? 0 : null;
+  const contextButton = contextGestureButton(event);
   if (contextButton !== null) {
-    runtime.contextGestureSessionRef.current = {
-      button: contextButton,
-      moved: false,
-      pointerId: event.pointerId,
-      startScreen: screen,
-    };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    if (clearedHover) runtime.requestFrameRef.current();
+    beginContextGesture(runtime, event, screen, contextButton);
+  } else if (event.button === 0 && beginPrimaryPointerSession(runtime, event, screen)) {
     return;
   }
-  if (event.button !== 0) {
-    if (clearedHover) runtime.requestFrameRef.current();
-    return;
-  }
-  const layout = runtime.layoutRef.current;
-  if (!layout) {
-    if (clearedHover) runtime.requestFrameRef.current();
-    return;
-  }
-  const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
-  const picked = pickNode(runtime, layout, world);
-  const pickedLink = picked ? undefined : pickLink(runtime, layout, world);
-  runtime.pointerSessionRef.current = {
-    draggedIndexes: new Set(),
-    index: picked?.index ?? null,
-    nodeId: picked?.node.id ?? null,
-    link: pickedLink?.link ?? null,
-    lastWorld: world,
-    moved: false,
-    node: picked?.node ?? null,
-    startScreen: screen,
-  };
-  runtime.requestFrameRef.current();
-  recordInteractionInput(runtime, event, 'down', picked?.node.id ?? null, world);
-  if (!picked) return;
-  event.currentTarget.setPointerCapture(event.pointerId);
+  if (clearedHover) runtime.requestFrameRef.current();
 }
 
 function updateContextGesture(
@@ -273,10 +310,52 @@ function moveDraggedNode(
   node.y = world.y;
   node.fx = world.x;
   node.fy = world.y;
-  runtime.propsRef.current.sharedProps.onNodeDrag?.(node, translate);
+  runtime.propsRef.current.sharedProps.onNodeDrag(node, translate);
   synchronizeOwnedDraggedNodes(layout, session.draggedIndexes);
   runtime.engineStopNotifiedRef.current = false;
   runtime.requestFrameRef.current();
+  return true;
+}
+
+interface HoverTarget {
+  link: FGLink | null;
+  node: FGNode | null;
+}
+
+function resolveHoverTarget(
+  runtime: OwnedGraphInteractionRuntime,
+  layout: OwnedGraphLayout,
+  world: { x: number; y: number },
+): HoverTarget {
+  const node = pickNode(runtime, layout, world)?.node ?? null;
+  const link = node || !shouldEnableGraphEdgeHover(runtime.cameraRef.current.zoom)
+    ? null
+    : pickLink(runtime, layout, world)?.link ?? null;
+  return { link, node };
+}
+
+function updateNodeHover(
+  runtime: OwnedGraphInteractionRuntime,
+  node: FGNode | null,
+): boolean {
+  if (node === runtime.hoveredNodeRef.current) return false;
+  runtime.hoveredNodeRef.current = node;
+  setOwnedGraphNodeHover(runtime.nodeHoverRef.current, node?.id ?? null, performance.now());
+  runtime.propsRef.current.sharedProps.onNodeHover(node);
+  return true;
+}
+
+function updateLinkHover(
+  runtime: OwnedGraphInteractionRuntime,
+  link: FGLink | null,
+  screen: { x: number; y: number },
+): boolean {
+  if (link === runtime.hoveredLinkRef.current) return false;
+  if (!link) runtime.clearLinkHover();
+  else {
+    runtime.hoveredLinkRef.current = link;
+    runtime.setLinkTooltip({ link, screen });
+  }
   return true;
 }
 
@@ -286,34 +365,16 @@ function updateHover(
   world: { x: number; y: number },
   screen: { x: number; y: number },
 ): void {
-  const pickedNode = pickNode(runtime, layout, world);
-  const hovered = pickedNode?.node ?? null;
-  const hoveredLink = hovered || !shouldEnableGraphEdgeHover(runtime.cameraRef.current.zoom)
-    ? null
-    : pickLink(runtime, layout, world)?.link ?? null;
-  if (hovered !== runtime.hoveredNodeRef.current) {
-    runtime.hoveredNodeRef.current = hovered;
-    setOwnedGraphNodeHover(
-      runtime.nodeHoverRef.current,
-      pickedNode?.node.id ?? null,
-      performance.now(),
-    );
-    runtime.propsRef.current.sharedProps.onNodeHover(hovered);
-    runtime.requestFrameRef.current();
-  }
-  if (hoveredLink !== runtime.hoveredLinkRef.current) {
-    if (!hoveredLink) runtime.clearLinkHover();
-    else {
-      runtime.hoveredLinkRef.current = hoveredLink;
-      runtime.setLinkTooltip({ link: hoveredLink, screen });
-    }
+  const { link, node } = resolveHoverTarget(runtime, layout, world);
+  if (updateNodeHover(runtime, node)) runtime.requestFrameRef.current();
+  if (updateLinkHover(runtime, link, screen)) {
     runtime.requestFrameRef.current();
     return;
   }
-  if (hoveredLink) {
+  if (link) {
     runtime.setLinkTooltip(current => current
       ? { ...current, screen }
-      : { link: hoveredLink, screen });
+      : { link, screen });
   }
 }
 
@@ -342,6 +403,50 @@ function releaseContextGestureCapture(
   if (canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId);
 }
 
+type ContextTarget =
+  | { kind: 'background' }
+  | { kind: 'link'; link: FGLink }
+  | { kind: 'node'; node: FGNode };
+
+function pickContextTarget(
+  runtime: OwnedGraphInteractionRuntime,
+  layout: OwnedGraphLayout,
+  world: { x: number; y: number },
+): ContextTarget {
+  const node = pickNode(runtime, layout, world)?.node;
+  if (node) return { kind: 'node', node };
+  const link = pickLink(runtime, layout, world)?.link;
+  return link ? { kind: 'link', link } : { kind: 'background' };
+}
+
+function routeRightClick(
+  runtime: OwnedGraphInteractionRuntime,
+  target: ContextTarget,
+  event: MouseEvent,
+): void {
+  if (target.kind === 'node') {
+    runtime.propsRef.current.sharedProps.onNodeRightClick(target.node, event);
+  } else if (target.kind === 'link') {
+    runtime.propsRef.current.sharedProps.onLinkRightClick(target.link, event);
+  } else {
+    runtime.propsRef.current.sharedProps.onBackgroundRightClick(event);
+  }
+}
+
+function routeControlClick(
+  runtime: OwnedGraphInteractionRuntime,
+  target: ContextTarget,
+  event: MouseEvent,
+): void {
+  if (target.kind === 'node') {
+    runtime.propsRef.current.sharedProps.onNodeClick(target.node, event);
+  } else if (target.kind === 'link') {
+    runtime.propsRef.current.sharedProps.onLinkClick(target.link, event);
+  } else {
+    runtime.propsRef.current.sharedProps.onBackgroundClick(event);
+  }
+}
+
 function routeContextGesture(
   runtime: OwnedGraphInteractionRuntime,
   session: ContextGestureSession,
@@ -351,17 +456,9 @@ function routeContextGesture(
   if (!layout || session.moved) return;
   const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
-  const node = pickNode(runtime, layout, world)?.node;
-  const link = node ? undefined : pickLink(runtime, layout, world)?.link;
-  if (session.button === 2) {
-    if (node) runtime.propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
-    else if (link) runtime.propsRef.current.sharedProps.onLinkRightClick(link, event.nativeEvent);
-    else runtime.propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
-    return;
-  }
-  if (node) runtime.propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
-  else if (link) runtime.propsRef.current.sharedProps.onLinkClick(link, event.nativeEvent);
-  else runtime.propsRef.current.sharedProps.onBackgroundClick(event.nativeEvent);
+  const target = pickContextTarget(runtime, layout, world);
+  if (session.button === 2) routeRightClick(runtime, target, event.nativeEvent);
+  else routeControlClick(runtime, target, event.nativeEvent);
 }
 
 function completeContextGesture(
@@ -411,7 +508,7 @@ function completeNodeSession(
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
   const node = layout.nodes[session.index as number];
-  if (session.moved) runtime.propsRef.current.sharedProps.onNodeDragEnd?.(node);
+  if (session.moved) runtime.propsRef.current.sharedProps.onNodeDragEnd(node);
   else runtime.propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
   releasePointerSession(runtime, layout, session, event.currentTarget, event.pointerId);
 }
@@ -444,6 +541,16 @@ function cancelContextGesture(
   return true;
 }
 
+function notifyCancelledNodeDrag(
+  runtime: OwnedGraphInteractionRuntime,
+  layout: OwnedGraphLayout,
+  session: PointerSession,
+): void {
+  if (session.index === null || !session.moved) return;
+  const node = layout.nodes[session.index];
+  if (node) runtime.propsRef.current.sharedProps.onNodeDragEnd(node);
+}
+
 function cancelPointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
@@ -453,10 +560,7 @@ function cancelPointerSession(
   const session = runtime.pointerSessionRef.current;
   runtime.pointerSessionRef.current = null;
   if (!layout || !session) return;
-  if (session.index !== null && session.moved) {
-    const node = layout.nodes[session.index];
-    if (node) runtime.propsRef.current.sharedProps.onNodeDragEnd?.(node);
-  }
+  notifyCancelledNodeDrag(runtime, layout, session);
   releasePointerSession(runtime, layout, session, event.currentTarget, event.pointerId);
 }
 
@@ -492,13 +596,16 @@ function zoomAtPointer(
   runtime.requestFrameRef.current();
 }
 
+function clearNodeHoverOnLeave(runtime: OwnedGraphInteractionRuntime): boolean {
+  if (runtime.pointerSessionRef.current || !runtime.hoveredNodeRef.current) return false;
+  runtime.hoveredNodeRef.current = null;
+  setOwnedGraphNodeHover(runtime.nodeHoverRef.current, null, performance.now());
+  runtime.propsRef.current.sharedProps.onNodeHover(null);
+  return true;
+}
+
 function leavePointerSurface(runtime: OwnedGraphInteractionRuntime): void {
-  if (!runtime.pointerSessionRef.current && runtime.hoveredNodeRef.current) {
-    runtime.hoveredNodeRef.current = null;
-    setOwnedGraphNodeHover(runtime.nodeHoverRef.current, null, performance.now());
-    runtime.propsRef.current.sharedProps.onNodeHover(null);
-    runtime.requestFrameRef.current();
-  }
+  if (clearNodeHoverOnLeave(runtime)) runtime.requestFrameRef.current();
   if (runtime.clearLinkHover()) runtime.requestFrameRef.current();
 }
 

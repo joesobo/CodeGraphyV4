@@ -9,10 +9,6 @@ export function ownedGraphNodeWorldScale(zoom: number): number {
   return 1 / Math.sqrt(positiveZoom(zoom));
 }
 
-export function ownedGraphNodeWorldRadius(radius: number, zoom: number): number {
-  return radius * ownedGraphNodeWorldScale(zoom);
-}
-
 export function ownedGraphNodeScreenRadius(radius: number, zoom: number): number {
   return radius * Math.sqrt(positiveZoom(zoom));
 }

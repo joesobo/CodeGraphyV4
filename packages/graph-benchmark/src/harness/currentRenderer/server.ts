@@ -139,7 +139,9 @@ async function serveAsset(response: ServerResponse, fileName: string): Promise<v
   const extension = path.extname(fileName);
   const contentType = extension === '.css'
     ? 'text/css; charset=utf-8'
-    : 'application/javascript; charset=utf-8';
+    : extension === '.wasm'
+      ? 'application/wasm'
+      : 'application/javascript; charset=utf-8';
   try {
     const content = await readFile(path.join(webviewDist, fileName));
     response.writeHead(200, { 'content-type': contentType });

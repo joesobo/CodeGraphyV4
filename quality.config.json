@@ -180,8 +180,7 @@
 					"src/extension/repoSettings/store/index.ts",
 					"src/shared/visibleGraph/index.ts",
 					"src/webview/pluginHost/api/registration/index.ts",
-					"src/webview/main.tsx",
-					"src/webview/components/graph/rendering/surface/owned2d/worker/worker.ts"
+					"src/webview/main.tsx"
 				],
 				"layers": [
 					{
@@ -222,6 +221,15 @@
 						],
 						"name": "shared"
 					}
+				]
+			}
+		},
+		"graph-benchmark": {
+			"boundaries": {
+				"entrypoints": [
+					"src/cli/main.ts",
+					"src/dashboard/main.ts",
+					"src/obsidian/main.ts"
 				]
 			}
 		},

@@ -50,57 +50,98 @@ function visibleGraph(graphData: { nodes: FGNode[]; links: FGLink[] }): IGraphDa
   };
 }
 
+type ForceContribution = CoreGraphViewContributionSet['forces'][number];
+
+class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
+  private readonly installed = new Map<string, InstalledForceAdapter>();
+
+  active(): boolean {
+    return this.installed.size > 0;
+  }
+
+  sync(
+    contributions: CoreGraphViewContributionSet | undefined,
+    graphData: { nodes: FGNode[]; links: FGLink[] },
+    physicsSettings?: IPhysicsSettings,
+  ): boolean {
+    const active = new Set<string>();
+    const signature = contextSignature(physicsSettings);
+    const graph = visibleGraph(graphData);
+    let changed = false;
+    for (const entry of contributions?.forces ?? []) {
+      const key = namespace(entry.pluginId, entry.contribution.id);
+      active.add(key);
+      changed = this.syncContribution(
+        key,
+        entry,
+        graphData.nodes,
+        graph,
+        signature,
+        physicsSettings,
+      ) || changed;
+    }
+    return this.removeInactive(active) || changed;
+  }
+
+  tick(alpha?: number): void {
+    for (const current of this.installed.values()) current.adapter.tick?.(alpha);
+  }
+
+  dispose(): void {
+    for (const current of this.installed.values()) current.adapter.dispose();
+    this.installed.clear();
+  }
+
+  private removeInactive(active: ReadonlySet<string>): boolean {
+    let changed = false;
+    for (const [key, current] of this.installed) {
+      if (active.has(key)) continue;
+      current.adapter.dispose();
+      this.installed.delete(key);
+      changed = true;
+    }
+    return changed;
+  }
+
+  private reusable(
+    current: InstalledForceAdapter | undefined,
+    entry: ForceContribution,
+    nodes: readonly FGNode[],
+    signature: string,
+  ): boolean {
+    return current?.contribution === entry.contribution
+      && current.nodes === nodes
+      && current.contextSignature === signature;
+  }
+
+  private syncContribution(
+    key: string,
+    entry: ForceContribution,
+    nodes: FGNode[],
+    graph: IGraphData,
+    signature: string,
+    physicsSettings: IPhysicsSettings | undefined,
+  ): boolean {
+    const current = this.installed.get(key);
+    if (this.reusable(current, entry, nodes, signature)) return false;
+    current?.adapter.dispose();
+    const adapter = entry.contribution.create({
+      nodes,
+      edges: graph.edges,
+      visibleGraph: graph,
+      physicsSettings,
+    });
+    adapter.initialize?.(nodes);
+    this.installed.set(key, {
+      adapter,
+      contribution: entry.contribution,
+      contextSignature: signature,
+      nodes,
+    });
+    return true;
+  }
+}
+
 export function createOwnedGraphPluginForces(): OwnedGraphPluginForces {
-  const installed = new Map<string, InstalledForceAdapter>();
-
-  return {
-    active: () => installed.size > 0,
-    sync(contributions, graphData, physicsSettings) {
-      const active = new Set<string>();
-      const signature = contextSignature(physicsSettings);
-      const graph = visibleGraph(graphData);
-      let changed = false;
-
-      for (const entry of contributions?.forces ?? []) {
-        const key = namespace(entry.pluginId, entry.contribution.id);
-        active.add(key);
-        const current = installed.get(key);
-        if (
-          current?.contribution === entry.contribution
-          && current.nodes === graphData.nodes
-          && current.contextSignature === signature
-        ) continue;
-        current?.adapter.dispose();
-        const adapter = entry.contribution.create({
-          nodes: graphData.nodes,
-          edges: graph.edges,
-          visibleGraph: graph,
-          physicsSettings,
-        });
-        adapter.initialize?.(graphData.nodes);
-        installed.set(key, {
-          adapter,
-          contribution: entry.contribution,
-          contextSignature: signature,
-          nodes: graphData.nodes,
-        });
-        changed = true;
-      }
-
-      for (const [key, current] of installed) {
-        if (active.has(key)) continue;
-        current.adapter.dispose();
-        installed.delete(key);
-        changed = true;
-      }
-      return changed;
-    },
-    tick(alpha) {
-      for (const current of installed.values()) current.adapter.tick?.(alpha);
-    },
-    dispose() {
-      for (const current of installed.values()) current.adapter.dispose();
-      installed.clear();
-    },
-  };
+  return new ActiveOwnedGraphPluginForces();
 }

@@ -13,12 +13,17 @@ describe('startGraphBenchmarkServer', () => {
       const graph = await fetch(new URL('/fixture.json', server.url)).then((response) =>
         response.json() as Promise<{ nodes: unknown[]; edges: unknown[] }>,
       );
+      const wasmResponse = await fetch(new URL('/dist/webview/index.wasm', server.url));
+      const wasmBytes = await wasmResponse.arrayBuffer();
 
       expect(html.indexOf('window.acquireVsCodeApi')).toBeLessThan(
         html.indexOf('/dist/webview/index.js'),
       );
       expect(graph.nodes).toHaveLength(1_000);
       expect(graph.edges).toHaveLength(3_090);
+      expect(wasmResponse.status).toBe(200);
+      expect(wasmResponse.headers.get('content-type')).toBe('application/wasm');
+      expect(WebAssembly.validate(wasmBytes)).toBe(true);
     } finally {
       await server.close();
     }

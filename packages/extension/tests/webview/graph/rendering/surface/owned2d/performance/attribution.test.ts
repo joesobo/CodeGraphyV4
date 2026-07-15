@@ -4,34 +4,40 @@ import {
   createOwnedGraphStageAttributionProfiler,
   OWNED_GRAPH_ATTRIBUTION_STAGES,
   type OwnedGraphAttributionStage,
+  type OwnedGraphStageAttributionProfiler,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
+
+function recordTimedDuration(
+  profiler: OwnedGraphStageAttributionProfiler,
+  stage: OwnedGraphAttributionStage,
+  advanceClock: () => void,
+): void {
+  const startedAt = profiler.startTiming();
+  advanceClock();
+  profiler.finishTiming(stage, startedAt);
+}
 
 describe('owned graph stage attribution profiler', () => {
   it('is disabled by default and does not read the clock or retain events', () => {
     const clock = vi.fn(() => 10);
     const profiler = createOwnedGraphStageAttributionProfiler({ clock });
 
-    expect(profiler.active()).toBe(false);
     expect(profiler.startTiming()).toBeNull();
     profiler.finishTiming('geometryRebuild', null);
-    profiler.recordDuration('geometryRebuild', 2);
     profiler.recordRenderedFrame();
 
     expect(profiler.stop()).toBeNull();
     expect(clock).not.toHaveBeenCalled();
   });
 
-  it('records timed and known durations with summaries normalized per rendered frame', () => {
-    const times = [100, 103, 108, 120];
-    const profiler = createOwnedGraphStageAttributionProfiler({
-      clock: () => times.shift() ?? 120,
-    });
+  it('records timed durations with summaries normalized per rendered frame', () => {
+    let now = 100;
+    const profiler = createOwnedGraphStageAttributionProfiler({ clock: () => now });
 
     profiler.start();
-    const startedAt = profiler.startTiming();
-    profiler.finishTiming('geometryRebuild', startedAt);
-    profiler.recordDuration('geometryRebuild', 3);
-    profiler.recordDuration('workerRoundTrip', 12);
+    recordTimedDuration(profiler, 'geometryRebuild', () => { now += 5; });
+    recordTimedDuration(profiler, 'geometryRebuild', () => { now += 3; });
+    recordTimedDuration(profiler, 'workerRoundTrip', () => { now += 12; });
     profiler.recordRenderedFrame();
     profiler.recordRenderedFrame();
     const recording = profiler.stop();
@@ -100,13 +106,14 @@ describe('owned graph stage attribution profiler', () => {
   });
 
   it('bounds percentile samples while retaining exact totals and maxima', () => {
+    let now = 0;
     const profiler = createOwnedGraphStageAttributionProfiler({
-      clock: () => 1,
+      clock: () => now,
       maximumSamplesPerStage: 3,
     });
     profiler.start();
     for (const duration of [1, 2, 3, 100]) {
-      profiler.recordDuration('pickingHover', duration);
+      recordTimedDuration(profiler, 'pickingHover', () => { now += duration; });
     }
     profiler.recordRenderedFrame();
     const recording = profiler.stop();
@@ -124,14 +131,14 @@ describe('owned graph stage attribution profiler', () => {
 
   it('returns an immutable snapshot that later sessions cannot mutate', () => {
     let now = 0;
-    const profiler = createOwnedGraphStageAttributionProfiler({ clock: () => ++now });
+    const profiler = createOwnedGraphStageAttributionProfiler({ clock: () => now });
     profiler.start();
-    profiler.recordDuration('physicsStep', 4);
+    recordTimedDuration(profiler, 'physicsStep', () => { now += 4; });
     profiler.recordRenderedFrame();
     const first = profiler.stop();
 
     profiler.start();
-    profiler.recordDuration('physicsStep', 9);
+    recordTimedDuration(profiler, 'physicsStep', () => { now += 9; });
     profiler.recordRenderedFrame();
     const second = profiler.stop();
 
@@ -142,17 +149,15 @@ describe('owned graph stage attribution profiler', () => {
     expect(Object.isFrozen(first?.stages.physicsStep)).toBe(true);
   });
 
-  it('resets an active session and ignores invalid duration samples', () => {
+  it('resets an active session', () => {
     let now = 0;
-    const profiler = createOwnedGraphStageAttributionProfiler({ clock: () => ++now });
+    const profiler = createOwnedGraphStageAttributionProfiler({ clock: () => now });
     profiler.start();
-    profiler.recordDuration('overlay', 7);
+    recordTimedDuration(profiler, 'overlay', () => { now += 7; });
     profiler.start();
-    profiler.recordDuration('overlay', Number.NaN);
-    profiler.recordDuration('overlay', -1);
     const recording = profiler.stop();
 
-    expect(recording?.startedAtMs).toBe(2);
+    expect(recording?.startedAtMs).toBe(7);
     expect(recording?.stages.overlay.eventCount).toBe(0);
   });
 });

@@ -124,7 +124,7 @@ export function buildDashboardModel(
   }
   const fixtures = Array.from(grouped, ([fixture, points]) => {
     const baseline = points[0];
-    const current = points.at(-1)!;
+    const current = points.at(-1);
     return {
       fixture,
       baseline,

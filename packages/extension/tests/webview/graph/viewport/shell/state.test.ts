@@ -69,7 +69,7 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1,
 			graph: {
-				d3ReheatSimulation: reheatSimulation,
+				reheatSimulation,
 				graph2ScreenCoords: (x: number, y: number) => ({ x: x + 10, y: y + 20 }),
 				resumeAnimation,
 				screen2GraphCoords: (x: number, y: number) => ({ x: x - 10, y: y - 20 }),

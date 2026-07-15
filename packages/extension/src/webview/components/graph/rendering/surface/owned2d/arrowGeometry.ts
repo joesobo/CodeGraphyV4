@@ -4,16 +4,6 @@ import { OWNED_SELF_LOOP_RADIUS } from './linkGeometry';
 export const OWNED_ARROW_LENGTH = 12;
 export const OWNED_ARROW_HALF_WIDTH = OWNED_ARROW_LENGTH / 1.6 / 2;
 
-interface GraphPoint {
-  x: number;
-  y: number;
-}
-
-export interface OwnedArrowCurveParameters {
-  source: number;
-  target: number;
-}
-
 function ellipseBoundary(
   halfWidth: number,
   halfHeight: number,
@@ -301,28 +291,4 @@ export function writeOwnedArrowCurveParameters(
     targetStyle,
     visualScale,
   );
-}
-
-export function ownedArrowCurveParameters(
-  source: GraphPoint,
-  target: GraphPoint,
-  curvature: number,
-  sourceStyle: OwnedGraphNodeStyle,
-  targetStyle: OwnedGraphNodeStyle,
-  visualScale = 1,
-): OwnedArrowCurveParameters {
-  const output = new Float32Array(2);
-  writeOwnedArrowCurveParameters(
-    output,
-    0,
-    source.x,
-    source.y,
-    target.x,
-    target.y,
-    curvature,
-    sourceStyle,
-    targetStyle,
-    visualScale,
-  );
-  return { source: output[0], target: output[1] };
 }

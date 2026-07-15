@@ -9,11 +9,7 @@ import {
 } from 'd3-force';
 import { describe, expect, it } from 'vitest';
 
-import {
-  createGraphLayoutEngine,
-  DEFAULT_GRAPH_LAYOUT_CONFIG,
-} from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { resolveRepulsionTheta } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/forces/repulsion';
+import { createGraphLayoutEngine } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 
 interface ReferenceNode extends SimulationNodeDatum {
   id: number;
@@ -55,7 +51,6 @@ describe('owned graph whole-layout D3 parity', () => {
       source,
       target: edgeTargets[index],
     }));
-    const theta = resolveRepulsionTheta(nodeCount, DEFAULT_GRAPH_LAYOUT_CONFIG.chargeTheta);
     const reference = forceSimulation(referenceNodes)
       .stop()
       .alpha(1)
@@ -64,7 +59,7 @@ describe('owned graph whole-layout D3 parity', () => {
       .force('link', forceLink<ReferenceNode, ReferenceLink>(referenceLinks)
         .id(node => node.id)
         .distance(80))
-      .force('charge', forceManyBody<ReferenceNode>().strength(-30).distanceMin(1).theta(theta))
+      .force('charge', forceManyBody<ReferenceNode>().strength(-30).distanceMin(1).theta(0))
       .force('x', forceX<ReferenceNode>(0).strength(0.1))
       .force('y', forceY<ReferenceNode>(0).strength(0.1));
     const engine = createGraphLayoutEngine({

@@ -10,9 +10,7 @@ import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interactio
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { GraphRuntime } from '../runtime/use/state';
 import { buildSharedGraphProps } from '../rendering/surface/sharedProps';
-import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
 import { getGraphSurfaceColors } from '../rendering/surface/colors';
-import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
 
 export interface GraphViewportModel {
@@ -32,14 +30,8 @@ export interface GraphViewportModelOptions {
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;
-  theme?: ThemeKind;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
-  viewState: Pick<
-    GraphViewStoreState,
-    | 'favorites'
-    | 'physicsSettings'
-    | 'pluginContextMenuItems'
-  >;
+  viewState: Pick<GraphViewStoreState, 'favorites' | 'pluginContextMenuItems'>;
 }
 
 export function useGraphViewportModel({
@@ -52,19 +44,25 @@ export function useGraphViewportModel({
   viewState,
 }: GraphViewportModelOptions): GraphViewportModel {
   const sharedProps = useMemo(
-    () => buildSharedGraphProps(buildGraphSharedPropsOptions({
-      containerSize: viewportRuntime.containerSize,
-      damping: viewState.physicsSettings.damping,
+    () => buildSharedGraphProps({
       graphData: graphState.graphData,
-      handleEngineStop,
-      interactions,
-    })),
+      onBackgroundClick: interactions.interactionHandlers.handleBackgroundClick,
+      onBackgroundRightClick: interactions.handleBackgroundRightClick,
+      onEngineStop: handleEngineStop,
+      onLinkClick: interactions.interactionHandlers.handleLinkClick,
+      onLinkRightClick: interactions.handleLinkRightClick,
+      onNodeClick: interactions.interactionHandlers.handleNodeClick,
+      onNodeDrag: interactions.handleNodeDrag,
+      onNodeDragEnd: interactions.handleNodeDragEnd,
+      onNodeHover: interactions.handleNodeHover,
+      onNodeRightClick: interactions.handleNodeRightClick,
+      width: viewportRuntime.containerSize.width,
+    }),
     [
       graphState.graphData,
       handleEngineStop,
       interactions,
-      viewportRuntime.containerSize,
-      viewState.physicsSettings.damping,
+      viewportRuntime.containerSize.width,
     ],
   );
 

@@ -1,3 +1,4 @@
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
 import type { OwnedGraphStageAttributionRecording } from '../../rendering/surface/owned2d/performance/attribution';
 import type { OwnedGraphPerformanceSample } from '../../rendering/surface/owned2d/performance/model';
 import type {
@@ -29,18 +30,19 @@ export interface GraphDebugSnapshot {
   zoom: number | null;
 }
 
-export interface GraphDebugControls {
-  centerAt?(this: void, x?: number, y?: number, durationMs?: number): void;
-  getFps?(this: void): number | null;
-  getPerformance?(this: void): OwnedGraphPerformanceSample;
-  graph2ScreenCoords?(this: void, x: number, y: number): { x: number; y: number };
-  startInteractionRecording?(this: void, options: OwnedGraphInteractionRecordingOptions): void;
-  startStageAttributionRecording?(this: void): void;
-  stopInteractionRecording?(this: void): OwnedGraphInteractionRecording | null;
-  stopStageAttributionRecording?(this: void): Readonly<OwnedGraphStageAttributionRecording> | null;
-  zoom?(this: void, scale?: number, durationMs?: number): number;
-  zoomToFit?(this: void, durationMs?: number, padding?: number): void;
-}
+export type GraphDebugControls = Partial<Pick<
+  OwnedGraph2dControls,
+  | 'centerAt'
+  | 'getFps'
+  | 'getPerformance'
+  | 'graph2ScreenCoords'
+  | 'startInteractionRecording'
+  | 'startStageAttributionRecording'
+  | 'stopInteractionRecording'
+  | 'stopStageAttributionRecording'
+  | 'zoom'
+  | 'zoomToFit'
+>>;
 
 export interface GraphDebugApi {
   centerNode(this: void, nodeId: string, scale: number): boolean;

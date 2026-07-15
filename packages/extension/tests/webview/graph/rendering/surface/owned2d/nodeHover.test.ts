@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   advanceOwnedGraphNodeHover,
   createOwnedGraphNodeHover,
-  OWNED_GRAPH_NODE_HOVER_SCALE,
   setOwnedGraphNodeHover,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/nodeHover';
 
@@ -16,18 +15,17 @@ describe('owned graph node hover presentation', () => {
 
     setOwnedGraphNodeHover(hover, 'node-4', 100);
     expect(hover).toMatchObject({ nodeId: 'node-4', scale: 1 });
-    expect(advanceOwnedGraphNodeHover(hover, 160)).toBe(true);
-    expect(hover.scale).toBeCloseTo((1 + OWNED_GRAPH_NODE_HOVER_SCALE) / 2, 8);
-    expect(advanceOwnedGraphNodeHover(hover, 220)).toBe(false);
-    expect(hover).toMatchObject({
-      nodeId: 'node-4',
-      scale: OWNED_GRAPH_NODE_HOVER_SCALE,
-    });
+    advanceOwnedGraphNodeHover(hover, 160);
+    expect(hover.scale).toBeCloseTo(1.05, 8);
+    expect(hover.transition).not.toBeNull();
+    advanceOwnedGraphNodeHover(hover, 220);
+    expect(hover).toMatchObject({ nodeId: 'node-4', scale: 1.1, transition: null });
 
     setOwnedGraphNodeHover(hover, null, 300);
-    expect(advanceOwnedGraphNodeHover(hover, 360)).toBe(true);
-    expect(hover.scale).toBeCloseTo((1 + OWNED_GRAPH_NODE_HOVER_SCALE) / 2, 8);
-    expect(advanceOwnedGraphNodeHover(hover, 420)).toBe(false);
+    advanceOwnedGraphNodeHover(hover, 360);
+    expect(hover.scale).toBeCloseTo(1.05, 8);
+    expect(hover.transition).not.toBeNull();
+    advanceOwnedGraphNodeHover(hover, 420);
     expect(hover).toMatchObject({ nodeId: null, scale: 1, transition: null });
   });
 
@@ -38,8 +36,8 @@ describe('owned graph node hover presentation', () => {
 
     setOwnedGraphNodeHover(hover, 'node-7', 160);
     expect(hover).toMatchObject({ nodeId: 'node-7', scale: 1 });
-    expect(advanceOwnedGraphNodeHover(hover, 280)).toBe(false);
-    expect(hover.scale).toBe(OWNED_GRAPH_NODE_HOVER_SCALE);
+    advanceOwnedGraphNodeHover(hover, 280);
+    expect(hover).toMatchObject({ scale: 1.1, transition: null });
   });
 
   it('applies hover emphasis without animation when reduced motion is preferred', () => {
@@ -49,7 +47,7 @@ describe('owned graph node hover presentation', () => {
     setOwnedGraphNodeHover(hover, 'node-3', 100);
     expect(hover).toMatchObject({
       nodeId: 'node-3',
-      scale: OWNED_GRAPH_NODE_HOVER_SCALE,
+      scale: 1.1,
       transition: null,
     });
     setOwnedGraphNodeHover(hover, null, 200);

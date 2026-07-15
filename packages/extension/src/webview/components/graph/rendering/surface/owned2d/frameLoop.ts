@@ -12,12 +12,11 @@ export interface OwnedGraphFrameLoopRuntime
   animationFrameRef: MutableRefObject<number | null>;
   fpsRef: MutableRefObject<number | null>;
   frameRequestedRef: MutableRefObject<boolean>;
-  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor | null>;
+  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor>;
   publishPerformance(this: void, sample: OwnedGraphPerformanceSample): void;
 }
 
 export interface OwnedGraphFrameLoop {
-  controls: OwnedGraph2dControls;
   dispose(): void;
 }
 
@@ -40,9 +39,7 @@ export function startOwnedGraphFrameLoop(
     simulationMs: number,
     renderMs: number,
   ): void => {
-    const monitor = runtime.performanceMonitorRef.current;
-    if (!monitor) return;
-    const publishedSample = monitor.recordFrame({
+    const publishedSample = runtime.performanceMonitorRef.current.recordFrame({
       presentationTimestampMs: timestamp,
       renderMs,
       simulationMs,
@@ -55,9 +52,7 @@ export function startOwnedGraphFrameLoop(
   };
 
   runtime.markPerformanceIdle = (): void => {
-    const monitor = runtime.performanceMonitorRef.current;
-    if (!monitor) return;
-    const idleSample = monitor.setIdle();
+    const idleSample = runtime.performanceMonitorRef.current.setIdle();
     runtime.fpsRef.current = null;
     runtime.publishPerformance(idleSample);
   };
@@ -83,7 +78,6 @@ export function startOwnedGraphFrameLoop(
   runtime.requestFrameRef.current();
 
   return {
-    controls,
     dispose: () => {
       active = false;
       resizeObserver.disconnect();

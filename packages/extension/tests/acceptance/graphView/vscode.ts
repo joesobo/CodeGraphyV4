@@ -115,7 +115,9 @@ export async function waitForGraphFrame(
 async function isReadyGraphFrame(frame: Frame): Promise<boolean> {
   const graphStageCount = await frame.getByLabel('Graph Stage').count().catch(() => 0);
   const fitButtonCount = await frame.getByTitle('Fit to Screen').count().catch(() => 0);
-  return graphStageCount > 0 && fitButtonCount > 0;
+  const wasmPhysicsCount = await frame.locator('[data-codegraphy-physics="wasm"]').count()
+    .catch(() => 0);
+  return graphStageCount > 0 && fitButtonCount > 0 && wasmPhysicsCount > 0;
 }
 
 export async function cleanupVSCode({ app, tempRoot }: VSCodeFixture): Promise<void> {

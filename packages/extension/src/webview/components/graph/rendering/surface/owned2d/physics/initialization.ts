@@ -19,11 +19,7 @@ export function deterministicDirection(first: number, second: number): { x: numb
   return { x: Math.cos(angle), y: Math.sin(angle) };
 }
 
-export function createGraphLayoutState(
-  input: GraphLayoutInput,
-  config: GraphLayoutConfig,
-): GraphLayoutState {
-  const nodeCount = input.nodeIds.length;
+function validateGraphLayoutInput(input: GraphLayoutInput, nodeCount: number): void {
   assertBufferLength(input.initialX, nodeCount, 'initialX');
   assertBufferLength(input.initialY, nodeCount, 'initialY');
   assertBufferLength(input.initialVx, nodeCount, 'initialVx');
@@ -34,8 +30,13 @@ export function createGraphLayoutState(
   if (input.edgeSources.length !== input.edgeTargets.length) {
     throw new Error('edge source and target buffers must have equal lengths');
   }
+}
 
-  const state: GraphLayoutState = {
+function createEmptyGraphLayoutState(
+  input: GraphLayoutInput,
+  nodeCount: number,
+): GraphLayoutState {
+  return {
     x: new Float32Array(nodeCount),
     y: new Float32Array(nodeCount),
     vx: new Float32Array(nodeCount),
@@ -49,53 +50,59 @@ export function createGraphLayoutState(
     edgeTargets: new Uint32Array(input.edgeTargets),
     linkDegrees: new Uint32Array(nodeCount),
   };
+}
 
-  for (let index = 0; index < nodeCount; index += 1) {
-    const suppliedX = input.initialX?.[index];
-    const suppliedY = input.initialY?.[index];
-    if (Number.isFinite(suppliedX) && Number.isFinite(suppliedY)) {
-      state.x[index] = suppliedX as number;
-      state.y[index] = suppliedY as number;
-    } else {
-      setInitialPosition(state, index, config.initializationSpacing);
-    }
-    const suppliedVx = input.initialVx?.[index];
-    const suppliedVy = input.initialVy?.[index];
-    state.vx[index] = Number.isFinite(suppliedVx) ? suppliedVx as number : 0;
-    state.vy[index] = Number.isFinite(suppliedVy) ? suppliedVy as number : 0;
-    const suppliedMultiplier = state.chargeStrengthMultipliers[index];
-    state.chargeStrengthMultipliers[index] = Number.isFinite(suppliedMultiplier)
-      ? Math.max(0, suppliedMultiplier)
-      : 1;
-    const suppliedRadius = input.radii[index];
-    state.radii[index] = Number.isFinite(suppliedRadius) && suppliedRadius > 0
-      ? suppliedRadius
-      : 1;
+function finiteOrFallback(value: number | undefined, fallback: number): number {
+  return Number.isFinite(value) ? value as number : fallback;
+}
+
+function initializeGraphLayoutNode(
+  state: GraphLayoutState,
+  input: GraphLayoutInput,
+  index: number,
+  initializationSpacing: number,
+): void {
+  const suppliedX = input.initialX?.[index];
+  const suppliedY = input.initialY?.[index];
+  if (Number.isFinite(suppliedX) && Number.isFinite(suppliedY)) {
+    state.x[index] = suppliedX as number;
+    state.y[index] = suppliedY as number;
+  } else {
+    setInitialPosition(state, index, initializationSpacing);
   }
+  state.vx[index] = finiteOrFallback(input.initialVx?.[index], 0);
+  state.vy[index] = finiteOrFallback(input.initialVy?.[index], 0);
+  state.chargeStrengthMultipliers[index] = Math.max(
+    0,
+    finiteOrFallback(state.chargeStrengthMultipliers[index], 1),
+  );
+  const suppliedRadius = input.radii[index];
+  state.radii[index] = Number.isFinite(suppliedRadius) && suppliedRadius > 0
+    ? suppliedRadius
+    : 1;
+}
 
+function validateGraphLayoutEdges(state: GraphLayoutState, nodeCount: number): void {
   for (let edge = 0; edge < state.edgeSources.length; edge += 1) {
     if (state.edgeSources[edge] >= nodeCount || state.edgeTargets[edge] >= nodeCount) {
       throw new Error(`Edge ${edge} references a missing node`);
     }
   }
-  updateVisibleLinkDegrees(state);
-  return state;
 }
 
-export function recoverFinitePosition(
-  state: GraphLayoutState,
-  index: number,
-  initializationSpacing: number,
-): void {
-  if (
-    Number.isFinite(state.x[index])
-    && Number.isFinite(state.y[index])
-    && Number.isFinite(state.vx[index])
-    && Number.isFinite(state.vy[index])
-  ) return;
-  setInitialPosition(state, index, initializationSpacing);
-  state.vx[index] = 0;
-  state.vy[index] = 0;
+export function createGraphLayoutState(
+  input: GraphLayoutInput,
+  config: GraphLayoutConfig,
+): GraphLayoutState {
+  const nodeCount = input.nodeIds.length;
+  validateGraphLayoutInput(input, nodeCount);
+  const state = createEmptyGraphLayoutState(input, nodeCount);
+  for (let index = 0; index < nodeCount; index += 1) {
+    initializeGraphLayoutNode(state, input, index, config.initializationSpacing);
+  }
+  validateGraphLayoutEdges(state, nodeCount);
+  updateVisibleLinkDegrees(state);
+  return state;
 }
 
 function setInitialPosition(

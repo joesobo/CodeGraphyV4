@@ -101,11 +101,11 @@ function publishOwnedGraphPerformance(
 }
 
 function resetOwnedGraphPerformance(
-  monitor: OwnedGraphPerformanceMonitor | null,
+  monitor: OwnedGraphPerformanceMonitor,
   fpsRef: { current: number | null },
   output: HTMLOutputElement | null,
 ): void {
-  monitor?.reset();
+  monitor.reset();
   fpsRef.current = null;
   publishOwnedGraphPerformance({ status: 'idle' }, output);
 }
@@ -127,7 +127,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     performanceAttributionRef.current = createOwnedGraphStageAttributionProfiler();
   }
   const reactReconciliationStartedAt = performanceAttributionRef.current.startTiming();
-  const performanceMonitorRef = useRef<OwnedGraphPerformanceMonitor | null>(null);
+  const performanceMonitorRef = useRef<OwnedGraphPerformanceMonitor>(null!);
   if (!performanceMonitorRef.current) {
     performanceMonitorRef.current = createOwnedGraphPerformanceMonitor();
   }
@@ -174,6 +174,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     propsRef,
     rendererOperationalRef,
     requestFrameRef,
+    synchronizedPositionVersionRef,
   }).current;
   propsRef.current = props;
 
@@ -284,18 +285,18 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useEffect(() => {
     applyOwnedGraphRuntimePhysicsSettings(layoutRuntime);
   }, [
-    props.physicsSettings?.centerForce,
-    props.physicsSettings?.damping,
-    props.physicsSettings?.linkDistance,
-    props.physicsSettings?.linkForce,
-    props.physicsSettings?.repelForce,
+    props.physicsSettings.centerForce,
+    props.physicsSettings.damping,
+    props.physicsSettings.linkDistance,
+    props.physicsSettings.linkForce,
+    props.physicsSettings.repelForce,
     layoutRuntime,
   ]);
 
   useEffect(() => {
     if (props.showFps) {
       publishOwnedGraphPerformance(
-        performanceMonitorRef.current?.sample() ?? { status: 'idle' },
+        performanceMonitorRef.current.sample(),
         fpsOutputRef.current,
       );
     }
@@ -329,13 +330,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     synchronizedPositionVersionRef,
   });
 
-  const performanceSample = performanceMonitorRef.current?.sample()
-    ?? { status: 'idle' as const };
+  const performanceSample = performanceMonitorRef.current.sample();
 
   const view = (
     <div
       className="absolute inset-0"
-      data-codegraphy-layout="main-thread"
+      data-codegraphy-physics="wasm"
       data-codegraphy-renderer={rendererStatus}
       style={{ backgroundColor: props.backgroundColor }}
     >

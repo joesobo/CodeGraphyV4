@@ -55,7 +55,7 @@ describe('owned graph interaction performance recording', () => {
     });
   });
 
-  it('is inert until explicitly armed and returns immutable snapshots', () => {
+  it('is inert until explicitly armed and isolates recording sessions', () => {
     const recorder = createOwnedGraphInteractionRecorder();
     recorder.recordInput({
       eventTimestampMs: 1,

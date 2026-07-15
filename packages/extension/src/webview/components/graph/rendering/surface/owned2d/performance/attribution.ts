@@ -77,9 +77,7 @@ export interface OwnedGraphStageAttributionRecording {
 }
 
 export interface OwnedGraphStageAttributionProfiler {
-  active(): boolean;
   finishTiming(stage: OwnedGraphAttributionStage, startedAtMs: number | null): void;
-  recordDuration(stage: OwnedGraphAttributionStage, durationMs: number): void;
   recordRenderedFrame(): void;
   start(): void;
   startTiming(): number | null;
@@ -146,78 +144,92 @@ function freezeSummary(
   });
 }
 
-export function createOwnedGraphStageAttributionProfiler(
-  options: OwnedGraphStageAttributionProfilerOptions = {},
-): OwnedGraphStageAttributionProfiler {
-  const clock = options.clock ?? (() => performance.now());
-  const requestedMaximum = options.maximumSamplesPerStage
-    ?? DEFAULT_MAXIMUM_SAMPLES_PER_STAGE;
-  const maximumSamplesPerStage = Number.isSafeInteger(requestedMaximum)
-    && requestedMaximum > 0
-    ? requestedMaximum
+function maximumSamplesPerStage(requestedMaximum: number | undefined): number {
+  return Number.isSafeInteger(requestedMaximum) && (requestedMaximum as number) > 0
+    ? requestedMaximum as number
     : DEFAULT_MAXIMUM_SAMPLES_PER_STAGE;
-  let recording: ActiveRecording | null = null;
+}
 
-  const recordDuration = (
-    stage: OwnedGraphAttributionStage,
-    durationMs: number,
-  ): void => {
-    if (!recording || !Number.isFinite(durationMs) || durationMs < 0) return;
-    const accumulator = recording.accumulators[stage];
+function freezeStages(
+  recording: ActiveRecording,
+): Readonly<Record<OwnedGraphAttributionStage, Readonly<OwnedGraphStageAttributionSummary>>> {
+  const stages = Object.fromEntries(
+    OWNED_GRAPH_ATTRIBUTION_STAGES.map(stage => [
+      stage,
+      freezeSummary(
+        STAGE_SCOPES[stage],
+        recording.accumulators[stage],
+        recording.renderedFrameCount,
+      ),
+    ]),
+  ) as Record<OwnedGraphAttributionStage, Readonly<OwnedGraphStageAttributionSummary>>;
+  return Object.freeze(stages);
+}
+
+class BoundedOwnedGraphStageAttributionProfiler implements OwnedGraphStageAttributionProfiler {
+  private readonly clock: () => number;
+  private readonly maximumSamples: number;
+  private recording: ActiveRecording | null = null;
+
+  constructor(options: OwnedGraphStageAttributionProfilerOptions) {
+    this.clock = options.clock ?? (() => performance.now());
+    this.maximumSamples = maximumSamplesPerStage(options.maximumSamplesPerStage);
+  }
+
+  finishTiming(stage: OwnedGraphAttributionStage, startedAtMs: number | null): void {
+    if (!this.recording || startedAtMs === null) return;
+    this.recordDuration(stage, Math.max(0, this.clock() - startedAtMs));
+  }
+
+  recordRenderedFrame(): void {
+    if (this.recording) this.recording.renderedFrameCount += 1;
+  }
+
+  start(): void {
+    this.recording = {
+      accumulators: createAccumulators(),
+      renderedFrameCount: 0,
+      startedAtMs: this.clock(),
+      truncated: false,
+    };
+  }
+
+  startTiming(): number | null {
+    return this.recording ? this.clock() : null;
+  }
+
+  stop(): Readonly<OwnedGraphStageAttributionRecording> | null {
+    if (!this.recording) return null;
+    const completed = this.recording;
+    const endedAtMs = this.clock();
+    this.recording = null;
+    return Object.freeze({
+      schemaVersion: 1 as const,
+      startedAtMs: completed.startedAtMs,
+      endedAtMs,
+      physicsHome: 'main-thread' as const,
+      renderedFrameCount: completed.renderedFrameCount,
+      stages: freezeStages(completed),
+      truncated: completed.truncated,
+    });
+  }
+
+  private recordDuration(stage: OwnedGraphAttributionStage, durationMs: number): void {
+    if (!this.recording || !Number.isFinite(durationMs) || durationMs < 0) return;
+    const accumulator = this.recording.accumulators[stage];
     accumulator.eventCount += 1;
     accumulator.totalMs += durationMs;
     accumulator.maximumMs = Math.max(accumulator.maximumMs, durationMs);
-    if (accumulator.samples.length < maximumSamplesPerStage) {
+    if (accumulator.samples.length < this.maximumSamples) {
       accumulator.samples.push(durationMs);
     } else {
-      recording.truncated = true;
+      this.recording.truncated = true;
     }
-  };
+  }
+}
 
-  return {
-    active: () => recording !== null,
-    finishTiming: (stage, startedAtMs) => {
-      if (!recording || startedAtMs === null) return;
-      recordDuration(stage, Math.max(0, clock() - startedAtMs));
-    },
-    recordDuration,
-    recordRenderedFrame: () => {
-      if (recording) recording.renderedFrameCount += 1;
-    },
-    start: () => {
-      recording = {
-        accumulators: createAccumulators(),
-        renderedFrameCount: 0,
-        startedAtMs: clock(),
-        truncated: false,
-      };
-    },
-    startTiming: () => recording ? clock() : null,
-    stop: () => {
-      if (!recording) return null;
-      const completed = recording;
-      const endedAtMs = clock();
-      recording = null;
-      const stages = Object.fromEntries(
-        OWNED_GRAPH_ATTRIBUTION_STAGES.map(stage => [
-          stage,
-          freezeSummary(
-            STAGE_SCOPES[stage],
-            completed.accumulators[stage],
-            completed.renderedFrameCount,
-          ),
-        ]),
-      ) as Record<OwnedGraphAttributionStage, Readonly<OwnedGraphStageAttributionSummary>>;
-      Object.freeze(stages);
-      return Object.freeze({
-        schemaVersion: 1 as const,
-        startedAtMs: completed.startedAtMs,
-        endedAtMs,
-        physicsHome: 'main-thread' as const,
-        renderedFrameCount: completed.renderedFrameCount,
-        stages,
-        truncated: completed.truncated,
-      });
-    },
-  };
+export function createOwnedGraphStageAttributionProfiler(
+  options: OwnedGraphStageAttributionProfilerOptions = {},
+): OwnedGraphStageAttributionProfiler {
+  return new BoundedOwnedGraphStageAttributionProfiler(options);
 }

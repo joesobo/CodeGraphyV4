@@ -33,7 +33,7 @@ Main surfaces in the current API:
 
 Recommended plugins keep analysis headless and use host-agnostic webview assets only when they need UI. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code-specific commands and editor integration.
 
-The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy-dev/extension`.
+The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw graph-renderer instance intentionally stay inside `@codegraphy-dev/extension`.
 
 Webview plugins can persist their own workspace UI state with
 `api.getPluginData()` and `api.setPluginData(data)`. The host stores that data

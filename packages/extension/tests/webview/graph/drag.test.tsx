@@ -5,7 +5,7 @@ import { toOwnedPhysicsConfig } from '../../../src/webview/components/graph/rend
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
-import ForceGraph2D from '../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../__mocks__/ownedGraphSurface';
 import { getSentMessages } from '../../helpers/sentMessages';
 
 const mockData: IGraphData = {
@@ -44,10 +44,10 @@ function setStore(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Graph: owned WebGPU rendering', () => {
-  const mockMethods = ForceGraph2D.getMockMethods();
+  const mockMethods = OwnedGraphSurface.getMockMethods();
 
   beforeEach(() => {
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     vi.clearAllMocks();
     setStore();
   });
@@ -59,7 +59,7 @@ describe('Graph: owned WebGPU rendering', () => {
 
   it('passes graphData with correct node and link counts to the owned graph surface', () => {
     render(<Graph data={mockData} />);
-    const props = ForceGraph2D.getLastProps();
+    const props = OwnedGraphSurface.getLastProps();
     expect(props.graphData).toBeDefined();
     expect(props.graphData.nodes).toHaveLength(2);
     expect(props.graphData.links).toHaveLength(1);
@@ -68,13 +68,13 @@ describe('Graph: owned WebGPU rendering', () => {
   it('disables directional rendering when directionMode=none', () => {
     setStore({ directionMode: 'none' });
     render(<Graph data={mockData} />);
-    expect(ForceGraph2D.getLastProps().directionMode).toBe('none');
+    expect(OwnedGraphSurface.getLastProps().directionMode).toBe('none');
   });
 
   it('enables WebGPU arrows when directionMode=arrows', () => {
     setStore({ directionMode: 'arrows' });
     render(<Graph data={mockData} />);
-    const props = ForceGraph2D.getLastProps();
+    const props = OwnedGraphSurface.getLastProps();
     expect(props.directionMode).toBe('arrows');
     expect(props.graphData.nodes[0]?.size).toBeGreaterThan(0);
   });
@@ -82,31 +82,31 @@ describe('Graph: owned WebGPU rendering', () => {
   it('declaratively syncs directional settings when mode changes', () => {
     render(<Graph data={mockData} />);
     act(() => graphStore.setState({ directionMode: 'particles' }));
-    expect(ForceGraph2D.getLastProps().directionMode).toBe('particles');
-    expect(ForceGraph2D.getLastProps().particleSpeed).toBe(0.005);
+    expect(OwnedGraphSurface.getLastProps().directionMode).toBe('particles');
+    expect(OwnedGraphSurface.getLastProps().particleSpeed).toBe(0.005);
     act(() => graphStore.setState({ directionMode: 'arrows' }));
-    expect(ForceGraph2D.getLastProps().directionMode).toBe('arrows');
+    expect(OwnedGraphSurface.getLastProps().directionMode).toBe('arrows');
   });
 
   it('marks combined links as bidirectional for the WebGPU arrow pipeline', () => {
     setStore({ bidirectionalMode: 'combined', directionMode: 'arrows' });
     render(<Graph data={bidirectionalData} />);
-    expect(ForceGraph2D.getLastProps().graphData.links.some(link => link.bidirectional)).toBe(true);
+    expect(OwnedGraphSurface.getLastProps().graphData.links.some(link => link.bidirectional)).toBe(true);
   });
 
   it('keeps ordinary links non-bidirectional', () => {
     render(<Graph data={mockData} />);
-    expect(ForceGraph2D.getLastProps().graphData.links[0]?.bidirectional).toBe(false);
+    expect(OwnedGraphSurface.getLastProps().graphData.links[0]?.bidirectional).toBe(false);
   });
 
   it('preserves bidirectional metadata when direction mode changes', () => {
     setStore({ bidirectionalMode: 'combined', directionMode: 'arrows' });
     render(<Graph data={bidirectionalData} />);
     act(() => graphStore.setState({ directionMode: 'particles' }));
-    expect(ForceGraph2D.getLastProps().graphData.links.some(link => link.bidirectional)).toBe(true);
+    expect(OwnedGraphSurface.getLastProps().graphData.links.some(link => link.bidirectional)).toBe(true);
   });
 
-  it('passes d3VelocityDecay from physicsSettings.damping', () => {
+  it('passes damping through the owned physics settings', () => {
     setStore({
       physicsSettings: {
         repelForce: 12,
@@ -117,7 +117,7 @@ describe('Graph: owned WebGPU rendering', () => {
       },
     });
     render(<Graph data={mockData} />);
-    const props = ForceGraph2D.getLastProps();
+    const props = OwnedGraphSurface.getLastProps();
     expect(props.physicsSettings?.damping).toBe(0.7);
   });
 
@@ -132,7 +132,7 @@ describe('Graph: owned WebGPU rendering', () => {
       },
     });
     render(<Graph data={mockData} />);
-    const settings = ForceGraph2D.getLastProps().physicsSettings;
+    const settings = OwnedGraphSurface.getLastProps().physicsSettings;
     expect(settings).toBeDefined();
     expect(toOwnedPhysicsConfig(settings!).centralGravity).toBe(1);
   });
@@ -142,7 +142,7 @@ describe('Graph: owned WebGPU rendering', () => {
     const before = getSentMessages().length;
 
     act(() => {
-      ForceGraph2D.simulateEngineStop();
+      OwnedGraphSurface.simulateEngineStop();
     });
 
     const messages = getSentMessages();
@@ -156,7 +156,7 @@ describe('Graph: owned WebGPU rendering', () => {
     const before = getSentMessages().length;
 
     act(() => {
-      ForceGraph2D.simulateNodeClick({ id: 'a.ts' });
+      OwnedGraphSurface.simulateNodeClick({ id: 'a.ts' });
     });
 
     const allMessages = getSentMessages();

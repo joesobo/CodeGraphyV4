@@ -35,10 +35,8 @@ function createDependencies(
   const setContextSelection = vi.fn();
   const fg2d = {
     centerAt: vi.fn(),
-    d3ReheatSimulation: vi.fn(),
+    reheatSimulation: vi.fn(),
     graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
-    pauseAnimation: vi.fn(),
-    refresh: vi.fn(),
     resumeAnimation: vi.fn(),
     screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
     zoom: vi.fn(() => 1),

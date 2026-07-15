@@ -3,13 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => {
   const render = vi.fn();
   const createRoot = vi.fn(() => ({ render }));
+  const prepareOwnedGraphPhysics = vi.fn<() => Promise<void>>();
   const vscodeApi = {
     getState: vi.fn(),
     postMessage: vi.fn(),
     setState: vi.fn(),
   };
 
-  return { createRoot, render, vscodeApi };
+  return { createRoot, prepareOwnedGraphPhysics, render, vscodeApi };
 });
 
 vi.mock('react-dom/client', () => ({
@@ -28,11 +29,16 @@ vi.mock('../../src/webview/vscodeApi', () => ({
   getVsCodeApi: () => mocks.vscodeApi,
 }));
 
+vi.mock('../../src/webview/wasm/ownedGraphPhysics', () => ({
+  prepareOwnedGraphPhysics: mocks.prepareOwnedGraphPhysics,
+}));
+
 describe('main', () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.createRoot.mockClear();
     mocks.render.mockClear();
+    mocks.prepareOwnedGraphPhysics.mockReset().mockResolvedValue(undefined);
     (window as unknown as { vscode?: unknown }).vscode = undefined;
     delete document.body.dataset.codegraphyView;
   });
@@ -49,8 +55,29 @@ describe('main', () => {
 
     expect(getElementByIdSpy).toHaveBeenCalledWith('root');
     expect(mocks.createRoot).toHaveBeenCalledWith(container);
+    expect(mocks.prepareOwnedGraphPhysics).toHaveBeenCalledTimes(1);
     expect(mocks.render).toHaveBeenCalledTimes(1);
     expect((window as unknown as { vscode: unknown }).vscode).toBe(mocks.vscodeApi);
+  });
+
+  it('mounts the graph shell before WASM physics preparation resolves', async () => {
+    const container = document.createElement('div');
+    vi.spyOn(document, 'getElementById').mockReturnValue(container);
+    let finishPreparation: (() => void) | undefined;
+    const preparation = new Promise<void>(resolve => {
+      finishPreparation = resolve;
+    });
+    mocks.prepareOwnedGraphPhysics.mockReturnValue(preparation);
+
+    await import('../../src/webview/main');
+
+    expect(mocks.render).toHaveBeenCalledTimes(1);
+    const rootElement = mocks.render.mock.calls[0]?.[0] as {
+      props: { children: { props: { graphPhysicsPreparation: Promise<void> } } };
+    };
+    expect(rootElement.props.children.props.graphPhysicsPreparation).toBe(preparation);
+    finishPreparation?.();
+    await preparation;
   });
 
   it('renders the graph shell by default', async () => {

@@ -1,5 +1,4 @@
 import type { MutableRefObject } from 'react';
-import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../shared/settings/physics';
 import { fitOwnedGraphCamera, type OwnedGraphCamera } from './camera';
 import { canvasSize } from './canvasGeometry';
 import type { Surface2dProps } from './contracts';
@@ -26,21 +25,19 @@ export interface OwnedGraphLayoutRuntime {
   propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
+  synchronizedPositionVersionRef: MutableRefObject<number>;
 }
 
 function createOrUpdateLayout(runtime: OwnedGraphLayoutRuntime): OwnedGraphLayout {
   const currentProps = runtime.propsRef.current;
   const nodes = currentProps.sharedProps.graphData.nodes;
   const links = currentProps.sharedProps.graphData.links;
-  const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
+  const settings = currentProps.physicsSettings;
   const current = runtime.layoutRef.current;
-  const updated = current && updateOwnedGraphLayout(
-    current,
-    nodes,
-    links,
-    settings,
-  );
-  if (current && updated) return current;
+  if (current) {
+    updateOwnedGraphLayout(current, nodes, links, settings);
+    return current;
+  }
   const layout = createOwnedGraphLayout(
     nodes,
     links,
@@ -55,7 +52,7 @@ function synchronizePluginForces(
   layout: OwnedGraphLayout,
 ): void {
   const currentProps = runtime.propsRef.current;
-  const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
+  const settings = currentProps.physicsSettings;
   const changed = runtime.pluginForcesRef.current.sync(
     currentProps.graphViewContributions,
     { nodes: layout.nodes, links: layout.links },
@@ -75,7 +72,7 @@ function finishRemovedPointerNode(
 ): void {
   const indexes = draggedNodeIndexes(layout);
   if (session.moved && session.node) {
-    runtime.propsRef.current.sharedProps.onNodeDragEnd?.(session.node);
+    runtime.propsRef.current.sharedProps.onNodeDragEnd(session.node);
   }
   releaseOwnedDraggedNodes(layout, indexes);
   layout.engine.setAlphaTarget(0);
@@ -131,6 +128,7 @@ export function reconcileOwnedGraphRuntime(runtime: OwnedGraphLayoutRuntime): vo
   reconcilePointerSession(runtime, layout);
   runtime.positionVersionRef.current += 1;
   syncOwnedLayoutNodes(layout);
+  runtime.synchronizedPositionVersionRef.current = runtime.positionVersionRef.current;
   fitInitialCamera(runtime, runtime.propsRef.current.sharedProps.graphData.nodes);
   enforcePhysicsPolicy(runtime, layout);
   runtime.engineStopNotifiedRef.current = false;
@@ -143,7 +141,7 @@ export function applyOwnedGraphRuntimePhysicsSettings(
   const layout = runtime.layoutRef.current;
   if (!layout) return;
   const currentProps = runtime.propsRef.current;
-  const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
+  const settings = currentProps.physicsSettings;
   applyOwnedPhysicsSettings(layout.engine, settings);
   runtime.pluginForcesRef.current.sync(
     currentProps.graphViewContributions,

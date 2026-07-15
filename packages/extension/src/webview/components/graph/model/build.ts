@@ -21,7 +21,7 @@ export {
   getNodeType,
   resolveDirectionColor,
 } from './node/display';
-export { calculateNodeSizes, toD3Repel } from './node/sizing';
+export { calculateNodeSizes } from './node/sizing';
 
 export type FGNode = Record<string, unknown> & {
   id: string;

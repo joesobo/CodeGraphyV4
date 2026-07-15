@@ -3,15 +3,17 @@ import type {
 	GraphViewViewportState,
 } from '../../../../pluginHost/api/contracts/webview';
 import type { GraphRuntime } from '../../runtime/use/state';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
 
-export interface GraphViewport2dControls {
-	d3ReheatSimulation?(): void;
-	graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
-	resumeAnimation?(): void;
-	screen2GraphCoords?(x: number, y: number): { x: number; y: number };
-	updateNode?(nodeId: string, updates: Record<string, unknown>): boolean;
-	zoom?(): number;
-}
+export type GraphViewport2dControls = Partial<Pick<
+	OwnedGraph2dControls,
+	| 'graph2ScreenCoords'
+	| 'reheatSimulation'
+	| 'resumeAnimation'
+	| 'screen2GraphCoords'
+	| 'updateNode'
+	| 'zoom'
+>>;
 
 export interface CreateGraphViewViewportStateOptions {
 	globalScale: number;
@@ -72,9 +74,7 @@ export function createGraphViewViewportState({
 		graphToScreen: (x, y) => graph?.graph2ScreenCoords ? graph.graph2ScreenCoords(x, y) : { x, y },
 		nodes: toGraphViewViewportNodes(nodes),
 		reheatSimulation: () => {
-			if (graph?.d3ReheatSimulation) {
-				graph.d3ReheatSimulation();
-			}
+			graph?.reheatSimulation?.();
 		},
 		resumeAnimation: () => {
 			if (graph?.resumeAnimation) {

@@ -13,9 +13,7 @@ const mockMethods = {
   zoom: vi.fn((scale?: number) => scale ?? 1),
   zoomBy: vi.fn(),
   centerAt: vi.fn(),
-  refresh: vi.fn(),
-  d3ReheatSimulation: vi.fn(),
-  pauseAnimation: vi.fn(),
+  reheatSimulation: vi.fn(),
   resumeAnimation: vi.fn(),
   screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
   updateNode: vi.fn(() => true),
@@ -23,7 +21,6 @@ const mockMethods = {
 };
 
 let lastProps: Surface2dProps | undefined;
-const mockNodePositions = new Map<string, string>();
 
 export function OwnedGraphSurface2d(props: Surface2dProps): React.ReactElement {
   lastProps = props;
@@ -62,14 +59,8 @@ function simulateNodeHover(node: ({ id: string } & Record<string, unknown>) | nu
 function simulateEngineStop() {
   shared()?.onEngineStop();
 }
-function setMockNodeAtPosition(position: { x: number; y: number }, nodeId: string) {
-  mockNodePositions.set(`${position.x},${position.y}`, nodeId);
-}
-function mockGetNodeAt(_nodeId: string | undefined) {}
-function clearMockPositions() { mockNodePositions.clear(); }
 function clearAllHandlers() {
   lastProps = undefined;
-  mockNodePositions.clear();
   vi.clearAllMocks();
 }
 function getLastProps(): Surface2dProps & Surface2dProps['sharedProps'] {
@@ -87,23 +78,9 @@ const OwnedGraphSurfaceWithHelpers = {
   simulateLinkClick,
   simulateNodeHover,
   simulateEngineStop,
-  setMockNodeAtPosition,
-  mockGetNodeAt,
-  clearMockPositions,
   clearAllHandlers,
   getLastProps,
   getMockMethods,
-  getRegisteredEvents: () => Object.keys(shared() ?? {}).filter(key => key.startsWith('on')),
-  getHandler: (event: string) => {
-    const map: Record<string, keyof NonNullable<Surface2dProps['sharedProps']>> = {
-      select: 'onNodeClick',
-      click: 'onNodeClick',
-      dragStart: 'onNodeDrag',
-      dragEnd: 'onNodeDragEnd',
-    };
-    const key = map[event];
-    return key ? shared()?.[key] : undefined;
-  },
 };
 
 export { mockMethods };

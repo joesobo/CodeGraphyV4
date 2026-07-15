@@ -22,7 +22,58 @@ import { useVisibleGraphStateResponse } from './visibleGraphResponse';
 import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 
-export default function App(): React.ReactElement {
+type GraphPhysicsPreparationState =
+  | { status: 'loading' | 'ready' }
+  | { status: 'error'; message: string };
+
+export interface AppShellProps {
+  graphPhysicsPreparation?: Promise<void>;
+}
+
+function renderGraphStartupState(
+  graphPhysics: GraphPhysicsPreparationState,
+  isLoading: boolean,
+): React.ReactElement | undefined {
+  if (graphPhysics.status === 'error') {
+    return (
+      <div role="alert" data-codegraphy-state="wasm-error">
+        Unable to initialize graph physics: {graphPhysics.message}
+      </div>
+    );
+  }
+  if (isLoading || graphPhysics.status === 'loading') return <LoadingState />;
+  return undefined;
+}
+
+function useGraphPhysicsPreparation(
+  preparation: Promise<void> | undefined,
+): GraphPhysicsPreparationState {
+  const [state, setState] = useState<GraphPhysicsPreparationState>(() => (
+    preparation ? { status: 'loading' } : { status: 'ready' }
+  ));
+  useEffect(() => {
+    if (!preparation) {
+      setState({ status: 'ready' });
+      return;
+    }
+    let active = true;
+    void preparation.then(
+      () => { if (active) setState({ status: 'ready' }); },
+      error => {
+        if (!active) return;
+        setState({
+          status: 'error',
+          message: error instanceof Error ? error.message : String(error),
+        });
+      },
+    );
+    return () => { active = false; };
+  }, [preparation]);
+  return state;
+}
+
+export default function App({ graphPhysicsPreparation }: AppShellProps): React.ReactElement {
+  const graphPhysics = useGraphPhysicsPreparation(graphPhysicsPreparation);
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
   const {
     graphData,
@@ -132,7 +183,8 @@ export default function App(): React.ReactElement {
   const displayGraphData = coloredData || visibleGraphInput;
   useVisibleGraphStateResponse(displayGraphData);
 
-  if (isLoading) return <LoadingState />;
+  const startupState = renderGraphStartupState(graphPhysics, isLoading);
+  if (startupState) return startupState;
 
   if (!graphData) {
     return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} />;

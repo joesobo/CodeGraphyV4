@@ -1,29 +1,25 @@
 import { graphMotionDuration } from './motion';
 
-export const OWNED_GRAPH_NODE_HOVER_SCALE = 1.1;
-const OWNED_GRAPH_NODE_HOVER_DURATION_MS = 120;
+const NODE_HOVER_SCALE = 1.1;
+const NODE_HOVER_DURATION_MS = 120;
 
 interface OwnedGraphNodeHoverTransition {
-  clearNodeOnComplete: boolean;
-  durationMs: number;
   fromScale: number;
   startedAtMs: number;
   targetScale: number;
 }
 
 export interface OwnedGraphNodeHover {
-  hovered: boolean;
   nodeId: string | null;
   scale: number;
   transition: OwnedGraphNodeHoverTransition | null;
 }
 
 export function createOwnedGraphNodeHover(): OwnedGraphNodeHover {
-  return { hovered: false, nodeId: null, scale: 1, transition: null };
+  return { nodeId: null, scale: 1, transition: null };
 }
 
 export function resetOwnedGraphNodeHover(hover: OwnedGraphNodeHover): void {
-  hover.hovered = false;
   hover.nodeId = null;
   hover.scale = 1;
   hover.transition = null;
@@ -36,19 +32,18 @@ function smoothStep(progress: number): number {
 export function advanceOwnedGraphNodeHover(
   hover: OwnedGraphNodeHover,
   timestampMs: number,
-): boolean {
+): void {
   const transition = hover.transition;
-  if (!transition) return false;
+  if (!transition) return;
   const elapsedMs = Math.max(0, timestampMs - transition.startedAtMs);
-  const progress = Math.min(1, elapsedMs / transition.durationMs);
+  const progress = Math.min(1, elapsedMs / NODE_HOVER_DURATION_MS);
   const eased = smoothStep(progress);
   hover.scale = transition.fromScale
     + (transition.targetScale - transition.fromScale) * eased;
-  if (progress < 1) return true;
+  if (progress < 1) return;
   hover.scale = transition.targetScale;
-  if (transition.clearNodeOnComplete) hover.nodeId = null;
+  if (transition.targetScale === 1) hover.nodeId = null;
   hover.transition = null;
-  return false;
 }
 
 export function setOwnedGraphNodeHover(
@@ -57,34 +52,28 @@ export function setOwnedGraphNodeHover(
   timestampMs: number,
 ): void {
   advanceOwnedGraphNodeHover(hover, timestampMs);
-  const durationMs = graphMotionDuration(OWNED_GRAPH_NODE_HOVER_DURATION_MS);
+  const durationMs = graphMotionDuration(NODE_HOVER_DURATION_MS);
   if (nodeId !== null) {
     if (nodeId !== hover.nodeId) hover.scale = 1;
-    hover.hovered = true;
     hover.nodeId = nodeId;
-    if (durationMs === 0 || hover.scale === OWNED_GRAPH_NODE_HOVER_SCALE) {
-      hover.scale = OWNED_GRAPH_NODE_HOVER_SCALE;
+    if (durationMs === 0 || hover.scale === NODE_HOVER_SCALE) {
+      hover.scale = NODE_HOVER_SCALE;
       hover.transition = null;
       return;
     }
     hover.transition = {
-      clearNodeOnComplete: false,
-      durationMs,
       fromScale: hover.scale,
       startedAtMs: timestampMs,
-      targetScale: OWNED_GRAPH_NODE_HOVER_SCALE,
+      targetScale: NODE_HOVER_SCALE,
     };
     return;
   }
   if (hover.nodeId === null) return;
-  hover.hovered = false;
   if (durationMs === 0 || hover.scale === 1) {
     resetOwnedGraphNodeHover(hover);
     return;
   }
   hover.transition = {
-    clearNodeOnComplete: true,
-    durationMs,
     fromScale: hover.scale,
     startedAtMs: timestampMs,
     targetScale: 1,

@@ -7,7 +7,10 @@ import {
   graphDetailOpacity,
 } from '../../../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../contracts';
-import type { OwnedGraphStageAttributionProfiler } from '../performance/attribution';
+import {
+  createOwnedGraphStageAttributionProfiler,
+  type OwnedGraphStageAttributionProfiler,
+} from '../performance/attribution';
 import type { OwnedGraphCamera } from '../camera';
 import { writeOwnedArrowCurveParameters } from '../arrowGeometry';
 import { ownedGraphNodeWorldScale } from '../visualSize';
@@ -63,46 +66,60 @@ function parseHexChannel(value: string): number {
   return Number.parseInt(value, 16) / 255;
 }
 
-export function parseWebGpuColor(color: string): [number, number, number, number] {
+type WebGpuColor = [number, number, number, number];
+
+function parseShortHexColor(value: string): WebGpuColor | null {
+  const match = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i.exec(value);
+  if (!match) return null;
+  return [
+    parseHexChannel(match[1] + match[1]),
+    parseHexChannel(match[2] + match[2]),
+    parseHexChannel(match[3] + match[3]),
+    match[4] ? parseHexChannel(match[4] + match[4]) : 1,
+  ];
+}
+
+function parseFullHexColor(value: string): WebGpuColor | null {
+  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i.exec(value);
+  if (!match) return null;
+  return [
+    parseHexChannel(match[1]),
+    parseHexChannel(match[2]),
+    parseHexChannel(match[3]),
+    match[4] ? parseHexChannel(match[4]) : 1,
+  ];
+}
+
+function parseRgbColor(value: string): WebGpuColor | null {
+  const match = /^rgba?\(\s*([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/i.exec(value);
+  if (!match) return null;
+  return [
+    Math.min(255, Number(match[1])) / 255,
+    Math.min(255, Number(match[2])) / 255,
+    Math.min(255, Number(match[3])) / 255,
+    match[4] === undefined ? 1 : Math.min(1, Number(match[4])),
+  ];
+}
+
+function parseSrgbColor(value: string): WebGpuColor | null {
+  const match = /^color\(\s*srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)$/i.exec(value);
+  if (!match) return null;
+  return [
+    Math.min(1, Number(match[1])),
+    Math.min(1, Number(match[2])),
+    Math.min(1, Number(match[3])),
+    match[4] === undefined ? 1 : Math.min(1, Number(match[4])),
+  ];
+}
+
+export function parseWebGpuColor(color: string): WebGpuColor {
   const value = color.trim();
   if (value.toLowerCase() === 'transparent') return [0, 0, 0, 0];
-  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i.exec(value);
-  if (short) {
-    return [
-      parseHexChannel(short[1] + short[1]),
-      parseHexChannel(short[2] + short[2]),
-      parseHexChannel(short[3] + short[3]),
-      short[4] ? parseHexChannel(short[4] + short[4]) : 1,
-    ];
-  }
-  const full = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i.exec(value);
-  if (full) {
-    return [
-      parseHexChannel(full[1]),
-      parseHexChannel(full[2]),
-      parseHexChannel(full[3]),
-      full[4] ? parseHexChannel(full[4]) : 1,
-    ];
-  }
-  const rgb = /^rgba?\(\s*([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/i.exec(value);
-  if (rgb) {
-    return [
-      Math.min(255, Number(rgb[1])) / 255,
-      Math.min(255, Number(rgb[2])) / 255,
-      Math.min(255, Number(rgb[3])) / 255,
-      rgb[4] === undefined ? 1 : Math.min(1, Number(rgb[4])),
-    ];
-  }
-  const srgb = /^color\(\s*srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)$/i.exec(value);
-  if (srgb) {
-    return [
-      Math.min(1, Number(srgb[1])),
-      Math.min(1, Number(srgb[2])),
-      Math.min(1, Number(srgb[3])),
-      srgb[4] === undefined ? 1 : Math.min(1, Number(srgb[4])),
-    ];
-  }
-  return [0, 0, 0, 1];
+  return parseShortHexColor(value)
+    ?? parseFullHexColor(value)
+    ?? parseRgbColor(value)
+    ?? parseSrgbColor(value)
+    ?? [0, 0, 0, 1];
 }
 
 export function webGpuNodeShapeCode(shape: NodeShape2D): number {
@@ -217,7 +234,7 @@ export class OwnedWebGpuRenderer {
     private readonly linkPipeline: GPURenderPipeline,
     private readonly nodePipeline: GPURenderPipeline,
     private readonly onFrameComplete: () => void,
-    private readonly attributionProfiler?: OwnedGraphStageAttributionProfiler,
+    private readonly attributionProfiler: OwnedGraphStageAttributionProfiler,
   ) {
     this.cameraBuffer = device.createBuffer({
       label: 'CodeGraphy camera uniform',
@@ -348,7 +365,7 @@ export class OwnedWebGpuRenderer {
       linkPipeline,
       nodePipeline,
       options.onFrameComplete,
-      options.attributionProfiler,
+      options.attributionProfiler ?? createOwnedGraphStageAttributionProfiler(),
     );
       void device.lost.then(info => {
         if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
@@ -430,10 +447,10 @@ export class OwnedWebGpuRenderer {
 
   private updateStyleCaches(frame: OwnedWebGpuFrame): boolean {
     if (this.styleCachesMatch(frame)) return false;
-    const startedAt = this.attributionProfiler?.startTiming() ?? null;
+    const startedAt = this.attributionProfiler.startTiming();
     this.updateNodeStyleCache(frame);
     this.updateLinkStyleCache(frame);
-    this.attributionProfiler?.finishTiming('styleCacheRebuild', startedAt);
+    this.attributionProfiler.finishTiming('styleCacheRebuild', startedAt);
     return true;
   }
 
@@ -456,7 +473,7 @@ export class OwnedWebGpuRenderer {
   }
 
   private uploadCamera(frame: OwnedWebGpuFrame): void {
-    const startedAt = this.attributionProfiler?.startTiming() ?? null;
+    const startedAt = this.attributionProfiler.startTiming();
     this.cameraValues[0] = frame.camera.centerX;
     this.cameraValues[1] = frame.camera.centerY;
     this.cameraValues[2] = frame.camera.zoom * 2 / frame.cssWidth;
@@ -469,10 +486,8 @@ export class OwnedWebGpuRenderer {
       : -1;
     this.cameraValues[8] = frame.hoveredNodeIndex;
     this.cameraValues[9] = frame.hoveredNodeScale;
-    this.cameraValues[10] = 0;
-    this.cameraValues[11] = 0;
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
-    this.attributionProfiler?.finishTiming('gpuBufferWrites', startedAt);
+    this.attributionProfiler.finishTiming('gpuBufferWrites', startedAt);
   }
 
   private edgeStride(frame: OwnedWebGpuFrame): number {
@@ -492,6 +507,60 @@ export class OwnedWebGpuRenderer {
     }
   }
 
+  private packLinkGeometry(
+    frame: OwnedWebGpuFrame,
+    sourceIndex: number,
+    targetIndex: number,
+    renderedIndex: number,
+    curvature: number,
+    writeArrows: boolean,
+    nodeVisualScale: number,
+  ): boolean {
+    const sourceX = frame.nodeX[sourceIndex] ?? 0;
+    const sourceY = frame.nodeY[sourceIndex] ?? 0;
+    const targetX = frame.nodeX[targetIndex] ?? 0;
+    const targetY = frame.nodeY[targetIndex] ?? 0;
+    const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
+    this.linkGeometryValues[offset] = sourceX;
+    this.linkGeometryValues[offset + 1] = sourceY;
+    this.linkGeometryValues[offset + 2] = targetX;
+    this.linkGeometryValues[offset + 3] = targetY;
+    if (!writeArrows) return true;
+    const sourceStyle = this.nodeStylesByIndex[sourceIndex];
+    const targetStyle = this.nodeStylesByIndex[targetIndex];
+    if (!sourceStyle || !targetStyle) return false;
+    writeOwnedArrowCurveParameters(
+      this.linkGeometryValues,
+      offset + 4,
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      curvature,
+      sourceStyle,
+      targetStyle,
+      nodeVisualScale,
+    );
+    return true;
+  }
+
+  private packLinkStyle(
+    link: FGLink,
+    linkIndex: number,
+    renderedIndex: number,
+    curvature: number,
+  ): void {
+    const offset = renderedIndex * LINK_INSTANCE_STYLE_FLOATS;
+    const cachedOffset = linkIndex * LINK_CACHED_STYLE_FLOATS;
+    this.linkStyleValues[offset] = this.linkStyles[cachedOffset];
+    this.linkStyleValues[offset + 1] = curvature;
+    this.linkStyleValues.set(
+      this.linkStyles.subarray(cachedOffset + 1, cachedOffset + LINK_CACHED_STYLE_FLOATS),
+      offset + 2,
+    );
+    this.linkStyleValues[offset + 10] = link.bidirectional ? 1 : 0;
+  }
+
   private packLinkInstance(
     frame: OwnedWebGpuFrame,
     linkIndex: number,
@@ -506,45 +575,16 @@ export class OwnedWebGpuRenderer {
     const targetIndex = frame.edgeTargets[linkIndex];
     if (sourceIndex >= frame.nodes.length || targetIndex >= frame.nodes.length) return false;
     const curvature = link.curvature ?? 0;
-    if (writeGeometry) {
-      const sourceX = frame.nodeX[sourceIndex] ?? 0;
-      const sourceY = frame.nodeY[sourceIndex] ?? 0;
-      const targetX = frame.nodeX[targetIndex] ?? 0;
-      const targetY = frame.nodeY[targetIndex] ?? 0;
-      const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
-      this.linkGeometryValues[offset] = sourceX;
-      this.linkGeometryValues[offset + 1] = sourceY;
-      this.linkGeometryValues[offset + 2] = targetX;
-      this.linkGeometryValues[offset + 3] = targetY;
-      if (writeArrows) {
-        const sourceStyle = this.nodeStylesByIndex[sourceIndex];
-        const targetStyle = this.nodeStylesByIndex[targetIndex];
-        if (!sourceStyle || !targetStyle) return false;
-        writeOwnedArrowCurveParameters(
-          this.linkGeometryValues,
-          offset + 4,
-          sourceX,
-          sourceY,
-          targetX,
-          targetY,
-          curvature,
-          sourceStyle,
-          targetStyle,
-          nodeVisualScale,
-        );
-      }
-    }
-    if (writeStyle) {
-      const offset = renderedIndex * LINK_INSTANCE_STYLE_FLOATS;
-      const cachedOffset = linkIndex * LINK_CACHED_STYLE_FLOATS;
-      this.linkStyleValues[offset] = this.linkStyles[cachedOffset];
-      this.linkStyleValues[offset + 1] = curvature;
-      this.linkStyleValues.set(
-        this.linkStyles.subarray(cachedOffset + 1, cachedOffset + LINK_CACHED_STYLE_FLOATS),
-        offset + 2,
-      );
-      this.linkStyleValues[offset + 10] = link.bidirectional ? 1 : 0;
-    }
+    if (writeGeometry && !this.packLinkGeometry(
+      frame,
+      sourceIndex,
+      targetIndex,
+      renderedIndex,
+      curvature,
+      writeArrows,
+      nodeVisualScale,
+    )) return false;
+    if (writeStyle) this.packLinkStyle(link, linkIndex, renderedIndex, curvature);
     return true;
   }
 
@@ -590,7 +630,7 @@ export class OwnedWebGpuRenderer {
     values: Float32Array,
     byteLength: number,
   ): void {
-    const startedAt = this.attributionProfiler?.startTiming() ?? null;
+    const startedAt = this.attributionProfiler.startTiming();
     this.ensureVertexStream(stream, byteLength);
     if (byteLength > 0) {
       this.device.queue.writeBuffer(
@@ -601,7 +641,7 @@ export class OwnedWebGpuRenderer {
         byteLength,
       );
     }
-    this.attributionProfiler?.finishTiming('gpuBufferWrites', startedAt);
+    this.attributionProfiler.finishTiming('gpuBufferWrites', startedAt);
   }
 
   private updateGraphCacheIdentity(
@@ -618,28 +658,50 @@ export class OwnedWebGpuRenderer {
     this.uploadedLinks = frame.links;
   }
 
+  private positionsChanged(frame: OwnedWebGpuFrame): boolean {
+    return this.uploadedNodes !== frame.nodes
+      || this.uploadedLinks !== frame.links
+      || this.uploadedPositionVersion !== frame.positionVersion;
+  }
+
+  private arrowGeometryChanged(arrowsVisible: boolean, nodeVisualScale: number): boolean {
+    return arrowsVisible && (
+      !this.uploadedArrowsVisible
+      || this.uploadedNodeVisualScale !== nodeVisualScale
+    );
+  }
+
+  private needsLinkGeometryUpdate(
+    positionsChanged: boolean,
+    stylesChanged: boolean,
+    edgeStrideChanged: boolean,
+    arrowGeometryChanged: boolean,
+  ): boolean {
+    return positionsChanged
+      || stylesChanged
+      || edgeStrideChanged
+      || arrowGeometryChanged;
+  }
+
   private updateGraphBuffers(frame: OwnedWebGpuFrame, stylesChanged: boolean): void {
     const edgeStride = this.edgeStride(frame);
-    const graphChanged = this.uploadedNodes !== frame.nodes || this.uploadedLinks !== frame.links;
-    const positionsChanged = graphChanged || this.uploadedPositionVersion !== frame.positionVersion;
+    const positionsChanged = this.positionsChanged(frame);
     const edgeStrideChanged = this.uploadedEdgeStride !== edgeStride;
     const arrowsVisible = frame.directionMode === 'arrows'
       && graphDetailOpacity(frame.camera.zoom) > 0;
     const nodeVisualScale = ownedGraphNodeWorldScale(frame.camera.zoom);
-    const needsArrowGeometry = arrowsVisible && !this.uploadedArrowsVisible;
-    const arrowScaleChanged = arrowsVisible
-      && this.uploadedNodeVisualScale !== nodeVisualScale;
-    const linkGeometryChanged = positionsChanged
-      || stylesChanged
-      || edgeStrideChanged
-      || needsArrowGeometry
-      || arrowScaleChanged;
+    const linkGeometryChanged = this.needsLinkGeometryUpdate(
+      positionsChanged,
+      stylesChanged,
+      edgeStrideChanged,
+      this.arrowGeometryChanged(arrowsVisible, nodeVisualScale),
+    );
     const linkStylesChanged = stylesChanged || edgeStrideChanged;
 
     if (positionsChanged) {
-      const nodeGeometryStartedAt = this.attributionProfiler?.startTiming() ?? null;
+      const nodeGeometryStartedAt = this.attributionProfiler.startTiming();
       this.packNodePositions(frame);
-      this.attributionProfiler?.finishTiming('geometryRebuild', nodeGeometryStartedAt);
+      this.attributionProfiler.finishTiming('geometryRebuild', nodeGeometryStartedAt);
       this.uploadVertexStream(
         this.nodePositionStream,
         this.nodePositionValues,
@@ -650,7 +712,7 @@ export class OwnedWebGpuRenderer {
       this.uploadVertexStream(this.nodeStyleStream, this.nodeStyles, this.nodeStyles.byteLength);
     }
     if (linkGeometryChanged || linkStylesChanged) {
-      const linkGeometryStartedAt = this.attributionProfiler?.startTiming() ?? null;
+      const linkGeometryStartedAt = this.attributionProfiler.startTiming();
       this.packLinkInstances(
         frame,
         edgeStride,
@@ -659,7 +721,7 @@ export class OwnedWebGpuRenderer {
         arrowsVisible,
         nodeVisualScale,
       );
-      this.attributionProfiler?.finishTiming('geometryRebuild', linkGeometryStartedAt);
+      this.attributionProfiler.finishTiming('geometryRebuild', linkGeometryStartedAt);
     }
     if (linkGeometryChanged) {
       this.uploadVertexStream(
@@ -703,7 +765,7 @@ export class OwnedWebGpuRenderer {
   }
 
   private submitRenderPass(frame: OwnedWebGpuFrame): void {
-    const startedAt = this.attributionProfiler?.startTiming() ?? null;
+    const startedAt = this.attributionProfiler.startTiming();
     const encoder = this.device.createCommandEncoder({ label: 'CodeGraphy graph frame' });
     const pass = encoder.beginRenderPass({
       label: 'CodeGraphy graph render pass',
@@ -718,7 +780,7 @@ export class OwnedWebGpuRenderer {
     this.drawNodes(pass, frame);
     pass.end();
     this.device.queue.submit([encoder.finish()]);
-    this.attributionProfiler?.finishTiming('gpuEncodeSubmit', startedAt);
+    this.attributionProfiler.finishTiming('gpuEncodeSubmit', startedAt);
   }
 
   private completeSubmittedFrame(): void {

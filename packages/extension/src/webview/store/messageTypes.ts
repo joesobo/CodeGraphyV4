@@ -6,7 +6,6 @@ import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type {
-  ExtensionToWebviewMessage,
   IGraphViewContributionStatus,
   IPluginFilterPatternGroup,
 } from '../../shared/protocol/extensionToWebview';
@@ -86,8 +85,3 @@ export interface IHandlerContext {
 }
 
 export type PartialState = Partial<IStoreFields>;
-
-export type MessageHandler = (
-  message: ExtensionToWebviewMessage,
-  ctx: IHandlerContext,
-) => PartialState | void;

@@ -1,3 +1,10 @@
+import {
+  summarizePerformanceDistribution,
+  type OwnedGraphPerformanceDistribution,
+} from './distribution';
+
+export type { OwnedGraphPerformanceDistribution } from './distribution';
+
 const DEFAULT_SAMPLE_CAPACITY = 256;
 const DEFAULT_PUBLICATION_INTERVAL_MS = 500;
 
@@ -5,12 +12,6 @@ export interface OwnedGraphFramePerformanceInput {
   presentationTimestampMs: number;
   renderMs: number;
   simulationMs: number;
-}
-
-export interface OwnedGraphPerformanceDistribution {
-  average: number;
-  maximum: number;
-  onePercentHigh: number;
 }
 
 export interface OwnedGraphActivePerformanceSample {
@@ -52,141 +53,173 @@ function finiteNonNegative(value: number): boolean {
   return Number.isFinite(value) && value >= 0;
 }
 
-function distribution(values: readonly number[]): OwnedGraphPerformanceDistribution {
-  let sum = 0;
-  let maximum = 0;
-  for (const value of values) {
-    sum += value;
-    maximum = Math.max(maximum, value);
+function validFrameInput(input: OwnedGraphFramePerformanceInput): boolean {
+  const totalMs = input.renderMs + input.simulationMs;
+  return Number.isFinite(input.presentationTimestampMs)
+    && finiteNonNegative(input.renderMs)
+    && finiteNonNegative(input.simulationMs)
+    && Number.isFinite(totalMs)
+    && totalMs > 0;
+}
+
+class BoundedOwnedGraphPerformanceMonitor implements OwnedGraphPerformanceMonitor {
+  private active = false;
+  private count = 0;
+  private readonly capacity: number;
+  private lastActive: OwnedGraphActivePerformanceSample | undefined;
+  private lastPublicationSampleCount = 0;
+  private lastPublicationTimestamp: number | null = null;
+  private nextIndex = 0;
+  private readonly presentationTimestamps: Float64Array;
+  private readonly publicationIntervalMs: number;
+  private readonly renderDurations: Float64Array;
+  private readonly simulationDurations: Float64Array;
+  private readonly totalDurations: Float64Array;
+
+  constructor(options: OwnedGraphPerformanceMonitorOptions) {
+    this.capacity = positiveInteger(options.capacity, DEFAULT_SAMPLE_CAPACITY);
+    this.publicationIntervalMs = finiteNonNegative(
+      options.publicationIntervalMs ?? Number.NaN,
+    )
+      ? options.publicationIntervalMs as number
+      : DEFAULT_PUBLICATION_INTERVAL_MS;
+    this.presentationTimestamps = new Float64Array(this.capacity);
+    this.renderDurations = new Float64Array(this.capacity);
+    this.simulationDurations = new Float64Array(this.capacity);
+    this.totalDurations = new Float64Array(this.capacity);
   }
-  const sortedDescending = [...values].sort((first, second) => second - first);
-  const highCount = Math.max(1, Math.ceil(sortedDescending.length / 100));
-  let highSum = 0;
-  for (let index = 0; index < highCount; index += 1) {
-    highSum += sortedDescending[index];
+
+  recordFrame(
+    input: OwnedGraphFramePerformanceInput,
+  ): OwnedGraphPerformanceSample | undefined {
+    if (!validFrameInput(input) || !this.acceptsTimestamp(input.presentationTimestampMs)) {
+      return undefined;
+    }
+    this.activateWindow();
+    this.appendFrame(input);
+    if (!this.shouldPublish(input.presentationTimestampMs)) return undefined;
+    return this.publish(input.presentationTimestampMs);
   }
-  return {
-    average: sum / values.length,
-    maximum,
-    onePercentHigh: highSum / highCount,
-  };
+
+  reset(): void {
+    this.active = false;
+    this.clearWindow();
+    this.lastActive = undefined;
+  }
+
+  sample(): OwnedGraphPerformanceSample {
+    return !this.active || this.count === 0
+      ? this.idleSample()
+      : this.activeSample();
+  }
+
+  setIdle(): OwnedGraphIdlePerformanceSample {
+    if (this.shouldCaptureFinalSample()) this.lastActive = this.activeSample();
+    this.active = false;
+    this.clearWindow();
+    return this.idleSample();
+  }
+
+  private acceptsTimestamp(timestamp: number): boolean {
+    return !this.active
+      || this.count === 0
+      || timestamp > this.presentationTimestamps[this.latestIndex()];
+  }
+
+  private activateWindow(): void {
+    if (this.active) return;
+    this.clearWindow();
+    this.active = true;
+  }
+
+  private activeSample(): OwnedGraphActivePerformanceSample {
+    const frameTimeMs = summarizePerformanceDistribution(
+      this.orderedValues(this.totalDurations),
+    );
+    return {
+      status: 'active',
+      displayedFps: this.displayedFps(),
+      frameTimeMs,
+      potentialFps: 1_000 / frameTimeMs.average,
+      renderTimeMs: summarizePerformanceDistribution(
+        this.orderedValues(this.renderDurations),
+      ),
+      sampleCount: this.count,
+      simulationTimeMs: summarizePerformanceDistribution(
+        this.orderedValues(this.simulationDurations),
+      ),
+    };
+  }
+
+  private appendFrame(input: OwnedGraphFramePerformanceInput): void {
+    this.presentationTimestamps[this.nextIndex] = input.presentationTimestampMs;
+    this.renderDurations[this.nextIndex] = input.renderMs;
+    this.simulationDurations[this.nextIndex] = input.simulationMs;
+    this.totalDurations[this.nextIndex] = input.renderMs + input.simulationMs;
+    this.nextIndex = (this.nextIndex + 1) % this.capacity;
+    this.count = Math.min(this.capacity, this.count + 1);
+  }
+
+  private clearWindow(): void {
+    this.count = 0;
+    this.nextIndex = 0;
+    this.lastPublicationSampleCount = 0;
+    this.lastPublicationTimestamp = null;
+  }
+
+  private displayedFps(): number | null {
+    if (this.count < 2) return null;
+    const elapsedMs = this.presentationTimestamps[this.latestIndex()]
+      - this.presentationTimestamps[this.oldestIndex()];
+    return elapsedMs > 0 ? ((this.count - 1) * 1_000) / elapsedMs : null;
+  }
+
+  private idleSample(): OwnedGraphIdlePerformanceSample {
+    return this.lastActive
+      ? { status: 'idle', lastActive: this.lastActive }
+      : { status: 'idle' };
+  }
+
+  private latestIndex(): number {
+    return (this.nextIndex + this.capacity - 1) % this.capacity;
+  }
+
+  private oldestIndex(): number {
+    return this.count === this.capacity ? this.nextIndex : 0;
+  }
+
+  private orderedValues(buffer: Float64Array): number[] {
+    const values = new Array<number>(this.count);
+    const oldest = this.oldestIndex();
+    for (let offset = 0; offset < this.count; offset += 1) {
+      values[offset] = buffer[(oldest + offset) % this.capacity];
+    }
+    return values;
+  }
+
+  private publish(timestamp: number): OwnedGraphActivePerformanceSample {
+    this.lastPublicationSampleCount = this.count;
+    this.lastPublicationTimestamp = timestamp;
+    this.lastActive = this.activeSample();
+    return this.lastActive;
+  }
+
+  private shouldCaptureFinalSample(): boolean {
+    return this.active
+      && this.count > 0
+      && (this.count > 1 || this.lastActive === undefined);
+  }
+
+  private shouldPublish(timestamp: number): boolean {
+    if (this.count === 1 && this.lastActive !== undefined) return false;
+    if (this.lastPublicationSampleCount < 2 && this.count >= 2) return true;
+    return this.lastPublicationTimestamp === null
+      || timestamp - this.lastPublicationTimestamp >= this.publicationIntervalMs;
+  }
 }
 
 export function createOwnedGraphPerformanceMonitor(
   options: OwnedGraphPerformanceMonitorOptions = {},
 ): OwnedGraphPerformanceMonitor {
-  const capacity = positiveInteger(options.capacity, DEFAULT_SAMPLE_CAPACITY);
-  const publicationIntervalMs = finiteNonNegative(options.publicationIntervalMs ?? Number.NaN)
-    ? options.publicationIntervalMs as number
-    : DEFAULT_PUBLICATION_INTERVAL_MS;
-  const presentationTimestamps = new Float64Array(capacity);
-  const renderDurations = new Float64Array(capacity);
-  const simulationDurations = new Float64Array(capacity);
-  const totalDurations = new Float64Array(capacity);
-  let active = false;
-  let count = 0;
-  let nextIndex = 0;
-  let lastActive: OwnedGraphActivePerformanceSample | undefined;
-  let lastPublicationSampleCount = 0;
-  let lastPublicationTimestamp: number | null = null;
-
-  function clearWindow(): void {
-    count = 0;
-    nextIndex = 0;
-    lastPublicationSampleCount = 0;
-    lastPublicationTimestamp = null;
-  }
-
-  function orderedValues(buffer: Float64Array): number[] {
-    const values = new Array<number>(count);
-    const oldest = count === capacity ? nextIndex : 0;
-    for (let offset = 0; offset < count; offset += 1) {
-      values[offset] = buffer[(oldest + offset) % capacity];
-    }
-    return values;
-  }
-
-  function activeSample(): OwnedGraphActivePerformanceSample {
-    const timestamps = orderedValues(presentationTimestamps);
-    const render = orderedValues(renderDurations);
-    const simulation = orderedValues(simulationDurations);
-    const total = orderedValues(totalDurations);
-    const frameTimeMs = distribution(total);
-    const elapsedMs = timestamps.length > 1
-      ? timestamps[timestamps.length - 1] - timestamps[0]
-      : 0;
-    const displayedFps = elapsedMs > 0
-      ? ((timestamps.length - 1) * 1_000) / elapsedMs
-      : null;
-    return {
-      status: 'active',
-      displayedFps,
-      frameTimeMs,
-      potentialFps: 1_000 / frameTimeMs.average,
-      renderTimeMs: distribution(render),
-      sampleCount: count,
-      simulationTimeMs: distribution(simulation),
-    };
-  }
-
-  function addFrame(input: OwnedGraphFramePerformanceInput): void {
-    presentationTimestamps[nextIndex] = input.presentationTimestampMs;
-    renderDurations[nextIndex] = input.renderMs;
-    simulationDurations[nextIndex] = input.simulationMs;
-    totalDurations[nextIndex] = input.renderMs + input.simulationMs;
-    nextIndex = (nextIndex + 1) % capacity;
-    count = Math.min(capacity, count + 1);
-  }
-
-  return {
-    recordFrame: (input) => {
-      const totalMs = input.renderMs + input.simulationMs;
-      if (
-        !Number.isFinite(input.presentationTimestampMs)
-        || !finiteNonNegative(input.renderMs)
-        || !finiteNonNegative(input.simulationMs)
-        || !Number.isFinite(totalMs)
-        || totalMs <= 0
-      ) return undefined;
-      if (active && count > 0) {
-        const timestamps = orderedValues(presentationTimestamps);
-        if (input.presentationTimestampMs <= timestamps[timestamps.length - 1]) return undefined;
-      }
-      if (!active) {
-        clearWindow();
-        active = true;
-      }
-      addFrame(input);
-      if (count === 1 && lastActive !== undefined) return undefined;
-      const firstDisplayedCadenceIsReady = lastPublicationSampleCount < 2 && count >= 2;
-      if (
-        !firstDisplayedCadenceIsReady
-        && lastPublicationTimestamp !== null
-        && input.presentationTimestampMs - lastPublicationTimestamp < publicationIntervalMs
-      ) return undefined;
-      lastPublicationSampleCount = count;
-      lastPublicationTimestamp = input.presentationTimestampMs;
-      lastActive = activeSample();
-      return lastActive;
-    },
-    reset: () => {
-      active = false;
-      clearWindow();
-      lastActive = undefined;
-    },
-    sample: () => {
-      if (!active || count === 0) {
-        return lastActive ? { status: 'idle', lastActive } : { status: 'idle' };
-      }
-      return activeSample();
-    },
-    setIdle: () => {
-      if (active && count > 0 && (count > 1 || lastActive === undefined)) {
-        lastActive = activeSample();
-      }
-      active = false;
-      clearWindow();
-      return lastActive ? { status: 'idle', lastActive } : { status: 'idle' };
-    },
-  };
+  return new BoundedOwnedGraphPerformanceMonitor(options);
 }

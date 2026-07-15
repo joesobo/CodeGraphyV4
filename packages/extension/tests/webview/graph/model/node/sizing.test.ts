@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { calculateNodeSizes, toD3Repel } from '../../../../../src/webview/components/graph/model/node/sizing';
+import { calculateNodeSizes } from '../../../../../src/webview/components/graph/model/node/sizing';
 
 describe('graph/model/node/sizing', () => {
-  it('maps normalized repel force to the d3 force range', () => {
-    expect(Object.is(toD3Repel(0), -0)).toBe(true);
-    expect(toD3Repel(10)).toBe(-250);
-    expect(toD3Repel(20)).toBe(-500);
-  });
-
   it('scales connection-based node sizes like Obsidian', () => {
     const leaves = Array.from({ length: 15 }, (_, index) => ({
       id: `leaf-${index}.ts`,

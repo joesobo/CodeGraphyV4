@@ -84,28 +84,3 @@ export function pointOnOwnedLink(
     + 2 * position * (targetY - geometry.controlY);
   return { x, y, angle: Math.atan2(tangentY, tangentX) };
 }
-
-export function traceOwnedLink(
-  context: CanvasRenderingContext2D,
-  geometry: OwnedLinkGeometry,
-): void {
-  context.beginPath();
-  context.moveTo(geometry.source.x as number, geometry.source.y as number);
-  if (geometry.secondControlX !== undefined && geometry.secondControlY !== undefined) {
-    context.bezierCurveTo(
-      geometry.controlX,
-      geometry.controlY,
-      geometry.secondControlX,
-      geometry.secondControlY,
-      geometry.target.x as number,
-      geometry.target.y as number,
-    );
-    return;
-  }
-  context.quadraticCurveTo(
-    geometry.controlX,
-    geometry.controlY,
-    geometry.target.x as number,
-    geometry.target.y as number,
-  );
-}
