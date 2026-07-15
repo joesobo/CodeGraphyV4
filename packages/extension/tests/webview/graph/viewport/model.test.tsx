@@ -11,7 +11,6 @@ const harness = vi.hoisted(() => ({
   getGraphSurfaceColors: vi.fn(() => ({
     canvasBackgroundColor: 'transparent',
     containerBackgroundColor: 'var(--cg-popover-translucent)',
-    borderColor: '#d4d4d4',
   })),
 }));
 
@@ -152,7 +151,6 @@ describe('graph/viewport/model', () => {
     });
     expect(harness.getGraphSurfaceColors).toHaveBeenCalledWith(undefined);
     expect(result.current).toMatchObject({
-      borderColor: '#d4d4d4',
       canvasBackgroundColor: 'transparent',
       containerBackgroundColor: 'var(--cg-popover-translucent)',
       sharedProps: { shared: true },

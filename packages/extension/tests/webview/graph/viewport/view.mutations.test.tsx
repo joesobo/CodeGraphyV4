@@ -67,7 +67,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
-      borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
       handleContextMenu={handleContextMenu}
@@ -160,14 +159,15 @@ describe('Viewport (mutation targets)', () => {
     expect(screen.queryByTestId('shortcut')).not.toBeInTheDocument();
   });
 
-  it('applies recessed graph stage spacing without an outline border', () => {
-    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
+  it('applies recessed graph stage spacing without inline border styling', () => {
+    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)' });
 
     const container = document.querySelector('.graph-container') as HTMLElement;
     expect(container).toHaveClass('inset-2');
     expect(container).not.toHaveClass('m-1');
     expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
-    expect(container.style.borderWidth).toBe('0px');
+    expect(container.style.borderWidth).toBe('');
+    expect(container.style.borderStyle).toBe('');
   });
 
   it('renders separator entries as hr elements', () => {

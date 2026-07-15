@@ -16,7 +16,6 @@ import type { GraphAppearance } from '../appearance/model';
 export interface GraphViewportModel {
   canvasBackgroundColor: string;
   containerBackgroundColor: string;
-  borderColor: string;
   menuEntries: GraphContextMenuEntry[];
   sharedProps: ReturnType<typeof buildSharedGraphProps>;
 }
@@ -75,12 +74,11 @@ export function useGraphViewportModel({
     edges: graphState.graphData.links,
   });
 
-  const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);
+  const { canvasBackgroundColor, containerBackgroundColor } = getGraphSurfaceColors(appearance);
 
   return {
     canvasBackgroundColor,
     containerBackgroundColor,
-    borderColor,
     menuEntries,
     sharedProps,
   };

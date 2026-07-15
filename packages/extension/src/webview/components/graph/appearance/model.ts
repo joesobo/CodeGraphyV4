@@ -25,7 +25,6 @@ export function resolveGraphAppearance(): GraphAppearance {
       GRAPH_APPEARANCE_TOKENS.stageBackground,
       DEFAULT_GRAPH_APPEARANCE.stageBackground,
     ),
-    stageBorder: resolveCssToken(GRAPH_APPEARANCE_TOKENS.stageBorder, DEFAULT_GRAPH_APPEARANCE.stageBorder),
     transparent: resolveCssToken(GRAPH_APPEARANCE_TOKENS.transparent, DEFAULT_GRAPH_APPEARANCE.transparent),
   };
 }

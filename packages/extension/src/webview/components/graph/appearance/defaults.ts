@@ -8,6 +8,5 @@ export const DEFAULT_GRAPH_APPEARANCE: GraphAppearance = {
   linkMuted: 'GrayText',
   nodeSelectionBorder: 'Highlight',
   stageBackground: 'Canvas',
-  stageBorder: 'GrayText',
   transparent: 'transparent',
 };

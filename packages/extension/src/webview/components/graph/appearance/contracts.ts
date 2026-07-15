@@ -6,6 +6,5 @@ export interface GraphAppearance {
   linkMuted: string;
   nodeSelectionBorder: string;
   stageBackground: string;
-  stageBorder: string;
   transparent: string;
 }
