@@ -1,3 +1,7 @@
+import { isPackageNodeId } from '../../model/node/identity';
+
+export { isPackageNodeId } from '../../model/node/identity';
+
 export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'symbol';
 
 export interface GraphContextNodeTarget {
@@ -25,10 +29,6 @@ export interface GraphContextNodeSource {
     name: string;
     filePath: string;
   };
-}
-
-export function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
 }
 
 function resolveGraphContextNodeSource(

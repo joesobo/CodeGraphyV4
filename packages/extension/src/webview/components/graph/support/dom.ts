@@ -1,7 +1,9 @@
+import { isMacControlClick } from './modifiers';
+
 export type GraphCursorStyle = 'default' | 'pointer';
 
 export function isMacControlContextClick(event: MouseEvent, isMacPlatform: boolean): boolean {
-  return isMacPlatform && event.button === 0 && event.ctrlKey && !event.metaKey;
+  return event.button === 0 && !event.metaKey && isMacControlClick(event.ctrlKey, isMacPlatform);
 }
 
 function applyCursorToNodes(nodes: NodeListOf<Node> | NodeList, cursor: GraphCursorStyle): void {

@@ -10,10 +10,7 @@ import {
   getZoomShortcutCommand,
 } from '../shortcutResolvers';
 import { getToolbarShortcutCommand } from '../toolbarShortcutResolver';
-
-function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
-}
+import { isPackageNodeId } from '../../model/node/identity';
 
 function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardCommand | null {
   if (selectedNodeIds.length === 0) {
