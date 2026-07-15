@@ -14,6 +14,12 @@ export const SYNTHETIC_FIXTURE_PRESETS = {
 
 export type SyntheticFixtureName = keyof typeof SYNTHETIC_FIXTURE_PRESETS;
 
+export const DEFAULT_SYNTHETIC_FIXTURE_SEED = 307;
+
+export function isSyntheticFixtureName(value: string): value is SyntheticFixtureName {
+  return Object.hasOwn(SYNTHETIC_FIXTURE_PRESETS, value);
+}
+
 export interface BenchmarkFixture {
   schemaVersion: 1;
   source: {

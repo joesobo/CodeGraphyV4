@@ -51,6 +51,7 @@ describe('parseBenchmarkArguments', () => {
       attribution: false,
       headless: true,
       memoryCycles: 5,
+      seed: 307,
       baselinePath: undefined,
     });
   });

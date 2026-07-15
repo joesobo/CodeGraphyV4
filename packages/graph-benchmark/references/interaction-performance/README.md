@@ -134,20 +134,6 @@ The parity contract was checked against [Obsidian's official v1.12.7 application
 
 Every clean three-run tier is complete, settled, and untruncated. The required VS Code 1.128.0 editor review confirms no Layout control, exactly two node-size choices, 8–30 bounds, stable semantic sizes across zoom, visible square-root compensation at 0.48×, a 78 px right-drag pan with no menu, a stationary menu only after release, and the simplified `x FPS · y ms` HUD. Evidence is under `m7-default-graph/`.
 
-## M9 exhaustive dense-cell collisions
-
-The M8 zoom scale was necessary but not sufficient. A real CodeGraphy-monorepo screenshot exposed a second correctness defect: the uniform-grid collision pass stopped after 128 nearby entries, so a dense cell could skip a large/small node pair entirely and still report settlement. The committed regression recreates the failure with one radius-30 node, one radius-8 node, 129 harmless same-cell entries, and a 1.4× zoom collision scale; the old kernel left the pair 40 units apart instead of the required 53.2.
-
-Revision `a7bb05085d91f4205c12bad40308451cc461c2fb` removes that arbitrary candidate ceiling and checks every node in the relevant 3×3 spatial-grid neighborhood. Clean three-run reports retain exact one-frame target and neighbor response, zero freezes, teleports, settle-envelope violations, and fitted-view collision violations:
-
-| Fixture | Mean CPU frame | Sim / render | Potential / displayed FPS | Fitted zoom | Max fitted penetration | Fitted collision settle |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 500 | **4.49 ms** | 3.73 / 0.75 ms | **223 / 60.00** | 0.262× | 0.065 px | 485–493 ms |
-| 1k | **3.98 ms** | 2.80 / 1.17 ms | **252 / 60.00** | 0.182× | 0.046 px | 616–818 ms |
-| 2.5k | **5.06 ms** | 3.17 / 1.89 ms | **198 / 60.00** | 0.113× | 0.029 px | 3.73–4.57 s |
-
-VS Code 1.128.1 independently reopened the actual 2,690-node / 5,643-edge CodeGraphy monorepo. After settling at 1×, zooming out to 0.5× had zero circle overlaps on the first rendered frame and after collision-envelope settlement; the closest rendered pair retained a 5.54 px gap across semantic radii 8–30. The reported close-up, corrected Graph Stage, strict geometry results, and clean reports are under `m9-dense-collisions/`.
-
 ## M8 WASM physics and zoom-accurate collisions
 
 The renderer's inverse-square-root size compensation had made each node's visible world-space radius grow as zoom decreased, while physics continued colliding the unscaled base radius. The old engine could therefore report a perfectly settled graph even when zoomed-out circles visibly overlapped. The frame loop now synchronizes `1 / sqrt(zoom)` with the single WASM physics kernel, which scales both pair separation and collision-grid cells. Expanding the visible envelope wakes collision settlement without reheating unrelated forces; contracting it preserves sleep.
@@ -163,6 +149,20 @@ Clean three-run reports at production revision `e307ad6e5a1d811b3ef1775c12e2256b
 All nine runs are clean, complete, settled, and below the 0.5 px numerical tolerance with exactly zero visible overlap violations. The WASM path also lowers 2.5k mean CPU frame work from M7's 6.55 ms to 4.98 ms while retaining exact one-frame interaction and zero settle-envelope violations.
 
 VS Code 1.128.1 independently verified a 2,500-node editor graph with Files Explorer restored and three stress hubs spanning the full 8–30 semantic radius range (12–34 including collision padding). The fitted 0.147× view has zero visible violations and 0.037 px maximum numerical penetration. Direct checks at the supported zoom boundaries and representative distances—64×, 4×, 1×, 0.1×, 0.02×, and 0.005×—all have zero violations. Evidence is under `m8-wasm-collisions/`.
+
+## M9 exhaustive dense-cell collisions
+
+The M8 zoom scale was necessary but not sufficient. A real CodeGraphy-monorepo screenshot exposed a second correctness defect: the uniform-grid collision pass stopped after 128 nearby entries, so a dense cell could skip a large/small node pair entirely and still report settlement. The committed regression recreates the failure with one radius-30 node, one radius-8 node, 129 harmless same-cell entries, and a 1.4× zoom collision scale; the old kernel left the pair 40 units apart instead of the required 53.2.
+
+Revision `a7bb05085d91f4205c12bad40308451cc461c2fb` removes that arbitrary candidate ceiling and checks every node in the relevant 3×3 spatial-grid neighborhood. Clean three-run reports retain exact one-frame target and neighbor response, zero freezes, teleports, settle-envelope violations, and fitted-view collision violations:
+
+| Fixture | Mean CPU frame | Sim / render | Potential / displayed FPS | Fitted zoom | Max fitted penetration | Fitted collision settle |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 500 | **4.49 ms** | 3.73 / 0.75 ms | **223 / 60.00** | 0.262× | 0.065 px | 485–493 ms |
+| 1k | **3.98 ms** | 2.80 / 1.17 ms | **252 / 60.00** | 0.182× | 0.046 px | 616–818 ms |
+| 2.5k | **5.06 ms** | 3.17 / 1.89 ms | **198 / 60.00** | 0.113× | 0.029 px | 3.73–4.57 s |
+
+VS Code 1.128.1 independently reopened the actual 2,690-node / 5,643-edge CodeGraphy monorepo. After settling at 1×, zooming out to 0.5× had zero circle overlaps on the first rendered frame and after collision-envelope settlement; the closest rendered pair retained a 5.54 px gap across semantic radii 8–30. The reported close-up, corrected Graph Stage, strict geometry results, and clean reports are under `m9-dense-collisions/`.
 
 Run the dashboard generator with:
 

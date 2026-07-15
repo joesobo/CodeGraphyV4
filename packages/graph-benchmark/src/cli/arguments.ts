@@ -1,5 +1,6 @@
 import {
-  SYNTHETIC_FIXTURE_PRESETS,
+  DEFAULT_SYNTHETIC_FIXTURE_SEED,
+  isSyntheticFixtureName,
   type SyntheticFixtureName,
 } from '../fixture/presets';
 
@@ -19,7 +20,6 @@ export interface BenchmarkArguments {
   timeoutMs: number;
 }
 
-const DEFAULT_SEED = 307;
 const DEFAULT_RUNS = 3;
 const DEFAULT_MEMORY_CYCLES = 5;
 const DEFAULT_IDLE_MS = 5_000;
@@ -41,10 +41,6 @@ function parseInteger(value: string, option: string, minimum: number): number {
   return parsed;
 }
 
-function isFixtureName(value: string): value is SyntheticFixtureName {
-  return Object.hasOwn(SYNTHETIC_FIXTURE_PRESETS, value);
-}
-
 function isRenderer(value: string): value is BenchmarkRenderer {
   return value === 'current' || value === 'webgpu';
 }
@@ -60,7 +56,7 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
   let fixture: SyntheticFixtureName | undefined;
   let headless = true;
   let renderer: BenchmarkRenderer | undefined;
-  let seed = DEFAULT_SEED;
+  let seed = DEFAULT_SYNTHETIC_FIXTURE_SEED;
   let runs = DEFAULT_RUNS;
   let memoryCycles = DEFAULT_MEMORY_CYCLES;
   let idleMs = DEFAULT_IDLE_MS;
@@ -77,7 +73,7 @@ export function parseBenchmarkArguments(arguments_: readonly string[]): Benchmar
         attribution = parseBoolean(value, option);
         break;
       case '--fixture':
-        if (!isFixtureName(value)) throw new Error(`Unknown fixture: ${value}`);
+        if (!isSyntheticFixtureName(value)) throw new Error(`Unknown fixture: ${value}`);
         fixture = value;
         break;
       case '--headless':
