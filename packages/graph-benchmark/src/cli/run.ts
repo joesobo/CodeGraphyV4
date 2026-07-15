@@ -14,7 +14,11 @@ import {
 
 import type { BenchmarkArguments } from './arguments';
 import { createSyntheticFixture } from '../fixture/presets';
-import { graphBenchmarkChromiumArguments } from '../harness/chromium';
+import {
+  GRAPH_BENCHMARK_DEVICE_SCALE_FACTOR,
+  GRAPH_BENCHMARK_VIEWPORT,
+  graphBenchmarkChromiumArguments,
+} from '../harness/chromium';
 import {
   resolveGraphBenchmarkDriver,
   selectSyntheticDragTargetDetails,
@@ -46,7 +50,10 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../../..',
 );
-const viewport = { width: 1280, height: 720, deviceScaleFactor: 1 } as const;
+const viewport = {
+  ...GRAPH_BENCHMARK_VIEWPORT,
+  deviceScaleFactor: GRAPH_BENCHMARK_DEVICE_SCALE_FACTOR,
+} as const;
 
 export interface GraphBenchmarkRunResult {
   outputPath: string;
