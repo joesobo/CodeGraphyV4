@@ -293,17 +293,29 @@ describe('graph layout engine', () => {
     engine.tick();
     expect(engine.settled).toBe(true);
 
-    engine.setCollisionScale(2);
+    engine.setCollisionScale(4);
     expect(engine.settled).toBe(false);
     engine.tick();
 
     expect(Math.hypot(engine.x[1] - engine.x[0], engine.y[1] - engine.y[0]))
-      .toBeGreaterThanOrEqual(75.75);
+      .toBeGreaterThanOrEqual(151.75);
     expect(engine.settled).toBe(true);
 
-    engine.setCollisionScale(2);
+    engine.setCollisionScale(4);
+    expect(engine.settled).toBe(true);
+    engine.setCollisionScale(1);
     expect(engine.settled).toBe(true);
   });
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid camera collision scale %s',
+    (scale) => {
+      const engine = createGraphLayoutEngine(lineGraph(2));
+
+      expect(() => engine.setCollisionScale(scale))
+        .toThrow('Collision scale must be positive');
+    },
+  );
 
   it('separates coincident node radii with the collision pass', () => {
     const nodeCount = 40;

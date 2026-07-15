@@ -3,6 +3,7 @@ import {
   instantiateOwnedGraphPhysics,
   type OwnedGraphPhysicsExports,
 } from './abi';
+import { assertOwnedGraphCollisionConfiguration } from './configuration';
 import { OwnedGraphPhysicsStorage } from './storage';
 
 const INITIAL_BARNES_HUT_CELLS_PER_NODE = 8;
@@ -55,12 +56,7 @@ export class OwnedGraphWasmPhysicsKernel {
     collisionScale: number,
     collisionCellSize: number,
   ): void {
-    if (!Number.isFinite(collisionScale) || collisionScale <= 0) {
-      throw new Error('Collision scale must be positive');
-    }
-    if (!Number.isFinite(collisionCellSize) || collisionCellSize <= 0) {
-      throw new Error('Grid cell size must be positive');
-    }
+    assertOwnedGraphCollisionConfiguration(collisionScale, collisionCellSize);
     this.currentConfig = config;
     this.currentCollisionScale = collisionScale;
     this.currentCollisionCellSize = collisionCellSize;
