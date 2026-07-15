@@ -16,7 +16,7 @@ export class FrameQueue {
   trackSubmission(): void {
     this.pending += 1;
     void this.device.queue.onSubmittedWorkDone()
-      .then(() => this.complete())
+      .finally(() => this.complete())
       .catch(() => {
         // Device loss is reported by device.lost and handled by the consumer.
       });
