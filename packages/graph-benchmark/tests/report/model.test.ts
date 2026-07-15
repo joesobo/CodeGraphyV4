@@ -120,6 +120,10 @@ function createRun(run: number, dragFps: number): CompletedBenchmarkRun {
         nodeTravelPx: 180,
         responsive: true,
         finitePositions: true,
+        fittedCollisionMaximumPenetrationPx: 0,
+        fittedCollisionSettleMs: 450,
+        fittedCollisionViolationCount: 0,
+        fittedCollisionZoom: 0.25,
         settledCollisionViolationCount: 0,
         duringDragCollisionViolationCount: 2,
         releasedCollisionViolationCount: 0,
@@ -255,6 +259,10 @@ describe('createAggregateBenchmarkReport', () => {
     const collided = createRun(1, 35);
     collided.metrics.drag.settledCollisionViolationCount = 1;
     expect(createReport(collided).tierPassed).toBe(false);
+
+    const fittedCollision = createRun(1, 35);
+    fittedCollision.metrics.drag.fittedCollisionViolationCount = 1;
+    expect(createReport(fittedCollision).tierPassed).toBe(false);
 
     const nonfinite = createRun(1, 35);
     nonfinite.metrics.drag.finitePositions = false;

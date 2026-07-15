@@ -1,6 +1,10 @@
 import type { Page } from '@playwright/test';
 
 import type { GraphStageAttributionRecording } from '../../metrics/attribution';
+import {
+  assessVisibleNodeCollisions,
+  type VisibleCollisionAssessment,
+} from '../../metrics/collisions';
 import { estimateRefreshRate } from '../../metrics/frames';
 import {
   assessInteractionRecording,
@@ -22,6 +26,7 @@ export interface CurrentRendererSettlement {
 interface BenchmarkGraphDebugWindow extends Window {
   __CODEGRAPHY_GRAPH_DEBUG__?: {
     centerNode(nodeId: string, scale: number): boolean;
+    fitView(): void;
     getNodeScreenPosition(nodeId: string): { x: number; y: number } | null;
     getPerformance(): PerformanceHudSample;
     getSnapshot(): {
@@ -52,6 +57,7 @@ interface BenchmarkPageWindow extends Window {
   __CODEGRAPHY_GRAPH_BENCHMARK__?: {
     error: string | null;
     lastHoveredNodeId: string | null;
+    lastStabilizedAt: number | null;
     ready: boolean;
     result: CurrentRendererSettlement | null;
     stabilizationCount: number;
@@ -150,63 +156,48 @@ async function runTimedMouseSteps(
   }
 }
 
-interface CollisionState {
-  finitePositions: boolean;
-  violations: number;
+interface CollisionState extends VisibleCollisionAssessment {
+  zoom: number | null;
 }
 
 async function readCurrentCollisionState(page: Page): Promise<CollisionState> {
-  return page.evaluate(() => {
-    const snapshot = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot();
-    if (!snapshot || !Number.isFinite(snapshot.zoom)) {
-      return { finitePositions: false, violations: Number.MAX_SAFE_INTEGER };
-    }
-    const zoom = Math.abs(snapshot.zoom ?? 1);
-    const finitePositions = snapshot.nodes.every(node =>
-      node.positionFinite
-      && Number.isFinite(node.x)
-      && Number.isFinite(node.y)
-      && Number.isFinite(node.screenX)
-      && Number.isFinite(node.screenY)
-      && Number.isFinite(node.collisionRadius),
-    );
-    if (!finitePositions) {
-      return { finitePositions: false, violations: Number.MAX_SAFE_INTEGER };
-    }
+  const snapshot = await page.evaluate(() =>
+    (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot() ?? null);
+  return {
+    ...assessVisibleNodeCollisions(snapshot),
+    zoom: snapshot?.zoom ?? null,
+  };
+}
 
-    const nodes = snapshot.nodes.map(node => ({
-      x: node.screenX,
-      y: node.screenY,
-      radius: Math.max(0, node.collisionRadius * zoom),
-    }));
-    const maximumRadius = nodes.reduce((maximum, node) => Math.max(maximum, node.radius), 1);
-    const cellSize = maximumRadius * 2;
-    const cells = new Map<string, number[]>();
-    nodes.forEach((node, index) => {
-      const key = `${Math.floor(node.x / cellSize)},${Math.floor(node.y / cellSize)}`;
-      const cell = cells.get(key) ?? [];
-      cell.push(index);
-      cells.set(key, cell);
-    });
-
-    let violations = 0;
-    nodes.forEach((node, index) => {
-      const cellX = Math.floor(node.x / cellSize);
-      const cellY = Math.floor(node.y / cellSize);
-      for (let xOffset = -1; xOffset <= 1; xOffset += 1) {
-        for (let yOffset = -1; yOffset <= 1; yOffset += 1) {
-          const neighbors = cells.get(`${cellX + xOffset},${cellY + yOffset}`) ?? [];
-          for (const neighborIndex of neighbors) {
-            if (neighborIndex <= index) continue;
-            const neighbor = nodes[neighborIndex];
-            const distance = Math.hypot(node.x - neighbor.x, node.y - neighbor.y);
-            if (distance + 0.5 < node.radius + neighbor.radius) violations += 1;
-          }
-        }
-      }
-    });
-    return { finitePositions: true, violations };
+async function fitAndMeasureCurrentCollisions(
+  page: Page,
+  timeoutMs: number,
+): Promise<CollisionState & { settleMs: number }> {
+  const startedAt = Date.now();
+  const initial = await readCurrentCollisionState(page);
+  const fitStartedAt = await page.evaluate(() => {
+    const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
+    if (!debug) throw new Error('Graph debug API is unavailable');
+    debug.fitView();
+    return performance.now();
   });
+  await page.waitForTimeout(350);
+
+  let latest = await readCurrentCollisionState(page);
+  const collisionEnvelopeExpanded = initial.zoom !== null
+    && latest.zoom !== null
+    && latest.zoom < initial.zoom;
+  if (collisionEnvelopeExpanded) {
+    await page.waitForFunction((fitStarted) => {
+      const stabilizedAt = (window as BenchmarkPageWindow)
+        .__CODEGRAPHY_GRAPH_BENCHMARK__?.lastStabilizedAt;
+      return stabilizedAt !== null
+        && stabilizedAt !== undefined
+        && stabilizedAt >= fitStarted + 300;
+    }, fitStartedAt, { timeout: timeoutMs });
+    latest = await readCurrentCollisionState(page);
+  }
+  return { ...latest, settleMs: Date.now() - startedAt };
 }
 
 export async function runCurrentRendererSyntheticDrag(
@@ -231,7 +222,12 @@ export async function runCurrentRendererSyntheticDrag(
   settledAfterRelease: boolean;
   interactionAssessment: ReturnType<typeof assessInteractionRecording>;
   stageAttribution: GraphStageAttributionRecording | null;
+  fittedCollisionMaximumPenetrationPx: number;
+  fittedCollisionSettleMs: number;
+  fittedCollisionViolationCount: number;
+  fittedCollisionZoom: number | null;
 }> {
+  const fitted = await fitAndMeasureCurrentCollisions(page, timeoutMs);
   const centered = await page.evaluate((nodeId) =>
     (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.centerNode(nodeId, 1)
       ?? false,
@@ -348,9 +344,14 @@ export async function runCurrentRendererSyntheticDrag(
     pointerMoves,
     nodeTravelPx,
     responsive: nodeTravelPx >= 170,
-    finitePositions: settled.finitePositions
+    finitePositions: fitted.finitePositions
+      && settled.finitePositions
       && duringDrag.finitePositions
       && released.finitePositions,
+    fittedCollisionMaximumPenetrationPx: fitted.maximumPenetrationPx,
+    fittedCollisionSettleMs: fitted.settleMs,
+    fittedCollisionViolationCount: fitted.violations,
+    fittedCollisionZoom: fitted.zoom,
     settledCollisionViolationCount: settled.violations,
     duringDragCollisionViolationCount: duringDrag.violations,
     releasedCollisionViolationCount: released.violations,
