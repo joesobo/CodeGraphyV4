@@ -607,6 +607,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     rendered.rerender(<OwnedGraphSurface2d {...props} showFps={false} />);
     expect(screen.queryByTestId('graph-fps')).not.toBeInTheDocument();
     expect(props.fg2dRef.current?.getFps()).toBe(50);
+    expect(props.fg2dRef.current?.getPerformance().status).toBe('active');
 
     rendered.rerender(<OwnedGraphSurface2d {...props} />);
     expect(screen.getByTestId('graph-fps')).toHaveTextContent(/^\d+ FPS · \d+\.\d{2} ms$/);
