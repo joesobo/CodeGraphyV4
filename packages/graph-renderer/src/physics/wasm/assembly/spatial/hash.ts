@@ -19,11 +19,12 @@ export function initializeSpatialHash(
 
 function findSlot(hashKey: i32): i32 {
   let slot = <i32>(<u32>hashKey & <u32>mask);
-  while (load<u8>(usedPointer + <usize>slot) != 0) {
+  for (let probe = 0; probe < capacity; probe += 1) {
+    if (load<u8>(usedPointer + <usize>slot) == 0) return slot;
     if (load<i32>(keyPointer + (<usize>slot << 2)) == hashKey) return slot;
     slot = (slot + 1) & mask;
   }
-  return slot;
+  return -1;
 }
 
 @inline
@@ -37,13 +38,14 @@ export function clearSpatialHash(): void {
 
 export function spatialHashHead(hashKey: i32): i32 {
   const slot = findSlot(hashKey);
-  return load<u8>(usedPointer + <usize>slot) == 0
+  return slot < 0 || load<u8>(usedPointer + <usize>slot) == 0
     ? -1
     : load<i32>(headPointer + (<usize>slot << 2));
 }
 
 export function prependSpatialHashHead(hashKey: i32, head: i32): i32 {
   const slot = findSlot(hashKey);
+  if (slot < 0) return -1;
   const previousHead = load<u8>(usedPointer + <usize>slot) == 0
     ? -1
     : load<i32>(headPointer + (<usize>slot << 2));
