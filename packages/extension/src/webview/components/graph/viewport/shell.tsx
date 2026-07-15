@@ -18,8 +18,7 @@ import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport, type ViewportProps } from './view';
 import { graphStore } from '../../../store/state';
 import { publishGraphViewportScale as publishGraphViewportScaleChange } from './shell/scale';
-import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
-import { useGraphViewportModelOptions } from './shell/modelOptions';
+import { useGraphViewportModel } from './model';
 import { createGraphViewportSurfaceProps } from './shell/surfaceProps';
 import { publishCurrentGraphAccessibilityItems } from './shell/accessibilityItems';
 import { publishPluginGraphViewViewportState } from './shell/pluginState';
@@ -61,13 +60,15 @@ export function GraphViewportShell({
     nodes: [],
     edges: [],
   });
-  const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
+  const viewportRuntime = useGraphRenderingRuntime({
     appearance,
-    graphState,
+    containerRef: graphState.renderer.containerRef,
+    dataRef: graphState.dataRef,
+    favorites: viewState.favorites,
+    graphDataRef: graphState.renderer.graphDataRef,
     pluginHost,
     theme,
-    viewState,
-  }));
+  });
 
   useGraphEventEffects({
     containerRef: graphState.renderer.containerRef,
@@ -84,9 +85,12 @@ export function GraphViewportShell({
     tooltipPath: interactions.tooltipData.path,
   });
 
-  const viewportModel = useGraphViewportModelOptions({
+  const viewportModel = useGraphViewportModel({
     appearance,
-    graphState,
+    graphState: {
+      contextSelection: graphState.context.selection,
+      graphData: graphState.renderer.graphData,
+    },
     graphViewContributions,
     handleEngineStop,
     interactions,
