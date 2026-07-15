@@ -1,5 +1,5 @@
-export const PINNED_FLAG: u8 = 1;
-export const HIDDEN_FLAG: u8 = 2;
+const PINNED_FLAG: u8 = 1;
+const HIDDEN_FLAG: u8 = 2;
 
 export let nodeCount: i32 = 0;
 export let edgeCount: i32 = 0;
