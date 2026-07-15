@@ -94,22 +94,12 @@ export function installGraphDebugApi({
         ? getGraphDebugNodeScreenPosition(node, fg2dRef.current)
         : null;
     },
-    getPerformance: () => fg2dRef.current?.getPerformance?.() ?? { status: 'idle' },
     getSnapshot: () => buildGraphDebugSnapshot({
       containerRef,
       graph: fg2dRef.current,
       nodes: graphDataRef.current.nodes,
     }),
     openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
-    startInteractionRecording: recordingOptions => {
-      fg2dRef.current?.startInteractionRecording?.(recordingOptions);
-    },
-    startStageAttributionRecording: () => {
-      fg2dRef.current?.startStageAttributionRecording?.();
-    },
-    stopInteractionRecording: () => fg2dRef.current?.stopInteractionRecording?.() ?? null,
-    stopStageAttributionRecording: () =>
-      fg2dRef.current?.stopStageAttributionRecording?.() ?? null,
   };
 
   return () => {

@@ -2,14 +2,14 @@ import '@testing-library/jest-dom';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { vi } from 'vitest';
+import { installGraphPhysicsModule } from '@codegraphy-dev/graph-renderer';
 import type { WebviewToExtensionMessage } from '../src/shared/protocol/webviewToExtension';
-import { installOwnedGraphPhysicsModule } from '../src/webview/components/graph/rendering/surface/owned2d/physics/wasm/module';
 
 const ownedGraphPhysicsBytes = readFileSync(resolve(
   __dirname,
-  '../src/webview/wasm/generated/owned2d-physics.wasm',
+  '../../graph-renderer/src/wasm/generated/physics.wasm',
 ));
-installOwnedGraphPhysicsModule(new WebAssembly.Module(ownedGraphPhysicsBytes));
+installGraphPhysicsModule(new WebAssembly.Module(ownedGraphPhysicsBytes));
 
 interface VscodeSentMessagesGlobal {
   __vscodeSentMessages: WebviewToExtensionMessage[];

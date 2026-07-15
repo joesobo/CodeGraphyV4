@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
-import { createGraphLayoutEngine, GraphNodeFlag } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createGraphLayoutEngine, GraphNodeFlag } from '@codegraphy-dev/graph-renderer';
 import { updateOwnedGraphViewportNode } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/viewportNode';
 
 function fixture(): { layout: OwnedGraphLayout; node: FGNode } {

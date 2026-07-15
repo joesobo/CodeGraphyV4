@@ -3,11 +3,8 @@ import type { FGNode } from '../../../../../../src/webview/components/graph/mode
 import { advanceOwnedGraphCameraTransition } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
 import { createOwnedGraphControls, type OwnedGraphControlsRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/controls';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
-import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
-import { createOwnedGraphPerformanceMonitor } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/model';
-import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
-import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
+import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
+import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/simulationClock';
 
 function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
   const node = { id: 'node', size: 4, x: 0, y: 0 } as FGNode;
@@ -23,12 +20,6 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
     links: [],
     nodes: [node],
   };
-  const performanceMonitor = createOwnedGraphPerformanceMonitor();
-  performanceMonitor.recordFrame({
-    presentationTimestampMs: 10,
-    renderMs: 3,
-    simulationMs: 2,
-  });
   return {
     node,
     runtime: {
@@ -37,9 +28,6 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
       engineStopNotifiedRef: { current: true },
       fpsRef: { current: 58 },
       layoutRef: { current: layout },
-      performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
-      performanceMonitorRef: { current: performanceMonitor },
-      performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 0 },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
@@ -71,19 +59,6 @@ describe('owned graph controls', () => {
     expect(fixture.runtime.clearLinkHover).toHaveBeenCalledOnce();
     expect(fixture.runtime.requestFrameRef.current).toHaveBeenCalledOnce();
     expect(controls.getFps()).toBe(58);
-    expect(controls.getPerformance()).toMatchObject({
-      status: 'active',
-      potentialFps: 200,
-    });
-    controls.startInteractionRecording({ neighborNodeIds: [], targetNodeId: 'node' });
-    expect(controls.stopInteractionRecording()).toMatchObject({ targetNodeId: 'node' });
-    controls.startStageAttributionRecording();
-    fixture.runtime.performanceAttributionRef.current.recordRenderedFrame();
-    expect(controls.stopStageAttributionRecording()).toMatchObject({
-      physicsHome: 'main-thread',
-      renderedFrameCount: 1,
-      stages: { physicsStep: { totalMs: 0 } },
-    });
     expect(controls.graph2ScreenCoords(10, 20)).toEqual({ x: 50, y: 40 });
     expect(controls.screen2GraphCoords(50, 40)).toEqual({ x: 10, y: 20 });
     controls.zoom(2);

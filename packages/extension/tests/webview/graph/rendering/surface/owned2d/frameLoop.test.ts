@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe('owned graph frame loop', () => {
-  it('publishes always-on frame performance and explicit idle state', () => {
+  it('publishes FPS samples and explicit idle state', () => {
     let scheduledFrame: FrameRequestCallback | undefined;
     vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
       scheduledFrame = callback;
@@ -36,14 +36,11 @@ describe('owned graph frame loop', () => {
     });
     const publishedSample = {
       status: 'active' as const,
-      displayedFps: 57,
       potentialFps: 200,
-      frameTimeMs: { average: 5, maximum: 6, onePercentHigh: 6 },
-      renderTimeMs: { average: 3, maximum: 4, onePercentHigh: 4 },
+      frameTimeMs: 5,
       sampleCount: 10,
-      simulationTimeMs: { average: 2, maximum: 2, onePercentHigh: 2 },
     };
-    const idleSample = { status: 'idle' as const, lastActive: publishedSample };
+    const idleSample = { status: 'idle' as const };
     const recordFrame = vi.fn(() => publishedSample);
     const setIdle = vi.fn(() => idleSample);
     const publishPerformance = vi.fn();
@@ -83,7 +80,7 @@ describe('owned graph frame loop', () => {
       renderMs: 3,
       simulationMs: 2,
     });
-    expect(runtime.fpsRef.current).toBe(57);
+    expect(runtime.fpsRef.current).toBe(200);
     expect(publishPerformance).toHaveBeenCalledWith(publishedSample);
 
     vi.mocked(renderOwnedGraphFrame).mockImplementation((runtime) => {

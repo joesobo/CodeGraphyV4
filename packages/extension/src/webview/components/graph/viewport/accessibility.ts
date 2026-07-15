@@ -1,5 +1,5 @@
 import type { FGLink, FGNode } from '../model/build';
-import { ownedGraphNodeScreenRadius } from '../rendering/surface/owned2d/visualSize';
+import { ownedGraphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
 
 export interface GraphScreenProjector {
   graph2ScreenCoords(x: number, y: number): { x: number; y: number };

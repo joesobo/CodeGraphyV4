@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import { GraphNodeFlag } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { GraphNodeFlag } from '@codegraphy-dev/graph-renderer';
 import {
   applyOwnedGraphRuntimePhysicsSettings,
   reconcileOwnedGraphRuntime,

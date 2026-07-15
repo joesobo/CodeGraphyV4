@@ -7,9 +7,11 @@ import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import type { NodeLabelSpriteProvider } from '../node/labelSprite';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
-import { shouldRenderGraphDetails } from '../detailVisibility';
+import {
+  ownedGraphNodeWorldScale,
+  shouldRenderGraphDetails,
+} from '@codegraphy-dev/graph-renderer';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/contracts';
-import { ownedGraphNodeWorldScale } from '../surface/owned2d/visualSize';
 
 function isNodeHighlighted(
   dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,

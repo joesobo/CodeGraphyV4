@@ -4,7 +4,7 @@ import {
   ownedLinkGeometry,
   pointOnOwnedLink,
   type OwnedLinkGeometry,
-} from './linkGeometry';
+} from '@codegraphy-dev/graph-renderer';
 
 const OVERLAY_CULL_MARGIN_PX = 128;
 
@@ -81,4 +81,3 @@ export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
     options.nodeLabelCanvasObject(node, context, globalScale);
   }
 }
-

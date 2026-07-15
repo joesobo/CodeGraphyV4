@@ -4,7 +4,7 @@ import {
   getRectangularNodeAreaRadius,
 } from '../../../model/node/rectangularArea';
 import { ownedGraphSpatialCellKey } from './spatialHash';
-import { ownedGraphNodeWorldScale } from './visualSize';
+import { ownedGraphNodeWorldScale } from '@codegraphy-dev/graph-renderer';
 
 const PICK_CELL_SIZE = 64;
 

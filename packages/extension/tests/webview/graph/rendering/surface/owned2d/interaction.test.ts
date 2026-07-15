@@ -12,9 +12,7 @@ import type { OwnedGraphLayout } from '../../../../../../src/webview/components/
 import { OwnedGraphLinkPicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkPicking';
 import { OwnedGraphNodePicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/picking';
 import { createOwnedGraphNodeHover } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/nodeHover';
-import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
-import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
-import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 import { createDefaultSurfaceProps } from './surfaceFixture';
 
 function node(): FGNode {
@@ -63,8 +61,6 @@ function createSingleNodeInteractionFixture() {
     pickerPositionVersionRef: { current: -1 },
     pickerRef: { current: new OwnedGraphNodePicker() },
     pointerSessionRef: { current: null as PointerSession | null },
-    performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
-    performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
     positionVersionRef: { current: 0 },
     propsRef: { current: props },
     requestFrameRef: { current: vi.fn() },
@@ -121,8 +117,6 @@ describe('owned graph lazy interaction picking', () => {
     const rebuildLink = vi.spyOn(linkPicker, 'rebuild');
     const props = createDefaultSurfaceProps();
     const requestFrame = vi.fn();
-    const performanceAttribution = createOwnedGraphStageAttributionProfiler();
-    performanceAttribution.start();
     const handlers = createOwnedGraphInteractionHandlers({
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       clearLinkHover: () => false,
@@ -137,8 +131,6 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: picker },
       pointerSessionRef: { current: null },
-      performanceAttributionRef: { current: performanceAttribution },
-      performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: props },
       requestFrameRef: { current: requestFrame },
@@ -163,14 +155,11 @@ describe('owned graph lazy interaction picking', () => {
     expect(rebuildNode).toHaveBeenCalledOnce();
     expect(rebuildLink).not.toHaveBeenCalled();
     expect(requestFrame).toHaveBeenCalledOnce();
-    expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(1);
   });
 
   it('pins a node once when pointer movement crosses the drag threshold', () => {
     const fixture = createSingleNodeInteractionFixture();
     const pin = vi.spyOn(fixture.engine, 'pin');
-    const recorder = fixture.runtime.performanceRecorderRef.current;
-    recorder.start({ neighborNodeIds: [], targetNodeId: 'a' });
 
     fixture.handlers.handlePointerDown(fixture.pointer(50, 10));
     expect(pin).not.toHaveBeenCalled();
@@ -183,13 +172,7 @@ describe('owned graph lazy interaction picking', () => {
     fixture.handlers.handlePointerMove(fixture.pointer(60, 14));
     expect(pin).toHaveBeenCalledOnce();
     fixture.handlers.handlePointerUp(fixture.pointer(60, 16));
-    expect(fixture.getBoundingClientRect).toHaveBeenCalledTimes(4);
-    expect(recorder.stop()?.inputs).toEqual([
-      expect.objectContaining({ eventTimestampMs: 10, nodeId: 'a', phase: 'down' }),
-      expect.objectContaining({ eventTimestampMs: 12, nodeId: 'a', phase: 'move' }),
-      expect.objectContaining({ eventTimestampMs: 14, nodeId: 'a', phase: 'move' }),
-      expect.objectContaining({ eventTimestampMs: 16, nodeId: 'a', phase: 'up' }),
-    ]);
+    expect(fixture.getBoundingClientRect).toHaveBeenCalledTimes(3);
   });
 
   it('releases a dragged node and notifies the host when the pointer is canceled', () => {
@@ -265,8 +248,6 @@ describe('owned graph lazy interaction picking', () => {
     const cameraRef: { current: OwnedGraphCamera } = {
       current: { centerX: 0, centerY: 0, zoom: 0.49 },
     };
-    const performanceAttribution = createOwnedGraphStageAttributionProfiler();
-    performanceAttribution.start();
     const runtime = {
       cameraRef,
       clearLinkHover: vi.fn(() => {
@@ -286,8 +267,6 @@ describe('owned graph lazy interaction picking', () => {
       pickerPositionVersionRef: { current: -1 },
       pickerRef: { current: new OwnedGraphNodePicker() },
       pointerSessionRef: { current: null },
-      performanceAttributionRef: { current: performanceAttribution },
-      performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
       positionVersionRef: { current: 1 },
       propsRef: { current: createDefaultSurfaceProps() },
       requestFrameRef: { current: requestFrame },
@@ -335,6 +314,5 @@ describe('owned graph lazy interaction picking', () => {
     expect(cameraRef.current.transition).toBeNull();
     expect(getBoundingClientRect).toHaveBeenCalledOnce();
     expect(runtime.clearLinkHover).toHaveBeenCalledTimes(2);
-    expect(performanceAttribution.stop()?.stages.pickingHover.eventCount).toBe(7);
   });
 });

@@ -1,9 +1,0 @@
-{
-  "schemaVersion": 1,
-  "id": "cold-load-settle-10k",
-  "fixture": { "name": "10k", "seed": 307 },
-  "durationTicks": 900,
-  "actions": [
-    { "atTick": 0, "type": "load" }
-  ]
-}

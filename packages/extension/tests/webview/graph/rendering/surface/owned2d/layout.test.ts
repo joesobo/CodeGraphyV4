@@ -14,8 +14,8 @@ import {
 import {
   createGraphLayoutEngine,
   GraphNodeFlag,
-} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { TypedGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/engine';
+} from '@codegraphy-dev/graph-renderer';
+import { TypedGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 
 const DEFAULT_SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,

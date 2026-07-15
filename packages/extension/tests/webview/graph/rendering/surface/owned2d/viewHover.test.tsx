@@ -7,7 +7,7 @@ const rendererHarness = vi.hoisted(() => ({
 }));
 
 vi.unmock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/view');
-vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer', () => ({
+vi.mock('@codegraphy-dev/graph-renderer/webgpu', () => ({
   OwnedWebGpuRenderer: class OwnedWebGpuRenderer {
     static create(...arguments_: unknown[]) {
       return rendererHarness.create(...arguments_);

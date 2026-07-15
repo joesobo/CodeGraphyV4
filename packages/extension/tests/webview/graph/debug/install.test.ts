@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { installGraphDebugApi } from '../../../../src/webview/components/graph/debug/install';
-import { createOwnedGraphStageAttributionProfiler } from '../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 
 describe('webview/graph/debug/install', () => {
   it('returns undefined when graph debug mode is disabled', () => {
@@ -41,36 +40,11 @@ describe('webview/graph/debug/install', () => {
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeDefined();
   });
 
-  it('installs interaction measurements and deterministic camera controls', () => {
+  it('installs deterministic camera controls', () => {
     const fitView = vi.fn();
     const centerAt = vi.fn();
     const zoom = vi.fn(() => 2);
     const zoomToFit = vi.fn();
-    const startInteractionRecording = vi.fn();
-    const startStageAttributionRecording = vi.fn();
-    const stopInteractionRecording = vi.fn(() => ({
-      frames: [],
-      inputs: [],
-      neighborNodeIds: ['leaf'],
-      targetNodeId: 'hub',
-      truncated: false,
-    }));
-    const stageProfiler = createOwnedGraphStageAttributionProfiler();
-    stageProfiler.start();
-    stageProfiler.recordRenderedFrame();
-    stageProfiler.recordRenderedFrame();
-    stageProfiler.recordRenderedFrame();
-    const stageRecording = stageProfiler.stop();
-    const stopStageAttributionRecording = vi.fn(() => stageRecording);
-    const getPerformance = vi.fn(() => ({
-      status: 'active' as const,
-      displayedFps: 60,
-      potentialFps: 200,
-      frameTimeMs: { average: 5, maximum: 6, onePercentHigh: 6 },
-      renderTimeMs: { average: 3, maximum: 4, onePercentHigh: 4 },
-      sampleCount: 20,
-      simulationTimeMs: { average: 2, maximum: 2, onePercentHigh: 2 },
-    }));
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
 
     const install = () => installGraphDebugApi({
@@ -79,12 +53,7 @@ describe('webview/graph/debug/install', () => {
       fg2dRef: {
         current: {
           centerAt,
-          getPerformance,
           graph2ScreenCoords: (x, y) => ({ x, y }),
-          startInteractionRecording,
-          startStageAttributionRecording,
-          stopInteractionRecording,
-          stopStageAttributionRecording,
           zoom,
           zoomToFit,
         },
@@ -98,11 +67,6 @@ describe('webview/graph/debug/install', () => {
     win.__CODEGRAPHY_GRAPH_DEBUG__?.fitViewWithPadding(24);
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('a.ts', 1)).toBe(true);
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('missing.ts', 1)).toBe(false);
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.startInteractionRecording({
-      neighborNodeIds: ['leaf'],
-      targetNodeId: 'hub',
-    });
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.startStageAttributionRecording();
     cleanup?.();
     install();
 
@@ -110,22 +74,6 @@ describe('webview/graph/debug/install', () => {
     expect(zoomToFit).toHaveBeenCalledWith(300, 24);
     expect(zoom).toHaveBeenCalledWith(1, 0);
     expect(centerAt).toHaveBeenCalledWith(1, 2, 0);
-    expect(startInteractionRecording).toHaveBeenCalledWith({
-      neighborNodeIds: ['leaf'],
-      targetNodeId: 'hub',
-    });
-    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getPerformance()).toMatchObject({
-      status: 'active',
-      potentialFps: 200,
-    });
-    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopInteractionRecording()).toMatchObject({
-      targetNodeId: 'hub',
-    });
-    expect(startStageAttributionRecording).toHaveBeenCalledOnce();
-    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopStageAttributionRecording()).toMatchObject({
-      physicsHome: 'main-thread',
-      renderedFrameCount: 3,
-    });
   });
 
   it('returns one node screen position without building a full snapshot', () => {

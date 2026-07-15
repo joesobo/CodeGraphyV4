@@ -1,6 +1,6 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
-import { graphDetailOpacity } from '../detailVisibility';
+import { graphDetailOpacity } from '@codegraphy-dev/graph-renderer';
 import type { FGNode } from '../../model/build';
 import type { NodeLabelSpriteProvider } from './labelSprite';
 

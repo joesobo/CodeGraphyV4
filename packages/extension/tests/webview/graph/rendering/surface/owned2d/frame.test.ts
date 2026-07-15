@@ -10,11 +10,9 @@ import {
   createOwnedGraphNodeHover,
   setOwnedGraphNodeHover,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/nodeHover';
-import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
-import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
-import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
-import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
+import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
+import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/simulationClock';
+import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
 import { createDefaultSurfaceProps } from './surfaceFixture';
 
 function canvasFixture(): HTMLCanvasElement {
@@ -37,7 +35,6 @@ function canvasFixture(): HTMLCanvasElement {
 function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   layout: OwnedGraphLayout;
   node: FGNode;
-  recorder: ReturnType<typeof createOwnedGraphInteractionRecorder>;
   runtime: OwnedGraphFrameRuntime;
 } {
   const node = {
@@ -70,8 +67,6 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   };
   const props = createDefaultSurfaceProps();
   props.sharedProps.graphData = { links: [], nodes: [node] };
-  const recorder = createOwnedGraphInteractionRecorder();
-  recorder.start({ neighborNodeIds: [], targetNodeId: node.id });
   const runtime: OwnedGraphFrameRuntime = {
     cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
     engineStopNotifiedRef: { current: false },
@@ -81,8 +76,6 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     layoutRef: { current: layout },
     nodeHoverRef: { current: createOwnedGraphNodeHover() },
     onRendererError: vi.fn(),
-    performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
-    performanceRecorderRef: { current: recorder },
     pointerSessionRef: { current: null },
     pluginForcesRef: { current: {
       active: () => true,
@@ -104,11 +97,11 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     recordRenderedFrame: vi.fn(),
     synchronizedPositionVersionRef: { current: -1 },
   };
-  return { layout, node, recorder, runtime };
+  return { layout, node, runtime };
 }
 
 describe('owned graph frame execution', () => {
-  it('runs frame phases in order and records supported telemetry', () => {
+  it('runs frame phases in order and updates the FPS monitor', () => {
     let submittedFrame: OwnedWebGpuFrame | undefined;
     const renderer = {
       render: vi.fn((frame: OwnedWebGpuFrame) => {
@@ -117,7 +110,6 @@ describe('owned graph frame execution', () => {
       }),
     } as unknown as OwnedWebGpuRenderer;
     const { layout, node, runtime } = runtimeFixture(renderer);
-    runtime.performanceAttributionRef.current.start();
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100);
 
@@ -144,19 +136,6 @@ describe('owned graph frame execution', () => {
     const [, simulationMs, renderMs] = vi.mocked(runtime.recordRenderedFrame).mock.calls[0];
     expect(simulationMs).toBeGreaterThanOrEqual(0);
     expect(renderMs).toBeGreaterThan(0);
-    const attribution = runtime.performanceAttributionRef.current.stop();
-    expect(attribution).toMatchObject({
-      physicsHome: 'main-thread',
-      renderedFrameCount: 1,
-      stages: {
-        canvasPrepare: { eventCount: 1 },
-        frameTotalCpu: { eventCount: 1 },
-        interpolatorSample: { eventCount: 0 },
-        overlay: { eventCount: 1 },
-        physicsStep: { eventCount: 1 },
-        snapshotNodeSync: { eventCount: 1 },
-      },
-    });
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
   });
 
@@ -180,7 +159,7 @@ describe('owned graph frame execution', () => {
 
   it('advances multiple fixed simulation steps between slower presentations', () => {
     const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
-    const { layout, recorder, runtime } = runtimeFixture(renderer);
+    const { layout, runtime } = runtimeFixture(renderer);
     runtime.pluginForcesRef.current.active = () => false;
     const tick = vi.spyOn(layout.engine, 'tick').mockReturnValue({
       moving: true,
@@ -192,7 +171,6 @@ describe('owned graph frame execution', () => {
     renderOwnedGraphFrame(runtime, canvasFixture(), 1_000 / 60);
 
     expect(tick).toHaveBeenCalledTimes(3);
-    expect(recorder.stop()?.frames.map(frame => frame.steps)).toEqual([1, 2]);
   });
 
   it('renders user-driven positions and continues interaction when physics reports zero steps', () => {
@@ -200,7 +178,7 @@ describe('owned graph frame execution', () => {
     const renderer = {
       render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
     } as unknown as OwnedWebGpuRenderer;
-    const { layout, node, recorder, runtime } = runtimeFixture(renderer);
+    const { layout, node, runtime } = runtimeFixture(renderer);
     runtime.pluginForcesRef.current.active = () => false;
     layout.engine.setNodePosition(0, 42, 24);
     runtime.positionVersionRef.current += 1;
@@ -226,7 +204,6 @@ describe('owned graph frame execution', () => {
     expect(submittedFrame).toMatchObject({ positionVersion: 1 });
     expect(submittedFrame?.nodes[0]).toMatchObject({ x: 42, y: 24 });
     expect(runtime.recordRenderedFrame).toHaveBeenCalledOnce();
-    expect(recorder.stop()?.frames[0]?.target).toEqual({ id: 'a', x: 42, y: 24 });
     expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
   });
 

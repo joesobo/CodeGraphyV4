@@ -1,10 +1,10 @@
 import {
+  createGraphLayoutEngine,
   GraphNodeFlag,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
-} from './physics/contracts';
-import { createGraphLayoutEngine } from './physics/engine';
+} from '@codegraphy-dev/graph-renderer';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
 import { ownedNodeCollisionRadius } from './collisionRadius';

@@ -15,23 +15,21 @@ import {
   syncOwnedLayoutNodesAtVersion,
   type OwnedGraphLayout,
 } from './layout';
-import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import type { PointerSession } from './interaction';
-import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import {
   advanceOwnedGraphNodeHover,
   resetOwnedGraphNodeHover,
   type OwnedGraphNodeHover,
 } from './nodeHover';
 import type { OwnedGraphPluginForces } from './pluginForces';
-import type { GraphLayoutTickResult } from './physics/contracts';
+import type { GraphLayoutTickResult } from '@codegraphy-dev/graph-renderer';
 import {
   advanceGraphLayoutFixedTimestep,
   resetGraphLayoutFixedTimestepClock,
   type GraphLayoutFixedTimestepClock,
-} from './physics/fixedTimestep';
-import { ownedGraphNodeWorldScale } from './visualSize';
-import type { OwnedWebGpuRenderer } from './webgpu/renderer';
+} from './simulationClock';
+import { ownedGraphNodeWorldScale } from '@codegraphy-dev/graph-renderer';
+import type { OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
 
 interface PreparedOverlayCanvas {
   context: CanvasRenderingContext2D;
@@ -48,8 +46,6 @@ export interface OwnedGraphFrameRuntime {
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   nodeHoverRef: MutableRefObject<OwnedGraphNodeHover>;
-  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
-  performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
   positionVersionRef: MutableRefObject<number>;
@@ -324,21 +320,12 @@ export function renderOwnedGraphFrame(
   advanceOwnedGraphCameraTransition(runtime.cameraRef.current, timestamp);
   advanceOwnedGraphNodeHover(runtime.nodeHoverRef.current, timestamp);
   synchronizeOwnedGraphCollisionScale(runtime, layout);
-  const attribution = runtime.performanceAttributionRef.current;
-  const frameAttributionStartedAt = attribution.startTiming();
-  const physicsAttributionStartedAt = attribution.startTiming();
   const physicsFrame = advanceOwnedGraphPhysics(runtime, layout, timestamp);
-  attribution.finishTiming('physicsStep', physicsAttributionStartedAt);
   const { tick } = physicsFrame;
   const physicsEndedAt = performance.now();
-  const nodeSyncStartedAt = attribution.startTiming();
   synchronizeOwnedFrameState(runtime, layout);
-  attribution.finishTiming('snapshotNodeSync', nodeSyncStartedAt);
-  const canvasPrepareStartedAt = attribution.startTiming();
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
-  attribution.finishTiming('canvasPrepare', canvasPrepareStartedAt);
   const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared);
-  const overlayStartedAt = attribution.startTiming();
   drawOwnedGraphDecorationLayer(
     runtime,
     layout,
@@ -346,25 +333,9 @@ export function renderOwnedGraphFrame(
     timestamp,
     gpuRendered,
   );
-  attribution.finishTiming('overlay', overlayStartedAt);
   const frameEndedAt = performance.now();
   if (gpuRendered) {
-    attribution.finishTiming('frameTotalCpu', frameAttributionStartedAt);
-    attribution.recordRenderedFrame();
     const renderMs = Math.max(0, frameEndedAt - physicsEndedAt);
-    runtime.performanceRecorderRef.current.recordFrame({
-      alpha: layout.engine.alpha,
-      nodeIds: layout.engine.nodeIds,
-      presentationTimestampMs: timestamp,
-      renderMs,
-      renderedX: layout.engine.x,
-      renderedY: layout.engine.y,
-      settled: tick.settled,
-      simulationMs: physicsFrame.simulationMs,
-      steps: tick.steps,
-      vx: layout.engine.vx,
-      vy: layout.engine.vy,
-    });
     runtime.recordRenderedFrame(timestamp, physicsFrame.simulationMs, renderMs);
   }
   notifyOwnedGraphSettlement(runtime, tick);
