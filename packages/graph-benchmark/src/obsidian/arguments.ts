@@ -1,5 +1,6 @@
 import {
-  SYNTHETIC_FIXTURE_PRESETS,
+  DEFAULT_SYNTHETIC_FIXTURE_SEED,
+  isSyntheticFixtureName,
   type SyntheticFixtureName,
 } from '../fixture/presets';
 
@@ -13,7 +14,7 @@ export function parseObsidianVaultArguments(
   arguments_: readonly string[],
 ): ObsidianVaultArguments {
   let fixture: SyntheticFixtureName | undefined;
-  let seed = 307;
+  let seed = DEFAULT_SYNTHETIC_FIXTURE_SEED;
   let outputDirectory: string | undefined;
 
   for (let index = 0; index < arguments_.length; index += 2) {
@@ -22,10 +23,8 @@ export function parseObsidianVaultArguments(
     if (!value || value.startsWith('--')) throw new Error(`${option} requires a value`);
 
     if (option === '--fixture') {
-      if (!Object.hasOwn(SYNTHETIC_FIXTURE_PRESETS, value)) {
-        throw new Error(`Unknown fixture: ${value}`);
-      }
-      fixture = value as SyntheticFixtureName;
+      if (!isSyntheticFixtureName(value)) throw new Error(`Unknown fixture: ${value}`);
+      fixture = value;
     } else if (option === '--seed') {
       const parsedSeed = Number(value);
       if (!Number.isSafeInteger(parsedSeed) || parsedSeed < 0) {

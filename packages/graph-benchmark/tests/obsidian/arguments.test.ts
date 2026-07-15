@@ -17,4 +17,15 @@ describe('parseObsidianVaultArguments', () => {
       outputDirectory: '/tmp/codegraphy-vault',
     });
   });
+
+  it('shares fixture validation and the default synthetic seed', () => {
+    expect(parseObsidianVaultArguments([
+      '--fixture', '500',
+      '--output', '/tmp/codegraphy-vault',
+    ])).toMatchObject({ fixture: '500', seed: 307 });
+    expect(() => parseObsidianVaultArguments([
+      '--fixture', 'unknown',
+      '--output', '/tmp/codegraphy-vault',
+    ])).toThrow('Unknown fixture: unknown');
+  });
 });

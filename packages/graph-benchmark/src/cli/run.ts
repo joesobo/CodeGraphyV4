@@ -14,6 +14,7 @@ import {
 
 import type { BenchmarkArguments } from './arguments';
 import { createSyntheticFixture } from '../fixture/presets';
+import { graphBenchmarkChromiumArguments } from '../harness/chromium';
 import {
   resolveGraphBenchmarkDriver,
   selectSyntheticDragTargetDetails,
@@ -302,10 +303,7 @@ export async function runGraphBenchmark(
     stage = 'browser-launch';
     browserServer = await chromium.launchServer({
       headless: options.headless,
-      args: [
-        '--enable-unsafe-webgpu',
-        ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
-      ],
+      args: graphBenchmarkChromiumArguments(),
     });
     const browserPid = browserServer.process().pid;
     if (!browserPid) throw new Error('Chromium benchmark process has no pid');

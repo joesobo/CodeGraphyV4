@@ -1,5 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
+import { graphBenchmarkChromiumArguments } from './src/harness/chromium';
+
 export default defineConfig({
   testDir: './tests/playwright',
   fullyParallel: false,
@@ -8,10 +10,7 @@ export default defineConfig({
   use: {
     headless: true,
     launchOptions: {
-      args: [
-        '--enable-unsafe-webgpu',
-        ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
-      ],
+      args: graphBenchmarkChromiumArguments(),
     },
     viewport: { width: 1280, height: 720 },
   },
