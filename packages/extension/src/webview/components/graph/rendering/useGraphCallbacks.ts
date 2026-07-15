@@ -50,38 +50,10 @@ export interface UseGraphCallbacksResult {
 
 type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];
 
-interface GraphCallbackContext {
+type GraphCallbackContext = GraphCallbackRefs & {
   pluginHost?: WebviewPluginHost;
-  refs: GraphCallbackRefs;
   triggerImageRerender(this: void): void;
-}
-
-function getLinkRenderingContext(refs: GraphCallbackRefs) {
-  return {
-    directionColorRef: refs.directionColorRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    graphAppearanceRef: refs.graphAppearanceRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-  };
-}
-
-function getNodeCanvasContext({
-  pluginHost,
-  refs,
-  triggerImageRerender,
-}: GraphCallbackContext) {
-  return {
-    highlightedNeighborsRef: refs.highlightedNeighborsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    nodeDecorationsRef: refs.nodeDecorationsRef,
-    selectedNodesSetRef: refs.selectedNodesSetRef,
-    showLabelsRef: refs.showLabelsRef,
-    themeRef: refs.themeRef,
-    graphAppearanceRef: refs.graphAppearanceRef,
-    pluginHost,
-    triggerImageRerender,
-  };
-}
+};
 
 export function useGraphCallbacks({
   pluginHost,
@@ -89,8 +61,8 @@ export function useGraphCallbacks({
   triggerImageRerender,
 }: UseGraphCallbacksOptions): UseGraphCallbacksResult {
   const contextRef = useRef<GraphCallbackContext>({
+    ...refs,
     pluginHost,
-    refs,
     triggerImageRerender,
   });
   const callbacksRef = useRef<UseGraphCallbacksResult | null>(null);
@@ -100,8 +72,8 @@ export function useGraphCallbacks({
   }
 
   contextRef.current = {
+    ...refs,
     pluginHost,
-    refs,
     triggerImageRerender,
   };
 
@@ -117,10 +89,10 @@ export function useGraphCallbacks({
     let selectedNodes: unknown;
     callbacksRef.current = {
       getNodeStyle(node) {
-        return getNodeCanvasStyle(getNodeCanvasContext(contextRef.current), node);
+        return getNodeCanvasStyle(contextRef.current, node);
       },
       getStyleRevision() {
-        const current = contextRef.current.refs;
+        const current = contextRef.current;
         const changed = !styleSnapshotInitialized
           || directionColor !== current.directionColorRef.current
           || edgeDecorations !== current.edgeDecorationsRef.current
@@ -143,7 +115,7 @@ export function useGraphCallbacks({
       },
       nodeLabelCanvasObject(node, ctx, globalScale) {
         renderNodeCanvasLabel(
-          getNodeCanvasContext(contextRef.current),
+          contextRef.current,
           node,
           ctx,
           globalScale,
@@ -151,22 +123,22 @@ export function useGraphCallbacks({
         );
       },
       getLinkColor(link) {
-        return getGraphLinkColor(getLinkRenderingContext(contextRef.current.refs), link);
+        return getGraphLinkColor(contextRef.current, link);
       },
       getLinkOpacity(link) {
-        return getGraphLinkOpacity(getLinkRenderingContext(contextRef.current.refs), link);
+        return getGraphLinkOpacity(contextRef.current, link);
       },
       getLinkParticles(link) {
-        return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link);
+        return getGraphLinkParticles(contextRef.current, link);
       },
       getArrowColor(_link) {
-        return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
+        return getGraphDirectionalColor(contextRef.current);
       },
       getParticleColor(_link) {
-        return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
+        return getGraphDirectionalColor(contextRef.current);
       },
       getLinkWidth(link) {
-        return getGraphLinkWidth(getLinkRenderingContext(contextRef.current.refs), link);
+        return getGraphLinkWidth(contextRef.current, link);
       },
     };
   }
