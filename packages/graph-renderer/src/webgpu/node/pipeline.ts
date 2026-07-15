@@ -1,4 +1,4 @@
-import { FLOAT_BYTES, NODE_POSITION_FLOATS, NODE_STYLE_FLOATS } from '../bufferLayout';
+import { FLOAT_BYTES, NODE_POSITION_FLOATS, NODE_STYLE_FLOATS } from '../buffer/layout';
 import { NODE_SHADER } from '../shaders';
 
 const alphaBlend: GPUBlendState = {

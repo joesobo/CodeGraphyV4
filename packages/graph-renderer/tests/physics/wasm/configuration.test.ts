@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertGraphCollisionConfiguration } from '@graph-renderer/physics/wasm/configuration';
+import { assertGraphCollisionConfiguration } from '@graph-renderer/physics/wasm/abi/configuration';
 
 describe('graph WASM collision configuration', () => {
   it('accepts finite positive scale and cell size', () => {

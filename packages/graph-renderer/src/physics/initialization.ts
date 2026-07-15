@@ -1,9 +1,9 @@
 import type { GraphLayoutConfig, GraphLayoutInput, GraphLayoutState } from './contracts';
-import { validateGraphLayoutEdges } from './edgeValidation';
-import { validateGraphLayoutInput } from './inputValidation';
-import { createEmptyGraphLayoutState } from './layoutState';
+import { validateGraphLayoutEdges } from './validation/edge';
+import { validateGraphLayoutInput } from './validation/input';
+import { createEmptyGraphLayoutState } from './graph/layout';
 import { updateVisibleLinkDegrees } from './linkDegrees';
-import { initializeGraphLayoutNode } from './nodeInitialization';
+import { initializeGraphLayoutNode } from './node/initialization';
 
 export function createGraphLayoutState(
   input: GraphLayoutInput,

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { GraphRendererNode } from '@graph-renderer/contracts';
 import {
   resolveGraphLinkGeometry,
-} from '@graph-renderer/webgpu/link/geometry';
-import { pointOnGraphLink } from '@graph-renderer/webgpu/link/point';
+} from '@graph-renderer/webgpu/link/geometry/model';
+import { pointOnGraphLink } from '@graph-renderer/webgpu/link/geometry/point';
 
 function node(id: string, x: number, y: number): GraphRendererNode {
   return { id, x, y };

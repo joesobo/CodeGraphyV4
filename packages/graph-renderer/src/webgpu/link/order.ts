@@ -1,5 +1,5 @@
 import type { GraphRendererFrame, GraphRendererLink } from '../../contracts';
-import type { GraphBufferState } from '../bufferState';
+import type { GraphBufferState } from '../buffer/state';
 
 function orderMatches(
   state: GraphBufferState,

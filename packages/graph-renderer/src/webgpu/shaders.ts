@@ -2,7 +2,7 @@ import {
   GRAPH_ARROW_HALF_WIDTH,
   GRAPH_ARROW_LENGTH,
 } from './arrow/geometry';
-import { GRAPH_SELF_LOOP_RADIUS } from './link/geometry';
+import { GRAPH_SELF_LOOP_RADIUS } from './link/geometry/model';
 
 const CAMERA_UNIFORM = /* wgsl */ `
 struct CameraUniform {

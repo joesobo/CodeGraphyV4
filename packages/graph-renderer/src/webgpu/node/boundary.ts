@@ -1,6 +1,6 @@
 import type { GraphRendererNodeStyle } from '../../contracts';
-import { ellipseBoundary, starBoundary } from '../radialBoundary';
-import { rectangleBoundary } from '../rectangleBoundary';
+import { ellipseBoundary, starBoundary } from '../boundary/radial';
+import { rectangleBoundary } from '../boundary/rectangle';
 
 export function nodeBoundaryDistance(
   style: GraphRendererNodeStyle,

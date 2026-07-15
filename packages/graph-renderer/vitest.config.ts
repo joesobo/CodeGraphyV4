@@ -5,7 +5,7 @@ export default defineConfig({
   root: import.meta.dirname,
   test: {
     coverage: {
-      exclude: ['src/**/*.d.ts'],
+      exclude: ['src/**/*.d.ts', 'src/physics/wasm/assembly/**'],
       include: ['src/**/*.{ts,tsx}'],
     },
     environment: 'jsdom',

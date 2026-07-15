@@ -8,7 +8,7 @@ describe('graph WASM physics module registry', () => {
   });
 
   it('rejects synchronous engine creation before preparation', async () => {
-    const registry = await import('@graph-renderer/physics/wasm/module');
+    const registry = await import('@graph-renderer/physics/wasm/runtime/module');
 
     expect(registry.graphPhysicsModuleReady()).toBe(false);
     expect(() => registry.requireGraphPhysicsModule())
@@ -16,7 +16,7 @@ describe('graph WASM physics module registry', () => {
   });
 
   it('returns the installed shared compiled module', async () => {
-    const registry = await import('@graph-renderer/physics/wasm/module');
+    const registry = await import('@graph-renderer/physics/wasm/runtime/module');
     const module = new WebAssembly.Module(moduleBytes);
 
     registry.installGraphPhysicsModule(module);

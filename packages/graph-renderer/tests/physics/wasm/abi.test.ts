@@ -7,7 +7,7 @@ import {
   GRAPH_GRAPH_PHYSICS_ABI_VERSION,
   GRAPH_GRAPH_PHYSICS_MEMORY_BASE,
   type GraphPhysicsExports,
-} from '@graph-renderer/physics/wasm/abi';
+} from '@graph-renderer/physics/wasm/abi/contracts';
 
 function exportsFor(
   memory: WebAssembly.Memory,

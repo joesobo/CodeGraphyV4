@@ -5,7 +5,7 @@ import {
   GraphNodeFlag,
 } from '@graph-renderer/physics';
 import type { GraphLayoutState } from '@graph-renderer/physics/contracts';
-import { GraphWasmPhysicsKernel } from '@graph-renderer/physics/wasm/kernel';
+import { GraphWasmPhysicsKernel } from '@graph-renderer/physics/wasm/runtime/kernel';
 
 function state(
   x: readonly number[],

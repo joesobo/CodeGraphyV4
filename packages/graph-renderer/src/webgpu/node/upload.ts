@@ -1,7 +1,7 @@
 import type { GraphRendererFrame } from '../../contracts';
-import type { GraphBufferState } from '../bufferState';
+import type { GraphBufferState } from '../buffer/state';
 import { packNodePositions } from './positionBuffer';
-import { uploadVertexStream } from '../vertexStream';
+import { uploadVertexStream } from '../buffer/vertexStream';
 
 export function uploadNodeBuffers(
   device: GPUDevice,

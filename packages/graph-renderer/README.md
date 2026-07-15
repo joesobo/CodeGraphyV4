@@ -194,7 +194,9 @@ pnpm --filter @codegraphy-dev/graph-renderer lint
 
 `build` compiles the AssemblyScript physics engine, emits the bundled WASM under
 `dist/generated/physics.wasm`, and writes the JavaScript and declaration artifacts
-under `dist/`.
+under `dist/`. The AssemblyScript source, TypeScript runtime, and generated module
+all live together under `src/physics/wasm`; `build:wasm` invokes AssemblyScript's
+`asc` CLI directly.
 
 ## License
 

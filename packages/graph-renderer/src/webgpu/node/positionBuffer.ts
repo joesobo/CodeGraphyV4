@@ -1,5 +1,5 @@
 import type { GraphRendererFrame } from '../../contracts';
-import { NODE_POSITION_FLOATS } from '../bufferLayout';
+import { NODE_POSITION_FLOATS } from '../buffer/layout';
 
 export function packNodePositions(
   frame: GraphRendererFrame,

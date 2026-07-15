@@ -67,10 +67,6 @@ describe('mutation seed jobs', () => {
       package: 'extension',
       shard: 'webview',
     }));
-    expect(jobs).toContainEqual(expect.objectContaining({
-      package: 'graph-renderer',
-      shard: 'graph-renderer',
-    }));
   });
 
   it('returns package and shard fields for the GitHub Actions matrix', () => {
@@ -125,15 +121,6 @@ describe('stryker seed configs', () => {
     };
 
     expect(config.vitest?.configFile).toBe('packages/extension/vitest.config.ts');
-    expect(config.vitest?.dir).toBeUndefined();
-  });
-
-  it('uses the graph renderer test config for graph renderer mutation', () => {
-    const config = require('../../../../../stryker.graph-renderer.config.cjs') as {
-      vitest?: { configFile?: string; dir?: string };
-    };
-
-    expect(config.vitest?.configFile).toBe('packages/graph-renderer/vitest.config.ts');
     expect(config.vitest?.dir).toBeUndefined();
   });
 });

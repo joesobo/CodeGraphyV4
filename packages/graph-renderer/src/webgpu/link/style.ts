@@ -1,5 +1,5 @@
 import type { GraphRendererFrame, GraphRendererLink } from '../../contracts';
-import { LINK_CACHED_STYLE_FLOATS, LINK_INSTANCE_STYLE_FLOATS } from '../bufferLayout';
+import { LINK_CACHED_STYLE_FLOATS, LINK_INSTANCE_STYLE_FLOATS } from '../buffer/layout';
 import { cachedWebGpuColor } from '../color/parser';
 
 export function createLinkStyles(frame: GraphRendererFrame): Float32Array {
