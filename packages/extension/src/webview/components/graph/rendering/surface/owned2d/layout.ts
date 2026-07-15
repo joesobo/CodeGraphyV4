@@ -83,7 +83,12 @@ function buildOwnedGraphNodeLayoutData(nodes: FGNode[]): OwnedGraphNodeLayoutDat
   const chargeStrengthMultipliers = new Float32Array(nodes.length);
   const radii = new Float32Array(nodes.length);
   const flags = new Uint8Array(nodes.length);
-  nodes.forEach((node, index) => {
+  const nodeIds = new Array<string>(nodes.length);
+  const nodeIndexes = new Map<string, number>();
+  for (let index = 0; index < nodes.length; index += 1) {
+    const node = nodes[index];
+    nodeIds[index] = node.id;
+    nodeIndexes.set(node.id, index);
     initialX[index] = initialCoordinate(node.fx, node.x);
     initialY[index] = initialCoordinate(node.fy, node.y);
     initialVx[index] = initialVelocity(node.vx);
@@ -91,10 +96,10 @@ function buildOwnedGraphNodeLayoutData(nodes: FGNode[]): OwnedGraphNodeLayoutDat
     chargeStrengthMultipliers[index] = chargeStrengthMultiplier(node);
     radii[index] = ownedNodeCollisionRadius(node);
     flags[index] = nodeFlags(node);
-  });
+  }
   return {
     input: {
-      nodeIds: nodes.map(node => node.id),
+      nodeIds,
       initialX,
       initialY,
       initialVx,
@@ -103,7 +108,7 @@ function buildOwnedGraphNodeLayoutData(nodes: FGNode[]): OwnedGraphNodeLayoutDat
       radii,
       flags,
     },
-    nodeIndexes: new Map(nodes.map((node, index) => [node.id, index])),
+    nodeIndexes,
   };
 }
 
@@ -165,7 +170,10 @@ function sameBuffer(first: ArrayLike<number>, second: ArrayLike<number>): boolea
 }
 
 function preserveOwnedGraphNodeState(layout: OwnedGraphLayout, nodes: FGNode[]): void {
-  const previousIndexes = new Map(layout.engine.nodeIds.map((id, index) => [id, index]));
+  const previousIndexes = new Map<string, number>();
+  for (let index = 0; index < layout.engine.nodeIds.length; index += 1) {
+    previousIndexes.set(layout.engine.nodeIds[index], index);
+  }
   for (const node of nodes) {
     const index = previousIndexes.get(node.id);
     if (index === undefined) continue;

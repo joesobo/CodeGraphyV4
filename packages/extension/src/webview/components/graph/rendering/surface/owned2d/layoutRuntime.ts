@@ -62,7 +62,11 @@ function synchronizePluginForces(
 }
 
 function draggedNodeIndexes(layout: OwnedGraphLayout): Set<number> {
-  return new Set(layout.nodes.flatMap((node, index) => node.isDragging === true ? [index] : []));
+  const indexes = new Set<number>();
+  for (let index = 0; index < layout.nodes.length; index += 1) {
+    if (layout.nodes[index].isDragging === true) indexes.add(index);
+  }
+  return indexes;
 }
 
 function finishRemovedPointerNode(
