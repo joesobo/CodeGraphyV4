@@ -72,7 +72,6 @@ function createOptions(
   return {
     bidirectionalMode: 'combined',
     data: createData('alpha'),
-    directionColor: '#334155',
     directionMode: 'arrows',
     edgeDecorations: undefined,
     favorites: new Set<string>(['src/alpha.ts']),
@@ -149,7 +148,6 @@ describe('graph/runtime/useGraphRuntime', () => {
 
     rerender(createOptions({
       data: initialOptions.data,
-      directionColor: '#f59e0b',
       directionMode: 'particles',
       edgeDecorations: nextEdgeDecorations,
       favorites: initialOptions.favorites,
@@ -162,7 +160,6 @@ describe('graph/runtime/useGraphRuntime', () => {
     expect(result.current.renderer.graphData).toBe(firstGraphData);
     expect(result.current.themeRef.current).toBe('light');
     expect(result.current.directionModeRef.current).toBe('particles');
-    expect(result.current.directionColorRef.current).toBe('#f59e0b');
     expect(result.current.showLabelsRef.current).toBe(false);
     expect(result.current.nodeDecorationsRef.current).toBe(nextNodeDecorations);
     expect(result.current.edgeDecorationsRef.current).toBe(nextEdgeDecorations);

@@ -22,7 +22,6 @@ export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;
   refs: Pick<
     GraphRuntime,
-    | 'directionColorRef'
     | 'edgeDecorationsRef'
     | 'graphAppearanceRef'
     | 'highlightedNeighborsRef'
@@ -79,7 +78,6 @@ export function useGraphCallbacks({
   if (callbacksRef.current === null) {
     let styleRevision = 0;
     let styleSnapshotInitialized = false;
-    let directionColor: unknown;
     let edgeDecorations: unknown;
     let graphAppearance: unknown;
     let highlightedNeighbors: unknown;
@@ -93,7 +91,6 @@ export function useGraphCallbacks({
       getStyleRevision() {
         const current = contextRef.current;
         const changed = !styleSnapshotInitialized
-          || directionColor !== current.directionColorRef.current
           || edgeDecorations !== current.edgeDecorationsRef.current
           || graphAppearance !== current.graphAppearanceRef.current
           || highlightedNeighbors !== current.highlightedNeighborsRef.current
@@ -102,7 +99,6 @@ export function useGraphCallbacks({
           || selectedNodes !== current.selectedNodesSetRef.current;
         if (!changed) return styleRevision;
         styleSnapshotInitialized = true;
-        directionColor = current.directionColorRef.current;
         edgeDecorations = current.edgeDecorationsRef.current;
         graphAppearance = current.graphAppearanceRef.current;
         highlightedNeighbors = current.highlightedNeighborsRef.current;

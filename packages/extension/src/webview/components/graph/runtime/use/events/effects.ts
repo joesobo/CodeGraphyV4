@@ -20,8 +20,8 @@ import type { UseGraphInteractionRuntimeResult } from '../interaction';
 export interface UseGraphEventEffectsOptions {
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
-  directionColorRef: GraphRuntime['directionColorRef'];
   directionModeRef: GraphRuntime['directionModeRef'];
+  graphAppearanceRef: GraphRuntime['graphAppearanceRef'];
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
   interactionHandlers: UseGraphInteractionRuntimeResult['interactionHandlers'];
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
@@ -35,8 +35,8 @@ export interface UseGraphEventEffectsOptions {
 export function useGraphEventEffects({
   containerRef,
   dataRef,
-  directionColorRef,
   directionModeRef,
+  graphAppearanceRef,
   graphDataRef,
   interactionHandlers,
   fileInfoCacheRef,
@@ -57,7 +57,7 @@ export function useGraphEventEffects({
       exportPng: () => exportAsPng(containerRef.current),
       exportSvg: () => exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
         directionMode: directionModeRef.current,
-        directionColor: directionColorRef.current,
+        directionColor: graphAppearanceRef.current.linkHighlight,
         showLabels: showLabelsRef.current,
         theme: themeRef.current,
       }),
@@ -68,9 +68,9 @@ export function useGraphEventEffects({
   }, [
     containerRef,
     dataRef,
-    directionColorRef,
     directionModeRef,
     fileInfoCacheRef,
+    graphAppearanceRef,
     graphDataRef,
     interactionHandlers,
     setTooltipData,

@@ -37,7 +37,6 @@ export interface GraphRuntimeOptions {
   bidirectionalMode: BidirectionalEdgeMode;
   appearance?: GraphAppearance;
   data: IGraphData;
-  directionColor: string;
   directionMode: DirectionMode;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
@@ -78,7 +77,6 @@ export interface GraphRuntimeRenderCaches {
 export interface GraphRuntime {
   context: GraphRuntimeContextSelection;
   dataRef: MutableRefObject<IGraphData>;
-  directionColorRef: MutableRefObject<string>;
   directionModeRef: MutableRefObject<DirectionMode>;
   edgeDecorationsRef: MutableRefObject<Record<string, EdgeDecorationPayload> | undefined>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
@@ -106,7 +104,6 @@ export function useGraphRuntime({
   bidirectionalMode,
   appearance = DEFAULT_GRAPH_APPEARANCE,
   data,
-  directionColor,
   directionMode,
   edgeDecorations,
   favorites,
@@ -123,7 +120,6 @@ export function useGraphRuntime({
   const selectedNodesSetRef = useRef<Set<string>>(new Set());
   const themeRef = useRef(theme);
   const directionModeRef = useRef(directionMode);
-  const directionColorRef = useRef(directionColor);
   const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>({ links: [], nodes: [] });
   const dataRef = useRef(data);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
@@ -141,7 +137,6 @@ export function useGraphRuntime({
   graphAppearanceRef.current = appearance;
   themeRef.current = theme;
   directionModeRef.current = directionMode;
-  directionColorRef.current = directionColor;
   dataRef.current = data;
   showLabelsRef.current = showLabels;
   nodeDecorationsRef.current = nodeDecorations;
@@ -193,7 +188,6 @@ export function useGraphRuntime({
       rightMouseDownRef,
     },
     dataRef,
-    directionColorRef,
     directionModeRef,
     edgeDecorationsRef,
     graphCursorRef,

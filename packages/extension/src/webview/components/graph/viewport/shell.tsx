@@ -73,8 +73,8 @@ export function GraphViewportShell({
   useGraphEventEffects({
     containerRef: graphState.renderer.containerRef,
     dataRef: graphState.dataRef,
-    directionColorRef: graphState.directionColorRef,
     directionModeRef: graphState.directionModeRef,
+    graphAppearanceRef: graphState.graphAppearanceRef,
     graphDataRef: graphState.renderer.graphDataRef,
     interactionHandlers: interactions.interactionHandlers,
     fileInfoCacheRef: graphState.renderCaches.fileInfoCacheRef,
