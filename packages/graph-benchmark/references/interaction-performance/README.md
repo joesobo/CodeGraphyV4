@@ -134,6 +134,22 @@ The parity contract was checked against [Obsidian's official v1.12.7 application
 
 Every clean three-run tier is complete, settled, and untruncated. The required VS Code 1.128.0 editor review confirms no Layout control, exactly two node-size choices, 8–30 bounds, stable semantic sizes across zoom, visible square-root compensation at 0.48×, a 78 px right-drag pan with no menu, a stationary menu only after release, and the simplified `x FPS · y ms` HUD. Evidence is under `m7-default-graph/`.
 
+## M8 WASM physics and zoom-accurate collisions
+
+The renderer's inverse-square-root size compensation had made each node's visible world-space radius grow as zoom decreased, while physics continued colliding the unscaled base radius. The old engine could therefore report a perfectly settled graph even when zoomed-out circles visibly overlapped. The frame loop now synchronizes `1 / sqrt(zoom)` with the single WASM physics kernel, which scales both pair separation and collision-grid cells. Expanding the visible envelope wakes collision settlement without reheating unrelated forces; contracting it preserves sleep.
+
+Clean three-run reports at production revision `e307ad6e5a1d811b3ef1775c12e2256bff20b032` add fitted-view collision acceptance to every measured large tier:
+
+| Fixture | Mean CPU frame | p95 | Sim / render | Potential / displayed FPS | Fitted zoom | Max fitted penetration | Fitted collision settle | Target / neighbor latency | Visible violations / freezes / teleports |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 500 | 4.53 ms | 4.93 ms | 3.78 / 0.76 ms | 221 / 60.00 | 0.262× | 0.065 px | 483–497 ms | 1 / 1 frames | 0 / 0 / 0 |
+| 1k | 4.09 ms | 5.07 ms | 2.87 / 1.22 ms | 245 / 60.00 | 0.182× | 0.046 px | 551–958 ms | 1 / 1 frames | 0 / 0 / 0 |
+| 2.5k | 4.98 ms | 5.57 ms | 3.15 / 1.83 ms | 201 / 60.00 | 0.113× | 0.029 px | 3,810–4,501 ms | 1 / 1 frames | 0 / 0 / 0 |
+
+All nine runs are clean, complete, settled, and below the 0.5 px numerical tolerance with exactly zero visible overlap violations. The WASM path also lowers 2.5k mean CPU frame work from M7's 6.55 ms to 4.98 ms while retaining exact one-frame interaction and zero settle-envelope violations.
+
+VS Code 1.128.1 independently verified a 2,500-node editor graph with Files Explorer restored and three stress hubs spanning the full 8–30 semantic radius range (12–34 including collision padding). The fitted 0.147× view has zero visible violations and 0.037 px maximum numerical penetration. Direct checks at the supported zoom boundaries and representative distances—64×, 4×, 1×, 0.1×, 0.02×, and 0.005×—all have zero violations. Evidence is under `m8-wasm-collisions/`.
+
 Run the dashboard generator with:
 
 ```bash

@@ -3,6 +3,12 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M8",
+      "title": "Zoom-accurate collisions verified at 2,500 nodes",
+      "summary": "Visible collision radii now follow the same inverse-square-root zoom compensation as rendering, and zoom-out wakes collision-only settlement without reheating unrelated forces. Clean 500 / 1k / 2.5k runs have zero fitted-view overlap violations at 0.262× / 0.182× / 0.113×, while reaching 221 / 245 / 201 potential FPS with 4.53 / 4.09 / 4.98 ms frame work, exact one-frame target and neighbor response, and zero freezes or teleports. VS Code independently verifies the full 8–30 semantic radius range and zero violations from 0.005× through 64× zoom.",
+      "timestamp": "2026-07-15T02:46:00Z"
+    },
+    {
       "milestone": "M7",
       "title": "One default graph with zoom-stable sizing",
       "summary": "Named layouts, Uniform sizing, and Git-history Churn sizing are removed. Connections and File Size now share one 8–30 semantic radius range, while Obsidian-style square-root zoom compensation keeps rendering, arrows, picking, overlays, tooltips, and accessibility bounds aligned. Clean tiny / 500 / 1k / 2.5k potential throughput is 2,775 / 200 / 247 / 153 FPS with 0.36 / 5.00 / 4.06 / 6.55 ms frame work, exact one-frame target and neighbor response, and zero freezes, teleports, or settle violations. VS Code verification also confirms release-time right-click panning and the compact `FPS · ms` HUD.",
@@ -213,6 +219,21 @@
       "fixture": "2.5k",
       "milestone": "M7 default graph",
       "path": "references/interaction-performance/m7-default-graph/2.5k.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M8 WASM collisions",
+      "path": "references/interaction-performance/m8-wasm-collisions/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M8 WASM collisions",
+      "path": "references/interaction-performance/m8-wasm-collisions/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M8 WASM collisions",
+      "path": "references/interaction-performance/m8-wasm-collisions/2.5k.json"
     }
   ],
   "attribution": [
@@ -300,6 +321,21 @@
     }
   ],
   "visuals": [
+    {
+      "caption": "M8 integrated VS Code 2.5k collision stress graph with Files Explorer restored and 8–30 semantic node radii.",
+      "kind": "image",
+      "path": "references/interaction-performance/m8-wasm-collisions/real-editor-2.5k.png"
+    },
+    {
+      "caption": "M8 2.5k Graph Stage at fitted 0.147× zoom with zero visible overlap violations.",
+      "kind": "image",
+      "path": "references/interaction-performance/m8-wasm-collisions/real-editor-2.5k-stage.png"
+    },
+    {
+      "caption": "M8 dense 2.5k close-up corresponding to the reported overlap region: circles remain separated across mixed sizes.",
+      "kind": "image",
+      "path": "references/interaction-performance/m8-wasm-collisions/real-editor-2.5k-closeup.png"
+    },
     {
       "caption": "M7 default graph with connection sizing in the shared 8–30 semantic radius range.",
       "kind": "image",
