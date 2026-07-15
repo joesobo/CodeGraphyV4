@@ -35,10 +35,3 @@ export interface ViewportProps {
   tooltipData: GraphTooltipState;
   pluginHost?: WebviewPluginHost;
 }
-
-export interface ResolvedViewportHandlers {
-  handleEdgeContextMenu: NonNullable<ViewportProps['handleEdgeContextMenu']>;
-  handleNodeClick: NonNullable<ViewportProps['handleNodeClick']>;
-  handleNodeContextMenu: NonNullable<ViewportProps['handleNodeContextMenu']>;
-  handleNodeHover: NonNullable<ViewportProps['handleNodeHover']>;
-}
