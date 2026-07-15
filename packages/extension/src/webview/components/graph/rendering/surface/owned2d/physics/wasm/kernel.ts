@@ -129,7 +129,7 @@ export class OwnedGraphWasmPhysicsKernel {
   }
 
   private growBarnesHutCapacity(): void {
-    const source = this.storage.snapshot();
+    const source = this.storage.state;
     const randomState = this.exports.barnesHutRandomState();
     this.initialize(
       source,
