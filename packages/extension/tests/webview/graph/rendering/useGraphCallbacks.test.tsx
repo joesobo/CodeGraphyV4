@@ -85,10 +85,14 @@ describe('graph/rendering/useGraphCallbacks', () => {
     expect(result.current.getLinkOpacity(link)).toBe(0.3);
     expect(result.current.getLinkParticles(link)).toBe(4);
     expect(result.current.getLinkWidth(link)).toBe(2);
-    expect(renderingHarness.getGraphLinkColor).toHaveBeenCalledWith(context, link);
-    expect(renderingHarness.getGraphLinkOpacity).toHaveBeenCalledWith(context, link);
-    expect(renderingHarness.getGraphLinkParticles).toHaveBeenCalledWith(context, link);
-    expect(renderingHarness.getGraphLinkWidth).toHaveBeenCalledWith(context, link);
+    expect(renderingHarness.getGraphLinkColor).toHaveBeenCalledWith(
+      expect.objectContaining(context),
+      link,
+    );
+    const callbackContext = renderingHarness.getGraphLinkColor.mock.calls[0][0];
+    expect(renderingHarness.getGraphLinkOpacity.mock.calls[0][0]).toBe(callbackContext);
+    expect(renderingHarness.getGraphLinkParticles.mock.calls[0][0]).toBe(callbackContext);
+    expect(renderingHarness.getGraphLinkWidth.mock.calls[0][0]).toBe(callbackContext);
   });
 
   it('keeps callbacks stable while reading the latest rendering context', () => {
@@ -146,6 +150,8 @@ describe('graph/rendering/useGraphCallbacks', () => {
     expect(result.current.getArrowColor(link)).toBe('#aabbcc');
     expect(result.current.getParticleColor(link)).toBe('#aabbcc');
     expect(renderingHarness.getGraphDirectionalColor)
-      .toHaveBeenCalledWith(expectedLinkContext(refs));
+      .toHaveBeenCalledWith(expect.objectContaining(expectedLinkContext(refs)));
+    expect(renderingHarness.getGraphDirectionalColor.mock.calls[0][0])
+      .toBe(renderingHarness.getGraphDirectionalColor.mock.calls[1][0]);
   });
 });
