@@ -143,7 +143,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
-      borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
       handleContextMenu={vi.fn()}
@@ -200,7 +199,6 @@ describe('Viewport', () => {
         accessibilityItems={{ nodes: [], edges: [] }}
         canvasBackgroundColor="transparent"
         containerBackgroundColor="var(--cg-popover-translucent)"
-        borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
         handleContextMenu={vi.fn()}
@@ -222,7 +220,6 @@ describe('Viewport', () => {
         accessibilityItems={{ nodes: [], edges: [{ kind: 'edge', id: 'edge-a', label: 'Edge A' }] }}
         canvasBackgroundColor="transparent"
         containerBackgroundColor="var(--cg-popover-translucent)"
-        borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
         handleContextMenu={vi.fn()}
@@ -273,7 +270,6 @@ describe('Viewport', () => {
       <Viewport
         canvasBackgroundColor="transparent"
         containerBackgroundColor="var(--cg-popover-translucent)"
-        borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
         handleContextMenu={vi.fn()}
@@ -297,7 +293,6 @@ describe('Viewport', () => {
       <Viewport
         canvasBackgroundColor="transparent"
         containerBackgroundColor="var(--cg-popover-translucent)"
-        borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
         handleContextMenu={vi.fn()}

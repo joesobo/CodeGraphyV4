@@ -30,7 +30,6 @@ export function Viewport({
   accessibilityItems = EMPTY_ACCESSIBILITY_ITEMS,
   canvasBackgroundColor,
   containerBackgroundColor,
-  borderColor,
   containerRef,
   directionMode,
   handleContextMenu,
@@ -63,7 +62,7 @@ export function Viewport({
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
           className="graph-container absolute inset-2 overflow-hidden rounded-md outline-none focus:outline-none"
-          style={{ backgroundColor: containerBackgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
+          style={{ backgroundColor: containerBackgroundColor, cursor: 'default' }}
           aria-label="Graph Stage"
           tabIndex={0}
         >

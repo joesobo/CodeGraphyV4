@@ -160,7 +160,6 @@ export function GraphViewportShell({
       accessibilityItems={accessibilityItems}
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
       containerBackgroundColor={viewportModel.containerBackgroundColor}
-      borderColor={viewportModel.borderColor}
       containerRef={graphState.renderer.containerRef}
       directionMode={viewState.directionMode}
       handleContextMenu={interactions.handleContextMenu}

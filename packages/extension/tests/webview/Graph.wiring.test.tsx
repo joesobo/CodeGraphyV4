@@ -196,7 +196,6 @@ describe('Graph wiring', () => {
 			linkMuted: '#64748b',
 			nodeSelectionBorder: '#0ea5e9',
 			stageBackground: 'var(--cg-popover-translucent)',
-			stageBorder: 'transparent',
 			transparent: 'transparent',
 		});
 		harness.useGraphRuntime.mockImplementation(({ data }: { data: IGraphData }) => createGraphState(data));

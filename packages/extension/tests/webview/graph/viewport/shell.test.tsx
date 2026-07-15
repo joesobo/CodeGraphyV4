@@ -252,7 +252,6 @@ describe('graph/viewport/shell', () => {
 		harness.useGraphViewportModel.mockReturnValue({
 			canvasBackgroundColor: 'transparent',
 			containerBackgroundColor: 'var(--cg-popover-translucent)',
-			borderColor: 'rgb(63, 63, 70)',
 			menuEntries: [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }],
 			sharedProps: {
 				graphData: { nodes: [], links: [] },
@@ -336,7 +335,6 @@ describe('graph/viewport/shell', () => {
 		expect(harness.viewport).toHaveBeenCalledWith(expect.objectContaining({
 			canvasBackgroundColor: 'transparent',
 			containerBackgroundColor: 'var(--cg-popover-translucent)',
-			borderColor: 'rgb(63, 63, 70)',
 			containerRef: graphState.renderer.containerRef,
 			directionMode: 'arrows',
 			handleContextMenu: interactions.handleContextMenu,

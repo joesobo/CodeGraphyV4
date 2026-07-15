@@ -24,7 +24,6 @@ function createAppearance(stageBackground: string): GraphAppearance {
     linkMuted: `link-muted-${stageBackground}`,
     nodeSelectionBorder: `node-${stageBackground}`,
     stageBackground,
-    stageBorder: `border-${stageBackground}`,
     transparent: 'transparent',
   };
 }

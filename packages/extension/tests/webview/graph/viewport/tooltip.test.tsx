@@ -76,7 +76,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
-      borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
       handleContextMenu={handleContextMenu}

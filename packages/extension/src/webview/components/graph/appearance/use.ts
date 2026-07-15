@@ -12,7 +12,6 @@ const GRAPH_APPEARANCE_KEYS = [
   'linkMuted',
   'nodeSelectionBorder',
   'stageBackground',
-  'stageBorder',
   'transparent',
 ] as const satisfies readonly (keyof GraphAppearance)[];
 

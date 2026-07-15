@@ -8,6 +8,5 @@ export const GRAPH_APPEARANCE_TOKENS = {
   linkMuted: '--cg-graph-link-muted',
   nodeSelectionBorder: '--cg-graph-node-selection-border',
   stageBackground: '--cg-graph-background',
-  stageBorder: '--cg-graph-border',
   transparent: '--cg-transparent',
 } satisfies Record<keyof GraphAppearance, string>;

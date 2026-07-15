@@ -76,7 +76,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
-      borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
       handleContextMenu={handleContextMenu}
@@ -130,22 +129,6 @@ describe('Viewport style mutations (L72)', () => {
 
 
 
-    it('sets borderWidth to 0 on the container style', () => {
-      renderViewport();
-      const container = document.querySelector('.graph-container') as HTMLElement;
-      expect(container.style.borderWidth).toBe('0px');
-    });
-
-
-
-    it('sets borderStyle to solid on the container style', () => {
-      renderViewport();
-      const container = document.querySelector('.graph-container') as HTMLElement;
-      expect(container.style.borderStyle).toBe('solid');
-    });
-
-
-
     it('sets cursor to default on the container style', () => {
       renderViewport();
       const container = document.querySelector('.graph-container') as HTMLElement;
@@ -154,10 +137,10 @@ describe('Viewport style mutations (L72)', () => {
 
 
 
-    it('applies background color and border color styles to the container', () => {
-      renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
+    it('applies the background color without inline border styling', () => {
+      renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)' });
       const container = document.querySelector('.graph-container') as HTMLElement;
       expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
-      expect(container.style.borderColor).toBe('rgb(221, 238, 255)');
+      expect(container.style.borderColor).toBe('');
     });
 });

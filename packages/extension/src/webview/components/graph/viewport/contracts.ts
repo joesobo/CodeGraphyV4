@@ -16,7 +16,6 @@ export interface ViewportProps {
   accessibilityItems?: GraphAccessibilityItems;
   canvasBackgroundColor: string;
   containerBackgroundColor: string;
-  borderColor: string;
   containerRef: Ref<HTMLDivElement>;
   directionMode: DirectionMode;
   handleContextMenu: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
