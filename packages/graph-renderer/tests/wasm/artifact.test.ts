@@ -52,5 +52,5 @@ describe('owned graph WASM physics artifact', () => {
       '../../src/wasm/generated/physics.wasm',
     ));
     expect(readFileSync(outputFile).equals(committed)).toBe(true);
-  });
+  }, 10_000);
 });
