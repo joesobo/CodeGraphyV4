@@ -57,8 +57,12 @@ export class OwnedGraphLinkPicker {
 
   private insertCell(index: number, x: number, y: number): void {
     const key = ownedGraphSpatialCellKey(x, y);
-    const bucket = this.buckets.get(key) ?? [];
-    if (!this.buckets.has(key)) this.buckets.set(key, bucket);
+    const bucket = this.buckets.get(key);
+    if (!bucket) {
+      this.buckets.set(key, [index]);
+      this.entryCount += 1;
+      return;
+    }
     if (bucket[bucket.length - 1] === index) return;
     bucket.push(index);
     this.entryCount += 1;
