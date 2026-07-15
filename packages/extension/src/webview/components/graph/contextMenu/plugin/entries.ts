@@ -1,16 +1,8 @@
 import type { IPluginContextMenuItem } from '../../../../../shared/plugins/contextMenu';
 import { pluginItem, separator } from '../common/entryFactories';
-import type { GraphContextMenuEntry, GraphContextSelection } from '../contracts';
+import type { GraphContextMenuEntry } from '../contracts';
 import type { GraphContextMenuDecision } from '../decision/model';
-import { classifyPluginTarget, classifyTarget } from '../targetClassification';
-
-export function buildPluginEntries(
-  selection: GraphContextSelection,
-  pluginItems: readonly IPluginContextMenuItem[]
-): GraphContextMenuEntry[] {
-  const classified = classifyTarget(selection, pluginItems);
-  return buildClassifiedPluginEntries(classified);
-}
+import { classifyPluginTarget } from '../targetClassification';
 
 export function buildPluginEntriesForDecision(
   decision: GraphContextMenuDecision,
@@ -21,7 +13,7 @@ export function buildPluginEntriesForDecision(
 }
 
 function buildClassifiedPluginEntries(
-  classified: ReturnType<typeof classifyTarget>
+  classified: ReturnType<typeof classifyPluginTarget>
 ): GraphContextMenuEntry[] {
   if (!classified) return [];
 
