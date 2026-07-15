@@ -156,6 +156,8 @@ describe('Toolbar', () => {
     const pluginHost = {
       attachSlotHost: vi.fn(),
       detachSlotHost: vi.fn(),
+      getGraphViewContributions: vi.fn(() => undefined),
+      subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
     };
 
     render(<Toolbar pluginHost={pluginHost as never} />);

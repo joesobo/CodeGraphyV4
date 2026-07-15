@@ -54,8 +54,12 @@ describe('owned directional setting updates', () => {
   });
 
   it('reapplies settings when the particle color callback changes', () => {
-    expect(renderParticles({ getParticleColor: vi.fn(() => '#0af') }).colors)
-      .toEqual(['#0af', '#0af']);
+    const getParticleColor = vi.fn(() => '#0af');
+    const { colors, options } = renderParticles({ getParticleColor });
+
+    expect(colors).toEqual(['#0af']);
+    expect(getParticleColor).toHaveBeenCalledOnce();
+    expect(getParticleColor).toHaveBeenCalledWith(options.links[0]);
   });
 
   it('reapplies settings when graph links change', () => {

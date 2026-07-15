@@ -41,7 +41,8 @@ describe('Graph', () => {
     const graphContainer = container.querySelector('div');
     expect(graphContainer).toHaveClass('absolute', 'inset-2', 'rounded-md', 'overflow-hidden');
     expect(graphContainer?.getAttribute('style')).toContain('background-color: canvas');
-    expect(graphContainer).toHaveStyle({ borderWidth: '0px', borderStyle: 'solid' });
+    expect(graphContainer?.style.borderWidth).toBe('');
+    expect(graphContainer?.style.borderStyle).toBe('');
   });
 
   it('should render the owned WebGPU surface on mount', () => {
