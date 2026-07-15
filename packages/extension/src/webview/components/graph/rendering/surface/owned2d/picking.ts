@@ -58,9 +58,9 @@ export class OwnedGraphNodePicker {
       const x = Math.floor((node.x as number) / PICK_CELL_SIZE);
       const y = Math.floor((node.y as number) / PICK_CELL_SIZE);
       const key = ownedGraphSpatialCellKey(x, y);
-      const bucket = this.buckets.get(key) ?? [];
-      if (!this.buckets.has(key)) this.buckets.set(key, bucket);
-      bucket.push(index);
+      const bucket = this.buckets.get(key);
+      if (bucket) bucket.push(index);
+      else this.buckets.set(key, [index]);
     }
   }
 
@@ -81,13 +81,10 @@ export class OwnedGraphNodePicker {
     const cellRadius = Math.max(1, Math.ceil(queryRadius / PICK_CELL_SIZE));
     const centerX = Math.floor(point.x / PICK_CELL_SIZE);
     const centerY = Math.floor(point.y / PICK_CELL_SIZE);
-    const visited = new Set<number>();
 
     for (let y = centerY - cellRadius; y <= centerY + cellRadius; y += 1) {
       for (let x = centerX - cellRadius; x <= centerX + cellRadius; x += 1) {
         for (const index of this.buckets.get(ownedGraphSpatialCellKey(x, y)) ?? []) {
-          if (visited.has(index)) continue;
-          visited.add(index);
           const node = this.nodes[index];
           const dx = point.x - (node.x as number);
           const dy = point.y - (node.y as number);
