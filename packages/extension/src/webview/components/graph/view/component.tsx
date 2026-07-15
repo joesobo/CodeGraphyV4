@@ -4,7 +4,7 @@
  * @module webview/components/Graph
  */
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
@@ -24,6 +24,7 @@ import { useGraphRuntime } from '../runtime/use/state';
 import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { useGraphViewContributions } from '../../../pluginHost/useGraphViewContributions';
 import { useGraphAppearance } from '../appearance/use';
 
 interface GraphProps {
@@ -31,7 +32,6 @@ interface GraphProps {
   theme?: ThemeKind;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
-  graphViewContributions?: CoreGraphViewContributionSet;
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
@@ -52,50 +52,21 @@ function hasGraphViewContributions(
     );
 }
 
-function useResolvedGraphViewContributions(
-  graphViewContributions: CoreGraphViewContributionSet | undefined,
-  pluginHost: WebviewPluginHost | undefined,
-): CoreGraphViewContributionSet | undefined {
-  const [contributionVersion, setContributionVersion] = useState(0);
-
-  useEffect(() => {
-    if (!pluginHost || graphViewContributions) {
-      return undefined;
-    }
-
-    const subscription = pluginHost.subscribeGraphViewContributions(() => {
-      setContributionVersion(version => version + 1);
-    });
-    return () => subscription.dispose();
-  }, [graphViewContributions, pluginHost]);
-
-  void contributionVersion;
-  if (graphViewContributions) {
-    return graphViewContributions;
-  }
-
-  const pluginContributions = pluginHost?.getGraphViewContributions();
-  return hasGraphViewContributions(pluginContributions)
-    ? pluginContributions
-    : undefined;
-}
-
 export default function Graph({
   data,
   theme = 'dark',
   nodeDecorations,
   edgeDecorations,
-  graphViewContributions,
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const appearance = useGraphAppearance(theme);
-  const resolvedGraphViewContributions = useResolvedGraphViewContributions(
-    graphViewContributions,
-    pluginHost,
-  );
+  const pluginContributions = useGraphViewContributions(pluginHost);
+  const graphViewContributions = hasGraphViewContributions(pluginContributions)
+    ? pluginContributions
+    : undefined;
 
   const graphRuntime = useGraphRuntime({
     appearance,
@@ -105,7 +76,7 @@ export default function Graph({
     directionMode: viewState.directionMode,
     edgeDecorations,
     favorites: viewState.favorites,
-    graphViewContributions: resolvedGraphViewContributions,
+    graphViewContributions,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
     showLabels: viewState.showLabels,
@@ -121,7 +92,7 @@ export default function Graph({
     graphContextSelection: graphRuntime.context.selection,
     graphCursorRef: graphRuntime.graphCursorRef,
     graphDataRef: graphRuntime.renderer.graphDataRef,
-    graphViewContributions: resolvedGraphViewContributions,
+    graphViewContributions,
     highlightedNeighborsRef: graphRuntime.highlightedNeighborsRef,
     highlightedNodeRef: graphRuntime.highlightedNodeRef,
     isMacPlatform,
@@ -160,7 +131,7 @@ export default function Graph({
       callbacks={callbacks}
       graphDataLayoutKey={graphDataLayoutKey}
       graphState={graphRuntime}
-      graphViewContributions={resolvedGraphViewContributions}
+      graphViewContributions={graphViewContributions}
       handleEngineStop={handleEngineStop}
       interactions={interactions}
       pluginHost={pluginHost}

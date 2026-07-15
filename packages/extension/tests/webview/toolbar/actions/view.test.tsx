@@ -245,25 +245,26 @@ describe('ToolbarActions', () => {
 
   it('renders graph-view create contributions beside file and folder actions', () => {
     const run = vi.fn();
+    const contributions = {
+      runtimeNodes: [],
+      runtimeEdges: [],
+      projections: [],
+      forces: [],
+      nodeDragEnd: [],
+      contextMenu: [{
+        pluginId: 'acme.graph-tools',
+        contribution: {
+          id: 'acme.new-plugin-node',
+          label: 'New Plugin Node...',
+          placement: { menu: 'create' as const },
+          targets: [{ kind: 'background' as const }],
+          run,
+        },
+      }],
+      ui: [],
+    };
     const pluginHost = {
-      getGraphViewContributions: vi.fn(() => ({
-        runtimeNodes: [],
-        runtimeEdges: [],
-        projections: [],
-        forces: [],
-        nodeDragEnd: [],
-        contextMenu: [{
-          pluginId: 'acme.graph-tools',
-          contribution: {
-            id: 'acme.new-plugin-node',
-            label: 'New Plugin Node...',
-            placement: { menu: 'create' },
-            targets: [{ kind: 'background' }],
-            run,
-          },
-        }],
-        ui: [],
-      })),
+      getGraphViewContributions: vi.fn(() => contributions),
       subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
     };
 
