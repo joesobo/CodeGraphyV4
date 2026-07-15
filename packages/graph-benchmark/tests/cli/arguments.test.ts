@@ -56,6 +56,25 @@ describe('parseBenchmarkArguments', () => {
     });
   });
 
+  it('rejects missing option values', () => {
+    expect(() => parseBenchmarkArguments([
+      '--fixture', '500',
+      '--renderer', 'current',
+      '--seed', '--runs', '3',
+    ])).toThrow('--seed requires a value');
+  });
+
+  it.each(['-1', '1.5', '9007199254740992'])(
+    'rejects invalid synthetic seed %s',
+    (seed) => {
+      expect(() => parseBenchmarkArguments([
+        '--fixture', '500',
+        '--renderer', 'current',
+        '--seed', seed,
+      ])).toThrow('--seed must be an integer greater than or equal to 0');
+    },
+  );
+
   it('rejects invalid headed-mode values', () => {
     expect(() => parseBenchmarkArguments([
       '--fixture', '500',

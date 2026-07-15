@@ -18,6 +18,24 @@ describe('parseObsidianVaultArguments', () => {
     });
   });
 
+  it('rejects missing option values', () => {
+    expect(() => parseObsidianVaultArguments([
+      '--fixture', '500',
+      '--output', '--seed', '1',
+    ])).toThrow('--output requires a value');
+  });
+
+  it.each(['-1', '1.5', '9007199254740992'])(
+    'rejects invalid synthetic seed %s',
+    (seed) => {
+      expect(() => parseObsidianVaultArguments([
+        '--fixture', '500',
+        '--seed', seed,
+        '--output', '/tmp/codegraphy-vault',
+      ])).toThrow('--seed must be a non-negative integer');
+    },
+  );
+
   it('shares fixture validation and the default synthetic seed', () => {
     expect(parseObsidianVaultArguments([
       '--fixture', '500',
