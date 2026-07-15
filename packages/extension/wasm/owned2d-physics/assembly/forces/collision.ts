@@ -1,5 +1,6 @@
 import {
   collisionPadding,
+  collisionScale,
   collisionStrength,
   maximumCollisionNeighbors,
 } from '../config';
@@ -85,7 +86,8 @@ function applyCollisionPair(first: i32, second: i32): bool {
     distanceSquared = dx * dx + dy * dy;
   }
   const distance = Math.sqrt(distanceSquared);
-  const minimumDistance = radius(first) + radius(second) + collisionPadding;
+  const minimumDistance = (radius(first) + radius(second)) * collisionScale
+    + collisionPadding;
   if (distance + 0.25 >= minimumDistance) return false;
   const correction = (minimumDistance - distance) * collisionStrength;
   const directionX = dx / distance;

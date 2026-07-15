@@ -1,6 +1,6 @@
 import { requireOwnedGraphPhysicsModule } from './module';
 
-export const OWNED_GRAPH_PHYSICS_ABI_VERSION = 1;
+export const OWNED_GRAPH_PHYSICS_ABI_VERSION = 2;
 export const OWNED_GRAPH_PHYSICS_MEMORY_BASE = 65_536;
 export const MAXIMUM_OWNED_GRAPH_PHYSICS_PAGES = 32_768;
 
@@ -56,6 +56,7 @@ export interface OwnedGraphPhysicsExports {
     chargeStrength: number,
     chargeTheta: number,
     collisionPadding: number,
+    collisionScale: number,
     collisionStrength: number,
     initializationSpacing: number,
     linkDistance: number,

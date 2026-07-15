@@ -21,6 +21,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   }, { ...DEFAULT_GRAPH_LAYOUT_CONFIG });
 
   private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
+  private collisionScale = 1;
+  private maximumCollisionRadius = 1;
   private nodeIndexes = new Map<string, number>();
   private kernel: OwnedGraphWasmPhysicsKernel | undefined;
   private simulationAlpha = 1;
@@ -58,10 +60,12 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     });
     const state = createGraphLayoutState(input, this.config);
     const randomState = this.kernel?.randomState ?? 1;
+    this.maximumCollisionRadius = this.maximumRadius(state);
     this.kernel = new OwnedGraphWasmPhysicsKernel(
       state,
       this.config,
-      this.collisionCellSize(state),
+      this.collisionScale,
+      this.collisionCellSize(),
       randomState,
     );
     this.state = this.kernel.state;
@@ -70,8 +74,22 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.config = mergeGraphLayoutConfig(this.config, config);
-    this.kernel?.configure(this.config, this.collisionCellSize(this.state));
+    this.kernel?.configure(this.config, this.collisionScale, this.collisionCellSize());
     if (this.x.length > 0) this.reheat(0.3);
+  }
+
+  setCollisionScale(scale: number): void {
+    if (!Number.isFinite(scale) || scale <= 0) {
+      throw new Error('Graph layout collision scale must be positive');
+    }
+    if (scale === this.collisionScale) return;
+    const expandsCollisionEnvelope = scale > this.collisionScale;
+    this.collisionScale = scale;
+    this.kernel?.configure(this.config, scale, this.collisionCellSize());
+    if (expandsCollisionEnvelope && this.x.length > 0) {
+      this.settled = false;
+      this.settledStepCount = 0;
+    }
   }
 
   tick(): GraphLayoutTickResult {
@@ -185,8 +203,9 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.settled = this.settledStepCount >= this.config.settleSteps;
   }
 
-  private collisionCellSize(state: GraphLayoutState): number {
-    return this.maximumRadius(state) * 2 + this.config.collisionPadding;
+  private collisionCellSize(): number {
+    return this.maximumCollisionRadius * 2 * this.collisionScale
+      + this.config.collisionPadding;
   }
 
   private maximumRadius(state: GraphLayoutState): number {

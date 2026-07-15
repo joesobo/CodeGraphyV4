@@ -160,6 +160,24 @@ describe('owned graph frame execution', () => {
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
   });
 
+  it('synchronizes the visible zoom with collision physics before stepping', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { layout, runtime } = runtimeFixture(renderer);
+    runtime.pluginForcesRef.current.active = () => false;
+    while (!layout.engine.settled) layout.engine.tick();
+    runtime.engineStopNotifiedRef.current = true;
+    runtime.cameraRef.current.zoom = 0.25;
+    const setCollisionScale = vi.spyOn(layout.engine, 'setCollisionScale');
+    const tick = vi.spyOn(layout.engine, 'tick');
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 0);
+
+    expect(setCollisionScale).toHaveBeenCalledWith(2);
+    expect(setCollisionScale.mock.invocationCallOrder[0])
+      .toBeLessThan(tick.mock.invocationCallOrder[0]);
+    expect(runtime.engineStopNotifiedRef.current).toBe(false);
+  });
+
   it('advances multiple fixed simulation steps between slower presentations', () => {
     const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
     const { layout, recorder, runtime } = runtimeFixture(renderer);

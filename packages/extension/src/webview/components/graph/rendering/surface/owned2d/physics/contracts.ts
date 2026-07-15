@@ -58,6 +58,7 @@ export interface GraphLayoutEngine {
   getNodeIndex(nodeId: string): number | undefined;
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;
+  setCollisionScale(scale: number): void;
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void;
   tick(): GraphLayoutTickResult;
   setNodePosition(index: number, x: number, y: number): void;

@@ -30,6 +30,7 @@ import {
   resetGraphLayoutFixedTimestepClock,
   type GraphLayoutFixedTimestepClock,
 } from './physics/fixedTimestep';
+import { ownedGraphNodeWorldScale } from './visualSize';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface PreparedOverlayCanvas {
@@ -278,6 +279,17 @@ function drawOwnedGraphDecorationLayer(
   context.restore();
 }
 
+function synchronizeOwnedGraphCollisionScale(
+  runtime: OwnedGraphFrameRuntime,
+  layout: OwnedGraphLayout,
+): void {
+  const wasSettled = layout.engine.settled;
+  layout.engine.setCollisionScale(ownedGraphNodeWorldScale(runtime.cameraRef.current.zoom));
+  if (wasSettled && !layout.engine.settled) {
+    runtime.engineStopNotifiedRef.current = false;
+  }
+}
+
 function notifyOwnedGraphSettlement(
   runtime: OwnedGraphFrameRuntime,
   tick: GraphLayoutTickResult,
@@ -311,6 +323,7 @@ export function renderOwnedGraphFrame(
   if (!layout || !context) return;
   advanceOwnedGraphCameraTransition(runtime.cameraRef.current, timestamp);
   advanceOwnedGraphNodeHover(runtime.nodeHoverRef.current, timestamp);
+  synchronizeOwnedGraphCollisionScale(runtime, layout);
   const attribution = runtime.performanceAttributionRef.current;
   const frameAttributionStartedAt = attribution.startTiming();
   const physicsAttributionStartedAt = attribution.startTiming();

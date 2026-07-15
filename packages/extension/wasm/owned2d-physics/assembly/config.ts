@@ -4,6 +4,7 @@ export let chargeDistanceMinimum: f64 = 1;
 export let chargeStrength: f64 = -250;
 export let chargeTheta: f64 = 0.9;
 export let collisionPadding: f64 = 0;
+export let collisionScale: f64 = 1;
 export let collisionStrength: f64 = 1;
 export let initializationSpacing: f64 = 10;
 export let linkDistance: f64 = 80;
@@ -19,6 +20,7 @@ export function configurePhysics(
   nextChargeStrength: f64,
   nextChargeTheta: f64,
   nextCollisionPadding: f64,
+  nextCollisionScale: f64,
   nextCollisionStrength: f64,
   nextInitializationSpacing: f64,
   nextLinkDistance: f64,
@@ -33,6 +35,7 @@ export function configurePhysics(
   chargeStrength = nextChargeStrength;
   chargeTheta = nextChargeTheta;
   collisionPadding = nextCollisionPadding;
+  collisionScale = nextCollisionScale;
   collisionStrength = nextCollisionStrength;
   initializationSpacing = nextInitializationSpacing;
   linkDistance = nextLinkDistance;

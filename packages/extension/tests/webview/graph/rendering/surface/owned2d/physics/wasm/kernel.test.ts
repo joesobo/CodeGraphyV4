@@ -31,6 +31,7 @@ function kernel(graph: GraphLayoutState): OwnedGraphWasmPhysicsKernel {
   return new OwnedGraphWasmPhysicsKernel(
     graph,
     { ...DEFAULT_GRAPH_LAYOUT_CONFIG, centralGravity: 0, collisionIterations: 0 },
+    1,
     2,
   );
 }
@@ -172,6 +173,7 @@ describe('WASM Barnes-Hut charge tree', () => {
         collisionIterations: 0,
         velocityDecay: 0,
       },
+      1,
       2,
     );
 
@@ -184,9 +186,9 @@ describe('WASM Barnes-Hut charge tree', () => {
   it('rejects invalid collision cell sizes', () => {
     const physics = kernel(state([0], [0]));
 
-    expect(() => physics.configure(DEFAULT_GRAPH_LAYOUT_CONFIG, 0))
+    expect(() => physics.configure(DEFAULT_GRAPH_LAYOUT_CONFIG, 1, 0))
       .toThrow('Grid cell size must be positive');
-    expect(() => physics.configure(DEFAULT_GRAPH_LAYOUT_CONFIG, Number.NaN))
+    expect(() => physics.configure(DEFAULT_GRAPH_LAYOUT_CONFIG, 1, Number.NaN))
       .toThrow('Grid cell size must be positive');
   });
 
@@ -203,6 +205,7 @@ describe('WASM Barnes-Hut charge tree', () => {
         collisionStrength: 1,
         velocityDecay: 0,
       },
+      1,
       2,
     );
 

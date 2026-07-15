@@ -27,7 +27,7 @@ import { integrateGraphLayout } from './integration';
 import { initializeGraphMemory } from './memory';
 import { initializeSpatialGrid } from './spatialGrid';
 
-const ABI_VERSION: i32 = 1;
+const ABI_VERSION: i32 = 2;
 const GRAPH_MEMORY_BASE: i32 = 65_536;
 
 let resultPointer: usize = 0;
@@ -132,6 +132,7 @@ export function configure(
   chargeStrength: f64,
   chargeTheta: f64,
   collisionPadding: f64,
+  collisionScale: f64,
   collisionStrength: f64,
   initializationSpacing: f64,
   linkDistance: f64,
@@ -147,6 +148,7 @@ export function configure(
     chargeStrength,
     chargeTheta,
     collisionPadding,
+    collisionScale,
     collisionStrength,
     initializationSpacing,
     linkDistance,
