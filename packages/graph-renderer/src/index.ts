@@ -24,16 +24,15 @@ export {
   type GraphLayoutInput,
   type GraphLayoutTickResult,
 } from './physics';
+export { type GraphLinkGeometry, resolveGraphLinkGeometry } from './webgpu/link/geometry';
+export { pointOnGraphLink } from './webgpu/link/point';
 export {
-  type OwnedLinkGeometry,
-  ownedLinkGeometry,
-  pointOnOwnedLink,
-} from './webgpu/linkGeometry';
-export {
-  ownedGraphNodeScreenRadius,
-  ownedGraphNodeWorldScale,
+  graphNodeScreenRadius,
+  graphNodeWorldScale,
 } from './visualSize';
 export {
-  OwnedWebGpuRenderer,
+  WebGpuGraphRenderer,
+  type WebGpuGraphFrame,
+  type WebGpuGraphRendererOptions,
 } from './webgpu/renderer';
 export { prepareGraphPhysics } from './wasm/loader';

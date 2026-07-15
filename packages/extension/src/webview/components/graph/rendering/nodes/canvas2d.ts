@@ -8,10 +8,9 @@ import type { NodeLabelSpriteProvider } from '../node/labelSprite';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import {
-  ownedGraphNodeWorldScale,
+  graphNodeWorldScale,
   shouldRenderGraphDetails,
 } from '@codegraphy-dev/graph-renderer';
-import type { OwnedGraphNodeStyle } from '../surface/owned2d/contracts';
 
 function isNodeHighlighted(
   dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,
@@ -27,32 +26,7 @@ function getNodeCanvasOpacity(baseOpacity: number, highlighted: boolean): number
   return highlighted ? baseOpacity : 0.15;
 }
 
-export function getNodeCanvasStyle(
-  dependencies: NodeCanvasRendererDependencies,
-  node: FGNode,
-): OwnedGraphNodeStyle {
-  const isHighlighted = isNodeHighlighted(dependencies, node.id);
-  const isSelected = dependencies.selectedNodesSetRef.current.has(node.id);
-  const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
-  const baseOpacity = decoration?.opacity ?? node.baseOpacity;
-  const appearance = dependencies.graphAppearanceRef.current;
-  const transparentFolder = node.nodeType === 'folder' && node.color === appearance.transparent;
-  return {
-    borderColor: isSelected
-      ? appearance.nodeSelectionBorder
-      : transparentFolder ? appearance.transparent : node.borderColor,
-    borderWidth: isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth,
-    cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
-    fillColor: node.nodeType === 'folder' ? node.color : decoration?.color ?? node.color,
-    fillOpacity: typeof node.fillOpacity2D === 'number' && Number.isFinite(node.fillOpacity2D)
-      ? Math.min(1, Math.max(0, node.fillOpacity2D))
-      : 1,
-    height: node.shapeSize2D?.height ?? node.size * 2,
-    opacity: getNodeCanvasOpacity(baseOpacity, isHighlighted),
-    shape: node.shape2D ?? 'circle',
-    width: node.shapeSize2D?.width ?? node.size * 2,
-  };
-}
+export { getNodeCanvasStyle } from './canvasStyle';
 
 function applyNodeVisualTransform(
   context: CanvasRenderingContext2D,
@@ -76,7 +50,7 @@ export function renderNodeCanvasLabel(
   const baseOpacity = decoration?.opacity ?? node.baseOpacity;
   const opacity = getNodeCanvasOpacity(baseOpacity, isHighlighted);
   const appearance = dependencies.graphAppearanceRef.current;
-  const visualScale = ownedGraphNodeWorldScale(globalScale);
+  const visualScale = graphNodeWorldScale(globalScale);
   const effectiveGlobalScale = globalScale * visualScale;
   ctx.save();
   ctx.globalAlpha = opacity;

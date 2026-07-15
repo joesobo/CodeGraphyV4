@@ -1,8 +1,8 @@
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../../graph/contracts';
 import type { ILifecyclePluginInfo } from '../contracts';
-import { logLifecycleError } from './errors.js';
-import { getPluginFiles, type AnalyzeFile } from './files.js';
+import { logLifecycleError } from './errors';
+import { getPluginFiles, type AnalyzeFile } from './files';
 import {
   createWorkspacePluginAnalysisContext,
   withWorkspacePluginAnalysisOptions,

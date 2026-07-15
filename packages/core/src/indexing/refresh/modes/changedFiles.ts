@@ -17,6 +17,12 @@ import {
   applyWorkspaceIndexAnalysisResult,
   retainWorkspaceIndexDiscoveredFileConnections,
 } from '../state';
+import { invalidateDeletedWorkspaceIndexFiles } from './changedFileDeletion';
+import {
+  buildGraphWithoutChangedFileAnalysis,
+  persistChangedFilesCachePatch,
+  persistMetricOnlyIndexMetadata,
+} from './changedFilePersistence';
 
 export async function refreshWorkspaceIndexChangedFiles(
   source: WorkspaceIndexRefreshSource,
@@ -65,18 +71,7 @@ export async function refreshWorkspaceIndexChangedFiles(
   retainWorkspaceIndexDiscoveredFileConnections(source, dependencies.discoveredFiles);
 
   if (filesToAnalyze.length === 0) {
-    if (deleteFilePaths.length > 0) {
-      persistChangedFilesCachePatch(dependencies, {
-        deleteFilePaths,
-        upsertFilePaths: [],
-      });
-      await dependencies.persistIndexMetadata();
-    }
-    return buildWorkspaceIndexGraphFromRefreshState(
-      source,
-      dependencies.workspaceRoot,
-      dependencies.disabledPlugins,
-    );
+    return buildGraphWithoutChangedFileAnalysis(source, dependencies, deleteFilePaths);
   }
 
   const graphSnapshot = captureWorkspaceIndexRefreshGraphSnapshot(source, filesToAnalyze);
@@ -134,49 +129,6 @@ export async function refreshWorkspaceIndexChangedFiles(
   return graphData;
 }
 
-function invalidateDeletedWorkspaceIndexFiles(
-  source: WorkspaceIndexRefreshSource,
-  filePaths: readonly string[],
-): {
-  deleteFilePaths: string[];
-  unmatchedFilePaths: string[];
-} {
-  const deleteFilePaths = new Set<string>();
-  const unmatchedFilePaths: string[] = [];
-
-  for (const filePath of filePaths) {
-    const invalidatedFilePaths = source.invalidateWorkspaceFiles([filePath], { persist: false }) ?? [];
-    if (invalidatedFilePaths.length === 0) {
-      unmatchedFilePaths.push(filePath);
-      continue;
-    }
-
-    for (const invalidatedFilePath of invalidatedFilePaths) {
-      deleteFilePaths.add(invalidatedFilePath);
-    }
-  }
-
-  return {
-    deleteFilePaths: [...deleteFilePaths],
-    unmatchedFilePaths,
-  };
-}
-
-function persistChangedFilesCachePatch(
-  dependencies: WorkspaceIndexRefreshDependencies,
-  patch: {
-    deleteFilePaths: readonly string[];
-    upsertFilePaths: readonly string[];
-  },
-): void {
-  if (dependencies.persistCachePatch) {
-    dependencies.persistCachePatch(patch);
-    return;
-  }
-
-  dependencies.persistCache();
-}
-
 function analyzeWorkspaceIndexFromRefresh(
   source: WorkspaceIndexRefreshSource,
   dependencies: WorkspaceIndexRefreshDependencies,
@@ -192,18 +144,4 @@ function analyzeWorkspaceIndexFromRefresh(
       });
     },
   );
-}
-
-function persistMetricOnlyIndexMetadata(
-  dependencies: WorkspaceIndexRefreshDependencies,
-): Promise<void> | void {
-  const persistence = dependencies.persistIndexMetadata();
-  if (dependencies.deferMetricOnlyIndexMetadata) {
-    void persistence.catch(error => {
-      dependencies.onDeferredIndexMetadataError?.(error);
-    });
-    return;
-  }
-
-  return persistence;
 }

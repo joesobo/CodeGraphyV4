@@ -10,7 +10,7 @@ import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
-import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing.js';
+import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
 export {
   createCodeGraphyWorkspaceEngine,
   type CodeGraphyWorkspaceEngine,

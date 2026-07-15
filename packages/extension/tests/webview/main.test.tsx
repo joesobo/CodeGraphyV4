@@ -29,7 +29,8 @@ vi.mock('../../src/webview/vscodeApi', () => ({
   getVsCodeApi: () => mocks.vscodeApi,
 }));
 
-vi.mock('@codegraphy-dev/graph-renderer/wasm', () => ({
+vi.mock('@codegraphy-dev/graph-renderer', async importOriginal => ({
+  ...await importOriginal<typeof import('@codegraphy-dev/graph-renderer')>(),
   prepareGraphPhysics: mocks.prepareGraphPhysics,
 }));
 

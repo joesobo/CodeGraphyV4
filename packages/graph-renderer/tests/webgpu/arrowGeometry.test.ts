@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { GraphRendererNodeStyle } from '@graph-renderer/contracts';
 import {
-  OWNED_ARROW_HALF_WIDTH,
-  OWNED_ARROW_LENGTH,
-  writeOwnedArrowCurveParameters,
-} from '@graph-renderer/webgpu/arrowGeometry';
+  GRAPH_ARROW_HALF_WIDTH,
+  GRAPH_ARROW_LENGTH,
+  writeArrowCurveParameters,
+} from '@graph-renderer/webgpu/arrow/geometry';
 import {
-  ownedLinkGeometry,
-  pointOnOwnedLink,
-} from '@graph-renderer/webgpu/linkGeometry';
+  resolveGraphLinkGeometry,
+} from '@graph-renderer/webgpu/link/geometry';
+import { pointOnGraphLink } from '@graph-renderer/webgpu/link/point';
 
 function style(overrides: Partial<GraphRendererNodeStyle> = {}): GraphRendererNodeStyle {
   return {
@@ -25,7 +25,7 @@ function style(overrides: Partial<GraphRendererNodeStyle> = {}): GraphRendererNo
   };
 }
 
-function ownedArrowCurveParameters(
+function arrowCurveParameters(
   source: { x: number; y: number },
   target: { x: number; y: number },
   curvature: number,
@@ -34,7 +34,7 @@ function ownedArrowCurveParameters(
   visualScale = 1,
 ): { source: number; target: number } {
   const output = new Float32Array(2);
-  writeOwnedArrowCurveParameters(
+  writeArrowCurveParameters(
     output,
     0,
     source.x,
@@ -54,23 +54,23 @@ function geometry(
   target: { x: number; y: number },
   curvature: number,
 ) {
-  return ownedLinkGeometry({
+  return resolveGraphLinkGeometry({
     curvature,
     source: { id: 'source', ...source },
     target: { id: 'target', ...target },
   })!;
 }
 
-describe('owned graph arrow endpoint geometry', () => {
+describe('graph arrow endpoint geometry', () => {
   it('uses compact twelve-unit triangle proportions', () => {
     expect({
-      halfWidth: OWNED_ARROW_HALF_WIDTH,
-      length: OWNED_ARROW_LENGTH,
+      halfWidth: GRAPH_ARROW_HALF_WIDTH,
+      length: GRAPH_ARROW_LENGTH,
     }).toEqual({ halfWidth: 3.75, length: 12 });
   });
 
   it('places straight arrow tips on circular and rectangular node boundaries', () => {
-    const parameters = ownedArrowCurveParameters(
+    const parameters = arrowCurveParameters(
       { x: 0, y: 0 },
       { x: 100, y: 0 },
       0,
@@ -83,7 +83,7 @@ describe('owned graph arrow endpoint geometry', () => {
   });
 
   it('clips arrows to zoom-compensated node boundaries', () => {
-    const parameters = ownedArrowCurveParameters(
+    const parameters = arrowCurveParameters(
       { x: 0, y: 0 },
       { x: 100, y: 0 },
       0,
@@ -99,7 +99,7 @@ describe('owned graph arrow endpoint geometry', () => {
   it('keeps curved arrow tips on both the curve and elliptical node boundaries', () => {
     const source = { x: 0, y: 0 };
     const target = { x: 100, y: 0 };
-    const parameters = ownedArrowCurveParameters(
+    const parameters = arrowCurveParameters(
       source,
       target,
       0.5,
@@ -112,7 +112,7 @@ describe('owned graph arrow endpoint geometry', () => {
       [source, parameters.source],
       [target, parameters.target],
     ] as const) {
-      const tip = pointOnOwnedLink(linkGeometry, position);
+      const tip = pointOnGraphLink(linkGeometry, position);
       expect(((tip.x - center.x) / 10) ** 2 + ((tip.y - center.y) / 5) ** 2)
         .toBeCloseTo(1, 3);
     }
@@ -123,14 +123,14 @@ describe('owned graph arrow endpoint geometry', () => {
       targetStyle: Partial<GraphRendererNodeStyle>,
       target = { x: 100, y: 0 },
     ) => {
-      const parameters = ownedArrowCurveParameters(
+      const parameters = arrowCurveParameters(
         { x: 0, y: 0 },
         target,
         0,
         style(),
         style(targetStyle),
       );
-      const tip = pointOnOwnedLink(geometry({ x: 0, y: 0 }, target, 0), parameters.target);
+      const tip = pointOnGraphLink(geometry({ x: 0, y: 0 }, target, 0), parameters.target);
       return Math.hypot(target.x - tip.x, target.y - tip.y);
     };
 
@@ -147,7 +147,7 @@ describe('owned graph arrow endpoint geometry', () => {
   it('keeps self-loop tips on large asymmetric ellipse boundaries', () => {
     const endpoint = { x: 5, y: 5 };
     const ellipseStyle = style({ height: 47, width: 71 });
-    const parameters = ownedArrowCurveParameters(
+    const parameters = arrowCurveParameters(
       endpoint,
       endpoint,
       0.8,
@@ -157,7 +157,7 @@ describe('owned graph arrow endpoint geometry', () => {
     const linkGeometry = geometry(endpoint, endpoint, 0.8);
 
     for (const position of [parameters.source, parameters.target]) {
-      const tip = pointOnOwnedLink(linkGeometry, position);
+      const tip = pointOnGraphLink(linkGeometry, position);
       expect(((tip.x - endpoint.x) / 35.5) ** 2 + ((tip.y - endpoint.y) / 23.5) ** 2)
         .toBeCloseTo(1, 3);
     }
@@ -166,7 +166,7 @@ describe('owned graph arrow endpoint geometry', () => {
   it('places self-loop tips on the top and right sides of an asymmetric node', () => {
     const endpoint = { x: 5, y: 5 };
     const asymmetricStyle = style({ height: 20, shape: 'rectangle', width: 30 });
-    const parameters = ownedArrowCurveParameters(
+    const parameters = arrowCurveParameters(
       endpoint,
       endpoint,
       0.5,
@@ -174,8 +174,8 @@ describe('owned graph arrow endpoint geometry', () => {
       asymmetricStyle,
     );
     const linkGeometry = geometry(endpoint, endpoint, 0.5);
-    const sourceTip = pointOnOwnedLink(linkGeometry, parameters.source);
-    const targetTip = pointOnOwnedLink(linkGeometry, parameters.target);
+    const sourceTip = pointOnGraphLink(linkGeometry, parameters.source);
+    const targetTip = pointOnGraphLink(linkGeometry, parameters.target);
 
     expect(sourceTip.y).toBeCloseTo(-5, 1);
     expect(targetTip.x).toBeCloseTo(20, 1);

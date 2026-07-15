@@ -15,18 +15,11 @@ import {
   DropdownMenuTrigger,
 } from '../../ui/menus/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
-import { postMessage } from '../../../vscodeApi';
+import { postRootFileCreation, postRootFolderCreation } from './rootCreation';
 
 type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
 type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
 
-function postRootFileCreation(): void {
-  postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
-}
-
-function postRootFolderCreation(): void {
-  postMessage({ type: 'CREATE_FOLDER', payload: { directory: '.' } });
-}
 
 export interface ResolvedGraphViewCreateContribution {
   context: GraphViewCreateContext;

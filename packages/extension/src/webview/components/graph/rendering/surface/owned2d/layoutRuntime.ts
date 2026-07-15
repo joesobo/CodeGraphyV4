@@ -1,8 +1,6 @@
 import type { MutableRefObject } from 'react';
-import { fitOwnedGraphCamera, type OwnedGraphCamera } from './camera';
-import { canvasSize } from './canvasGeometry';
+import type { OwnedGraphCamera } from './camera';
 import type { Surface2dProps } from './contracts';
-import { releaseOwnedDraggedNodes } from './drag';
 import type { PointerSession } from './interaction';
 import {
   applyOwnedPhysicsSettings,
@@ -12,6 +10,7 @@ import {
   type OwnedGraphLayout,
 } from './layout';
 import type { OwnedGraphPluginForces } from './pluginForces';
+import { fitOwnedInitialCamera, reconcileOwnedPointerSession } from './layoutRuntimeReconcile';
 
 export interface OwnedGraphLayoutRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
@@ -61,64 +60,6 @@ function synchronizePluginForces(
   if (changed) layout.engine.reheat();
 }
 
-function draggedNodeIndexes(layout: OwnedGraphLayout): Set<number> {
-  const indexes = new Set<number>();
-  for (let index = 0; index < layout.nodes.length; index += 1) {
-    if (layout.nodes[index].isDragging === true) indexes.add(index);
-  }
-  return indexes;
-}
-
-function finishRemovedPointerNode(
-  runtime: OwnedGraphLayoutRuntime,
-  layout: OwnedGraphLayout,
-  session: PointerSession,
-): void {
-  const indexes = draggedNodeIndexes(layout);
-  if (session.moved && session.node) {
-    runtime.propsRef.current.sharedProps.onNodeDragEnd(session.node);
-  }
-  releaseOwnedDraggedNodes(layout, indexes);
-  layout.engine.setAlphaTarget(0);
-  runtime.pointerSessionRef.current = null;
-}
-
-function reconcilePointerSession(
-  runtime: OwnedGraphLayoutRuntime,
-  layout: OwnedGraphLayout,
-): void {
-  const session = runtime.pointerSessionRef.current;
-  if (session?.nodeId) {
-    const nextIndex = layout.engine.getNodeIndex(session.nodeId);
-    if (nextIndex === undefined) {
-      finishRemovedPointerNode(runtime, layout, session);
-      return;
-    }
-    session.index = nextIndex;
-    session.node = layout.nodes[nextIndex];
-    session.draggedIndexes = draggedNodeIndexes(layout);
-    return;
-  }
-  if (session?.link) {
-    session.link = layout.links.find(link => link.id === session.link?.id) ?? null;
-  }
-}
-
-function fitInitialCamera(
-  runtime: OwnedGraphLayoutRuntime,
-  nodes: Surface2dProps['sharedProps']['graphData']['nodes'],
-): void {
-  const canvas = runtime.canvasRef.current;
-  if (!canvas || runtime.hasFittedCameraRef.current) return;
-  const size = canvasSize(canvas);
-  runtime.hasFittedCameraRef.current = fitOwnedGraphCamera(
-    runtime.cameraRef.current,
-    nodes,
-    size.width,
-    size.height,
-  );
-}
-
 function enforcePhysicsPolicy(
   runtime: OwnedGraphLayoutRuntime,
   layout: OwnedGraphLayout,
@@ -129,11 +70,11 @@ function enforcePhysicsPolicy(
 export function reconcileOwnedGraphRuntime(runtime: OwnedGraphLayoutRuntime): void {
   const layout = createOrUpdateLayout(runtime);
   synchronizePluginForces(runtime, layout);
-  reconcilePointerSession(runtime, layout);
+  reconcileOwnedPointerSession(runtime, layout);
   runtime.positionVersionRef.current += 1;
   syncOwnedLayoutNodes(layout);
   runtime.synchronizedPositionVersionRef.current = runtime.positionVersionRef.current;
-  fitInitialCamera(runtime, runtime.propsRef.current.sharedProps.graphData.nodes);
+  fitOwnedInitialCamera(runtime, runtime.propsRef.current.sharedProps.graphData.nodes);
   enforcePhysicsPolicy(runtime, layout);
   runtime.engineStopNotifiedRef.current = false;
   runtime.requestFrameRef.current();

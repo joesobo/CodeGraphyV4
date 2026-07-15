@@ -5,6 +5,7 @@
 
 import { builtInItem, separator } from '../../common/entryFactories';
 import type { GraphContextMenuEntry } from '../../contracts';
+import { buildFolderDestructiveEntries } from './folderBlock';
 
 export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEntry[] {
   const isMultiSelect = targets.length > 1;
@@ -48,12 +49,5 @@ export function buildDestructiveBlock(
 }
 
 export function buildFolderDestructiveBlock(): GraphContextMenuEntry[] {
-  return [
-    separator('node-separator-folder-destructive'),
-    builtInItem('node-rename-folder', 'Rename Folder', 'rename', { disabled: false }),
-    builtInItem('node-delete-folder', 'Delete Folder', 'delete', {
-      destructive: true,
-      disabled: false,
-    }),
-  ];
+  return buildFolderDestructiveEntries();
 }

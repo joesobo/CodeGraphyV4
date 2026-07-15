@@ -37,7 +37,7 @@ function watchGraphPhysics(outputFile: string): void {
     rebuilding = true;
     try {
       await buildGraphPhysics(outputFile);
-      console.log('Rebuilt owned graph WASM physics');
+      console.log('Rebuilt graph WASM physics');
     } catch (error) {
       console.error(error);
     } finally {
@@ -51,7 +51,7 @@ function watchGraphPhysics(outputFile: string): void {
   watch(sourceDirectory, { recursive: true }, (_event, fileName) => {
     if (fileName?.endsWith('.ts')) void rebuild();
   });
-  console.log('Watching owned graph WASM physics');
+  console.log('Watching graph WASM physics');
 }
 
 async function main(): Promise<void> {

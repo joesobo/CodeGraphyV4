@@ -1,6 +1,3 @@
-import { graphMotionDuration } from './motion';
-
-const NODE_HOVER_SCALE = 1.1;
 const NODE_HOVER_DURATION_MS = 120;
 
 interface OwnedGraphNodeHoverTransition {
@@ -14,6 +11,8 @@ export interface OwnedGraphNodeHover {
   scale: number;
   transition: OwnedGraphNodeHoverTransition | null;
 }
+
+export { setOwnedGraphNodeHover } from './nodeHoverTarget';
 
 export function createOwnedGraphNodeHover(): OwnedGraphNodeHover {
   return { nodeId: null, scale: 1, transition: null };
@@ -44,38 +43,4 @@ export function advanceOwnedGraphNodeHover(
   hover.scale = transition.targetScale;
   if (transition.targetScale === 1) hover.nodeId = null;
   hover.transition = null;
-}
-
-export function setOwnedGraphNodeHover(
-  hover: OwnedGraphNodeHover,
-  nodeId: string | null,
-  timestampMs: number,
-): void {
-  advanceOwnedGraphNodeHover(hover, timestampMs);
-  const durationMs = graphMotionDuration(NODE_HOVER_DURATION_MS);
-  if (nodeId !== null) {
-    if (nodeId !== hover.nodeId) hover.scale = 1;
-    hover.nodeId = nodeId;
-    if (durationMs === 0 || hover.scale === NODE_HOVER_SCALE) {
-      hover.scale = NODE_HOVER_SCALE;
-      hover.transition = null;
-      return;
-    }
-    hover.transition = {
-      fromScale: hover.scale,
-      startedAtMs: timestampMs,
-      targetScale: NODE_HOVER_SCALE,
-    };
-    return;
-  }
-  if (hover.nodeId === null) return;
-  if (durationMs === 0 || hover.scale === 1) {
-    resetOwnedGraphNodeHover(hover);
-    return;
-  }
-  hover.transition = {
-    fromScale: hover.scale,
-    startedAtMs: timestampMs,
-    targetScale: 1,
-  };
 }

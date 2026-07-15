@@ -1,6 +1,6 @@
 import { performance } from 'node:perf_hooks';
-import { createDiagnosticEvent } from '../../diagnostics/events.js';
-import type { IndexCodeGraphyWorkspaceOptions } from '../contracts.js';
+import { createDiagnosticEvent } from '../../diagnostics/events';
+import type { IndexCodeGraphyWorkspaceOptions } from '../contracts';
 
 function emitIndexPhaseCompleted(
   options: IndexCodeGraphyWorkspaceOptions,

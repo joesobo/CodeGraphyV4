@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { buildGraphPhysics } from '../../scripts/buildPhysics';
 
-describe('owned graph WASM physics artifact', () => {
+describe('graph WASM physics artifact', () => {
   it('is a valid standalone physics module with a raw memory ABI', () => {
     const bytes = readFileSync(resolve(
       import.meta.dirname,

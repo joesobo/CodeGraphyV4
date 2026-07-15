@@ -3,6 +3,34 @@ import { createSveltePlugin } from '../src/plugin';
 import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from './workspace';
 
 describe('Svelte component analysis', () => {
+  it('emits calls for default and namespace script imports', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const source = [
+        '<script lang="ts">',
+        "import loadDefault from './defaultFeature';",
+        "import * as tools from './tools';",
+        "import './sideEffect';",
+        'loadDefault();',
+        'tools.run();',
+        '</script>',
+      ].join('\n');
+      const sourcePath = writeWorkspaceFile(workspaceRoot, 'src/App.svelte', source);
+      const defaultPath = writeWorkspaceFile(workspaceRoot, 'src/defaultFeature.ts', 'export default function load(): void {}');
+      const toolsPath = writeWorkspaceFile(workspaceRoot, 'src/tools.ts', 'export function run(): void {}');
+      writeWorkspaceFile(workspaceRoot, 'src/sideEffect.ts', 'export {};');
+
+      const result = await createSveltePlugin().analyzeFile?.(sourcePath, source, workspaceRoot);
+
+      expect(result?.relations).toEqual(expect.arrayContaining([
+        expect.objectContaining({ kind: 'call', resolvedPath: defaultPath, metadata: { importedName: 'loadDefault', localName: 'loadDefault' } }),
+        expect.objectContaining({ kind: 'call', resolvedPath: toolsPath, metadata: { importedName: 'tools', localName: 'tools' } }),
+      ]));
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
   it('emits import relationships from instance and module scripts', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {

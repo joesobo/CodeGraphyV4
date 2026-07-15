@@ -1,5 +1,5 @@
 import { readCodeGraphyInstalledPluginCache } from './installedCache';
-import { loadCodeGraphyWorkspacePluginPackage } from './packageLoad';
+import { loadActivePluginPackage } from './packageActivation';
 import { createPluginActivityState } from './activityState/model';
 import { readPackageManifest } from './installedPluginCache/packageReader';
 export type {
@@ -15,13 +15,6 @@ import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 
 function getInstalledPluginId(record: CodeGraphyInstalledPluginRecord): string {
   return record.pluginId ?? record.package;
-}
-
-function isInstalledPluginRecordDisabled(
-  record: CodeGraphyInstalledPluginRecord,
-  disabledPlugins: ReadonlySet<string>,
-): boolean {
-  return disabledPlugins.has(getInstalledPluginId(record));
 }
 
 async function readBundledPluginPackageRecords(
@@ -54,7 +47,7 @@ export async function loadCodeGraphyWorkspacePluginPackages(
   options: LoadCodeGraphyWorkspacePluginPackagesOptions,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage[]> {
   const warn = options.warn ?? (() => undefined);
-  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  const disabledPluginIds = new Set(options.disabledPlugins ?? []);
   const installedPlugins = readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }).plugins;
   const bundledPlugins = await readBundledPluginPackageRecords(options.bundledPackageRoots);
   const bundledPackageRoots = new Set(bundledPlugins.map(plugin => plugin.packageRoot));
@@ -73,29 +66,15 @@ export async function loadCodeGraphyWorkspacePluginPackages(
   const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
 
   for (const record of activityState.packagePlugins) {
-    const pluginId = getInstalledPluginId(record);
-    if (disabledPlugins.has(pluginId)) {
-      continue;
-    }
-
-    const pluginSettings = settingsById.get(pluginId);
-    if (!pluginSettings) {
-      continue;
-    }
-    if (isInstalledPluginRecordDisabled(record, disabledPlugins)) {
-      continue;
-    }
-
-    try {
-      const loadedPlugin = await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record, options.workspaceRoot);
-      loaded.push({
-        ...loadedPlugin,
-        ...(bundledPackageRoots.has(record.packageRoot) ? { bundled: true } : {}),
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      warn(`CodeGraphy plugin '${pluginSettings.id}' could not be loaded: ${message}`);
-    }
+    const plugin = await loadActivePluginPackage({
+      bundledPackageRoots,
+      disabledPluginIds,
+      options,
+      record,
+      settingsById,
+      warn,
+    });
+    if (plugin) loaded.push(plugin);
   }
 
   return loaded;

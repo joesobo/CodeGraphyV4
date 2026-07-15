@@ -8,8 +8,9 @@ const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
 }));
 
-vi.mock('@codegraphy-dev/graph-renderer/webgpu', () => ({
-  OwnedWebGpuRenderer: class OwnedWebGpuRenderer {
+vi.mock('@codegraphy-dev/graph-renderer', async importOriginal => ({
+  ...await importOriginal<typeof import('@codegraphy-dev/graph-renderer')>(),
+  WebGpuGraphRenderer: class WebGpuGraphRenderer {
     static create(...arguments_: unknown[]) {
       return rendererHarness.create(...arguments_);
     }

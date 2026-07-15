@@ -1,5 +1,5 @@
 import type * as lb from '@ladybugdb/core';
-import { runStatementAsync, runStatementSync } from './connection.js';
+import { runStatementAsync, runStatementSync } from './connection';
 
 export function ensureSchema(connection: lb.Connection): void {
   runStatementSync(

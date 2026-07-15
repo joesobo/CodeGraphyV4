@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { createOwnedGraphPhysicsMemoryLayout } from '@graph-renderer/physics/wasm/layout';
+import { createGraphPhysicsMemoryLayout } from '@graph-renderer/physics/wasm/layout';
 
-describe('owned graph WASM physics memory layout', () => {
+describe('graph WASM physics memory layout', () => {
   it('uses the reserved first page and aligned typed-array regions', () => {
-    const layout = createOwnedGraphPhysicsMemoryLayout(8, 21, 256);
+    const layout = createGraphPhysicsMemoryLayout(8, 21, 256);
 
     expect(layout).toMatchObject({
       cellCapacity: 256,
@@ -26,13 +26,13 @@ describe('owned graph WASM physics memory layout', () => {
   });
 
   it('grows collision hash storage at the next power-of-two boundary', () => {
-    expect(createOwnedGraphPhysicsMemoryLayout(8, 0, 256).hashCapacity).toBe(16);
-    expect(createOwnedGraphPhysicsMemoryLayout(9, 0, 256).hashCapacity).toBe(32);
-    expect(createOwnedGraphPhysicsMemoryLayout(17, 0, 256).hashCapacity).toBe(64);
+    expect(createGraphPhysicsMemoryLayout(8, 0, 256).hashCapacity).toBe(16);
+    expect(createGraphPhysicsMemoryLayout(9, 0, 256).hashCapacity).toBe(32);
+    expect(createGraphPhysicsMemoryLayout(17, 0, 256).hashCapacity).toBe(64);
   });
 
   it('allocates the measured 2.5k graph storage without overlap', () => {
-    const layout = createOwnedGraphPhysicsMemoryLayout(2_500, 7_729, 20_064);
+    const layout = createGraphPhysicsMemoryLayout(2_500, 7_729, 20_064);
 
     expect(layout).toMatchObject({
       cellCapacity: 20_064,

@@ -1,4 +1,4 @@
-import type { ILifecyclePluginInfo } from '../contracts.js';
+import type { ILifecyclePluginInfo } from '../contracts';
 
 export type AnalyzeFile = {
   absolutePath: string;

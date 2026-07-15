@@ -1,4 +1,4 @@
-import { OWNED_GRAPH_PHYSICS_MEMORY_BASE } from './abi';
+import { GRAPH_GRAPH_PHYSICS_MEMORY_BASE } from './abi';
 
 export const WASM_PAGE_BYTES = 65_536;
 
@@ -7,7 +7,7 @@ export interface MemoryRegion {
   bytes: number;
 }
 
-export interface OwnedGraphPhysicsMemoryLayout {
+export interface GraphPhysicsMemoryLayout {
   totalBytes: number;
   cellCapacity: number;
   hashCapacity: number;
@@ -54,12 +54,12 @@ function nextPowerOfTwo(value: number): number {
   return result;
 }
 
-export function createOwnedGraphPhysicsMemoryLayout(
+export function createGraphPhysicsMemoryLayout(
   nodeCount: number,
   edgeCount: number,
   cellCapacity: number,
-): OwnedGraphPhysicsMemoryLayout {
-  let offset = OWNED_GRAPH_PHYSICS_MEMORY_BASE;
+): GraphPhysicsMemoryLayout {
+  let offset = GRAPH_GRAPH_PHYSICS_MEMORY_BASE;
   const reserve = (length: number, bytesPerElement: number): MemoryRegion => {
     offset = align(offset, Math.min(bytesPerElement, 8));
     const region = { offset, bytes: length * bytesPerElement };

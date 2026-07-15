@@ -7,12 +7,20 @@ export function isGraphNodeTypeLike(definition: unknown): definition is GraphNod
   }
 
   const record = definition as Record<string, unknown>;
-  return (
-    typeof record.id === 'string'
-    && typeof record.label === 'string'
-    && typeof record.defaultColor === 'string'
-    && typeof record.defaultVisible === 'boolean'
-    && (record.description === undefined || isGraphTypeDescriptionLike(record.description))
-    && (record.parentId === undefined || typeof record.parentId === 'string')
-  );
+  return hasRequiredNodeTypeFields(record)
+    && hasValidDescription(record.description)
+    && isOptionalString(record.parentId);
+}
+
+function hasRequiredNodeTypeFields(record: Record<string, unknown>): boolean {
+  return [record.id, record.label, record.defaultColor].every(value => typeof value === 'string')
+    && typeof record.defaultVisible === 'boolean';
+}
+
+function hasValidDescription(description: unknown): boolean {
+  return description === undefined || isGraphTypeDescriptionLike(description);
+}
+
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string';
 }

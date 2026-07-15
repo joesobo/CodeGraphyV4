@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const moduleBytes = Uint8Array.of(0, 97, 115, 109, 1, 0, 0, 0);
 
-describe('owned graph WASM physics module registry', () => {
+describe('graph WASM physics module registry', () => {
   beforeEach(() => {
     vi.resetModules();
   });
@@ -10,18 +10,18 @@ describe('owned graph WASM physics module registry', () => {
   it('rejects synchronous engine creation before preparation', async () => {
     const registry = await import('@graph-renderer/physics/wasm/module');
 
-    expect(registry.ownedGraphPhysicsModuleReady()).toBe(false);
-    expect(() => registry.requireOwnedGraphPhysicsModule())
-      .toThrow('Owned graph WASM physics module has not been prepared');
+    expect(registry.graphPhysicsModuleReady()).toBe(false);
+    expect(() => registry.requireGraphPhysicsModule())
+      .toThrow('Graph WASM physics module has not been prepared');
   });
 
   it('returns the installed shared compiled module', async () => {
     const registry = await import('@graph-renderer/physics/wasm/module');
     const module = new WebAssembly.Module(moduleBytes);
 
-    registry.installOwnedGraphPhysicsModule(module);
+    registry.installGraphPhysicsModule(module);
 
-    expect(registry.ownedGraphPhysicsModuleReady()).toBe(true);
-    expect(registry.requireOwnedGraphPhysicsModule()).toBe(module);
+    expect(registry.graphPhysicsModuleReady()).toBe(true);
+    expect(registry.requireGraphPhysicsModule()).toBe(module);
   });
 });

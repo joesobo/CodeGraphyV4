@@ -1,6 +1,6 @@
-import { globToRegex } from './globRegex.js';
+import { globToRegex } from './globRegex';
 
-export { globToRegex } from './globRegex.js';
+export { globToRegex } from './globRegex';
 
 export function createGlobMatcher(pattern: string): (filePath: string) => boolean {
   const regex = globToRegex(pattern);

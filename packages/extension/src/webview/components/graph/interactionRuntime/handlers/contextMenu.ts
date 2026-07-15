@@ -27,22 +27,9 @@ export interface ContextMenuPointerState {
   ctrlKey: boolean;
 }
 
-export function getContextMenuPointerState(
-  event?: MouseEvent,
-): ContextMenuPointerState {
-  if (!event) {
-    return {
-      clientX: 0,
-      clientY: 0,
-      ctrlKey: false,
-    };
-  }
-
-  return {
-    clientX: event.clientX,
-    clientY: event.clientY,
-    ctrlKey: event.ctrlKey,
-  };
+export function getContextMenuPointerState(event?: MouseEvent): ContextMenuPointerState {
+  return event ? { clientX: event.clientX, clientY: event.clientY, ctrlKey: event.ctrlKey }
+    : { clientX: 0, clientY: 0, ctrlKey: false };
 }
 
 export function getBackgroundGraphPosition(
