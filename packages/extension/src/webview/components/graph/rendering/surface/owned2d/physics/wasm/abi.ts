@@ -1,6 +1,6 @@
 import { requireOwnedGraphPhysicsModule } from './module';
 
-export const OWNED_GRAPH_PHYSICS_ABI_VERSION = 2;
+export const OWNED_GRAPH_PHYSICS_ABI_VERSION = 3;
 export const OWNED_GRAPH_PHYSICS_MEMORY_BASE = 65_536;
 export const MAXIMUM_OWNED_GRAPH_PHYSICS_PAGES = 32_768;
 
@@ -61,7 +61,6 @@ export interface OwnedGraphPhysicsExports {
     initializationSpacing: number,
     linkDistance: number,
     linkStrength: number,
-    maximumCollisionNeighbors: number,
     velocityDecay: number,
     collisionCellSize: number,
   ): void;

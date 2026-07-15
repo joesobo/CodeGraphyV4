@@ -31,7 +31,7 @@ describe('owned graph WASM physics artifact', () => {
 
     const memory = new WebAssembly.Memory({ initial: 1, maximum: 32_768 });
     const instance = new WebAssembly.Instance(module, { env: { memory } });
-    expect((instance.exports.abiVersion as () => number)()).toBe(2);
+    expect((instance.exports.abiVersion as () => number)()).toBe(3);
     expect((instance.exports.graphMemoryBase as () => number)()).toBe(65_536);
     expect(instance.exports.memory).toBe(memory);
   });

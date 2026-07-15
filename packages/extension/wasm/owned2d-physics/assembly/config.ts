@@ -9,7 +9,6 @@ export let collisionStrength: f64 = 1;
 export let initializationSpacing: f64 = 10;
 export let linkDistance: f64 = 80;
 export let linkStrength: f64 = 1;
-export let maximumCollisionNeighbors: f64 = 128;
 export let velocityDecay: f64 = 0.4;
 export let collisionCellSize: f64 = 2;
 
@@ -25,7 +24,6 @@ export function configurePhysics(
   nextInitializationSpacing: f64,
   nextLinkDistance: f64,
   nextLinkStrength: f64,
-  nextMaximumCollisionNeighbors: f64,
   nextVelocityDecay: f64,
   nextCollisionCellSize: f64,
 ): void {
@@ -40,7 +38,6 @@ export function configurePhysics(
   initializationSpacing = nextInitializationSpacing;
   linkDistance = nextLinkDistance;
   linkStrength = nextLinkStrength;
-  maximumCollisionNeighbors = nextMaximumCollisionNeighbors;
   velocityDecay = nextVelocityDecay;
   collisionCellSize = nextCollisionCellSize;
 }

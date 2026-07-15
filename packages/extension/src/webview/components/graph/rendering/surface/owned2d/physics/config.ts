@@ -14,7 +14,6 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   initializationSpacing: 10,
   linkDistance: 80,
   linkStrength: 1,
-  maximumCollisionNeighbors: 128,
   settleSpeed: 1.5,
   settleSteps: 8,
   velocityDecay: 0.4,

@@ -27,6 +27,33 @@ describe('WASM collision spatial grid', () => {
     expect(engine.y[3]).toBe(100);
   });
 
+  it('checks every nearby node when a dense cell contains more than 128 candidates', () => {
+    const decoyCount = 129;
+    const nodeIds = ['large', 'small', ...Array.from(
+      { length: decoyCount },
+      (_, index) => `decoy-${index}`,
+    )];
+    const engine = createGraphLayoutEngine({
+      nodeIds,
+      initialX: Float32Array.from([0, 40, ...new Array(decoyCount).fill(70)]),
+      initialY: new Float32Array(nodeIds.length),
+      radii: Float32Array.from([30, 8, ...new Array(decoyCount).fill(0)]),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 1,
+      collisionStrength: 1,
+      velocityDecay: 0,
+    });
+
+    engine.setCollisionScale(1.4);
+    engine.tick();
+
+    expect(engine.x[1] - engine.x[0]).toBeCloseTo(53.2, 5);
+  });
+
   it('preserves distinct cells that share the same integer hash', () => {
     const firstCell = { x: -979, y: 430 };
     const secondCell = { x: -973, y: -332 };
@@ -65,35 +92,6 @@ describe('WASM collision spatial grid', () => {
 
     expect(engine.x[1] - engine.x[0]).toBeCloseTo(4, 5);
     expect(engine.x[3] - engine.x[2]).toBeCloseTo(4, 5);
-  });
-
-  it('preserves fractional maximum-neighbor semantics', () => {
-    const collide = (maximumCollisionNeighbors: number): Float32Array => {
-      const engine = createGraphLayoutEngine({
-        nodeIds: ['first', 'overlapping', 'non-overlapping'],
-        initialX: Float32Array.of(0, 1, 3.9),
-        initialY: Float32Array.of(0, 0, 0),
-        radii: Float32Array.of(2, 2, 0.1),
-        edgeSources: new Uint32Array(),
-        edgeTargets: new Uint32Array(),
-      }, {
-        centralGravity: 0,
-        chargeStrength: 0,
-        collisionIterations: 1,
-        collisionStrength: 1,
-        maximumCollisionNeighbors,
-        velocityDecay: 0,
-      });
-      engine.tick();
-      return engine.x;
-    };
-
-    const oneNeighbor = collide(1);
-    const fractionalNeighbors = collide(1.5);
-    const twoNeighbors = collide(2);
-
-    expect(fractionalNeighbors).toEqual(twoNeighbors);
-    expect(fractionalNeighbors).not.toEqual(oneNeighbor);
   });
 
   it('preserves fractional collision-iteration semantics', () => {
