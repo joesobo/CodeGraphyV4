@@ -1,5 +1,6 @@
 import type { FGLink } from '../../../model/build';
 import { ownedLinkGeometry, pointOnOwnedLink } from './linkGeometry';
+import { ownedGraphSpatialCellKey } from './spatialHash';
 
 export interface OwnedGraphLinkPick {
   distance: number;
@@ -10,10 +11,6 @@ export interface OwnedGraphLinkPick {
 const CURVE_SEGMENTS = 12;
 const LINK_PICK_CELL_SIZE = 128;
 const MINIMUM_SCREEN_PICK_DISTANCE = 6;
-
-function cellKey(x: number, y: number): number {
-  return Math.imul(x, 73_856_093) ^ Math.imul(y, 19_349_663);
-}
 
 function pointToSegmentDistance(
   point: { x: number; y: number },
@@ -59,7 +56,7 @@ export class OwnedGraphLinkPicker {
   }
 
   private insertCell(index: number, x: number, y: number): void {
-    const key = cellKey(x, y);
+    const key = ownedGraphSpatialCellKey(x, y);
     const bucket = this.buckets.get(key) ?? [];
     if (!this.buckets.has(key)) this.buckets.set(key, bucket);
     if (bucket[bucket.length - 1] === index) return;
@@ -136,14 +133,21 @@ export class OwnedGraphLinkPicker {
     const candidates = new Set<number>();
     for (let y = minimumY; y <= maximumY; y += 1) {
       for (let x = minimumX; x <= maximumX; x += 1) {
-        for (const index of this.buckets.get(cellKey(x, y)) ?? []) candidates.add(index);
+        for (const index of this.buckets.get(ownedGraphSpatialCellKey(x, y)) ?? []) {
+          candidates.add(index);
+        }
       }
     }
     let nearest: OwnedGraphLinkPick | undefined;
-    for (const index of [...candidates].sort((left, right) => left - right)) {
+    for (const index of candidates) {
       const distance = distanceToOwnedLink(this.links[index], point);
-      if (distance > maximumDistance || (nearest && distance >= nearest.distance)) continue;
-      nearest = { distance, index, link: this.links[index] };
+      const closer = !nearest || distance < nearest.distance;
+      const earlierTie = nearest !== undefined
+        && distance === nearest.distance
+        && index < nearest.index;
+      if (distance <= maximumDistance && (closer || earlierTie)) {
+        nearest = { distance, index, link: this.links[index] };
+      }
     }
     return nearest;
   }

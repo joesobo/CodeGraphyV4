@@ -3,6 +3,7 @@ import {
   getRectangularNodeArea2D,
   getRectangularNodeAreaRadius,
 } from '../../../model/node/rectangularArea';
+import { ownedGraphSpatialCellKey } from './spatialHash';
 import { ownedGraphNodeWorldScale } from './visualSize';
 
 const PICK_CELL_SIZE = 64;
@@ -18,10 +19,6 @@ function pointerRadius(node: FGNode): number {
     ? getRectangularNodeAreaRadius(rectangularArea)
     : 0;
   return Math.max(2, rectangularRadius, node.size ?? 0);
-}
-
-function cellKey(x: number, y: number): number {
-  return Math.imul(x, 73_856_093) ^ Math.imul(y, 19_349_663);
 }
 
 function hitsNode(
@@ -60,7 +57,7 @@ export class OwnedGraphNodePicker {
       this.maximumNodeRadius = Math.max(this.maximumNodeRadius, pointerRadius(node));
       const x = Math.floor((node.x as number) / PICK_CELL_SIZE);
       const y = Math.floor((node.y as number) / PICK_CELL_SIZE);
-      const key = cellKey(x, y);
+      const key = ownedGraphSpatialCellKey(x, y);
       const bucket = this.buckets.get(key) ?? [];
       if (!this.buckets.has(key)) this.buckets.set(key, bucket);
       bucket.push(index);
@@ -88,7 +85,7 @@ export class OwnedGraphNodePicker {
 
     for (let y = centerY - cellRadius; y <= centerY + cellRadius; y += 1) {
       for (let x = centerX - cellRadius; x <= centerX + cellRadius; x += 1) {
-        for (const index of this.buckets.get(cellKey(x, y)) ?? []) {
+        for (const index of this.buckets.get(ownedGraphSpatialCellKey(x, y)) ?? []) {
           if (visited.has(index)) continue;
           visited.add(index);
           const node = this.nodes[index];

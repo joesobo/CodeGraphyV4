@@ -41,6 +41,26 @@ describe('owned graph link picking', () => {
     expect(picker.pick({ x: 50, y: -24 }, 1)?.link).toBe(upward);
   });
 
+  it('breaks equidistant ties by graph order without sorting candidates', () => {
+    const earlier = link();
+    earlier.id = 'earlier';
+    (earlier.source as FGNode).x = 130;
+    (earlier.target as FGNode).x = 130;
+    (earlier.target as FGNode).y = 100;
+    const later = link();
+    later.id = 'later';
+    (later.source as FGNode).x = 126;
+    (later.target as FGNode).x = 126;
+    (later.target as FGNode).y = 100;
+    const picker = new OwnedGraphLinkPicker();
+    picker.rebuild([earlier, later]);
+
+    expect(picker.pick({ x: 128, y: 50 }, 1)).toMatchObject({
+      index: 0,
+      link: earlier,
+    });
+  });
+
   it('indexes long diagonals by path length rather than bounding-box area', () => {
     const diagonal = link();
     (diagonal.target as FGNode).x = 10_000;
