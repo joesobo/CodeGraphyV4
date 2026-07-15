@@ -12,18 +12,12 @@ import { assertOwnedGraphCollisionScale } from './wasm/configuration';
 import { OwnedGraphWasmPhysicsKernel } from './wasm/kernel';
 
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
-  nodeIds: readonly string[] = [];
-  private state: GraphLayoutState = createGraphLayoutState({
-    nodeIds: [],
-    radii: new Float32Array(),
-    edgeSources: new Uint32Array(),
-    edgeTargets: new Uint32Array(),
-  }, { ...DEFAULT_GRAPH_LAYOUT_CONFIG });
-
-  private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
+  nodeIds!: readonly string[];
+  private state!: GraphLayoutState;
+  private config: GraphLayoutConfig;
   private collisionScale = 1;
   private maximumCollisionRadius = 1;
-  private nodeIndexes = new Map<string, number>();
+  private nodeIndexes!: Map<string, number>;
   private kernel: OwnedGraphWasmPhysicsKernel | undefined;
   private simulationAlpha = 1;
   private simulationAlphaTarget = 0;
@@ -32,7 +26,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   settled = false;
 
   constructor(input: GraphLayoutInput, config: Partial<GraphLayoutConfig> = {}) {
-    this.setConfig(config);
+    this.config = mergeGraphLayoutConfig({ ...DEFAULT_GRAPH_LAYOUT_CONFIG }, config);
     this.setGraph(input);
   }
 

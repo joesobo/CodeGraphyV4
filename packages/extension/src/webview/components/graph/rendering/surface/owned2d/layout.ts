@@ -41,13 +41,18 @@ export function applyOwnedPhysicsSettings(
   engine.setConfig(toOwnedPhysicsConfig(settings));
 }
 
+type OwnedGraphLayoutInput = GraphLayoutInput & {
+  chargeStrengthMultipliers: Float32Array;
+  flags: Uint8Array;
+};
+
 interface OwnedGraphLayoutData {
-  input: GraphLayoutInput;
+  input: OwnedGraphLayoutInput;
   resolvedLinks: FGLink[];
 }
 
 interface OwnedGraphNodeLayoutData {
-  input: Omit<GraphLayoutInput, 'edgeSources' | 'edgeTargets'>;
+  input: Omit<OwnedGraphLayoutInput, 'edgeSources' | 'edgeTargets'>;
   nodeIndexes: ReadonlyMap<string, number>;
 }
 
@@ -146,9 +151,7 @@ export function createOwnedGraphLayout(
   settings: IPhysicsSettings,
 ): OwnedGraphLayout {
   const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
-  const engine = createGraphLayoutEngine(input);
-  applyOwnedPhysicsSettings(engine, settings);
-  engine.reheat();
+  const engine = createGraphLayoutEngine(input, toOwnedPhysicsConfig(settings));
 
   return { engine, links: resolvedLinks, nodes };
 }
@@ -187,15 +190,11 @@ function sameTopology(engine: GraphLayoutEngine, input: GraphLayoutInput): boole
 
 function samePhysicsShape(
   engine: GraphLayoutEngine,
-  input: GraphLayoutInput,
-  nodeCount: number,
+  input: OwnedGraphLayoutInput,
 ): boolean {
-  return sameBuffer(
-    engine.chargeStrengthMultipliers,
-    input.chargeStrengthMultipliers ?? new Float32Array(nodeCount).fill(1),
-  )
+  return sameBuffer(engine.chargeStrengthMultipliers, input.chargeStrengthMultipliers)
     && sameBuffer(engine.radii, input.radii)
-    && sameBuffer(engine.flags, input.flags ?? new Uint8Array(nodeCount));
+    && sameBuffer(engine.flags, input.flags);
 }
 
 export function updateOwnedGraphLayout(
@@ -207,13 +206,12 @@ export function updateOwnedGraphLayout(
   preserveOwnedGraphNodeState(layout, nodes);
   const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
   const graphShapeUnchanged = sameTopology(layout.engine, input)
-    && samePhysicsShape(layout.engine, input, nodes.length);
+    && samePhysicsShape(layout.engine, input);
   layout.nodes = nodes;
   layout.links = resolvedLinks;
   if (graphShapeUnchanged) return;
   layout.engine.setGraph(input);
   applyOwnedPhysicsSettings(layout.engine, settings);
-  layout.engine.reheat();
 }
 
 export function syncOwnedLayoutNodesAtVersion(
