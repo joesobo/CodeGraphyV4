@@ -27,7 +27,7 @@
     "test:playwright": "pnpm run generate:acceptance && pnpm run build:vscode && playwright test --config playwright.vscode.config.ts",
     "test:vscode": "pnpm run test:playwright",
     "lint": "pnpm run generate:acceptance && eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",
-    "typecheck": "pnpm run generate:acceptance && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
+    "typecheck": "pnpm run generate:acceptance && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && pnpm --filter @codegraphy-dev/core run build && tsc --noEmit -p tests/playwright/tsconfig.json"
   },
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
