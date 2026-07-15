@@ -33,6 +33,7 @@ import {
   reconcileOwnedGraphRuntime,
   type OwnedGraphLayoutRuntime,
 } from './layoutRuntime';
+import { useLazyRef } from './lazyRef';
 import { OwnedGraphLinkPicker } from './linkPicking';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphNodeHover } from './nodeHover';
@@ -46,6 +47,7 @@ import {
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
+const NOOP = (): void => undefined;
 
 function clearActivePerformanceData(output: HTMLOutputElement): void {
   delete output.dataset.displayedFps;
@@ -117,42 +119,35 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const rendererOperationalRef = useRef(false);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
-  const cameraRef = useRef<OwnedGraphCamera>({ ...INITIAL_CAMERA });
+  const cameraRef = useLazyRef<OwnedGraphCamera>(() => ({ ...INITIAL_CAMERA }));
   const animationFrameRef = useRef<number | null>(null);
   const frameRequestedRef = useRef(false);
   const fpsOutputRef = useRef<HTMLOutputElement>(null);
   const fpsRef = useRef<number | null>(null);
-  const performanceAttributionRef = useRef<OwnedGraphStageAttributionProfiler>(null!);
-  if (!performanceAttributionRef.current) {
-    performanceAttributionRef.current = createOwnedGraphStageAttributionProfiler();
-  }
+  const performanceAttributionRef = useLazyRef<OwnedGraphStageAttributionProfiler>(
+    createOwnedGraphStageAttributionProfiler,
+  );
   const reactReconciliationStartedAt = performanceAttributionRef.current.startTiming();
-  const performanceMonitorRef = useRef<OwnedGraphPerformanceMonitor>(null!);
-  if (!performanceMonitorRef.current) {
-    performanceMonitorRef.current = createOwnedGraphPerformanceMonitor();
-  }
-  const performanceRecorderRef = useRef<ReturnType<
-    typeof createOwnedGraphInteractionRecorder
-  >>(null!);
-  if (!performanceRecorderRef.current) {
-    performanceRecorderRef.current = createOwnedGraphInteractionRecorder();
-  }
-  const requestFrameRef = useRef<() => void>(() => undefined);
+  const performanceMonitorRef = useLazyRef<OwnedGraphPerformanceMonitor>(
+    createOwnedGraphPerformanceMonitor,
+  );
+  const performanceRecorderRef = useLazyRef(createOwnedGraphInteractionRecorder);
+  const requestFrameRef = useRef<() => void>(NOOP);
   const contextGestureSessionRef = useRef<ContextGestureSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const hoveredLinkRef = useRef<FGLink | null>(null);
-  const nodeHoverRef = useRef(createOwnedGraphNodeHover());
+  const nodeHoverRef = useLazyRef(createOwnedGraphNodeHover);
   const engineStopNotifiedRef = useRef(false);
-  const simulationClockRef = useRef(createGraphLayoutFixedTimestepClock());
+  const simulationClockRef = useLazyRef(createGraphLayoutFixedTimestepClock);
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
   const synchronizedPositionVersionRef = useRef(-1);
   const linkPickerPositionVersionRef = useRef(-1);
-  const linkPickerRef = useRef(new OwnedGraphLinkPicker());
+  const linkPickerRef = useLazyRef(() => new OwnedGraphLinkPicker());
   const pickerPositionVersionRef = useRef(-1);
-  const pickerRef = useRef(new OwnedGraphNodePicker());
-  const pluginForcesRef = useRef(createOwnedGraphPluginForces());
+  const pickerRef = useLazyRef(() => new OwnedGraphNodePicker());
+  const pluginForcesRef = useLazyRef(createOwnedGraphPluginForces);
   const [rendererStatus, setRendererStatus] = useState<OwnedGraphRendererStatus>('initializing');
   const [rendererError, setRendererError] = useState<string | null>(null);
   const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
@@ -162,7 +157,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     setLinkTooltip(null);
     return true;
   }, []);
-  const layoutRuntime = useRef<OwnedGraphLayoutRuntime>({
+  const layoutRuntime = useLazyRef<OwnedGraphLayoutRuntime>(() => ({
     cameraRef,
     canvasRef,
     engineStopNotifiedRef,
@@ -175,7 +170,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     rendererOperationalRef,
     requestFrameRef,
     synchronizedPositionVersionRef,
-  }).current;
+  })).current;
   propsRef.current = props;
 
   useEffect(() => {
@@ -215,7 +210,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     };
     const lifecycle = startOwnedGraphRendererLifecycle(rendererRuntime, gpuCanvas);
     return () => lifecycle.dispose();
-  }, []);
+  }, [performanceAttributionRef, performanceMonitorRef, simulationClockRef]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -261,7 +256,17 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     };
     const frameLoop = startOwnedGraphFrameLoop(frameLoopRuntime, canvas, props.fg2dRef);
     return () => frameLoop.dispose();
-  }, [clearLinkHover, props.fg2dRef]);
+  }, [
+    cameraRef,
+    clearLinkHover,
+    nodeHoverRef,
+    performanceAttributionRef,
+    performanceMonitorRef,
+    performanceRecorderRef,
+    pluginForcesRef,
+    props.fg2dRef,
+    simulationClockRef,
+  ]);
 
   useEffect(() => {
     const startedAt = performanceAttributionRef.current.startTiming();
@@ -276,6 +281,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     props.sharedProps.graphData,
     props.graphViewContributions,
     layoutRuntime,
+    performanceAttributionRef,
   ]);
 
   useEffect(() => () => {
@@ -301,13 +307,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       );
     }
     requestFrameRef.current();
-  }, [props.showFps]);
+  }, [performanceMonitorRef, props.showFps]);
 
   useEffect(() => {
     requestFrameRef.current();
   });
 
-  const interactionHandlers = createOwnedGraphInteractionHandlers({
+  const interactionHandlers = useLazyRef(() => createOwnedGraphInteractionHandlers({
     cameraRef,
     clearLinkHover,
     contextGestureSessionRef,
@@ -328,7 +334,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     requestFrameRef,
     setLinkTooltip,
     synchronizedPositionVersionRef,
-  });
+  })).current;
 
   const performanceSample = performanceMonitorRef.current.sample();
 
