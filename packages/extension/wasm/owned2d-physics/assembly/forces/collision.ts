@@ -8,6 +8,7 @@ import {
   isHidden,
   isPinned,
   nodeCount,
+  radius,
   setVx,
   setVy,
   setX,
@@ -24,7 +25,6 @@ import {
   nodeCellY,
   rebuildSpatialGrid,
 } from '../spatialGrid';
-import { radius } from '../memory';
 
 export function applyCollisionForces(iterations: f64): i32 {
   let finalCorrectionCount = 0;

@@ -1,9 +1,9 @@
 import type { GraphLayoutTickResult } from './contracts';
 
-export const FIXED_SIMULATION_HZ = 144;
+const FIXED_SIMULATION_HZ = 144;
 export const FIXED_SIMULATION_STEP_MS = 1_000 / FIXED_SIMULATION_HZ;
 export const MAX_SIMULATION_SUBSTEPS = 4;
-export const DEFAULT_SIMULATION_CPU_BUDGET_MS = 4;
+const DEFAULT_SIMULATION_CPU_BUDGET_MS = 4;
 
 const STEP_EPSILON_MS = 1e-6;
 
@@ -14,7 +14,7 @@ export interface GraphLayoutFixedTimestepClock {
   lastFrameTimestampMs: number | null;
 }
 
-export interface GraphLayoutFixedTimestepAdvance {
+interface GraphLayoutFixedTimestepAdvance {
   cpuBudgetMs?: number;
   currentSettled: boolean;
   minimumSteps?: number;
