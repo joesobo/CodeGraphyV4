@@ -21,11 +21,12 @@ export function submitRenderPass(
   frame: GraphRendererFrame,
   hoveredIndex: number,
 ): void {
+  const [red, green, blue, alpha] = cachedWebGpuColor(frame.backgroundColor);
   const encoder = resources.device.createCommandEncoder({ label: 'Graph frame' });
   const pass = encoder.beginRenderPass({
     label: 'Graph render pass',
     colorAttachments: [{
-      clearValue: cachedWebGpuColor(frame.backgroundColor),
+      clearValue: [red * alpha, green * alpha, blue * alpha, alpha],
       loadOp: 'clear',
       storeOp: 'store',
       view: resources.context.getCurrentTexture().createView(),
