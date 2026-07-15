@@ -117,7 +117,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 			rightMouseDownRef,
 		},
 		dataRef: { current: dataRefCurrent },
-		directionColorRef: { current: '#22c55e' },
 		directionModeRef: { current: 'arrows' },
 		graphCursorRef: { current: 'default' },
 		highlightVersion: 0,
@@ -321,8 +320,8 @@ describe('graph/viewport/shell', () => {
 		expect(harness.useGraphEventEffects).toHaveBeenCalledWith(expect.objectContaining({
 			containerRef: graphState.renderer.containerRef,
 			dataRef: graphState.dataRef,
-			directionColorRef: graphState.directionColorRef,
 			directionModeRef: graphState.directionModeRef,
+			graphAppearanceRef: graphState.graphAppearanceRef,
 			graphDataRef: graphState.renderer.graphDataRef,
 			interactionHandlers: interactions.interactionHandlers,
 			fileInfoCacheRef: graphState.renderCaches.fileInfoCacheRef,

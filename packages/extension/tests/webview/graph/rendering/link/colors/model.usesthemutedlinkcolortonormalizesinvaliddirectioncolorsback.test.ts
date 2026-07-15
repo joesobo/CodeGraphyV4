@@ -9,14 +9,12 @@ import {
 } from '../../../../../../src/webview/components/graph/rendering/link/colors/model';
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   highlightedNodeId: string | null;
   linkHighlight: string;
   linkMuted: string;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
     graphAppearanceRef: {
@@ -65,7 +63,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('keeps valid direction colors unchanged', () => {
       const color = getGraphDirectionalColor(
-        createDependencies({ directionColor: '#f97316' }),
+        createDependencies({ linkHighlight: '#f97316' }),
       );
 
       expect(color).toBe('#f97316');
@@ -75,7 +73,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('keeps resolved theme rgb direction colors', () => {
       const color = getGraphDirectionalColor(
-        createDependencies({ directionColor: 'rgb(172, 157, 87)' }),
+        createDependencies({ linkHighlight: 'rgb(172, 157, 87)' }),
       );
 
       expect(color).toBe('rgb(172, 157, 87)');
@@ -85,7 +83,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('normalizes invalid direction colors back to the default direction color', () => {
       const color = getGraphDirectionalColor(
-        createDependencies({ directionColor: 'not-a-hex-color' }),
+        createDependencies({ linkHighlight: 'not-a-hex-color' }),
       );
 
       expect(color).toBe(DEFAULT_DIRECTION_COLOR);

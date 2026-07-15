@@ -85,7 +85,6 @@ function createGraphState(graphData: IGraphData = baseData) {
 			rightMouseDownRef,
 		},
 		dataRef: { current: graphData },
-		directionColorRef: { current: '#22c55e' },
 		directionModeRef: { current: 'arrows' },
 		edgeDecorationsRef: { current: {} },
 		graphCursorRef: { current: 'default' },
@@ -226,7 +225,6 @@ describe('Graph wiring', () => {
 
 		expect(harness.useGraphRuntime).toHaveBeenCalledWith(expect.objectContaining({
 			bidirectionalMode: 'line',
-			directionColor: '#38bdf8',
 			favorites,
 			nodeSizeMode: 'file-size',
 			showLabels: false,

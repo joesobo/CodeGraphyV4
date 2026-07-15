@@ -19,15 +19,19 @@ const TEST_GRAPH_APPEARANCE: GraphAppearance = {
 };
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   graphAppearance: GraphAppearance;
   highlightedNodeId: string | null;
+  linkHighlight: string;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
-    graphAppearanceRef: { current: overrides.graphAppearance ?? TEST_GRAPH_APPEARANCE },
+    graphAppearanceRef: {
+      current: overrides.graphAppearance ?? {
+        ...TEST_GRAPH_APPEARANCE,
+        linkHighlight: overrides.linkHighlight ?? TEST_GRAPH_APPEARANCE.linkHighlight,
+      },
+    },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
   };
 }
@@ -90,7 +94,7 @@ describe('graph/rendering/link/links', () => {
 
   it('normalizes invalid direction colors back to the default direction color', () => {
     const color = getGraphDirectionalColor(
-      createDependencies({ directionColor: 'not-a-hex-color' }),
+      createDependencies({ linkHighlight: 'not-a-hex-color' }),
     );
 
     expect(color).toBe(DEFAULT_DIRECTION_COLOR);

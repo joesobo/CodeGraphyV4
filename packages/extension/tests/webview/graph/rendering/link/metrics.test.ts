@@ -8,12 +8,10 @@ import {
 } from '../../../../../src/webview/components/graph/rendering/link/metrics';
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   highlightedNodeId: string | null;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
   };

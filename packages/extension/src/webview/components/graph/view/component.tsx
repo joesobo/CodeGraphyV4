@@ -71,7 +71,6 @@ export default function Graph({
     appearance,
     bidirectionalMode: viewState.bidirectionalMode,
     data,
-    directionColor: appearance.linkHighlight,
     directionMode: viewState.directionMode,
     edgeDecorations,
     favorites: viewState.favorites,

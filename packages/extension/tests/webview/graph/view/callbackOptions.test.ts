@@ -5,7 +5,6 @@ function createGraphState() {
   const invalidateImages = vi.fn();
   const selectedNodeIdsRef = { current: new Set<string>() };
   return {
-    directionColorRef: { current: '#f00' },
     edgeDecorationsRef: { current: {} },
     graphAppearanceRef: { current: {} },
     highlightedNeighborsRef: { current: new Set<string>() },
@@ -31,7 +30,6 @@ describe('graph/callbackOptions', () => {
     ).toEqual({
       pluginHost,
       refs: {
-        directionColorRef: graphState.directionColorRef,
         edgeDecorationsRef: graphState.edgeDecorationsRef,
         graphAppearanceRef: graphState.graphAppearanceRef,
         highlightedNeighborsRef: graphState.highlightedNeighborsRef,

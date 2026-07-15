@@ -34,7 +34,6 @@ vi.mock('../../../../src/webview/components/graph/rendering/nodes/canvas2d', () 
 
 function createRefs(): UseGraphCallbacksOptions['refs'] {
   return {
-    directionColorRef: { current: 'cycle' },
     edgeDecorationsRef: { current: new Map() },
     graphAppearanceRef: { current: {} },
     highlightedNeighborsRef: { current: new Set<string>(['neighbor']) },
@@ -59,7 +58,6 @@ function renderUseGraphCallbacks() {
 
 function expectedLinkContext(refs: UseGraphCallbacksOptions['refs']) {
   return {
-    directionColorRef: refs.directionColorRef,
     edgeDecorationsRef: refs.edgeDecorationsRef,
     graphAppearanceRef: refs.graphAppearanceRef,
     highlightedNodeRef: refs.highlightedNodeRef,

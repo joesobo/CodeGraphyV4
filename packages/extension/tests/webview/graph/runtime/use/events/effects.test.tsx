@@ -175,8 +175,8 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
     const containerRef = { current: document.createElement('div') };
     const dataRef = { current: createData('src/initial.ts') };
-    const directionColorRef = { current: '#60a5fa' };
     const directionModeRef = { current: 'incoming' as never };
+    const graphAppearanceRef = { current: { linkHighlight: '#60a5fa' } } as never;
     const fileInfoCacheRef = { current: new Map<string, IFileInfo>() };
     const graphDataRef = {
       current: {
@@ -192,8 +192,8 @@ describe('graph/runtime/useGraphEventEffects', () => {
     renderHook(() => useGraphEventEffects({
       containerRef,
       dataRef,
-      directionColorRef,
       directionModeRef,
+      graphAppearanceRef,
       fileInfoCacheRef,
       graphDataRef,
       interactionHandlers,
@@ -290,8 +290,8 @@ describe('graph/runtime/useGraphEventEffects', () => {
       ({ interactionHandlers, selectedNodes, tooltipPath }: GraphEventHookProps) => useGraphEventEffects({
         containerRef: { current: document.createElement('div') },
         dataRef: { current: createData('src/one.ts') },
-        directionColorRef: { current: '#22c55e' },
         directionModeRef: { current: 'incoming' as never },
+        graphAppearanceRef: { current: { linkHighlight: '#22c55e' } } as never,
         fileInfoCacheRef: { current: new Map<string, IFileInfo>() },
         graphDataRef,
         interactionHandlers,
@@ -383,8 +383,8 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const secondTooltip = createTooltipSetter();
     const containerRef = { current: document.createElement('div') };
     const dataRef = { current: createData('src/one.ts') };
-    const directionColorRef = { current: '#22c55e' };
     const directionModeRef = { current: 'incoming' as never };
+    const graphAppearanceRef = { current: { linkHighlight: '#22c55e' } } as never;
     const fileInfoCacheRef = { current: new Map<string, IFileInfo>() };
     const graphDataRef = {
       current: {
@@ -401,8 +401,8 @@ describe('graph/runtime/useGraphEventEffects', () => {
       ({ setTooltipData }: { setTooltipData: Dispatch<SetStateAction<GraphTooltipState>> }) => useGraphEventEffects({
         containerRef,
         dataRef,
-        directionColorRef,
         directionModeRef,
+        graphAppearanceRef,
         fileInfoCacheRef,
         graphDataRef,
         interactionHandlers,

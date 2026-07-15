@@ -12,7 +12,6 @@ export function buildGraphCallbackOptions({
   return {
     pluginHost,
     refs: {
-      directionColorRef: graphState.directionColorRef,
       edgeDecorationsRef: graphState.edgeDecorationsRef,
       graphAppearanceRef: graphState.graphAppearanceRef,
       highlightedNeighborsRef: graphState.highlightedNeighborsRef,

@@ -26,7 +26,7 @@ export function getGraphLinkColor(
 }
 
 export function getGraphDirectionalColor(
-  dependencies: Pick<LinkRenderingDependencies, 'directionColorRef'>,
+  dependencies: Pick<LinkRenderingDependencies, 'graphAppearanceRef'>,
 ): string {
-  return resolveDirectionColor(dependencies.directionColorRef.current);
+  return resolveDirectionColor(dependencies.graphAppearanceRef.current.linkHighlight);
 }
