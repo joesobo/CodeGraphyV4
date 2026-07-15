@@ -2,11 +2,20 @@ import { describe, expect, it } from 'vitest';
 
 import {
   estimateRefreshRate,
+  renderedFrameIntervals,
   renderedFrameIntervalsWithinWindow,
   summarizeRenderedFrames,
 } from '../../src/metrics/frames';
 
 describe('summarizeRenderedFrames', () => {
+  it('derives adjacent presentation intervals', () => {
+    const frames = [100, 116, 133]
+      .map(presentationTimestampMs => ({ presentationTimestampMs }));
+
+    expect(renderedFrameIntervals(frames)).toEqual([16, 17]);
+    expect(renderedFrameIntervals(frames.slice(0, 1))).toEqual([]);
+  });
+
   it('derives intervals only from frames inside inclusive drag boundaries', () => {
     const frames = [90, 100, 116, 132, 140]
       .map(presentationTimestampMs => ({ presentationTimestampMs }));
