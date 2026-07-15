@@ -73,7 +73,8 @@ test('captures trustworthy frame and interaction metrics during a fixed syntheti
 
     expect(result.durationMs).toBeGreaterThan(900);
     expect(result.frameTimesMs.length).toBeGreaterThan(10);
-    expect(result.frameTimesMs.every(Number.isFinite)).toBe(true);
+    expect(result.frameTimesMs.every(interval => Number.isFinite(interval) && interval > 0))
+      .toBe(true);
     expect(result.pointerMoves).toBe(60);
     expect(result.draggedNodeId).toBe(selection.targetNodeId);
     expect(result.nodeTravelPx).toBeGreaterThanOrEqual(170);

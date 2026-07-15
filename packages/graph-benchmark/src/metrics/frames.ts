@@ -1,5 +1,16 @@
 import { summarizeDistribution } from './distribution';
 
+export function renderedFrameIntervalsWithinWindow(
+  frames: ReadonlyArray<{ presentationTimestampMs: number }>,
+  startedAt: number,
+  endedAt: number,
+): number[] {
+  const timestamps = frames
+    .map(frame => frame.presentationTimestampMs)
+    .filter(timestamp => timestamp >= startedAt && timestamp <= endedAt);
+  return timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index]);
+}
+
 export function estimateRefreshRate(frameTimesMs: readonly number[]): number {
   const interval = summarizeDistribution(frameTimesMs).p50;
   if (interval <= 0) throw new Error('RAF intervals must be positive');

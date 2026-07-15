@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { estimateRefreshRate, summarizeRenderedFrames } from '../../src/metrics/frames';
+import {
+  estimateRefreshRate,
+  renderedFrameIntervalsWithinWindow,
+  summarizeRenderedFrames,
+} from '../../src/metrics/frames';
 
 describe('summarizeRenderedFrames', () => {
+  it('derives intervals only from frames inside inclusive drag boundaries', () => {
+    const frames = [90, 100, 116, 132, 140]
+      .map(presentationTimestampMs => ({ presentationTimestampMs }));
+
+    expect(renderedFrameIntervalsWithinWindow(frames, 100, 132)).toEqual([16, 16]);
+  });
+
   it('estimates the compositor refresh ceiling from RAF intervals', () => {
     expect(estimateRefreshRate([7.1, 6.9, 7, 8])).toBeCloseTo(142.857, 3);
   });

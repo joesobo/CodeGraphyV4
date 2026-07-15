@@ -52,11 +52,8 @@ export interface GraphDebugApi {
   getPerformance(this: void): OwnedGraphPerformanceSample;
   getSnapshot(this: void): GraphDebugSnapshot;
   openNodeContextMenu(this: void, nodeId: string): void;
-  recordRenderedFrame(this: void, timestamp: number): void;
   startInteractionRecording(this: void, options: OwnedGraphInteractionRecordingOptions): void;
-  startRenderedFrameRecording(this: void): void;
   startStageAttributionRecording(this: void): void;
   stopInteractionRecording(this: void): OwnedGraphInteractionRecording | null;
-  stopRenderedFrameRecording(this: void): number[];
   stopStageAttributionRecording(this: void): Readonly<OwnedGraphStageAttributionRecording> | null;
 }
