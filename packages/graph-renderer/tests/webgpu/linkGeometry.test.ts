@@ -10,6 +10,21 @@ function node(id: string, x: number, y: number): GraphRendererNode {
 }
 
 describe('owned edge geometry', () => {
+  it('rejects links without resolved endpoints', () => {
+    expect(ownedLinkGeometry({ source: undefined, target: undefined })).toBeUndefined();
+  });
+
+  it('rejects links with string endpoints', () => {
+    expect(ownedLinkGeometry({ source: 'source', target: 'target' })).toBeUndefined();
+  });
+
+  it('rejects links with non-finite positions', () => {
+    expect(ownedLinkGeometry({
+      source: node('source', Number.NaN, 0),
+      target: node('target', 100, 0),
+    })).toBeUndefined();
+  });
+
   it('keeps ordinary curved edges on a quadratic path', () => {
     const geometry = ownedLinkGeometry({
       curvature: 0.5,

@@ -118,7 +118,7 @@ describe('owned graph arrow endpoint geometry', () => {
     }
   });
 
-  it('matches triangle, hexagon, star, and rounded-rectangle boundaries', () => {
+  it('matches non-elliptical node boundaries', () => {
     const targetDistance = (
       targetStyle: Partial<GraphRendererNodeStyle>,
       target = { x: 100, y: 0 },
@@ -134,6 +134,7 @@ describe('owned graph arrow endpoint geometry', () => {
       return Math.hypot(target.x - tip.x, target.y - tip.y);
     };
 
+    expect(targetDistance({ shape: 'diamond' })).toBeCloseTo(10, 3);
     expect(targetDistance({ shape: 'triangle' })).toBeCloseTo(10 / Math.sqrt(3), 3);
     expect(targetDistance({ shape: 'hexagon' })).toBeCloseTo(10 / 0.866025, 3);
     expect(targetDistance({ shape: 'star' })).toBeCloseTo(4.8, 3);

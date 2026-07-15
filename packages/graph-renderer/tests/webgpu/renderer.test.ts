@@ -41,6 +41,10 @@ function webGpuHarness() {
   const writeBuffer = vi.fn();
   const onSubmittedWorkDone = vi.fn(() => Promise.resolve());
   const pipeline = { getBindGroupLayout: vi.fn(() => ({})) };
+  let resolveDeviceLost!: (info: GPUDeviceLostInfo) => void;
+  const deviceLost = new Promise<GPUDeviceLostInfo>((resolve) => {
+    resolveDeviceLost = resolve;
+  });
   const device = {
     createBindGroup: vi.fn(() => ({})),
     createBuffer: vi.fn((descriptor: GPUBufferDescriptor) => ({
@@ -52,7 +56,7 @@ function webGpuHarness() {
     createShaderModule: vi.fn(() => ({})),
     destroy: vi.fn(),
     limits: { maxTextureDimension2D: 100 },
-    lost: new Promise<GPUDeviceLostInfo>(() => undefined),
+    lost: deviceLost,
     popErrorScope: vi.fn(async () => null),
     pushErrorScope: vi.fn(),
     queue: { onSubmittedWorkDone, submit: vi.fn(), writeBuffer },
@@ -72,7 +76,17 @@ function webGpuHarness() {
   Object.defineProperty(navigator, 'gpu', { configurable: true, value: gpu });
   const canvas = document.createElement('canvas');
   Object.defineProperty(canvas, 'getContext', { configurable: true, value: () => context });
-  return { adapter, canvas, context, device, draw, gpu, pass, writeBuffer };
+  return {
+    adapter,
+    canvas,
+    context,
+    device,
+    draw,
+    gpu,
+    pass,
+    resolveDeviceLost,
+    writeBuffer,
+  };
 }
 
 function rendererFrame(): OwnedWebGpuFrame {
@@ -141,6 +155,68 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect(harness.gpu.requestAdapter).toHaveBeenNthCalledWith(2, {
       forceFallbackAdapter: true,
     });
+  });
+
+  it('reports WebGPU as unavailable when the browser has no GPU API', async () => {
+    const harness = webGpuHarness();
+    Reflect.deleteProperty(navigator, 'gpu');
+
+    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    })).resolves.toBeUndefined();
+  });
+
+  it('reports WebGPU as unavailable when no adapter can be created', async () => {
+    const harness = webGpuHarness();
+    harness.gpu.requestAdapter.mockResolvedValue(null);
+
+    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    })).resolves.toBeUndefined();
+    expect(harness.gpu.requestAdapter).toHaveBeenCalledTimes(2);
+    expect(harness.adapter.requestDevice).not.toHaveBeenCalled();
+  });
+
+  it('destroys the device when the canvas has no WebGPU context', async () => {
+    const harness = webGpuHarness();
+    Object.defineProperty(harness.canvas, 'getContext', { value: () => null });
+
+    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    })).resolves.toBeUndefined();
+    expect(harness.device.destroy).toHaveBeenCalledOnce();
+  });
+
+  it('cleans up the context when pipeline validation fails', async () => {
+    const harness = webGpuHarness();
+    harness.device.popErrorScope.mockResolvedValue({ message: 'invalid pipeline' } as never);
+
+    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    })).rejects.toThrow('WebGPU pipeline validation failed: invalid pipeline');
+    expect(harness.context.unconfigure).toHaveBeenCalledOnce();
+    expect(harness.device.destroy).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ['unknown', 1],
+    ['destroyed', 0],
+  ] as const)('reports %s device loss appropriately', async (reason, expectedCalls) => {
+    const harness = webGpuHarness();
+    const onDeviceLost = vi.fn();
+    await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost,
+      onFrameComplete: vi.fn(),
+    });
+
+    harness.resolveDeviceLost({ message: 'device lost', reason } as GPUDeviceLostInfo);
+    await Promise.resolve();
+
+    expect(onDeviceLost).toHaveBeenCalledTimes(expectedCalls);
   });
 
   it('destroys the device when canvas context creation throws', async () => {
