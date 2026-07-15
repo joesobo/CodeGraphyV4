@@ -14,7 +14,10 @@ import {
   screenToGraph,
   type OwnedGraphCamera,
 } from './camera';
-import { canvasSize, localCanvasPointer } from './canvasGeometry';
+import {
+  canvasPointerGeometry,
+  type CanvasPointerGeometry,
+} from './canvasGeometry';
 import type { Surface2dProps } from './contracts';
 import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import { syncOwnedLayoutNodesAtVersion, type OwnedGraphLayout } from './layout';
@@ -110,11 +113,9 @@ function recordInteractionInput(
 
 function screenToWorld(
   camera: OwnedGraphCamera,
-  canvas: HTMLCanvasElement,
-  screen: { x: number; y: number },
+  pointer: CanvasPointerGeometry,
 ): { x: number; y: number } {
-  const size = canvasSize(canvas);
-  return screenToGraph(camera, size.width, size.height, screen.x, screen.y);
+  return screenToGraph(camera, pointer.width, pointer.height, pointer.x, pointer.y);
 }
 
 function synchronizeAuthoritativeNodes(
@@ -232,14 +233,14 @@ function createPointerSession(
 function beginPrimaryPointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
-  screen: { x: number; y: number },
+  pointer: CanvasPointerGeometry,
 ): boolean {
   const layout = runtime.layoutRef.current;
   if (!layout) return false;
-  const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
+  const world = screenToWorld(runtime.cameraRef.current, pointer);
   const picked = pickNode(runtime, layout, world);
   const link = picked ? null : pickLink(runtime, layout, world)?.link ?? null;
-  const session = createPointerSession(picked, link, world, screen);
+  const session = createPointerSession(picked, link, world, pointer);
   runtime.pointerSessionRef.current = session;
   runtime.requestFrameRef.current();
   recordInteractionInput(runtime, event, 'down', session.nodeId, world);
@@ -253,11 +254,11 @@ function beginPointerSession(
 ): void {
   cancelOwnedGraphCameraTransition(runtime.cameraRef.current);
   const clearedHover = clearHoverForInteraction(runtime);
-  const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
+  const pointer = canvasPointerGeometry(event.currentTarget, event.nativeEvent);
   const contextButton = contextGestureButton(event);
   if (contextButton !== null) {
-    beginContextGesture(runtime, event, screen, contextButton);
-  } else if (event.button === 0 && beginPrimaryPointerSession(runtime, event, screen)) {
+    beginContextGesture(runtime, event, pointer, contextButton);
+  } else if (event.button === 0 && beginPrimaryPointerSession(runtime, event, pointer)) {
     return;
   }
   if (clearedHover) runtime.requestFrameRef.current();
@@ -382,18 +383,18 @@ function movePointerSession(
   runtime: OwnedGraphInteractionRuntime,
   event: ReactPointerEvent<HTMLCanvasElement>,
 ): void {
-  const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-  if (updateContextGesture(runtime, event, screen)) return;
+  const pointer = canvasPointerGeometry(event.currentTarget, event.nativeEvent);
+  if (updateContextGesture(runtime, event, pointer)) return;
   const layout = runtime.layoutRef.current;
   if (!layout) return;
-  const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
+  const world = screenToWorld(runtime.cameraRef.current, pointer);
   const session = runtime.pointerSessionRef.current;
   recordInteractionInput(runtime, event, 'move', session?.nodeId ?? null, world);
-  if (moveDraggedNode(runtime, layout, session, screen, world)) return;
+  if (moveDraggedNode(runtime, layout, session, pointer, world)) return;
   if (session) {
-    session.moved ||= movedPastThreshold(session.startScreen, screen, NODE_DRAG_THRESHOLD_PX);
+    session.moved ||= movedPastThreshold(session.startScreen, pointer, NODE_DRAG_THRESHOLD_PX);
   }
-  updateHover(runtime, layout, world, screen);
+  updateHover(runtime, layout, world, { x: pointer.x, y: pointer.y });
 }
 
 function releaseContextGestureCapture(
@@ -454,8 +455,8 @@ function routeContextGesture(
 ): void {
   const layout = runtime.layoutRef.current;
   if (!layout || session.moved) return;
-  const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-  const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
+  const pointer = canvasPointerGeometry(event.currentTarget, event.nativeEvent);
+  const world = screenToWorld(runtime.cameraRef.current, pointer);
   const target = pickContextTarget(runtime, layout, world);
   if (session.button === 2) routeRightClick(runtime, target, event.nativeEvent);
   else routeControlClick(runtime, target, event.nativeEvent);
@@ -521,8 +522,8 @@ function completePointerSession(
   const layout = runtime.layoutRef.current;
   const session = runtime.pointerSessionRef.current;
   if (layout && session) {
-    const screen = localCanvasPointer(event.currentTarget, event.nativeEvent);
-    const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
+    const pointer = canvasPointerGeometry(event.currentTarget, event.nativeEvent);
+    const world = screenToWorld(runtime.cameraRef.current, pointer);
     recordInteractionInput(runtime, event, 'up', session.nodeId, world);
   }
   runtime.pointerSessionRef.current = null;
@@ -576,22 +577,22 @@ function zoomAtPointer(
   event: ReactWheelEvent<HTMLCanvasElement>,
 ): void {
   cancelOwnedGraphCameraTransition(runtime.cameraRef.current);
-  const canvas = event.currentTarget;
-  const size = canvasSize(canvas);
-  const screen = localCanvasPointer(canvas, event.nativeEvent);
+  const pointer = canvasPointerGeometry(event.currentTarget, event.nativeEvent);
   const world = screenToGraph(
     runtime.cameraRef.current,
-    size.width,
-    size.height,
-    screen.x,
-    screen.y,
+    pointer.width,
+    pointer.height,
+    pointer.x,
+    pointer.y,
   );
   const nextZoom = clampOwnedGraphZoom(
     runtime.cameraRef.current.zoom * Math.exp(-event.deltaY * 0.0015),
   );
   runtime.cameraRef.current.zoom = nextZoom;
-  runtime.cameraRef.current.centerX = world.x - (screen.x - size.width / 2) / nextZoom;
-  runtime.cameraRef.current.centerY = world.y - (screen.y - size.height / 2) / nextZoom;
+  runtime.cameraRef.current.centerX = world.x
+    - (pointer.x - pointer.width / 2) / nextZoom;
+  runtime.cameraRef.current.centerY = world.y
+    - (pointer.y - pointer.height / 2) / nextZoom;
   runtime.clearLinkHover();
   runtime.requestFrameRef.current();
 }
