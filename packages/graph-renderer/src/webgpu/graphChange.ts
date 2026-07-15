@@ -1,5 +1,5 @@
 import type { GraphRendererFrame } from '../contracts';
-import type { GraphBufferState } from './bufferState';
+import type { GraphBufferState } from './buffer/state';
 
 export function graphPositionsChanged(
   state: GraphBufferState,

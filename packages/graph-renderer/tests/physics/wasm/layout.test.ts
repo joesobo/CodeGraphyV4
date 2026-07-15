@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createGraphPhysicsMemoryLayout } from '@graph-renderer/physics/wasm/layout';
+import { createGraphPhysicsMemoryLayout } from '@graph-renderer/physics/wasm/abi/layout';
 
 describe('graph WASM physics memory layout', () => {
   it('uses the reserved first page and aligned typed-array regions', () => {

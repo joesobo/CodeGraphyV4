@@ -7,8 +7,8 @@ import {
 } from '@graph-renderer/webgpu/arrow/geometry';
 import {
   resolveGraphLinkGeometry,
-} from '@graph-renderer/webgpu/link/geometry';
-import { pointOnGraphLink } from '@graph-renderer/webgpu/link/point';
+} from '@graph-renderer/webgpu/link/geometry/model';
+import { pointOnGraphLink } from '@graph-renderer/webgpu/link/geometry/point';
 
 function style(overrides: Partial<GraphRendererNodeStyle> = {}): GraphRendererNodeStyle {
   return {

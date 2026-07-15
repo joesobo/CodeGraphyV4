@@ -1,11 +1,22 @@
 import { build } from 'esbuild';
-import { readFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 
-const [entryPoint, outfile] = process.argv.slice(2);
+const args = process.argv.slice(2);
+
+if (args[0] === '--clean') {
+  const outputDirectory = args[1];
+  if (!outputDirectory) throw new Error('Usage: build-workspace-package.mjs --clean <directory>');
+  rmSync(path.resolve(outputDirectory), { force: true, recursive: true });
+  process.exit(0);
+}
+
+const [entryPoint, outfile, ...assetArgs] = args;
 
 if (!entryPoint || !outfile) {
-  throw new Error('Usage: node ../../scripts/build-workspace-package.mjs <entry> <outfile>');
+  throw new Error(
+    'Usage: build-workspace-package.mjs <entry> <outfile> [--copy <source> <destination>]',
+  );
 }
 
 const packageJson = JSON.parse(readFileSync(path.resolve('package.json'), 'utf8'));
@@ -25,3 +36,12 @@ await build({
   sourcemap: true,
   external,
 });
+
+for (let index = 0; index < assetArgs.length; index += 3) {
+  const [flag, source, destination] = assetArgs.slice(index, index + 3);
+  if (flag !== '--copy' || !source || !destination) {
+    throw new Error('Assets must use --copy <source> <destination>');
+  }
+  mkdirSync(path.dirname(path.resolve(destination)), { recursive: true });
+  copyFileSync(path.resolve(source), path.resolve(destination));
+}

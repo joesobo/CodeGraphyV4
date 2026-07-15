@@ -55,10 +55,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsx scripts/buildPhysics.ts --output dist/generated/physics.wasm && tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js",
-    "build:wasm": "tsx scripts/buildPhysics.ts",
-    "watch:wasm": "tsx scripts/buildPhysics.ts --watch",
-    "lint": "eslint src tests scripts vitest.config.ts",
+    "build": "node ../../scripts/build-workspace-package.mjs --clean dist && pnpm run build:wasm && tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js --copy src/physics/wasm/generated/physics.wasm dist/generated/physics.wasm",
+    "build:wasm": "asc src/physics/wasm/assembly/kernel.ts --outFile src/physics/wasm/generated/physics.wasm --runtime stub --importMemory --initialMemory 1 --maximumMemory 32768 --optimize --noAssert",
+    "lint": "eslint src tests vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

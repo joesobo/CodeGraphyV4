@@ -1,5 +1,5 @@
 import type { GraphRendererNodeStyle } from '../../contracts';
-import { writeQuadraticArrowBoundary, writeSelfLoopArrowBoundary } from './curve';
+import { writeQuadraticArrowBoundary, writeSelfLoopArrowBoundary } from './curve/path';
 import { writeStraightArrowBoundary } from './straightBoundary';
 
 export const GRAPH_ARROW_LENGTH = 12;

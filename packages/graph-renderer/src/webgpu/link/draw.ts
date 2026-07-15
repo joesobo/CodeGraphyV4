@@ -1,6 +1,6 @@
 import { graphDetailOpacity } from '../../detailVisibility';
 import type { GraphRendererFrame } from '../../contracts';
-import type { GraphBufferState } from '../bufferState';
+import type { GraphBufferState } from '../buffer/state';
 import { GRAPH_LINK_SEGMENTS } from '../shaders';
 
 export function drawLinks(

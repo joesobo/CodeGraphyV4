@@ -1,5 +1,5 @@
 import type { GraphRendererFrame } from '../contracts';
-import type { GraphBufferState, StyleIdentity } from './bufferState';
+import type { GraphBufferState, StyleIdentity } from './buffer/state';
 import { createLinkStyles } from './link/style';
 
 export interface StyleCacheUpdate {

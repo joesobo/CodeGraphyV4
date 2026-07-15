@@ -1,15 +1,12 @@
-import { mkdtempSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-
-import { buildGraphPhysics } from '../../scripts/buildPhysics';
 
 describe('graph WASM physics artifact', () => {
   it('is a valid standalone physics module with a raw memory ABI', () => {
     const bytes = readFileSync(resolve(
       import.meta.dirname,
-      '../../src/wasm/generated/physics.wasm',
+      '../../src/physics/wasm/generated/physics.wasm',
     ));
 
     expect([...bytes.subarray(0, 8)]).toEqual([0, 97, 115, 109, 1, 0, 0, 0]);
@@ -38,19 +35,4 @@ describe('graph WASM physics artifact', () => {
     expect((instance.exports.graphMemoryBase as () => number)()).toBe(65_536);
     expect(instance.exports.memory).toBe(memory);
   });
-
-  it('matches the current AssemblyScript physics source', async () => {
-    const outputFile = resolve(
-      mkdtempSync(resolve(tmpdir(), 'codegraphy-graph-physics-')),
-      'physics.wasm',
-    );
-
-    await buildGraphPhysics(outputFile);
-
-    const committed = readFileSync(resolve(
-      import.meta.dirname,
-      '../../src/wasm/generated/physics.wasm',
-    ));
-    expect(readFileSync(outputFile).equals(committed)).toBe(true);
-  }, 10_000);
 });

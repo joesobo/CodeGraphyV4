@@ -5,16 +5,16 @@ import {
   createGraphBufferState,
   destroyGraphBufferState,
   type GraphBufferState,
-} from './bufferState';
-import { CameraBuffer } from './cameraBuffer';
-import { resizeGraphCanvas } from './canvasSize';
+} from './buffer/state';
+import { CameraBuffer } from './buffer/camera';
+import { updateGraphBuffers } from './buffer/graph';
+import { resizeGraphCanvas } from './frame/canvas';
 import { createRendererResources, type RendererResources } from './device';
-import { FrameQueue } from './frameQueue';
-import { updateGraphBuffers } from './graphBuffers';
-import { submitRenderPass, type RenderPassResources } from './renderPass';
+import { submitRenderPass, type RenderPassResources } from './frame/pass';
+import { FrameQueue } from './frame/queue';
 import { updateStyleCache } from './styleCache';
 
-export { webGpuNodeShapeCode } from './node/style';
+export { webGpuNodeShapeCode } from './node/style/model';
 
 export type WebGpuGraphFrame = GraphRendererFrame;
 

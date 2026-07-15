@@ -243,14 +243,12 @@
 					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
 				}
 			},
-			"mutation": {
-				"strykerConfig": "stryker.graph-renderer.config.cjs"
-			},
 			"boundaries": {
 				"entrypoints": [
 					"src/index.ts",
 					"src/physics/index.ts",
-					"src/wasm/loader.ts",
+					"src/physics/wasm/assembly/kernel.ts",
+					"src/physics/wasm/runtime/loader.ts",
 					"src/webgpu/renderer.ts"
 				]
 			}

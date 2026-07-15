@@ -24,8 +24,8 @@ export {
   type GraphLayoutInput,
   type GraphLayoutTickResult,
 } from './physics';
-export { type GraphLinkGeometry, resolveGraphLinkGeometry } from './webgpu/link/geometry';
-export { pointOnGraphLink } from './webgpu/link/point';
+export { type GraphLinkGeometry, resolveGraphLinkGeometry } from './webgpu/link/geometry/model';
+export { pointOnGraphLink } from './webgpu/link/geometry/point';
 export {
   graphNodeScreenRadius,
   graphNodeWorldScale,
@@ -35,4 +35,4 @@ export {
   type WebGpuGraphFrame,
   type WebGpuGraphRendererOptions,
 } from './webgpu/renderer';
-export { prepareGraphPhysics } from './wasm/loader';
+export { prepareGraphPhysics } from './physics/wasm/runtime/loader';

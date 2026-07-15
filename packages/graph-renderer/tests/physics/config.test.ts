@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_GRAPH_LAYOUT_CONFIG } from '@graph-renderer/physics';
-import { mergeGraphLayoutConfig } from '@graph-renderer/physics/config';
+import { mergeGraphLayoutConfig } from '@graph-renderer/physics/config/model';
 
 describe('default graph physics configuration', () => {
   it('ships the tuned CodeGraphy force values', () => {

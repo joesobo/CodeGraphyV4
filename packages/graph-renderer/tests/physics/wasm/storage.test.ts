@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphLayoutState } from '@graph-renderer/physics/contracts';
-import type { GraphPhysicsExports } from '@graph-renderer/physics/wasm/abi';
-import { GraphPhysicsStorage } from '@graph-renderer/physics/wasm/storage';
+import type { GraphPhysicsExports } from '@graph-renderer/physics/wasm/abi/contracts';
+import { GraphPhysicsStorage } from '@graph-renderer/physics/wasm/abi/storage';
 
 function graphState(): GraphLayoutState {
   return {

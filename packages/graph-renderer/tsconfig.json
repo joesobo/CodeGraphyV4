@@ -16,5 +16,6 @@
       "@graph-renderer/*": ["src/*"]
     }
   },
-  "include": ["src", "tests", "scripts", "vitest.config.ts"]
+  "include": ["src", "tests", "vitest.config.ts"],
+  "exclude": ["src/physics/wasm/assembly"]
 }

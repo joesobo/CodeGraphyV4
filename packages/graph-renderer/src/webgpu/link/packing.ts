@@ -1,7 +1,7 @@
 import type { GraphRendererFrame } from '../../contracts';
-import { LINK_GEOMETRY_FLOATS, LINK_INSTANCE_STYLE_FLOATS } from '../bufferLayout';
-import type { GraphBufferState } from '../bufferState';
-import { writeLinkGeometry } from './geometryPacking';
+import { LINK_GEOMETRY_FLOATS, LINK_INSTANCE_STYLE_FLOATS } from '../buffer/layout';
+import type { GraphBufferState } from '../buffer/state';
+import { writeLinkGeometry } from './geometry/packing';
 import { writeLinkStyle } from './style';
 
 function resize(current: Float32Array, length: number): Float32Array {

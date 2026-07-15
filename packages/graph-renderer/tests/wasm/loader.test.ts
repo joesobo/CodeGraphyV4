@@ -33,8 +33,8 @@ describe('graph WASM physics preparation', () => {
     const compileStreaming = vi.spyOn(WebAssembly, 'compileStreaming')
       .mockResolvedValue(compiled);
 
-    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
-    const registry = await import('@graph-renderer/physics/wasm/module');
+    const { prepareGraphPhysics } = await import('@graph-renderer/physics/wasm/runtime/loader');
+    const registry = await import('@graph-renderer/physics/wasm/runtime/module');
     await prepareGraphPhysics();
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -50,7 +50,7 @@ describe('graph WASM physics preparation', () => {
     vi.spyOn(WebAssembly, 'compileStreaming').mockRejectedValue(new TypeError('invalid MIME type'));
     const compile = vi.spyOn(WebAssembly, 'compile').mockResolvedValue(compiled);
 
-    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
+    const { prepareGraphPhysics } = await import('@graph-renderer/physics/wasm/runtime/loader');
     await prepareGraphPhysics();
 
     expect(resource.arrayBuffer).toHaveBeenCalledTimes(1);
@@ -62,7 +62,7 @@ describe('graph WASM physics preparation', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(resource.value));
     const compileStreaming = vi.spyOn(WebAssembly, 'compileStreaming');
 
-    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
+    const { prepareGraphPhysics } = await import('@graph-renderer/physics/wasm/runtime/loader');
 
     await expect(prepareGraphPhysics()).rejects.toThrow(
       'Unable to load graph physics (404)',
@@ -80,7 +80,7 @@ describe('graph WASM physics preparation', () => {
     vi.stubGlobal('fetch', fetchMock);
     vi.spyOn(WebAssembly, 'compileStreaming').mockResolvedValue(compiled);
 
-    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
+    const { prepareGraphPhysics } = await import('@graph-renderer/physics/wasm/runtime/loader');
 
     await expect(prepareGraphPhysics()).rejects.toThrow(
       'Unable to load graph physics (503)',
@@ -99,7 +99,7 @@ describe('graph WASM physics preparation', () => {
       finishCompilation = resolve;
     }));
 
-    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
+    const { prepareGraphPhysics } = await import('@graph-renderer/physics/wasm/runtime/loader');
     const first = prepareGraphPhysics();
     const second = prepareGraphPhysics();
 
@@ -113,9 +113,9 @@ describe('graph WASM physics preparation', () => {
     const compiled = new WebAssembly.Module(moduleBytes);
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    const registry = await import('@graph-renderer/physics/wasm/module');
+    const registry = await import('@graph-renderer/physics/wasm/runtime/module');
     registry.installGraphPhysicsModule(compiled);
-    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
+    const { prepareGraphPhysics } = await import('@graph-renderer/physics/wasm/runtime/loader');
 
     await prepareGraphPhysics();
 

@@ -1,5 +1,5 @@
 import { LINK_SHADER } from '../shaders';
-import { linkVertexBuffers } from './vertexLayout';
+import { linkVertexBuffers } from './geometry/vertexLayout';
 
 const alphaBlend: GPUBlendState = {
   color: { operation: 'add', srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
