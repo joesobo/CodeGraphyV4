@@ -24,6 +24,7 @@ Never create `architecture.md`. Package boundaries are the map:
 - `packages/extension/src/core/` — discovery, registry, views, colors
 - `packages/extension/src/webview/` — React webview UI
 - `packages/extension/src/shared/` — shared protocol/types
+- `packages/graph-renderer/src/` — custom WebGPU rendering and WebAssembly physics/layout
 - `packages/plugin-api/src/` — plugin API contracts
 - `packages/plugin-*/src/` — built-in language plugins
 

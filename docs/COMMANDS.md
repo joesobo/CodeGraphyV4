@@ -17,7 +17,7 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | `CodeGraphy: Export Graph as JSON` | Save the current graph data as structured JSON |
 | `CodeGraphy: Export Graph as Markdown` | Save the current graph data as markdown |
 | `CodeGraphy: Toggle Depth Mode` | Toggle Depth Mode on the Visible Graph |
-| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and force graph data to rebuild |
+| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and rebuild the graph |
 
 ## Command IDs
 

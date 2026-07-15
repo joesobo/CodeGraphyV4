@@ -201,7 +201,7 @@ A visible downstream path from a collapsed node to a shared relationship target 
 _Avoid_: Partial collapse path, bridge chain
 
 **Collapse Projection**:
-The CodeGraphy-owned graph transformation, implemented using the force graph's dynamic graph data update pattern, that responds to user collapse input after the graph has been rendered.
+The CodeGraphy-owned graph transformation that responds to user collapse input after the graph has been rendered, then sends the updated Visible Graph to the renderer.
 _Avoid_: Renderer-owned collapse, tree-only collapse
 
 **Depth Mode**:
@@ -315,11 +315,11 @@ A background catch-up pass that runs after cached graph data has already been re
 _Avoid_: Re-index when a readable cache is already being shown, reconciliation
 
 **Refresh**:
-A user-triggered graph rerender that re-runs the force graph simulation without reprocessing graph data.
+A user-triggered graph rerender that restarts graph physics without reprocessing graph data.
 _Avoid_: Re-index, live update
 
 **Refresh Graph**:
-The UI action that refreshes graph layout by rerunning force graph physics without rebuilding graph data.
+The UI action that refreshes graph layout by restarting graph physics without rebuilding graph data.
 _Avoid_: Re-index Workspace
 
 **Re-index**:
@@ -483,7 +483,7 @@ A UI control that changes a Setting.
 _Avoid_: Setting when referring only to the UI element
 
 **Display Setting**:
-A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, renderer mode, direction indicators, bidirectional edge display, and depth controls.
+A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, direction indicators, bidirectional edge display, and depth controls.
 _Avoid_: Graph Scope, Search, Filter Setting
 
 **CodeGraphy CSS Snippet**:
@@ -554,7 +554,7 @@ _Avoid_: Graph export
 
 ## Relationships
 
-- A **Relationship Graph** is presented through an interactive force graph.
+- A **Relationship Graph** is presented through the interactive **Graph View**.
 - A **Relationship Graph** contains **Nodes** connected by **Edges**.
 - The graph pipeline is **Relationship Graph** -> **Scoped Graph** -> **Filtered Graph** -> **Searched Graph** -> **Visible Graph**.
 - **Graph Scope** runs before **Filter Settings** so disabled **Node Types** and **Edge Types** are removed before persistent include/exclude criteria are evaluated.
@@ -612,7 +612,7 @@ _Avoid_: Graph export
 - Projected cross-boundary **Edges** with different **Edge Types** remain visually distinct.
 - Active marquee selection shows a visible desktop-style selection rectangle while the user click-drags.
 - A selected **Folder Node** can be a filesystem destination for creating a new file or folder.
-- The force graph renderer handles layout, physics, and interaction for the graph produced by **Collapse Projection**.
+- The custom graph renderer handles WebGPU drawing and WebAssembly physics/layout for the graph produced by **Collapse Projection**. The VS Code Extension owns its UI, settings, persistence, plugins, and interaction controls.
 - **Filter** applies persistent include/exclude criteria to graph consideration; **Collapse** keeps important graph items available behind a collapsed node.
 - **Indexing** starts with **File Discovery**, then runs **Tree-sitter Analysis**, then **Plugin Analysis**, then **Graph Projection**.
 - The **Tree-sitter Runtime** alone does not create **Relationships**; CodeGraphy needs **Core Tree-sitter Language Coverage** or **Plugin Analysis** to produce useful graph data for a language.
@@ -639,7 +639,7 @@ _Avoid_: Graph export
 - A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
 - **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
 - **Refresh Graph** and **Re-index Workspace** should be distinct UI actions.
-- **Refresh** only reruns the force graph simulation and does not process source data.
+- **Refresh** only restarts graph physics and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
 - The Graph View can show `Loading graph...` before the first graph render for a webview page. After the first render, later **Graph Cache Sync**, **Live Update**, or **Re-index** work should keep the current **Visible Graph** rendered and use graph-local progress.
 - CodeGraphy has one primary **View**: the **Graph View**.
@@ -829,7 +829,7 @@ _Avoid_: Graph export
 > **Domain expert:** "**Indexing** runs **File Discovery**, **Tree-sitter Analysis**, **Plugin Analysis**, and **Graph Projection**, then saves the result in the **Graph Cache** for reuse and **Live Updates**."
 >
 > **Dev:** "Is Refresh the same as Re-index?"
-> **Domain expert:** "No. **Refresh** reruns the force graph simulation. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
+> **Domain expert:** "No. **Refresh** restarts graph physics. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
 >
 > **Dev:** "Does CodeGraphy MCP build its own graph?"
 > **Domain expert:** "No. **CodeGraphy MCP** asks the **Core Package** to run **Indexing** when needed and returns **Graph Query** results produced by the **Core Package**."
@@ -849,7 +849,7 @@ _Avoid_: Graph export
 ## Flagged ambiguities
 
 - "dependency graph" is too narrow for the main product concept; resolved: use **Relationship Graph** for the graph users interact with.
-- "force graph" describes the interactive layout/presentation, not the domain object; resolved: use **Relationship Graph** for the graph and "force graph" only when discussing presentation mechanics.
+- "force graph" is an obsolete implementation label; resolved: use **Relationship Graph** for the domain object, **Graph View** for the product surface, and custom graph renderer or graph physics/layout for the implementation mechanics.
 - "relationship" is broader than dependency; resolved: use **Relationship** for the general concept and **Edge Type** for the category of a concrete rendered edge.
 - "dependency" is not generic relationship direction; resolved: use **Dependency** only when the edge type specifically means one node needs another.
 - "downstream" is directional only; resolved: it says a relationship exists in that direction, not what kind of relationship the edge represents.
@@ -860,7 +860,7 @@ _Avoid_: Graph export
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
 - Shared downstream relationship targets stay visible when they are still related to by visible nodes outside the collapsed subgraph.
 - When a shared relationship target stays visible, the downstream path to it stays visible as a **Boundary Path**.
-- Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the force graph renderer displays the resulting graph.
+- Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the custom graph renderer displays the resulting graph.
 - Do not introduce "Collapsed Graph" as a separate pipeline term for now; resolved: the user still sees the **Visible Graph**, updated by **Collapse Projection**.
 - "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means persistent include/exclude criteria, while **Collapse** means summarize relevant hidden detail.
 - Graph Scope before Filter is load-bearing: disabled **Node Types** and **Edge Types** must be removed before filter criteria are evaluated.
