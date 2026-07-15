@@ -34,10 +34,10 @@ function drawParticles(
   globalScale: number,
 ): void {
   const radius = Math.max(0.75, size) / Math.max(globalScale, 0.01);
+  context.fillStyle = color;
   for (let index = 0; index < count; index += 1) {
     const position = ((timestamp * speed * 0.001) + index / count) % 1;
     const point = pointOnOwnedLink(geometry, position);
-    context.fillStyle = color;
     context.beginPath();
     context.arc(point.x, point.y, radius, 0, Math.PI * 2);
     context.fill();
@@ -48,9 +48,6 @@ function drawOwnedGraphLinkParticles(
   options: OwnedGraphDrawingOptions,
   link: FGLink,
 ): void {
-  const source = typeof link.source === 'string' ? undefined : link.source;
-  const target = typeof link.target === 'string' ? undefined : link.target;
-  if (!source || !target) return;
   const geometry = ownedLinkGeometry(link);
   if (!geometry) return;
   drawParticles(

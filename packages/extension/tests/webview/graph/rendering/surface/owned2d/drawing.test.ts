@@ -70,6 +70,37 @@ describe('drawOwnedGraphOverlay', () => {
     expect([source.x, source.y, target.x, target.y]).toEqual([0, 0, 100, 0]);
   });
 
+  it('skips particle drawing until link endpoints resolve to finite positions', () => {
+    const context = {
+      arc: vi.fn(),
+      beginPath: vi.fn(),
+      fill: vi.fn(),
+      fillStyle: '',
+    } as unknown as CanvasRenderingContext2D;
+    const getLinkParticles = vi.fn(() => 1);
+
+    drawOwnedGraphOverlay({
+      context,
+      directionMode: 'particles',
+      getLinkParticles,
+      getParticleColor: () => '#fff',
+      globalScale: 1,
+      links: [
+        { source: 'a', target: 'b', id: 'unresolved' } as never,
+        { source: node(), target: { ...node(), id: 'non-finite', x: Number.NaN }, id: 'invalid' } as never,
+      ],
+      nodes: [],
+      nodeLabelCanvasObject: vi.fn(),
+      particleSize: 1,
+      particleSpeed: 1,
+      timestamp: 0,
+      viewport: { minimumX: 0, maximumX: 100, minimumY: 0, maximumY: 100 },
+    });
+
+    expect(context.arc).not.toHaveBeenCalled();
+    expect(getLinkParticles).not.toHaveBeenCalled();
+  });
+
   it('draws overlays at authoritative positions without changing nodes', () => {
     const rendered: Array<{ x: number | undefined; y: number | undefined }> = [];
     const graphNode = { ...node(), x: 25, y: 30 };

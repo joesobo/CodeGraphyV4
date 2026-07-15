@@ -11,12 +11,6 @@ export interface OwnedLinkGeometry {
   target: FGNode;
 }
 
-export interface OwnedLinkPoint {
-  angle: number;
-  x: number;
-  y: number;
-}
-
 export function ownedLinkGeometry(link: FGLink): OwnedLinkGeometry | undefined {
   if (typeof link.source === 'string' || typeof link.target === 'string') return undefined;
   const source = link.source;
@@ -49,7 +43,7 @@ export function ownedLinkGeometry(link: FGLink): OwnedLinkGeometry | undefined {
 export function pointOnOwnedLink(
   geometry: OwnedLinkGeometry,
   position: number,
-): OwnedLinkPoint {
+): { x: number; y: number } {
   const inverse = 1 - position;
   const sourceX = geometry.source.x as number;
   const sourceY = geometry.source.y as number;
@@ -64,13 +58,7 @@ export function pointOnOwnedLink(
       + 3 * inverse * inverse * position * geometry.controlY
       + 3 * inverse * position * position * geometry.secondControlY
       + position ** 3 * targetY;
-    const tangentX = 3 * inverse * inverse * (geometry.controlX - sourceX)
-      + 6 * inverse * position * (geometry.secondControlX - geometry.controlX)
-      + 3 * position * position * (targetX - geometry.secondControlX);
-    const tangentY = 3 * inverse * inverse * (geometry.controlY - sourceY)
-      + 6 * inverse * position * (geometry.secondControlY - geometry.controlY)
-      + 3 * position * position * (targetY - geometry.secondControlY);
-    return { x, y, angle: Math.atan2(tangentY, tangentX) };
+    return { x, y };
   }
   const x = inverse * inverse * sourceX
     + 2 * inverse * position * geometry.controlX
@@ -78,9 +66,5 @@ export function pointOnOwnedLink(
   const y = inverse * inverse * sourceY
     + 2 * inverse * position * geometry.controlY
     + position * position * targetY;
-  const tangentX = 2 * inverse * (geometry.controlX - sourceX)
-    + 2 * position * (targetX - geometry.controlX);
-  const tangentY = 2 * inverse * (geometry.controlY - sourceY)
-    + 2 * position * (targetY - geometry.controlY);
-  return { x, y, angle: Math.atan2(tangentY, tangentX) };
+  return { x, y };
 }
