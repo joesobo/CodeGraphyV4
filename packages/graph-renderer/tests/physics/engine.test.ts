@@ -70,6 +70,55 @@ describe('graph layout engine', () => {
     expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
+  it('keeps an empty graph settled when force settings change', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: [],
+      radii: new Float32Array(),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+    engine.tick();
+
+    engine.setConfig({ centralGravity: 0.5 });
+
+    expect(engine.settled).toBe(true);
+    expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
+  });
+
+  it('reports active ticks as moving', () => {
+    const engine = createGraphLayoutEngine(lineGraph(1));
+
+    expect(engine.tick()).toEqual({ moving: true, settled: false, steps: 1 });
+  });
+
+  it('exposes the configured node radii', () => {
+    const radii = Float32Array.of(2, 3);
+    const chargeStrengthMultipliers = Float32Array.of(0.5, 2);
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['first', 'second'],
+      radii,
+      chargeStrengthMultipliers,
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+
+    expect(engine.radii).toEqual(radii);
+  });
+
+  it('exposes the configured charge multipliers', () => {
+    const radii = Float32Array.of(2, 3);
+    const chargeStrengthMultipliers = Float32Array.of(0.5, 2);
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['first', 'second'],
+      radii,
+      chargeStrengthMultipliers,
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+
+    expect(engine.chargeStrengthMultipliers).toEqual(chargeStrengthMultipliers);
+  });
+
   it.each([
     {
       label: 'duplicate node ids',
@@ -288,6 +337,46 @@ describe('graph layout engine', () => {
     expect(kinematicsHash(engine)).toBe(before);
   });
 
+  it.each(['x', 'y', 'vx', 'vy'] as const)(
+    'rejects a %s array whose length does not match the node count',
+    field => {
+      const engine = createGraphLayoutEngine(lineGraph(2));
+      const before = kinematicsHash(engine);
+      const values = {
+        x: Float32Array.of(1, 2),
+        y: Float32Array.of(3, 4),
+        vx: Float32Array.of(5, 6),
+        vy: Float32Array.of(7, 8),
+      };
+      values[field] = Float32Array.of(1);
+
+      expect(() => engine.setKinematics(values.x, values.y, values.vx, values.vy))
+        .toThrow('Graph layout kinematics must match node count');
+      expect(kinematicsHash(engine)).toBe(before);
+    },
+  );
+
+  it.each([
+    ['x', Number.NaN, 0],
+    ['y', 0, Number.POSITIVE_INFINITY],
+  ] as const)('rejects a non-finite %s node position', (_axis, x, y) => {
+    const engine = createGraphLayoutEngine(lineGraph(1));
+    const before = kinematicsHash(engine);
+
+    expect(() => engine.setNodePosition(0, x, y))
+      .toThrow('Graph node position must be finite');
+    expect(kinematicsHash(engine)).toBe(before);
+  });
+
+  it.each([-1, 0.5, 2])('rejects invalid node index %s', index => {
+    const engine = createGraphLayoutEngine(lineGraph(2));
+    const before = kinematicsHash(engine);
+
+    expect(() => engine.setNodePosition(index, 10, 20))
+      .toThrow(`Graph node index is out of bounds: ${index}`);
+    expect(kinematicsHash(engine)).toBe(before);
+  });
+
   it('requires a full calm window after a node position changes', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['node'],
@@ -311,6 +400,50 @@ describe('graph layout engine', () => {
     expect(engine.tick().settled).toBe(false);
     expect(engine.tick().settled).toBe(false);
     expect(engine.tick().settled).toBe(true);
+  });
+
+  it('does not settle while node velocity exceeds the calm threshold', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node'],
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(0),
+      initialVx: Float32Array.of(10),
+      initialVy: Float32Array.of(0),
+      radii: Float32Array.of(1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      alphaDecay: 1,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 0,
+      settleSpeed: 0.1,
+      settleSteps: 1,
+      velocityDecay: 0,
+    });
+
+    expect(engine.tick()).toEqual({ moving: true, settled: false, steps: 1 });
+  });
+
+  it('does not settle on a tick that corrects an overlap', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['first', 'second'],
+      initialX: Float32Array.of(0, 0),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(10, 10),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      alphaDecay: 1,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 1,
+      collisionStrength: 0.01,
+      settleSpeed: Number.MAX_VALUE,
+      settleSteps: 1,
+    });
+
+    expect(engine.tick()).toEqual({ moving: true, settled: false, steps: 1 });
   });
 
   it('refreshes engine views after rare Barnes-Hut storage growth', () => {
@@ -655,6 +788,39 @@ describe('graph layout engine', () => {
     engine.tick();
 
     expect(engine.alpha).toBeLessThan(warmAlpha);
+  });
+
+  it.each([-0.1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid alpha target %s',
+    alpha => {
+      const engine = createGraphLayoutEngine(lineGraph(1));
+
+      expect(() => engine.setAlphaTarget(alpha))
+        .toThrow('Graph layout alpha target must be a non-negative finite number');
+    },
+  );
+
+  it('keeps settled physics cold for a zero alpha target', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node'],
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(0),
+      radii: Float32Array.of(1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      alphaDecay: 1,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 0,
+      settleSteps: 1,
+    });
+    engine.tick();
+    expect(engine.settled).toBe(true);
+
+    engine.setAlphaTarget(0);
+
+    expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
   it('reheats settled physics when force settings change', () => {

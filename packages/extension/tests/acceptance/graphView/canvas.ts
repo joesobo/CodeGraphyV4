@@ -20,6 +20,10 @@ const NODE_OUTLINE_RGB: Record<NodeOutlineColor, RgbColor> = {
   white: { red: 255, green: 255, blue: 255 },
 };
 
+export function graphNodeProbeRadius(radius: number, zoom: number): number {
+  return Math.round(radius * Math.sqrt(Math.max(0.0001, zoom)));
+}
+
 export function requireGraphFrame(context: GraphAcceptanceContext): Frame {
   return requireValue(context.graphFrame, 'Expected Graph View frame to be open');
 }
@@ -54,9 +58,9 @@ export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
         center: { x: node.screenX, y: node.screenY },
         radius: (node.shapeSize2D
           ? Math.max(node.shapeSize2D.width, node.shapeSize2D.height) / 2
-          : node.size) * graphZoom,
+          : node.size),
       })) ?? [];
-    const nodes = debugNodes.length > 0 ? debugNodes : [...element.querySelectorAll('[aria-label^="Graph node "]')]
+    const accessibleNodes = [...element.querySelectorAll('[aria-label^="Graph node "]')]
       .slice(0, 64)
       .map((node) => {
         const rect = node.getBoundingClientRect();
@@ -69,12 +73,20 @@ export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
         };
       });
     return {
+      accessibleNodes,
       background,
-      nodes,
+      debugNodes,
+      graphZoom,
       size: { height: stageRect.height, width: stageRect.width },
     };
   });
   const screenshot = await stage.screenshot();
+  const nodes = visual.debugNodes.length > 0
+    ? visual.debugNodes.map(node => ({
+        ...node,
+        radius: graphNodeProbeRadius(node.radius, visual.graphZoom),
+      }))
+    : visual.accessibleNodes;
 
   return frame.evaluate(async (options) => {
     const source = new Image();
@@ -110,7 +122,12 @@ export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
       }
     }
     return visiblePixels;
-  }, { ...visual, screenshotBase64: screenshot.toString('base64') });
+  }, {
+    background: visual.background,
+    nodes,
+    screenshotBase64: screenshot.toString('base64'),
+    size: visual.size,
+  });
 }
 
 export async function getGraphCounts(frame: Frame): Promise<{ nodes: number; edges: number }> {
@@ -252,7 +269,7 @@ async function readNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe>
 }
 
 async function readDebugNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe | null> {
-  return frame.evaluate((path) => {
+  const probe = await frame.evaluate((path) => {
     const debug = window.__CODEGRAPHY_GRAPH_DEBUG__;
     const snapshot = debug?.getSnapshot();
     const node = snapshot?.nodes.find(entry => entry.id === path);
@@ -267,15 +284,20 @@ async function readDebugNodeProbe(frame: Frame, nodePath: string): Promise<NodeP
         x: Math.round(node.screenX),
         y: Math.round(node.screenY),
       },
-      radius: Math.round((node.shapeSize2D
+      radius: node.shapeSize2D
         ? Math.max(node.shapeSize2D.width, node.shapeSize2D.height) / 2
-        : node.size) * (
-        typeof snapshot?.zoom === 'number' && Number.isFinite(snapshot.zoom)
-          ? snapshot.zoom
-          : 1
-      )),
+        : node.size,
+      zoom: typeof snapshot?.zoom === 'number' && Number.isFinite(snapshot.zoom)
+        ? snapshot.zoom
+        : 1,
     };
   }, nodePath);
+  if (!probe) return null;
+  return {
+    center: probe.center,
+    path: probe.path,
+    radius: graphNodeProbeRadius(probe.radius, probe.zoom),
+  };
 }
 
 async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
@@ -585,6 +607,20 @@ async function analyzeNodePixels(
   const screenshot = await stage.screenshot();
   const stageBox = await stage.boundingBox();
   if (!stageBox) throw new Error('Expected Graph Stage to expose a bounding box');
+  const labelColors = await stage.evaluate((element) => {
+    const resolveColor = (property: string): string => {
+      const probe = document.createElement('span');
+      probe.style.color = `var(${property})`;
+      element.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    };
+    return [
+      resolveColor('--cg-graph-label-muted-foreground'),
+      resolveColor('--cg-graph-label-foreground'),
+    ];
+  });
 
   return frame.evaluate(async (options) => {
     const source = new Image();
@@ -610,6 +646,66 @@ async function analyzeNodePixels(
     const pixelScale = Math.max(scaleX, scaleY);
     const radius = Math.max(2, Math.round(options.probe.radius * pixelScale));
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
+    const backgroundCounts = new Map<number, number>();
+    let backgroundKey = 0;
+    let backgroundCount = 0;
+    for (let index = 0; index < image.data.length; index += 16) {
+      if (image.data[index + 3] < 80) continue;
+      const key = (image.data[index] << 16)
+        | (image.data[index + 1] << 8)
+        | image.data[index + 2];
+      const count = (backgroundCounts.get(key) ?? 0) + 1;
+      backgroundCounts.set(key, count);
+      if (count > backgroundCount) {
+        backgroundCount = count;
+        backgroundKey = key;
+      }
+    }
+    const background = {
+      blue: backgroundKey & 0xff,
+      green: (backgroundKey >> 8) & 0xff,
+      red: (backgroundKey >> 16) & 0xff,
+    };
+    const colorProbe = document.createElement('canvas');
+    colorProbe.width = 1;
+    colorProbe.height = 1;
+    const colorContext = colorProbe.getContext('2d');
+    if (!colorContext) throw new Error('Expected label color probe to expose a 2d context');
+    const expectedLabelColors = options.labelColors.map((color) => {
+      colorContext.clearRect(0, 0, 1, 1);
+      colorContext.fillStyle = color;
+      colorContext.fillRect(0, 0, 1, 1);
+      const pixel = colorContext.getImageData(0, 0, 1, 1).data;
+      return { blue: pixel[2], green: pixel[1], red: pixel[0] };
+    });
+    const matchesLabelColor = (red: number, green: number, blue: number): boolean =>
+      expectedLabelColors.some((label) => {
+        const labelVector = [
+          label.red - background.red,
+          label.green - background.green,
+          label.blue - background.blue,
+        ];
+        const pixelVector = [
+          red - background.red,
+          green - background.green,
+          blue - background.blue,
+        ];
+        const labelLengthSquared = labelVector.reduce(
+          (sum, channel) => sum + channel * channel,
+          0,
+        );
+        if (labelLengthSquared === 0) return false;
+        const projection = pixelVector.reduce(
+          (sum, channel, index) => sum + channel * labelVector[index],
+          0,
+        ) / labelLengthSquared;
+        if (projection < 0.03 || projection > 1.25) return false;
+        const residualSquared = pixelVector.reduce((sum, channel, index) => {
+          const residual = channel - projection * labelVector[index];
+          return sum + residual * residual;
+        }, 0);
+        return residualSquared <= 144;
+      });
     let bluePixelCount = 0;
     let whiteCenterPixelCount = 0;
     let labelPixelCount = 0;
@@ -632,10 +728,7 @@ async function analyzeNodePixels(
         if (
           dy > radius + 1
           && dy < radius + 24
-          && red > 80
-          && green > 80
-          && blue > 80
-          && Math.max(red, green, blue) - Math.min(red, green, blue) < 48
+          && matchesLabelColor(red, green, blue)
         ) labelPixelCount += 1;
         if (
           distance > radius * 0.75
@@ -650,6 +743,7 @@ async function analyzeNodePixels(
     return { bluePixelCount, whiteCenterPixelCount, labelPixelCount, outlinePixelCount };
   }, {
     blue: BLUE_NODE_RGB,
+    labelColors,
     outline,
     probe,
     screenshotBase64: screenshot.toString('base64'),

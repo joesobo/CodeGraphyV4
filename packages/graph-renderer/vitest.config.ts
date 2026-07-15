@@ -2,10 +2,15 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  root: import.meta.dirname,
   test: {
+    coverage: {
+      exclude: ['src/**/*.d.ts'],
+      include: ['src/**/*.{ts,tsx}'],
+    },
     environment: 'jsdom',
     include: ['tests/**/*.test.ts'],
-    setupFiles: ['tests/setup.ts'],
+    setupFiles: [resolve(import.meta.dirname, 'tests/setup.ts')],
   },
   resolve: {
     alias: {

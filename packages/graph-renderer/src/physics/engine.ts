@@ -27,7 +27,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private collisionScale = 1;
   private maximumCollisionRadius = 1;
   private nodeIndexes!: Map<string, number>;
-  private kernel: OwnedGraphWasmPhysicsKernel | undefined;
+  private kernel!: OwnedGraphWasmPhysicsKernel;
   private simulationAlpha = 1;
   private simulationAlphaTarget = 0;
   private settledStepCount = 0;
@@ -77,7 +77,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.config = mergeGraphLayoutConfig(this.config, config);
-    this.kernel?.configure(this.config, this.collisionScale, this.collisionCellSize());
+    this.kernel.configure(this.config, this.collisionScale, this.collisionCellSize());
     if (this.x.length > 0) this.reheat(0.3);
   }
 
@@ -86,7 +86,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     assertOwnedGraphCollisionScale(scale);
     const expandsCollisionEnvelope = scale > this.collisionScale;
     this.collisionScale = scale;
-    this.kernel?.configure(this.config, scale, this.collisionCellSize());
+    this.kernel.configure(this.config, scale, this.collisionCellSize());
     if (expandsCollisionEnvelope && this.x.length > 0) {
       this.settled = false;
       this.settledStepCount = 0;
@@ -184,7 +184,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     const collisionIterations = this.simulationAlpha < 0.1
       ? Math.max(this.config.collisionIterations, 16)
       : this.config.collisionIterations;
-    if (!this.kernel) throw new Error('Owned graph WASM physics kernel is unavailable');
     const maximumVelocity = this.kernel.step(
       this.simulationAlpha,
       collisionIterations,

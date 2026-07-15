@@ -92,6 +92,7 @@ export function discoverMutationPackageNames(repoRoot: string): string[] {
   return [
     'core',
     'extension',
+    'graph-renderer',
     'mcp',
     'plugin-godot',
     'plugin-unity',

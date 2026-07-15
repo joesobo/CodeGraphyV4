@@ -5,6 +5,7 @@ import {
   clickFitToScreenIfAvailable,
   getGraphCounts,
   graphEdge,
+  graphNodeProbeRadius,
   graphNodeByExactPathOrBasename,
 } from './acceptance/graphView/canvas';
 
@@ -17,6 +18,10 @@ function frameWithBodyText(text: string): Frame {
 }
 
 describe('acceptance graph canvas helpers', () => {
+  it('matches the renderer square-root zoom compensation when probing node pixels', () => {
+    expect(graphNodeProbeRadius(20, 0.25)).toBe(10);
+  });
+
   it('reads graph counts with a singular connection label', async () => {
     await expect(getGraphCounts(frameWithBodyText('5 nodes • 1 connection'))).resolves.toEqual({
       nodes: 5,

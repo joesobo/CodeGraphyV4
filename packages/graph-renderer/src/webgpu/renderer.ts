@@ -12,6 +12,7 @@ import type {
   GraphRendererNodeStyle,
 } from '../contracts';
 import { writeOwnedArrowCurveParameters } from './arrowGeometry';
+import { cachedWebGpuColor } from './color';
 import { ownedGraphNodeWorldScale } from '../visualSize';
 import { graphNodeDrawnArea } from '../nodeStacking';
 import { LINK_SHADER, NODE_SHADER, OWNED_LINK_SEGMENTS } from './shaders';
@@ -43,66 +44,6 @@ function nextBufferSize(requiredBytes: number): number {
   return size;
 }
 
-function parseHexChannel(value: string): number {
-  return Number.parseInt(value, 16) / 255;
-}
-
-type WebGpuColor = [number, number, number, number];
-
-function parseShortHexColor(value: string): WebGpuColor | null {
-  const match = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i.exec(value);
-  if (!match) return null;
-  return [
-    parseHexChannel(match[1] + match[1]),
-    parseHexChannel(match[2] + match[2]),
-    parseHexChannel(match[3] + match[3]),
-    match[4] ? parseHexChannel(match[4] + match[4]) : 1,
-  ];
-}
-
-function parseFullHexColor(value: string): WebGpuColor | null {
-  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})?$/i.exec(value);
-  if (!match) return null;
-  return [
-    parseHexChannel(match[1]),
-    parseHexChannel(match[2]),
-    parseHexChannel(match[3]),
-    match[4] ? parseHexChannel(match[4]) : 1,
-  ];
-}
-
-function parseRgbColor(value: string): WebGpuColor | null {
-  const match = /^rgba?\(\s*(\d+(?:\.\d+)?|\.\d+)[, ]+(\d+(?:\.\d+)?|\.\d+)[, ]+(\d+(?:\.\d+)?|\.\d+)(?:\s*[,/]\s*(\d+(?:\.\d+)?|\.\d+))?\s*\)$/i.exec(value);
-  if (!match) return null;
-  return [
-    Math.min(255, Number(match[1])) / 255,
-    Math.min(255, Number(match[2])) / 255,
-    Math.min(255, Number(match[3])) / 255,
-    match[4] === undefined ? 1 : Math.min(1, Number(match[4])),
-  ];
-}
-
-function parseSrgbColor(value: string): WebGpuColor | null {
-  const match = /^color\(\s*srgb\s+(\d+(?:\.\d+)?|\.\d+)\s+(\d+(?:\.\d+)?|\.\d+)\s+(\d+(?:\.\d+)?|\.\d+)(?:\s*\/\s*(\d+(?:\.\d+)?|\.\d+))?\s*\)$/i.exec(value);
-  if (!match) return null;
-  return [
-    Math.min(1, Number(match[1])),
-    Math.min(1, Number(match[2])),
-    Math.min(1, Number(match[3])),
-    match[4] === undefined ? 1 : Math.min(1, Number(match[4])),
-  ];
-}
-
-export function parseWebGpuColor(color: string): WebGpuColor {
-  const value = color.trim();
-  if (value.toLowerCase() === 'transparent') return [0, 0, 0, 0];
-  return parseShortHexColor(value)
-    ?? parseFullHexColor(value)
-    ?? parseRgbColor(value)
-    ?? parseSrgbColor(value)
-    ?? [0, 0, 0, 1];
-}
-
 export function webGpuNodeShapeCode(shape: GraphNodeShape): number {
   switch (shape) {
     case 'circle': return 0;
@@ -113,18 +54,6 @@ export function webGpuNodeShapeCode(shape: GraphNodeShape): number {
     case 'hexagon': return 5;
     case 'star': return 6;
   }
-}
-
-const colorCache = new Map<string, readonly [number, number, number, number]>();
-const MAX_CACHED_COLORS = 1_024;
-
-function cachedWebGpuColor(color: string): readonly [number, number, number, number] {
-  const cached = colorCache.get(color);
-  if (cached) return cached;
-  const parsed = parseWebGpuColor(color);
-  if (colorCache.size >= MAX_CACHED_COLORS) colorCache.clear();
-  colorCache.set(color, parsed);
-  return parsed;
 }
 
 function blendState(): GPUBlendState {
