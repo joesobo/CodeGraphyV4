@@ -99,23 +99,6 @@ export class OwnedGraphPhysicsStorage {
     );
   }
 
-  snapshot(): GraphLayoutState {
-    return {
-      x: new Float32Array(this.state.x),
-      y: new Float32Array(this.state.y),
-      vx: new Float32Array(this.state.vx),
-      vy: new Float32Array(this.state.vy),
-      chargeStrengthMultipliers: new Float32Array(
-        this.state.chargeStrengthMultipliers,
-      ),
-      radii: new Float32Array(this.state.radii),
-      flags: new Uint8Array(this.state.flags),
-      edgeSources: new Uint32Array(this.state.edgeSources),
-      edgeTargets: new Uint32Array(this.state.edgeTargets),
-      linkDegrees: new Uint32Array(this.state.linkDegrees),
-    };
-  }
-
   private copyState(source: GraphLayoutState): void {
     this.state.x.set(source.x);
     this.state.y.set(source.y);

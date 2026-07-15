@@ -93,16 +93,14 @@ describe('owned graph WASM physics storage', () => {
     );
   });
 
-  it('snapshots every graph buffer outside WASM memory', () => {
-    const storage = new OwnedGraphPhysicsStorage(graphState(), 256);
+  it('copies authoritative views directly into replacement WASM memory', () => {
+    const original = new OwnedGraphPhysicsStorage(graphState(), 256);
 
-    const snapshot = storage.snapshot();
+    const replacement = new OwnedGraphPhysicsStorage(original.state, 512);
 
-    expect(snapshot).toEqual(storage.state);
-    for (const values of Object.values(snapshot)) {
-      expect(values.buffer).not.toBe(storage.memory.buffer);
-    }
-    snapshot.x[0] = 99;
-    expect(storage.state.x[0]).toBe(1);
+    expect(replacement.state).toEqual(original.state);
+    expect(replacement.memory.buffer).not.toBe(original.memory.buffer);
+    replacement.state.x[0] = 99;
+    expect(original.state.x[0]).toBe(1);
   });
 });
