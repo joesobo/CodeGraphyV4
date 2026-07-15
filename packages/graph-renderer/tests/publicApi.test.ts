@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
+import * as graphRenderer from '../src/index';
 import {
   createGraphLayoutEngine,
   OwnedWebGpuRenderer,
@@ -15,5 +16,10 @@ describe('graph renderer public API', () => {
     expect(prepareGraphPhysics).toBeTypeOf('function');
     expectTypeOf<GraphLayoutEngine>().toBeObject();
     expectTypeOf<GraphRendererFrame>().toBeObject();
+    expect(graphRenderer).not.toHaveProperty('DEFAULT_GRAPH_LAYOUT_CONFIG');
+    expect(graphRenderer).not.toHaveProperty('TypedGraphLayoutEngine');
+    expect(graphRenderer).not.toHaveProperty('installGraphPhysicsModule');
+    expect(graphRenderer).not.toHaveProperty('parseWebGpuColor');
+    expect(graphRenderer).not.toHaveProperty('webGpuNodeShapeCode');
   });
 });

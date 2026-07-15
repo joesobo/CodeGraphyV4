@@ -16,11 +16,9 @@ export {
 } from './detailVisibility';
 export { graphNodeDrawnArea } from './nodeStacking';
 export {
-  DEFAULT_GRAPH_LAYOUT_CONFIG,
   createGraphLayoutEngine,
   graphNodeSizeChargeMultiplier,
   GraphNodeFlag,
-  TypedGraphLayoutEngine,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
@@ -37,8 +35,5 @@ export {
 } from './visualSize';
 export {
   OwnedWebGpuRenderer,
-  parseWebGpuColor,
-  webGpuNodeShapeCode,
 } from './webgpu/renderer';
 export { prepareGraphPhysics } from './wasm/loader';
-export { installOwnedGraphPhysicsModule as installGraphPhysicsModule } from './physics/wasm/module';

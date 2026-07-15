@@ -1,15 +1,9 @@
 import '@testing-library/jest-dom';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
 import { vi } from 'vitest';
-import { installGraphPhysicsModule } from '@codegraphy-dev/graph-renderer';
+import { installGeneratedGraphPhysicsForTests } from '@codegraphy-dev/graph-renderer/testing';
 import type { WebviewToExtensionMessage } from '../src/shared/protocol/webviewToExtension';
 
-const ownedGraphPhysicsBytes = readFileSync(resolve(
-  __dirname,
-  '../../graph-renderer/src/wasm/generated/physics.wasm',
-));
-installGraphPhysicsModule(new WebAssembly.Module(ownedGraphPhysicsBytes));
+installGeneratedGraphPhysicsForTests();
 
 interface VscodeSentMessagesGlobal {
   __vscodeSentMessages: WebviewToExtensionMessage[];

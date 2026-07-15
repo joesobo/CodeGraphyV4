@@ -1,18 +1,18 @@
 import { watch } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 
 const packageRoot = resolve(import.meta.dirname, '..');
 const sourceDirectory = resolve(packageRoot, 'wasm/physics/assembly');
-const outputDirectory = resolve(packageRoot, 'src/wasm/generated');
+const defaultOutputFile = resolve(packageRoot, 'src/wasm/generated/physics.wasm');
 
-export async function buildGraphPhysics(): Promise<void> {
+export async function buildGraphPhysics(outputFile = defaultOutputFile): Promise<void> {
   const { default: asc } = await import('assemblyscript/asc');
-  await mkdir(outputDirectory, { recursive: true });
+  await mkdir(dirname(outputFile), { recursive: true });
   const result = await asc.main([
     resolve(sourceDirectory, 'index.ts'),
     '--outFile',
-    resolve(outputDirectory, 'physics.wasm'),
+    outputFile,
     '--runtime',
     'stub',
     '--importMemory',
@@ -26,7 +26,7 @@ export async function buildGraphPhysics(): Promise<void> {
   if (result.error) throw result.error;
 }
 
-function watchGraphPhysics(): void {
+function watchGraphPhysics(outputFile: string): void {
   let rebuilding = false;
   let pending = false;
   const rebuild = async (): Promise<void> => {
@@ -36,7 +36,7 @@ function watchGraphPhysics(): void {
     }
     rebuilding = true;
     try {
-      await buildGraphPhysics();
+      await buildGraphPhysics(outputFile);
       console.log('Rebuilt owned graph WASM physics');
     } catch (error) {
       console.error(error);
@@ -55,11 +55,20 @@ function watchGraphPhysics(): void {
 }
 
 async function main(): Promise<void> {
-  if (process.argv.includes('--watch-only')) {
-    watchGraphPhysics();
+  const outputOption = process.argv.indexOf('--output');
+  const outputPath = outputOption === -1 ? undefined : process.argv[outputOption + 1];
+  if (outputOption !== -1 && !outputPath) {
+    throw new Error('--output requires a file path');
+  }
+  const outputFile = outputPath
+    ? resolve(packageRoot, outputPath)
+    : defaultOutputFile;
+  if (process.argv.includes('--watch')) {
+    await buildGraphPhysics(outputFile);
+    watchGraphPhysics(outputFile);
     return;
   }
-  await buildGraphPhysics();
+  await buildGraphPhysics(outputFile);
 }
 
 if (process.argv[1]?.endsWith('buildPhysics.ts')) {

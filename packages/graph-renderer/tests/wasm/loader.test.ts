@@ -70,6 +70,25 @@ describe('owned graph WASM physics preparation', () => {
     expect(compileStreaming).not.toHaveBeenCalled();
   });
 
+  it('allows a later caller to retry after a transient load failure', async () => {
+    const compiled = new WebAssembly.Module(moduleBytes);
+    const unavailable = response(503);
+    const available = response();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(unavailable.value)
+      .mockResolvedValueOnce(available.value);
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(WebAssembly, 'compileStreaming').mockResolvedValue(compiled);
+
+    const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
+
+    await expect(prepareGraphPhysics()).rejects.toThrow(
+      'Unable to load owned graph physics (503)',
+    );
+    await expect(prepareGraphPhysics()).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('shares one fetch and compilation across concurrent callers', async () => {
     const compiled = new WebAssembly.Module(moduleBytes);
     const resource = response();

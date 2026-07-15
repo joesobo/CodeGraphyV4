@@ -1,6 +1,9 @@
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+
+import { buildGraphPhysics } from '../../scripts/buildPhysics';
 
 describe('owned graph WASM physics artifact', () => {
   it('is a valid standalone physics module with a raw memory ABI', () => {
@@ -34,5 +37,20 @@ describe('owned graph WASM physics artifact', () => {
     expect((instance.exports.abiVersion as () => number)()).toBe(3);
     expect((instance.exports.graphMemoryBase as () => number)()).toBe(65_536);
     expect(instance.exports.memory).toBe(memory);
+  });
+
+  it('matches the current AssemblyScript physics source', async () => {
+    const outputFile = resolve(
+      mkdtempSync(resolve(tmpdir(), 'codegraphy-graph-physics-')),
+      'physics.wasm',
+    );
+
+    await buildGraphPhysics(outputFile);
+
+    const committed = readFileSync(resolve(
+      import.meta.dirname,
+      '../../src/wasm/generated/physics.wasm',
+    ));
+    expect(readFileSync(outputFile).equals(committed)).toBe(true);
   });
 });

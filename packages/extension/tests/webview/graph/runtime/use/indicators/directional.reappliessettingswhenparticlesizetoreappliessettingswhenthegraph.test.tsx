@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { drawOwnedGraphParticles } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drawing';
-import { parseWebGpuColor } from '@codegraphy-dev/graph-renderer/webgpu';
 
 function renderParticles(overrides: Record<string, unknown> = {}) {
   const source = { id: 'a', x: 0, y: 0 } as FGNode;
@@ -39,10 +38,6 @@ describe('owned directional setting updates', () => {
     const slowX = renderParticles({ particleSpeed: 0.001 }).arc.mock.calls[0]?.[0];
     const fastX = renderParticles({ particleSpeed: 0.01 }).arc.mock.calls[0]?.[0];
     expect(fastX).not.toBe(slowX);
-  });
-
-  it('reapplies settings when the arrow color callback changes', () => {
-    expect(parseWebGpuColor('#00ff00')).toEqual([0, 1, 0, 1]);
   });
 
   it('keeps arrow placement in the WebGPU geometry path', () => {
