@@ -20,12 +20,14 @@ export class OwnedGraphWasmPhysicsKernel {
   private storage!: OwnedGraphPhysicsStorage;
   private exports!: OwnedGraphPhysicsExports;
   private currentConfig!: GraphLayoutConfig;
+  private currentCollisionScale = 1;
   private currentCollisionCellSize = 1;
   private correctionCount = 0;
 
   constructor(
     state: GraphLayoutState,
     config: GraphLayoutConfig,
+    collisionScale: number,
     collisionCellSize: number,
     randomState = 1,
   ) {
@@ -33,7 +35,14 @@ export class OwnedGraphWasmPhysicsKernel {
       256,
       state.x.length * INITIAL_BARNES_HUT_CELLS_PER_NODE + 64,
     );
-    this.initialize(state, config, collisionCellSize, cellCapacity, randomState);
+    this.initialize(
+      state,
+      config,
+      collisionScale,
+      collisionCellSize,
+      cellCapacity,
+      randomState,
+    );
   }
 
   get state(): GraphLayoutState { return this.storage.state; }
@@ -41,11 +50,19 @@ export class OwnedGraphWasmPhysicsKernel {
   get memoryBytes(): number { return this.storage.memory.buffer.byteLength; }
   get randomState(): number { return this.exports.barnesHutRandomState(); }
 
-  configure(config: GraphLayoutConfig, collisionCellSize: number): void {
+  configure(
+    config: GraphLayoutConfig,
+    collisionScale: number,
+    collisionCellSize: number,
+  ): void {
+    if (!Number.isFinite(collisionScale) || collisionScale <= 0) {
+      throw new Error('Collision scale must be positive');
+    }
     if (!Number.isFinite(collisionCellSize) || collisionCellSize <= 0) {
       throw new Error('Grid cell size must be positive');
     }
     this.currentConfig = config;
+    this.currentCollisionScale = collisionScale;
     this.currentCollisionCellSize = collisionCellSize;
     this.exports.configure(
       config.centralGravity,
@@ -54,6 +71,7 @@ export class OwnedGraphWasmPhysicsKernel {
       config.chargeStrength,
       config.chargeTheta,
       config.collisionPadding,
+      collisionScale,
       config.collisionStrength,
       config.initializationSpacing,
       config.linkDistance,
@@ -103,6 +121,7 @@ export class OwnedGraphWasmPhysicsKernel {
   private initialize(
     source: GraphLayoutState,
     config: GraphLayoutConfig,
+    collisionScale: number,
     collisionCellSize: number,
     cellCapacity: number,
     randomState: number,
@@ -111,7 +130,7 @@ export class OwnedGraphWasmPhysicsKernel {
     this.exports = instantiateOwnedGraphPhysics(this.storage.memory);
     this.storage.initialize(this.exports);
     this.exports.restoreBarnesHutRandomState(randomState);
-    this.configure(config, collisionCellSize);
+    this.configure(config, collisionScale, collisionCellSize);
   }
 
   private growBarnesHutCapacity(): void {
@@ -120,6 +139,7 @@ export class OwnedGraphWasmPhysicsKernel {
     this.initialize(
       source,
       this.currentConfig,
+      this.currentCollisionScale,
       this.currentCollisionCellSize,
       this.storage.layout.cellCapacity * 2,
       randomState,

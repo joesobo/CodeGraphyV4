@@ -274,6 +274,37 @@ describe('graph layout engine', () => {
       .toBeGreaterThanOrEqual(21.99);
   });
 
+  it('separates settled nodes using the camera-scaled collision envelope', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['small', 'large'],
+      initialX: Float32Array.of(0, 39),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(8, 30),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      alphaDecay: 1,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 1,
+      collisionStrength: 1,
+      settleSteps: 1,
+    });
+    engine.tick();
+    expect(engine.settled).toBe(true);
+
+    engine.setCollisionScale(2);
+    expect(engine.settled).toBe(false);
+    engine.tick();
+
+    expect(Math.hypot(engine.x[1] - engine.x[0], engine.y[1] - engine.y[0]))
+      .toBeGreaterThanOrEqual(75.75);
+    expect(engine.settled).toBe(true);
+
+    engine.setCollisionScale(2);
+    expect(engine.settled).toBe(true);
+  });
+
   it('separates coincident node radii with the collision pass', () => {
     const nodeCount = 40;
     const radius = 5;
