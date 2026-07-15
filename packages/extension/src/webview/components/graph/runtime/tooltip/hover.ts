@@ -10,12 +10,9 @@ import {
 	type GraphTooltipState,
 } from '../../tooltip/model';
 import type { FGNode } from '../../model/build';
+import { isPackageNodeId } from '../../model/node/identity';
 import type { GraphTooltipInteractionDependencies } from '../use/tooltip/hook';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
-
-function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
-}
 
 function isPluginRuntimeNode(node: FGNode): boolean {
   return typeof node.ownerPluginId === 'string' || typeof node.runtimeNodeType === 'string';
