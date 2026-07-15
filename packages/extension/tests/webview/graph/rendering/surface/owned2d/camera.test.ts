@@ -91,4 +91,18 @@ describe('owned graph camera', () => {
     transitionOwnedGraphCamera(camera, { centerX: 5, zoom: 3 }, 300, 800);
     expect(camera.transition).toBeNull();
   });
+
+  it('preserves the rendered center when direct zoom interrupts a transition', () => {
+    const camera: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
+
+    transitionOwnedGraphCamera(camera, { centerX: 100, zoom: 4 }, 300, 1_000);
+    advanceOwnedGraphCameraTransition(camera, 1_150);
+    const renderedCenterX = camera.centerX;
+
+    transitionOwnedGraphCamera(camera, { zoom: 2 }, 0, 0);
+
+    expect(camera.centerX).toBe(renderedCenterX);
+    expect(camera.zoom).toBe(2);
+    expect(camera.transition).toBeNull();
+  });
 });

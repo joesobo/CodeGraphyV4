@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Remove focus rings from graph container and vis-network canvas */
+/* Remove focus rings from the graph container and canvas */
 .graph-container,
 .graph-container *,
 .graph-container canvas {

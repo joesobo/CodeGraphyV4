@@ -27,9 +27,8 @@ export interface OwnedGraphControlsRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   fpsRef: MutableRefObject<number | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
-  markPerformanceIdle(this: void): void;
   performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
-  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor | null>;
+  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor>;
   performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   positionVersionRef: MutableRefObject<number>;
   rendererOperationalRef: MutableRefObject<boolean>;
@@ -75,28 +74,27 @@ export function createOwnedGraphControls(
   runtime: OwnedGraphControlsRuntime,
   canvas: HTMLCanvasElement,
 ): OwnedGraph2dControls {
-  const controls: OwnedGraph2dControls = {
+  const zoom = ((scale?: number, durationMs?: number) => {
+    if (scale === undefined) return runtime.cameraRef.current.zoom;
+    updateCamera(runtime, { zoom: scale }, durationMs);
+  }) as OwnedGraph2dControls['zoom'];
+
+  return {
     centerAt: (x, y, durationMs) => {
       updateCamera(runtime, { centerX: x, centerY: y }, durationMs);
     },
-    d3ReheatSimulation: () => {
+    reheatSimulation: () => {
       runtime.layoutRef.current?.engine.reheat();
       runtime.engineStopNotifiedRef.current = false;
       resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
       runtime.requestFrameRef.current();
     },
     getFps: () => runtime.fpsRef.current,
-    getPerformance: () => runtime.performanceMonitorRef.current?.sample() ?? { status: 'idle' },
+    getPerformance: () => runtime.performanceMonitorRef.current.sample(),
     graph2ScreenCoords: (x, y) => {
       const size = canvasSize(canvas);
       return graphToScreen(runtime.cameraRef.current, size.width, size.height, x, y);
     },
-    pauseAnimation: () => {
-      runtime.layoutRef.current?.engine.pause();
-      resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
-      runtime.markPerformanceIdle();
-    },
-    refresh: () => runtime.requestFrameRef.current(),
     resumeAnimation: () => {
       if (!runtime.rendererOperationalRef.current) return;
       runtime.layoutRef.current?.engine.resume();
@@ -114,15 +112,10 @@ export function createOwnedGraphControls(
     stopInteractionRecording: () => runtime.performanceRecorderRef.current.stop(),
     stopStageAttributionRecording: () => runtime.performanceAttributionRef.current.stop(),
     updateNode: (nodeId, updates) => updateViewportNode(runtime, nodeId, updates),
-    zoom: ((scale?: number, durationMs?: number) => {
-      if (scale === undefined) return runtime.cameraRef.current.zoom;
-      updateCamera(runtime, { zoom: scale }, durationMs);
-      return controls;
-    }) as OwnedGraph2dControls['zoom'],
+    zoom,
     zoomBy: (factor, durationMs) => {
       const destination = readOwnedGraphCameraTargetZoom(runtime.cameraRef.current);
       updateCamera(runtime, { zoom: destination * factor }, durationMs);
-      return controls;
     },
     zoomToFit: (durationMs, padding) => {
       const size = canvasSize(canvas);
@@ -141,5 +134,4 @@ export function createOwnedGraphControls(
       }, durationMs);
     },
   };
-  return controls;
 }

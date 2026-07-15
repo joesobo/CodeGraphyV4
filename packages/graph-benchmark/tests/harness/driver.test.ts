@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { createSyntheticFixture } from '../../src/fixture/presets';
 import {
   resolveGraphBenchmarkDriver,
-  selectSyntheticDragTarget,
   selectSyntheticDragTargetDetails,
 } from '../../src/harness/driver';
 
@@ -27,7 +26,6 @@ describe('resolveGraphBenchmarkDriver', () => {
       'tiny/leaf-6.ts',
       'tiny/leaf-7.ts',
     ]);
-    expect(selectSyntheticDragTarget(fixture)).toBe(selection.targetNodeId);
     expect(selectSyntheticDragTargetDetails(createSyntheticFixture('tiny', 307)))
       .toEqual(selection);
   });

@@ -148,13 +148,3 @@ export class OwnedGraphLinkPicker {
     return nearest;
   }
 }
-
-export function pickOwnedGraphLink(
-  links: readonly FGLink[],
-  point: { x: number; y: number },
-  zoom: number,
-): OwnedGraphLinkPick | undefined {
-  const picker = new OwnedGraphLinkPicker();
-  picker.rebuild(links);
-  return picker.pick(point, zoom);
-}

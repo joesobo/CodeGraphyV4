@@ -72,6 +72,19 @@ describe('owned WebGPU renderer lifecycle', () => {
     expect(runtime.onReady).not.toHaveBeenCalled();
   });
 
+  it('pauses physics and reports renderer creation failures', async () => {
+    rendererHarness.create.mockRejectedValue(new Error('adapter request failed'));
+    const { engine, runtime } = runtimeHarness();
+
+    startOwnedGraphRendererLifecycle(runtime, document.createElement('canvas'));
+    await flushLifecycle();
+
+    expect(runtime.rendererOperationalRef.current).toBe(false);
+    expect(engine.pause).toHaveBeenCalledOnce();
+    expect(runtime.onError).toHaveBeenCalledWith('adapter request failed');
+    expect(runtime.onReady).not.toHaveBeenCalled();
+  });
+
   it('activates a ready renderer and resumes an eligible layout', async () => {
     const renderer = { dispose: vi.fn() };
     rendererHarness.create.mockResolvedValue(renderer);

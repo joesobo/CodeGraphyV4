@@ -4,7 +4,7 @@ import type { OwnedGraphNodeStyle } from '../../../../../../src/webview/componen
 import {
   OWNED_ARROW_HALF_WIDTH,
   OWNED_ARROW_LENGTH,
-  ownedArrowCurveParameters,
+  writeOwnedArrowCurveParameters,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/arrowGeometry';
 import {
   ownedLinkGeometry,
@@ -24,6 +24,30 @@ function style(overrides: Partial<OwnedGraphNodeStyle> = {}): OwnedGraphNodeStyl
     width: 20,
     ...overrides,
   };
+}
+
+function ownedArrowCurveParameters(
+  source: { x: number; y: number },
+  target: { x: number; y: number },
+  curvature: number,
+  sourceStyle: OwnedGraphNodeStyle,
+  targetStyle: OwnedGraphNodeStyle,
+  visualScale = 1,
+): { source: number; target: number } {
+  const output = new Float32Array(2);
+  writeOwnedArrowCurveParameters(
+    output,
+    0,
+    source.x,
+    source.y,
+    target.x,
+    target.y,
+    curvature,
+    sourceStyle,
+    targetStyle,
+    visualScale,
+  );
+  return { source: output[0], target: output[1] };
 }
 
 function geometry(

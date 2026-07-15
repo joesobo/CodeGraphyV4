@@ -150,7 +150,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 - context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
 - named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldBackground`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
 
-The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw force-graph instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
+The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw graph-renderer instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
 
 Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and MCP consume the same core analysis path without installing VS Code or webview dependencies.
 

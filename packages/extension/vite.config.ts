@@ -6,8 +6,10 @@ const workspaceRoot = resolve(__dirname, '../..');
 
 export default defineConfig({
   root: __dirname,
+  base: './',
   plugins: [react()],
   build: {
+    assetsInlineLimit: 0,
     outDir: resolve(workspaceRoot, 'dist/webview'),
     rollupOptions: {
       input: resolve(__dirname, 'src/webview/main.tsx'),

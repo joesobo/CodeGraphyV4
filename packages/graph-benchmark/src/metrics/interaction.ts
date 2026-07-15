@@ -156,6 +156,16 @@ function targetLatency(
   return summarizeLatency(latencies, missed);
 }
 
+function findLast<T>(
+  values: readonly T[],
+  predicate: (value: T) => boolean,
+): T | undefined {
+  for (let index = values.length - 1; index >= 0; index -= 1) {
+    if (predicate(values[index])) return values[index];
+  }
+  return undefined;
+}
+
 function positionsById(frame: RecordedInteractionFrame): Map<string, RecordedPosition> {
   return new Map(frame.neighbors.map(position => [position.id, position]));
 }
@@ -180,13 +190,11 @@ function neighborLatency(
   let missed = 0;
   const sequenceOrdered = hasInputSequenceOrder(recording);
   for (const input of recording.inputs.filter(entry => entry.phase === 'move')) {
-    const baseline = [...recording.frames]
-      .reverse()
-      .find(frame => sequenceOrdered
-        ? frame.latestInputSequence === null
-          || (frame.latestInputSequence !== undefined
-            && frame.latestInputSequence < input.sequence)
-        : frame.presentationTimestampMs < input.eventTimestampMs);
+    const baseline = findLast(recording.frames, frame => sequenceOrdered
+      ? frame.latestInputSequence === null
+        || (frame.latestInputSequence !== undefined
+          && frame.latestInputSequence < input.sequence)
+      : frame.presentationTimestampMs < input.eventTimestampMs);
     const frames = framesFollowingInput(recording, input);
     if (!baseline) {
       missed += 1;
@@ -205,7 +213,7 @@ function neighborLatency(
 
 function dragWindow(recording: InteractionRecording): { start: number; end: number } | null {
   const down = recording.inputs.find(input => input.phase === 'down');
-  const up = [...recording.inputs].reverse().find(input => input.phase === 'up');
+  const up = findLast(recording.inputs, input => input.phase === 'up');
   return down && up ? { start: down.eventTimestampMs, end: up.eventTimestampMs } : null;
 }
 
@@ -258,7 +266,7 @@ function settleAssessment(
   recording: InteractionRecording,
   thresholds: InteractionThresholds,
 ) {
-  const release = [...recording.inputs].reverse().find(input => input.phase === 'up');
+  const release = findLast(recording.inputs, input => input.phase === 'up');
   const settleFrames = release
     ? recording.frames.filter(frame => frame.presentationTimestampMs >= release.eventTimestampMs)
     : [];
@@ -361,7 +369,7 @@ export function assessInteractionRecording(
   const frameTimes = recording.frames.map(frame => frame.totalCpuMs);
   const simulationStepCount = recording.frames.reduce((sum, frame) => sum + frame.steps, 0);
   const simulationElapsedMs = recording.frames.length > 1
-    ? recording.frames.at(-1)!.presentationTimestampMs
+    ? recording.frames.at(-1).presentationTimestampMs
       - recording.frames[0].presentationTimestampMs
     : 0;
   const simulationTimes = recording.frames.map(frame => frame.simulationMs);
@@ -370,11 +378,12 @@ export function assessInteractionRecording(
     frame.presentationTimestampMs - recording.frames[index].presentationTimestampMs,
   );
   const teleports = teleportFrameCount(recording.frames, thresholds.teleportDistance);
+  const cpuFrameTimeMs = summarizeDistribution(frameTimes);
   return {
     timing: {
-      cpuFrameTimeMs: summarizeDistribution(frameTimes),
+      cpuFrameTimeMs,
       displayedFps: displayedFps(recording.frames),
-      potentialFps: 1_000 / summarizeDistribution(frameTimes).mean,
+      potentialFps: 1_000 / cpuFrameTimeMs.mean,
       simulationStepCount,
       simulationStepsPerFrame: simulationStepCount / recording.frames.length,
       simulationStepsPerSecond: simulationElapsedMs > 0

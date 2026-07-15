@@ -51,10 +51,6 @@ export function selectSyntheticDragTargetDetails(
   };
 }
 
-export function selectSyntheticDragTarget(fixture: BenchmarkFixture): string {
-  return selectSyntheticDragTargetDetails(fixture).targetNodeId;
-}
-
 export interface GraphBenchmarkDriver {
   renderer: BenchmarkRenderer;
   startServer(fixture: BenchmarkFixture): Promise<GraphBenchmarkServer>;

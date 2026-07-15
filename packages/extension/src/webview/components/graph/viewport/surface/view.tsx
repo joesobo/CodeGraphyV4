@@ -1,9 +1,7 @@
 import { memo, type ReactElement } from 'react';
 import type { DirectionMode } from '../../../../../shared/settings/modes';
-import {
-  Surface2d,
-  type Surface2dProps,
-} from '../../rendering/surface/view/twoDimensional';
+import type { Surface2dProps } from '../../rendering/surface/owned2d/contracts';
+import { OwnedGraphSurface2d } from '../../rendering/surface/owned2d/view';
 import { areViewportSurfacePropsEqual } from './equality';
 
 export interface ViewportSurfaceProps {
@@ -18,7 +16,7 @@ function ViewportSurface({
   surface2dProps,
 }: ViewportSurfaceProps): ReactElement {
   return (
-    <Surface2d
+    <OwnedGraphSurface2d
       {...surface2dProps}
       backgroundColor={canvasBackgroundColor}
       directionMode={directionMode}

@@ -9,7 +9,7 @@ export interface OwnedGraphCameraPose {
   zoom: number;
 }
 
-export interface OwnedGraphCameraTransition {
+interface OwnedGraphCameraTransition {
   durationMs: number;
   from: OwnedGraphCameraPose;
   startedAtMs: number;
@@ -78,31 +78,54 @@ export function readOwnedGraphCameraTargetZoom(camera: OwnedGraphCamera): number
   return camera.transition?.target.zoom ?? camera.zoom;
 }
 
+function transitionDuration(durationMs: number | undefined): number {
+  return Number.isFinite(durationMs) ? Math.max(0, durationMs ?? 0) : 0;
+}
+
+function immediateCameraDestination(
+  camera: OwnedGraphCamera,
+  target: Partial<OwnedGraphCameraPose>,
+): OwnedGraphCameraPose {
+  return {
+    ...cameraPose(camera),
+    ...target,
+    zoom: clampOwnedGraphZoom(target.zoom ?? camera.zoom),
+  };
+}
+
+function animatedCameraDestination(
+  camera: OwnedGraphCamera,
+  target: Partial<OwnedGraphCameraPose>,
+): OwnedGraphCameraPose {
+  const destination = {
+    ...(camera.transition?.target ?? cameraPose(camera)),
+    ...target,
+  };
+  destination.zoom = clampOwnedGraphZoom(destination.zoom);
+  return destination;
+}
+
+function sameCameraPose(first: OwnedGraphCameraPose, second: OwnedGraphCameraPose): boolean {
+  return first.centerX === second.centerX
+    && first.centerY === second.centerY
+    && first.zoom === second.zoom;
+}
+
 export function transitionOwnedGraphCamera(
   camera: OwnedGraphCamera,
   target: Partial<OwnedGraphCameraPose>,
   durationMs: number | undefined,
   timestampMs: number,
 ): void {
-  advanceOwnedGraphCameraTransition(camera, timestampMs);
-  const duration = Number.isFinite(durationMs) ? Math.max(0, durationMs ?? 0) : 0;
+  const duration = transitionDuration(durationMs);
   if (duration === 0) {
-    applyCameraPose(camera, {
-      ...cameraPose(camera),
-      ...target,
-      zoom: clampOwnedGraphZoom(target.zoom ?? camera.zoom),
-    });
+    applyCameraPose(camera, immediateCameraDestination(camera, target));
     camera.transition = null;
     return;
   }
-  const destination = {
-    ...(camera.transition?.target ?? cameraPose(camera)),
-    ...target,
-  };
-  destination.zoom = clampOwnedGraphZoom(destination.zoom);
-  if (destination.centerX === camera.centerX
-    && destination.centerY === camera.centerY
-    && destination.zoom === camera.zoom) {
+  advanceOwnedGraphCameraTransition(camera, timestampMs);
+  const destination = animatedCameraDestination(camera, target);
+  if (sameCameraPose(destination, camera)) {
     camera.transition = null;
     return;
   }
@@ -140,6 +163,38 @@ export function screenToGraph(
   };
 }
 
+interface OwnedGraphBounds {
+  maximumX: number;
+  maximumY: number;
+  minimumX: number;
+  minimumY: number;
+}
+
+function nodeHalfExtent(extent: number | undefined, size: number | undefined): number {
+  return Math.max(1, extent ? extent / 2 : size ?? 4);
+}
+
+function ownedGraphBounds(nodes: readonly FGNode[]): OwnedGraphBounds | null {
+  const bounds: OwnedGraphBounds = {
+    maximumX: Number.NEGATIVE_INFINITY,
+    maximumY: Number.NEGATIVE_INFINITY,
+    minimumX: Number.POSITIVE_INFINITY,
+    minimumY: Number.POSITIVE_INFINITY,
+  };
+  let positionedNodeCount = 0;
+  for (const node of nodes) {
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
+    const halfWidth = nodeHalfExtent(node.shapeSize2D?.width, node.size);
+    const halfHeight = nodeHalfExtent(node.shapeSize2D?.height, node.size);
+    bounds.minimumX = Math.min(bounds.minimumX, (node.x as number) - halfWidth);
+    bounds.minimumY = Math.min(bounds.minimumY, (node.y as number) - halfHeight);
+    bounds.maximumX = Math.max(bounds.maximumX, (node.x as number) + halfWidth);
+    bounds.maximumY = Math.max(bounds.maximumY, (node.y as number) + halfHeight);
+    positionedNodeCount += 1;
+  }
+  return positionedNodeCount > 0 ? bounds : null;
+}
+
 export function fitOwnedGraphCamera(
   camera: OwnedGraphCamera,
   nodes: readonly FGNode[],
@@ -147,30 +202,16 @@ export function fitOwnedGraphCamera(
   height: number,
   padding = 48,
 ): boolean {
-  const positioned = nodes.filter((node) => Number.isFinite(node.x) && Number.isFinite(node.y));
-  if (positioned.length === 0 || width <= 0 || height <= 0) return false;
-
-  let minimumX = Number.POSITIVE_INFINITY;
-  let minimumY = Number.POSITIVE_INFINITY;
-  let maximumX = Number.NEGATIVE_INFINITY;
-  let maximumY = Number.NEGATIVE_INFINITY;
-  for (const node of positioned) {
-    const halfWidth = Math.max(1, node.shapeSize2D?.width ? node.shapeSize2D.width / 2 : node.size ?? 4);
-    const halfHeight = Math.max(1, node.shapeSize2D?.height ? node.shapeSize2D.height / 2 : node.size ?? 4);
-    minimumX = Math.min(minimumX, (node.x as number) - halfWidth);
-    minimumY = Math.min(minimumY, (node.y as number) - halfHeight);
-    maximumX = Math.max(maximumX, (node.x as number) + halfWidth);
-    maximumY = Math.max(maximumY, (node.y as number) + halfHeight);
-  }
-
+  const bounds = ownedGraphBounds(nodes);
+  if (!bounds || width <= 0 || height <= 0) return false;
   camera.transition = null;
-  camera.centerX = (minimumX + maximumX) / 2;
-  camera.centerY = (minimumY + maximumY) / 2;
+  camera.centerX = (bounds.minimumX + bounds.maximumX) / 2;
+  camera.centerY = (bounds.minimumY + bounds.maximumY) / 2;
   const availableWidth = Math.max(1, width - padding * 2);
   const availableHeight = Math.max(1, height - padding * 2);
   camera.zoom = clampOwnedGraphZoom(Math.min(
-    availableWidth / Math.max(1, maximumX - minimumX),
-    availableHeight / Math.max(1, maximumY - minimumY),
+    availableWidth / Math.max(1, bounds.maximumX - bounds.minimumX),
+    availableHeight / Math.max(1, bounds.maximumY - bounds.minimumY),
   ));
   return true;
 }

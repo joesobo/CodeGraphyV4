@@ -25,12 +25,10 @@ export interface OwnedGraphNodeStyle {
 
 export interface OwnedGraph2dControls {
   centerAt(x: number, y: number, durationMs?: number): void;
-  d3ReheatSimulation(): void;
+  reheatSimulation(): void;
   getFps(): number | null;
   getPerformance(): OwnedGraphPerformanceSample;
   graph2ScreenCoords(x: number, y: number): { x: number; y: number };
-  pauseAnimation(): void;
-  refresh(): void;
   resumeAnimation(): void;
   screen2GraphCoords(x: number, y: number): { x: number; y: number };
   startInteractionRecording(options: OwnedGraphInteractionRecordingOptions): void;
@@ -39,8 +37,8 @@ export interface OwnedGraph2dControls {
   stopStageAttributionRecording(): Readonly<OwnedGraphStageAttributionRecording> | null;
   updateNode(nodeId: string, updates: Record<string, unknown>): boolean;
   zoom(): number;
-  zoom(scale: number, durationMs?: number): unknown;
-  zoomBy(factor: number, durationMs?: number): unknown;
+  zoom(scale: number, durationMs?: number): void;
+  zoomBy(factor: number, durationMs?: number): void;
   zoomToFit(durationMs?: number, padding?: number): void;
 }
 
@@ -54,14 +52,14 @@ export interface Surface2dProps {
   getLinkOpacity: (this: void, link: FGLink) => number;
   getLinkParticles: (this: void, link: FGLink) => number;
   getLinkWidth: (this: void, link: FGLink) => number;
-  getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
+  getNodeStyle: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getParticleColor: (this: void, link: FGLink) => string;
-  getStyleRevision?: (this: void) => number;
-  nodeLabelCanvasObject?: (this: void, node: FGNode, context: CanvasRenderingContext2D, globalScale: number) => void;
+  getStyleRevision(this: void): number;
+  nodeLabelCanvasObject(this: void, node: FGNode, context: CanvasRenderingContext2D, globalScale: number): void;
   onRenderFramePost: (this: void, context: CanvasRenderingContext2D, globalScale: number) => void;
   particleSize: number;
   particleSpeed: number;
-  showFps?: boolean;
-  physicsSettings?: IPhysicsSettings;
+  showFps: boolean;
+  physicsSettings: IPhysicsSettings;
   sharedProps: GraphSurfaceSharedProps;
 }

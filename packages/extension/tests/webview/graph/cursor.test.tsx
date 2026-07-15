@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
-import ForceGraph2D from '../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../__mocks__/ownedGraphSurface';
 
 const graphData: IGraphData = {
   nodes: [
@@ -20,7 +20,7 @@ function getGraphContainer(container: HTMLElement): HTMLElement {
 
 describe('Graph cursor behavior', () => {
   beforeEach(() => {
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
   });
 
   afterEach(() => {
@@ -33,7 +33,7 @@ describe('Graph cursor behavior', () => {
     const graphCanvas = screen.getByTestId('owned-webgpu-graph') as HTMLCanvasElement;
 
     await act(async () => {
-      ForceGraph2D.simulateNodeHover({
+      OwnedGraphSurface.simulateNodeHover({
         id: 'src/app.ts',
         size: 16,
       });
@@ -43,7 +43,7 @@ describe('Graph cursor behavior', () => {
     expect(graphCanvas.style.cursor).toBe('pointer');
 
     await act(async () => {
-      ForceGraph2D.simulateNodeHover(null);
+      OwnedGraphSurface.simulateNodeHover(null);
     });
 
     expect(graphContainer.style.cursor).toBe('default');

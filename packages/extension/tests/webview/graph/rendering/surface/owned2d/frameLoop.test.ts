@@ -124,7 +124,7 @@ describe('owned graph frame loop', () => {
     expect(runtime.frameRequestedRef.current).toBe(true);
     expect(requestAnimationFrame).not.toHaveBeenCalled();
     expect(ResizeObserverHarness.instance?.observe).toHaveBeenCalledWith(canvas);
-    expect(controlsRef.current).toBe(loop.controls);
+    expect(controlsRef.current).toBeDefined();
 
     runtime.gpuRendererRef.current = null;
     runtime.requestFrameRef.current();

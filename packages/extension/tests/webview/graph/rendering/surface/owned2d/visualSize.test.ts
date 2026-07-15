@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   ownedGraphNodeScreenRadius,
-  ownedGraphNodeWorldRadius,
   ownedGraphNodeWorldScale,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/visualSize';
 
@@ -12,7 +11,6 @@ describe('owned2d visual node sizing', () => {
     { zoom: 4, worldScale: 0.5, screenRadius: 16 },
   ])('uses Obsidian square-root zoom compensation at $zoom×', ({ zoom, worldScale, screenRadius }) => {
     expect(ownedGraphNodeWorldScale(zoom)).toBe(worldScale);
-    expect(ownedGraphNodeWorldRadius(8, zoom)).toBe(8 * worldScale);
     expect(ownedGraphNodeScreenRadius(8, zoom)).toBe(screenRadius);
   });
 });

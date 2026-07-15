@@ -28,6 +28,40 @@ describe('App', () => {
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
   });
 
+  it('buffers graph bootstrap while WASM physics is loading', async () => {
+    let finishPhysics: (() => void) | undefined;
+    const graphPhysicsPreparation = new Promise<void>(resolve => {
+      finishPhysics = resolve;
+    });
+    render(<App graphPhysicsPreparation={graphPhysicsPreparation} />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+
+    await act(async () => { finishPhysics?.(); });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+  });
+
+  it('shows an explicit error when WASM physics cannot initialize', async () => {
+    render(<App graphPhysicsPreparation={Promise.reject(new Error('compile failed'))} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Unable to initialize graph physics: compile failed',
+    );
+  });
+
   it('should render graph after receiving GRAPH_DATA_UPDATED message', async () => {
     render(<App />);
 

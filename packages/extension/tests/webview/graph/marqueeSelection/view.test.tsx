@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import ForceGraph2D from '../../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../../__mocks__/ownedGraphSurface';
 import Graph from '../../../../src/webview/components/graph/view/component';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
@@ -38,7 +38,7 @@ function setStore(overrides: Record<string, unknown> = {}): void {
 
 describe('graph/marqueeSelection view', () => {
   beforeEach(() => {
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     vi.clearAllMocks();
     setStore();
   });
@@ -63,7 +63,7 @@ describe('graph/marqueeSelection view', () => {
     });
 
     act(() => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'src/app.ts' });
     });
 
     expect(await screen.findByText('Open 2 Files')).toBeInTheDocument();

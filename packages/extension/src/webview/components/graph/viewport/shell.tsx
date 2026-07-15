@@ -23,7 +23,6 @@ import { useGraphViewportModelOptions } from './shell/modelOptions';
 import { createGraphViewportSurfaceProps } from './shell/surfaceProps';
 import { publishCurrentGraphAccessibilityItems } from './shell/accessibilityItems';
 import { publishPluginGraphViewViewportState } from './shell/pluginState';
-import type { GraphViewport2dControls } from './shell/state';
 import {
   type GraphAccessibilityItems,
   type GraphScreenProjector,
@@ -106,7 +105,7 @@ export function GraphViewportShell({
   const publishGraphViewViewportState = (globalScale: number): void => {
     publishPluginGraphViewViewportState({
       globalScale,
-      graph: graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined,
+      graph: graphState.renderer.fg2dRef.current,
       nodes: graphState.renderer.graphDataRef.current.nodes,
       pluginHost,
     });

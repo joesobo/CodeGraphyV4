@@ -28,6 +28,19 @@ function positionHash(x: Float32Array, y: Float32Array): string {
   return hash.digest('hex');
 }
 
+function kinematicsHash(engine: {
+  x: Float32Array;
+  y: Float32Array;
+  vx: Float32Array;
+  vy: Float32Array;
+}): string {
+  const hash = createHash('sha256');
+  for (const values of [engine.x, engine.y, engine.vx, engine.vy]) {
+    hash.update(new Uint8Array(values.buffer, values.byteOffset, values.byteLength));
+  }
+  return hash.digest('hex');
+}
+
 describe('graph layout engine', () => {
   it('uses D3 deterministic phyllotaxis for missing positions', () => {
     const engine = createGraphLayoutEngine({
@@ -89,6 +102,54 @@ describe('graph layout engine', () => {
     expect(positionHash(first.x, first.y)).toBe(positionHash(second.x, second.y));
   });
 
+  it('matches the former TypeScript mixed-force trajectory exactly', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['a', 'b', 'c', 'd', 'e', 'f'],
+      initialX: Float32Array.of(0, 0, 24, -18, 11, -7),
+      initialY: Float32Array.of(0, 0, -9, 14, 21, -16),
+      initialVx: Float32Array.of(1.25, -0.75, 0.5, -1.5, 0.25, 2),
+      initialVy: Float32Array.of(-0.5, 1.75, -1, 0.5, -0.25, 1),
+      chargeStrengthMultipliers: Float32Array.of(1, 0.5, 1.5, 0, 2, 0.75),
+      radii: Float32Array.of(8, 10, 6, 12, 9, 7),
+      flags: Uint8Array.of(0, GraphNodeFlag.Pinned, 0, GraphNodeFlag.Hidden, 0, 0),
+      edgeSources: Uint32Array.of(0, 0, 1, 2, 4, 5, 3),
+      edgeTargets: Uint32Array.of(1, 2, 4, 5, 5, 0, 0),
+    }, {
+      alphaDecay: 0.031,
+      alphaMinimum: 0.0005,
+      centralGravity: 0.17,
+      chargeDistanceMax: 240,
+      chargeDistanceMin: 2.5,
+      chargeStrength: -37,
+      chargeTheta: 0.83,
+      collisionIterations: 2.5,
+      collisionPadding: 1.75,
+      collisionStrength: 0.65,
+      initializationSpacing: 11,
+      linkDistance: 34,
+      linkStrength: 0.42,
+      maximumCollisionNeighbors: 7.5,
+      settleSpeed: 0.02,
+      settleSteps: 4,
+      velocityDecay: 0.27,
+    });
+    // Generated from the pre-WASM TypedGraphLayoutEngine at revision 64229ddc3.
+    const expected: ReadonlyMap<number, readonly [string, number]> = new Map([
+      [1, ['046607b1d550721003088443d2b120c0df55b8f3bce6831a11efe8ef0a9e5be1', 0.969]],
+      [4, ['3b0be6c617ab003f060c2deeba78771bce4c44a3b63eb5696457c6a57bf44ee9', 0.8816477595209999]],
+      [8, ['a3355cffdd910644769365112996515b683be18448b59f35e560a8dba1a53a85', 0.777302771868399]],
+    ]);
+
+    for (let tick = 1; tick <= 8; tick += 1) {
+      engine.tick();
+      const snapshot = expected.get(tick);
+      if (snapshot) {
+        expect(kinematicsHash(engine)).toBe(snapshot[0]);
+        expect(engine.alpha).toBe(snapshot[1]);
+      }
+    }
+  });
+
   it('advances one fixed simulation step per display-frame tick', () => {
     const sixtyFrames = createGraphLayoutEngine(lineGraph(64));
     const repeatedSixtyFrames = createGraphLayoutEngine(lineGraph(64));
@@ -104,6 +165,68 @@ describe('graph layout engine', () => {
       .toBe(positionHash(repeatedSixtyFrames.x, repeatedSixtyFrames.y));
     expect(positionHash(sixtyFrames.x, sixtyFrames.y))
       .not.toBe(positionHash(twoHundredFortyFrames.x, twoHundredFortyFrames.y));
+  });
+
+  it('preserves deterministic repulsion state when graph storage is replaced', () => {
+    const input: GraphLayoutInput = {
+      nodeIds: ['first', 'second', 'third'],
+      initialX: new Float32Array(3),
+      initialY: new Float32Array(3),
+      radii: new Float32Array(3).fill(1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    };
+    const config = {
+      centralGravity: 0,
+      collisionIterations: 0,
+      velocityDecay: 0,
+    };
+    const replaced = createGraphLayoutEngine(input, config);
+    const retained = createGraphLayoutEngine(input, config);
+    replaced.tick();
+    retained.tick();
+
+    replaced.setGraph(input);
+    retained.setKinematics(
+      new Float32Array(3),
+      new Float32Array(3),
+      new Float32Array(3),
+      new Float32Array(3),
+    );
+    retained.reheat();
+    replaced.tick();
+    retained.tick();
+
+    expect(replaced.x).toEqual(retained.x);
+    expect(replaced.y).toEqual(retained.y);
+    expect(replaced.vx).toEqual(retained.vx);
+    expect(replaced.vy).toEqual(retained.vy);
+  });
+
+  it('refreshes engine views after rare Barnes-Hut storage growth', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['origin', 'subnormal', 'extreme'],
+      initialX: Float32Array.of(0, Math.fround(1.4e-45), Math.fround(3e38)),
+      initialY: Float32Array.of(0, 0, Math.fround(3e38)),
+      radii: Float32Array.of(1, 1, 1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 0,
+    });
+    const initialBuffer = engine.x.buffer;
+
+    engine.tick();
+
+    expect(engine.x.buffer).not.toBe(initialBuffer);
+    engine.setNodePosition(0, 12, -4);
+    engine.pin(0);
+    engine.tick();
+    expect([engine.x[0], engine.y[0], engine.vx[0], engine.vy[0]])
+      .toEqual([12, -4, 0, 0]);
+    expect([...engine.x, ...engine.y, ...engine.vx, ...engine.vy].every(Number.isFinite))
+      .toBe(true);
   });
 
   it('keeps coincident nodes finite with bounded energy', () => {
@@ -331,6 +454,35 @@ describe('graph layout engine', () => {
     engine.tick();
 
     expect(engine.x[0]).toBeLessThan(100);
+  });
+
+  it('reconfigures collision grid cell size when padding changes', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['first', 'second'],
+      initialX: Float32Array.of(0, 11),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(5, 5),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 1,
+      collisionPadding: 0,
+      collisionStrength: 1,
+      velocityDecay: 0,
+    });
+
+    engine.setConfig({ collisionPadding: 4 });
+    engine.tick();
+
+    expect(engine.x[1] - engine.x[0]).toBeCloseTo(14, 5);
+  });
+
+  it('rejects a non-positive reheat alpha', () => {
+    const engine = createGraphLayoutEngine(lineGraph(1));
+
+    expect(() => engine.reheat(0)).toThrow('reheat alpha must be positive');
   });
 
   it('keeps a pinned node fixed until release', () => {

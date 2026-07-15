@@ -24,6 +24,27 @@ function cellKey(x: number, y: number): number {
   return Math.imul(x, 73_856_093) ^ Math.imul(y, 19_349_663);
 }
 
+function hitsNode(
+  node: FGNode,
+  dx: number,
+  dy: number,
+  distanceSquared: number,
+  nodeVisualScale: number,
+  screenPadding: number,
+  minimumScreenRadius: number,
+): boolean {
+  const area = rectangularPointerArea(node);
+  if (area) {
+    return Math.abs(dx) <= area.width * nodeVisualScale / 2 + screenPadding
+      && Math.abs(dy) <= area.height * nodeVisualScale / 2 + screenPadding;
+  }
+  const radius = Math.max(
+    minimumScreenRadius,
+    (node.size ?? 0) * nodeVisualScale + screenPadding,
+  );
+  return distanceSquared <= radius ** 2;
+}
+
 export class OwnedGraphNodePicker {
   private readonly buckets = new Map<number, number[]>();
   private maximumNodeRadius = 2;
@@ -74,14 +95,15 @@ export class OwnedGraphNodePicker {
           const dx = point.x - (node.x as number);
           const dy = point.y - (node.y as number);
           const distanceSquared = dx * dx + dy * dy;
-          const area = rectangularPointerArea(node);
-          const hit = area
-            ? Math.abs(dx) <= area.width * nodeVisualScale / 2 + screenPadding
-              && Math.abs(dy) <= area.height * nodeVisualScale / 2 + screenPadding
-            : distanceSquared <= Math.max(
-                minimumScreenRadius,
-                (node.size ?? 0) * nodeVisualScale + screenPadding,
-              ) ** 2;
+          const hit = hitsNode(
+            node,
+            dx,
+            dy,
+            distanceSquared,
+            nodeVisualScale,
+            screenPadding,
+            minimumScreenRadius,
+          );
           if (hit && distanceSquared < bestDistanceSquared) {
             bestIndex = index;
             bestDistanceSquared = distanceSquared;
@@ -91,14 +113,4 @@ export class OwnedGraphNodePicker {
     }
     return bestIndex < 0 ? undefined : { index: bestIndex, node: this.nodes[bestIndex] };
   }
-}
-
-export function pickOwnedGraphNode(
-  nodes: readonly FGNode[],
-  point: { x: number; y: number },
-  globalScale: number,
-): { index: number; node: FGNode } | undefined {
-  const picker = new OwnedGraphNodePicker();
-  picker.rebuild(nodes);
-  return picker.pick(point, globalScale);
 }

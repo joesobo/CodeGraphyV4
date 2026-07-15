@@ -3,7 +3,7 @@ import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
-import ForceGraph2D from '../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage, getSentMessages } from '../../helpers/sentMessages';
 
@@ -19,7 +19,7 @@ const graphData: IGraphData = {
 describe('Graph double-click behavior', () => {
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
       pluginContextMenuItems: [],
@@ -31,15 +31,15 @@ describe('Graph double-click behavior', () => {
   });
 
   it('focuses and opens node in 2d on double-click', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
 
     render(<Graph data={graphData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
     });
 
     expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
@@ -59,14 +59,14 @@ describe('Graph double-click behavior', () => {
 
 
   it('selects and preview-opens on single click without focus animation', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
 
     render(<Graph data={graphData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
     });
 
     expect(methods.centerAt).not.toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('Graph double-click behavior', () => {
     render(<Graph data={graphData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, ctrlKey: true, clientX: 100, clientY: 100 });
+      OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, ctrlKey: true, clientX: 100, clientY: 100 });
     });
 
     expect(findMessage('NODE_SELECTED')).toBeUndefined();
@@ -91,16 +91,16 @@ describe('Graph double-click behavior', () => {
   it('clears the focused file on a repeated single click for the same node', async () => {
     vi.useFakeTimers();
     try {
-      const methods = ForceGraph2D.getMockMethods();
+      const methods = OwnedGraphSurface.getMockMethods();
       methods.centerAt.mockClear();
       methods.zoom.mockClear();
 
       render(<Graph data={graphData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
         vi.advanceTimersByTime(600);
-        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
       });
 
       const selectedMessages = getSentMessages().filter(
@@ -122,11 +122,11 @@ describe('Graph double-click behavior', () => {
       render(<Graph data={graphData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
         vi.advanceTimersByTime(600);
-        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
         vi.advanceTimersByTime(600);
-        ForceGraph2D.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
+        OwnedGraphSurface.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
       });
 
       expect(findMessage('CLEAR_FOCUSED_FILE')).toBeTruthy();
@@ -143,15 +143,15 @@ describe('Graph double-click behavior', () => {
   });
 
   it('does not treat rapid clicks on different nodes as a double-click', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
 
     render(<Graph data={graphData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
-      ForceGraph2D.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
+      OwnedGraphSurface.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      OwnedGraphSurface.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
     });
 
     expect(methods.centerAt).not.toHaveBeenCalled();

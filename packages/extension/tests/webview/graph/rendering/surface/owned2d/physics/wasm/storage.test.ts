@@ -1,0 +1,108 @@
+import { describe, expect, it, vi } from 'vitest';
+
+import type { GraphLayoutState } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/contracts';
+import type { OwnedGraphPhysicsExports } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/wasm/abi';
+import { OwnedGraphPhysicsStorage } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/wasm/storage';
+
+function graphState(): GraphLayoutState {
+  return {
+    x: Float32Array.of(1, 2, 3),
+    y: Float32Array.of(4, 5, 6),
+    vx: Float32Array.of(7, 8, 9),
+    vy: Float32Array.of(10, 11, 12),
+    chargeStrengthMultipliers: Float32Array.of(0.5, 1, 1.5),
+    radii: Float32Array.of(8, 9, 10),
+    flags: Uint8Array.of(0, 1, 2),
+    edgeSources: Uint32Array.of(0, 1),
+    edgeTargets: Uint32Array.of(1, 2),
+    linkDegrees: Uint32Array.of(1, 2, 1),
+  };
+}
+
+describe('owned graph WASM physics storage', () => {
+  it('copies every graph buffer into one independent WASM memory', () => {
+    const source = graphState();
+    const storage = new OwnedGraphPhysicsStorage(source, 256);
+
+    expect(storage.state).toEqual(source);
+    expect(storage.state.x).not.toBe(source.x);
+    for (const values of Object.values(storage.state)) {
+      expect(values.buffer).toBe(storage.memory.buffer);
+    }
+    expect(storage.memory.buffer.byteLength).toBe(131_072);
+    source.x[0] = 99;
+    expect(storage.state.x[0]).toBe(1);
+  });
+
+  it('publishes every memory-region pointer through the raw ABI', () => {
+    const storage = new OwnedGraphPhysicsStorage(graphState(), 256);
+    const initializeResult = vi.fn();
+    const initializeGraph = vi.fn();
+    const initializeRepulsion = vi.fn();
+    const initializeCollision = vi.fn();
+    const exports = {
+      initializeResult,
+      initializeGraph,
+      initializeRepulsion,
+      initializeCollision,
+    } as unknown as OwnedGraphPhysicsExports;
+    const layout = storage.layout;
+
+    storage.initialize(exports);
+
+    expect(initializeResult).toHaveBeenCalledWith(layout.result.offset);
+    expect(initializeGraph).toHaveBeenCalledWith(
+      3,
+      2,
+      layout.x.offset,
+      layout.y.offset,
+      layout.vx.offset,
+      layout.vy.offset,
+      layout.multipliers.offset,
+      layout.radii.offset,
+      layout.flags.offset,
+      layout.edgeSources.offset,
+      layout.edgeTargets.offset,
+      layout.linkDegrees.offset,
+    );
+    expect(initializeRepulsion).toHaveBeenCalledWith(
+      layout.barnesHutChildren.offset,
+      layout.barnesHutInternal.offset,
+      layout.barnesHutLeafHeads.offset,
+      layout.barnesHutNextCoincident.offset,
+      layout.barnesHutStrengths.offset,
+      layout.barnesHutCharges.offset,
+      layout.barnesHutChargeX.offset,
+      layout.barnesHutChargeY.offset,
+      layout.barnesHutBuildStack.offset,
+      layout.barnesHutBuildTraversal.offset,
+      layout.barnesHutTraversalCells.offset,
+      layout.barnesHutTraversalX.offset,
+      layout.barnesHutTraversalY.offset,
+      layout.barnesHutTraversalSize.offset,
+      256,
+    );
+    expect(initializeCollision).toHaveBeenCalledWith(
+      layout.collisionNext.offset,
+      layout.collisionCellX.offset,
+      layout.collisionCellY.offset,
+      layout.collisionHashKeys.offset,
+      layout.collisionHashHeads.offset,
+      layout.collisionHashUsed.offset,
+      layout.hashCapacity,
+    );
+  });
+
+  it('snapshots every graph buffer outside WASM memory', () => {
+    const storage = new OwnedGraphPhysicsStorage(graphState(), 256);
+
+    const snapshot = storage.snapshot();
+
+    expect(snapshot).toEqual(storage.state);
+    for (const values of Object.values(snapshot)) {
+      expect(values.buffer).not.toBe(storage.memory.buffer);
+    }
+    snapshot.x[0] = 99;
+    expect(storage.state.x[0]).toBe(1);
+  });
+});

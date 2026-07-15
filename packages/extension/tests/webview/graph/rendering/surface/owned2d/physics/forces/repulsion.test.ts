@@ -3,20 +3,21 @@ import {
   forceSimulation,
   type SimulationNodeDatum,
 } from 'd3-force';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import {
   createGraphLayoutEngine,
   DEFAULT_GRAPH_LAYOUT_CONFIG,
 } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { FlatBarnesHutTree } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/forces/barnesHut';
-import {
-  applyRepulsionForces,
-  resolveRepulsionTheta,
-} from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/forces/repulsion';
 
 interface ReferenceNode extends SimulationNodeDatum {
   id: number;
+}
+
+function expectedRepulsionTheta(nodeCount: number): number {
+  const progress = (nodeCount - 500) / 500;
+  return DEFAULT_GRAPH_LAYOUT_CONFIG.chargeTheta
+    * Math.min(1, Math.max(0, progress));
 }
 
 function compareBarnesHutLayout(nodeCount: number, tickCount: number) {
@@ -36,7 +37,7 @@ function compareBarnesHutLayout(nodeCount: number, tickCount: number) {
     { length: nodeCount },
     (_, id) => ({ id, vx: 0, vy: 0, x: initialX[id], y: initialY[id] }),
   );
-  const theta = resolveRepulsionTheta(nodeCount, DEFAULT_GRAPH_LAYOUT_CONFIG.chargeTheta);
+  const theta = expectedRepulsionTheta(nodeCount);
   const reference = forceSimulation(referenceNodes)
     .stop()
     .alpha(1)
@@ -108,37 +109,26 @@ function deterministicBarnesHutTrajectory(): { x: Float32Array; y: Float32Array 
   return { x: new Float32Array(engine.x), y: new Float32Array(engine.y) };
 }
 
-describe('owned graph many-body force', () => {
-  it('preserves exact 500-node charge and transitions smoothly to D3 theta by 1,000', () => {
-    const theta = DEFAULT_GRAPH_LAYOUT_CONFIG.chargeTheta;
-    expect(resolveRepulsionTheta(500, theta)).toBe(0);
-    expect(resolveRepulsionTheta(501, theta)).toBeCloseTo(0.0018);
-    expect(resolveRepulsionTheta(750, theta)).toBe(0.45);
-    expect(resolveRepulsionTheta(1_000, theta)).toBe(0.9);
-  });
-
-  it('does not build a tree when global repulsion is disabled', () => {
-    const state = {
-      chargeStrengthMultipliers: Float32Array.of(1),
+describe('owned graph WASM many-body force', () => {
+  it('leaves positions unchanged when global repulsion is disabled', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['left', 'right'],
+      initialX: Float32Array.of(-20, 20),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(1, 1),
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
-      flags: new Uint8Array(1),
-      linkDegrees: new Uint32Array(1),
-      radii: Float32Array.of(1),
-      vx: Float32Array.of(0),
-      vy: Float32Array.of(0),
-      x: Float32Array.of(0),
-      y: Float32Array.of(0),
-    };
-    const tree = new FlatBarnesHutTree();
-    const rebuild = vi.spyOn(tree, 'rebuild');
-
-    applyRepulsionForces(tree, state, {
-      ...DEFAULT_GRAPH_LAYOUT_CONFIG,
+    }, {
+      centralGravity: 0,
       chargeStrength: 0,
-    }, 1);
+      collisionIterations: 0,
+      velocityDecay: 0,
+    });
 
-    expect(rebuild).not.toHaveBeenCalled();
+    engine.tick();
+
+    expect(engine.x).toEqual(Float32Array.of(-20, 20));
+    expect(engine.y).toEqual(Float32Array.of(0, 0));
   });
 
   it('matches exact D3 charge impulses across the graph', () => {
@@ -236,8 +226,8 @@ describe('owned graph many-body force', () => {
     expect(comparison.maximumError).toBeLessThan(0.05);
   });
 
-  it('matches a 1,000-node D3 Barnes-Hut force step', () => {
-    const comparison = compareBarnesHutLayout(1_000, 1);
+  it.each([500, 750, 1_000])('matches the D3 %i-node force step', (nodeCount) => {
+    const comparison = compareBarnesHutLayout(nodeCount, 1);
 
     expect(comparison.rmsError).toBeLessThan(0.01);
     expect(comparison.maximumError).toBeLessThan(0.05);

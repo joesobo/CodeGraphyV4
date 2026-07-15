@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createDefaultSurfaceProps } from '../view/surfaceFixture';
+import { createDefaultSurfaceProps } from './surfaceFixture';
 
 const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
@@ -45,6 +45,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     await waitFor(() => {
       expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
     });
+    expect(container.firstElementChild).toHaveAttribute('data-codegraphy-physics', 'wasm');
     expect(container.querySelectorAll('canvas')).toHaveLength(2);
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });

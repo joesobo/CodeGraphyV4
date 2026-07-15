@@ -7,15 +7,9 @@ import {
   type GraphLayoutState,
   type GraphLayoutTickResult,
 } from './contracts';
-import { applyCenterForces } from './forces/center';
-import { applyCollisionForces } from './forces/collision';
-import { FlatBarnesHutTree } from './forces/barnesHut';
-import { applyLinkForces } from './forces/link';
-import { applyRepulsionForces } from './forces/repulsion';
-import { integrateGraphLayout } from './integration';
 import { createGraphLayoutState } from './initialization';
 import { updateVisibleLinkDegrees } from './linkDegrees';
-import { UniformGrid } from './spatialGrid';
+import { OwnedGraphWasmPhysicsKernel } from './wasm/kernel';
 
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   nodeIds: readonly string[] = [];
@@ -28,8 +22,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
   private nodeIndexes = new Map<string, number>();
-  private collisionGrid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.initializationSpacing);
-  private readonly repulsionTree = new FlatBarnesHutTree();
+  private kernel: OwnedGraphWasmPhysicsKernel | undefined;
   private simulationAlpha = 1;
   private simulationAlphaTarget = 0;
   private settledStepCount = 0;
@@ -63,14 +56,21 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       if (this.nodeIndexes.has(nodeId)) throw new Error(`Duplicate graph node id: ${nodeId}`);
       this.nodeIndexes.set(nodeId, index);
     });
-    this.state = createGraphLayoutState(input, this.config);
-    this.collisionGrid = new UniformGrid(this.collisionCellSize());
+    const state = createGraphLayoutState(input, this.config);
+    const randomState = this.kernel?.randomState ?? 1;
+    this.kernel = new OwnedGraphWasmPhysicsKernel(
+      state,
+      this.config,
+      this.collisionCellSize(state),
+      randomState,
+    );
+    this.state = this.kernel.state;
     this.reheat();
   }
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.config = mergeGraphLayoutConfig(this.config, config);
-    this.collisionGrid = new UniformGrid(this.collisionCellSize());
+    this.kernel?.configure(this.config, this.collisionCellSize(this.state));
     if (this.x.length > 0) this.reheat(0.3);
   }
 
@@ -142,13 +142,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.reheat();
   }
 
-  setAlpha(alpha: number): void {
-    if (!Number.isFinite(alpha) || alpha < 0) {
-      throw new Error('Graph layout alpha must be a non-negative finite number');
-    }
-    this.simulationAlpha = alpha;
-  }
-
   setAlphaTarget(alpha: number): void {
     if (!Number.isFinite(alpha) || alpha < 0) {
       throw new Error('Graph layout alpha target must be a non-negative finite number');
@@ -175,24 +168,16 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private step(): void {
     this.simulationAlpha += (this.simulationAlphaTarget - this.simulationAlpha)
       * this.config.alphaDecay;
-    applyLinkForces(this.state, this.config, this.simulationAlpha);
-    applyRepulsionForces(
-      this.repulsionTree,
-      this.state,
-      this.config,
-      this.simulationAlpha,
-    );
-    applyCenterForces(this.state, this.config, this.simulationAlpha);
-    const maximumVelocity = integrateGraphLayout(this.state, this.config);
     const collisionIterations = this.simulationAlpha < 0.1
       ? Math.max(this.config.collisionIterations, 16)
       : this.config.collisionIterations;
-    const collisionCorrectionCount = applyCollisionForces(
-      this.state,
-      this.config,
-      this.collisionGrid,
+    if (!this.kernel) throw new Error('Owned graph WASM physics kernel is unavailable');
+    const maximumVelocity = this.kernel.step(
+      this.simulationAlpha,
       collisionIterations,
     );
+    this.state = this.kernel.state;
+    const collisionCorrectionCount = this.kernel.collisionCorrectionCount;
     const calm = this.simulationAlpha <= this.config.alphaMinimum
       && maximumVelocity <= this.config.settleSpeed
       && collisionCorrectionCount === 0;
@@ -200,13 +185,13 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.settled = this.settledStepCount >= this.config.settleSteps;
   }
 
-  private collisionCellSize(): number {
-    return this.maximumRadius() * 2 + this.config.collisionPadding;
+  private collisionCellSize(state: GraphLayoutState): number {
+    return this.maximumRadius(state) * 2 + this.config.collisionPadding;
   }
 
-  private maximumRadius(): number {
+  private maximumRadius(state: GraphLayoutState): number {
     let maximumRadius = 1;
-    for (const radius of this.radii) maximumRadius = Math.max(maximumRadius, radius);
+    for (const radius of state.radii) maximumRadius = Math.max(maximumRadius, radius);
     return maximumRadius;
   }
 

@@ -11,6 +11,7 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
+import { createDefaultViewportSurfaceProps } from '../rendering/surface/owned2d/surfaceFixture';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
@@ -24,8 +25,8 @@ vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDimensional', () => ({
-  Surface2d: (props: Record<string, unknown>) => {
+vi.mock('../../../../src/webview/components/graph/rendering/surface/owned2d/view', () => ({
+  OwnedGraphSurface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
   },
@@ -48,12 +49,7 @@ vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
 
 function createSharedProps() {
   return {
-    cooldownTicks: 20,
-    d3AlphaDecay: 0.0228,
-    d3VelocityDecay: 0.7,
     graphData: { nodes: [], links: [] },
-    height: 200,
-    nodeId: 'id' as const,
     onBackgroundClick: vi.fn(),
     onBackgroundRightClick: vi.fn(),
     onEngineStop: vi.fn(),
@@ -64,7 +60,6 @@ function createSharedProps() {
     onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
-    warmupTicks: 0,
     width: 300,
   };
 }
@@ -92,16 +87,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       handleMouseUpCapture={handleMouseUpCapture}
       menuEntries={[]}
       surface2dProps={{
-        fg2dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkOpacity: vi.fn(() => 0.3),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        onRenderFramePost: vi.fn(),
-        particleSize: 2,
-        particleSpeed: 0.1,
+        ...createDefaultViewportSurfaceProps(),
         sharedProps: createSharedProps(),
       }}
       tooltipData={{

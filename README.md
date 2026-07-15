@@ -190,7 +190,7 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 | Analysis | Native Tree-sitter plus plugin-provided analyzers |
 | Graph storage | LadybugDB-backed `.codegraphy/graph.lbug` Graph Cache |
 | Webview | React, Vite, Zustand, Tailwind, Radix/shadcn-owned UI primitives |
-| Graph rendering | `react-force-graph-2d` with canvas rendering |
+| Graph rendering | Owned WebGPU renderer with deterministic WASM typed-array physics |
 | Theming | VS Code color tokens, Material Icon Theme assets |
 | Agent bridge | MCP stdio server from `@codegraphy-dev/mcp` |
 | Quality | Vitest, Playwright, ESLint, CRAP, Stryker mutation, repo-owned quality tools |

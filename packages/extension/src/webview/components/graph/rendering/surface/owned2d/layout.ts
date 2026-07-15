@@ -48,39 +48,67 @@ interface OwnedGraphLayoutData {
   resolvedLinks: FGLink[];
 }
 
-function buildOwnedGraphLayoutData(
-  nodes: FGNode[],
-  links: FGLink[],
-): OwnedGraphLayoutData {
-  const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]));
+interface OwnedGraphNodeLayoutData {
+  input: Omit<GraphLayoutInput, 'edgeSources' | 'edgeTargets'>;
+  nodeIndexes: ReadonlyMap<string, number>;
+}
+
+function initialCoordinate(fixed: number | undefined, dynamic: number | undefined): number {
+  const coordinate = Number.isFinite(fixed) ? fixed : dynamic;
+  return Number.isFinite(coordinate) ? coordinate as number : Number.NaN;
+}
+
+function initialVelocity(velocity: number | undefined): number {
+  return Number.isFinite(velocity) ? velocity as number : 0;
+}
+
+function chargeStrengthMultiplier(node: FGNode): number {
+  return Number.isFinite(node.chargeStrengthMultiplier2D)
+    ? Math.max(0, node.chargeStrengthMultiplier2D as number)
+    : 1;
+}
+
+function nodeFlags(node: FGNode): number {
+  return node.isPinned === true || node.isDragging === true ? GraphNodeFlag.Pinned : 0;
+}
+
+function buildOwnedGraphNodeLayoutData(nodes: FGNode[]): OwnedGraphNodeLayoutData {
   const initialX = new Float32Array(nodes.length);
   const initialY = new Float32Array(nodes.length);
   const initialVx = new Float32Array(nodes.length);
   const initialVy = new Float32Array(nodes.length);
-  const chargeStrengthMultipliers = new Float32Array(nodes.length).fill(1);
+  const chargeStrengthMultipliers = new Float32Array(nodes.length);
   const radii = new Float32Array(nodes.length);
   const flags = new Uint8Array(nodes.length);
-  initialX.fill(Number.NaN);
-  initialY.fill(Number.NaN);
-
   nodes.forEach((node, index) => {
-    const fixedX = Number.isFinite(node.fx) ? node.fx : node.x;
-    const fixedY = Number.isFinite(node.fy) ? node.fy : node.y;
-    if (Number.isFinite(fixedX) && Number.isFinite(fixedY)) {
-      initialX[index] = fixedX as number;
-      initialY[index] = fixedY as number;
-    }
-    initialVx[index] = Number.isFinite(node.vx) ? node.vx as number : 0;
-    initialVy[index] = Number.isFinite(node.vy) ? node.vy as number : 0;
+    initialX[index] = initialCoordinate(node.fx, node.x);
+    initialY[index] = initialCoordinate(node.fy, node.y);
+    initialVx[index] = initialVelocity(node.vx);
+    initialVy[index] = initialVelocity(node.vy);
+    chargeStrengthMultipliers[index] = chargeStrengthMultiplier(node);
     radii[index] = ownedNodeCollisionRadius(node);
-    if (Number.isFinite(node.chargeStrengthMultiplier2D)) {
-      chargeStrengthMultipliers[index] = Math.max(0, node.chargeStrengthMultiplier2D as number);
-    }
-    if (node.isPinned === true || node.isDragging === true) {
-      flags[index] |= GraphNodeFlag.Pinned;
-    }
+    flags[index] = nodeFlags(node);
   });
+  return {
+    input: {
+      nodeIds: nodes.map(node => node.id),
+      initialX,
+      initialY,
+      initialVx,
+      initialVy,
+      chargeStrengthMultipliers,
+      radii,
+      flags,
+    },
+    nodeIndexes: new Map(nodes.map((node, index) => [node.id, index])),
+  };
+}
 
+function resolveOwnedGraphLinks(
+  nodes: FGNode[],
+  links: FGLink[],
+  nodeIndexes: ReadonlyMap<string, number>,
+): Pick<OwnedGraphLayoutData, 'resolvedLinks'> & Pick<GraphLayoutInput, 'edgeSources' | 'edgeTargets'> {
   const resolvedLinks: FGLink[] = [];
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
@@ -94,20 +122,24 @@ function buildOwnedGraphLayoutData(
     edgeSources.push(sourceIndex);
     edgeTargets.push(targetIndex);
   }
-
-  const input: GraphLayoutInput = {
-    nodeIds: nodes.map((node) => node.id),
-    initialX,
-    initialY,
-    initialVx,
-    initialVy,
-    chargeStrengthMultipliers,
-    radii,
-    flags,
+  return {
     edgeSources: Uint32Array.from(edgeSources),
     edgeTargets: Uint32Array.from(edgeTargets),
+    resolvedLinks,
   };
-  return { input, resolvedLinks };
+}
+
+function buildOwnedGraphLayoutData(nodes: FGNode[], links: FGLink[]): OwnedGraphLayoutData {
+  const nodeData = buildOwnedGraphNodeLayoutData(nodes);
+  const linkData = resolveOwnedGraphLinks(nodes, links, nodeData.nodeIndexes);
+  return {
+    input: {
+      ...nodeData.input,
+      edgeSources: linkData.edgeSources,
+      edgeTargets: linkData.edgeTargets,
+    },
+    resolvedLinks: linkData.resolvedLinks,
+  };
 }
 
 export function createOwnedGraphLayout(
@@ -131,12 +163,7 @@ function sameBuffer(first: ArrayLike<number>, second: ArrayLike<number>): boolea
   return true;
 }
 
-export function updateOwnedGraphLayout(
-  layout: OwnedGraphLayout,
-  nodes: FGNode[],
-  links: FGLink[],
-  settings: IPhysicsSettings,
-): boolean {
+function preserveOwnedGraphNodeState(layout: OwnedGraphLayout, nodes: FGNode[]): void {
   const previousIndexes = new Map(layout.engine.nodeIds.map((id, index) => [id, index]));
   for (const node of nodes) {
     const index = previousIndexes.get(node.id);
@@ -145,35 +172,50 @@ export function updateOwnedGraphLayout(
     node.y = layout.engine.y[index];
     node.vx = layout.engine.vx[index];
     node.vy = layout.engine.vy[index];
-    const previousNode = layout.nodes[index];
-    if (previousNode?.isDragging === true) {
+    if (layout.nodes[index]?.isDragging === true) {
       node.isDragging = true;
       node.fx = node.x;
       node.fy = node.y;
     }
   }
+}
 
-  const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
-  const topologyUnchanged = sameBuffer(layout.engine.edgeSources, input.edgeSources)
-    && sameBuffer(layout.engine.edgeTargets, input.edgeTargets)
-    && layout.engine.nodeIds.length === input.nodeIds.length
-    && layout.engine.nodeIds.every((id, index) => id === input.nodeIds[index]);
-  const physicsShapeUnchanged = sameBuffer(
-    layout.engine.chargeStrengthMultipliers,
-    input.chargeStrengthMultipliers ?? new Float32Array(nodes.length).fill(1),
+function sameTopology(engine: GraphLayoutEngine, input: GraphLayoutInput): boolean {
+  return sameBuffer(engine.edgeSources, input.edgeSources)
+    && sameBuffer(engine.edgeTargets, input.edgeTargets)
+    && engine.nodeIds.length === input.nodeIds.length
+    && engine.nodeIds.every((id, index) => id === input.nodeIds[index]);
+}
+
+function samePhysicsShape(
+  engine: GraphLayoutEngine,
+  input: GraphLayoutInput,
+  nodeCount: number,
+): boolean {
+  return sameBuffer(
+    engine.chargeStrengthMultipliers,
+    input.chargeStrengthMultipliers ?? new Float32Array(nodeCount).fill(1),
   )
-    && sameBuffer(layout.engine.radii, input.radii)
-    && sameBuffer(layout.engine.flags, input.flags ?? new Uint8Array(nodes.length));
+    && sameBuffer(engine.radii, input.radii)
+    && sameBuffer(engine.flags, input.flags ?? new Uint8Array(nodeCount));
+}
 
+export function updateOwnedGraphLayout(
+  layout: OwnedGraphLayout,
+  nodes: FGNode[],
+  links: FGLink[],
+  settings: IPhysicsSettings,
+): void {
+  preserveOwnedGraphNodeState(layout, nodes);
+  const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
+  const graphShapeUnchanged = sameTopology(layout.engine, input)
+    && samePhysicsShape(layout.engine, input, nodes.length);
   layout.nodes = nodes;
   layout.links = resolvedLinks;
-  if (!topologyUnchanged || !physicsShapeUnchanged) {
-    layout.engine.setGraph(input);
-    applyOwnedPhysicsSettings(layout.engine, settings);
-    layout.engine.reheat();
-  }
-  syncOwnedLayoutNodes(layout);
-  return true;
+  if (graphShapeUnchanged) return;
+  layout.engine.setGraph(input);
+  applyOwnedPhysicsSettings(layout.engine, settings);
+  layout.engine.reheat();
 }
 
 export function syncOwnedLayoutNodesAtVersion(

@@ -24,7 +24,9 @@ describe('graphView/webview/html', () => {
       'light',
     );
 
-    expect(html).toContain("script-src vscode-webview://test 'nonce-nonce-value'");
+    expect(html).toContain(
+      "script-src vscode-webview://test 'nonce-nonce-value' 'wasm-unsafe-eval'",
+    );
     expect(html).toContain('worker-src vscode-webview://test blob:');
     expect(html).toContain("img-src vscode-webview://test data:");
     expect(html).toContain('webview:/test/extension/dist/webview/index.js');

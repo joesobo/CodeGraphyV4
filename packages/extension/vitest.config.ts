@@ -28,6 +28,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
+    globalSetup: [resolve(__dirname, 'tests/setupWasm.ts')],
     server: {
       sourcemap: false,
     },

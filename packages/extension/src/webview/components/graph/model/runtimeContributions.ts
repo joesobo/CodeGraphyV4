@@ -83,8 +83,11 @@ export function applyGraphViewProjectionContributions(
     return data;
   }
 
-  return contributions.projections.reduce(
-    (visibleGraph, entry) => entry.contribution.project({ visibleGraph, ...context }),
+  return contributions.projections.reduce<IGraphData>(
+    (
+      visibleGraph: IGraphData,
+      entry: CoreGraphViewContributionSet['projections'][number],
+    ) => entry.contribution.project({ visibleGraph, ...context }),
     data,
   );
 }

@@ -4,7 +4,7 @@ import {
   clearSentMessages,
   findMessage,
   fireEvent,
-  ForceGraph2D,
+  OwnedGraphSurface,
   getGraphContainer,
   Graph,
   graphStore,
@@ -116,7 +116,7 @@ describe('Graph node context menu file actions', () => {
   });
 
   it('focuses a file node in 2d', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
 
@@ -141,7 +141,7 @@ describe('Graph node context menu file actions', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
     });
 

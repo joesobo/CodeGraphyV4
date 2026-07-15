@@ -42,10 +42,10 @@ export interface UseGraphCallbacksResult {
   getLinkOpacity: (this: void, link: FGLink) => number;
   getLinkParticles: (this: void, link: FGLink) => number;
   getLinkWidth: (this: void, link: FGLink) => number;
-  getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
+  getNodeStyle: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getParticleColor: (this: void, link: FGLink) => string;
   getStyleRevision: (this: void) => number;
-  nodeLabelCanvasObject?: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
+  nodeLabelCanvasObject: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
 }
 
 type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];

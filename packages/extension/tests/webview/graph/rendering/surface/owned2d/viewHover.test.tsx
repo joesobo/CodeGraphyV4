@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createDefaultSurfaceProps } from '../view/surfaceFixture';
+import { createDefaultSurfaceProps } from './surfaceFixture';
 
 const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),

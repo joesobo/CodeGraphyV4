@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   act,
   fireEvent,
-  ForceGraph2D,
+  OwnedGraphSurface,
   getGraphContainer,
   Graph,
   menuData,
@@ -22,7 +22,7 @@ describe('Graph node context menu opening', () => {
     render(<Graph data={menuData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'src/app.ts' });
     });
 
     await waitFor(() => {
@@ -36,7 +36,7 @@ describe('Graph node context menu opening', () => {
       render(<Graph data={menuData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateNodeClick(
+        OwnedGraphSurface.simulateNodeClick(
           { id: 'src/app.ts' },
           { button: 0, ctrlKey: true, clientX: 120, clientY: 90 },
         );
@@ -55,11 +55,11 @@ describe('Graph node context menu opening', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+      OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
     await act(async () => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'nodeB.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'nodeB.ts' });
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 200 });
     });
 

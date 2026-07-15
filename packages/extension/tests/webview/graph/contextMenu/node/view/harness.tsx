@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import ForceGraph2D from '../../../../../__mocks__/ownedGraphSurface';
+import OwnedGraphSurface from '../../../../../__mocks__/ownedGraphSurface';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import Graph from '../../../../../../src/webview/components/graph/view/component';
@@ -11,7 +11,7 @@ import {
 } from '../../../../../helpers/sentMessages';
 
 export { act, fireEvent, render, screen, waitFor };
-export { ForceGraph2D };
+export { OwnedGraphSurface };
 export { clearSentMessages, findMessage, getSentMessages };
 export { Graph, graphStore };
 
@@ -69,7 +69,7 @@ export const symbolData: IGraphData = {
 export function setupGraphContextMenuTest(): void {
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
       pluginContextMenuItems: [],
@@ -79,7 +79,6 @@ export function setupGraphContextMenuTest(): void {
 
   afterEach(() => {
     vi.clearAllMocks();
-    ForceGraph2D.clearMockPositions();
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
@@ -108,7 +107,7 @@ export async function openNodeMenu(
   const graphContainer = getGraphContainer(container);
 
   await act(async () => {
-    ForceGraph2D.simulateNodeRightClick({ id: nodeId });
+    OwnedGraphSurface.simulateNodeRightClick({ id: nodeId });
     fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
   });
 
@@ -117,12 +116,12 @@ export async function openNodeMenu(
 
 export async function selectTwoNodesForMultiMenu(graphContainer: HTMLElement): Promise<void> {
   await act(async () => {
-    ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
-    ForceGraph2D.simulateNodeClick({ id: 'nodeB.ts' }, { button: 0, ctrlKey: true });
+    OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
+    OwnedGraphSurface.simulateNodeClick({ id: 'nodeB.ts' }, { button: 0, ctrlKey: true });
   });
 
   await act(async () => {
-    ForceGraph2D.simulateNodeRightClick({ id: 'nodeA.ts' });
+    OwnedGraphSurface.simulateNodeRightClick({ id: 'nodeA.ts' });
     fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
   });
 }

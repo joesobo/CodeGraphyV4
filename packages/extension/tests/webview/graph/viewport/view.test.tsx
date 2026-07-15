@@ -5,6 +5,7 @@ import type { GraphContextMenuEntry } from '../../../../src/webview/components/g
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphSurfaceSharedProps } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
+import { createDefaultViewportSurfaceProps } from '../rendering/surface/owned2d/surfaceFixture';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
@@ -18,8 +19,8 @@ vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDimensional', () => ({
-  Surface2d: (props: Record<string, unknown>) => {
+vi.mock('../../../../src/webview/components/graph/rendering/surface/owned2d/view', () => ({
+  OwnedGraphSurface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
   },
@@ -82,12 +83,7 @@ function createMenuEntries(): GraphContextMenuEntry[] {
 
 function createSharedProps(): GraphSurfaceSharedProps {
   return {
-    cooldownTicks: 20,
-    d3AlphaDecay: 0.0228,
-    d3VelocityDecay: 0.7,
     graphData: { nodes: [], links: [] },
-    height: 200,
-    nodeId: 'id' as const,
     onBackgroundClick: vi.fn(),
     onBackgroundRightClick: vi.fn(),
     onEngineStop: vi.fn(),
@@ -98,7 +94,6 @@ function createSharedProps(): GraphSurfaceSharedProps {
     onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
-    warmupTicks: 0,
     width: 300,
   };
 }
@@ -132,14 +127,7 @@ function createSurface2dProps(
   sharedProps = createSharedProps(),
 ): React.ComponentProps<typeof Viewport>['surface2dProps'] {
   return {
-    fg2dRef: { current: undefined },
-    getArrowColor: vi.fn(),
-    getLinkColor: vi.fn(),
-    getLinkOpacity: vi.fn(() => 0.3),
-    getLinkParticles: vi.fn(),
-    getLinkWidth: vi.fn(),
-    getParticleColor: vi.fn(),
-    onRenderFramePost: vi.fn(),
+    ...createDefaultViewportSurfaceProps(),
     particleSize: 2,
     particleSpeed: 0.1,
     sharedProps,

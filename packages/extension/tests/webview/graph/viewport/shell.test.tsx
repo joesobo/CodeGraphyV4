@@ -195,8 +195,20 @@ function createCallbacks() {
 		getLinkOpacity: vi.fn(() => 0.3),
 		getLinkParticles: vi.fn(),
 		getLinkWidth: vi.fn(),
+		getNodeStyle: vi.fn(() => ({
+			borderColor: '#000',
+			borderWidth: 1,
+			cornerRadius: 0,
+			fillColor: '#fff',
+			fillOpacity: 1,
+			height: 16,
+			opacity: 1,
+			shape: 'circle' as const,
+			width: 16,
+		})),
 		getParticleColor: vi.fn(),
 		getStyleRevision: vi.fn(() => 1),
+		nodeLabelCanvasObject: vi.fn(),
 	};
 }
 
@@ -247,12 +259,7 @@ describe('graph/viewport/shell', () => {
 			borderColor: 'rgb(63, 63, 70)',
 			menuEntries: [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }],
 			sharedProps: {
-				cooldownTicks: 500,
-				d3AlphaDecay: 0.0228,
-				d3VelocityDecay: 0.42,
 				graphData: { nodes: [], links: [] },
-				height: 320,
-				nodeId: 'id',
 				onBackgroundClick: vi.fn(),
 				onBackgroundRightClick: vi.fn(),
 				onEngineStop: vi.fn(),
@@ -263,7 +270,6 @@ describe('graph/viewport/shell', () => {
 				onNodeDragEnd: vi.fn(),
 				onNodeHover: vi.fn(),
 				onNodeRightClick: vi.fn(),
-				warmupTicks: 0,
 				width: 480,
 			},
 		});
@@ -385,7 +391,7 @@ describe('graph/viewport/shell', () => {
 		const reheatSimulation = vi.fn();
 		const resumeAnimation = vi.fn();
 		graphState.renderer.fg2dRef.current = {
-			d3ReheatSimulation: reheatSimulation,
+			reheatSimulation,
 			graph2ScreenCoords: (x: number, y: number) => ({ x, y }),
 			resumeAnimation,
 			screen2GraphCoords: (x: number, y: number) => ({ x, y }),

@@ -25,12 +25,10 @@ export function createInteractionDependencies(
   const container = document.createElement('div');
   const fg2d = {
     centerAt: vi.fn(),
-    d3ReheatSimulation: vi.fn(),
+    reheatSimulation: vi.fn(),
     getFps: vi.fn(() => null),
     getPerformance: vi.fn(() => ({ status: 'idle' as const })),
     graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
-    pauseAnimation: vi.fn(),
-    refresh: vi.fn(),
     resumeAnimation: vi.fn(),
     screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
     startInteractionRecording: vi.fn(),

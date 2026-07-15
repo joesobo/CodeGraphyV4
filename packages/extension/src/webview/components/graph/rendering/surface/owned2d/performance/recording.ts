@@ -62,7 +62,6 @@ export interface OwnedGraphInteractionRecording {
 }
 
 export interface OwnedGraphInteractionRecorder {
-  readonly active: boolean;
   recordFrame(input: OwnedGraphInteractionFrameInput): void;
   recordInput(input: OwnedGraphInteractionInput): void;
   start(options: OwnedGraphInteractionRecordingOptions): void;
@@ -79,26 +78,6 @@ function recordingCapacity(value: number | undefined): number {
     : DEFAULT_RECORDING_CAPACITY;
 }
 
-function clonePosition(position: OwnedGraphRecordedPosition): OwnedGraphRecordedPosition {
-  return { ...position };
-}
-
-function cloneRecording(
-  recording: OwnedGraphInteractionRecording,
-): OwnedGraphInteractionRecording {
-  return {
-    frames: recording.frames.map(frame => ({
-      ...frame,
-      neighbors: frame.neighbors.map(clonePosition),
-      target: frame.target ? clonePosition(frame.target) : null,
-    })),
-    inputs: recording.inputs.map(input => ({ ...input })),
-    neighborNodeIds: [...recording.neighborNodeIds],
-    targetNodeId: recording.targetNodeId,
-    truncated: recording.truncated,
-  };
-}
-
 function finitePosition(
   id: string,
   index: number | undefined,
@@ -113,98 +92,113 @@ function finitePosition(
     : null;
 }
 
+function kineticEnergy(vxValues: Float32Array, vyValues: Float32Array): number {
+  let energy = 0;
+  const velocityCount = Math.min(vxValues.length, vyValues.length);
+  for (let index = 0; index < velocityCount; index += 1) {
+    const vx = vxValues[index];
+    const vy = vyValues[index];
+    if (Number.isFinite(vx) && Number.isFinite(vy)) energy += vx * vx + vy * vy;
+  }
+  return energy;
+}
+
+class BoundedOwnedGraphInteractionRecorder implements OwnedGraphInteractionRecorder {
+  private readonly capacity: number;
+  private cachedNodeIds: readonly string[] | null = null;
+  private inputSequence = 0;
+  private latestInputSequence: number | null = null;
+  private neighborIndexes: Array<{ id: string; index: number | undefined }> = [];
+  private recording: OwnedGraphInteractionRecording | null = null;
+  private targetIndex: number | undefined;
+
+  constructor(options: OwnedGraphInteractionRecorderOptions) {
+    this.capacity = recordingCapacity(options.capacity);
+  }
+
+  recordFrame(input: OwnedGraphInteractionFrameInput): void {
+    if (!this.recording) return;
+    if (this.recording.frames.length >= this.capacity) {
+      this.recording.truncated = true;
+      return;
+    }
+    this.refreshIndexes(input.nodeIds);
+    this.recording.frames.push({
+      alpha: input.alpha,
+      kineticEnergy: kineticEnergy(input.vx, input.vy),
+      latestInputSequence: this.latestInputSequence,
+      neighbors: this.neighborPositions(input.renderedX, input.renderedY),
+      presentationTimestampMs: input.presentationTimestampMs,
+      renderMs: input.renderMs,
+      settled: input.settled,
+      simulationMs: input.simulationMs,
+      steps: input.steps,
+      target: finitePosition(
+        this.recording.targetNodeId,
+        this.targetIndex,
+        input.renderedX,
+        input.renderedY,
+      ),
+      totalCpuMs: input.simulationMs + input.renderMs,
+    });
+  }
+
+  recordInput(input: OwnedGraphInteractionInput): void {
+    if (!this.recording || input.nodeId !== this.recording.targetNodeId) return;
+    if (this.recording.inputs.length >= this.capacity) {
+      this.recording.truncated = true;
+      return;
+    }
+    this.latestInputSequence = this.inputSequence;
+    this.recording.inputs.push({ ...input, sequence: this.latestInputSequence });
+    this.inputSequence += 1;
+  }
+
+  start(options: OwnedGraphInteractionRecordingOptions): void {
+    this.recording = {
+      frames: [],
+      inputs: [],
+      neighborNodeIds: [...options.neighborNodeIds],
+      targetNodeId: options.targetNodeId,
+      truncated: false,
+    };
+    this.cachedNodeIds = null;
+    this.targetIndex = undefined;
+    this.neighborIndexes = [];
+    this.inputSequence = 0;
+    this.latestInputSequence = null;
+  }
+
+  stop(): OwnedGraphInteractionRecording | null {
+    if (!this.recording) return null;
+    const result = this.recording;
+    this.recording = null;
+    this.cachedNodeIds = null;
+    this.latestInputSequence = null;
+    return result;
+  }
+
+  private neighborPositions(
+    x: Float32Array,
+    y: Float32Array,
+  ): OwnedGraphRecordedPosition[] {
+    return this.neighborIndexes
+      .map(({ id, index }) => finitePosition(id, index, x, y))
+      .filter((position): position is OwnedGraphRecordedPosition => position !== null);
+  }
+
+  private refreshIndexes(nodeIds: readonly string[]): void {
+    if (!this.recording || this.cachedNodeIds === nodeIds) return;
+    this.cachedNodeIds = nodeIds;
+    const indexes = new Map(nodeIds.map((id, index) => [id, index]));
+    this.targetIndex = indexes.get(this.recording.targetNodeId);
+    this.neighborIndexes = this.recording.neighborNodeIds
+      .map(id => ({ id, index: indexes.get(id) }));
+  }
+}
+
 export function createOwnedGraphInteractionRecorder(
   options: OwnedGraphInteractionRecorderOptions = {},
 ): OwnedGraphInteractionRecorder {
-  const capacity = recordingCapacity(options.capacity);
-  let recording: OwnedGraphInteractionRecording | null = null;
-  let cachedNodeIds: readonly string[] | null = null;
-  let targetIndex: number | undefined;
-  let neighborIndexes: Array<{ id: string; index: number | undefined }> = [];
-  let inputSequence = 0;
-  let latestInputSequence: number | null = null;
-
-  function refreshIndexes(nodeIds: readonly string[]): void {
-    if (!recording || cachedNodeIds === nodeIds) return;
-    cachedNodeIds = nodeIds;
-    const indexes = new Map(nodeIds.map((id, index) => [id, index]));
-    targetIndex = indexes.get(recording.targetNodeId);
-    neighborIndexes = recording.neighborNodeIds.map(id => ({ id, index: indexes.get(id) }));
-  }
-
-  return {
-    get active(): boolean {
-      return recording !== null;
-    },
-    recordFrame: (input) => {
-      if (!recording) return;
-      if (recording.frames.length >= capacity) {
-        recording.truncated = true;
-        return;
-      }
-      refreshIndexes(input.nodeIds);
-      const neighbors = neighborIndexes
-        .map(({ id, index }) => finitePosition(id, index, input.renderedX, input.renderedY))
-        .filter((position): position is OwnedGraphRecordedPosition => position !== null);
-      let kineticEnergy = 0;
-      const velocityCount = Math.min(input.vx.length, input.vy.length);
-      for (let index = 0; index < velocityCount; index += 1) {
-        const vx = input.vx[index];
-        const vy = input.vy[index];
-        if (Number.isFinite(vx) && Number.isFinite(vy)) {
-          kineticEnergy += vx * vx + vy * vy;
-        }
-      }
-      recording.frames.push({
-        alpha: input.alpha,
-        kineticEnergy,
-        latestInputSequence,
-        neighbors,
-        presentationTimestampMs: input.presentationTimestampMs,
-        renderMs: input.renderMs,
-        settled: input.settled,
-        simulationMs: input.simulationMs,
-        steps: input.steps,
-        target: finitePosition(
-          recording.targetNodeId,
-          targetIndex,
-          input.renderedX,
-          input.renderedY,
-        ),
-        totalCpuMs: input.simulationMs + input.renderMs,
-      });
-    },
-    recordInput: (input) => {
-      if (!recording || input.nodeId !== recording.targetNodeId) return;
-      if (recording.inputs.length >= capacity) {
-        recording.truncated = true;
-        return;
-      }
-      latestInputSequence = inputSequence;
-      recording.inputs.push({ ...input, sequence: latestInputSequence });
-      inputSequence += 1;
-    },
-    start: (recordingOptions) => {
-      recording = {
-        frames: [],
-        inputs: [],
-        neighborNodeIds: [...recordingOptions.neighborNodeIds],
-        targetNodeId: recordingOptions.targetNodeId,
-        truncated: false,
-      };
-      cachedNodeIds = null;
-      targetIndex = undefined;
-      neighborIndexes = [];
-      inputSequence = 0;
-      latestInputSequence = null;
-    },
-    stop: () => {
-      if (!recording) return null;
-      const result = cloneRecording(recording);
-      recording = null;
-      cachedNodeIds = null;
-      latestInputSequence = null;
-      return result;
-    },
-  };
+  return new BoundedOwnedGraphInteractionRecorder(options);
 }

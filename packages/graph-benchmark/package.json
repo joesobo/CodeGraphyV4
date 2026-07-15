@@ -7,7 +7,7 @@
     "bench:graph:vault": "tsx src/obsidian/main.ts",
     "dashboard": "tsx src/dashboard/main.ts",
     "lint": "eslint src tests playwright.config.ts vitest.config.ts",
-    "test": "vitest run --config vitest.config.ts",
+    "test": "pnpm --filter @codegraphy-dev/extension run build:webview && vitest run --config vitest.config.ts",
     "test:playwright": "pnpm --filter @codegraphy-dev/extension run build:webview && playwright test --config playwright.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

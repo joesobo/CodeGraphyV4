@@ -4,7 +4,10 @@ import {
   transitionOwnedGraphCamera,
   type OwnedGraphCamera,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
-import { createOwnedGraphInteractionHandlers } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/interaction';
+import {
+  createOwnedGraphInteractionHandlers,
+  type PointerSession,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/interaction';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { OwnedGraphLinkPicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkPicking';
 import { OwnedGraphNodePicker } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/picking';
@@ -12,7 +15,7 @@ import { createOwnedGraphNodeHover } from '../../../../../../src/webview/compone
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import { createGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { createDefaultSurfaceProps } from '../view/surfaceFixture';
+import { createDefaultSurfaceProps } from './surfaceFixture';
 
 function node(): FGNode {
   return {
@@ -28,6 +31,61 @@ function node(): FGNode {
     x: 0,
     y: 0,
   } as FGNode;
+}
+
+function createSingleNodeInteractionFixture() {
+  const graphNode = node();
+  const engine = createGraphLayoutEngine({
+    nodeIds: ['a'],
+    initialX: Float32Array.of(0),
+    initialY: Float32Array.of(0),
+    radii: Float32Array.of(8),
+    edgeSources: new Uint32Array(),
+    edgeTargets: new Uint32Array(),
+  });
+  const layout: OwnedGraphLayout = {
+    engine,
+    links: [],
+    nodes: [graphNode],
+  };
+  const props = createDefaultSurfaceProps();
+  const runtime = {
+    cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
+    clearLinkHover: vi.fn(() => false),
+    contextGestureSessionRef: { current: null },
+    engineStopNotifiedRef: { current: false },
+    hoveredLinkRef: { current: null },
+    hoveredNodeRef: { current: null as FGNode | null },
+    layoutRef: { current: layout },
+    linkPickerPositionVersionRef: { current: -1 },
+    linkPickerRef: { current: new OwnedGraphLinkPicker() },
+    nodeHoverRef: { current: createOwnedGraphNodeHover() },
+    pickerPositionVersionRef: { current: -1 },
+    pickerRef: { current: new OwnedGraphNodePicker() },
+    pointerSessionRef: { current: null as PointerSession | null },
+    performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
+    performanceRecorderRef: { current: createOwnedGraphInteractionRecorder() },
+    positionVersionRef: { current: 0 },
+    propsRef: { current: props },
+    requestFrameRef: { current: vi.fn() },
+    setLinkTooltip: vi.fn(),
+    synchronizedPositionVersionRef: { current: 0 },
+  };
+  const handlers = createOwnedGraphInteractionHandlers(runtime);
+  const canvas = {
+    getBoundingClientRect: () => ({ height: 100, left: 0, top: 0, width: 100 }),
+    hasPointerCapture: vi.fn(() => true),
+    releasePointerCapture: vi.fn(),
+    setPointerCapture: vi.fn(),
+  } as unknown as HTMLCanvasElement;
+  const pointer = (clientX: number, timeStamp: number) => ({
+    button: 0,
+    ctrlKey: false,
+    currentTarget: canvas,
+    nativeEvent: { clientX, clientY: 50, timeStamp },
+    pointerId: 1,
+  } as never);
+  return { canvas, engine, graphNode, handlers, layout, pointer, props, runtime };
 }
 
 describe('owned graph lazy interaction picking', () => {
@@ -98,76 +156,76 @@ describe('owned graph lazy interaction picking', () => {
   });
 
   it('pins a node once when pointer movement crosses the drag threshold', () => {
-    const graphNode = node();
-    const engine = createGraphLayoutEngine({
-      nodeIds: ['a'],
-      initialX: Float32Array.of(0),
-      initialY: Float32Array.of(0),
-      radii: Float32Array.of(8),
-      edgeSources: new Uint32Array(),
-      edgeTargets: new Uint32Array(),
-    });
-    const pin = vi.spyOn(engine, 'pin');
-    const layout: OwnedGraphLayout = {
-      engine,
-      links: [],
-      nodes: [graphNode],
-    };
-    const recorder = createOwnedGraphInteractionRecorder();
+    const fixture = createSingleNodeInteractionFixture();
+    const pin = vi.spyOn(fixture.engine, 'pin');
+    const recorder = fixture.runtime.performanceRecorderRef.current;
     recorder.start({ neighborNodeIds: [], targetNodeId: 'a' });
-    const runtime = {
-      cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
-      clearLinkHover: () => false,
-      contextGestureSessionRef: { current: null },
-      engineStopNotifiedRef: { current: false },
-      hoveredLinkRef: { current: null },
-      hoveredNodeRef: { current: null },
-      layoutRef: { current: layout },
-      linkPickerPositionVersionRef: { current: -1 },
-      linkPickerRef: { current: new OwnedGraphLinkPicker() },
-      nodeHoverRef: { current: createOwnedGraphNodeHover() },
-      pickerPositionVersionRef: { current: -1 },
-      pickerRef: { current: new OwnedGraphNodePicker() },
-      pointerSessionRef: { current: null },
-      performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
-      performanceRecorderRef: { current: recorder },
-      positionVersionRef: { current: 0 },
-      propsRef: { current: createDefaultSurfaceProps() },
-      requestFrameRef: { current: vi.fn() },
-      setLinkTooltip: vi.fn(),
-      synchronizedPositionVersionRef: { current: 0 },
-    };
-    const handlers = createOwnedGraphInteractionHandlers(runtime);
-    const canvas = {
-      getBoundingClientRect: () => ({ height: 100, left: 0, top: 0, width: 100 }),
-      hasPointerCapture: vi.fn(() => true),
-      releasePointerCapture: vi.fn(),
-      setPointerCapture: vi.fn(),
-    } as unknown as HTMLCanvasElement;
-    const pointer = (clientX: number, timeStamp: number) => ({
-      button: 0,
-      currentTarget: canvas,
-      nativeEvent: { clientX, clientY: 50, timeStamp },
-      pointerId: 1,
-    } as never);
 
-    handlers.handlePointerDown(pointer(50, 10));
+    fixture.handlers.handlePointerDown(fixture.pointer(50, 10));
     expect(pin).not.toHaveBeenCalled();
-    handlers.handlePointerMove(pointer(54, 12));
+    fixture.handlers.handlePointerMove(fixture.pointer(54, 12));
     expect(pin).toHaveBeenCalledOnce();
-    expect(graphNode).toMatchObject({ x: 4, y: 0, fx: 4, fy: 0 });
-    expect(Array.from(engine.x)).toEqual([4]);
-    expect(runtime.positionVersionRef.current).toBe(1);
-    expect(runtime.requestFrameRef.current).toHaveBeenCalled();
-    handlers.handlePointerMove(pointer(60, 14));
+    expect(fixture.graphNode).toMatchObject({ x: 4, y: 0, fx: 4, fy: 0 });
+    expect(Array.from(fixture.engine.x)).toEqual([4]);
+    expect(fixture.runtime.positionVersionRef.current).toBe(1);
+    expect(fixture.runtime.requestFrameRef.current).toHaveBeenCalled();
+    fixture.handlers.handlePointerMove(fixture.pointer(60, 14));
     expect(pin).toHaveBeenCalledOnce();
-    handlers.handlePointerUp(pointer(60, 16));
+    fixture.handlers.handlePointerUp(fixture.pointer(60, 16));
     expect(recorder.stop()?.inputs).toEqual([
       expect.objectContaining({ eventTimestampMs: 10, nodeId: 'a', phase: 'down' }),
       expect.objectContaining({ eventTimestampMs: 12, nodeId: 'a', phase: 'move' }),
       expect.objectContaining({ eventTimestampMs: 14, nodeId: 'a', phase: 'move' }),
       expect.objectContaining({ eventTimestampMs: 16, nodeId: 'a', phase: 'up' }),
     ]);
+  });
+
+  it('releases a dragged node and notifies the host when the pointer is canceled', () => {
+    const fixture = createSingleNodeInteractionFixture();
+
+    fixture.handlers.handlePointerDown(fixture.pointer(50, 10));
+    fixture.handlers.handlePointerMove(fixture.pointer(54, 12));
+    fixture.handlers.handlePointerCancel(fixture.pointer(54, 14));
+
+    expect(fixture.runtime.pointerSessionRef.current).toBeNull();
+    expect(fixture.graphNode).toMatchObject({ fx: undefined, fy: undefined });
+    expect(fixture.props.sharedProps.onNodeDragEnd).toHaveBeenCalledOnce();
+    expect(fixture.props.sharedProps.onNodeDragEnd).toHaveBeenCalledWith(fixture.graphNode);
+    expect(fixture.canvas.releasePointerCapture).toHaveBeenCalledWith(1);
+  });
+
+  it('clears node and link hover when the pointer leaves an idle surface', () => {
+    const fixture = createSingleNodeInteractionFixture();
+    fixture.runtime.hoveredNodeRef.current = fixture.graphNode;
+    fixture.runtime.clearLinkHover.mockReturnValueOnce(true);
+
+    fixture.handlers.handlePointerLeave();
+
+    expect(fixture.runtime.hoveredNodeRef.current).toBeNull();
+    expect(fixture.props.sharedProps.onNodeHover).toHaveBeenCalledWith(null);
+    expect(fixture.runtime.clearLinkHover).toHaveBeenCalledOnce();
+    expect(fixture.runtime.requestFrameRef.current).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves node hover while an active pointer session owns the surface', () => {
+    const fixture = createSingleNodeInteractionFixture();
+    fixture.runtime.hoveredNodeRef.current = fixture.graphNode;
+    fixture.runtime.pointerSessionRef.current = {
+      draggedIndexes: new Set(),
+      index: 0,
+      lastWorld: { x: 0, y: 0 },
+      link: null,
+      moved: false,
+      node: fixture.graphNode,
+      nodeId: fixture.graphNode.id,
+      startScreen: { x: 50, y: 50 },
+    };
+
+    fixture.handlers.handlePointerLeave();
+
+    expect(fixture.runtime.hoveredNodeRef.current).toBe(fixture.graphNode);
+    expect(fixture.props.sharedProps.onNodeHover).not.toHaveBeenCalled();
+    expect(fixture.runtime.requestFrameRef.current).not.toHaveBeenCalled();
   });
 
   it('skips distant edge hover and reuses the lazy link index while details are visible', () => {

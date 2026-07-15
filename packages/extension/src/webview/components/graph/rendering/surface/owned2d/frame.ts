@@ -5,7 +5,7 @@ import {
   type OwnedGraphCamera,
 } from './camera';
 import { canvasSize } from './canvasGeometry';
-import type { OwnedGraphNodeStyle, Surface2dProps } from './contracts';
+import type { Surface2dProps } from './contracts';
 import {
   drawOwnedGraphOverlay,
   type OwnedGraphDrawingOptions,
@@ -31,21 +31,6 @@ import {
   type GraphLayoutFixedTimestepClock,
 } from './physics/fixedTimestep';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
-
-interface FramePerfSample extends Record<string, number> {
-  gpuMs: number;
-  overlayMs: number;
-  physicsMs: number;
-  syncMs: number;
-}
-
-interface FrameTimings {
-  gpuEndedAt: number;
-  gpuStartedAt: number;
-  physicsEndedAt: number;
-  physicsStartedAt: number;
-  syncEndedAt: number;
-}
 
 interface PreparedOverlayCanvas {
   context: CanvasRenderingContext2D;
@@ -80,20 +65,6 @@ export interface OwnedGraphFrameRuntime {
   ): void;
   synchronizedPositionVersionRef: MutableRefObject<number>;
   onRendererError(this: void, message: string): void;
-}
-
-function defaultNodeStyle(node: FGNode): OwnedGraphNodeStyle {
-  return {
-    borderColor: node.borderColor,
-    borderWidth: node.borderWidth,
-    cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
-    fillColor: node.color,
-    fillOpacity: node.fillOpacity2D ?? 1,
-    height: node.shapeSize2D?.height ?? node.size * 2,
-    opacity: node.baseOpacity,
-    shape: node.shape2D ?? 'circle',
-    width: node.shapeSize2D?.width ?? node.size * 2,
-  };
 }
 
 function importPluginKinematics(layout: OwnedGraphLayout): void {
@@ -210,7 +181,7 @@ function resolveOwnedHoveredNodeIndex(
     return -1;
   }
   const currentNode = layout.nodes[index];
-  if (hover.hovered
+  if (hover.transition?.targetScale !== 1
     && runtime.hoveredNodeRef.current?.id === nodeId
     && runtime.hoveredNodeRef.current !== currentNode) {
     runtime.hoveredNodeRef.current = currentNode;
@@ -241,7 +212,7 @@ function submitOwnedWebGpuFrame(
       getLinkColor: props.getLinkColor,
       getLinkOpacity: props.getLinkOpacity,
       getLinkWidth: props.getLinkWidth,
-      getNodeStyle: props.getNodeStyle ?? defaultNodeStyle,
+      getNodeStyle: props.getNodeStyle,
       hoveredLink: runtime.hoveredLinkRef.current,
       hoveredNodeIndex: resolveOwnedHoveredNodeIndex(runtime, layout),
       hoveredNodeScale: runtime.nodeHoverRef.current.scale,
@@ -250,7 +221,7 @@ function submitOwnedWebGpuFrame(
       nodeX: layout.engine.x,
       nodeY: layout.engine.y,
       positionVersion: runtime.positionVersionRef.current,
-      styleVersion: props.getStyleRevision?.() ?? 0,
+      styleVersion: props.getStyleRevision(),
     });
     return true;
   } catch (error) {
@@ -275,7 +246,7 @@ function drawingOptions(
     globalScale: camera.zoom,
     links: layout.links,
     nodes: layout.nodes,
-    nodeLabelCanvasObject: props.nodeLabelCanvasObject ?? (() => undefined),
+    nodeLabelCanvasObject: props.nodeLabelCanvasObject,
     particleSize: props.particleSize,
     particleSpeed: props.particleSpeed,
     timestamp,
@@ -307,30 +278,6 @@ function drawOwnedGraphDecorationLayer(
   context.restore();
 }
 
-function performanceSamples(): FramePerfSample[] | undefined {
-  return (window as typeof window & {
-    __CODEGRAPHY_WEBGPU_PERF__?: FramePerfSample[];
-  }).__CODEGRAPHY_WEBGPU_PERF__;
-}
-
-function timedNow(samples: FramePerfSample[] | undefined): number {
-  return samples ? performance.now() : 0;
-}
-
-function recordOwnedGraphFrameMetrics(
-  samples: FramePerfSample[] | undefined,
-  timings: FrameTimings,
-): void {
-  if (!samples) return;
-  samples.push({
-    gpuMs: timings.gpuEndedAt - timings.gpuStartedAt,
-    overlayMs: performance.now() - timings.gpuEndedAt,
-    physicsMs: timings.physicsEndedAt - timings.physicsStartedAt,
-    syncMs: timings.syncEndedAt - timings.physicsEndedAt,
-  });
-  if (samples.length > 240) samples.shift();
-}
-
 function notifyOwnedGraphSettlement(
   runtime: OwnedGraphFrameRuntime,
   tick: GraphLayoutTickResult,
@@ -350,7 +297,7 @@ function shouldContinueOwnedGraphFrames(
     || runtime.nodeHoverRef.current.transition !== null
     || tick.moving
     || runtime.propsRef.current.directionMode === 'particles'
-    || runtime.propsRef.current.showFps === true
+    || runtime.propsRef.current.showFps
   );
 }
 
@@ -366,30 +313,18 @@ export function renderOwnedGraphFrame(
   advanceOwnedGraphNodeHover(runtime.nodeHoverRef.current, timestamp);
   const attribution = runtime.performanceAttributionRef.current;
   const frameAttributionStartedAt = attribution.startTiming();
-  const samples = performanceSamples();
-  const timings: FrameTimings = {
-    physicsStartedAt: timedNow(samples),
-    physicsEndedAt: 0,
-    syncEndedAt: 0,
-    gpuStartedAt: 0,
-    gpuEndedAt: 0,
-  };
   const physicsAttributionStartedAt = attribution.startTiming();
   const physicsFrame = advanceOwnedGraphPhysics(runtime, layout, timestamp);
   attribution.finishTiming('physicsStep', physicsAttributionStartedAt);
   const { tick } = physicsFrame;
   const physicsEndedAt = performance.now();
-  timings.physicsEndedAt = timedNow(samples);
   const nodeSyncStartedAt = attribution.startTiming();
   synchronizeOwnedFrameState(runtime, layout);
   attribution.finishTiming('snapshotNodeSync', nodeSyncStartedAt);
-  timings.syncEndedAt = timedNow(samples);
   const canvasPrepareStartedAt = attribution.startTiming();
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
   attribution.finishTiming('canvasPrepare', canvasPrepareStartedAt);
-  timings.gpuStartedAt = timedNow(samples);
   const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared);
-  timings.gpuEndedAt = timedNow(samples);
   const overlayStartedAt = attribution.startTiming();
   drawOwnedGraphDecorationLayer(
     runtime,
@@ -419,7 +354,6 @@ export function renderOwnedGraphFrame(
     });
     runtime.recordRenderedFrame(timestamp, physicsFrame.simulationMs, renderMs);
   }
-  recordOwnedGraphFrameMetrics(samples, timings);
   notifyOwnedGraphSettlement(runtime, tick);
   if (shouldContinueOwnedGraphFrames(runtime, tick)) {
     runtime.requestFrameRef.current();

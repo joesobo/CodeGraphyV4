@@ -72,13 +72,18 @@ describe('owned Graph View plugin force adapters', () => {
       }],
     };
 
-    forces.sync(contributions, graphData, {
+    const initialPhysicsSettings = {
       repelForce: 10,
       linkDistance: 80,
       linkForce: 0.15,
       damping: 0.7,
       centerForce: 0.1,
-    });
+    };
+    forces.sync(contributions, graphData, initialPhysicsSettings);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      physicsSettings: initialPhysicsSettings,
+    }));
+
     forces.sync(contributions, graphData, {
       repelForce: 20,
       linkDistance: 80,

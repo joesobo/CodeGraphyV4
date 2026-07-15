@@ -67,74 +67,106 @@ function activateOwnedGraphRenderer(
 
 const MAX_DEVICE_RECOVERY_ATTEMPTS = 2;
 
+class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
+  private active = true;
+  private generation = 0;
+  private recoveryAttempts = 0;
+
+  constructor(
+    private readonly runtime: OwnedGraphRendererLifecycleRuntime,
+    private readonly canvas: HTMLCanvasElement,
+  ) {}
+
+  start(): void {
+    this.createRenderer(false);
+  }
+
+  dispose(): void {
+    this.active = false;
+    this.generation += 1;
+    this.runtime.rendererOperationalRef.current = false;
+    disposeCurrentRenderer(this.runtime);
+  }
+
+  private createRenderer(recovering: boolean): void {
+    const rendererGeneration = ++this.generation;
+    void OwnedWebGpuRenderer.create(this.canvas, {
+      attributionProfiler: this.runtime.performanceAttributionRef.current,
+      onDeviceLost: message => this.handleDeviceLost(rendererGeneration, message),
+      onFrameComplete: () => this.handleFrameComplete(rendererGeneration),
+    }).then(renderer => {
+      this.handleCreatedRenderer(rendererGeneration, recovering, renderer);
+    }).catch((error: unknown) => {
+      this.handleCreationError(rendererGeneration, recovering, error);
+    });
+  }
+
+  private currentGeneration(rendererGeneration: number): boolean {
+    return this.active && rendererGeneration === this.generation;
+  }
+
+  private handleCreatedRenderer(
+    rendererGeneration: number,
+    recovering: boolean,
+    renderer: OwnedWebGpuRenderer | undefined,
+  ): void {
+    if (!this.currentGeneration(rendererGeneration)) {
+      renderer?.dispose();
+      return;
+    }
+    if (!renderer) {
+      this.handleCreationFailure('WebGPU is unavailable in this environment.', recovering);
+      return;
+    }
+    activateOwnedGraphRenderer(this.runtime, renderer);
+  }
+
+  private handleCreationError(
+    rendererGeneration: number,
+    recovering: boolean,
+    error: unknown,
+  ): void {
+    if (!this.currentGeneration(rendererGeneration)) return;
+    this.handleCreationFailure(
+      error instanceof Error ? error.message : String(error),
+      recovering,
+    );
+  }
+
+  private handleCreationFailure(message: string, recovering: boolean): void {
+    if (recovering) this.recoverRenderer(message);
+    else reportOwnedGraphRendererError(this.runtime, message, false);
+  }
+
+  private handleDeviceLost(rendererGeneration: number, message: string): void {
+    if (!this.currentGeneration(rendererGeneration)) return;
+    this.recoverRenderer(message || 'The WebGPU device was lost.');
+  }
+
+  private handleFrameComplete(rendererGeneration: number): void {
+    if (!this.currentGeneration(rendererGeneration)) return;
+    this.recoveryAttempts = 0;
+    if (this.runtime.frameRequestedRef.current) this.runtime.requestFrameRef.current();
+  }
+
+  private recoverRenderer(message: string): void {
+    disposeCurrentRenderer(this.runtime);
+    pauseOwnedGraphRendererPhysics(this.runtime);
+    if (this.recoveryAttempts >= MAX_DEVICE_RECOVERY_ATTEMPTS) {
+      reportOwnedGraphRendererError(this.runtime, message, true);
+      return;
+    }
+    this.recoveryAttempts += 1;
+    this.runtime.onRecovering();
+    this.createRenderer(true);
+  }
+}
+
 export function startOwnedGraphRendererLifecycle(
   runtime: OwnedGraphRendererLifecycleRuntime,
   canvas: HTMLCanvasElement,
 ): OwnedGraphRendererLifecycle {
-  let active = true;
-  let generation = 0;
-  let recoveryAttempts = 0;
-
-  function recoverRenderer(message: string): void {
-    disposeCurrentRenderer(runtime);
-    pauseOwnedGraphRendererPhysics(runtime);
-    if (recoveryAttempts >= MAX_DEVICE_RECOVERY_ATTEMPTS) {
-      reportOwnedGraphRendererError(runtime, message, true);
-      return;
-    }
-    recoveryAttempts += 1;
-    runtime.onRecovering();
-    createRenderer(true);
-  }
-
-  function handleCreationFailure(message: string, recovering: boolean): void {
-    if (recovering) {
-      recoverRenderer(message);
-    } else {
-      reportOwnedGraphRendererError(runtime, message, false);
-    }
-  }
-
-  function createRenderer(recovering: boolean): void {
-    const rendererGeneration = ++generation;
-    void OwnedWebGpuRenderer.create(canvas, {
-      attributionProfiler: runtime.performanceAttributionRef.current,
-      onDeviceLost: message => {
-        if (!active || rendererGeneration !== generation) return;
-        recoverRenderer(message || 'The WebGPU device was lost.');
-      },
-      onFrameComplete: () => {
-        if (!active || rendererGeneration !== generation) return;
-        recoveryAttempts = 0;
-        if (runtime.frameRequestedRef.current) runtime.requestFrameRef.current();
-      },
-    }).then(renderer => {
-      if (!active || rendererGeneration !== generation) {
-        renderer?.dispose();
-        return;
-      }
-      if (!renderer) {
-        handleCreationFailure('WebGPU is unavailable in this environment.', recovering);
-        return;
-      }
-      activateOwnedGraphRenderer(runtime, renderer);
-    }).catch((error: unknown) => {
-      if (!active || rendererGeneration !== generation) return;
-      handleCreationFailure(
-        error instanceof Error ? error.message : String(error),
-        recovering,
-      );
-    });
-  }
-
-  createRenderer(false);
-
-  return {
-    dispose: () => {
-      active = false;
-      generation += 1;
-      runtime.rendererOperationalRef.current = false;
-      disposeCurrentRenderer(runtime);
-    },
-  };
+  const lifecycle = new ActiveOwnedGraphRendererLifecycle(runtime, canvas);
+  lifecycle.start();
+  return lifecycle;
 }

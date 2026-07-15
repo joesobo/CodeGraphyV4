@@ -34,6 +34,7 @@ export const extensionWebviewAppAndPluginTestIncludes = [
   'packages/extension/tests/webview/store/**/*.test.ts',
   'packages/extension/tests/webview/theme/**/*.test.ts',
   'packages/extension/tests/webview/vscodeApi*.test.ts',
+  'packages/extension/tests/webview/wasm/**/*.test.ts',
 ];
 
 export const extensionWebviewPanelsAndExportTestIncludes = [

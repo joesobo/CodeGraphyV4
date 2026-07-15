@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { transitionOwnedGraphCamera } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/camera';
 import {
@@ -15,7 +15,7 @@ import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webvi
 import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import { createOwnedGraphInteractionRecorder } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/recording';
 import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
-import { createDefaultSurfaceProps } from '../view/surfaceFixture';
+import { createDefaultSurfaceProps } from './surfaceFixture';
 
 function canvasFixture(): HTMLCanvasElement {
   const context = {
@@ -107,12 +107,8 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   return { layout, node, recorder, runtime };
 }
 
-afterEach(() => {
-  delete (window as typeof window & { __CODEGRAPHY_WEBGPU_PERF__?: unknown }).__CODEGRAPHY_WEBGPU_PERF__;
-});
-
 describe('owned graph frame execution', () => {
-  it('runs frame phases in order and publishes bounded performance samples', () => {
+  it('runs frame phases in order and records supported telemetry', () => {
     let submittedFrame: OwnedWebGpuFrame | undefined;
     const renderer = {
       render: vi.fn((frame: OwnedWebGpuFrame) => {
@@ -121,9 +117,6 @@ describe('owned graph frame execution', () => {
       }),
     } as unknown as OwnedWebGpuRenderer;
     const { layout, node, runtime } = runtimeFixture(renderer);
-    const samples: Array<Record<string, number>> = [];
-    (window as typeof window & { __CODEGRAPHY_WEBGPU_PERF__?: Array<Record<string, number>> })
-      .__CODEGRAPHY_WEBGPU_PERF__ = samples;
     runtime.performanceAttributionRef.current.start();
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100);
@@ -151,13 +144,6 @@ describe('owned graph frame execution', () => {
     const [, simulationMs, renderMs] = vi.mocked(runtime.recordRenderedFrame).mock.calls[0];
     expect(simulationMs).toBeGreaterThanOrEqual(0);
     expect(renderMs).toBeGreaterThan(0);
-    expect(samples).toHaveLength(1);
-    expect(samples[0]).toEqual(expect.objectContaining({
-      gpuMs: expect.any(Number),
-      overlayMs: expect.any(Number),
-      physicsMs: expect.any(Number),
-      syncMs: expect.any(Number),
-    }));
     const attribution = runtime.performanceAttributionRef.current.stop();
     expect(attribution).toMatchObject({
       physicsHome: 'main-thread',
