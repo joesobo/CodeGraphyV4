@@ -42,7 +42,6 @@ function createRefs(): UseGraphCallbacksOptions['refs'] {
     nodeDecorationsRef: { current: new Map() },
     selectedNodesSetRef: { current: new Set<string>(['node-1']) },
     showLabelsRef: { current: true },
-    themeRef: { current: 'dark' },
   } as unknown as UseGraphCallbacksOptions['refs'];
 }
 

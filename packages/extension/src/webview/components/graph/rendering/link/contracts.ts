@@ -9,5 +9,5 @@ export interface LinkRenderingDependencies {
   directionColorRef: GraphRef<string>;
   edgeDecorationsRef: GraphRef<Record<string, EdgeDecorationPayload> | undefined>;
   highlightedNodeRef: GraphRef<string | null>;
-  graphAppearanceRef?: GraphRef<GraphAppearance>;
+  graphAppearanceRef: GraphRef<GraphAppearance>;
 }

@@ -27,7 +27,6 @@ function createDependencies(overrides: Partial<{
     },
     selectedNodesSetRef: { current: overrides.selectedNodeIds ?? new Set<string>() },
     showLabelsRef: { current: overrides.showLabels ?? true },
-    themeRef: { current: 'dark' as const },
     pluginHost: overrides.pluginHost,
     triggerImageRerender: vi.fn(),
   };

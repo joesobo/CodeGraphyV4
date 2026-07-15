@@ -29,7 +29,6 @@ export interface UseGraphCallbacksOptions {
     | 'highlightedNodeRef'
     | 'nodeDecorationsRef'
     | 'showLabelsRef'
-    | 'themeRef'
   > & {
     selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
   };

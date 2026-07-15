@@ -18,7 +18,6 @@ function createGraphState() {
       selectedNodeIdsRef,
     },
     showLabelsRef: { current: true },
-    themeRef: { current: 'dark' },
   };
 }
 
@@ -40,7 +39,6 @@ describe('graph/callbackOptions', () => {
         nodeDecorationsRef: graphState.nodeDecorationsRef,
         selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
         showLabelsRef: graphState.showLabelsRef,
-        themeRef: graphState.themeRef,
       },
       triggerImageRerender: graphState.renderCaches.invalidateImages,
     });

@@ -7,7 +7,6 @@ import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import type { NodeLabelSpriteProvider } from '../node/labelSprite';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
-import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
 import { shouldRenderGraphDetails } from '../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/contracts';
 import { ownedGraphNodeWorldScale } from '../surface/owned2d/visualSize';
@@ -33,8 +32,8 @@ export function getNodeCanvasStyle(
   const isHighlighted = isNodeHighlighted(dependencies, node.id);
   const isSelected = dependencies.selectedNodesSetRef.current.has(node.id);
   const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
-  const baseOpacity = decoration?.opacity ?? (node.baseOpacity ?? 1);
-  const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
+  const baseOpacity = decoration?.opacity ?? node.baseOpacity;
+  const appearance = dependencies.graphAppearanceRef.current;
   const transparentFolder = node.nodeType === 'folder' && node.color === appearance.transparent;
   return {
     borderColor: isSelected
@@ -72,9 +71,9 @@ export function renderNodeCanvasLabel(
 ): void {
   const isHighlighted = isNodeHighlighted(dependencies, node.id);
   const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
-  const baseOpacity = decoration?.opacity ?? (node.baseOpacity ?? 1);
+  const baseOpacity = decoration?.opacity ?? node.baseOpacity;
   const opacity = getNodeCanvasOpacity(baseOpacity, isHighlighted);
-  const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
+  const appearance = dependencies.graphAppearanceRef.current;
   const visualScale = ownedGraphNodeWorldScale(globalScale);
   const effectiveGlobalScale = globalScale * visualScale;
   ctx.save();
