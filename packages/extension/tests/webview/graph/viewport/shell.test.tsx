@@ -212,7 +212,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showFps' | 'showLabels'
+	'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'showFps' | 'showLabels'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -227,13 +227,11 @@ function createViewState(): Pick<
 		depthMode: false,
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
-		graphViewContributionStatuses: [],
 		nodeSizeMode: 'connections',
 		particleSize: 3,
 		particleSpeed: 0.2,
 		physicsSettings,
 		pluginContextMenuItems: [],
-		pluginStatuses: [],
 		showFps: false,
 		showLabels: true,
 	};

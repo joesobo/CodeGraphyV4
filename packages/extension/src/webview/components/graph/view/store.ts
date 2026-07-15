@@ -6,13 +6,11 @@ export type GraphViewStoreState = Pick<
   | 'bidirectionalMode'
   | 'directionMode'
   | 'favorites'
-  | 'graphViewContributionStatuses'
   | 'nodeSizeMode'
   | 'particleSize'
   | 'particleSpeed'
   | 'physicsSettings'
   | 'pluginContextMenuItems'
-  | 'pluginStatuses'
   | 'showFps'
   | 'showLabels'
   | 'depthMode'
@@ -24,13 +22,11 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     depthMode: useGraphStore(state => state.depthMode),
     directionMode: useGraphStore(state => state.directionMode),
     favorites: useGraphStore(state => state.favorites),
-    graphViewContributionStatuses: useGraphStore(state => state.graphViewContributionStatuses),
     nodeSizeMode: useGraphStore(state => state.nodeSizeMode),
     particleSize: useGraphStore(state => state.particleSize),
     particleSpeed: useGraphStore(state => state.particleSpeed),
     physicsSettings: useGraphStore(state => state.physicsSettings),
     pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
-    pluginStatuses: useGraphStore(state => state.pluginStatuses),
     showFps: useGraphStore(state => state.showFps),
     showLabels: useGraphStore(state => state.showLabels),
   };

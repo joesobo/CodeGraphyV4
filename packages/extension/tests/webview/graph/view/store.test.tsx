@@ -33,6 +33,20 @@ describe('graph/store', () => {
     });
   });
 
+  it('does not rerender for plugin status state that the graph does not consume', () => {
+    const { result } = renderHook(() => useGraphViewStoreState());
+    const initialResult = result.current;
+
+    act(() => {
+      graphStore.setState({
+        graphViewContributionStatuses: [],
+        pluginStatuses: [],
+      });
+    });
+
+    expect(result.current).toBe(initialResult);
+  });
+
   it('reads the graph view store state used by the Graph component', () => {
     act(() => {
       resetStore({
