@@ -97,4 +97,130 @@ describe('owned Graph View plugin force adapters', () => {
     forces.dispose();
     expect(dispose).toHaveBeenCalledTimes(2);
   });
+
+  it('recreates adapters when only graph links change', () => {
+    const forces = createOwnedGraphPluginForces();
+    const nodes = [{ id: 'a' }, { id: 'b' }] as FGNode[];
+    const create = vi.fn(() => ({ dispose: vi.fn() }));
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: { id: 'force', label: 'Force', create },
+      }],
+    };
+
+    forces.sync(contributions, { nodes, links: [] });
+    const links = [{
+      id: 'a-b',
+      from: 'a',
+      to: 'b',
+      source: nodes[0],
+      target: nodes[1],
+    }] as FGLink[];
+    expect(forces.sync(contributions, { nodes, links })).toBe(true);
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(create).toHaveBeenLastCalledWith(expect.objectContaining({
+      edges: [expect.objectContaining({ id: 'a-b', from: 'a', to: 'b' })],
+    }));
+  });
+
+  it('keeps the current adapter active when its replacement cannot be created', () => {
+    const forces = createOwnedGraphPluginForces();
+    const nodes = [{ id: 'a' }] as FGNode[];
+    const tick = vi.fn();
+    const dispose = vi.fn();
+    const create = vi.fn()
+      .mockReturnValueOnce({ dispose, tick })
+      .mockImplementationOnce(() => { throw new Error('create failed'); });
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: { id: 'force', label: 'Force', create },
+      }],
+    };
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    forces.sync(contributions, { nodes, links: [] });
+    expect(forces.sync(contributions, { nodes: [...nodes], links: [] })).toBe(false);
+    forces.tick();
+
+    expect(tick).toHaveBeenCalledOnce();
+    expect(dispose).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('plugin:acme.graph-tools:force'),
+      expect.any(Error),
+    );
+  });
+
+  it('disposes a replacement that fails initialization and keeps the current adapter', () => {
+    const forces = createOwnedGraphPluginForces();
+    const nodes = [{ id: 'a' }] as FGNode[];
+    const currentTick = vi.fn();
+    const currentDispose = vi.fn();
+    const failedDispose = vi.fn();
+    const create = vi.fn()
+      .mockReturnValueOnce({ dispose: currentDispose, tick: currentTick })
+      .mockReturnValueOnce({
+        dispose: failedDispose,
+        initialize: () => { throw new Error('initialize failed'); },
+      });
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: { id: 'force', label: 'Force', create },
+      }],
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    forces.sync(contributions, { nodes, links: [] });
+    expect(forces.sync(contributions, { nodes: [...nodes], links: [] })).toBe(false);
+    forces.tick();
+
+    expect(failedDispose).toHaveBeenCalledOnce();
+    expect(currentDispose).not.toHaveBeenCalled();
+    expect(currentTick).toHaveBeenCalledOnce();
+  });
+
+  it('isolates adapter tick and disposal failures', () => {
+    const forces = createOwnedGraphPluginForces();
+    const healthyTick = vi.fn();
+    const healthyDispose = vi.fn();
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [
+        {
+          pluginId: 'broken',
+          contribution: {
+            id: 'force',
+            label: 'Broken Force',
+            create: () => ({
+              dispose: () => { throw new Error('dispose failed'); },
+              tick: () => { throw new Error('tick failed'); },
+            }),
+          },
+        },
+        {
+          pluginId: 'healthy',
+          contribution: {
+            id: 'force',
+            label: 'Healthy Force',
+            create: () => ({ dispose: healthyDispose, tick: healthyTick }),
+          },
+        },
+      ],
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    forces.sync(contributions, { nodes: [], links: [] });
+    expect(() => forces.tick()).not.toThrow();
+    expect(() => forces.dispose()).not.toThrow();
+
+    expect(healthyTick).toHaveBeenCalledOnce();
+    expect(healthyDispose).toHaveBeenCalledOnce();
+    expect(forces.active()).toBe(false);
+  });
 });

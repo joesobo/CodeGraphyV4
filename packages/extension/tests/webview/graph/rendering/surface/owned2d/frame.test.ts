@@ -119,7 +119,7 @@ describe('owned graph frame execution', () => {
     expect(renderer.render).toHaveBeenCalledOnce();
     expect(submittedFrame).toMatchObject({
       hoveredLink: null,
-      positionVersion: 1,
+      positionVersion: 2,
       styleVersion: 1,
     });
     expect(runtime.propsRef.current.nodeLabelCanvasObject).toHaveBeenCalledWith(
@@ -205,6 +205,38 @@ describe('owned graph frame execution', () => {
     expect(submittedFrame?.nodes[0]).toMatchObject({ x: 42, y: 24 });
     expect(runtime.recordRenderedFrame).toHaveBeenCalledOnce();
     expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
+  });
+
+  it('submits plugin position changes when no fixed simulation step is due', () => {
+    let submittedFrame: OwnedWebGpuFrame | undefined;
+    const renderer = {
+      render: vi.fn((frame: OwnedWebGpuFrame) => { submittedFrame = frame; }),
+    } as unknown as OwnedWebGpuRenderer;
+    const { layout, runtime } = runtimeFixture(renderer);
+    runtime.simulationClockRef.current.lastFrameTimestampMs = 100;
+    const tick = vi.spyOn(layout.engine, 'tick');
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
+
+    expect(tick).not.toHaveBeenCalled();
+    expect(submittedFrame?.positionVersion).toBe(1);
+    expect(submittedFrame?.nodeX[0]).toBe(12);
+    expect(submittedFrame?.nodeY[0]).toBe(13);
+  });
+
+  it('allows active no-op plugin forces to remain settled', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { layout, runtime } = runtimeFixture(renderer);
+    runtime.pluginForcesRef.current.tick = vi.fn();
+    while (!layout.engine.settled) layout.engine.tick();
+    runtime.simulationClockRef.current.lastFrameTimestampMs = 100;
+    const setKinematics = vi.spyOn(layout.engine, 'setKinematics');
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
+
+    expect(setKinematics).not.toHaveBeenCalled();
+    expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
+    expect(runtime.markPerformanceIdle).toHaveBeenCalledOnce();
   });
 
   it('marks performance idle only when the simulation deliberately settles', () => {

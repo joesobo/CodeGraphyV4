@@ -11,6 +11,15 @@ import { createGraphLayoutState } from './initialization';
 import { assertOwnedGraphCollisionScale } from './wasm/configuration';
 import { OwnedGraphWasmPhysicsKernel } from './wasm/kernel';
 
+function indexGraphNodes(nodeIds: readonly string[]): Map<string, number> {
+  const indexes = new Map<string, number>();
+  nodeIds.forEach((nodeId, index) => {
+    if (indexes.has(nodeId)) throw new Error(`Duplicate graph node id: ${nodeId}`);
+    indexes.set(nodeId, index);
+  });
+  return indexes;
+}
+
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   nodeIds!: readonly string[];
   private state!: GraphLayoutState;
@@ -46,23 +55,23 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   }
 
   setGraph(input: GraphLayoutInput): void {
-    this.nodeIds = [...input.nodeIds];
-    this.nodeIndexes = new Map();
-    this.nodeIds.forEach((nodeId, index) => {
-      if (this.nodeIndexes.has(nodeId)) throw new Error(`Duplicate graph node id: ${nodeId}`);
-      this.nodeIndexes.set(nodeId, index);
-    });
+    const nodeIds = [...input.nodeIds];
+    const nodeIndexes = indexGraphNodes(nodeIds);
     const state = createGraphLayoutState(input, this.config);
     const randomState = this.kernel?.randomState ?? 1;
-    this.maximumCollisionRadius = this.maximumRadius(state);
-    this.kernel = new OwnedGraphWasmPhysicsKernel(
+    const maximumCollisionRadius = this.maximumRadius(state);
+    const kernel = new OwnedGraphWasmPhysicsKernel(
       state,
       this.config,
       this.collisionScale,
-      this.collisionCellSize(),
+      this.collisionCellSize(maximumCollisionRadius),
       randomState,
     );
-    this.state = this.kernel.state;
+    this.nodeIds = nodeIds;
+    this.nodeIndexes = nodeIndexes;
+    this.maximumCollisionRadius = maximumCollisionRadius;
+    this.kernel = kernel;
+    this.state = kernel.state;
     this.reheat();
   }
 
@@ -110,6 +119,9 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       || vy.length !== nodeCount) {
       throw new Error('Graph layout kinematics must match node count');
     }
+    if (![x, y, vx, vy].every(values => values.every(Number.isFinite))) {
+      throw new Error('Graph layout kinematics must be finite');
+    }
     if (x !== this.x) this.x.set(x);
     if (y !== this.y) this.y.set(y);
     if (vx !== this.vx) this.vx.set(vx);
@@ -128,6 +140,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.vx[index] = 0;
     this.vy[index] = 0;
     this.settled = false;
+    this.settledStepCount = 0;
   }
 
   pin(index: number): void {
@@ -185,8 +198,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.settled = this.settledStepCount >= this.config.settleSteps;
   }
 
-  private collisionCellSize(): number {
-    return this.maximumCollisionRadius * 2 * this.collisionScale
+  private collisionCellSize(maximumRadius = this.maximumCollisionRadius): number {
+    return maximumRadius * 2 * this.collisionScale
       + this.config.collisionPadding;
   }
 

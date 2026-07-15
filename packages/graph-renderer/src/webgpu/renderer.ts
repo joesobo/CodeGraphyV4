@@ -72,7 +72,7 @@ function parseFullHexColor(value: string): WebGpuColor | null {
 }
 
 function parseRgbColor(value: string): WebGpuColor | null {
-  const match = /^rgba?\(\s*([\d.]+)[, ]+([\d.]+)[, ]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/i.exec(value);
+  const match = /^rgba?\(\s*(\d+(?:\.\d+)?|\.\d+)[, ]+(\d+(?:\.\d+)?|\.\d+)[, ]+(\d+(?:\.\d+)?|\.\d+)(?:\s*[,/]\s*(\d+(?:\.\d+)?|\.\d+))?\s*\)$/i.exec(value);
   if (!match) return null;
   return [
     Math.min(255, Number(match[1])) / 255,
@@ -83,7 +83,7 @@ function parseRgbColor(value: string): WebGpuColor | null {
 }
 
 function parseSrgbColor(value: string): WebGpuColor | null {
-  const match = /^color\(\s*srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)$/i.exec(value);
+  const match = /^color\(\s*srgb\s+(\d+(?:\.\d+)?|\.\d+)\s+(\d+(?:\.\d+)?|\.\d+)\s+(\d+(?:\.\d+)?|\.\d+)(?:\s*\/\s*(\d+(?:\.\d+)?|\.\d+))?\s*\)$/i.exec(value);
   if (!match) return null;
   return [
     Math.min(1, Number(match[1])),
@@ -198,7 +198,13 @@ export class OwnedWebGpuRenderer {
   private readonly nodeStyleStream: VertexStream;
   private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
+  private indexedEdgeSources: Uint32Array | undefined;
+  private indexedEdgeStride = 0;
+  private indexedEdgeTargets: Uint32Array | undefined;
+  private indexedLinks: readonly GraphRendererLink[] | undefined;
+  private indexedNodeCount = -1;
   private renderedLinkCount = 0;
+  private renderedLinkIndexes = new Uint32Array();
   private renderedLinkIndexByLink = new WeakMap<GraphRendererLink, number>();
   private uploadedArrowsVisible = false;
   private uploadedEdgeStride = 1;
@@ -255,13 +261,13 @@ export class OwnedWebGpuRenderer {
       ?? await gpu.requestAdapter({ forceFallbackAdapter: true });
     if (!adapter) return undefined;
     const device = await adapter.requestDevice();
-    const context = canvas.getContext('webgpu');
-    if (!context) {
-      device.destroy();
-      return undefined;
-    }
-
+    let context: GPUCanvasContext | null = null;
     try {
+      context = canvas.getContext('webgpu');
+      if (!context) {
+        device.destroy();
+        return undefined;
+      }
       const format = gpu.getPreferredCanvasFormat();
       context.configure({
       alphaMode: 'premultiplied',
@@ -354,7 +360,7 @@ export class OwnedWebGpuRenderer {
       });
       return renderer;
     } catch (error) {
-      context.unconfigure();
+      context?.unconfigure();
       device.destroy();
       throw error;
     }
@@ -522,7 +528,7 @@ export class OwnedWebGpuRenderer {
     curvature: number,
     writeArrows: boolean,
     nodeVisualScale: number,
-  ): boolean {
+  ): void {
     const sourceX = frame.nodeX[sourceIndex] ?? 0;
     const sourceY = frame.nodeY[sourceIndex] ?? 0;
     const targetX = frame.nodeX[targetIndex] ?? 0;
@@ -532,10 +538,9 @@ export class OwnedWebGpuRenderer {
     this.linkGeometryValues[offset + 1] = sourceY;
     this.linkGeometryValues[offset + 2] = targetX;
     this.linkGeometryValues[offset + 3] = targetY;
-    if (!writeArrows) return true;
+    if (!writeArrows) return;
     const sourceStyle = this.nodeStylesByIndex[sourceIndex];
     const targetStyle = this.nodeStylesByIndex[targetIndex];
-    if (!sourceStyle || !targetStyle) return false;
     writeOwnedArrowCurveParameters(
       this.linkGeometryValues,
       offset + 4,
@@ -548,7 +553,6 @@ export class OwnedWebGpuRenderer {
       targetStyle,
       nodeVisualScale,
     );
-    return true;
   }
 
   private packLinkStyle(
@@ -576,13 +580,12 @@ export class OwnedWebGpuRenderer {
     writeStyle: boolean,
     writeArrows: boolean,
     nodeVisualScale: number,
-  ): boolean {
+  ): void {
     const link = frame.links[linkIndex];
     const sourceIndex = frame.edgeSources[linkIndex];
     const targetIndex = frame.edgeTargets[linkIndex];
-    if (sourceIndex >= frame.nodes.length || targetIndex >= frame.nodes.length) return false;
     const curvature = link.curvature ?? 0;
-    if (writeGeometry && !this.packLinkGeometry(
+    if (writeGeometry) this.packLinkGeometry(
       frame,
       sourceIndex,
       targetIndex,
@@ -590,45 +593,69 @@ export class OwnedWebGpuRenderer {
       curvature,
       writeArrows,
       nodeVisualScale,
-    )) return false;
+    );
     if (writeStyle) this.packLinkStyle(link, linkIndex, renderedIndex, curvature);
+  }
+
+  private updateLinkRenderOrder(frame: OwnedWebGpuFrame, edgeStride: number): boolean {
+    if (this.indexedLinks === frame.links
+      && this.indexedEdgeSources === frame.edgeSources
+      && this.indexedEdgeTargets === frame.edgeTargets
+      && this.indexedNodeCount === frame.nodes.length
+      && this.indexedEdgeStride === edgeStride) return false;
+    const indexes = new Uint32Array(Math.ceil(frame.links.length / edgeStride));
+    const indexByLink = new WeakMap<GraphRendererLink, number>();
+    let renderedCount = 0;
+    for (let linkIndex = 0; linkIndex < frame.links.length; linkIndex += edgeStride) {
+      const sourceIndex = frame.edgeSources[linkIndex];
+      const targetIndex = frame.edgeTargets[linkIndex];
+      if (sourceIndex >= frame.nodes.length || targetIndex >= frame.nodes.length) continue;
+      indexes[renderedCount] = linkIndex;
+      indexByLink.set(frame.links[linkIndex], renderedCount);
+      renderedCount += 1;
+    }
+    this.indexedLinks = frame.links;
+    this.indexedEdgeSources = frame.edgeSources;
+    this.indexedEdgeTargets = frame.edgeTargets;
+    this.indexedNodeCount = frame.nodes.length;
+    this.indexedEdgeStride = edgeStride;
+    this.renderedLinkCount = renderedCount;
+    this.renderedLinkIndexes = renderedCount === indexes.length
+      ? indexes
+      : indexes.slice(0, renderedCount);
+    this.renderedLinkIndexByLink = indexByLink;
     return true;
   }
 
   private packLinkInstances(
     frame: OwnedWebGpuFrame,
-    edgeStride: number,
     writeGeometry: boolean,
     writeStyle: boolean,
     writeArrows: boolean,
     nodeVisualScale: number,
   ): void {
     if (writeGeometry) {
-      const required = frame.links.length * LINK_GEOMETRY_FLOATS;
+      const required = this.renderedLinkCount * LINK_GEOMETRY_FLOATS;
       if (this.linkGeometryValues.length !== required) {
         this.linkGeometryValues = new Float32Array(required);
       }
     }
     if (writeStyle) {
-      const required = frame.links.length * LINK_INSTANCE_STYLE_FLOATS;
+      const required = this.renderedLinkCount * LINK_INSTANCE_STYLE_FLOATS;
       if (this.linkStyleValues.length !== required) {
         this.linkStyleValues = new Float32Array(required);
       }
     }
-    this.renderedLinkCount = 0;
-    this.renderedLinkIndexByLink = new WeakMap();
-    for (let index = 0; index < frame.links.length; index += edgeStride) {
-      if (!this.packLinkInstance(
+    for (let renderedIndex = 0; renderedIndex < this.renderedLinkCount; renderedIndex += 1) {
+      this.packLinkInstance(
         frame,
-        index,
-        this.renderedLinkCount,
+        this.renderedLinkIndexes[renderedIndex],
+        renderedIndex,
         writeGeometry,
         writeStyle,
         writeArrows,
         nodeVisualScale,
-      )) continue;
-      this.renderedLinkIndexByLink.set(frame.links[index], this.renderedLinkCount);
-      this.renderedLinkCount += 1;
+      );
     }
   }
 
@@ -696,16 +723,17 @@ export class OwnedWebGpuRenderer {
     const edgeStride = this.edgeStride(frame);
     const positionsChanged = this.positionsChanged(frame);
     const edgeStrideChanged = this.uploadedEdgeStride !== edgeStride;
+    const linkRenderOrderChanged = this.updateLinkRenderOrder(frame, edgeStride);
     const arrowsVisible = frame.directionMode === 'arrows'
       && graphDetailOpacity(frame.camera.zoom) > 0;
     const nodeVisualScale = ownedGraphNodeWorldScale(frame.camera.zoom);
-    const linkGeometryChanged = this.needsLinkGeometryUpdate(
+    const linkGeometryChanged = linkRenderOrderChanged || this.needsLinkGeometryUpdate(
       positionsChanged,
       stylesChanged,
       edgeStrideChanged,
       this.arrowGeometryChanged(arrowsVisible, nodeVisualScale),
     );
-    const linkStylesChanged = stylesChanged || edgeStrideChanged;
+    const linkStylesChanged = stylesChanged || linkRenderOrderChanged;
 
     if (positionsChanged || nodeOrderChanged) {
       this.packNodePositions(frame);
@@ -721,7 +749,6 @@ export class OwnedWebGpuRenderer {
     if (linkGeometryChanged || linkStylesChanged) {
       this.packLinkInstances(
         frame,
-        edgeStride,
         linkGeometryChanged,
         linkStylesChanged,
         arrowsVisible,
@@ -820,6 +847,7 @@ export class OwnedWebGpuRenderer {
   }
 
   dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
     this.cameraBuffer.destroy();
     this.linkGeometryStream.buffer.destroy();

@@ -39,6 +39,8 @@ describe('owned WebGPU renderer color parsing', () => {
 
   it('uses opaque black for unsupported CSS colors', () => {
     expect(parseWebGpuColor('not-a-color')).toEqual([0, 0, 0, 1]);
+    expect(parseWebGpuColor('rgb(1..2, 0, 0)')).toEqual([0, 0, 0, 1]);
+    expect(parseWebGpuColor('color(srgb 1..2 0 0)')).toEqual([0, 0, 0, 1]);
   });
 
   it('encodes every supported node shape for the GPU SDF shader', () => {
@@ -104,8 +106,8 @@ function webGpuHarness() {
   vi.stubGlobal('GPUBufferUsage', { COPY_DST: 1, UNIFORM: 2, VERTEX: 4 });
   Object.defineProperty(navigator, 'gpu', { configurable: true, value: gpu });
   const canvas = document.createElement('canvas');
-  Object.defineProperty(canvas, 'getContext', { value: () => context });
-  return { adapter, canvas, device, draw, gpu, pass, writeBuffer };
+  Object.defineProperty(canvas, 'getContext', { configurable: true, value: () => context });
+  return { adapter, canvas, context, device, draw, gpu, pass, writeBuffer };
 }
 
 function rendererFrame(): OwnedWebGpuFrame {
@@ -174,6 +176,36 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect(harness.gpu.requestAdapter).toHaveBeenNthCalledWith(2, {
       forceFallbackAdapter: true,
     });
+  });
+
+  it('destroys the device when canvas context creation throws', async () => {
+    const harness = webGpuHarness();
+    Object.defineProperty(harness.canvas, 'getContext', {
+      value: () => { throw new Error('context failed'); },
+    });
+
+    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    })).rejects.toThrow('context failed');
+
+    expect(harness.device.destroy).toHaveBeenCalledOnce();
+  });
+
+  it('disposes GPU resources only once', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+
+    renderer!.dispose();
+    renderer!.dispose();
+
+    expect(harness.context.unconfigure).toHaveBeenCalledOnce();
+    expect(harness.device.destroy).toHaveBeenCalledOnce();
+    const buffers = harness.device.createBuffer.mock.results.map(result => result.value);
+    for (const buffer of buffers) expect(buffer.destroy).toHaveBeenCalledOnce();
   });
 
   it('packs and caches graph instances while submitting links before nodes', async () => {
@@ -384,6 +416,37 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
       .toEqual(['CodeGraphy camera uniform']);
     expect((harness.writeBuffer.mock.calls[0][2] as Float32Array)[7]).toBe(-1);
+  });
+
+  it('keeps link picking indexes cached across position-only frames', async () => {
+    const NativeWeakMap = globalThis.WeakMap;
+    let createdWeakMaps = 0;
+    class CountingWeakMap extends NativeWeakMap<object, unknown> {
+      constructor() {
+        super();
+        createdWeakMaps += 1;
+      }
+    }
+    vi.stubGlobal('WeakMap', CountingWeakMap);
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    frame.hoveredLink = frame.links[0];
+    renderer!.render(frame);
+    const afterInitialPacking = createdWeakMaps;
+    frame.nodeX[0] = 8;
+    frame.positionVersion += 1;
+
+    renderer!.render(frame);
+
+    expect(createdWeakMaps).toBe(afterInitialPacking);
+    const cameraWrite = harness.writeBuffer.mock.calls
+      .filter(call => call[0].label === 'CodeGraphy camera uniform')
+      .at(-1)!;
+    expect((cameraWrite[2] as Float32Array)[7]).toBe(0);
   });
 
   it('uploads authoritative positions for both nodes and edge endpoints', async () => {

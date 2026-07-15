@@ -64,14 +64,36 @@ export interface OwnedGraphFrameRuntime {
   onRendererError(this: void, message: string): void;
 }
 
-function importPluginKinematics(layout: OwnedGraphLayout): void {
+interface PluginKinematicsChange {
+  changed: boolean;
+  positionChanged: boolean;
+}
+
+function importPluginKinematics(layout: OwnedGraphLayout): PluginKinematicsChange {
+  let changed = false;
+  let positionChanged = false;
   for (let index = 0; index < layout.nodes.length; index += 1) {
     const node = layout.nodes[index];
-    if (Number.isFinite(node.x)) layout.engine.x[index] = node.x as number;
-    if (Number.isFinite(node.y)) layout.engine.y[index] = node.y as number;
-    if (Number.isFinite(node.vx)) layout.engine.vx[index] = node.vx as number;
-    if (Number.isFinite(node.vy)) layout.engine.vy[index] = node.vy as number;
+    if (Number.isFinite(node.x) && layout.engine.x[index] !== node.x) {
+      layout.engine.x[index] = node.x as number;
+      changed = true;
+      positionChanged = true;
+    }
+    if (Number.isFinite(node.y) && layout.engine.y[index] !== node.y) {
+      layout.engine.y[index] = node.y as number;
+      changed = true;
+      positionChanged = true;
+    }
+    if (Number.isFinite(node.vx) && layout.engine.vx[index] !== node.vx) {
+      layout.engine.vx[index] = node.vx as number;
+      changed = true;
+    }
+    if (Number.isFinite(node.vy) && layout.engine.vy[index] !== node.vy) {
+      layout.engine.vy[index] = node.vy as number;
+      changed = true;
+    }
   }
+  return { changed, positionChanged };
 }
 
 function applyOwnedPluginForces(
@@ -83,13 +105,15 @@ function applyOwnedPluginForces(
   if (!active) return;
   syncOwnedLayoutNodes(layout);
   runtime.pluginForcesRef.current.tick(layout.engine.alpha);
-  importPluginKinematics(layout);
+  const imported = importPluginKinematics(layout);
+  if (!imported.changed) return;
   layout.engine.setKinematics(
     layout.engine.x,
     layout.engine.y,
     layout.engine.vx,
     layout.engine.vy,
   );
+  if (imported.positionChanged) runtime.positionVersionRef.current += 1;
   runtime.synchronizedPositionVersionRef.current = runtime.positionVersionRef.current;
 }
 
