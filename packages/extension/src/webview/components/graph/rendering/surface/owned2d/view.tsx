@@ -304,7 +304,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         fpsOutputRef.current,
       );
     }
-    requestFrameRef.current();
   }, [performanceMonitorRef, props.showFps]);
 
   useEffect(() => {
@@ -334,7 +333,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     synchronizedPositionVersionRef,
   })).current;
 
-  const performanceSample = performanceMonitorRef.current.sample();
+  const performanceSample = props.showFps
+    ? performanceMonitorRef.current.sample()
+    : null;
 
   const view = (
     <div
@@ -361,7 +362,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
       />
-      {props.showFps ? (
+      {performanceSample ? (
         <output
           ref={fpsOutputRef}
           className="pointer-events-none absolute right-2 top-10 whitespace-nowrap rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
