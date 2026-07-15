@@ -1,342 +1,50 @@
 import type { IGraphNodeTypeDefinition } from '../../contracts';
+import { createSymbolAliasNodeTypes } from './symbols/aliases';
+import { createSymbolCallableNodeTypes } from './symbols/callables';
+import { createSymbolCompositionNodeTypes } from './symbols/composition';
+import { createSymbolDataNodeTypes } from './symbols/data';
+import { createSymbolEventNodeTypes } from './symbols/events';
+import { createGodotAssetNodeTypes } from './symbols/godotAssets';
+import { createGodotMemberNodeTypes } from './symbols/godotMembers';
+import { createSymbolMemberNodeTypes } from './symbols/members';
+import { createSymbolRootNodeType } from './symbols/root';
+import { createSymbolScopeNodeTypes } from './symbols/scopes';
+import { createSymbolSumTypeNodeTypes } from './symbols/sumTypes';
 
 export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
+  const callables = createSymbolCallableNodeTypes();
+  const members = createSymbolMemberNodeTypes();
+  const scopes = createSymbolScopeNodeTypes();
+  const composition = createSymbolCompositionNodeTypes();
+  const data = createSymbolDataNodeTypes();
+  const events = createSymbolEventNodeTypes();
+  const sumTypes = createSymbolSumTypeNodeTypes();
+  const aliases = createSymbolAliasNodeTypes();
+
   return [
-    {
-      id: 'symbol',
-      label: 'Symbol',
-      defaultColor: '#7C3AED',
-      defaultVisible: false,
-      description: {
-        description: 'Quick toggle for all named code elements inside files.',
-      },
-    },
-    {
-      id: 'symbol:function',
-      label: 'Function',
-      defaultColor: '#8B5CF6',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['function', 'method'],
-      description: {
-        description: 'Callable code blocks such as functions, methods, or procedures.',
-        examples: [{ code: 'function parseSettings() {}' }],
-      },
-    },
-    {
-      id: 'symbol:namespace',
-      label: 'Namespace',
-      defaultColor: '#64748B',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['namespace'],
-      description: {
-        description: 'Named scopes that group related code declarations.',
-        examples: [{ label: 'C++', code: 'namespace taskrunner {}' }],
-      },
-    },
-    {
-      id: 'symbol:callable',
-      label: 'Callable',
-      defaultColor: '#8B5CF6',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['function'],
-      description: {
-        description: 'Free functions and other callable declarations that are not class methods.',
-        examples: [{ label: 'C++', code: 'TaskList seed_tasks();' }],
-      },
-    },
-    {
-      id: 'symbol:method',
-      label: 'Method',
-      defaultColor: '#A855F7',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['method'],
-      description: {
-        description: 'Callable members that belong to a class or similar type.',
-        examples: [{ label: 'C++', code: 'std::size_t TaskRunner::run() {}' }],
-      },
-    },
-    {
-      id: 'symbol:constructor',
-      label: 'Constructor',
-      defaultColor: '#C084FC',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['constructor'],
-      description: {
-        description: 'Callable members that initialize a class, struct, or record.',
-        examples: [{ label: 'C#', code: 'public TaskDispatcher(ITaskQueue queue) {}' }],
-      },
-    },
-    {
-      id: 'symbol:prototype',
-      label: 'Prototype',
-      defaultColor: '#A78BFA',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['prototype'],
-      description: {
-        description: 'Function declarations without bodies, such as C prototypes.',
-        examples: [{ label: 'C', code: 'void logger_flush(Logger *logger);' }],
-      },
-    },
-    {
-      id: 'symbol:class',
-      label: 'Class',
-      defaultColor: '#3B82F6',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['class'],
-      description: {
-        description: 'Class declarations that group state and behavior.',
-        examples: [{ code: 'class GraphRuntime {}' }],
-      },
-    },
-    {
-      id: 'symbol:mixin',
-      label: 'Mixin',
-      defaultColor: '#2563EB',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['mixin'],
-      description: {
-        description: 'Named behavior fragments that can be composed into classes.',
-        examples: [{ label: 'Dart', code: 'mixin Runnable {}' }],
-      },
-    },
-    {
-      id: 'symbol:extension',
-      label: 'Extension',
-      defaultColor: '#4F46E5',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['extension'],
-      description: {
-        description: 'Named declarations that add behavior to an existing type.',
-        examples: [{ label: 'Dart', code: 'extension ProfileAudit on Profile {}' }],
-      },
-    },
-    {
-      id: 'symbol:interface',
-      label: 'Interface',
-      defaultColor: '#06B6D4',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['interface'],
-      description: {
-        description: 'Interface declarations that describe a shape or contract.',
-        examples: [{ code: 'interface GraphNode { id: string; }' }],
-      },
-    },
-    {
-      id: 'symbol:record',
-      label: 'Record',
-      defaultColor: '#6366F1',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['record'],
-      description: {
-        description: 'Record declarations that define value-oriented types.',
-        examples: [{ label: 'C#', code: 'public record DispatchTask(TaskId Id);' }],
-      },
-    },
-    {
-      id: 'symbol:delegate',
-      label: 'Delegate',
-      defaultColor: '#10B981',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['delegate'],
-      description: {
-        description: 'Named callable signatures that can be assigned or invoked.',
-        examples: [{ label: 'C#', code: 'public delegate void TaskCompleted();' }],
-      },
-    },
-    {
-      id: 'symbol:property',
-      label: 'Property',
-      defaultColor: '#84CC16',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['property'],
-      description: {
-        description: 'Named class, struct, interface, or record accessors.',
-        examples: [{ label: 'C#', code: 'public int Count { get; }' }],
-      },
-    },
-    {
-      id: 'symbol:event',
-      label: 'Event',
-      defaultColor: '#F97316',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['event'],
-      description: {
-        description: 'Named event members that notify subscribers.',
-        examples: [{ label: 'C#', code: 'public event TaskCompleted? Completed;' }],
-      },
-    },
-    {
-      id: 'symbol:type',
-      label: 'Type',
-      defaultColor: '#EC4899',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['type'],
-      description: {
-        description: 'Type aliases and named type definitions.',
-        examples: [{ code: 'type LayoutMode = "free" | "layered";' }],
-      },
-    },
-    {
-      id: 'symbol:struct',
-      label: 'Struct',
-      defaultColor: '#0EA5E9',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['struct'],
-      description: {
-        description: 'Struct declarations that define grouped fields or data.',
-        examples: [{ code: 'struct GraphNode { id: String }' }],
-      },
-    },
-    {
-      id: 'symbol:union',
-      label: 'Union',
-      defaultColor: '#14B8A6',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['union'],
-      description: {
-        description: 'Union declarations that store one of several field layouts in shared storage.',
-        examples: [{ label: 'C', code: 'union LogMessage { const char *text; int code; }' }],
-      },
-    },
-    {
-      id: 'symbol:enum',
-      label: 'Enum',
-      defaultColor: '#F59E0B',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['enum'],
-      description: {
-        description: 'Enum declarations that define a named set of values.',
-        examples: [{ code: 'enum LayoutMode { Free, Layered }' }],
-      },
-    },
-    {
-      id: 'symbol:typedef',
-      label: 'Typedef',
-      defaultColor: '#F472B6',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['typedef'],
-      description: {
-        description: 'C typedef declarations that introduce an alias for a named type.',
-        examples: [{ label: 'C', code: 'typedef struct Logger Logger;' }],
-      },
-    },
-    {
-      id: 'symbol:alias',
-      label: 'Alias',
-      defaultColor: '#F472B6',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['alias'],
-      description: {
-        description: 'Named aliases introduced for another type.',
-        examples: [{ label: 'C++', code: 'using TaskId = std::uint64_t;' }],
-      },
-    },
-    {
-      id: 'symbol:template',
-      label: 'Template',
-      defaultColor: '#C084FC',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['template'],
-      description: {
-        description: 'Template declarations that define reusable generic code.',
-        examples: [{ label: 'C++', code: 'template <typename Item> class TaskQueue {};' }],
-      },
-    },
-    {
-      id: 'plugin:codegraphy.gdscript:symbol:scene',
-      label: 'Scene',
-      defaultColor: '#478CBF',
-      defaultVisible: false,
-      parentId: 'symbol',
-      pluginName: 'Godot',
-      matchSymbolKinds: ['scene'],
-      matchSymbolPluginKind: 'scene',
-      matchSymbolSource: 'codegraphy.gdscript',
-      description: {
-        description: 'Godot scene roots declared in text scene files.',
-        examples: [{ label: 'Godot', code: '[node name="Player" type="CharacterBody2D"]' }],
-      },
-    },
-    {
-      id: 'plugin:codegraphy.gdscript:symbol:resource',
-      label: 'Resource',
-      defaultColor: '#F59E0B',
-      defaultVisible: false,
-      parentId: 'symbol',
-      pluginName: 'Godot',
-      matchSymbolKinds: ['resource'],
-      matchSymbolPluginKind: 'resource',
-      matchSymbolSource: 'codegraphy.gdscript',
-      description: {
-        description: 'Godot text resources such as .tres configuration assets.',
-        examples: [{ label: 'Godot', code: '[gd_resource type="Resource"]' }],
-      },
-    },
-    {
-      id: 'plugin:codegraphy.gdscript:symbol:autoload',
-      label: 'Autoload',
-      defaultColor: '#10B981',
-      defaultVisible: false,
-      parentId: 'symbol',
-      pluginName: 'Godot',
-      matchSymbolKinds: ['autoload'],
-      matchSymbolPluginKind: 'autoload',
-      matchSymbolSource: 'codegraphy.gdscript',
-      description: {
-        description: 'Godot project autoload singletons declared in project.godot.',
-        examples: [{ label: 'Godot', code: 'GameManager="*res://scripts/game_manager.gd"' }],
-      },
-    },
-    {
-      id: 'plugin:codegraphy.gdscript:symbol:scene-node',
-      label: 'Scene Node',
-      defaultColor: '#A855F7',
-      defaultVisible: false,
-      parentId: 'symbol',
-      pluginName: 'Godot',
-      matchSymbolKinds: ['scene-node'],
-      matchSymbolPluginKind: 'scene-node',
-      matchSymbolSource: 'codegraphy.gdscript',
-      description: {
-        description: 'Named nodes declared inside Godot text scene files.',
-        examples: [{ label: 'Godot', code: '[node name="HealthComponent" parent="."]' }],
-      },
-    },
-    {
-      id: 'plugin:codegraphy.gdscript:symbol:signal',
-      label: 'Signal',
-      defaultColor: '#EF4444',
-      defaultVisible: false,
-      parentId: 'symbol',
-      pluginName: 'Godot',
-      matchSymbolKinds: ['signal'],
-      matchSymbolPluginKind: 'signal',
-      matchSymbolSource: 'codegraphy.gdscript',
-      description: {
-        description: 'GDScript signal declarations that other scripts can connect to.',
-        examples: [{ label: 'GDScript', code: 'signal health_changed(current: int, maximum: int)' }],
-      },
-    },
+    createSymbolRootNodeType(),
+    callables.functionNodeType,
+    scopes.namespaceNodeType,
+    callables.callableNodeType,
+    members.methodNodeType,
+    members.constructorNodeType,
+    callables.prototypeNodeType,
+    scopes.classNodeType,
+    composition.mixinNodeType,
+    composition.extensionNodeType,
+    scopes.interfaceNodeType,
+    data.recordNodeType,
+    events.delegateNodeType,
+    members.propertyNodeType,
+    events.eventNodeType,
+    data.typeNodeType,
+    data.structNodeType,
+    sumTypes.unionNodeType,
+    sumTypes.enumNodeType,
+    aliases.typedefNodeType,
+    aliases.aliasNodeType,
+    composition.templateNodeType,
+    ...createGodotAssetNodeTypes(),
+    ...createGodotMemberNodeTypes(),
   ];
 }

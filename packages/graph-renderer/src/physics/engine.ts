@@ -1,229 +1,91 @@
 import { DEFAULT_GRAPH_LAYOUT_CONFIG, mergeGraphLayoutConfig } from './config';
-import {
-  GraphNodeFlag,
-  type GraphLayoutConfig,
-  type GraphLayoutEngine,
-  type GraphLayoutInput,
-  type GraphLayoutState,
-  type GraphLayoutTickResult,
+import type {
+  GraphLayoutConfig,
+  GraphLayoutEngine,
+  GraphLayoutInput,
+  GraphLayoutTickResult,
 } from './contracts';
-import { createGraphLayoutState } from './initialization';
-import { assertOwnedGraphCollisionScale } from './wasm/configuration';
-import { OwnedGraphWasmPhysicsKernel } from './wasm/kernel';
+import { updateCollisionScale, updateEngineConfig } from './engineConfig';
+import type { GraphEngineState } from './engineState';
+import { createGraphStorage, replaceGraphStorage } from './graphStorage';
+import { replaceKinematics } from './kinematics';
+import { pinGraphNode, releaseGraphNode, setGraphNodePosition } from './nodeControl';
+import { tickSimulation } from './simulation';
+import { reheatSimulation, setSimulationAlphaTarget } from './simulationAlpha';
 
-function indexGraphNodes(nodeIds: readonly string[]): Map<string, number> {
-  const indexes = new Map<string, number>();
-  nodeIds.forEach((nodeId, index) => {
-    if (indexes.has(nodeId)) throw new Error(`Duplicate graph node id: ${nodeId}`);
-    indexes.set(nodeId, index);
-  });
-  return indexes;
-}
-
-function assertKinematicsLength(values: Float32Array, nodeCount: number): void {
-  if (values.length !== nodeCount) {
-    throw new Error('Graph layout kinematics must match node count');
-  }
-}
-
-function assertFiniteKinematics(values: Float32Array): void {
-  if (!values.every(Number.isFinite)) {
-    throw new Error('Graph layout kinematics must be finite');
-  }
+function createEngineState(
+  input: GraphLayoutInput,
+  update: Partial<GraphLayoutConfig>,
+): GraphEngineState {
+  const config = mergeGraphLayoutConfig(DEFAULT_GRAPH_LAYOUT_CONFIG, update);
+  return {
+    alpha: 1,
+    alphaTarget: 0,
+    collisionScale: 1,
+    config,
+    ...createGraphStorage(input, config, 1, 1),
+    paused: false,
+    settled: false,
+    settledStepCount: 0,
+  };
 }
 
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
-  nodeIds!: readonly string[];
-  private state!: GraphLayoutState;
-  private config: GraphLayoutConfig;
-  private collisionScale = 1;
-  private maximumCollisionRadius = 1;
-  private nodeIndexes!: Map<string, number>;
-  private kernel!: OwnedGraphWasmPhysicsKernel;
-  private simulationAlpha = 1;
-  private simulationAlphaTarget = 0;
-  private settledStepCount = 0;
-  private paused = false;
-  settled = false;
+  private readonly engine: GraphEngineState;
 
   constructor(input: GraphLayoutInput, config: Partial<GraphLayoutConfig> = {}) {
-    this.config = mergeGraphLayoutConfig(DEFAULT_GRAPH_LAYOUT_CONFIG, config);
-    this.setGraph(input);
+    this.engine = createEngineState(input, config);
   }
 
-  get x(): Float32Array { return this.state.x; }
-  get y(): Float32Array { return this.state.y; }
-  get vx(): Float32Array { return this.state.vx; }
-  get vy(): Float32Array { return this.state.vy; }
-  get chargeStrengthMultipliers(): Float32Array { return this.state.chargeStrengthMultipliers; }
-  get radii(): Float32Array { return this.state.radii; }
-  get flags(): Uint8Array { return this.state.flags; }
-  get edgeSources(): Uint32Array { return this.state.edgeSources; }
-  get edgeTargets(): Uint32Array { return this.state.edgeTargets; }
-  get alpha(): number { return this.simulationAlpha; }
+  get nodeIds(): readonly string[] { return this.engine.nodeIds; }
+  get x(): Float32Array { return this.engine.graph.x; }
+  get y(): Float32Array { return this.engine.graph.y; }
+  get vx(): Float32Array { return this.engine.graph.vx; }
+  get vy(): Float32Array { return this.engine.graph.vy; }
+  get chargeStrengthMultipliers(): Float32Array {
+    return this.engine.graph.chargeStrengthMultipliers;
+  }
+  get radii(): Float32Array { return this.engine.graph.radii; }
+  get flags(): Uint8Array { return this.engine.graph.flags; }
+  get edgeSources(): Uint32Array { return this.engine.graph.edgeSources; }
+  get edgeTargets(): Uint32Array { return this.engine.graph.edgeTargets; }
+  get alpha(): number { return this.engine.alpha; }
+  get settled(): boolean { return this.engine.settled; }
 
   getNodeIndex(nodeId: string): number | undefined {
-    return this.nodeIndexes.get(nodeId);
+    return this.engine.nodeIndexes.get(nodeId);
   }
 
   setGraph(input: GraphLayoutInput): void {
-    const nodeIds = [...input.nodeIds];
-    const nodeIndexes = indexGraphNodes(nodeIds);
-    const state = createGraphLayoutState(input, this.config);
-    const randomState = this.kernel?.randomState ?? 1;
-    const maximumCollisionRadius = this.maximumRadius(state);
-    const kernel = new OwnedGraphWasmPhysicsKernel(
-      state,
-      this.config,
-      this.collisionScale,
-      this.collisionCellSize(maximumCollisionRadius),
-      randomState,
-    );
-    this.nodeIds = nodeIds;
-    this.nodeIndexes = nodeIndexes;
-    this.maximumCollisionRadius = maximumCollisionRadius;
-    this.kernel = kernel;
-    this.state = kernel.state;
-    this.reheat();
+    replaceGraphStorage(this.engine, input);
   }
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
-    this.config = mergeGraphLayoutConfig(this.config, config);
-    this.kernel.configure(this.config, this.collisionScale, this.collisionCellSize());
-    if (this.x.length > 0) this.reheat(0.3);
+    if (updateEngineConfig(this.engine, config)) this.reheat(0.3);
   }
 
   setCollisionScale(scale: number): void {
-    if (scale === this.collisionScale) return;
-    assertOwnedGraphCollisionScale(scale);
-    const expandsCollisionEnvelope = scale > this.collisionScale;
-    this.collisionScale = scale;
-    this.kernel.configure(this.config, scale, this.collisionCellSize());
-    if (expandsCollisionEnvelope && this.x.length > 0) {
-      this.settled = false;
-      this.settledStepCount = 0;
-    }
+    updateCollisionScale(this.engine, scale);
   }
 
   tick(): GraphLayoutTickResult {
-    if (this.x.length === 0) {
-      this.settled = true;
-      return { moving: false, settled: true, steps: 0 };
-    }
-    if (this.paused || this.settled) {
-      return { moving: false, settled: this.settled, steps: 0 };
-    }
-
-    this.step();
-    return { moving: !this.settled, settled: this.settled, steps: 1 };
+    return tickSimulation(this.engine);
   }
 
-  setKinematics(
-    x: Float32Array,
-    y: Float32Array,
-    vx: Float32Array,
-    vy: Float32Array,
-  ): void {
-    const nodeCount = this.x.length;
-    assertKinematicsLength(x, nodeCount);
-    assertKinematicsLength(y, nodeCount);
-    assertKinematicsLength(vx, nodeCount);
-    assertKinematicsLength(vy, nodeCount);
-    assertFiniteKinematics(x);
-    assertFiniteKinematics(y);
-    assertFiniteKinematics(vx);
-    assertFiniteKinematics(vy);
-    if (x !== this.x) this.x.set(x);
-    if (y !== this.y) this.y.set(y);
-    if (vx !== this.vx) this.vx.set(vx);
-    if (vy !== this.vy) this.vy.set(vy);
-    this.settled = false;
-    this.settledStepCount = 0;
+  setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void {
+    replaceKinematics(this.engine, x, y, vx, vy);
   }
 
   setNodePosition(index: number, x: number, y: number): void {
-    this.assertNodeIndex(index);
-    if (!Number.isFinite(x) || !Number.isFinite(y)) {
-      throw new Error('Graph node position must be finite');
-    }
-    this.x[index] = x;
-    this.y[index] = y;
-    this.vx[index] = 0;
-    this.vy[index] = 0;
-    this.settled = false;
-    this.settledStepCount = 0;
+    setGraphNodePosition(this.engine, index, x, y);
   }
 
-  pin(index: number): void {
-    this.assertNodeIndex(index);
-    this.flags[index] |= GraphNodeFlag.Pinned;
-    this.vx[index] = 0;
-    this.vy[index] = 0;
-  }
-
-  release(index: number): void {
-    this.assertNodeIndex(index);
-    this.flags[index] &= ~GraphNodeFlag.Pinned;
-  }
-
-  setAlphaTarget(alpha: number): void {
-    if (!Number.isFinite(alpha) || alpha < 0) {
-      throw new Error('Graph layout alpha target must be a non-negative finite number');
-    }
-    this.simulationAlphaTarget = alpha;
-    if (alpha > 0) {
-      this.settled = false;
-      this.settledStepCount = 0;
-    }
-  }
-
-  reheat(alpha = 1): void {
-    if (!Number.isFinite(alpha) || alpha <= 0) {
-      throw new Error('Graph layout reheat alpha must be positive');
-    }
-    this.simulationAlpha = Math.max(this.simulationAlpha, alpha);
-    this.settled = false;
-    this.settledStepCount = 0;
-  }
-
-  pause(): void { this.paused = true; }
-  resume(): void { this.paused = false; }
-
-  private step(): void {
-    this.simulationAlpha += (this.simulationAlphaTarget - this.simulationAlpha)
-      * this.config.alphaDecay;
-    const collisionIterations = this.simulationAlpha < 0.1
-      ? Math.max(this.config.collisionIterations, 16)
-      : this.config.collisionIterations;
-    const maximumVelocity = this.kernel.step(
-      this.simulationAlpha,
-      collisionIterations,
-    );
-    this.state = this.kernel.state;
-    const collisionCorrectionCount = this.kernel.collisionCorrectionCount;
-    const calm = this.simulationAlpha <= this.config.alphaMinimum
-      && maximumVelocity <= this.config.settleSpeed
-      && collisionCorrectionCount === 0;
-    this.settledStepCount = calm ? this.settledStepCount + 1 : 0;
-    this.settled = this.settledStepCount >= this.config.settleSteps;
-  }
-
-  private collisionCellSize(maximumRadius = this.maximumCollisionRadius): number {
-    return maximumRadius * 2 * this.collisionScale
-      + this.config.collisionPadding;
-  }
-
-  private maximumRadius(state: GraphLayoutState): number {
-    let maximumRadius = 1;
-    for (const radius of state.radii) maximumRadius = Math.max(maximumRadius, radius);
-    return maximumRadius;
-  }
-
-  private assertNodeIndex(index: number): void {
-    if (!Number.isInteger(index) || index < 0 || index >= this.x.length) {
-      throw new Error(`Graph node index is out of bounds: ${index}`);
-    }
-  }
+  pin(index: number): void { pinGraphNode(this.engine, index); }
+  release(index: number): void { releaseGraphNode(this.engine, index); }
+  setAlphaTarget(alpha: number): void { setSimulationAlphaTarget(this.engine, alpha); }
+  reheat(alpha = 1): void { reheatSimulation(this.engine, alpha); }
+  pause(): void { this.engine.paused = true; }
+  resume(): void { this.engine.paused = false; }
 }
 
 export function createGraphLayoutEngine(

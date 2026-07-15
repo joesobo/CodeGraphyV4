@@ -1,17 +1,23 @@
 import type { MutableRefObject } from 'react';
 import type { OwnedGraphLayout } from './layout';
+import type { GraphLayoutFixedTimestepClock } from './simulationClock';
+import { WebGpuGraphRenderer } from '@codegraphy-dev/graph-renderer';
 import {
-  resetGraphLayoutFixedTimestepClock,
-  type GraphLayoutFixedTimestepClock,
-} from './simulationClock';
-import { OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
+  activateOwnedGraphRenderer,
+  disposeCurrentRenderer,
+  reportOwnedGraphRendererError,
+} from './rendererActivation';
+import { beginOwnedWebGpuRendererCreation } from './rendererCreation';
+import { currentRendererGeneration, finishOwnedRendererFrame, rendererDeviceLostMessage } from './rendererGeneration';
+import { createdRendererResult, rendererCreationError } from './rendererCreationResult';
+import { recoverOwnedGraphRenderer } from './rendererRecovery';
 
 export type OwnedGraphRendererStatus = 'error' | 'initializing' | 'webgpu';
 
 export interface OwnedGraphRendererLifecycleRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   frameRequestedRef: MutableRefObject<boolean>;
-  gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
+  gpuRendererRef: MutableRefObject<WebGpuGraphRenderer | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
@@ -24,46 +30,6 @@ export interface OwnedGraphRendererLifecycleRuntime {
 export interface OwnedGraphRendererLifecycle {
   dispose(): void;
 }
-
-function pauseOwnedGraphRendererPhysics(runtime: OwnedGraphRendererLifecycleRuntime): void {
-  runtime.rendererOperationalRef.current = false;
-  runtime.layoutRef.current?.engine.pause();
-  resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
-}
-
-function reportOwnedGraphRendererError(
-  runtime: OwnedGraphRendererLifecycleRuntime,
-  message: string,
-  requestFrame: boolean,
-): void {
-  pauseOwnedGraphRendererPhysics(runtime);
-  runtime.onError(message);
-  if (requestFrame) runtime.requestFrameRef.current();
-}
-
-function disposeCurrentRenderer(runtime: OwnedGraphRendererLifecycleRuntime): void {
-  runtime.gpuRendererRef.current?.dispose();
-  runtime.gpuRendererRef.current = null;
-}
-
-function activateOwnedGraphRenderer(
-  runtime: OwnedGraphRendererLifecycleRuntime,
-  renderer: OwnedWebGpuRenderer,
-): void {
-  runtime.gpuRendererRef.current = renderer;
-  runtime.rendererOperationalRef.current = true;
-  resetGraphLayoutFixedTimestepClock(runtime.simulationClockRef.current);
-  const layout = runtime.layoutRef.current;
-  if (layout) {
-    layout.engine.resume();
-    layout.engine.reheat();
-    runtime.engineStopNotifiedRef.current = false;
-  }
-  runtime.onReady();
-  runtime.requestFrameRef.current();
-}
-
-const MAX_DEVICE_RECOVERY_ATTEMPTS = 2;
 
 class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
   private active = true;
@@ -88,34 +54,30 @@ class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
 
   private createRenderer(recovering: boolean): void {
     const rendererGeneration = ++this.generation;
-    void OwnedWebGpuRenderer.create(this.canvas, {
+    beginOwnedWebGpuRendererCreation(this.canvas, {
       onDeviceLost: message => this.handleDeviceLost(rendererGeneration, message),
       onFrameComplete: () => this.handleFrameComplete(rendererGeneration),
-    }).then(renderer => {
-      this.handleCreatedRenderer(rendererGeneration, recovering, renderer);
-    }).catch((error: unknown) => {
-      this.handleCreationError(rendererGeneration, recovering, error);
+      onCreated: renderer => this.handleCreatedRenderer(rendererGeneration, recovering, renderer),
+      onCreationError: error => this.handleCreationError(rendererGeneration, recovering, error),
     });
   }
 
   private currentGeneration(rendererGeneration: number): boolean {
-    return this.active && rendererGeneration === this.generation;
+    return currentRendererGeneration(this.active, this.generation, rendererGeneration);
   }
 
   private handleCreatedRenderer(
     rendererGeneration: number,
     recovering: boolean,
-    renderer: OwnedWebGpuRenderer | undefined,
+    renderer: WebGpuGraphRenderer | undefined,
   ): void {
-    if (!this.currentGeneration(rendererGeneration)) {
-      renderer?.dispose();
-      return;
-    }
-    if (!renderer) {
+    const result = createdRendererResult(this.currentGeneration(rendererGeneration), renderer);
+    if (result === 'stale') return;
+    if (result === 'unavailable') {
       this.handleCreationFailure('WebGPU is unavailable in this environment.', recovering);
       return;
     }
-    activateOwnedGraphRenderer(this.runtime, renderer);
+    activateOwnedGraphRenderer(this.runtime, result);
   }
 
   private handleCreationError(
@@ -123,11 +85,8 @@ class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
     recovering: boolean,
     error: unknown,
   ): void {
-    if (!this.currentGeneration(rendererGeneration)) return;
-    this.handleCreationFailure(
-      error instanceof Error ? error.message : String(error),
-      recovering,
-    );
+    const message = rendererCreationError(this.currentGeneration(rendererGeneration), error);
+    if (message !== undefined) this.handleCreationFailure(message, recovering);
   }
 
   private handleCreationFailure(message: string, recovering: boolean): void {
@@ -137,25 +96,19 @@ class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
 
   private handleDeviceLost(rendererGeneration: number, message: string): void {
     if (!this.currentGeneration(rendererGeneration)) return;
-    this.recoverRenderer(message || 'The WebGPU device was lost.');
+    this.recoverRenderer(rendererDeviceLostMessage(message));
   }
 
   private handleFrameComplete(rendererGeneration: number): void {
     if (!this.currentGeneration(rendererGeneration)) return;
     this.recoveryAttempts = 0;
-    if (this.runtime.frameRequestedRef.current) this.runtime.requestFrameRef.current();
+    finishOwnedRendererFrame(this.runtime);
   }
 
   private recoverRenderer(message: string): void {
-    disposeCurrentRenderer(this.runtime);
-    pauseOwnedGraphRendererPhysics(this.runtime);
-    if (this.recoveryAttempts >= MAX_DEVICE_RECOVERY_ATTEMPTS) {
-      reportOwnedGraphRendererError(this.runtime, message, true);
-      return;
-    }
-    this.recoveryAttempts += 1;
-    this.runtime.onRecovering();
-    this.createRenderer(true);
+    this.recoveryAttempts = recoverOwnedGraphRenderer(
+      this.runtime, message, this.recoveryAttempts, () => this.createRenderer(true),
+    );
   }
 }
 

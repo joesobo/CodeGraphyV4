@@ -1,5 +1,7 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { CorePluginInfo } from './registry';
+import { assertPluginApiCompatibility } from './compatibility';
+import { addPluginToExtensionMap } from './extensionMap';
 
 export interface RegisterPluginOptions {
   builtIn?: boolean;
@@ -17,6 +19,18 @@ export function createCorePluginInfo(
     ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
     ...(options.options ? { options: { ...options.options } } : {}),
   };
+}
+
+export function registerCorePlugin(
+  plugin: IPlugin,
+  options: RegisterPluginOptions,
+  plugins: Map<string, CorePluginInfo>,
+  extensionMap: Map<string, string[]>,
+): void {
+  if (plugins.has(plugin.id)) throw new Error(`Plugin with ID '${plugin.id}' is already registered`);
+  assertPluginApiCompatibility(plugin);
+  plugins.set(plugin.id, createCorePluginInfo(plugin, options));
+  addPluginToExtensionMap(plugin, extensionMap);
 }
 
 export function getPluginFilterPatterns(

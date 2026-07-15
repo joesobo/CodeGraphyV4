@@ -4,7 +4,7 @@ import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
 import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
-import { LoadingState, EmptyState } from './states';
+import { EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
 import { GraphIndexStatus } from '../../components/graphIndexStatus/view';
 import { RulePrompt, type RulePromptState } from '../rulePrompt/view';
@@ -21,55 +21,10 @@ import { useFilterPopoverState } from './filterPopover';
 import { useVisibleGraphStateResponse } from './visibleGraphResponse';
 import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
-
-type GraphPhysicsPreparationState =
-  | { status: 'loading' | 'ready' }
-  | { status: 'error'; message: string };
+import { renderGraphStartupState, useGraphPhysicsPreparation } from './physicsPreparation';
 
 export interface AppShellProps {
   graphPhysicsPreparation?: Promise<void>;
-}
-
-function renderGraphStartupState(
-  graphPhysics: GraphPhysicsPreparationState,
-  isLoading: boolean,
-): React.ReactElement | undefined {
-  if (graphPhysics.status === 'error') {
-    return (
-      <div role="alert" data-codegraphy-state="wasm-error">
-        Unable to initialize graph physics: {graphPhysics.message}
-      </div>
-    );
-  }
-  if (isLoading || graphPhysics.status === 'loading') return <LoadingState />;
-  return undefined;
-}
-
-function useGraphPhysicsPreparation(
-  preparation: Promise<void> | undefined,
-): GraphPhysicsPreparationState {
-  const [state, setState] = useState<GraphPhysicsPreparationState>(() => (
-    preparation ? { status: 'loading' } : { status: 'ready' }
-  ));
-  useEffect(() => {
-    if (!preparation) {
-      setState({ status: 'ready' });
-      return;
-    }
-    let active = true;
-    void preparation.then(
-      () => { if (active) setState({ status: 'ready' }); },
-      error => {
-        if (!active) return;
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : String(error),
-        });
-      },
-    );
-    return () => { active = false; };
-  }, [preparation]);
-  return state;
 }
 
 export default function App({ graphPhysicsPreparation }: AppShellProps): React.ReactElement {

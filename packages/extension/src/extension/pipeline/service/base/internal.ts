@@ -34,6 +34,7 @@ import {
   preAnalyzeWorkspacePipelinePlugins,
 } from '../runtime/analysis';
 import { WorkspacePipelineStateBase } from './state';
+import { listActiveAnalysisPluginIds } from './activePlugins';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected async _preAnalyzePlugins(
@@ -117,13 +118,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     pluginIds: readonly string[] | undefined,
     disabledPlugins: ReadonlySet<string>,
   ): string[] {
-    const candidateIds = pluginIds ?? this._registry.list()
-      .map(({ plugin }) => plugin.id)
-      .filter((pluginId): pluginId is string =>
-        typeof pluginId === 'string' && pluginId.length > 0,
-      );
-
-    return candidateIds.filter(pluginId => !disabledPlugins.has(pluginId));
+    return listActiveAnalysisPluginIds(this._registry, pluginIds, disabledPlugins);
   }
 
   protected _buildGraphData(

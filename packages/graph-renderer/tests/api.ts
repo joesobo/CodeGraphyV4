@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { installOwnedGraphPhysicsModule } from '../src/physics/wasm/module';
+import { installGraphPhysicsModule } from '../src/physics/wasm/module';
 
 export { TypedGraphLayoutEngine } from '../src/physics/engine';
 
@@ -10,5 +10,5 @@ export function installGeneratedGraphPhysicsForTests(): void {
     import.meta.dirname,
     '../src/wasm/generated/physics.wasm',
   ));
-  installOwnedGraphPhysicsModule(new WebAssembly.Module(physicsBytes));
+  installGraphPhysicsModule(new WebAssembly.Module(physicsBytes));
 }

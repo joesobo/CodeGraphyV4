@@ -1,5 +1,5 @@
 import type { FGLink, FGNode } from '../model/build';
-import { ownedGraphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
+import { graphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
 
 export interface GraphScreenProjector {
   graph2ScreenCoords(x: number, y: number): { x: number; y: number };
@@ -55,7 +55,7 @@ function createNodeItem(
     kind: 'node',
     id: node.id,
     label: `Graph node ${node.id}`,
-    radius: ownedGraphNodeScreenRadius(node.size, projector.zoom()),
+    radius: graphNodeScreenRadius(node.size, projector.zoom()),
     x: screenPosition.x,
     y: screenPosition.y,
   }];

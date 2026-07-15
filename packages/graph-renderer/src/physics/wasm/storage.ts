@@ -1,12 +1,12 @@
 import type { GraphLayoutState } from '../contracts';
 import {
-  MAXIMUM_OWNED_GRAPH_PHYSICS_PAGES,
-  type OwnedGraphPhysicsExports,
+  MAXIMUM_GRAPH_GRAPH_PHYSICS_PAGES,
+  type GraphPhysicsExports,
 } from './abi';
 import {
-  createOwnedGraphPhysicsMemoryLayout,
+  createGraphPhysicsMemoryLayout,
   type MemoryRegion,
-  type OwnedGraphPhysicsMemoryLayout,
+  type GraphPhysicsMemoryLayout,
   WASM_PAGE_BYTES,
 } from './layout';
 
@@ -18,21 +18,21 @@ function u32(memory: WebAssembly.Memory, region: MemoryRegion): Uint32Array {
   return new Uint32Array(memory.buffer, region.offset, region.bytes / 4);
 }
 
-export class OwnedGraphPhysicsStorage {
+export class GraphPhysicsStorage {
   readonly memory: WebAssembly.Memory;
-  readonly layout: OwnedGraphPhysicsMemoryLayout;
+  readonly layout: GraphPhysicsMemoryLayout;
   readonly state: GraphLayoutState;
   readonly result: Int32Array;
 
   constructor(source: GraphLayoutState, cellCapacity: number) {
-    this.layout = createOwnedGraphPhysicsMemoryLayout(
+    this.layout = createGraphPhysicsMemoryLayout(
       source.x.length,
       source.edgeSources.length,
       cellCapacity,
     );
     this.memory = new WebAssembly.Memory({
       initial: this.layout.totalBytes / WASM_PAGE_BYTES,
-      maximum: MAXIMUM_OWNED_GRAPH_PHYSICS_PAGES,
+      maximum: MAXIMUM_GRAPH_GRAPH_PHYSICS_PAGES,
     });
     this.state = {
       x: f32(this.memory, this.layout.x),
@@ -54,7 +54,7 @@ export class OwnedGraphPhysicsStorage {
     this.result = new Int32Array(this.memory.buffer, this.layout.result.offset, 1);
   }
 
-  initialize(exports: OwnedGraphPhysicsExports): void {
+  initialize(exports: GraphPhysicsExports): void {
     const layout = this.layout;
     exports.initializeResult(layout.result.offset);
     exports.initializeGraph(

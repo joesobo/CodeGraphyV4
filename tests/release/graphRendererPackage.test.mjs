@@ -81,7 +81,7 @@ test('the graph renderer tarball contains a runnable public package', () => {
   const smokeTest = [
     "import { readFile } from 'node:fs/promises';",
     `const renderer = await import('${packageName}');`,
-    "for (const name of ['createGraphLayoutEngine', 'OwnedWebGpuRenderer', 'prepareGraphPhysics']) if (typeof renderer[name] !== 'function') throw new Error(`Missing ${name}`);",
+    "for (const name of ['createGraphLayoutEngine', 'WebGpuGraphRenderer', 'prepareGraphPhysics']) if (typeof renderer[name] !== 'function') throw new Error(`Missing ${name}`);",
     "for (const name of ['DEFAULT_GRAPH_LAYOUT_CONFIG', 'TypedGraphLayoutEngine', 'installGraphPhysicsModule', 'parseWebGpuColor', 'webGpuNodeShapeCode']) if (name in renderer) throw new Error(`Unexpected internal export ${name}`);",
     `const loaderUrl = import.meta.resolve('${packageName}');`,
     "const wasm = await readFile(new URL('./generated/physics.wasm', loaderUrl));",

@@ -7,7 +7,7 @@ import {
   GraphNodeFlag,
   type GraphLayoutInput,
 } from '@graph-renderer/physics';
-import { ownedGraphNodeWorldScale } from '@graph-renderer/visualSize';
+import { graphNodeWorldScale } from '@graph-renderer/visualSize';
 
 function lineGraph(nodeCount: number): GraphLayoutInput {
   return {
@@ -594,7 +594,7 @@ describe('graph layout engine', () => {
         collisionStrength: 1,
         settleSteps: 1,
       });
-      const collisionScale = ownedGraphNodeWorldScale(zoom);
+      const collisionScale = graphNodeWorldScale(zoom);
 
       engine.setCollisionScale(collisionScale);
       engine.tick();

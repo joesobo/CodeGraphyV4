@@ -1,10 +1,6 @@
 import type { DirectionMode } from '../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../model/build';
-import {
-  ownedLinkGeometry,
-  pointOnOwnedLink,
-  type OwnedLinkGeometry,
-} from '@codegraphy-dev/graph-renderer';
+import { drawOwnedGraphParticles } from './drawingParticles';
 
 const OVERLAY_CULL_MARGIN_PX = 128;
 
@@ -23,49 +19,7 @@ export interface OwnedGraphDrawingOptions {
   viewport: { maximumX: number; maximumY: number; minimumX: number; minimumY: number };
 }
 
-function drawParticles(
-  context: CanvasRenderingContext2D,
-  geometry: OwnedLinkGeometry,
-  count: number,
-  color: string,
-  size: number,
-  speed: number,
-  timestamp: number,
-  globalScale: number,
-): void {
-  const radius = Math.max(0.75, size) / Math.max(globalScale, 0.01);
-  context.fillStyle = color;
-  for (let index = 0; index < count; index += 1) {
-    const position = ((timestamp * speed * 0.001) + index / count) % 1;
-    const point = pointOnOwnedLink(geometry, position);
-    context.beginPath();
-    context.arc(point.x, point.y, radius, 0, Math.PI * 2);
-    context.fill();
-  }
-}
-
-function drawOwnedGraphLinkParticles(
-  options: OwnedGraphDrawingOptions,
-  link: FGLink,
-): void {
-  const geometry = ownedLinkGeometry(link);
-  if (!geometry) return;
-  drawParticles(
-    options.context,
-    geometry,
-    Math.max(1, options.getLinkParticles(link)),
-    options.getParticleColor(link),
-    options.particleSize,
-    options.particleSpeed,
-    options.timestamp,
-    options.globalScale,
-  );
-}
-
-export function drawOwnedGraphParticles(options: OwnedGraphDrawingOptions): void {
-  if (options.directionMode !== 'particles') return;
-  for (const link of options.links) drawOwnedGraphLinkParticles(options, link);
-}
+export { drawOwnedGraphParticles } from './drawingParticles';
 
 export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
   drawOwnedGraphParticles(options);

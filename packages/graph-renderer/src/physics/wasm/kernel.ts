@@ -1,14 +1,14 @@
 import type { GraphLayoutConfig, GraphLayoutState } from '../contracts';
 import {
-  instantiateOwnedGraphPhysics,
-  type OwnedGraphPhysicsExports,
+  instantiateGraphPhysics,
+  type GraphPhysicsExports,
 } from './abi';
-import { assertOwnedGraphCollisionConfiguration } from './configuration';
-import { OwnedGraphPhysicsStorage } from './storage';
+import { assertGraphCollisionConfiguration } from './configuration';
+import { GraphPhysicsStorage } from './storage';
 
 const INITIAL_BARNES_HUT_CELLS_PER_NODE = 8;
 
-export interface OwnedGraphBarnesHutDiagnostics {
+export interface GraphBarnesHutDiagnostics {
   cellCount: number;
   rootBounds: { minimumX: number; minimumY: number; size: number } | undefined;
   rootCharge: number;
@@ -17,9 +17,9 @@ export interface OwnedGraphBarnesHutDiagnostics {
   visibleNodeCount: number;
 }
 
-export class OwnedGraphWasmPhysicsKernel {
-  private storage!: OwnedGraphPhysicsStorage;
-  private exports!: OwnedGraphPhysicsExports;
+export class GraphWasmPhysicsKernel {
+  private storage!: GraphPhysicsStorage;
+  private exports!: GraphPhysicsExports;
   private currentConfig!: GraphLayoutConfig;
   private currentCollisionScale = 1;
   private currentCollisionCellSize = 1;
@@ -56,7 +56,7 @@ export class OwnedGraphWasmPhysicsKernel {
     collisionScale: number,
     collisionCellSize: number,
   ): void {
-    assertOwnedGraphCollisionConfiguration(collisionScale, collisionCellSize);
+    assertGraphCollisionConfiguration(collisionScale, collisionCellSize);
     this.currentConfig = config;
     this.currentCollisionScale = collisionScale;
     this.currentCollisionCellSize = collisionCellSize;
@@ -85,13 +85,13 @@ export class OwnedGraphWasmPhysicsKernel {
         return maximumVelocity;
       }
       if (!this.exports.barnesHutOverflowed()) {
-        throw new Error('Owned graph WASM physics returned a non-finite velocity');
+        throw new Error('Graph WASM physics returned a non-finite velocity');
       }
       this.growBarnesHutCapacity();
     }
   }
 
-  rebuildBarnesHutDiagnostics(chargeStrength: number): OwnedGraphBarnesHutDiagnostics {
+  rebuildBarnesHutDiagnostics(chargeStrength: number): GraphBarnesHutDiagnostics {
     if (!this.exports.rebuildRepulsionDiagnostics(chargeStrength)) {
       this.growBarnesHutCapacity();
       return this.rebuildBarnesHutDiagnostics(chargeStrength);
@@ -121,8 +121,8 @@ export class OwnedGraphWasmPhysicsKernel {
     cellCapacity: number,
     randomState: number,
   ): void {
-    this.storage = new OwnedGraphPhysicsStorage(source, cellCapacity);
-    this.exports = instantiateOwnedGraphPhysics(this.storage.memory);
+    this.storage = new GraphPhysicsStorage(source, cellCapacity);
+    this.exports = instantiateGraphPhysics(this.storage.memory);
     this.storage.initialize(this.exports);
     this.exports.restoreBarnesHutRandomState(randomState);
     this.configure(config, collisionScale, collisionCellSize);

@@ -1,4 +1,4 @@
-# Owned graph physics WASM
+# Graph physics WASM
 
 This AssemblyScript module owns the hot built-in graph-physics step used by the
 WebGPU renderer:

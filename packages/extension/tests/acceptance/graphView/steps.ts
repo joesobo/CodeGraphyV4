@@ -778,7 +778,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I open the Graph Scope$/, async (context) => {
-    await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
+    await openGraphScopeSection(context, 'Node Types');
   }),
 
   step(/^I see two buttons for switching views between node type and edge type toggles$/, async (context) => {

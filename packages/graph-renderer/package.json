@@ -12,18 +12,6 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./physics": {
-      "types": "./src/physics/index.ts",
-      "default": "./src/physics/index.ts"
-    },
-    "./webgpu": {
-      "types": "./src/webgpu/renderer.ts",
-      "default": "./src/webgpu/renderer.ts"
-    },
-    "./wasm": {
-      "types": "./src/wasm/loader.ts",
-      "default": "./src/wasm/loader.ts"
-    },
     "./testing": {
       "types": "./tests/api.ts",
       "default": "./tests/api.ts"
@@ -42,7 +30,10 @@
   },
   "keywords": [
     "codegraphy",
+    "force-directed",
     "graph",
+    "graph-layout",
+    "typescript",
     "webgpu",
     "webassembly",
     "visualization"

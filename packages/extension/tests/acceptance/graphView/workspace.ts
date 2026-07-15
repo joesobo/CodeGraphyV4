@@ -12,7 +12,7 @@ import {
   matchesAnyPattern,
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
-} from '../../../../core/src/discovery/pathMatching';
+} from '@codegraphy-dev/core';
 
 const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
   'example-csharp',

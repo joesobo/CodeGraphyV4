@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GraphRendererLink, GraphRendererNode } from '@graph-renderer/contracts';
 import {
-  type OwnedWebGpuFrame,
-  OwnedWebGpuRenderer,
+  type WebGpuGraphFrame,
+  WebGpuGraphRenderer,
   webGpuNodeShapeCode,
 } from '@graph-renderer/webgpu/renderer';
 import { LINK_SHADER, NODE_SHADER } from '@graph-renderer/webgpu/shaders';
 
-describe('owned WebGPU renderer node shapes', () => {
+describe('WebGPU renderer node shapes', () => {
   it('encodes every supported node shape for the GPU SDF shader', () => {
     expect([
       'circle',
@@ -89,7 +89,7 @@ function webGpuHarness() {
   };
 }
 
-function rendererFrame(): OwnedWebGpuFrame {
+function rendererFrame(): WebGpuGraphFrame {
   const source = { id: 'a', x: 1, y: 2 } satisfies GraphRendererNode;
   const target = { id: 'b', x: 103, y: 4 } satisfies GraphRendererNode;
   const link = { bidirectional: true, curvature: 0.2, source, target } satisfies GraphRendererLink;
@@ -128,7 +128,7 @@ function rendererFrame(): OwnedWebGpuFrame {
   };
 }
 
-describe('OwnedWebGpuRenderer frame submission', () => {
+describe('WebGpuGraphRenderer frame submission', () => {
   it('uses camera uniforms to emphasize hovered edge and node instances', () => {
     expect(LINK_SHADER).toContain('@builtin(instance_index) instanceIndex: u32');
     expect(LINK_SHADER).toContain('camera.highlightedLinkIndex');
@@ -143,7 +143,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(harness.adapter);
 
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -161,7 +161,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     const harness = webGpuHarness();
     Reflect.deleteProperty(navigator, 'gpu');
 
-    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     })).resolves.toBeUndefined();
@@ -171,7 +171,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     const harness = webGpuHarness();
     harness.gpu.requestAdapter.mockResolvedValue(null);
 
-    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     })).resolves.toBeUndefined();
@@ -183,7 +183,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     const harness = webGpuHarness();
     Object.defineProperty(harness.canvas, 'getContext', { value: () => null });
 
-    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     })).resolves.toBeUndefined();
@@ -194,7 +194,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     const harness = webGpuHarness();
     harness.device.popErrorScope.mockResolvedValue({ message: 'invalid pipeline' } as never);
 
-    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     })).rejects.toThrow('WebGPU pipeline validation failed: invalid pipeline');
@@ -208,7 +208,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
   ] as const)('reports %s device loss appropriately', async (reason, expectedCalls) => {
     const harness = webGpuHarness();
     const onDeviceLost = vi.fn();
-    await OwnedWebGpuRenderer.create(harness.canvas, {
+    await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost,
       onFrameComplete: vi.fn(),
     });
@@ -225,7 +225,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       value: () => { throw new Error('context failed'); },
     });
 
-    await expect(OwnedWebGpuRenderer.create(harness.canvas, {
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     })).rejects.toThrow('context failed');
@@ -235,7 +235,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('disposes GPU resources only once', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -252,7 +252,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();
     const onFrameComplete = vi.fn();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete,
     });
@@ -344,7 +344,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('packs node instances by ascending drawn size without reordering graph data', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -379,7 +379,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('keeps cached size order for position-only frames', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -408,7 +408,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('highlights a hovered node with camera-only GPU updates', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -437,7 +437,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('highlights a hovered edge with camera-only GPU updates', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -474,7 +474,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     }
     vi.stubGlobal('WeakMap', CountingWeakMap);
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -496,7 +496,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('uploads authoritative positions for both nodes and edge endpoints', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });
@@ -523,7 +523,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
 
   it('does not submit arrow vertices below the graph-detail zoom cutoff', async () => {
     const harness = webGpuHarness();
-    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
     });

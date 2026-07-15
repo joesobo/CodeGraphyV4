@@ -28,6 +28,25 @@ afterEach(async () => {
 });
 
 describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
+  it('does not emit references for abstract interface member signatures', async () => {
+    const workspaceRoot = await createWorkspace({
+      'lib/model/user.dart': 'class User {}\n',
+    });
+    const filePath = path.join(workspaceRoot, 'lib/app/runner.dart');
+    const source = [
+      "import '../model/user.dart';",
+      'abstract interface class Runner {',
+      '  User run(User user);',
+      '}',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'reference', specifier: 'User' }),
+    ]));
+  });
+
   it('extracts Dart import relationships, simple inheritance, references, and supported symbols', async () => {
     const workspaceRoot = await createWorkspace({
       'lib/model/profile.dart': 'class Profile { final String name; Profile(this.name); }\n',

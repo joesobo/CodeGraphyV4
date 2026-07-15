@@ -18,10 +18,12 @@ import {
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
 import {
   createOwnedGraphPerformanceMonitor,
-  type OwnedGraphActivePerformanceSample,
   type OwnedGraphPerformanceMonitor,
-  type OwnedGraphPerformanceSample,
 } from './performance/model';
+import {
+  publishOwnedGraphPerformance,
+  resetOwnedGraphPerformance,
+} from './performance/presentation';
 import {
   applyOwnedGraphRuntimePhysicsSettings,
   disposeOwnedGraphLayoutRuntime,
@@ -34,62 +36,19 @@ import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphNodeHover } from './nodeHover';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { createGraphLayoutFixedTimestepClock } from './simulationClock';
-import {
-  startOwnedGraphRendererLifecycle,
-  type OwnedGraphRendererLifecycleRuntime,
-  type OwnedGraphRendererStatus,
-} from './rendererLifecycle';
-import { OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
+import { type OwnedGraphRendererStatus } from './rendererLifecycle';
+import { WebGpuGraphRenderer } from '@codegraphy-dev/graph-renderer';
+import { OwnedGraphStatusOverlays } from './viewOverlays';
+import { useOwnedRendererLifecycle } from './useRendererLifecycle';
+import { useOwnedPerformancePresentation } from './usePerformancePresentation';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
 
-function clearActivePerformanceData(output: HTMLOutputElement): void {
-  delete output.dataset.frameAverageMs;
-  delete output.dataset.potentialFps;
-  delete output.dataset.sampleCount;
-}
-
-function formatOwnedGraphPerformance(sample: OwnedGraphPerformanceSample): string {
-  if (sample.status === 'idle') return '— FPS · — ms';
-  return `${Math.round(sample.potentialFps)} FPS · ${sample.frameTimeMs.toFixed(2)} ms`;
-}
-
-function setActivePerformanceData(
-  output: HTMLOutputElement,
-  sample: OwnedGraphActivePerformanceSample,
-): void {
-  output.dataset.frameAverageMs = String(sample.frameTimeMs);
-  output.dataset.potentialFps = String(sample.potentialFps);
-  output.dataset.sampleCount = String(sample.sampleCount);
-}
-
-function publishOwnedGraphPerformance(
-  sample: OwnedGraphPerformanceSample,
-  output: HTMLOutputElement | null,
-): void {
-  if (!output) return;
-  output.dataset.performanceStatus = sample.status;
-  if (sample.status === 'active') setActivePerformanceData(output, sample);
-  else clearActivePerformanceData(output);
-  output.textContent = formatOwnedGraphPerformance(sample);
-  output.hidden = false;
-}
-
-function resetOwnedGraphPerformance(
-  monitor: OwnedGraphPerformanceMonitor,
-  fpsRef: { current: number | null },
-  output: HTMLOutputElement | null,
-): void {
-  monitor.reset();
-  fpsRef.current = null;
-  publishOwnedGraphPerformance({ status: 'idle' }, output);
-}
-
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
-  const gpuRendererRef = useRef<OwnedWebGpuRenderer | null>(null);
+  const gpuRendererRef = useRef<WebGpuGraphRenderer | null>(null);
   const rendererOperationalRef = useRef(false);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
@@ -142,43 +101,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   })).current;
   propsRef.current = props;
 
-  useEffect(() => {
-    const gpuCanvas = gpuCanvasRef.current;
-    if (!gpuCanvas) return;
-    const rendererRuntime: OwnedGraphRendererLifecycleRuntime = {
-      engineStopNotifiedRef,
-      frameRequestedRef,
-      gpuRendererRef,
-      layoutRef,
-      rendererOperationalRef,
-      requestFrameRef,
-      simulationClockRef,
-      onError: message => {
-        resetOwnedGraphPerformance(
-          performanceMonitorRef.current,
-          fpsRef,
-          fpsOutputRef.current,
-        );
-        setRendererError(message);
-        setRendererStatus('error');
-      },
-      onReady: () => {
-        setRendererError(null);
-        setRendererStatus('webgpu');
-      },
-      onRecovering: () => {
-        resetOwnedGraphPerformance(
-          performanceMonitorRef.current,
-          fpsRef,
-          fpsOutputRef.current,
-        );
-        setRendererError(null);
-        setRendererStatus('initializing');
-      },
-    };
-    const lifecycle = startOwnedGraphRendererLifecycle(rendererRuntime, gpuCanvas);
-    return () => lifecycle.dispose();
-  }, [performanceMonitorRef, simulationClockRef]);
+  useOwnedRendererLifecycle({
+    engineStopNotifiedRef, fpsOutputRef, fpsRef, frameRequestedRef, gpuCanvasRef,
+    gpuRendererRef, layoutRef, performanceMonitorRef, rendererOperationalRef,
+    requestFrameRef, setRendererError, setRendererStatus, simulationClockRef,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -255,14 +182,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     layoutRuntime,
   ]);
 
-  useEffect(() => {
-    if (props.showFps) {
-      publishOwnedGraphPerformance(
-        performanceMonitorRef.current.sample(),
-        fpsOutputRef.current,
-      );
-    }
-  }, [performanceMonitorRef, props.showFps]);
+  useOwnedPerformancePresentation(props.showFps, performanceMonitorRef, fpsOutputRef);
 
   useEffect(() => {
     requestFrameRef.current();
@@ -318,51 +238,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
       />
-      {performanceSample ? (
-        <output
-          ref={fpsOutputRef}
-          className="pointer-events-none absolute right-2 top-10 whitespace-nowrap rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
-          data-codegraphy-overlay="fps"
-          data-performance-status={performanceSample.status}
-          data-testid="graph-fps"
-          style={{ zIndex: 20 }}
-        >
-          {formatOwnedGraphPerformance(performanceSample)}
-        </output>
-      ) : null}
-      {rendererError ? (
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground"
-          data-testid="graph-webgpu-error"
-          role="alert"
-        >
-          {rendererError}
-        </div>
-      ) : null}
-      {linkTooltip ? (
-        <div
-          className="pointer-events-none absolute max-w-72 rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-popover-foreground shadow-md"
-          data-testid="graph-edge-tooltip"
-          style={{
-            left: Math.min(linkTooltip.screen.x + 12, Math.max(8, (props.sharedProps.width ?? 0) - 292)),
-            top: linkTooltip.screen.y + 12,
-            zIndex: 1000,
-          }}
-        >
-          <p className="font-semibold text-link break-all">
-            {typeof linkTooltip.link.source === 'string'
-              ? linkTooltip.link.source
-              : linkTooltip.link.source.label}
-            {' → '}
-            {typeof linkTooltip.link.target === 'string'
-              ? linkTooltip.link.target
-              : linkTooltip.link.target.label}
-          </p>
-          <p className="font-mono text-muted-foreground">
-            {linkTooltip.link.kind ?? linkTooltip.link.runtimeEdgeType ?? 'Connection'}
-          </p>
-        </div>
-      ) : null}
+      <OwnedGraphStatusOverlays error={rendererError} fpsOutputRef={fpsOutputRef}
+        performanceSample={performanceSample} tooltip={linkTooltip} width={props.sharedProps.width ?? 0} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import {
   GraphNodeFlag,
 } from '@graph-renderer/physics';
 import type { GraphLayoutState } from '@graph-renderer/physics/contracts';
-import { OwnedGraphWasmPhysicsKernel } from '@graph-renderer/physics/wasm/kernel';
+import { GraphWasmPhysicsKernel } from '@graph-renderer/physics/wasm/kernel';
 
 function state(
   x: readonly number[],
@@ -27,8 +27,8 @@ function state(
   };
 }
 
-function kernel(graph: GraphLayoutState): OwnedGraphWasmPhysicsKernel {
-  return new OwnedGraphWasmPhysicsKernel(
+function kernel(graph: GraphLayoutState): GraphWasmPhysicsKernel {
+  return new GraphWasmPhysicsKernel(
     graph,
     { ...DEFAULT_GRAPH_LAYOUT_CONFIG, centralGravity: 0, collisionIterations: 0 },
     1,
@@ -164,7 +164,7 @@ describe('WASM Barnes-Hut charge tree', () => {
   it('applies custom configuration through the raw ABI', () => {
     const graph = state([10], [0]);
     graph.vx[0] = 2;
-    const physics = new OwnedGraphWasmPhysicsKernel(
+    const physics = new GraphWasmPhysicsKernel(
       graph,
       {
         ...DEFAULT_GRAPH_LAYOUT_CONFIG,
@@ -195,7 +195,7 @@ describe('WASM Barnes-Hut charge tree', () => {
   it('publishes collision corrections and deterministic random state', () => {
     const graph = state([0, 1], [0, 0]);
     graph.radii.fill(1);
-    const physics = new OwnedGraphWasmPhysicsKernel(
+    const physics = new GraphWasmPhysicsKernel(
       graph,
       {
         ...DEFAULT_GRAPH_LAYOUT_CONFIG,

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { GraphLayoutState } from '@graph-renderer/physics/contracts';
-import type { OwnedGraphPhysicsExports } from '@graph-renderer/physics/wasm/abi';
-import { OwnedGraphPhysicsStorage } from '@graph-renderer/physics/wasm/storage';
+import type { GraphPhysicsExports } from '@graph-renderer/physics/wasm/abi';
+import { GraphPhysicsStorage } from '@graph-renderer/physics/wasm/storage';
 
 function graphState(): GraphLayoutState {
   return {
@@ -19,10 +19,10 @@ function graphState(): GraphLayoutState {
   };
 }
 
-describe('owned graph WASM physics storage', () => {
+describe('graph WASM physics storage', () => {
   it('copies every graph buffer into one independent WASM memory', () => {
     const source = graphState();
-    const storage = new OwnedGraphPhysicsStorage(source, 256);
+    const storage = new GraphPhysicsStorage(source, 256);
 
     expect(storage.state).toEqual(source);
     expect(storage.state.x).not.toBe(source.x);
@@ -35,7 +35,7 @@ describe('owned graph WASM physics storage', () => {
   });
 
   it('publishes every memory-region pointer through the raw ABI', () => {
-    const storage = new OwnedGraphPhysicsStorage(graphState(), 256);
+    const storage = new GraphPhysicsStorage(graphState(), 256);
     const initializeResult = vi.fn();
     const initializeGraph = vi.fn();
     const initializeRepulsion = vi.fn();
@@ -45,7 +45,7 @@ describe('owned graph WASM physics storage', () => {
       initializeGraph,
       initializeRepulsion,
       initializeCollision,
-    } as unknown as OwnedGraphPhysicsExports;
+    } as unknown as GraphPhysicsExports;
     const layout = storage.layout;
 
     storage.initialize(exports);
@@ -94,9 +94,9 @@ describe('owned graph WASM physics storage', () => {
   });
 
   it('copies authoritative views directly into replacement WASM memory', () => {
-    const original = new OwnedGraphPhysicsStorage(graphState(), 256);
+    const original = new GraphPhysicsStorage(graphState(), 256);
 
-    const replacement = new OwnedGraphPhysicsStorage(original.state, 512);
+    const replacement = new GraphPhysicsStorage(original.state, 512);
 
     expect(replacement.state).toEqual(original.state);
     expect(replacement.memory.buffer).not.toBe(original.memory.buffer);

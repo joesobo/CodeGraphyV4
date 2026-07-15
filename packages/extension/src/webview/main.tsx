@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './app/view';
 import './index.css';
 import { getVsCodeApi, VsCodeApi } from './vscodeApi';
-import { prepareGraphPhysics } from '@codegraphy-dev/graph-renderer/wasm';
+import { prepareGraphPhysics } from '@codegraphy-dev/graph-renderer';
 
 const container = document.getElementById('root');
 if (container) {

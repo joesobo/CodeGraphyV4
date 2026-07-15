@@ -1,5 +1,7 @@
 import type { CodeGraphyInstalledPluginRecord } from '../installedPluginCache/contracts';
 import type { CodeGraphyWorkspaceSettings } from '../../workspace/settings';
+import { classifyPluginActivity } from './classification';
+import type { PluginActivityClassification } from './classification';
 
 export interface CreatePluginActivityStateOptions {
   settings: CodeGraphyWorkspaceSettings;
@@ -13,6 +15,29 @@ export interface PluginActivityState {
   inactivePluginIds: ReadonlySet<string>;
   packagePlugins: readonly CodeGraphyInstalledPluginRecord[];
   warnings: readonly string[];
+}
+
+function applyPluginClassification(
+  pluginId: string,
+  classification: PluginActivityClassification,
+  state: {
+    activePluginIds: Set<string>;
+    disabledPluginIds: Set<string>;
+    inactivePluginIds: Set<string>;
+    packagePlugins: CodeGraphyInstalledPluginRecord[];
+    warnings: string[];
+  },
+): void {
+  if (classification.kind === 'disabled') state.disabledPluginIds.add(pluginId);
+  if (classification.kind === 'active-built-in') state.activePluginIds.add(pluginId);
+  if (classification.kind === 'active-package') {
+    state.activePluginIds.add(pluginId);
+    state.packagePlugins.push(classification.record);
+  }
+  if (classification.kind === 'inactive') {
+    state.inactivePluginIds.add(pluginId);
+    state.warnings.push(classification.warning);
+  }
 }
 
 function getInstalledPluginId(plugin: CodeGraphyInstalledPluginRecord): string {
@@ -30,15 +55,6 @@ function groupInstalledPluginsById(
   return byId;
 }
 
-function createConflictWarning(
-  pluginId: string,
-  plugins: readonly CodeGraphyInstalledPluginRecord[],
-): string {
-  return `CodeGraphy plugin '${pluginId}' is enabled but multiple installed packages claim it: ${
-    plugins.map(plugin => plugin.package).join(', ')
-  }. No runtime was loaded.`;
-}
-
 export function createPluginActivityState(
   options: CreatePluginActivityStateOptions,
 ): PluginActivityState {
@@ -51,29 +67,15 @@ export function createPluginActivityState(
   const warnings: string[] = [];
 
   for (const plugin of options.settings.plugins) {
-    if (!plugin.enabled) {
-      disabledPluginIds.add(plugin.id);
-      continue;
-    }
-
-    if (builtInPluginIds.has(plugin.id)) {
-      activePluginIds.add(plugin.id);
-      continue;
-    }
-
     const installedPlugins = installedPluginsById.get(plugin.id) ?? [];
-    if (installedPlugins.length === 1) {
-      activePluginIds.add(plugin.id);
-      packagePlugins.push(installedPlugins[0]);
-      continue;
-    }
-
-    inactivePluginIds.add(plugin.id);
-    if (installedPlugins.length > 1) {
-      warnings.push(createConflictWarning(plugin.id, installedPlugins));
-    } else {
-      warnings.push(`CodeGraphy plugin '${plugin.id}' is enabled but not installed. No runtime was loaded.`);
-    }
+    const classification = classifyPluginActivity({ builtInPluginIds, installedPlugins, plugin });
+    applyPluginClassification(plugin.id, classification, {
+      activePluginIds,
+      disabledPluginIds,
+      inactivePluginIds,
+      packagePlugins,
+      warnings,
+    });
   }
 
   return {

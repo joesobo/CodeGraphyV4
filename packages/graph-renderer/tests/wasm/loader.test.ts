@@ -15,7 +15,7 @@ function response(status = 200) {
   };
 }
 
-describe('owned graph WASM physics preparation', () => {
+describe('graph WASM physics preparation', () => {
   beforeEach(() => {
     vi.resetModules();
   });
@@ -40,7 +40,7 @@ describe('owned graph WASM physics preparation', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(compileStreaming).toHaveBeenCalledWith(resource.value);
     expect(resource.arrayBuffer).not.toHaveBeenCalled();
-    expect(registry.requireOwnedGraphPhysicsModule()).toBe(compiled);
+    expect(registry.requireGraphPhysicsModule()).toBe(compiled);
   });
 
   it('falls back to array-buffer compilation when streaming compilation fails', async () => {
@@ -65,7 +65,7 @@ describe('owned graph WASM physics preparation', () => {
     const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
 
     await expect(prepareGraphPhysics()).rejects.toThrow(
-      'Unable to load owned graph physics (404)',
+      'Unable to load graph physics (404)',
     );
     expect(compileStreaming).not.toHaveBeenCalled();
   });
@@ -83,7 +83,7 @@ describe('owned graph WASM physics preparation', () => {
     const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
 
     await expect(prepareGraphPhysics()).rejects.toThrow(
-      'Unable to load owned graph physics (503)',
+      'Unable to load graph physics (503)',
     );
     await expect(prepareGraphPhysics()).resolves.toBeUndefined();
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -114,7 +114,7 @@ describe('owned graph WASM physics preparation', () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     const registry = await import('@graph-renderer/physics/wasm/module');
-    registry.installOwnedGraphPhysicsModule(compiled);
+    registry.installGraphPhysicsModule(compiled);
     const { prepareGraphPhysics } = await import('@graph-renderer/wasm/loader');
 
     await prepareGraphPhysics();

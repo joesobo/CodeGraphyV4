@@ -1,10 +1,10 @@
-import { requireOwnedGraphPhysicsModule } from './module';
+import { requireGraphPhysicsModule } from './module';
 
-export const OWNED_GRAPH_PHYSICS_ABI_VERSION = 3;
-export const OWNED_GRAPH_PHYSICS_MEMORY_BASE = 65_536;
-export const MAXIMUM_OWNED_GRAPH_PHYSICS_PAGES = 32_768;
+export const GRAPH_GRAPH_PHYSICS_ABI_VERSION = 3;
+export const GRAPH_GRAPH_PHYSICS_MEMORY_BASE = 65_536;
+export const MAXIMUM_GRAPH_GRAPH_PHYSICS_PAGES = 32_768;
 
-export interface OwnedGraphPhysicsExports {
+export interface GraphPhysicsExports {
   memory: WebAssembly.Memory;
   abiVersion(): number;
   graphMemoryBase(): number;
@@ -80,29 +80,29 @@ export interface OwnedGraphPhysicsExports {
   barnesHutRootChargeY(): number;
 }
 
-export function assertOwnedGraphPhysicsAbi(
-  exports: OwnedGraphPhysicsExports,
+export function assertGraphPhysicsAbi(
+  exports: GraphPhysicsExports,
   memory: WebAssembly.Memory,
 ): void {
-  if (exports.abiVersion() !== OWNED_GRAPH_PHYSICS_ABI_VERSION) {
-    throw new Error('Owned graph WASM physics ABI version mismatch');
+  if (exports.abiVersion() !== GRAPH_GRAPH_PHYSICS_ABI_VERSION) {
+    throw new Error('Graph WASM physics ABI version mismatch');
   }
-  if (exports.graphMemoryBase() !== OWNED_GRAPH_PHYSICS_MEMORY_BASE) {
-    throw new Error('Owned graph WASM physics memory layout mismatch');
+  if (exports.graphMemoryBase() !== GRAPH_GRAPH_PHYSICS_MEMORY_BASE) {
+    throw new Error('Graph WASM physics memory layout mismatch');
   }
   if (exports.memory !== memory) {
-    throw new Error('Owned graph WASM physics did not export its imported memory');
+    throw new Error('Graph WASM physics did not export its imported memory');
   }
 }
 
-export function instantiateOwnedGraphPhysics(
+export function instantiateGraphPhysics(
   memory: WebAssembly.Memory,
-): OwnedGraphPhysicsExports {
+): GraphPhysicsExports {
   const instance = new WebAssembly.Instance(
-    requireOwnedGraphPhysicsModule(),
+    requireGraphPhysicsModule(),
     { env: { memory } },
   );
-  const exports = instance.exports as unknown as OwnedGraphPhysicsExports;
-  assertOwnedGraphPhysicsAbi(exports, memory);
+  const exports = instance.exports as unknown as GraphPhysicsExports;
+  assertGraphPhysicsAbi(exports, memory);
   return exports;
 }

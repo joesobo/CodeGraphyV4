@@ -1,32 +1,25 @@
 import type { GraphViewProvider } from '../../graphViewProvider';
-
-interface PendingWorkspaceRefresh {
-  filePaths: Set<string>;
-  followUpDelayMs?: number;
-  fullRefresh: boolean;
-  gitignoreRefresh: boolean;
-  logMessage: string;
-  timeout: ReturnType<typeof setTimeout>;
-}
+import type { PendingWorkspaceRefresh } from './contracts';
+import {
+  executeWorkspaceRefresh,
+  isGraphOpen,
+  markWorkspaceRefreshPending,
+} from './execution';
+import { mergePendingRefresh } from './pending';
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
 
-function isGraphOpen(provider: GraphViewProvider): boolean {
-  return provider.isGraphOpen?.() ?? true;
-}
-
-function markWorkspaceRefreshPending(
+function runScheduledRefresh(
   provider: GraphViewProvider,
-  logMessage: string,
-  filePaths: readonly string[],
-  options: { gitignoreRefresh?: boolean } = {},
+  pending: PendingWorkspaceRefresh,
 ): void {
-  if (options.gitignoreRefresh !== true) {
-    provider.markWorkspaceRefreshPending?.(logMessage, filePaths);
+  pendingWorkspaceRefreshes.delete(provider);
+  if (!isGraphOpen(provider)) {
+    markWorkspaceRefreshPending(provider, pending);
     return;
   }
-
-  provider.markWorkspaceRefreshPending?.(logMessage, filePaths, options);
+  executeWorkspaceRefresh(provider, pending);
+  scheduleWorkspaceRefreshFollowUp(provider, pending);
 }
 
 export function scheduleWorkspaceRefresh(
@@ -36,104 +29,33 @@ export function scheduleWorkspaceRefresh(
   delayMs: number = 500,
   options: { followUpDelayMs?: number; fullRefresh?: boolean; gitignoreRefresh?: boolean } = {},
 ): void {
-  const nextFilePaths = new Set(filePaths);
-  let followUpDelayMs = options.followUpDelayMs;
-  let fullRefresh = options.fullRefresh === true;
-  let gitignoreRefresh = options.gitignoreRefresh === true;
-
+  const nextFiles = new Set(filePaths);
   if (!isGraphOpen(provider)) {
-    markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths], {
-      gitignoreRefresh,
+    markWorkspaceRefreshPending(provider, {
+      filePaths: nextFiles,
+      gitignoreRefresh: options.gitignoreRefresh === true,
+      logMessage,
     });
     return;
   }
-
-  const pending = pendingWorkspaceRefreshes.get(provider);
-  if (pending) {
-    clearTimeout(pending.timeout);
-    followUpDelayMs = maxFollowUpDelay(followUpDelayMs, pending.followUpDelayMs);
-    fullRefresh = fullRefresh || pending.fullRefresh;
-    gitignoreRefresh = gitignoreRefresh || pending.gitignoreRefresh;
-    for (const filePath of pending.filePaths) {
-      nextFilePaths.add(filePath);
-    }
-  }
-
+  const merged = mergePendingRefresh(
+    pendingWorkspaceRefreshes.get(provider),
+    nextFiles,
+    options,
+  );
   const nextPending: PendingWorkspaceRefresh = {
-    filePaths: nextFilePaths,
-    followUpDelayMs,
-    fullRefresh,
-    gitignoreRefresh,
+    ...merged,
     logMessage,
-    timeout: setTimeout(() => {
-      pendingWorkspaceRefreshes.delete(provider);
-      if (!isGraphOpen(provider)) {
-        markWorkspaceRefreshPending(
-          provider,
-          nextPending.logMessage,
-          [...nextPending.filePaths],
-          { gitignoreRefresh: nextPending.gitignoreRefresh },
-        );
-        return;
-      }
-
-      console.log(nextPending.logMessage);
-      if (nextPending.gitignoreRefresh) {
-        if (provider.refreshGitignoreMetadata) {
-          void provider.refreshGitignoreMetadata();
-          scheduleWorkspaceRefreshFollowUp(provider, nextPending);
-          return;
-        }
-        if (provider.refreshIndex) {
-          void provider.refreshIndex();
-          scheduleWorkspaceRefreshFollowUp(provider, nextPending);
-          return;
-        }
-      }
-
-      if (nextPending.fullRefresh) {
-        if (provider.refreshIndex) {
-          void provider.refreshIndex();
-          scheduleWorkspaceRefreshFollowUp(provider, nextPending);
-          return;
-        }
-        void provider.refresh();
-        scheduleWorkspaceRefreshFollowUp(provider, nextPending);
-        return;
-      }
-
-      if (provider.refreshChangedFiles) {
-        void provider.refreshChangedFiles([...nextPending.filePaths]);
-        scheduleWorkspaceRefreshFollowUp(provider, nextPending);
-        return;
-      }
-
-      provider.invalidateWorkspaceFiles?.([...nextPending.filePaths]);
-      void provider.refresh();
-      scheduleWorkspaceRefreshFollowUp(provider, nextPending);
-    }, delayMs),
+    timeout: setTimeout(() => runScheduledRefresh(provider, nextPending), delayMs),
   };
-
   pendingWorkspaceRefreshes.set(provider, nextPending);
-}
-
-function maxFollowUpDelay(
-  left: number | undefined,
-  right: number | undefined,
-): number | undefined {
-  if (left === undefined) return right;
-  if (right === undefined) return left;
-  return Math.max(left, right);
 }
 
 function scheduleWorkspaceRefreshFollowUp(
   provider: GraphViewProvider,
   pending: PendingWorkspaceRefresh,
 ): void {
-  if (pending.followUpDelayMs === undefined) {
-    return;
-  }
-
+  if (pending.followUpDelayMs === undefined) return;
   setTimeout(() => {
     scheduleWorkspaceRefresh(
       provider,

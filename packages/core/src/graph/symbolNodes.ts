@@ -1,6 +1,7 @@
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphEdge, IGraphNode } from './contracts';
 import { createGraphEdgeId } from './edgeIdentity';
+import { createSymbolDetails } from './symbolDetails';
 import { normalizeSymbolKind, toRepoRelativeGraphPath } from './symbolPaths';
 
 const SYMBOL_NODE_COLOR = '#8B5CF6';
@@ -33,25 +34,6 @@ function createGitIgnoredMetadata(gitIgnored: boolean | undefined): Pick<IGraphN
   return gitIgnored === true
     ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
     : {};
-}
-
-function createSymbolDetails(
-  symbol: IAnalysisSymbol,
-  id: string,
-  kind: string,
-  filePath: string,
-): NonNullable<IGraphNode['symbol']> {
-  return {
-    id,
-    name: symbol.name,
-    kind,
-    filePath,
-    ...(typeof symbol.metadata?.pluginKind === 'string' ? { pluginKind: symbol.metadata.pluginKind } : {}),
-    ...(typeof symbol.metadata?.language === 'string' ? { language: symbol.metadata.language } : {}),
-    ...(typeof symbol.metadata?.source === 'string' ? { source: symbol.metadata.source } : {}),
-    ...(symbol.range ? { range: symbol.range } : {}),
-    ...(symbol.signature ? { signature: symbol.signature } : {}),
-  };
 }
 
 export function createContainsEdge(from: string, to: string): IGraphEdge {

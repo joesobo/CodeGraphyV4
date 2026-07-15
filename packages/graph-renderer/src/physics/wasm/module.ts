@@ -1,16 +1,16 @@
-let ownedGraphPhysicsModule: WebAssembly.Module | undefined;
+let graphPhysicsModule: WebAssembly.Module | undefined;
 
-export function installOwnedGraphPhysicsModule(module: WebAssembly.Module): void {
-  ownedGraphPhysicsModule = module;
+export function installGraphPhysicsModule(module: WebAssembly.Module): void {
+  graphPhysicsModule = module;
 }
 
-export function ownedGraphPhysicsModuleReady(): boolean {
-  return ownedGraphPhysicsModule !== undefined;
+export function graphPhysicsModuleReady(): boolean {
+  return graphPhysicsModule !== undefined;
 }
 
-export function requireOwnedGraphPhysicsModule(): WebAssembly.Module {
-  if (!ownedGraphPhysicsModule) {
-    throw new Error('Owned graph WASM physics module has not been prepared');
+export function requireGraphPhysicsModule(): WebAssembly.Module {
+  if (!graphPhysicsModule) {
+    throw new Error('Graph WASM physics module has not been prepared');
   }
-  return ownedGraphPhysicsModule;
+  return graphPhysicsModule;
 }

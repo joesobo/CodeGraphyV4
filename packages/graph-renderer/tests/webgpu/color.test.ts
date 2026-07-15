@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseWebGpuColor } from '@graph-renderer/webgpu/color';
+import { parseWebGpuColor } from '@graph-renderer/webgpu/color/parser';
 
 function expectColor(actual: readonly number[], expected: readonly number[]): void {
   expect(actual).toHaveLength(expected.length);

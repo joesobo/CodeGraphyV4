@@ -1,8 +1,8 @@
 import {
-  OWNED_ARROW_HALF_WIDTH,
-  OWNED_ARROW_LENGTH,
-} from './arrowGeometry';
-import { OWNED_SELF_LOOP_RADIUS } from './linkGeometry';
+  GRAPH_ARROW_HALF_WIDTH,
+  GRAPH_ARROW_LENGTH,
+} from './arrow/geometry';
+import { GRAPH_SELF_LOOP_RADIUS } from './link/geometry';
 
 const CAMERA_UNIFORM = /* wgsl */ `
 struct CameraUniform {
@@ -105,7 +105,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
 }
 `;
 
-export const OWNED_LINK_SEGMENTS = 16;
+export const GRAPH_LINK_SEGMENTS = 16;
 
 export const LINK_SHADER = /* wgsl */ `
 ${CAMERA_UNIFORM}
@@ -130,7 +130,7 @@ fn curvePoint(
 ) -> vec2f {
   let inverse = 1.0 - t;
   if (distance(source, destination) <= 0.0001) {
-    let radius = max(0.5, abs(curvature)) * ${OWNED_SELF_LOOP_RADIUS};
+    let radius = max(0.5, abs(curvature)) * ${GRAPH_SELF_LOOP_RADIUS};
     let firstControl = source + vec2f(0.0, -radius);
     let secondControl = source + vec2f(radius, 0.0);
     return inverse * inverse * inverse * source
@@ -150,7 +150,7 @@ fn curveTangent(
 ) -> vec2f {
   let inverse = 1.0 - t;
   if (distance(source, destination) <= 0.0001) {
-    let radius = max(0.5, abs(curvature)) * ${OWNED_SELF_LOOP_RADIUS};
+    let radius = max(0.5, abs(curvature)) * ${GRAPH_SELF_LOOP_RADIUS};
     let firstControl = source + vec2f(0.0, -radius);
     let secondControl = source + vec2f(radius, 0.0);
     return 3.0 * inverse * inverse * (firstControl - source)
@@ -179,7 +179,7 @@ fn linkVertexMain(
   @location(3) color: vec4f,
 ) -> LinkVertexOutput {
   let side = select(-1.0, 1.0, vertexIndex % 2u == 1u);
-  let t = f32(vertexIndex / 2u) / f32(${OWNED_LINK_SEGMENTS});
+  let t = f32(vertexIndex / 2u) / f32(${GRAPH_LINK_SEGMENTS});
   let control = curveControl(graphSource, graphDestination, halfWidthAndCurvature.y);
   let graphPosition = curvePoint(
     graphSource,
@@ -269,7 +269,7 @@ fn arrowVertexMain(
   );
   let parameterOffset = min(
     0.5,
-    ${OWNED_ARROW_LENGTH} / max(length(tipTangent), ${OWNED_ARROW_LENGTH}),
+    ${GRAPH_ARROW_LENGTH} / max(length(tipTangent), ${GRAPH_ARROW_LENGTH}),
   );
   var baseParameter = select(
     max(0.0, tipParameter - parameterOffset),
@@ -285,7 +285,7 @@ fn arrowVertexMain(
   );
   let correctedOffset = min(
     0.5,
-    parameterOffset * ${OWNED_ARROW_LENGTH} / max(distance(tip, base), 0.0001),
+    parameterOffset * ${GRAPH_ARROW_LENGTH} / max(distance(tip, base), 0.0001),
   );
   baseParameter = select(
     max(0.0, tipParameter - correctedOffset),
@@ -306,8 +306,8 @@ fn arrowVertexMain(
   let direction = normalize(axis);
   let normal = vec2f(-direction.y, direction.x);
   var graphVertex = tip;
-  if (corner == 1u) { graphVertex = base + normal * ${OWNED_ARROW_HALF_WIDTH}; }
-  if (corner == 2u) { graphVertex = base - normal * ${OWNED_ARROW_HALF_WIDTH}; }
+  if (corner == 1u) { graphVertex = base + normal * ${GRAPH_ARROW_HALF_WIDTH}; }
+  if (corner == 2u) { graphVertex = base - normal * ${GRAPH_ARROW_HALF_WIDTH}; }
 
   var output: ArrowVertexOutput;
   output.position = vec4f(

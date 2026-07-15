@@ -12,7 +12,10 @@ import {
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/nodeHover';
 import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/simulationClock';
-import type { OwnedWebGpuFrame, OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
+import type {
+  WebGpuGraphFrame as OwnedWebGpuFrame,
+  WebGpuGraphRenderer as OwnedWebGpuRenderer,
+} from '@codegraphy-dev/graph-renderer';
 import { createDefaultSurfaceProps } from './surfaceFixture';
 
 function canvasFixture(): HTMLCanvasElement {

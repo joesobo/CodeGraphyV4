@@ -1,14 +1,14 @@
 import {
-  installOwnedGraphPhysicsModule,
-  ownedGraphPhysicsModuleReady,
+  installGraphPhysicsModule,
+  graphPhysicsModuleReady,
 } from '../physics/wasm/module';
 
 let preparation: Promise<void> | undefined;
 
-async function compileOwnedGraphPhysicsModule(): Promise<WebAssembly.Module> {
+async function compileGraphPhysicsModule(): Promise<WebAssembly.Module> {
   const response = await fetch(new URL('./generated/physics.wasm', import.meta.url));
   if (!response.ok) {
-    throw new Error(`Unable to load owned graph physics (${response.status})`);
+    throw new Error(`Unable to load graph physics (${response.status})`);
   }
   const fallback = response.clone();
   try {
@@ -19,10 +19,10 @@ async function compileOwnedGraphPhysicsModule(): Promise<WebAssembly.Module> {
 }
 
 export function prepareGraphPhysics(): Promise<void> {
-  if (ownedGraphPhysicsModuleReady()) return Promise.resolve();
-  preparation ??= compileOwnedGraphPhysicsModule()
+  if (graphPhysicsModuleReady()) return Promise.resolve();
+  preparation ??= compileGraphPhysicsModule()
     .then(module => {
-      installOwnedGraphPhysicsModule(module);
+      installGraphPhysicsModule(module);
     })
     .catch(error => {
       preparation = undefined;

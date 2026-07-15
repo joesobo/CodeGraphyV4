@@ -5,10 +5,10 @@ function positiveZoom(zoom: number): number {
 }
 
 /** Inverse-square-root compensation applied to graph-space node geometry. */
-export function ownedGraphNodeWorldScale(zoom: number): number {
+export function graphNodeWorldScale(zoom: number): number {
   return 1 / Math.sqrt(positiveZoom(zoom));
 }
 
-export function ownedGraphNodeScreenRadius(radius: number, zoom: number): number {
+export function graphNodeScreenRadius(radius: number, zoom: number): number {
   return radius * Math.sqrt(positiveZoom(zoom));
 }

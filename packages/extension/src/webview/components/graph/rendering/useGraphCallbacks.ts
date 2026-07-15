@@ -1,22 +1,10 @@
 import { useRef } from 'react';
-import {
-  getGraphDirectionalColor,
-  getGraphLinkColor,
-} from './link/colors/model';
-import {
-  getGraphLinkOpacity,
-  getGraphLinkParticles,
-  getGraphLinkWidth,
-} from './link/metrics';
-import {
-  getNodeCanvasStyle,
-  renderNodeCanvasLabel,
-} from './nodes/canvas2d';
 import type { GraphRuntime } from '../runtime/use/state';
 import type { FGLink, FGNode } from '../model/build';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { OwnedGraphNodeStyle } from './surface/owned2d/contracts';
 import { NodeLabelSpriteCache } from './node/labelSprite';
+import { createGraphCallbacks } from './graphCallbacks';
 
 export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;
@@ -76,67 +64,10 @@ export function useGraphCallbacks({
   };
 
   if (callbacksRef.current === null) {
-    let styleRevision = 0;
-    let styleSnapshotInitialized = false;
-    let edgeDecorations: unknown;
-    let graphAppearance: unknown;
-    let highlightedNeighbors: unknown;
-    let highlightedNode: unknown;
-    let nodeDecorations: unknown;
-    let selectedNodes: unknown;
-    callbacksRef.current = {
-      getNodeStyle(node) {
-        return getNodeCanvasStyle(contextRef.current, node);
-      },
-      getStyleRevision() {
-        const current = contextRef.current;
-        const changed = !styleSnapshotInitialized
-          || edgeDecorations !== current.edgeDecorationsRef.current
-          || graphAppearance !== current.graphAppearanceRef.current
-          || highlightedNeighbors !== current.highlightedNeighborsRef.current
-          || highlightedNode !== current.highlightedNodeRef.current
-          || nodeDecorations !== current.nodeDecorationsRef.current
-          || selectedNodes !== current.selectedNodesSetRef.current;
-        if (!changed) return styleRevision;
-        styleSnapshotInitialized = true;
-        edgeDecorations = current.edgeDecorationsRef.current;
-        graphAppearance = current.graphAppearanceRef.current;
-        highlightedNeighbors = current.highlightedNeighborsRef.current;
-        highlightedNode = current.highlightedNodeRef.current;
-        nodeDecorations = current.nodeDecorationsRef.current;
-        selectedNodes = current.selectedNodesSetRef.current;
-        styleRevision += 1;
-        return styleRevision;
-      },
-      nodeLabelCanvasObject(node, ctx, globalScale) {
-        renderNodeCanvasLabel(
-          contextRef.current,
-          node,
-          ctx,
-          globalScale,
-          labelSpriteCacheRef.current!,
-        );
-      },
-      getLinkColor(link) {
-        return getGraphLinkColor(contextRef.current, link);
-      },
-      getLinkOpacity(link) {
-        return getGraphLinkOpacity(contextRef.current, link);
-      },
-      getLinkParticles(link) {
-        return getGraphLinkParticles(contextRef.current, link);
-      },
-      getArrowColor(_link) {
-        return getGraphDirectionalColor(contextRef.current);
-      },
-      getParticleColor(_link) {
-        return getGraphDirectionalColor(contextRef.current);
-      },
-      getLinkWidth(link) {
-        return getGraphLinkWidth(contextRef.current, link);
-      },
-    };
+    callbacksRef.current = createGraphCallbacks(contextRef, labelSpriteCacheRef.current);
   }
 
   return callbacksRef.current;
 }
+
+export type { GraphCallbackContext };

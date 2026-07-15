@@ -1,4 +1,7 @@
 import type { GraphLayoutConfig } from './contracts';
+import { assertGraphChargeConfig } from './configCharge';
+import { assertFiniteGraphLayoutConfig } from './configFinite';
+import { assertGraphIntegrationConfig } from './configIntegration';
 
 export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   alphaDecay: 1 - Math.pow(0.001, 1 / 300),
@@ -19,47 +22,13 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   velocityDecay: 0.4,
 };
 
-function assertFiniteConfig(config: GraphLayoutConfig): void {
-  for (const [key, value] of Object.entries(config)) {
-    const infiniteChargeDistance = key === 'chargeDistanceMax'
-      && value === Number.POSITIVE_INFINITY;
-    if (!Number.isFinite(value) && !infiniteChargeDistance) {
-      throw new Error(`Graph layout config ${key} must be finite`);
-    }
-  }
-}
-
-function assertChargeConfig(config: GraphLayoutConfig): void {
-  if (config.chargeStrength > 0) {
-    throw new Error('Graph layout charge strength must be zero or negative');
-  }
-  if (
-    config.chargeDistanceMin < 0
-    || config.chargeDistanceMax < config.chargeDistanceMin
-  ) {
-    throw new Error('Graph layout charge distance range is invalid');
-  }
-  if (config.chargeTheta < 0) {
-    throw new Error('Graph layout charge theta must be non-negative');
-  }
-}
-
-function assertIntegrationConfig(config: GraphLayoutConfig): void {
-  if (config.linkDistance <= 0) {
-    throw new Error('Graph layout link distance must be positive');
-  }
-  if (config.velocityDecay < 0 || config.velocityDecay > 1) {
-    throw new Error('Graph layout velocity decay must be between zero and one');
-  }
-}
-
 export function mergeGraphLayoutConfig(
   current: Readonly<GraphLayoutConfig>,
   update: Partial<GraphLayoutConfig>,
 ): GraphLayoutConfig {
   const next = { ...current, ...update };
-  assertFiniteConfig(next);
-  assertChargeConfig(next);
-  assertIntegrationConfig(next);
+  assertFiniteGraphLayoutConfig(next);
+  assertGraphChargeConfig(next);
+  assertGraphIntegrationConfig(next);
   return next;
 }
