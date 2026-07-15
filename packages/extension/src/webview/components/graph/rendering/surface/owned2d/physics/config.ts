@@ -54,7 +54,7 @@ function assertIntegrationConfig(config: GraphLayoutConfig): void {
 }
 
 export function mergeGraphLayoutConfig(
-  current: GraphLayoutConfig,
+  current: Readonly<GraphLayoutConfig>,
   update: Partial<GraphLayoutConfig>,
 ): GraphLayoutConfig {
   const next = { ...current, ...update };
