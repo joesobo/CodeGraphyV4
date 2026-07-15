@@ -30,7 +30,6 @@ export interface GraphLayoutConfig {
   initializationSpacing: number;
   linkDistance: number;
   linkStrength: number;
-  maximumCollisionNeighbors: number;
   settleSpeed: number;
   settleSteps: number;
   velocityDecay: number;

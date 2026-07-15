@@ -2,7 +2,6 @@ import {
   collisionPadding,
   collisionScale,
   collisionStrength,
-  maximumCollisionNeighbors,
 } from '../config';
 import { deterministicDirectionAngle } from '../initialization';
 import {
@@ -44,29 +43,22 @@ export function applyCollisionForces(iterations: f64): i32 {
 
 function applyNearbyCollisions(index: i32): i32 {
   let correctionCount = 0;
-  let visited = 0;
   const centerX = nodeCellX(index);
   const centerY = nodeCellY(index);
-  for (
-    let yOffset = -1;
-    yOffset <= 1 && visited < maximumCollisionNeighbors;
-    yOffset += 1
-  ) {
-    for (
-      let xOffset = -1;
-      xOffset <= 1 && visited < maximumCollisionNeighbors;
-      xOffset += 1
-    ) {
+  for (let yOffset = -1; yOffset <= 1; yOffset += 1) {
+    for (let xOffset = -1; xOffset <= 1; xOffset += 1) {
       const targetX = centerX + xOffset;
       const targetY = centerY + yOffset;
       let other = firstInCell(targetX, targetY);
-      while (other >= 0 && visited < maximumCollisionNeighbors) {
+      while (other >= 0) {
         const inTargetCell = nodeCellX(other) == targetX && nodeCellY(other) == targetY;
-        if (other != index && inTargetCell) {
-          if (other > index && !isHidden(other) && applyCollisionPair(index, other)) {
-            correctionCount += 1;
-          }
-          visited += 1;
+        if (
+          other > index
+          && inTargetCell
+          && !isHidden(other)
+          && applyCollisionPair(index, other)
+        ) {
+          correctionCount += 1;
         }
         other = nextInCell(other);
       }

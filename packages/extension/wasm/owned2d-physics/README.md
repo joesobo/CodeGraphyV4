@@ -14,7 +14,9 @@ continues to own the fixed-timestep clock, alpha/wake/sleep state, settlement,
 pause/resume, graph identity, plugin-force scheduling, and drag/pin handling.
 Each engine instance supplies one imported `WebAssembly.Memory`; graph arrays
 are zero-copy views over that memory and the complete built-in physics sequence
-uses one JavaScript-to-WASM call per simulation step.
+uses one JavaScript-to-WASM call per simulation step. Collision projection
+visits every node in the surrounding spatial-grid cells; it never trades
+separation correctness for an arbitrary candidate limit in dense regions.
 
 Run `pnpm --filter @codegraphy-dev/extension build:wasm` to compile the module.
 The generated binary is intentionally ignored and is rebuilt before webview

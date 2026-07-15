@@ -27,7 +27,7 @@ import { integrateGraphLayout } from './integration';
 import { initializeGraphMemory } from './memory';
 import { initializeSpatialGrid } from './spatialGrid';
 
-const ABI_VERSION: i32 = 2;
+const ABI_VERSION: i32 = 3;
 const GRAPH_MEMORY_BASE: i32 = 65_536;
 
 let resultPointer: usize = 0;
@@ -137,7 +137,6 @@ export function configure(
   initializationSpacing: f64,
   linkDistance: f64,
   linkStrength: f64,
-  maximumCollisionNeighbors: f64,
   velocityDecay: f64,
   collisionCellSize: f64,
 ): void {
@@ -153,7 +152,6 @@ export function configure(
     initializationSpacing,
     linkDistance,
     linkStrength,
-    maximumCollisionNeighbors,
     velocityDecay,
     collisionCellSize,
   );

@@ -31,7 +31,7 @@ describe('owned graph WASM physics ABI', () => {
     const exports = instantiateOwnedGraphPhysics(memory);
 
     expect(exports.memory).toBe(memory);
-    expect(exports.abiVersion()).toBe(2);
+    expect(exports.abiVersion()).toBe(3);
     expect(exports.graphMemoryBase()).toBe(65_536);
   });
 
@@ -45,7 +45,11 @@ describe('owned graph WASM physics ABI', () => {
   it('rejects an incompatible graph memory base', () => {
     const memory = new WebAssembly.Memory({ initial: 1 });
 
-    expect(() => assertOwnedGraphPhysicsAbi(exportsFor(memory, 2, 0), memory))
+    expect(() => assertOwnedGraphPhysicsAbi(exportsFor(
+      memory,
+      OWNED_GRAPH_PHYSICS_ABI_VERSION,
+      0,
+    ), memory))
       .toThrow('Owned graph WASM physics memory layout mismatch');
   });
 

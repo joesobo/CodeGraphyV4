@@ -72,7 +72,6 @@ export class OwnedGraphWasmPhysicsKernel {
       config.initializationSpacing,
       config.linkDistance,
       config.linkStrength,
-      config.maximumCollisionNeighbors,
       config.velocityDecay,
       collisionCellSize,
     );

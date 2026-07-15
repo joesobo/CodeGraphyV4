@@ -129,7 +129,6 @@ describe('graph layout engine', () => {
       initializationSpacing: 11,
       linkDistance: 34,
       linkStrength: 0.42,
-      maximumCollisionNeighbors: 7.5,
       settleSpeed: 0.02,
       settleSteps: 4,
       velocityDecay: 0.27,

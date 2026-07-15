@@ -9,7 +9,6 @@ describe('default graph physics configuration', () => {
       chargeDistanceMin: 1,
       chargeStrength: -250,
       chargeTheta: 0.9,
-      maximumCollisionNeighbors: 128,
       initializationSpacing: 10,
       linkDistance: 80,
       linkStrength: 1,
