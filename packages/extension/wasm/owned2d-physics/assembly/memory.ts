@@ -3,16 +3,16 @@ const HIDDEN_FLAG: u8 = 2;
 
 export let nodeCount: i32 = 0;
 export let edgeCount: i32 = 0;
-export let xPointer: usize = 0;
-export let yPointer: usize = 0;
-export let vxPointer: usize = 0;
-export let vyPointer: usize = 0;
-export let multiplierPointer: usize = 0;
-export let radiusPointer: usize = 0;
-export let flagPointer: usize = 0;
-export let edgeSourcePointer: usize = 0;
-export let edgeTargetPointer: usize = 0;
-export let linkDegreePointer: usize = 0;
+let xPointer: usize = 0;
+let yPointer: usize = 0;
+let vxPointer: usize = 0;
+let vyPointer: usize = 0;
+let multiplierPointer: usize = 0;
+let radiusPointer: usize = 0;
+let flagPointer: usize = 0;
+let edgeSourcePointer: usize = 0;
+let edgeTargetPointer: usize = 0;
+let linkDegreePointer: usize = 0;
 
 export function initializeGraphMemory(
   nextNodeCount: i32,
