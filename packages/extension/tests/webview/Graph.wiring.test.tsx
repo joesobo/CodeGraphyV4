@@ -102,7 +102,6 @@ function createGraphState(graphData: IGraphData = baseData) {
 		},
 		renderCaches: {
 			fileInfoCacheRef,
-			imageCacheVersion: 0,
 			invalidateImages: triggerImageRerender,
 		},
 		selection: {

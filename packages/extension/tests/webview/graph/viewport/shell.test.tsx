@@ -132,7 +132,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 		},
 		renderCaches: {
 			fileInfoCacheRef,
-			imageCacheVersion: 0,
 			invalidateImages: triggerImageRerender,
 		},
 		selection: {
@@ -141,7 +140,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 			setSelectedNodeIds: setSelectedNodes,
 		},
 		edgeDecorationsRef: { current: {} },
-		favoritesRef: { current: new Set() },
 		graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
 		nodeDecorationsRef: { current: {} },
 		setHighlightVersion: vi.fn(),

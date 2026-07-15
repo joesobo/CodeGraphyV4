@@ -48,7 +48,7 @@ export interface GraphRuntimeOptions {
   theme: ThemeKind;
 }
 
-export interface GraphRuntimeSelection {
+interface GraphRuntimeSelection {
   selectedNodeIds: string[];
   selectedNodeIdsRef: MutableRefObject<Set<string>>;
   setSelectedNodeIds: Dispatch<SetStateAction<string[]>>;
@@ -72,7 +72,6 @@ export interface GraphRuntimeContextSelection {
 
 export interface GraphRuntimeRenderCaches {
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
-  imageCacheVersion: number;
   invalidateImages(this: void): void;
 }
 
@@ -82,7 +81,6 @@ export interface GraphRuntime {
   directionColorRef: MutableRefObject<string>;
   directionModeRef: MutableRefObject<DirectionMode>;
   edgeDecorationsRef: MutableRefObject<Record<string, EdgeDecorationPayload> | undefined>;
-  favoritesRef: MutableRefObject<Set<string>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphAppearanceRef: MutableRefObject<GraphAppearance>;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
@@ -94,14 +92,6 @@ export interface GraphRuntime {
   selection: GraphRuntimeSelection;
   showLabelsRef: MutableRefObject<boolean>;
   themeRef: MutableRefObject<ThemeKind>;
-}
-
-export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[] } {
-  return { links: [], nodes: [] };
-}
-
-export function incrementImageCacheVersion(previous: number): number {
-  return previous + 1;
 }
 
 function getVisibleSelection(
@@ -134,8 +124,7 @@ export function useGraphRuntime({
   const themeRef = useRef(theme);
   const directionModeRef = useRef(directionMode);
   const directionColorRef = useRef(directionColor);
-  const favoritesRef = useRef(favorites);
-  const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>(createEmptyRuntimeGraphData());
+  const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>({ links: [], nodes: [] });
   const dataRef = useRef(data);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
   const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
@@ -153,7 +142,6 @@ export function useGraphRuntime({
   themeRef.current = theme;
   directionModeRef.current = directionMode;
   directionColorRef.current = directionColor;
-  favoritesRef.current = favorites;
   dataRef.current = data;
   showLabelsRef.current = showLabels;
   nodeDecorationsRef.current = nodeDecorations;
@@ -163,10 +151,10 @@ export function useGraphRuntime({
   const [contextSelection, setContextSelection] = useState<GraphContextSelection>(() =>
     makeBackgroundContextSelection(),
   );
-  const [imageCacheVersion, setImageCacheVersion] = useState(0);
+  const [, setImageCacheVersion] = useState(0);
 
   function triggerImageRerender(): void {
-    setImageCacheVersion(incrementImageCacheVersion);
+    setImageCacheVersion(previous => previous + 1);
   }
 
   const graphData = useMemo(() => {
@@ -208,7 +196,6 @@ export function useGraphRuntime({
     directionColorRef,
     directionModeRef,
     edgeDecorationsRef,
-    favoritesRef,
     graphCursorRef,
     graphAppearanceRef,
     highlightedNeighborsRef,
@@ -223,7 +210,6 @@ export function useGraphRuntime({
     },
     renderCaches: {
       fileInfoCacheRef,
-      imageCacheVersion,
       invalidateImages: triggerImageRerender,
     },
     selection: {
