@@ -3,6 +3,12 @@
   "title": "CodeGraphy PR #308 — Obsidian-parity interaction performance",
   "updates": [
     {
+      "milestone": "M9",
+      "title": "Dense graph cells no longer skip collision pairs",
+      "summary": "A real CodeGraphy-monorepo screenshot exposed the remaining collision defect: the spatial-grid pass stopped after 128 nearby entries, so dense cells could skip a large/small pair and still report settlement. The arbitrary cap is removed and a >128-candidate zoom-scaled regression protects the complete neighborhood scan. Clean 500 / 1k / 2.5k runs retain zero fitted overlap violations, exact one-frame interaction, and 223 / 252 / 198 potential FPS. VS Code independently verifies 2,690 real nodes with 8–30 radii, zero overlaps on the first 0.5× rendered frame, and a 5.54 px minimum settled gap.",
+      "timestamp": "2026-07-15T04:06:20Z"
+    },
+    {
       "milestone": "M8",
       "title": "Zoom-accurate collisions verified at 2,500 nodes",
       "summary": "Visible collision radii now follow the same inverse-square-root zoom compensation as rendering, and zoom-out wakes collision-only settlement without reheating unrelated forces. Clean 500 / 1k / 2.5k runs have zero fitted-view overlap violations at 0.262× / 0.182× / 0.113×, while reaching 221 / 245 / 201 potential FPS with 4.53 / 4.09 / 4.98 ms frame work, exact one-frame target and neighbor response, and zero freezes or teleports. VS Code independently verifies the full 8–30 semantic radius range and zero violations from 0.005× through 64× zoom.",
@@ -234,6 +240,21 @@
       "fixture": "2.5k",
       "milestone": "M8 WASM collisions",
       "path": "references/interaction-performance/m8-wasm-collisions/2.5k.json"
+    },
+    {
+      "fixture": "500",
+      "milestone": "M9 dense collisions",
+      "path": "references/interaction-performance/m9-dense-collisions/500.json"
+    },
+    {
+      "fixture": "1k",
+      "milestone": "M9 dense collisions",
+      "path": "references/interaction-performance/m9-dense-collisions/1k.json"
+    },
+    {
+      "fixture": "2.5k",
+      "milestone": "M9 dense collisions",
+      "path": "references/interaction-performance/m9-dense-collisions/2.5k.json"
     }
   ],
   "attribution": [
@@ -321,6 +342,16 @@
     }
   ],
   "visuals": [
+    {
+      "caption": "M9 corrected 2,690-node CodeGraphy monorepo at 0.5× zoom: mixed 8–30 radii retain zero overlaps and at least a 5.54 px gap.",
+      "kind": "image",
+      "path": "references/interaction-performance/m9-dense-collisions/fixed-codegraphy-monorepo.png"
+    },
+    {
+      "caption": "M9 user-reported close-up that exposed large/small pairs skipped by the old 128-candidate collision ceiling.",
+      "kind": "image",
+      "path": "references/interaction-performance/m9-dense-collisions/reported-overlap-closeup.png"
+    },
     {
       "caption": "M8 integrated VS Code 2.5k collision stress graph with Files Explorer restored and 8–30 semantic node radii.",
       "kind": "image",
