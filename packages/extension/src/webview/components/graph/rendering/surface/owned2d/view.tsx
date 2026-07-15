@@ -237,8 +237,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       rendererOperationalRef,
       requestFrameRef,
       simulationClockRef,
-      markPerformanceIdle: () => undefined,
-      recordRenderedFrame: () => undefined,
       synchronizedPositionVersionRef,
       publishPerformance: sample => publishOwnedGraphPerformance(
         sample,
