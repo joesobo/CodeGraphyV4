@@ -102,6 +102,96 @@ function createVertexStream(device: GPUDevice, label: string): VertexStream {
   };
 }
 
+interface RendererPipelines {
+  arrow: GPURenderPipeline;
+  link: GPURenderPipeline;
+  node: GPURenderPipeline;
+}
+
+async function requestGraphDevice(gpu: GPU): Promise<GPUDevice | undefined> {
+  const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' })
+    ?? await gpu.requestAdapter({ forceFallbackAdapter: true });
+  return adapter?.requestDevice();
+}
+
+async function createRendererPipelines(
+  device: GPUDevice,
+  format: GPUTextureFormat,
+): Promise<RendererPipelines> {
+  device.pushErrorScope('validation');
+  const nodeModule = device.createShaderModule({
+    code: NODE_SHADER,
+    label: 'CodeGraphy node shader',
+  });
+  const linkModule = device.createShaderModule({
+    code: LINK_SHADER,
+    label: 'CodeGraphy link shader',
+  });
+  const node = device.createRenderPipeline({
+    label: 'CodeGraphy node pipeline',
+    layout: 'auto',
+    vertex: {
+      entryPoint: 'vertexMain',
+      module: nodeModule,
+      buffers: [{
+        arrayStride: NODE_POSITION_FLOATS * FLOAT_BYTES,
+        stepMode: 'instance',
+        attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }],
+      }, {
+        arrayStride: NODE_STYLE_FLOATS * FLOAT_BYTES,
+        stepMode: 'instance',
+        attributes: [
+          { shaderLocation: 1, offset: 0, format: 'float32x2' },
+          { shaderLocation: 2, offset: 2 * FLOAT_BYTES, format: 'float32x4' },
+          { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
+          { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x3' },
+        ],
+      }],
+    },
+    fragment: {
+      entryPoint: 'fragmentMain',
+      module: nodeModule,
+      targets: [{ format, blend: blendState() }],
+    },
+    primitive: { topology: 'triangle-list' },
+  });
+  const link = device.createRenderPipeline({
+    label: 'CodeGraphy link pipeline',
+    layout: 'auto',
+    vertex: {
+      entryPoint: 'linkVertexMain',
+      module: linkModule,
+      buffers: linkVertexBuffers(),
+    },
+    fragment: {
+      entryPoint: 'linkFragmentMain',
+      module: linkModule,
+      targets: [{ format, blend: blendState() }],
+    },
+    primitive: { topology: 'triangle-strip' },
+  });
+  const arrow = device.createRenderPipeline({
+    label: 'CodeGraphy arrow pipeline',
+    layout: 'auto',
+    vertex: {
+      entryPoint: 'arrowVertexMain',
+      module: linkModule,
+      buffers: linkVertexBuffers(),
+    },
+    fragment: {
+      entryPoint: 'arrowFragmentMain',
+      module: linkModule,
+      targets: [{ format, blend: blendState() }],
+    },
+    primitive: { topology: 'triangle-list' },
+  });
+  const validationError = await device.popErrorScope();
+  if (validationError) {
+    throw new Error(`WebGPU pipeline validation failed: ${validationError.message}`);
+  }
+  return { arrow, link, node };
+}
+
 export class OwnedWebGpuRenderer {
   private readonly arrowCameraBindGroup: GPUBindGroup;
   private readonly cameraBuffer: GPUBuffer;
@@ -186,10 +276,8 @@ export class OwnedWebGpuRenderer {
   ): Promise<OwnedWebGpuRenderer | undefined> {
     const gpu = navigator.gpu;
     if (!gpu) return undefined;
-    const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' })
-      ?? await gpu.requestAdapter({ forceFallbackAdapter: true });
-    if (!adapter) return undefined;
-    const device = await adapter.requestDevice();
+    const device = await requestGraphDevice(gpu);
+    if (!device) return undefined;
     let context: GPUCanvasContext | null = null;
     try {
       context = canvas.getContext('webgpu');
@@ -199,91 +287,20 @@ export class OwnedWebGpuRenderer {
       }
       const format = gpu.getPreferredCanvasFormat();
       context.configure({
-      alphaMode: 'premultiplied',
-      device,
-      format,
-    });
-    device.pushErrorScope('validation');
-    const nodeModule = device.createShaderModule({
-      code: NODE_SHADER,
-      label: 'CodeGraphy node shader',
-    });
-    const linkModule = device.createShaderModule({
-      code: LINK_SHADER,
-      label: 'CodeGraphy link shader',
-    });
-    const nodePipeline = device.createRenderPipeline({
-      label: 'CodeGraphy node pipeline',
-      layout: 'auto',
-      vertex: {
-        entryPoint: 'vertexMain',
-        module: nodeModule,
-        buffers: [{
-          arrayStride: NODE_POSITION_FLOATS * FLOAT_BYTES,
-          stepMode: 'instance',
-          attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }],
-        }, {
-          arrayStride: NODE_STYLE_FLOATS * FLOAT_BYTES,
-          stepMode: 'instance',
-          attributes: [
-            { shaderLocation: 1, offset: 0, format: 'float32x2' },
-            { shaderLocation: 2, offset: 2 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x3' },
-          ],
-        }],
-      },
-      fragment: {
-        entryPoint: 'fragmentMain',
-        module: nodeModule,
-        targets: [{ format, blend: blendState() }],
-      },
-      primitive: { topology: 'triangle-list' },
-    });
-    const linkPipeline = device.createRenderPipeline({
-      label: 'CodeGraphy link pipeline',
-      layout: 'auto',
-      vertex: {
-        entryPoint: 'linkVertexMain',
-        module: linkModule,
-        buffers: linkVertexBuffers(),
-      },
-      fragment: {
-        entryPoint: 'linkFragmentMain',
-        module: linkModule,
-        targets: [{ format, blend: blendState() }],
-      },
-      primitive: { topology: 'triangle-strip' },
-    });
-    const arrowPipeline = device.createRenderPipeline({
-      label: 'CodeGraphy arrow pipeline',
-      layout: 'auto',
-      vertex: {
-        entryPoint: 'arrowVertexMain',
-        module: linkModule,
-        buffers: linkVertexBuffers(),
-      },
-      fragment: {
-        entryPoint: 'arrowFragmentMain',
-        module: linkModule,
-        targets: [{ format, blend: blendState() }],
-      },
-      primitive: { topology: 'triangle-list' },
-    });
-    const validationError = await device.popErrorScope();
-      if (validationError) {
-        throw new Error(`WebGPU pipeline validation failed: ${validationError.message}`);
-      }
-
-    const renderer = new OwnedWebGpuRenderer(
-      canvas,
-      context,
-      device,
-      arrowPipeline,
-      linkPipeline,
-      nodePipeline,
-      options.onFrameComplete,
-    );
+        alphaMode: 'premultiplied',
+        device,
+        format,
+      });
+      const pipelines = await createRendererPipelines(device, format);
+      const renderer = new OwnedWebGpuRenderer(
+        canvas,
+        context,
+        device,
+        pipelines.arrow,
+        pipelines.link,
+        pipelines.node,
+        options.onFrameComplete,
+      );
       void device.lost.then(info => {
         if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
       });
@@ -526,19 +543,26 @@ export class OwnedWebGpuRenderer {
     if (writeStyle) this.packLinkStyle(link, linkIndex, renderedIndex, curvature);
   }
 
-  private updateLinkRenderOrder(frame: OwnedWebGpuFrame, edgeStride: number): boolean {
-    if (this.indexedLinks === frame.links
+  private linkRenderOrderMatches(frame: OwnedWebGpuFrame, edgeStride: number): boolean {
+    return this.indexedLinks === frame.links
       && this.indexedEdgeSources === frame.edgeSources
       && this.indexedEdgeTargets === frame.edgeTargets
       && this.indexedNodeCount === frame.nodes.length
-      && this.indexedEdgeStride === edgeStride) return false;
+      && this.indexedEdgeStride === edgeStride;
+  }
+
+  private isRenderableLink(frame: OwnedWebGpuFrame, linkIndex: number): boolean {
+    return frame.edgeSources[linkIndex] < frame.nodes.length
+      && frame.edgeTargets[linkIndex] < frame.nodes.length;
+  }
+
+  private updateLinkRenderOrder(frame: OwnedWebGpuFrame, edgeStride: number): boolean {
+    if (this.linkRenderOrderMatches(frame, edgeStride)) return false;
     const indexes = new Uint32Array(Math.ceil(frame.links.length / edgeStride));
     const indexByLink = new WeakMap<GraphRendererLink, number>();
     let renderedCount = 0;
     for (let linkIndex = 0; linkIndex < frame.links.length; linkIndex += edgeStride) {
-      const sourceIndex = frame.edgeSources[linkIndex];
-      const targetIndex = frame.edgeTargets[linkIndex];
-      if (sourceIndex >= frame.nodes.length || targetIndex >= frame.nodes.length) continue;
+      if (!this.isRenderableLink(frame, linkIndex)) continue;
       indexes[renderedCount] = linkIndex;
       indexByLink.set(frame.links[linkIndex], renderedCount);
       renderedCount += 1;
@@ -644,6 +668,57 @@ export class OwnedWebGpuRenderer {
       || arrowGeometryChanged;
   }
 
+  private uploadNodeBuffers(
+    frame: OwnedWebGpuFrame,
+    positionsChanged: boolean,
+    nodeOrderChanged: boolean,
+    stylesChanged: boolean,
+  ): void {
+    if (positionsChanged || nodeOrderChanged) {
+      this.packNodePositions(frame);
+      this.uploadVertexStream(
+        this.nodePositionStream,
+        this.nodePositionValues,
+        this.nodePositionValues.byteLength,
+      );
+    }
+    if (stylesChanged) {
+      this.uploadVertexStream(this.nodeStyleStream, this.nodeStyles, this.nodeStyles.byteLength);
+    }
+  }
+
+  private uploadLinkBuffers(
+    frame: OwnedWebGpuFrame,
+    geometryChanged: boolean,
+    stylesChanged: boolean,
+    arrowsVisible: boolean,
+    nodeVisualScale: number,
+  ): void {
+    if (geometryChanged || stylesChanged) {
+      this.packLinkInstances(
+        frame,
+        geometryChanged,
+        stylesChanged,
+        arrowsVisible,
+        nodeVisualScale,
+      );
+    }
+    if (geometryChanged) {
+      this.uploadVertexStream(
+        this.linkGeometryStream,
+        this.linkGeometryValues,
+        this.renderedLinkCount * LINK_GEOMETRY_FLOATS * FLOAT_BYTES,
+      );
+    }
+    if (stylesChanged) {
+      this.uploadVertexStream(
+        this.linkStyleStream,
+        this.linkStyleValues,
+        this.renderedLinkCount * LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
+      );
+    }
+  }
+
   private updateGraphBuffers(
     frame: OwnedWebGpuFrame,
     stylesChanged: boolean,
@@ -663,41 +738,14 @@ export class OwnedWebGpuRenderer {
       this.arrowGeometryChanged(arrowsVisible, nodeVisualScale),
     );
     const linkStylesChanged = stylesChanged || linkRenderOrderChanged;
-
-    if (positionsChanged || nodeOrderChanged) {
-      this.packNodePositions(frame);
-      this.uploadVertexStream(
-        this.nodePositionStream,
-        this.nodePositionValues,
-        this.nodePositionValues.byteLength,
-      );
-    }
-    if (stylesChanged) {
-      this.uploadVertexStream(this.nodeStyleStream, this.nodeStyles, this.nodeStyles.byteLength);
-    }
-    if (linkGeometryChanged || linkStylesChanged) {
-      this.packLinkInstances(
-        frame,
-        linkGeometryChanged,
-        linkStylesChanged,
-        arrowsVisible,
-        nodeVisualScale,
-      );
-    }
-    if (linkGeometryChanged) {
-      this.uploadVertexStream(
-        this.linkGeometryStream,
-        this.linkGeometryValues,
-        this.renderedLinkCount * LINK_GEOMETRY_FLOATS * FLOAT_BYTES,
-      );
-    }
-    if (linkStylesChanged) {
-      this.uploadVertexStream(
-        this.linkStyleStream,
-        this.linkStyleValues,
-        this.renderedLinkCount * LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
-      );
-    }
+    this.uploadNodeBuffers(frame, positionsChanged, nodeOrderChanged, stylesChanged);
+    this.uploadLinkBuffers(
+      frame,
+      linkGeometryChanged,
+      linkStylesChanged,
+      arrowsVisible,
+      nodeVisualScale,
+    );
     this.updateGraphCacheIdentity(frame, edgeStride, arrowsVisible, nodeVisualScale);
   }
 

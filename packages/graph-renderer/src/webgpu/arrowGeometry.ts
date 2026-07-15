@@ -51,17 +51,17 @@ function starBoundary(
   return radius / Math.hypot(localX, localY);
 }
 
-function nodeBoundaryDistance(
-  style: GraphRendererNodeStyle,
+function shapeBoundaryDistance(
+  shape: GraphRendererNodeStyle['shape'],
+  cornerRadius: number,
+  halfWidth: number,
+  halfHeight: number,
   directionX: number,
   directionY: number,
-  visualScale: number,
 ): number {
-  const halfWidth = Math.max(0.5, style.width * visualScale / 2);
-  const halfHeight = Math.max(0.5, style.height * visualScale / 2);
   const localX = directionX / halfWidth;
   const localY = directionY / halfHeight;
-  switch (style.shape) {
+  switch (shape) {
     case 'circle':
       return ellipseBoundary(halfWidth, halfHeight, directionX, directionY);
     case 'rectangle':
@@ -69,7 +69,7 @@ function nodeBoundaryDistance(
       return rectangleBoundary(
         halfWidth,
         halfHeight,
-        style.cornerRadius * visualScale,
+        cornerRadius,
         directionX,
         directionY,
       );
@@ -85,6 +85,24 @@ function nodeBoundaryDistance(
     case 'star':
       return starBoundary(halfWidth, halfHeight, directionX, directionY);
   }
+}
+
+function nodeBoundaryDistance(
+  style: GraphRendererNodeStyle,
+  directionX: number,
+  directionY: number,
+  visualScale: number,
+): number {
+  const halfWidth = Math.max(0.5, style.width * visualScale / 2);
+  const halfHeight = Math.max(0.5, style.height * visualScale / 2);
+  return shapeBoundaryDistance(
+    style.shape,
+    style.cornerRadius * visualScale,
+    halfWidth,
+    halfHeight,
+    directionX,
+    directionY,
+  );
 }
 
 function curveCoordinate(
@@ -125,6 +143,18 @@ function curveTangentCoordinate(
     + 2 * position * (target - firstControl);
 }
 
+function nextBoundaryOffset(
+  newton: number,
+  radialDerivative: number,
+  inside: number,
+  outside: number,
+): number {
+  if (radialDerivative <= 0.000001) return (inside + outside) / 2;
+  if (!Number.isFinite(newton)) return (inside + outside) / 2;
+  if (newton <= inside || newton >= outside) return (inside + outside) / 2;
+  return newton;
+}
+
 function correctedBoundaryOffset(
   sourceX: number,
   sourceY: number,
@@ -135,16 +165,17 @@ function correctedBoundaryOffset(
   secondControlX: number,
   secondControlY: number,
   cubic: boolean,
-  fromSource: boolean,
+  centerX: number,
+  centerY: number,
+  positionOrigin: number,
+  direction: 1 | -1,
   tangentX: number,
   tangentY: number,
   style: GraphRendererNodeStyle,
   visualScale: number,
 ): number {
-  const centerX = fromSource ? sourceX : targetX;
-  const centerY = fromSource ? sourceY : targetY;
-  const outwardX = fromSource ? tangentX : -tangentX;
-  const outwardY = fromSource ? tangentY : -tangentY;
+  const outwardX = tangentX * direction;
+  const outwardY = tangentY * direction;
   const tangentLength = Math.hypot(outwardX, outwardY);
   if (tangentLength === 0) return 0;
   let offset = Math.min(
@@ -155,7 +186,7 @@ function correctedBoundaryOffset(
   let inside = 0;
   let outside = 0.5;
   for (let correction = 0; correction < 8; correction += 1) {
-    const position = fromSource ? offset : 1 - offset;
+    const position = positionOrigin + direction * offset;
     const pointX = curveCoordinate(
       sourceX,
       targetX,
@@ -198,8 +229,8 @@ function correctedBoundaryOffset(
       cubic,
       position,
     );
-    const offsetTangentX = fromSource ? curveTangentX : -curveTangentX;
-    const offsetTangentY = fromSource ? curveTangentY : -curveTangentY;
+    const offsetTangentX = curveTangentX * direction;
+    const offsetTangentY = curveTangentY * direction;
     const radialDerivative = (
       deltaX * offsetTangentX + deltaY * offsetTangentY
     ) / distance;
@@ -210,14 +241,157 @@ function correctedBoundaryOffset(
       inside = offset;
     }
     const newton = offset - error / radialDerivative;
-    offset = radialDerivative > 0.000001
-      && Number.isFinite(newton)
-      && newton > inside
-      && newton < outside
-      ? newton
-      : (inside + outside) / 2;
+    offset = nextBoundaryOffset(newton, radialDerivative, inside, outside);
   }
   return offset;
+}
+
+function writeStraightBoundaryOffsets(
+  output: Float32Array,
+  offset: number,
+  deltaX: number,
+  deltaY: number,
+  distance: number,
+  sourceStyle: GraphRendererNodeStyle,
+  targetStyle: GraphRendererNodeStyle,
+  visualScale: number,
+): void {
+  const directionX = deltaX / distance;
+  const directionY = deltaY / distance;
+  output[offset] = Math.min(
+    1,
+    nodeBoundaryDistance(sourceStyle, directionX, directionY, visualScale) / distance,
+  );
+  output[offset + 1] = Math.max(
+    0,
+    1 - nodeBoundaryDistance(targetStyle, -directionX, -directionY, visualScale) / distance,
+  );
+}
+
+function writeCurveBoundaryOffsets(
+  output: Float32Array,
+  offset: number,
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+  firstControlX: number,
+  firstControlY: number,
+  secondControlX: number,
+  secondControlY: number,
+  cubic: boolean,
+  tangentMultiplier: number,
+  sourceStyle: GraphRendererNodeStyle,
+  targetStyle: GraphRendererNodeStyle,
+  visualScale: number,
+): void {
+  const sourceTangentX = tangentMultiplier * (firstControlX - sourceX);
+  const sourceTangentY = tangentMultiplier * (firstControlY - sourceY);
+  const targetTangentX = tangentMultiplier * (targetX - secondControlX);
+  const targetTangentY = tangentMultiplier * (targetY - secondControlY);
+  output[offset] = correctedBoundaryOffset(
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    firstControlX,
+    firstControlY,
+    secondControlX,
+    secondControlY,
+    cubic,
+    sourceX,
+    sourceY,
+    0,
+    1,
+    sourceTangentX,
+    sourceTangentY,
+    sourceStyle,
+    visualScale,
+  );
+  output[offset + 1] = 1 - correctedBoundaryOffset(
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    firstControlX,
+    firstControlY,
+    secondControlX,
+    secondControlY,
+    cubic,
+    targetX,
+    targetY,
+    1,
+    -1,
+    targetTangentX,
+    targetTangentY,
+    targetStyle,
+    visualScale,
+  );
+}
+
+function writeSelfLoopBoundaryOffsets(
+  output: Float32Array,
+  offset: number,
+  sourceX: number,
+  sourceY: number,
+  curvature: number,
+  sourceStyle: GraphRendererNodeStyle,
+  targetStyle: GraphRendererNodeStyle,
+  visualScale: number,
+): void {
+  const radius = Math.max(0.5, Math.abs(curvature)) * OWNED_SELF_LOOP_RADIUS;
+  writeCurveBoundaryOffsets(
+    output,
+    offset,
+    sourceX,
+    sourceY,
+    sourceX,
+    sourceY,
+    sourceX,
+    sourceY - radius,
+    sourceX + radius,
+    sourceY,
+    true,
+    3,
+    sourceStyle,
+    targetStyle,
+    visualScale,
+  );
+}
+
+function writeQuadraticBoundaryOffsets(
+  output: Float32Array,
+  offset: number,
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+  deltaX: number,
+  deltaY: number,
+  curvature: number,
+  sourceStyle: GraphRendererNodeStyle,
+  targetStyle: GraphRendererNodeStyle,
+  visualScale: number,
+): void {
+  const controlX = (sourceX + targetX) / 2 + deltaY * curvature;
+  const controlY = (sourceY + targetY) / 2 - deltaX * curvature;
+  writeCurveBoundaryOffsets(
+    output,
+    offset,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    controlX,
+    controlY,
+    controlX,
+    controlY,
+    false,
+    2,
+    sourceStyle,
+    targetStyle,
+    visualScale,
+  );
 }
 
 export function writeOwnedArrowCurveParameters(
@@ -236,58 +410,42 @@ export function writeOwnedArrowCurveParameters(
   const deltaY = targetY - sourceY;
   const distance = Math.hypot(deltaX, deltaY);
   if (distance > 0 && curvature === 0) {
-    const directionX = deltaX / distance;
-    const directionY = deltaY / distance;
-    output[offset] = Math.min(
-      1,
-      nodeBoundaryDistance(sourceStyle, directionX, directionY, visualScale) / distance,
-    );
-    output[offset + 1] = Math.max(
-      0,
-      1 - nodeBoundaryDistance(targetStyle, -directionX, -directionY, visualScale) / distance,
+    writeStraightBoundaryOffsets(
+      output,
+      offset,
+      deltaX,
+      deltaY,
+      distance,
+      sourceStyle,
+      targetStyle,
+      visualScale,
     );
     return;
   }
-
-  const cubic = distance === 0;
-  const radius = Math.max(0.5, Math.abs(curvature)) * OWNED_SELF_LOOP_RADIUS;
-  const firstControlX = cubic ? sourceX : (sourceX + targetX) / 2 + deltaY * curvature;
-  const firstControlY = cubic ? sourceY - radius : (sourceY + targetY) / 2 - deltaX * curvature;
-  const secondControlX = cubic ? sourceX + radius : firstControlX;
-  const secondControlY = cubic ? sourceY : firstControlY;
-  const sourceTangentX = (cubic ? 3 : 2) * (firstControlX - sourceX);
-  const sourceTangentY = (cubic ? 3 : 2) * (firstControlY - sourceY);
-  const targetTangentX = (cubic ? 3 : 2) * (targetX - secondControlX);
-  const targetTangentY = (cubic ? 3 : 2) * (targetY - secondControlY);
-  output[offset] = correctedBoundaryOffset(
+  if (distance === 0) {
+    writeSelfLoopBoundaryOffsets(
+      output,
+      offset,
+      sourceX,
+      sourceY,
+      curvature,
+      sourceStyle,
+      targetStyle,
+      visualScale,
+    );
+    return;
+  }
+  writeQuadraticBoundaryOffsets(
+    output,
+    offset,
     sourceX,
     sourceY,
     targetX,
     targetY,
-    firstControlX,
-    firstControlY,
-    secondControlX,
-    secondControlY,
-    cubic,
-    true,
-    sourceTangentX,
-    sourceTangentY,
+    deltaX,
+    deltaY,
+    curvature,
     sourceStyle,
-    visualScale,
-  );
-  output[offset + 1] = 1 - correctedBoundaryOffset(
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    firstControlX,
-    firstControlY,
-    secondControlX,
-    secondControlY,
-    cubic,
-    false,
-    targetTangentX,
-    targetTangentY,
     targetStyle,
     visualScale,
   );

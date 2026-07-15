@@ -20,6 +20,18 @@ function indexGraphNodes(nodeIds: readonly string[]): Map<string, number> {
   return indexes;
 }
 
+function assertKinematicsLength(values: Float32Array, nodeCount: number): void {
+  if (values.length !== nodeCount) {
+    throw new Error('Graph layout kinematics must match node count');
+  }
+}
+
+function assertFiniteKinematics(values: Float32Array): void {
+  if (!values.every(Number.isFinite)) {
+    throw new Error('Graph layout kinematics must be finite');
+  }
+}
+
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   nodeIds!: readonly string[];
   private state!: GraphLayoutState;
@@ -113,15 +125,14 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     vy: Float32Array,
   ): void {
     const nodeCount = this.x.length;
-    if (x.length !== nodeCount
-      || y.length !== nodeCount
-      || vx.length !== nodeCount
-      || vy.length !== nodeCount) {
-      throw new Error('Graph layout kinematics must match node count');
-    }
-    if (![x, y, vx, vy].every(values => values.every(Number.isFinite))) {
-      throw new Error('Graph layout kinematics must be finite');
-    }
+    assertKinematicsLength(x, nodeCount);
+    assertKinematicsLength(y, nodeCount);
+    assertKinematicsLength(vx, nodeCount);
+    assertKinematicsLength(vy, nodeCount);
+    assertFiniteKinematics(x);
+    assertFiniteKinematics(y);
+    assertFiniteKinematics(vx);
+    assertFiniteKinematics(vy);
     if (x !== this.x) this.x.set(x);
     if (y !== this.y) this.y.set(y);
     if (vx !== this.vx) this.vx.set(vx);
