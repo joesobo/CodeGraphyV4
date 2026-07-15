@@ -20,8 +20,13 @@ async function compileOwnedGraphPhysicsModule(): Promise<WebAssembly.Module> {
 
 export function prepareGraphPhysics(): Promise<void> {
   if (ownedGraphPhysicsModuleReady()) return Promise.resolve();
-  preparation ??= compileOwnedGraphPhysicsModule().then(module => {
-    installOwnedGraphPhysicsModule(module);
-  });
+  preparation ??= compileOwnedGraphPhysicsModule()
+    .then(module => {
+      installOwnedGraphPhysicsModule(module);
+    })
+    .catch(error => {
+      preparation = undefined;
+      throw error;
+    });
   return preparation;
 }

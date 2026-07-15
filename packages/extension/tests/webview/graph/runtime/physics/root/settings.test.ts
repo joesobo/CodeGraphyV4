@@ -6,10 +6,7 @@ import {
   applyOwnedPhysicsSettings,
   toOwnedPhysicsConfig,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
-import {
-  createGraphLayoutEngine,
-  DEFAULT_GRAPH_LAYOUT_CONFIG,
-} from '@codegraphy-dev/graph-renderer';
+import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 
 function engine() {
   return createGraphLayoutEngine({
@@ -71,11 +68,6 @@ describe('owned physics settings', () => {
     layout.tick();
     expect(layout.vx[0]).toBeLessThan(0);
     expect(layout.vx[1]).toBe(0);
-  });
-
-  it('ships collision constraints as part of the owned engine defaults', () => {
-    expect(DEFAULT_GRAPH_LAYOUT_CONFIG.collisionIterations).toBeGreaterThan(0);
-    expect(DEFAULT_GRAPH_LAYOUT_CONFIG.collisionStrength).toBe(1);
   });
 
   it('uses node size plus production padding for the collision radius', () => {

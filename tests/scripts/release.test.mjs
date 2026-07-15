@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { collectReleaseTargets, resolveReleaseTargets, runRelease } from './release.mjs';
+import { collectReleaseTargets, resolveReleaseTargets, runRelease } from '../../scripts/release.mjs';
 
 test('language plugin release targets resolve by short language name', () => {
   const repoRoot = createReleaseFixture({

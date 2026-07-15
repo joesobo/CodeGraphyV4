@@ -18,7 +18,7 @@ vi.mock('@codegraphy-dev/graph-renderer/webgpu', () => ({
 }));
 
 import { OwnedGraphSurface2d } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/view';
-import { TypedGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
+import { TypedGraphLayoutEngine } from '@codegraphy-dev/graph-renderer/testing';
 
 describe('OwnedGraphSurface2d renderer lifecycle', () => {
   afterEach(() => {

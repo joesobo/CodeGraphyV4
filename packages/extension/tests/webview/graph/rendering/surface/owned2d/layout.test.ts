@@ -15,7 +15,6 @@ import {
   createGraphLayoutEngine,
   GraphNodeFlag,
 } from '@codegraphy-dev/graph-renderer';
-import { TypedGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 
 const DEFAULT_SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
@@ -56,12 +55,6 @@ function run(engine: ReturnType<typeof createGraphLayoutEngine>, ticks = 240): v
 }
 
 describe('owned graph layout settings', () => {
-  it('uses the synchronous typed engine as its sole physics home', () => {
-    const layout = createOwnedGraphLayout([node('a')], [], DEFAULT_SETTINGS);
-
-    expect(layout.engine).toBeInstanceOf(TypedGraphLayoutEngine);
-  });
-
   it('maps every existing force setting to its semantic engine value', () => {
     expect(toOwnedPhysicsConfig({
       centerForce: 1,

@@ -1,9 +1,12 @@
 {
   "name": "@codegraphy-dev/graph-renderer",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.0.0",
+  "description": "CodeGraphy's WebGPU graph renderer and deterministic WebAssembly physics engine",
+  "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -20,13 +23,52 @@
     "./wasm": {
       "types": "./src/wasm/loader.ts",
       "default": "./src/wasm/loader.ts"
+    },
+    "./testing": {
+      "types": "./tests/api.ts",
+      "default": "./tests/api.ts"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/graph-renderer",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "codegraphy",
+    "graph",
+    "webgpu",
+    "webassembly",
+    "visualization"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build": "tsx scripts/buildPhysics.ts --output dist/generated/physics.wasm && tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js",
     "build:wasm": "tsx scripts/buildPhysics.ts",
-    "watch:wasm": "tsx scripts/buildPhysics.ts --watch-only",
+    "watch:wasm": "tsx scripts/buildPhysics.ts --watch",
     "lint": "eslint src tests scripts vitest.config.ts",
-    "test": "pnpm run build:wasm && vitest run --config vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
