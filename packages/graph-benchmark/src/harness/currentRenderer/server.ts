@@ -46,6 +46,7 @@ function benchmarkHtml(fixture: BenchmarkFixture, renderer: BenchmarkRenderer): 
         const state = {
           error: null,
           lastHoveredNodeId: null,
+          lastStabilizedAt: null,
           ready: false,
           result: null,
           stabilizationCount: 0,
@@ -85,6 +86,7 @@ function benchmarkHtml(fixture: BenchmarkFixture, renderer: BenchmarkRenderer): 
               state.ready = true;
             }
             if (message?.type === 'PHYSICS_STABILIZED' && state.startedAt !== null) {
+              state.lastStabilizedAt = performance.now();
               state.stabilizationCount += 1;
               state.result = {
                 ...identity,

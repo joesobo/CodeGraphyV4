@@ -57,6 +57,10 @@ export interface CompletedBenchmarkRun {
       nodeTravelPx: number;
       responsive: boolean;
       finitePositions: boolean;
+      fittedCollisionMaximumPenetrationPx: number;
+      fittedCollisionSettleMs: number;
+      fittedCollisionViolationCount: number;
+      fittedCollisionZoom: number | null;
       settledCollisionViolationCount: number;
       duringDragCollisionViolationCount: number;
       releasedCollisionViolationCount: number;
@@ -350,6 +354,7 @@ export function createAggregateBenchmarkReport(options: {
     && run.metrics.drag.settledAfterRelease
     && run.metrics.drag.interactionAssessment.hudAgreement?.withinTenPercent === true
     && !run.metrics.drag.interactionAssessment.truncated
+    && run.metrics.drag.fittedCollisionViolationCount === 0
     && run.metrics.drag.settledCollisionViolationCount === 0
     && run.metrics.drag.releasedCollisionViolationCount === 0,
   );
