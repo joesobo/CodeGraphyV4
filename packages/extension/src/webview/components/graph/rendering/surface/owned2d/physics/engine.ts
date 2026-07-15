@@ -8,7 +8,6 @@ import {
   type GraphLayoutTickResult,
 } from './contracts';
 import { createGraphLayoutState } from './initialization';
-import { updateVisibleLinkDegrees } from './linkDegrees';
 import { assertOwnedGraphCollisionScale } from './wasm/configuration';
 import { OwnedGraphWasmPhysicsKernel } from './wasm/kernel';
 
@@ -144,19 +143,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   release(index: number): void {
     this.assertNodeIndex(index);
     this.flags[index] &= ~GraphNodeFlag.Pinned;
-  }
-
-  setHidden(index: number, hidden: boolean): void {
-    this.assertNodeIndex(index);
-    if (hidden) {
-      this.flags[index] |= GraphNodeFlag.Hidden;
-      this.vx[index] = 0;
-      this.vy[index] = 0;
-    } else {
-      this.flags[index] &= ~GraphNodeFlag.Hidden;
-    }
-    updateVisibleLinkDegrees(this.state);
-    this.reheat();
   }
 
   setAlphaTarget(alpha: number): void {

@@ -9,8 +9,6 @@ import type { IPhysicsSettings } from '../../../../../../shared/settings/physics
 import type { FGLink, FGNode } from '../../../model/build';
 import { ownedNodeCollisionRadius } from './collisionRadius';
 
-export { ownedNodeCollisionRadius } from './collisionRadius';
-
 export interface OwnedGraphLayout {
   engine: GraphLayoutEngine;
   links: FGLink[];

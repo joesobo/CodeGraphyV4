@@ -3,7 +3,7 @@ import { updateVisibleLinkDegrees } from './linkDegrees';
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-export function assertBufferLength(
+function assertBufferLength(
   buffer: { length: number } | undefined,
   expected: number,
   label: string,
@@ -11,12 +11,6 @@ export function assertBufferLength(
   if (buffer && buffer.length !== expected) {
     throw new Error(`${label} length must match node count`);
   }
-}
-
-export function deterministicDirection(first: number, second: number): { x: number; y: number } {
-  const hash = Math.imul(first + 1, 73_856_093) ^ Math.imul(second + 1, 19_349_663);
-  const angle = ((hash >>> 0) / 4_294_967_296) * Math.PI * 2;
-  return { x: Math.cos(angle), y: Math.sin(angle) };
 }
 
 function validateGraphLayoutInput(input: GraphLayoutInput, nodeCount: number): void {

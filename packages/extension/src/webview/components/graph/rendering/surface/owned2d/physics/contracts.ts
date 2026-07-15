@@ -63,7 +63,6 @@ export interface GraphLayoutEngine {
   setNodePosition(index: number, x: number, y: number): void;
   pin(index: number): void;
   release(index: number): void;
-  setHidden(index: number, hidden: boolean): void;
   setAlphaTarget(alpha: number): void;
   reheat(alpha?: number): void;
   pause(): void;

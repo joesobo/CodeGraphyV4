@@ -33,10 +33,6 @@ export function createPathListMessageEffects(
   return [createPostMessageEffect({ type, payload: { paths: [...paths] } })];
 }
 
-export function createPatternMessageEffects(patterns: readonly string[]): GraphContextEffect[] {
-  return [createPostMessageEffect({ type: 'ADD_TO_EXCLUDE', payload: { patterns: [...patterns] } })];
-}
-
 export function createRefreshEffects(): GraphContextEffect[] {
   return [createPostMessageEffect({ type: 'REFRESH_GRAPH' })];
 }

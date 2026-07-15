@@ -32,11 +32,7 @@ export function NodeSizeModePopover(): React.ReactElement {
   const nodeSizeMode = useGraphStore((state) => state.nodeSizeMode);
   const activeMode = getActiveNodeSizeMode(nodeSizeMode);
 
-  const handleSelect = (mode: NodeSizeMode, disabled: boolean): void => {
-    if (disabled) {
-      return;
-    }
-
+  const handleSelect = (mode: NodeSizeMode): void => {
     postMessage({ type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: mode } });
   };
 
@@ -61,9 +57,7 @@ export function NodeSizeModePopover(): React.ReactElement {
       <PopoverContent side="right" align="start" className="w-48 p-1">
         <div className="space-y-1" data-testid="node-size-mode-popover">
           {NODE_SIZE_MODES.map(({ mode, label, icon }) => {
-            const disabled = false;
             const active = nodeSizeMode === mode;
-            const title = label;
 
             return (
               <Button
@@ -75,9 +69,8 @@ export function NodeSizeModePopover(): React.ReactElement {
                   active && 'bg-[var(--cg-primary-faint)] text-primary',
                 )}
                 aria-pressed={active}
-                disabled={disabled}
-                onClick={() => handleSelect(mode, disabled)}
-                title={title}
+                onClick={() => handleSelect(mode)}
+                title={label}
               >
                 <MdiIcon path={icon} size={15} />
                 <span className="min-w-0 flex-1 truncate text-left">{label}</span>
