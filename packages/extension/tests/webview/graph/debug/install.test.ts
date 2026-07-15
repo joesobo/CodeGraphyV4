@@ -41,7 +41,7 @@ describe('webview/graph/debug/install', () => {
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeDefined();
   });
 
-  it('installs stable bounded measurement and deterministic camera controls', () => {
+  it('installs interaction measurements and deterministic camera controls', () => {
     const fitView = vi.fn();
     const centerAt = vi.fn();
     const zoom = vi.fn(() => 2);
@@ -98,16 +98,13 @@ describe('webview/graph/debug/install', () => {
     win.__CODEGRAPHY_GRAPH_DEBUG__?.fitViewWithPadding(24);
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('a.ts', 1)).toBe(true);
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('missing.ts', 1)).toBe(false);
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.startRenderedFrameRecording();
     win.__CODEGRAPHY_GRAPH_DEBUG__?.startInteractionRecording({
       neighborNodeIds: ['leaf'],
       targetNodeId: 'hub',
     });
     win.__CODEGRAPHY_GRAPH_DEBUG__?.startStageAttributionRecording();
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(10);
     cleanup?.();
     install();
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(26.7);
 
     expect(fitView).toHaveBeenCalledOnce();
     expect(zoomToFit).toHaveBeenCalledWith(300, 24);
@@ -129,10 +126,6 @@ describe('webview/graph/debug/install', () => {
       physicsHome: 'main-thread',
       renderedFrameCount: 3,
     });
-    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);
-
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(40);
-    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);
   });
 
   it('returns one node screen position without building a full snapshot', () => {

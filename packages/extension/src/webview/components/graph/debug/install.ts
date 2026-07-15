@@ -1,7 +1,6 @@
 import type { MutableRefObject, RefObject } from 'react';
 import './window';
 import type { GraphDebugControls } from './contracts/protocol';
-import { getRenderedFrameRecorder } from './frameTimes';
 import { buildGraphDebugSnapshot, type DebugNode } from './snapshot';
 
 type GraphDebugApiOptions = {
@@ -69,7 +68,6 @@ export function installGraphDebugApi({
     openNodeContextMenu,
     win,
   };
-  const renderedFrames = getRenderedFrameRecorder(win);
 
   win.__CODEGRAPHY_GRAPH_DEBUG__ = {
     centerNode: (nodeId: string, scale: number) => {
@@ -103,16 +101,13 @@ export function installGraphDebugApi({
       nodes: graphDataRef.current.nodes,
     }),
     openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
-    recordRenderedFrame: renderedFrames.record,
     startInteractionRecording: recordingOptions => {
       fg2dRef.current?.startInteractionRecording?.(recordingOptions);
     },
-    startRenderedFrameRecording: renderedFrames.start,
     startStageAttributionRecording: () => {
       fg2dRef.current?.startStageAttributionRecording?.();
     },
     stopInteractionRecording: () => fg2dRef.current?.stopInteractionRecording?.() ?? null,
-    stopRenderedFrameRecording: renderedFrames.stop,
     stopStageAttributionRecording: () =>
       fg2dRef.current?.stopStageAttributionRecording?.() ?? null,
   };

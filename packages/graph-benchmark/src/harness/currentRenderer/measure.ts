@@ -1,11 +1,15 @@
 import type { Page } from '@playwright/test';
 
+import type { BenchmarkRenderer } from '../../cli/arguments';
 import type { GraphStageAttributionRecording } from '../../metrics/attribution';
 import {
   assessVisibleNodeCollisions,
   type VisibleCollisionAssessment,
 } from '../../metrics/collisions';
-import { estimateRefreshRate } from '../../metrics/frames';
+import {
+  estimateRefreshRate,
+  renderedFrameIntervalsWithinWindow,
+} from '../../metrics/frames';
 import {
   assessInteractionRecording,
   DEFAULT_INTERACTION_THRESHOLDS,
@@ -16,7 +20,7 @@ import {
 export const RELEASE_SETTLE_OBSERVATION_MS = 15_000;
 
 export interface CurrentRendererSettlement {
-  renderer: 'current';
+  renderer: BenchmarkRenderer;
   fixtureHash: string;
   nodeCount: number;
   edgeCount: number;
@@ -45,10 +49,8 @@ interface BenchmarkGraphDebugWindow extends Window {
       neighborNodeIds: string[];
       targetNodeId: string;
     }): void;
-    startRenderedFrameRecording(): void;
     startStageAttributionRecording(): void;
     stopInteractionRecording(): InteractionRecording | null;
-    stopRenderedFrameRecording(): number[];
     stopStageAttributionRecording(): GraphStageAttributionRecording | null;
   };
 }
@@ -274,7 +276,6 @@ export async function runCurrentRendererSyntheticDrag(
   }) => {
     const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
     if (!debug) throw new Error('Graph debug API is unavailable');
-    debug.startRenderedFrameRecording();
     debug.startInteractionRecording({
       neighborNodeIds: neighbors,
       targetNodeId: target,
@@ -284,13 +285,7 @@ export async function runCurrentRendererSyntheticDrag(
   }, { targetNodeId, neighborNodeIds, collectAttribution });
   await page.mouse.down({ button: 'left' });
   await runTimedMouseSteps(page, path);
-  const dragWindow = await page.evaluate(() => {
-    const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
-    return {
-      endedAt: performance.now(),
-      timestamps: debug?.stopRenderedFrameRecording() ?? [],
-    };
-  });
+  const endedAt = await page.evaluate(() => performance.now());
   const duringDragPosition = await page.evaluate((nodeId) =>
     (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.getNodeScreenPosition(nodeId),
   targetNodeId);
@@ -329,16 +324,18 @@ export async function runCurrentRendererSyntheticDrag(
     DEFAULT_INTERACTION_THRESHOLDS,
   );
 
-  const timestamps = dragWindow.timestamps.filter(
-    timestamp => timestamp >= startedAt && timestamp <= dragWindow.endedAt,
+  const frameTimesMs = renderedFrameIntervalsWithinWindow(
+    telemetry.recording.frames,
+    startedAt,
+    endedAt,
   );
   const nodeTravelPx = Math.hypot(
     duringDragPosition.x - graphBounds.width / 2,
     duringDragPosition.y - graphBounds.height / 2,
   );
   return {
-    durationMs: dragWindow.endedAt - startedAt,
-    frameTimesMs: timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index]),
+    durationMs: endedAt - startedAt,
+    frameTimesMs,
     refreshRateHz,
     draggedNodeId: targetNodeId,
     pointerMoves,
