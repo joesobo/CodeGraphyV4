@@ -79,7 +79,7 @@ The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in 
 | Nodes | Opens Graph Scope settings for core and plugin-added Node Types. |
 | Edges | Opens Graph Scope settings for Edge Types and shows current edge colors. |
 | Index Workspace / Re-index Workspace | Before indexing: runs Indexing and saves the Graph Cache. After indexing: rebuilds graph data and then refreshes layout. |
-| Refresh Graph | Reruns the force graph physics/layout without rebuilding graph data. |
+| Refresh Graph | Restarts graph physics/layout without rebuilding graph data. |
 | Export | Dropdown for Graph Export as PNG, SVG, JPEG, JSON, or Markdown, plus Index Export symbol JSON. |
 | Themes | Opens Legend Entry editing, Legend Layer priority controls, and CSS Snippet toggles. |
 | Plugins | Opens the plugins panel. |
@@ -115,7 +115,7 @@ Toggle whole plugins on or off and drag them to change processing priority. Plug
 
 ### Index / Re-index / Refresh (autorenew icon)
 
-Before the workspace has an index, use **Index Workspace** to run Indexing. After the workspace is indexed, **Re-index Workspace** rebuilds graph data and then refreshes layout. **Refresh Graph** only reruns the force graph simulation without reprocessing source data.
+Before the workspace has an index, use **Index Workspace** to run Indexing. After the workspace is indexed, **Re-index Workspace** rebuilds graph data and then refreshes layout. **Refresh Graph** only restarts graph physics without reprocessing source data.
 
 ## Export
 

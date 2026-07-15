@@ -145,7 +145,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 - plugin host access to the current graph snapshot through `IPluginHostApi.getGraph()`, so host actions such as exporters can read the rendered Relationship Graph when they run
 - runtime Graph View nodes and edges
 - graph projections that run after the free Visible Graph exists
-- additive D3 force adapters
+- additive graph force adapters
 - node drag-end policies for plugin-owned fixed-position behavior
 - context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
 - named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldBackground`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
@@ -233,7 +233,7 @@ Graph View contributions run from a live host context. `visibleGraph` is the cur
 
 Webview assets are package-owned scripts/styles declared through `IPlugin.webviewContributions`. They can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })`, exchange plugin-scoped messages, read and write plugin-owned webview state through `getPluginData()` and `setPluginData(data)`, and return cleanup work that the host runs when the plugin is disabled or reset.
 
-Runtime node contributions may supply D3 coordinate state (`x`/`y`), fixed coordinate state (`fx`/`fy`), and velocity state (`vx`/`vy`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
+Runtime node contributions may supply coordinate state (`x`/`y`), fixed coordinate state (`fx`/`fy`), and velocity state (`vx`/`vy`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to graph physics without inventing a separate layout channel.
 
 Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 

@@ -278,18 +278,16 @@ CLI, MCP, and the VS Code plugin popup should all produce the same workspace sha
 
 Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.
 
-![Settings panel](./media/readme/settings-panel.png)
-
 ### Forces
 
-Adjusts the D3-style physics simulation in real time. Global charge separates nodes, degree-aware edge forces keep hubs stable while connected nodes cluster, and setting changes reheat the layout smoothly. The default force values are Repel `10`, Center `0.1`, Link Distance `80`, Link Force `1`, and velocity decay `0.4`.
+Adjusts CodeGraphy's custom WebAssembly physics in real time. Global charge separates nodes, degree-aware edge forces keep hubs stable while connected nodes cluster, and setting changes reheat the layout smoothly. The default force values are Repel `10`, Center `0.1`, Link Distance `80`, Link Force `1`, and velocity decay `0.4`.
 
 | Control | Range | Description |
 |---------|-------|-------------|
 | Repel Force | 0-20 | How strongly nodes push apart. Higher values spread nodes out more. |
 | Center Force | 0-1 | Pull toward the viewport center. |
 | Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
-| Link Force | 0-2 | How strongly edges pull connected nodes together; `1` is the tuned D3-style baseline. |
+| Link Force | 0-2 | How strongly edges pull connected nodes together; `1` is the tuned baseline. |
 
 ### Performance
 
