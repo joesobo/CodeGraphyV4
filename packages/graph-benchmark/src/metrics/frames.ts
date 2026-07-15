@@ -1,14 +1,22 @@
 import { summarizeDistribution } from './distribution';
 
+export function renderedFrameIntervals(
+  frames: ReadonlyArray<{ presentationTimestampMs: number }>,
+): number[] {
+  return frames.slice(1).map((frame, index) =>
+    frame.presentationTimestampMs - frames[index].presentationTimestampMs
+  );
+}
+
 export function renderedFrameIntervalsWithinWindow(
   frames: ReadonlyArray<{ presentationTimestampMs: number }>,
   startedAt: number,
   endedAt: number,
 ): number[] {
-  const timestamps = frames
-    .map(frame => frame.presentationTimestampMs)
-    .filter(timestamp => timestamp >= startedAt && timestamp <= endedAt);
-  return timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index]);
+  return renderedFrameIntervals(frames.filter(frame =>
+    frame.presentationTimestampMs >= startedAt
+      && frame.presentationTimestampMs <= endedAt
+  ));
 }
 
 export function estimateRefreshRate(frameTimesMs: readonly number[]): number {

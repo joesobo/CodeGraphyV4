@@ -1,4 +1,5 @@
 import { summarizeDistribution } from './distribution';
+import { renderedFrameIntervals } from './frames';
 
 export interface RecordedPosition {
   id: string;
@@ -125,8 +126,9 @@ function hasInputSequenceOrder(recording: InteractionRecording): boolean {
 function framesFollowingInput(
   recording: InteractionRecording,
   input: RecordedInteractionInput,
+  sequenceOrdered: boolean,
 ): RecordedInteractionFrame[] {
-  if (!hasInputSequenceOrder(recording)) {
+  if (!sequenceOrdered) {
     return recording.frames.filter(
       frame => frame.presentationTimestampMs >= input.eventTimestampMs,
     );
@@ -144,8 +146,9 @@ function targetLatency(
 ): LatencySummary {
   const latencies: number[] = [];
   let missed = 0;
+  const sequenceOrdered = hasInputSequenceOrder(recording);
   for (const input of recording.inputs.filter(entry => entry.phase === 'move')) {
-    const frames = framesFollowingInput(recording, input);
+    const frames = framesFollowingInput(recording, input, sequenceOrdered);
     const index = frames.findIndex(frame => frame.target !== null && distance(frame.target, {
       x: input.targetX,
       y: input.targetY,
@@ -195,7 +198,7 @@ function neighborLatency(
         || (frame.latestInputSequence !== undefined
           && frame.latestInputSequence < input.sequence)
       : frame.presentationTimestampMs < input.eventTimestampMs);
-    const frames = framesFollowingInput(recording, input);
+    const frames = framesFollowingInput(recording, input, sequenceOrdered);
     if (!baseline) {
       missed += 1;
       continue;
@@ -374,9 +377,7 @@ export function assessInteractionRecording(
     : 0;
   const simulationTimes = recording.frames.map(frame => frame.simulationMs);
   const renderTimes = recording.frames.map(frame => frame.renderMs);
-  const presentationIntervals = recording.frames.slice(1).map((frame, index) =>
-    frame.presentationTimestampMs - recording.frames[index].presentationTimestampMs,
-  );
+  const presentationIntervals = renderedFrameIntervals(recording.frames);
   const teleports = teleportFrameCount(recording.frames, thresholds.teleportDistance);
   const cpuFrameTimeMs = summarizeDistribution(frameTimes);
   return {
