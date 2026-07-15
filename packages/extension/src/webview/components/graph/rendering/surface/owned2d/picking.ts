@@ -4,7 +4,7 @@ import {
   getRectangularNodeAreaRadius,
 } from '../../../model/node/rectangularArea';
 import { ownedGraphSpatialCellKey } from './spatialHash';
-import { ownedGraphNodeWorldScale } from '@codegraphy-dev/graph-renderer';
+import { graphNodeDrawnArea, ownedGraphNodeWorldScale } from '@codegraphy-dev/graph-renderer';
 
 const PICK_CELL_SIZE = 64;
 
@@ -19,6 +19,12 @@ function pointerRadius(node: FGNode): number {
     ? getRectangularNodeAreaRadius(rectangularArea)
     : 0;
   return Math.max(2, rectangularRadius, node.size ?? 0);
+}
+
+function nodeDrawnArea(node: FGNode): number {
+  const width = node.shapeSize2D?.width ?? (node.size ?? 0) * 2;
+  const height = node.shapeSize2D?.height ?? (node.size ?? 0) * 2;
+  return graphNodeDrawnArea(width, height);
 }
 
 function hitsNode(
@@ -69,7 +75,7 @@ export class OwnedGraphNodePicker {
     globalScale: number,
   ): { index: number; node: FGNode } | undefined {
     let bestIndex = -1;
-    let bestDistanceSquared = Number.POSITIVE_INFINITY;
+    let bestDrawnArea = Number.NEGATIVE_INFINITY;
     const safeScale = Math.max(globalScale, 0.01);
     const nodeVisualScale = ownedGraphNodeWorldScale(safeScale);
     const screenPadding = 2 / safeScale;
@@ -98,9 +104,14 @@ export class OwnedGraphNodePicker {
             screenPadding,
             minimumScreenRadius,
           );
-          if (hit && distanceSquared < bestDistanceSquared) {
+          if (!hit) continue;
+          const drawnArea = nodeDrawnArea(node);
+          if (
+            drawnArea > bestDrawnArea
+            || (drawnArea === bestDrawnArea && index > bestIndex)
+          ) {
             bestIndex = index;
-            bestDistanceSquared = distanceSquared;
+            bestDrawnArea = drawnArea;
           }
         }
       }

@@ -103,7 +103,7 @@ describe('graph layout engine', () => {
     expect(positionHash(first.x, first.y)).toBe(positionHash(second.x, second.y));
   });
 
-  it('matches the former TypeScript mixed-force trajectory exactly', () => {
+  it('matches the committed radius-weighted mixed-force trajectory exactly', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['a', 'b', 'c', 'd', 'e', 'f'],
       initialX: Float32Array.of(0, 0, 24, -18, 11, -7),
@@ -133,11 +133,11 @@ describe('graph layout engine', () => {
       settleSteps: 4,
       velocityDecay: 0.27,
     });
-    // Generated from the pre-WASM TypedGraphLayoutEngine at revision 64229ddc3.
+    // Regenerated when collision corrections adopted radius-squared weighting.
     const expected: ReadonlyMap<number, readonly [string, number]> = new Map([
-      [1, ['046607b1d550721003088443d2b120c0df55b8f3bce6831a11efe8ef0a9e5be1', 0.969]],
-      [4, ['3b0be6c617ab003f060c2deeba78771bce4c44a3b63eb5696457c6a57bf44ee9', 0.8816477595209999]],
-      [8, ['a3355cffdd910644769365112996515b683be18448b59f35e560a8dba1a53a85', 0.777302771868399]],
+      [1, ['2844e61b05a8b46fe89780f30daeabed71ddaa66a19c2ba32005e7a7abf47829', 0.969]],
+      [4, ['acff0ebb01e71209223bd36b08d69f3f2abae9d5a04382a3a0fb465ec1b577ec', 0.8816477595209999]],
+      [8, ['c9635f8860736559b47eee9a21f85463bb6c11e427a913f970fe23c4bdd45615', 0.777302771868399]],
     ]);
 
     for (let tick = 1; tick <= 8; tick += 1) {
@@ -336,6 +336,30 @@ describe('graph layout engine', () => {
     expect(engine.settled).toBe(true);
     engine.setCollisionScale(1);
     expect(engine.settled).toBe(true);
+  });
+
+  it('moves a small node around a large node using radius-squared collision shares', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['leaf', 'hub'],
+      initialX: Float32Array.of(0, 1),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(8, 30),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      alphaDecay: 1,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 1,
+      collisionPadding: 0,
+      collisionStrength: 1,
+      settleSteps: 1,
+    });
+
+    engine.tick();
+
+    expect(engine.x[0]).toBeCloseTo(-34.54357, 4);
+    expect(engine.x[1]).toBeCloseTo(3.45643, 4);
   });
 
   it.each([0.005, 0.02, 0.1, 1, 4, 64])(

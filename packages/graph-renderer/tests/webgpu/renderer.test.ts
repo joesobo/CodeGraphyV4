@@ -265,6 +265,70 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect(onFrameComplete).toHaveBeenCalledTimes(3);
   });
 
+  it('packs node instances by ascending drawn size without reordering graph data', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    const originalNodes = [...frame.nodes];
+    frame.getNodeStyle = node => ({
+      borderColor: '#445566',
+      borderWidth: 1,
+      cornerRadius: 0,
+      fillColor: '#778899',
+      fillOpacity: 1,
+      height: node === frame.nodes[0] ? 60 : 10,
+      opacity: 1,
+      shape: 'circle',
+      width: node === frame.nodes[0] ? 60 : 10,
+    });
+
+    renderer!.render(frame);
+
+    const positionWrite = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy node positions',
+    )!;
+    const positions = new Float32Array(
+      positionWrite[2] as ArrayBuffer,
+      positionWrite[3] as number,
+      (positionWrite[4] as number) / Float32Array.BYTES_PER_ELEMENT,
+    );
+    expect(Array.from(positions)).toEqual([103, 4, 1, 2]);
+    expect(frame.nodes).toEqual(originalNodes);
+    expect(Array.from(frame.nodeX)).toEqual([1, 103]);
+  });
+
+  it('keeps cached size order for position-only frames', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    const getNodeStyle = vi.fn(frame.getNodeStyle);
+    frame.getNodeStyle = getNodeStyle;
+    renderer!.render(frame);
+    await Promise.resolve();
+    harness.writeBuffer.mockClear();
+    frame.nodeX[0] = 7;
+    frame.positionVersion += 1;
+
+    renderer!.render(frame);
+
+    expect(getNodeStyle).toHaveBeenCalledTimes(2);
+    const positionWrite = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy node positions',
+    )!;
+    const positions = new Float32Array(
+      positionWrite[2] as ArrayBuffer,
+      positionWrite[3] as number,
+      (positionWrite[4] as number) / Float32Array.BYTES_PER_ELEMENT,
+    );
+    expect(Array.from(positions)).toEqual([7, 2, 103, 4]);
+  });
+
   it('highlights a hovered node with camera-only GPU updates', async () => {
     const harness = webGpuHarness();
     const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
@@ -282,6 +346,10 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     const cameraValues = cameraWrite[2] as Float32Array;
     expect(cameraValues[8]).toBe(1);
     expect(cameraValues[9]).toBeCloseTo(1.08);
+    expect(harness.draw.mock.calls.slice(-2)).toEqual([
+      [6, 1, 0, 0],
+      [6, 1, 0, 1],
+    ]);
 
     harness.writeBuffer.mockClear();
     frame.hoveredNodeScale = 1.1;

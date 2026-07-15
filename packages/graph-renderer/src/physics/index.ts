@@ -1,4 +1,5 @@
 export { DEFAULT_GRAPH_LAYOUT_CONFIG } from './config';
+export { graphNodeSizeChargeMultiplier } from './charge';
 export { createGraphLayoutEngine, TypedGraphLayoutEngine } from './engine';
 export {
   GraphNodeFlag,

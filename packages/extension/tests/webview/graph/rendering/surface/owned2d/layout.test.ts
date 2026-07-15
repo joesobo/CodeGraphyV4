@@ -246,6 +246,24 @@ describe('owned graph group dragging', () => {
 });
 
 describe('owned graph node physics state', () => {
+  it('scales default charge by semantic node size without replacing plugin charge', () => {
+    const layout = createOwnedGraphLayout([
+      node('minimum', { size: 8 }),
+      node('default', { size: 16 }),
+      node('large', { size: 30 }),
+      node('clamped', { size: 80 }),
+      node('plugin', { size: 30, chargeStrengthMultiplier2D: 0.25 }),
+    ], [], DEFAULT_SETTINGS);
+
+    expect(Array.from(layout.engine.chargeStrengthMultipliers)).toEqual([
+      0.5,
+      1,
+      1.875,
+      4,
+      0.25,
+    ]);
+  });
+
   it('uses shape bounds for collisions and restores pinned positions and velocity', () => {
     expect(ownedNodeCollisionRadius(node('rectangle', {
       shapeSize2D: { width: 6, height: 8 },

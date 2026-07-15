@@ -43,6 +43,16 @@ describe('owned graph spatial node picker', () => {
     expect(picker.pick({ x: 5, y: 0 }, 4)).toBeUndefined();
   });
 
+  it('prefers the largest visually topmost node when hit areas overlap', () => {
+    const picker = new OwnedGraphNodePicker();
+    picker.rebuild([
+      { id: 'leaf', x: 0, y: 0, size: 8 },
+      { id: 'hub', x: 0, y: 0, size: 30 },
+    ] as FGNode[]);
+
+    expect(picker.pick({ x: 0, y: 0 }, 1)?.node.id).toBe('hub');
+  });
+
   it('keeps distinct nodes pickable when their spatial cell hashes collide', () => {
     const first = { id: 'first', x: -119 * 64 + 1, y: -999 * 64 + 1, size: 4 } as FGNode;
     const second = { id: 'second', x: -921 * 64 + 1, y: -969 * 64 + 1, size: 4 } as FGNode;

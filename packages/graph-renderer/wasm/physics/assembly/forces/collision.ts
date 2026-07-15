@@ -77,8 +77,9 @@ function applyCollisionPair(first: i32, second: i32): bool {
     distanceSquared = dx * dx + dy * dy;
   }
   const distance = Math.sqrt(distanceSquared);
-  const minimumDistance = (radius(first) + radius(second)) * collisionScale
-    + collisionPadding;
+  const firstRadius = radius(first) * collisionScale;
+  const secondRadius = radius(second) * collisionScale;
+  const minimumDistance = firstRadius + secondRadius + collisionPadding;
   if (distance + 0.25 >= minimumDistance) return false;
   const correction = (minimumDistance - distance) * collisionStrength;
   const directionX = dx / distance;
@@ -86,8 +87,12 @@ function applyCollisionPair(first: i32, second: i32): bool {
   const firstPinned = isPinned(first);
   const secondPinned = isPinned(second);
   if (firstPinned && secondPinned) return false;
-  const firstShare: f64 = firstPinned ? 0 : secondPinned ? 1 : 0.5;
-  const secondShare: f64 = secondPinned ? 0 : firstPinned ? 1 : 0.5;
+  const radiusSquaredTotal = firstRadius * firstRadius + secondRadius * secondRadius;
+  const weightedFirstShare = radiusSquaredTotal > 0
+    ? secondRadius * secondRadius / radiusSquaredTotal
+    : 0.5;
+  const firstShare: f64 = firstPinned ? 0 : secondPinned ? 1 : weightedFirstShare;
+  const secondShare: f64 = secondPinned ? 0 : firstPinned ? 1 : 1 - weightedFirstShare;
   setX(first, x(first) - directionX * correction * firstShare);
   setY(first, y(first) - directionY * correction * firstShare);
   setX(second, x(second) + directionX * correction * secondShare);

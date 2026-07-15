@@ -13,6 +13,7 @@ import type {
 } from '../contracts';
 import { writeOwnedArrowCurveParameters } from './arrowGeometry';
 import { ownedGraphNodeWorldScale } from '../visualSize';
+import { graphNodeDrawnArea } from '../nodeStacking';
 import { LINK_SHADER, NODE_SHADER, OWNED_LINK_SEGMENTS } from './shaders';
 
 const NODE_POSITION_FLOATS = 2;
@@ -29,6 +30,11 @@ export type OwnedWebGpuFrame = GraphRendererFrame;
 export interface OwnedWebGpuRendererOptions {
   onDeviceLost(this: void, message: string): void;
   onFrameComplete(this: void): void;
+}
+
+interface StyleCacheUpdate {
+  nodeOrderChanged: boolean;
+  stylesChanged: boolean;
 }
 
 function nextBufferSize(requiredBytes: number): number {
@@ -185,6 +191,9 @@ export class OwnedWebGpuRenderer {
   private readonly linkCameraBindGroup: GPUBindGroup;
   private nodePositionValues = new Float32Array();
   private readonly nodePositionStream: VertexStream;
+  private nodeRenderOrder = new Uint32Array();
+  private renderedNodeIndexByNodeIndex = new Int32Array();
+  private nodeDrawnAreas = new Float64Array();
   private nodeStylesByIndex: GraphRendererNodeStyle[] = [];
   private readonly nodeStyleStream: VertexStream;
   private nodeStyles = new Float32Array();
@@ -385,15 +394,39 @@ export class OwnedWebGpuRenderer {
     this.nodeStyles[offset + 12] = Math.max(0, style.cornerRadius);
   }
 
-  private updateNodeStyleCache(frame: OwnedWebGpuFrame): void {
+  private updateNodeStyleCache(frame: OwnedWebGpuFrame): boolean {
     this.uploadedStyleVersion = frame.styleVersion;
     this.styledNodes = frame.nodes;
-    this.nodeStylesByIndex = new Array<GraphRendererNodeStyle>(frame.nodes.length);
-    this.nodeStyles = new Float32Array(frame.nodes.length * NODE_STYLE_FLOATS);
+    const previousAreas = this.nodeDrawnAreas;
+    const stylesByIndex = new Array<GraphRendererNodeStyle>(frame.nodes.length);
+    const drawnAreas = new Float64Array(frame.nodes.length);
+    let nodeOrderChanged = previousAreas.length !== frame.nodes.length;
     for (let index = 0; index < frame.nodes.length; index += 1) {
       const style = frame.getNodeStyle(frame.nodes[index]);
-      this.nodeStylesByIndex[index] = style;
-      this.writeNodeStyle(index, style);
+      stylesByIndex[index] = style;
+      drawnAreas[index] = graphNodeDrawnArea(style.width, style.height);
+      nodeOrderChanged ||= drawnAreas[index] !== previousAreas[index];
+    }
+    this.nodeStylesByIndex = stylesByIndex;
+    this.nodeDrawnAreas = drawnAreas;
+    if (nodeOrderChanged) this.rebuildNodeRenderOrder();
+    this.nodeStyles = new Float32Array(frame.nodes.length * NODE_STYLE_FLOATS);
+    for (let renderedIndex = 0; renderedIndex < frame.nodes.length; renderedIndex += 1) {
+      const nodeIndex = this.nodeRenderOrder[renderedIndex];
+      this.writeNodeStyle(renderedIndex, stylesByIndex[nodeIndex]);
+    }
+    return nodeOrderChanged;
+  }
+
+  private rebuildNodeRenderOrder(): void {
+    const order = Array.from(this.nodeDrawnAreas, (_area, index) => index);
+    order.sort((left, right) => (
+      this.nodeDrawnAreas[left] - this.nodeDrawnAreas[right] || left - right
+    ));
+    this.nodeRenderOrder = Uint32Array.from(order);
+    this.renderedNodeIndexByNodeIndex = new Int32Array(order.length);
+    for (let renderedIndex = 0; renderedIndex < order.length; renderedIndex += 1) {
+      this.renderedNodeIndexByNodeIndex[order[renderedIndex]] = renderedIndex;
     }
   }
 
@@ -418,11 +451,13 @@ export class OwnedWebGpuRenderer {
     }
   }
 
-  private updateStyleCaches(frame: OwnedWebGpuFrame): boolean {
-    if (this.styleCachesMatch(frame)) return false;
-    this.updateNodeStyleCache(frame);
+  private updateStyleCaches(frame: OwnedWebGpuFrame): StyleCacheUpdate {
+    if (this.styleCachesMatch(frame)) {
+      return { nodeOrderChanged: false, stylesChanged: false };
+    }
+    const nodeOrderChanged = this.updateNodeStyleCache(frame);
     this.updateLinkStyleCache(frame);
-    return true;
+    return { nodeOrderChanged, stylesChanged: true };
   }
 
   canRender(): boolean {
@@ -454,7 +489,9 @@ export class OwnedWebGpuRenderer {
     this.cameraValues[7] = frame.hoveredLink
       ? this.renderedLinkIndexByLink.get(frame.hoveredLink) ?? -1
       : -1;
-    this.cameraValues[8] = frame.hoveredNodeIndex;
+    this.cameraValues[8] = frame.hoveredNodeIndex >= 0
+      ? this.renderedNodeIndexByNodeIndex[frame.hoveredNodeIndex] ?? -1
+      : -1;
     this.cameraValues[9] = frame.hoveredNodeScale;
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
   }
@@ -469,10 +506,11 @@ export class OwnedWebGpuRenderer {
     if (this.nodePositionValues.length !== required) {
       this.nodePositionValues = new Float32Array(required);
     }
-    for (let index = 0; index < frame.nodes.length; index += 1) {
-      const offset = index * NODE_POSITION_FLOATS;
-      this.nodePositionValues[offset] = frame.nodeX[index] ?? 0;
-      this.nodePositionValues[offset + 1] = frame.nodeY[index] ?? 0;
+    for (let renderedIndex = 0; renderedIndex < frame.nodes.length; renderedIndex += 1) {
+      const nodeIndex = this.nodeRenderOrder[renderedIndex];
+      const offset = renderedIndex * NODE_POSITION_FLOATS;
+      this.nodePositionValues[offset] = frame.nodeX[nodeIndex] ?? 0;
+      this.nodePositionValues[offset + 1] = frame.nodeY[nodeIndex] ?? 0;
     }
   }
 
@@ -650,7 +688,11 @@ export class OwnedWebGpuRenderer {
       || arrowGeometryChanged;
   }
 
-  private updateGraphBuffers(frame: OwnedWebGpuFrame, stylesChanged: boolean): void {
+  private updateGraphBuffers(
+    frame: OwnedWebGpuFrame,
+    stylesChanged: boolean,
+    nodeOrderChanged: boolean,
+  ): void {
     const edgeStride = this.edgeStride(frame);
     const positionsChanged = this.positionsChanged(frame);
     const edgeStrideChanged = this.uploadedEdgeStride !== edgeStride;
@@ -665,7 +707,7 @@ export class OwnedWebGpuRenderer {
     );
     const linkStylesChanged = stylesChanged || edgeStrideChanged;
 
-    if (positionsChanged) {
+    if (positionsChanged || nodeOrderChanged) {
       this.packNodePositions(frame);
       this.uploadVertexStream(
         this.nodePositionStream,
@@ -724,7 +766,15 @@ export class OwnedWebGpuRenderer {
     pass.setBindGroup(0, this.nodeCameraBindGroup);
     pass.setVertexBuffer(0, this.nodePositionStream.buffer);
     pass.setVertexBuffer(1, this.nodeStyleStream.buffer);
-    pass.draw(6, frame.nodes.length);
+    const hoveredIndex = this.cameraValues[8];
+    if (hoveredIndex < 0 || hoveredIndex >= frame.nodes.length) {
+      pass.draw(6, frame.nodes.length);
+      return;
+    }
+    if (hoveredIndex > 0) pass.draw(6, hoveredIndex, 0, 0);
+    const nodesAfterHover = frame.nodes.length - hoveredIndex - 1;
+    if (nodesAfterHover > 0) pass.draw(6, nodesAfterHover, 0, hoveredIndex + 1);
+    pass.draw(6, 1, 0, hoveredIndex);
   }
 
   private submitRenderPass(frame: OwnedWebGpuFrame): void {
@@ -761,9 +811,9 @@ export class OwnedWebGpuRenderer {
 
   render(frame: OwnedWebGpuFrame): void {
     if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
-    const stylesChanged = this.updateStyleCaches(frame);
+    const { nodeOrderChanged, stylesChanged } = this.updateStyleCaches(frame);
     this.resizeCanvas(frame);
-    this.updateGraphBuffers(frame, stylesChanged);
+    this.updateGraphBuffers(frame, stylesChanged, nodeOrderChanged);
     this.uploadCamera(frame);
     this.submitRenderPass(frame);
     this.trackSubmittedFrame();
