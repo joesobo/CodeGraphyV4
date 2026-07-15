@@ -1,11 +1,10 @@
 import type { MutableRefObject } from 'react';
 import type { OwnedGraphLayout } from './layout';
-import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
 import {
   resetGraphLayoutFixedTimestepClock,
   type GraphLayoutFixedTimestepClock,
-} from './physics/fixedTimestep';
-import { OwnedWebGpuRenderer } from './webgpu/renderer';
+} from './simulationClock';
+import { OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
 
 export type OwnedGraphRendererStatus = 'error' | 'initializing' | 'webgpu';
 
@@ -14,7 +13,6 @@ export interface OwnedGraphRendererLifecycleRuntime {
   frameRequestedRef: MutableRefObject<boolean>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
-  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
   simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
@@ -91,7 +89,6 @@ class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
   private createRenderer(recovering: boolean): void {
     const rendererGeneration = ++this.generation;
     void OwnedWebGpuRenderer.create(this.canvas, {
-      attributionProfiler: this.runtime.performanceAttributionRef.current,
       onDeviceLost: message => this.handleDeviceLost(rendererGeneration, message),
       onFrameComplete: () => this.handleFrameComplete(rendererGeneration),
     }).then(renderer => {

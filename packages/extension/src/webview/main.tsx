@@ -3,11 +3,11 @@ import { createRoot } from 'react-dom/client';
 import App from './app/view';
 import './index.css';
 import { getVsCodeApi, VsCodeApi } from './vscodeApi';
-import { prepareOwnedGraphPhysics } from './wasm/ownedGraphPhysics';
+import { prepareGraphPhysics } from '@codegraphy-dev/graph-renderer/wasm';
 
 const container = document.getElementById('root');
 if (container) {
-  const graphPhysicsPreparation = prepareOwnedGraphPhysics();
+  const graphPhysicsPreparation = prepareGraphPhysics();
   const root = createRoot(container);
   root.render(
     <React.StrictMode>

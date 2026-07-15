@@ -1,0 +1,36 @@
+{
+  "name": "@codegraphy-dev/graph-renderer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./physics": {
+      "types": "./src/physics/index.ts",
+      "default": "./src/physics/index.ts"
+    },
+    "./webgpu": {
+      "types": "./src/webgpu/renderer.ts",
+      "default": "./src/webgpu/renderer.ts"
+    },
+    "./wasm": {
+      "types": "./src/wasm/loader.ts",
+      "default": "./src/wasm/loader.ts"
+    }
+  },
+  "scripts": {
+    "build:wasm": "tsx scripts/buildPhysics.ts",
+    "watch:wasm": "tsx scripts/buildPhysics.ts --watch-only",
+    "lint": "eslint src tests scripts vitest.config.ts",
+    "test": "pnpm run build:wasm && vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.71",
+    "assemblyscript": "0.28.19"
+  }
+}

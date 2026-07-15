@@ -17,11 +17,6 @@ import {
 } from './interaction';
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
 import {
-  createOwnedGraphStageAttributionProfiler,
-  type OwnedGraphStageAttributionProfiler,
-} from './performance/attribution';
-import { createOwnedGraphInteractionRecorder } from './performance/recording';
-import {
   createOwnedGraphPerformanceMonitor,
   type OwnedGraphActivePerformanceSample,
   type OwnedGraphPerformanceMonitor,
@@ -38,56 +33,35 @@ import { OwnedGraphLinkPicker } from './linkPicking';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphNodeHover } from './nodeHover';
 import { createOwnedGraphPluginForces } from './pluginForces';
-import { createGraphLayoutFixedTimestepClock } from './physics/fixedTimestep';
+import { createGraphLayoutFixedTimestepClock } from './simulationClock';
 import {
   startOwnedGraphRendererLifecycle,
   type OwnedGraphRendererLifecycleRuntime,
   type OwnedGraphRendererStatus,
 } from './rendererLifecycle';
-import { OwnedWebGpuRenderer } from './webgpu/renderer';
+import { OwnedWebGpuRenderer } from '@codegraphy-dev/graph-renderer/webgpu';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
 
 function clearActivePerformanceData(output: HTMLOutputElement): void {
-  delete output.dataset.displayedFps;
   delete output.dataset.frameAverageMs;
-  delete output.dataset.frameMaximumMs;
-  delete output.dataset.frameOnePercentHighMs;
   delete output.dataset.potentialFps;
-  delete output.dataset.renderAverageMs;
-  delete output.dataset.renderMaximumMs;
-  delete output.dataset.renderOnePercentHighMs;
   delete output.dataset.sampleCount;
-  delete output.dataset.simulationAverageMs;
-  delete output.dataset.simulationMaximumMs;
-  delete output.dataset.simulationOnePercentHighMs;
 }
 
 function formatOwnedGraphPerformance(sample: OwnedGraphPerformanceSample): string {
   if (sample.status === 'idle') return '— FPS · — ms';
-  return `${Math.round(sample.potentialFps)} FPS · ${sample.frameTimeMs.average.toFixed(2)} ms`;
+  return `${Math.round(sample.potentialFps)} FPS · ${sample.frameTimeMs.toFixed(2)} ms`;
 }
 
 function setActivePerformanceData(
   output: HTMLOutputElement,
   sample: OwnedGraphActivePerformanceSample,
 ): void {
-  if (sample.displayedFps === null) delete output.dataset.displayedFps;
-  else output.dataset.displayedFps = String(sample.displayedFps);
-  output.dataset.frameAverageMs = String(sample.frameTimeMs.average);
-  output.dataset.frameMaximumMs = String(sample.frameTimeMs.maximum);
-  output.dataset.frameOnePercentHighMs = String(sample.frameTimeMs.onePercentHigh);
+  output.dataset.frameAverageMs = String(sample.frameTimeMs);
   output.dataset.potentialFps = String(sample.potentialFps);
-  output.dataset.renderAverageMs = String(sample.renderTimeMs.average);
-  output.dataset.renderMaximumMs = String(sample.renderTimeMs.maximum);
-  output.dataset.renderOnePercentHighMs = String(sample.renderTimeMs.onePercentHigh);
   output.dataset.sampleCount = String(sample.sampleCount);
-  output.dataset.simulationAverageMs = String(sample.simulationTimeMs.average);
-  output.dataset.simulationMaximumMs = String(sample.simulationTimeMs.maximum);
-  output.dataset.simulationOnePercentHighMs = String(
-    sample.simulationTimeMs.onePercentHigh,
-  );
 }
 
 function publishOwnedGraphPerformance(
@@ -124,14 +98,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const frameRequestedRef = useRef(false);
   const fpsOutputRef = useRef<HTMLOutputElement>(null);
   const fpsRef = useRef<number | null>(null);
-  const performanceAttributionRef = useLazyRef<OwnedGraphStageAttributionProfiler>(
-    createOwnedGraphStageAttributionProfiler,
-  );
-  const reactReconciliationStartedAt = performanceAttributionRef.current.startTiming();
   const performanceMonitorRef = useLazyRef<OwnedGraphPerformanceMonitor>(
     createOwnedGraphPerformanceMonitor,
   );
-  const performanceRecorderRef = useLazyRef(createOwnedGraphInteractionRecorder);
   const requestFrameRef = useRef<() => void>(NOOP);
   const contextGestureSessionRef = useRef<ContextGestureSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
@@ -181,7 +150,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       frameRequestedRef,
       gpuRendererRef,
       layoutRef,
-      performanceAttributionRef,
       rendererOperationalRef,
       requestFrameRef,
       simulationClockRef,
@@ -210,7 +178,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     };
     const lifecycle = startOwnedGraphRendererLifecycle(rendererRuntime, gpuCanvas);
     return () => lifecycle.dispose();
-  }, [performanceAttributionRef, performanceMonitorRef, simulationClockRef]);
+  }, [performanceMonitorRef, simulationClockRef]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -227,9 +195,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       hoveredNodeRef,
       layoutRef,
       nodeHoverRef,
-      performanceAttributionRef,
       performanceMonitorRef,
-      performanceRecorderRef,
       pointerSessionRef,
       pluginForcesRef,
       positionVersionRef,
@@ -258,28 +224,20 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     cameraRef,
     clearLinkHover,
     nodeHoverRef,
-    performanceAttributionRef,
     performanceMonitorRef,
-    performanceRecorderRef,
     pluginForcesRef,
     props.fg2dRef,
     simulationClockRef,
   ]);
 
   useEffect(() => {
-    const startedAt = performanceAttributionRef.current.startTiming();
     clearLinkHover();
     reconcileOwnedGraphRuntime(layoutRuntime);
-    performanceAttributionRef.current.finishTiming(
-      'propsRuntimeReconciliation',
-      startedAt,
-    );
   }, [
     clearLinkHover,
     props.sharedProps.graphData,
     props.graphViewContributions,
     layoutRuntime,
-    performanceAttributionRef,
   ]);
 
   useEffect(() => () => {
@@ -324,8 +282,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     pickerPositionVersionRef,
     pickerRef,
     pointerSessionRef,
-    performanceAttributionRef,
-    performanceRecorderRef,
     positionVersionRef,
     propsRef,
     requestFrameRef,
@@ -337,7 +293,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     ? performanceMonitorRef.current.sample()
     : null;
 
-  const view = (
+  return (
     <div
       className="absolute inset-0"
       data-codegraphy-physics="wasm"
@@ -409,9 +365,4 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       ) : null}
     </div>
   );
-  performanceAttributionRef.current.finishTiming(
-    'reactReconciliation',
-    reactReconciliationStartedAt,
-  );
-  return view;
 }

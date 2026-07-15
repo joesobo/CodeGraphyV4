@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
-import { createOwnedGraphStageAttributionProfiler } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/performance/attribution';
 import type { OwnedGraphRendererLifecycleRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/rendererLifecycle';
-import type { GraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
-import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/fixedTimestep';
+import type { GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
+import { createGraphLayoutFixedTimestepClock } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/simulationClock';
 
 const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer', () => ({
+vi.mock('@codegraphy-dev/graph-renderer/webgpu', () => ({
   OwnedWebGpuRenderer: class OwnedWebGpuRenderer {
     static create(...arguments_: unknown[]) {
       return rendererHarness.create(...arguments_);
@@ -38,7 +37,6 @@ function runtimeHarness(): Harness {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: layout },
-      performanceAttributionRef: { current: createOwnedGraphStageAttributionProfiler() },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: vi.fn() },
       simulationClockRef: { current: createGraphLayoutFixedTimestepClock() },

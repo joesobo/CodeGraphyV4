@@ -3,14 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => {
   const render = vi.fn();
   const createRoot = vi.fn(() => ({ render }));
-  const prepareOwnedGraphPhysics = vi.fn<() => Promise<void>>();
+  const prepareGraphPhysics = vi.fn<() => Promise<void>>();
   const vscodeApi = {
     getState: vi.fn(),
     postMessage: vi.fn(),
     setState: vi.fn(),
   };
 
-  return { createRoot, prepareOwnedGraphPhysics, render, vscodeApi };
+  return { createRoot, prepareGraphPhysics, render, vscodeApi };
 });
 
 vi.mock('react-dom/client', () => ({
@@ -29,8 +29,8 @@ vi.mock('../../src/webview/vscodeApi', () => ({
   getVsCodeApi: () => mocks.vscodeApi,
 }));
 
-vi.mock('../../src/webview/wasm/ownedGraphPhysics', () => ({
-  prepareOwnedGraphPhysics: mocks.prepareOwnedGraphPhysics,
+vi.mock('@codegraphy-dev/graph-renderer/wasm', () => ({
+  prepareGraphPhysics: mocks.prepareGraphPhysics,
 }));
 
 describe('main', () => {
@@ -38,7 +38,7 @@ describe('main', () => {
     vi.resetModules();
     mocks.createRoot.mockClear();
     mocks.render.mockClear();
-    mocks.prepareOwnedGraphPhysics.mockReset().mockResolvedValue(undefined);
+    mocks.prepareGraphPhysics.mockReset().mockResolvedValue(undefined);
     (window as unknown as { vscode?: unknown }).vscode = undefined;
     delete document.body.dataset.codegraphyView;
   });
@@ -55,7 +55,7 @@ describe('main', () => {
 
     expect(getElementByIdSpy).toHaveBeenCalledWith('root');
     expect(mocks.createRoot).toHaveBeenCalledWith(container);
-    expect(mocks.prepareOwnedGraphPhysics).toHaveBeenCalledTimes(1);
+    expect(mocks.prepareGraphPhysics).toHaveBeenCalledTimes(1);
     expect(mocks.render).toHaveBeenCalledTimes(1);
     expect((window as unknown as { vscode: unknown }).vscode).toBe(mocks.vscodeApi);
   });
@@ -67,7 +67,7 @@ describe('main', () => {
     const preparation = new Promise<void>(resolve => {
       finishPreparation = resolve;
     });
-    mocks.prepareOwnedGraphPhysics.mockReturnValue(preparation);
+    mocks.prepareGraphPhysics.mockReturnValue(preparation);
 
     await import('../../src/webview/main');
 

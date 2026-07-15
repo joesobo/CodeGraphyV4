@@ -9,7 +9,7 @@ import {
 import {
   createGraphLayoutEngine,
   DEFAULT_GRAPH_LAYOUT_CONFIG,
-} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+} from '@codegraphy-dev/graph-renderer';
 
 function engine() {
   return createGraphLayoutEngine({

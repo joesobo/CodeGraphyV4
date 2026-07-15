@@ -9,7 +9,7 @@ const rendererHarness = vi.hoisted(() => ({
 }));
 
 vi.unmock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/view');
-vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer', () => ({
+vi.mock('@codegraphy-dev/graph-renderer/webgpu', () => ({
   OwnedWebGpuRenderer: class OwnedWebGpuRenderer {
     static create(...arguments_: unknown[]) {
       return rendererHarness.create(...arguments_);
@@ -18,7 +18,7 @@ vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2
 }));
 
 import { OwnedGraphSurface2d } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/view';
-import { TypedGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/engine';
+import { TypedGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 
 describe('OwnedGraphSurface2d renderer lifecycle', () => {
   afterEach(() => {
@@ -338,38 +338,6 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(setAlphaTarget).not.toHaveBeenCalledWith(0.3);
   });
 
-  it('attributes React and runtime reconciliation only during an armed session', async () => {
-    rendererHarness.create.mockResolvedValue({
-      canRender: () => true,
-      dispose: rendererHarness.dispose,
-      render: rendererHarness.render,
-    });
-    const props = createDefaultSurfaceProps();
-    const rendered = render(<OwnedGraphSurface2d {...props} />);
-    await waitFor(() => {
-      expect(props.fg2dRef.current).toBeDefined();
-    });
-    props.fg2dRef.current!.startStageAttributionRecording();
-
-    const nextProps = {
-      ...props,
-      sharedProps: {
-        ...props.sharedProps,
-        graphData: {
-          links: [...props.sharedProps.graphData.links],
-          nodes: [...props.sharedProps.graphData.nodes],
-        },
-      },
-    };
-    rendered.rerender(<OwnedGraphSurface2d {...nextProps} />);
-    expect(props.fg2dRef.current?.stopStageAttributionRecording()).toMatchObject({
-      stages: {
-        propsRuntimeReconciliation: { eventCount: 1 },
-        reactReconciliation: { eventCount: 1 },
-      },
-    });
-  });
-
   it('applies plugin viewport kinematics to the owned layout', async () => {
     rendererHarness.create.mockResolvedValue({
       canRender: () => true,
@@ -590,12 +558,10 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(output).toHaveClass('right-2', 'top-10', 'whitespace-nowrap');
     expect(output).not.toHaveClass('bottom-2', 'left-2');
     expect(output).toHaveAttribute('data-performance-status', 'active');
-    expect(output).toHaveAttribute('data-displayed-fps', '50');
     expect(Number(output.dataset.potentialFps)).toBeGreaterThan(0);
     expect(Number(output.dataset.sampleCount)).toBeGreaterThan(0);
-    expect(Number(output.dataset.simulationMaximumMs)).toBeGreaterThanOrEqual(0);
-    expect(Number(output.dataset.renderOnePercentHighMs)).toBeGreaterThanOrEqual(0);
-    expect(props.fg2dRef.current?.getFps()).toBe(50);
+    expect(Number(output.dataset.frameAverageMs)).toBeGreaterThan(0);
+    expect(props.fg2dRef.current?.getFps()).toBeGreaterThan(0);
 
     rendered.rerender(<OwnedGraphSurface2d {...props} />);
     expect(screen.getByTestId('graph-fps')).toHaveTextContent(/^\d+ FPS · \d+\.\d{2} ms$/);
@@ -606,8 +572,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
 
     rendered.rerender(<OwnedGraphSurface2d {...props} showFps={false} />);
     expect(screen.queryByTestId('graph-fps')).not.toBeInTheDocument();
-    expect(props.fg2dRef.current?.getFps()).toBe(50);
-    expect(props.fg2dRef.current?.getPerformance().status).toBe('active');
+    expect(props.fg2dRef.current?.getFps()).toBeGreaterThan(0);
 
     rendered.rerender(<OwnedGraphSurface2d {...props} />);
     expect(screen.getByTestId('graph-fps')).toHaveTextContent(/^\d+ FPS · \d+\.\d{2} ms$/);

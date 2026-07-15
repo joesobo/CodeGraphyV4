@@ -1,5 +1,5 @@
 import type { FGLink } from '../../../model/build';
-import { ownedLinkGeometry, pointOnOwnedLink } from './linkGeometry';
+import { ownedLinkGeometry, pointOnOwnedLink } from '@codegraphy-dev/graph-renderer';
 import { ownedGraphSpatialCellKey } from './spatialHash';
 
 export interface OwnedGraphLinkPick {

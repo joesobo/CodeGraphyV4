@@ -4,12 +4,6 @@ import type { IPhysicsSettings } from '../../../../../../shared/settings/physics
 import type { DirectionMode, NodeShape2D } from '../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../model/build';
 import type { GraphSurfaceSharedProps } from '../sharedProps';
-import type { OwnedGraphStageAttributionRecording } from './performance/attribution';
-import type { OwnedGraphPerformanceSample } from './performance/model';
-import type {
-  OwnedGraphInteractionRecording,
-  OwnedGraphInteractionRecordingOptions,
-} from './performance/recording';
 
 export interface OwnedGraphNodeStyle {
   borderColor: string;
@@ -27,14 +21,9 @@ export interface OwnedGraph2dControls {
   centerAt(x: number, y: number, durationMs?: number): void;
   reheatSimulation(): void;
   getFps(): number | null;
-  getPerformance(): OwnedGraphPerformanceSample;
   graph2ScreenCoords(x: number, y: number): { x: number; y: number };
   resumeAnimation(): void;
   screen2GraphCoords(x: number, y: number): { x: number; y: number };
-  startInteractionRecording(options: OwnedGraphInteractionRecordingOptions): void;
-  startStageAttributionRecording(): void;
-  stopInteractionRecording(): OwnedGraphInteractionRecording | null;
-  stopStageAttributionRecording(): Readonly<OwnedGraphStageAttributionRecording> | null;
   updateNode(nodeId: string, updates: Record<string, unknown>): boolean;
   zoom(): number;
   zoom(scale: number, durationMs?: number): void;

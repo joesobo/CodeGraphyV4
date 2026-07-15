@@ -12,13 +12,10 @@ import { canvasSize } from './canvasGeometry';
 import type { OwnedGraph2dControls } from './contracts';
 import type { OwnedGraphLayout } from './layout';
 import { graphMotionDuration } from './motion';
-import type { OwnedGraphStageAttributionProfiler } from './performance/attribution';
-import type { OwnedGraphPerformanceMonitor } from './performance/model';
-import type { OwnedGraphInteractionRecorder } from './performance/recording';
 import {
   resetGraphLayoutFixedTimestepClock,
   type GraphLayoutFixedTimestepClock,
-} from './physics/fixedTimestep';
+} from './simulationClock';
 import { updateOwnedGraphViewportNode } from './viewportNode';
 
 export interface OwnedGraphControlsRuntime {
@@ -27,9 +24,6 @@ export interface OwnedGraphControlsRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   fpsRef: MutableRefObject<number | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
-  performanceAttributionRef: MutableRefObject<OwnedGraphStageAttributionProfiler>;
-  performanceMonitorRef: MutableRefObject<OwnedGraphPerformanceMonitor>;
-  performanceRecorderRef: MutableRefObject<OwnedGraphInteractionRecorder>;
   positionVersionRef: MutableRefObject<number>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
@@ -90,7 +84,6 @@ export function createOwnedGraphControls(
       runtime.requestFrameRef.current();
     },
     getFps: () => runtime.fpsRef.current,
-    getPerformance: () => runtime.performanceMonitorRef.current.sample(),
     graph2ScreenCoords: (x, y) => {
       const size = canvasSize(canvas);
       return graphToScreen(runtime.cameraRef.current, size.width, size.height, x, y);
@@ -105,12 +98,6 @@ export function createOwnedGraphControls(
       const size = canvasSize(canvas);
       return screenToGraph(runtime.cameraRef.current, size.width, size.height, x, y);
     },
-    startInteractionRecording: options => {
-      runtime.performanceRecorderRef.current.start(options);
-    },
-    startStageAttributionRecording: () => runtime.performanceAttributionRef.current.start(),
-    stopInteractionRecording: () => runtime.performanceRecorderRef.current.stop(),
-    stopStageAttributionRecording: () => runtime.performanceAttributionRef.current.stop(),
     updateNode: (nodeId, updates) => updateViewportNode(runtime, nodeId, updates),
     zoom,
     zoomBy: (factor, durationMs) => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { drawOwnedGraphParticles } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drawing';
-import { parseWebGpuColor } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
+import { parseWebGpuColor } from '@codegraphy-dev/graph-renderer/webgpu';
 
 function renderParticles(overrides: Record<string, unknown> = {}) {
   const source = { id: 'a', x: 0, y: 0 } as FGNode;

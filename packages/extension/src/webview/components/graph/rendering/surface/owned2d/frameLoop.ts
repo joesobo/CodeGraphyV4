@@ -45,7 +45,7 @@ export function startOwnedGraphFrameLoop(
       });
       if (publishedSample === undefined) return;
       runtime.fpsRef.current = publishedSample.status === 'active'
-        ? publishedSample.displayedFps
+        ? publishedSample.potentialFps
         : null;
       runtime.publishPerformance(publishedSample);
     },

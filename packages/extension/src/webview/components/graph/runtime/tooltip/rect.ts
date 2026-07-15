@@ -7,7 +7,7 @@ import {
 	DEFAULT_NODE_SIZE,
 	type FGNode,
 } from '../../model/build';
-import { ownedGraphNodeScreenRadius } from '../../rendering/surface/owned2d/visualSize';
+import { ownedGraphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
 
 interface GraphTooltipRectOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;

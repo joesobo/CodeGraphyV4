@@ -223,12 +223,13 @@
 				]
 			}
 		},
-		"graph-benchmark": {
+		"graph-renderer": {
 			"boundaries": {
 				"entrypoints": [
-					"src/cli/main.ts",
-					"src/dashboard/main.ts",
-					"src/obsidian/main.ts"
+					"src/index.ts",
+					"src/physics/index.ts",
+					"src/wasm/loader.ts",
+					"src/webgpu/renderer.ts"
 				]
 			}
 		},
