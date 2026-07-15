@@ -16850,7 +16850,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/graph-renderer/tests/webgpu/frame",
     "fileIssues": [],
-    "fileFanOut": 1,
+    "fileFanOut": 2,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
