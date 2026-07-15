@@ -1,12 +1,13 @@
 import {
   createGraphLayoutEngine,
+  graphNodeSizeChargeMultiplier,
   GraphNodeFlag,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
 } from '@codegraphy-dev/graph-renderer';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
-import type { FGLink, FGNode } from '../../../model/build';
+import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../../model/build';
 import { ownedNodeCollisionRadius } from './collisionRadius';
 
 export interface OwnedGraphLayout {
@@ -68,7 +69,7 @@ function initialVelocity(velocity: number | undefined): number {
 function chargeStrengthMultiplier(node: FGNode): number {
   return Number.isFinite(node.chargeStrengthMultiplier2D)
     ? Math.max(0, node.chargeStrengthMultiplier2D as number)
-    : 1;
+    : graphNodeSizeChargeMultiplier(node.size, DEFAULT_NODE_SIZE);
 }
 
 function nodeFlags(node: FGNode): number {

@@ -14,9 +14,11 @@ export {
   shouldEnableGraphEdgeHover,
   shouldRenderGraphDetails,
 } from './detailVisibility';
+export { graphNodeDrawnArea } from './nodeStacking';
 export {
   DEFAULT_GRAPH_LAYOUT_CONFIG,
   createGraphLayoutEngine,
+  graphNodeSizeChargeMultiplier,
   GraphNodeFlag,
   TypedGraphLayoutEngine,
   type GraphLayoutConfig,
