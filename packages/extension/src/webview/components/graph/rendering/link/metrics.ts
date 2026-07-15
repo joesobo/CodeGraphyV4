@@ -12,7 +12,7 @@ function linkConnectsNode(link: FGLink, nodeId: string): boolean {
 }
 
 export function getGraphLinkOpacity(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<LinkRenderingDependencies, 'edgeDecorationsRef' | 'highlightedNodeRef'>,
   link: FGLink,
 ): number {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
@@ -25,7 +25,7 @@ export function getGraphLinkOpacity(
 }
 
 export function getGraphLinkParticles(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<LinkRenderingDependencies, 'edgeDecorationsRef'>,
   link: FGLink,
 ): number {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
@@ -33,7 +33,7 @@ export function getGraphLinkParticles(
 }
 
 export function getGraphLinkWidth(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<LinkRenderingDependencies, 'edgeDecorationsRef' | 'highlightedNodeRef'>,
   link: FGLink,
 ): number {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];

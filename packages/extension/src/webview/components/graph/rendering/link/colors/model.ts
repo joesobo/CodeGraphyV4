@@ -3,12 +3,14 @@ import {
   resolveDirectionColor,
   type FGLink,
 } from '../../../model/build';
-import { DEFAULT_GRAPH_APPEARANCE } from '../../../appearance/model';
 import { resolveLinkEndpointId } from '../../../support/linkTargets';
 import type { LinkRenderingDependencies } from '../contracts';
 
 export function getGraphLinkColor(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<
+    LinkRenderingDependencies,
+    'edgeDecorationsRef' | 'graphAppearanceRef' | 'highlightedNodeRef'
+  >,
   link: FGLink,
 ): string {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
@@ -18,13 +20,13 @@ export function getGraphLinkColor(
   const highlighted = dependencies.highlightedNodeRef.current;
   if (!highlighted) return link.baseColor ?? DEFAULT_DIRECTION_COLOR;
   const isConnected = sourceId === highlighted || targetId === highlighted;
-  const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
+  const appearance = dependencies.graphAppearanceRef.current;
   if (isConnected) return appearance.linkHighlight;
   return appearance.linkMuted;
 }
 
 export function getGraphDirectionalColor(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<LinkRenderingDependencies, 'directionColorRef'>,
 ): string {
   return resolveDirectionColor(dependencies.directionColorRef.current);
 }

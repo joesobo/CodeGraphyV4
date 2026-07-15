@@ -1,5 +1,4 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
-import type { ThemeKind } from '../../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 import type { GraphAppearance } from '../../appearance/model';
 
@@ -13,8 +12,7 @@ export interface NodeCanvasRendererDependencies {
   nodeDecorationsRef: GraphRef<Record<string, NodeDecorationPayload> | undefined>;
   selectedNodesSetRef: GraphRef<Set<string>>;
   showLabelsRef: GraphRef<boolean>;
-  themeRef: GraphRef<ThemeKind>;
-  graphAppearanceRef?: GraphRef<GraphAppearance>;
+  graphAppearanceRef: GraphRef<GraphAppearance>;
   pluginHost?: WebviewPluginHost;
   triggerImageRerender: (this: void) => void;
 }

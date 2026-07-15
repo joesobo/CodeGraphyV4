@@ -20,7 +20,6 @@ export function buildGraphCallbackOptions({
       nodeDecorationsRef: graphState.nodeDecorationsRef,
       selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
       showLabelsRef: graphState.showLabelsRef,
-      themeRef: graphState.themeRef,
     },
     triggerImageRerender: graphState.renderCaches.invalidateImages,
   };

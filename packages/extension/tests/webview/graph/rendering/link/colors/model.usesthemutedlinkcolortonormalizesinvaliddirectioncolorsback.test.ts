@@ -1,30 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../../../src/shared/fileColors';
 import type { EdgeDecorationPayload } from '../../../../../../src/shared/plugins/decorations';
-import type { DirectionMode } from '../../../../../../src/shared/settings/modes';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import type { FGLink } from '../../../../../../src/webview/components/graph/model/build';
 import {
   getGraphDirectionalColor,
   getGraphLinkColor,
 } from '../../../../../../src/webview/components/graph/rendering/link/colors/model';
-import type { ThemeKind } from '../../../../../../src/webview/theme/useTheme';
 
 function createDependencies(overrides: Partial<{
   directionColor: string;
-  directionMode: DirectionMode;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   highlightedNodeId: string | null;
   linkHighlight: string;
   linkMuted: string;
-  theme: ThemeKind;
 }> = {}) {
   return {
     directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
-    directionModeRef: { current: overrides.directionMode ?? 'arrows' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
-    themeRef: { current: overrides.theme ?? 'dark' },
     graphAppearanceRef: {
       current: {
         ...DEFAULT_GRAPH_APPEARANCE,
@@ -50,12 +44,9 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
 describe('graph/rendering/link/colors', () => {
 
 
-    it('uses the muted link color independent of the detected theme kind', () => {
+    it('uses the configured muted link color', () => {
       const color = getGraphLinkColor(
-        createDependencies({
-          highlightedNodeId: 'src/other.ts',
-          theme: 'high-contrast',
-        }),
+        createDependencies({ highlightedNodeId: 'src/other.ts' }),
         createLink(),
       );
 
