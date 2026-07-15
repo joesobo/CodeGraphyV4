@@ -55,7 +55,6 @@ function applyNearbyCollisions(index: i32): i32 {
         if (
           other > index
           && inTargetCell
-          && !isHidden(other)
           && applyCollisionPair(index, other)
         ) {
           correctionCount += 1;

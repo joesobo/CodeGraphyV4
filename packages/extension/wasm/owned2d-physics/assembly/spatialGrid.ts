@@ -1,5 +1,5 @@
 import { collisionCellSize } from './config';
-import { HIDDEN_FLAG, flags, nodeCount, x, y } from './memory';
+import { isHidden, nodeCount, x, y } from './memory';
 
 let nextPointer: usize = 0;
 let cellXPointer: usize = 0;
@@ -95,7 +95,7 @@ function prependHashHead(hashKey: i32, head: i32): i32 {
 export function rebuildSpatialGrid(): void {
   memory.fill(hashUsedPointer, 0, <usize>hashCapacity);
   for (let index = 0; index < nodeCount; index += 1) {
-    if ((flags(index) & HIDDEN_FLAG) != 0) continue;
+    if (isHidden(index)) continue;
     const currentCellX = <i32>Math.floor(x(index) / collisionCellSize);
     const currentCellY = <i32>Math.floor(y(index) / collisionCellSize);
     setCellX(index, currentCellX);
