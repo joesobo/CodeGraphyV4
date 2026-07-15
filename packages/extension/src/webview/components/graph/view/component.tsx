@@ -11,7 +11,6 @@ import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../s
 import {
   useGraphAutoFit,
 } from '../viewport/autoFit';
-import { getGraphNavigator, getGraphWindow } from '../environment/browser';
 import { buildGraphCallbackOptions } from './callbackOptions';
 import { useGraphDebugApi } from '../debug/api';
 import { buildGraphDebugOptions } from '../debug/options';
@@ -83,7 +82,7 @@ export default function Graph({
     theme,
   });
   const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
-  const isMacPlatform = detectMacPlatform(getGraphNavigator());
+  const isMacPlatform = detectMacPlatform(globalThis.navigator);
 
   const interactions = useGraphInteractionRuntime({
     dataRef: graphRuntime.dataRef,
@@ -120,7 +119,7 @@ export default function Graph({
   useGraphDebugApi(buildGraphDebugOptions({
     graphState: graphRuntime,
     interactions,
-    win: getGraphWindow(),
+    win: globalThis.window,
   }));
 
   const callbacks = useGraphCallbacks(buildGraphCallbackOptions({ graphState: graphRuntime, pluginHost }));

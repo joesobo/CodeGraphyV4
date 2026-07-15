@@ -29,8 +29,6 @@ import {
   type NodeDragTranslate,
 } from './nodeDrag';
 import { useGraphViewportPanRuntime } from './viewportPan/hook';
-import { postPhysicsStabilized } from './engineStop';
-import { buildTooltipInteractionHandlers } from './tooltipAdapter';
 import { readGraphViewportScale } from './viewportScale';
 
 export function useGraphInteractionRuntime({
@@ -117,7 +115,7 @@ export function useGraphInteractionRuntime({
     dataRef,
     fg2dRef: refs.fg2dRef,
     fileInfoCacheRef,
-    interactionHandlers: buildTooltipInteractionHandlers(interactionHandlers),
+    interactionHandlers,
     pluginHost,
     postMessage,
   });
@@ -244,7 +242,7 @@ export function useGraphInteractionRuntime({
     ...contextMenuOpeningRuntime,
     handleBackgroundRightClick: suppressedContextMenuHandlers.handleBackgroundRightClick,
     handleContextMenu: suppressedContextMenuHandlers.handleContextMenu,
-    handleEngineStop: () => postPhysicsStabilized(postMessage),
+    handleEngineStop: () => postMessage({ type: 'PHYSICS_STABILIZED' }),
     handleLinkRightClick: suppressedContextMenuHandlers.handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
     handleNodeHover,
