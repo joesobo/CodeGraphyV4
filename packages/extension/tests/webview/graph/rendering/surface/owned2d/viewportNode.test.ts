@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import type { OwnedGraphLayout } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { createGraphLayoutEngine, GraphNodeFlag } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
@@ -24,8 +24,10 @@ function fixture(): { layout: OwnedGraphLayout; node: FGNode } {
 }
 
 describe('owned graph plugin viewport node updates', () => {
-  it('synchronizes kinematics and gives explicit unpinning precedence over fixed coordinates', () => {
+  it('synchronizes authoritative kinematics and gives explicit unpinning precedence', () => {
     const { layout, node } = fixture();
+    const { x, y, vx, vy } = layout.engine;
+    const setKinematics = vi.spyOn(layout.engine, 'setKinematics');
 
     expect(updateOwnedGraphViewportNode(layout, node.id, {
       fx: 30,
@@ -36,6 +38,7 @@ describe('owned graph plugin viewport node updates', () => {
       x: 20,
       y: 25,
     })).toBe(true);
+    expect(setKinematics).toHaveBeenLastCalledWith(x, y, vx, vy);
     expect([layout.engine.x[0], layout.engine.y[0]]).toEqual([30, 40]);
     expect([layout.engine.vx[0], layout.engine.vy[0]]).toEqual([0, 0]);
     expect(layout.engine.flags[0] & GraphNodeFlag.Pinned).toBe(GraphNodeFlag.Pinned);
