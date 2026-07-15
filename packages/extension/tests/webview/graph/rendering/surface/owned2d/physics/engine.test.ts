@@ -7,6 +7,7 @@ import {
   GraphNodeFlag,
   type GraphLayoutInput,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { ownedGraphNodeWorldScale } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/visualSize';
 
 function lineGraph(nodeCount: number): GraphLayoutInput {
   return {
@@ -305,6 +306,53 @@ describe('graph layout engine', () => {
     expect(engine.settled).toBe(true);
     engine.setCollisionScale(1);
     expect(engine.settled).toBe(true);
+  });
+
+  it.each([0.005, 0.02, 0.1, 1, 4, 64])(
+    'separates minimum and maximum node radii at supported zoom %s',
+    (zoom) => {
+      const engine = createGraphLayoutEngine({
+        nodeIds: ['minimum', 'maximum'],
+        initialX: Float32Array.of(0, 1),
+        initialY: Float32Array.of(0, 0),
+        radii: Float32Array.of(8, 30),
+        flags: Uint8Array.of(GraphNodeFlag.Pinned, 0),
+        edgeSources: new Uint32Array(),
+        edgeTargets: new Uint32Array(),
+      }, {
+        alphaDecay: 1,
+        centralGravity: 0,
+        chargeStrength: 0,
+        collisionIterations: 1,
+        collisionPadding: 0,
+        collisionStrength: 1,
+        settleSteps: 1,
+      });
+      const collisionScale = ownedGraphNodeWorldScale(zoom);
+
+      engine.setCollisionScale(collisionScale);
+      engine.tick();
+
+      expect(engine.x[0]).toBe(0);
+      expect(engine.y[0]).toBe(0);
+      expect(Math.hypot(engine.x[1] - engine.x[0], engine.y[1] - engine.y[0]))
+        .toBeGreaterThanOrEqual(38 * collisionScale - 0.25);
+    },
+  );
+
+  it('keeps an empty settled graph idle when collision scale expands', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: [],
+      radii: new Float32Array(),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+    expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
+
+    engine.setCollisionScale(2);
+
+    expect(engine.settled).toBe(true);
+    expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
   it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
