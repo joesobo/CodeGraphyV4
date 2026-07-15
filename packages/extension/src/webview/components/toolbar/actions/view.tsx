@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import React from 'react';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { useGraphViewContributions } from '../../../pluginHost/useGraphViewContributions';
 import { useGraphStore } from '../../../store/state';
 import { IndexToolbarAction } from './indexAction';
 import { ToolbarPanelButtons } from './panelButtons';
@@ -14,31 +14,6 @@ export {
   getToolbarActionItemKey,
   getToolbarActionKey,
 } from './model';
-
-function useGraphViewContributions(
-  pluginHost: WebviewPluginHost | undefined,
-): CoreGraphViewContributionSet | undefined {
-  const [contributionVersion, setContributionVersion] = useState(0);
-  const canReadGraphViewContributions =
-    typeof pluginHost?.getGraphViewContributions === 'function'
-    && typeof pluginHost.subscribeGraphViewContributions === 'function';
-
-  useEffect(() => {
-    if (!canReadGraphViewContributions) {
-      return undefined;
-    }
-
-    const subscription = pluginHost.subscribeGraphViewContributions(() => {
-      setContributionVersion(version => version + 1);
-    });
-    return () => subscription.dispose();
-  }, [canReadGraphViewContributions, pluginHost]);
-
-  void contributionVersion;
-  return canReadGraphViewContributions
-    ? pluginHost.getGraphViewContributions()
-    : undefined;
-}
 
 export function ToolbarActions({
   pluginHost,
