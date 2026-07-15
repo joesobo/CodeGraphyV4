@@ -42,14 +42,7 @@ export function renderNodePluginOverlay(
     return;
   }
 
-  const renderers = typeof pluginHost.getNodeRenderers === 'function'
-    ? pluginHost.getNodeRenderers(getNodeType(node.id))
-    : [
-        pluginHost.getNodeRenderer(getNodeType(node.id))
-        ?? pluginHost.getNodeRenderer('*'),
-      ].filter((renderer): renderer is NonNullable<ReturnType<WebviewPluginHost['getNodeRenderer']>> =>
-        renderer !== undefined
-      );
+  const renderers = pluginHost.getNodeRenderers(getNodeType(node.id));
   if (renderers.length === 0) {
     return;
   }

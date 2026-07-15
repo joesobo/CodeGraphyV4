@@ -91,41 +91,18 @@ describe('graph/rendering/node/media', () => {
   });
 
   it('skips plugin overlay rendering when no node renderer is registered', () => {
-    const getNodeRenderer = vi.fn(() => undefined);
+    const getNodeRenderers = vi.fn(() => []);
     const ctx = createContext();
 
     renderNodePluginOverlay(
-      { getNodeRenderer } as unknown as WebviewPluginHost,
+      { getNodeRenderers } as unknown as WebviewPluginHost,
       createNode(),
       ctx,
       1,
       undefined,
     );
 
-    expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
-    expect(getNodeRenderer).toHaveBeenCalledWith('*');
-  });
-
-  it('uses the wildcard plugin renderer when no type-specific renderer is registered', () => {
-    const pluginRenderer = vi.fn();
-    const getNodeRenderer = vi.fn((type: string) => (type === '*' ? pluginRenderer : undefined));
-    const ctx = createContext();
-
-    renderNodePluginOverlay(
-      { getNodeRenderer } as unknown as WebviewPluginHost,
-      createNode(),
-      ctx,
-      1,
-      undefined,
-    );
-
-    expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
-    expect(getNodeRenderer).toHaveBeenCalledWith('*');
-    expect(pluginRenderer).toHaveBeenCalledWith(expect.objectContaining({
-      node: expect.objectContaining({ id: 'src/app.ts' }),
-      ctx,
-      globalScale: 1,
-    }));
+    expect(getNodeRenderers).toHaveBeenCalledWith('.ts');
   });
 
   it('runs type-specific and wildcard plugin renderers when both are registered', () => {
@@ -160,11 +137,11 @@ describe('graph/rendering/node/media', () => {
     const pluginRenderer = vi.fn(() => {
       throw error;
     });
-    const getNodeRenderer = vi.fn(() => pluginRenderer);
+    const getNodeRenderers = vi.fn(() => [pluginRenderer]);
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     renderNodePluginOverlay(
-      { getNodeRenderer } as unknown as WebviewPluginHost,
+      { getNodeRenderers } as unknown as WebviewPluginHost,
       createNode(),
       createContext(),
       1,

@@ -6,13 +6,6 @@ import type {
 export type NodeRendererRegistry = Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>;
 export type OverlayRegistry = Map<string, { pluginId: string; fn: OverlayRenderFn }>;
 
-export function getLatestNodeRenderer(
-  nodeRenderers: NodeRendererRegistry,
-  type: string,
-): NodeRenderFn | undefined {
-  return nodeRenderers.get(type)?.at(-1)?.fn;
-}
-
 export function getRendererFnsForType(
   nodeRenderers: NodeRendererRegistry,
   type: string,
