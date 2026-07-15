@@ -26,7 +26,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   settled = false;
 
   constructor(input: GraphLayoutInput, config: Partial<GraphLayoutConfig> = {}) {
-    this.config = mergeGraphLayoutConfig({ ...DEFAULT_GRAPH_LAYOUT_CONFIG }, config);
+    this.config = mergeGraphLayoutConfig(DEFAULT_GRAPH_LAYOUT_CONFIG, config);
     this.setGraph(input);
   }
 
@@ -73,8 +73,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   }
 
   setCollisionScale(scale: number): void {
-    assertOwnedGraphCollisionScale(scale);
     if (scale === this.collisionScale) return;
+    assertOwnedGraphCollisionScale(scale);
     const expandsCollisionEnvelope = scale > this.collisionScale;
     this.collisionScale = scale;
     this.kernel?.configure(this.config, scale, this.collisionCellSize());
