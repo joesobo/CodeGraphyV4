@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
-import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/collisionRadius';
 import {
   createOwnedGraphLayout,
@@ -184,6 +184,24 @@ describe('owned graph dynamic updates', () => {
     expect(Array.from(layout.engine.y)).toEqual([200, 400, 600]);
     expect(Array.from(layout.engine.vx)).toEqual([5, 7, 0]);
     expect(Array.from(layout.engine.vy)).toEqual([6, 8, 0]);
+  });
+
+  it('preserves the current layout when a graph update is rejected', () => {
+    const initialNodes = [node('a')];
+    const initialLinks: FGLink[] = [];
+    const layout = createOwnedGraphLayout(initialNodes, initialLinks, DEFAULT_SETTINGS);
+    const currentLinks = layout.links;
+
+    expect(() => updateOwnedGraphLayout(
+      layout,
+      [node('duplicate'), node('duplicate')],
+      [],
+      DEFAULT_SETTINGS,
+    )).toThrow('Duplicate graph node id: duplicate');
+
+    expect(layout.nodes).toBe(initialNodes);
+    expect(layout.links).toBe(currentLinks);
+    expect(layout.engine.nodeIds).toEqual(['a']);
   });
 });
 

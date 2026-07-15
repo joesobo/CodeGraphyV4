@@ -70,6 +70,46 @@ describe('graph layout engine', () => {
     expect(engine.tick()).toEqual({ moving: false, settled: true, steps: 0 });
   });
 
+  it.each([
+    {
+      label: 'duplicate node ids',
+      input: {
+        nodeIds: ['duplicate', 'duplicate'],
+        radii: Float32Array.of(1, 1),
+        edgeSources: new Uint32Array(),
+        edgeTargets: new Uint32Array(),
+      },
+    },
+    {
+      label: 'an edge to a missing node',
+      input: {
+        nodeIds: ['replacement'],
+        radii: Float32Array.of(1),
+        edgeSources: Uint32Array.of(0),
+        edgeTargets: Uint32Array.of(1),
+      },
+    },
+  ])('preserves the current graph after rejecting $label', ({ input }) => {
+    const engine = createGraphLayoutEngine(lineGraph(3));
+    const current = {
+      edgeSources: engine.edgeSources,
+      edgeTargets: engine.edgeTargets,
+      nodeIds: engine.nodeIds,
+      x: engine.x,
+      y: engine.y,
+    };
+
+    expect(() => engine.setGraph(input)).toThrow();
+
+    expect(engine.nodeIds).toBe(current.nodeIds);
+    expect(engine.x).toBe(current.x);
+    expect(engine.y).toBe(current.y);
+    expect(engine.edgeSources).toBe(current.edgeSources);
+    expect(engine.edgeTargets).toBe(current.edgeTargets);
+    expect(engine.getNodeIndex('node-2')).toBe(2);
+    expect(() => engine.tick()).not.toThrow();
+  });
+
   it('cools D3 alpha within the Obsidian-like release-settle window', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['node-0'],
@@ -232,6 +272,45 @@ describe('graph layout engine', () => {
     expect(setVx).not.toHaveBeenCalled();
     expect(setVy).not.toHaveBeenCalled();
     expect(engine.settled).toBe(false);
+  });
+
+  it('rejects non-finite external kinematics without changing engine state', () => {
+    const engine = createGraphLayoutEngine(lineGraph(2));
+    const before = kinematicsHash(engine);
+
+    expect(() => engine.setKinematics(
+      Float32Array.of(Number.NaN, 0),
+      Float32Array.of(0, 0),
+      Float32Array.of(0, 0),
+      Float32Array.of(0, 0),
+    )).toThrow('Graph layout kinematics must be finite');
+
+    expect(kinematicsHash(engine)).toBe(before);
+  });
+
+  it('requires a full calm window after a node position changes', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node'],
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(0),
+      radii: Float32Array.of(1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      alphaDecay: 1,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 0,
+      settleSteps: 3,
+    });
+    engine.tick();
+    engine.tick();
+
+    engine.setNodePosition(0, 10, 5);
+
+    expect(engine.tick().settled).toBe(false);
+    expect(engine.tick().settled).toBe(false);
+    expect(engine.tick().settled).toBe(true);
   });
 
   it('refreshes engine views after rare Barnes-Hut storage growth', () => {

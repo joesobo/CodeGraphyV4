@@ -216,11 +216,12 @@ export function updateOwnedGraphLayout(
   const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links);
   const graphShapeUnchanged = sameTopology(layout.engine, input)
     && samePhysicsShape(layout.engine, input);
+  if (!graphShapeUnchanged) {
+    layout.engine.setGraph(input);
+    applyOwnedPhysicsSettings(layout.engine, settings);
+  }
   layout.nodes = nodes;
   layout.links = resolvedLinks;
-  if (graphShapeUnchanged) return;
-  layout.engine.setGraph(input);
-  applyOwnedPhysicsSettings(layout.engine, settings);
 }
 
 export function syncOwnedLayoutNodesAtVersion(

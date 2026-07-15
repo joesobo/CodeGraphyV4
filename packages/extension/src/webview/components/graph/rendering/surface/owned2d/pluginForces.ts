@@ -8,6 +8,7 @@ interface InstalledForceAdapter {
   adapter: IGraphViewForceAdapter;
   contribution: CoreGraphViewContributionSet['forces'][number]['contribution'];
   contextSignature: string;
+  links: readonly FGLink[];
   nodes: readonly FGNode[];
 }
 
@@ -52,6 +53,18 @@ function visibleGraph(graphData: { nodes: FGNode[]; links: FGLink[] }): IGraphDa
 
 type ForceContribution = CoreGraphViewContributionSet['forces'][number];
 
+function reportAdapterError(key: string, phase: string, error: unknown): void {
+  console.error(`[CodeGraphy] Plugin graph force ${key} ${phase} failed:`, error);
+}
+
+function disposeAdapter(key: string, adapter: IGraphViewForceAdapter): void {
+  try {
+    adapter.dispose();
+  } catch (error) {
+    reportAdapterError(key, 'dispose', error);
+  }
+}
+
 class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
   private readonly installed = new Map<string, InstalledForceAdapter>();
 
@@ -66,7 +79,11 @@ class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
   ): boolean {
     const active = new Set<string>();
     const signature = contextSignature(physicsSettings);
-    const graph = visibleGraph(graphData);
+    let graph: IGraphData | undefined;
+    const resolveGraph = (): IGraphData => {
+      graph ??= visibleGraph(graphData);
+      return graph;
+    };
     let changed = false;
     for (const entry of contributions?.forces ?? []) {
       const key = namespace(entry.pluginId, entry.contribution.id);
@@ -75,7 +92,8 @@ class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
         key,
         entry,
         graphData.nodes,
-        graph,
+        graphData.links,
+        resolveGraph,
         signature,
         physicsSettings,
       ) || changed;
@@ -84,20 +102,27 @@ class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
   }
 
   tick(alpha?: number): void {
-    for (const current of this.installed.values()) current.adapter.tick?.(alpha);
+    for (const [key, current] of this.installed) {
+      try {
+        current.adapter.tick?.(alpha);
+      } catch (error) {
+        reportAdapterError(key, 'tick', error);
+      }
+    }
   }
 
   dispose(): void {
-    for (const current of this.installed.values()) current.adapter.dispose();
+    const installed = [...this.installed];
     this.installed.clear();
+    for (const [key, current] of installed) disposeAdapter(key, current.adapter);
   }
 
   private removeInactive(active: ReadonlySet<string>): boolean {
     let changed = false;
     for (const [key, current] of this.installed) {
       if (active.has(key)) continue;
-      current.adapter.dispose();
       this.installed.delete(key);
+      disposeAdapter(key, current.adapter);
       changed = true;
     }
     return changed;
@@ -107,10 +132,12 @@ class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
     current: InstalledForceAdapter | undefined,
     entry: ForceContribution,
     nodes: readonly FGNode[],
+    links: readonly FGLink[],
     signature: string,
   ): boolean {
     return current?.contribution === entry.contribution
       && current.nodes === nodes
+      && current.links === links
       && current.contextSignature === signature;
   }
 
@@ -118,26 +145,36 @@ class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
     key: string,
     entry: ForceContribution,
     nodes: FGNode[],
-    graph: IGraphData,
+    links: FGLink[],
+    resolveGraph: () => IGraphData,
     signature: string,
     physicsSettings: IPhysicsSettings | undefined,
   ): boolean {
     const current = this.installed.get(key);
-    if (this.reusable(current, entry, nodes, signature)) return false;
-    current?.adapter.dispose();
-    const adapter = entry.contribution.create({
-      nodes,
-      edges: graph.edges,
-      visibleGraph: graph,
-      physicsSettings,
-    });
-    adapter.initialize?.(nodes);
+    if (this.reusable(current, entry, nodes, links, signature)) return false;
+    let adapter: IGraphViewForceAdapter | undefined;
+    try {
+      const graph = resolveGraph();
+      adapter = entry.contribution.create({
+        nodes,
+        edges: graph.edges,
+        visibleGraph: graph,
+        physicsSettings,
+      });
+      adapter.initialize?.(nodes);
+    } catch (error) {
+      if (adapter) disposeAdapter(key, adapter);
+      reportAdapterError(key, 'setup', error);
+      return false;
+    }
     this.installed.set(key, {
       adapter,
       contribution: entry.contribution,
       contextSignature: signature,
+      links,
       nodes,
     });
+    if (current) disposeAdapter(key, current.adapter);
     return true;
   }
 }
