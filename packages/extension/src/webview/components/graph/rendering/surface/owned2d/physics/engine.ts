@@ -9,6 +9,7 @@ import {
 } from './contracts';
 import { createGraphLayoutState } from './initialization';
 import { updateVisibleLinkDegrees } from './linkDegrees';
+import { assertOwnedGraphCollisionScale } from './wasm/configuration';
 import { OwnedGraphWasmPhysicsKernel } from './wasm/kernel';
 
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
@@ -79,9 +80,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   }
 
   setCollisionScale(scale: number): void {
-    if (!Number.isFinite(scale) || scale <= 0) {
-      throw new Error('Graph layout collision scale must be positive');
-    }
+    assertOwnedGraphCollisionScale(scale);
     if (scale === this.collisionScale) return;
     const expandsCollisionEnvelope = scale > this.collisionScale;
     this.collisionScale = scale;
