@@ -29,7 +29,7 @@ describe('graphView/settings/sender', () => {
     expect(sendMessage).toHaveBeenCalledTimes(3);
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
-      payload: { bidirectionalEdges: 'combined', showOrphans: false },
+      payload: { bidirectionalEdges: 'combined', showMinimap: true, showOrphans: false },
     });
     expect(sendMessage).toHaveBeenNthCalledWith(3, {
       type: 'SHOW_LABELS_UPDATED',

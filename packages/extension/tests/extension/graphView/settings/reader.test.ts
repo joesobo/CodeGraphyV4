@@ -42,6 +42,7 @@ describe('graphView/settings/reader', () => {
       particleSize: 4,
       directionColor: DEFAULT_DIRECTION_COLOR,
       showLabels: true,
+      showMinimap: true,
     });
   });
 
@@ -69,6 +70,7 @@ describe('graphView/settings/reader', () => {
       particleSize: 7,
       directionColor: '#00FF00',
       showLabels: false,
+      showMinimap: true,
     });
   });
 });
