@@ -3,7 +3,9 @@ import {
   useEffect,
   useRef,
   useState,
+  type MutableRefObject,
   type ReactElement,
+  type RefObject,
 } from 'react';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import { type OwnedGraphCamera } from '../../camera/runtime/model';
@@ -43,7 +45,11 @@ import { useOwnedRendererLifecycle } from '../../renderer/runtime/useLifecycle';
 import { useOwnedPerformancePresentation } from './performancePresentation';
 import { OwnedGraphMinimap } from '../../minimap/presentation';
 import type { MinimapProjection } from '../../minimap/projection';
-import { createMinimapScheduler, invalidateMinimapScheduler } from '../../minimap/scheduling';
+import {
+  createMinimapScheduler,
+  invalidateMinimapScheduler,
+  type MinimapScheduler,
+} from '../../minimap/scheduling';
 import type { MinimapBounds } from '../../minimap/projection';
 import {
   createMinimapInteractionHandlers,
@@ -52,6 +58,64 @@ import {
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
+
+interface OwnedMinimapLifecycleInput {
+  boundsRef: MutableRefObject<MinimapBounds | null>;
+  canvasRef: RefObject<HTMLCanvasElement>;
+  enabled: boolean;
+  navigationSessionRef: MutableRefObject<MinimapNavigationSession | null>;
+  projectionRef: MutableRefObject<MinimapProjection | null>;
+  registeredRef: MutableRefObject<boolean>;
+  rendererRef: MutableRefObject<WebGpuGraphRenderer | null>;
+  rendererStatus: OwnedGraphRendererStatus;
+  requestFrameRef: MutableRefObject<() => void>;
+  schedulerRef: MutableRefObject<MinimapScheduler>;
+}
+
+function useOwnedMinimapLifecycle(input: OwnedMinimapLifecycleInput): void {
+  const {
+    boundsRef,
+    canvasRef,
+    enabled,
+    navigationSessionRef,
+    projectionRef,
+    registeredRef,
+    rendererRef,
+    rendererStatus,
+    requestFrameRef,
+    schedulerRef,
+  } = input;
+  useEffect(() => {
+    if (!enabled) {
+      boundsRef.current = null;
+      projectionRef.current = null;
+      navigationSessionRef.current = null;
+      return;
+    }
+    const renderer = rendererRef.current;
+    const minimapCanvas = canvasRef.current;
+    if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
+    renderer.setSecondarySurface(minimapCanvas);
+    registeredRef.current = true;
+    invalidateMinimapScheduler(schedulerRef.current);
+    requestFrameRef.current();
+    return () => {
+      registeredRef.current = false;
+      renderer.setSecondarySurface(undefined);
+    };
+  }, [
+    boundsRef,
+    canvasRef,
+    enabled,
+    navigationSessionRef,
+    projectionRef,
+    registeredRef,
+    rendererRef,
+    rendererStatus,
+    requestFrameRef,
+    schedulerRef,
+  ]);
+}
 
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -217,25 +281,18 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
 
   useOwnedPerformancePresentation(props.showFps, performanceMonitorRef, fpsOutputRef);
 
-  useEffect(() => {
-    if (!props.showMinimap) {
-      minimapBoundsRef.current = null;
-      minimapProjectionRef.current = null;
-      minimapNavigationSessionRef.current = null;
-      return;
-    }
-    const renderer = gpuRendererRef.current;
-    const minimapCanvas = minimapCanvasRef.current;
-    if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
-    renderer.setSecondarySurface(minimapCanvas);
-    minimapSurfaceRegisteredRef.current = true;
-    invalidateMinimapScheduler(minimapSchedulerRef.current);
-    requestFrameRef.current();
-    return () => {
-      minimapSurfaceRegisteredRef.current = false;
-      renderer.setSecondarySurface(undefined);
-    };
-  }, [minimapSchedulerRef, props.showMinimap, rendererStatus]);
+  useOwnedMinimapLifecycle({
+    boundsRef: minimapBoundsRef,
+    canvasRef: minimapCanvasRef,
+    enabled: props.showMinimap,
+    navigationSessionRef: minimapNavigationSessionRef,
+    projectionRef: minimapProjectionRef,
+    registeredRef: minimapSurfaceRegisteredRef,
+    rendererRef: gpuRendererRef,
+    rendererStatus,
+    requestFrameRef,
+    schedulerRef: minimapSchedulerRef,
+  });
 
   useEffect(() => {
     requestFrameRef.current();
@@ -299,14 +356,15 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
       />
-      {props.showMinimap ? <OwnedGraphMinimap
+      <OwnedGraphMinimap
         canvasRef={minimapCanvasRef}
+        enabled={props.showMinimap}
         overlayRef={minimapOverlayRef}
         panelRef={minimapPanelRef}
         viewportBoxRef={minimapViewportBoxRef}
         directionIndicatorRef={minimapDirectionIndicatorRef}
         interactionHandlers={minimapInteractionHandlers}
-      /> : null}
+      />
       <OwnedGraphStatusOverlays error={rendererError} fpsOutputRef={fpsOutputRef}
         performanceSample={performanceSample} tooltip={linkTooltip} width={props.sharedProps.width ?? 0} />
     </div>

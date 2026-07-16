@@ -16,6 +16,7 @@ describe('Relationship Graph minimap presentation', () => {
 
     render(<OwnedGraphMinimap
       canvasRef={canvasRef}
+      enabled
       overlayRef={overlayRef}
       panelRef={panelRef}
       viewportBoxRef={viewportBoxRef}

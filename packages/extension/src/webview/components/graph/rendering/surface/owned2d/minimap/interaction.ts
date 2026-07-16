@@ -126,70 +126,100 @@ function suppressEvent(event: { preventDefault(): void; stopPropagation(): void 
   event.stopPropagation();
 }
 
+function handleKeyDown(
+  runtime: MinimapInteractionRuntime,
+  event: ReactKeyboardEvent<HTMLDivElement>,
+): void {
+  if (event.key !== 'Escape') return;
+  const session = runtime.sessionRef.current;
+  if (!session) return;
+  suppressEvent(event);
+  endSession(runtime, event.currentTarget, session.pointerId);
+}
+
+function handleLostPointerCapture(
+  runtime: MinimapInteractionRuntime,
+  event: ReactPointerEvent<HTMLDivElement>,
+): void {
+  if (runtime.sessionRef.current?.pointerId === event.pointerId) {
+    runtime.sessionRef.current = null;
+  }
+}
+
+function handlePointerCancel(
+  runtime: MinimapInteractionRuntime,
+  event: ReactPointerEvent<HTMLDivElement>,
+): void {
+  suppressEvent(event);
+  endSession(runtime, event.currentTarget, event.pointerId);
+}
+
+function handlePointerDown(
+  runtime: MinimapInteractionRuntime,
+  event: ReactPointerEvent<HTMLDivElement>,
+): void {
+  if (event.button !== 0 || runtime.sessionRef.current) return;
+  const projection = runtime.projectionRef.current;
+  const mainCanvas = runtime.mainCanvasRef.current;
+  if (!projection || !mainCanvas) return;
+  suppressEvent(event);
+  const mainBounds = mainCanvas.getBoundingClientRect();
+  const start = beginMinimapNavigation({
+    camera: runtime.cameraRef.current,
+    panelPoint: panelPoint(event.currentTarget, event, projection),
+    pointerId: event.pointerId,
+    projection,
+    viewport: projectMinimapViewport(projection, {
+      camera: runtime.cameraRef.current,
+      viewportHeight: Math.max(1, mainBounds.height),
+      viewportWidth: Math.max(1, mainBounds.width),
+    }),
+  });
+  runtime.sessionRef.current = start.session;
+  event.currentTarget.setPointerCapture(event.pointerId);
+  event.currentTarget.focus({ preventScroll: true });
+  runtime.clearHover();
+  applyCameraCenter(runtime, start.cameraCenter);
+}
+
+function handlePointerMove(
+  runtime: MinimapInteractionRuntime,
+  event: ReactPointerEvent<HTMLDivElement>,
+): void {
+  const session = runtime.sessionRef.current;
+  const projection = runtime.projectionRef.current;
+  if (!session || session.pointerId !== event.pointerId || !projection) return;
+  suppressEvent(event);
+  applyCameraCenter(
+    runtime,
+    moveMinimapNavigation(
+      session,
+      projection,
+      panelPoint(event.currentTarget, event, projection),
+    ),
+  );
+}
+
+function handlePointerUp(
+  runtime: MinimapInteractionRuntime,
+  event: ReactPointerEvent<HTMLDivElement>,
+): void {
+  if (runtime.sessionRef.current?.pointerId !== event.pointerId) return;
+  suppressEvent(event);
+  endSession(runtime, event.currentTarget, event.pointerId);
+}
+
 export function createMinimapInteractionHandlers(
   runtime: MinimapInteractionRuntime,
 ): MinimapInteractionHandlers {
   return {
     onContextMenu: suppressEvent,
-    onKeyDown: event => {
-      if (event.key !== 'Escape') return;
-      const session = runtime.sessionRef.current;
-      if (!session) return;
-      suppressEvent(event);
-      endSession(runtime, event.currentTarget, session.pointerId);
-    },
-    onLostPointerCapture: event => {
-      if (runtime.sessionRef.current?.pointerId === event.pointerId) {
-        runtime.sessionRef.current = null;
-      }
-    },
-    onPointerCancel: event => {
-      suppressEvent(event);
-      endSession(runtime, event.currentTarget, event.pointerId);
-    },
-    onPointerDown: event => {
-      if (event.button !== 0 || runtime.sessionRef.current) return;
-      const projection = runtime.projectionRef.current;
-      const mainCanvas = runtime.mainCanvasRef.current;
-      if (!projection || !mainCanvas) return;
-      suppressEvent(event);
-      const mainBounds = mainCanvas.getBoundingClientRect();
-      const start = beginMinimapNavigation({
-        camera: runtime.cameraRef.current,
-        panelPoint: panelPoint(event.currentTarget, event, projection),
-        pointerId: event.pointerId,
-        projection,
-        viewport: projectMinimapViewport(projection, {
-          camera: runtime.cameraRef.current,
-          viewportHeight: Math.max(1, mainBounds.height),
-          viewportWidth: Math.max(1, mainBounds.width),
-        }),
-      });
-      runtime.sessionRef.current = start.session;
-      event.currentTarget.setPointerCapture(event.pointerId);
-      event.currentTarget.focus({ preventScroll: true });
-      runtime.clearHover();
-      applyCameraCenter(runtime, start.cameraCenter);
-    },
-    onPointerMove: event => {
-      const session = runtime.sessionRef.current;
-      const projection = runtime.projectionRef.current;
-      if (!session || session.pointerId !== event.pointerId || !projection) return;
-      suppressEvent(event);
-      applyCameraCenter(
-        runtime,
-        moveMinimapNavigation(
-          session,
-          projection,
-          panelPoint(event.currentTarget, event, projection),
-        ),
-      );
-    },
-    onPointerUp: event => {
-      if (runtime.sessionRef.current?.pointerId !== event.pointerId) return;
-      suppressEvent(event);
-      endSession(runtime, event.currentTarget, event.pointerId);
-    },
+    onKeyDown: event => handleKeyDown(runtime, event),
+    onLostPointerCapture: event => handleLostPointerCapture(runtime, event),
+    onPointerCancel: event => handlePointerCancel(runtime, event),
+    onPointerDown: event => handlePointerDown(runtime, event),
+    onPointerMove: event => handlePointerMove(runtime, event),
+    onPointerUp: event => handlePointerUp(runtime, event),
     onWheel: suppressEvent,
   };
 }

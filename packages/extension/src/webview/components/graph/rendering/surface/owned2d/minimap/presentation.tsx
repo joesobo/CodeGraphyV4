@@ -6,6 +6,7 @@ export const OWNED_GRAPH_MINIMAP_SIZE = 160;
 
 interface OwnedGraphMinimapProps {
   canvasRef: RefObject<HTMLCanvasElement>;
+  enabled: boolean;
   overlayRef: RefObject<SVGSVGElement>;
   panelRef: RefObject<HTMLDivElement>;
   viewportBoxRef: RefObject<SVGRectElement>;
@@ -15,12 +16,14 @@ interface OwnedGraphMinimapProps {
 
 export function OwnedGraphMinimap({
   canvasRef,
+  enabled,
   overlayRef,
   panelRef,
   viewportBoxRef,
   directionIndicatorRef,
   interactionHandlers,
-}: OwnedGraphMinimapProps): ReactElement {
+}: OwnedGraphMinimapProps): ReactElement | null {
+  if (!enabled) return null;
   return (
     <div
       ref={panelRef}
