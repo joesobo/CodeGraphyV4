@@ -1,4 +1,4 @@
-import { CORE_GRAPH_EDGE_DEFAULT_VISIBILITY } from '@codegraphy-dev/core';
+import { CORE_GRAPH_EDGE_DEFAULT_VISIBILITY } from '@codegraphy-dev/core/graph-scope';
 import { CORE_GRAPH_EDGE_TYPES, CORE_GRAPH_NODE_TYPES } from './definitions';
 
 function mapDefaults<TValue>(

@@ -68,6 +68,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@codegraphy-dev/core/graph-scope': resolve(__dirname, '../core/src/graphScope/defaults.ts'),
       '@codegraphy-dev/core': resolve(__dirname, '../core/src/index.ts'),
       '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
       '@': resolve(__dirname, 'src'),

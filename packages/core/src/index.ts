@@ -6,7 +6,7 @@ export { parseCliCommand } from './cli/parse';
 export {
   CORE_GRAPH_EDGE_DEFAULT_VISIBILITY,
   CORE_GRAPH_EDGE_TYPES,
-} from './workspace/graphScopeSettings';
+} from './graphScope/defaults';
 export type {
   DiagnosticContextValue,
   DiagnosticEvent,
