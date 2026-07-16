@@ -31,6 +31,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
     particleSpeed: 0.005,
     physicsSettings: DEFAULT_PHYSICS_SETTINGS,
     showFps: false,
+    showMinimap: true,
     sharedProps: {
       graphData: { nodes: [], links: [] },
       onBackgroundClick: vi.fn(),

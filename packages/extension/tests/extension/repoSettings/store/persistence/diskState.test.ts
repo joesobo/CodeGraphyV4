@@ -63,6 +63,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     const state = readSettingsFromDisk(settingsPath, defaults);
 
     expect(state.settings.maxFiles).toBe(250);
+    expect(state.settings.showMinimap).toBe(true);
     expect(state.settings.filterPatterns).toEqual(['**/*.png']);
     expect(state.settings.legend).toEqual([{ id: 'legend:node:src:1', pattern: 'src/**', color: '#123456' }]);
     expect(state.serializedSettings).toBe(fs.readFileSync(settingsPath, 'utf8'));
@@ -70,6 +71,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"exclude"');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"edgeColors"');
     expect(fs.readFileSync(settingsPath, 'utf8')).toContain('codegraphy.markdown');
+    expect(fs.readFileSync(settingsPath, 'utf8')).toContain('"showMinimap": true');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('legacy.plugin');
   });
 

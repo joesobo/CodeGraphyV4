@@ -15,6 +15,7 @@ describe('extension/repoSettings/defaults', () => {
       version: 2,
       maxFiles: DEFAULT_MAX_FILES,
       showFps: false,
+      showMinimap: true,
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,

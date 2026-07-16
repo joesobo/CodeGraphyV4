@@ -198,7 +198,7 @@ export function createCallbacks() {
 
 export function createViewState(): Pick<
   GraphViewStoreState,
-  'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'showFps' | 'showLabels'
+  'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'showFps' | 'showLabels' | 'showMinimap'
 > {
   const physicsSettings: IPhysicsSettings = {
     centerForce: 0.1,
@@ -219,6 +219,7 @@ export function createViewState(): Pick<
     pluginContextMenuItems: [],
     showFps: false,
     showLabels: true,
+    showMinimap: true,
   };
 }
 

@@ -16,6 +16,7 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
+    showMinimap: true,
     graphHasIndex: false,
     graphIsIndexing: false,
     graphIndexProgress: null,
@@ -65,6 +66,18 @@ describe('DisplaySection', () => {
     expect(screen.getByRole('button', { name: /^Particles$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
     expect(screen.queryByText('Renderer')).not.toBeInTheDocument();
+  });
+
+  it('updates and persists the minimap display setting', () => {
+    renderContent({ showMinimap: true });
+
+    fireEvent.click(screen.getByLabelText('Show Minimap'));
+
+    expect(graphStore.getState().showMinimap).toBe(false);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_SHOW_MINIMAP',
+      payload: { showMinimap: false },
+    });
   });
 
   it('posts depth mode and depth limit updates from Display settings', () => {

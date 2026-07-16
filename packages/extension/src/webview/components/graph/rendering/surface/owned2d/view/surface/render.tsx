@@ -184,6 +184,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     clearLinkHover,
     nodeHoverRef,
     performanceMonitorRef,
+    minimapSchedulerRef,
     pluginForcesRef,
     props.fg2dRef,
     simulationClockRef,
@@ -217,6 +218,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useOwnedPerformancePresentation(props.showFps, performanceMonitorRef, fpsOutputRef);
 
   useEffect(() => {
+    if (!props.showMinimap) {
+      minimapBoundsRef.current = null;
+      minimapProjectionRef.current = null;
+      minimapNavigationSessionRef.current = null;
+      return;
+    }
     const renderer = gpuRendererRef.current;
     const minimapCanvas = minimapCanvasRef.current;
     if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
@@ -226,9 +233,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     requestFrameRef.current();
     return () => {
       minimapSurfaceRegisteredRef.current = false;
-      if (gpuRendererRef.current === renderer) renderer.setSecondarySurface(undefined);
+      renderer.setSecondarySurface(undefined);
     };
-  }, [minimapSchedulerRef, rendererStatus]);
+  }, [minimapSchedulerRef, props.showMinimap, rendererStatus]);
 
   useEffect(() => {
     requestFrameRef.current();
@@ -292,14 +299,14 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
       />
-      <OwnedGraphMinimap
+      {props.showMinimap ? <OwnedGraphMinimap
         canvasRef={minimapCanvasRef}
         overlayRef={minimapOverlayRef}
         panelRef={minimapPanelRef}
         viewportBoxRef={minimapViewportBoxRef}
         directionIndicatorRef={minimapDirectionIndicatorRef}
         interactionHandlers={minimapInteractionHandlers}
-      />
+      /> : null}
       <OwnedGraphStatusOverlays error={rendererError} fpsOutputRef={fpsOutputRef}
         performanceSample={performanceSample} tooltip={linkTooltip} width={props.sharedProps.width ?? 0} />
     </div>

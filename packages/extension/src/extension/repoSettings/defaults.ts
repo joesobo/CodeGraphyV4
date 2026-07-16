@@ -1,7 +1,7 @@
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
 import type { NodeSizeMode } from '../../shared/settings/modes';
-import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
+import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 import {
   DEFAULT_PHYSICS_SETTINGS,
   type IPhysicsSettings,
@@ -20,6 +20,7 @@ export interface ICodeGraphyRepoSettings {
   version: 2;
   maxFiles: number;
   showFps: boolean;
+  showMinimap: boolean;
   verboseDiagnostics: boolean;
   include: string[];
   respectGitignore: boolean;
@@ -54,6 +55,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     version: 2,
     maxFiles: DEFAULT_MAX_FILES,
     showFps: false,
+    showMinimap: DEFAULT_SHOW_MINIMAP,
     verboseDiagnostics: false,
     include: ['**/*'],
     respectGitignore: true,

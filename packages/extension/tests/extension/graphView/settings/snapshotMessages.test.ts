@@ -56,6 +56,7 @@ describe('graphView/settings/snapshotMessages', () => {
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
       showFps: false,
+      showMinimap: true,
       verboseDiagnostics: false,
       nodeSizeMode: 'connections',
     });
@@ -83,6 +84,7 @@ describe('graphView/settings/snapshotMessages', () => {
         showLabels: false,
         maxFiles: 250,
         showFps: true,
+        showMinimap: false,
         verboseDiagnostics: true,
       }),
       {
@@ -124,6 +126,7 @@ describe('graphView/settings/snapshotMessages', () => {
       showLabels: false,
       maxFiles: 250,
       showFps: true,
+      showMinimap: false,
       verboseDiagnostics: true,
       nodeSizeMode: 'file-size',
     });
@@ -139,11 +142,16 @@ describe('graphView/settings/snapshotMessages', () => {
         particleSize: 6,
         directionColor: '#00FF00',
         showLabels: false,
+        showMinimap: false,
       }),
     ).toEqual([
       {
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'combined', showOrphans: false },
+        payload: {
+          bidirectionalEdges: 'combined',
+          showMinimap: false,
+          showOrphans: false,
+        },
       },
       {
         type: 'DIRECTION_SETTINGS_UPDATED',
@@ -191,6 +199,7 @@ describe('graphView/settings/snapshotMessages', () => {
             'acme.plugin': { enabled: true },
           },
           showLabels: false,
+          showMinimap: false,
           maxFiles: 250,
           showFps: true,
           verboseDiagnostics: true,
@@ -212,7 +221,11 @@ describe('graphView/settings/snapshotMessages', () => {
         },
         {
           type: 'SETTINGS_UPDATED',
-          payload: { bidirectionalEdges: 'combined', showOrphans: false },
+          payload: {
+            bidirectionalEdges: 'combined',
+            showMinimap: false,
+            showOrphans: false,
+          },
         },
         {
           type: 'DIRECTION_SETTINGS_UPDATED',
