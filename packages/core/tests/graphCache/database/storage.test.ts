@@ -45,7 +45,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     );
   });
 
-  it('persists and reloads file analysis entries from .codegraphy/graph.lbug', () => {
+  it('persists and reloads file analysis entries from .codegraphy/graph.sqlite', () => {
     const workspaceRoot = createWorkspaceRoot();
     const cache: IWorkspaceAnalysisCache = {
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
@@ -80,6 +80,9 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
 
+    expect(getWorkspaceAnalysisDatabasePath(workspaceRoot)).toBe(
+      path.join(workspaceRoot, '.codegraphy', 'graph.sqlite'),
+    );
     expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(true);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({

@@ -1,4 +1,3 @@
-import type * as lb from '@ladybugdb/core';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import {
   executeStatementAsync,
@@ -6,27 +5,32 @@ import {
   prepareStatementAsync,
   prepareStatementSync,
 } from '../io/connection';
+import type {
+  SQLiteConnection,
+  SQLiteStatement,
+  SQLiteValue,
+} from '../io/connection';
 
-const CREATE_FILE_ANALYSIS_STATEMENT = 'CREATE (entry:FileAnalysis {filePath: $filePath, mtime: $mtime, size: $size, analysis: $analysis})';
-const DELETE_FILE_ANALYSIS_STATEMENT = 'MATCH (entry:FileAnalysis {filePath: $filePath}) DELETE entry';
-const DELETE_SYMBOL_STATEMENT = 'MATCH (entry:Symbol {filePath: $filePath}) DELETE entry';
-const DELETE_RELATION_STATEMENT = 'MATCH (entry:Relation {filePath: $filePath}) DELETE entry';
+const CREATE_FILE_ANALYSIS_STATEMENT = 'INSERT INTO FileAnalysis(filePath, mtime, size, analysis) VALUES (@filePath, @mtime, @size, @analysis)';
+const DELETE_FILE_ANALYSIS_STATEMENT = 'DELETE FROM FileAnalysis WHERE filePath = @filePath';
+const DELETE_SYMBOL_STATEMENT = 'DELETE FROM Symbol WHERE filePath = @filePath';
+const DELETE_RELATION_STATEMENT = 'DELETE FROM Relation WHERE filePath = @filePath';
 
 export interface WorkspaceAnalysisCacheWriter {
-  connection: lb.Connection;
-  fileAnalysisStatement: lb.PreparedStatement;
+  connection: SQLiteConnection;
+  fileAnalysisStatement: SQLiteStatement;
 }
 
 export interface WorkspaceAnalysisCachePatchWriter extends WorkspaceAnalysisCacheWriter {
-  deleteFileAnalysisStatement: lb.PreparedStatement;
-  deleteSymbolStatement: lb.PreparedStatement;
-  deleteRelationStatement: lb.PreparedStatement;
+  deleteFileAnalysisStatement: SQLiteStatement;
+  deleteSymbolStatement: SQLiteStatement;
+  deleteRelationStatement: SQLiteStatement;
 }
 
 function createFileAnalysisParams(
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
-): Record<string, lb.LbugValue> {
+): Record<string, SQLiteValue> {
   return {
     filePath,
     mtime: entry.mtime ?? 0,
@@ -42,7 +46,7 @@ export function sortedCacheEntries(
 }
 
 export function createWorkspaceAnalysisCacheWriter(
-  connection: lb.Connection,
+  connection: SQLiteConnection,
 ): WorkspaceAnalysisCacheWriter {
   return {
     connection,
@@ -51,7 +55,7 @@ export function createWorkspaceAnalysisCacheWriter(
 }
 
 export function createWorkspaceAnalysisCachePatchWriter(
-  connection: lb.Connection,
+  connection: SQLiteConnection,
 ): WorkspaceAnalysisCachePatchWriter {
   return {
     ...createWorkspaceAnalysisCacheWriter(connection),
@@ -62,7 +66,7 @@ export function createWorkspaceAnalysisCachePatchWriter(
 }
 
 export async function createWorkspaceAnalysisCacheWriterAsync(
-  connection: lb.Connection,
+  connection: SQLiteConnection,
 ): Promise<WorkspaceAnalysisCacheWriter> {
   const fileAnalysisStatement = await prepareStatementAsync(connection, CREATE_FILE_ANALYSIS_STATEMENT);
   return {
@@ -91,8 +95,8 @@ export function deleteAnalysisEntry(
 
 async function executeStatementAndYield(
   writer: WorkspaceAnalysisCacheWriter,
-  preparedStatement: lb.PreparedStatement,
-  params: Record<string, lb.LbugValue>,
+  preparedStatement: SQLiteStatement,
+  params: Record<string, SQLiteValue>,
   afterStatement: () => Promise<void>,
 ): Promise<void> {
   await executeStatementAsync(writer.connection, preparedStatement, params);

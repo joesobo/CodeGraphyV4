@@ -17,31 +17,31 @@ const EXTENSION_PACKAGE_ROOT = path.resolve(
 );
 
 describe('runtime package build support', () => {
-  it('resolves the installed Ladybug package root', () => {
-    const packageRootPath = resolveRuntimePackageRootPath('@ladybugdb/core');
+  it('resolves the installed SQLite package root', () => {
+    const packageRootPath = resolveRuntimePackageRootPath('better-sqlite3');
 
-    expect(path.basename(packageRootPath)).toBe('core');
+    expect(path.basename(packageRootPath)).toBe('better-sqlite3');
     expect(fs.existsSync(path.join(packageRootPath, 'package.json'))).toBe(true);
   });
 
   it('copies a scoped runtime package into dist/node_modules', () => {
     const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-build-'));
     const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
-    const sourcePackageRootPath = path.join(tempDirectoryPath, 'vendor', '@ladybugdb', 'core');
+    const sourcePackageRootPath = path.join(tempDirectoryPath, 'vendor', 'better-sqlite3');
     const sourcePackageJsonPath = path.join(sourcePackageRootPath, 'package.json');
 
     fs.mkdirSync(sourcePackageRootPath, { recursive: true });
-    fs.writeFileSync(sourcePackageJsonPath, '{"name":"@ladybugdb/core"}');
+    fs.writeFileSync(sourcePackageJsonPath, '{"name":"better-sqlite3"}');
 
     const copiedPackageRootPath = copyRuntimePackage(
       outputFilePath,
-      '@ladybugdb/core',
+      'better-sqlite3',
       () => sourcePackageRootPath,
     );
 
-    expect(copiedPackageRootPath).toBe(getVendoredPackageRootPath(outputFilePath, '@ladybugdb/core'));
+    expect(copiedPackageRootPath).toBe(getVendoredPackageRootPath(outputFilePath, 'better-sqlite3'));
     expect(fs.readFileSync(path.join(copiedPackageRootPath, 'package.json'), 'utf8')).toBe(
-      '{"name":"@ladybugdb/core"}',
+      '{"name":"better-sqlite3"}',
     );
   });
 
@@ -126,7 +126,7 @@ describe('runtime package build support', () => {
     expect(EXTENSION_EXTERNAL_PACKAGE_NAMES).toEqual(
       expect.arrayContaining([
         'vscode',
-        '@ladybugdb/core',
+        'better-sqlite3',
         'tree-sitter',
       ]),
     );

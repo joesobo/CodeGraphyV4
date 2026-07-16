@@ -66,9 +66,9 @@ export function saveWorkspaceAnalysisDatabaseCache(
 
   try {
     withConnection(tempDatabasePath, (connection) => {
-      runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
+      runStatementSync(connection, 'DELETE FROM FileAnalysis');
+      runStatementSync(connection, 'DELETE FROM Symbol');
+      runStatementSync(connection, 'DELETE FROM Relation');
 
       const writer = createWorkspaceAnalysisCacheWriter(connection);
       for (const [filePath, entry] of sortedCacheEntries(cache)) {
@@ -120,8 +120,8 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   }
 
   withConnection(databasePath, (connection) => {
-    runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-    runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-    runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
+    runStatementSync(connection, 'DELETE FROM FileAnalysis');
+    runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Relation');
   });
 }

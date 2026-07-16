@@ -4,7 +4,7 @@ packages:
   - "examples/*"
 allowBuilds:
   '@driftlog/tree-sitter-dart': true
-  '@ladybugdb/core': true
+  better-sqlite3: true
   '@tree-sitter-grammars/tree-sitter-kotlin': true
   '@tree-sitter-grammars/tree-sitter-lua': true
   '@vscode/vsce-sign': true

@@ -35,9 +35,9 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
 
   try {
     await withConnectionAsync(tempDatabasePath, async (connection) => {
-      await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
+      await runStatementAsync(connection, 'DELETE FROM FileAnalysis');
+      await runStatementAsync(connection, 'DELETE FROM Symbol');
+      await runStatementAsync(connection, 'DELETE FROM Relation');
       const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
       let current = 0;

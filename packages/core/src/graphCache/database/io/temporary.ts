@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 
-const DATABASE_SIDECAR_SUFFIXES = ['.wal'];
+const DATABASE_SIDECAR_SUFFIXES = ['-wal', '-shm', '-journal'];
 
 function getDatabaseSidecarPaths(databasePath: string): string[] {
   return DATABASE_SIDECAR_SUFFIXES.map(suffix => `${databasePath}${suffix}`);

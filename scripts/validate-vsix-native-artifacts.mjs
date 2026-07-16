@@ -12,7 +12,7 @@ const expectedNativeBinaryByTarget = {
 };
 
 const nativeBinaryPaths = [
-  'extension/dist/node_modules/@ladybugdb/core/lbugjs.node',
+  'extension/dist/node_modules/better-sqlite3/build/Release/better_sqlite3.node',
   'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
 ];
 

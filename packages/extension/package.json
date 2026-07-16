@@ -33,7 +33,7 @@
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@floating-ui/react": "^0.27.19",
-    "@ladybugdb/core": "^0.15.3",
+    "better-sqlite3": "12.11.1",
     "@mdi/js": "^7.4.47",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-context-menu": "^2.2.16",

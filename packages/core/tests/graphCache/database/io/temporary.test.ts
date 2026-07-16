@@ -28,30 +28,32 @@ afterEach(() => {
 describe('graphCache/database/io/temporary', () => {
   it('cleans up temporary database sidecar files', () => {
     const directory = createTestDirectory();
-    const tempDatabasePath = path.join(directory, 'graph.lbug.123.tmp');
+    const tempDatabasePath = path.join(directory, 'graph.sqlite.123.tmp');
     writeFile(tempDatabasePath, 'temp database');
-    writeFile(`${tempDatabasePath}.wal`, 'temp wal');
+    writeFile(`${tempDatabasePath}-wal`, 'temp wal');
+    writeFile(`${tempDatabasePath}-shm`, 'temp shm');
 
     cleanupTemporaryDatabase(tempDatabasePath);
 
     expect(fs.existsSync(tempDatabasePath)).toBe(false);
-    expect(fs.existsSync(`${tempDatabasePath}.wal`)).toBe(false);
+    expect(fs.existsSync(`${tempDatabasePath}-wal`)).toBe(false);
+    expect(fs.existsSync(`${tempDatabasePath}-shm`)).toBe(false);
   });
 
   it('replaces database sidecar files with temporary sidecars', () => {
     const directory = createTestDirectory();
-    const databasePath = path.join(directory, 'graph.lbug');
-    const tempDatabasePath = path.join(directory, 'graph.lbug.123.tmp');
+    const databasePath = path.join(directory, 'graph.sqlite');
+    const tempDatabasePath = path.join(directory, 'graph.sqlite.123.tmp');
     writeFile(databasePath, 'old database');
-    writeFile(`${databasePath}.wal`, 'old wal');
+    writeFile(`${databasePath}-wal`, 'old wal');
     writeFile(tempDatabasePath, 'new database');
-    writeFile(`${tempDatabasePath}.wal`, 'new wal');
+    writeFile(`${tempDatabasePath}-wal`, 'new wal');
 
     replaceDatabaseCache(tempDatabasePath, databasePath);
 
     expect(fs.readFileSync(databasePath, 'utf8')).toBe('new database');
-    expect(fs.readFileSync(`${databasePath}.wal`, 'utf8')).toBe('new wal');
+    expect(fs.readFileSync(`${databasePath}-wal`, 'utf8')).toBe('new wal');
     expect(fs.existsSync(tempDatabasePath)).toBe(false);
-    expect(fs.existsSync(`${tempDatabasePath}.wal`)).toBe(false);
+    expect(fs.existsSync(`${tempDatabasePath}-wal`)).toBe(false);
   });
 });
