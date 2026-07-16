@@ -1,7 +1,7 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IPluginStatus } from '../../../../shared/plugins/status';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { ExportBuildContext, ExportData } from '../../shared/contracts';
+import type { ExportData } from '../../shared/contracts';
 import { buildExportEdges } from './edges';
 import { buildExportLegend } from './legend';
 import { buildExportNodes } from './nodes';
@@ -23,7 +23,6 @@ export function buildExportData(
   graphData: IGraphData,
   legends: IGroup[],
   pluginStatuses: IPluginStatus[] = [],
-  context: ExportBuildContext = {},
 ): ExportData {
   const activeLegendRules = legends.filter((group) => !group.disabled);
   const pluginNames = new Map(pluginStatuses.map((plugin) => [plugin.id, plugin.name]));
@@ -37,10 +36,6 @@ export function buildExportData(
     exportedAt: new Date().toISOString(),
     scope: {
       graph: 'current-view',
-      timeline: {
-        active: Boolean(context.timelineActive),
-        commitSha: context.timelineActive ? (context.currentCommitSha ?? null) : null,
-      },
     },
     summary: buildExportSummary(nodes, edges, legend),
     legend,

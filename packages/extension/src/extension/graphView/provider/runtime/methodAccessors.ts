@@ -38,9 +38,6 @@ export function defineGraphViewProviderMethodAccessors(
     _settingsStateMethods: {
       get: () => target._methodContainers.settingsState,
     },
-    _timelineMethods: {
-      get: () => target._methodContainers.timeline,
-    },
     _viewContextMethods: {
       get: () => target._methodContainers.viewContext,
     },

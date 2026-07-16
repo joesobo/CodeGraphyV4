@@ -6,10 +6,7 @@ export const DEFAULT_GRAPH_APPEARANCE: GraphAppearance = {
   labelMutedForeground: 'GrayText',
   linkHighlight: 'Highlight',
   linkMuted: 'GrayText',
-  meshDimmed: 'GrayText',
-  meshSelected: 'CanvasText',
   nodeSelectionBorder: 'Highlight',
   stageBackground: 'Canvas',
-  stageBorder: 'GrayText',
   transparent: 'transparent',
 };

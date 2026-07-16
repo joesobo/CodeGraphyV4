@@ -1,17 +1,8 @@
 import type { GraphKeyboardCommand } from './effects';
 import { createStoreMessageCommand } from './command/builders';
 
-function getToolbarShortcutMessageType(key: string): 'TOGGLE_DEPTH_MODE' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION' | null {
-  switch (key.toLowerCase()) {
-    case 'v':
-      return 'TOGGLE_DEPTH_MODE';
-    case 'l':
-      return 'CYCLE_LAYOUT';
-    case 't':
-      return 'TOGGLE_DIMENSION';
-    default:
-      return null;
-  }
+function getToolbarShortcutMessageType(key: string): 'TOGGLE_DEPTH_MODE' | null {
+  return key.toLowerCase() === 'v' ? 'TOGGLE_DEPTH_MODE' : null;
 }
 
 export function getToolbarShortcutCommand(

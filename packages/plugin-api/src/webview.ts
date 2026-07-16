@@ -17,7 +17,6 @@ export type GraphPluginSlot =
   | 'graph.stage.viewportOverlay'
   | 'node-details'
   | 'tooltip'
-  | 'timeline-panel'
   | 'graph-overlay';
 
 export type WebviewPluginActivationCleanup = void | (() => void) | Disposable;
@@ -72,13 +71,11 @@ export interface GraphViewViewportNode extends Partial<IGraphViewNodeDragState> 
 export type GraphViewViewportNodeUpdate = Partial<IGraphViewNodeDragState> & Record<string, unknown>;
 
 export interface GraphViewViewportState {
-  graphMode: '2d' | '3d';
   graphToScreen(x: number, y: number): GraphViewPoint2D;
   nodes: readonly GraphViewViewportNode[];
   reheatSimulation(): void;
   resumeAnimation(): void;
   screenToGraph(x: number, y: number): GraphViewPoint2D;
-  timelineActive: boolean;
   updateNode(nodeId: string, updates: GraphViewViewportNodeUpdate): boolean;
   zoom: number;
 }
@@ -107,7 +104,9 @@ export interface BadgeOptions {
   text: string;
   x: number;
   y: number;
+  /** CSS color resolved in the Graph View theme context. */
   color?: string;
+  /** CSS color resolved in the Graph View theme context. */
   bgColor?: string;
   fontSize?: number;
 }
@@ -116,6 +115,7 @@ export interface RingOptions {
   x: number;
   y: number;
   radius: number;
+  /** CSS color resolved in the Graph View theme context. */
   color: string;
   width?: number;
   progress?: number;
@@ -125,6 +125,7 @@ export interface LabelOptions {
   text: string;
   x: number;
   y: number;
+  /** CSS color resolved in the Graph View theme context. */
   color?: string;
   fontSize?: number;
   align?: CanvasTextAlign;

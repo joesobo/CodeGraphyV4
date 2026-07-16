@@ -7,18 +7,12 @@ import {
   isDoubleNodeClick,
 } from './doubleClick';
 import { getNodeSingleClickCommand } from './singleClick/command';
-
-function isMacControlContextAction(
-  ctrlKey: boolean,
-  isMacPlatform: boolean,
-): boolean {
-  return isMacPlatform && ctrlKey;
-}
+import { isMacControlClick } from '../../support/modifiers';
 
 export function getNodeClickCommand(
   options: GraphNodeClickOptions,
 ): GraphNodeClickCommand {
-  if (isMacControlContextAction(options.ctrlKey, options.isMacPlatform)) {
+  if (isMacControlClick(options.ctrlKey, options.isMacPlatform)) {
     return {
       nextLastClick: options.lastClick,
       effects: [{ kind: 'openNodeContextMenu', nodeId: options.nodeId }],

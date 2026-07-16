@@ -3,7 +3,7 @@ import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/cont
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { createGraphStore } from '../../../../src/webview/store/state';
-import { clearSentMessages, findMessage } from '../../../helpers/sentMessages';
+import { clearSentMessages } from '../../../helpers/sentMessages';
 
 describe('GraphStore message routing', () => {
   let store: ReturnType<typeof createGraphStore>;
@@ -11,15 +11,6 @@ describe('GraphStore message routing', () => {
   beforeEach(() => {
     store = createGraphStore();
     clearSentMessages();
-  });
-
-  it('handles PLAYBACK_SPEED_UPDATED messages', () => {
-    store.getState().handleExtensionMessage({
-      type: 'PLAYBACK_SPEED_UPDATED',
-      payload: { speed: 1.75 },
-    });
-
-    expect(store.getState().playbackSpeed).toBe(1.75);
   });
 
   it('handles DECORATIONS_UPDATED messages', () => {
@@ -247,9 +238,7 @@ describe('GraphStore message routing', () => {
           ],
         },
       ],
-      playbackSpeed: 2,
-      dagMode: 'td',
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
     });
 
     store.getState().handleExtensionMessage({
@@ -285,47 +274,16 @@ describe('GraphStore message routing', () => {
         ],
       },
     ]);
-    expect(store.getState().playbackSpeed).toBe(2);
-    expect(store.getState().dagMode).toBe('td');
-    expect(store.getState().nodeSizeMode).toBe('uniform');
+    expect(store.getState().nodeSizeMode).toBe('connections');
   });
 
   it('handles NODE_SIZE_MODE_UPDATED messages', () => {
     store.getState().handleExtensionMessage({
       type: 'NODE_SIZE_MODE_UPDATED',
-      payload: { nodeSizeMode: 'churn' },
+      payload: { nodeSizeMode: 'file-size' },
     });
 
-    expect(store.getState().nodeSizeMode).toBe('churn');
+    expect(store.getState().nodeSizeMode).toBe('file-size');
   });
 
-  it('CACHE_INVALIDATED clears indexing progress as well as timeline state', () => {
-    store.setState({
-      timelineActive: true,
-      timelineCommits: [
-        { sha: 'aaa', timestamp: 1, message: 'commit', author: 'a', parents: [] },
-      ],
-      currentCommitSha: 'aaa',
-      isPlaying: true,
-      isIndexing: true,
-      indexProgress: { phase: 'indexing', current: 1, total: 10 },
-    });
-
-    store.getState().handleExtensionMessage({ type: 'CACHE_INVALIDATED' });
-
-    expect(store.getState().timelineActive).toBe(false);
-    expect(store.getState().timelineCommits).toEqual([]);
-    expect(store.getState().currentCommitSha).toBeNull();
-    expect(store.getState().isPlaying).toBe(false);
-    expect(store.getState().isIndexing).toBe(false);
-    expect(store.getState().indexProgress).toBeNull();
-  });
-
-  it('CYCLE_LAYOUT falls back to free-form when dagMode is outside the cycle', () => {
-    store.setState({ dagMode: 'invalid-mode' as never });
-
-    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-
-    expect(findMessage('UPDATE_DAG_MODE')?.payload.dagMode).toBeNull();
-  });
 });

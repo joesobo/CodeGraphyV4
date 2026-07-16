@@ -12,12 +12,10 @@ These shortcuts work when the Graph View is focused and no text input is active.
 | `Ctrl+A` / `Cmd+A` | Select all nodes |
 | `Escape` | Deselect all nodes |
 | `Enter` | Open selected node(s) in editor |
-| `Ctrl+Click` | Add/remove node from selection |
+| `Cmd+Click` (macOS) / `Ctrl+Click` (Windows and Linux) | Add/remove node from selection |
 | `Shift+Drag` | Box selection |
 | `V` | Toggle Depth Mode |
-| `L` | Cycle layout (Default → Radial → Top Down → Left to Right) |
-| `T` | Toggle 2D/3D mode |
-| `Right-click` | Open context menu |
+| `Right-click` and release without dragging | Open context menu |
 
 ## VS Code commands
 
@@ -32,8 +30,6 @@ These are registered as VS Code commands and appear in the Command Palette (`Ctr
 | `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo | CodeGraphy panel visible, no text input |
 | `Ctrl+Y` | Redo (alternate) | CodeGraphy panel visible, no text input |
 | `V` | Toggle Depth Mode | Graph focused |
-| `L` | Cycle Layout | Graph focused |
-| `T` | Toggle 2D/3D | Graph focused |
 
 Undo/Redo only fire when the CodeGraphy panel is active and no editor or input field has focus, so they won't conflict with normal editor undo/redo.
 

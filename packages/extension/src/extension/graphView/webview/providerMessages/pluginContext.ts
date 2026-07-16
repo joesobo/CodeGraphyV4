@@ -22,7 +22,6 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendGraphControls'
   | 'sendFavorites'
   | 'sendSettings'
-  | 'sendCachedTimeline'
   | 'sendDecorations'
   | 'sendContextMenuItems'
   | 'sendPluginExporters'
@@ -63,7 +62,6 @@ export function createGraphViewProviderMessagePluginContext(
     sendGraphControls: () => source._sendGraphControls?.(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
-    sendCachedTimeline: () => source._sendCachedTimeline(),
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),
     sendPluginExporters: () => source._sendPluginExporters?.(),

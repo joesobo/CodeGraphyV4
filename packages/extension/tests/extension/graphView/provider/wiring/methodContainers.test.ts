@@ -12,7 +12,6 @@ const mockedFactories = vi.hoisted(() => {
   const query = { kind: 'query' };
   const refresh = { kind: 'refresh' };
   const settingsState = { kind: 'settingsState' };
-  const timeline = { kind: 'timeline' };
   const viewContext = { kind: 'viewContext' };
   const viewSelection = { kind: 'viewSelection' };
   const webview = { kind: 'webview' };
@@ -29,7 +28,6 @@ const mockedFactories = vi.hoisted(() => {
     query,
     refresh,
     settingsState,
-    timeline,
     viewContext,
     viewSelection,
     webview,
@@ -44,7 +42,6 @@ const mockedFactories = vi.hoisted(() => {
     createGraphViewProviderQueryMethods: vi.fn(() => query),
     createGraphViewProviderRefreshMethods: vi.fn(() => refresh),
     createGraphViewProviderSettingsStateMethods: vi.fn(() => settingsState),
-    createGraphViewProviderTimelineMethods: vi.fn(() => timeline),
     createGraphViewProviderViewContextMethods: vi.fn(() => viewContext),
     createGraphViewProviderViewSelectionMethods: vi.fn(() => viewSelection),
     createGraphViewProviderWebviewMethods: vi.fn(() => webview),
@@ -86,9 +83,6 @@ vi.mock('../../../../../src/extension/graphView/provider/refresh', () => ({
 vi.mock('../../../../../src/extension/graphView/provider/settingsState', () => ({
   createGraphViewProviderSettingsStateMethods:
     mockedFactories.createGraphViewProviderSettingsStateMethods,
-}));
-vi.mock('../../../../../src/extension/graphView/provider/timeline/methods', () => ({
-  createGraphViewProviderTimelineMethods: mockedFactories.createGraphViewProviderTimelineMethods,
 }));
 vi.mock('../../../../../src/extension/graphView/provider/view/context', () => ({
   createGraphViewProviderViewContextMethods:
@@ -145,9 +139,6 @@ describe('graphView/provider/wiring/methodContainers', () => {
     expect(mockedFactories.createGraphViewProviderSettingsStateMethods).toHaveBeenCalledWith(
       mockedFactories.methodSource,
     );
-    expect(mockedFactories.createGraphViewProviderTimelineMethods).toHaveBeenCalledWith(
-      mockedFactories.methodSource,
-    );
     expect(mockedFactories.createGraphViewProviderViewContextMethods).toHaveBeenCalledWith(
       mockedFactories.methodSource,
     );
@@ -168,7 +159,6 @@ describe('graphView/provider/wiring/methodContainers', () => {
       query: mockedFactories.query,
       refresh: mockedFactories.refresh,
       settingsState: mockedFactories.settingsState,
-      timeline: mockedFactories.timeline,
       viewContext: mockedFactories.viewContext,
       viewSelection: mockedFactories.viewSelection,
       webview: mockedFactories.webview,

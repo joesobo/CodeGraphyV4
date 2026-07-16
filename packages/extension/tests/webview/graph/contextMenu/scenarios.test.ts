@@ -47,7 +47,6 @@ describe('graph/contextMenu product scenarios', () => {
   it('shows live background creation actions enabled', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     });
@@ -57,53 +56,10 @@ describe('graph/contextMenu product scenarios', () => {
     expectBuiltInDisabled(entries, 'createFolder', false);
   });
 
-  it('keeps historical background creation actions visible but disabled', () => {
-    const entries = buildGraphContextMenuEntries({
-      selection: makeBackgroundContextSelection(),
-      timelineActive: true,
-      mutationAvailability: 'disabled',
-      favorites: new Set(),
-      pluginItems: [],
-    });
 
-    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
-    expectBuiltInDisabled(entries, 'createFile', true);
-    expectBuiltInDisabled(entries, 'createFolder', true);
-    expectBuiltInDisabled(entries, 'refresh', false);
-    expectBuiltInDisabled(entries, 'fitView', false);
-  });
-
-  it('leaves historical File Nodes inspectable but not mutable', () => {
-    const entries = buildGraphContextMenuEntries({
-      selection: makeNodeContextSelection('src/app.ts', new Set<string>()),
-      timelineActive: true,
-      mutationAvailability: 'disabled',
-      favorites: new Set(['src/app.ts']),
-      pluginItems: [],
-    });
-
-    expect(labels(entries)).toEqual([
-      'Open File',
-      'Copy Relative Path',
-      'Copy Absolute Path',
-      'Remove from Favorites',
-      'Focus Node',
-      'Add Filter Pattern',
-      'Add Legend Group',
-      'Rename',
-      'Delete File',
-    ]);
-    expectBuiltInDisabled(entries, 'open', false);
-    expectBuiltInDisabled(entries, 'copyRelative', false);
-    expectBuiltInDisabled(entries, 'toggleFavorite', false);
-    expectBuiltInDisabled(entries, 'rename', true);
-    expectBuiltInDisabled(entries, 'delete', true);
-  });
-
-  it('offers Folder Node child creation and folder mutation in the current Graph Revision', () => {
+  it('offers folder-node child creation and mutation when available', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set<string>()),
-      timelineActive: false,
       favorites: new Set<string>(),
       pluginItems: [],
       nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
@@ -127,7 +83,6 @@ describe('graph/contextMenu product scenarios', () => {
     );
     const entries = buildGraphContextMenuEntries({
       selection,
-      timelineActive: false,
       favorites: new Set<string>(),
       pluginItems: [],
     });
@@ -150,8 +105,6 @@ describe('graph/contextMenu product scenarios', () => {
   it('limits mixed node selections to bulk-safe actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src'])),
-      timelineActive: true,
-      mutationAvailability: 'disabled',
       favorites: new Set<string>(),
       pluginItems: [],
       nodes: [
@@ -170,6 +123,6 @@ describe('graph/contextMenu product scenarios', () => {
     expect(labels(entries)).not.toContain('Focus Node');
     expect(labels(entries)).not.toContain('Rename');
     expect(labels(entries)).not.toContain('Add Legend Group');
-    expectBuiltInDisabled(entries, 'delete', true);
+    expectBuiltInDisabled(entries, 'delete', false);
   });
 });

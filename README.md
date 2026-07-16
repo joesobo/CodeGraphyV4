@@ -30,6 +30,8 @@
   <a href="https://www.npmjs.com/package/@codegraphy-dev/mcp">MCP</a>
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-api">Plugin API</a>
+  ·
+  <a href="https://www.npmjs.com/package/@codegraphy-dev/graph-renderer">Graph Renderer</a>
 </p>
 
 CodeGraphy turns a folder into an interactive Relationship Graph inside VS Code. It starts with File Nodes, then Indexing adds richer Edges from imports, references, calls, tests, folder/package structure, and plugin-provided analysis. The goal is simple: make the relationships between files visible enough that people and agents can navigate a CodeGraphy Workspace without guessing.
@@ -49,8 +51,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Material Icon Theme nodes | File and folder nodes use Material Icon Theme shapes and colors instead of generic dots. |
 | VS Code theme integration | Graph surfaces, panels, buttons, text, and directional arrows follow the active VS Code color theme. |
 | CSS Snippets | Load workspace-local CSS files from `.codegraphy/settings.json`, then toggle configured snippets from the Themes panel. |
-| 2D and 3D renderers | Use the fast 2D canvas for everyday work or switch to 3D WebGL when the shape of the repo matters. |
-| Timeline | Index Git history and scrub through how the Relationship Graph changes over commits. |
+| Custom graph renderer | CodeGraphy's own WebGPU renderer and deterministic WebAssembly physics keep large graphs responsive and configurable. |
 | Context actions | Preview, open, reveal, rename, delete, favorite, filter, and export directly from the graph. |
 | Graph Cache | Store workspace-local analysis and settings in `.codegraphy/` so graph behavior stays with the CodeGraphy Workspace. |
 | CodeGraphy MCP | Let agents index and query nodes, edges, relationships, symbols, and bounded paths through `@codegraphy-dev/core` without focusing VS Code. |
@@ -61,23 +62,15 @@ This repo is a work in progress and is being built through agentic engineering. 
 |:--:|
 | ![Search and filter controls with plugin defaults collapsed](./docs/media/readme/search-filter-panel.png) |
 
-| VS Code Theme Integration |
-|:--:|
-| ![CodeGraphy using VS Code theme colors in the activity bar, sidebar panels, graph background, timeline, and controls](./docs/media/readme/vscode-theme-integration.png) |
-
 | Symbol Nodes |
 |:--:|
 | ![CodeGraphy Relationship Graph showing a repository expanded with colorful symbol nodes around file and folder nodes](./docs/media/readme/symbol-nodes-graph.png) |
 
-| 2D Relationship Graph | 3D Relationship Graph |
-|:--:|:--:|
-| ![2D Relationship Graph with Material Icon Theme nodes](./docs/media/readme/relationship-graph-2d.png) | ![3D Relationship Graph with file labels and depth](./docs/media/readme/relationship-graph-3d.png) |
-
-| Timeline |
+| Relationship Graph |
 |:--:|
-| ![Timeline panel showing commit playback controls](./docs/media/readme/timeline-panel.png) |
+| ![Relationship Graph with Material Icon Theme nodes](./docs/media/readme/relationship-graph-2d.png) |
 
-| Large Graphs | Force Graph |
+| Large Graphs | Graph Interaction |
 |:--:|:--:|
 | ![Large CodeGraphy graph with more than one thousand nodes](./docs/media/readme/large-repo-graph.png) | ![Short graph interaction demo](./docs/media/readme/relationship-graph-demo.gif) |
 
@@ -85,9 +78,11 @@ This repo is a work in progress and is being built through agentic engineering. 
 
 ![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.png)
 
-Workspace files, Git history, and workspace-local settings flow into `@codegraphy-dev/core`. The core package is the central engine: it owns path-based Indexing, built-in Tree-sitter analysis, enabled plugin execution, Graph Cache reads/writes, Graph Query, and the terminal `codegraphy` CLI. It has no VS Code dependency, so the same engine can be reached through the VS Code extension for users, MCP for agents, and Plugin API contracts for plugin authors.
+Workspace files and workspace-local settings flow into `@codegraphy-dev/core`. The core package is the central engine: it owns path-based Indexing, built-in Tree-sitter analysis, enabled plugin execution, Graph Cache reads/writes, Graph Query, and the terminal `codegraphy` CLI. It has no VS Code dependency, so the same engine can be reached through the VS Code extension for users, MCP for agents, and Plugin API contracts for plugin authors.
 
-The VS Code extension uses `@codegraphy-dev/core` to build and refresh the workspace Graph Cache, then projects that data into the Visible Graph for the webview, exports, Symbol Nodes, Timeline, and editor interactions. Language and feature plugins are npm packages loaded through core from the user-level installed-plugin cache and the workspace-local `plugins` array; they are not activated as dependent VS Code extensions. `@codegraphy-dev/mcp` uses the same core APIs for headless agent access: `codegraphy index [workspace]` writes the Graph Cache, Graph Query tools read it, and neither path needs to open or focus VS Code.
+The VS Code extension uses `@codegraphy-dev/core` to build and refresh the workspace Graph Cache, then projects that data into the Visible Graph for the webview, exports, Symbol Nodes, and editor interactions. Language and feature plugins are npm packages loaded through core from the user-level installed-plugin cache and the workspace-local `plugins` array; they are not activated as dependent VS Code extensions. `@codegraphy-dev/mcp` uses the same core APIs for headless agent access: `codegraphy index [workspace]` writes the Graph Cache, Graph Query tools read it, and neither path needs to open or focus VS Code.
+
+The webview renders the Visible Graph through `@codegraphy-dev/graph-renderer`, CodeGraphy's small custom renderer package. It draws with WebGPU and runs fast deterministic force layout and collision physics in WebAssembly. The extension remains the product integration layer: it owns UI, settings, persistence, plugins, selection, hover, picking, and graph controls. The renderer first requests a high-performance WebGPU adapter and can use a fallback WebGPU adapter when the browser provides one; there is no Canvas or WebGL graph fallback when WebGPU is unavailable.
 
 Symbol Nodes are built from indexed declarations and appear alongside file, folder, package, and plugin nodes when you need code-level context. Common kinds include Function, Class, Interface, Type, Struct, Enum, Variable, and Constant. `contains` Edges connect files to their declarations, and symbol-aware relationship Edges show calls, references, inheritance, overrides, imports, and plugin-provided links when analysis can resolve them. Legend defaults style common symbol kinds automatically, custom Legend Entries can target symbol names, kinds, plugin kinds, languages, or containing file paths, and Graph Query/MCP exposes the same symbol payloads to agents.
 
@@ -176,6 +171,7 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 |---|---|---|---|
 | `@codegraphy-dev/core` | `packages/core` | `npm install -g @codegraphy-dev/core` | Shared engine package and terminal CLI for Indexing, Graph Cache access, plugin management, and Graph Query execution. |
 | CodeGraphy VS Code Extension | `packages/extension` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | Graph View, VS Code lifecycle integration, commands, webviews, context menus, and editor integration. |
+| `@codegraphy-dev/graph-renderer` | `packages/graph-renderer` | `npm install @codegraphy-dev/graph-renderer` | Custom WebGPU graph drawing and deterministic WebAssembly physics/layout. |
 | `@codegraphy-dev/mcp` | `packages/mcp` | `npm install -g @codegraphy-dev/mcp` | Optional agent-agnostic MCP server backed by and dependent on `@codegraphy-dev/core`. |
 | `@codegraphy-dev/plugin-api` | `packages/plugin-api` | `npm install @codegraphy-dev/plugin-api` | Typed contracts for external CodeGraphy plugins. |
 | `@codegraphy-dev/plugin-typescript` | `packages/plugin-typescript` | `npm install -g @codegraphy-dev/plugin-typescript` | TypeScript and JavaScript ecosystem defaults and enrichment. |
@@ -195,7 +191,7 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 | Analysis | Native Tree-sitter plus plugin-provided analyzers |
 | Graph storage | LadybugDB-backed `.codegraphy/graph.lbug` Graph Cache |
 | Webview | React, Vite, Zustand, Tailwind, Radix/shadcn-owned UI primitives |
-| Graph rendering | `react-force-graph`, canvas 2D, Three.js/WebGL 3D |
+| Graph rendering | Custom `@codegraphy-dev/graph-renderer` package using WebGPU and deterministic WebAssembly typed-array physics |
 | Theming | VS Code color tokens, Material Icon Theme assets |
 | Agent bridge | MCP stdio server from `@codegraphy-dev/mcp` |
 | Quality | Vitest, Playwright, ESLint, CRAP, Stryker mutation, repo-owned quality tools |
@@ -236,12 +232,11 @@ The active roadmap lives on [Trello](https://trello.com/b/wG65Lfrb/codegraphy). 
 
 | Doc | Covers |
 |---|---|
-| [Timeline](./docs/TIMELINE.md) | Git history playback and incremental indexing. |
 | [Settings](./docs/SETTINGS.md) | `.codegraphy/settings.json`, panels, and Settings Controls. |
 | [Export menu](./docs/INTERACTIONS.md#export) | Graph Export JSON/Markdown/image output plus Index Export symbol JSON. |
 | [Commands](./docs/COMMANDS.md) | Command Palette reference. |
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts. |
-| [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, panels, and timeline behavior. |
+| [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panel behavior. |
 | [Plugin Guide](./docs/PLUGINS.md) | Build and package plugins for CodeGraphy. |
 | [MCP Setup](./docs/MCP.md) | MCP tools, agent configuration, and verification flow. |
 | [MCP Package](./packages/mcp/README.md) | Package-level install, commands, tools, prompts, and skill link. |

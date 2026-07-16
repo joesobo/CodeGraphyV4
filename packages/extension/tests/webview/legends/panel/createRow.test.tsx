@@ -48,7 +48,6 @@ describe('webview/legends/createRow', () => {
       color: '#123abc',
       target: 'node',
       shape2D: 'circle',
-      shape3D: 'sphere',
     });
     expect(screen.getByLabelText('New node legend pattern')).toHaveValue('');
     expect(screen.getByLabelText('New node legend color')).toHaveValue('#3B82F6');
@@ -72,7 +71,6 @@ describe('webview/legends/createRow', () => {
       color: '#3B82F6',
       target: 'node',
       shape2D: 'star',
-      shape3D: 'icosahedron',
     });
   });
 

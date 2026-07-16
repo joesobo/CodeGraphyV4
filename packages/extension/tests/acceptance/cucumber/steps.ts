@@ -160,3 +160,8 @@ Step(/^the legend group text should be prefilled with "(.+)"$/);
 Step(/^a VS Code rename input should appear saying "(.+)"$/);
 Step(/^the VS Code rename input should be prefilled with "(.+)"$/);
 Step(/^a confirmation pops up saying "(.+)"$/);
+Step("I open Performance settings");
+Step("I turn Show FPS on");
+Step("I see a finite positive graph FPS");
+Step("I turn Show FPS off");
+Step("I do not see the graph FPS counter");

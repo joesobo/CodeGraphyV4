@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
 <title id="title">CodeGraphy architecture and logic flow</title>
-<desc id="desc">Workspace files, repo settings, and Git history flow into CodeGraphy. Discovery and indexing run Tree-sitter and plugins, write relationship evidence into the Graph Cache, project it into the Visible Graph, and expose it through the VS Code webview, exports, and CodeGraphy MCP.</desc>
+<desc id="desc">Workspace files, repo settings, and registered plugins flow into CodeGraphy. Discovery and indexing run Tree-sitter and active plugins, write relationship evidence into the Graph Cache, project it into the Visible Graph, and expose it through the VS Code webview, exports, and CodeGraphy MCP.</desc>
 <rect width="1280" height="760" rx="24" fill="#fbf6e7"/>
 <rect x="34" y="64" width="254" height="456" rx="22" fill="#fffaf0" stroke="#d8d0bc"/>
 <rect x="310" y="64" width="502" height="456" rx="22" fill="#fffaf0" stroke="#d8d0bc"/>
@@ -93,8 +93,8 @@
 </g>
 <g>
   <rect x="64" y="422" width="190" height="76" rx="14" fill="#eadfff" stroke="#7a4fd6" stroke-width="2"/>
-  <text x="159" y="452" text-anchor="middle" font-size="17" font-weight="700" fill="#263238">Git History</text>
-  <text x="159" y="477" text-anchor="middle" font-size="12.5" fill="#5d6877">commits for Timeline</text>
+  <text x="159" y="452" text-anchor="middle" font-size="17" font-weight="700" fill="#263238">Plugin Registry</text>
+  <text x="159" y="477" text-anchor="middle" font-size="12.5" fill="#5d6877">installed + built-in</text>
 </g>
 <g>
   <rect x="334" y="122" width="184" height="76" rx="14" fill="#ddf4df" stroke="#2f8f4e" stroke-width="2"/>
@@ -118,8 +118,8 @@
 </g>
 <g>
   <rect x="334" y="422" width="184" height="76" rx="14" fill="#eadfff" stroke="#7a4fd6" stroke-width="2"/>
-  <text x="426" y="452" text-anchor="middle" font-size="17" font-weight="700" fill="#263238">Timeline Indexing</text>
-  <text x="426" y="477" text-anchor="middle" font-size="12.5" fill="#5d6877">historical snapshots</text>
+  <text x="426" y="452" text-anchor="middle" font-size="17" font-weight="700" fill="#263238">Plugin Processing</text>
+  <text x="426" y="477" text-anchor="middle" font-size="12.5" fill="#5d6877">active plugin roles</text>
 </g>
 <g>
   <rect x="586" y="422" width="184" height="76" rx="14" fill="#d9ecff" stroke="#2f80c7" stroke-width="2"/>
@@ -144,7 +144,7 @@
 <g>
   <rect x="190" y="606" width="232" height="72" rx="14" fill="#ffe1df" stroke="#ef4444" stroke-width="2"/>
   <text x="306" y="635" text-anchor="middle" font-size="17" font-weight="700" fill="#263238">VS Code Webview</text>
-  <text x="306" y="660" text-anchor="middle" font-size="12.5" fill="#5d6877">2D, 3D, Timeline, panels</text>
+  <text x="306" y="660" text-anchor="middle" font-size="12.5" fill="#5d6877">Graph View + panels</text>
 </g>
 <g>
   <rect x="524" y="606" width="232" height="72" rx="14" fill="#ffe1df" stroke="#ef4444" stroke-width="2"/>
@@ -156,5 +156,5 @@
   <text x="974" y="635" text-anchor="middle" font-size="17" font-weight="700" fill="#263238">CodeGraphy MCP</text>
   <text x="974" y="660" text-anchor="middle" font-size="12.5" fill="#5d6877">agent Graph Queries</text>
 </g>
-<text x="150" y="728" font-size="12.5" fill="#547078">packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/mcp lets agents query the same Graph Cache.</text>
+<text x="150" y="728" font-size="12.5" fill="#547078">packages/core owns the engine. packages/extension owns VS Code UI. packages/plugin-* enrich analysis. packages/mcp queries the same Graph Cache.</text>
 </svg>

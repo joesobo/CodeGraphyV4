@@ -1,4 +1,4 @@
-import type { NodeShape2D, NodeShape3D } from './modes';
+import type { NodeShape2D } from './modes';
 
 export type LegendRuleTarget = 'node' | 'edge' | 'both';
 
@@ -16,7 +16,6 @@ export interface IGroup {
   matchSymbolLanguage?: string;
   matchSymbolFilePath?: string;
   shape2D?: NodeShape2D;
-  shape3D?: NodeShape3D;
   imagePath?: string;
   imageUrl?: string;
   isPluginDefault?: boolean;

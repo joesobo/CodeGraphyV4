@@ -67,11 +67,8 @@ describe('graph/appearance/model', () => {
       labelMutedForeground: 'rgb(7, 8, 9)',
       linkHighlight: 'rgb(10, 11, 12)',
       linkMuted: 'rgb(13, 14, 15)',
-      meshDimmed: 'rgb(16, 17, 18)',
-      meshSelected: 'rgb(19, 20, 21)',
       nodeSelectionBorder: 'rgb(22, 23, 24)',
-      stageBackground: 'var(--cg-popover-translucent)',
-      stageBorder: 'rgb(28, 29, 30)',
+      stageBackground: 'rgb(25, 26, 27)',
       transparent: 'rgba(0, 0, 0, 0)',
     });
   });

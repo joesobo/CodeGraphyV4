@@ -66,8 +66,7 @@ describe('graphView/provider/plugin/resources', () => {
       _userGroups: [],
       _hiddenPluginGroupIds: new Set<string>(),
       _groups: [],
-      _view: undefined,
-      _timelineView: { webview: { options: {} } } as never,
+      _view: { webview: { options: {} } } as never,
       _panels: [{ webview: { options: {} } }] as never,
     };
     const methods = createGraphViewProviderPluginResourceMethods(source as never, {
@@ -93,19 +92,14 @@ describe('graphView/provider/plugin/resources', () => {
       'icon.svg',
       source._extensionUri,
       source._pluginExtensionUris,
-      source._timelineView,
+      source._view,
       source._panels,
       'plugin.test',
     );
-    expect(getWebviewResourceRoots).toHaveBeenCalledTimes(3);
+    expect(getWebviewResourceRoots).toHaveBeenCalledTimes(2);
     expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
       source._view,
       source._panels,
-      [vscode.Uri.file('/workspace')],
-    );
-    expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
-      source._timelineView,
-      [],
       [vscode.Uri.file('/workspace')],
     );
   });
@@ -171,7 +165,7 @@ describe('graphView/provider/plugin/resources', () => {
     expect(normalizeExtensionUri).toHaveBeenCalledWith(undefined);
   });
 
-  it('keeps the primary webview refresh when there is no timeline view', () => {
+  it('refreshes graph and panel resource roots exactly once', () => {
     const refreshWebviewResourceRoots = vi.fn();
     const source = {
       _extensionUri: vscode.Uri.file('/extension'),

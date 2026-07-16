@@ -6,16 +6,16 @@ import {
 
 describe('graph/keyboardShortcutResolvers', () => {
   it('returns null for unsupported zoom keys', () => {
-    expect(getZoomShortcutCommand('q', false, '2d')).toBeNull();
+    expect(getZoomShortcutCommand('q', false)).toBeNull();
   });
 
-  it('creates zoom shortcuts in 3d mode', () => {
-    expect(getZoomShortcutCommand('+', false, '3d')).toEqual({
+  it('creates zoom shortcuts', () => {
+    expect(getZoomShortcutCommand('+', false)).toEqual({
       preventDefault: true,
       stopPropagation: false,
       effects: [{ kind: 'zoom', factor: 1.2 }],
     });
-    expect(getZoomShortcutCommand('-', false, '3d')).toEqual({
+    expect(getZoomShortcutCommand('-', false)).toEqual({
       preventDefault: true,
       stopPropagation: false,
       effects: [{ kind: 'zoom', factor: 1 / 1.2 }],

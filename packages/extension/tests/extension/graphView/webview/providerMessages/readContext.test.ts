@@ -11,8 +11,6 @@ describe('graph view provider listener read context', () => {
       lastFileAnalysis: new Map(),
     };
     const source = {
-      _timelineActive: true,
-      _currentCommitSha: 'abc123',
       _userGroups: [{ id: 'user:src', pattern: 'src/**', color: '#112233' }],
       _depthMode: true,
       _disabledPlugins: new Set(['plugin.disabled']),
@@ -22,12 +20,6 @@ describe('graph view provider listener read context', () => {
         edges: [{ id: 'edge-1', from: 'src/app.ts', to: 'src/lib.ts' , kind: 'import', sources: [] }],
       } satisfies IGraphData,
       _analyzer: analyzer,
-      _gitAnalyzer: {
-        getCachedCommitList: () => [
-          { sha: 'old', timestamp: 1, message: 'old', author: 'Ada', parents: [] },
-          { sha: 'abc123', timestamp: 2, message: 'head', author: 'Ada', parents: ['old'] },
-        ],
-      },
       _viewContext: { activePlugins: new Set(['plugin.enabled']), focusedFile: 'src/app.ts' },
     };
     const dependencies = {
@@ -41,9 +33,6 @@ describe('graph view provider listener read context', () => {
       dependencies as never,
     );
 
-    expect(context.getTimelineActive()).toBe(true);
-    expect(context.getCurrentCommitSha()).toBe('abc123');
-    expect(context.getCanMutateGraphRevision()).toBe(true);
     expect(context.getUserGroups()).toEqual(source._userGroups);
     expect(context.getDepthMode()).toBe(true);
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
@@ -69,50 +58,22 @@ describe('graph view provider listener read context', () => {
   it('returns undefined for missing graph targets and absent provider state', () => {
     const context = createGraphViewProviderMessageReadContext(
       {
-        _timelineActive: false,
-        _currentCommitSha: undefined,
         _userGroups: [],
         _depthMode: false,
         _disabledPlugins: new Set(),
         _filterPatterns: [],
         _graphData: { nodes: [], edges: [] } satisfies IGraphData,
         _analyzer: undefined,
-        _gitAnalyzer: undefined,
         _viewContext: { activePlugins: new Set(), focusedFile: undefined },
       } as never,
       { workspace: { workspaceFolders: undefined } } as never,
     );
 
     expect(context.workspaceFolder).toBeUndefined();
-    expect(context.getCanMutateGraphRevision()).toBe(true);
     expect(context.getAnalyzer()).toBeUndefined();
     expect(context.getFocusedFile()).toBeUndefined();
     expect(context.findNode('missing')).toBeUndefined();
     expect(context.findEdge('missing')).toBeUndefined();
   });
 
-  it('treats historical timeline snapshots as non-mutable', () => {
-    const context = createGraphViewProviderMessageReadContext(
-      {
-        _timelineActive: true,
-        _currentCommitSha: 'old',
-        _userGroups: [],
-        _depthMode: false,
-        _disabledPlugins: new Set(),
-        _filterPatterns: [],
-        _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-        _analyzer: undefined,
-        _gitAnalyzer: {
-          getCachedCommitList: () => [
-            { sha: 'old', timestamp: 1, message: 'old', author: 'Ada', parents: [] },
-            { sha: 'head', timestamp: 2, message: 'head', author: 'Ada', parents: ['old'] },
-          ],
-        },
-        _viewContext: { activePlugins: new Set(), focusedFile: undefined },
-      } as never,
-      { workspace: { workspaceFolders: undefined } } as never,
-    );
-
-    expect(context.getCanMutateGraphRevision()).toBe(false);
-  });
 });

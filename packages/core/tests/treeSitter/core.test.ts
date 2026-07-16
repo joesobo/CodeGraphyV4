@@ -130,7 +130,6 @@ describe('core tree-sitter baseline analysis', () => {
         'export const app = true;',
         '/workspace',
         {
-          mode: 'workspace',
           fileSystem: {} as never,
           features: { symbols: false },
         },

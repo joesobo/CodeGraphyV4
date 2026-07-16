@@ -18,12 +18,12 @@ vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: (props: Record<string, unknown>) => {
     harness.graphRenderCount += 1;
     harness.graphProps = props;
-    const data = props.data as { nodes: Array<{ id: string; color?: string; shape2D?: string; shape3D?: string; imageUrl?: string }>; edges: Array<{ id: string }> };
+    const data = props.data as { nodes: Array<{ id: string; color?: string; shape2D?: string; imageUrl?: string }>; edges: Array<{ id: string }> };
     return (
       <div data-testid="mock-graph">
         <span data-testid="graph-node-ids">{data.nodes.map((node) => node.id).join(',')}</span>
         <span data-testid="graph-node-colors">{data.nodes.map((node) => node.color ?? '').join(',')}</span>
-        <span data-testid="graph-node-shapes">{data.nodes.map((node) => `${node.shape2D ?? 'none'}:${node.shape3D ?? 'none'}`).join(',')}</span>
+        <span data-testid="graph-node-shapes">{data.nodes.map((node) => node.shape2D ?? 'none').join(',')}</span>
         <span data-testid="graph-node-images">{data.nodes.map((node) => node.imageUrl ?? '').join(',')}</span>
         <span data-testid="graph-edge-ids">{data.edges.map((edge) => edge.id).join(',')}</span>
       </div>
@@ -53,10 +53,6 @@ vi.mock('../../../../src/webview/components/settingsPanel/Drawer', () => ({
 vi.mock('../../../../src/webview/components/plugins/Panel', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? <button data-testid="plugins-panel" onClick={onClose}>Close Plugins</button> : null,
-}));
-
-vi.mock('../../../../src/webview/components/timeline/panel', () => ({
-  default: () => <div data-testid="timeline" />,
 }));
 
 vi.mock('../../../../src/webview/components/toolbar/view', () => ({
@@ -154,7 +150,6 @@ function resetStore(): void {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    graphMode: '2d',
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     graphHasIndex: false,
@@ -174,7 +169,6 @@ function resetStore(): void {
     nodeVisibility: {},
     edgeVisibility: {},
     activePanel: 'none',
-    timelineActive: false,
     nodeDecorations: {},
     edgeDecorations: {},
     maxFiles: 500,
@@ -241,25 +235,9 @@ describe('App behavior', () => {
 
 
 
-    it('renders empty state when graph has no nodes even if timelineActive is true', () => {
-      graphStore.setState({
-        graphData: { nodes: [], edges: [] },
-        timelineActive: true,
-      });
-
-      render(<App />);
-
-      expect(
-        screen.getByText(/No files found\. No graphable files exist in this commit\./),
-      ).toBeInTheDocument();
-    });
-
-
-
     it('renders empty state when graph has no nodes', () => {
       graphStore.setState({
         graphData: { nodes: [], edges: [] },
-        timelineActive: false,
       });
 
       render(<App />);
@@ -273,7 +251,6 @@ describe('App behavior', () => {
       graphStore.setState({
         graphData: { nodes: [], edges: [] },
         activePanel: 'none',
-        timelineActive: false,
       });
 
       render(<App />);

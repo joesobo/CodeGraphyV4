@@ -310,12 +310,14 @@ jobs:
             grep: 'Background Context Menu|Dragging|Edge Context Menu|Favorite'
             artifact-suffix: interactions-canvas-basics-favorites
             workers: 1
+            webgpu: '1'
           - label: Graph interactions - files, folders, and rendering
             suite: interactions
             timeout-minutes: 20
             grep: 'File Context Menu|Folder Context Menu|Graph Navigation|Graph Rendering'
             artifact-suffix: interactions-files-folders-rendering
             workers: 1
+            webgpu: '1'
           - label: Graph scope - edge types
             suite: interactions
             timeout-minutes: 20
@@ -346,6 +348,7 @@ jobs:
             grep: 'Hover|Multi File Node Context Menu|Selection'
             artifact-suffix: interactions-hover-selection
             workers: 1
+            webgpu: '1'
           - label: Graph interactions - startup and ignored files
             suite: interactions
             timeout-minutes: 20
@@ -353,6 +356,7 @@ jobs:
             artifact-suffix: interactions-startup-ignored-files
             workers: 1
     env:
+      CODEGRAPHY_CI_SOFTWARE_WEBGPU: ${{ matrix.webgpu || '0' }}
       CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
       CODEGRAPHY_VSCODE_PLAYWRIGHT_GREP: ${{ matrix.grep }}
       CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS: ${{ matrix.workers }}

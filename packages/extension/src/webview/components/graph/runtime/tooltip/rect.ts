@@ -1,19 +1,17 @@
-import type {
-	ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
 import type { MutableRefObject } from 'react';
 import type {
 	GraphTooltipRect,
 } from '../../tooltip/model';
 import {
 	DEFAULT_NODE_SIZE,
-	type FGLink,
 	type FGNode,
 } from '../../model/build';
+import { graphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
 
 interface GraphTooltipRectOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;
-	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+	fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
 }
 
 interface GraphTooltipGraph {
@@ -32,7 +30,7 @@ export function getTooltipNodeRect(
 	const screen = graph.graph2ScreenCoords(node.x ?? 0, node.y ?? 0);
 	const rect = canvas.getBoundingClientRect();
 	const zoom = graph.zoom();
-	const radius = (node.size ?? DEFAULT_NODE_SIZE) * zoom;
+	const radius = graphNodeScreenRadius(node.size ?? DEFAULT_NODE_SIZE, zoom);
 
 	return {
 		x: screen.x + rect.left,

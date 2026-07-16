@@ -30,7 +30,7 @@ export function useGraphMarqueeSelectionRuntime(
   }
 
   function handleMouseDownCapture(event: ReactMouseEvent<HTMLDivElement>): void {
-    if (!canStartMarqueeSelection(event, options.graphMode, options.hoveredNodeRef.current)) {
+    if (!canStartMarqueeSelection(event, options.hoveredNodeRef.current)) {
       clearMarqueeSelection();
       return;
     }

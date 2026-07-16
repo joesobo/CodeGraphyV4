@@ -1,7 +1,6 @@
-import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphMetadata, IGraphData } from '../../../../shared/graph/contracts';
-import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { BidirectionalEdgeMode, NodeShape2D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../appearance/model';
 import type { NodeType } from '../../../../shared/graph/contracts';
@@ -22,9 +21,9 @@ export {
   getNodeType,
   resolveDirectionColor,
 } from './node/display';
-export { calculateNodeSizes, toD3Repel } from './node/sizing';
+export { calculateNodeSizes } from './node/sizing';
 
-export type FGNode = NodeObject & Record<string, unknown> & {
+export type FGNode = Record<string, unknown> & {
   id: string;
   label: string;
   size: number;
@@ -51,7 +50,6 @@ export type FGNode = NodeObject & Record<string, unknown> & {
     width: number;
   };
   shape2D?: NodeShape2D;
-  shape3D?: NodeShape3D;
   imageUrl?: string;
   metadata?: GraphMetadata;
   collapsedDescendantCount?: number;
@@ -60,16 +58,13 @@ export type FGNode = NodeObject & Record<string, unknown> & {
   isDragging?: boolean;
   fx?: number;
   fy?: number;
-  fz?: number;
   vx?: number;
   vy?: number;
-  vz?: number;
   x?: number;
   y?: number;
-  z?: number;
 };
 
-export type FGLink = LinkObject & {
+export type FGLink = Record<string, unknown> & {
   id: string;
   from: string;
   to: string;
@@ -94,44 +89,28 @@ export interface BuildGraphDataOptions {
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;
   favorites: Set<string>;
-  graphMode?: '2d' | '3d';
   bidirectionalMode: BidirectionalEdgeMode;
-  timelineActive: boolean;
-  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
-  random?: () => number;
+  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'vx' | 'vy' | 'x' | 'y'>>;
 }
 
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {
   const appearance = options.appearance ?? DEFAULT_GRAPH_APPEARANCE;
-  const graphMode = options.graphMode ?? '2d';
   const runtimeData = applyGraphViewRuntimeContributions(
     options.data,
     options.graphViewContributions,
-    {
-      graphMode,
-      timelineActive: options.timelineActive,
-    },
   );
   const projectedData = applyGraphViewProjectionContributions(
     runtimeData,
     options.graphViewContributions,
-    {
-      graphMode,
-      timelineActive: options.timelineActive,
-    },
   );
   const nodeSizes = calculateNodeSizes(projectedData.nodes, projectedData.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
     nodes: projectedData.nodes,
-    edges: projectedData.edges,
     appearance,
     nodeSizes,
     theme: options.theme,
     favorites: options.favorites,
-    graphMode,
-    timelineActive: options.timelineActive,
     previousNodes: options.previousNodes,
-    random: options.random,
   });
   const links = buildGraphLinks(projectedData.edges, options.bidirectionalMode);
 

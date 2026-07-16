@@ -31,7 +31,6 @@ describe('graphView/provider/webview/editor', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
-      _timelineView: undefined,
       _panels: [],
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
     };
@@ -57,8 +56,8 @@ describe('graphView/provider/webview/editor', () => {
         retainContextWhenHidden: true,
       }),
     );
-    expect(setWebviewMessageListener).toHaveBeenCalledWith(panel.webview, source, 'graph');
-    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, panel.webview, 'graph');
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(panel.webview, source);
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, panel.webview);
     expect(source._panels).toEqual([]);
   });
 
@@ -73,7 +72,6 @@ describe('graphView/provider/webview/editor', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
-      _timelineView: undefined,
       _panels: [existingPanel],
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
     };

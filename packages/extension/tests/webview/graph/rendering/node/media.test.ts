@@ -91,41 +91,18 @@ describe('graph/rendering/node/media', () => {
   });
 
   it('skips plugin overlay rendering when no node renderer is registered', () => {
-    const getNodeRenderer = vi.fn(() => undefined);
+    const getNodeRenderers = vi.fn(() => []);
     const ctx = createContext();
 
     renderNodePluginOverlay(
-      { getNodeRenderer } as unknown as WebviewPluginHost,
+      { getNodeRenderers } as unknown as WebviewPluginHost,
       createNode(),
       ctx,
       1,
       undefined,
     );
 
-    expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
-    expect(getNodeRenderer).toHaveBeenCalledWith('*');
-  });
-
-  it('uses the wildcard plugin renderer when no type-specific renderer is registered', () => {
-    const pluginRenderer = vi.fn();
-    const getNodeRenderer = vi.fn((type: string) => (type === '*' ? pluginRenderer : undefined));
-    const ctx = createContext();
-
-    renderNodePluginOverlay(
-      { getNodeRenderer } as unknown as WebviewPluginHost,
-      createNode(),
-      ctx,
-      1,
-      undefined,
-    );
-
-    expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
-    expect(getNodeRenderer).toHaveBeenCalledWith('*');
-    expect(pluginRenderer).toHaveBeenCalledWith(expect.objectContaining({
-      node: expect.objectContaining({ id: 'src/app.ts' }),
-      ctx,
-      globalScale: 1,
-    }));
+    expect(getNodeRenderers).toHaveBeenCalledWith('.ts');
   });
 
   it('runs type-specific and wildcard plugin renderers when both are registered', () => {
@@ -153,25 +130,33 @@ describe('graph/rendering/node/media', () => {
       ctx,
       globalScale: 1,
     }));
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
   });
 
-  it('swallows plugin renderer errors after logging them', () => {
+  it('restores Canvas state and continues after a plugin renderer error', () => {
     const error = new Error('boom');
-    const pluginRenderer = vi.fn(() => {
+    const failedRenderer = vi.fn(({ ctx }: { ctx: CanvasRenderingContext2D }) => {
+      ctx.globalAlpha = 0.2;
       throw error;
     });
-    const getNodeRenderer = vi.fn(() => pluginRenderer);
+    const healthyRenderer = vi.fn();
+    const getNodeRenderers = vi.fn(() => [failedRenderer, healthyRenderer]);
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const ctx = createContext();
 
     renderNodePluginOverlay(
-      { getNodeRenderer } as unknown as WebviewPluginHost,
+      { getNodeRenderers } as unknown as WebviewPluginHost,
       createNode(),
-      createContext(),
+      ctx,
       1,
       undefined,
     );
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Plugin node renderer error:', error);
+    expect(healthyRenderer).toHaveBeenCalledOnce();
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
 
     consoleErrorSpy.mockRestore();
   });

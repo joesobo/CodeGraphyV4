@@ -83,8 +83,6 @@ async initialize(workspaceRoot, context) {
 
 Called before a full analysis pass with the discovered file list. Use this for workspace-wide indexes such as Markdown wikilink lookup tables, Godot `class_name` maps, or framework route manifests.
 
-`context.mode === 'timeline'` means the file-system adapter reads a historical commit snapshot instead of the live workspace.
-
 ### analyzeFile(filePath, content, workspaceRoot, context?)
 
 Called for each file after core has prepared the file payload. Plugins return `IFileAnalysisResult` with any mix of node type contributions, edge type contributions, extra nodes, symbols, and relationships.

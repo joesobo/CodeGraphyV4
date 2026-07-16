@@ -37,6 +37,7 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   particleSize: 'particleSize',
   showLabels: 'showLabels',
   maxFiles: 'maxFiles',
+  showFps: 'showFps',
   verboseDiagnostics: 'verboseDiagnostics',
 };
 

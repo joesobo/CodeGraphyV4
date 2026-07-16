@@ -86,7 +86,6 @@ describe('graphView/provider/webview/host default dependencies', () => {
     const source = {
       _extensionUri: { fsPath: '/test/extension' },
       _view: undefined,
-      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
@@ -121,15 +120,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
       source._extensionUri,
       nextWebview,
       'nonce-123',
-      'graph',
       'light',
       false,
     );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(
       nextWebview,
       source,
-      undefined,
-      { viewKind: 'graph' },
     );
     expect(mocks.executeCommand).toHaveBeenCalledWith(
       'setContext',
@@ -142,7 +138,6 @@ describe('graphView/provider/webview/host default dependencies', () => {
     const source = {
       _extensionUri: { fsPath: '/test/extension' },
       _view: undefined,
-      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
@@ -175,15 +170,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(
       nextWebview,
       source,
-      undefined,
-      { viewKind: 'graph' },
     );
     expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
     expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(
       source._extensionUri,
       nextWebview,
       'nonce-123',
-      'graph',
       'light',
       false,
     );

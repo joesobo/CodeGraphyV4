@@ -1,7 +1,4 @@
-import type {
-  GraphViewProviderMessageListenerOptions,
-  GraphViewProviderMessageListenerSource,
-} from '../listener';
+import type { GraphViewProviderMessageListenerSource } from '../listener';
 import type { GraphViewProviderPrimaryActions } from './types';
 
 type PipelineActions = Pick<
@@ -16,14 +13,9 @@ type PipelineActions = Pick<
 
 export function createPipelineActions(
   source: GraphViewProviderMessageListenerSource,
-  options: GraphViewProviderMessageListenerOptions = {},
 ): PipelineActions {
   return {
-    loadAndSendData: () => (
-      options.viewKind === 'timeline'
-        ? Promise.resolve()
-        : source._loadAndSendData()
-    ),
+    loadAndSendData: () => source._loadAndSendData(),
     indexAndSendData: () => source._indexAndSendData(),
     analyzeAndSendData: () => source._analyzeAndSendData(),
     refreshIndex: () => source.refreshIndex(),

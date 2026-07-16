@@ -135,7 +135,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
         {
           registerPluginRoots: () => source._registerBuiltInPluginRoots(),
           workspaceFolder: resolved.getWorkspaceFolders()?.[0],
-          view: source._view ?? source._timelineView,
+          view: source._view,
           panels: source._panels,
           resolvePluginAssetPath: (assetPath, pluginId) =>
             source._resolveWebviewAssetPath(assetPath, pluginId),

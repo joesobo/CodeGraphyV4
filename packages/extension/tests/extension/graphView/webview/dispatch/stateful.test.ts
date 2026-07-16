@@ -60,6 +60,22 @@ describe('graph view primary stateful dispatch', () => {
     expect(context.updateConfig).toHaveBeenCalledWith('verboseDiagnostics', true);
   });
 
+  it('persists FPS counter updates from settings messages', async () => {
+    const context = createPrimaryMessageContext();
+
+    await expect(
+      dispatchGraphViewPrimaryStateMessage(
+        { type: 'UPDATE_SHOW_FPS', payload: { showFps: true } },
+        context,
+      ),
+    ).resolves.toEqual({
+      handled: true,
+      filterPatterns: undefined,
+    });
+
+    expect(context.updateConfig).toHaveBeenCalledWith('showFps', true);
+  });
+
   it('returns false when neither stateful family handles the input', async () => {
     await expect(
       dispatchGraphViewPrimaryStateMessage({ type: 'GET_PHYSICS_SETTINGS' }, createPrimaryMessageContext()),

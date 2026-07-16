@@ -13,8 +13,10 @@ import {
 
 export function PerformanceSection(): React.ReactElement {
   const maxFiles = useGraphStore((state) => state.maxFiles);
+  const showFps = useGraphStore((state) => state.showFps);
   const verboseDiagnostics = useGraphStore((state) => state.verboseDiagnostics);
   const setMaxFiles = useGraphStore((state) => state.setMaxFiles);
+  const setShowFps = useGraphStore((state) => state.setShowFps);
   const setVerboseDiagnostics = useGraphStore((state) => state.setVerboseDiagnostics);
 
   const commitMaxFiles = (value: number): void => {
@@ -54,6 +56,22 @@ export function PerformanceSection(): React.ReactElement {
             postMessage({
               type: 'UPDATE_VERBOSE_DIAGNOSTICS',
               payload: { verboseDiagnostics: checked },
+            });
+          }}
+        />
+      </div>
+      <div className="flex items-center justify-between py-0.5">
+        <Label htmlFor="show-fps" className="text-xs">
+          Show FPS
+        </Label>
+        <Switch
+          id="show-fps"
+          checked={showFps}
+          onCheckedChange={(checked) => {
+            setShowFps(checked);
+            postMessage({
+              type: 'UPDATE_SHOW_FPS',
+              payload: { showFps: checked },
             });
           }}
         />

@@ -1,7 +1,6 @@
 import type { IGroup } from '../settings/groups';
 import type {
   BidirectionalEdgeMode,
-  DagMode,
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
@@ -93,11 +92,8 @@ export type WebviewToExtensionMessage =
       };
     }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
+  | { type: 'UPDATE_SHOW_FPS'; payload: { showFps: boolean } }
   | { type: 'UPDATE_VERBOSE_DIAGNOSTICS'; payload: { verboseDiagnostics: boolean } }
-  | { type: 'INDEX_REPO' }
-  | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
-  | { type: 'RESET_TIMELINE' }
-  | { type: 'PREVIEW_FILE_AT_COMMIT'; payload: { sha: string; filePath: string } }
   | {
       type: 'NODE_BOUNDS_RESPONSE';
       payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> };
@@ -105,7 +101,6 @@ export type WebviewToExtensionMessage =
   | {
       type: 'GRAPH_RUNTIME_STATE_RESPONSE';
       payload: {
-        graphMode: '2d' | '3d';
         nodeCount: number;
         edgeCount: number;
         edgeIds: string[];
@@ -120,10 +115,6 @@ export type WebviewToExtensionMessage =
         edgeIds: string[];
       };
     }
-  | {
-      type: 'GRAPH_3D_UNAVAILABLE';
-      payload: { message: string };
-    }
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   | {
       type: 'PLUGIN_CONTEXT_MENU_ACTION';
@@ -131,5 +122,4 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'RUN_PLUGIN_EXPORT'; payload: { pluginId: string; index: number } }
   | { type: 'RUN_PLUGIN_TOOLBAR_ACTION'; payload: { pluginId: string; index: number; itemIndex: number } }
-  | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } }
   | { type: 'UPDATE_NODE_SIZE_MODE'; payload: { nodeSizeMode: NodeSizeMode } };

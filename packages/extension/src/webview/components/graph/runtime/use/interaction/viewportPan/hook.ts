@@ -20,7 +20,7 @@ function startViewportPanDrag(
   options: GraphViewportPanRuntimeOptions,
   panDragRef: MutableRefObject<ViewportPanDragState | null>,
 ): void {
-  if (!canStartViewportPanDrag(event, options)) {
+  if (!canStartViewportPanDrag(event)) {
     clearViewportPanDrag(panDragRef);
     return;
   }

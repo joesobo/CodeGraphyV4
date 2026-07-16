@@ -1,16 +1,3 @@
-import * as path from 'node:path';
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import { createDiagnosticEvent } from '../diagnostics/events';
-import { loadWorkspaceAnalysisDatabaseCache, readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
-import { buildWorkspaceGraphDataFromAnalysis } from '../graph/data';
-import {
-  createDisabledPluginSet,
-  createPluginActivityState,
-} from '../plugins/activityState/model';
-import {
-  filterInactivePluginFileAnalysis,
-  filterInactivePluginSnapshotFacts,
-} from '../plugins/activityState/analysisFacts';
 import {
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginCache,
@@ -19,11 +6,8 @@ import {
   executeGraphQuery,
   type GraphQueryRequest,
 } from '../graphQuery';
-import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-  readCodeGraphyWorkspaceSettings,
-  type CodeGraphyWorkspaceSettings,
-} from './settings';
+import { emitGraphQueryCacheMissing, emitGraphQueryCompleted, emitGraphQueryStarted } from './queryDiagnostics';
+import { readWorkspaceQueryGraph } from './queryGraph';
 import { resolveCodeGraphyWorkspacePath } from './requestPaths';
 import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from './requestTypes';
 import { readCodeGraphyWorkspaceStatus } from './status';
@@ -45,32 +29,6 @@ function createGraphQueryOperationId(): string {
   return `query-${graphQueryOperationCounter}`;
 }
 
-function collectDirectoryPaths(filePaths: Iterable<string>): string[] {
-  const directories = new Set<string>();
-
-  for (const filePath of filePaths) {
-    let directory = path.posix.dirname(filePath.replace(/\\/g, '/'));
-    while (directory && directory !== '.') {
-      directories.add(directory);
-      directory = path.posix.dirname(directory);
-    }
-  }
-
-  return [...directories].sort();
-}
-
-function createGraphQueryActivePluginSet(
-  settings: CodeGraphyWorkspaceSettings,
-  installedPluginCache: CodeGraphyInstalledPluginCache,
-): Set<string> {
-  const activityState = createPluginActivityState({
-    settings,
-    installedPlugins: installedPluginCache.plugins,
-    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
-  });
-  return new Set(activityState.activePluginIds);
-}
-
 export async function requestWorkspaceGraphQuery(
   input: WorkspaceGraphQueryInput,
   dependencies: WorkspaceGraphQueryDependencies = DEFAULT_DEPENDENCIES,
@@ -78,28 +36,16 @@ export async function requestWorkspaceGraphQuery(
   const startedAt = performance.now();
   const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
   const operationId = createGraphQueryOperationId();
-  input.diagnostics?.emit(createDiagnosticEvent({
-    area: 'graph-query',
-    event: 'started',
-    context: {
-      operationId,
-      workspaceRoot,
-      report: input.report,
-    },
-  }));
+  emitGraphQueryStarted({ diagnostics: input.diagnostics, operationId, report: input.report, workspaceRoot });
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   if (!status.hasGraphCache) {
-    input.diagnostics?.emit(createDiagnosticEvent({
-      area: 'graph-query',
-      event: 'cache-missing',
-      context: {
-        operationId,
-        workspaceRoot,
-        report: input.report,
-        cacheState: status.state,
-        staleReasons: status.staleReasons,
-      },
-    }));
+    emitGraphQueryCacheMissing({
+      diagnostics: input.diagnostics,
+      operationId,
+      report: input.report,
+      status,
+      workspaceRoot,
+    });
     return {
       error: 'graph_cache_not_found',
       message: 'This CodeGraphy Workspace has not been indexed. Run `codegraphy_index`, then retry.',
@@ -107,49 +53,27 @@ export async function requestWorkspaceGraphQuery(
     };
   }
 
-  const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
-  const disabledPlugins = createDisabledPluginSet(settings);
-  const cache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
-  const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
-  const activePluginIds = createGraphQueryActivePluginSet(
-    settings,
+  const { graphData, snapshotFacts } = readWorkspaceQueryGraph(
+    workspaceRoot,
     dependencies.readInstalledPluginCache(),
   );
-  const activeSnapshotFacts = filterInactivePluginSnapshotFacts(snapshot, activePluginIds);
-  const fileAnalysis = new Map<string, IFileAnalysisResult>(
-    Object.entries(cache.files).map(([filePath, entry]) => [filePath, entry.analysis]),
-  );
-  const graphData = buildWorkspaceGraphDataFromAnalysis({
-    cacheFiles: cache.files,
-    churnCounts: {},
-    directoryPaths: collectDirectoryPaths(Object.keys(cache.files)),
-    disabledPlugins,
-    fileAnalysis: filterInactivePluginFileAnalysis(fileAnalysis, activePluginIds),
-    getPluginForFile: () => undefined,
-    showOrphans: settings.showOrphans,
-    workspaceRoot,
-  });
   const queryResult = executeGraphQuery({
     graphData,
-    symbols: activeSnapshotFacts.symbols,
-    relations: activeSnapshotFacts.relations,
+    symbols: snapshotFacts.symbols,
+    relations: snapshotFacts.relations,
   }, {
     report: input.report,
     arguments: input.arguments,
   } as GraphQueryRequest);
-  input.diagnostics?.emit(createDiagnosticEvent({
-    area: 'graph-query',
-    event: 'completed',
-    context: {
-      operationId,
-      report: input.report,
-      cacheState: status.state,
-      staleReasons: status.staleReasons,
-      nodeCount: graphData.nodes.length,
-      edgeCount: graphData.edges.length,
-      durationMs: Math.round(performance.now() - startedAt),
-    },
-  }));
+  emitGraphQueryCompleted({
+    diagnostics: input.diagnostics,
+    durationMs: Math.round(performance.now() - startedAt),
+    edgeCount: graphData.edges.length,
+    nodeCount: graphData.nodes.length,
+    operationId,
+    report: input.report,
+    status,
+  });
 
   return {
     ...queryResult,

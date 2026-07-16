@@ -16,7 +16,6 @@ function createContext(vscodeModule: typeof import('vscode')) {
 function createRestoredState() {
   return {
     depthMode: false,
-    dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
 }
@@ -76,9 +75,6 @@ async function loadSubject(
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     }),
   }));
-  vi.doMock('../../src/extension/graphView/provider/timeline/methods', () => ({
-    createGraphViewProviderTimelineMethods: () => ({}),
-  }));
   vi.doMock('../../src/extension/graphView/provider/view/context', () => ({
     createGraphViewProviderViewContextMethods: () => ({}),
   }));
@@ -130,7 +126,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     vi.doUnmock('../../src/extension/graphView/provider/physicsSettings');
     vi.doUnmock('../../src/extension/graphView/provider/refresh');
     vi.doUnmock('../../src/extension/graphView/provider/settingsState');
-    vi.doUnmock('../../src/extension/graphView/provider/timeline/methods');
     vi.doUnmock('../../src/extension/graphView/provider/view/context');
     vi.doUnmock('../../src/extension/graphView/provider/view/selection');
     vi.doUnmock('../../src/extension/graphView/provider/webview/host');
@@ -192,7 +187,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect((provider as unknown as { _groups: unknown[] })._groups).toEqual([]);
     expect((provider as unknown as { _userGroups: unknown[] })._userGroups).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
-    expect(GraphViewProvider.timelineViewType).toBe('codegraphy.timelineView');
 
     expect(initArgs.workspaceRoot).toBe('/test/workspace');
     expect(initArgs.getGraphData()).toEqual({ nodes: [], edges: [] });
@@ -207,7 +201,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect(sendDecorationsSpy).toHaveBeenCalledOnce();
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        dagModeKey: 'dagMode',
         depthModeKey: 'depthMode',
         nodeSizeModeKey: 'nodeSizeMode',
         fallbackNodeSizeMode: 'connections',

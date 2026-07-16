@@ -92,7 +92,6 @@ describe('Workspace plugin data host', () => {
       particleSize: 4,
       depthMode: false,
       depthLimit: 1,
-      dagMode: null,
       nodeSizeMode: 'connections',
       physics: {
         repelForce: 13,
@@ -101,10 +100,6 @@ describe('Workspace plugin data host', () => {
         damping: 0.7,
         centerForce: 0.16,
         chargeRange: 200,
-      },
-      timeline: {
-        maxCommits: 500,
-        playbackSpeed: 1,
       },
     };
     await fs.writeFile(settingsPath, `${JSON.stringify(initialSettings, null, 2)}\n`, 'utf-8');
@@ -128,7 +123,6 @@ describe('Workspace plugin data host', () => {
       showLabels: true,
       directionMode: 'arrows',
       physics: initialSettings.physics,
-      timeline: initialSettings.timeline,
       pluginData: {
         'codegraphy.organize': {
           sections: {

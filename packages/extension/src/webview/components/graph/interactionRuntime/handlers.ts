@@ -1,10 +1,5 @@
 import type { MutableRefObject } from 'react';
-import type {
-  ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
-import type {
-  ForceGraphMethods as FG3DMethods,
-} from 'react-force-graph-3d';
+import type { OwnedGraph2dControls } from '../rendering/surface/owned2d/view/surface/contracts';
 import type { IFileInfo } from '../../../../shared/files/info';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphContextSelection } from '../contextMenu/contracts';
@@ -24,12 +19,10 @@ export interface GraphInteractionHandlersDependencies {
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
   depthMode?: boolean;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
-  graphMode: '2d' | '3d';
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
   isContextMenuSuppressed?(): boolean;
@@ -38,7 +31,6 @@ export interface GraphInteractionHandlersDependencies {
   lastGraphContextEventRef: MutableRefObject<number>;
   selectedNodesSetRef: MutableRefObject<Set<string>>;
   setContextSelection(selection: GraphContextSelection): void;
-  setHighlightVersion(updater: (previous: number) => number): void;
   setSelectedNodes(nodeIds: string[]): void;
 }
 

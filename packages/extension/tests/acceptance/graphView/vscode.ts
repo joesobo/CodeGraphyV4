@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { webGpuCiLaunchArgs } from '../../../src/e2e/webGpuLaunch';
 import { writeAcceptanceInstalledPluginCache } from './plugins';
 import { extensionRoot, repoRoot } from './workspace';
 import type { VSCodeFixture } from './types';
@@ -37,6 +38,7 @@ export async function launchVSCodeWithWorkspace(
   const app = await _electron.launch({
     executablePath: vscodeExecutablePath,
     args: createVSCodeLaunchArgs({
+      ci: process.env.CODEGRAPHY_CI_SOFTWARE_WEBGPU === '1',
       extensionPath: repoRoot(),
       extensionsPath,
       platform: process.platform,
@@ -113,7 +115,9 @@ export async function waitForGraphFrame(
 async function isReadyGraphFrame(frame: Frame): Promise<boolean> {
   const graphStageCount = await frame.getByLabel('Graph Stage').count().catch(() => 0);
   const fitButtonCount = await frame.getByTitle('Fit to Screen').count().catch(() => 0);
-  return graphStageCount > 0 && fitButtonCount > 0;
+  const wasmPhysicsCount = await frame.locator('[data-codegraphy-physics="wasm"]').count()
+    .catch(() => 0);
+  return graphStageCount > 0 && fitButtonCount > 0 && wasmPhysicsCount > 0;
 }
 
 export async function cleanupVSCode({ app, tempRoot }: VSCodeFixture): Promise<void> {
@@ -122,6 +126,7 @@ export async function cleanupVSCode({ app, tempRoot }: VSCodeFixture): Promise<v
 }
 
 export interface VSCodeLaunchArgOptions {
+  readonly ci: boolean;
   readonly extensionPath: string;
   readonly extensionsPath: string;
   readonly platform: NodeJS.Platform;
@@ -130,6 +135,7 @@ export interface VSCodeLaunchArgOptions {
 }
 
 export function createVSCodeLaunchArgs({
+  ci,
   extensionPath,
   extensionsPath,
   platform,
@@ -139,6 +145,7 @@ export function createVSCodeLaunchArgs({
   return [
     workspacePath,
     `--extensionDevelopmentPath=${extensionPath}`,
+    ...webGpuCiLaunchArgs({ ci, platform }),
     '--user-data-dir',
     userDataPath,
     '--extensions-dir',

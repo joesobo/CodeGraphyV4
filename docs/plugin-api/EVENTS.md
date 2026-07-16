@@ -94,18 +94,6 @@ Note:
 | `plugin:sourceToggled` | `{ qualifiedSourceId, enabled }` |
 | `plugin:message` | `{ from, to?, data }` |
 
-### Timeline (4)
-
-Note:
-- Timeline payload types remain part of the public event contract, but not every timeline event listed here is currently emitted by the host runtime.
-
-| Event | Payload shape |
-|---|---|
-| `timeline:commitSelected` | `{ hash, date, author }` |
-| `timeline:playbackStarted` | `{ speed }` |
-| `timeline:playbackStopped` | `{ commitHash }` |
-| `timeline:rangeChanged` | `{ start, end }` |
-
 ## Type Entry Points
 
 - `EventPayloads`: map of all event names to payload types.

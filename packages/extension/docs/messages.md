@@ -48,7 +48,7 @@ Plugin-facing messaging is layered on top of the core bridge.
   - `src/shared/files/info.ts` for file info
   - `src/shared/settings/` for settings snapshots and display/runtime modes
   - `src/shared/plugins/` for plugin status, decorations, and context menu payloads
-  - `src/shared/view/types.ts` and `src/shared/timeline/types.ts` for view and timeline payloads
+  - `src/shared/view/types.ts` for view payloads
 
 ## Practical rule
 

@@ -54,8 +54,8 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
       {
         repelForce: 10,
         linkDistance: 80,
-        linkForce: 0.15,
-        damping: 0.7,
+        linkForce: 1,
+        damping: 0.4,
         centerForce: 0.1,
       },
     );

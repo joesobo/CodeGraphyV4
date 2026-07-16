@@ -1,7 +1,7 @@
 import { Connection, Database } from '@ladybugdb/core';
 import type * as lb from '@ladybugdb/core';
 import type { FileAnalysisRow } from '../records/contracts';
-import { ensureSchema, ensureSchemaAsync } from './schema.js';
+import { ensureSchema, ensureSchemaAsync } from './schema';
 
 interface LadybugQueryResultLike {
   getAll?(): Promise<FileAnalysisRow[]>;

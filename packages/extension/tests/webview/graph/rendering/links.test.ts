@@ -1,8 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 import type { EdgeDecorationPayload } from '../../../../src/shared/plugins/decorations';
-import type { DirectionMode } from '../../../../src/shared/settings/modes';
-import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
 import type { FGLink } from '../../../../src/webview/components/graph/model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../src/webview/components/graph/appearance/model';
 import {
@@ -10,12 +8,9 @@ import {
   getGraphLinkColor,
 } from '../../../../src/webview/components/graph/rendering/link/colors/model';
 import {
-  getGraphArrowRelPos,
   getGraphLinkParticles,
   getGraphLinkWidth,
-  getLinkCanvasObjectMode,
 } from '../../../../src/webview/components/graph/rendering/link/metrics';
-import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectional/link';
 
 const TEST_GRAPH_APPEARANCE: GraphAppearance = {
   ...DEFAULT_GRAPH_APPEARANCE,
@@ -24,20 +19,23 @@ const TEST_GRAPH_APPEARANCE: GraphAppearance = {
 };
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
-  directionMode: DirectionMode;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   graphAppearance: GraphAppearance;
   highlightedNodeId: string | null;
-  theme: ThemeKind;
+  linkHighlight: string;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
-    directionModeRef: { current: overrides.directionMode ?? 'arrows' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
-    graphAppearanceRef: { current: overrides.graphAppearance ?? TEST_GRAPH_APPEARANCE },
+    graphAppearanceRef: {
+      current: overrides.graphAppearance ?? {
+        ...TEST_GRAPH_APPEARANCE,
+        linkHighlight: overrides.linkHighlight ?? TEST_GRAPH_APPEARANCE.linkHighlight,
+      },
+    },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
-    themeRef: { current: overrides.theme ?? 'dark' },
+    resolveColor: (color: string | undefined, fallback: string) => (
+      color === 'not-a-hex-color' ? fallback : color ?? fallback
+    ),
   };
 }
 
@@ -53,49 +51,7 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
   } as FGLink;
 }
 
-function createContext(): CanvasRenderingContext2D {
-  return {
-    beginPath: vi.fn(),
-    closePath: vi.fn(),
-    fill: vi.fn(),
-    lineTo: vi.fn(),
-    moveTo: vi.fn(),
-    restore: vi.fn(),
-    save: vi.fn(),
-    stroke: vi.fn(),
-    fillStyle: '',
-    globalAlpha: 1,
-    lineWidth: 0,
-    strokeStyle: '',
-  } as unknown as CanvasRenderingContext2D;
-}
-
 describe('graph/rendering/link/links', () => {
-  it('draws a bidirectional link line and arrow heads in arrows mode', () => {
-    const ctx = createContext();
-
-    renderBidirectionalLink(createDependencies(), createLink(), ctx, 1);
-
-    expect(ctx.moveTo).toHaveBeenCalled();
-    expect(ctx.lineTo).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalledOnce();
-    expect(ctx.fill).toHaveBeenCalledTimes(2);
-  });
-
-  it('skips bidirectional canvas drawing when direction mode is not arrows', () => {
-    const ctx = createContext();
-
-    renderBidirectionalLink(
-      createDependencies({ directionMode: 'particles' }),
-      createLink(),
-      ctx,
-      1,
-    );
-
-    expect(ctx.moveTo).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-  });
-
   it('prefers edge decoration color over the link base color', () => {
     const color = getGraphLinkColor(
       createDependencies({
@@ -139,13 +95,9 @@ describe('graph/rendering/link/links', () => {
     expect(defaultCount).toBe(3);
   });
 
-  it('returns an arrow relative position of 1 so arrows end at the node border', () => {
-    expect(getGraphArrowRelPos()).toBe(1);
-  });
-
   it('normalizes invalid direction colors back to the default direction color', () => {
     const color = getGraphDirectionalColor(
-      createDependencies({ directionColor: 'not-a-hex-color' }),
+      createDependencies({ linkHighlight: 'not-a-hex-color' }),
     );
 
     expect(color).toBe(DEFAULT_DIRECTION_COLOR);
@@ -169,13 +121,5 @@ describe('graph/rendering/link/links', () => {
     expect(decoratedWidth).toBe(5);
     expect(highlightedWidth).toBe(2);
     expect(defaultWidth).toBe(1);
-  });
-
-  it('uses replace mode only for bidirectional links in arrows mode', () => {
-    const replaceMode = getLinkCanvasObjectMode('arrows', createLink());
-    const afterMode = getLinkCanvasObjectMode('particles', createLink());
-
-    expect(replaceMode).toBe('replace');
-    expect(afterMode).toBe('after');
   });
 });

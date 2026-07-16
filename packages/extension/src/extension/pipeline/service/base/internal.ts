@@ -19,11 +19,11 @@ import {
 } from '../cache/paths';
 import { createWorkspacePipelineAnalysisCacheTiers } from '../cache/tiers';
 import {
-  createWorkspacePipelinePluginSignature,
-  createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
-} from '../cache/signatures';
+} from '../../cacheSignatures/commit';
+import { createWorkspacePipelinePluginSignature } from '../../cacheSignatures/plugin';
+import { createWorkspacePipelineSettingsSignature } from '../../cacheSignatures/settings';
 import {
   patchWorkspacePipelineCache,
   persistWorkspacePipelineCache,
@@ -34,6 +34,7 @@ import {
   preAnalyzeWorkspacePipelinePlugins,
 } from '../runtime/analysis';
 import { WorkspacePipelineStateBase } from './state';
+import { listActiveAnalysisPluginIds } from '../../pluginAnalysis/selection';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected async _preAnalyzePlugins(
@@ -117,13 +118,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     pluginIds: readonly string[] | undefined,
     disabledPlugins: ReadonlySet<string>,
   ): string[] {
-    const candidateIds = pluginIds ?? this._registry.list()
-      .map(({ plugin }) => plugin.id)
-      .filter((pluginId): pluginId is string =>
-        typeof pluginId === 'string' && pluginId.length > 0,
-      );
-
-    return candidateIds.filter(pluginId => !disabledPlugins.has(pluginId));
+    return listActiveAnalysisPluginIds(this._registry, pluginIds, disabledPlugins);
   }
 
   protected _buildGraphData(
@@ -134,7 +129,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   ): IGraphData {
     const graphData = buildWorkspacePipelineGraph(
       this._cache,
-      this._context,
       this._registry,
       fileConnections,
       workspaceRoot,
@@ -156,7 +150,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
     const graphData = buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
-      this._context,
       this._registry,
       fileAnalysis,
       workspaceRoot,

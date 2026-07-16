@@ -10,6 +10,5 @@ export function applyShape(rule: IGroup, option: ShapeOption): IGroup {
   return {
     ...rule,
     shape2D: option.shape2D,
-    shape3D: option.shape3D,
   };
 }

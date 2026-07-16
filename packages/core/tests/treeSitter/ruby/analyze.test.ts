@@ -28,6 +28,20 @@ afterEach(async () => {
 });
 
 describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
+  it('omits symbols when symbol extraction is disabled', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const filePath = path.join(workspaceRoot, 'app.rb');
+
+    const result = await analyzeFileWithTreeSitter(
+      filePath,
+      'module App\nend\n',
+      workspaceRoot,
+      { includeSymbols: false },
+    );
+
+    expect(result?.symbols).toEqual([]);
+  });
+
   it('extracts Ruby require relationships, simple inheritance, and useful symbols', async () => {
     const workspaceRoot = await createWorkspace({
       'lib/base/base_runner.rb': 'class BaseRunner\nend\n',

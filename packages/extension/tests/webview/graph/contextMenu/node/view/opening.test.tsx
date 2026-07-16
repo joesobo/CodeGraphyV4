@@ -2,11 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   act,
   fireEvent,
-  ForceGraph2D,
-  ForceGraph3D,
+  OwnedGraphSurface,
   getGraphContainer,
   Graph,
-  graphStore,
   menuData,
   mockMacPlatform,
   openNodeMenu,
@@ -15,7 +13,6 @@ import {
   selectionData,
   setupGraphContextMenuTest,
   waitFor,
-  waitForThreeDimensionalSurface,
 } from './harness';
 
 describe('Graph node context menu opening', () => {
@@ -25,23 +22,7 @@ describe('Graph node context menu opening', () => {
     render(<Graph data={menuData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Open File')).toBeInTheDocument();
-    });
-  });
-
-  it('opens in 3d from onNodeRightClick alone', async () => {
-    await act(async () => {
-      graphStore.setState({ graphMode: '3d' });
-    });
-    render(<Graph data={menuData} />);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateNodeRightClick({ id: 'src/app.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'src/app.ts' });
     });
 
     await waitFor(() => {
@@ -55,33 +36,9 @@ describe('Graph node context menu opening', () => {
       render(<Graph data={menuData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateNodeClick(
+        OwnedGraphSurface.simulateNodeClick(
           { id: 'src/app.ts' },
           { button: 0, ctrlKey: true, clientX: 120, clientY: 90 },
-        );
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Open File')).toBeInTheDocument();
-      });
-    } finally {
-      platformSpy.mockRestore();
-    }
-  });
-
-  it('treats mac ctrl+click as right-click in 3d', async () => {
-    const platformSpy = mockMacPlatform();
-    try {
-      await act(async () => {
-        graphStore.setState({ graphMode: '3d' });
-      });
-      render(<Graph data={menuData} />);
-      await waitForThreeDimensionalSurface();
-
-      await act(async () => {
-        ForceGraph3D.simulateNodeClick(
-          { id: 'src/app.ts' },
-          { button: 0, ctrlKey: true, clientX: 130, clientY: 95 },
         );
       });
 
@@ -98,11 +55,11 @@ describe('Graph node context menu opening', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+      OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
     await act(async () => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'nodeB.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'nodeB.ts' });
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 200 });
     });
 

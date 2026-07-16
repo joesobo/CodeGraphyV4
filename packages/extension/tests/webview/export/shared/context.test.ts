@@ -2,21 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createExportTimestamp,
   createImageExportDataUrl,
-  getExportContext,
   resolveDirectionColor,
 } from '../../../../src/webview/export/shared/context';
-import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
-
-const initialExportContext = {
-  timelineActive: graphStore.getState().timelineActive,
-  currentCommitSha: graphStore.getState().currentCommitSha,
-};
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.useRealTimers();
-  graphStore.setState(initialExportContext);
 });
 
 describe('createExportTimestamp', () => {
@@ -25,17 +17,6 @@ describe('createExportTimestamp', () => {
     vi.setSystemTime(new Date('2026-03-16T12:34:56.789Z'));
 
     expect(createExportTimestamp()).toBe('2026-03-16T12-34-56');
-  });
-});
-
-describe('getExportContext', () => {
-  it('returns the current timeline state from the graph store', () => {
-    graphStore.setState({ timelineActive: true, currentCommitSha: 'abc123' });
-
-    expect(getExportContext()).toEqual({
-      timelineActive: true,
-      currentCommitSha: 'abc123',
-    });
   });
 });
 
@@ -90,13 +71,16 @@ describe('createImageExportDataUrl', () => {
     expect(exportCanvas.height).toBe(180);
   });
 
-  it('draws the source canvas onto an export canvas with the export background color', () => {
+  it('composites every graph canvas in stacking order over the export background', () => {
     const sourceCanvas = document.createElement('canvas');
     sourceCanvas.width = 640;
     sourceCanvas.height = 360;
+    const overlayCanvas = document.createElement('canvas');
+    overlayCanvas.width = 640;
+    overlayCanvas.height = 360;
 
     const container = document.createElement('div') as HTMLDivElement;
-    container.append(sourceCanvas);
+    container.append(sourceCanvas, overlayCanvas);
 
     const fillRect = vi.fn();
     const drawImage = vi.fn();
@@ -130,7 +114,8 @@ describe('createImageExportDataUrl', () => {
     expect(exportCanvas.getContext).toHaveBeenCalledWith('2d');
     expect(context.fillStyle).toBe('#18181b');
     expect(fillRect).toHaveBeenCalledWith(0, 0, 640, 360);
-    expect(drawImage).toHaveBeenCalledWith(sourceCanvas, 0, 0);
+    expect(drawImage).toHaveBeenNthCalledWith(1, sourceCanvas, 0, 0);
+    expect(drawImage).toHaveBeenNthCalledWith(2, overlayCanvas, 0, 0);
     expect(toDataURL).toHaveBeenCalledWith('image/png');
   });
 

@@ -4,8 +4,7 @@ import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
-import ForceGraph2D from 'react-force-graph-2d';
-import ForceGraph3D from 'react-force-graph-3d';
+import OwnedGraphSurface from '../../../../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 
@@ -17,12 +16,6 @@ function getGraphContainer(container: HTMLElement): HTMLElement {
   const graphContainer = container.querySelector('[tabindex="0"]');
   expect(graphContainer).toBeTruthy();
   return graphContainer as HTMLElement;
-}
-
-async function waitForThreeDimensionalSurface(): Promise<void> {
-  await waitFor(() => {
-    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
-  });
 }
 
 const menuData: IGraphData = {
@@ -44,12 +37,9 @@ const selectionData: IGraphData = {
 describe('Graph context menu (background)', () => {
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
-    ForceGraph3D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      graphMode: '2d',
-      timelineActive: false,
       pluginContextMenuItems: [],
       graphViewContributionStatuses: [],
     });
@@ -57,12 +47,9 @@ describe('Graph context menu (background)', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    ForceGraph2D.clearMockPositions();
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        graphMode: '2d',
-        timelineActive: false,
         pluginContextMenuItems: [],
         graphViewContributionStatuses: [],
       });
@@ -78,23 +65,7 @@ describe('Graph context menu (background)', () => {
     render(<Graph data={menuData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('New File')).toBeInTheDocument();
-    });
-  });
-
-  it('opens background menu in 3d from onBackgroundRightClick alone', async () => {
-    await act(async () => {
-      graphStore.setState({ graphMode: '3d' });
-    });
-    render(<Graph data={menuData} />);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
     });
 
     await waitFor(() => {
@@ -135,28 +106,7 @@ describe('Graph context menu (background)', () => {
       render(<Graph data={menuData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 300, clientY: 300 });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('New File')).toBeInTheDocument();
-      });
-    } finally {
-      platformSpy.mockRestore();
-    }
-  });
-
-  it('opens background menu in 3d from mac ctrl+click (same as right-click)', async () => {
-    const platformSpy = mockMacPlatform();
-    try {
-      await act(async () => {
-        graphStore.setState({ graphMode: '3d' });
-      });
-      render(<Graph data={menuData} />);
-      await waitForThreeDimensionalSurface();
-
-      await act(async () => {
-        ForceGraph3D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 320, clientY: 320 });
+        OwnedGraphSurface.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 300, clientY: 300 });
       });
 
       await waitFor(() => {
@@ -172,7 +122,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -186,30 +136,13 @@ describe('Graph context menu (background)', () => {
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
   });
 
-  it('disables creation actions for historical timeline snapshots on background context', async () => {
-    graphStore.setState({ timelineActive: true });
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
-      fireEvent.contextMenu(graphContainer, { clientX: 320, clientY: 300 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
-    });
-    expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
-    expect(screen.getByText('New File')).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText('New Folder')).toHaveAttribute('aria-disabled', 'true');
-  });
 
   it('sends REFRESH_GRAPH message when clicking Refresh', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -229,7 +162,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -252,7 +185,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -271,40 +204,14 @@ describe('Graph context menu (background)', () => {
   });
 
   it('fits view in 2d when clicking Fit All Nodes', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.zoomToFit.mockClear();
 
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
-      fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Fit All Nodes'));
-    });
-
-    expect(methods.zoomToFit).toHaveBeenCalledWith(300, expect.any(Number));
-    expect(methods.zoomToFit.mock.calls[0]?.[1]).toBeGreaterThan(20);
-  });
-
-  it('fits view in 3d when clicking Fit All Nodes', async () => {
-    const methods = ForceGraph3D.getMockMethods();
-    methods.zoomToFit.mockClear();
-    graphStore.setState({ graphMode: '3d' });
-
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -333,7 +240,7 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 
@@ -348,11 +255,11 @@ describe('Graph context menu (background)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+      OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
     await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
+      OwnedGraphSurface.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 500, clientY: 500 });
     });
 
@@ -368,11 +275,11 @@ describe('Graph context menu (background)', () => {
       render(<Graph data={selectionData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+        OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
       });
 
       await act(async () => {
-        ForceGraph2D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 500, clientY: 500 });
+        OwnedGraphSurface.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 500, clientY: 500 });
       });
 
       await waitFor(() => {

@@ -4,19 +4,14 @@ import { createGraphViewHtml, createGraphViewNonce } from '../../../../src/exten
 
 describe('graphView/webview/html', () => {
   it('creates a 32-character nonce from the allowed character set', () => {
-    const nonce = createGraphViewNonce(() => 0);
-
-    expect(nonce).toHaveLength(32);
-    expect(nonce).toBe('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    expect(createGraphViewNonce(() => 0)).toBe('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
   });
 
   it('uses the full nonce character range when random values approach one', () => {
-    const nonce = createGraphViewNonce(() => 0.999999);
-
-    expect(nonce).toBe('99999999999999999999999999999999');
+    expect(createGraphViewNonce(() => 0.999999)).toBe('99999999999999999999999999999999');
   });
 
-  it('builds the graph webview HTML with script, style, CSP, and view kind values', () => {
+  it('builds graph-only webview HTML with script, style, CSP, and theme', () => {
     const webview = {
       cspSource: 'vscode-webview://test',
       asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
@@ -26,32 +21,20 @@ describe('graphView/webview/html', () => {
       vscode.Uri.file('/test/extension'),
       webview as unknown as vscode.Webview,
       'nonce-value',
-      'graph',
       'light',
     );
 
-    expect(html).toContain("script-src vscode-webview://test 'nonce-nonce-value'");
+    expect(html).toContain(
+      "script-src vscode-webview://test 'nonce-nonce-value' 'wasm-unsafe-eval'",
+    );
+    expect(html).toContain('worker-src vscode-webview://test blob:');
     expect(html).toContain("img-src vscode-webview://test data:");
     expect(html).toContain('webview:/test/extension/dist/webview/index.js');
     expect(html).toContain('webview:/test/extension/dist/webview/index.css');
     expect(html).toContain('<script type="module" nonce="nonce-value" src="webview:/test/extension/dist/webview/index.js"></script>');
-    expect(html).toContain('data-codegraphy-view="graph"');
+    expect(html).not.toContain('data-codegraphy-view');
     expect(html).toContain('data-codegraphy-theme="light"');
     expect(html).toContain('<div id="root"></div>');
-  });
-
-  it('marks the timeline webview html with the timeline view kind', () => {
-    const html = createGraphViewHtml(
-      vscode.Uri.file('/test/extension'),
-      {
-        cspSource: 'vscode-webview://test',
-        asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
-      } as unknown as vscode.Webview,
-      'nonce-value',
-      'timeline',
-    );
-
-    expect(html).toContain('data-codegraphy-view="timeline"');
   });
 
   it('marks the graph debug bridge as enabled when requested', () => {
@@ -62,7 +45,6 @@ describe('graphView/webview/html', () => {
         asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
       } as unknown as vscode.Webview,
       'nonce-value',
-      'graph',
       'dark',
       true,
     );
@@ -78,7 +60,6 @@ describe('graphView/webview/html', () => {
         asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
       } as unknown as vscode.Webview,
       'nonce-value',
-      'graph',
     );
 
     expect(html).not.toContain('data-codegraphy-debug');

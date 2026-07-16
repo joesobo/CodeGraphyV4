@@ -19,7 +19,6 @@ import type { Disposable } from './disposable';
 import type {
   GraphEdgeKind,
   GraphNodeShape2D,
-  GraphNodeShape3D,
   IGraphData,
   NodeType,
 } from './graph';
@@ -119,8 +118,6 @@ export interface IPluginAnalysisFileSystem {
 }
 
 export interface IPluginAnalysisContext {
-  mode: 'workspace' | 'timeline';
-  commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
   features?: {
     symbols?: boolean;
@@ -129,9 +126,9 @@ export interface IPluginAnalysisContext {
 }
 
 export interface IPluginFileColorDefinition {
+  /** CSS color resolved in the Graph View theme context. */
   color: string;
   shape2D?: GraphNodeShape2D;
-  shape3D?: GraphNodeShape3D;
   /** Relative path from the plugin root to an image asset. */
   imagePath?: string;
 }

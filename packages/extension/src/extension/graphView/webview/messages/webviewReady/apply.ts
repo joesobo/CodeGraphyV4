@@ -19,7 +19,6 @@ export async function applyWebviewReady(
   replayWebviewReadySettings(state, handlers);
 
   const initialFilterPatterns = createWebviewReadyFilterPatternsPayload(handlers);
-  await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
   const loadedFilterPatterns = createWebviewReadyFilterPatternsPayload(handlers);
   if (!areWebviewReadyFilterPatternsEqual(initialFilterPatterns, loadedFilterPatterns)) {

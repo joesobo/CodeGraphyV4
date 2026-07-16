@@ -1,12 +1,16 @@
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
+
 export interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
-  graphMode: '2d' | '3d';
+  fps: number | null;
   nodes: Array<{
     baseOpacity?: number;
+    collisionRadius: number;
     color?: string;
     id: string;
     imageUrl?: string;
+    positionFinite: boolean;
     screenX: number;
     shapeSize2D?: {
       height: number;
@@ -20,15 +24,20 @@ export interface GraphDebugSnapshot {
   zoom: number | null;
 }
 
-export interface GraphDebugControls {
-  graph2ScreenCoords?(this: void, x: number, y: number, z?: number): { x: number; y: number };
-  zoom?(this: void): number;
-  zoomToFit?(this: void, durationMs?: number, padding?: number): void;
-}
+export type GraphDebugControls = Partial<Pick<
+  OwnedGraph2dControls,
+  | 'centerAt'
+  | 'getFps'
+  | 'graph2ScreenCoords'
+  | 'zoom'
+  | 'zoomToFit'
+>>;
 
 export interface GraphDebugApi {
+  centerNode(this: void, nodeId: string, scale: number): boolean;
   fitView(this: void): void;
   fitViewWithPadding(this: void, padding: number): void;
+  getNodeScreenPosition(this: void, nodeId: string): { x: number; y: number } | null;
   getSnapshot(this: void): GraphDebugSnapshot;
   openNodeContextMenu(this: void, nodeId: string): void;
 }

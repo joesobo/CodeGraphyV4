@@ -6,16 +6,13 @@ import { graphStore } from '../../../../src/webview/store/state';
 function resetStore(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     bidirectionalMode: 'separate',
-    dagMode: null,
     depthMode: false,
     directionColor: '#22c55e',
     directionMode: 'arrows',
     favorites: new Set<string>(['src/app.ts']),
-    graphMode: '2d',
     nodeSizeMode: 'connections',
     particleSize: 2,
     particleSpeed: 0.1,
-    physicsPaused: false,
     physicsSettings: {
       centerForce: 0.1,
       damping: 0.7,
@@ -25,7 +22,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
     },
     pluginContextMenuItems: [{ index: 0, label: 'Copy Id', pluginId: 'test.plugin', when: 'node' }],
     showLabels: true,
-    timelineActive: false,
     ...overrides,
   });
 }
@@ -37,17 +33,28 @@ describe('graph/store', () => {
     });
   });
 
+  it('does not rerender for plugin status state that the graph does not consume', () => {
+    const { result } = renderHook(() => useGraphViewStoreState());
+    const initialResult = result.current;
+
+    act(() => {
+      graphStore.setState({
+        graphViewContributionStatuses: [],
+        pluginStatuses: [],
+      });
+    });
+
+    expect(result.current).toBe(initialResult);
+  });
+
   it('reads the graph view store state used by the Graph component', () => {
     act(() => {
       resetStore({
         depthMode: true,
         directionMode: 'particles',
-        graphMode: '3d',
         particleSize: 7,
         particleSpeed: 0.35,
-        physicsPaused: true,
         showLabels: false,
-        timelineActive: true,
       });
     });
 
@@ -55,21 +62,16 @@ describe('graph/store', () => {
 
     expect(result.current).toMatchObject({
       bidirectionalMode: 'separate',
-      dagMode: null,
       depthMode: true,
       directionMode: 'particles',
-      graphMode: '3d',
       nodeSizeMode: 'connections',
       particleSize: 7,
       particleSpeed: 0.35,
-      physicsPaused: true,
       showLabels: false,
-      timelineActive: true,
     });
     expect(result.current.favorites).toEqual(new Set(['src/app.ts']));
     expect(result.current.pluginContextMenuItems).toEqual([
       { index: 0, label: 'Copy Id', pluginId: 'test.plugin', when: 'node' },
     ]);
-    expect(result.current.setGraphMode).toBeTypeOf('function');
   });
 });

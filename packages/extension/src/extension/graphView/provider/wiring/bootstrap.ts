@@ -1,4 +1,4 @@
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import { savePluginExport } from '../../../export/pluginSave';
 
 interface GraphViewCoreViewLike {
@@ -54,16 +54,13 @@ interface InitializeGraphViewProviderServicesOptions {
 
 interface RestoreGraphViewProviderStateOptions {
   configuration: GraphViewConfigurationLike;
-  dagModeKey: string;
   nodeSizeModeKey: string;
   depthModeKey?: string;
   fallbackNodeSizeMode: NodeSizeMode;
 }
 
-type PersistedNodeSizeMode = NodeSizeMode | 'access-count';
-
-function normalizeNodeSizeMode(mode: PersistedNodeSizeMode): NodeSizeMode {
-  return mode === 'access-count' ? 'churn' : mode;
+function normalizeNodeSizeMode(mode: unknown): NodeSizeMode {
+  return mode === 'file-size' ? 'file-size' : 'connections';
 }
 
 export function initializeGraphViewProviderServices({
@@ -109,22 +106,19 @@ export function initializeGraphViewProviderServices({
 
 export function restoreGraphViewProviderState({
   configuration,
-  dagModeKey,
   nodeSizeModeKey,
   depthModeKey,
   fallbackNodeSizeMode,
 }: RestoreGraphViewProviderStateOptions): {
   depthMode: boolean;
-  dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
   const depthMode = configuration.get<boolean>(depthModeKey ?? 'depthMode', false);
 
   return {
     depthMode,
-    dagMode: configuration.get<DagMode>(dagModeKey, null),
     nodeSizeMode: normalizeNodeSizeMode(
-      configuration.get<PersistedNodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
+      configuration.get<unknown>(nodeSizeModeKey, fallbackNodeSizeMode),
     ),
   };
 }

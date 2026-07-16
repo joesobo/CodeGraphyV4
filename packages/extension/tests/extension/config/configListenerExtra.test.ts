@@ -14,8 +14,6 @@ function makeProvider() {
     refreshGroupSettings: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     emitEvent: vi.fn(),
-    invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
-    sendPlaybackSpeed: vi.fn(),
   };
 }
 
@@ -80,7 +78,7 @@ describe('configListener (extra mutant coverage)', () => {
     expect(provider.refresh).not.toHaveBeenCalled();
   });
 
-  it('does not invalidate timeline cache for general changes without filterPatterns or maxCommits', () => {
+  it('refreshes once for a general CodeGraphy change', () => {
     const context = makeContext();
     const provider = makeProvider();
 
@@ -92,22 +90,5 @@ describe('configListener (extra mutant coverage)', () => {
     });
 
     expect(provider.refresh).toHaveBeenCalledOnce();
-    expect(provider.invalidateTimelineCache).not.toHaveBeenCalled();
-    expect(provider.sendPlaybackSpeed).not.toHaveBeenCalled();
-  });
-
-  it('invalidates timeline cache for timeline.maxCommits changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' || key === 'codegraphy.timeline.maxCommits',
-    });
-
-    expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
   });
 });

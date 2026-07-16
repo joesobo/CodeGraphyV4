@@ -36,35 +36,28 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
 
     expect(shouldKeepFixedPosition(draggedNode, {
       graphData: { nodes: graphNodes },
-      graphMode: '2d',
       graphViewContributions: {
         nodeDragEnd: [nodeDragEndContribution(onNodeDragEnd)],
       },
-      timelineActive: true,
     })).toBe(true);
     expect(onNodeDragEnd).toHaveBeenCalledWith({
-      graphMode: '2d',
       node: draggedNode,
       nodes: graphNodes,
-      timelineActive: true,
     });
   });
 
-  it('uses the dragged node and inactive timeline as default policy context', () => {
+  it('uses the dragged node as the default policy context', () => {
     const draggedNode = node();
     const onNodeDragEnd = vi.fn(() => undefined);
 
     expect(shouldKeepFixedPosition(draggedNode, {
-      graphMode: '3d',
       graphViewContributions: {
         nodeDragEnd: [nodeDragEndContribution(onNodeDragEnd)],
       },
     })).toBe(false);
     expect(onNodeDragEnd).toHaveBeenCalledWith({
-      graphMode: '3d',
       node: draggedNode,
       nodes: [draggedNode],
-      timelineActive: false,
     });
   });
 
@@ -73,7 +66,6 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     expect(shouldKeepFixedPosition(node(), {
-      graphMode: '2d',
       graphViewContributions: {
         nodeDragEnd: [
           nodeDragEndContribution(() => {
@@ -90,35 +82,21 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
   });
 
   it('keeps 2d coordinates fixed where the user drops the node', () => {
-    const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
+    const draggedNode = node({ fx: 1, fy: 2, isDragging: true });
 
-    releaseNodeDrag(draggedNode, '2d');
-
-    expect(draggedNode).toMatchObject({
-      fx: 1,
-      fy: 2,
-      fz: 3,
-      isDragging: false,
-    });
-  });
-
-  it('keeps 3d coordinates fixed where the user drops the node', () => {
-    const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
-
-    releaseNodeDrag(draggedNode, '3d');
+    releaseNodeDrag(draggedNode);
 
     expect(draggedNode).toMatchObject({
       fx: 1,
       fy: 2,
-      fz: 3,
       isDragging: false,
     });
   });
 
   it('keeps coordinates when release is owned by a drag policy', () => {
-    const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
+    const draggedNode = node({ fx: 1, fy: 2, isDragging: true });
 
-    releaseNodeDrag(draggedNode, '3d', {
+    releaseNodeDrag(draggedNode, {
       graphViewContributions: {
         nodeDragEnd: [nodeDragEndContribution(() => ({ keepFixedPosition: true }))],
       },
@@ -127,7 +105,6 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
     expect(draggedNode).toMatchObject({
       fx: 1,
       fy: 2,
-      fz: 3,
       isDragging: false,
     });
   });

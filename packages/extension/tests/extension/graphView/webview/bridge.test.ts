@@ -7,20 +7,20 @@ import {
 describe('graphView/webview/bridge', () => {
   it('sends messages to every sidebar view and every editor panel', () => {
     const graphViewWebview = { postMessage: vi.fn() };
-    const timelineViewWebview = { postMessage: vi.fn() };
+    const secondaryViewWebview = { postMessage: vi.fn() };
     const panelWebview = { postMessage: vi.fn() };
 
     sendGraphViewWebviewMessage(
       [
         { webview: graphViewWebview } as never,
-        { webview: timelineViewWebview } as never,
+        { webview: secondaryViewWebview } as never,
       ],
       [{ webview: panelWebview }] as never,
       { type: 'GRAPH_DATA_UPDATED' },
     );
 
     expect(graphViewWebview.postMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
-    expect(timelineViewWebview.postMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
+    expect(secondaryViewWebview.postMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
     expect(panelWebview.postMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
   });
 

@@ -1,7 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
-import { getCachedGitHistoryChurnCounts } from '../../gitHistory/cache/state';
-import { createGitHistoryPluginSignature } from '../../gitHistory/pluginSignature';
 import { refreshAnalysisScopeForFacade } from './refresh/modes/analysisScope';
 import { refreshChangedFilesForFacade } from './refresh/modes/changedFiles';
 import type { RefreshFacadeContext } from './refresh/context';
@@ -14,12 +12,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     graphData: IGraphData,
     filePaths: readonly string[],
   ): IGraphData {
-    const churnCounts = getCachedGitHistoryChurnCounts(
-      this._context.workspaceState,
-      createGitHistoryPluginSignature(this._registry),
-    ) ?? {};
     return patchGraphDataNodeMetrics({
-      churnCounts,
       filePaths,
       fileSizes: this._cache.files,
       graphData,

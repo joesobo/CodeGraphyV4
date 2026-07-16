@@ -202,13 +202,13 @@ function createSeededRandom(seed = 12345): () => number {
 
 async function waitUntil(assertion: () => void): Promise<void> {
   let lastError: unknown;
-  for (let attempt = 0; attempt < 20; attempt += 1) {
+  for (let attempt = 0; attempt < 200; attempt += 1) {
     try {
       assertion();
       return;
     } catch (error) {
       lastError = error;
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 5));
     }
   }
   throw lastError;

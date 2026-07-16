@@ -3,15 +3,12 @@
  * @module webview/appMessageListener
  */
 
-import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { graphStore } from '../../store/state';
-import { parsePluginScopedMessage } from './messages';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
-import { handlePluginInjectMessage } from './messageListener/pluginInjection';
-import { removeDisabledPluginRegistrations } from './messageListener/pluginRegistrations';
-import { handlePluginDataUpdatedMessage } from './messageListener/pluginData';
 import { postWebviewReadyOnce, resetWebviewReadyPosted } from './messageListener/ready';
-import { handleCssSnippetsUpdatedMessage } from './messageListener/cssSnippets';
+import {
+  routeExtensionMessage,
+  type RawExtensionMessage,
+} from './messageListener/route';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -30,6 +27,14 @@ export interface InjectAssetsParams {
 export type ResetPluginAssets = (pluginId: string) => void;
 export type UpdatePluginData = (pluginId: string, data: unknown) => void;
 
+function parseExtensionMessage(data: unknown): RawExtensionMessage | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const message = data as { type?: unknown; payload?: unknown; data?: unknown };
+  return typeof message.type === 'string'
+    ? { ...message, type: message.type }
+    : undefined;
+}
+
 /**
  * Create the message event handler for the App's window listener.
  */
@@ -42,30 +47,15 @@ export function createMessageHandler(
   const packagePluginIdsByPackageName = new Map<string, string>();
 
   return (event: MessageEvent<unknown>) => {
-    const raw = event.data as { type?: unknown; payload?: unknown; data?: unknown };
-    if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
-      return;
-    }
-    if (handlePluginInjectMessage(raw, injectPluginAssets)) {
-      return;
-    }
-
-    if (handleCssSnippetsUpdatedMessage(raw)) {
-      return;
-    }
-
-    const scopedMessage = parsePluginScopedMessage(raw.type, raw.data);
-    if (scopedMessage) {
-      pluginHost.deliverMessage(scopedMessage.pluginId, scopedMessage.message);
-      return;
-    }
-
-    if (handlePluginDataUpdatedMessage(raw, updatePluginData)) {
-      return;
-    }
-
-    removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
-    graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
+    const message = parseExtensionMessage(event.data);
+    if (!message) return;
+    routeExtensionMessage(message, {
+      injectPluginAssets,
+      packagePluginIdsByPackageName,
+      pluginHost,
+      resetPluginAssets,
+      updatePluginData,
+    });
   };
 }
 

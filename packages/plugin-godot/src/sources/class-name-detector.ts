@@ -34,16 +34,13 @@ export function detectUsagesInLine(line: string, lineNumber = 0): IGDScriptRefer
 
 	const extendsClass = matchExtendsClass(trimmed);
 	if (extendsClass) push(extendsClass);
-
 	for (const name of matchTypeAnnotations(line)) push(name);
-
 	const returnType = matchReturnType(line);
 	if (returnType) push(returnType);
-
 	for (const name of matchStaticCall(line)) push(name, 'class_name_static_call');
-	for (const name of matchStaticAccess(line)) push(name);
-	for (const name of matchIsAs(line)) push(name);
-	for (const name of matchGenerics(line)) push(name);
+	for (const matcher of [matchStaticAccess, matchIsAs, matchGenerics]) {
+		for (const name of matcher(line)) push(name);
+	}
 
 	return references;
 }

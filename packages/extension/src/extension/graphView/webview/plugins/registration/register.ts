@@ -44,7 +44,6 @@ export interface GraphViewExternalPluginRegistrationHandlers {
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
-  invalidateTimelineCache?(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
 }
 

@@ -2,18 +2,12 @@ import type {
   GraphInteractionEffect,
   GraphModifierClickOptions,
 } from './model';
-
-function isMacControlContextAction(
-  ctrlKey: boolean,
-  isMacPlatform: boolean,
-): boolean {
-  return isMacPlatform && ctrlKey;
-}
+import { isMacControlClick } from '../support/modifiers';
 
 export function getBackgroundClickCommand(
   options: GraphModifierClickOptions,
 ): GraphInteractionEffect[] {
-  if (isMacControlContextAction(options.ctrlKey, options.isMacPlatform)) {
+  if (isMacControlClick(options.ctrlKey, options.isMacPlatform)) {
     return [{ kind: 'openBackgroundContextMenu' }];
   }
 
@@ -27,7 +21,7 @@ export function getBackgroundClickCommand(
 export function getLinkClickCommand(
   options: GraphModifierClickOptions,
 ): GraphInteractionEffect[] {
-  return isMacControlContextAction(options.ctrlKey, options.isMacPlatform)
+  return isMacControlClick(options.ctrlKey, options.isMacPlatform)
     ? [{ kind: 'openEdgeContextMenu' }]
     : [];
 }

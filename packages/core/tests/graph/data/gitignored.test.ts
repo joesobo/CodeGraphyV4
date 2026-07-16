@@ -28,7 +28,6 @@ describe('core/graph/data gitignored metadata', () => {
       ]),
       gitIgnoredPaths: ['example-python/app.py'],
       showOrphans: true,
-      churnCounts: {},
       nodeVisibility: SYMBOL_NODE_VISIBILITY,
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.vue'),

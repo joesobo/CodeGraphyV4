@@ -67,7 +67,6 @@
             "properties": {
               "color": { "type": "string" },
               "shape2D": { "type": "string", "enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"] },
-              "shape3D": { "type": "string", "enum": ["sphere", "cube", "octahedron", "cone", "dodecahedron", "icosahedron"] },
               "imagePath": { "type": "string", "description": "Relative path from plugin root to image file" }
             }
           }

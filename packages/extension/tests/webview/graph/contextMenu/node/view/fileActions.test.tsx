@@ -4,8 +4,7 @@ import {
   clearSentMessages,
   findMessage,
   fireEvent,
-  ForceGraph2D,
-  ForceGraph3D,
+  OwnedGraphSurface,
   getGraphContainer,
   Graph,
   graphStore,
@@ -15,7 +14,6 @@ import {
   screen,
   setupGraphContextMenuTest,
   waitFor,
-  waitForThreeDimensionalSurface,
 } from './harness';
 
 describe('Graph node context menu file actions', () => {
@@ -118,7 +116,7 @@ describe('Graph node context menu file actions', () => {
   });
 
   it('focuses a file node in 2d', async () => {
-    const methods = ForceGraph2D.getMockMethods();
+    const methods = OwnedGraphSurface.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
 
@@ -135,31 +133,6 @@ describe('Graph node context menu file actions', () => {
     expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
   });
 
-  it('focuses a file node in 3d', async () => {
-    const methods = ForceGraph3D.getMockMethods();
-    methods.zoomToFit.mockClear();
-    graphStore.setState({ graphMode: '3d' });
-
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateNodeRightClick({ id: 'src/app.ts' });
-      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Focus Node')).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Focus Node'));
-    });
-
-    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
-  });
-
   it('opens filter popover requests for the selected file node', async () => {
     const onAddFilterRequested = vi.fn();
     const { container } = render(
@@ -168,7 +141,7 @@ describe('Graph node context menu file actions', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
     });
 

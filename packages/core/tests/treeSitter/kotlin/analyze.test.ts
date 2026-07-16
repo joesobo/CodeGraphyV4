@@ -28,6 +28,15 @@ afterEach(async () => {
 });
 
 describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
+  it('ignores incomplete call expressions without a callee', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const filePath = path.join(workspaceRoot, 'Main.kt');
+
+    const result = await analyzeFileWithTreeSitter(filePath, 'fun main() { () }\n', workspaceRoot);
+
+    expect(result?.relations?.filter(relation => relation.kind === 'call') ?? []).toEqual([]);
+  });
+
   it('extracts Kotlin import relationships, simple inheritance, and useful symbols', async () => {
     const workspaceRoot = await createWorkspace({
       'src/main/kotlin/com/example/base/BaseRunner.kt': 'package com.example.base\nopen class BaseRunner\n',

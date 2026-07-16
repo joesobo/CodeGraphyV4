@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  getLatestNodeRenderer,
   getOverlayEntries,
   getRendererFnsForType,
   type NodeRendererRegistry,
@@ -8,20 +7,6 @@ import {
 } from '../../../../src/webview/pluginHost/manager/registries';
 
 describe('webview/pluginHost/manager/registries', () => {
-  it('returns the latest renderer for a node type', () => {
-    const older = vi.fn();
-    const newer = vi.fn();
-    const renderers: NodeRendererRegistry = new Map([
-      ['file', [
-        { pluginId: 'plugin.one', fn: older },
-        { pluginId: 'plugin.two', fn: newer },
-      ]],
-    ]);
-
-    expect(getLatestNodeRenderer(renderers, 'file')).toBe(newer);
-    expect(getLatestNodeRenderer(renderers, 'missing')).toBeUndefined();
-  });
-
   it('combines type-specific and wildcard renderers without duplicating wildcard lookups', () => {
     const typeRenderer = vi.fn();
     const wildcardRenderer = vi.fn();

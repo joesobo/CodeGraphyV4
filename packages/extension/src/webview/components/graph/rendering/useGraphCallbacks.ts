@@ -1,155 +1,87 @@
-import { useRef } from 'react';
-import type {
-  LinkObject,
-  NodeObject,
-} from 'react-force-graph-2d';
-import {
-  getGraphDirectionalColor,
-  getGraphLinkColor,
-} from './link/colors/model';
-import {
-  getGraphArrowRelPos,
-  getGraphLinkParticles,
-  getGraphLinkWidth,
-} from './link/metrics';
-import { renderBidirectionalLink } from './bidirectional/link';
-import {
-  paintNodePointerArea,
-  renderNodeCanvas,
-} from './nodes/canvas2d';
+import { useRef, type RefObject } from 'react';
 import type { GraphRuntime } from '../runtime/use/state';
 import type { FGLink, FGNode } from '../model/build';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import type { OwnedGraphNodeStyle } from './surface/owned2d/view/surface/contracts';
+import { NodeLabelSpriteCache } from './node/labelSprite';
+import { createGraphCallbacks } from './graphCallbacks';
+import { createCssColorResolver, type CssColorResolver } from '../../../cssColors/resolver';
 
 export interface UseGraphCallbacksOptions {
+  colorContextRef: RefObject<Element | null>;
   pluginHost?: WebviewPluginHost;
   refs: Pick<
     GraphRuntime,
-    | 'directionColorRef'
-    | 'directionModeRef'
     | 'edgeDecorationsRef'
     | 'graphAppearanceRef'
     | 'highlightedNeighborsRef'
     | 'highlightedNodeRef'
     | 'nodeDecorationsRef'
     | 'showLabelsRef'
-    | 'themeRef'
   > & {
-    meshesRef: GraphRuntime['renderCaches']['meshesRef'];
     selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
-    spritesRef: GraphRuntime['renderCaches']['spritesRef'];
   };
   triggerImageRerender(this: void): void;
 }
 
 export interface UseGraphCallbacksResult {
-  getArrowColor: (this: void, link: LinkObject) => string;
-  getArrowRelPos: (this: void, link: LinkObject) => number;
-  getLinkColor: (this: void, link: LinkObject) => string;
-  getLinkParticles: (this: void, link: LinkObject) => number;
-  getLinkWidth: (this: void, link: LinkObject) => number;
-  getParticleColor: (this: void, link: LinkObject) => string;
-  linkCanvasObject: (this: void, link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-  nodeCanvasObject: (this: void, node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-  nodePointerAreaPaint: (this: void, node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void;
+  getArrowColor: (this: void, link: FGLink) => string;
+  getLinkColor: (this: void, link: FGLink) => string;
+  getLinkOpacity: (this: void, link: FGLink) => number;
+  getLinkParticles: (this: void, link: FGLink) => number;
+  getLinkWidth: (this: void, link: FGLink) => number;
+  getNodeStyle: (this: void, node: FGNode) => OwnedGraphNodeStyle;
+  getParticleColor: (this: void, link: FGLink) => string;
+  getStyleRevision: (this: void) => number;
+  nodeLabelCanvasObject: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
 }
 
 type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];
 
-interface GraphCallbackContext {
+type GraphCallbackContext = GraphCallbackRefs & {
   pluginHost?: WebviewPluginHost;
-  refs: GraphCallbackRefs;
+  resolveColor: CssColorResolver['resolve'];
   triggerImageRerender(this: void): void;
-}
-
-function getLinkRenderingContext(refs: GraphCallbackRefs) {
-  return {
-    directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    graphAppearanceRef: refs.graphAppearanceRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
-  };
-}
-
-function getNodeCanvasContext({
-  pluginHost,
-  refs,
-  triggerImageRerender,
-}: GraphCallbackContext) {
-  return {
-    highlightedNeighborsRef: refs.highlightedNeighborsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    nodeDecorationsRef: refs.nodeDecorationsRef,
-    selectedNodesSetRef: refs.selectedNodesSetRef,
-    showLabelsRef: refs.showLabelsRef,
-    themeRef: refs.themeRef,
-    graphAppearanceRef: refs.graphAppearanceRef,
-    pluginHost,
-    triggerImageRerender,
-  };
-}
+};
 
 export function useGraphCallbacks({
+  colorContextRef,
   pluginHost,
   refs,
   triggerImageRerender,
 }: UseGraphCallbacksOptions): UseGraphCallbacksResult {
+  const callbacksRef = useRef<UseGraphCallbacksResult | null>(null);
+  const colorResolverRef = useRef<CssColorResolver | null>(null);
+  const labelSpriteCacheRef = useRef<NodeLabelSpriteCache | null>(null);
+  if (colorResolverRef.current === null) {
+    colorResolverRef.current = createCssColorResolver(
+      undefined,
+      undefined,
+      () => colorContextRef.current,
+    );
+  }
+  if (labelSpriteCacheRef.current === null) {
+    labelSpriteCacheRef.current = new NodeLabelSpriteCache();
+  }
   const contextRef = useRef<GraphCallbackContext>({
+    ...refs,
     pluginHost,
-    refs,
+    resolveColor: colorResolverRef.current.resolve,
     triggerImageRerender,
   });
-  const callbacksRef = useRef<UseGraphCallbacksResult | null>(null);
 
   contextRef.current = {
+    ...refs,
     pluginHost,
-    refs,
+    resolveColor: colorResolverRef.current.resolve,
     triggerImageRerender,
   };
 
   if (callbacksRef.current === null) {
-    callbacksRef.current = {
-      nodeCanvasObject(node, ctx, globalScale) {
-        renderNodeCanvas(
-          getNodeCanvasContext(contextRef.current),
-          node as FGNode,
-          ctx,
-          globalScale,
-        );
-      },
-      nodePointerAreaPaint(node, color, ctx) {
-        paintNodePointerArea(node as FGNode, color, ctx);
-      },
-      linkCanvasObject(link, ctx, globalScale) {
-        renderBidirectionalLink(
-          getLinkRenderingContext(contextRef.current.refs),
-          link as FGLink,
-          ctx,
-          globalScale,
-        );
-      },
-      getLinkColor(link) {
-        return getGraphLinkColor(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
-      },
-      getLinkParticles(link) {
-        return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
-      },
-      getArrowRelPos(_link) {
-        return getGraphArrowRelPos();
-      },
-      getArrowColor(_link) {
-        return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
-      },
-      getParticleColor(_link) {
-        return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
-      },
-      getLinkWidth(link) {
-        return getGraphLinkWidth(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
-      },
-    };
+    callbacksRef.current = createGraphCallbacks(contextRef, labelSpriteCacheRef.current);
   }
 
   return callbacksRef.current;
 }
+
+export type { GraphCallbackContext };

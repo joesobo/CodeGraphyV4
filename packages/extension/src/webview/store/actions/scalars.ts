@@ -7,13 +7,10 @@ export function createScalarActions(set: SetState) {
     setDirectionColor: (color: string) => set({ directionColor: color }),
     setParticleSpeed: (speed: number) => set({ particleSpeed: speed }),
     setParticleSize: (size: number) => set({ particleSize: size }),
-    setPhysicsPaused: (paused: boolean) => set({ physicsPaused: paused }),
     setBidirectionalMode: (mode: GraphState['bidirectionalMode']) => set({ bidirectionalMode: mode }),
     setDepthMode: (depthMode: boolean) => set({ depthMode }),
-    setDagMode: (mode: GraphState['dagMode']) => set({ dagMode: mode }),
     setMaxFiles: (max: number) => set({ maxFiles: max }),
+    setShowFps: (enabled: boolean) => set({ showFps: enabled }),
     setVerboseDiagnostics: (enabled: boolean) => set({ verboseDiagnostics: enabled }),
-    setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
-    setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
   };
 }

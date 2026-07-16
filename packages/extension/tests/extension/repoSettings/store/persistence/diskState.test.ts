@@ -35,15 +35,15 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     }
   });
 
-  it('creates updated settings without mutating the previous state', () => {
+  it('creates updated nested settings without mutating the previous state', () => {
     const defaults = createDefaultCodeGraphyRepoSettings();
     const settings = createDefaultCodeGraphyRepoSettings();
 
-    const updated = createUpdatedSettings(defaults, settings, 'timeline.playbackSpeed', 2.5);
+    const updated = createUpdatedSettings(defaults, settings, 'physics.damping', 0.2);
 
-    expect(updated.timeline.playbackSpeed).toBe(2.5);
-    expect(updated.timeline.maxCommits).toBe(500);
-    expect(settings.timeline.playbackSpeed).toBe(1);
+    expect(updated.physics.damping).toBe(0.2);
+    expect(updated.physics.linkDistance).toBe(80);
+    expect(settings.physics.damping).toBe(0.4);
   });
 
   it('reads, normalizes, merges, and rewrites persisted settings when the shape changed', () => {
@@ -71,6 +71,38 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"edgeColors"');
     expect(fs.readFileSync(settingsPath, 'utf8')).toContain('codegraphy.markdown');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('legacy.plugin');
+  });
+
+  it('migrates historical default physics values without changing custom values', () => {
+    const defaults = createDefaultCodeGraphyRepoSettings();
+    const settingsPath = createTempSettingsPath();
+    tempDirectories.push(path.dirname(path.dirname(settingsPath)));
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      version: 1,
+      physics: {
+        centerForce: 0.25,
+        damping: 0.7,
+        linkDistance: 140,
+        linkForce: 0.15,
+        repelForce: 6,
+      },
+    }), 'utf8');
+
+    const state = readSettingsFromDisk(settingsPath, defaults);
+
+    expect(state.settings.version).toBe(2);
+    expect(state.settings.physics).toMatchObject({
+      centerForce: 0.25,
+      damping: 0.4,
+      linkDistance: 140,
+      linkForce: 1,
+      repelForce: 6,
+    });
+    expect(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))).toMatchObject({
+      version: 2,
+      physics: { damping: 0.4, linkForce: 1 },
+    });
   });
 
   it('reads an already-normalized settings file without rewriting it', () => {

@@ -26,7 +26,6 @@ describe('graph view primary routed dispatch', () => {
     ).resolves.toEqual({ handled: true });
 
     expect(context.openSelectedNode).toHaveBeenCalledWith('src/app.ts');
-    expect(context.updateDagMode).not.toHaveBeenCalled();
   });
 
   it('routes export messages through the live export saver handlers', async () => {
@@ -43,7 +42,6 @@ describe('graph view primary routed dispatch', () => {
     ).resolves.toEqual({ handled: true });
 
     expect(exportSaverMocks.savePng).toHaveBeenCalledWith('data:image/png;base64,abc', 'graph.png');
-    expect(context.updateDagMode).not.toHaveBeenCalled();
   });
 
   it('returns false when no routed message family handles the input', async () => {

@@ -10,20 +10,16 @@ export function buildGraphCallbackOptions({
   pluginHost?: WebviewPluginHost;
 }): UseGraphCallbacksOptions {
   return {
+    colorContextRef: graphState.renderer.containerRef,
     pluginHost,
     refs: {
-      directionColorRef: graphState.directionColorRef,
-      directionModeRef: graphState.directionModeRef,
       edgeDecorationsRef: graphState.edgeDecorationsRef,
       graphAppearanceRef: graphState.graphAppearanceRef,
       highlightedNeighborsRef: graphState.highlightedNeighborsRef,
       highlightedNodeRef: graphState.highlightedNodeRef,
-      meshesRef: graphState.renderCaches.meshesRef,
       nodeDecorationsRef: graphState.nodeDecorationsRef,
       selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
       showLabelsRef: graphState.showLabelsRef,
-      spritesRef: graphState.renderCaches.spritesRef,
-      themeRef: graphState.themeRef,
     },
     triggerImageRerender: graphState.renderCaches.invalidateImages,
   };

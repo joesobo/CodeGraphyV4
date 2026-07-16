@@ -48,7 +48,7 @@ describe('pluginLifecycle', () => {
 
       expect(initialize).toHaveBeenCalledWith(
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
       expect(initialized.has(plugin.id)).toBe(true);
     });
@@ -101,11 +101,11 @@ describe('pluginLifecycle', () => {
 
       expect(initA).toHaveBeenCalledWith(
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
       expect(initB).toHaveBeenCalledWith(
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
     });
   });
@@ -141,7 +141,7 @@ describe('pluginLifecycle', () => {
       expect(onPreAnalyze).toHaveBeenCalledWith(
         files,
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
     });
   });
@@ -160,7 +160,7 @@ describe('pluginLifecycle', () => {
       expect(onFilesChanged).toHaveBeenCalledWith(
         files,
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
     });
 

@@ -1,15 +1,10 @@
 import type { GraphInteractionHandlersDependencies } from '../../handlers';
-import { zoom2d } from './zoom/zoom2d';
-import { zoom3d } from './zoom/zoom3d';
+
+const ZOOM_DURATION_MS = 150;
 
 export function zoomGraphView(
   dependencies: GraphInteractionHandlersDependencies,
   factor: number,
 ): void {
-  if (dependencies.graphMode === '3d') {
-    zoom3d(dependencies, factor);
-    return;
-  }
-
-  zoom2d(dependencies, factor);
+  dependencies.fg2dRef.current?.zoomBy(factor, ZOOM_DURATION_MS);
 }

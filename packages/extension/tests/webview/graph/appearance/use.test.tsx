@@ -1,5 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  cssColorRevision,
+  markCssColorsChanged,
+} from '../../../../src/webview/cssColors/resolver';
 import type { GraphAppearance } from '../../../../src/webview/components/graph/appearance/model';
 import { useGraphAppearance } from '../../../../src/webview/components/graph/appearance/use';
 
@@ -22,16 +26,17 @@ function createAppearance(stageBackground: string): GraphAppearance {
     labelMutedForeground: `muted-${stageBackground}`,
     linkHighlight: `link-${stageBackground}`,
     linkMuted: `link-muted-${stageBackground}`,
-    meshDimmed: `mesh-dimmed-${stageBackground}`,
-    meshSelected: `mesh-selected-${stageBackground}`,
     nodeSelectionBorder: `node-${stageBackground}`,
     stageBackground,
-    stageBorder: `border-${stageBackground}`,
     transparent: 'transparent',
   };
 }
 
 describe('graph/appearance/useGraphAppearance', () => {
+  beforeEach(() => {
+    harness.resolveGraphAppearance.mockReset();
+  });
+
   it('re-resolves concrete graph colors when VS Code sends a theme change message', () => {
     const initial = createAppearance('initial');
     const refreshed = createAppearance('refreshed');
@@ -41,6 +46,7 @@ describe('graph/appearance/useGraphAppearance', () => {
       .mockReturnValueOnce(refreshed);
 
     const { result } = renderHook(() => useGraphAppearance('dark'));
+    const colorRevision = cssColorRevision();
 
     expect(result.current).toBe(initial);
 
@@ -51,5 +57,19 @@ describe('graph/appearance/useGraphAppearance', () => {
     });
 
     expect(result.current).toBe(refreshed);
+    expect(cssColorRevision()).toBe(colorRevision + 1);
+  });
+
+  it('requests a graph style refresh when a plugin stylesheet changes only plugin custom properties', () => {
+    const appearance = createAppearance('unchanged-theme-tokens');
+    harness.resolveGraphAppearance.mockReturnValue(appearance);
+
+    const { result } = renderHook(() => useGraphAppearance('dark'));
+    const initial = result.current;
+
+    act(() => markCssColorsChanged());
+
+    expect(result.current).toEqual(initial);
+    expect(result.current).not.toBe(initial);
   });
 });

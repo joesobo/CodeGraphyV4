@@ -9,10 +9,6 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
     exportedAt: '2026-03-16T12:34:56.000Z',
     scope: {
       graph: 'current-view',
-      timeline: {
-        active: false,
-        commitSha: null,
-      },
     },
     summary: {
       totalNodes: 0,
@@ -49,7 +45,6 @@ describe('webview/export/markdown/legendEntries', () => {
             color: '#3B82F6',
             target: 'node',
             shape2D: 'diamond',
-            shape3D: 'tetrahedron',
             imagePath: '.codegraphy/images/src.png',
             pluginName: 'TypeScript',
           },
@@ -64,7 +59,7 @@ describe('webview/export/markdown/legendEntries', () => {
     );
 
     expect(lines).toEqual([
-      '- `src/**` (#3B82F6) | diamond | tetrahedron | image: .codegraphy/images/src.png | plugin: TypeScript',
+      '- `src/**` (#3B82F6) | diamond | image: .codegraphy/images/src.png | plugin: TypeScript',
       '- `README*` (#F59E0B)',
     ]);
   });

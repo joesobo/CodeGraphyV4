@@ -6,10 +6,9 @@ import type {
   IPluginFilterPatternGroup,
 } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
-import type { CodeGraphyWebviewKind } from '../html';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
@@ -67,23 +66,16 @@ export interface GraphViewProviderMessageListenerDependencies {
     analyzeAndSendData: () => Promise<void>,
   ): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
-  dagModeKey: string;
   nodeSizeModeKey: string;
 }
 
 export interface GraphViewProviderMessageListenerSource {
-  _timelineActive: boolean;
-  _currentCommitSha: string | undefined;
-  _gitAnalyzer?: {
-    getCachedCommitList(): Array<{ sha: string }> | null | undefined;
-  };
   _userGroups: IGroup[];
   _disabledPlugins: Set<string>;
   _filterPatterns: string[];
   _graphData: IGraphData;
   _viewContext: IViewContext;
   _depthMode: boolean;
-  _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
@@ -121,7 +113,6 @@ export interface GraphViewProviderMessageListenerSource {
   _openSelectedNode(nodeId: string): Promise<void>;
   _activateNode(nodeId: string): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
-  _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   _openFile(filePath: string): Promise<void>;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
@@ -146,9 +137,6 @@ export interface GraphViewProviderMessageListenerSource {
   redo(): Promise<string | undefined>;
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
-  _indexRepository(): Promise<void>;
-  _jumpToCommit(sha: string): Promise<void>;
-  _resetTimeline(): Promise<void>;
   _sendPhysicsSettings(): void;
   _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   _resetPhysicsSettings(): Promise<void>;
@@ -163,7 +151,6 @@ export interface GraphViewProviderMessageListenerSource {
   _loadDisabledRulesAndPlugins(): boolean;
   _sendFavorites(favorites?: string[]): void;
   _sendSettings(): void;
-  _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
   _sendPluginStatuses(): void;
@@ -206,22 +193,16 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
       analyzeAndSendData,
       ),
   executeUndoAction: action => getUndoManager().execute(action),
-  dagModeKey: 'dagMode',
   nodeSizeModeKey: 'nodeSizeMode',
 };
-
-export interface GraphViewProviderMessageListenerOptions {
-  viewKind?: CodeGraphyWebviewKind;
-}
 
 export function setGraphViewProviderMessageListener(
   webview: vscode.Webview,
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies = DEFAULT_DEPENDENCIES,
-  options: GraphViewProviderMessageListenerOptions = {},
 ): void {
   setGraphViewWebviewMessageListener(
     webview,
-    createGraphViewProviderMessageContext(source, dependencies, options),
+    createGraphViewProviderMessageContext(source, dependencies),
   );
 }

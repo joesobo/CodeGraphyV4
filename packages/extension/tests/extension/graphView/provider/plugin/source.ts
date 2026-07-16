@@ -45,7 +45,6 @@ export function createPluginSource(
     ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
-    _invalidateTimelineCache: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),
     refreshChangedFiles: vi.fn(async () => undefined),
     ...overrides,

@@ -1,4 +1,4 @@
-import type { GraphKeyboardCommand, GraphKeyboardOptions } from './effects';
+import type { GraphKeyboardCommand } from './effects';
 import {
   createHistoryCommand,
   createZoomCommand,
@@ -10,7 +10,6 @@ const ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR;
 export function getZoomShortcutCommand(
   key: string,
   isMod: boolean,
-  _graphMode: GraphKeyboardOptions['graphMode']
 ): GraphKeyboardCommand | null {
   switch (key) {
     case '=':

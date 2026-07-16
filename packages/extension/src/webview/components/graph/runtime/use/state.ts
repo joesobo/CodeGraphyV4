@@ -8,10 +8,6 @@ import {
   type SetStateAction,
 } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
-import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
-import type * as THREE from 'three';
-import type SpriteText from 'three-spritetext';
 import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
@@ -26,9 +22,7 @@ import {
   type FGNode,
 } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
-import {
-  as2DExtMethods,
-} from '../../support/contracts/forceGraph';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
 
@@ -43,20 +37,17 @@ export interface GraphRuntimeOptions {
   bidirectionalMode: BidirectionalEdgeMode;
   appearance?: GraphAppearance;
   data: IGraphData;
-  directionColor: string;
   directionMode: DirectionMode;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
   graphViewContributions?: CoreGraphViewContributionSet;
-  graphMode?: '2d' | '3d';
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
   theme: ThemeKind;
-  timelineActive: boolean;
 }
 
-export interface GraphRuntimeSelection {
+interface GraphRuntimeSelection {
   selectedNodeIds: string[];
   selectedNodeIdsRef: MutableRefObject<Set<string>>;
   setSelectedNodeIds: Dispatch<SetStateAction<string[]>>;
@@ -64,8 +55,7 @@ export interface GraphRuntimeSelection {
 
 export interface GraphRuntimeRenderer {
   containerRef: MutableRefObject<HTMLDivElement | null>;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
   graphData: { links: FGLink[]; nodes: FGNode[] };
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
 }
@@ -81,54 +71,25 @@ export interface GraphRuntimeContextSelection {
 
 export interface GraphRuntimeRenderCaches {
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
-  imageCacheVersion: number;
   invalidateImages(this: void): void;
-  meshesRef: MutableRefObject<Map<string, THREE.Mesh>>;
-  spritesRef: MutableRefObject<Map<string, SpriteText>>;
 }
 
 export interface GraphRuntime {
   context: GraphRuntimeContextSelection;
   dataRef: MutableRefObject<IGraphData>;
-  directionColorRef: MutableRefObject<string>;
   directionModeRef: MutableRefObject<DirectionMode>;
   edgeDecorationsRef: MutableRefObject<Record<string, EdgeDecorationPayload> | undefined>;
-  favoritesRef: MutableRefObject<Set<string>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphAppearanceRef: MutableRefObject<GraphAppearance>;
-  highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
   lastClickRef: MutableRefObject<{ nodeId: string; time: number } | null>;
   nodeDecorationsRef: MutableRefObject<Record<string, NodeDecorationPayload> | undefined>;
-  nodeSizeModeRef: MutableRefObject<NodeSizeMode>;
   renderer: GraphRuntimeRenderer;
   renderCaches: GraphRuntimeRenderCaches;
   selection: GraphRuntimeSelection;
-  setHighlightVersion: Dispatch<SetStateAction<number>>;
   showLabelsRef: MutableRefObject<boolean>;
   themeRef: MutableRefObject<ThemeKind>;
-  timelineActiveRef: MutableRefObject<boolean>;
-}
-
-export interface TimelineAlphaGraph {
-  d3Alpha?: (value: number) => unknown;
-}
-
-export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[] } {
-  return { links: [], nodes: [] };
-}
-
-export function incrementImageCacheVersion(previous: number): number {
-  return previous + 1;
-}
-
-export function applyTimelineAlpha(graph: TimelineAlphaGraph | undefined, alpha: number = 0.05): void {
-  if (!graph || typeof graph.d3Alpha !== 'function') {
-    return;
-  }
-
-  graph.d3Alpha(alpha);
 }
 
 function getVisibleSelection(
@@ -143,34 +104,24 @@ export function useGraphRuntime({
   bidirectionalMode,
   appearance = DEFAULT_GRAPH_APPEARANCE,
   data,
-  directionColor,
   directionMode,
   edgeDecorations,
   favorites,
   graphViewContributions,
-  graphMode,
   nodeDecorations,
   nodeSizeMode,
   showLabels,
   theme,
-  timelineActive,
 }: GraphRuntimeOptions): GraphRuntime {
-  const timelineActiveRef = useRef(timelineActive);
-  timelineActiveRef.current = timelineActive;
-
   const containerRef = useRef<HTMLDivElement>(null);
-  const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
-  const fg3dRef = useRef<FG3DMethods<FGNode, FGLink> | undefined>(undefined);
+  const fg2dRef = useRef<OwnedGraph2dControls | undefined>(undefined);
   const highlightedNodeRef = useRef<string | null>(null);
   const highlightedNeighborsRef = useRef<Set<string>>(new Set());
   const selectedNodesSetRef = useRef<Set<string>>(new Set());
   const themeRef = useRef(theme);
   const directionModeRef = useRef(directionMode);
-  const directionColorRef = useRef(directionColor);
-  const favoritesRef = useRef(favorites);
-  const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>(createEmptyRuntimeGraphData());
+  const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>({ links: [], nodes: [] });
   const dataRef = useRef(data);
-  const nodeSizeModeRef = useRef(nodeSizeMode);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
   const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
   const lastGraphContextEventRef = useRef(0);
@@ -180,18 +131,13 @@ export function useGraphRuntime({
   const graphCursorRef = useRef<GraphCursorStyle>('default');
   const graphAppearanceRef = useRef(appearance);
   const showLabelsRef = useRef(showLabels);
-  const spritesRef = useRef<Map<string, SpriteText>>(new Map());
-  const meshesRef = useRef<Map<string, THREE.Mesh>>(new Map());
   const nodeDecorationsRef = useRef(nodeDecorations);
   const edgeDecorationsRef = useRef(edgeDecorations);
 
   graphAppearanceRef.current = appearance;
   themeRef.current = theme;
   directionModeRef.current = directionMode;
-  directionColorRef.current = directionColor;
-  favoritesRef.current = favorites;
   dataRef.current = data;
-  nodeSizeModeRef.current = nodeSizeMode;
   showLabelsRef.current = showLabels;
   nodeDecorationsRef.current = nodeDecorations;
   edgeDecorationsRef.current = edgeDecorations;
@@ -200,40 +146,27 @@ export function useGraphRuntime({
   const [contextSelection, setContextSelection] = useState<GraphContextSelection>(() =>
     makeBackgroundContextSelection(),
   );
-  const [imageCacheVersion, setImageCacheVersion] = useState(0);
-  const [highlightVersion, setHighlightVersion] = useState(0);
+  const [, setImageCacheVersion] = useState(0);
 
   function triggerImageRerender(): void {
-    setImageCacheVersion(incrementImageCacheVersion);
+    setImageCacheVersion(previous => previous + 1);
   }
 
   const graphData = useMemo(() => {
-    const resolvedGraphMode = graphMode ?? '2d';
     const nextGraphData = buildGraphData({
       data,
       appearance,
-      nodeSizeMode: nodeSizeModeRef.current,
+      nodeSizeMode,
       theme: themeRef.current,
       favorites,
       graphViewContributions,
-      graphMode: resolvedGraphMode,
       bidirectionalMode,
-      timelineActive,
       previousNodes: graphDataRef.current.nodes,
     });
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, favorites, graphMode, graphViewContributions, timelineActive]);
-
-  useEffect(() => {
-    if (!timelineActive) return;
-    const graph = as2DExtMethods(fg2dRef.current);
-    if (!graph) return;
-    requestAnimationFrame(() => {
-      applyTimelineAlpha(graph);
-    });
-  }, [data, timelineActive]);
+  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions, nodeSizeMode]);
 
   useEffect(() => {
     const visibleSelectedNodes = getVisibleSelection(selectedNodes, graphData.nodes);
@@ -255,40 +188,30 @@ export function useGraphRuntime({
       rightMouseDownRef,
     },
     dataRef,
-    directionColorRef,
     directionModeRef,
     edgeDecorationsRef,
-    favoritesRef,
     graphCursorRef,
     graphAppearanceRef,
-    highlightVersion,
     highlightedNeighborsRef,
     highlightedNodeRef,
     lastClickRef,
     nodeDecorationsRef,
-    nodeSizeModeRef,
     renderer: {
       containerRef,
       fg2dRef,
-      fg3dRef,
       graphData,
       graphDataRef,
     },
     renderCaches: {
       fileInfoCacheRef,
-      imageCacheVersion,
       invalidateImages: triggerImageRerender,
-      meshesRef,
-      spritesRef,
     },
     selection: {
       selectedNodeIds: selectedNodes,
       selectedNodeIdsRef: selectedNodesSetRef,
       setSelectedNodeIds: setSelectedNodes,
     },
-    setHighlightVersion,
     showLabelsRef,
     themeRef,
-    timelineActiveRef,
   };
 }

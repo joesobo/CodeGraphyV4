@@ -20,7 +20,6 @@ export function createHandlers() {
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
-    sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginStatuses: vi.fn(),

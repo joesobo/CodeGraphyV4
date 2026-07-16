@@ -98,24 +98,8 @@ export class Configuration {
     return this.config.get<CodeGraphyWorkspacePluginSettings[]>('plugins', []);
   }
 
-  /**
-   * Maximum number of commits to index for the timeline.
-   * @default 500
-   */
-  get timelineMaxCommits(): number {
-    return this.config.get<number>('timeline.maxCommits', 500);
-  }
-
   get legend(): IGroup[] {
     return this.config.get<IGroup[]>('legend', []);
-  }
-
-  /**
-   * Timeline playback speed multiplier.
-   * @default 1.0
-   */
-  get timelinePlaybackSpeed(): number {
-    return this.config.get<number>('timeline.playbackSpeed', 1.0);
   }
 
   /**
