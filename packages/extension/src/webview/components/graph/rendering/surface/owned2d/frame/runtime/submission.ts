@@ -105,17 +105,18 @@ function prepareMinimapSecondaryFrame(
   prepared: PreparedOverlayCanvas,
   moving: boolean,
   timestampMs: number,
-  styleVersion: number,
+  baseStyleVersion: number,
 ): WebGpuGraphSecondaryFrame | undefined {
   if (!runtime.minimapSurfaceRegisteredRef.current) return undefined;
   const dimensions = minimapSurfaceDimensions(runtime);
   const decision = scheduleMinimapRefresh(runtime.minimapSchedulerRef.current, {
+    baseStyleVersion,
     devicePixelRatio: prepared.devicePixelRatio,
     graphIdentity: layout,
     graphRevision: layout.membershipRevision,
+    graphStyleRevision: layout.baseStyleRevision,
     moving,
     positionVersion: runtime.positionVersionRef.current,
-    styleVersion,
     surfaceHeight: dimensions.height,
     surfaceWidth: dimensions.width,
     timestampMs,
@@ -139,6 +140,7 @@ function prepareMinimapSecondaryFrame(
     getLinkOpacity: runtime.propsRef.current.getBaseLinkOpacity,
     getLinkWidth: runtime.propsRef.current.getBaseLinkWidth,
     getNodeStyle: runtime.propsRef.current.getBaseNodeStyle,
+    styleVersion: baseStyleVersion + layout.baseStyleRevision,
   };
 }
 
@@ -176,13 +178,14 @@ export function submitOwnedWebGpuFrame(
   const props = runtime.propsRef.current;
   try {
     const styleVersion = props.getStyleRevision();
+    const baseStyleVersion = props.getBaseStyleRevision();
     const secondaryFrame = prepareMinimapSecondaryFrame(
       runtime,
       layout,
       prepared,
       moving,
       timestampMs,
-      styleVersion,
+      baseStyleVersion,
     );
     presentMinimapViewport(runtime, prepared);
     const submissionId = renderer.render({ backgroundColor: props.backgroundColor, camera: runtime.cameraRef.current,

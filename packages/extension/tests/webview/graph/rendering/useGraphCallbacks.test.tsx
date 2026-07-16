@@ -147,6 +147,18 @@ describe('graph/rendering/useGraphCallbacks', () => {
     expect(result.current.getStyleRevision()).toBe(3);
   });
 
+  it('keeps the base-style revision stable for transient selection and decoration changes', () => {
+    const { refs, result } = renderUseGraphCallbacks();
+
+    expect(result.current.getBaseStyleRevision()).toBe(1);
+    refs.highlightedNodeRef.current = 'node-2';
+    refs.selectedNodesSetRef.current = new Set(['node-2']);
+    refs.nodeDecorationsRef.current = new Map([['node-2', { color: '#ff0000' }]]) as never;
+    refs.edgeDecorationsRef.current = new Map([['edge-1', { opacity: 0.1 }]]) as never;
+
+    expect(result.current.getBaseStyleRevision()).toBe(1);
+  });
+
   it('uses the directional color for arrows and particles', () => {
     renderingHarness.getGraphDirectionalColor.mockReturnValue('#aabbcc');
     const { refs, result } = renderUseGraphCallbacks();

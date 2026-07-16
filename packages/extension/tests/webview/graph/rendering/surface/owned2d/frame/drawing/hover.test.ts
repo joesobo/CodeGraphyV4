@@ -67,7 +67,7 @@ describe('owned graph frame hover', () => {
     runtime.layoutRef.current = {
       engine: reorderedEngine,
       links: [],
-      membershipRevision: 0,
+      baseStyleRevision: 0, membershipRevision: 0,
       nodes: [otherNode, replacementNode],
     };
 
@@ -91,7 +91,7 @@ describe('owned graph frame hover', () => {
       steps: 0,
     });
     runtime.layoutRef.current = {
-      engine: removedEngine, links: [], membershipRevision: 0, nodes: [otherNode],
+      engine: removedEngine, links: [], baseStyleRevision: 0, membershipRevision: 0, nodes: [otherNode],
     };
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 240);

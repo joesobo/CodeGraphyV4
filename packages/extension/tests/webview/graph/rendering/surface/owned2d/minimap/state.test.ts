@@ -8,13 +8,14 @@ import {
 describe('Relationship Graph minimap scheduler state', () => {
   it('starts dirty without stale graph or motion state', () => {
     expect(createMinimapScheduler()).toEqual({
+      baseStyleVersion: -1,
       dirty: true,
       devicePixelRatio: -1,
       graphRevision: -1,
+      graphStyleRevision: -1,
       lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
       pendingBoundsReset: false,
       positionVersion: -1,
-      styleVersion: -1,
       surfaceHeight: -1,
       surfaceWidth: -1,
       wasMoving: false,

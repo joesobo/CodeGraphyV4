@@ -7,12 +7,13 @@ import { createMinimapScheduler } from '../../../../../../../src/webview/compone
 
 function input(overrides: Partial<MinimapRefreshInput> = {}): MinimapRefreshInput {
   return {
+    baseStyleVersion: 1,
     devicePixelRatio: 1,
     graphIdentity: {},
     graphRevision: 1,
+    graphStyleRevision: 1,
     moving: false,
     positionVersion: 1,
-    styleVersion: 1,
     surfaceHeight: 160,
     surfaceWidth: 160,
     timestampMs: 0,
@@ -27,7 +28,7 @@ describe('Relationship Graph minimap change observation', () => {
       devicePixelRatio: 2,
       graphRevision: 3,
       positionVersion: 4,
-      styleVersion: 5,
+      baseStyleVersion: 5,
       surfaceHeight: 140,
       surfaceWidth: 150,
     });
@@ -40,7 +41,7 @@ describe('Relationship Graph minimap change observation', () => {
       graphRevision: 3,
       pendingBoundsReset: true,
       positionVersion: 4,
-      styleVersion: 5,
+      baseStyleVersion: 5,
       surfaceHeight: 140,
       surfaceWidth: 150,
     }));
@@ -51,7 +52,8 @@ describe('Relationship Graph minimap change observation', () => {
     ['height', { surfaceHeight: 159 }],
     ['width', { surfaceWidth: 159 }],
     ['position', { positionVersion: 2 }],
-    ['style', { styleVersion: 2 }],
+    ['style', { baseStyleVersion: 2 }],
+    ['graph style', { graphStyleRevision: 2 }],
   ] as const)('marks a %s-only change dirty without resetting bounds', (_name, change) => {
     const scheduler = createMinimapScheduler();
     const baseline = input();

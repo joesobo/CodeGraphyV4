@@ -75,4 +75,5 @@ export interface GraphRendererSecondaryFrame {
   getLinkOpacity(this: void, link: GraphRendererLink): number;
   getLinkWidth(this: void, link: GraphRendererLink): number;
   getNodeStyle(this: void, node: GraphRendererNode): GraphRendererNodeStyle;
+  styleVersion: number;
 }

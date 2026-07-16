@@ -139,7 +139,7 @@ export class WebGpuGraphRenderer {
     try {
       const styleUpdate = updateStyleCache(this.buffers, frame);
       resizeGraphCanvas(this.canvas, device, frame);
-      updateGraphBuffers(device, this.buffers, frame, styleUpdate);
+      const graphUpdate = updateGraphBuffers(device, this.buffers, frame, styleUpdate);
       this.camera.upload(frame, this.buffers);
       const encoder = device.createCommandEncoder({ label: 'Graph frame' });
       encodeRenderPass(
@@ -161,6 +161,7 @@ export class WebGpuGraphRenderer {
           this.buffers,
           frame,
           secondaryFrame,
+          styleUpdate.nodeOrderChanged || graphUpdate.linkOrderChanged,
         );
         encodeRenderPass(
           secondary.passResources,

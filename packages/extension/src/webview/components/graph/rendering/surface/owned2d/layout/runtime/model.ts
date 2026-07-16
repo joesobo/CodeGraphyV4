@@ -5,6 +5,7 @@ import { buildOwnedGraphLayoutData } from './data';
 import { toOwnedPhysicsConfig } from './settings';
 
 export interface OwnedGraphLayout {
+  baseStyleRevision: number;
   engine: GraphLayoutEngine;
   links: FGLink[];
   membershipRevision: number;
@@ -17,6 +18,7 @@ export { syncOwnedLayoutNodes, syncOwnedLayoutNodesAtVersion, updateOwnedGraphLa
 export function createOwnedGraphLayout(nodes: FGNode[], links: FGLink[], settings: IPhysicsSettings): OwnedGraphLayout {
   const data = buildOwnedGraphLayoutData(nodes, links);
   return {
+    baseStyleRevision: 0,
     engine: createGraphLayoutEngine(data.input, toOwnedPhysicsConfig(settings)),
     links: data.resolvedLinks,
     membershipRevision: 0,

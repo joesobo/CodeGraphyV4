@@ -11,6 +11,7 @@ const SURFACE_2D_PROP_KEYS = [
   'getNodeStyle',
   'getParticleColor',
   'getStyleRevision',
+  'getBaseStyleRevision',
   'nodeLabelCanvasObject',
   'onRenderFramePost',
   'particleSize',

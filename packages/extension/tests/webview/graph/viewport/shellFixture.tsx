@@ -189,6 +189,7 @@ export function createCallbacks() {
       borderColor: '#000', borderWidth: 1, cornerRadius: 0, fillColor: '#fff',
       fillOpacity: 1, height: 16, opacity: 1, shape: 'circle' as const, width: 16,
     })),
+    getBaseStyleRevision: vi.fn(() => 1),
     getLinkColor: vi.fn(),
     getLinkOpacity: vi.fn(() => 0.3),
     getLinkParticles: vi.fn(),

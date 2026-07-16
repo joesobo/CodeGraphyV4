@@ -18,7 +18,7 @@ export function updateGraphBuffers(
   state: GraphBufferState,
   frame: GraphRendererFrame,
   styleUpdate: StyleCacheUpdate,
-): void {
+): { linkOrderChanged: boolean } {
   const stride = graphEdgeStride(frame);
   const positionsChanged = graphPositionsChanged(state, frame);
   const strideChanged = state.uploadedEdgeStride !== stride;
@@ -49,4 +49,5 @@ export function updateGraphBuffers(
     nodeVisualScale,
   );
   rememberGraphBuffers(state, frame, stride, arrowsVisible, nodeVisualScale);
+  return { linkOrderChanged: orderChanged };
 }

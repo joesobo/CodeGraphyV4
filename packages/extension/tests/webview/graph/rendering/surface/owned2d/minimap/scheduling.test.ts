@@ -8,20 +8,24 @@ describe('Relationship Graph minimap refresh scheduling', () => {
     const graphIdentity = {};
 
     expect(scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: true,
-      positionVersion: 1, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
     })).toEqual({ refresh: true, resetBounds: true, tightenBounds: false });
     expect(scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: true,
-      positionVersion: 2, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 100,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 2,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 100,
     }).refresh).toBe(false);
     expect(scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: true,
-      positionVersion: 3, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 125,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 3,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 125,
     }).refresh).toBe(true);
     expect(scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: false,
-      positionVersion: 4, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 130,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: false, positionVersion: 4,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 130,
     })).toEqual({ refresh: true, resetBounds: false, tightenBounds: true });
   });
 
@@ -29,17 +33,20 @@ describe('Relationship Graph minimap refresh scheduling', () => {
     const scheduler = createMinimapScheduler();
     const graphIdentity = {};
     scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: false,
-      positionVersion: 1, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: false, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
     });
 
     expect(scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: false,
-      positionVersion: 1, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 1,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: false, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 1,
     }).refresh).toBe(false);
     expect(scheduleMinimapRefresh(scheduler, {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: false,
-      positionVersion: 1, styleVersion: 2, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 2,
+      baseStyleVersion: 2, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: false, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 2,
     }).refresh).toBe(true);
   });
 
@@ -47,8 +54,9 @@ describe('Relationship Graph minimap refresh scheduling', () => {
     const scheduler = createMinimapScheduler();
     const graphIdentity = {};
     const input = {
-      devicePixelRatio: 1, graphIdentity, graphRevision: 1, moving: true,
-      positionVersion: 1, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
     };
     scheduleMinimapRefresh(scheduler, input);
 
@@ -60,8 +68,9 @@ describe('Relationship Graph minimap refresh scheduling', () => {
   it('refreshes the retained target when DPR or panel dimensions change', () => {
     const scheduler = createMinimapScheduler();
     const input = {
-      devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1, moving: false,
-      positionVersion: 1, styleVersion: 1, surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1,
+      graphStyleRevision: 1, moving: false, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
     };
     scheduleMinimapRefresh(scheduler, input);
 
