@@ -8,21 +8,12 @@ function setActiveData(output: HTMLOutputElement, sample: OwnedGraphActivePerfor
   output.dataset.frameAverageMs = String(sample.frameTimeMs);
   output.dataset.renderedFps = String(sample.renderedFps);
   output.dataset.sampleCount = String(sample.sampleCount);
-  if (sample.secondaryRefreshMs !== undefined) {
-    output.dataset.secondaryRefreshAverageMs = String(sample.secondaryRefreshMs);
-    output.dataset.secondaryRefreshSampleCount = String(sample.secondaryRefreshSampleCount);
-  } else {
-    delete output.dataset.secondaryRefreshAverageMs;
-    delete output.dataset.secondaryRefreshSampleCount;
-  }
 }
 
 function clearActiveData(output: HTMLOutputElement): void {
   delete output.dataset.frameAverageMs;
   delete output.dataset.renderedFps;
   delete output.dataset.sampleCount;
-  delete output.dataset.secondaryRefreshAverageMs;
-  delete output.dataset.secondaryRefreshSampleCount;
 }
 
 export function publishOwnedGraphPerformance(sample: OwnedGraphPerformanceSample, output: HTMLOutputElement | null): void {

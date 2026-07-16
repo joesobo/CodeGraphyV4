@@ -116,6 +116,8 @@ function prepareMinimapSecondaryFrame(
     graphRevision: layout.membershipRevision,
     graphStyleRevision: layout.baseStyleRevision,
     moving,
+    nodeDragActive: runtime.pointerSessionRef.current?.moved === true
+      && runtime.pointerSessionRef.current.index !== null,
     positionVersion: runtime.positionVersionRef.current,
     surfaceHeight: dimensions.height,
     surfaceWidth: dimensions.width,
@@ -176,7 +178,6 @@ export function submitOwnedWebGpuFrame(
 ): number | null {
   const renderer = runtime.gpuRendererRef.current;
   if (!renderer) return null;
-  runtime.secondaryRefreshMsRef.current = undefined;
   const props = runtime.propsRef.current;
   try {
     const styleVersion = props.getStyleRevision();
@@ -198,7 +199,6 @@ export function submitOwnedWebGpuFrame(
       hoveredNodeIndex: hoveredNodeIndex(runtime, layout), hoveredNodeScale: runtime.nodeHoverRef.current.scale,
       links: layout.links, nodes: layout.nodes, nodeX: layout.engine.x, nodeY: layout.engine.y,
       positionVersion: runtime.positionVersionRef.current, styleVersion }, secondaryFrame);
-    runtime.secondaryRefreshMsRef.current = renderer.lastSecondaryRefreshCpuMs?.();
     return submissionId;
   } catch (error) { failFrame(runtime, layout, error); return null; }
 }

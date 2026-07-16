@@ -159,9 +159,8 @@ Proposed acceptance budgets for representative development fixtures:
 - At most the configured capped minimap refresh rate while physics is active, plus one final settled refresh.
 - Minimap navigation should update on the next animation frame while dragging.
 - Main-camera-only frames should pay only for cached-texture composition and the viewport-box overlay.
-- The existing performance monitor should report secondary-target refresh cost separately from steady-state minimap composition cost.
 
-Before implementation, record main-renderer frame cost with the minimap disabled and enabled on small, medium, and dense graphs. Treat a sustained regression above 1 ms per frame or 10% of the existing render cost, whichever is larger, as a prompt to add density reduction before release rather than as an automatic acceptance threshold.
+Development benchmarks should compare main-renderer frame cost with the minimap disabled and enabled on small, medium, and dense graphs. Temporary profiling instrumentation does not ship with the feature. Treat a sustained regression above 1 ms per frame or 10% of the existing render cost, whichever is larger, as a prompt to add density reduction before release rather than as an automatic acceptance threshold.
 
 ## Test plan
 
@@ -178,6 +177,7 @@ Follow Red -> Green -> Refactor. The human-owned acceptance Gherkin must not be 
 - Presentation clips the cached texture and viewport box to the panel and restores rendering state.
 - Active physics refreshes no faster than the configured cap and always schedules a final settled refresh.
 - Active-physics projection bounds expand but do not contract; the settled refresh tightens them once while preserving uniform internal padding.
+- Starting a node drag locks the current projection so an offscreen dragged node cannot zoom the minimap out; later membership, style, or surface invalidations still request a refit.
 - Camera-only movement does not invalidate or rerender the retained secondary canvas.
 - Click and drag center the camera in graph coordinates without changing zoom.
 - Viewport-box dragging preserves the initial grab offset, while interaction outside the box recenters beneath the pointer.
@@ -211,7 +211,7 @@ Run the targeted minimap tests during development, then the repository quality g
 
 ## Risks and mitigations
 
-- **Dense-graph refresh cost:** base edges and nodes add an extra GPU pass. Reuse existing buffers and pipelines, render only to a small target, cap active-layout refreshes, and profile refresh cost separately from steady-state composition.
+- **Dense-graph refresh cost:** base edges and nodes add an extra GPU pass. Reuse existing buffers and pipelines, render only to a small target, cap active-layout refreshes, and benchmark refresh cost separately from steady-state composition during development.
 - **Layout bounds churn:** live physics can continuously expand or contract bounds, making the minimap appear to breathe. Cache by position revision and consider a small hysteresis or settle-only bounds policy if profiling/usability testing shows visible instability.
 - **Gesture conflicts:** the minimap shares the overlay canvas with graph interaction. Give its rectangle first refusal and model its drag as an explicit pointer session.
 - **Color fidelity:** node appearance includes theme, legend, custom rule, decoration, hover, and selection effects. Use the resolved base node style, but intentionally omit transient hover/selection and plugin decorations unless product discussion chooses otherwise.

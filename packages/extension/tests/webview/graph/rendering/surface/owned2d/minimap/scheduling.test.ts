@@ -227,4 +227,54 @@ describe('Relationship Graph minimap refresh scheduling', () => {
       ...input, moving: false, positionVersion: 4, timestampMs: 145,
     })).toMatchObject({ fitProjection: false, refresh: true, tightenBounds: false });
   });
+
+  it('locks the current fit after a user drags a node during active physics', () => {
+    const scheduler = createMinimapScheduler();
+    const input = {
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, nodeDragActive: false, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+    };
+    scheduleMinimapRefresh(scheduler, input);
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, nodeDragActive: true, positionVersion: 2, timestampMs: 17,
+    })).toMatchObject({ fitProjection: false, refresh: true });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, positionVersion: 3, timestampMs: 125,
+    })).toMatchObject({ fitProjection: false, refresh: true });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, moving: false, positionVersion: 4, timestampMs: 130,
+    })).toMatchObject({ fitProjection: false, refresh: true, tightenBounds: false });
+  });
+
+  it('preserves a projection invalidation that arrives during a node drag', () => {
+    const scheduler = createMinimapScheduler();
+    const input = {
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, nodeDragActive: false, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+    };
+    scheduleMinimapRefresh(scheduler, input);
+    scheduleMinimapRefresh(scheduler, {
+      ...input, nodeDragActive: true, positionVersion: 2, timestampMs: 17,
+    });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, graphStyleRevision: 2, nodeDragActive: true,
+      positionVersion: 3, timestampMs: 34,
+    })).toMatchObject({ fitProjection: false, refresh: true });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, graphStyleRevision: 2, nodeDragActive: true,
+      positionVersion: 4, timestampMs: 51,
+    })).toMatchObject({ fitProjection: false, refresh: true });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, graphStyleRevision: 2, moving: false,
+      positionVersion: 5, timestampMs: 125,
+    })).toMatchObject({ fitProjection: true, refresh: true });
+  });
 });

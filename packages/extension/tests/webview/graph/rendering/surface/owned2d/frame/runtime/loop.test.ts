@@ -80,7 +80,6 @@ describe('owned graph frame loop', () => {
     expect(stageFrame).toHaveBeenCalledWith(7, {
       presentationTimestampMs: 100,
       renderMs: 3,
-      secondaryRefreshMs: undefined,
       simulationMs: 2,
     });
     expect(runtime.fpsRef.current).toBeNull();

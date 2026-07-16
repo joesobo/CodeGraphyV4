@@ -97,7 +97,6 @@ describe('WebGPU renderer frame packing', () => {
       'CodeGraphy secondary link styles',
     ]);
     expect(getBaseNodeStyle).toHaveBeenCalledTimes(2);
-    expect(renderer!.lastSecondaryRefreshCpuMs()).toEqual(expect.any(Number));
     expect(Array.from(uploadedFloats(harness, 'CodeGraphy secondary node styles').slice(2, 5)))
       .toEqual([
         expect.closeTo(1 / 255, 5),
@@ -174,54 +173,6 @@ describe('WebGPU renderer frame packing', () => {
     );
     expect(secondaryLinkUpload?.[4]).toBe(Math.ceil(edgeCount / 2) * 11 * 4);
   }, 10_000);
-
-  it('reports no secondary refresh cost for a primary-only frame', async () => {
-    const harness = webGpuHarness();
-    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
-      onDeviceLost: vi.fn(), onFrameComplete: vi.fn(), onRendererError: vi.fn(),
-    });
-
-    renderer!.render(rendererFrame());
-
-    expect(renderer!.lastSecondaryRefreshCpuMs()).toBeUndefined();
-  });
-
-  it('includes command finalization and submission in secondary refresh CPU time', async () => {
-    const harness = webGpuHarness();
-    const events: string[] = [];
-    vi.spyOn(performance, 'now').mockImplementation(() => {
-      events.push('time');
-      return events.length === 1 ? 10 : 15;
-    });
-    harness.device.queue.submit.mockImplementation(() => {
-      events.push('submit');
-    });
-    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
-      onDeviceLost: vi.fn(), onFrameComplete: vi.fn(), onRendererError: vi.fn(),
-    });
-    const secondaryCanvas = document.createElement('canvas');
-    Object.defineProperty(secondaryCanvas, 'getContext', {
-      configurable: true,
-      value: () => harness.context,
-    });
-    renderer!.setSecondarySurface(secondaryCanvas);
-
-    renderer!.render(rendererFrame(), {
-      backgroundColor: '#000000',
-      camera: { centerX: 0, centerY: 0, zoom: 1 },
-      cssHeight: 160,
-      cssWidth: 160,
-      devicePixelRatio: 1,
-      getLinkColor: () => '#112233',
-      getLinkOpacity: () => 1,
-      getLinkWidth: () => 1,
-      getNodeStyle: rendererFrame().getNodeStyle,
-      styleVersion: 1,
-    });
-
-    expect(events).toEqual(['time', 'submit', 'time']);
-    expect(renderer!.lastSecondaryRefreshCpuMs()).toBe(5);
-  });
 
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();

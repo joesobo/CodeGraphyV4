@@ -19,6 +19,7 @@ describe('Relationship Graph minimap scheduler state', () => {
       lastProjectionFitTimestampMs: Number.NEGATIVE_INFINITY,
       lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
       nextMovingRefreshTimestampMs: Number.NEGATIVE_INFINITY,
+      nodeDragActive: false,
       pendingBoundsReset: false,
       projectionFitPending: true,
       positionVersion: -1,

@@ -31,9 +31,8 @@ export interface OwnedGraphFrameRuntime {
   minimapPanelRef: MutableRefObject<HTMLDivElement | null>;
   minimapViewportBoxRef: MutableRefObject<SVGRectElement | null>;
   minimapDirectionIndicatorRef: MutableRefObject<SVGPathElement | null>;
-  secondaryRefreshMsRef: MutableRefObject<number | undefined>;
   markPerformanceIdle(this: void): void;
-  recordRenderedFrame(this: void, submissionId: number, timestamp: number, simulationMs: number, renderMs: number, secondaryRefreshMs?: number): void;
+  recordRenderedFrame(this: void, submissionId: number, timestamp: number, simulationMs: number, renderMs: number): void;
   synchronizedPositionVersionRef: MutableRefObject<number>; onRendererError(this: void, message: string): void;
 }
 
@@ -65,7 +64,6 @@ export function renderOwnedGraphFrame(runtime: OwnedGraphFrameRuntime, canvas: H
         timestamp,
         physics.simulationMs,
         Math.max(0, performance.now() - physicsEndedAt),
-        runtime.secondaryRefreshMsRef.current,
       );
     }
     updateOwnedGraphFrameLifecycle(runtime, physics.tick);
