@@ -52,7 +52,7 @@ describe('plugin lifecycle notify/filesChanged', () => {
     });
   });
 
-  it('matches wildcard plugins and file extensions case-insensitively while skipping non-matching files', async () => {
+  it('delivers every changed file to change hooks regardless of supported extensions', async () => {
     const wildcardPlugin = makePlugin({
       id: 'wildcard-plugin',
       supportedExtensions: ['*'],
@@ -63,8 +63,8 @@ describe('plugin lifecycle notify/filesChanged', () => {
       supportedExtensions: ['.ts', '.tsx'],
       onFilesChanged: vi.fn().mockResolvedValue([]),
     });
-    const ignoredPlugin = makePlugin({
-      id: 'ignored-plugin',
+    const unrelatedPlugin = makePlugin({
+      id: 'unrelated-plugin',
       supportedExtensions: ['.py'],
       onFilesChanged: vi.fn().mockResolvedValue([]),
     });
@@ -77,7 +77,7 @@ describe('plugin lifecycle notify/filesChanged', () => {
       new Map([
         [wildcardPlugin.id, { plugin: wildcardPlugin }],
         [caseInsensitivePlugin.id, { plugin: caseInsensitivePlugin }],
-        [ignoredPlugin.id, { plugin: ignoredPlugin }],
+        [unrelatedPlugin.id, { plugin: unrelatedPlugin }],
       ]),
       files,
       '/ws',
@@ -97,7 +97,11 @@ describe('plugin lifecycle notify/filesChanged', () => {
       '/ws',
       expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
-    expect(ignoredPlugin.onFilesChanged).not.toHaveBeenCalled();
+    expect(unrelatedPlugin.onFilesChanged).toHaveBeenCalledWith(
+      files,
+      '/ws',
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
+    );
   });
 
   it('requests a full refresh when a matching plugin only exposes pre-analysis hooks', async () => {
