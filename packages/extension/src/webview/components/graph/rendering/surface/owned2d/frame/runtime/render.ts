@@ -12,7 +12,8 @@ import type { OwnedGraphLayout } from '../../layout/runtime/model';
 import { advanceOwnedGraphNodeHover, type OwnedGraphNodeHover } from '../../interaction/hover/model';
 import type { OwnedGraphPluginForces } from '../../plugin/forces/model';
 import type { GraphLayoutFixedTimestepClock } from '../../simulation/timing/clock';
-import type { MinimapProjection } from '../../minimap/projection';
+import type { MinimapBounds, MinimapProjection } from '../../minimap/projection';
+import type { MinimapScheduler } from '../../minimap/scheduling';
 
 export interface OwnedGraphFrameRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>; engineStopNotifiedRef: MutableRefObject<boolean>;
@@ -23,7 +24,12 @@ export interface OwnedGraphFrameRuntime {
   propsRef: MutableRefObject<Surface2dProps>; rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>; simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
   minimapProjectionRef: MutableRefObject<MinimapProjection | null>;
+  minimapBoundsRef: MutableRefObject<MinimapBounds | null>;
+  minimapSchedulerRef: MutableRefObject<MinimapScheduler>;
   minimapSurfaceRegisteredRef: MutableRefObject<boolean>;
+  minimapPanelRef: MutableRefObject<HTMLDivElement | null>;
+  minimapViewportBoxRef: MutableRefObject<SVGRectElement | null>;
+  minimapDirectionIndicatorRef: MutableRefObject<SVGPathElement | null>;
   markPerformanceIdle(this: void): void;
   recordRenderedFrame(this: void, submissionId: number, timestamp: number, simulationMs: number, renderMs: number): void;
   synchronizedPositionVersionRef: MutableRefObject<number>; onRendererError(this: void, message: string): void;
@@ -39,7 +45,13 @@ export function renderOwnedGraphFrame(runtime: OwnedGraphFrameRuntime, canvas: H
   const physicsEndedAt = performance.now();
   synchronizeOwnedFrameState(runtime, layout);
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
-  const submissionId = submitOwnedWebGpuFrame(runtime, layout, prepared);
+  const submissionId = submitOwnedWebGpuFrame(
+    runtime,
+    layout,
+    prepared,
+    physics.tick.moving,
+    timestamp,
+  );
   try {
     drawOwnedDecorationLayer(runtime, layout, prepared, timestamp, submissionId !== null);
   } catch (error) {
