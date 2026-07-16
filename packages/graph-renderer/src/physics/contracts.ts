@@ -41,6 +41,15 @@ export interface GraphLayoutTickResult {
   steps: number;
 }
 
+export interface GraphLayoutExternalForceFinalization {
+  positionChanged: boolean;
+}
+
+export interface GraphLayoutExternalForce {
+  beforeIntegration(alpha: number): void;
+  afterIntegration?(): GraphLayoutExternalForceFinalization;
+}
+
 export interface GraphLayoutEngine {
   readonly nodeIds: readonly string[];
   readonly x: Float32Array;
@@ -59,7 +68,7 @@ export interface GraphLayoutEngine {
   setConfig(config: Partial<GraphLayoutConfig>): void;
   setCollisionScale(scale: number): void;
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void;
-  tick(): GraphLayoutTickResult;
+  tick(externalForce?: GraphLayoutExternalForce): GraphLayoutTickResult;
   setNodePosition(index: number, x: number, y: number): void;
   pin(index: number): void;
   release(index: number): void;

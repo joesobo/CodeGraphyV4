@@ -33,6 +33,9 @@ function createDependencies(overrides: Partial<{
       },
     },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
+    resolveColor: (color: string | undefined, fallback: string) => (
+      color === 'not-a-hex-color' ? fallback : color ?? fallback
+    ),
   };
 }
 

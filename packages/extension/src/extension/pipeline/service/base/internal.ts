@@ -19,11 +19,11 @@ import {
 } from '../cache/paths';
 import { createWorkspacePipelineAnalysisCacheTiers } from '../cache/tiers';
 import {
-  createWorkspacePipelinePluginSignature,
-  createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
-} from '../cache/signatures';
+} from '../../cacheSignatures/commit';
+import { createWorkspacePipelinePluginSignature } from '../../cacheSignatures/plugin';
+import { createWorkspacePipelineSettingsSignature } from '../../cacheSignatures/settings';
 import {
   patchWorkspacePipelineCache,
   persistWorkspacePipelineCache,
@@ -34,7 +34,7 @@ import {
   preAnalyzeWorkspacePipelinePlugins,
 } from '../runtime/analysis';
 import { WorkspacePipelineStateBase } from './state';
-import { listActiveAnalysisPluginIds } from './activePlugins';
+import { listActiveAnalysisPluginIds } from '../../pluginAnalysis/selection';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected async _preAnalyzePlugins(

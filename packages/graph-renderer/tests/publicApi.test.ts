@@ -3,6 +3,8 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import * as graphRenderer from '../src/index';
 import {
   createGraphLayoutEngine,
+  MAX_GRAPH_CENTRAL_GRAVITY,
+  MAX_GRAPH_LINK_DISTANCE,
   WebGpuGraphRenderer,
   prepareGraphPhysics,
   type GraphLayoutEngine,
@@ -12,6 +14,8 @@ import {
 describe('graph renderer public API', () => {
   it('exposes only the rendering and physics engine boundary', () => {
     expect(createGraphLayoutEngine).toBeTypeOf('function');
+    expect(MAX_GRAPH_CENTRAL_GRAVITY).toBe(1);
+    expect(MAX_GRAPH_LINK_DISTANCE).toBe(100_000);
     expect(WebGpuGraphRenderer).toBeTypeOf('function');
     expect(prepareGraphPhysics).toBeTypeOf('function');
     expectTypeOf<GraphLayoutEngine>().toBeObject();

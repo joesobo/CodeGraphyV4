@@ -11,6 +11,7 @@ function createDependencies(overrides: Partial<{
   highlightedNodeId: string | null;
   linkHighlight: string;
   linkMuted: string;
+  resolvedColors: Record<string, string>;
 }> = {}) {
   return {
     edgeDecorationsRef: { current: overrides.edgeDecorations },
@@ -22,6 +23,11 @@ function createDependencies(overrides: Partial<{
         linkMuted: overrides.linkMuted ?? '#2d3748',
       },
     },
+    resolveColor: (color: string | undefined, fallback: string) => color === undefined
+      ? fallback
+      : overrides.resolvedColors?.[color] ?? (
+        color === 'not-a-color' || color.startsWith('var(--missing') ? fallback : color
+      ),
   };
 }
 
@@ -53,6 +59,33 @@ describe('graph/rendering/link/colors', () => {
     });
 
 
+
+    it('resolves plugin CSS colors before sending them to WebGPU', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: 'var(--plugin-edge)' },
+          },
+          resolvedColors: { 'var(--plugin-edge)': 'rgb(249, 115, 22)' },
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
+
+      expect(color).toBe('rgb(249, 115, 22)');
+    });
+
+    it('falls back to the link color when a plugin decoration color is invalid', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: 'not-a-color' },
+          },
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
+
+      expect(color).toBe('#3b82f6');
+    });
 
     it('uses the link base color when nothing is highlighted', () => {
       const color = getGraphLinkColor(

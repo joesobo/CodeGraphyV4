@@ -1,5 +1,5 @@
 import type { GraphAppearance } from './contracts';
-import { readCssTokenValue, resolveCssToken } from './cssToken';
+import { resolveCssToken } from './cssToken';
 import { DEFAULT_GRAPH_APPEARANCE } from './defaults';
 import { GRAPH_APPEARANCE_TOKENS } from './tokens';
 
@@ -21,7 +21,7 @@ export function resolveGraphAppearance(): GraphAppearance {
       GRAPH_APPEARANCE_TOKENS.nodeSelectionBorder,
       DEFAULT_GRAPH_APPEARANCE.nodeSelectionBorder,
     ),
-    stageBackground: readCssTokenValue(
+    stageBackground: resolveCssToken(
       GRAPH_APPEARANCE_TOKENS.stageBackground,
       DEFAULT_GRAPH_APPEARANCE.stageBackground,
     ),

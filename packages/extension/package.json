@@ -13,7 +13,7 @@
     "build:webview": "vite build --config vite.config.ts",
     "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy-dev/extension... --filter=@codegraphy-dev/plugin-typescript --filter=@codegraphy-dev/plugin-godot --filter=@codegraphy-dev/plugin-unity --filter=@codegraphy-dev/plugin-vue --filter=@codegraphy-dev/plugin-svelte --filter=@codegraphy-dev/plugin-particles && tsc -p src/e2e/tsconfig.json",
     "check:native-runtime": "node scripts/validateNativeRuntime.mjs",
-    "watch": "concurrently \"pnpm run watch:extension\" \"pnpm run watch:webview\"",
+    "watch": "concurrently \"pnpm run watch:extension\" \"pnpm --filter @codegraphy-dev/graph-renderer run watch:wasm\" \"pnpm run watch:webview\"",
     "watch:extension": "tsx scripts/buildExtension.ts --watch",
     "watch:webview": "vite build --config vite.config.ts --watch",
     "dev": "pnpm run watch",

@@ -1,6 +1,10 @@
+export const MAX_GRAPH_COLLISION_SCALE = 100;
+
 export function assertGraphCollisionScale(collisionScale: number): void {
-  if (!Number.isFinite(collisionScale) || collisionScale <= 0) {
-    throw new Error('Collision scale must be positive');
+  if (!Number.isFinite(collisionScale)
+    || collisionScale <= 0
+    || collisionScale > MAX_GRAPH_COLLISION_SCALE) {
+    throw new Error(`Collision scale must be greater than zero and at most ${MAX_GRAPH_COLLISION_SCALE}`);
   }
 }
 

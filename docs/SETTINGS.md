@@ -86,7 +86,7 @@ Example:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `maxFiles` | number | `1000` | Maximum files to discover/analyze |
-| `showFps` | boolean | `false` | Shows live potential FPS and average frame time in the Graph Stage |
+| `showFps` | boolean | `false` | Shows measured rendered FPS and average simulation/render CPU cost in the Graph Stage |
 | `verboseDiagnostics` | boolean | `false` | Enables CodeGraphy-prefixed support diagnostics in the VS Code Developer Tools console |
 | `include` | string[] | `["**/*"]` | Glob patterns for files to include |
 | `filterPatterns` | string[] | `[]` | Filter Settings for files to exclude |
@@ -174,6 +174,21 @@ Example:
 ```
 
 See `examples/.codegraphy/snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
+
+### Colors used by the WebGPU graph
+
+The graph bodies and edges are rendered into a WebGPU canvas rather than as DOM elements. CSS snippets and plugin styles can still define global color tokens, and plugin node or edge decorations can refer to those tokens with any browser-supported CSS color value:
+
+```css
+:root {
+  --workspace-important-node: hsl(38 92% 50%);
+  --workspace-related-edge: color-mix(in srgb, #38bdf8 70%, transparent);
+}
+```
+
+A plugin decoration can use `var(--workspace-important-node)`, named colors, HSL, percentage RGB, or `currentColor`. CodeGraphy resolves the browser's computed color before uploading it to WebGPU. Enabling, disabling, or finishing the load of a plugin/snippet stylesheet invalidates the GPU style cache so toggleable plugin themes update the graph. Invalid or unresolved decoration colors fall back to the node or edge's normal color instead of silently becoming black.
+
+The `data-codegraphy-*` hooks above apply to real DOM UI surfaces and overlays. There is intentionally no `[data-node-id]` hook for graph nodes: WebGPU nodes are GPU instances, not DOM elements, so ordinary CSS selectors cannot select one node. Use node and edge decoration contributions for per-item styling. A future selector feature would need to evaluate selectors against graph node metadata and repack matching GPU styles; adding invisible per-node DOM elements would not style the canvas and would create unacceptable large-graph overhead.
 
 ## Particles
 
@@ -292,7 +307,7 @@ Adjusts CodeGraphy's custom WebAssembly physics in real time. Global charge sepa
 ### Performance
 
 - **Max Files** limits how many files are discovered and analyzed.
-- **Show FPS** displays `x FPS · y ms` beneath the top-right graph count, where FPS is potential CPU throughput and milliseconds is average complete-frame CPU time. It persists as `showFps` in `.codegraphy/settings.json` and is off by default.
+- **Show FPS** displays `x FPS · y ms` beneath the top-right graph count. FPS is measured from the intervals between successfully completed rendered frames; rejected GPU work and callbacks from an obsolete renderer generation are excluded. Two successful frames are required before a finite FPS can be shown. The milliseconds value is the rolling average CPU time spent simulating and rendering each submitted frame, not total display latency. When the demand-driven graph is idle, the readout shows `— FPS · — ms` instead of retaining stale activity. The setting persists as `showFps` in `.codegraphy/settings.json` and is off by default.
 - **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
 
 See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.

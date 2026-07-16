@@ -27,7 +27,7 @@ import { integrateGraphLayout } from './integration';
 import { initializeGraphMemory } from './memory';
 import { initializeSpatialGrid } from './spatial/grid';
 
-const ABI_VERSION: i32 = 3;
+const ABI_VERSION: i32 = 4;
 const GRAPH_MEMORY_BASE: i32 = 65_536;
 
 let resultPointer: usize = 0;
@@ -157,12 +157,16 @@ export function configure(
   );
 }
 
-export function step(alpha: f64, collisionIterations: f64): f64 {
+export function applyForces(alpha: f64): bool {
   const hasRepulsion = repulsionEnabled(alpha);
-  if (hasRepulsion && !rebuildRepulsion()) return NaN;
+  if (hasRepulsion && !rebuildRepulsion()) return false;
   applyLinkForces(alpha);
   if (hasRepulsion) applyRepulsion(alpha);
   applyCenterForces(alpha);
+  return true;
+}
+
+export function integrate(collisionIterations: f64): f64 {
   const maximumVelocity = integrateGraphLayout();
   store<i32>(resultPointer, applyCollisionForces(collisionIterations));
   return maximumVelocity;

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../src/shared/settings/physics';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/collisionRadius';
+import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/collision/radius';
 import {
   applyOwnedPhysicsSettings,
   toOwnedPhysicsConfig,
-} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/runtime/model';
 import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 
 function engine() {

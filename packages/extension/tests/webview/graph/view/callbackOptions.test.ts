@@ -10,6 +10,9 @@ function createGraphState() {
     highlightedNeighborsRef: { current: new Set<string>() },
     highlightedNodeRef: { current: null },
     nodeDecorationsRef: { current: {} },
+    renderer: {
+      containerRef: { current: null },
+    },
     renderCaches: {
       invalidateImages,
     },
@@ -28,6 +31,7 @@ describe('graph/callbackOptions', () => {
     expect(
       buildGraphCallbackOptions({ graphState: graphState as never, pluginHost }),
     ).toEqual({
+      colorContextRef: graphState.renderer.containerRef,
       pluginHost,
       refs: {
         edgeDecorationsRef: graphState.edgeDecorationsRef,

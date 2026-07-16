@@ -68,7 +68,7 @@ describe('graph/appearance/model', () => {
       linkHighlight: 'rgb(10, 11, 12)',
       linkMuted: 'rgb(13, 14, 15)',
       nodeSelectionBorder: 'rgb(22, 23, 24)',
-      stageBackground: 'var(--cg-popover-translucent)',
+      stageBackground: 'rgb(25, 26, 27)',
       transparent: 'rgba(0, 0, 0, 0)',
     });
   });

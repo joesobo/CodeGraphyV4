@@ -9,24 +9,31 @@ import type { LinkRenderingDependencies } from '../contracts';
 export function getGraphLinkColor(
   dependencies: Pick<
     LinkRenderingDependencies,
-    'edgeDecorationsRef' | 'graphAppearanceRef' | 'highlightedNodeRef'
+    'edgeDecorationsRef' | 'graphAppearanceRef' | 'highlightedNodeRef' | 'resolveColor'
   >,
   link: FGLink,
 ): string {
-  const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
-  if (decoration?.color) return decoration.color;
   const sourceId = resolveLinkEndpointId(link.source);
   const targetId = resolveLinkEndpointId(link.target);
   const highlighted = dependencies.highlightedNodeRef.current;
-  if (!highlighted) return link.baseColor ?? DEFAULT_DIRECTION_COLOR;
-  const isConnected = sourceId === highlighted || targetId === highlighted;
   const appearance = dependencies.graphAppearanceRef.current;
-  if (isConnected) return appearance.linkHighlight;
-  return appearance.linkMuted;
+  const baseColor = !highlighted
+    ? link.baseColor ?? DEFAULT_DIRECTION_COLOR
+    : sourceId === highlighted || targetId === highlighted
+      ? appearance.linkHighlight
+      : appearance.linkMuted;
+  const resolvedBaseColor = dependencies.resolveColor(baseColor, DEFAULT_DIRECTION_COLOR);
+  return dependencies.resolveColor(
+    dependencies.edgeDecorationsRef.current?.[link.id]?.color,
+    resolvedBaseColor,
+  );
 }
 
 export function getGraphDirectionalColor(
-  dependencies: Pick<LinkRenderingDependencies, 'graphAppearanceRef'>,
+  dependencies: Pick<LinkRenderingDependencies, 'graphAppearanceRef' | 'resolveColor'>,
 ): string {
-  return resolveDirectionColor(dependencies.graphAppearanceRef.current.linkHighlight);
+  return dependencies.resolveColor(
+    resolveDirectionColor(dependencies.graphAppearanceRef.current.linkHighlight),
+    DEFAULT_DIRECTION_COLOR,
+  );
 }

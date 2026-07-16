@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { cssColorRevision } from '../../../../src/webview/cssColors/resolver';
 import { replaceCssSnippetStylesheets } from '../../../../src/webview/cssSnippets/links';
 
 function snippetLinks(): HTMLLinkElement[] {
@@ -25,6 +26,17 @@ describe('webview/cssSnippets/links', () => {
     replaceCssSnippetStylesheets(['webview://ocean.css']);
 
     expect(snippetLinks().map(link => link.href)).toEqual(['webview://ocean.css']);
+  });
+
+  it('invalidates computed graph colors when snippet styles are added and loaded', () => {
+    const initialRevision = cssColorRevision();
+
+    replaceCssSnippetStylesheets(['webview://theme.css']);
+    const appendedRevision = cssColorRevision();
+    snippetLinks()[0]?.dispatchEvent(new Event('load'));
+
+    expect(appendedRevision).toBeGreaterThan(initialRevision);
+    expect(cssColorRevision()).toBeGreaterThan(appendedRevision);
   });
 
   it('does not remove non-snippet stylesheet links', () => {

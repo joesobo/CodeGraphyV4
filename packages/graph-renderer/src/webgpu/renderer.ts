@@ -20,7 +20,8 @@ export type WebGpuGraphFrame = GraphRendererFrame;
 
 export interface WebGpuGraphRendererOptions {
   onDeviceLost(this: void, message: string): void;
-  onFrameComplete(this: void): void;
+  onFrameComplete(this: void, submissionId: number): void;
+  onFrameRejected?(this: void, submissionId: number): void;
 }
 
 export class WebGpuGraphRenderer {
@@ -33,11 +34,15 @@ export class WebGpuGraphRenderer {
   private constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly resources: RendererResources,
-    onFrameComplete: () => void,
+    onFrameComplete: (submissionId: number) => void,
+    onFrameRejected: (submissionId: number) => void,
   ) {
     this.buffers = createGraphBufferState(resources.device);
     this.camera = new CameraBuffer(resources.device);
-    this.frameQueue = new FrameQueue(resources.device, onFrameComplete);
+    this.frameQueue = new FrameQueue(resources.device, settlement => {
+      if (settlement.succeeded) onFrameComplete(settlement.submissionId);
+      else onFrameRejected(settlement.submissionId);
+    });
     this.passResources = {
       ...resources,
       arrowCamera: this.camera.bind(resources.arrow, 'Graph arrow camera'),
@@ -55,7 +60,12 @@ export class WebGpuGraphRenderer {
   ): Promise<WebGpuGraphRenderer | undefined> {
     const resources = await createRendererResources(canvas);
     if (!resources) return undefined;
-    const renderer = new WebGpuGraphRenderer(canvas, resources, options.onFrameComplete);
+    const renderer = new WebGpuGraphRenderer(
+      canvas,
+      resources,
+      options.onFrameComplete,
+      options.onFrameRejected ?? (() => {}),
+    );
     void resources.device.lost.then(info => {
       if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
     });
@@ -66,14 +76,14 @@ export class WebGpuGraphRenderer {
     return this.frameQueue.canSubmit();
   }
 
-  render(frame: WebGpuGraphFrame): void {
+  render(frame: WebGpuGraphFrame): number {
     if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
     const styleUpdate = updateStyleCache(this.buffers, frame);
     resizeGraphCanvas(this.canvas, this.resources.device, frame);
     updateGraphBuffers(this.resources.device, this.buffers, frame, styleUpdate);
     this.camera.upload(frame, this.buffers);
     submitRenderPass(this.passResources, this.buffers, frame, this.camera.values[8]);
-    this.frameQueue.trackSubmission();
+    return this.frameQueue.trackSubmission();
   }
 
   dispose(): void {

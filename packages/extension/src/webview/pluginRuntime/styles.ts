@@ -1,3 +1,4 @@
+import { markCssColorsChanged } from '../cssColors/resolver';
 import type { PluginManagerRefs } from './types';
 
 function addPluginStyleOwner(
@@ -24,7 +25,9 @@ export function injectPluginStyle(
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = style;
+  link.addEventListener('load', markCssColorsChanged, { once: true });
   document.head.appendChild(link);
+  markCssColorsChanged();
   refs.loadedStyles.current.set(style, { link, pluginIds: new Set([pluginId]) });
   addPluginStyleOwner(refs, pluginId, style);
 }
@@ -42,6 +45,7 @@ export function resetPluginStyles(
     if (loadedStyle.pluginIds.size === 0) {
       loadedStyle.link.remove();
       refs.loadedStyles.current.delete(style);
+      markCssColorsChanged();
     }
   }
   refs.pluginStyles.current.delete(pluginId);

@@ -77,8 +77,10 @@ export interface IGraphNode {
   label: string;
 
   /**
-   * Fill color for the node (hex string).
-   * @example '#67E8F9'
+   * CSS fill color for the node. Hex, named, HSL, percentage RGB, `currentColor`,
+   * and resolvable custom properties such as `var(--plugin-node)` are accepted.
+   * Invalid or unresolved values fall back to CodeGraphy's normal node color.
+   * @example 'hsl(187 86% 69%)'
    */
   color: string;
 
@@ -214,7 +216,10 @@ export interface IGraphEdge {
   /** Semantic meaning of the connection. */
   kind: GraphEdgeKind;
 
-  /** Optional color override resolved by graph controls and legends. */
+  /**
+   * Optional CSS color override resolved in the Graph View theme context.
+   * Invalid or unresolved values fall back to the normal edge color.
+   */
   color?: string;
 
   /** All contributing plugin sources merged into this edge. */

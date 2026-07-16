@@ -1,12 +1,21 @@
+import { DEFAULT_NODE_COLOR } from '../../../../../shared/fileColors';
 import type { FGNode } from '../../model/build';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
-import type { OwnedGraphNodeStyle } from '../surface/owned2d/contracts';
+import type { OwnedGraphNodeStyle } from '../surface/owned2d/view/surface/contracts';
 import { normalizedNodeFillOpacity } from './canvasOpacity';
+
+function nodeColor(dependencies: NodeCanvasRendererDependencies, node: FGNode): string {
+  return dependencies.resolveColor(node.color, DEFAULT_NODE_COLOR);
+}
 
 function borderColor(dependencies: NodeCanvasRendererDependencies, node: FGNode, selected: boolean): string {
   const appearance = dependencies.graphAppearanceRef.current;
-  if (selected) return appearance.nodeSelectionBorder;
-  return node.nodeType === 'folder' && node.color === appearance.transparent ? appearance.transparent : node.borderColor;
+  const fallback = nodeColor(dependencies, node);
+  if (selected) return dependencies.resolveColor(appearance.nodeSelectionBorder, fallback);
+  if (node.nodeType === 'folder' && node.color === appearance.transparent) {
+    return dependencies.resolveColor(appearance.transparent, 'transparent');
+  }
+  return dependencies.resolveColor(node.borderColor, fallback);
 }
 
 function isHighlighted(dependencies: NodeCanvasRendererDependencies, nodeId: string): boolean {
@@ -16,8 +25,12 @@ function isHighlighted(dependencies: NodeCanvasRendererDependencies, nodeId: str
 }
 
 function fillColor(dependencies: NodeCanvasRendererDependencies, node: FGNode): string {
-  if (node.nodeType === 'folder') return node.color;
-  return dependencies.nodeDecorationsRef.current?.[node.id]?.color ?? node.color;
+  const fallback = nodeColor(dependencies, node);
+  if (node.nodeType === 'folder') return fallback;
+  return dependencies.resolveColor(
+    dependencies.nodeDecorationsRef.current?.[node.id]?.color,
+    fallback,
+  );
 }
 
 function canvasOpacity(dependencies: NodeCanvasRendererDependencies, node: FGNode): number {

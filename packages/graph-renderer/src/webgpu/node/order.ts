@@ -1,5 +1,8 @@
 import type { GraphRendererNodeStyle } from '../../contracts';
-import { graphNodeDrawnArea } from '../../nodeStacking';
+import {
+  createGraphNodeStackingOrder,
+  graphNodeDrawnArea,
+} from '../../nodeStacking';
 
 export interface NodeRenderOrder {
   areas: Float64Array;
@@ -19,11 +22,9 @@ export function createNodeRenderOrder(
   for (let index = 0; !changed && index < areas.length; index += 1) {
     changed = areas[index] !== previousAreas[index];
   }
-  const indexes = Array.from(areas, (_area, index) => index);
-  indexes.sort((left, right) => areas[left] - areas[right] || left - right);
-  const nodeIndexByRenderedIndex = Uint32Array.from(indexes);
-  const renderedIndexByNodeIndex = new Int32Array(indexes.length);
-  indexes.forEach((nodeIndex, renderedIndex) => {
+  const nodeIndexByRenderedIndex = createGraphNodeStackingOrder(styles);
+  const renderedIndexByNodeIndex = new Int32Array(nodeIndexByRenderedIndex.length);
+  nodeIndexByRenderedIndex.forEach((nodeIndex, renderedIndex) => {
     renderedIndexByNodeIndex[nodeIndex] = renderedIndex;
   });
   return {

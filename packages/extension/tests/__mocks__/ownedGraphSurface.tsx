@@ -1,6 +1,6 @@
 import React from 'react';
 import { vi } from 'vitest';
-import type { Surface2dProps } from '../../src/webview/components/graph/rendering/surface/owned2d/contracts';
+import type { Surface2dProps } from '../../src/webview/components/graph/rendering/surface/owned2d/view/surface/contracts';
 
 const mockMethods = {
   getFps: vi.fn(() => null),

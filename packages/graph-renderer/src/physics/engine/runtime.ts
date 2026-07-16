@@ -2,6 +2,7 @@ import { DEFAULT_GRAPH_LAYOUT_CONFIG, mergeGraphLayoutConfig } from '../config/m
 import type {
   GraphLayoutConfig,
   GraphLayoutEngine,
+  GraphLayoutExternalForce,
   GraphLayoutInput,
   GraphLayoutTickResult,
 } from '../contracts';
@@ -68,8 +69,8 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     updateCollisionScale(this.engine, scale);
   }
 
-  tick(): GraphLayoutTickResult {
-    return tickSimulation(this.engine);
+  tick(externalForce?: GraphLayoutExternalForce): GraphLayoutTickResult {
+    return tickSimulation(this.engine, externalForce);
   }
 
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void {

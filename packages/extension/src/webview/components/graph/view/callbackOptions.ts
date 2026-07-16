@@ -10,6 +10,7 @@ export function buildGraphCallbackOptions({
   pluginHost?: WebviewPluginHost;
 }): UseGraphCallbacksOptions {
   return {
+    colorContextRef: graphState.renderer.containerRef,
     pluginHost,
     refs: {
       edgeDecorationsRef: graphState.edgeDecorationsRef,

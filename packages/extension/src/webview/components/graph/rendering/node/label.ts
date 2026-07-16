@@ -12,6 +12,7 @@ export interface RenderNodeLabelOptions {
   isHighlighted: boolean;
   node: FGNode;
   opacity: number;
+  resolveColor?(this: void, value: string | undefined, fallback: string): string;
   spriteCache: NodeLabelSpriteProvider;
   visualScale?: number;
 }
@@ -24,6 +25,7 @@ export function renderNodeLabel({
   isHighlighted,
   node,
   opacity,
+  resolveColor = (value, fallback) => value ?? fallback,
   spriteCache,
   visualScale = 1,
 }: RenderNodeLabelOptions): void {
@@ -36,7 +38,7 @@ export function renderNodeLabel({
   const baseColor = isHighlighted
     ? appearance.labelForeground
     : appearance.labelMutedForeground;
-  const color = decoration?.label?.color ?? baseColor;
+  const color = resolveColor(decoration?.label?.color, baseColor);
   const sprite = spriteCache.get(
     decoration?.label?.text ?? node.label,
     color,

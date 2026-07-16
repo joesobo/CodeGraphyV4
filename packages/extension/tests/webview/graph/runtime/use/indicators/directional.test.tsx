@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import { drawOwnedGraphParticles } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drawing';
+import { drawOwnedGraphParticles } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame/drawing/overlay';
 
 function options(directionMode: 'arrows' | 'particles' | 'none' = 'particles') {
   const source = { id: 'a', x: 0, y: 0 } as FGNode;
