@@ -1,6 +1,15 @@
 import type { GraphQueryReport } from '../workspace/requestTypes';
 
-export type CliCommandName = 'help' | 'index' | 'plugins' | 'query' | 'setup' | 'status' | 'version';
+export type CliCommandName =
+  | 'doctor'
+  | 'filter'
+  | 'help'
+  | 'index'
+  | 'plugins'
+  | 'query'
+  | 'scope'
+  | 'status'
+  | 'version';
 export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'link' | 'list' | 'register';
 
 export interface CliCommand {

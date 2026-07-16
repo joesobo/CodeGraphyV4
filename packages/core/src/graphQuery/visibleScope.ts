@@ -23,7 +23,7 @@ function getEnabledScopeTypes(scopeTypes: Record<string, boolean> | undefined, d
     .filter(([, enabled]) => enabled)
     .map(([type]) => type);
 
-  return new Set(enabledTypes.length > 0 ? enabledTypes : defaultTypes);
+  return new Set(Object.keys(scopeTypes ?? {}).length > 0 ? enabledTypes : defaultTypes);
 }
 
 export function applyExplicitScope(

@@ -11,81 +11,75 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['-V'])).toEqual({ name: 'version' });
   });
 
-  it('parses scoped help only for known commands', () => {
-    expect(parseCliCommand(['help', 'edges'])).toEqual({
-      name: 'help',
-      helpPath: ['edges'],
+  it('uses cwd by default and one global workspace override for every workspace command', () => {
+    expect(parseCliCommand(['index'])).toEqual({ name: 'index' });
+    expect(parseCliCommand(['-C', '/workspace/project', 'nodes'])).toEqual({
+      name: 'query',
+      report: 'nodes',
+      arguments: { limit: 100 },
+      workspacePath: '/workspace/project',
     });
-    expect(parseCliCommand(['index', '--help'])).toEqual({
-      name: 'help',
-      helpPath: ['index'],
+    expect(parseCliCommand(['plugins', 'enable', 'codegraphy.vue', '--workspace', '/workspace/project'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'codegraphy.vue',
+      workspacePath: '/workspace/project',
     });
-    expect(parseCliCommand(['edges', '--help'])).toEqual({
+  });
+
+  it('parses compact scope and filter commands', () => {
+    expect(parseCliCommand(['scope'])).toEqual({ name: 'scope' });
+    expect(parseCliCommand(['scope', 'node', 'symbol:function', 'on'])).toEqual({
+      name: 'scope',
+      arguments: { kind: 'node', type: 'symbol:function', enabled: true },
+    });
+    expect(parseCliCommand(['scope', 'edge', 'import', 'off'])).toEqual({
+      name: 'scope',
+      arguments: { kind: 'edge', type: 'import', enabled: false },
+    });
+    expect(parseCliCommand(['filter'])).toEqual({ name: 'filter' });
+    expect(parseCliCommand(['filter', 'add', '**/generated/**'])).toEqual({
+      name: 'filter',
+      arguments: { action: 'add', pattern: '**/generated/**' },
+    });
+    expect(parseCliCommand(['filter', 'remove', '**/generated/**'])).toEqual({
+      name: 'filter',
+      arguments: { action: 'remove', pattern: '**/generated/**' },
+    });
+  });
+
+  it('parses scoped help only for public commands', () => {
+    expect(parseCliCommand(['help', 'dependencies'])).toEqual({
       name: 'help',
-      helpPath: ['edges'],
+      helpPath: ['dependencies'],
+    });
+    expect(parseCliCommand(['scope', '--help'])).toEqual({
+      name: 'help',
+      helpPath: ['scope'],
     });
     expect(parseCliCommand(['plugins', 'enable', '--help'])).toEqual({
       name: 'help',
       helpPath: ['plugins', 'enable'],
     });
-    expect(parseCliCommand(['wat', '--help'])).toEqual({
-      name: 'help',
-      parseError: 'Unknown command: wat',
-    });
-    expect(parseCliCommand(['help', 'wat'])).toEqual({
-      name: 'help',
-      parseError: 'Unknown help topic: wat',
-    });
-    expect(parseCliCommand(['plugins', 'wat', '--help'])).toEqual({
-      name: 'plugins',
-      parseError: 'Unknown plugin command: wat',
-    });
-    expect(parseCliCommand(['help', 'plugins', 'wat'])).toEqual({
-      name: 'help',
-      parseError: 'Unknown plugin help topic: wat',
-    });
   });
 
-  it('dispatches concise top-level graph reports', () => {
-    expect(parseCliCommand(['edges', '.', '--from', 'src/app.ts'])).toEqual({
-      name: 'query',
-      report: 'edges',
-      workspacePath: '.',
-      arguments: { from: 'src/app.ts', limit: 100 },
+  it('rejects per-command workspaces, query flags, retired commands, and malformed globals', () => {
+    expect(parseCliCommand(['status', '/workspace/project'])).toMatchObject({
+      parseError: 'Unexpected argument for status: /workspace/project',
     });
-  });
-
-  it('parses verbose as a global option anywhere', () => {
-    expect(parseCliCommand(['--verbose', 'index', '/workspace/project'])).toEqual({
-      name: 'index',
-      verbose: true,
-      workspacePath: '/workspace/project',
+    expect(parseCliCommand(['edges', '--from', 'src/app.ts'])).toMatchObject({
+      parseError: 'Unknown option for edges: --from',
     });
-    expect(parseCliCommand(['edges', '--verbose', '--from', 'src/app.ts'])).toEqual({
-      name: 'query',
-      report: 'edges',
-      verbose: true,
-      arguments: { from: 'src/app.ts', limit: 100 },
-    });
-  });
-
-  it('rejects unknown and retired commands', () => {
-    for (const command of ['query', 'list', 'open', 'reindex', 'mcp', 'wat']) {
-      expect(parseCliCommand([command])).toEqual({
-        name: 'help',
+    for (const command of ['setup', 'relationships', 'symbols', 'paths', 'query']) {
+      expect(parseCliCommand([command])).toMatchObject({
         parseError: `Unknown command: ${command}`,
       });
     }
-  });
-
-  it('rejects arguments after argument-free commands', () => {
-    expect(parseCliCommand(['setup', 'extra'])).toEqual({
-      name: 'setup',
-      parseError: 'Unexpected argument for setup: extra',
+    expect(parseCliCommand(['-C'])).toMatchObject({
+      parseError: 'Missing value for -C',
     });
-    expect(parseCliCommand(['--version', 'extra'])).toEqual({
-      name: 'version',
-      parseError: 'Unexpected argument for version: extra',
+    expect(parseCliCommand(['-C', 'one', '--workspace', 'two', 'status'])).toMatchObject({
+      parseError: 'Duplicate workspace option: --workspace',
     });
   });
 });

@@ -133,4 +133,52 @@ describe('core/graphQuery paths report', () => {
       },
     });
   });
+
+  it('keeps collecting raw symbol routes until projected file paths are unique', () => {
+    const symbolNode = (id: string, filePath: string) => ({
+      id,
+      label: id,
+      color: '#111111',
+      nodeType: 'symbol',
+      symbol: { id, name: id, kind: 'function', filePath },
+    });
+    const targetSymbols = Array.from({ length: 6 }, (_, index) => symbolNode(
+      `z.ts#target${index + 1}:function`,
+      'z.ts',
+    ));
+    const projectedGraph: IGraphData = {
+      nodes: [
+        { id: 'a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
+        { id: 'z.ts', label: 'z.ts', color: '#111111', nodeType: 'file' },
+        { id: 'shared.ts', label: 'shared.ts', color: '#111111', nodeType: 'file' },
+        { id: 'distinct.ts', label: 'distinct.ts', color: '#111111', nodeType: 'file' },
+        symbolNode('shared.ts#route:function', 'shared.ts'),
+        symbolNode('distinct.ts#route:function', 'distinct.ts'),
+        ...targetSymbols,
+      ],
+      edges: [
+        { id: 'a-shared', from: 'a.ts', to: 'shared.ts#route:function', kind: 'call', sources: [] },
+        { id: 'a-distinct', from: 'a.ts', to: 'distinct.ts#route:function', kind: 'call', sources: [] },
+        ...targetSymbols.map((target, index) => ({
+          id: `route-${index}`,
+          from: index < 5 ? 'shared.ts#route:function' : 'distinct.ts#route:function',
+          to: target.id,
+          kind: 'call' as const,
+          sources: [],
+        })),
+      ],
+    };
+
+    expect(findGraphPaths(projectedGraph, {
+      from: 'a.ts',
+      to: 'z.ts',
+      maxDepth: 2,
+      maxPaths: 5,
+      expandFileSelectors: true,
+      projectFileEndpoints: true,
+    }).paths).toEqual([
+      ['a.ts', 'shared.ts', 'z.ts'],
+      ['a.ts', 'distinct.ts', 'z.ts'],
+    ]);
+  });
 });

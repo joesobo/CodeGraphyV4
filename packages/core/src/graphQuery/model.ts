@@ -1,5 +1,5 @@
 import type { GraphEdgeKind, NodeType } from '../graph/contracts';
-import type { IAnalysisRange } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRange, IGraphNodeSymbolMetadata } from '@codegraphy-dev/plugin-api';
 
 export type GraphQueryFilterOperator =
   | 'equals'
@@ -38,6 +38,8 @@ export interface GraphQueryConnectionConfig extends GraphQueryConfig {
   from?: string;
   to?: string;
   edgeType?: GraphEdgeKind;
+  expandFileSelectors?: boolean;
+  projectFileEndpoints?: boolean;
 }
 
 export interface GraphQuerySymbolsConfig extends GraphQueryConfig {
@@ -47,11 +49,13 @@ export interface GraphQuerySymbolsConfig extends GraphQueryConfig {
   edgeType?: GraphEdgeKind;
 }
 
-export interface GraphQueryPathConfig {
+export interface GraphQueryPathConfig extends GraphQueryConfig {
   from: string;
   to: string;
   maxDepth?: number;
   maxPaths?: number;
+  expandFileSelectors?: boolean;
+  projectFileEndpoints?: boolean;
 }
 
 export interface GraphQueryPage {
@@ -64,6 +68,7 @@ export interface GraphQueryPage {
 export interface GraphQueryNodeReportItem {
   path: string;
   nodeType: NodeType;
+  symbol?: IGraphNodeSymbolMetadata;
 }
 
 export interface GraphQueryEdgeReportItem {

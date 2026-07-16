@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { requestWorkspaceGraphQuery } from '../../workspace/requestQuery';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
@@ -24,10 +25,31 @@ const DEFAULT_DEPENDENCIES: QueryCommandDependencies = {
 
 const PATH_ARGUMENTS = ['from', 'to', 'filePath', 'relatedFrom', 'relatedTo'] as const;
 
+function canonicalizeExistingPathPrefix(inputPath: string): string {
+  let existingPath = inputPath;
+  const missingSegments: string[] = [];
+
+  while (!fs.existsSync(existingPath)) {
+    const parentPath = path.dirname(existingPath);
+    if (parentPath === existingPath) return inputPath;
+    missingSegments.unshift(path.basename(existingPath));
+    existingPath = parentPath;
+  }
+
+  try {
+    return path.join(fs.realpathSync.native(existingPath), ...missingSegments);
+  } catch {
+    return inputPath;
+  }
+}
+
 function normalizeWorkspaceSelector(selector: string, workspaceRoot: string): string {
   if (path.isAbsolute(selector)) {
-    const relativePath = path.relative(workspaceRoot, selector);
-    if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    const canonicalWorkspaceRoot = canonicalizeExistingPathPrefix(workspaceRoot);
+    const canonicalSelector = canonicalizeExistingPathPrefix(selector);
+    const relativePath = path.relative(canonicalWorkspaceRoot, canonicalSelector);
+    const outsideWorkspace = relativePath === '..' || relativePath.startsWith(`..${path.sep}`);
+    if (!relativePath || outsideWorkspace || path.isAbsolute(relativePath)) {
       throw new Error(`Query path is outside the workspace: ${selector}`);
     }
     return relativePath.split(path.sep).join('/');

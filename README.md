@@ -158,9 +158,9 @@ All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. 
 | `codegraphy nodes` | Lists bounded nodes in the saved Graph Scope, including enabled Symbol Node Types. |
 | `codegraphy search <text>` | Searches nodes in the saved Graph Scope. |
 | `codegraphy edges` | Lists compact Edges in the saved Graph Scope. |
-| `codegraphy dependencies <node>` | Lists outgoing Edges from one exact node. |
-| `codegraphy dependents <node>` | Lists incoming Edges to one exact node. |
-| `codegraphy path <from> <to>` | Finds bounded directed paths between two exact nodes. |
+| `codegraphy dependencies <node>` | Lists outgoing Edges from a file and its visible Symbol Nodes, or from one exact Symbol Node. |
+| `codegraphy dependents <node>` | Lists incoming Edges to a file and its visible Symbol Nodes, or to one exact Symbol Node. |
+| `codegraphy path <from> <to>` | Finds bounded directed paths between files or exact Symbol Nodes. |
 | `codegraphy scope` | Lists saved and available Node Type and Edge Type Graph Scope. |
 | `codegraphy scope node <type> <on\|off>` | Persists one Node Type Graph Scope toggle. |
 | `codegraphy scope edge <type> <on\|off>` | Persists one Edge Type Graph Scope toggle. |
@@ -186,8 +186,8 @@ The CodeGraphy Agent Skill teaches agents to use the Core CLI instead of owning 
 | `codegraphy index` | Make cached workspace knowledge current while reusing unchanged analysis. |
 | `codegraphy nodes` / `search` | Find File, Folder, Package, Symbol, and plugin-defined Nodes enabled by Graph Scope. |
 | `codegraphy edges` | List high-level Edges and grouped Edge Types. |
-| `codegraphy dependencies` / `dependents` | Trace one Node outward or inspect its incoming change impact. |
-| `codegraphy path` | Find bounded directed paths between exact Nodes. |
+| `codegraphy dependencies` / `dependents` | Trace a file across its visible Symbol Nodes, or query one exact Symbol Node. |
+| `codegraphy path` | Find bounded directed paths between files or exact Symbol Nodes. |
 | `codegraphy scope` / `filter` | Inspect or persist the same Graph Scope and filter settings used by the extension. |
 
 ## Package Map

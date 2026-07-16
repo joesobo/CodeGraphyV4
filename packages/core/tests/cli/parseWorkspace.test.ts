@@ -2,22 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { parseWorkspaceCommand } from '../../src/cli/parseWorkspace';
 
 describe('cli/parseWorkspace', () => {
-  it('parses an optional workspace path', () => {
+  it('uses the global workspace and rejects command-local arguments', () => {
     expect(parseWorkspaceCommand('index', [])).toEqual({ name: 'index' });
     expect(parseWorkspaceCommand('status', ['/workspace/project'])).toEqual({
       name: 'status',
-      workspacePath: '/workspace/project',
+      parseError: 'Unexpected argument for status: /workspace/project',
     });
-  });
-
-  it('rejects unknown options and extra arguments', () => {
     expect(parseWorkspaceCommand('status', ['--wat'])).toEqual({
       name: 'status',
-      parseError: 'Unknown option for status: --wat',
-    });
-    expect(parseWorkspaceCommand('index', ['one', 'two'])).toEqual({
-      name: 'index',
-      parseError: 'Unexpected argument for index: two',
+      parseError: 'Unexpected argument for status: --wat',
     });
   });
 });

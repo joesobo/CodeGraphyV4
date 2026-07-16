@@ -6,7 +6,7 @@ describe('cli/parsePlugins', () => {
     expect(isPluginCommand('enable')).toBe(true);
     expect(isPluginCommand('wat')).toBe(false);
   });
-  it('parses plugin package and workspace commands', () => {
+  it('parses plugin package commands without per-command workspaces', () => {
     expect(parsePluginsCommand(['register', 'private-plugin'])).toEqual({
       name: 'plugins',
       action: 'register',
@@ -17,16 +17,14 @@ describe('cli/parsePlugins', () => {
       action: 'link',
       packageRoot: '/private/plugin',
     });
-    expect(parsePluginsCommand(['enable', '@codegraphy-dev/plugin-vue', '/workspace'])).toEqual({
+    expect(parsePluginsCommand(['enable', '@codegraphy-dev/plugin-vue'])).toEqual({
       name: 'plugins',
       action: 'enable',
       packageName: '@codegraphy-dev/plugin-vue',
-      workspacePath: '/workspace',
     });
-    expect(parsePluginsCommand(['list', '/workspace'])).toEqual({
+    expect(parsePluginsCommand(['list'])).toEqual({
       name: 'plugins',
       action: 'list',
-      workspacePath: '/workspace',
     });
   });
 
@@ -46,9 +44,9 @@ describe('cli/parsePlugins', () => {
       name: 'plugins',
       parseError: 'plugins enable requires <plugin-id-or-package>',
     });
-    expect(parsePluginsCommand(['list', 'one', 'two'])).toEqual({
+    expect(parsePluginsCommand(['list', 'one'])).toEqual({
       name: 'plugins',
-      parseError: 'Unexpected argument for plugins list: two',
+      parseError: 'Unexpected argument for plugins list: one',
     });
     expect(parsePluginsCommand(['register', 'pkg', 'extra'])).toEqual({
       name: 'plugins',

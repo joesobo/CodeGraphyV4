@@ -1,120 +1,85 @@
 import type { GraphQueryReport } from '../workspace/requestTypes';
 import type { CliCommand } from './parseTypes';
 
-const QUERY_REPORTS = new Set<GraphQueryReport>([
-  'nodes',
+const QUERY_COMMANDS = new Set([
+  'dependencies',
+  'dependents',
   'edges',
-  'relationships',
-  'symbols',
-  'paths',
+  'nodes',
+  'path',
+  'search',
 ]);
 
-export function isGraphQueryReport(value: string | undefined): value is GraphQueryReport {
-  return value !== undefined && QUERY_REPORTS.has(value as GraphQueryReport);
+const DEFAULT_LIMIT = 100;
+const DEFAULT_MAX_DEPTH = 6;
+const DEFAULT_MAX_PATHS = 5;
+
+export function isGraphQueryReport(value: string | undefined): boolean {
+  return value !== undefined && QUERY_COMMANDS.has(value);
 }
-
-const LIST_FLAGS: Record<string, string> = {
-  '--limit': 'limit',
-  '--offset': 'offset',
-  '--search': 'search',
-};
-
-const REPORT_FLAGS: Record<GraphQueryReport, Record<string, string>> = {
-  nodes: LIST_FLAGS,
-  edges: { ...LIST_FLAGS, '--from': 'from', '--to': 'to', '--type': 'edgeType' },
-  relationships: { ...LIST_FLAGS, '--from': 'from', '--to': 'to', '--type': 'edgeType' },
-  symbols: {
-    ...LIST_FLAGS,
-    '--file': 'filePath',
-    '--from': 'relatedFrom',
-    '--to': 'relatedTo',
-    '--type': 'edgeType',
-  },
-  paths: { '--from': 'from', '--to': 'to', '--depth': 'maxDepth', '--limit': 'maxPaths' },
-};
-
-const INTEGER_LIMITS: Record<string, { min: number; max: number }> = {
-  limit: { min: 1, max: 500 },
-  offset: { min: 0, max: Number.MAX_SAFE_INTEGER },
-  maxDepth: { min: 1, max: 25 },
-  maxPaths: { min: 1, max: 20 },
-};
 
 function parseError(message: string): CliCommand {
   return { name: 'query', parseError: message };
 }
 
-function parseOptionValue(
-  flag: string,
-  key: string,
-  value: string | undefined,
-): string | number | CliCommand {
-  if (value === undefined || value.startsWith('--')) {
-    return parseError(`Missing value for ${flag}`);
-  }
+function rejectOption(command: string, args: string[]): CliCommand | undefined {
+  const option = args.find(argument => argument.startsWith('-'));
+  return option ? parseError(`Unknown option for ${command}: ${option}`) : undefined;
+}
 
-  const bounds = INTEGER_LIMITS[key];
-  if (!bounds) {
-    return value;
-  }
+function requireOperands(command: string, args: string[], count: number, usage: string): CliCommand | undefined {
+  if (args.length < count) return parseError(`${command} requires ${usage}`);
+  if (args.length > count) return parseError(`Unexpected argument for ${command}: ${args[count]}`);
+  return undefined;
+}
 
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed < bounds.min || parsed > bounds.max) {
-    return parseError(
-      `Invalid value for ${flag}: expected an integer from ${bounds.min} to ${bounds.max}`,
-    );
-  }
-
-  return parsed;
+function query(report: GraphQueryReport, arguments_: Record<string, unknown>): CliCommand {
+  return { name: 'query', report, arguments: arguments_ };
 }
 
 export function parseQueryCommand(argv: string[]): CliCommand {
-  const [reportInput, ...args] = argv;
-  if (!isGraphQueryReport(reportInput)) {
-    return parseError(`Unknown query report: ${reportInput ?? ''}`);
+  const [command, ...args] = argv;
+  if (!isGraphQueryReport(command)) {
+    return parseError(`Unknown query command: ${command ?? ''}`);
   }
 
-  const report = reportInput;
-  const supportedFlags = REPORT_FLAGS[report];
-  const queryArguments: Record<string, unknown> = report === 'paths' ? {} : { limit: 100 };
-  const seenOptions = new Set<string>();
-  let workspacePath: string | undefined;
+  const invalidOption = rejectOption(command, args);
+  if (invalidOption) return invalidOption;
 
-  for (let index = 0; index < args.length; index += 1) {
-    const argument = args[index];
-    if (!argument.startsWith('--')) {
-      if (workspacePath) {
-        return parseError(`Unexpected positional argument: ${argument}`);
-      }
-      workspacePath = argument;
-      continue;
+  switch (command) {
+    case 'nodes':
+    case 'edges': {
+      const invalid = requireOperands(command, args, 0, '');
+      return invalid ?? query(command, { limit: DEFAULT_LIMIT });
     }
-
-    const key = supportedFlags[argument];
-    if (!key) {
-      return parseError(`Unknown option for ${report}: ${argument}`);
+    case 'search': {
+      const invalid = requireOperands(command, args, 1, '<text>');
+      return invalid ?? query('nodes', { search: args[0], limit: DEFAULT_LIMIT });
     }
-    if (seenOptions.has(key)) {
-      return parseError(`Duplicate option for ${report}: ${argument}`);
+    case 'dependencies': {
+      const invalid = requireOperands(command, args, 1, '<node>');
+      return invalid ?? query('edges', {
+        from: args[0], expandFileSelectors: true, projectFileEndpoints: true, limit: DEFAULT_LIMIT,
+      });
     }
-    seenOptions.add(key);
-
-    const parsed = parseOptionValue(argument, key, args[index + 1]);
-    if (typeof parsed === 'object') {
-      return parsed;
+    case 'dependents': {
+      const invalid = requireOperands(command, args, 1, '<node>');
+      return invalid ?? query('edges', {
+        to: args[0], expandFileSelectors: true, projectFileEndpoints: true, limit: DEFAULT_LIMIT,
+      });
     }
-    queryArguments[key] = parsed;
-    index += 1;
+    case 'path': {
+      const invalid = requireOperands(command, args, 2, '<from> <to>');
+      return invalid ?? query('paths', {
+        from: args[0],
+        to: args[1],
+        maxDepth: DEFAULT_MAX_DEPTH,
+        maxPaths: DEFAULT_MAX_PATHS,
+        expandFileSelectors: true,
+        projectFileEndpoints: true,
+      });
+    }
+    default:
+      return parseError(`Unknown query command: ${command}`);
   }
-
-  if (report === 'paths' && (!queryArguments.from || !queryArguments.to)) {
-    return parseError('paths requires --from and --to');
-  }
-
-  return {
-    name: 'query',
-    report,
-    arguments: queryArguments,
-    ...(workspacePath ? { workspacePath } : {}),
-  };
 }

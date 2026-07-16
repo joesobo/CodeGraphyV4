@@ -7,7 +7,7 @@ export function isPluginCommand(value: string | undefined): boolean {
 }
 
 export function parsePluginsCommand(argv: string[]): CliCommand {
-  const [action, packageName, workspacePath, extra] = argv;
+  const [action, packageName, extra] = argv;
 
   if (!action || action === 'help') {
     return { name: 'help', helpPath: ['plugins'] };
@@ -26,7 +26,7 @@ export function parsePluginsCommand(argv: string[]): CliCommand {
       if (!packageName) {
         return { name: 'plugins', parseError: 'plugins register requires <package>' };
       }
-      const invalid = rejectExtra(workspacePath);
+      const invalid = rejectExtra(extra);
       if (invalid) return invalid;
       return { name: 'plugins', action, packageName };
     }
@@ -34,7 +34,7 @@ export function parsePluginsCommand(argv: string[]): CliCommand {
       if (!packageName) {
         return { name: 'plugins', parseError: 'plugins link requires <package-root>' };
       }
-      const invalid = rejectExtra(workspacePath);
+      const invalid = rejectExtra(extra);
       if (invalid) return invalid;
       return { name: 'plugins', action, packageRoot: packageName };
     }
@@ -44,12 +44,12 @@ export function parsePluginsCommand(argv: string[]): CliCommand {
       if (missing) return missing;
       const invalid = rejectExtra(extra);
       if (invalid) return invalid;
-      return { name: 'plugins', action, packageName, workspacePath };
+      return { name: 'plugins', action, packageName };
     }
     case 'list': {
-      const invalid = rejectExtra(workspacePath);
+      const invalid = rejectExtra(packageName);
       if (invalid) return invalid;
-      return { name: 'plugins', action, workspacePath: packageName };
+      return { name: 'plugins', action };
     }
     default:
       return { name: 'plugins', parseError: `Unknown plugin command: ${action}` };
