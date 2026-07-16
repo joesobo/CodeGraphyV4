@@ -44,4 +44,11 @@ describe('Relationship Graph minimap projection', () => {
 
     expect(graphPointFromMinimap(projection, panelPoint)).toEqual({ x: 30, y: 20 });
   });
+
+  it('maps positive graph y downward like the WebGPU graph renderer', () => {
+    const projection = { centerX: 0, centerY: 0, padding: 12, size: 160, zoom: 2 };
+
+    expect(minimapPointFromGraph(projection, { x: 0, y: 20 })).toEqual({ x: 80, y: 120 });
+    expect(graphPointFromMinimap(projection, { x: 80, y: 120 })).toEqual({ x: 0, y: 20 });
+  });
 });

@@ -41,7 +41,7 @@ describe('Relationship Graph minimap drag', () => {
       pointerId: 7,
     } as never);
 
-    expect(camera).toEqual({ centerX: 40, centerY: 40, transition: null, zoom: 2 });
+    expect(camera).toEqual({ centerX: 40, centerY: -40, transition: null, zoom: 2 });
     expect(panel.setPointerCapture).toHaveBeenCalledWith(7);
     expect(panel.focus).toHaveBeenCalledWith({ preventScroll: true });
     expect(runtime.clearHover).toHaveBeenCalledOnce();
@@ -54,7 +54,7 @@ describe('Relationship Graph minimap drag', () => {
       pointerId: 7,
     } as never);
 
-    expect(camera).toEqual({ centerX: 50, centerY: 50, transition: null, zoom: 2 });
+    expect(camera).toEqual({ centerX: 50, centerY: -50, transition: null, zoom: 2 });
     expect(runtime.requestFrame).toHaveBeenCalledTimes(2);
     expect(suppress.preventDefault).toHaveBeenCalledTimes(2);
     expect(suppress.stopPropagation).toHaveBeenCalledTimes(2);
