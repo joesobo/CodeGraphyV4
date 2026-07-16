@@ -1,4 +1,5 @@
 import { resetOwnedGraphNodeHover } from '../../interaction/hover/model';
+import type { WebGpuGraphSecondaryFrame } from '@codegraphy-dev/graph-renderer';
 import type { OwnedGraphFrameRuntime } from './render';
 import type { PreparedOverlayCanvas } from '../drawing/layer';
 import type { OwnedGraphLayout } from '../../layout/runtime/model';
@@ -6,12 +7,16 @@ import {
   expandMinimapBounds,
   finiteMinimapBounds,
   fitMinimapProjection,
+  type MinimapBounds,
 } from '../../minimap/projection';
 import {
   OWNED_GRAPH_MINIMAP_SIZE,
   updateOwnedGraphMinimapOverlay,
 } from '../../minimap/presentation';
-import { scheduleMinimapRefresh } from '../../minimap/scheduling';
+import {
+  scheduleMinimapRefresh,
+  type MinimapRefreshDecision,
+} from '../../minimap/scheduling';
 import { projectMinimapViewport } from '../../minimap/viewport';
 
 const MINIMAP_PADDING = 12;
@@ -46,6 +51,74 @@ function failFrame(runtime: OwnedGraphFrameRuntime, layout: OwnedGraphLayout, er
   runtime.onRendererError(error instanceof Error ? error.message : String(error));
 }
 
+function resolveMinimapBounds(
+  runtime: OwnedGraphFrameRuntime,
+  layout: OwnedGraphLayout,
+  moving: boolean,
+  decision: MinimapRefreshDecision,
+): MinimapBounds | undefined {
+  const currentBounds = finiteMinimapBounds(layout.engine.x, layout.engine.y);
+  if (decision.resetBounds) runtime.minimapBoundsRef.current = null;
+  if (!currentBounds) return undefined;
+  return moving && !decision.tightenBounds
+    ? expandMinimapBounds(runtime.minimapBoundsRef.current ?? undefined, currentBounds)
+    : currentBounds;
+}
+
+function prepareMinimapSecondaryFrame(
+  runtime: OwnedGraphFrameRuntime,
+  layout: OwnedGraphLayout,
+  prepared: PreparedOverlayCanvas,
+  moving: boolean,
+  timestampMs: number,
+  styleVersion: number,
+): WebGpuGraphSecondaryFrame | undefined {
+  if (!runtime.minimapSurfaceRegisteredRef.current) return undefined;
+  const decision = scheduleMinimapRefresh(runtime.minimapSchedulerRef.current, {
+    graphIdentity: layout,
+    moving,
+    positionVersion: runtime.positionVersionRef.current,
+    styleVersion,
+    timestampMs,
+  });
+  if (!decision.refresh) return undefined;
+  const bounds = resolveMinimapBounds(runtime, layout, moving, decision);
+  runtime.minimapBoundsRef.current = bounds ?? null;
+  const projection = bounds
+    ? fitMinimapProjection(bounds, OWNED_GRAPH_MINIMAP_SIZE, MINIMAP_PADDING)
+    : null;
+  runtime.minimapProjectionRef.current = projection;
+  if (!projection) return undefined;
+  return {
+    backgroundColor: runtime.propsRef.current.backgroundColor,
+    camera: projection,
+    cssHeight: projection.size,
+    cssWidth: projection.size,
+    devicePixelRatio: prepared.devicePixelRatio,
+  };
+}
+
+function presentMinimapViewport(
+  runtime: OwnedGraphFrameRuntime,
+  prepared: PreparedOverlayCanvas,
+): void {
+  const projection = runtime.minimapProjectionRef.current;
+  const panel = runtime.minimapPanelRef.current;
+  if (panel) panel.hidden = projection === null;
+  const viewportBox = runtime.minimapViewportBoxRef.current;
+  const directionIndicator = runtime.minimapDirectionIndicatorRef.current;
+  if (!projection || !viewportBox || !directionIndicator) return;
+  updateOwnedGraphMinimapOverlay(
+    viewportBox,
+    directionIndicator,
+    projectMinimapViewport(projection, {
+      camera: runtime.cameraRef.current,
+      viewportHeight: prepared.height,
+      viewportWidth: prepared.width,
+    }),
+  );
+}
+
 export function submitOwnedWebGpuFrame(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
@@ -58,54 +131,15 @@ export function submitOwnedWebGpuFrame(
   const props = runtime.propsRef.current;
   try {
     const styleVersion = props.getStyleRevision();
-    let secondaryFrame;
-    if (runtime.minimapSurfaceRegisteredRef.current) {
-      const decision = scheduleMinimapRefresh(runtime.minimapSchedulerRef.current, {
-        graphIdentity: layout,
-        moving,
-        positionVersion: runtime.positionVersionRef.current,
-        styleVersion,
-        timestampMs,
-      });
-      if (decision.refresh) {
-        const currentBounds = finiteMinimapBounds(layout.engine.x, layout.engine.y);
-        if (decision.resetBounds) runtime.minimapBoundsRef.current = null;
-        const bounds = currentBounds && moving && !decision.tightenBounds
-          ? expandMinimapBounds(runtime.minimapBoundsRef.current ?? undefined, currentBounds)
-          : currentBounds;
-        runtime.minimapBoundsRef.current = bounds ?? null;
-        const projection = bounds
-          ? fitMinimapProjection(bounds, OWNED_GRAPH_MINIMAP_SIZE, MINIMAP_PADDING)
-          : null;
-        runtime.minimapProjectionRef.current = projection;
-        secondaryFrame = projection
-          ? {
-              backgroundColor: props.backgroundColor,
-              camera: projection,
-              cssHeight: projection.size,
-              cssWidth: projection.size,
-              devicePixelRatio: prepared.devicePixelRatio,
-            }
-          : undefined;
-      }
-    }
-    const projection = runtime.minimapProjectionRef.current;
-    if (runtime.minimapPanelRef.current) {
-      runtime.minimapPanelRef.current.hidden = projection === null;
-    }
-    const viewportBox = runtime.minimapViewportBoxRef.current;
-    const directionIndicator = runtime.minimapDirectionIndicatorRef.current;
-    if (projection && viewportBox && directionIndicator) {
-      updateOwnedGraphMinimapOverlay(
-        viewportBox,
-        directionIndicator,
-        projectMinimapViewport(projection, {
-          camera: runtime.cameraRef.current,
-          viewportHeight: prepared.height,
-          viewportWidth: prepared.width,
-        }),
-      );
-    }
+    const secondaryFrame = prepareMinimapSecondaryFrame(
+      runtime,
+      layout,
+      prepared,
+      moving,
+      timestampMs,
+      styleVersion,
+    );
+    presentMinimapViewport(runtime, prepared);
     return renderer.render({ backgroundColor: props.backgroundColor, camera: runtime.cameraRef.current,
       cssHeight: prepared.height, cssWidth: prepared.width, devicePixelRatio: prepared.devicePixelRatio,
       directionMode: props.directionMode, edgeSources: layout.engine.edgeSources, edgeTargets: layout.engine.edgeTargets,

@@ -71,6 +71,16 @@ describe('Relationship Graph minimap navigation', () => {
     expect(panel.setPointerCapture).toHaveBeenCalledWith(7);
     expect(runtime.sessionRef.current).not.toBeNull();
 
+    handlers.onPointerMove({
+      ...suppress,
+      clientX: 130,
+      clientY: 30,
+      currentTarget: panel,
+      pointerId: 7,
+    } as never);
+    expect(camera).toEqual({ centerX: 50, centerY: 50, transition: null, zoom: 2 });
+    expect(runtime.requestFrame).toHaveBeenCalledTimes(2);
+
     handlers.onKeyDown({
       ...suppress,
       currentTarget: panel,
