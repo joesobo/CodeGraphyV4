@@ -3,6 +3,9 @@ import {
   completeMinimapRefresh,
   createMinimapScheduler,
   invalidateMinimapScheduler,
+  minimapPositionChanged,
+  minimapSettled,
+  recordMinimapObservation,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/state';
 
 describe('Relationship Graph minimap scheduler state', () => {
@@ -42,5 +45,48 @@ describe('Relationship Graph minimap scheduler state', () => {
     expect(scheduler.dirty).toBe(false);
     expect(scheduler.lastRefreshTimestampMs).toBe(75);
     expect(scheduler.pendingBoundsReset).toBe(false);
+  });
+
+  it.each([
+    [true, false, true],
+    [true, true, false],
+    [false, false, false],
+  ])('detects whether moving state %s transitioned to %s', (wasMoving, moving, settled) => {
+    expect(minimapSettled(wasMoving, moving)).toBe(settled);
+  });
+
+  it('detects whether the observed node positions changed', () => {
+    const scheduler = createMinimapScheduler();
+    scheduler.positionVersion = 4;
+
+    expect(minimapPositionChanged(scheduler, 5)).toBe(true);
+    expect(minimapPositionChanged(scheduler, 4)).toBe(false);
+  });
+
+  it('records the latest observed graph and surface state', () => {
+    const scheduler = createMinimapScheduler();
+    const graphIdentity = {};
+
+    recordMinimapObservation(scheduler, {
+      baseStyleVersion: 1,
+      devicePixelRatio: 2,
+      graphIdentity,
+      graphRevision: 3,
+      graphStyleRevision: 4,
+      positionVersion: 5,
+      surfaceHeight: 140,
+      surfaceWidth: 150,
+    });
+
+    expect(scheduler).toEqual(expect.objectContaining({
+      baseStyleVersion: 1,
+      devicePixelRatio: 2,
+      graphIdentity,
+      graphRevision: 3,
+      graphStyleRevision: 4,
+      positionVersion: 5,
+      surfaceHeight: 140,
+      surfaceWidth: 150,
+    }));
   });
 });

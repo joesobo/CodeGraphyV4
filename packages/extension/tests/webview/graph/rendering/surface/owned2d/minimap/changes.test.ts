@@ -121,4 +121,18 @@ describe('Relationship Graph minimap change observation', () => {
     expect(scheduler.dirty).toBe(true);
     expect(scheduler.projectionFitPending).toBe(false);
   });
+
+  it.each([
+    ['base style', { baseStyleVersion: 2 }],
+    ['graph style', { graphStyleRevision: 2 }],
+  ] as const)('invalidates the settled projection for a %s change', (_name, change) => {
+    const scheduler = createMinimapScheduler();
+    const baseline = input();
+    observeMinimapChanges(scheduler, baseline);
+    scheduler.projectionFitPending = false;
+
+    observeMinimapChanges(scheduler, { ...baseline, ...change });
+
+    expect(scheduler.projectionFitPending).toBe(true);
+  });
 });

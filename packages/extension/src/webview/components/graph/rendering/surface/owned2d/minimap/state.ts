@@ -36,6 +36,41 @@ export function invalidateMinimapScheduler(scheduler: MinimapScheduler): void {
   scheduler.lastRefreshTimestampMs = Number.NEGATIVE_INFINITY;
 }
 
+export function minimapSettled(wasMoving: boolean, moving: boolean): boolean {
+  return wasMoving && !moving;
+}
+
+export function minimapPositionChanged(
+  scheduler: MinimapScheduler,
+  positionVersion: number,
+): boolean {
+  return scheduler.positionVersion !== positionVersion;
+}
+
+type MinimapObservation = Pick<MinimapScheduler,
+  | 'baseStyleVersion'
+  | 'devicePixelRatio'
+  | 'graphIdentity'
+  | 'graphRevision'
+  | 'graphStyleRevision'
+  | 'positionVersion'
+  | 'surfaceHeight'
+  | 'surfaceWidth'>;
+
+export function recordMinimapObservation(
+  scheduler: MinimapScheduler,
+  observation: MinimapObservation,
+): void {
+  scheduler.graphIdentity = observation.graphIdentity;
+  scheduler.graphRevision = observation.graphRevision;
+  scheduler.devicePixelRatio = observation.devicePixelRatio;
+  scheduler.positionVersion = observation.positionVersion;
+  scheduler.baseStyleVersion = observation.baseStyleVersion;
+  scheduler.graphStyleRevision = observation.graphStyleRevision;
+  scheduler.surfaceHeight = observation.surfaceHeight;
+  scheduler.surfaceWidth = observation.surfaceWidth;
+}
+
 export function completeMinimapRefresh(
   scheduler: MinimapScheduler,
   timestampMs: number,

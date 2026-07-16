@@ -27,19 +27,39 @@ function movingCadenceAllowsRefresh(
       >= MINIMAP_MOVING_REFRESH_INTERVAL_MS;
 }
 
+function minimapRefreshNeeded(
+  scheduler: MinimapScheduler,
+  cadenceAllowsRefresh: boolean,
+  settled: boolean,
+): boolean {
+  return scheduler.dirty && (cadenceAllowsRefresh || settled);
+}
+
+function projectionFitNeeded(scheduler: MinimapScheduler, refresh: boolean): boolean {
+  return refresh && scheduler.projectionFitPending;
+}
+
+function boundsTighteningNeeded(
+  fitProjection: boolean,
+  settled: boolean,
+  moving: boolean,
+): boolean {
+  return fitProjection && (settled || !moving);
+}
+
 export function scheduleMinimapRefresh(
   scheduler: MinimapScheduler,
   input: MinimapRefreshInput,
 ): MinimapRefreshDecision {
   const { settled } = observeMinimapChanges(scheduler, input);
   const cadenceAllowsRefresh = movingCadenceAllowsRefresh(scheduler, input);
-  const refresh = scheduler.dirty && (cadenceAllowsRefresh || settled);
-  const fitProjection = refresh && scheduler.projectionFitPending;
+  const refresh = minimapRefreshNeeded(scheduler, cadenceAllowsRefresh, settled);
+  const fitProjection = projectionFitNeeded(scheduler, refresh);
   const decision = {
     fitProjection,
     refresh,
     resetBounds: refresh && scheduler.pendingBoundsReset,
-    tightenBounds: fitProjection && (settled || !input.moving),
+    tightenBounds: boundsTighteningNeeded(fitProjection, settled, input.moving),
   };
   if (refresh) completeMinimapRefresh(scheduler, input.timestampMs);
   if (fitProjection && !input.moving) scheduler.projectionFitPending = false;

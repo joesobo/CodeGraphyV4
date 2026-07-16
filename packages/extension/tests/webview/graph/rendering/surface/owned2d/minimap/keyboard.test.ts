@@ -7,6 +7,8 @@ describe('Relationship Graph minimap keyboard navigation', () => {
 
     expect(keyboardMinimapCameraCenter('ArrowRight', camera, 1_000, 600, false))
       .toEqual({ x: 70, y: -10 });
+    expect(keyboardMinimapCameraCenter('ArrowLeft', camera, 1_000, 600, false))
+      .toEqual({ x: -30, y: -10 });
     expect(keyboardMinimapCameraCenter('ArrowUp', camera, 1_000, 600, false))
       .toEqual({ x: 20, y: -40 });
   });
@@ -15,6 +17,9 @@ describe('Relationship Graph minimap keyboard navigation', () => {
     expect(keyboardMinimapCameraCenter(
       'ArrowDown', { centerX: 0, centerY: 0, zoom: 2 }, 1_000, 600, true,
     )).toEqual({ x: 0, y: 150 });
+    expect(keyboardMinimapCameraCenter(
+      'ArrowRight', { centerX: 0, centerY: 0, zoom: 2 }, 1_000, 600, true,
+    )).toEqual({ x: 250, y: 0 });
   });
 
   it('ignores keys that do not pan the graph', () => {
