@@ -56,13 +56,16 @@ A production WebGPU runtime comparison used a 2,500-node, 7,500-edge graph in an
 editor-sized viewport, with the same node dragged repeatedly for roughly five
 seconds across three accepted runs per cadence. The minimap-disabled graph used
 4.00 ms of average frame work. The 60 Hz minimap used 4.75 ms and sustained
-59.61 FPS, an incremental 0.75 ms per frame. During initial physics, adding the
-dense 8 Hz projection cost yields roughly 0.96 ms of amortized CPU work per
-60 Hz main frame. This remains just below the 1 ms absolute regression guard and
-leaves substantial room in a 16.67 ms frame, so the repaint cap is 60 Hz while
-projection fitting remains 8 Hz. The minimap stops repainting when the graph
-settles, and edge density reduction remains disabled. These measurements cover
-CPU submission and frame work; GPU execution time is not separately instrumented.
+59.61 FPS, an incremental 0.75 ms per frame, below the 1 ms absolute regression
+guard for the requested 2,500-node workflow. The dense projection fixture adds
+about 0.21 ms amortized per 60 Hz main frame, but it is a separate 5,000-node,
+15,000-edge fixture; summing those figures to 0.96 ms is useful only as a
+mixed-fixture estimate and does not establish a dense initial-physics result.
+The repaint cap is 60 Hz while projection fitting remains 8 Hz, limiting that
+unmeasured path until it can be profiled with the same production fixture. The
+minimap stops repainting when the graph settles, and edge density reduction
+remains disabled. These measurements cover CPU submission and frame work; GPU
+execution time is not separately instrumented.
 
 If repeated dense runs exceed 1 ms/frame amortized, reduce the moving refresh
 cap before considering deterministic edge sampling. Re-profile after each

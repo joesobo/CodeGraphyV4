@@ -6,27 +6,19 @@ import {
   observeMinimapChanges,
   type MinimapRefreshInput,
 } from './changes';
+import {
+  completeMovingCadence,
+  movingCadenceAllowsRefresh,
+  movingProjectionCadenceAllowsFit,
+} from './cadence';
 
 export type { MinimapRefreshInput } from './changes';
-
-const MINIMAP_MOVING_REFRESH_INTERVAL_MS = 1000 / 60;
-const MINIMAP_MOVING_PROJECTION_INTERVAL_MS = 1000 / 8;
-const MINIMAP_REFRESH_TIMESTAMP_TOLERANCE_MS = 0.5;
 
 export interface MinimapRefreshDecision {
   fitProjection: boolean;
   refresh: boolean;
   resetBounds: boolean;
   tightenBounds: boolean;
-}
-
-function movingCadenceAllowsRefresh(
-  scheduler: MinimapScheduler,
-  input: MinimapRefreshInput,
-): boolean {
-  return !input.moving
-    || input.timestampMs + MINIMAP_REFRESH_TIMESTAMP_TOLERANCE_MS
-      >= scheduler.nextMovingRefreshTimestampMs;
 }
 
 function minimapRefreshNeeded(
@@ -42,27 +34,8 @@ function projectionFitNeeded(
   input: MinimapRefreshInput,
   refresh: boolean,
 ): boolean {
-  return refresh && scheduler.projectionFitPending && (
-    !input.moving
-    || input.timestampMs - scheduler.lastProjectionFitTimestampMs
-      >= MINIMAP_MOVING_PROJECTION_INTERVAL_MS
-  );
-}
-
-function advanceMovingRefreshDeadline(
-  scheduler: MinimapScheduler,
-  timestampMs: number,
-): void {
-  if (!Number.isFinite(scheduler.nextMovingRefreshTimestampMs)) {
-    scheduler.nextMovingRefreshTimestampMs = timestampMs + MINIMAP_MOVING_REFRESH_INTERVAL_MS;
-    return;
-  }
-  do {
-    scheduler.nextMovingRefreshTimestampMs += MINIMAP_MOVING_REFRESH_INTERVAL_MS;
-  } while (
-    scheduler.nextMovingRefreshTimestampMs
-      <= timestampMs + MINIMAP_REFRESH_TIMESTAMP_TOLERANCE_MS
-  );
+  return refresh && scheduler.projectionFitPending
+    && movingProjectionCadenceAllowsFit(scheduler, input);
 }
 
 function boundsTighteningNeeded(
@@ -89,8 +62,8 @@ export function scheduleMinimapRefresh(
   };
   if (refresh) {
     completeMinimapRefresh(scheduler, input.timestampMs);
-    if (input.moving) advanceMovingRefreshDeadline(scheduler, input.timestampMs);
   }
+  completeMovingCadence(scheduler, input, refresh);
   if (fitProjection) scheduler.lastProjectionFitTimestampMs = input.timestampMs;
   if (decision.resetBounds) scheduler.pendingBoundsReset = false;
   if (fitProjection && !input.moving) scheduler.projectionFitPending = false;
