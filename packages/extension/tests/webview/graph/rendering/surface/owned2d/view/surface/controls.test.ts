@@ -18,6 +18,7 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
       edgeTargets: new Uint32Array(),
     }),
     links: [],
+    membershipRevision: 0,
     nodes: [node],
   };
   return {

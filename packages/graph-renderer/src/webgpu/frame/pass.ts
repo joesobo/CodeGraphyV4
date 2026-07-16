@@ -1,5 +1,5 @@
 import type { GraphRendererFrame } from '../../contracts';
-import type { GraphBufferState } from '../buffer/state';
+import type { GraphPassBufferState } from '../buffer/state';
 import { cachedWebGpuColor } from '../color/parser';
 import { drawLinks } from '../link/draw';
 import { drawNodes } from '../node/draw';
@@ -17,7 +17,7 @@ export interface RenderPassResources {
 
 export function submitRenderPass(
   resources: RenderPassResources,
-  state: GraphBufferState,
+  state: GraphPassBufferState,
   frame: GraphRendererFrame,
   hoveredIndex: number,
 ): void {
@@ -28,7 +28,7 @@ export function submitRenderPass(
 
 export function encodeRenderPass(
   resources: RenderPassResources,
-  state: GraphBufferState,
+  state: GraphPassBufferState,
   frame: GraphRendererFrame,
   hoveredIndex: number,
   encoder: GPUCommandEncoder,

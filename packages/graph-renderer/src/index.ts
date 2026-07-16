@@ -52,6 +52,11 @@ export {
   graphNodeWorldScale,
 } from './visualSize';
 export {
+  measureGraphSceneBounds,
+  type GraphSceneBounds,
+  type GraphSceneBoundsInput,
+} from './sceneBounds';
+export {
   WebGpuGraphRenderer,
   type WebGpuGraphFrame,
   type WebGpuGraphRendererOptions,

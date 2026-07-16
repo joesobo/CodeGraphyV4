@@ -36,6 +36,10 @@ export interface Surface2dProps {
   directionMode: DirectionMode;
   fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
   graphViewContributions?: CoreGraphViewContributionSet;
+  getBaseLinkColor: (this: void, link: FGLink) => string;
+  getBaseLinkOpacity: (this: void, link: FGLink) => number;
+  getBaseLinkWidth: (this: void, link: FGLink) => number;
+  getBaseNodeStyle: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getArrowColor: (this: void, link: FGLink) => string;
   getLinkColor: (this: void, link: FGLink) => string;
   getLinkOpacity: (this: void, link: FGLink) => number;

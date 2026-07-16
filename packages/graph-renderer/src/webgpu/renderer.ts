@@ -15,6 +15,12 @@ import { createRendererResources, type RendererResources } from './device';
 import { encodeRenderPass, type RenderPassResources } from './frame/pass';
 import { FrameQueue } from './frame/queue';
 import { updateStyleCache } from './styleCache';
+import {
+  createSecondaryStyleBuffers,
+  destroySecondaryStyleBuffers,
+  type SecondaryStyleBuffers,
+  updateSecondaryStyleBuffers,
+} from './secondary/styles';
 
 export { webGpuNodeShapeCode } from './node/style/model';
 
@@ -26,6 +32,7 @@ interface SecondarySurface {
   canvas: HTMLCanvasElement;
   context: GPUCanvasContext;
   passResources: RenderPassResources;
+  styles: SecondaryStyleBuffers;
 }
 
 export interface WebGpuGraphRendererOptions {
@@ -115,27 +122,7 @@ export class WebGpuGraphRenderer {
     if (!canvas) return;
     const context = canvas.getContext('webgpu');
     if (!context) throw new Error('WebGPU is unavailable for the secondary graph surface');
-    context.configure({
-      alphaMode: 'premultiplied',
-      device: this.resources.device,
-      format: this.resources.format,
-    });
-    const camera = new CameraBuffer(this.resources.device, 'CodeGraphy secondary camera uniform');
-    this.secondarySurface = {
-      camera,
-      canvas,
-      context,
-      passResources: {
-        ...this.resources,
-        context,
-        arrowCamera: camera.bind(this.resources.arrow, 'Secondary graph arrow camera'),
-        arrowPipeline: this.resources.arrow,
-        linkCamera: camera.bind(this.resources.link, 'Secondary graph link camera'),
-        linkPipeline: this.resources.link,
-        nodeCamera: camera.bind(this.resources.node, 'Secondary graph node camera'),
-        nodePipeline: this.resources.node,
-      },
-    };
+    this.secondarySurface = this.createSecondarySurface(canvas, context);
   }
 
   render(frame: WebGpuGraphFrame, secondaryFrame?: WebGpuGraphSecondaryFrame): number {
@@ -161,9 +148,16 @@ export class WebGpuGraphRenderer {
       if (secondary && secondaryFrame) {
         resizeGraphCanvas(secondary.canvas, device, secondaryFrame);
         secondary.camera.uploadSecondary(secondaryFrame);
+        updateSecondaryStyleBuffers(
+          device,
+          secondary.styles,
+          this.buffers,
+          frame,
+          secondaryFrame,
+        );
         encodeRenderPass(
           secondary.passResources,
-          this.buffers,
+          secondary.styles.pass,
           { ...frame, ...secondaryFrame, directionMode: 'none' },
           -1,
           encoder,
@@ -195,6 +189,45 @@ export class WebGpuGraphRenderer {
     if (!secondary) return;
     this.secondarySurface = undefined;
     secondary.camera.buffer.destroy();
+    destroySecondaryStyleBuffers(secondary.styles);
     secondary.context.unconfigure();
+  }
+
+  private createSecondarySurface(
+    canvas: HTMLCanvasElement,
+    context: GPUCanvasContext,
+  ): SecondarySurface {
+    let camera: CameraBuffer | undefined;
+    let styles: SecondaryStyleBuffers | undefined;
+    try {
+      context.configure({
+        alphaMode: 'premultiplied',
+        device: this.resources.device,
+        format: this.resources.format,
+      });
+      camera = new CameraBuffer(this.resources.device, 'CodeGraphy secondary camera uniform');
+      styles = createSecondaryStyleBuffers(this.resources.device, this.buffers);
+      return {
+        camera,
+        canvas,
+        context,
+        passResources: {
+          ...this.resources,
+          context,
+          arrowCamera: camera.bind(this.resources.arrow, 'Secondary graph arrow camera'),
+          arrowPipeline: this.resources.arrow,
+          linkCamera: camera.bind(this.resources.link, 'Secondary graph link camera'),
+          linkPipeline: this.resources.link,
+          nodeCamera: camera.bind(this.resources.node, 'Secondary graph node camera'),
+          nodePipeline: this.resources.node,
+        },
+        styles,
+      };
+    } catch (error) {
+      if (styles) destroySecondaryStyleBuffers(styles);
+      camera?.buffer.destroy();
+      context.unconfigure();
+      throw error;
+    }
   }
 }

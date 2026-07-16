@@ -19,6 +19,7 @@ export const SILENT_CONFIG_KEYS = new Set([
   'plugins',
   'showFps',
   'showLabels',
+  'showMinimap',
 ]);
 
 export function createSettingsConfigPersistence(dependencies: {

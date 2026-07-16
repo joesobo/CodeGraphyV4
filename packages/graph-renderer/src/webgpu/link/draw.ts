@@ -1,12 +1,12 @@
 import { graphDetailOpacity } from '../../detailVisibility';
 import type { GraphRendererFrame } from '../../contracts';
-import type { GraphBufferState } from '../buffer/state';
+import type { GraphPassBufferState } from '../buffer/state';
 import { GRAPH_LINK_SEGMENTS } from '../shaders';
 
 export function drawLinks(
   pass: GPURenderPassEncoder,
   frame: GraphRendererFrame,
-  state: GraphBufferState,
+  state: GraphPassBufferState,
   linkPipeline: GPURenderPipeline,
   linkCamera: GPUBindGroup,
   arrowPipeline: GPURenderPipeline,

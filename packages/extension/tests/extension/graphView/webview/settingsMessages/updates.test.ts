@@ -22,6 +22,23 @@ describe('graph view settings update message', () => {
     expect(handlers.resetAllSettings).toHaveBeenCalledOnce();
   });
 
+  it('persists minimap visibility without scheduling analysis or rebuild work', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(applySettingsUpdateMessage(
+      { type: 'UPDATE_SHOW_MINIMAP', payload: { showMinimap: false } },
+      state,
+      handlers,
+    )).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('showMinimap', false);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+  });
+
   it('updates filter patterns and publishes plugin patterns', async () => {
     const state = createState();
     const handlers = createHandlers({

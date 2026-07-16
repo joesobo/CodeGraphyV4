@@ -8,6 +8,7 @@ import {
   getNodeCanvasStyle,
   renderNodeCanvasLabel,
 } from '../../../../../src/webview/components/graph/rendering/nodes/canvas2d';
+import { getBaseNodeCanvasStyle } from '../../../../../src/webview/components/graph/rendering/nodes/canvasStyle';
 
 function createDependencies(overrides: Partial<{
   highlightedNodeId: string | null;
@@ -116,6 +117,24 @@ describe('graph/rendering/nodes/canvas2d', () => {
       opacity: 0.7,
       shape: 'rectangle',
       width: 30,
+    });
+  });
+
+  it('produces a base minimap style without selection, search, or plugin decoration state', () => {
+    const style = getBaseNodeCanvasStyle(
+      createDependencies({
+        highlightedNodeId: 'src/other.ts',
+        nodeDecoration: { color: '#f97316', opacity: 0.2 },
+        selectedNodeIds: new Set(['src/app.ts']),
+      }),
+      createNode({ baseOpacity: 0.8 }),
+    );
+
+    expect(style).toMatchObject({
+      borderColor: '#1d4ed8',
+      borderWidth: 2,
+      fillColor: '#3b82f6',
+      opacity: 0.8,
     });
   });
 

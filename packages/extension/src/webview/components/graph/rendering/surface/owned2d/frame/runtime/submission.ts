@@ -1,14 +1,17 @@
 import { resetOwnedGraphNodeHover } from '../../interaction/hover/model';
-import type { WebGpuGraphSecondaryFrame } from '@codegraphy-dev/graph-renderer';
+import {
+  measureGraphSceneBounds,
+  type WebGpuGraphSecondaryFrame,
+} from '@codegraphy-dev/graph-renderer';
 import type { OwnedGraphFrameRuntime } from './render';
 import type { PreparedOverlayCanvas } from '../drawing/layer';
 import type { OwnedGraphLayout } from '../../layout/runtime/model';
 import {
   expandMinimapBounds,
-  finiteMinimapBounds,
   type MinimapBounds,
 } from '../../minimap/bounds';
 import { fitMinimapProjection } from '../../minimap/projection';
+import { fitMinimapSceneProjection, type MinimapScene } from '../../minimap/scene';
 import {
   OWNED_GRAPH_MINIMAP_SIZE,
   updateOwnedGraphMinimapOverlay,
@@ -53,11 +56,10 @@ function failFrame(runtime: OwnedGraphFrameRuntime, layout: OwnedGraphLayout, er
 
 function resolveMinimapBounds(
   runtime: OwnedGraphFrameRuntime,
-  layout: OwnedGraphLayout,
+  currentBounds: MinimapBounds | undefined,
   moving: boolean,
   decision: MinimapRefreshDecision,
 ): MinimapBounds | undefined {
-  const currentBounds = finiteMinimapBounds(layout.engine.x, layout.engine.y);
   if (decision.resetBounds) runtime.minimapBoundsRef.current = null;
   if (!currentBounds) return undefined;
   return moving && !decision.tightenBounds
@@ -74,27 +76,51 @@ function prepareMinimapSecondaryFrame(
   styleVersion: number,
 ): WebGpuGraphSecondaryFrame | undefined {
   if (!runtime.minimapSurfaceRegisteredRef.current) return undefined;
+  const panelBounds = runtime.minimapPanelRef.current?.getBoundingClientRect();
+  const surfaceWidth = panelBounds?.width || OWNED_GRAPH_MINIMAP_SIZE;
+  const surfaceHeight = panelBounds?.height || OWNED_GRAPH_MINIMAP_SIZE;
   const decision = scheduleMinimapRefresh(runtime.minimapSchedulerRef.current, {
+    devicePixelRatio: prepared.devicePixelRatio,
     graphIdentity: layout,
+    graphRevision: layout.membershipRevision,
     moving,
     positionVersion: runtime.positionVersionRef.current,
     styleVersion,
+    surfaceHeight,
+    surfaceWidth,
     timestampMs,
   });
   if (!decision.refresh) return undefined;
-  const bounds = resolveMinimapBounds(runtime, layout, moving, decision);
+  const scene: MinimapScene = {
+    getNodeStyle: runtime.propsRef.current.getBaseNodeStyle,
+    links: layout.links,
+    nodes: layout.nodes,
+  };
+  const fittedProjection = fitMinimapSceneProjection(
+    scene,
+    Math.min(surfaceWidth, surfaceHeight),
+    MINIMAP_PADDING,
+  );
+  const currentBounds = fittedProjection
+    ? measureGraphSceneBounds({ ...scene, zoom: fittedProjection.zoom })
+    : undefined;
+  const bounds = resolveMinimapBounds(runtime, currentBounds, moving, decision);
   runtime.minimapBoundsRef.current = bounds ?? null;
-  const projection = bounds
-    ? fitMinimapProjection(bounds, OWNED_GRAPH_MINIMAP_SIZE, MINIMAP_PADDING)
-    : null;
+  const projection = bounds === currentBounds
+    ? fittedProjection ?? null
+    : fitMinimapProjection(bounds!, Math.min(surfaceWidth, surfaceHeight), MINIMAP_PADDING);
   runtime.minimapProjectionRef.current = projection;
   if (!projection) return undefined;
   return {
     backgroundColor: runtime.propsRef.current.backgroundColor,
     camera: projection,
-    cssHeight: projection.size,
-    cssWidth: projection.size,
+    cssHeight: surfaceHeight,
+    cssWidth: surfaceWidth,
     devicePixelRatio: prepared.devicePixelRatio,
+    getLinkColor: runtime.propsRef.current.getBaseLinkColor,
+    getLinkOpacity: runtime.propsRef.current.getBaseLinkOpacity,
+    getLinkWidth: runtime.propsRef.current.getBaseLinkWidth,
+    getNodeStyle: runtime.propsRef.current.getBaseNodeStyle,
   };
 }
 

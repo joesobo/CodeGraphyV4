@@ -6,7 +6,7 @@ import { GraphIndexStatus } from '../../../src/webview/components/graphIndexStat
 describe('GraphIndexStatus', () => {
   it('renders nothing when indexing is inactive', () => {
     const { container } = render(
-      <GraphIndexStatus isIndexing={false} progress={null} />,
+      <GraphIndexStatus isIndexing={false} progress={null} showMinimap={false} />,
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -17,6 +17,7 @@ describe('GraphIndexStatus', () => {
       <GraphIndexStatus
         isIndexing={false}
         progress={{ phase: 'Indexing Workspace', current: 1, total: 4 }}
+        showMinimap={false}
       />,
     );
 
@@ -28,6 +29,7 @@ describe('GraphIndexStatus', () => {
       <GraphIndexStatus
         isIndexing={true}
         progress={{ phase: 'Indexing Workspace', current: 1, total: 4 }}
+        showMinimap={false}
       />,
     );
 
@@ -43,6 +45,7 @@ describe('GraphIndexStatus', () => {
       <GraphIndexStatus
         isIndexing={true}
         progress={{ phase: 'Indexing Workspace', current: 1, total: 4 }}
+        showMinimap={false}
       />,
     );
 
@@ -54,6 +57,7 @@ describe('GraphIndexStatus', () => {
       <GraphIndexStatus
         isIndexing={true}
         progress={{ phase: 'Discovering Files', current: 1, total: 1 }}
+        showMinimap={false}
       />,
     );
 
@@ -66,11 +70,26 @@ describe('GraphIndexStatus', () => {
     expect(statusClass).not.toContain('inset-x-0');
   });
 
+  it('reserves the bottom-left minimap lane while the minimap is shown', () => {
+    render(
+      <GraphIndexStatus
+        isIndexing={true}
+        progress={{ phase: 'Discovering Files', current: 1, total: 1 }}
+        showMinimap={true}
+      />,
+    );
+
+    const statusClass = screen.getByTestId('graph-index-status').className;
+    expect(statusClass).toContain('left-44');
+    expect(statusClass).not.toContain('left-2');
+  });
+
   it('shows zero progress when the total is zero', () => {
     render(
       <GraphIndexStatus
         isIndexing={true}
         progress={{ phase: 'Indexing Workspace', current: 3, total: 0 }}
+        showMinimap={false}
       />,
     );
 
