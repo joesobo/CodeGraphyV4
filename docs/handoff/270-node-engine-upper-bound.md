@@ -1,5 +1,10 @@
 # Node Engine Upper Bound Investigation
 
+> Superseded for the published Core CLI on 2026-07-16: pnpm patches are not
+> propagated to npm consumers, so `@codegraphy-dev/core` now declares
+> `>=20 <23` until Tree-sitter publishes the upstream C++20 build fix. The
+> investigation below remains as historical evidence for workspace installs.
+
 Trello: https://trello.com/c/qiauqiPA
 PR: https://github.com/joesobo/CodeGraphyV4/pull/270
 

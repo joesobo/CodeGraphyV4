@@ -559,6 +559,7 @@ CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
 
 - `.codegraphy/settings.json` is workspace-local configuration. Teams can commit it when they want shared CodeGraphy behavior.
 - `.codegraphy/graph.sqlite` is generated Graph Cache output and should stay local by default.
+- Existing `.codegraphy/graph.lbug` files are legacy generated caches. Run new Indexing to create `graph.sqlite`, then remove the old file; CodeGraphy does not migrate the old cache in place.
 - `~/.codegraphy/plugins.json` is user-level Plugin Registry state and is not part of any source workspace.
 - `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
 

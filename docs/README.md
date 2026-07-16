@@ -1,7 +1,7 @@
 # Docs
 
 Use the root [README](../README.md) for the release overview, marketplace links, package map, and the V2 to V4 migration story.
-Published packages support Node 20 and newer. The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
+The published Core CLI supports Node 20 through 22; Node 22 LTS is recommended. Other package manifests declare their own runtime ranges. The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
 
 The rest of the docs are split by purpose:
 
