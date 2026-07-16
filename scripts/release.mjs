@@ -83,6 +83,9 @@ function collectWorkspacePackages(baseDir) {
       }
 
       const packageJsonPath = path.join(workspaceDir, entry.name, 'package.json');
+      if (!existsSync(packageJsonPath)) {
+        continue;
+      }
       const manifest = readJson(packageJsonPath);
 
       packages.push({

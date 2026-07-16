@@ -7,14 +7,23 @@ description: Use the CodeGraphy CLI to index a local workspace and query its fil
 
 Use CodeGraphy as structure memory, then read source for implementation details.
 
+## CLI setup
+
+Check for `codegraphy` with `command -v codegraphy`. If it is unavailable, install the current CLI:
+
+```bash
+npm install --global @codegraphy-dev/core@latest
+codegraphy --help
+```
+
+If a global install is unavailable or inappropriate, use `npx --yes @codegraphy-dev/core@latest` as the command prefix instead. Do not add Core to the workspace's dependencies only to run graph queries. The CLI currently supports Node.js 20 through 22; prefer Node 22 LTS. If Node, npm, or a supported Node version is unavailable, report that prerequisite to the user.
+
 ## Workflow
 
 1. Work from the target workspace root.
 2. Run `codegraphy index .` when opening an unknown workspace or after files, settings, or plugins may have changed. Indexing reuses unchanged analysis; do not run `status` first unless the user asks for diagnostics.
 3. Run the narrowest query that answers the structural question.
 4. Read the returned source files and locations before editing or making detailed claims.
-
-If `codegraphy` is unavailable, invoke the Core package with `npx --yes @codegraphy-dev/core@latest` followed by the same arguments.
 
 ## Queries
 

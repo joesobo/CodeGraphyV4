@@ -252,14 +252,11 @@ codegraphy query symbols \
   --name executeGraphQuery
 
 codegraphy query paths \
-  --from packages/core/src/graphQuery/execute.ts \
-  --to packages/mcp/src/mcp/graphQueryTool.ts \
+  --from packages/core/src/cli/query/command.ts \
+  --to packages/core/src/graphQuery/reports.ts \
   --max-depth 4 \
   --max-paths 10
 ```
-
-The MCP package will be removed, so implementation fixtures should use current
-Core files rather than the illustrative MCP path in final documentation.
 
 ### Output Contract
 
@@ -313,8 +310,9 @@ Keep `SKILL.md` concise. It teaches:
 4. Use bounded limits.
 5. Read source after CodeGraphy identifies the relevant files/symbols; the Graph
    Cache is structure memory, not a replacement for implementation details.
-6. If the CLI is missing, report the installation requirement rather than
-   silently falling back and claiming CodeGraphy was used.
+6. If the CLI is missing, install the current Core package globally or use the
+   documented `npx` prefix. Report the supported Node/npm prerequisite when
+   installation cannot proceed.
 
 ### Installation
 
@@ -390,8 +388,8 @@ reason to keep dead source in the monorepo.
 
 ### Phase 1: Select And Package SQLite
 
-1. Use `libsql` 0.5.29 and verify its Node-API platform packages on Node 20, 22,
-   and 24 and supported platforms.
+1. Use `libsql` 0.5.29 and verify its Node-API platform packages on the Core
+   CLI's supported Node 20 and 22 releases and the supported VSIX platforms.
 2. Verify npm, VSIX, Core CLI, transactions, WAL, foreign keys, and integrity
    checks.
 3. Record the binding choice in an ADR.
@@ -450,9 +448,12 @@ reason to keep dead source in the monorepo.
 
 1. Confirm architecture/domain docs make CLI plus Agent Skill the agent
    interface.
-2. Add Core and extension changesets for the Graph Cache format and CLI.
-3. Publish Core and extension releases.
-4. Deprecate `@codegraphy-dev/mcp` on npm with migration guidance.
+2. Keep Graph Cache, incremental Indexing/plugin contract, and Graph Query CLI
+   changes in separate user-focused changesets.
+3. Publish npm packages before the platform-specific extension releases.
+4. Publish and smoke-test `codegraphy/skills`.
+5. Deprecate `@codegraphy-dev/mcp` on npm with migration guidance after the
+   replacement CLI and skill are live.
 
 ## Quality Gates For Implementation
 

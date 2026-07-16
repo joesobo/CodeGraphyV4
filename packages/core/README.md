@@ -4,6 +4,8 @@ Shared CodeGraphy engine package for workspace indexing, Graph Cache access, plu
 
 This package is the headless core used by the VS Code extension and CLI.
 
+The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recommended. Node 23 and newer require an upstream Tree-sitter native build that is not yet available to npm consumers.
+
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin registration, or workspace plugin enablement.
 
 All `codegraphy ...` terminal subcommands live in this package. `codegraphy setup` prepares CodeGraphy's user state, `codegraphy index` incrementally makes a workspace Graph Cache current, and `codegraphy query` exposes bounded Graph Query reports.

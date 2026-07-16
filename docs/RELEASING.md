@@ -9,6 +9,7 @@ Release-facing metadata is not all in one package:
 - `@codegraphy-dev/core` npm metadata lives in [`packages/core/package.json`](../packages/core/package.json)
 - Language plugin npm metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
+- The canonical Agent Skill source lives in [`skills/codegraphy`](../skills/codegraphy/SKILL.md) and is published through the separate public `codegraphy/skills` repository
 - The VS Code extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
 - Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
 
@@ -26,12 +27,33 @@ The repo-root [`package.json`](../package.json) is workspace metadata for the mo
 
 `all` discovers the publishable workspace packages from package metadata, publishes npm packages before Marketplace packages, and skips npm versions that already exist.
 
-Before advertising the Agent Skill install command, create the public
-`codegraphy/skills` repository, synchronize the canonical
-[`skills/codegraphy`](../skills/codegraphy/SKILL.md) source, and smoke-test
-`npx skills@latest add codegraphy/skills` from a clean workspace. Until that
-external release prerequisite is complete, contributors can use
-`npx skills@latest add ./skills/codegraphy` from this repository.
+The `Release` workflow makes the Marketplace job wait for npm publishing when
+`all` is selected. A direct `extension` or `vsce` run skips the npm job and
+continues to the Marketplace matrix.
+
+## Agent Skill release
+
+The skill can be validated before any public release. From this repository,
+the Skills CLI can discover the canonical source directly:
+
+```bash
+npx skills@latest add ./skills/codegraphy --list
+```
+
+Use that local source plus a locally built or packed Core CLI for agent demos.
+Publishing is required only to validate the final remote install experience.
+
+Before advertising the public command:
+
+1. Authenticate as an account with write access to the `codegraphy` GitHub user and create the public `codegraphy/skills` repository.
+2. Copy this repository's complete `skills/codegraphy` directory to `skills/codegraphy` in that repository, preserving `SKILL.md` and `agents/openai.yaml`.
+3. From a clean workspace, verify discovery with `npx skills@latest add codegraphy/skills --list`.
+4. Verify a workspace install with `npx skills@latest add codegraphy/skills` and a global install with `npx skills@latest add codegraphy/skills --global`.
+5. Confirm the installed skill tells an agent how to install `@codegraphy-dev/core` when `codegraphy` is absent.
+
+Until that external repository exists, contributors can install from a clone
+with `npx skills@latest add ./skills/codegraphy`. The `codegraphy/skills`
+repository is not created by this monorepo's npm or Marketplace workflow.
 
 The core VS Code extension release publishes platform-specific VSIX targets for
 the native SQLite and Tree-sitter runtimes:
@@ -70,8 +92,10 @@ pnpm run release:publish extension
 pnpm run release:publish all
 pnpm run release:publish npm
 pnpm run release:publish extension
+pnpm run release:publish graph-renderer
 pnpm run release:publish plugin-api
 pnpm run release:publish plugin-markdown
+pnpm run release:publish plugin-particles
 pnpm run release:publish core
 pnpm run release:publish plugin-typescript
 pnpm run release:publish plugin-godot
@@ -104,8 +128,10 @@ vsce verify-pat codegraphy
 10. Publish every release target with `pnpm run release:publish all`.
 11. Or publish npm packages first with `pnpm run release:publish npm`, then publish Marketplace packages with `pnpm run release:publish extension`.
 12. To publish separately, publish npm packages before Marketplace packages:
+   - `pnpm run release:publish graph-renderer`
    - `pnpm run release:publish plugin-api`
    - `pnpm run release:publish plugin-markdown`
+   - `pnpm run release:publish plugin-particles`
    - `pnpm run release:publish plugin-typescript`
    - `pnpm run release:publish plugin-godot`
    - `pnpm run release:publish plugin-unity`
@@ -113,15 +139,17 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish plugin-svelte`
    - `pnpm run release:publish core`
 13. Publish the VS Code extension with `pnpm run release:publish extension`.
-14. Open the Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
-15. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
-16. Open the npm package pages for the public `@codegraphy-dev/*` packages, then verify the README, package metadata, and repository links.
+14. Publish and smoke-test `codegraphy/skills` using the Agent Skill release steps above.
+15. After the replacement CLI and skill are live, retire the old package with `npm deprecate '@codegraphy-dev/mcp@*' 'Deprecated: install @codegraphy-dev/core and the CodeGraphy Agent Skill from codegraphy/skills.'`.
+16. Open the Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
+17. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
+18. Open the npm package pages for the public `@codegraphy-dev/*` packages, then verify the README, package metadata, repository links, and the MCP deprecation notice.
 
 ## GitHub Actions
 
 Use the `Release` workflow with `workflow_dispatch`.
 
-- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-godot`, `plugin-vue`, or `plugin-svelte`.
+- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `graph-renderer`, `plugin-api`, `plugin-markdown`, `plugin-particles`, `plugin-typescript`, `plugin-godot`, `plugin-unity`, `plugin-vue`, or `plugin-svelte`.
 - The workflow publishes the selected Marketplace targets and npm packages.
 
 Required secrets:
@@ -143,11 +171,14 @@ If you ever move the core to a different publisher later, that would require a n
 
 ## Current public listings
 
-- Core: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>
+- Core extension: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>
+- Core CLI: <https://www.npmjs.com/package/@codegraphy-dev/core>
+- Graph renderer: <https://www.npmjs.com/package/@codegraphy-dev/graph-renderer>
 - Plugin API: <https://www.npmjs.com/package/@codegraphy-dev/plugin-api>
 - TypeScript/JavaScript plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript>
 - Godot plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-godot>
 - Unity plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-unity>
 - Markdown plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown>
+- Particles plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-particles>
 - Vue plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-vue>
 - Svelte plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte>

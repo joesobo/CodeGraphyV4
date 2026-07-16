@@ -124,9 +124,12 @@ codegraphy index
 ### Agent Access
 
 ```bash
+# Node.js 20-22; Node 22 LTS is recommended.
 npm install -g @codegraphy-dev/core
 # Available after the public skill repository is published:
 npx skills@latest add codegraphy/skills
+# Or install the same skill globally for every workspace:
+npx skills@latest add codegraphy/skills --global
 ```
 
 The generalized skill teaches shell-capable agents to run intelligent Indexing when workspace knowledge may have changed, choose a bounded Graph Query command, and then inspect source. Ask something like:
@@ -160,6 +163,8 @@ All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core` a
 | `codegraphy plugins disable <package> [workspace]` | Disables a registered plugin for one CodeGraphy Workspace. |
 
 For commands with `[workspace]`, the workspace is an optional trailing positional argument. Omitting the path targets the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
+
+Existing `.codegraphy/graph.lbug` caches are rebuildable generated data and are not migrated in place. The first new Indexing run creates `.codegraphy/graph.sqlite`; the legacy cache can then be removed.
 
 ## What Agents Can Query
 

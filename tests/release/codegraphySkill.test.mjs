@@ -28,3 +28,21 @@ test('the documented install source uses the standard Skills CLI repository form
 
   assert.match(readme, /npx skills@latest add codegraphy\/skills/);
 });
+
+test('the skill installs the CodeGraphy CLI when the command is unavailable', () => {
+  const skill = readFileSync(skillPath, 'utf8');
+
+  assert.match(skill, /npm install --global @codegraphy-dev\/core@latest/);
+});
+
+test('the skill provides a no-install CLI fallback', () => {
+  const skill = readFileSync(skillPath, 'utf8');
+
+  assert.match(skill, /npx --yes @codegraphy-dev\/core@latest/);
+});
+
+test('the skill states the supported Node range for CLI installation', () => {
+  const skill = readFileSync(skillPath, 'utf8');
+
+  assert.match(skill, /Node\.js 20 through 22/);
+});
