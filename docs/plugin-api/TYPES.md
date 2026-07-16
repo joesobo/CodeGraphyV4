@@ -39,7 +39,7 @@ The public package is host-agnostic. VS Code-specific bridge types, decorations,
 Defined in `plugin.ts`.
 
 Key points:
-- `apiVersion: string` is required (for example `'^2.0.0'`).
+- `apiVersion: string` is required (for example `'^3.0.0'`).
 - `sources?: IConnectionSource[]` declares the plugin's Relationship Source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.

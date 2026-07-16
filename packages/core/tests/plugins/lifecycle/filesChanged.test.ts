@@ -9,7 +9,7 @@ function pluginInfo(plugin: Partial<IPlugin>): ILifecyclePluginInfo {
       id: 'test-plugin',
       name: 'Test Plugin',
       version: '1.0.0',
-      apiVersion: '2',
+      apiVersion: '3',
       supportedExtensions: ['.ts'],
       ...plugin,
     },

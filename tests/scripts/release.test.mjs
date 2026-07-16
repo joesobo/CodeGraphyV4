@@ -3,7 +3,12 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { collectReleaseTargets, resolveReleaseTargets, runRelease } from '../../scripts/release.mjs';
+import {
+  assertReleaseVersionsPrepared,
+  collectReleaseTargets,
+  resolveReleaseTargets,
+  runRelease,
+} from '../../scripts/release.mjs';
 
 test('language plugin release targets resolve by short language name', () => {
   const repoRoot = createReleaseFixture({
@@ -69,6 +74,21 @@ test('release target list exposes plugin and short aliases', () => {
     aliases: ['extension', 'vsix', 'marketplace', 'core-extension'],
     kind: 'extension',
   });
+});
+
+test('publishing rejects pending unversioned changesets', () => {
+  const repoRoot = createReleaseFixture({});
+  const changesetDirectory = path.join(repoRoot, '.changeset');
+  mkdirSync(changesetDirectory, { recursive: true });
+  writeFileSync(path.join(changesetDirectory, 'README.md'), '# Changesets\n');
+
+  assert.doesNotThrow(() => assertReleaseVersionsPrepared(repoRoot));
+
+  writeFileSync(path.join(changesetDirectory, 'pending-release.md'), '---\n---\n');
+  assert.throws(
+    () => assertReleaseVersionsPrepared(repoRoot),
+    /run 'pnpm exec changeset version'.*pending-release\.md/,
+  );
 });
 
 test('already-published workspace dependencies still build before dependent npm targets publish', () => {

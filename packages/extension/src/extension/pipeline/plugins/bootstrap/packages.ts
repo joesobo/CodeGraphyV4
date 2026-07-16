@@ -49,7 +49,13 @@ export async function registerWorkspacePackagePlugins(
     dependencies,
   );
 
+  const warn = dependencies.warn ?? console.warn;
   for (const registration of registrations) {
-    registry.register(registration.plugin, registration.options);
+    try {
+      registry.register(registration.plugin, registration.options);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${registration.plugin.id}' could not be registered: ${message}`);
+    }
   }
 }

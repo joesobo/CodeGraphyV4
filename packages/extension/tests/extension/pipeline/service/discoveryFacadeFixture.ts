@@ -1,6 +1,5 @@
 import { vi } from 'vitest';
 import * as vscode from 'vscode';
-import { spawnSync } from 'node:child_process';
 import { WorkspacePipelineDiscoveryFacade } from '../../../../src/extension/pipeline/service/discoveryFacade';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import type { FileDiscovery } from '@codegraphy-dev/core';
@@ -97,11 +96,6 @@ export const discoveryState = (
 
 export function setUpDiscoveryFacade(): void {
     vi.clearAllMocks();
-    vi.mocked(spawnSync).mockReturnValue({
-      error: undefined,
-      status: 1,
-      stdout: '',
-    } as never);
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
     vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValue({
       directories: ['src/new-folder'],
@@ -126,7 +120,6 @@ export function setUpDiscoveryFacade(): void {
 
 export {
   vscode,
-  spawnSync,
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
   getWorkspacePipelinePluginFilterPatterns,

@@ -58,7 +58,7 @@ Package plugins need static metadata before Core can import runtime code. Put pa
   "id": "acme.plugin",
   "name": "Acme Plugin",
   "version": "1.0.0",
-  "apiVersion": "^2.0.0",
+  "apiVersion": "^3.0.0",
   "supportedExtensions": [".ts"]
 }
 ```
@@ -89,7 +89,7 @@ const plugin: IPlugin = {
   id: 'acme.plugin',
   name: 'Acme Plugin',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: ['.ts'],
   contributeGraphScopeCapabilities({ filePaths }) {
     const hasTypeScript = filePaths.some((filePath) => filePath.endsWith('.ts'));
@@ -135,7 +135,7 @@ const plugin: IPlugin = {
   id: 'acme.plugin',
   name: 'Acme Plugin',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: ['.ts'],
 };
 ```
@@ -147,7 +147,7 @@ const createPlugin: IPluginFactory = ({ dataHost } = {}) => ({
   id: 'acme.plugin',
   name: 'Acme Plugin',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: [],
   async initialize() {
     await dataHost?.saveData({ expanded: true });

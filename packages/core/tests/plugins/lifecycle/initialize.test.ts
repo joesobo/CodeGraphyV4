@@ -7,7 +7,7 @@ function plugin(id: string, initialize?: IPlugin['initialize']): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '2',
+    apiVersion: '3',
     supportedExtensions: ['.test'],
     ...(initialize ? { initialize } : {}),
   };

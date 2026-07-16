@@ -24,7 +24,7 @@ describe('GraphViewProvider public API', () => {
       id: 'plugin.commands',
       name: 'Commands',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.ts'],
       analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onLoad: (api: { registerCommand: (command: { id: string; action: () => void }) => void }) => {

@@ -18,7 +18,7 @@ describe('GraphViewProvider plugin bridge injection', () => {
       id: 'test.webview-plugin',
       name: 'Webview Plugin',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.ts'],
       analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       webviewContributions: {
@@ -60,7 +60,7 @@ describe('GraphViewProvider plugin bridge injection', () => {
         id: 'test.external-webview-plugin',
         name: 'External Webview Plugin',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         supportedExtensions: ['.ts'],
         analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
         webviewContributions: {

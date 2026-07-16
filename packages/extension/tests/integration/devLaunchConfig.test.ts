@@ -85,7 +85,7 @@ describe('dev launch config', () => {
       JSON.stringify({
         name: '@codegraphy-pro/organize',
         version: '0.1.0',
-        codegraphy: { type: 'plugin', apiVersion: '^2.0.0' },
+        codegraphy: { type: 'plugin', apiVersion: '^3.0.0' },
       }),
     );
 

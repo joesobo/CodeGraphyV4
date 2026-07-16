@@ -68,7 +68,7 @@ Plugin packages declare package-level CodeGraphy metadata in `package.json` so r
   },
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "defaultOptions": {
       "includeTests": true
     },
@@ -85,7 +85,7 @@ The same package must also include a static `codegraphy.json` descriptor. Core r
   "id": "codegraphy.vue",
   "name": "Vue",
   "version": "1.0.0",
-  "apiVersion": "^2.0.0",
+  "apiVersion": "^3.0.0",
   "supportedExtensions": [".vue"],
   "defaultFilters": []
 }
@@ -122,7 +122,7 @@ const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
   id: 'acme.graph-tools',
   name: 'Acme Graph Tools',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: [],
   async initialize() {
     await dataHost?.saveData({ mode: options?.mode ?? 'default' });
@@ -140,7 +140,7 @@ Default options are copied into workspace settings when the plugin is enabled so
 {
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "defaultOptions": {
       "includeSceneResources": true,
       "includeAutoloads": true,
