@@ -25,6 +25,10 @@ export function createWorkspaceFileContentHash(content: string): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
+export function hasAmbiguousWorkspaceFileTimestamp(mtime: number | undefined): boolean {
+  return mtime === undefined || Number.isInteger(mtime);
+}
+
 export function createEmptyWorkspaceAnalysisCache(): IWorkspaceAnalysisCache {
   return {
     version: WORKSPACE_ANALYSIS_CACHE_VERSION,

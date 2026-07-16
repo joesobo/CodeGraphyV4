@@ -326,7 +326,9 @@ export interface IPlugin {
   ): Promise<void>;
 
   /**
-   * Called before an incremental save-driven re-analysis.
+   * Called before an incremental save-driven re-analysis. Receives all changed
+   * workspace files, including configuration files outside supportedExtensions,
+   * so plugins can invalidate cross-file state.
    * Plugins can update internal indexes from the changed files and optionally
    * request additional workspace-relative files to re-analyze.
    *

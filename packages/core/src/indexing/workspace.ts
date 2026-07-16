@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
@@ -18,7 +19,9 @@ import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
 import {
   createWorkspaceIndexFileContentReader,
+  findDeletedWorkspaceIndexDependents,
   findChangedWorkspaceIndexFiles,
+  readWorkspaceIndexAnalysisFiles,
 } from './workspace/changes';
 import {
   mapDiscoveredWorkspaceIndexFilesByRelativePath,
@@ -116,23 +119,37 @@ export async function indexCodeGraphyWorkspace(
   const discoveredFilePaths = new Set(discoveryResult.files.map(file => file.relativePath));
   const deletedFilePaths = Object.keys(cache.files)
     .filter(filePath => !discoveredFilePaths.has(filePath));
-  const addedFilePaths = discoveryResult.files
-    .filter(file => !previousCacheFingerprints.has(file.relativePath))
-    .map(file => file.relativePath);
   const readContent = createWorkspaceIndexFileContentReader(discovery);
 
-  if (canReusePersistedCache && (addedFilePaths.length > 0 || deletedFilePaths.length > 0)) {
-    canReusePersistedCache = false;
-    cache = createEmptyWorkspaceAnalysisCache();
-  } else if (canReusePersistedCache) {
+  if (canReusePersistedCache) {
     const changedFiles = await findChangedWorkspaceIndexFiles({
       cache,
       files: discoveryResult.files,
       readContent,
     });
-    if (changedFiles.length > 0) {
+    const deletedDependents = findDeletedWorkspaceIndexDependents({
+      cache,
+      deletedFilePaths,
+      workspaceRoot,
+    });
+    const deletedFiles = deletedFilePaths.map(filePath => ({
+      absolutePath: path.resolve(workspaceRoot, filePath),
+      relativePath: filePath,
+      content: '',
+    }));
+    if (changedFiles.length > 0 || deletedFiles.length > 0) {
+      const analysisFiles = await readWorkspaceIndexAnalysisFiles({
+        files: discoveryResult.files,
+        readContent,
+      });
+      await registry.notifyPreAnalyze(
+        analysisFiles,
+        workspaceRoot,
+        undefined,
+        disabledPlugins,
+      );
       const pluginChanges = await registry.notifyFilesChanged(
-        changedFiles,
+        [...changedFiles, ...deletedFiles],
         workspaceRoot,
         undefined,
         disabledPlugins,
@@ -144,9 +161,12 @@ export async function indexCodeGraphyWorkspace(
         const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(discoveryResult.files);
         const invalidatedFiles = mergeDiscoveredWorkspaceIndexFiles(
           changedFiles,
-          pluginChanges.additionalFilePaths,
+          [...deletedDependents, ...pluginChanges.additionalFilePaths],
           discoveredByPath,
         );
+        for (const filePath of deletedFilePaths) {
+          delete cache.files[filePath];
+        }
         for (const file of invalidatedFiles) {
           delete cache.files[file.relativePath];
         }

@@ -17,7 +17,7 @@ function pluginInfo(plugin: Partial<IPlugin>): ILifecyclePluginInfo {
 }
 
 describe('plugins/lifecycle notifyFilesChanged', () => {
-  it('routes changed files to matching plugins and collects additional paths', async () => {
+  it('routes workspace changes to hooks and collects additional paths', async () => {
     const onFilesChanged = vi.fn(async () => ['src/generated.ts', '', 42] as unknown as readonly string[]);
     const plugins = new Map<string, ILifecyclePluginInfo>([
       ['ts', pluginInfo({
@@ -43,7 +43,10 @@ describe('plugins/lifecycle notifyFilesChanged', () => {
       requiresFullRefresh: true,
     });
     expect(onFilesChanged).toHaveBeenCalledWith(
-      [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts', content: 'content' }],
+      [
+        { absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts', content: 'content' },
+        { absolutePath: '/workspace/README.md', relativePath: 'README.md', content: '# docs' },
+      ],
       '/workspace',
       expect.objectContaining({ readTextFile: expect.any(Function) }),
     );
@@ -74,7 +77,7 @@ describe('plugins/lifecycle notifyFilesChanged', () => {
     consoleError.mockRestore();
   });
 
-  it('ignores plugins that do not match any changed files', async () => {
+  it('delivers non-matching workspace config changes to incremental hooks', async () => {
     const onFilesChanged = vi.fn();
     const plugins = new Map<string, ILifecyclePluginInfo>([
       ['ts', pluginInfo({
@@ -90,6 +93,10 @@ describe('plugins/lifecycle notifyFilesChanged', () => {
       additionalFilePaths: [],
       requiresFullRefresh: false,
     });
-    expect(onFilesChanged).not.toHaveBeenCalled();
+    expect(onFilesChanged).toHaveBeenCalledWith(
+      [{ absolutePath: '/workspace/README.md', relativePath: 'README.md', content: '# docs' }],
+      '/workspace',
+      expect.any(Object),
+    );
   });
 });

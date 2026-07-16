@@ -232,7 +232,34 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     });
   });
 
-  it('falls back to a full rebuild when a cached file is deleted', async () => {
+  it('removes an unreferenced deleted file without rebuilding unchanged files', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unused\n', 'utf-8');
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+    const options = {
+      workspaceRoot,
+      plugins: [createTextPlugin(calls)],
+      includeCorePlugins: false,
+    };
+
+    await indexCodeGraphyWorkspace(options);
+    await fs.rm(path.join(workspaceRoot, 'orphan.txt'));
+    const rebuilt = await indexCodeGraphyWorkspace(options);
+
+    expect(rebuilt.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 1,
+      reusedFiles: 2,
+    });
+  });
+
+  it('adds an unreferenced file without rebuilding unchanged files', async () => {
     const workspaceRoot = await createWorkspace();
     const calls = {
       onPreAnalyze: vi.fn(),
@@ -247,14 +274,14 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     };
 
     await indexCodeGraphyWorkspace(options);
-    await fs.rm(path.join(workspaceRoot, 'target.txt'));
-    const rebuilt = await indexCodeGraphyWorkspace(options);
+    await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unused\n', 'utf-8');
+    const refreshed = await indexCodeGraphyWorkspace(options);
 
-    expect(rebuilt.indexing).toEqual({
-      mode: 'full',
+    expect(refreshed.indexing).toEqual({
+      mode: 'incremental',
       analyzedFiles: 1,
-      deletedFiles: 1,
-      reusedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 2,
     });
   });
 

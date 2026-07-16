@@ -2,6 +2,7 @@ import type { IGraphData } from '../graph/contracts';
 import { applyReportFilters } from './filter';
 import type {
   GraphQueryConfig,
+  GraphQueryConnectionConfig,
   GraphQueryEdgeReport,
   GraphQueryNodeReport,
 } from './model';
@@ -14,6 +15,7 @@ import {
   deriveScopedGraphQueryData,
   filterEdgesToReportNodes,
 } from './visible';
+import { applyDomainConnectionFilters } from './relationships/visibility';
 
 export function listGraphNodes(
   graphData: IGraphData,
@@ -50,11 +52,12 @@ export function listGraphNodes(
 
 export function listGraphEdges(
   graphData: IGraphData,
-  config: GraphQueryConfig = {},
+  config: GraphQueryConnectionConfig = {},
 ): GraphQueryEdgeReport {
   const scopedGraph = deriveScopedGraphQueryData(graphData, config);
   const scopedEdges = filterEdgesToReportNodes(scopedGraph.edges, scopedGraph.nodes);
-  const filteredEdges = applyReportFilters(scopedEdges, config.filters, readEdgeValue);
+  const domainFilteredEdges = applyDomainConnectionFilters(scopedEdges, config);
+  const filteredEdges = applyReportFilters(domainFilteredEdges, config.filters, readEdgeValue);
   const visibleGraph = applySearchAndOrphans({
     nodes: scopedGraph.nodes,
     edges: filteredEdges,

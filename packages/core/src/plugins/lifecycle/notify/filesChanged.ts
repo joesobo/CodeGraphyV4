@@ -60,28 +60,26 @@ export async function notifyFilesChanged(
       continue;
     }
 
-    const pluginFiles = getPluginFiles(info, files);
-    if (pluginFiles.length === 0) {
-      continue;
-    }
-
-    if (!info.plugin.onFilesChanged) {
-      if (info.plugin.onPreAnalyze) {
+    if (info.plugin.onFilesChanged) {
+      try {
+        const nextPaths = await info.plugin.onFilesChanged(
+          files,
+          workspaceRoot,
+          withWorkspacePluginAnalysisOptions(analysisContext, info.options),
+        );
+        collectAdditionalFilePaths(nextPaths, additionalFilePaths);
+      } catch (error) {
+        console.error(`[CodeGraphy] Error in onFilesChanged for ${info.plugin.id}:`, error);
         requiresFullRefresh = true;
       }
       continue;
     }
 
-    try {
-      const nextPaths = await info.plugin.onFilesChanged(
-        pluginFiles,
-        workspaceRoot,
-        withWorkspacePluginAnalysisOptions(analysisContext, info.options),
-      );
-      collectAdditionalFilePaths(nextPaths, additionalFilePaths);
-    } catch (error) {
-      console.error(`[CodeGraphy] Error in onFilesChanged for ${info.plugin.id}:`, error);
-      requiresFullRefresh = true;
+    const pluginFiles = getPluginFiles(info, files);
+    if (pluginFiles.length > 0) {
+      if (info.plugin.onPreAnalyze) {
+        requiresFullRefresh = true;
+      }
     }
   }
 
