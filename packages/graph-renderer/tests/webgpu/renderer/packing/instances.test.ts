@@ -140,6 +140,43 @@ describe('WebGPU renderer frame packing', () => {
     expect(renderer!.lastSecondaryRefreshCpuMs()).toBeUndefined();
   });
 
+  it('includes command finalization and submission in secondary refresh CPU time', async () => {
+    const harness = webGpuHarness();
+    const events: string[] = [];
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+      events.push('time');
+      return events.length === 1 ? 10 : 15;
+    });
+    harness.device.queue.submit.mockImplementation(() => {
+      events.push('submit');
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(), onFrameComplete: vi.fn(), onRendererError: vi.fn(),
+    });
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => harness.context,
+    });
+    renderer!.setSecondarySurface(secondaryCanvas);
+
+    renderer!.render(rendererFrame(), {
+      backgroundColor: '#000000',
+      camera: { centerX: 0, centerY: 0, zoom: 1 },
+      cssHeight: 160,
+      cssWidth: 160,
+      devicePixelRatio: 1,
+      getLinkColor: () => '#112233',
+      getLinkOpacity: () => 1,
+      getLinkWidth: () => 1,
+      getNodeStyle: rendererFrame().getNodeStyle,
+      styleVersion: 1,
+    });
+
+    expect(events).toEqual(['time', 'submit', 'time']);
+    expect(renderer!.lastSecondaryRefreshCpuMs()).toBe(5);
+  });
+
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();
     const onFrameComplete = vi.fn();
