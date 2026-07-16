@@ -142,4 +142,57 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     );
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] }).state).toBe('fresh');
   });
+
+  it('reuses compatible persisted analysis and reparses only changed files across CLI-style runs', async () => {
+    const workspaceRoot = await createWorkspace();
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+    const options = {
+      workspaceRoot,
+      plugins: [createTextPlugin(calls)],
+      includeCorePlugins: false,
+    };
+
+    const initial = await indexCodeGraphyWorkspace(options);
+    const unchanged = await indexCodeGraphyWorkspace(options);
+    await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
+    const changed = await indexCodeGraphyWorkspace(options);
+    const incompatible = await indexCodeGraphyWorkspace({
+      ...options,
+      settings: {
+        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+        respectGitignore: false,
+      },
+    });
+
+    expect(initial.indexing).toEqual({
+      mode: 'full',
+      analyzedFiles: 2,
+      deletedFiles: 0,
+      reusedFiles: 0,
+    });
+    expect(unchanged.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 2,
+    });
+    expect(changed.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 1,
+      deletedFiles: 0,
+      reusedFiles: 1,
+    });
+    expect(incompatible.indexing).toEqual({
+      mode: 'full',
+      analyzedFiles: 2,
+      deletedFiles: 0,
+      reusedFiles: 0,
+    });
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
+  });
 });

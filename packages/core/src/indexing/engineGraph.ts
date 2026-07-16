@@ -43,6 +43,12 @@ export function createWorkspaceEngineIndexResult(
     gitIgnoredPaths: discovery.gitIgnoredPaths ?? [],
     limitReached: discovery.limitReached,
     totalFound: discovery.totalFound ?? discovery.files.length,
+    indexing: {
+      mode: 'full',
+      analyzedFiles: discovery.files.length,
+      deletedFiles: 0,
+      reusedFiles: 0,
+    },
   };
 }
 
