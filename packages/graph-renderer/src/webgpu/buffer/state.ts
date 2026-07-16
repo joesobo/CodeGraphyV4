@@ -28,6 +28,7 @@ export interface GraphBufferState extends GraphPassBufferState {
   renderedLinkCount: number;
   renderedLinkIndexes: Uint32Array;
   renderedLinkIndexByLink: WeakMap<GraphRendererLink, number>;
+  renderedLinkOrderRevision: number;
   styleIdentity?: StyleIdentity;
   uploadedArrowsVisible: boolean;
   uploadedEdgeStride: number;
@@ -63,6 +64,7 @@ export function createGraphBufferState(device: GPUDevice): GraphBufferState {
     renderedLinkCount: 0,
     renderedLinkIndexes: new Uint32Array(),
     renderedLinkIndexByLink: new WeakMap(),
+    renderedLinkOrderRevision: 0,
     uploadedArrowsVisible: false,
     uploadedEdgeStride: 1,
     uploadedNodeVisualScale: 1,

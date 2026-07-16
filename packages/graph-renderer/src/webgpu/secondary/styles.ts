@@ -29,16 +29,19 @@ interface SecondaryStyleIdentity {
   getNodeStyle: GraphRendererSecondaryFrame['getNodeStyle'];
   links: GraphRendererFrame['links'];
   nodes: GraphRendererFrame['nodes'];
+  renderedLinkOrderRevision: number;
   version: number;
 }
 
 function secondaryStylesChanged(
   styles: SecondaryStyleBuffers,
+  primary: GraphBufferState,
   frame: GraphRendererFrame,
   secondary: GraphRendererSecondaryFrame,
 ): boolean {
   const current = styles.styleIdentity;
   return current?.version !== secondary.styleVersion
+    || current.renderedLinkOrderRevision !== primary.renderedLinkOrderRevision
     || current.nodes !== frame.nodes
     || current.links !== frame.links
     || current.getNodeStyle !== secondary.getNodeStyle
@@ -49,6 +52,7 @@ function secondaryStylesChanged(
 
 function rememberSecondaryStyles(
   styles: SecondaryStyleBuffers,
+  primary: GraphBufferState,
   frame: GraphRendererFrame,
   secondary: GraphRendererSecondaryFrame,
 ): void {
@@ -59,6 +63,7 @@ function rememberSecondaryStyles(
     getNodeStyle: secondary.getNodeStyle,
     links: frame.links,
     nodes: frame.nodes,
+    renderedLinkOrderRevision: primary.renderedLinkOrderRevision,
     version: secondary.styleVersion,
   };
 }
@@ -143,7 +148,7 @@ export function updateSecondaryStyleBuffers(
   secondary: GraphRendererSecondaryFrame,
   orderChanged = false,
 ): boolean {
-  if (!orderChanged && !secondaryStylesChanged(styles, frame, secondary)) return false;
+  if (!orderChanged && !secondaryStylesChanged(styles, primary, frame, secondary)) return false;
   packSecondaryNodeStyles(styles, primary, frame, secondary);
   packSecondaryLinkStyles(styles, primary, frame, secondary);
   uploadVertexStream(
@@ -159,7 +164,7 @@ export function updateSecondaryStyleBuffers(
     styles.linkStyleValues.byteLength,
   );
   styles.pass.renderedLinkCount = primary.renderedLinkCount;
-  rememberSecondaryStyles(styles, frame, secondary);
+  rememberSecondaryStyles(styles, primary, frame, secondary);
   return true;
 }
 
