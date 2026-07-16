@@ -124,6 +124,8 @@ Path contract:
 ### onFilesChanged(files, workspaceRoot, context?)
 
 Called before an incremental save-driven re-analysis when CodeGraphy already has a warm Graph Cache. Return additional workspace-relative files when dependents also need analysis.
+The hook receives all changed workspace files, including configuration files
+outside the plugin's `supportedExtensions`; filter inside the hook when needed.
 
 ```typescript
 async onFilesChanged(files, workspaceRoot, context) {

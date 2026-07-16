@@ -23,7 +23,10 @@ import type {
   WorkspaceFileAnalysisRequest,
   WorkspaceFileStat,
 } from './types';
-import { createWorkspaceFileContentHash } from '../cache';
+import {
+  createWorkspaceFileContentHash,
+  hasAmbiguousWorkspaceFileTimestamp,
+} from '../cache';
 
 function createWorkspaceFileAnalysisState(): IWorkspaceFileAnalysisState {
   return {
@@ -138,7 +141,10 @@ async function readCacheHitAnalysis(
     return {};
   }
 
-  if (cached.contentHash !== undefined) {
+  if (
+    cached.contentHash !== undefined
+    && hasAmbiguousWorkspaceFileTimestamp(stat?.mtime)
+  ) {
     const content = await options.readContent(file);
     if (cached.contentHash !== createWorkspaceFileContentHash(content)) {
       return { content };
