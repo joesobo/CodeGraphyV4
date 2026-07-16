@@ -6,9 +6,9 @@ import type { OwnedGraphLayout } from '../../layout/runtime/model';
 import {
   expandMinimapBounds,
   finiteMinimapBounds,
-  fitMinimapProjection,
   type MinimapBounds,
-} from '../../minimap/projection';
+} from '../../minimap/bounds';
+import { fitMinimapProjection } from '../../minimap/projection';
 import {
   OWNED_GRAPH_MINIMAP_SIZE,
   updateOwnedGraphMinimapOverlay,
