@@ -5,7 +5,6 @@ import { runQueryCommand } from './query/command';
 import { runSetupCommand } from './setup/command';
 import { runStatusCommand } from './status/command';
 import type { CliCommand } from './parse';
-import { readCliVersion } from './version';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
 
 export interface CommandExecutionResult {
@@ -91,7 +90,10 @@ export async function runCliCommand(
       });
       break;
     case 'version':
-      result = { exitCode: 0, output: readCliVersion() };
+      result = {
+        exitCode: 0,
+        output: (await import('./version')).readCliVersion(),
+      };
       break;
     case 'help':
     default:
