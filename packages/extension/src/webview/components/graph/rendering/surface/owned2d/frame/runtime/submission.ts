@@ -10,7 +10,7 @@ import {
   expandMinimapBounds,
   type MinimapBounds,
 } from '../../minimap/bounds';
-import { fitMinimapProjection } from '../../minimap/projection';
+import { fitMinimapProjection, type MinimapProjection } from '../../minimap/projection';
 import { fitMinimapSceneProjection, type MinimapScene } from '../../minimap/scene';
 import {
   OWNED_GRAPH_MINIMAP_SIZE,
@@ -67,6 +67,37 @@ function resolveMinimapBounds(
     : currentBounds;
 }
 
+interface MinimapSurfaceDimensions {
+  height: number;
+  width: number;
+}
+
+function minimapSurfaceDimensions(runtime: OwnedGraphFrameRuntime): MinimapSurfaceDimensions {
+  const panelBounds = runtime.minimapPanelRef.current?.getBoundingClientRect();
+  return {
+    height: panelBounds?.height || OWNED_GRAPH_MINIMAP_SIZE,
+    width: panelBounds?.width || OWNED_GRAPH_MINIMAP_SIZE,
+  };
+}
+
+function resolveMinimapProjection(
+  runtime: OwnedGraphFrameRuntime,
+  scene: MinimapScene,
+  dimensions: MinimapSurfaceDimensions,
+  moving: boolean,
+  decision: MinimapRefreshDecision,
+): MinimapProjection | null {
+  const size = Math.min(dimensions.width, dimensions.height);
+  const fittedProjection = fitMinimapSceneProjection(scene, size, MINIMAP_PADDING);
+  const currentBounds = fittedProjection
+    ? measureGraphSceneBounds({ ...scene, zoom: fittedProjection.zoom })
+    : undefined;
+  const bounds = resolveMinimapBounds(runtime, currentBounds, moving, decision);
+  runtime.minimapBoundsRef.current = bounds ?? null;
+  if (!bounds || bounds === currentBounds) return fittedProjection ?? null;
+  return fitMinimapProjection(bounds, size, MINIMAP_PADDING);
+}
+
 function prepareMinimapSecondaryFrame(
   runtime: OwnedGraphFrameRuntime,
   layout: OwnedGraphLayout,
@@ -76,9 +107,7 @@ function prepareMinimapSecondaryFrame(
   styleVersion: number,
 ): WebGpuGraphSecondaryFrame | undefined {
   if (!runtime.minimapSurfaceRegisteredRef.current) return undefined;
-  const panelBounds = runtime.minimapPanelRef.current?.getBoundingClientRect();
-  const surfaceWidth = panelBounds?.width || OWNED_GRAPH_MINIMAP_SIZE;
-  const surfaceHeight = panelBounds?.height || OWNED_GRAPH_MINIMAP_SIZE;
+  const dimensions = minimapSurfaceDimensions(runtime);
   const decision = scheduleMinimapRefresh(runtime.minimapSchedulerRef.current, {
     devicePixelRatio: prepared.devicePixelRatio,
     graphIdentity: layout,
@@ -86,8 +115,8 @@ function prepareMinimapSecondaryFrame(
     moving,
     positionVersion: runtime.positionVersionRef.current,
     styleVersion,
-    surfaceHeight,
-    surfaceWidth,
+    surfaceHeight: dimensions.height,
+    surfaceWidth: dimensions.width,
     timestampMs,
   });
   if (!decision.refresh) return undefined;
@@ -96,26 +125,14 @@ function prepareMinimapSecondaryFrame(
     links: layout.links,
     nodes: layout.nodes,
   };
-  const fittedProjection = fitMinimapSceneProjection(
-    scene,
-    Math.min(surfaceWidth, surfaceHeight),
-    MINIMAP_PADDING,
-  );
-  const currentBounds = fittedProjection
-    ? measureGraphSceneBounds({ ...scene, zoom: fittedProjection.zoom })
-    : undefined;
-  const bounds = resolveMinimapBounds(runtime, currentBounds, moving, decision);
-  runtime.minimapBoundsRef.current = bounds ?? null;
-  const projection = bounds === currentBounds
-    ? fittedProjection ?? null
-    : fitMinimapProjection(bounds!, Math.min(surfaceWidth, surfaceHeight), MINIMAP_PADDING);
+  const projection = resolveMinimapProjection(runtime, scene, dimensions, moving, decision);
   runtime.minimapProjectionRef.current = projection;
   if (!projection) return undefined;
   return {
     backgroundColor: runtime.propsRef.current.backgroundColor,
     camera: projection,
-    cssHeight: surfaceHeight,
-    cssWidth: surfaceWidth,
+    cssHeight: dimensions.height,
+    cssWidth: dimensions.width,
     devicePixelRatio: prepared.devicePixelRatio,
     getLinkColor: runtime.propsRef.current.getBaseLinkColor,
     getLinkOpacity: runtime.propsRef.current.getBaseLinkOpacity,
