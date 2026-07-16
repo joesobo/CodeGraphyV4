@@ -24,15 +24,15 @@ export const settingsAcceptanceSteps: Record<string, AcceptanceStepImplementatio
     await expect(frame.getByTestId('graph-fps')).toBeVisible();
     await expect.poll(() => frame.evaluate(() => {
       const fps = window.__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot().fps;
-      const potentialFps = Number(
+      const renderedFps = Number(
         document.querySelector('[data-codegraphy-overlay="fps"]')
-          ?.getAttribute('data-potential-fps'),
+          ?.getAttribute('data-rendered-fps'),
       );
       return typeof fps === 'number'
         && Number.isFinite(fps)
         && fps > 0
-        && Number.isFinite(potentialFps)
-        && potentialFps > 0;
+        && Number.isFinite(renderedFps)
+        && renderedFps > 0;
     })).toBe(true);
   },
   'I turn Show FPS off': context => setShowFps(context, false),
