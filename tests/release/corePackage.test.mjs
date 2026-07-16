@@ -33,3 +33,21 @@ test('Core package declares the Node range supported by its native dependencies'
 
   assert.equal(manifest.engines.node, '>=20 <23');
 });
+
+test('Core publishes dependency-free Graph Scope defaults as a focused subpath', () => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'packages', 'core', 'package.json'), 'utf8'),
+  );
+
+  assert.deepEqual(manifest.exports['./graph-scope'], {
+    types: './dist/graphScope/defaults.d.ts',
+    default: './dist/graphScope/defaults.js',
+  });
+  assert.deepEqual(manifest.typesVersions['*']['graph-scope'], [
+    'dist/graphScope/defaults.d.ts',
+  ]);
+  assert.match(
+    fs.readFileSync(path.join(repoRoot, 'packages', 'core', 'scripts', 'build.mjs'), 'utf8'),
+    /src\/graphScope\/defaults\.ts/,
+  );
+});

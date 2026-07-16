@@ -6,7 +6,8 @@ import {
 } from '../../analysis/fileAnalysis';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
-import { CORE_GRAPH_EDGE_TYPES, resolveSavedGraphScope } from '../../workspace/graphScopeSettings';
+import { CORE_GRAPH_EDGE_TYPES } from '../../graphScope/defaults';
+import { resolveSavedGraphScope } from '../../workspace/graphScopeSettings';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,

@@ -1,42 +1,7 @@
 import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import type { IGraphData } from '../graph/contracts';
+import { CORE_GRAPH_EDGE_DEFAULT_VISIBILITY } from '../graphScope/defaults';
 import type { CodeGraphyWorkspaceSettings } from './settingsContracts';
-
-export const CORE_GRAPH_EDGE_TYPES = [
-  'call',
-  'contains',
-  'event',
-  'implements',
-  'import',
-  'include',
-  'inherit',
-  'load',
-  'nests',
-  'overrides',
-  'reference',
-  'type',
-  'type-import',
-  'using',
-  'codegraphy.gdscript:signal-connection',
-] as const;
-
-export const CORE_GRAPH_EDGE_DEFAULT_VISIBILITY: Record<string, boolean> = {
-  include: true,
-  import: true,
-  using: true,
-  nests: true,
-  call: false,
-  contains: false,
-  event: false,
-  implements: false,
-  inherit: false,
-  load: false,
-  overrides: false,
-  reference: false,
-  type: false,
-  'type-import': false,
-  'codegraphy.gdscript:signal-connection': false,
-};
 
 const NODE_DEFINITION_BY_ID = new Map(CORE_GRAPH_NODE_TYPES.map(definition => [definition.id, definition]));
 
