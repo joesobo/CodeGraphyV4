@@ -5,6 +5,59 @@ import { cleanUpWebGpuHarness, rendererFrame, webGpuHarness } from '../harness/w
 afterEach(cleanUpWebGpuHarness);
 
 describe('WebGPU renderer lifecycle', () => {
+  it('requests a software WebGPU device when native device creation fails', async () => {
+    const harness = webGpuHarness();
+    const fallbackAdapter = { requestDevice: vi.fn(async () => harness.device) };
+    harness.adapter.requestDevice.mockRejectedValueOnce(new Error('native device failed'));
+    harness.gpu.requestAdapter
+      .mockResolvedValueOnce(harness.adapter)
+      .mockResolvedValueOnce(fallbackAdapter);
+
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    });
+
+    expect(renderer).toBeDefined();
+    expect(harness.gpu.requestAdapter).toHaveBeenNthCalledWith(2, {
+      forceFallbackAdapter: true,
+    });
+    expect(fallbackAdapter.requestDevice).toHaveBeenCalledOnce();
+  });
+
+  it('surfaces native device failure when no software adapter is available', async () => {
+    const harness = webGpuHarness();
+    harness.adapter.requestDevice.mockRejectedValueOnce(new Error('native device failed'));
+    harness.gpu.requestAdapter
+      .mockResolvedValueOnce(harness.adapter)
+      .mockResolvedValueOnce(null);
+
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    })).rejects.toThrow('native device failed');
+  });
+
+  it('requests a software WebGPU adapter when native adapter acquisition fails', async () => {
+    const harness = webGpuHarness();
+    harness.gpu.requestAdapter
+      .mockRejectedValueOnce(new Error('native adapter failed'))
+      .mockResolvedValueOnce(harness.adapter);
+
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    });
+
+    expect(renderer).toBeDefined();
+    expect(harness.gpu.requestAdapter).toHaveBeenNthCalledWith(2, {
+      forceFallbackAdapter: true,
+    });
+  });
+
   it('requests a software WebGPU adapter when no native adapter is available', async () => {
     const harness = webGpuHarness();
     harness.gpu.requestAdapter
@@ -14,6 +67,7 @@ describe('WebGPU renderer lifecycle', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
 
     expect(renderer).toBeDefined();
@@ -32,6 +86,7 @@ describe('WebGPU renderer lifecycle', () => {
     await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     })).resolves.toBeUndefined();
   });
 
@@ -42,6 +97,7 @@ describe('WebGPU renderer lifecycle', () => {
     await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     })).resolves.toBeUndefined();
     expect(harness.gpu.requestAdapter).toHaveBeenCalledTimes(2);
     expect(harness.adapter.requestDevice).not.toHaveBeenCalled();
@@ -54,18 +110,53 @@ describe('WebGPU renderer lifecycle', () => {
     await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     })).resolves.toBeUndefined();
     expect(harness.device.destroy).toHaveBeenCalledOnce();
   });
 
   it('cleans up the context when pipeline validation fails', async () => {
     const harness = webGpuHarness();
-    harness.device.popErrorScope.mockResolvedValue({ message: 'invalid pipeline' } as never);
+    harness.device.popErrorScope
+      .mockResolvedValueOnce({ message: 'invalid pipeline' } as never)
+      .mockResolvedValueOnce(null);
 
     await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     })).rejects.toThrow('WebGPU pipeline validation failed: invalid pipeline');
+    expect(harness.context.unconfigure).toHaveBeenCalledOnce();
+    expect(harness.device.destroy).toHaveBeenCalledOnce();
+  });
+
+  it('cleans up the context when pipeline allocation fails', async () => {
+    const harness = webGpuHarness();
+    harness.device.popErrorScope
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ message: 'out of memory' } as never);
+
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    })).rejects.toThrow('WebGPU pipeline allocation failed: out of memory');
+    expect(harness.context.unconfigure).toHaveBeenCalledOnce();
+    expect(harness.device.destroy).toHaveBeenCalledOnce();
+  });
+
+  it('cleans up the context when pipeline creation has an internal error', async () => {
+    const harness = webGpuHarness();
+    harness.device.popErrorScope
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ message: 'driver failed' } as never);
+
+    await expect(WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    })).rejects.toThrow('WebGPU pipeline creation failed: driver failed');
     expect(harness.context.unconfigure).toHaveBeenCalledOnce();
     expect(harness.device.destroy).toHaveBeenCalledOnce();
   });
@@ -79,6 +170,7 @@ describe('WebGPU renderer lifecycle', () => {
     await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost,
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
 
     harness.resolveDeviceLost({ message: 'device lost', reason } as GPUDeviceLostInfo);
@@ -96,6 +188,7 @@ describe('WebGPU renderer lifecycle', () => {
     await expect(WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     })).rejects.toThrow('context failed');
 
     expect(harness.device.destroy).toHaveBeenCalledOnce();
@@ -111,6 +204,7 @@ describe('WebGPU renderer lifecycle', () => {
       onDeviceLost: vi.fn(),
       onFrameComplete,
       onFrameRejected,
+      onRendererError: vi.fn(),
     });
 
     expect(renderer!.render(rendererFrame())).toBe(1);
@@ -122,11 +216,59 @@ describe('WebGPU renderer lifecycle', () => {
     expect(renderer!.canRender()).toBe(true);
   });
 
+  it('does not report frame success when scoped runtime validation fails', async () => {
+    const harness = webGpuHarness();
+    const onFrameComplete = vi.fn();
+    const onFrameRejected = vi.fn();
+    const onRendererError = vi.fn();
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete,
+      onFrameRejected,
+      onRendererError,
+    });
+    harness.device.popErrorScope
+      .mockResolvedValueOnce({ message: 'node buffer is invalid' } as never)
+      .mockResolvedValueOnce(null);
+
+    expect(renderer!.render(rendererFrame())).toBe(1);
+    await vi.waitFor(() => {
+      expect(onRendererError).toHaveBeenCalledWith('node buffer is invalid');
+    });
+
+    expect(onFrameComplete).not.toHaveBeenCalled();
+    expect(onFrameRejected).not.toHaveBeenCalled();
+    expect(renderer!.canRender()).toBe(true);
+  });
+
+  it('reports uncaptured runtime errors until the renderer is disposed', async () => {
+    const harness = webGpuHarness();
+    const onRendererError = vi.fn();
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError,
+    });
+
+    const event = harness.emitUncapturedError('node buffer is too large');
+
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(onRendererError).toHaveBeenCalledWith('node buffer is too large');
+
+    renderer!.dispose();
+    harness.emitUncapturedError('stale error');
+
+    expect(onRendererError).toHaveBeenCalledOnce();
+    expect(harness.device.addEventListener).toHaveBeenCalledOnce();
+    expect(harness.device.removeEventListener).toHaveBeenCalledOnce();
+  });
+
   it('disposes GPU resources only once', async () => {
     const harness = webGpuHarness();
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
 
     renderer!.dispose();

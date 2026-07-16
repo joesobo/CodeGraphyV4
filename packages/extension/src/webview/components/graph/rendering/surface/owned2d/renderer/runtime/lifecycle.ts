@@ -60,6 +60,7 @@ class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
       onDeviceLost: message => this.handleDeviceLost(rendererGeneration, message),
       onFrameComplete: submissionId => this.handleFrameComplete(rendererGeneration, submissionId),
       onFrameRejected: submissionId => this.handleFrameRejected(rendererGeneration, submissionId),
+      onRendererError: message => this.handleRendererError(rendererGeneration, message),
       onCreated: renderer => this.handleCreatedRenderer(rendererGeneration, recovering, renderer),
       onCreationError: error => this.handleCreationError(rendererGeneration, recovering, error),
     });
@@ -100,6 +101,11 @@ class ActiveOwnedGraphRendererLifecycle implements OwnedGraphRendererLifecycle {
   private handleDeviceLost(rendererGeneration: number, message: string): void {
     if (!this.currentGeneration(rendererGeneration)) return;
     this.recoverRenderer(rendererDeviceLostMessage(message));
+  }
+
+  private handleRendererError(rendererGeneration: number, message: string): void {
+    if (!this.currentGeneration(rendererGeneration)) return;
+    this.recoverRenderer(message);
   }
 
   private handleFrameComplete(rendererGeneration: number, submissionId: number): void {

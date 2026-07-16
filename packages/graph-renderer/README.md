@@ -52,12 +52,20 @@ const layout = createGraphLayoutEngine({
   edgeTargets: Uint32Array.of(1),
 });
 
-const renderer = await WebGpuGraphRenderer.create(canvas, {
-  onDeviceLost: message => console.error(`WebGPU device lost: ${message}`),
+let renderer: WebGpuGraphRenderer | undefined;
+function stopRenderer(message: string) {
+  console.error(message);
+  renderer?.dispose();
+  renderer = undefined;
+}
+
+renderer = await WebGpuGraphRenderer.create(canvas, {
+  onDeviceLost: message => stopRenderer(`WebGPU device lost: ${message}`),
   onFrameComplete: _submissionId => requestAnimationFrame(draw),
   onFrameRejected: submissionId => {
     console.warn(`WebGPU submission ${submissionId} was rejected`);
   },
+  onRendererError: message => stopRenderer(`WebGPU renderer failed: ${message}`),
 });
 
 if (!renderer) {
@@ -68,7 +76,7 @@ let positionVersion = 0;
 let styleVersion = 0;
 
 function draw() {
-  if (!renderer.canRender()) return;
+  if (!renderer?.canRender()) return;
   const tick = layout.tick();
   if (tick.steps > 0) positionVersion += 1;
 
@@ -112,7 +120,12 @@ requestAnimationFrame(draw);
 ```
 
 Call `renderer.dispose()` when the canvas is removed. A disposed renderer cannot
-be reused.
+be reused. `onRendererError` reports uncaptured WebGPU validation and out-of-memory
+errors that occur after creation; dispose and replace the renderer when it fires.
+Each frame is also checked against the device's `maxBufferSize` before renderer
+state changes, and an oversized frame throws a descriptive synchronous error.
+The minimal example above stops rendering after a GPU failure; production hosts
+should show recovery state and create a replacement renderer on a fresh device.
 
 ### Color values
 

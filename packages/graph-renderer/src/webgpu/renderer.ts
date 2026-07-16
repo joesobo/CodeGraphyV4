@@ -8,7 +8,9 @@ import {
 } from './buffer/state';
 import { CameraBuffer } from './buffer/camera';
 import { updateGraphBuffers } from './buffer/graph';
+import { validateGraphBufferLimits } from './buffer/limits';
 import { resizeGraphCanvas } from './frame/canvas';
+import { beginFrameValidation, endFrameValidation } from './frame/validation';
 import { createRendererResources, type RendererResources } from './device';
 import { submitRenderPass, type RenderPassResources } from './frame/pass';
 import { FrameQueue } from './frame/queue';
@@ -22,6 +24,7 @@ export interface WebGpuGraphRendererOptions {
   onDeviceLost(this: void, message: string): void;
   onFrameComplete(this: void, submissionId: number): void;
   onFrameRejected?(this: void, submissionId: number): void;
+  onRendererError(this: void, message: string): void;
 }
 
 export class WebGpuGraphRenderer {
@@ -29,6 +32,7 @@ export class WebGpuGraphRenderer {
   private readonly camera: CameraBuffer;
   private readonly frameQueue: FrameQueue;
   private readonly passResources: RenderPassResources;
+  private readonly uncapturedErrorListener: (event: GPUUncapturedErrorEvent) => void;
   private disposed = false;
 
   private constructor(
@@ -36,22 +40,42 @@ export class WebGpuGraphRenderer {
     private readonly resources: RendererResources,
     onFrameComplete: (submissionId: number) => void,
     onFrameRejected: (submissionId: number) => void,
+    onRendererError: (message: string) => void,
   ) {
-    this.buffers = createGraphBufferState(resources.device);
-    this.camera = new CameraBuffer(resources.device);
-    this.frameQueue = new FrameQueue(resources.device, settlement => {
-      if (settlement.succeeded) onFrameComplete(settlement.submissionId);
-      else onFrameRejected(settlement.submissionId);
-    });
-    this.passResources = {
-      ...resources,
-      arrowCamera: this.camera.bind(resources.arrow, 'Graph arrow camera'),
-      arrowPipeline: resources.arrow,
-      linkCamera: this.camera.bind(resources.link, 'Graph link camera'),
-      linkPipeline: resources.link,
-      nodeCamera: this.camera.bind(resources.node, 'Graph node camera'),
-      nodePipeline: resources.node,
+    this.uncapturedErrorListener = event => {
+      event.preventDefault();
+      if (!this.disposed) {
+        onRendererError(event.error.message || 'An uncaptured WebGPU error occurred.');
+      }
     };
+    resources.device.addEventListener('uncapturederror', this.uncapturedErrorListener);
+    try {
+      this.buffers = createGraphBufferState(resources.device);
+      this.camera = new CameraBuffer(resources.device);
+      this.frameQueue = new FrameQueue(resources.device, settlement => {
+        if (settlement.error) {
+          onRendererError(settlement.error.message || 'A WebGPU frame failed validation.');
+        } else if (settlement.succeeded) {
+          onFrameComplete(settlement.submissionId);
+        } else {
+          onFrameRejected(settlement.submissionId);
+        }
+      });
+      this.passResources = {
+        ...resources,
+        arrowCamera: this.camera.bind(resources.arrow, 'Graph arrow camera'),
+        arrowPipeline: resources.arrow,
+        linkCamera: this.camera.bind(resources.link, 'Graph link camera'),
+        linkPipeline: resources.link,
+        nodeCamera: this.camera.bind(resources.node, 'Graph node camera'),
+        nodePipeline: resources.node,
+      };
+    } catch (error) {
+      resources.device.removeEventListener('uncapturederror', this.uncapturedErrorListener);
+      resources.context.unconfigure();
+      resources.device.destroy();
+      throw error;
+    }
   }
 
   static async create(
@@ -65,6 +89,7 @@ export class WebGpuGraphRenderer {
       resources,
       options.onFrameComplete,
       options.onFrameRejected ?? (() => {}),
+      options.onRendererError,
     );
     void resources.device.lost.then(info => {
       if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
@@ -78,17 +103,26 @@ export class WebGpuGraphRenderer {
 
   render(frame: WebGpuGraphFrame): number {
     if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
-    const styleUpdate = updateStyleCache(this.buffers, frame);
-    resizeGraphCanvas(this.canvas, this.resources.device, frame);
-    updateGraphBuffers(this.resources.device, this.buffers, frame, styleUpdate);
-    this.camera.upload(frame, this.buffers);
-    submitRenderPass(this.passResources, this.buffers, frame, this.camera.values[8]);
-    return this.frameQueue.trackSubmission();
+    const device = this.resources.device;
+    validateGraphBufferLimits(frame, device.limits.maxBufferSize);
+    beginFrameValidation(device);
+    try {
+      const styleUpdate = updateStyleCache(this.buffers, frame);
+      resizeGraphCanvas(this.canvas, device, frame);
+      updateGraphBuffers(device, this.buffers, frame, styleUpdate);
+      this.camera.upload(frame, this.buffers);
+      submitRenderPass(this.passResources, this.buffers, frame, this.camera.values[8]);
+      return this.frameQueue.trackSubmission(endFrameValidation(device));
+    } catch (error) {
+      void endFrameValidation(device).catch(() => {});
+      throw error;
+    }
   }
 
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.resources.device.removeEventListener('uncapturederror', this.uncapturedErrorListener);
     this.frameQueue.dispose();
     this.camera.buffer.destroy();
     destroyGraphBufferState(this.buffers);

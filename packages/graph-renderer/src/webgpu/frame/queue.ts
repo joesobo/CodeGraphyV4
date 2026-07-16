@@ -1,6 +1,7 @@
 const MAX_PENDING_FRAMES = 3;
 
 export interface FrameSettlement {
+  error: GPUError | null;
   submissionId: number;
   succeeded: boolean;
 }
@@ -19,13 +20,13 @@ export class FrameQueue {
     return this.pending < MAX_PENDING_FRAMES && !this.disposed;
   }
 
-  trackSubmission(): number {
+  trackSubmission(frameError: Promise<GPUError | null> = Promise.resolve(null)): number {
     const submissionId = this.nextSubmissionId;
     this.nextSubmissionId += 1;
     this.pending += 1;
-    void this.device.queue.onSubmittedWorkDone().then(
-      () => this.complete(submissionId, true),
-      () => this.complete(submissionId, false),
+    void Promise.all([this.device.queue.onSubmittedWorkDone(), frameError]).then(
+      ([, error]) => this.complete(submissionId, error === null, error),
+      () => this.complete(submissionId, false, null),
     );
     return submissionId;
   }
@@ -34,9 +35,9 @@ export class FrameQueue {
     this.disposed = true;
   }
 
-  private complete(submissionId: number, succeeded: boolean): void {
+  private complete(submissionId: number, succeeded: boolean, error: GPUError | null): void {
     if (this.disposed) return;
     this.pending = Math.max(0, this.pending - 1);
-    this.onFrameSettled({ submissionId, succeeded });
+    this.onFrameSettled({ error, submissionId, succeeded });
   }
 }

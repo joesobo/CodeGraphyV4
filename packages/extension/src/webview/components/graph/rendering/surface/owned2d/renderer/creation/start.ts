@@ -4,6 +4,7 @@ interface RendererCreationCallbacks {
   onDeviceLost(message: string): void;
   onFrameComplete(submissionId: number): void;
   onFrameRejected(submissionId: number): void;
+  onRendererError(message: string): void;
   onCreated(renderer: WebGpuGraphRenderer | undefined): void;
   onCreationError(error: unknown): void;
 }
