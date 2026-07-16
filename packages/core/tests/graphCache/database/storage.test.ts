@@ -52,6 +52,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       files: {
         'src/index.ts': {
           mtime: 123,
+          contentHash: 'sha256:index',
           size: 456,
           analysis: {
             filePath: '/workspace/src/index.ts',
@@ -90,6 +91,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         {
           filePath: 'src/index.ts',
           mtime: 123,
+          contentHash: 'sha256:index',
           size: 456,
           analysis: cache.files['src/index.ts']!.analysis,
         },

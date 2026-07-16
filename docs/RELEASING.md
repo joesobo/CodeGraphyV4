@@ -26,6 +26,13 @@ The repo-root [`package.json`](../package.json) is workspace metadata for the mo
 
 `all` discovers the publishable workspace packages from package metadata, publishes npm packages before Marketplace packages, and skips npm versions that already exist.
 
+Before advertising the Agent Skill install command, create the public
+`codegraphy/skills` repository, synchronize the canonical
+[`skills/codegraphy`](../skills/codegraphy/SKILL.md) source, and smoke-test
+`npx skills@latest add codegraphy/skills` from a clean workspace. Until that
+external release prerequisite is complete, contributors can use
+`npx skills@latest add ./skills/codegraphy` from this repository.
+
 The core VS Code extension release publishes platform-specific VSIX targets for
 the native SQLite and Tree-sitter runtimes:
 
@@ -33,8 +40,9 @@ the native SQLite and Tree-sitter runtimes:
 - `darwin-arm64`
 - `win32-x64`
 
-Each target is built on its matching release runner so `better-sqlite3` and
-Tree-sitter native bindings match the VSIX target.
+Each target is built on its matching release runner so the `libsql` Node-API
+binary and Tree-sitter native bindings match the VSIX target. `libsql` is
+Node-API based, so it does not need to be rebuilt for VS Code's Electron V8 ABI.
 
 To dry-run extension packaging before publishing, run:
 
@@ -44,9 +52,10 @@ pnpm run check:vsix-native-artifacts
 ```
 
 This writes target-specific VSIX artifacts under `artifacts/vsix/`. If you
-inspect `extension/dist/node_modules/better-sqlite3/build/Release/better_sqlite3.node` inside each
+inspect `extension/dist/node_modules/@libsql/<platform>/index.node` inside each
 VSIX, Linux should be ELF x86-64, macOS should be Mach-O arm64, and Windows
-should be PE32+ x86-64.
+should be PE32+ x86-64. The extension runtime check also opens an in-memory
+database and performs a write/read round trip through the vendored package.
 
 Use split publishing only when you want a manual checkpoint between npm and Marketplace:
 

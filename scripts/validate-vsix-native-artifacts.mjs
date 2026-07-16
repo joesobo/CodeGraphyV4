@@ -11,10 +11,18 @@ const expectedNativeBinaryByTarget = {
   'win32-x64': 'PE32+ x86-64',
 };
 
-const nativeBinaryPaths = [
-  'extension/dist/node_modules/better-sqlite3/build/Release/better_sqlite3.node',
-  'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
-];
+const libsqlNativeBinaryPathByTarget = {
+  'linux-x64': 'extension/dist/node_modules/@libsql/linux-x64-gnu/index.node',
+  'darwin-arm64': 'extension/dist/node_modules/@libsql/darwin-arm64/index.node',
+  'win32-x64': 'extension/dist/node_modules/@libsql/win32-x64-msvc/index.node',
+};
+
+function nativeBinaryPathsForTarget(target) {
+  return [
+    libsqlNativeBinaryPathByTarget[target],
+    'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
+  ];
+}
 
 function parseRequestedTargets(value) {
   if (!value) {
@@ -146,7 +154,7 @@ export function validateVsixNativeArtifacts({
       throw new Error(`Missing VSIX artifact for ${target} in ${artifactsDir}.`);
     }
 
-    for (const nativeBinaryPath of nativeBinaryPaths) {
+    for (const nativeBinaryPath of nativeBinaryPathsForTarget(target)) {
       const binary = extractNativeBinaryFromVsix(vsixPath, nativeBinaryPath);
       const actualKind = identifyNativeBinary(binary);
 

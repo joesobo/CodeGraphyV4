@@ -125,6 +125,7 @@ codegraphy index
 
 ```bash
 npm install -g @codegraphy-dev/core
+# Available after the public skill repository is published:
 npx skills@latest add codegraphy/skills
 ```
 
@@ -134,7 +135,11 @@ The generalized skill teaches shell-capable agents to run intelligent Indexing w
 Use CodeGraphy to explain how packages/extension/src/webview/app/shell/view.tsx relates to packages/extension/src/webview/components/graph/viewport/view.tsx.
 ```
 
-The canonical skill source in this monorepo is [`skills/codegraphy`](./skills/codegraphy/SKILL.md); releases are published from `codegraphy/skills` for the standard Skills CLI command above.
+The canonical skill source in this monorepo is [`skills/codegraphy`](./skills/codegraphy/SKILL.md).
+Until the public `codegraphy/skills` repository is created, contributors can
+install that source from a clone with `npx skills@latest add ./skills/codegraphy`.
+Creating and synchronizing the public repository is a release prerequisite;
+after publication, the standard command above is canonical.
 
 ## CLI Commands
 

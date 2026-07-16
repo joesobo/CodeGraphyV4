@@ -4,10 +4,12 @@
  */
 
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import { createHash } from 'node:crypto';
 
 export interface ICachedWorkspaceFile {
   mtime: number;
   analysis: IFileAnalysisResult;
+  contentHash?: string;
   size?: number;
 }
 
@@ -17,7 +19,11 @@ export interface IWorkspaceAnalysisCache {
 }
 
 export const WORKSPACE_ANALYSIS_CACHE_KEY = 'codegraphy.analysisCache';
-export const WORKSPACE_ANALYSIS_CACHE_VERSION = '2.1.0';
+export const WORKSPACE_ANALYSIS_CACHE_VERSION = '2.2.0';
+
+export function createWorkspaceFileContentHash(content: string): string {
+  return createHash('sha256').update(content).digest('hex');
+}
 
 export function createEmptyWorkspaceAnalysisCache(): IWorkspaceAnalysisCache {
   return {

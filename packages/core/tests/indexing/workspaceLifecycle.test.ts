@@ -196,6 +196,68 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
   });
 
+  it('applies plugin invalidation paths during incremental CLI-style indexing', async () => {
+    const workspaceRoot = await createWorkspace();
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+    const onFilesChanged = vi.fn(async () => ['target.txt']);
+    const plugin = {
+      ...createTextPlugin(calls),
+      onFilesChanged,
+    };
+    const options = {
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    };
+
+    await indexCodeGraphyWorkspace(options);
+    await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
+    const refreshed = await indexCodeGraphyWorkspace(options);
+
+    expect(onFilesChanged).toHaveBeenCalledWith(
+      [expect.objectContaining({ relativePath: 'source.txt' })],
+      path.resolve(workspaceRoot),
+      expect.any(Object),
+    );
+    expect(refreshed.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 2,
+      deletedFiles: 0,
+      reusedFiles: 0,
+    });
+  });
+
+  it('falls back to a full rebuild when a cached file is deleted', async () => {
+    const workspaceRoot = await createWorkspace();
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+    const options = {
+      workspaceRoot,
+      plugins: [createTextPlugin(calls)],
+      includeCorePlugins: false,
+    };
+
+    await indexCodeGraphyWorkspace(options);
+    await fs.rm(path.join(workspaceRoot, 'target.txt'));
+    const rebuilt = await indexCodeGraphyWorkspace(options);
+
+    expect(rebuilt.indexing).toEqual({
+      mode: 'full',
+      analyzedFiles: 1,
+      deletedFiles: 1,
+      reusedFiles: 0,
+    });
+  });
+
   it('reports a safe full rebuild when a compatible-looking Graph Cache is corrupt', async () => {
     const workspaceRoot = await createWorkspace();
     const calls = {

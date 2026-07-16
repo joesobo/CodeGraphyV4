@@ -155,6 +155,10 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
       workspaceRoot,
       userHomeDir: homeDir,
     });
+    const unchanged = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      userHomeDir: homeDir,
+    });
 
     expect(result.graph.edges).toContainEqual(
       expect.objectContaining({
@@ -166,6 +170,12 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { userHomeDir: homeDir })).toMatchObject({
       state: 'fresh',
       staleReasons: [],
+    });
+    expect(unchanged.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 2,
     });
   });
 

@@ -16,7 +16,7 @@ describe('pipeline/cache', () => {
   });
 
   it('uses a symbol-aware cache version so old Graph Cache files reindex', () => {
-    expect(WORKSPACE_ANALYSIS_CACHE_VERSION).toBe('2.1.0');
+    expect(WORKSPACE_ANALYSIS_CACHE_VERSION).toBe('2.2.0');
   });
 
   it('returns the stored cache when the version matches', () => {
