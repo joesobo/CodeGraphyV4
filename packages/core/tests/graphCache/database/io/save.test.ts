@@ -354,4 +354,14 @@ describe('graphCache/database/io/save', () => {
     expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite.tmp');
     expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
   });
+
+  it('preserves the async replacement error when temporary cleanup also fails', async () => {
+    vi.mocked(temporaryModule.replaceDatabaseCache)
+      .mockImplementationOnce(() => { throw new Error('replacement failed'); });
+    vi.mocked(temporaryModule.cleanupTemporaryDatabase)
+      .mockImplementationOnce(() => { throw new Error('cleanup failed'); });
+
+    await expect(saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache))
+      .rejects.toThrow('replacement failed');
+  });
 });
