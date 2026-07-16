@@ -38,11 +38,10 @@ export function startOwnedGraphFrameLoop(
   let active = true;
   const frameRuntime: OwnedGraphFrameRuntime = {
     ...runtime,
-    recordRenderedFrame(submissionId, timestamp, simulationMs, renderMs, secondaryRefreshMs) {
+    recordRenderedFrame(submissionId, timestamp, simulationMs, renderMs) {
       runtime.performanceMonitorRef.current.stageFrame(submissionId, {
         presentationTimestampMs: timestamp,
         renderMs,
-        secondaryRefreshMs,
         simulationMs,
       });
     },

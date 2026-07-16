@@ -12,6 +12,7 @@ export interface MinimapRefreshInput {
   graphRevision: number;
   graphStyleRevision: number;
   moving: boolean;
+  nodeDragActive?: boolean;
   positionVersion: number;
   surfaceHeight: number;
   surfaceWidth: number;
@@ -58,9 +59,12 @@ export function observeMinimapChanges(
   const projectionInputsChanged = membershipChanged || surfaceChanged || styleChanged;
   const changed = projectionInputsChanged || positionChanged;
   const settled = minimapSettled(scheduler.wasMoving, input.moving);
+  const nodeDragStarted = input.nodeDragActive === true && !scheduler.nodeDragActive;
   if (membershipChanged) scheduler.pendingBoundsReset = true;
   if (projectionInputsChanged) scheduler.projectionFitPending = true;
+  if (nodeDragStarted && !projectionInputsChanged) scheduler.projectionFitPending = false;
   if (changed || settled) scheduler.dirty = true;
   recordMinimapObservation(scheduler, input);
+  scheduler.nodeDragActive = input.nodeDragActive === true;
   return { settled };
 }

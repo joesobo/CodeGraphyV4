@@ -21,7 +21,6 @@ describe('owned graph frame lifecycle', () => {
       100,
       expect.any(Number),
       expect.any(Number),
-      undefined,
     );
     expect(runtime.markPerformanceIdle).toHaveBeenCalledOnce();
     expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();

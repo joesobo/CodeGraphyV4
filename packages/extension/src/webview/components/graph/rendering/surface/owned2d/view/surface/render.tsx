@@ -165,7 +165,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
   const synchronizedPositionVersionRef = useRef(-1);
-  const secondaryRefreshMsRef = useRef<number | undefined>(undefined);
   const linkPickerPositionVersionRef = useRef(-1);
   const linkPickerRef = useLazyRef(() => new OwnedGraphLinkPicker());
   const pickerPositionVersionRef = useRef(-1);
@@ -239,7 +238,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       rendererOperationalRef,
       requestFrameRef,
       simulationClockRef,
-      secondaryRefreshMsRef,
       synchronizedPositionVersionRef,
       publishPerformance: sample => publishOwnedGraphPerformance(
         sample,

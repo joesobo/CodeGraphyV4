@@ -8,6 +8,7 @@ export interface MinimapScheduler {
   lastProjectionFitTimestampMs: number;
   lastRefreshTimestampMs: number;
   nextMovingRefreshTimestampMs: number;
+  nodeDragActive: boolean;
   pendingBoundsReset: boolean;
   projectionFitPending: boolean;
   positionVersion: number;
@@ -26,6 +27,7 @@ export function createMinimapScheduler(): MinimapScheduler {
     lastProjectionFitTimestampMs: Number.NEGATIVE_INFINITY,
     lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
     nextMovingRefreshTimestampMs: Number.NEGATIVE_INFINITY,
+    nodeDragActive: false,
     pendingBoundsReset: false,
     projectionFitPending: true,
     positionVersion: -1,

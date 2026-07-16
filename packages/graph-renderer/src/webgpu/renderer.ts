@@ -49,7 +49,6 @@ export class WebGpuGraphRenderer {
   private readonly passResources: RenderPassResources;
   private readonly uncapturedErrorListener: (event: GPUUncapturedErrorEvent) => void;
   private disposed = false;
-  private secondaryRefreshCpuMs: number | undefined;
   private secondarySurface?: SecondarySurface;
 
   private constructor(
@@ -118,10 +117,6 @@ export class WebGpuGraphRenderer {
     return this.frameQueue.canSubmit();
   }
 
-  lastSecondaryRefreshCpuMs(): number | undefined {
-    return this.secondaryRefreshCpuMs;
-  }
-
   setSecondarySurface(canvas: HTMLCanvasElement | undefined): void {
     this.releaseSecondarySurface();
     if (!canvas) return;
@@ -131,7 +126,6 @@ export class WebGpuGraphRenderer {
   }
 
   render(frame: WebGpuGraphFrame, secondaryFrame?: WebGpuGraphSecondaryFrame): number {
-    this.secondaryRefreshCpuMs = undefined;
     if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
     const device = this.resources.device;
     validateGraphBufferLimits(frame, device.limits.maxBufferSize);
@@ -150,10 +144,8 @@ export class WebGpuGraphRenderer {
         encoder,
         true,
       );
-      let secondaryStartedAt: number | undefined;
       const secondary = this.secondarySurface;
       if (secondary && secondaryFrame) {
-        secondaryStartedAt = performance.now();
         resizeGraphCanvas(secondary.canvas, device, secondaryFrame);
         secondary.camera.uploadSecondary(secondaryFrame);
         updateSecondaryStyleBuffers(
@@ -174,9 +166,6 @@ export class WebGpuGraphRenderer {
         );
       }
       device.queue.submit([encoder.finish()]);
-      if (secondaryStartedAt !== undefined) {
-        this.secondaryRefreshCpuMs = Math.max(0, performance.now() - secondaryStartedAt);
-      }
       return this.frameQueue.trackSubmission(endFrameValidation(device));
     } catch (error) {
       void endFrameValidation(device).catch(() => {});

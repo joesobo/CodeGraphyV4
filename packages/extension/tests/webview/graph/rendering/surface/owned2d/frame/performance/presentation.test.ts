@@ -11,8 +11,6 @@ const activeSample: OwnedGraphActivePerformanceSample = {
   frameTimeMs: 4.25,
   renderedFps: 59.94,
   sampleCount: 120,
-  secondaryRefreshMs: 0.45,
-  secondaryRefreshSampleCount: 8,
 };
 
 describe('owned graph performance presentation', () => {
@@ -30,8 +28,6 @@ describe('owned graph performance presentation', () => {
       performanceStatus: 'active',
       renderedFps: '59.94',
       sampleCount: '120',
-      secondaryRefreshAverageMs: '0.45',
-      secondaryRefreshSampleCount: '8',
     });
     expect(output.dataset.potentialFps).toBeUndefined();
     expect(output).toHaveTextContent('60 FPS · 4.25 ms');
@@ -70,8 +66,6 @@ describe('owned graph performance presentation', () => {
     expect(output.dataset.renderedFps).toBeUndefined();
     expect(output.dataset.frameAverageMs).toBeUndefined();
     expect(output.dataset.sampleCount).toBeUndefined();
-    expect(output.dataset.secondaryRefreshAverageMs).toBeUndefined();
-    expect(output.dataset.secondaryRefreshSampleCount).toBeUndefined();
     expect(output).toHaveTextContent('— FPS · — ms');
   });
 });

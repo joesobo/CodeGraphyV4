@@ -59,7 +59,6 @@
     "build:wasm": "tsx scripts/buildPhysics.ts",
     "watch:wasm": "tsx scripts/buildPhysics.ts --watch",
     "lint": "eslint src tests scripts vitest.config.ts",
-    "profile:minimap": "CODEGRAPHY_PROFILE_MINIMAP=1 vitest run --config vitest.config.ts tests/webgpu/renderer/performance/secondarySurface.profile.test.ts --reporter=verbose",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
