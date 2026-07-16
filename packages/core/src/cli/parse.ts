@@ -1,5 +1,6 @@
 import { isHelpCommandName } from './parseHelp';
 import { parsePluginsCommand } from './parsePlugins';
+import { parseQueryCommand } from './parseQuery';
 import { parseWorkspaceCommand } from './parseWorkspace';
 import type { CliCommand } from './parseTypes';
 
@@ -48,6 +49,9 @@ export function parseCliCommand(argv: string[]): CliCommand {
       break;
     case 'plugins':
       command = parsePluginsCommand(rest);
+      break;
+    case 'query':
+      command = parseQueryCommand(rest);
       break;
     default:
       command = { name: 'help' };

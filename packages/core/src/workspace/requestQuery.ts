@@ -48,7 +48,7 @@ export async function requestWorkspaceGraphQuery(
     });
     return {
       error: 'graph_cache_not_found',
-      message: 'This CodeGraphy Workspace has not been indexed. Run `codegraphy_index`, then retry.',
+      message: 'This CodeGraphy Workspace has not been indexed. Run `codegraphy index`, then retry.',
       workspaceRoot,
     };
   }

@@ -1,5 +1,6 @@
 import { runIndexCommand } from './index/command';
 import { runPluginsCommand } from './plugins/command';
+import { runQueryCommand } from './query/command';
 import { runSetupCommand } from './setup/command';
 import { runStatusCommand } from './status/command';
 import type { CliCommand } from './parse';
@@ -24,6 +25,7 @@ function createHelpResult(): CommandExecutionResult {
       '  codegraphy setup',
       '  codegraphy status [workspace]',
       '  codegraphy index [workspace]',
+      '  codegraphy query <nodes|edges|relationships|symbols|paths> [workspace] [options]',
       '  codegraphy plugins <register|link|list|enable|disable>',
     ].join('\n'),
   };
@@ -67,6 +69,12 @@ export async function runCliCommand(
   command: CliCommand,
   dependencies: CliCommandDependencies = {},
 ): Promise<CommandExecutionResult> {
+  if (command.parseError) {
+    return {
+      exitCode: 2,
+      output: JSON.stringify({ error: 'invalid_arguments', message: command.parseError }),
+    };
+  }
   emitCliDiagnostic(command, dependencies, 'command-started', createCommandContext(command));
   let result: CommandExecutionResult;
 
@@ -88,6 +96,9 @@ export async function runCliCommand(
       break;
     case 'plugins':
       result = await runPluginsCommand(command);
+      break;
+    case 'query':
+      result = await runQueryCommand(command);
       break;
     case 'help':
     default:
