@@ -32,11 +32,11 @@ describe('Relationship Graph minimap refresh scheduling', () => {
   it('refreshes graph and style changes but ignores camera-only frames', () => {
     const scheduler = createMinimapScheduler();
     const graphIdentity = {};
-    scheduleMinimapRefresh(scheduler, {
+    expect(scheduleMinimapRefresh(scheduler, {
       baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
       graphStyleRevision: 1, moving: false, positionVersion: 1,
       surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
-    });
+    })).toMatchObject({ fitProjection: true, refresh: true, tightenBounds: true });
 
     expect(scheduleMinimapRefresh(scheduler, {
       baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,

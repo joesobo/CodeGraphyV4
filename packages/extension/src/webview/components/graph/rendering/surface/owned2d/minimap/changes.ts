@@ -1,4 +1,9 @@
-import type { MinimapScheduler } from './state';
+import {
+  minimapPositionChanged,
+  minimapSettled,
+  recordMinimapObservation,
+  type MinimapScheduler,
+} from './state';
 
 export interface MinimapRefreshInput {
   baseStyleVersion: number;
@@ -34,22 +39,11 @@ function minimapSurfaceChanged(
     || scheduler.surfaceWidth !== input.surfaceWidth;
 }
 
-function minimapVisualsChanged(
+function minimapStyleChanged(
   scheduler: MinimapScheduler,
   input: MinimapRefreshInput,
 ): boolean {
-  return scheduler.positionVersion !== input.positionVersion
-    || scheduler.baseStyleVersion !== input.baseStyleVersion
-    || scheduler.graphStyleRevision !== input.graphStyleRevision;
-}
-
-function minimapProjectionInputsChanged(
-  scheduler: MinimapScheduler,
-  input: MinimapRefreshInput,
-): boolean {
-  return graphMembershipChanged(scheduler, input)
-    || minimapSurfaceChanged(scheduler, input)
-    || scheduler.baseStyleVersion !== input.baseStyleVersion
+  return scheduler.baseStyleVersion !== input.baseStyleVersion
     || scheduler.graphStyleRevision !== input.graphStyleRevision;
 }
 
@@ -58,21 +52,15 @@ export function observeMinimapChanges(
   input: MinimapRefreshInput,
 ): MinimapChangeObservation {
   const membershipChanged = graphMembershipChanged(scheduler, input);
-  const projectionInputsChanged = minimapProjectionInputsChanged(scheduler, input);
-  const changed = membershipChanged
-    || minimapSurfaceChanged(scheduler, input)
-    || minimapVisualsChanged(scheduler, input);
-  const settled = scheduler.wasMoving && !input.moving;
+  const surfaceChanged = minimapSurfaceChanged(scheduler, input);
+  const styleChanged = minimapStyleChanged(scheduler, input);
+  const positionChanged = minimapPositionChanged(scheduler, input.positionVersion);
+  const projectionInputsChanged = membershipChanged || surfaceChanged || styleChanged;
+  const changed = projectionInputsChanged || positionChanged;
+  const settled = minimapSettled(scheduler.wasMoving, input.moving);
   if (membershipChanged) scheduler.pendingBoundsReset = true;
   if (projectionInputsChanged) scheduler.projectionFitPending = true;
   if (changed || settled) scheduler.dirty = true;
-  scheduler.graphIdentity = input.graphIdentity;
-  scheduler.graphRevision = input.graphRevision;
-  scheduler.devicePixelRatio = input.devicePixelRatio;
-  scheduler.positionVersion = input.positionVersion;
-  scheduler.baseStyleVersion = input.baseStyleVersion;
-  scheduler.graphStyleRevision = input.graphStyleRevision;
-  scheduler.surfaceHeight = input.surfaceHeight;
-  scheduler.surfaceWidth = input.surfaceWidth;
+  recordMinimapObservation(scheduler, input);
   return { settled };
 }
