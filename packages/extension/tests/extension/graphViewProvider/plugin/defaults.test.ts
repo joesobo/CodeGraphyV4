@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,6 +8,11 @@ import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { createGraphViewProviderTestHarness } from '../testHarness';
 import { getGraphViewProviderInternals } from '../internals';
 import { createTypeScriptPlugin } from '../../../../../plugin-typescript/src/plugin';
+
+const REPOSITORY_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../../../..',
+);
 
 type GroupSummary = Pick<IGroup, 'id'> & Partial<Pick<IGroup, 'pattern' | 'color' | 'disabled' | 'isPluginDefault' | 'pluginName'>>;
 
@@ -65,7 +71,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
   });
 
   it('computeMergedGroups includes built-in default groups', async () => {
-    harness.mockContext.extensionUri = vscode.Uri.file(path.resolve(process.cwd(), '../..'));
+    harness.mockContext.extensionUri = vscode.Uri.file(REPOSITORY_ROOT);
     harness.recreateProvider();
     const provider = getProvider(harness);
     const internals = getGraphViewProviderInternals(harness.provider);

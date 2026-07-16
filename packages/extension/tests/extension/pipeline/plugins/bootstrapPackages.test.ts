@@ -49,7 +49,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
       plugins: [{
         package: packageName,
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: [],
         packageRoot: stalePackageRoot,
         pluginId,
@@ -110,7 +110,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: [],
         packageRoot,
         pluginId: 'acme.extension-bootstrap',
@@ -152,6 +152,55 @@ describe('pipeline/plugins/bootstrap packages', () => {
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
+  it('warns and skips an incompatible installed plugin without aborting initialization', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-extension-bootstrap',
+    );
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await createPluginPackage(packageRoot, '^2.0.0');
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.extension-bootstrap',
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'acme.extension-bootstrap', enabled: true },
+      ],
+    });
+    registry.register.mockImplementation((plugin) => {
+      if (plugin.apiVersion === '^2.0.0') {
+        throw new Error("Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '3.0.0'.");
+      }
+    });
+
+    await expect(initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    })).resolves.toBeUndefined();
+
+    expect(warn).toHaveBeenCalledWith(
+      "CodeGraphy plugin 'acme.extension-bootstrap' could not be registered: Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '3.0.0'.",
+    );
+    expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+    warn.mockRestore();
+  });
+
   it('does not register installed package plugins that are not enabled for the current CodeGraphy Workspace', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
@@ -169,7 +218,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: [],
         packageRoot,
         pluginId: 'acme.extension-bootstrap',

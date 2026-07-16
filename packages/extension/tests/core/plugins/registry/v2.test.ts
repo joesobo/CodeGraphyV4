@@ -19,7 +19,7 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     onLoad: vi.fn(),
@@ -91,7 +91,7 @@ describe('PluginRegistry v2', () => {
 
         it('rejects a plugin targeting a future core API major', () => {
           const { registry } = createConfiguredRegistry();
-          const plugin = createV2Plugin('future-plugin', { apiVersion: '^3.0.0' });
+          const plugin = createV2Plugin('future-plugin', { apiVersion: '^4.0.0' });
 
           expect(() => registry.register(plugin)).toThrow(/future CodeGraphy Plugin API/);
           expect(registry.size).toBe(0);
@@ -101,7 +101,7 @@ describe('PluginRegistry v2', () => {
 
         it('rejects a plugin targeting an unsupported older core API major', () => {
           const { registry } = createConfiguredRegistry();
-          const plugin = createV2Plugin('legacy-plugin', { apiVersion: '^1.0.0' });
+          const plugin = createV2Plugin('legacy-plugin', { apiVersion: '^2.0.0' });
 
           expect(() => registry.register(plugin)).toThrow(/unsupported CodeGraphy Plugin API/);
           expect(registry.size).toBe(0);

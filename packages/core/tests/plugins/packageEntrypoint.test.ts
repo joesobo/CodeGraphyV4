@@ -38,7 +38,7 @@ describe('plugins/package entrypoint and runtime values', () => {
         id: 'default-plugin',
         name: 'Default Plugin',
         version: '1.0.0',
-        apiVersion: '2',
+        apiVersion: '3',
         supportedExtensions: ['.ts'],
       },
     }, 'default-package')).resolves.toMatchObject({ id: 'default-plugin' });
@@ -48,7 +48,7 @@ describe('plugins/package entrypoint and runtime values', () => {
         id: 'factory-plugin',
         name: 'Factory Plugin',
         version: '1.0.0',
-        apiVersion: '2',
+        apiVersion: '3',
         supportedExtensions: ['.ts'],
       }),
     }, 'factory-package')).resolves.toMatchObject({ id: 'factory-plugin' });
@@ -58,7 +58,7 @@ describe('plugins/package entrypoint and runtime values', () => {
         id: 'named-plugin',
         name: 'Named Plugin',
         version: '1.0.0',
-        apiVersion: '2',
+        apiVersion: '3',
         supportedExtensions: ['.ts'],
       },
     }, 'named-package')).resolves.toMatchObject({ id: 'named-plugin' });

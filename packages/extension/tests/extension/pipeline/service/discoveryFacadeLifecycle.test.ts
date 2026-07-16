@@ -19,10 +19,21 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
   rebuildWorkspacePipelineGraph: vi.fn(),
 }));
 
-vi.mock('node:child_process', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('node:child_process')>()),
-  spawnSync: vi.fn(),
+const childProcessMock = vi.hoisted(() => ({
+  spawnSync: vi.fn(() => ({ error: undefined, status: 1, stdout: '' })),
 }));
+
+vi.mock('node:child_process', async (importOriginal) => {
+  const original = await importOriginal<typeof import('node:child_process')>();
+  return {
+    ...original,
+    spawnSync: childProcessMock.spawnSync,
+    default: {
+      ...original,
+      spawnSync: childProcessMock.spawnSync,
+    },
+  };
+});
 
 vi.mock('vscode', () => ({
   workspace: {

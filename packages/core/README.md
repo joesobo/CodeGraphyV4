@@ -57,7 +57,7 @@ Plugin npm packages identify themselves with package metadata:
   "version": "1.2.3",
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "defaultOptions": {
       "includeTests": true
     },

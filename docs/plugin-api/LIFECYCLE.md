@@ -23,7 +23,7 @@ Registration reads global package metadata without importing plugin runtime code
   },
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "defaultOptions": {
       "includeTests": true
     },
@@ -40,7 +40,7 @@ The same package declares its static Plugin ID and display metadata in `codegrap
   "id": "acme.plugin",
   "name": "Acme Plugin",
   "version": "1.0.0",
-  "apiVersion": "^2.0.0",
+  "apiVersion": "^3.0.0",
   "supportedExtensions": [".ts"]
 }
 ```
@@ -58,7 +58,7 @@ const plugin: IPlugin = {
   id: 'acme.plugin',
   name: 'Acme Plugin',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: ['.ts'],
 };
 ```
@@ -165,7 +165,7 @@ export function createMetricsPlugin(): IPlugin {
     id: 'codegraphy-metrics',
     name: 'Metrics',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['*'],
 
     async initialize(workspaceRoot, context) {
