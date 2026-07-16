@@ -41,7 +41,7 @@ const fsModule = await import('node:fs');
 describe('graphCache/database/load', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.lbug');
+    vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.sqlite');
     vi.mocked(createEmptyWorkspaceAnalysisCache).mockImplementation(() => ({
       version: '0.0.0',
       files: {},
@@ -102,7 +102,7 @@ describe('graphCache/database/load', () => {
       version: '0.0.0',
       files: {},
     });
-    expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug');
+    expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite');
     expect(warn).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.',
       expect.any(Error),
@@ -135,6 +135,6 @@ describe('graphCache/database/load', () => {
     vi.mocked(withConnectionAsync).mockRejectedValue(new Error('database error'));
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toEqual({ version: '0.0.0', files: {} });
-    expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug');
+    expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite');
   });
 });

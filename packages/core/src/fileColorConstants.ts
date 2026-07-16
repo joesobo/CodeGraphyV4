@@ -1,7 +1,7 @@
 /**
  * Static default color palette for built-in file extensions.
  *
- * These values back current graph data defaults across core, extension, MCP, and CLI.
+ * These values back current graph data defaults across core, extension, and CLI.
  */
 export const FILE_TYPE_COLORS: Readonly<Record<string, string>> = Object.freeze({
   '.ts': '#93C5FD',    // Soft blue

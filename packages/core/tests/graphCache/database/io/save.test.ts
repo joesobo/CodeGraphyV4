@@ -70,9 +70,9 @@ describe('graphCache/database/io/save', () => {
     vi.clearAllMocks();
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(pathsModule.getWorkspaceAnalysisDatabasePath)
-      .mockReturnValue('/workspace/.codegraphy/graph.lbug');
+      .mockReturnValue('/workspace/.codegraphy/graph.sqlite');
     vi.mocked(temporaryModule.createTemporaryDatabasePath)
-      .mockReturnValue('/workspace/.codegraphy/graph.lbug.tmp');
+      .mockReturnValue('/workspace/.codegraphy/graph.sqlite.tmp');
     vi.mocked(writeModule.sortedCacheEntries).mockImplementation(cacheInput =>
       Object.entries(cacheInput.files)
         .sort(([left], [right]) => left.localeCompare(right)) as never,
@@ -108,7 +108,7 @@ describe('graphCache/database/io/save', () => {
 
     expect(pathsModule.ensureDatabaseDirectory).toHaveBeenCalledWith('/workspace');
     expect(connectionModule.withConnection).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug.tmp',
+      '/workspace/.codegraphy/graph.sqlite.tmp',
       expect.any(Function),
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
@@ -139,8 +139,8 @@ describe('graphCache/database/io/save', () => {
       { mtime: 2, size: 20, analysis: {} },
     );
     expect(temporaryModule.replaceDatabaseCache).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug.tmp',
-      '/workspace/.codegraphy/graph.lbug',
+      '/workspace/.codegraphy/graph.sqlite.tmp',
+      '/workspace/.codegraphy/graph.sqlite',
     );
     expect(temporaryModule.cleanupTemporaryDatabase).not.toHaveBeenCalled();
   });
@@ -161,7 +161,7 @@ describe('graphCache/database/io/save', () => {
     });
 
     expect(() => saveWorkspaceAnalysisDatabaseCache('/workspace', cache)).toThrow('write failed');
-    expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug.tmp');
+    expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite.tmp');
     expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
   });
 
@@ -169,7 +169,7 @@ describe('graphCache/database/io/save', () => {
     clearWorkspaceAnalysisDatabaseCache('/workspace');
 
     expect(connectionModule.withConnection).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug',
+      '/workspace/.codegraphy/graph.sqlite',
       expect.any(Function),
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
@@ -294,8 +294,8 @@ describe('graphCache/database/io/save', () => {
     expect(onProgress).toHaveBeenNthCalledWith(2, { current: 1, total: 2 });
     expect(onProgress).toHaveBeenNthCalledWith(3, { current: 2, total: 2 });
     expect(temporaryModule.replaceDatabaseCache).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug.tmp',
-      '/workspace/.codegraphy/graph.lbug',
+      '/workspace/.codegraphy/graph.sqlite.tmp',
+      '/workspace/.codegraphy/graph.sqlite',
     );
   });
 
@@ -331,7 +331,7 @@ describe('graphCache/database/io/save', () => {
 
     await expect(saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache))
       .rejects.toThrow('async write failed');
-    expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug.tmp');
+    expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite.tmp');
     expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
   });
 });

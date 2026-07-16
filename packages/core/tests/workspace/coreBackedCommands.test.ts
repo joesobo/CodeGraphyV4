@@ -10,7 +10,7 @@ import { readCodeGraphyWorkspaceStatusForCli } from '../../src/workspace/request
 
 describe('core-backed CodeGraphy Workspace commands', () => {
   it('indexes, reports fresh status, and queries a workspace without VS Code', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-mcp-workspace-'));
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-workspace-'));
     await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
     await fs.writeFile(path.join(workspaceRoot, 'Target.md'), 'Done.\n', 'utf-8');
 

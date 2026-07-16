@@ -105,7 +105,7 @@ function createPythonRepoWorkspace(): string {
     path.join(workspacePath, 'example-python'),
     {
       recursive: true,
-      filter: (source) => !source.includes(`${path.sep}.codegraphy${path.sep}graph.lbug`),
+      filter: (source) => !source.includes(`${path.sep}.codegraphy${path.sep}graph.sqlite`),
     },
   );
   fs.mkdirSync(path.join(workspacePath, '.codegraphy'), { recursive: true });

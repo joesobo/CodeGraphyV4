@@ -1966,12 +1966,12 @@
       "fillStyle": "solid",
       "fontSize": 13,
       "fontFamily": 1,
-      "text": ".codegraphy/graph.lbug",
-      "rawText": ".codegraphy/graph.lbug",
+      "text": ".codegraphy/graph.sqlite",
+      "rawText": ".codegraphy/graph.sqlite",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": ".codegraphy/graph.lbug",
+      "originalText": ".codegraphy/graph.sqlite",
       "lineHeight": 1.25
     },
     {
@@ -2426,12 +2426,12 @@
       "fillStyle": "solid",
       "fontSize": 17,
       "fontFamily": 1,
-      "text": "CodeGraphy MCP",
-      "rawText": "CodeGraphy MCP",
+      "text": "Graph Query CLI",
+      "rawText": "Graph Query CLI",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "CodeGraphy MCP",
+      "originalText": "Graph Query CLI",
       "lineHeight": 1.25
     },
     {
@@ -2496,12 +2496,12 @@
       "fillStyle": "solid",
       "fontSize": 12,
       "fontFamily": 1,
-      "text": "packages/core owns the engine. packages/extension owns VS Code UI. packages/plugin-* enrich analysis. packages/mcp queries the same Graph Cache.",
-      "rawText": "packages/core owns the engine. packages/extension owns VS Code UI. packages/plugin-* enrich analysis. packages/mcp queries the same Graph Cache.",
+      "text": "packages/core owns the engine and CLI. packages/extension owns VS Code UI. packages/plugin-* enrich analysis.",
+      "rawText": "packages/core owns the engine and CLI. packages/extension owns VS Code UI. packages/plugin-* enrich analysis.",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "packages/core owns the engine. packages/extension owns VS Code UI. packages/plugin-* enrich analysis. packages/mcp queries the same Graph Cache.",
+      "originalText": "packages/core owns the engine and CLI. packages/extension owns VS Code UI. packages/plugin-* enrich analysis.",
       "lineHeight": 1.25
     }
   ],

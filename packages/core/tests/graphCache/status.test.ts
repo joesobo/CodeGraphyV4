@@ -12,14 +12,14 @@ describe('Graph Cache status', () => {
 
     expect(status).toEqual({
       workspaceRoot: path.resolve(workspaceRoot),
-      graphCachePath: path.join(path.resolve(workspaceRoot), '.codegraphy', 'graph.lbug'),
+      graphCachePath: path.join(path.resolve(workspaceRoot), '.codegraphy', 'graph.sqlite'),
       state: 'missing',
     });
   });
 
   it('reports an available workspace-local Graph Cache', () => {
     expect(readGraphCacheStatus('/workspace', {
-      exists: (filePath) => filePath === '/workspace/.codegraphy/graph.lbug',
+      exists: (filePath) => filePath === '/workspace/.codegraphy/graph.sqlite',
     }).state).toBe('available');
   });
 });

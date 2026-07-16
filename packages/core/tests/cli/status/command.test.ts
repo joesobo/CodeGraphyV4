@@ -8,7 +8,7 @@ describe('status/command', () => {
       cwd: () => '/workspace/project',
       readStatus: ({ workspacePath }) => ({
         workspaceRoot: workspacePath ?? '/workspace/project',
-        graphCache: '/workspace/project/.codegraphy/graph.lbug',
+        graphCache: '/workspace/project/.codegraphy/graph.sqlite',
         state: 'missing',
         hasGraphCache: false,
         staleReasons: ['never-indexed'],
@@ -37,7 +37,7 @@ describe('status/command', () => {
         });
         return {
           workspaceRoot: '/workspace/project',
-          graphCache: '.codegraphy/graph.lbug',
+          graphCache: '.codegraphy/graph.sqlite',
           state: 'missing',
           hasGraphCache: false,
           staleReasons: ['never-indexed'],

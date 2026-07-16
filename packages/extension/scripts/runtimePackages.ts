@@ -6,6 +6,8 @@ const require = createRequire(import.meta.url);
 
 export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'better-sqlite3',
+  'bindings',
+  'file-uri-to-path',
   'material-icon-theme',
   'node-gyp-build',
   'tree-sitter',

@@ -34,7 +34,7 @@ describe('pipeline/service/cache/index', () => {
     const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-index-cache-'));
     const databaseDirectory = path.join(workspaceRoot, '.codegraphy');
     fs.mkdirSync(databaseDirectory, { recursive: true });
-    fs.writeFileSync(path.join(databaseDirectory, 'graph.lbug'), '', 'utf8');
+    fs.writeFileSync(path.join(databaseDirectory, 'graph.sqlite'), '', 'utf8');
     tempRoots.add(workspaceRoot);
     return workspaceRoot;
   }

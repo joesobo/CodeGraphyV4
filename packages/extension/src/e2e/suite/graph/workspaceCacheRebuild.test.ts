@@ -88,7 +88,7 @@ suite('Graph: Workspace Analysis', function () {
       );
       assert.ok(
         progressPhases.includes('Saving Graph Cache'),
-        `Expected cache persistence progress while writing graph.lbug. Phases: ${progressPhases.join(', ')}`,
+        `Expected cache persistence progress while writing graph.sqlite. Phases: ${progressPhases.join(', ')}`,
       );
 
       const firstRebuiltIndex = graphUpdates.findIndex(

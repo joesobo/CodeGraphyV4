@@ -97,7 +97,7 @@ export function createAcceptanceWorkspaceCopyFilter(workspaceRoot: string): (sou
     }
 
     if (isAcceptanceGeneratedArtifact(relativePath)
-      || relativePath === '.codegraphy/graph.lbug'
+      || relativePath === '.codegraphy/graph.sqlite'
       || relativePath === '.codegraphy/meta.json') {
       return false;
     }
