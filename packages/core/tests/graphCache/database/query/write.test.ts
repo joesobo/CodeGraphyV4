@@ -85,6 +85,7 @@ describe('graphCache/database/writeStatements', () => {
       {
         mtime: 10,
         size: 20,
+        contentHash: 'sha256:app',
         analysis,
       } as never,
     );
@@ -94,6 +95,7 @@ describe('graphCache/database/writeStatements', () => {
       filePath: '/workspace/src/app.ts',
       mtime: 10,
       size: 20,
+      contentHash: 'sha256:app',
       analysis: JSON.stringify(analysis),
     });
   });
@@ -122,6 +124,7 @@ describe('graphCache/database/writeStatements', () => {
       filePath: '/workspace/src/app.ts',
       mtime: 10,
       size: 20,
+      contentHash: null,
       analysis: JSON.stringify({}),
     });
   });
@@ -155,6 +158,7 @@ describe('graphCache/database/writeStatements', () => {
       filePath: '/workspace/src/app.ts',
       mtime: 0,
       size: 0,
+      contentHash: null,
       analysis: JSON.stringify({}),
     });
     expect(afterStatement).toHaveBeenCalledOnce();
