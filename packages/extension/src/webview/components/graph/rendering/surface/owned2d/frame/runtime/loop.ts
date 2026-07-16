@@ -6,6 +6,7 @@ import type {
   OwnedGraphPerformanceMonitor,
   OwnedGraphPerformanceSample,
 } from '../performance/model';
+import { observeDevicePixelRatio } from './pixelRatio';
 
 export type OwnedGraphFrameLoopRuntime = Omit<
   OwnedGraphFrameRuntime,
@@ -70,12 +71,16 @@ export function startOwnedGraphFrameLoop(
   controlsRef.current = controls;
   const resizeObserver = new ResizeObserver(() => runtime.requestFrameRef.current());
   resizeObserver.observe(canvas);
+  const stopObservingDevicePixelRatio = observeDevicePixelRatio(
+    () => runtime.requestFrameRef.current(),
+  );
   runtime.requestFrameRef.current();
 
   return {
     dispose: () => {
       active = false;
       resizeObserver.disconnect();
+      stopObservingDevicePixelRatio();
       if (runtime.animationFrameRef.current !== null) {
         window.cancelAnimationFrame(runtime.animationFrameRef.current);
         runtime.animationFrameRef.current = null;

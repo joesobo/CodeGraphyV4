@@ -1,8 +1,12 @@
 import type { ReactElement, RefObject } from 'react';
 import type { MinimapViewport } from './viewport';
 import type { MinimapInteractionHandlers } from './interaction';
+import {
+  OWNED_GRAPH_MINIMAP_LEFT_INSET,
+  OWNED_GRAPH_MINIMAP_SIZE,
+} from './layout';
 
-export const OWNED_GRAPH_MINIMAP_SIZE = 160;
+export { OWNED_GRAPH_MINIMAP_SIZE } from './layout';
 
 interface OwnedGraphMinimapProps {
   canvasRef: RefObject<HTMLCanvasElement>;
@@ -28,7 +32,7 @@ export function OwnedGraphMinimap({
     <div
       ref={panelRef}
       aria-label="Relationship Graph minimap"
-      className="absolute bottom-3 left-3 z-20 h-40 w-40 overflow-hidden rounded-sm border border-border bg-background shadow-md"
+      className="absolute bottom-3 z-20 h-40 w-40 overflow-hidden rounded-sm border border-border bg-background shadow-md"
       data-testid="graph-minimap"
       onContextMenu={interactionHandlers?.onContextMenu}
       onKeyDown={interactionHandlers?.onKeyDown}
@@ -39,7 +43,7 @@ export function OwnedGraphMinimap({
       onPointerUp={interactionHandlers?.onPointerUp}
       onWheel={interactionHandlers?.onWheel}
       role="group"
-      style={{ touchAction: 'none' }}
+      style={{ left: OWNED_GRAPH_MINIMAP_LEFT_INSET, touchAction: 'none' }}
       tabIndex={-1}
     >
       <canvas
