@@ -1,15 +1,10 @@
 import {
-  measureGraphSceneBounds,
+  measureGraphSceneFit,
   type GraphRendererLink,
   type GraphRendererNode,
   type GraphRendererNodeStyle,
-  type GraphSceneBounds,
 } from '@codegraphy-dev/graph-renderer';
 import type { MinimapProjection } from './projection';
-
-const MINIMUM_FIT_ZOOM = 0.0001;
-const MAXIMUM_FIT_ZOOM = 1_000_000;
-const FIT_SEARCH_STEPS = 24;
 
 export interface MinimapScene {
   getNodeStyle(this: void, node: GraphRendererNode): GraphRendererNodeStyle;
@@ -17,30 +12,16 @@ export interface MinimapScene {
   nodes: readonly GraphRendererNode[];
 }
 
-function requiredZoom(bounds: GraphSceneBounds, available: number): number {
-  const width = Math.max(Number.EPSILON, bounds.maxX - bounds.minX);
-  const height = Math.max(Number.EPSILON, bounds.maxY - bounds.minY);
-  return Math.min(available / width, available / height);
-}
-
-function sceneFits(scene: MinimapScene, zoom: number, available: number): boolean {
-  const bounds = measureGraphSceneBounds({ ...scene, zoom });
-  return Boolean(bounds && zoom <= requiredZoom(bounds, available));
-}
-
-function findFitZoom(scene: MinimapScene, available: number): number {
-  let lower = MINIMUM_FIT_ZOOM;
-  let upper = 1;
-  while (upper < MAXIMUM_FIT_ZOOM && sceneFits(scene, upper, available)) {
-    lower = upper;
-    upper *= 2;
+function axisFitZoom(span: number, nodeHalfSize: number, available: number): number {
+  if (span <= Number.EPSILON) {
+    return nodeHalfSize > 0
+      ? (available / (nodeHalfSize * 2)) ** 2
+      : Number.POSITIVE_INFINITY;
   }
-  for (let step = 0; step < FIT_SEARCH_STEPS; step += 1) {
-    const candidate = (lower + upper) / 2;
-    if (sceneFits(scene, candidate, available)) lower = candidate;
-    else upper = candidate;
-  }
-  return lower;
+  const rootZoom = (
+    Math.sqrt(nodeHalfSize ** 2 + span * available) - nodeHalfSize
+  ) / span;
+  return rootZoom ** 2;
 }
 
 export function fitMinimapSceneProjection(
@@ -49,9 +30,13 @@ export function fitMinimapSceneProjection(
   padding: number,
 ): MinimapProjection | undefined {
   const available = Math.max(1, size - padding * 2);
-  const zoom = findFitZoom(scene, available);
-  const bounds = measureGraphSceneBounds({ ...scene, zoom });
-  if (!bounds) return undefined;
+  const measurement = measureGraphSceneFit(scene);
+  if (!measurement) return undefined;
+  const { bounds, maxNodeHalfHeight, maxNodeHalfWidth } = measurement;
+  const zoom = Math.min(
+    axisFitZoom(bounds.maxX - bounds.minX, maxNodeHalfWidth, available),
+    axisFitZoom(bounds.maxY - bounds.minY, maxNodeHalfHeight, available),
+  );
   return {
     centerX: (bounds.minX + bounds.maxX) / 2,
     centerY: (bounds.minY + bounds.maxY) / 2,

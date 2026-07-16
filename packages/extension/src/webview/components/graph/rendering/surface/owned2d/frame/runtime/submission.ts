@@ -154,6 +154,7 @@ export function submitOwnedWebGpuFrame(
 ): number | null {
   const renderer = runtime.gpuRendererRef.current;
   if (!renderer) return null;
+  runtime.secondaryRefreshMsRef.current = undefined;
   const props = runtime.propsRef.current;
   try {
     const styleVersion = props.getStyleRevision();
@@ -166,7 +167,7 @@ export function submitOwnedWebGpuFrame(
       styleVersion,
     );
     presentMinimapViewport(runtime, prepared);
-    return renderer.render({ backgroundColor: props.backgroundColor, camera: runtime.cameraRef.current,
+    const submissionId = renderer.render({ backgroundColor: props.backgroundColor, camera: runtime.cameraRef.current,
       cssHeight: prepared.height, cssWidth: prepared.width, devicePixelRatio: prepared.devicePixelRatio,
       directionMode: props.directionMode, edgeSources: layout.engine.edgeSources, edgeTargets: layout.engine.edgeTargets,
       getArrowColor: props.getArrowColor, getLinkColor: props.getLinkColor, getLinkOpacity: props.getLinkOpacity,
@@ -174,5 +175,7 @@ export function submitOwnedWebGpuFrame(
       hoveredNodeIndex: hoveredNodeIndex(runtime, layout), hoveredNodeScale: runtime.nodeHoverRef.current.scale,
       links: layout.links, nodes: layout.nodes, nodeX: layout.engine.x, nodeY: layout.engine.y,
       positionVersion: runtime.positionVersionRef.current, styleVersion }, secondaryFrame);
+    runtime.secondaryRefreshMsRef.current = renderer.lastSecondaryRefreshCpuMs?.();
+    return submissionId;
   } catch (error) { failFrame(runtime, layout, error); return null; }
 }

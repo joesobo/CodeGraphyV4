@@ -95,6 +95,7 @@ describe('WebGPU renderer frame packing', () => {
       'CodeGraphy secondary link styles',
     ]);
     expect(getBaseNodeStyle).toHaveBeenCalledTimes(2);
+    expect(renderer!.lastSecondaryRefreshCpuMs()).toEqual(expect.any(Number));
     expect(Array.from(uploadedFloats(harness, 'CodeGraphy secondary node styles').slice(2, 5)))
       .toEqual([
         expect.closeTo(1 / 255, 5),
@@ -105,6 +106,17 @@ describe('WebGPU renderer frame packing', () => {
 
     renderer!.setSecondarySurface(undefined);
     expect(secondaryContext.unconfigure).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports no secondary refresh cost for a primary-only frame', async () => {
+    const harness = webGpuHarness();
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(), onFrameComplete: vi.fn(), onRendererError: vi.fn(),
+    });
+
+    renderer!.render(rendererFrame());
+
+    expect(renderer!.lastSecondaryRefreshCpuMs()).toBeUndefined();
   });
 
   it('packs and caches graph instances while submitting links before nodes', async () => {

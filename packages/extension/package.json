@@ -19,6 +19,7 @@
     "dev": "pnpm run watch",
     "generate:acceptance": "quality-tools acceptance compile \"tests/acceptance/specs/**/*.feature\" \"tests/playwright-vscode/generated\" --steps \"tests/acceptance/steps.ts\" --ir \"tests/playwright-vscode/generated-ir\" --dry \"reports/acceptance-dry\"",
     "generate:cucumber-steps": "tsx tests/acceptance/cucumber/generator.ts",
+    "profile:minimap": "tsx scripts/profileMinimap.ts",
     "test": "vitest run --config vitest.config.ts",
     "test:node": "vitest run --config vitest.config.ts --project node",
     "test:webview": "vitest run --config vitest.config.ts --project webview",

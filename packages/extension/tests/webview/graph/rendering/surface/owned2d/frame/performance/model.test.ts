@@ -9,7 +9,8 @@ const frame = (
   presentationTimestampMs: number,
   renderMs = 3,
   simulationMs = 2,
-) => ({ presentationTimestampMs, renderMs, simulationMs });
+  secondaryRefreshMs?: number,
+) => ({ presentationTimestampMs, renderMs, secondaryRefreshMs, simulationMs });
 
 let nextSubmissionId = 1;
 
@@ -54,6 +55,22 @@ describe('owned graph FPS monitor', () => {
       frameTimeMs: 6.5,
       renderedFps: 50,
       sampleCount: 2,
+    });
+  });
+
+  it('reports secondary refresh work separately from total frame cost', () => {
+    const monitor = createOwnedGraphPerformanceMonitor();
+
+    recordSuccessfulFrame(monitor, frame(0, 3, 2, 0.4));
+    recordSuccessfulFrame(monitor, frame(20, 5, 3, 0.8));
+
+    expect(monitor.sample()).toEqual({
+      status: 'active',
+      frameTimeMs: 6.5,
+      renderedFps: 50,
+      sampleCount: 2,
+      secondaryRefreshMs: expect.closeTo(0.6),
+      secondaryRefreshSampleCount: 2,
     });
   });
 

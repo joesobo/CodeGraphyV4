@@ -7,6 +7,24 @@ import { renderOwnedGraphFrame } from '../../../../../../../../src/webview/compo
 import { canvasFixture, runtimeFixture } from './fixture';
 
 describe('owned graph frame execution', () => {
+  it('records an isolated secondary refresh measurement with the submitted frame', () => {
+    const renderer = {
+      lastSecondaryRefreshCpuMs: vi.fn(() => 0.45),
+      render: vi.fn(() => 42),
+    } as unknown as OwnedWebGpuRenderer;
+    const { runtime } = runtimeFixture(renderer);
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100);
+
+    expect(runtime.recordRenderedFrame).toHaveBeenCalledWith(
+      42,
+      100,
+      expect.any(Number),
+      expect.any(Number),
+      0.45,
+    );
+  });
+
   it('runs frame phases in order and updates the FPS monitor', () => {
     let submittedFrame: OwnedWebGpuFrame | undefined;
     const renderer = {
@@ -40,6 +58,7 @@ describe('owned graph frame execution', () => {
       100,
       expect.any(Number),
       expect.any(Number),
+      undefined,
     );
     const [, , simulationMs, renderMs] = vi.mocked(runtime.recordRenderedFrame).mock.calls[0];
     expect(simulationMs).toBeGreaterThanOrEqual(0);
@@ -152,6 +171,7 @@ describe('owned graph frame execution', () => {
       100,
       expect.any(Number),
       expect.any(Number),
+      undefined,
     );
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
     expect(consoleError).toHaveBeenCalledWith(

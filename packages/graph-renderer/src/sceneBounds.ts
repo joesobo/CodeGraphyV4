@@ -22,6 +22,12 @@ export interface GraphSceneBoundsInput {
   zoom: number;
 }
 
+export interface GraphSceneFitMeasurement {
+  bounds: GraphSceneBounds;
+  maxNodeHalfHeight: number;
+  maxNodeHalfWidth: number;
+}
+
 function includePoint(bounds: GraphSceneBounds, x: number, y: number): void {
   bounds.maxX = Math.max(bounds.maxX, x);
   bounds.maxY = Math.max(bounds.maxY, y);
@@ -50,6 +56,29 @@ function includeLinks(bounds: GraphSceneBounds, links: readonly GraphRendererLin
       includePoint(bounds, point.x, point.y);
     }
   }
+}
+
+export function measureGraphSceneFit(
+  input: Omit<GraphSceneBoundsInput, 'zoom'>,
+): GraphSceneFitMeasurement | undefined {
+  const bounds = {
+    maxX: Number.NEGATIVE_INFINITY,
+    maxY: Number.NEGATIVE_INFINITY,
+    minX: Number.POSITIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
+  };
+  let maxNodeHalfHeight = 0;
+  let maxNodeHalfWidth = 0;
+  for (const node of input.nodes) {
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
+    includePoint(bounds, node.x as number, node.y as number);
+    const style = input.getNodeStyle(node);
+    maxNodeHalfWidth = Math.max(maxNodeHalfWidth, Math.max(0.5, style.width / 2));
+    maxNodeHalfHeight = Math.max(maxNodeHalfHeight, Math.max(0.5, style.height / 2));
+  }
+  includeLinks(bounds, input.links);
+  if (!Number.isFinite(bounds.minX)) return undefined;
+  return { bounds, maxNodeHalfHeight, maxNodeHalfWidth };
 }
 
 export function measureGraphSceneBounds(
