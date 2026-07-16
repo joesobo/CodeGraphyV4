@@ -114,21 +114,15 @@ describe('resolveScopedVitestIncludes', () => {
 });
 
 describe('runCodeGraphyMutationCli', () => {
-  it('hydrates the target package before delegating to the external mutation runner', async () => {
-    const hydrateMutationSeed = vi.fn();
+  it('delegates the scoped target to the local mutation runner', async () => {
     const runQualityToolsMutate = vi.fn(async () => undefined);
 
     await runCodeGraphyMutationCli(['extension', 'src/webview/vscodeApi.ts'], {
-      hydrateMutationSeed,
       repoRoot: REPO_ROOT,
       resolveQualityTarget: createResolveQualityTarget(),
       runQualityToolsMutate,
     });
 
-    expect(hydrateMutationSeed).toHaveBeenCalledWith({
-      packageName: 'extension',
-      repoRoot: REPO_ROOT,
-    });
     expect(runQualityToolsMutate).toHaveBeenCalledWith([
       'packages/extension/src/webview/vscodeApi.ts',
     ], expect.objectContaining({
@@ -142,17 +136,14 @@ describe('runCodeGraphyMutationCli', () => {
   });
 
   it('passes no-target invocations through so the external runner owns the error message', async () => {
-    const hydrateMutationSeed = vi.fn();
     const runQualityToolsMutate = vi.fn(async () => undefined);
 
     await runCodeGraphyMutationCli([], {
-      hydrateMutationSeed,
       repoRoot: REPO_ROOT,
       resolveQualityTarget: createResolveQualityTarget(),
       runQualityToolsMutate,
     });
 
-    expect(hydrateMutationSeed).not.toHaveBeenCalled();
     expect(runQualityToolsMutate).toHaveBeenCalledWith([], expect.any(Object));
   });
 });
