@@ -147,6 +147,25 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(rendererHarness.setSecondarySurface).toHaveBeenLastCalledWith(undefined);
   });
 
+  it('reports secondary-surface setup failures without leaking registration', async () => {
+    rendererHarness.setSecondarySurface.mockImplementation((canvas?: HTMLCanvasElement) => {
+      if (canvas) throw new Error('secondary surface failed');
+    });
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
+    });
+
+    const { container } = render(<OwnedGraphSurface2d {...createDefaultSurfaceProps()} />);
+
+    expect(await screen.findByTestId('graph-webgpu-error'))
+      .toHaveTextContent('secondary surface failed');
+    expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'error');
+    expect(rendererHarness.setSecondarySurface).toHaveBeenLastCalledWith(undefined);
+  });
+
   it('shows an explicit error instead of switching to a Canvas graph renderer', async () => {
     rendererHarness.create.mockResolvedValue(undefined);
     const props = createDefaultSurfaceProps();

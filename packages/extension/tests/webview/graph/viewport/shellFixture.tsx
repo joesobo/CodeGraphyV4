@@ -182,6 +182,13 @@ export function createInteractions(): UseGraphInteractionRuntimeResult {
 export function createCallbacks() {
   return {
     getArrowColor: vi.fn(),
+    getBaseLinkColor: vi.fn(),
+    getBaseLinkOpacity: vi.fn(() => 0.3),
+    getBaseLinkWidth: vi.fn(() => 1),
+    getBaseNodeStyle: vi.fn(() => ({
+      borderColor: '#000', borderWidth: 1, cornerRadius: 0, fillColor: '#fff',
+      fillOpacity: 1, height: 16, opacity: 1, shape: 'circle' as const, width: 16,
+    })),
     getLinkColor: vi.fn(),
     getLinkOpacity: vi.fn(() => 0.3),
     getLinkParticles: vi.fn(),

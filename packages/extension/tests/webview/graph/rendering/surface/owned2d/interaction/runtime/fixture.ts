@@ -40,6 +40,7 @@ export function createSingleNodeInteractionFixture() {
   const layout: OwnedGraphLayout = {
     engine,
     links: [],
+    membershipRevision: 0,
     nodes: [graphNode],
   };
   const props = createDefaultSurfaceProps();

@@ -10,6 +10,29 @@ import {
 afterEach(cleanUpWebGpuHarness);
 
 describe('WebGPU renderer frame packing', () => {
+  it('cleans up a secondary context when surface setup fails', async () => {
+    const harness = webGpuHarness();
+    const secondaryContext = {
+      configure: vi.fn(() => { throw new Error('secondary configure failed'); }),
+      unconfigure: vi.fn(),
+    };
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => secondaryContext,
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    });
+
+    expect(() => renderer!.setSecondarySurface(secondaryCanvas))
+      .toThrow('secondary configure failed');
+    expect(secondaryContext.unconfigure).toHaveBeenCalledOnce();
+    expect(renderer!.render(rendererFrame())).toBe(1);
+  });
+
   it('renders a registered secondary surface from shared graph buffers in one submission', async () => {
     const harness = webGpuHarness();
     const secondaryContext = {
@@ -28,6 +51,11 @@ describe('WebGPU renderer frame packing', () => {
       onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
+    const getBaseNodeStyle = vi.fn(() => ({
+      borderColor: '#000000', borderWidth: 0, cornerRadius: 0,
+      fillColor: '#010203', fillOpacity: 1, height: 12, opacity: 1,
+      shape: 'circle' as const, width: 12,
+    }));
 
     renderer!.setSecondarySurface(secondaryCanvas);
     renderer!.render(frame, {
@@ -36,6 +64,10 @@ describe('WebGPU renderer frame packing', () => {
       cssHeight: 160,
       cssWidth: 160,
       devicePixelRatio: 2,
+      getLinkColor: () => '#abcdef',
+      getLinkOpacity: () => 0.3,
+      getLinkWidth: () => 1,
+      getNodeStyle: getBaseNodeStyle,
     });
 
     expect(secondaryContext.configure).toHaveBeenCalledWith(expect.objectContaining({
@@ -59,7 +91,16 @@ describe('WebGPU renderer frame packing', () => {
       'CodeGraphy link styles',
       'CodeGraphy camera uniform',
       'CodeGraphy secondary camera uniform',
+      'CodeGraphy secondary node styles',
+      'CodeGraphy secondary link styles',
     ]);
+    expect(getBaseNodeStyle).toHaveBeenCalledTimes(2);
+    expect(Array.from(uploadedFloats(harness, 'CodeGraphy secondary node styles').slice(2, 5)))
+      .toEqual([
+        expect.closeTo(1 / 255, 5),
+        expect.closeTo(2 / 255, 5),
+        expect.closeTo(3 / 255, 5),
+      ]);
     expect([secondaryCanvas.width, secondaryCanvas.height]).toEqual([100, 100]);
 
     renderer!.setSecondarySurface(undefined);

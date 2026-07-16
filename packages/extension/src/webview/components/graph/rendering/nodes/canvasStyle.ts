@@ -38,6 +38,23 @@ function canvasOpacity(dependencies: NodeCanvasRendererDependencies, node: FGNod
   return dependencies.nodeDecorationsRef.current?.[node.id]?.opacity ?? node.baseOpacity;
 }
 
+export function getBaseNodeCanvasStyle(
+  dependencies: NodeCanvasRendererDependencies,
+  node: FGNode,
+): OwnedGraphNodeStyle {
+  return {
+    borderColor: borderColor(dependencies, node, false),
+    borderWidth: node.borderWidth,
+    cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
+    fillColor: nodeColor(dependencies, node),
+    fillOpacity: normalizedNodeFillOpacity(node.fillOpacity2D),
+    height: node.shapeSize2D?.height ?? node.size * 2,
+    opacity: node.baseOpacity,
+    shape: node.shape2D ?? 'circle',
+    width: node.shapeSize2D?.width ?? node.size * 2,
+  };
+}
+
 export function getNodeCanvasStyle(dependencies: NodeCanvasRendererDependencies, node: FGNode): OwnedGraphNodeStyle {
   const selected = dependencies.selectedNodesSetRef.current.has(node.id);
   return {

@@ -35,6 +35,7 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'plugins',
       'showFps',
       'showLabels',
+      'showMinimap',
     ]);
   });
 

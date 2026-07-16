@@ -6,10 +6,14 @@ import {
 const MINIMAP_MOVING_REFRESH_INTERVAL_MS = 1000 / 8;
 
 export interface MinimapRefreshInput {
+  devicePixelRatio: number;
   graphIdentity: object;
+  graphRevision: number;
   moving: boolean;
   positionVersion: number;
   styleVersion: number;
+  surfaceHeight: number;
+  surfaceWidth: number;
   timestampMs: number;
 }
 
@@ -24,15 +28,25 @@ function observeMinimapChanges(
   input: MinimapRefreshInput,
 ): { settled: boolean } {
   const graphChanged = scheduler.graphIdentity !== input.graphIdentity;
+  const membershipChanged = scheduler.graphRevision !== input.graphRevision;
+  const surfaceChanged = scheduler.devicePixelRatio !== input.devicePixelRatio
+    || scheduler.surfaceHeight !== input.surfaceHeight
+    || scheduler.surfaceWidth !== input.surfaceWidth;
   const changed = graphChanged
+    || membershipChanged
+    || surfaceChanged
     || scheduler.positionVersion !== input.positionVersion
     || scheduler.styleVersion !== input.styleVersion;
   const settled = scheduler.wasMoving && !input.moving;
-  if (graphChanged) scheduler.pendingBoundsReset = true;
+  if (graphChanged || membershipChanged) scheduler.pendingBoundsReset = true;
   if (changed || settled) scheduler.dirty = true;
   scheduler.graphIdentity = input.graphIdentity;
+  scheduler.graphRevision = input.graphRevision;
+  scheduler.devicePixelRatio = input.devicePixelRatio;
   scheduler.positionVersion = input.positionVersion;
   scheduler.styleVersion = input.styleVersion;
+  scheduler.surfaceHeight = input.surfaceHeight;
+  scheduler.surfaceWidth = input.surfaceWidth;
   return { settled };
 }
 

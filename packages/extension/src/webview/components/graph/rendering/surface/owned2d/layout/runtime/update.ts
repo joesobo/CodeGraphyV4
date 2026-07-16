@@ -24,6 +24,7 @@ export function updateOwnedGraphLayout(layout: OwnedGraphLayout, nodes: FGNode[]
   if (!sameOwnedGraphShape(layout.engine, data.input)) {
     layout.engine.setGraph(data.input);
     applyOwnedPhysicsSettings(layout.engine, settings);
+    layout.membershipRevision += 1;
   }
   layout.nodes = nodes;
   layout.links = data.resolvedLinks;

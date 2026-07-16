@@ -18,6 +18,7 @@ function fixture(): { layout: OwnedGraphLayout; node: FGNode } {
         edgeTargets: new Uint32Array(),
       }),
       links: [],
+      membershipRevision: 0,
       nodes: [node],
     },
   };

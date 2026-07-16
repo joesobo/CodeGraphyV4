@@ -28,6 +28,10 @@ export function createGraphViewportSurfaceProps({
     surface2dProps: {
       fg2dRef: graphState.renderer.fg2dRef,
       graphViewContributions,
+      getBaseLinkColor: callbacks.getBaseLinkColor,
+      getBaseLinkOpacity: callbacks.getBaseLinkOpacity,
+      getBaseLinkWidth: callbacks.getBaseLinkWidth,
+      getBaseNodeStyle: callbacks.getBaseNodeStyle,
       getArrowColor: callbacks.getArrowColor,
       getLinkColor: callbacks.getLinkColor,
       getLinkOpacity: callbacks.getLinkOpacity,

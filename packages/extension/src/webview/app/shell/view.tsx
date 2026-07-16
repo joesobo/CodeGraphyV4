@@ -65,6 +65,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
     setDisabledPluginFilterPatterns,
   } = useAppActions();
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
+  const showMinimap = useGraphStore((state) => state.showMinimap);
   const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
   const {
     filterPopoverOpen,
@@ -214,7 +215,11 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
           pluginHost={pluginHost}
           onClosePanel={closeActivePanel}
         />
-        <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
+        <GraphIndexStatus
+          isIndexing={graphIsIndexing}
+          progress={graphIndexProgress}
+          showMinimap={showMinimap}
+        />
         <RulePrompt
           state={rulePrompt}
           onClose={closeRulePrompt}

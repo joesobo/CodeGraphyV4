@@ -8,6 +8,8 @@ import {
   getGraphLinkColor,
 } from '../../../../src/webview/components/graph/rendering/link/colors/model';
 import {
+  getBaseGraphLinkOpacity,
+  getBaseGraphLinkWidth,
   getGraphLinkParticles,
   getGraphLinkWidth,
 } from '../../../../src/webview/components/graph/rendering/link/metrics';
@@ -52,6 +54,10 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
 }
 
 describe('graph/rendering/link/links', () => {
+  it('uses undecorated base width and opacity for secondary rendering', () => {
+    expect(getBaseGraphLinkWidth()).toBe(1);
+    expect(getBaseGraphLinkOpacity()).toBe(0.3);
+  });
   it('prefers edge decoration color over the link base color', () => {
     const color = getGraphLinkColor(
       createDependencies({

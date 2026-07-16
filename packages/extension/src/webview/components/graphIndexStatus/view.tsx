@@ -9,11 +9,13 @@ export interface GraphIndexStatusProgress {
 interface GraphIndexStatusProps {
   isIndexing: boolean;
   progress: GraphIndexStatusProgress | null;
+  showMinimap: boolean;
 }
 
 export function GraphIndexStatus({
   isIndexing,
   progress,
+  showMinimap,
 }: GraphIndexStatusProps): React.ReactElement | null {
   if (!isIndexing || !progress) {
     return null;
@@ -25,7 +27,7 @@ export function GraphIndexStatus({
 
   return (
     <div
-      className="pointer-events-none absolute left-2 right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm"
+      className={`pointer-events-none absolute ${showMinimap ? 'left-44' : 'left-2'} right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm`}
       data-codegraphy-state="graph-indexing"
       data-testid="graph-index-status"
     >

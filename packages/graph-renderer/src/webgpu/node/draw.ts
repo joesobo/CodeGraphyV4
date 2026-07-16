@@ -1,10 +1,10 @@
 import type { GraphRendererFrame } from '../../contracts';
-import type { GraphBufferState } from '../buffer/state';
+import type { GraphPassBufferState } from '../buffer/state';
 
 export function drawNodes(
   pass: GPURenderPassEncoder,
   frame: GraphRendererFrame,
-  state: GraphBufferState,
+  state: GraphPassBufferState,
   pipeline: GPURenderPipeline,
   camera: GPUBindGroup,
   hoveredIndex: number,

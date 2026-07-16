@@ -25,6 +25,10 @@ export interface UseGraphCallbacksOptions {
 }
 
 export interface UseGraphCallbacksResult {
+  getBaseLinkColor: (this: void, link: FGLink) => string;
+  getBaseLinkOpacity: (this: void, link: FGLink) => number;
+  getBaseLinkWidth: (this: void, link: FGLink) => number;
+  getBaseNodeStyle: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getArrowColor: (this: void, link: FGLink) => string;
   getLinkColor: (this: void, link: FGLink) => string;
   getLinkOpacity: (this: void, link: FGLink) => number;
