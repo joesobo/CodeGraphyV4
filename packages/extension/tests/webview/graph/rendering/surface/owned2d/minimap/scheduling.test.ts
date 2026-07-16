@@ -62,6 +62,21 @@ describe('Relationship Graph minimap refresh scheduling', () => {
     expect(scheduler.nextMovingRefreshTimestampMs).toBe(Number.NEGATIVE_INFINITY);
   });
 
+  it('keeps moving work dirty when the repaint cadence defers it', () => {
+    const scheduler = createMinimapScheduler();
+    const input = {
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+    };
+    scheduleMinimapRefresh(scheduler, input);
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, positionVersion: 2, timestampMs: 1,
+    }).refresh).toBe(false);
+    expect(scheduler.dirty).toBe(true);
+  });
+
   it('refreshes immediately when physics settles', () => {
     const scheduler = createMinimapScheduler();
     const graphIdentity = {};
@@ -76,6 +91,26 @@ describe('Relationship Graph minimap refresh scheduling', () => {
       graphStyleRevision: 1, moving: false, positionVersion: 2,
       surfaceHeight: 160, surfaceWidth: 160, timestampMs: 1,
     })).toEqual({ fitProjection: true, refresh: true, resetBounds: false, tightenBounds: true });
+  });
+
+  it('reseeds the moving deadline after a long settled interval', () => {
+    const scheduler = createMinimapScheduler();
+    const input = {
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+    };
+    scheduleMinimapRefresh(scheduler, input);
+    scheduleMinimapRefresh(scheduler, {
+      ...input, moving: false, positionVersion: 2, timestampMs: 1,
+    });
+
+    expect(scheduler.nextMovingRefreshTimestampMs).toBe(Number.NEGATIVE_INFINITY);
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, positionVersion: 3, timestampMs: 3_600_000,
+    }).refresh).toBe(true);
+    expect(scheduler.nextMovingRefreshTimestampMs).toBeCloseTo(3_600_000 + (1000 / 60));
   });
 
   it('fits moving projection bounds at 8 Hz while repainting at 60 Hz', () => {
