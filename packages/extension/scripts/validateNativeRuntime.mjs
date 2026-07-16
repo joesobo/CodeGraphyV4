@@ -4,15 +4,15 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const vendoredCorePath = path.join(repoRoot, 'dist', 'node_modules', '@ladybugdb', 'core');
+const vendoredSQLitePath = path.join(repoRoot, 'dist', 'node_modules', 'better-sqlite3');
 
 try {
-  require(vendoredCorePath);
+  require(vendoredSQLitePath);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   throw new Error(
-    `Unable to load vendored LadybugDB native runtime from ${vendoredCorePath}: ${message}`,
+    `Unable to load vendored SQLite native runtime from ${vendoredSQLitePath}: ${message}`,
   );
 }
 
-console.log(`Loaded vendored LadybugDB native runtime from ${vendoredCorePath}`);
+console.log(`Loaded vendored SQLite native runtime from ${vendoredSQLitePath}`);

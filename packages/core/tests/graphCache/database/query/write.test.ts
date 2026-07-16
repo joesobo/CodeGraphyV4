@@ -34,7 +34,7 @@ describe('graphCache/database/writeStatements', () => {
     });
 
     expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(1);
-    expect(prepareStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('filePath: $filePath'));
+    expect(prepareStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
   });
 
   it('prepares the async canonical file analysis write statement once per cache write session', async () => {
@@ -49,7 +49,7 @@ describe('graphCache/database/writeStatements', () => {
     });
 
     expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(1);
-    expect(prepareStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('filePath: $filePath'));
+    expect(prepareStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
   });
 
   it('persists one canonical file analysis row through a prepared statement', () => {

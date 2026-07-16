@@ -114,17 +114,17 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'DELETE FROM Symbol',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'MATCH (entry:Relation) DELETE entry',
+      'DELETE FROM Relation',
     );
     expect(writeModule.persistAnalysisEntry).toHaveBeenNthCalledWith(
       1,
@@ -175,17 +175,17 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'DELETE FROM Symbol',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'MATCH (entry:Relation) DELETE entry',
+      'DELETE FROM Relation',
     );
   });
 
@@ -276,17 +276,17 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'DELETE FROM Symbol',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'MATCH (entry:Relation) DELETE entry',
+      'DELETE FROM Relation',
     );
     expect(writeModule.persistAnalysisEntryAsync).toHaveBeenCalledTimes(2);
     expect(waitForImmediate).toHaveBeenCalledTimes(2);

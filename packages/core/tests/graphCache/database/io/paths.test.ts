@@ -31,18 +31,20 @@ describe('pipeline/database/cache/paths', () => {
   });
 
   it('builds the repo-local analysis database path', () => {
-    expect(getWorkspaceAnalysisDatabasePath('/workspace')).toBe('/workspace/.codegraphy/graph.lbug');
+    expect(getWorkspaceAnalysisDatabasePath('/workspace')).toBe('/workspace/.codegraphy/graph.sqlite');
   });
 
   it('clears the database and wal artifacts with best-effort error handling', () => {
     const rmSync = vi.mocked(fs.rmSync).mockImplementation((filePath: fs.PathLike) => {
-      if (String(filePath).endsWith('.wal')) {
+      if (String(filePath).endsWith('-wal')) {
         throw new Error('locked');
       }
     });
 
-    expect(() => clearDatabaseArtifacts('/workspace/.codegraphy/graph.lbug')).not.toThrow();
-    expect(rmSync).toHaveBeenNthCalledWith(1, '/workspace/.codegraphy/graph.lbug', { force: true });
-    expect(rmSync).toHaveBeenNthCalledWith(2, '/workspace/.codegraphy/graph.lbug.wal', { force: true });
+    expect(() => clearDatabaseArtifacts('/workspace/.codegraphy/graph.sqlite')).not.toThrow();
+    expect(rmSync).toHaveBeenNthCalledWith(1, '/workspace/.codegraphy/graph.sqlite', { force: true });
+    expect(rmSync).toHaveBeenNthCalledWith(2, '/workspace/.codegraphy/graph.sqlite-wal', { force: true });
+    expect(rmSync).toHaveBeenNthCalledWith(3, '/workspace/.codegraphy/graph.sqlite-shm', { force: true });
+    expect(rmSync).toHaveBeenNthCalledWith(4, '/workspace/.codegraphy/graph.sqlite-journal', { force: true });
   });
 });

@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
 export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
-  '@ladybugdb/core',
+  'better-sqlite3',
   'material-icon-theme',
   'node-gyp-build',
   'tree-sitter',

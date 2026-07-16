@@ -14,7 +14,7 @@ export function getWorkspaceAnalysisDatabasePath(workspaceRoot: string): string 
 }
 
 export function clearDatabaseArtifacts(databasePath: string): void {
-  for (const filePath of [databasePath, `${databasePath}.wal`]) {
+  for (const filePath of [databasePath, `${databasePath}-wal`, `${databasePath}-shm`, `${databasePath}-journal`]) {
     try {
       fs.rmSync(filePath, { force: true });
     } catch {

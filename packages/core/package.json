@@ -38,7 +38,7 @@
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@codegraphy-dev/plugin-markdown": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
-    "@ladybugdb/core": "^0.15.3",
+    "better-sqlite3": "12.11.1",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
     "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
     "minimatch": "^10.2.5",
@@ -59,5 +59,8 @@
     "tree-sitter-swift": "0.7.1",
     "tree-sitter-typescript": "^0.23.2",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13"
   }
 }

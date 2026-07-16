@@ -23,7 +23,7 @@ All `codegraphy ...` terminal subcommands live in this package. The core CLI doe
 - Workspace plugin activity: enable or disable Plugin IDs by writing explicit `enabled: true` or `enabled: false` entries in the workspace-local `plugins` array.
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
-- Graph Cache storage: load, save, clear, and inspect the LadybugDB-backed Graph Cache at `<workspace-root>/.codegraphy/graph.lbug`.
+- Graph Cache storage: load, save, clear, and inspect the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
 - Graph Query: run node, edge, relationship, symbol, and path reports over Relationship Graph data plus persisted analysis metadata.
 
 The core package now exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code, MCP, and CLI adapters should call this package instead of owning independent indexing behavior.
