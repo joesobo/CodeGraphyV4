@@ -21,8 +21,20 @@ export function submitRenderPass(
   frame: GraphRendererFrame,
   hoveredIndex: number,
 ): void {
-  const [red, green, blue, alpha] = cachedWebGpuColor(frame.backgroundColor);
   const encoder = resources.device.createCommandEncoder({ label: 'Graph frame' });
+  encodeRenderPass(resources, state, frame, hoveredIndex, encoder, true);
+  resources.device.queue.submit([encoder.finish()]);
+}
+
+export function encodeRenderPass(
+  resources: RenderPassResources,
+  state: GraphBufferState,
+  frame: GraphRendererFrame,
+  hoveredIndex: number,
+  encoder: GPUCommandEncoder,
+  includeArrows: boolean,
+): void {
+  const [red, green, blue, alpha] = cachedWebGpuColor(frame.backgroundColor);
   const pass = encoder.beginRenderPass({
     label: 'Graph render pass',
     colorAttachments: [{
@@ -40,8 +52,8 @@ export function submitRenderPass(
     resources.linkCamera,
     resources.arrowPipeline,
     resources.arrowCamera,
+    includeArrows,
   );
   drawNodes(pass, frame, state, resources.nodePipeline, resources.nodeCamera, hoveredIndex);
   pass.end();
-  resources.device.queue.submit([encoder.finish()]);
 }

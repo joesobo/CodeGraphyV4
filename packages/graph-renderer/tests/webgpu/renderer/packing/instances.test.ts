@@ -10,6 +10,62 @@ import {
 afterEach(cleanUpWebGpuHarness);
 
 describe('WebGPU renderer frame packing', () => {
+  it('renders a registered secondary surface from shared graph buffers in one submission', async () => {
+    const harness = webGpuHarness();
+    const secondaryContext = {
+      configure: vi.fn(),
+      getCurrentTexture: vi.fn(() => ({ createView: vi.fn(() => ({})) })),
+      unconfigure: vi.fn(),
+    };
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => secondaryContext,
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    });
+    const frame = rendererFrame();
+
+    renderer!.setSecondarySurface(secondaryCanvas);
+    renderer!.render(frame, {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      camera: { centerX: 50, centerY: 3, zoom: 1.5 },
+      cssHeight: 160,
+      cssWidth: 160,
+      devicePixelRatio: 2,
+    });
+
+    expect(secondaryContext.configure).toHaveBeenCalledWith(expect.objectContaining({
+      device: harness.device,
+    }));
+    expect(harness.device.createCommandEncoder).toHaveBeenCalledTimes(1);
+    expect(harness.device.queue.submit).toHaveBeenCalledTimes(1);
+    expect(harness.device.createCommandEncoder.mock.results[0]?.value.beginRenderPass)
+      .toHaveBeenCalledTimes(2);
+    expect(harness.draw.mock.calls).toEqual([
+      [34, 1],
+      [6, 1],
+      [6, 2],
+      [34, 1],
+      [6, 2],
+    ]);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
+      'CodeGraphy node positions',
+      'CodeGraphy node styles',
+      'CodeGraphy link geometry',
+      'CodeGraphy link styles',
+      'CodeGraphy camera uniform',
+      'CodeGraphy secondary camera uniform',
+    ]);
+    expect([secondaryCanvas.width, secondaryCanvas.height]).toEqual([100, 100]);
+
+    renderer!.setSecondarySurface(undefined);
+    expect(secondaryContext.unconfigure).toHaveBeenCalledTimes(1);
+  });
+
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();
     const onFrameComplete = vi.fn();

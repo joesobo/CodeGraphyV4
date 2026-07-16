@@ -64,3 +64,11 @@ export interface GraphRendererFrame {
   positionVersion: number;
   styleVersion: number;
 }
+
+export interface GraphRendererSecondaryFrame {
+  backgroundColor: string;
+  camera: GraphRendererCamera;
+  cssHeight: number;
+  cssWidth: number;
+  devicePixelRatio: number;
+}
