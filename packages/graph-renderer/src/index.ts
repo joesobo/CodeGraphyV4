@@ -53,8 +53,10 @@ export {
 } from './visualSize';
 export {
   measureGraphSceneBounds,
+  measureGraphSceneFit,
   type GraphSceneBounds,
   type GraphSceneBoundsInput,
+  type GraphSceneFitMeasurement,
 } from './sceneBounds';
 export {
   WebGpuGraphRenderer,

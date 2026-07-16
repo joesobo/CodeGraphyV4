@@ -4,6 +4,7 @@ const PUBLICATION_INTERVAL_MS = 500;
 export interface OwnedGraphFramePerformanceInput {
   presentationTimestampMs: number;
   renderMs: number;
+  secondaryRefreshMs?: number;
   simulationMs: number;
 }
 
@@ -12,6 +13,8 @@ export interface OwnedGraphActivePerformanceSample {
   frameTimeMs: number;
   renderedFps: number;
   sampleCount: number;
+  secondaryRefreshMs?: number;
+  secondaryRefreshSampleCount?: number;
 }
 
 export interface OwnedGraphIdlePerformanceSample {
@@ -62,6 +65,8 @@ function validFrameInput(input: OwnedGraphFramePerformanceInput): boolean {
   return Number.isFinite(input.presentationTimestampMs)
     && Number.isFinite(input.renderMs)
     && input.renderMs >= 0
+    && (input.secondaryRefreshMs === undefined
+      || (Number.isFinite(input.secondaryRefreshMs) && input.secondaryRefreshMs >= 0))
     && Number.isFinite(input.simulationMs)
     && input.simulationMs >= 0;
 }
@@ -74,6 +79,7 @@ interface PendingPerformanceFrame {
 class OwnedGraphFpsMonitor implements OwnedGraphPerformanceMonitor {
   private readonly frameIntervals = new RollingAverage();
   private readonly frameWork = new RollingAverage();
+  private readonly secondaryRefreshWork = new RollingAverage();
   private lastFrameTimestamp: number | undefined;
   private lastPublishedAt = Number.NEGATIVE_INFINITY;
   private nextPendingSubmissionId: number | undefined;
@@ -98,6 +104,7 @@ class OwnedGraphFpsMonitor implements OwnedGraphPerformanceMonitor {
   reset(): void {
     this.frameIntervals.reset();
     this.frameWork.reset();
+    this.secondaryRefreshWork.reset();
     this.lastFrameTimestamp = undefined;
     this.lastPublishedAt = Number.NEGATIVE_INFINITY;
     this.nextPendingSubmissionId = undefined;
@@ -106,11 +113,18 @@ class OwnedGraphFpsMonitor implements OwnedGraphPerformanceMonitor {
 
   sample(): OwnedGraphPerformanceSample {
     if (this.frameIntervals.count === 0) return { status: 'idle' };
+    const secondaryRefresh = this.secondaryRefreshWork.count > 0
+      ? {
+          secondaryRefreshMs: this.secondaryRefreshWork.average(),
+          secondaryRefreshSampleCount: this.secondaryRefreshWork.count,
+        }
+      : {};
     return {
       status: 'active',
       frameTimeMs: this.frameWork.average(),
       renderedFps: 1_000 / this.frameIntervals.average(),
       sampleCount: this.frameWork.count,
+      ...secondaryRefresh,
     };
   }
 
@@ -157,6 +171,9 @@ class OwnedGraphFpsMonitor implements OwnedGraphPerformanceMonitor {
     }
     this.lastFrameTimestamp = input.presentationTimestampMs;
     this.frameWork.add(input.renderMs + input.simulationMs);
+    if (input.secondaryRefreshMs !== undefined) {
+      this.secondaryRefreshWork.add(input.secondaryRefreshMs);
+    }
     if (this.frameIntervals.count === 0
       || input.presentationTimestampMs - this.lastPublishedAt < PUBLICATION_INTERVAL_MS) {
       return undefined;

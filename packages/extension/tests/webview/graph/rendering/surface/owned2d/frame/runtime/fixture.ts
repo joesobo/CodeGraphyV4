@@ -96,6 +96,7 @@ export function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     positionVersionRef: { current: 0 },
     propsRef: { current: props },
     rendererOperationalRef: { current: true },
+    secondaryRefreshMsRef: { current: undefined },
     requestFrameRef: { current: vi.fn() },
     simulationClockRef: { current: createGraphLayoutFixedTimestepClock() },
     markPerformanceIdle: vi.fn(),
