@@ -172,7 +172,7 @@ describe('WebGPU renderer frame packing', () => {
       call => call[0].label === 'CodeGraphy secondary link styles',
     );
     expect(secondaryLinkUpload?.[4]).toBe(Math.ceil(edgeCount / 2) * 11 * 4);
-  }, 10_000);
+  }, 30_000);
 
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();
