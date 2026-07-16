@@ -114,17 +114,27 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'DELETE FROM FileAnalysis',
+      'BEGIN TRANSACTION',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM Symbol',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
+      'DELETE FROM Symbol',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      4,
+      'connection',
       'DELETE FROM Relation',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      5,
+      'connection',
+      'COMMIT',
     );
     expect(writeModule.persistAnalysisEntry).toHaveBeenNthCalledWith(
       1,
@@ -276,17 +286,27 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'DELETE FROM FileAnalysis',
+      'BEGIN TRANSACTION',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM Symbol',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       3,
       'connection',
+      'DELETE FROM Symbol',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
+      4,
+      'connection',
       'DELETE FROM Relation',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
+      5,
+      'connection',
+      'COMMIT',
     );
     expect(writeModule.persistAnalysisEntryAsync).toHaveBeenCalledTimes(2);
     expect(waitForImmediate).toHaveBeenCalledTimes(2);
