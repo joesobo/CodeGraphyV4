@@ -1,5 +1,5 @@
-import AppShell from './shell/view';
+import AppShell, { type AppShellProps } from './shell/view';
 
-export default function App() {
-  return <AppShell />;
+export default function App(props: AppShellProps) {
+  return <AppShell {...props} />;
 }

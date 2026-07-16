@@ -1,6 +1,6 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
-import type { IProjectedConnection } from '../analysis/projectedConnection.js';
-import { getConnectionTargetId } from './edgeTargets.js';
+import type { IProjectedConnection } from '../analysis/projectedConnection';
+import { getConnectionTargetId } from './edgeTargets';
 
 export type ConnectionTargetResolver = typeof getConnectionTargetId;
 

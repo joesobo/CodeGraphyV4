@@ -7,6 +7,14 @@ import {
   usePluginOverlays,
 } from '../../../../src/webview/components/graph/runtime/pluginOverlays';
 
+function createContext(height: number, width: number): CanvasRenderingContext2D {
+  return {
+    canvas: { height, width },
+    restore: vi.fn(),
+    save: vi.fn(),
+  } as unknown as CanvasRenderingContext2D;
+}
+
 describe('usePluginOverlays', () => {
   it('returns an empty overlay list when no plugin host is available', () => {
     expect(getPluginOverlayRegistrations(undefined)).toEqual([]);
@@ -25,9 +33,7 @@ describe('usePluginOverlays', () => {
   it('renders all overlay registrations with the computed canvas context', () => {
     const firstOverlay = vi.fn();
     const secondOverlay = vi.fn();
-    const ctx = {
-      canvas: { height: 180, width: 320 },
-    } as CanvasRenderingContext2D;
+    const ctx = createContext(180, 320);
 
     renderPluginOverlayRegistrations({
       ctx,
@@ -50,6 +56,8 @@ describe('usePluginOverlays', () => {
       height: 180,
       width: 320,
     });
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
   });
 
   it('logs overlay errors and keeps processing direct registrations', () => {
@@ -57,12 +65,16 @@ describe('usePluginOverlays', () => {
     const goodOverlay = vi.fn();
     const thrownError = new Error('boom');
 
+    const ctx = createContext(90, 120);
     renderPluginOverlayRegistrations({
-      ctx: { canvas: { height: 90, width: 120 } } as CanvasRenderingContext2D,
+      ctx,
       globalScale: 1,
       onError,
       overlays: [
-        { id: 'bad', fn: () => { throw thrownError; } },
+        { id: 'bad', fn: ({ ctx: mutableContext }) => {
+          mutableContext.globalAlpha = 0.2;
+          throw thrownError;
+        } },
         { id: 'good', fn: goodOverlay },
       ],
     });
@@ -70,12 +82,12 @@ describe('usePluginOverlays', () => {
     expect(onError).toHaveBeenCalledOnce();
     expect(onError).toHaveBeenCalledWith(PLUGIN_OVERLAY_RENDERER_ERROR, thrownError);
     expect(goodOverlay).toHaveBeenCalledOnce();
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
   });
 
   it('returns a no-op renderer when no plugin host is available', () => {
-    const ctx = {
-      canvas: { height: 180, width: 320 },
-    } as CanvasRenderingContext2D;
+    const ctx = createContext(180, 320);
 
     const { result } = renderHook(() => usePluginOverlays(undefined));
 
@@ -89,9 +101,7 @@ describe('usePluginOverlays', () => {
     const pluginHost = {
       getOverlays,
     } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>;
-    const ctx = {
-      canvas: { height: 180, width: 320 },
-    } as CanvasRenderingContext2D;
+    const ctx = createContext(180, 320);
 
     const { result } = renderHook(() => usePluginOverlays(pluginHost));
 
@@ -106,9 +116,7 @@ describe('usePluginOverlays', () => {
     const pluginHost = {
       getOverlays: () => [{ fn: overlay }],
     } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>;
-    const ctx = {
-      canvas: { height: 180, width: 320 },
-    } as CanvasRenderingContext2D;
+    const ctx = createContext(180, 320);
 
     const { result } = renderHook(() => usePluginOverlays(pluginHost));
 
@@ -135,7 +143,7 @@ describe('usePluginOverlays', () => {
 
     const { result } = renderHook(() => usePluginOverlays(pluginHost));
 
-    result.current({ canvas: { height: 90, width: 120 } } as CanvasRenderingContext2D, 1);
+    result.current(createContext(90, 120), 1);
 
     expect(consoleError).toHaveBeenCalledOnce();
     expect(consoleError).toHaveBeenCalledWith(PLUGIN_OVERLAY_RENDERER_ERROR, thrownError);
@@ -146,9 +154,7 @@ describe('usePluginOverlays', () => {
   it('uses the latest plugin host after rerender', () => {
     const firstOverlay = vi.fn();
     const secondOverlay = vi.fn();
-    const ctx = {
-      canvas: { height: 90, width: 120 },
-    } as CanvasRenderingContext2D;
+    const ctx = createContext(90, 120);
     const { result, rerender } = renderHook(
       ({ pluginHost }: { pluginHost?: Parameters<typeof usePluginOverlays>[0] }) =>
         usePluginOverlays(pluginHost),

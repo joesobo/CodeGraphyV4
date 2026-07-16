@@ -16,7 +16,6 @@ export class GraphViewProvider
   implements vscode.WebviewViewProvider
 {
   public static readonly viewType = 'codegraphy.graphView';
-  public static readonly timelineViewType = 'codegraphy.timelineView';
 }
 
 // The public methods are assigned during runtime bootstrap, so the instance

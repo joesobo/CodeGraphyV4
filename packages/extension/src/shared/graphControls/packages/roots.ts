@@ -15,22 +15,13 @@ export function getNearestWorkspacePackageRoot(
   filePath: string,
   packageRoots: ReadonlySet<string>,
 ): string | null {
-  let bestMatch: string | null = null;
-
-  for (const rootPath of packageRoots) {
-    if (rootPath === '.') {
-      bestMatch ??= rootPath;
-      continue;
-    }
-
-    if (filePath === rootPath || filePath.startsWith(`${rootPath}/`)) {
-      if (!bestMatch || rootPath.length > bestMatch.length) {
-        bestMatch = rootPath;
-      }
-    }
-  }
-
-  return bestMatch;
+  return [...packageRoots]
+    .sort((left, right) => right.length - left.length)
+    .find(root => (
+      root === '.'
+      || filePath === root
+      || filePath.startsWith(`${root}/`)
+    )) ?? null;
 }
 
 export function collectWorkspacePackageRoots(

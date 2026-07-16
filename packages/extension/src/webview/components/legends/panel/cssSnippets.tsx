@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
-import { mdiChevronDown, mdiChevronUp, mdiPlus } from '@mdi/js';
+import React from 'react';
+import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
 import { graphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
 import { MdiIcon } from '../../icons/MdiIcon';
-import { Button } from '../../ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../../ui/disclosure/collapsible';
-import { Input } from '../../ui/input';
 import { Switch } from '../../ui/switch';
 import { useCollapsibleEntryState } from './section/collapseState';
+import { CssSnippetDraft } from './cssSnippetDraft';
 
 interface CssSnippetsSectionProps {
   collapsedEntries: Record<string, boolean>;
@@ -45,7 +44,6 @@ export function CssSnippetsSection({
   onCollapsedChange,
   snippets,
 }: CssSnippetsSectionProps): React.ReactElement | null {
-  const [draftPath, setDraftPath] = useState('');
   const { collapsed, onOpenChange } = useCollapsibleEntryState({
     collapsedEntries,
     onCollapsedChange,
@@ -53,7 +51,6 @@ export function CssSnippetsSection({
   });
   const open = !collapsed;
   const entries = Object.entries(snippets);
-  const trimmedDraftPath = draftPath.trim();
 
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
@@ -72,43 +69,7 @@ export function CssSnippetsSection({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="space-y-2">
-            <div
-              className="flex items-center gap-2 rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] px-3 py-2"
-            >
-              <Input
-                aria-label="CSS snippet path"
-                className="h-7 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
-                placeholder=".codegraphy/snippets/custom.css"
-                value={draftPath}
-                onChange={(event) => setDraftPath(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key !== 'Enter' || !trimmedDraftPath) {
-                    return;
-                  }
-
-                  event.preventDefault();
-                  addCssSnippet(trimmedDraftPath);
-                  setDraftPath('');
-                }}
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] p-0 text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
-                disabled={!trimmedDraftPath}
-                onClick={() => {
-                  if (!trimmedDraftPath) {
-                    return;
-                  }
-
-                  addCssSnippet(trimmedDraftPath);
-                  setDraftPath('');
-                }}
-                title="Add CSS snippet"
-              >
-                <MdiIcon path={mdiPlus} size={14} />
-              </Button>
-            </div>
+            <CssSnippetDraft onAdd={addCssSnippet} />
             <div
               className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]"
               data-codegraphy-list="css-snippets"

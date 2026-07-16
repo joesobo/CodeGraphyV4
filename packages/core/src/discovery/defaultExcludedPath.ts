@@ -1,4 +1,4 @@
-import { normalizeDiscoveryPath } from './pathNormalization.js';
+import { normalizeDiscoveryPath } from './pathNormalization';
 
 const DEFAULT_EXCLUDE_SEGMENTS = new Set([
   'node_modules',

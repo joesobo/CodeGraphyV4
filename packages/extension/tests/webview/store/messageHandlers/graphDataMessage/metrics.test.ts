@@ -7,7 +7,7 @@ import { createState } from '../graph/fixture';
 describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
   it('ignores metric updates when there is no current state context', () => {
     expect(handleGraphNodeMetricsUpdated(createMetricsMessage([
-      { id: 'src/app.ts', fileSize: 120, churn: 2 },
+      { id: 'src/app.ts', fileSize: 120 },
     ]))).toBeUndefined();
   });
 
@@ -15,7 +15,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
     const state = createState({ graphData: null });
 
     expect(handleGraphNodeMetricsUpdated(
-      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120, churn: 2 }]),
+      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120 }]),
       { getState: () => state },
     )).toBeUndefined();
   });
@@ -33,7 +33,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
     });
 
     const result = handleGraphNodeMetricsUpdated(
-      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120, churn: 2 }]),
+      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120 }]),
       { getState: () => state },
     );
 
@@ -43,7 +43,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
       graphIndexProgress: null,
     });
     expect(state.graphData).toBe(graphData);
-    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 2 });
+    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120 });
   });
 
   it('returns new graph data when metric sizing depends on changed node metrics', () => {
@@ -59,7 +59,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
     });
 
     const result = handleGraphNodeMetricsUpdated(
-      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120, churn: 1 }]),
+      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120 }]),
       { getState: () => state },
     );
 
@@ -67,7 +67,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
       graphData: {
         ...graphData,
         nodes: [
-          { id: 'src/app.ts', label: 'App', color: '#94a3b8', fileSize: 120, churn: 1 },
+          { id: 'src/app.ts', label: 'App', color: '#94a3b8', fileSize: 120 },
           graphData.nodes[1],
         ],
       },
@@ -76,7 +76,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
       graphIndexProgress: null,
     });
     expect(result?.graphData).not.toBe(graphData);
-    expect(graphData.nodes[0]).toMatchObject({ fileSize: 100, churn: 1 });
+    expect(graphData.nodes[0]).toMatchObject({ fileSize: 100 });
   });
 
   it('settles indexing without replacing graph data when metric sizing values are unchanged', () => {
@@ -85,11 +85,11 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
       graphData,
       graphIndexProgress: { phase: 'Updating Graph View', current: 1, total: 2 },
       graphIsIndexing: true,
-      nodeSizeMode: 'churn',
+      nodeSizeMode: 'file-size',
     });
 
     expect(handleGraphNodeMetricsUpdated(
-      createMetricsMessage([{ id: 'src/app.ts', fileSize: 100, churn: 1 }]),
+      createMetricsMessage([{ id: 'src/app.ts', fileSize: 100 }]),
       { getState: () => state },
     )).toEqual({
       graphIsIndexing: false,
@@ -110,7 +110,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
     });
 
     expect(handleGraphNodeMetricsUpdated(
-      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120, churn: 2 }]),
+      createMetricsMessage([{ id: 'src/app.ts', fileSize: 120 }]),
       { getState: () => state },
     )).toEqual({
       isLoading: false,
@@ -123,8 +123,8 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
 function createGraphData(): IGraphData {
   return {
     nodes: [
-      { id: 'src/app.ts', label: 'App', color: '#94a3b8', fileSize: 100, churn: 1 },
-      { id: 'src/lib.ts', label: 'Lib', color: '#94a3b8', fileSize: 50, churn: 3 },
+      { id: 'src/app.ts', label: 'App', color: '#94a3b8', fileSize: 100 },
+      { id: 'src/lib.ts', label: 'Lib', color: '#94a3b8', fileSize: 50 },
     ],
     edges: [
       {

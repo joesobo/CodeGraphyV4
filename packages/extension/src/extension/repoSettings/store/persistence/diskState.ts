@@ -4,6 +4,7 @@ import {
   type ICodeGraphyRepoSettings,
 } from '../../defaults';
 import { collectChangedKeys } from '../model/changedKeys';
+import { migratePersistedSettings } from '../model/migrate';
 import { normalizePersistedSettingsShape } from '../model/persistedShape';
 import { deepClone, deepMerge } from '../model/plainObject';
 import { serializeSettings } from './serialization';
@@ -38,7 +39,9 @@ export function readSettingsFromDisk(
 ): SettingsState {
   try {
     const rawSerialized = fs.readFileSync(settingsPath, 'utf8');
-    const parsed = normalizePersistedSettingsShape(JSON.parse(rawSerialized));
+    const parsed = normalizePersistedSettingsShape(
+      migratePersistedSettings(JSON.parse(rawSerialized)),
+    );
     const merged = deepMerge(defaults, parsed);
     const nextState = createSettingsState(merged);
     if (rawSerialized !== nextState.serializedSettings) {
@@ -92,7 +95,7 @@ export function reloadSettingsFromDisk(
   try {
     const settings = deepMerge(
       defaults,
-      normalizePersistedSettingsShape(JSON.parse(nextSerialized)),
+      normalizePersistedSettingsShape(migratePersistedSettings(JSON.parse(nextSerialized))),
     );
     const nextState = createSettingsState(settings);
     const changedKeys = collectChangedKeys(previousSettings, settings);

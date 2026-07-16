@@ -10,11 +10,11 @@ describe('webview/store/actions/messages', () => {
     const { actions, getState } = createHarness();
 
     actions.handleExtensionMessage({
-      type: 'PLAYBACK_SPEED_UPDATED',
-      payload: { speed: 1.5 },
+      type: 'MAX_FILES_UPDATED',
+      payload: { maxFiles: 1_500 },
     });
 
-    expect(getState().playbackSpeed).toBe(1.5);
+    expect(getState().maxFiles).toBe(1_500);
   });
 
   it('passes the current state and postMessage function to extension message handlers', () => {

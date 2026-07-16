@@ -55,7 +55,6 @@ function createPluginDefaultGroup(
 
   if (typeof value === 'object') {
     if (value.shape2D) group.shape2D = value.shape2D;
-    if (value.shape3D) group.shape3D = value.shape3D;
     if (value.imagePath) group.imagePath = value.imagePath;
   }
 

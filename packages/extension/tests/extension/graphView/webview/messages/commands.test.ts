@@ -9,7 +9,6 @@ function createHandlers() {
     showInformationMessage: vi.fn(),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
   };
 }
@@ -80,27 +79,15 @@ describe('graph view command message', () => {
     expect(handled).toBe(true);
   });
 
-  it('updates dag mode', async () => {
-    const handlers = createHandlers();
-
-    const handled = await applyCommandMessage(
-      { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'td' } },
-      handlers,
-    );
-
-    expect(handlers.updateDagMode).toHaveBeenCalledWith('td');
-    expect(handled).toBe(true);
-  });
-
   it('updates node size mode', async () => {
     const handlers = createHandlers();
 
     const handled = await applyCommandMessage(
-      { type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: 'uniform' } },
+      { type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: 'connections' } },
       handlers,
     );
 
-    expect(handlers.updateNodeSizeMode).toHaveBeenCalledWith('uniform');
+    expect(handlers.updateNodeSizeMode).toHaveBeenCalledWith('connections');
     expect(handled).toBe(true);
   });
 

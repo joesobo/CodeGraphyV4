@@ -115,7 +115,6 @@ describe('core/graph/data symbol names', () => {
         }],
       ]),
       showOrphans: true,
-      churnCounts: {},
       nodeVisibility: {
         symbol: true,
         'symbol:namespace': true,
@@ -182,7 +181,6 @@ describe('core/graph/data symbol names', () => {
         }],
       ]),
       showOrphans: true,
-      churnCounts: {},
       nodeVisibility: SYMBOL_NODE_VISIBILITY,
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.typescript'),

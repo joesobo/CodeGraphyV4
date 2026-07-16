@@ -38,10 +38,13 @@ export function renderPluginOverlayRegistrations(options: {
 	};
 
 	for (const overlay of overlays) {
+		ctx.save();
 		try {
 			overlay.fn(renderContext);
 		} catch (error) {
 			onError(PLUGIN_OVERLAY_RENDERER_ERROR, error);
+		} finally {
+			ctx.restore();
 		}
 	}
 }

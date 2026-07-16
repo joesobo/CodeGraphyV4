@@ -24,9 +24,9 @@ describe('graph/layoutKey', () => {
           nodes: [] as never,
           links: [] as never,
         },
-        'uniform',
+        'connections',
       ),
-    ).toBe('uniform::::');
+    ).toBe('connections::::');
   });
 
   it('joins multiple link identifiers with the pipe separator', () => {

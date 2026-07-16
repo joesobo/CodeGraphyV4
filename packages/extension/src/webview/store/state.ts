@@ -19,9 +19,8 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
-import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
-import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -48,10 +47,8 @@ export interface GraphState {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
-  physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;
-  graphMode: '2d' | '3d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
@@ -66,7 +63,6 @@ export interface GraphState {
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
-  dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
@@ -81,21 +77,14 @@ export interface GraphState {
   edgeVisibility: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  showFps: boolean;
   verboseDiagnostics: boolean;
   activeFilePath: string | null;
-  timelineActive: boolean;
-  timelineCommits: ICommitInfo[];
-  currentCommitSha: string | null;
-  isIndexing: boolean;
-  indexProgress: { phase: string; current: number; total: number } | null;
-  isPlaying: boolean;
-  playbackSpeed: number;
   expandedGroupId: string | null;
   setExpandedGroupId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
   setActivePanel: (panel: GraphState['activePanel']) => void;
-  setGraphMode: (mode: '2d' | '3d') => void;
   setGraphViewportScale: (scale: number | null) => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;
@@ -113,16 +102,13 @@ export interface GraphState {
   setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
-  setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setCssSnippets: (snippets: Record<string, boolean>) => void;
   setDepthMode: (depthMode: boolean) => void;
-  setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
+  setShowFps: (enabled: boolean) => void;
   setVerboseDiagnostics: (enabled: boolean) => void;
-  setPlaybackSpeed: (speed: number) => void;
-  setIsPlaying: (playing: boolean) => void;
   beginInitialBootstrap: () => void;
   beginPluginAssetLoad: () => void;
   finishPluginAssetLoad: () => void;

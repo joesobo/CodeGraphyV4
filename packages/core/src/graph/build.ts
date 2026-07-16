@@ -19,7 +19,6 @@ export interface WorkspacePipelineGraphSource {
 
 export interface WorkspacePipelineGraphDependencies {
   cacheFiles: Record<string, { size?: number }>;
-  churnCounts: Record<string, number>;
   directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
@@ -39,7 +38,6 @@ export function buildWorkspacePipelineGraph(
 ): IGraphData {
   return buildWorkspaceGraphData({
     cacheFiles: dependencies.cacheFiles,
-    churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
     gitIgnoredPaths: dependencies.gitIgnoredPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
@@ -55,7 +53,6 @@ export function buildWorkspacePipelineGraphFromAnalysis(
 ): IGraphData {
   return buildWorkspaceGraphDataFromAnalysis({
     cacheFiles: dependencies.cacheFiles,
-    churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
     gitIgnoredPaths: dependencies.gitIgnoredPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
@@ -73,11 +70,9 @@ export function buildWorkspacePipelineGraphForSource(
   workspaceRoot: string,
   showOrphans: boolean,
   disabledPlugins: Set<string>,
-  churnCounts: Record<string, number> = {},
 ): IGraphData {
   return buildWorkspacePipelineGraph({
     cacheFiles: source._cache.files,
-    churnCounts,
     directoryPaths: source._lastDiscoveredDirectories ?? [],
     gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,

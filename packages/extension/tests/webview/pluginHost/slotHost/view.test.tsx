@@ -50,7 +50,7 @@ describe('SlotHost', () => {
     rerender(
       <SlotHost
         pluginHost={pluginHost}
-        slot="timeline-panel"
+        slot="graph-overlay"
         data-testid="slot-host"
       />,
     );
@@ -63,11 +63,11 @@ describe('SlotHost', () => {
     expect(pluginHost.detachSlotHost).toHaveBeenCalledWith('toolbar');
     expect(pluginHost.attachSlotHost).toHaveBeenNthCalledWith(
       2,
-      'timeline-panel',
+      'graph-overlay',
       expect.any(HTMLDivElement),
     );
 
     unmount();
-    expect(pluginHost.detachSlotHost).toHaveBeenCalledWith('timeline-panel');
+    expect(pluginHost.detachSlotHost).toHaveBeenCalledWith('graph-overlay');
   });
 });

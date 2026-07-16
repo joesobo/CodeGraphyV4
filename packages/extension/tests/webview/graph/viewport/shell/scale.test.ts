@@ -10,7 +10,6 @@ describe('graph/viewport/shell/scale', () => {
 
 		const nextPreviousScale = publishGraphViewportScale({
 			globalScale: 1.25,
-			graphMode: '2d',
 			previousScale: null,
 			publish,
 		});
@@ -24,7 +23,6 @@ describe('graph/viewport/shell/scale', () => {
 
 		const nextPreviousScale = publishGraphViewportScale({
 			globalScale: 0.005,
-			graphMode: '2d',
 			previousScale: null,
 			publish,
 		});
@@ -33,27 +31,12 @@ describe('graph/viewport/shell/scale', () => {
 		expect(publish).toHaveBeenCalledWith(0.005);
 	});
 
-	it('keeps the previous scale when the graph is not in 2d mode', () => {
-		const publish = vi.fn();
-
-		const nextPreviousScale = publishGraphViewportScale({
-			globalScale: 1.25,
-			graphMode: '3d',
-			previousScale: 1,
-			publish,
-		});
-
-		expect(nextPreviousScale).toBe(1);
-		expect(publish).not.toHaveBeenCalled();
-	});
-
 	it('keeps the previous scale for non-positive or non-finite scales', () => {
 		const publish = vi.fn();
 
 		for (const globalScale of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
 			expect(publishGraphViewportScale({
 				globalScale,
-				graphMode: '2d',
 				previousScale: 1,
 				publish,
 			})).toBe(1);
@@ -67,7 +50,6 @@ describe('graph/viewport/shell/scale', () => {
 
 		const nextPreviousScale = publishGraphViewportScale({
 			globalScale: 1.005,
-			graphMode: '2d',
 			previousScale: 1,
 			publish,
 		});
@@ -83,7 +65,6 @@ describe('graph/viewport/shell/scale', () => {
 
 		const nextPreviousScale = publishGraphViewportScale({
 			globalScale: 1.02,
-			graphMode: '2d',
 			previousScale: 1,
 			publish,
 		});

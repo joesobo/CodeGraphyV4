@@ -40,7 +40,7 @@ describe('search/filtering/rules/nodes', () => {
     const activeRules = getOrderedActiveRules([
       { id: 'specific', pattern: 'src/App.ts', color: '#00ff00', imageUrl: 'icon.png' },
       { id: 'disabled', pattern: 'src/**', color: '#999999', disabled: true },
-      { id: 'typescript', pattern: 'src/**', color: '#ff0000', shape2D: 'diamond', shape3D: 'cube' },
+      { id: 'typescript', pattern: 'src/**', color: '#ff0000', shape2D: 'diamond' },
     ]);
 
     expect(activeRules.map((rule) => rule.id)).toEqual(['typescript', 'specific']);
@@ -50,7 +50,6 @@ describe('search/filtering/rules/nodes', () => {
     )).toMatchObject({
       color: '#00ff00',
       shape2D: 'diamond',
-      shape3D: 'cube',
       imageUrl: 'icon.png',
     });
   });

@@ -3,21 +3,22 @@ import type {
 	GraphViewViewportState,
 } from '../../../../pluginHost/api/contracts/webview';
 import type { GraphRuntime } from '../../runtime/use/state';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
 
-export interface GraphViewport2dControls {
-	d3ReheatSimulation?(): void;
-	graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
-	resumeAnimation?(): void;
-	screen2GraphCoords?(x: number, y: number): { x: number; y: number };
-	zoom?(): number;
-}
+export type GraphViewport2dControls = Partial<Pick<
+	OwnedGraph2dControls,
+	| 'graph2ScreenCoords'
+	| 'reheatSimulation'
+	| 'resumeAnimation'
+	| 'screen2GraphCoords'
+	| 'updateNode'
+	| 'zoom'
+>>;
 
 export interface CreateGraphViewViewportStateOptions {
 	globalScale: number;
 	graph: GraphViewport2dControls | undefined;
-	graphMode: '2d' | '3d';
 	nodes: GraphRuntime['renderer']['graphData']['nodes'];
-	timelineActive: boolean;
 }
 
 function readViewportBoolean(value: unknown): boolean | undefined {
@@ -38,17 +39,14 @@ export function toGraphViewViewportNodes(
 			...viewportNode,
 			fx: readViewportNumber(node.fx),
 			fy: readViewportNumber(node.fy),
-			fz: readViewportNumber(node.fz),
 			id: node.id,
 			isDragging: readViewportBoolean(node.isDragging),
 			isPinned: readViewportBoolean(node.isPinned),
 			size: readViewportNumber(node.size),
 			vx: readViewportNumber(node.vx),
 			vy: readViewportNumber(node.vy),
-			vz: readViewportNumber(node.vz),
 			x: readViewportNumber(node.x),
 			y: readViewportNumber(node.y),
-			z: readViewportNumber(node.z),
 		};
 	});
 }
@@ -70,18 +68,13 @@ export function updateGraphViewViewportNode(
 export function createGraphViewViewportState({
 	globalScale,
 	graph,
-	graphMode,
 	nodes,
-	timelineActive,
 }: CreateGraphViewViewportStateOptions): GraphViewViewportState {
 	return {
-		graphMode,
 		graphToScreen: (x, y) => graph?.graph2ScreenCoords ? graph.graph2ScreenCoords(x, y) : { x, y },
 		nodes: toGraphViewViewportNodes(nodes),
 		reheatSimulation: () => {
-			if (graph?.d3ReheatSimulation) {
-				graph.d3ReheatSimulation();
-			}
+			graph?.reheatSimulation?.();
 		},
 		resumeAnimation: () => {
 			if (graph?.resumeAnimation) {
@@ -89,8 +82,9 @@ export function createGraphViewViewportState({
 			}
 		},
 		screenToGraph: (x, y) => graph?.screen2GraphCoords ? graph.screen2GraphCoords(x, y) : { x, y },
-		timelineActive,
-		updateNode: (nodeId, updates) => updateGraphViewViewportNode(nodes, nodeId, updates),
+		updateNode: (nodeId, updates) => graph?.updateNode
+			? graph.updateNode(nodeId, updates)
+			: updateGraphViewViewportNode(nodes, nodeId, updates),
 		zoom: graph?.zoom ? graph.zoom() : globalScale,
 	};
 }

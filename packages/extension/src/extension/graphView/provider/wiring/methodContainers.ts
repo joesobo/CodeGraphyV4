@@ -14,7 +14,6 @@ import {
   createGraphViewProviderMethodSource,
   type GraphViewProviderMethodSourceOwner,
 } from '../source/create';
-import { createGraphViewProviderTimelineMethods } from '../timeline/methods';
 import { createGraphViewProviderViewContextMethods } from '../view/context';
 import { createGraphViewProviderViewSelectionMethods } from '../view/selection';
 import { createGraphViewProviderWebviewMethods } from '../webview/host';
@@ -30,7 +29,6 @@ export interface GraphViewProviderMethodContainers {
   query: ReturnType<typeof createGraphViewProviderQueryMethods>;
   refresh: ReturnType<typeof createGraphViewProviderRefreshMethods>;
   settingsState: ReturnType<typeof createGraphViewProviderSettingsStateMethods>;
-  timeline: ReturnType<typeof createGraphViewProviderTimelineMethods>;
   viewContext: ReturnType<typeof createGraphViewProviderViewContextMethods>;
   viewSelection: ReturnType<typeof createGraphViewProviderViewSelectionMethods>;
   webview: ReturnType<typeof createGraphViewProviderWebviewMethods>;
@@ -52,7 +50,6 @@ export function createGraphViewProviderMethodContainers(
     query: createGraphViewProviderQueryMethods(methodSource),
     refresh: createGraphViewProviderRefreshMethods(methodSource),
     settingsState: createGraphViewProviderSettingsStateMethods(methodSource),
-    timeline: createGraphViewProviderTimelineMethods(methodSource),
     viewContext: createGraphViewProviderViewContextMethods(methodSource),
     viewSelection: createGraphViewProviderViewSelectionMethods(methodSource),
     webview: createGraphViewProviderWebviewMethods(methodSource),

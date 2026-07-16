@@ -163,7 +163,6 @@
 					"src/**/core/plugins/versioning/apiVersions.ts",
 					"src/**/*.d.ts",
 					"src/**/extension/config/defaults.ts",
-					"src/**/extension/gitHistory/cache/stateKeys.ts",
 					"src/**/shared/fileColorConstants.ts",
 					"src/**/shared/mockData*.ts",
 					"src/**/webview/components/icons/**",
@@ -221,6 +220,36 @@
 						],
 						"name": "shared"
 					}
+				]
+			}
+		},
+		"graph-renderer": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--config",
+						"vitest.config.ts",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/index.ts",
+					"src/physics/index.ts",
+					"src/physics/wasm/assembly/kernel.ts",
+					"src/physics/wasm/runtime/loader.ts",
+					"src/webgpu/renderer.ts"
 				]
 			}
 		},

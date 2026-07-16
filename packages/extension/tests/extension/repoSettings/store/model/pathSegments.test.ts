@@ -4,7 +4,7 @@ import { getPathSegments } from '../../../../../src/extension/repoSettings/store
 describe('extension/repoSettings/store/model/pathSegments', () => {
   it('splits normalized keys into non-empty path segments', () => {
     expect(getPathSegments('legend.0.pattern')).toEqual(['legend', '0', 'pattern']);
-    expect(getPathSegments('.timeline..playbackSpeed.')).toEqual(['timeline', 'playbackSpeed']);
+    expect(getPathSegments('.physics..damping.')).toEqual(['physics', 'damping']);
     expect(getPathSegments('')).toEqual([]);
   });
 });

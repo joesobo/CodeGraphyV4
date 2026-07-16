@@ -2,14 +2,9 @@ import type { IGraphEdge } from '../../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode } from '../../../../../shared/settings/modes';
 import { computeLinkCurvature } from './curvature';
 import type { FGLink } from '../build';
-import { processEdges } from '../edgeProcessing';
+import { processEdges, type ProcessableEdge } from '../edgeProcessing';
 
-interface ProjectedGraphEdge extends IGraphEdge {
-  projectedEdgeCount?: number;
-  projectedEdgeIds?: string[];
-}
-
-export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, mode: BidirectionalEdgeMode): FGLink[] {
+export function buildGraphLinks(edges: ProcessableEdge[], mode: BidirectionalEdgeMode): FGLink[] {
   const links: FGLink[] = processEdges(edges, mode).map(edge => {
     const runtimeEdge = edge as IGraphEdge & {
       ownerPluginId?: string;

@@ -22,12 +22,6 @@ describe('GraphStore actions', () => {
     expect(store.getState().searchOptions).toEqual(options);
   });
 
-  it('setGraphMode updates the graph mode', () => {
-    store.getState().setGraphMode('3d');
-
-    expect(store.getState().graphMode).toBe('3d');
-  });
-
   it('setNodeSizeMode updates the node size mode', () => {
     store.getState().setNodeSizeMode('file-size');
 

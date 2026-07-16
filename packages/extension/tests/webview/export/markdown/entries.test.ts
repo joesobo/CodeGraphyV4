@@ -13,10 +13,6 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
     exportedAt: '2026-03-16T12:34:56.000Z',
     scope: {
       graph: 'current-view',
-      timeline: {
-        active: false,
-        commitSha: null,
-      },
     },
     summary: {
       totalNodes: 0,

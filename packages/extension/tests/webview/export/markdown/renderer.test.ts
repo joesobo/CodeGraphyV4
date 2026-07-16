@@ -9,10 +9,6 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
     exportedAt: '2026-03-16T12:34:56.000Z',
     scope: {
       graph: 'current-view',
-      timeline: {
-        active: false,
-        commitSha: null,
-      },
     },
     summary: {
       totalNodes: 0,
@@ -28,14 +24,13 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
 }
 
 describe('renderMarkdownExport', () => {
-  it('renders empty-state sections for inactive timeline exports', () => {
+  it('renders empty-state sections', () => {
     const markdown = renderMarkdownExport(createExportData());
 
     expect(markdown).toBe([
       '# CodeGraphy Export',
       '',
       '> 0 nodes, 0 edges',
-      '> timeline: inactive',
       '',
       '## Legend',
       '',
@@ -56,10 +51,6 @@ describe('renderMarkdownExport', () => {
     const markdown = renderMarkdownExport(createExportData({
       scope: {
         graph: 'current-view',
-        timeline: {
-          active: true,
-          commitSha: 'abc123',
-        },
       },
       summary: {
         totalNodes: 2,
@@ -117,7 +108,6 @@ describe('renderMarkdownExport', () => {
       '# CodeGraphy Export',
       '',
       '> 2 nodes, 1 edges',
-      '> timeline commit: abc123',
       '',
       '## Legend',
       '',

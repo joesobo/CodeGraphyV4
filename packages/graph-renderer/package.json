@@ -1,0 +1,69 @@
+{
+  "name": "@codegraphy-dev/graph-renderer",
+  "version": "0.0.0",
+  "description": "CodeGraphy's WebGPU graph renderer and deterministic WebAssembly physics engine",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./testing": {
+      "types": "./tests/api.ts",
+      "default": "./tests/api.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/graph-renderer",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "codegraphy",
+    "force-directed",
+    "graph",
+    "graph-layout",
+    "typescript",
+    "webgpu",
+    "webassembly",
+    "visualization"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/build-workspace-package.mjs --clean dist && pnpm run build:wasm && tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js --replace src/physics/wasm/runtime/loader.ts ../generated/physics.wasm ./generated/physics.wasm --copy src/physics/wasm/generated/physics.wasm dist/generated/physics.wasm",
+    "build:wasm": "tsx scripts/buildPhysics.ts",
+    "watch:wasm": "tsx scripts/buildPhysics.ts --watch",
+    "lint": "eslint src tests scripts vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.71",
+    "assemblyscript": "0.28.19"
+  }
+}

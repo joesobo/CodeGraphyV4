@@ -6,6 +6,7 @@ import { runCliCommand } from '../../src/cli/command';
 
 describe('cli/command', () => {
   it('dispatches help and plugin help without touching a workspace', async () => {
+    await expect(runCliCommand({ name: 'setup' })).resolves.toMatchObject({ exitCode: 0 });
     await expect(runCliCommand({ name: 'help' })).resolves.toMatchObject({
       exitCode: 0,
       output: expect.stringContaining('CodeGraphy CLI'),

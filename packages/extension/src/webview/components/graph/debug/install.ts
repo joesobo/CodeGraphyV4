@@ -2,105 +2,39 @@ import type { MutableRefObject, RefObject } from 'react';
 import './window';
 import type { GraphDebugControls } from './contracts/protocol';
 import { buildGraphDebugSnapshot, type DebugNode } from './snapshot';
+import { centerGraphDebugNode } from './centerNode';
+import { getGraphDebugNodeScreenPosition, openGraphDebugNodeContextMenu } from './contextMenu';
 
 type GraphDebugApiOptions = {
   containerRef: RefObject<HTMLElement | null>;
   fitView(this: void): void;
   fg2dRef: MutableRefObject<GraphDebugControls | undefined>;
-  fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
   graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
-  graphMode: '2d' | '3d';
   openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
   win: Window;
 };
-
-function getActiveGraphDebugControls(
-  options: Pick<GraphDebugApiOptions, 'fg2dRef' | 'fg3dRef' | 'graphMode'>,
-): GraphDebugControls | undefined {
-  return options.graphMode === '2d' ? options.fg2dRef.current : options.fg3dRef.current;
-}
-
-function getGraphDebugNodeScreenPosition(
-  node: DebugNode,
-  graph: GraphDebugControls | undefined,
-): { x: number; y: number } {
-  return graph?.graph2ScreenCoords?.(
-    node.x ?? 0,
-    node.y ?? 0,
-    typeof node.z === 'number' ? node.z : 0,
-  ) ?? {
-    x: node.x ?? 0,
-    y: node.y ?? 0,
-  };
-}
-
-function createGraphDebugContextMenuEvent(
-  screen: { x: number; y: number },
-  container: HTMLElement | null,
-): MouseEvent {
-  const rect = container?.getBoundingClientRect();
-  return new MouseEvent('contextmenu', {
-    bubbles: true,
-    button: 2,
-    buttons: 2,
-    cancelable: true,
-    clientX: (rect?.left ?? 0) + screen.x,
-    clientY: (rect?.top ?? 0) + screen.y,
-  });
-}
-
-function openGraphDebugNodeContextMenu(
-  nodeId: string,
-  options: GraphDebugApiOptions,
-): void {
-  const node = options.graphDataRef.current.nodes.find(entry => entry.id === nodeId);
-  if (!node || !options.openNodeContextMenu) {
-    return;
-  }
-
-  const graph = getActiveGraphDebugControls(options);
-  const screen = getGraphDebugNodeScreenPosition(node, graph);
-  const event = createGraphDebugContextMenuEvent(screen, options.containerRef.current);
-
-  options.openNodeContextMenu(nodeId, event);
-}
 
 export function installGraphDebugApi({
   containerRef,
   fitView,
   fg2dRef,
-  fg3dRef,
   graphDataRef,
-  graphMode,
   openNodeContextMenu,
   win,
 }: GraphDebugApiOptions): (() => void) | undefined {
   if (win.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true && win.document?.body?.dataset.codegraphyDebug !== 'true') {
     return undefined;
   }
-  const options = {
-    containerRef,
-    fitView,
-    fg2dRef,
-    fg3dRef,
-    graphDataRef,
-    graphMode,
-    openNodeContextMenu,
-    win,
-  };
-
   win.__CODEGRAPHY_GRAPH_DEBUG__ = {
+    centerNode: (nodeId, scale) => centerGraphDebugNode(nodeId, scale, graphDataRef.current.nodes, fg2dRef.current),
     fitView,
-    fitViewWithPadding: (padding: number) => {
-      getActiveGraphDebugControls(options)?.zoomToFit?.(300, padding);
+    fitViewWithPadding: padding => fg2dRef.current?.zoomToFit?.(300, padding),
+    getNodeScreenPosition: nodeId => {
+      const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
+      return node ? getGraphDebugNodeScreenPosition(node, fg2dRef.current) : null;
     },
-    getSnapshot: () => buildGraphDebugSnapshot({
-      containerRef,
-      graph: getActiveGraphDebugControls(options),
-      graphMode,
-      nodes: graphDataRef.current.nodes,
-    }),
-    openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
+    getSnapshot: () => buildGraphDebugSnapshot({ containerRef, graph: fg2dRef.current, nodes: graphDataRef.current.nodes }),
+    openNodeContextMenu: nodeId => openGraphDebugNodeContextMenu(nodeId, { containerRef, fg2dRef, graphDataRef, openNodeContextMenu }),
   };
 
   return () => {

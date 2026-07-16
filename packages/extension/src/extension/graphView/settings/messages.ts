@@ -71,6 +71,10 @@ export function buildGraphViewAllSettingsMessages(
         payload: { maxFiles: snapshot.maxFiles },
       },
       {
+        type: 'SHOW_FPS_UPDATED',
+        payload: { showFps: snapshot.showFps },
+      },
+      {
         type: 'VERBOSE_DIAGNOSTICS_UPDATED',
         payload: { verboseDiagnostics: snapshot.verboseDiagnostics },
       },

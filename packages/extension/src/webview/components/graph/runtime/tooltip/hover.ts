@@ -1,10 +1,7 @@
 import type { MutableRefObject } from 'react';
-import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import {
-	buildGraphTooltipContext,
-	buildGraphTooltipState,
 	hideGraphTooltipState,
 	type GraphTooltipRect,
 	type GraphTooltipState,
@@ -12,16 +9,10 @@ import {
 import type { FGNode } from '../../model/build';
 import type { GraphTooltipInteractionDependencies } from '../use/tooltip/hook';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
+import type { IFileInfo } from '../../../../../shared/files/info';
+import { scheduleTooltipHover } from './schedule';
 
-function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
-}
-
-function isPluginRuntimeNode(node: FGNode): boolean {
-  return typeof node.ownerPluginId === 'string' || typeof node.runtimeNodeType === 'string';
-}
-
-interface TooltipHoverOptions {
+export interface TooltipHoverOptions {
 	dataRef: MutableRefObject<IGraphData>;
 	fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
 	getNodeRect(this: void, node: FGNode): GraphTooltipRect | null;
@@ -46,57 +37,6 @@ function clearTooltipHoverState(
   stopTracking();
   setTooltipData(hideGraphTooltipState);
   interactionHandlers.sendGraphInteraction('graph:nodeHover', { node: null });
-}
-
-function shouldRequestTooltipFileInfo(node: FGNode, nodeId: string): boolean {
-  return node.nodeType !== 'package' && !isPackageNodeId(nodeId) && !isPluginRuntimeNode(node);
-}
-
-function scheduleTooltipHover(
-  node: FGNode,
-  {
-    dataRef,
-    fileInfoCacheRef,
-    getNodeRect,
-    pluginHost,
-    postMessage,
-    setTooltipData,
-    startTracking,
-    tooltipTimeoutRef,
-  }: Pick<
-    TooltipHoverOptions,
-    'dataRef'
-    | 'fileInfoCacheRef'
-    | 'getNodeRect'
-    | 'pluginHost'
-    | 'postMessage'
-    | 'setTooltipData'
-    | 'startTracking'
-    | 'tooltipTimeoutRef'
-  >,
-): void {
-  const nodeId = node.id;
-  tooltipTimeoutRef.current = setTimeout(() => {
-    const pluginTooltip = pluginHost?.getTooltipContent(buildGraphTooltipContext({
-      node,
-      snapshot: dataRef.current,
-    }));
-    const tooltipState = buildGraphTooltipState({
-      nodeId,
-      snapshot: dataRef.current,
-      rect: getNodeRect(node),
-      cachedInfo: fileInfoCacheRef.current.get(nodeId) ?? null,
-      pluginActions: pluginTooltip?.actions ?? [],
-      pluginSections: pluginTooltip?.sections ?? [],
-    });
-    setTooltipData(tooltipState.tooltipData);
-
-    if (tooltipState.shouldRequestFileInfo && shouldRequestTooltipFileInfo(node, nodeId)) {
-      postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
-    }
-
-    startTracking();
-  }, 500);
 }
 
 export function handleTooltipNodeHover(

@@ -1,4 +1,4 @@
-import { normalizeDiscoveryPath } from './pathNormalization.js';
+import { normalizeDiscoveryPath } from './pathNormalization';
 
 export function shouldSkipKnownDirectory(relativePath: string): boolean {
   const normalizedRelative = normalizeDiscoveryPath(relativePath);

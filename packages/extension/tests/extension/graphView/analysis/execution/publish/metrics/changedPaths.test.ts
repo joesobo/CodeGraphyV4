@@ -36,18 +36,8 @@ describe('extension/graphView/analysis/execution/publish/metrics/changedPaths', 
   it('detects file size metric differences for changed nodes', () => {
     expect(
       hasChangedNodeMetricDifference(
-        createGraph([createNode({ fileSize: 10, churn: 1 })]),
-        createGraph([createNode({ fileSize: 20, churn: 1 })]),
-        ['src/a.ts'],
-      ),
-    ).toBe(true);
-  });
-
-  it('detects churn metric differences for changed nodes', () => {
-    expect(
-      hasChangedNodeMetricDifference(
-        createGraph([createNode({ fileSize: 10, churn: 1 })]),
-        createGraph([createNode({ fileSize: 10, churn: 2 })]),
+        createGraph([createNode({ fileSize: 10 })]),
+        createGraph([createNode({ fileSize: 20 })]),
         ['src/a.ts'],
       ),
     ).toBe(true);
@@ -66,8 +56,8 @@ describe('extension/graphView/analysis/execution/publish/metrics/changedPaths', 
   it('returns false when changed node metrics are unchanged', () => {
     expect(
       hasChangedNodeMetricDifference(
-        createGraph([createNode({ fileSize: 10, churn: 1 })]),
-        createGraph([createNode({ fileSize: 10, churn: 1 })]),
+        createGraph([createNode({ fileSize: 10 })]),
+        createGraph([createNode({ fileSize: 10 })]),
         ['src/a.ts'],
       ),
     ).toBe(false);

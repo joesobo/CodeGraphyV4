@@ -2,10 +2,7 @@ import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextM
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 
 export type GraphContextTargetKind = 'background' | 'node' | 'edge';
-export type GraphContextMutationAvailability = 'enabled' | 'disabled' | 'hidden';
 type GraphViewContextMenuContribution = CoreGraphViewContributionSet['contextMenu'][number]['contribution'];
-
-export const DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY: GraphContextMutationAvailability = 'enabled';
 
 export type BuiltInContextMenuAction =
   | 'open'
@@ -75,7 +72,6 @@ export interface GraphContextMenuNode {
   color?: string;
   x?: number;
   y?: number;
-  z?: number;
   ownerPluginId?: string;
   nodeType?: string;
   runtimeNodeType?: string;
@@ -96,9 +92,6 @@ export interface GraphContextMenuEdge {
 
 export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
-  graphMode?: '2d' | '3d';
-  timelineActive: boolean;
-  mutationAvailability?: GraphContextMutationAvailability;
   favorites: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];
   graphViewContributions?: CoreGraphViewContributionSet;

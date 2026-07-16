@@ -5,28 +5,19 @@ import { releaseNodeDrag } from './nodeDrag/policy';
 import { isFiniteTranslate, moveNodeByTranslate, stopNodeMotion } from './nodeDrag/position';
 import type {
   ApplyNodeDragOptions,
-  GraphMode,
   NodeDragEndOptions,
   NodeDragGroupSession,
   NodeDragTranslate,
 } from './nodeDrag/types';
 
-export type {
-  NodeDragGroupSession,
-  NodeDragTranslate,
-};
+export type { NodeDragGroupSession, NodeDragTranslate };
 
 export function markNodeDragging(node: FGNode): void {
   node.isDragging = true;
 }
 
-function stopPinned2dNodeMotion(
-  node: FGNode,
-  options: Pick<ApplyNodeDragOptions, 'graphMode'>,
-): void {
-  if (options.graphMode === '2d' && node.isPinned === true) {
-    stopNodeMotion(node);
-  }
+function stopPinnedNodeMotion(node: FGNode): void {
+  if (node.isPinned === true) stopNodeMotion(node);
 }
 
 function moveDraggedSessionNodes(
@@ -38,12 +29,8 @@ function moveDraggedSessionNodes(
   const nodesById = new Map(options.graphData.nodes.map(node => [node.id, node]));
   for (const nodeId of session.draggedNodeIds) {
     const node = nodesById.get(nodeId);
-    if (node) {
-      markNodeDragging(node);
-    }
-    if (node && node.id !== primaryNode.id) {
-      moveNodeByTranslate(node, translate);
-    }
+    if (node) markNodeDragging(node);
+    if (node && node.id !== primaryNode.id) moveNodeByTranslate(node, translate);
   }
 }
 
@@ -56,15 +43,10 @@ export function applyNodeDrag(
   markNodeDragging(primaryNode);
 
   const nextSession = session ?? createDragGroupSession(primaryNode, options);
-  if (!isFiniteTranslate(translate)) {
-    return nextSession;
-  }
+  if (!isFiniteTranslate(translate)) return nextSession;
 
-  stopPinned2dNodeMotion(primaryNode, options);
-
-  if (!nextSession) {
-    return nextSession;
-  }
+  stopPinnedNodeMotion(primaryNode);
+  if (!nextSession) return nextSession;
 
   moveDraggedSessionNodes(primaryNode, translate, options, nextSession);
   return nextSession;
@@ -72,14 +54,12 @@ export function applyNodeDrag(
 
 export function postNodeDragEndMessages(
   node: FGNode,
-  graphMode: GraphMode,
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
   options: {
     graphData?: NodeDragEndOptions['graphData'];
-    timelineActive?: boolean;
   } = {},
 ): void {
-  releaseNodeDrag(node, graphMode, {
+  releaseNodeDrag(node, {
     ...options,
     graphViewContributions,
   });
@@ -93,12 +73,8 @@ export function postDraggedNodesDragEndMessages(
   for (const node of getDragEndNodes(primaryNode, session, options.graphData)) {
     postNodeDragEndMessages(
       node,
-      options.graphMode,
       options.graphViewContributions,
-      {
-        graphData: options.graphData,
-        timelineActive: options.timelineActive,
-      },
+      { graphData: options.graphData },
     );
   }
 }

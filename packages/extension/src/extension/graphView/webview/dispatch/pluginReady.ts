@@ -1,7 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import { applyWebviewReady } from '../messages/ready';
 
 type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW_READY' }>;
@@ -13,9 +13,7 @@ export interface GraphViewPluginReadyContext {
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
   getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
-  getPlaybackSpeed(): number;
   getDepthMode?(): boolean;
-  getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
@@ -31,7 +29,6 @@ export interface GraphViewPluginReadyContext {
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
-  sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginStatuses?(): void;
@@ -51,10 +48,9 @@ export async function dispatchGraphViewPluginReadyMessage(
   return applyWebviewReady(
     {
       maxFiles: context.getMaxFiles(),
+      showFps: context.getConfig('showFps', false),
       verboseDiagnostics: context.getConfig('verboseDiagnostics', false),
-      playbackSpeed: context.getPlaybackSpeed(),
       depthMode: context.getDepthMode?.() ?? false,
-      dagMode: context.getDagMode(),
       nodeSizeMode: context.getNodeSizeMode(),
       focusedFile: context.getFocusedFile(),
       hasWorkspace: context.hasWorkspace(),
@@ -77,7 +73,6 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendPhysicsSettings: () => context.sendPhysicsSettings(),
       sendGroupsUpdated: () => context.sendGroupsUpdated(),
       sendMessage: message => context.sendMessage(message),
-      sendCachedTimeline: () => context.sendCachedTimeline(),
       sendDecorations: () => context.sendDecorations(),
       sendContextMenuItems: () => context.sendContextMenuItems(),
       sendPluginStatuses: () => context.sendPluginStatuses?.(),

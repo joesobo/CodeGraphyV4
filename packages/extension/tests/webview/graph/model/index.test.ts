@@ -22,37 +22,18 @@ describe('graph/model/build', () => {
     expect(resolveDirectionColor('blue')).toBe(DEFAULT_DIRECTION_COLOR);
   });
 
-  it('uses the default size for uniform node sizing', () => {
+  it('scales connection-based node sizes from unique related nodes', () => {
+    const leaves = Array.from({ length: 15 }, (_, index) => ({
+      id: `leaf-${index}.ts`, label: `leaf-${index}.ts`, color: '#67E8F9',
+    }));
     const sizes = calculateNodeSizes(
-      [
-        { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
-        { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
-      ],
-      [],
-      'uniform'
+      [{ id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' }, ...leaves],
+      leaves.map(leaf => ({ from: 'hub.ts', to: leaf.id })),
+      'connections',
     );
 
-    expect(sizes.get('a.ts')).toBe(16);
-    expect(sizes.get('b.ts')).toBe(16);
-  });
-
-  it('scales connection-based node sizes by edge count', () => {
-    const sizes = calculateNodeSizes(
-      [
-        { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
-        { id: 'leaf-a.ts', label: 'leaf-a.ts', color: '#67E8F9' },
-        { id: 'leaf-b.ts', label: 'leaf-b.ts', color: '#67E8F9' },
-      ],
-      [
-        { from: 'hub.ts', to: 'leaf-a.ts' },
-        { from: 'hub.ts', to: 'leaf-b.ts' },
-      ],
-      'connections'
-    );
-
-    expect(sizes.get('hub.ts')).toBe(40);
-    expect(sizes.get('leaf-a.ts')).toBe(25);
-    expect(sizes.get('leaf-b.ts')).toBe(25);
+    expect(sizes.get('hub.ts')).toBe(12);
+    expect(sizes.get('leaf-0.ts')).toBe(8);
   });
 
   it('returns default sizes when file-size mode has no positive file sizes', () => {
@@ -65,8 +46,8 @@ describe('graph/model/build', () => {
       'file-size'
     );
 
-    expect(sizes.get('empty.ts')).toBe(16);
-    expect(sizes.get('zero.ts')).toBe(16);
+    expect(sizes.get('empty.ts')).toBe(8);
+    expect(sizes.get('zero.ts')).toBe(8);
   });
 
   it('returns lower opacity for deeper nodes', () => {
@@ -141,30 +122,6 @@ describe('graph/model/build', () => {
     ]);
   });
 
-  it('preserves previous positions and seeds new timeline nodes near connected neighbors', () => {
-    const data: IGraphData = {
-      nodes: [
-        { id: 'anchor.ts', label: 'anchor.ts', color: '#93C5FD' },
-        { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
-      ],
-      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
-    };
-
-    const graphData = buildGraphData({
-      data,
-      nodeSizeMode: 'uniform',
-      theme: 'dark',
-      favorites: new Set(),
-      bidirectionalMode: 'separate',
-      timelineActive: true,
-      previousNodes: [{ id: 'anchor.ts', x: 100, y: 200 }],
-      random: () => 0.75,
-    });
-
-    expect(graphData.nodes.find(node => node.id === 'anchor.ts')).toMatchObject({ x: 100, y: 200 });
-    expect(graphData.nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
-  });
-
   it('applies focused and favorite borders while building graph data', () => {
     const data: IGraphData = {
       nodes: [
@@ -180,11 +137,10 @@ describe('graph/model/build', () => {
     const graphData = buildGraphData({
       appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#2563eb' },
       data,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'light',
       favorites: new Set(['favorite.ts']),
       bidirectionalMode: 'combined',
-      timelineActive: false,
     });
 
     expect(graphData.nodes.find(node => node.id === 'focus.ts')).toMatchObject({

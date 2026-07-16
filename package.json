@@ -140,14 +140,6 @@
 			{
 				"command": "codegraphy.toggleDepthMode",
 				"title": "CodeGraphy: Toggle Depth Mode"
-			},
-			{
-				"command": "codegraphy.cycleLayout",
-				"title": "CodeGraphy: Cycle Layout"
-			},
-			{
-				"command": "codegraphy.toggleDimension",
-				"title": "CodeGraphy: Toggle 2D/3D"
 			}
 		],
 		"keybindings": [
@@ -192,16 +184,6 @@
 				"command": "codegraphy.toggleDepthMode",
 				"key": "v",
 				"when": "codegraphy.graphFocused"
-			},
-			{
-				"command": "codegraphy.cycleLayout",
-				"key": "l",
-				"when": "codegraphy.graphFocused"
-			},
-			{
-				"command": "codegraphy.toggleDimension",
-				"key": "t",
-				"when": "codegraphy.graphFocused"
 			}
 		],
 		"viewsContainers": {
@@ -220,13 +202,6 @@
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg"
-				},
-				{
-					"type": "webview",
-					"id": "codegraphy.timelineView",
-					"name": "Timeline",
-					"icon": "assets/icon.svg",
-					"visibility": "collapsed"
 				}
 			]
 		}

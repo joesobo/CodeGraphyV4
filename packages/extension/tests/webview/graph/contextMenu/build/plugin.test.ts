@@ -8,7 +8,6 @@ describe('graph/contextMenu/build/plugin', () => {
   it('appends eligible plugin entries after built-in entries', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set()),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [
         { label: 'Plugin Node Action', when: 'node', pluginId: 'acme', index: 0 },

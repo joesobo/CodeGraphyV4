@@ -28,13 +28,13 @@ describe('commandRegistration', () => {
     vi.clearAllMocks();
   });
 
-  it('registers all 16 codegraphy commands', () => {
+  it('registers all 14 codegraphy commands', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerCommands(context as unknown as vscode.ExtensionContext, provider as never);
 
-    expect(context.subscriptions.length).toBe(16);
+    expect(context.subscriptions.length).toBe(14);
   });
 
   it('registers the codegraphy.open command', () => {

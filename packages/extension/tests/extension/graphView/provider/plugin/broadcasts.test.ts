@@ -238,25 +238,12 @@ describe('graphView/provider/plugin/broadcasts', () => {
     });
   });
 
-  it('falls back to the timeline view when the main view is unavailable', () => {
-    const timelineView = {
-      webview: { cspSource: 'timeline' },
-      viewType: 'codegraphy.timelineView',
-      onDidDispose: vi.fn(),
-      visible: true,
-      onDidChangeVisibility: vi.fn(),
-      show: vi.fn(),
-    } as unknown as vscode.WebviewView;
-    const source = createPluginSource({
-      _view: undefined,
-      _timelineView: timelineView,
-    });
+  it('sends groups without a sidebar target when the graph view is unavailable', () => {
+    const source = createPluginSource({ _view: undefined });
     const sendGroupsUpdated = vi.fn();
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
-      {
-        sendGroupsUpdated,
-      },
+      { sendGroupsUpdated },
       1,
     );
 
@@ -264,7 +251,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
 
     expect(sendGroupsUpdated).toHaveBeenCalledWith(
       source._groups,
-      expect.objectContaining({ view: timelineView }),
+      expect.objectContaining({ view: undefined }),
       expect.any(Function),
     );
   });

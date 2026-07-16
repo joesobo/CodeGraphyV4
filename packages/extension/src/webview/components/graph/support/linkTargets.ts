@@ -12,15 +12,13 @@ export function resolveEdgeActionTargetId(
   targetId: string,
   rawEdges: IGraphEdge[]
 ): string {
-  if (linkId && rawEdges.some(edge => edge.id === linkId)) {
-    return linkId;
-  }
+  const idMatch = linkId ? rawEdges.find(edge => edge.id === linkId) : undefined;
+  const endpointMatch = rawEdges.find(edge => connectsEndpoints(edge, sourceId, targetId));
+  return idMatch?.id ?? endpointMatch?.id ?? linkId ?? `${sourceId}->${targetId}`;
+}
 
-  const forward = rawEdges.find(edge => edge.from === sourceId && edge.to === targetId);
-  if (forward) return forward.id;
-
-  const reverse = rawEdges.find(edge => edge.from === targetId && edge.to === sourceId);
-  if (reverse) return reverse.id;
-
-  return linkId ?? `${sourceId}->${targetId}`;
+function connectsEndpoints(edge: IGraphEdge, sourceId: string, targetId: string): boolean {
+  const forward = edge.from === sourceId && edge.to === targetId;
+  const reverse = edge.from === targetId && edge.to === sourceId;
+  return forward || reverse;
 }

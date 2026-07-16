@@ -51,9 +51,6 @@ function applyCompiledNodeLegendRule(
   if (rule.shape2D) {
     node.shape2D = rule.shape2D;
   }
-  if (rule.shape3D) {
-    node.shape3D = rule.shape3D;
-  }
   if (rule.imageUrl) {
     node.imageUrl = rule.imageUrl;
   }

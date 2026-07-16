@@ -1,11 +1,10 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
-import { createExportTimestamp, getExportContext } from '../shared/context';
+import { createExportTimestamp } from '../shared/context';
 import { buildExportData } from './build/document';
 
 export type {
-  ExportBuildContext,
   ExportData,
   ExportEdgeEntry,
   ExportEdgeSourceEntry,
@@ -17,7 +16,7 @@ export { buildExportData } from './build/document';
 export function exportAsJson(data: IGraphData): void {
   try {
     const { legends, pluginStatuses } = graphStore.getState();
-    const exportData = buildExportData(data, legends, pluginStatuses, getExportContext());
+    const exportData = buildExportData(data, legends, pluginStatuses);
     const timestamp = createExportTimestamp();
 
     postMessage({

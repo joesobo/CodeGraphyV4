@@ -1,19 +1,12 @@
 import { builtInItem, separator } from '../common/entryFactories';
-import type { GraphContextMenuEntry, GraphContextMutationAvailability } from '../contracts';
+import type { GraphContextMenuEntry } from '../contracts';
 
-export function buildBackgroundEntries(
-  mutationAvailability: GraphContextMutationAvailability,
-): GraphContextMenuEntry[] {
-  const entries: GraphContextMenuEntry[] = [];
-  if (mutationAvailability !== 'hidden') {
-    const disabled = mutationAvailability === 'disabled';
-    entries.push(builtInItem('background-create-file', 'New File', 'createFile', { disabled }));
-    entries.push(builtInItem('background-create-folder', 'New Folder', 'createFolder', { disabled }));
-    entries.push(separator('background-separator-primary'));
-  }
-  entries.push(
+export function buildBackgroundEntries(): GraphContextMenuEntry[] {
+  return [
+    builtInItem('background-create-file', 'New File', 'createFile', { disabled: false }),
+    builtInItem('background-create-folder', 'New Folder', 'createFolder', { disabled: false }),
+    separator('background-separator-primary'),
     builtInItem('background-refresh', 'Refresh', 'refresh'),
-    builtInItem('background-fit', 'Fit All Nodes', 'fitView')
-  );
-  return entries;
+    builtInItem('background-fit', 'Fit All Nodes', 'fitView'),
+  ];
 }

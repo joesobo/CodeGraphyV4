@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
+import { createDefaultViewportSurfaceProps } from '../rendering/surface/owned2d/view/surface/fixture';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
   surface2d: vi.fn(),
-  surface3d: vi.fn(),
 }));
 
 vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
@@ -17,17 +17,10 @@ vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDimensional', () => ({
-  Surface2d: (props: Record<string, unknown>) => {
+vi.mock('../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/render', () => ({
+  OwnedGraphSurface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
-  },
-}));
-
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDimensional', () => ({
-  DeferredSurface3d: (props: Record<string, unknown>) => {
-    harness.surface3d(props);
-    return <div data-testid="surface-3d" />;
   },
 }));
 
@@ -50,14 +43,7 @@ vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
 
 function createSharedProps() {
   return {
-    cooldownTicks: 20,
-    d3AlphaDecay: 0.0228,
-    d3VelocityDecay: 0.7,
-    dagLevelDistance: undefined,
-    dagMode: undefined,
     graphData: { nodes: [], links: [] },
-    height: 200,
-    nodeId: 'id' as const,
     onBackgroundClick: vi.fn(),
     onBackgroundRightClick: vi.fn(),
     onEngineStop: vi.fn(),
@@ -68,17 +54,7 @@ function createSharedProps() {
     onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
-    warmupTicks: 0,
     width: 300,
-  };
-}
-
-function createNodeThreeObjectContext() {
-  return {
-    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
-    meshesRef: { current: new Map() },
-    showLabelsRef: { current: true },
-    spritesRef: { current: new Map() },
   };
 }
 
@@ -91,10 +67,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
-      borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
-      graphMode="2d"
       handleContextMenu={handleContextMenu}
       handleMenuAction={handleMenuAction}
       handleMouseDownCapture={vi.fn()}
@@ -103,31 +77,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       handleMouseUpCapture={vi.fn()}
       menuEntries={[]}
       surface2dProps={{
-        fg2dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getArrowRelPos: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        linkCanvasObject: vi.fn(),
-        nodeCanvasObject: vi.fn(),
-        nodePointerAreaPaint: vi.fn(),
-        onRenderFramePost: vi.fn(),
-        particleSize: 2,
-        particleSpeed: 0.1,
-        sharedProps: createSharedProps(),
-      }}
-      surface3dProps={{
-        fg3dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        nodeThreeObjectContext: createNodeThreeObjectContext(),
-        particleSize: 2,
-        particleSpeed: 0.1,
+        ...createDefaultViewportSurfaceProps(),
         sharedProps: createSharedProps(),
       }}
       tooltipData={{
@@ -209,14 +159,15 @@ describe('Viewport (mutation targets)', () => {
     expect(screen.queryByTestId('shortcut')).not.toBeInTheDocument();
   });
 
-  it('applies recessed graph stage spacing without an outline border', () => {
-    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
+  it('applies recessed graph stage spacing without inline border styling', () => {
+    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)' });
 
     const container = document.querySelector('.graph-container') as HTMLElement;
     expect(container).toHaveClass('inset-2');
     expect(container).not.toHaveClass('m-1');
     expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
-    expect(container.style.borderWidth).toBe('0px');
+    expect(container.style.borderWidth).toBe('');
+    expect(container.style.borderStyle).toBe('');
   });
 
   it('renders separator entries as hr elements', () => {

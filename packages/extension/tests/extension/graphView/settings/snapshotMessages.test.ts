@@ -26,7 +26,7 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      'uniform',
+      'connections',
     );
 
     expect(snapshot).toEqual({
@@ -55,8 +55,9 @@ describe('graphView/settings/snapshotMessages', () => {
       pluginData: {},
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
+      showFps: false,
       verboseDiagnostics: false,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
     });
   });
 
@@ -81,6 +82,7 @@ describe('graphView/settings/snapshotMessages', () => {
         },
         showLabels: false,
         maxFiles: 250,
+        showFps: true,
         verboseDiagnostics: true,
       }),
       {
@@ -90,7 +92,7 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      'churn',
+      'file-size',
     );
 
     expect(snapshot).toEqual({
@@ -121,8 +123,9 @@ describe('graphView/settings/snapshotMessages', () => {
       },
       showLabels: false,
       maxFiles: 250,
+      showFps: true,
       verboseDiagnostics: true,
-      nodeSizeMode: 'churn',
+      nodeSizeMode: 'file-size',
     });
   });
 
@@ -189,8 +192,9 @@ describe('graphView/settings/snapshotMessages', () => {
           },
           showLabels: false,
           maxFiles: 250,
+          showFps: true,
           verboseDiagnostics: true,
-          nodeSizeMode: 'churn',
+          nodeSizeMode: 'file-size',
         },
         ['venv/**'],
       ),
@@ -240,12 +244,16 @@ describe('graphView/settings/snapshotMessages', () => {
           payload: { maxFiles: 250 },
         },
         {
+          type: 'SHOW_FPS_UPDATED',
+          payload: { showFps: true },
+        },
+        {
           type: 'VERBOSE_DIAGNOSTICS_UPDATED',
           payload: { verboseDiagnostics: true },
         },
         {
           type: 'NODE_SIZE_MODE_UPDATED',
-          payload: { nodeSizeMode: 'churn' },
+          payload: { nodeSizeMode: 'file-size' },
         },
         {
           type: 'PLUGIN_DATA_UPDATED',

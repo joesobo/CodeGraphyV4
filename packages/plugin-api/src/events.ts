@@ -206,29 +206,6 @@ export interface PluginMessagePayload {
 }
 
 // ============================================================================
-// Timeline Events (4)
-// ============================================================================
-
-export interface TimelineCommitSelectedPayload {
-  hash: string;
-  date: string;
-  author: string;
-}
-
-export interface TimelinePlaybackStartedPayload {
-  speed: number;
-}
-
-export interface TimelinePlaybackStoppedPayload {
-  commitHash: string;
-}
-
-export interface TimelineRangeChangedPayload {
-  start: string;
-  end: string;
-}
-
-// ============================================================================
 // EventPayloads — master event→payload map
 // ============================================================================
 
@@ -281,11 +258,6 @@ export interface EventPayloads {
   'plugin:sourceToggled': PluginSourceToggledPayload;
   'plugin:message': PluginMessagePayload;
 
-  // Timeline (4)
-  'timeline:commitSelected': TimelineCommitSelectedPayload;
-  'timeline:playbackStarted': TimelinePlaybackStartedPayload;
-  'timeline:playbackStopped': TimelinePlaybackStoppedPayload;
-  'timeline:rangeChanged': TimelineRangeChangedPayload;
 }
 
 /** Union of all event names. */

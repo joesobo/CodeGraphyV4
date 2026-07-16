@@ -21,7 +21,6 @@ type PanGraph = {
 function createPanRuntime(options: {
   container?: HTMLDivElement | null;
   graph?: PanGraph | null;
-  graphMode?: '2d' | '3d';
   rightMouseDown?: {
     ctrlKey: boolean;
     moved: boolean;
@@ -64,7 +63,6 @@ function createPanRuntime(options: {
   const { result } = renderHook(() => useGraphViewportPanRuntime({
     containerRef: { current: container } as never,
     fg2dRef: { current: graph } as never,
-    graphMode: options.graphMode ?? '2d',
     rightMouseDownRef: rightMouseDownRef as never,
     suppressContextMenu,
   }));
@@ -126,21 +124,15 @@ describe('graph/runtime/use/interaction viewport pan', () => {
     expect(runtime.rightMouseDownRef.current?.moved).toBe(false);
   });
 
-  it('ignores non-pan buttons and 3d graph mode', () => {
-    const in2d = createPanRuntime({ graphMode: '2d' });
-    const in3d = createPanRuntime({ graphMode: '3d' });
+  it('ignores plain left-button drag', () => {
+    const runtime = createPanRuntime();
     const leftDown = createEvent(0, 10, 20);
-    const rightDown3d = createEvent(2, 10, 20);
 
-    in2d.result.current.handleMouseDownCapture(leftDown as never);
-    in2d.result.current.handleMouseMoveCapture(createEvent(0, 30, 40) as never);
-    in3d.result.current.handleMouseDownCapture(rightDown3d as never);
-    in3d.result.current.handleMouseMoveCapture(createEvent(2, 30, 40) as never);
+    runtime.result.current.handleMouseDownCapture(leftDown as never);
+    runtime.result.current.handleMouseMoveCapture(createEvent(0, 30, 40) as never);
 
     expect(leftDown.preventDefault).not.toHaveBeenCalled();
-    expect(rightDown3d.preventDefault).not.toHaveBeenCalled();
-    expect(in2d.graph?.centerAt).not.toHaveBeenCalled();
-    expect(in3d.graph?.centerAt).not.toHaveBeenCalled();
+    expect(runtime.graph?.centerAt).not.toHaveBeenCalled();
   });
 
   it('does not pan or suppress context menus before the drag threshold', () => {

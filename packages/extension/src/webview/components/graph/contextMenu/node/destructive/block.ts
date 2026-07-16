@@ -5,6 +5,7 @@
 
 import { builtInItem, separator } from '../../common/entryFactories';
 import type { GraphContextMenuEntry } from '../../contracts';
+import { buildFolderDestructiveEntries } from './folderBlock';
 
 export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEntry[] {
   const isMultiSelect = targets.length > 1;
@@ -27,35 +28,26 @@ export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEn
   return entries;
 }
 
-/** Builds file-changing actions controlled by Graph Revision mutability. */
 export function buildDestructiveBlock(
   targets: readonly string[],
-  disabled = false
 ): GraphContextMenuEntry[] {
   const isMultiSelect = targets.length > 1;
   const entries: GraphContextMenuEntry[] = [separator('node-separator-destructive')];
 
   if (!isMultiSelect) {
-    entries.push(builtInItem('node-rename', 'Rename', 'rename', { disabled }));
+    entries.push(builtInItem('node-rename', 'Rename', 'rename', { disabled: false }));
   }
 
   entries.push(
     builtInItem('node-delete', isMultiSelect ? `Delete ${targets.length} Files` : 'Delete File', 'delete', {
       destructive: true,
-      disabled,
+      disabled: false,
     })
   );
 
   return entries;
 }
 
-export function buildFolderDestructiveBlock(disabled: boolean): GraphContextMenuEntry[] {
-  return [
-    separator('node-separator-folder-destructive'),
-    builtInItem('node-rename-folder', 'Rename Folder', 'rename', { disabled }),
-    builtInItem('node-delete-folder', 'Delete Folder', 'delete', {
-      destructive: true,
-      disabled,
-    }),
-  ];
+export function buildFolderDestructiveBlock(): GraphContextMenuEntry[] {
+  return buildFolderDestructiveEntries();
 }

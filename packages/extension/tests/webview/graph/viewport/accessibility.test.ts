@@ -36,6 +36,7 @@ describe('graph viewport accessibility', () => {
   it('projects graph node coordinates into screen-positioned accessibility items', () => {
     const projector: GraphScreenProjector = {
       graph2ScreenCoords: (x, y) => ({ x: x + 100, y: y + 50 }),
+      zoom: () => 4,
     };
 
     expect(createGraphAccessibilityItems([
@@ -45,7 +46,7 @@ describe('graph viewport accessibility', () => {
         kind: 'node',
         id: 'src/index.ts',
         label: 'Graph node src/index.ts',
-        radius: 18,
+        radius: 36,
         x: 112,
         y: 74,
       }],
@@ -56,6 +57,7 @@ describe('graph viewport accessibility', () => {
   it('labels edges by their source and target endpoints', () => {
     const projector: GraphScreenProjector = {
       graph2ScreenCoords: (x, y) => ({ x, y }),
+      zoom: () => 1,
     };
 
     expect(createGraphAccessibilityItems([], [
@@ -70,6 +72,7 @@ describe('graph viewport accessibility', () => {
   it('omits node items until the physics engine assigns finite coordinates', () => {
     const projector: GraphScreenProjector = {
       graph2ScreenCoords: (x, y) => ({ x, y }),
+      zoom: () => 1,
     };
 
     expect(createGraphAccessibilityItems([

@@ -19,31 +19,14 @@ function scheduleGroupSettingsRefresh(provider: GraphViewProvider): void {
   }, GROUP_SETTINGS_DEBOUNCE_MS);
 }
 
-function shouldInvalidateTimelineCache(event: CodeGraphyConfigurationChangeLike): boolean {
-  return (
-    event.affectsConfiguration('codegraphy.filterPatterns')
-    || event.affectsConfiguration('codegraphy.disabledCustomFilterPatterns')
-    || event.affectsConfiguration('codegraphy.disabledPluginFilterPatterns')
-    || event.affectsConfiguration('codegraphy.timeline.maxCommits')
-  );
-}
-
 function executeGeneralConfigAction(
-  event: CodeGraphyConfigurationChangeLike,
+  _event: CodeGraphyConfigurationChangeLike,
   provider: GraphViewProvider,
 ): void {
   console.log('[CodeGraphy] Configuration changed, refreshing graph');
   provider.refreshGroupSettings();
   void provider.refresh();
   provider.emitEvent('workspace:configChanged', { key: 'codegraphy', value: undefined, old: undefined });
-
-  if (shouldInvalidateTimelineCache(event)) {
-    void provider.invalidateTimelineCache();
-  }
-
-  if (event.affectsConfiguration('codegraphy.timeline.playbackSpeed')) {
-    provider.sendPlaybackSpeed();
-  }
 }
 
 /** Executes the appropriate provider action for a given config category. */

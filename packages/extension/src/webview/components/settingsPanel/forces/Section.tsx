@@ -116,7 +116,7 @@ export function ForcesSection(): React.ReactElement {
         <Slider
           data-testid="link-force-slider"
           min={0}
-          max={1}
+          max={2}
           step={0.01}
           value={[settings.linkForce]}
           onValueChange={(values) => handlePhysicsChange('linkForce', values[0])}

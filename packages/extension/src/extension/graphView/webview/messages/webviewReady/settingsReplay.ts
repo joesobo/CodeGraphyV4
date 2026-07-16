@@ -68,20 +68,16 @@ function sendWebviewReadySettingValues(
     payload: { maxFiles: state.maxFiles },
   });
   handlers.sendMessage({
+    type: 'SHOW_FPS_UPDATED',
+    payload: { showFps: state.showFps ?? false },
+  });
+  handlers.sendMessage({
     type: 'VERBOSE_DIAGNOSTICS_UPDATED',
     payload: { verboseDiagnostics: state.verboseDiagnostics },
   });
   handlers.sendMessage({
-    type: 'PLAYBACK_SPEED_UPDATED',
-    payload: { speed: state.playbackSpeed },
-  });
-  handlers.sendMessage({
     type: 'DEPTH_MODE_UPDATED',
     payload: { depthMode: state.depthMode ?? false },
-  });
-  handlers.sendMessage({
-    type: 'DAG_MODE_UPDATED',
-    payload: { dagMode: state.dagMode },
   });
   handlers.sendMessage({
     type: 'NODE_SIZE_MODE_UPDATED',

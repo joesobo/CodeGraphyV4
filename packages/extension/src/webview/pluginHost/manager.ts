@@ -39,7 +39,6 @@ import {
   type GraphViewContributionListener,
 } from './manager/contributionRegistry';
 import {
-  getLatestNodeRenderer,
   getOverlayEntries,
   getRendererFnsForType,
   type NodeRendererRegistry,
@@ -100,10 +99,6 @@ export class WebviewPluginHost {
 
   deliverMessage(pluginId: string, msg: { type: string; data: unknown }): void {
     deliverPluginMessage(pluginId, msg, this._messageHandlers);
-  }
-
-  getNodeRenderer(type: string): NodeRenderFn | undefined {
-    return getLatestNodeRenderer(this._nodeRenderers, type);
   }
 
   getNodeRenderers(type: string): NodeRenderFn[] {

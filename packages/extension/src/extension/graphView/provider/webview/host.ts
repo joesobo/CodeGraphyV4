@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import type { CodeGraphyWebviewKind } from '../../webview/html';
 import type { GraphViewProviderMessageListenerSource } from './defaultDependencies';
 import {
   createDefaultGraphViewProviderWebviewMethodDependencies,
@@ -13,7 +12,6 @@ export interface GraphViewProviderWebviewSource
   extends GraphViewProviderMessageListenerSource {
   _extensionUri: vscode.Uri;
   _view?: vscode.WebviewView;
-  _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _notifyExtensionMessage(message: unknown): void;
   _loadAndSendData(): Promise<void>;
@@ -47,13 +45,11 @@ export function createGraphViewProviderWebviewMethods(
   };
 
   const _setWebviewMessageListener = (webview: vscode.Webview): void => {
-    resolvedDependencies.setWebviewMessageListener(webview, source, 'graph');
+    resolvedDependencies.setWebviewMessageListener(webview, source);
   };
 
-  const _getHtmlForWebview = (
-    webview: vscode.Webview,
-    viewKind: CodeGraphyWebviewKind = 'graph',
-  ): string => resolvedDependencies.createHtml(source._extensionUri, webview, viewKind);
+  const _getHtmlForWebview = (webview: vscode.Webview): string =>
+    resolvedDependencies.createHtml(source._extensionUri, webview);
 
   const resolveWebviewView = (
     webviewView: vscode.WebviewView,

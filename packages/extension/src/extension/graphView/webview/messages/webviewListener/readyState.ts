@@ -4,10 +4,9 @@ import type { GraphViewMessageListenerContext } from './contracts';
 export function createReadyState(context: GraphViewMessageListenerContext): GraphViewReadyState {
   return {
     maxFiles: context.getMaxFiles(),
+    showFps: context.getConfig('showFps', false),
     verboseDiagnostics: context.getConfig('verboseDiagnostics', false),
-    playbackSpeed: context.getPlaybackSpeed(),
     depthMode: context.getDepthMode?.() ?? false,
-    dagMode: context.getDagMode(),
     nodeSizeMode: context.getNodeSizeMode(),
     focusedFile: context.getFocusedFile(),
     hasWorkspace: context.hasWorkspace(),

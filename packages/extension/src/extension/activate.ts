@@ -56,15 +56,6 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         },
       }
     ),
-    vscode.window.registerWebviewViewProvider(
-      GraphViewProvider.timelineViewType,
-      provider,
-      {
-        webviewOptions: {
-          retainContextWhenHidden: true,
-        },
-      }
-    ),
     vscode.window.registerUriHandler(createCodeGraphyAgentUriHandler(provider))
   );
 
@@ -76,7 +67,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   diagnostics.emit({
     area: 'extension.lifecycle',
     event: 'activation-completed',
-    context: { registeredWebviewProviders: 2 },
+    context: { registeredWebviewProviders: 1 },
   });
 
   return {

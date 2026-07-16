@@ -63,7 +63,7 @@ An enabled Node Type Capability Provider whose language, file, or project matche
 _Avoid_: Installed provider when enablement and workspace applicability have not both been checked
 
 **File Node**:
-A node representing a concrete file in the workspace or selected graph revision.
+A node representing a concrete file in the workspace.
 _Avoid_: Folder node, package node
 
 **Folder Node**:
@@ -201,7 +201,7 @@ A visible downstream path from a collapsed node to a shared relationship target 
 _Avoid_: Partial collapse path, bridge chain
 
 **Collapse Projection**:
-The CodeGraphy-owned graph transformation, implemented using the force graph's dynamic graph data update pattern, that responds to user collapse input after the graph has been rendered.
+The CodeGraphy-owned graph transformation that responds to user collapse input after the graph has been rendered, then sends the updated Visible Graph to the renderer.
 _Avoid_: Renderer-owned collapse, tree-only collapse
 
 **Depth Mode**:
@@ -315,11 +315,11 @@ A background catch-up pass that runs after cached graph data has already been re
 _Avoid_: Re-index when a readable cache is already being shown, reconciliation
 
 **Refresh**:
-A user-triggered graph rerender that re-runs the force graph simulation without reprocessing graph data.
+A user-triggered graph rerender that restarts graph physics without reprocessing graph data.
 _Avoid_: Re-index, live update
 
 **Refresh Graph**:
-The UI action that refreshes graph layout by rerunning force graph physics without rebuilding graph data.
+The UI action that refreshes graph layout by restarting graph physics without rebuilding graph data.
 _Avoid_: Re-index Workspace
 
 **Re-index**:
@@ -344,7 +344,7 @@ _Avoid_: Agent bridge, MCP indexer, MCP graph
 An agent or Graph View request against Relationship Graph data that can apply Graph Scope, Filter, Search, sorting, pagination, traversal, and result limits before returning graph data.
 _Avoid_: View graph, saved graph view, Visible Graph when the result is not the UI-rendered graph
 
-### Views And Timeline
+### Views
 
 **View**:
 A VS Code extension UI container owned by CodeGraphy.
@@ -390,29 +390,9 @@ _Avoid_: Toolbar controls, display settings
 A Graph View interaction that changes how close the user is to the rendered graph without changing graph data.
 _Avoid_: Graph Scope, Filter, Search, Refresh
 
-**2D Zoom**:
-Graph View Zoom in two-dimensional mode, where zoom changes the rendered graph scale.
-_Avoid_: Camera distance
-
-**3D Zoom**:
-Graph View Zoom in three-dimensional mode, where zoom changes camera distance while preserving the current camera direction and target.
-_Avoid_: Graph scale
-
 **Continuous Zoom**:
 Graph View Zoom that repeats while the user holds a zoom control.
 _Avoid_: Fit View, Refresh
-
-**Timeline View**:
-The CodeGraphy view where users inspect how the graph changes across git history.
-_Avoid_: Git history cache, graph view
-
-**Timeline Snapshot**:
-A graph state for a specific commit in the repository's git history.
-_Avoid_: Live graph, current workspace graph
-
-**Graph Revision**:
-The git revision whose files are used to build the graph being shown.
-_Avoid_: Workspace graph, current graph when precision matters
 
 ### Plugins And Core
 
@@ -503,7 +483,7 @@ A UI control that changes a Setting.
 _Avoid_: Setting when referring only to the UI element
 
 **Display Setting**:
-A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, renderer mode, direction indicators, bidirectional edge display, and depth controls.
+A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, direction indicators, bidirectional edge display, and depth controls.
 _Avoid_: Graph Scope, Search, Filter Setting
 
 **CodeGraphy CSS Snippet**:
@@ -574,7 +554,7 @@ _Avoid_: Graph export
 
 ## Relationships
 
-- A **Relationship Graph** is presented through an interactive force graph.
+- A **Relationship Graph** is presented through the interactive **Graph View**.
 - A **Relationship Graph** contains **Nodes** connected by **Edges**.
 - The graph pipeline is **Relationship Graph** -> **Scoped Graph** -> **Filtered Graph** -> **Searched Graph** -> **Visible Graph**.
 - **Graph Scope** runs before **Filter Settings** so disabled **Node Types** and **Edge Types** are removed before persistent include/exclude criteria are evaluated.
@@ -632,7 +612,7 @@ _Avoid_: Graph export
 - Projected cross-boundary **Edges** with different **Edge Types** remain visually distinct.
 - Active marquee selection shows a visible desktop-style selection rectangle while the user click-drags.
 - A selected **Folder Node** can be a filesystem destination for creating a new file or folder.
-- The force graph renderer handles layout, physics, and interaction for the graph produced by **Collapse Projection**.
+- The custom graph renderer handles WebGPU drawing and WebAssembly physics/layout for the graph produced by **Collapse Projection**. The VS Code Extension owns its UI, settings, persistence, plugins, and interaction controls.
 - **Filter** applies persistent include/exclude criteria to graph consideration; **Collapse** keeps important graph items available behind a collapsed node.
 - **Indexing** starts with **File Discovery**, then runs **Tree-sitter Analysis**, then **Plugin Analysis**, then **Graph Projection**.
 - The **Tree-sitter Runtime** alone does not create **Relationships**; CodeGraphy needs **Core Tree-sitter Language Coverage** or **Plugin Analysis** to produce useful graph data for a language.
@@ -659,10 +639,10 @@ _Avoid_: Graph export
 - A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
 - **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
 - **Refresh Graph** and **Re-index Workspace** should be distinct UI actions.
-- **Refresh** only reruns the force graph simulation and does not process source data.
+- **Refresh** only restarts graph physics and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
 - The Graph View can show `Loading graph...` before the first graph render for a webview page. After the first render, later **Graph Cache Sync**, **Live Update**, or **Re-index** work should keep the current **Visible Graph** rendered and use graph-local progress.
-- CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
+- CodeGraphy has one primary **View**: the **Graph View**.
 - The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
 - **VS Code Theme Integration** is the top UI rule: extension chrome should inherit the active VS Code theme through CodeGraphy/shadcn semantic tokens before applying CodeGraphy-specific styling.
@@ -670,9 +650,9 @@ _Avoid_: Graph export
 - The existing `components/ui` layer should follow shadcn's copy-and-own model: generated Radix/shadcn source lives in the repo, CodeGraphy owns and customizes it, and feature code may import from `components/ui` as the local CodeGraphy UI kit. Do not create a separate wrapper layer just to keep shadcn files pristine.
 - CodeGraphy should keep the existing root `components.json` and `@/...` alias for shadcn configuration because the **VS Code Extension** is currently the only UI owner. Do not introduce package imports or a shared UI package until another workspace consumes CodeGraphy UI components.
 - The first `components/ui` cleanup should prioritize token and theming correctness in existing primitives. Higher-level primitives such as graph rail buttons, panel sections, field rows, and search/filter chrome should be added only as each surface migrates and proves the need.
-- Implementation order after token and primitive cleanup is agent-owned and may change as dependencies become clear. The product requirement is that all VS Code Extension UI surfaces converge on the same VS Code token bridge and local CodeGraphy UI kit, including **Graph Stage** chrome, graph rendering colors, **Search**/**Filter**, **Graph Tool Rail**, **Settings**, **Timeline View**, **Graph Panels**, and **Legend**.
-- UI cleanup is done only when light, dark, high-contrast, and red/accent-heavy themes have been verified; UI chrome colors come from the active VS Code theme through the token bridge rather than hardcoded values; common controls use shared `components/ui` primitives; graph rendering consumes resolved CSS-token colors; and before/after screenshots cover **Graph View**, **Timeline View**, and key open-panel states.
-- UI cleanup verification should combine lightweight automated checks for token plumbing and hardcoded-color regressions with screenshot review for visual judgment in light, dark, high-contrast, and red/accent-heavy themes. Screenshot anchors are Solarized Light for light, GitHub Dark for dark, High Contrast for high contrast, and Red for the red/accent-heavy theme. The screenshot pass should include default **Graph View** and **Timeline View** states plus the **Legend** with default content as the representative panel screenshot so panel chrome is checked without seeded user data or multiplying every panel across every theme.
+- Implementation order after token and primitive cleanup is agent-owned and may change as dependencies become clear. The product requirement is that all VS Code Extension UI surfaces converge on the same VS Code token bridge and local CodeGraphy UI kit, including **Graph Stage** chrome, graph rendering colors, **Search**/**Filter**, **Graph Tool Rail**, **Settings**, **Graph Panels**, and **Legend**.
+- UI cleanup is done only when light, dark, high-contrast, and red/accent-heavy themes have been verified; UI chrome colors come from the active VS Code theme through the token bridge rather than hardcoded values; common controls use shared `components/ui` primitives; graph rendering consumes resolved CSS-token colors; and before/after screenshots cover **Graph View** and key open-panel states.
+- UI cleanup verification should combine lightweight automated checks for token plumbing and hardcoded-color regressions with screenshot review for visual judgment in light, dark, high-contrast, and red/accent-heavy themes. Screenshot anchors are Solarized Light for light, GitHub Dark for dark, High Contrast for high contrast, and Red for the red/accent-heavy theme. The screenshot pass should include the default **Graph View** plus the **Legend** with default content as the representative panel screenshot so panel chrome is checked without seeded user data or multiplying every panel across every theme.
 - Automated hardcoded-color checks should scan all production webview TSX/CSS, not only changed files. UI chrome should not have hardcoded colors; it should use the VS Code token bridge or CodeGraphy `--cg-*` aliases. Hardcoded colors are acceptable only when they are semantic **Graph Data Color**, such as node, edge, Legend, node-type, edge-type, plugin, or graph-data palette values, and should not be used for component chrome.
 - The VS Code token bridge should have two layers: shadcn-compatible semantic tokens for generic controls, and a small CodeGraphy `--cg-*` alias layer for graph-specific surfaces and repeated layout chrome such as the **Graph Stage**, **Graph Tool Rail**, and **Graph Panels**.
 - Canvas and graph-rendering code should receive concrete colors resolved from CodeGraphy CSS tokens on theme changes, rather than branching internally on only `light`, `dark`, or `high-contrast` theme kinds. Theme kind should remain only as a compatibility hint for graph-data color adjustment.
@@ -716,10 +696,10 @@ _Avoid_: Graph export
 - Inline **Filter Rule** edits should apply on Enter or blur, and Escape should cancel the edit, so partial pattern typing does not continuously reshape the graph.
 - Always-visible Include and Exclude add inputs should create a new custom **Filter Rule** only on Enter. Blur should not create a rule, even when the draft pattern is valid, because accidentally leaving the input should not mutate persistent filters.
 - Add-input drafts should survive collapsing and reopening the expanded **Filter** surface during the current **Graph View** session, but drafts are UI state only and should never persist to `.codegraphy/settings.json` until Enter creates a **Filter Rule**.
-- A valid **Filter Rule** that currently matches no graph items is allowed because it may be preparing for future files, another branch, or a different **Timeline Snapshot**. No-match is not the same as invalid pattern syntax.
+- A valid **Filter Rule** that currently matches no graph items is allowed because it may be preparing for future files or another branch. No-match is not the same as invalid pattern syntax.
 - A **Filter Rule** should be rejected only when it is empty or the chosen matcher cannot parse it. Weird but parseable patterns are allowed, even if they match nothing.
 - The expanded **Filter** surface should show subtle per-rule match metadata such as "0 matches" or "12 matches". Match metadata is neutral information, not a warning when the count is zero.
-- **Filter Rule** matching should use one shared VS Code-like matcher across discovery, **Graph View** filtering, **Timeline Snapshots**, and **Graph Query**, so Include and Exclude behavior stays predictable everywhere.
+- **Filter Rule** matching should use one shared VS Code-like matcher across discovery, **Graph View** filtering, and **Graph Query**, so Include and Exclude behavior stays predictable everywhere.
 - Always-visible Include and Exclude add inputs should accept comma-separated pattern lists for VS Code parity, then create one custom **Filter Rule** per pattern on Enter.
 - When a comma-separated add input contains a mix of valid and invalid patterns, valid patterns should become custom **Filter Rules** and invalid entries should remain in the draft with inline feedback.
 - Duplicate **Filter Rules** in the same Include or Exclude section should not create another row. The UI should focus the existing matching row and show subtle "Already exists" feedback.
@@ -755,12 +735,9 @@ _Avoid_: Graph export
 - **Display Settings** are for persistent visual preferences and lower-frequency view behavior, especially controls with sliders or supporting fields.
 - **Depth Mode** belongs under **Display Settings** because it combines a mode toggle with depth controls.
 - **Depth Mode** does not need a **Graph Tool Rail** status indicator in the first UI cleanup; any future status should live as subtle **Graph Stage** context instead.
-- Renderer mode such as 2D/3D should be treated as a **Display Setting** unless real usage proves it needs to be a primary **Graph Tool Rail** action.
 - `maxFiles` is a Performance setting, not a **Display Setting**.
 - **Graph View Zoom** is a view interaction only; it does not change **Relationship Graph** data, **Graph Scope**, **Filter**, or **Search**.
-- **2D Zoom** changes rendered graph scale, while **3D Zoom** changes camera distance.
 - **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
-- **3D Zoom** should clamp camera distance relative to the current graph context so holding zoom out does not make the graph effectively disappear.
 - **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
 - The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, and pagination.
 - **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
@@ -769,12 +746,6 @@ _Avoid_: Graph export
 - **Show Orphans** remains a boolean **Graph View** presentation setting, not a **Graph Query** configuration field.
 - Structural **Folder Node** and **Workspace Package** projection belongs inside the **Graph Query** **Module**, so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same structural graph behavior.
 - When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, then sorting and pagination.
-- The **Timeline View** lets users jump through commits in git history.
-- Selecting a **Timeline Snapshot** changes the nodes and edges rendered in the **Visible Graph** inside the **Graph View**.
-- **Timeline Snapshots** still flow through the same **Graph Scope**, **Filter**, **Search**, and view setting stages as the current workspace **Relationship Graph**.
-- A **Timeline Snapshot** uses a commit as its **Graph Revision** and should show the files and relationships from that commit only.
-- The default **Graph Revision** is the current `HEAD` plus working tree state, updated by **Live Updates**.
-- Graph Context Menu mutation actions should stay available for the default **Graph Revision** and should be disabled for historical **Timeline Snapshots**.
 - The **Core Package** and **VS Code Extension** together provide the out-of-box Relationship Graph product and should work for most users without optional plugins.
 - The **Core Package** uses Tree-sitter coverage and the bundled **Markdown Plugin** to provide useful default analysis; the **VS Code Extension** adds visualization and Material icon styling.
 - A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, Symbol Nodes, preset filters, and relationship evidence.
@@ -858,16 +829,13 @@ _Avoid_: Graph export
 > **Domain expert:** "**Indexing** runs **File Discovery**, **Tree-sitter Analysis**, **Plugin Analysis**, and **Graph Projection**, then saves the result in the **Graph Cache** for reuse and **Live Updates**."
 >
 > **Dev:** "Is Refresh the same as Re-index?"
-> **Domain expert:** "No. **Refresh** reruns the force graph simulation. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
+> **Domain expert:** "No. **Refresh** restarts graph physics. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
 >
 > **Dev:** "Does CodeGraphy MCP build its own graph?"
 > **Domain expert:** "No. **CodeGraphy MCP** asks the **Core Package** to run **Indexing** when needed and returns **Graph Query** results produced by the **Core Package**."
 >
 > **Dev:** "Is the current collapsed graph a view?"
-> **Domain expert:** "No. Use **Visible Graph** for graph state. A **View** is the VS Code UI container, such as the **Graph View** or **Timeline View**."
->
-> **Dev:** "When I jump to a commit in the timeline, do I get a different UI?"
-> **Domain expert:** "No. A **Timeline Snapshot** changes what nodes and edges render in the **Visible Graph** inside the **Graph View**."
+> **Domain expert:** "No. Use **Visible Graph** for graph state. A **View** is the VS Code UI container, such as the **Graph View**."
 >
 > **Dev:** "Does someone need to fork CodeGraphy to add a new language relationship?"
 > **Domain expert:** "No. They can build a **Plugin Package** that integrates with `@codegraphy-dev/core` and contributes new graph understanding."
@@ -881,7 +849,7 @@ _Avoid_: Graph export
 ## Flagged ambiguities
 
 - "dependency graph" is too narrow for the main product concept; resolved: use **Relationship Graph** for the graph users interact with.
-- "force graph" describes the interactive layout/presentation, not the domain object; resolved: use **Relationship Graph** for the graph and "force graph" only when discussing presentation mechanics.
+- "force graph" is an obsolete implementation label; resolved: use **Relationship Graph** for the domain object, **Graph View** for the product surface, and custom graph renderer or graph physics/layout for the implementation mechanics.
 - "relationship" is broader than dependency; resolved: use **Relationship** for the general concept and **Edge Type** for the category of a concrete rendered edge.
 - "dependency" is not generic relationship direction; resolved: use **Dependency** only when the edge type specifically means one node needs another.
 - "downstream" is directional only; resolved: it says a relationship exists in that direction, not what kind of relationship the edge represents.
@@ -892,7 +860,7 @@ _Avoid_: Graph export
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
 - Shared downstream relationship targets stay visible when they are still related to by visible nodes outside the collapsed subgraph.
 - When a shared relationship target stays visible, the downstream path to it stays visible as a **Boundary Path**.
-- Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the force graph renderer displays the resulting graph.
+- Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the custom graph renderer displays the resulting graph.
 - Do not introduce "Collapsed Graph" as a separate pipeline term for now; resolved: the user still sees the **Visible Graph**, updated by **Collapse Projection**.
 - "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means persistent include/exclude criteria, while **Collapse** means summarize relevant hidden detail.
 - Graph Scope before Filter is load-bearing: disabled **Node Types** and **Edge Types** must be removed before filter criteria are evaluated.

@@ -17,11 +17,11 @@ export const SILENT_CONFIG_KEYS = new Set([
   'particleSize',
   'particleSpeed',
   'plugins',
+  'showFps',
   'showLabels',
 ]);
 
 export function createSettingsConfigPersistence(dependencies: {
-  dagModeKey: string;
   nodeSizeModeKey: string;
 }): {
   config: ReturnType<typeof getCodeGraphyConfiguration>;
@@ -34,7 +34,6 @@ export function createSettingsConfigPersistence(dependencies: {
     persistConfig: async (key: string, value: unknown): Promise<void> => {
       if (
         SILENT_CONFIG_KEYS.has(key)
-        || key === dependencies.dagModeKey
         || key === dependencies.nodeSizeModeKey
       ) {
         await updateCodeGraphyConfigurationSilently(key, value);

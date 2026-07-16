@@ -2,25 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { computeFileSizeSizes } from '../../../../../src/webview/components/graph/model/sizing/fileSize';
 
 describe('graph/model/sizing/fileSize', () => {
-  it('returns defaults when every node has a zero file size', () => {
+  it('uses the shared minimum when file size cannot distinguish nodes', () => {
     const sizes = computeFileSizeSizes([
-      { id: 'a', label: 'a', color: '#fff', fileSize: 0 },
-      { id: 'b', label: 'b', color: '#fff' },
+      { id: 'missing', label: 'missing', color: '#fff' },
+      { id: 'zero', label: 'zero', color: '#fff', fileSize: 0 },
+      { id: 'same-a', label: 'same-a', color: '#fff', fileSize: 100 },
+      { id: 'same-b', label: 'same-b', color: '#fff', fileSize: 100 },
     ] as never);
 
-    expect(sizes.get('a')).toBe(16);
-    expect(sizes.get('b')).toBe(16);
+    for (const size of sizes.values()) expect(size).toBe(8);
   });
 
-  it('scales positive sizes logarithmically and keeps empty sizes at the minimum', () => {
+  it('scales distinguishable positive sizes logarithmically into the shared range', () => {
     const sizes = computeFileSizeSizes([
       { id: 'zero', label: 'zero', color: '#fff', fileSize: 0 },
       { id: 'small', label: 'small', color: '#fff', fileSize: 9 },
+      { id: 'medium', label: 'medium', color: '#fff', fileSize: 99 },
       { id: 'large', label: 'large', color: '#fff', fileSize: 9999 },
     ] as never);
 
-    expect(sizes.get('zero')).toBe(10);
-    expect(sizes.get('small')).toBeGreaterThan(8);
-    expect(sizes.get('large')).toBe(40);
+    expect(sizes.get('zero')).toBe(8);
+    expect(sizes.get('small')).toBe(8);
+    expect(sizes.get('medium')).toBeGreaterThan(8);
+    expect(sizes.get('medium')).toBeLessThan(30);
+    expect(sizes.get('large')).toBe(30);
   });
 });

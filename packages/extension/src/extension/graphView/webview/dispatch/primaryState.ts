@@ -24,9 +24,6 @@ export function createGraphViewPrimaryNodeFileHandlers(
       context.cancelScheduledPluginGraphWork?.();
       await context.refreshIndex();
     },
-    timelineActive: context.getTimelineActive(),
-    canMutateGraphRevision: context.getCanMutateGraphRevision(),
-    currentCommitSha: context.getCurrentCommitSha(),
   };
 }
 

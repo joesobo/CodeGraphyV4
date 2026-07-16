@@ -83,7 +83,6 @@
   "particleSize": 4,
   "depthMode": false,
   "depthLimit": 1,
-  "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
     "repelForce": 19,
@@ -92,9 +91,5 @@
     "damping": 0.7,
     "centerForce": 0.26,
     "chargeRange": 200
-  },
-  "timeline": {
-    "maxCommits": 500,
-    "playbackSpeed": 1
   }
 }

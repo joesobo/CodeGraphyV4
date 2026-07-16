@@ -52,9 +52,6 @@ import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    dagMode: null,
-    graphMode: '2d',
-    timelineActive: false,
     depthLimit: 1,
     depthMode: false,
     activePanel: 'none',
@@ -66,8 +63,6 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     graphIsIndexing: false,
     graphIndexProgress: null,
     nodeSizeMode: 'connections',
-    timelineCommits: [],
-    isIndexing: false,
     ...overrides,
   });
 }
@@ -94,7 +89,6 @@ describe('Toolbar', () => {
     expect(container.querySelector('[data-testid="toolbar-top-group"]')).toBeNull();
     expect(container.querySelector('[data-testid="toolbar-bottom-group"]')).toBeNull();
     expect(screen.queryByTitle('Enable Depth Mode')).not.toBeInTheDocument();
-    expect(screen.queryByTitle('Toggle 2D/3D Mode')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
 
@@ -105,12 +99,11 @@ describe('Toolbar', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Workspace', 'Layout', 'Node Size', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Node Size', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Workspace',
-      'Layout',
       'Node Size',
       'Graph Scope',
       'Themes',
@@ -119,35 +112,12 @@ describe('Toolbar', () => {
     ]);
   });
 
-  it('sends UPDATE_DAG_MODE from the layout popover', async () => {
-    render(<Toolbar />);
-
-    fireEvent.click(screen.getByTitle('Layout'));
-    fireEvent.click(await screen.findByRole('button', { name: /Radial Out/i }));
-
-    expect(findMessage('UPDATE_DAG_MODE')?.payload.dagMode).toBe('radialout');
-  });
-
-  it('keeps churn visible but disabled until Git history is indexed', async () => {
-    render(<Toolbar />);
-
-    fireEvent.click(screen.getByTitle('Node Size'));
-
-    expect(await screen.findByRole('button', { name: /Churn/i })).toBeDisabled();
-  });
-
-  it('sends UPDATE_NODE_SIZE_MODE for churn after Git history is indexed', async () => {
-    setDefaultState({
-      timelineCommits: [
-        { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
-      ],
-    });
-
+  it('sends UPDATE_NODE_SIZE_MODE for File Size', async () => {
     render(<Toolbar />);
     fireEvent.click(screen.getByTitle('Node Size'));
-    fireEvent.click(await screen.findByRole('button', { name: /Churn/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /File Size/i }));
 
-    expect(findMessage('UPDATE_NODE_SIZE_MODE')?.payload.nodeSizeMode).toBe('churn');
+    expect(findMessage('UPDATE_NODE_SIZE_MODE')?.payload.nodeSizeMode).toBe('file-size');
   });
 
   it('opens graph-local panels from the rail buttons', () => {
@@ -186,6 +156,8 @@ describe('Toolbar', () => {
     const pluginHost = {
       attachSlotHost: vi.fn(),
       detachSlotHost: vi.fn(),
+      getGraphViewContributions: vi.fn(() => undefined),
+      subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
     };
 
     render(<Toolbar pluginHost={pluginHost as never} />);
@@ -196,7 +168,7 @@ describe('Toolbar', () => {
     );
   });
 
-  it('passes graph mode and timeline state to Graph View create toolbar contributions', async () => {
+  it('passes the background selection context to Graph View create contributions', () => {
     const run = vi.fn();
     const graphViewContributions = {
       runtimeNodes: [],
@@ -211,8 +183,7 @@ describe('Toolbar', () => {
           label: 'New Section...',
           placement: { menu: 'create' },
           targets: [{ kind: 'background' }],
-          isVisible: (context: { graphMode: '2d' | '3d'; timelineActive: boolean }) =>
-            context.graphMode === '2d' && !context.timelineActive,
+          isVisible: () => true,
           run,
         },
       }],
@@ -220,29 +191,15 @@ describe('Toolbar', () => {
     } as never;
 
     const liveContributions = resolveGraphViewCreateContributions({
-      graphMode: '2d',
       graphViewContributions,
-      timelineActive: false,
     });
     expect(liveContributions.map(contribution => contribution.label)).toEqual(['New Section...']);
     liveContributions[0]?.entry.contribution.run(liveContributions[0].context);
 
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'background' },
-      graphMode: '2d',
-      timelineActive: false,
       selectedNodeIds: [],
       selectedEdgeIds: [],
     });
-    expect(resolveGraphViewCreateContributions({
-      graphMode: '3d',
-      graphViewContributions,
-      timelineActive: false,
-    })).toEqual([]);
-    expect(resolveGraphViewCreateContributions({
-      graphMode: '2d',
-      graphViewContributions,
-      timelineActive: true,
-    })).toEqual([]);
   });
 });

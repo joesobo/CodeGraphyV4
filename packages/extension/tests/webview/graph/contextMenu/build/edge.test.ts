@@ -8,7 +8,6 @@ describe('graph/contextMenu/build/edge', () => {
   it('builds edge open and copy actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeEdgeContextSelection('src/a.ts->src/b.ts', 'src/a.ts', 'src/b.ts'),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     });

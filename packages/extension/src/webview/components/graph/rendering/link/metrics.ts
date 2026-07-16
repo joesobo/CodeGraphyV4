@@ -1,36 +1,44 @@
-import type { DirectionMode } from '../../../../../shared/settings/modes';
 import type { FGLink } from '../../model/build';
 import { resolveLinkEndpointId } from '../../support/linkTargets';
 import type { LinkRenderingDependencies } from './contracts';
 
+const ORDINARY_LINK_OPACITY = 0.3;
+const CONNECTED_LINK_OPACITY = 0.9;
+const MUTED_LINK_OPACITY = 0.12;
+
+function linkConnectsNode(link: FGLink, nodeId: string): boolean {
+  return resolveLinkEndpointId(link.source) === nodeId
+    || resolveLinkEndpointId(link.target) === nodeId;
+}
+
+export function getGraphLinkOpacity(
+  dependencies: Pick<LinkRenderingDependencies, 'edgeDecorationsRef' | 'highlightedNodeRef'>,
+  link: FGLink,
+): number {
+  const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
+  if (decoration?.opacity !== undefined) return decoration.opacity;
+  const highlighted = dependencies.highlightedNodeRef.current;
+  if (!highlighted) return ORDINARY_LINK_OPACITY;
+  return linkConnectsNode(link, highlighted)
+    ? CONNECTED_LINK_OPACITY
+    : MUTED_LINK_OPACITY;
+}
+
 export function getGraphLinkParticles(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<LinkRenderingDependencies, 'edgeDecorationsRef'>,
   link: FGLink,
 ): number {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
   return decoration?.particles?.count ?? 3;
 }
 
-export function getGraphArrowRelPos(): number {
-  return 1;
-}
-
 export function getGraphLinkWidth(
-  dependencies: LinkRenderingDependencies,
+  dependencies: Pick<LinkRenderingDependencies, 'edgeDecorationsRef' | 'highlightedNodeRef'>,
   link: FGLink,
 ): number {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
   if (decoration?.width !== undefined) return decoration.width;
-  const sourceId = resolveLinkEndpointId(link.source);
-  const targetId = resolveLinkEndpointId(link.target);
   const highlighted = dependencies.highlightedNodeRef.current;
-  if (!highlighted) return link.bidirectional ? 2 : 1;
-  return (sourceId === highlighted || targetId === highlighted) ? 2 : 1;
-}
-
-export function getLinkCanvasObjectMode(
-  directionMode: DirectionMode,
-  link: FGLink,
-): 'replace' | 'after' {
-  return link.bidirectional && directionMode === 'arrows' ? 'replace' : 'after';
+  if (!highlighted) return 1;
+  return linkConnectsNode(link, highlighted) ? 2 : 1;
 }

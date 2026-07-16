@@ -27,7 +27,6 @@ export type GraphWebviewMessageEffect =
 
 export interface GraphWebviewMessageOptions {
   message: ExtensionToWebviewMessage;
-  graphMode: '2d' | '3d';
   tooltipPath: string | null;
   graphLinks?: readonly FGLink[];
   graphNodes: Array<Pick<FGNode, 'id' | 'size' | 'x' | 'y'>>;
@@ -49,16 +48,16 @@ type ExportMessage = Extract<
 >;
 const GRAPH_WEBVIEW_MESSAGE_EFFECTS = {
   FIT_VIEW: () => getFitViewEffects(),
-  ZOOM_IN: ({ graphMode, message }: GraphWebviewMessageOptions) =>
-    getZoomEffects(graphMode, (message as ZoomMessage).type),
-  ZOOM_OUT: ({ graphMode, message }: GraphWebviewMessageOptions) =>
-    getZoomEffects(graphMode, (message as ZoomMessage).type),
+  ZOOM_IN: ({ message }: GraphWebviewMessageOptions) =>
+    getZoomEffects((message as ZoomMessage).type),
+  ZOOM_OUT: ({ message }: GraphWebviewMessageOptions) =>
+    getZoomEffects((message as ZoomMessage).type),
   FILE_INFO: ({ tooltipPath, message }: GraphWebviewMessageOptions) =>
     getFileInfoEffects(tooltipPath, (message as FileInfoMessage).payload),
   GET_NODE_BOUNDS: ({ graphNodes }: GraphWebviewMessageOptions) =>
     getNodeBoundsEffects(graphNodes),
-  GET_GRAPH_RUNTIME_STATE: ({ graphLinks = [], graphMode, graphNodes }: GraphWebviewMessageOptions) =>
-    getGraphRuntimeStateEffects(graphMode, graphNodes, graphLinks),
+  GET_GRAPH_RUNTIME_STATE: ({ graphLinks = [], graphNodes }: GraphWebviewMessageOptions) =>
+    getGraphRuntimeStateEffects(graphNodes, graphLinks),
   REQUEST_EXPORT_PNG: ({ message }: GraphWebviewMessageOptions) =>
     getExportEffects((message as ExportMessage).type),
   REQUEST_EXPORT_SVG: ({ message }: GraphWebviewMessageOptions) =>

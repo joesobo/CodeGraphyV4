@@ -6,7 +6,6 @@ import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type {
-  ExtensionToWebviewMessage,
   IGraphViewContributionStatus,
   IPluginFilterPatternGroup,
 } from '../../shared/protocol/extensionToWebview';
@@ -15,9 +14,8 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
-import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
-import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -45,10 +43,8 @@ export interface IStoreFields {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
-  physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;
-  graphMode: '2d' | '3d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
@@ -63,7 +59,6 @@ export interface IStoreFields {
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
-  dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
@@ -78,19 +73,10 @@ export interface IStoreFields {
   graphViewContributionStatuses: IGraphViewContributionStatus[];
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  showFps: boolean;
   verboseDiagnostics: boolean;
   activeFilePath: string | null;
-  timelineActive: boolean;
-  timelineCommits: ICommitInfo[];
-  currentCommitSha: string | null;
-  isIndexing: boolean;
-  indexProgress: { phase: string; current: number; total: number } | null;
-  isPlaying: boolean;
-  playbackSpeed: number;
 }
-
-/** DAG mode cycle order: free-form → radialout → top-down → left-right */
-export const DAG_MODE_CYCLE: DagMode[] = [null, 'radialout', 'td', 'lr'];
 
 /** Context passed to handlers that need current state or side-effect capabilities. */
 export interface IHandlerContext {
@@ -99,8 +85,3 @@ export interface IHandlerContext {
 }
 
 export type PartialState = Partial<IStoreFields>;
-
-export type MessageHandler = (
-  message: ExtensionToWebviewMessage,
-  ctx: IHandlerContext,
-) => PartialState | void;

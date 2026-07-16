@@ -8,15 +8,8 @@ import { Input } from '../../../ui/input';
 import { LegendColorInput } from './colorInput';
 import { createLegendRuleId } from '../messages';
 import type { LegendTargetSection } from './contracts';
-import { DEFAULT_NODE_SHAPE, LegendIconControl, LegendShapeControl } from './visual';
-
-function createInitialVisualRule(target: LegendTargetSection): Partial<IGroup> {
-  if (target !== 'node') {
-    return {};
-  }
-
-  return { ...DEFAULT_NODE_SHAPE };
-}
+import { LegendIconControl, LegendShapeControl } from './visual';
+import { createInitialVisualRule } from './createInitialRule';
 
 export function LegendRuleCreateRow({
   target,
@@ -73,7 +66,6 @@ export function LegendRuleCreateRow({
               setVisualRule((currentRule) => ({
                 ...currentRule,
                 shape2D: nextRule.shape2D,
-                shape3D: nextRule.shape3D,
               }));
             }}
           />

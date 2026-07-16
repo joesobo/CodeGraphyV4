@@ -9,10 +9,7 @@ import {
 } from './targets';
 
 /** Builds the "open" block: Open File/Files and optionally Reveal in Explorer. */
-export function buildOpenBlock(
-  targets: readonly string[],
-  timelineActive: boolean
-): GraphContextMenuEntry[] {
+export function buildOpenBlock(targets: readonly string[]): GraphContextMenuEntry[] {
   if (areOnlyPackageNodes(targets)) {
     return [];
   }
@@ -23,7 +20,7 @@ export function buildOpenBlock(
     builtInItem('node-open', buildOpenBlockLabel(targets), 'open')
   );
 
-  if (shouldShowRevealInExplorer(targets, timelineActive)) {
+  if (shouldShowRevealInExplorer(targets)) {
     entries.push(builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'));
   }
 

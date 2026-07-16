@@ -7,14 +7,13 @@ export function createNodeMap(nodes: readonly IGraphNode[]): Map<string, IGraphN
 }
 
 function haveGraphNodeMetricsChanged(currentNode: IGraphNode, nextNode: IGraphNode): boolean {
-  return currentNode.fileSize !== nextNode.fileSize || currentNode.churn !== nextNode.churn;
+  return currentNode.fileSize !== nextNode.fileSize;
 }
 
 function createGraphNodeMetricsUpdate(nextNode: IGraphNode): IGraphNodeMetricsUpdate {
   return {
     id: nextNode.id,
     fileSize: nextNode.fileSize,
-    churn: nextNode.churn,
   };
 }
 

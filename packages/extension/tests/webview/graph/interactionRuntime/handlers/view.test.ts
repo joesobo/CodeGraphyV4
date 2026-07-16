@@ -5,7 +5,6 @@ import { createInteractionDependencies } from '../testUtils';
 describe('graph/viewHandlers', () => {
   it('focuses a 2d node at the origin when coordinates are missing', () => {
     const dependencies = createInteractionDependencies({
-      graphMode: '2d',
     });
     dependencies.graphDataRef.current.nodes[0] = {
       ...dependencies.graphDataRef.current.nodes[0],
@@ -17,28 +16,6 @@ describe('graph/viewHandlers', () => {
 
     expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(0, 0, 300);
     expect(dependencies.fg2dRef.current?.zoom).toHaveBeenCalledWith(1.5, 300);
-    expect(dependencies.fg3dRef.current?.zoomToFit).not.toHaveBeenCalled();
-  });
-
-  it('focuses a 3d node by filtering zoom-to-fit candidates by id', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-    });
-
-    createViewHandlers(dependencies).focusNodeById('src/app.ts');
-
-    const predicate = dependencies.fg3dRef.current?.zoomToFit.mock.calls[0]?.[2] as
-      | ((candidate: { id: string }) => boolean)
-      | undefined;
-
-    expect(dependencies.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(
-      300,
-      20,
-      expect.any(Function),
-    );
-    expect(predicate?.({ id: 'src/app.ts' })).toBe(true);
-    expect(predicate?.({ id: 'src/utils.ts' })).toBe(false);
-    expect(dependencies.fg2dRef.current?.centerAt).not.toHaveBeenCalled();
   });
 
   it('does nothing when focusing a node that is not in the graph', () => {
@@ -48,12 +25,10 @@ describe('graph/viewHandlers', () => {
 
     expect(dependencies.fg2dRef.current?.centerAt).not.toHaveBeenCalled();
     expect(dependencies.fg2dRef.current?.zoom).not.toHaveBeenCalled();
-    expect(dependencies.fg3dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
   it('tolerates a missing 2d graph ref when focusing a node', () => {
     const dependencies = createInteractionDependencies({
-      graphMode: '2d',
       fg2dRef: { current: undefined },
     });
 
@@ -86,7 +61,6 @@ describe('graph/viewHandlers', () => {
     expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(50, 50, 300);
     expect(zoom).toHaveBeenNthCalledWith(1, expect.closeTo(0.8461538461538461, 5), 300);
     expect(dependencies.fg2dRef.current?.zoomToFit).not.toHaveBeenCalled();
-    expect(dependencies.fg3dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
   it('tolerates a missing 2d graph ref when fitting the view with measurable bounds', () => {
@@ -111,16 +85,6 @@ describe('graph/viewHandlers', () => {
     });
 
     expect(() => createViewHandlers(dependencies).fitView()).not.toThrow();
-  });
-
-  it('fits the 3d graph view', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-    });
-
-    createViewHandlers(dependencies).fitView();
-
-    expect(dependencies.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 20);
   });
 
   it('pads 2d fit view by the largest rendered node size when available', () => {
@@ -173,38 +137,13 @@ describe('graph/viewHandlers', () => {
     expect(dependencies.fg2dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
-  it('pads 3d fit view by the largest rendered node size when available', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-    });
-    dependencies.graphDataRef.current.nodes = dependencies.graphDataRef.current.nodes.map((node, index) => ({
-      ...node,
-      size: [18, 28, 44][index],
-    }));
-
-    createViewHandlers(dependencies).fitView();
-
-    expect(dependencies.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 152);
-  });
-
-  it('tolerates a missing 3d graph ref when fitting the view', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-      fg3dRef: { current: undefined },
-    });
-
-    expect(() => createViewHandlers(dependencies).fitView()).not.toThrow();
-  });
-
-  it('scales the current 2d zoom by the requested factor', () => {
+  it('scales the pending 2d zoom destination by the requested factor', () => {
     const dependencies = createInteractionDependencies();
-    const zoom = dependencies.fg2dRef.current!.zoom!;
-    zoom.mockImplementationOnce?.(() => 1.5);
 
     createViewHandlers(dependencies).zoomGraphView(0.5);
 
-    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(1);
-    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(2, 0.75, 150);
+    expect(dependencies.fg2dRef.current?.zoom).not.toHaveBeenCalled();
+    expect(dependencies.fg2dRef.current?.zoomBy).toHaveBeenCalledWith(0.5, 150);
   });
 
   it('does nothing when the 2d graph ref is missing during zoom', () => {

@@ -34,8 +34,9 @@ const SNAPSHOT: ISettingsSnapshot = {
   particleSize: 6,
   showLabels: false,
   maxFiles: 321,
+  showFps: true,
   verboseDiagnostics: true,
-  nodeSizeMode: 'churn',
+  nodeSizeMode: 'file-size',
 };
 
 describe('extension/actions/resetSettings', () => {
@@ -72,6 +73,7 @@ describe('extension/actions/resetSettings', () => {
       ['particleSize', undefined],
       ['showLabels', undefined],
       ['maxFiles', undefined],
+      ['showFps', undefined],
       ['verboseDiagnostics', undefined],
       ['nodeSizeMode', 'connections'],
     ]);
@@ -105,8 +107,9 @@ describe('extension/actions/resetSettings', () => {
       ['particleSize', 6],
       ['showLabels', false],
       ['maxFiles', 321],
+      ['showFps', true],
       ['verboseDiagnostics', true],
-      ['nodeSizeMode', 'churn'],
+      ['nodeSizeMode', 'file-size'],
     ]);
   });
 });

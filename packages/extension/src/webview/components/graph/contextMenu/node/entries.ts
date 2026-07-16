@@ -1,4 +1,4 @@
-import type { GraphContextMenuEntry, GraphContextMutationAvailability } from '../contracts';
+import type { GraphContextMenuEntry } from '../contracts';
 import {
   buildOpenBlock,
   buildCopyBlock,
@@ -14,20 +14,13 @@ export { buildSingleSymbolNodeEntries } from './symbolEntries';
 
 export function buildNodeEntries(
   targets: readonly string[],
-  timelineActive: boolean,
-  mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
 ): GraphContextMenuEntry[] {
-  const entries: GraphContextMenuEntry[] = [
-    ...buildOpenBlock(targets, timelineActive),
+  return [
+    ...buildOpenBlock(targets),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
     ...buildFilterBlock(targets),
+    ...buildDestructiveBlock(targets),
   ];
-
-  if (mutationAvailability !== 'hidden') {
-    entries.push(...buildDestructiveBlock(targets, mutationAvailability === 'disabled'));
-  }
-
-  return entries;
 }

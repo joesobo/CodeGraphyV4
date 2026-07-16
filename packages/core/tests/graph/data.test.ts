@@ -35,9 +35,6 @@ describe('core/graph/data symbol nodes', () => {
         }],
       ]),
       showOrphans: true,
-      churnCounts: {
-        'src/player.gd': 4,
-      },
       nodeVisibility: SYMBOL_NODE_VISIBILITY,
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.godot'),
@@ -49,14 +46,12 @@ describe('core/graph/data symbol nodes', () => {
         label: 'player.gd',
         color: DEFAULT_NODE_COLOR,
         fileSize: 20,
-        churn: 4,
       },
       {
         id: 'src/player.gd#_ready:method',
         label: '_ready',
         color: '#8B5CF6',
         fileSize: 20,
-        churn: 4,
         nodeType: 'symbol',
         symbol: {
           id: 'src/player.gd#_ready:method',
@@ -107,7 +102,6 @@ describe('core/graph/data symbol nodes', () => {
         symbol: false,
       },
       showOrphans: false,
-      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.typescript'),
     });
@@ -133,7 +127,6 @@ describe('core/graph/data symbol nodes', () => {
         }],
       ]),
       showOrphans: false,
-      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.typescript'),
     });
@@ -159,9 +152,6 @@ describe('core/graph/data symbol nodes', () => {
         }],
       ]),
       showOrphans: false,
-      churnCounts: {
-        'generated/virtual.ts': 7,
-      },
       nodeVisibility: SYMBOL_NODE_VISIBILITY,
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.typescript'),
@@ -173,14 +163,12 @@ describe('core/graph/data symbol nodes', () => {
         label: 'virtual.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: undefined,
-        churn: 7,
       },
       {
         id: 'generated/virtual.ts#virtual:function',
         label: 'virtual',
         color: '#8B5CF6',
         fileSize: undefined,
-        churn: 7,
         nodeType: 'symbol',
         symbol: {
           id: 'generated/virtual.ts#virtual:function',

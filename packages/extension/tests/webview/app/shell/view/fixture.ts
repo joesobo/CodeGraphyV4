@@ -32,7 +32,6 @@ export function resetStore() {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    graphMode: '2d',
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     graphHasIndex: false,

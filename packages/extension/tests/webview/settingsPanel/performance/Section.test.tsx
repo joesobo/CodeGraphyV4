@@ -14,7 +14,7 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
 describe('PerformanceSection', () => {
   beforeEach(() => {
     sentMessages.length = 0;
-    graphStore.setState({ maxFiles: 20, verboseDiagnostics: false });
+    graphStore.setState({ maxFiles: 20, showFps: false, verboseDiagnostics: false });
   });
 
   it('commits max files through blur and enter handlers', () => {
@@ -50,6 +50,21 @@ describe('PerformanceSection', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_VERBOSE_DIAGNOSTICS',
       payload: { verboseDiagnostics: true },
+    });
+  });
+
+  it('toggles the FPS counter through the Performance settings section', () => {
+    render(<PerformanceSection />);
+
+    const toggle = screen.getByRole('switch', { name: 'Show FPS' });
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+    fireEvent.click(toggle);
+
+    expect(graphStore.getState().showFps).toBe(true);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_SHOW_FPS',
+      payload: { showFps: true },
     });
   });
 });

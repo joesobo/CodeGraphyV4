@@ -1,20 +1,11 @@
 import type {
   IFileAnalysisResult,
   IGraphData,
-  IGraphViewContextMenuContribution,
-  IGraphViewForceAdapterContribution,
-  IGraphViewNodeDragEndContribution,
-  IGraphViewProjectionContribution,
-  IGraphViewRuntimeEdgeContribution,
-  IGraphViewRuntimeNodeContribution,
-  IGraphViewUiSlotContribution,
-  IAccessProvider,
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
   IPluginGraphScopeCapabilities,
   IPluginNodeType,
-  GraphEdgeKind,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { CORE_PLUGIN_API_VERSION } from './api';
@@ -22,16 +13,12 @@ import { initializeAll, initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';
 import { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './lifecycle/notify/analysis';
 import {
-  createEmptyGraphViewContributionSet,
   resolvePluginAccess,
-  type CoreGraphViewContributionEntry,
   type CoreGraphViewContributionSet,
   type CorePluginAccessCheck,
   type CorePluginAccessContext,
 } from './access/checks';
-import { assertPluginApiCompatibility } from './compatibility';
 import { listPluginContributions } from './contributions';
-import { addPluginToExtensionMap } from './extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
@@ -39,18 +26,19 @@ import {
   type CoreFileAnalysisResultProvider,
 } from './routing/router/analyze';
 import {
-  createCorePluginInfo,
   getPluginFilterPatterns,
+  registerCorePlugin,
   type RegisterPluginOptions,
 } from './registration';
 import {
   getPluginForFile,
   getPluginsForExtension,
-  getPluginsForFile,
   getSupportedExtensions,
   supportsFile,
 } from './routing/router/lookups';
 import { notifyWorkspaceReady } from './workspaceReady';
+import { listGraphScopeCapabilities } from './graphScopeCapabilities';
+import { listAccessProviders, listAvailableGraphViewContributions } from './graphViewContributions';
 
 export { CORE_PLUGIN_API_VERSION };
 
@@ -74,13 +62,7 @@ export class CorePluginRegistry {
   private coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
 
   register(plugin: IPlugin, options: RegisterPluginOptions = {}): void {
-    if (this.plugins.has(plugin.id)) {
-      throw new Error(`Plugin with ID '${plugin.id}' is already registered`);
-    }
-
-    assertPluginApiCompatibility(plugin);
-    this.plugins.set(plugin.id, createCorePluginInfo(plugin, options));
-    addPluginToExtensionMap(plugin, this.extensionMap);
+    registerCorePlugin(plugin, options, this.plugins, this.extensionMap);
   }
 
   async initializeAll(workspaceRoot: string): Promise<void> {
@@ -142,47 +124,16 @@ export class CorePluginRegistry {
     filePaths: readonly string[] = [],
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Required<IPluginGraphScopeCapabilities> {
-    const applicableFilePathsByPluginId = new Map<string, string[]>();
-
-    for (const filePath of filePaths) {
-      for (const plugin of getPluginsForFile(filePath, this.plugins, this.extensionMap)) {
-        if (disabledPlugins.has(plugin.id)) {
-          continue;
-        }
-
-        const pluginFilePaths = applicableFilePathsByPluginId.get(plugin.id) ?? [];
-        pluginFilePaths.push(filePath);
-        applicableFilePathsByPluginId.set(plugin.id, pluginFilePaths);
-      }
-    }
-
-    const nodeTypes = new Set<string>();
-    const edgeTypes = new Set<GraphEdgeKind>();
-    for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
-      const plugin = this.plugins.get(pluginId)?.plugin;
-      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
-      for (const nodeType of capabilities?.nodeTypes ?? []) {
-        nodeTypes.add(nodeType);
-      }
-      for (const edgeType of capabilities?.edgeTypes ?? []) {
-        edgeTypes.add(edgeType);
-      }
-    }
-
-    return {
-      nodeTypes: [...nodeTypes],
-      edgeTypes: [...edgeTypes],
-    };
+    return listGraphScopeCapabilities({
+      disabledPlugins,
+      extensionMap: this.extensionMap,
+      filePaths,
+      plugins: this.plugins,
+    });
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
     return getPluginFilterPatterns(this.plugins.values(), disabledPlugins);
-  }
-
-  private listAccessProviders(): IAccessProvider[] {
-    return this.list()
-      .map(info => info.plugin.accessProvider)
-      .filter((provider): provider is IAccessProvider => provider !== undefined);
   }
 
   async getPluginAvailability(
@@ -194,91 +145,13 @@ export class CorePluginRegistry {
       return undefined;
     }
 
-    return resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
-  }
-
-  private async pushAvailableGraphViewContributions<TContribution extends { requiresAccess?: unknown }>(
-    plugin: IPlugin,
-    contributions: readonly TContribution[] | undefined,
-    target: CoreGraphViewContributionEntry<TContribution>[],
-    context: CorePluginAccessContext,
-  ): Promise<void> {
-    for (const contribution of contributions ?? []) {
-      const contributionAccess = await resolvePluginAccess(
-        plugin,
-        this.listAccessProviders(),
-        context,
-        contribution.requiresAccess as never,
-      );
-      if (contributionAccess.available) {
-        target.push({
-          pluginId: plugin.id,
-          contribution,
-        });
-      }
-    }
+    return resolvePluginAccess(info.plugin, listAccessProviders(this.plugins), context);
   }
 
   async listAvailableGraphViewContributions(
     context: CorePluginAccessContext = {},
   ): Promise<CoreGraphViewContributionSet> {
-    const contributions = createEmptyGraphViewContributionSet();
-
-    for (const info of this.plugins.values()) {
-      if (context.disabledPlugins?.has(info.plugin.id)) {
-        continue;
-      }
-
-      const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
-      if (!pluginAccess.available) {
-        continue;
-      }
-
-      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeNodeContribution>(
-        info.plugin,
-        info.plugin.graphView?.runtimeNodes,
-        contributions.runtimeNodes,
-        context,
-      );
-      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeEdgeContribution>(
-        info.plugin,
-        info.plugin.graphView?.runtimeEdges,
-        contributions.runtimeEdges,
-        context,
-      );
-      await this.pushAvailableGraphViewContributions<IGraphViewProjectionContribution>(
-        info.plugin,
-        info.plugin.graphView?.projections,
-        contributions.projections,
-        context,
-      );
-      await this.pushAvailableGraphViewContributions<IGraphViewForceAdapterContribution>(
-        info.plugin,
-        info.plugin.graphView?.forces,
-        contributions.forces,
-        context,
-      );
-      await this.pushAvailableGraphViewContributions<IGraphViewNodeDragEndContribution>(
-        info.plugin,
-        info.plugin.graphView?.nodeDragEnd,
-        contributions.nodeDragEnd,
-        context,
-      );
-      await this.pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(
-        info.plugin,
-        info.plugin.graphView?.contextMenu,
-        contributions.contextMenu,
-        context,
-      );
-      await this.pushAvailableGraphViewContributions<IGraphViewUiSlotContribution>(
-        info.plugin,
-        info.plugin.graphView?.ui,
-        contributions.ui,
-        context,
-      );
-    }
-
-    return contributions;
+    return listAvailableGraphViewContributions(this.plugins, context);
   }
 
   async analyzeFile(

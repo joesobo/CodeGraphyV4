@@ -24,10 +24,8 @@ import { graphStore } from '../../../../src/webview/store/state';
 
 const noLegends: IGroup[] = [];
 const initialStoreState = {
-  currentCommitSha: graphStore.getState().currentCommitSha,
   legends: graphStore.getState().legends,
   pluginStatuses: graphStore.getState().pluginStatuses,
-  timelineActive: graphStore.getState().timelineActive,
 };
 
 afterEach(() => {
@@ -48,15 +46,6 @@ describe('buildMarkdownExport', () => {
     expect(result).toContain('## Edges');
   });
 
-  it('shows timeline scope when active', () => {
-    const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildMarkdownExport(data, noLegends, [], {
-      timelineActive: true,
-      currentCommitSha: 'abc123',
-    });
-
-    expect(result).toContain('timeline commit: abc123');
-  });
 
   it('renders sourced edges', () => {
     const data: IGraphData = {
@@ -123,10 +112,8 @@ describe('buildMarkdownExport', () => {
       edges: [],
     };
     graphStore.setState({
-      currentCommitSha: 'abc123',
       legends: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
       pluginStatuses: [],
-      timelineActive: true,
     });
 
     exportAsMarkdown(data);
@@ -138,7 +125,6 @@ describe('buildMarkdownExport', () => {
           '# CodeGraphy Export',
           '',
           '> 1 nodes, 0 edges',
-          '> timeline commit: abc123',
           '',
           '## Legend',
           '',

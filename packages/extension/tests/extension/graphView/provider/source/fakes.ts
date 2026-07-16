@@ -22,6 +22,8 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
   };
   const fileActionMethods = {
     _openFile: vi.fn(async () => undefined),
+    _openSelectedNode: vi.fn(async () => undefined),
+    _activateNode: vi.fn(async () => undefined),
     _revealInExplorer: vi.fn(async () => undefined),
     _copyToClipboard: vi.fn(async () => undefined),
     _deleteFiles: vi.fn(async () => undefined),
@@ -88,16 +90,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     })),
     _sendAllSettings: vi.fn(),
   };
-  const timelineMethods = {
-    _indexRepository: vi.fn(async () => undefined),
-    _jumpToCommit: vi.fn(async () => undefined),
-    _resetTimeline: vi.fn(async () => undefined),
-    invalidateTimelineCache: vi.fn(),
-    _openSelectedNode: vi.fn(async () => undefined),
-    _activateNode: vi.fn(async () => undefined),
-    _previewFileAtCommit: vi.fn(async () => undefined),
-    _sendCachedTimeline: vi.fn(),
-  };
   const viewContextMethods = {
     _sendDepthState: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -128,7 +120,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _analysisController: undefined,
     _analysisRequestId: 1,
     _viewRegistry: { id: 'registry' },
-    _dagMode: null,
     _nodeSizeMode: 'connections',
     _rawGraphData: { nodes: [], edges: [] },
     _viewContext: {
@@ -140,9 +131,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _hiddenPluginGroupIds: new Set<string>(),
     _filterPatterns: [],
     _disabledPlugins: new Set<string>(),
-    _gitAnalyzer: undefined,
-    _currentCommitSha: undefined,
-    _timelineActive: false,
     _eventBus: { id: 'eventBus' },
     _decorationManager: { id: 'decorationManager' },
     _firstAnalysis: true,
@@ -170,7 +158,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
       query: queryMethods,
       refresh: refreshMethods,
       settingsState: settingsStateMethods,
-      timeline: timelineMethods,
       viewContext: viewContextMethods,
       viewSelection: viewSelectionMethods,
       webview: webviewMethods,
@@ -186,7 +173,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _queryMethods: queryMethods,
     _refreshMethods: refreshMethods,
     _settingsStateMethods: settingsStateMethods,
-    _timelineMethods: timelineMethods,
     _viewContextMethods: viewContextMethods,
     _viewSelectionMethods: viewSelectionMethods,
     _webviewMethods: webviewMethods,

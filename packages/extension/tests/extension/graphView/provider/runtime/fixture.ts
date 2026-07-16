@@ -14,7 +14,6 @@ export function createContext(vscodeModule: typeof import('vscode')) {
 export function createRestoredState() {
   return {
     depthMode: false,
-    dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
 }
@@ -43,7 +42,6 @@ export async function loadSubject(
     settingsState: {
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     },
-    timeline: {},
     viewContext: {},
     viewSelection: {
       changeView: vi.fn(async () => undefined),

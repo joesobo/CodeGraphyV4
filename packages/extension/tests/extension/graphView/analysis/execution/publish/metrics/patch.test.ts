@@ -25,7 +25,7 @@ function createEdge(overrides: Partial<IGraphEdge> = {}): IGraphEdge {
 
 function createGraph(overrides: Partial<IGraphData> = {}): IGraphData {
   return {
-    nodes: [createNode({ fileSize: 10, churn: 1 })],
+    nodes: [createNode({ fileSize: 10 })],
     edges: [createEdge()],
     ...overrides,
   };
@@ -36,10 +36,10 @@ describe('extension/graphView/analysis/execution/publish/metrics/patch', () => {
     expect(
       createMetricOnlyGraphUpdate(
         createGraph(),
-        createGraph({ nodes: [createNode({ fileSize: 15, churn: 2 })] }),
+        createGraph({ nodes: [createNode({ fileSize: 15 })] }),
         ['src/a.ts'],
       ),
-    ).toEqual([{ id: 'src/a.ts', fileSize: 15, churn: 2 }]);
+    ).toEqual([{ id: 'src/a.ts', fileSize: 15 }]);
   });
 
   it('returns undefined when no current graph exists', () => {
