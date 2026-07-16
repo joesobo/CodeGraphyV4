@@ -129,6 +129,52 @@ describe('WebGPU renderer frame packing', () => {
     expect(secondaryContext.unconfigure).toHaveBeenCalledTimes(1);
   });
 
+  it('repacks secondary links after an intervening primary-only stride change', async () => {
+    const harness = webGpuHarness();
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => harness.context,
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(), onFrameComplete: vi.fn(), onRendererError: vi.fn(),
+    });
+    const frame = rendererFrame();
+    const edgeCount = 250_001;
+    frame.links = Array.from({ length: edgeCount }, () => frame.links[0]);
+    frame.edgeSources = new Uint32Array(edgeCount);
+    frame.edgeTargets = new Uint32Array(edgeCount).fill(1);
+    const secondaryFrame = {
+      backgroundColor: '#000000',
+      camera: { centerX: 0, centerY: 0, zoom: 1 },
+      cssHeight: 160,
+      cssWidth: 160,
+      devicePixelRatio: 1,
+      getLinkColor: () => '#112233',
+      getLinkOpacity: () => 1,
+      getLinkWidth: () => 1,
+      getNodeStyle: frame.getNodeStyle,
+      styleVersion: 1,
+    };
+    renderer!.setSecondarySurface(secondaryCanvas);
+    renderer!.render(frame, secondaryFrame);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    frame.camera.zoom = 0.1;
+    renderer!.render(frame);
+    await Promise.resolve();
+    await Promise.resolve();
+    harness.writeBuffer.mockClear();
+
+    renderer!.render(frame, secondaryFrame);
+
+    const secondaryLinkUpload = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy secondary link styles',
+    );
+    expect(secondaryLinkUpload?.[4]).toBe(Math.ceil(edgeCount / 2) * 11 * 4);
+  }, 10_000);
+
   it('reports no secondary refresh cost for a primary-only frame', async () => {
     const harness = webGpuHarness();
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
