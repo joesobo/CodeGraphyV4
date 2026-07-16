@@ -12,7 +12,7 @@ import type { OwnedGraphLayout } from '../../layout/runtime/model';
 import { advanceOwnedGraphNodeHover, type OwnedGraphNodeHover } from '../../interaction/hover/model';
 import type { OwnedGraphPluginForces } from '../../plugin/forces/model';
 import type { GraphLayoutFixedTimestepClock } from '../../simulation/timing/clock';
-import type { MinimapBounds } from '../../minimap/bounds';
+import type { MinimapSceneMeasurement } from '../../minimap/scene';
 import type { MinimapProjection } from '../../minimap/projection';
 import type { MinimapScheduler } from '../../minimap/state';
 
@@ -25,7 +25,7 @@ export interface OwnedGraphFrameRuntime {
   propsRef: MutableRefObject<Surface2dProps>; rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>; simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
   minimapProjectionRef: MutableRefObject<MinimapProjection | null>;
-  minimapBoundsRef: MutableRefObject<MinimapBounds | null>;
+  minimapBoundsRef: MutableRefObject<MinimapSceneMeasurement | null>;
   minimapSchedulerRef: MutableRefObject<MinimapScheduler>;
   minimapSurfaceRegisteredRef: MutableRefObject<boolean>;
   minimapPanelRef: MutableRefObject<HTMLDivElement | null>;
