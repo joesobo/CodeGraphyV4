@@ -150,9 +150,10 @@ export class WebGpuGraphRenderer {
         encoder,
         true,
       );
+      let secondaryStartedAt: number | undefined;
       const secondary = this.secondarySurface;
       if (secondary && secondaryFrame) {
-        const secondaryStartedAt = performance.now();
+        secondaryStartedAt = performance.now();
         resizeGraphCanvas(secondary.canvas, device, secondaryFrame);
         secondary.camera.uploadSecondary(secondaryFrame);
         updateSecondaryStyleBuffers(
@@ -171,9 +172,11 @@ export class WebGpuGraphRenderer {
           encoder,
           false,
         );
-        this.secondaryRefreshCpuMs = Math.max(0, performance.now() - secondaryStartedAt);
       }
       device.queue.submit([encoder.finish()]);
+      if (secondaryStartedAt !== undefined) {
+        this.secondaryRefreshCpuMs = Math.max(0, performance.now() - secondaryStartedAt);
+      }
       return this.frameQueue.trackSubmission(endFrameValidation(device));
     } catch (error) {
       void endFrameValidation(device).catch(() => {});

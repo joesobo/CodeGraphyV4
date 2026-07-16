@@ -53,17 +53,16 @@ for (const profile of [
   const graph = fixture(profile.nodes, profile.edges);
   const scene = { ...graph, getNodeStyle };
   const iterations = profile.name === 'dense' ? 10 : 30;
-  const sceneBoundsMs = averageMs(iterations, () => {
+  const renderedBoundsValidationMs = averageMs(iterations, () => {
     measureGraphSceneBounds({ ...scene, zoom: 1 });
   });
-  const refreshPreparationMs = averageMs(iterations, () => {
-    const projection = fitMinimapSceneProjection(scene, 160, 12);
-    if (projection) measureGraphSceneBounds({ ...scene, zoom: projection.zoom });
+  const projectionMs = averageMs(iterations, () => {
+    fitMinimapSceneProjection(scene, 160, 12);
   });
   console.log(JSON.stringify({
     ...profile,
-    cappedCpuMsPerSecond: refreshPreparationMs * 8,
-    refreshPreparationMs,
-    sceneBoundsMs,
+    cappedCpuMsPerSecond: projectionMs * 8,
+    projectionMs,
+    renderedBoundsValidationMs,
   }));
 }
