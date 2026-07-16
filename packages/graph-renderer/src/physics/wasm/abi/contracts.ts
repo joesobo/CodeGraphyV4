@@ -1,6 +1,6 @@
 import { requireGraphPhysicsModule } from '../runtime/module';
 
-export const GRAPH_GRAPH_PHYSICS_ABI_VERSION = 4;
+export const GRAPH_GRAPH_PHYSICS_ABI_VERSION = 5;
 export const GRAPH_GRAPH_PHYSICS_MEMORY_BASE = 65_536;
 export const MAXIMUM_GRAPH_GRAPH_PHYSICS_PAGES = 32_768;
 
@@ -56,7 +56,6 @@ export interface GraphPhysicsExports {
     chargeStrength: number,
     chargeTheta: number,
     collisionPadding: number,
-    collisionScale: number,
     collisionStrength: number,
     initializationSpacing: number,
     linkDistance: number,

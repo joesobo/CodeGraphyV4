@@ -1,4 +1,4 @@
-import { graphNodeWorldScale, type GraphLayoutTickResult } from '@codegraphy-dev/graph-renderer';
+import type { GraphLayoutTickResult } from '@codegraphy-dev/graph-renderer';
 import type { OwnedGraphFrameRuntime } from '../runtime/render';
 import { syncOwnedLayoutNodesAtVersion, type OwnedGraphLayout } from '../../layout/runtime/model';
 import { advanceGraphLayoutFixedTimestep } from '../../simulation/timing/clock';
@@ -6,9 +6,6 @@ import { createOwnedGraphExternalForce } from './pluginForces';
 
 export function advanceOwnedGraphPhysics(runtime: OwnedGraphFrameRuntime, layout: OwnedGraphLayout, timestamp: number): { simulationMs: number; tick: GraphLayoutTickResult } {
   const startedAt = performance.now();
-  const wasSettled = layout.engine.settled;
-  layout.engine.setCollisionScale(graphNodeWorldScale(runtime.cameraRef.current.zoom));
-  if (wasSettled && !layout.engine.settled) runtime.engineStopNotifiedRef.current = false;
   const externalForce = createOwnedGraphExternalForce(runtime, layout);
   const tick = advanceGraphLayoutFixedTimestep(runtime.simulationClockRef.current, {
     currentSettled: layout.engine.settled,

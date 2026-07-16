@@ -21,15 +21,13 @@ function maximumRadius(state: GraphLayoutState): number {
 export function collisionCellSize(
   config: GraphLayoutConfig,
   maximumRadius: number,
-  scale: number,
 ): number {
-  return maximumRadius * 2 * scale + config.collisionPadding;
+  return maximumRadius * 2 + config.collisionPadding;
 }
 
 export function createGraphStorage(
   input: GraphLayoutInput,
   config: GraphLayoutConfig,
-  collisionScale: number,
   randomState: number,
 ): Pick<
   GraphEngineState,
@@ -42,8 +40,7 @@ export function createGraphStorage(
   const kernel = new GraphWasmPhysicsKernel(
     graph,
     config,
-    collisionScale,
-    collisionCellSize(config, maximumCollisionRadius, collisionScale),
+    collisionCellSize(config, maximumCollisionRadius),
     randomState,
   );
   return {
@@ -59,7 +56,6 @@ export function replaceGraphStorage(state: GraphEngineState, input: GraphLayoutI
   const storage = createGraphStorage(
     input,
     state.config,
-    state.collisionScale,
     state.kernel.randomState,
   );
   Object.assign(state, storage);

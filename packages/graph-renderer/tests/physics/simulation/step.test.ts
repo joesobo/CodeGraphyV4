@@ -39,7 +39,6 @@ describe('simulation step phases', () => {
     const state: GraphEngineState = {
       alpha: 1,
       alphaTarget: 0,
-      collisionScale: 1,
       config: { ...DEFAULT_GRAPH_LAYOUT_CONFIG, alphaDecay: 0, collisionIterations: 0 },
       graph: original,
       kernel,

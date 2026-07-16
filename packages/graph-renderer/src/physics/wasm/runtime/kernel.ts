@@ -3,7 +3,7 @@ import {
   instantiateGraphPhysics,
   type GraphPhysicsExports,
 } from '../abi/contracts';
-import { assertGraphCollisionConfiguration } from '../abi/configuration';
+import { assertGraphCollisionCellSize } from '../abi/configuration';
 import { GraphPhysicsStorage } from '../abi/storage';
 
 const INITIAL_BARNES_HUT_CELLS_PER_NODE = 8;
@@ -21,14 +21,12 @@ export class GraphWasmPhysicsKernel {
   private storage!: GraphPhysicsStorage;
   private exports!: GraphPhysicsExports;
   private currentConfig!: GraphLayoutConfig;
-  private currentCollisionScale = 1;
   private currentCollisionCellSize = 1;
   private correctionCount = 0;
 
   constructor(
     state: GraphLayoutState,
     config: GraphLayoutConfig,
-    collisionScale: number,
     collisionCellSize: number,
     randomState = 1,
   ) {
@@ -39,7 +37,6 @@ export class GraphWasmPhysicsKernel {
     this.initialize(
       state,
       config,
-      collisionScale,
       collisionCellSize,
       cellCapacity,
       randomState,
@@ -53,12 +50,10 @@ export class GraphWasmPhysicsKernel {
 
   configure(
     config: GraphLayoutConfig,
-    collisionScale: number,
     collisionCellSize: number,
   ): void {
-    assertGraphCollisionConfiguration(collisionScale, collisionCellSize);
+    assertGraphCollisionCellSize(collisionCellSize);
     this.currentConfig = config;
-    this.currentCollisionScale = collisionScale;
     this.currentCollisionCellSize = collisionCellSize;
     this.exports.configure(
       config.centralGravity,
@@ -67,7 +62,6 @@ export class GraphWasmPhysicsKernel {
       config.chargeStrength,
       config.chargeTheta,
       config.collisionPadding,
-      collisionScale,
       config.collisionStrength,
       config.initializationSpacing,
       config.linkDistance,
@@ -125,7 +119,6 @@ export class GraphWasmPhysicsKernel {
   private initialize(
     source: GraphLayoutState,
     config: GraphLayoutConfig,
-    collisionScale: number,
     collisionCellSize: number,
     cellCapacity: number,
     randomState: number,
@@ -134,7 +127,7 @@ export class GraphWasmPhysicsKernel {
     this.exports = instantiateGraphPhysics(this.storage.memory);
     this.storage.initialize(this.exports);
     this.exports.restoreBarnesHutRandomState(randomState);
-    this.configure(config, collisionScale, collisionCellSize);
+    this.configure(config, collisionCellSize);
   }
 
   private growBarnesHutCapacity(): void {
@@ -143,7 +136,6 @@ export class GraphWasmPhysicsKernel {
     this.initialize(
       source,
       this.currentConfig,
-      this.currentCollisionScale,
       this.currentCollisionCellSize,
       this.storage.layout.cellCapacity * 2,
       randomState,

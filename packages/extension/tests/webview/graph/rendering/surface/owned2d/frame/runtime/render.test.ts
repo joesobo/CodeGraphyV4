@@ -47,22 +47,25 @@ describe('owned graph frame execution', () => {
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
   });
 
-  it('synchronizes the visible zoom with collision physics before stepping', () => {
+  it('keeps settled world-space layout unchanged when the camera zoom changes', () => {
     const renderer = { render: vi.fn(() => 1) } as unknown as OwnedWebGpuRenderer;
     const { layout, runtime } = runtimeFixture(renderer);
     runtime.pluginForcesRef.current.active = () => false;
     while (!layout.engine.settled) layout.engine.tick();
+    runtime.synchronizedPositionVersionRef.current = runtime.positionVersionRef.current;
     runtime.engineStopNotifiedRef.current = true;
-    runtime.cameraRef.current.zoom = 0.25;
-    const setCollisionScale = vi.spyOn(layout.engine, 'setCollisionScale');
-    const tick = vi.spyOn(layout.engine, 'tick');
+    const settledX = [...layout.engine.x];
+    const settledY = [...layout.engine.y];
 
+    runtime.cameraRef.current.zoom = 0.005;
     renderOwnedGraphFrame(runtime, canvasFixture(), 0);
+    runtime.cameraRef.current.zoom = 4;
+    renderOwnedGraphFrame(runtime, canvasFixture(), 1_000 / 60);
 
-    expect(setCollisionScale).toHaveBeenCalledWith(2);
-    expect(setCollisionScale.mock.invocationCallOrder[0])
-      .toBeLessThan(tick.mock.invocationCallOrder[0]);
-    expect(runtime.engineStopNotifiedRef.current).toBe(false);
+    expect([...layout.engine.x]).toEqual(settledX);
+    expect([...layout.engine.y]).toEqual(settledY);
+    expect(layout.engine.settled).toBe(true);
+    expect(runtime.engineStopNotifiedRef.current).toBe(true);
   });
 
   it('advances multiple fixed simulation steps between slower presentations', () => {

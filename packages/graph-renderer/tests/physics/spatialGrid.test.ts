@@ -35,7 +35,7 @@ describe('WASM collision spatial grid', () => {
     )];
     const engine = createGraphLayoutEngine({
       nodeIds,
-      initialX: Float32Array.from([0, 40, ...new Array(decoyCount).fill(70)]),
+      initialX: Float32Array.from([0, 30, ...new Array(decoyCount).fill(70)]),
       initialY: new Float32Array(nodeIds.length),
       radii: Float32Array.from([30, 8, ...new Array(decoyCount).fill(0)]),
       edgeSources: new Uint32Array(),
@@ -48,10 +48,9 @@ describe('WASM collision spatial grid', () => {
       velocityDecay: 0,
     });
 
-    engine.setCollisionScale(1.4);
     engine.tick();
 
-    expect(engine.x[1] - engine.x[0]).toBeCloseTo(53.2, 5);
+    expect(engine.x[1] - engine.x[0]).toBeCloseTo(38, 5);
   });
 
   it('preserves distinct cells that share the same integer hash', () => {
