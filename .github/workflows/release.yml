@@ -10,7 +10,6 @@ on:
         type: choice
         options:
           - core
-          - mcp
           - typescript
           - godot
           - unity
