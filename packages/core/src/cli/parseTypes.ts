@@ -1,12 +1,13 @@
 import type { GraphQueryReport } from '../workspace/requestTypes';
 
-export type CliCommandName = 'help' | 'index' | 'plugins' | 'query' | 'setup' | 'status';
+export type CliCommandName = 'help' | 'index' | 'plugins' | 'query' | 'setup' | 'status' | 'version';
 export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'link' | 'list' | 'register';
 
 export interface CliCommand {
   name: CliCommandName;
   action?: PluginsCommandAction;
   arguments?: Record<string, unknown>;
+  helpPath?: string[];
   packageName?: string;
   packageRoot?: string;
   parseError?: string;

@@ -26,7 +26,7 @@ describe('index/command', () => {
     await Promise.resolve();
 
     expect(writeStatus).toHaveBeenCalledWith(
-      'CodeGraphy indexing started for /workspace/project...',
+      'Indexing /workspace/project...',
     );
 
     finishIndex?.();

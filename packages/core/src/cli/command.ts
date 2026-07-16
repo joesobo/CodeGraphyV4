@@ -1,9 +1,11 @@
 import { runIndexCommand } from './index/command';
+import { createHelpResult } from './help/command';
 import { runPluginsCommand } from './plugins/command';
 import { runQueryCommand } from './query/command';
 import { runSetupCommand } from './setup/command';
 import { runStatusCommand } from './status/command';
 import type { CliCommand } from './parse';
+import { readCliVersion } from './version';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
 
 export interface CommandExecutionResult {
@@ -13,22 +15,6 @@ export interface CommandExecutionResult {
 
 export interface CliCommandDependencies {
   writeDiagnostic?(line: string): void;
-}
-
-function createHelpResult(): CommandExecutionResult {
-  return {
-    exitCode: 0,
-    output: [
-      'CodeGraphy CLI',
-      '',
-      'Commands:',
-      '  codegraphy setup',
-      '  codegraphy status [workspace]',
-      '  codegraphy index [workspace]',
-      '  codegraphy query <nodes|edges|relationships|symbols|paths> [workspace] [options]',
-      '  codegraphy plugins <register|link|list|enable|disable>',
-    ].join('\n'),
-  };
 }
 
 function emitCliDiagnostic(
@@ -61,6 +47,7 @@ function createCommandContext(command: CliCommand): Record<string, unknown> {
     ...(command.action ? { action: command.action } : {}),
     ...(command.packageName ? { packageName: command.packageName } : {}),
     ...(command.packageRoot ? { packageRoot: command.packageRoot } : {}),
+    ...(command.report ? { report: command.report } : {}),
     ...(command.workspacePath ? { workspacePath: command.workspacePath } : {}),
   };
 }
@@ -98,15 +85,22 @@ export async function runCliCommand(
       result = await runPluginsCommand(command);
       break;
     case 'query':
-      result = await runQueryCommand(command);
+      result = await runQueryCommand(command, undefined, {
+        verbose: command.verbose,
+        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
+      });
+      break;
+    case 'version':
+      result = { exitCode: 0, output: readCliVersion() };
       break;
     case 'help':
     default:
-      result = createHelpResult();
+      result = createHelpResult(command.helpPath);
   }
 
   emitCliDiagnostic(command, dependencies, 'command-completed', {
     command: command.name,
+    ...(command.report ? { report: command.report } : {}),
     exitCode: result.exitCode,
   });
 

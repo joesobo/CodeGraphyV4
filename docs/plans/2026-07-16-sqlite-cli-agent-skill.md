@@ -26,7 +26,7 @@ workspace-local Graph Cache.
 ```text
 enter workspace
   -> run codegraphy index
-  -> query the Graph Cache through codegraphy query ...
+  -> query the Graph Cache through top-level codegraphy report commands
   -> edit files
   -> run codegraphy index again when cached knowledge may have changed
   -> continue querying
@@ -216,16 +216,21 @@ invalidation reasons in normal output.
 
 ## Graph Query CLI
 
+The final CLI cleanup also adds strict unknown/extra-argument errors,
+command-scoped help, `--version`, compact status JSON, and concise Indexing
+progress. Indexing keeps one automatic `codegraphy index [workspace]` contract;
+there are no public full/incremental mode flags.
+
 ### Command Shape
 
-Expose the existing Graph Query reports through one clear command group:
+Expose the existing Graph Query reports as concise top-level commands:
 
 ```text
-codegraphy query nodes [workspace]
-codegraphy query edges [workspace]
-codegraphy query relationships [workspace]
-codegraphy query symbols [workspace]
-codegraphy query paths [workspace]
+codegraphy nodes [workspace]
+codegraphy edges [workspace]
+codegraphy relationships [workspace]
+codegraphy symbols [workspace]
+codegraphy paths [workspace]
 ```
 
 The workspace remains an optional positional path, matching existing CLI
@@ -236,26 +241,26 @@ commands. Omission means the exact current working directory.
 Start with report-specific flags rather than a generic filter language:
 
 ```text
-codegraphy query nodes --search executeGraphQuery --limit 20
+codegraphy nodes --search executeGraphQuery --limit 20
 
-codegraphy query edges \
+codegraphy edges \
   --from packages/core/src/graphQuery/execute.ts \
   --type call \
   --limit 100
 
-codegraphy query relationships \
+codegraphy relationships \
   --from packages/core/src/graphQuery/execute.ts \
   --to packages/core/src/graphQuery/reports.ts
 
-codegraphy query symbols \
+codegraphy symbols \
   --file packages/core/src/graphQuery/execute.ts \
-  --name executeGraphQuery
+  --search executeGraphQuery
 
-codegraphy query paths \
+codegraphy paths \
   --from packages/core/src/cli/query/command.ts \
   --to packages/core/src/graphQuery/reports.ts \
-  --max-depth 4 \
-  --max-paths 10
+  --depth 4 \
+  --limit 10
 ```
 
 ### Output Contract
@@ -306,7 +311,7 @@ Keep `SKILL.md` concise. It teaches:
    bounded path questions.
 2. Run `codegraphy index` before trusting cached knowledge when entering a
    workspace or after relevant changes.
-3. Prefer the narrowest `codegraphy query` command.
+3. Prefer the narrowest top-level graph report command.
 4. Use bounded limits.
 5. Read source after CodeGraphy identifies the relevant files/symbols; the Graph
    Cache is structure memory, not a replacement for implementation details.

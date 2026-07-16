@@ -146,21 +146,25 @@ after publication, the standard command above is canonical.
 
 ## CLI Commands
 
-All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core` and return compact JSON on stdout.
+All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. Indexing, status, and graph reports return compact JSON on stdout; help and plugin management use concise text.
 
 | Command | What It Does |
 |---|---|
+| `codegraphy --help` | Lists commands or shows scoped help after a command. |
+| `codegraphy --version` | Prints the installed Core CLI version. |
 | `codegraphy status [workspace]` | Reports fresh, stale, missing, or unusable Graph Cache state for the current folder or explicit CodeGraphy Workspace. |
 | `codegraphy index [workspace]` | Runs Indexing for the current folder or explicit CodeGraphy Workspace through `@codegraphy-dev/core`. |
-| `codegraphy query nodes [workspace]` | Lists bounded indexed nodes with optional search and pagination. |
-| `codegraphy query edges [workspace]` | Lists compact grouped connections with optional `from`, `to`, and Edge Type selectors. |
-| `codegraphy query relationships [workspace]` | Lists detailed relationship evidence and provenance. |
-| `codegraphy query symbols [workspace]` | Lists declarations, signatures, source ranges, and symbol relationship evidence. |
-| `codegraphy query paths [workspace]` | Finds bounded directed paths between exact nodes. |
+| `codegraphy nodes [workspace]` | Lists bounded indexed nodes with optional search and pagination. |
+| `codegraphy edges [workspace]` | Lists compact grouped connections with optional `from`, `to`, and `type` selectors. |
+| `codegraphy relationships [workspace]` | Lists detailed relationship evidence and provenance. |
+| `codegraphy symbols [workspace]` | Lists declarations, signatures, source ranges, and symbol relationship evidence. |
+| `codegraphy paths [workspace]` | Finds bounded directed paths between exact nodes. |
 | `codegraphy plugins register <package>` | Registers a globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata. |
+| `codegraphy plugins link <package-root>` | Links a local plugin checkout into the user-level Plugin Registry. |
 | `codegraphy plugins list [workspace]` | Lists registered plugins and which ones are enabled for one CodeGraphy Workspace. |
 | `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin for one CodeGraphy Workspace. |
 | `codegraphy plugins disable <package> [workspace]` | Disables a registered plugin for one CodeGraphy Workspace. |
+| `codegraphy setup` | Prepares the user-level CodeGraphy directory. Normal Indexing and plugin writes create their own parent directories. |
 
 For commands with `[workspace]`, the workspace is an optional trailing positional argument. Omitting the path targets the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 
@@ -173,11 +177,11 @@ The CodeGraphy Agent Skill teaches agents to use the Core CLI instead of owning 
 | CLI Command | Agent Can Ask For |
 |---|---|
 | `codegraphy index` | Make cached workspace knowledge current while reusing unchanged analysis. |
-| `codegraphy query nodes` | List File Nodes, Folder Nodes, Package Nodes, or plugin-added nodes. |
-| `codegraphy query edges` | List high-level `from` / `to` Edges and grouped Edge Types. |
-| `codegraphy query relationships` | Inspect relationship evidence grouped by node pair and Edge Type. |
-| `codegraphy query symbols` | List declarations or symbol-backed relationship evidence. |
-| `codegraphy query paths` | Find bounded directed paths between exact node paths. |
+| `codegraphy nodes` | List File Nodes, Folder Nodes, Package Nodes, or plugin-added nodes. |
+| `codegraphy edges` | List high-level `from` / `to` Edges and grouped Edge Types. |
+| `codegraphy relationships` | Inspect relationship evidence grouped by node pair and Edge Type. |
+| `codegraphy symbols` | List declarations or symbol-backed relationship evidence. |
+| `codegraphy paths` | Find bounded directed paths between exact node paths. |
 
 ## Package Map
 

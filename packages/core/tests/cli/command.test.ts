@@ -17,6 +17,28 @@ describe('cli/command', () => {
     });
   });
 
+  it('reports the installed Core package version', async () => {
+    await expect(runCliCommand({ name: 'version' })).resolves.toMatchObject({
+      exitCode: 0,
+      output: expect.stringMatching(/^\d+\.\d+\.\d+(?:[-+].+)?$/),
+    });
+  });
+
+  it('reports concise command-scoped help', async () => {
+    await expect(runCliCommand({ name: 'help', helpPath: ['index'] })).resolves.toEqual({
+      exitCode: 0,
+      output: 'Usage: codegraphy index [workspace]',
+    });
+    await expect(runCliCommand({ name: 'help', helpPath: ['edges'] })).resolves.toMatchObject({
+      exitCode: 0,
+      output: expect.stringContaining('Usage: codegraphy edges [workspace]'),
+    });
+    await expect(runCliCommand({ name: 'help', helpPath: ['plugins', 'enable'] })).resolves.toEqual({
+      exitCode: 0,
+      output: 'Usage: codegraphy plugins enable <plugin-id-or-package> [workspace]',
+    });
+  });
+
   it('dispatches status and index commands for an explicit workspace', async () => {
     const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-cli-command-'));
 
@@ -101,11 +123,37 @@ describe('cli/command', () => {
   it('returns machine-readable errors for invalid query syntax', async () => {
     await expect(runCliCommand({
       name: 'query',
-      parseError: 'query paths requires --from and --to',
+      parseError: 'paths requires --from and --to',
     })).resolves.toEqual({
       exitCode: 2,
-      output: '{"error":"invalid_arguments","message":"query paths requires --from and --to"}',
+      output: '{"error":"invalid_arguments","message":"paths requires --from and --to"}',
     });
+  });
+
+  it('identifies top-level graph reports in verbose diagnostics', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-cli-query-diagnostics-'));
+    await writeFile(join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n');
+    await writeFile(join(workspaceRoot, 'Target.md'), 'Done.\n');
+    await runCliCommand({ name: 'index', workspacePath: workspaceRoot });
+    const diagnostics: string[] = [];
+
+    await runCliCommand({
+      name: 'query',
+      report: 'edges',
+      verbose: true,
+      workspacePath: workspaceRoot,
+      arguments: { from: 'Home.md', limit: 100 },
+    }, {
+      writeDiagnostic: line => diagnostics.push(line),
+    });
+
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.stringContaining('Starting command: query'),
+      expect.stringContaining('report=edges'),
+      expect.stringContaining('Starting Graph Query: report=edges'),
+      expect.stringContaining('Graph Query complete: report=edges'),
+      expect.stringContaining('Command complete: query, report=edges'),
+    ]));
   });
 
   it('forwards verbose diagnostics from workspace indexing', async () => {

@@ -50,6 +50,6 @@ export function runStatusCommand(
     output: JSON.stringify(dependencies.readStatus({
       workspacePath: workspaceRoot,
       ...(diagnostics ? { diagnostics } : {}),
-    }), null, 2),
+    })),
   };
 }
