@@ -6,6 +6,7 @@ const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
   dispose: vi.fn(),
   render: vi.fn(),
+  setSecondarySurface: vi.fn(),
 }));
 
 vi.unmock('../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/render');
@@ -29,6 +30,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     rendererHarness.create.mockReset();
     rendererHarness.dispose.mockReset();
     rendererHarness.render.mockReset();
+    rendererHarness.setSecondarySurface.mockReset();
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     vi.stubGlobal('PointerEvent', MouseEvent);
@@ -39,6 +41,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     const { container } = render(<OwnedGraphSurface2d {...createDefaultSurfaceProps()} />);
 
@@ -46,7 +49,10 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
     });
     expect(container.firstElementChild).toHaveAttribute('data-codegraphy-physics', 'wasm');
-    expect(container.querySelectorAll('canvas')).toHaveLength(2);
+    expect(container.querySelectorAll('canvas')).toHaveLength(3);
+    expect(rendererHarness.setSecondarySurface).toHaveBeenCalledWith(
+      screen.getByTestId('graph-minimap').querySelector('canvas'),
+    );
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
@@ -68,6 +74,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     const props = createDefaultSurfaceProps();
     props.sharedProps.graphData = { links: [], nodes: [{

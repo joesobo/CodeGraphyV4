@@ -41,6 +41,8 @@ import { WebGpuGraphRenderer } from '@codegraphy-dev/graph-renderer';
 import { OwnedGraphStatusOverlays } from './overlays';
 import { useOwnedRendererLifecycle } from '../../renderer/runtime/useLifecycle';
 import { useOwnedPerformancePresentation } from './performancePresentation';
+import { OwnedGraphMinimap } from '../../minimap/presentation';
+import type { MinimapProjection } from '../../minimap/projection';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
@@ -49,6 +51,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
   const gpuRendererRef = useRef<WebGpuGraphRenderer | null>(null);
+  const minimapCanvasRef = useRef<HTMLCanvasElement>(null);
+  const minimapOverlayRef = useRef<SVGSVGElement>(null);
+  const minimapPanelRef = useRef<HTMLDivElement>(null);
+  const minimapProjectionRef = useRef<MinimapProjection | null>(null);
+  const minimapSurfaceRegisteredRef = useRef(false);
   const rendererOperationalRef = useRef(false);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
@@ -121,6 +128,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       hoveredLinkRef,
       hoveredNodeRef,
       layoutRef,
+      minimapProjectionRef,
+      minimapSurfaceRegisteredRef,
       nodeHoverRef,
       performanceMonitorRef,
       pointerSessionRef,
@@ -185,6 +194,19 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useOwnedPerformancePresentation(props.showFps, performanceMonitorRef, fpsOutputRef);
 
   useEffect(() => {
+    const renderer = gpuRendererRef.current;
+    const minimapCanvas = minimapCanvasRef.current;
+    if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
+    renderer.setSecondarySurface(minimapCanvas);
+    minimapSurfaceRegisteredRef.current = true;
+    requestFrameRef.current();
+    return () => {
+      minimapSurfaceRegisteredRef.current = false;
+      if (gpuRendererRef.current === renderer) renderer.setSecondarySurface(undefined);
+    };
+  }, [rendererStatus]);
+
+  useEffect(() => {
     requestFrameRef.current();
   });
 
@@ -237,6 +259,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onPointerUp={interactionHandlers.handlePointerUp}
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
+      />
+      <OwnedGraphMinimap
+        canvasRef={minimapCanvasRef}
+        overlayRef={minimapOverlayRef}
+        panelRef={minimapPanelRef}
       />
       <OwnedGraphStatusOverlays error={rendererError} fpsOutputRef={fpsOutputRef}
         performanceSample={performanceSample} tooltip={linkTooltip} width={props.sharedProps.width ?? 0} />

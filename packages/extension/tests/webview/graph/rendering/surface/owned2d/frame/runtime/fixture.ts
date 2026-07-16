@@ -69,6 +69,8 @@ export function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     hoveredLinkRef: { current: null },
     hoveredNodeRef: { current: null },
     layoutRef: { current: layout },
+    minimapProjectionRef: { current: null },
+    minimapSurfaceRegisteredRef: { current: false },
     nodeHoverRef: { current: createOwnedGraphNodeHover() },
     onRendererError: vi.fn(),
     pointerSessionRef: { current: null },

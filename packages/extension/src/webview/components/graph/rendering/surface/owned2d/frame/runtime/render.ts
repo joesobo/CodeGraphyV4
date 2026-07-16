@@ -12,6 +12,7 @@ import type { OwnedGraphLayout } from '../../layout/runtime/model';
 import { advanceOwnedGraphNodeHover, type OwnedGraphNodeHover } from '../../interaction/hover/model';
 import type { OwnedGraphPluginForces } from '../../plugin/forces/model';
 import type { GraphLayoutFixedTimestepClock } from '../../simulation/timing/clock';
+import type { MinimapProjection } from '../../minimap/projection';
 
 export interface OwnedGraphFrameRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>; engineStopNotifiedRef: MutableRefObject<boolean>;
@@ -21,6 +22,8 @@ export interface OwnedGraphFrameRuntime {
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>; positionVersionRef: MutableRefObject<number>;
   propsRef: MutableRefObject<Surface2dProps>; rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>; simulationClockRef: MutableRefObject<GraphLayoutFixedTimestepClock>;
+  minimapProjectionRef: MutableRefObject<MinimapProjection | null>;
+  minimapSurfaceRegisteredRef: MutableRefObject<boolean>;
   markPerformanceIdle(this: void): void;
   recordRenderedFrame(this: void, submissionId: number, timestamp: number, simulationMs: number, renderMs: number): void;
   synchronizedPositionVersionRef: MutableRefObject<number>; onRendererError(this: void, message: string): void;
