@@ -49,6 +49,37 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     ]);
   });
 
+  it('returns indexed Tree-sitter relationships through repo-relative query paths', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-relationships-'));
+    await fs.writeFile(
+      path.join(workspaceRoot, 'entry.ts'),
+      "import { target } from './target';\ntarget();\n",
+      'utf-8',
+    );
+    await fs.writeFile(
+      path.join(workspaceRoot, 'target.ts'),
+      'export function target(): void {}\n',
+      'utf-8',
+    );
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    const queryResult = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'relationships',
+      arguments: { from: 'entry.ts' },
+    });
+
+    expect(queryResult.relationships).toEqual([
+      expect.objectContaining({
+        from: 'entry.ts',
+        to: 'target.ts',
+        relationships: expect.arrayContaining([
+          expect.objectContaining({ edgeType: 'import' }),
+        ]),
+      }),
+    ]);
+  });
+
   it('emits high-signal verbose diagnostics for indexing requests', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-diagnostics-workspace-'));
     await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
