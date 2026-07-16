@@ -80,7 +80,7 @@ describe('GraphIndexStatus', () => {
     );
 
     const status = screen.getByTestId('graph-index-status');
-    expect(status).toHaveStyle({ left: '184px' });
+    expect(status).toHaveStyle({ left: '192px' });
     expect(status.className).not.toContain('left-44');
     expect(status.className).not.toContain('left-2');
   });

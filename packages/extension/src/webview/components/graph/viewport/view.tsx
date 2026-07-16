@@ -20,6 +20,7 @@ import {
 } from './overlays/plugins';
 import { MemoizedViewportSurface } from './surface/view';
 import { createNodeTooltipProps } from './tooltip/props';
+import { GRAPH_STAGE_INSET } from './layout';
 
 export type { ViewportProps } from './contracts';
 
@@ -61,8 +62,12 @@ export function Viewport({
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
-          className="graph-container absolute inset-2 overflow-hidden rounded-md outline-none focus:outline-none"
-          style={{ backgroundColor: containerBackgroundColor, cursor: 'default' }}
+          className="graph-container absolute overflow-hidden rounded-md outline-none focus:outline-none"
+          style={{
+            backgroundColor: containerBackgroundColor,
+            cursor: 'default',
+            inset: GRAPH_STAGE_INSET,
+          }}
           aria-label="Graph Stage"
           tabIndex={0}
         >
