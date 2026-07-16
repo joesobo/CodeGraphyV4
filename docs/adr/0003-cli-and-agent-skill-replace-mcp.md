@@ -24,10 +24,10 @@ reuse and incrementally patch compatible persisted cache data, publish a
 generalized `codegraphy` Agent Skill, and delete MCP completely.
 
 The Agent Skill is installed globally or per workspace through the open Skills
-CLI. The exact desired `npx skills@latest add codegraphy` shorthand is not
-currently supported by that CLI's source resolution and requires an ecosystem
-alias mechanism; initial installation uses the repository source and skill
-name.
+CLI and published from a dedicated `codegraphy/skills` repository. The
+canonical command is `npx skills@latest add codegraphy/skills`, matching the
+repository-source convention already used by projects such as
+`mattpocock/skills`.
 
 **Consequences**
 
