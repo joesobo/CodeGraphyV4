@@ -178,6 +178,8 @@ describe('webview/graph/debug/install', () => {
     expect(zoomToFit2d).toHaveBeenCalledWith(300, 18);
     expect(graph2ScreenCoords2d).toHaveBeenCalledWith(2, 3);
     expect(snapshot).toEqual({
+      cameraCenterX: 14.333333333333334,
+      cameraCenterY: 8.333333333333332,
       containerHeight: 40,
       containerWidth: 80,
       fps: null,
