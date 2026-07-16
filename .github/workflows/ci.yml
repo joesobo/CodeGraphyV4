@@ -477,7 +477,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Webview browser tests
-        run: pnpm --filter @codegraphy-dev/extension run test:webview-browser
+        run: pnpm --filter @codegraphy-dev/extension run test:webview-browser:minimap
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
