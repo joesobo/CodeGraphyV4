@@ -32,7 +32,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-data-host',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: ['workspaceWrites'],
         packageRoot,
         pluginId: 'acme.extension-data-host',
@@ -106,7 +106,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: [],
         packageRoot,
         pluginId: 'acme.extension-bootstrap',

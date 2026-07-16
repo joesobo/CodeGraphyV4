@@ -23,7 +23,7 @@ const textPlugin: IPlugin = {
   id: 'codegraphy.test-text',
   name: 'Test Text',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: ['.txt'],
   async analyzeFile(filePath) {
     return { filePath, relations: [] };

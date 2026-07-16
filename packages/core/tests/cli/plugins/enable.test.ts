@@ -45,7 +45,7 @@ describe('cli/plugins/enable', () => {
       package: '@codegraphy-dev/plugin-vue',
       pluginId: 'codegraphy.vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       disclosures: [],
       packageRoot: '/global/plugin-vue',
     };

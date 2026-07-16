@@ -8,7 +8,7 @@ function createPlugin(overrides: Partial<IPlugin>): IPlugin {
     id: 'codegraphy.test',
     name: 'Test Plugin',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: [],
     ...overrides,
   };

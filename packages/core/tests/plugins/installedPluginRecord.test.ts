@@ -8,7 +8,7 @@ describe('plugins/installedPluginCache record normalization', () => {
     expect(normalizeInstalledPluginRecord({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
     })).toBeNull();
   });
 
@@ -16,7 +16,7 @@ describe('plugins/installedPluginCache record normalization', () => {
     expect(normalizeInstalledPluginRecord({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
       disclosures: ['network', 'invalid'],
       defaultOptions: { includeTests: true },
@@ -27,7 +27,7 @@ describe('plugins/installedPluginCache record normalization', () => {
     })).toEqual({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
       disclosures: ['network'],
       defaultOptions: { includeTests: true },
@@ -42,14 +42,14 @@ describe('plugins/installedPluginCache record normalization', () => {
     expect(normalizeInstalledPluginRecord({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
       disclosures: [],
       defaultOptions: true,
     })).toEqual({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
       disclosures: [],
     });

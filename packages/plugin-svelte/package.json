@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-svelte",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "CodeGraphy Svelte plugin",
   "license": "MIT",
   "type": "module",
@@ -53,7 +53,7 @@
   },
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "disclosures": []
   }
 }

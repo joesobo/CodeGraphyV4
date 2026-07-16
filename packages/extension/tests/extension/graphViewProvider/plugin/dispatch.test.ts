@@ -18,7 +18,7 @@ describe('GraphViewProvider plugin bridge dispatch', () => {
       id: 'test.plugin',
       name: 'Test Plugin',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.ts'],
       analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onLoad: (api: { onWebviewMessage: (handler: (msg: { type: string; data: unknown }) => void) => void }) => {

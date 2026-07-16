@@ -19,7 +19,7 @@ describe('plugins/activityState/model', () => {
         {
           package: '@acme/codegraphy-vue-one',
           version: '1.0.0',
-          apiVersion: '^2.0.0',
+          apiVersion: '^3.0.0',
           disclosures: [],
           packageRoot: '/global/@acme/codegraphy-vue-one',
           pluginId: 'codegraphy.vue',
@@ -27,7 +27,7 @@ describe('plugins/activityState/model', () => {
         {
           package: '@acme/codegraphy-vue-two',
           version: '1.0.0',
-          apiVersion: '^2.0.0',
+          apiVersion: '^3.0.0',
           disclosures: [],
           packageRoot: '/global/@acme/codegraphy-vue-two',
           pluginId: 'codegraphy.vue',
@@ -75,7 +75,7 @@ describe('plugins/activityState/model', () => {
       installedPlugins: [{
         package: '@codegraphy-dev/plugin-vue',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: [],
         packageRoot: '/global/@codegraphy-dev/plugin-vue',
         pluginId: 'codegraphy.vue',

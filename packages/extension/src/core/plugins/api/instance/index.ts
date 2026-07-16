@@ -4,6 +4,7 @@
  * Tracks all disposables for automatic cleanup on plugin unload.
  */
 
+import { CORE_PLUGIN_API_VERSION } from '../../versioning/apiVersions';
 import { DisposableStore } from '../../disposable';
 import { clearPluginDecorations, decoratePluginEdge, decoratePluginNode } from './runtime/access/decorations';
 import { disposePluginApi } from './runtime/access/dispose';
@@ -59,7 +60,7 @@ import type {
 } from '../contracts';
 
 export class CodeGraphyAPIImpl implements CodeGraphyAPI {
-  readonly version = '2.0.0';
+  readonly version = CORE_PLUGIN_API_VERSION;
   private readonly _context: ApiContext;
 
   constructor(

@@ -42,7 +42,7 @@ function plugin(id: string): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '2',
+    apiVersion: '3',
     supportedExtensions: ['.test'],
   };
 }

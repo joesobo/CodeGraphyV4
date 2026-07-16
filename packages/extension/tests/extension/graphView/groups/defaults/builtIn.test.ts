@@ -1,8 +1,14 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBuiltInGraphViewDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/builtIn';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+
+const REPOSITORY_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../../../../..',
+);
 
 describe('graphView/builtInDefaultGroups', () => {
   beforeEach(() => {
@@ -23,7 +29,7 @@ describe('graphView/builtInDefaultGroups', () => {
         ],
         edges: [],
       },
-      vscode.Uri.file(path.resolve(process.cwd(), '../..')),
+      vscode.Uri.file(REPOSITORY_ROOT),
     );
 
     expect(groups).toEqual(expect.arrayContaining([
@@ -147,7 +153,7 @@ describe('graphView/builtInDefaultGroups', () => {
         ],
         edges: [],
       },
-      vscode.Uri.file(path.resolve(process.cwd(), '../..')),
+      vscode.Uri.file(REPOSITORY_ROOT),
     );
 
     expect(groups).toEqual(expect.arrayContaining([
@@ -237,7 +243,7 @@ describe('graphView/builtInDefaultGroups', () => {
       ],
       edges: [],
     };
-    const extensionUri = vscode.Uri.file(path.resolve(process.cwd(), '../..'));
+    const extensionUri = vscode.Uri.file(REPOSITORY_ROOT);
 
     const first = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
     const second = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
@@ -260,7 +266,7 @@ describe('graphView/builtInDefaultGroups', () => {
       ],
       edges: [],
     };
-    const extensionUri = vscode.Uri.file(path.resolve(process.cwd(), '../..'));
+    const extensionUri = vscode.Uri.file(REPOSITORY_ROOT);
     const hiddenFolders = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
 
     nodeVisibility = { folder: true };
