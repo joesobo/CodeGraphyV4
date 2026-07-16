@@ -18,9 +18,9 @@ describe('Relationship Graph minimap navigation', () => {
     });
 
     expect(start.cameraCenter).toEqual({ x: 5, y: -10 });
-    expect(start.session.grabOffset).toEqual({ x: -15, y: 15 });
+    expect(start.session.grabOffset).toEqual({ x: -15, y: 5 });
     expect(moveMinimapNavigation(start.session, projection, { x: 90, y: 85 }))
-      .toEqual({ x: 25, y: -20 });
+      .toEqual({ x: 25, y: 0 });
   });
 
   it('treats every viewport edge as part of the draggable box', () => {
@@ -55,7 +55,7 @@ describe('Relationship Graph minimap navigation', () => {
         viewport,
       }).cameraCenter).toEqual({
         x: panelPoint.x - 80,
-        y: 80 - panelPoint.y,
+        y: panelPoint.y - 80,
       });
     }
   });

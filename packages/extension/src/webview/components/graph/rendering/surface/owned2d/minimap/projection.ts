@@ -36,7 +36,7 @@ export function minimapPointFromGraph(
 ): MinimapPoint {
   return {
     x: projection.size / 2 + (graphPoint.x - projection.centerX) * projection.zoom,
-    y: projection.size / 2 - (graphPoint.y - projection.centerY) * projection.zoom,
+    y: projection.size / 2 + (graphPoint.y - projection.centerY) * projection.zoom,
   };
 }
 
@@ -46,6 +46,6 @@ export function graphPointFromMinimap(
 ): MinimapPoint {
   return {
     x: projection.centerX + (panelPoint.x - projection.size / 2) / projection.zoom,
-    y: projection.centerY - (panelPoint.y - projection.size / 2) / projection.zoom,
+    y: projection.centerY + (panelPoint.y - projection.size / 2) / projection.zoom,
   };
 }

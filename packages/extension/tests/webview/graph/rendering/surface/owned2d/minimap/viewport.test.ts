@@ -9,7 +9,7 @@ describe('Relationship Graph minimap viewport projection', () => {
       camera: { centerX: 10, centerY: 20, zoom: 2 },
       viewportHeight: 80,
       viewportWidth: 100,
-    }).box).toEqual({ height: 80, width: 100, x: 50, y: 0 });
+    }).box).toEqual({ height: 80, width: 100, x: 50, y: 80 });
   });
 
   it('clips a partial viewport to the panel', () => {
@@ -55,8 +55,8 @@ describe('Relationship Graph minimap viewport projection', () => {
     });
 
     expect(viewport.box).toBeNull();
-    expect(viewport.indicator?.angle).toBeCloseTo(Math.atan2(300, 100));
+    expect(viewport.indicator?.angle).toBeCloseTo(Math.atan2(-300, 100));
     expect(viewport.indicator?.x).toBeCloseTo(102.67, 2);
-    expect(viewport.indicator?.y).toBe(148);
+    expect(viewport.indicator?.y).toBe(12);
   });
 });
