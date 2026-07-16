@@ -63,7 +63,11 @@ export type ExtensionToWebviewMessage =
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | {
       type: 'SETTINGS_UPDATED';
-      payload: { bidirectionalEdges: BidirectionalEdgeMode; showOrphans: boolean };
+      payload: {
+        bidirectionalEdges: BidirectionalEdgeMode;
+        showMinimap: boolean;
+        showOrphans: boolean;
+      };
     }
   | { type: 'REQUEST_EXPORT_PNG' }
   | { type: 'REQUEST_EXPORT_SVG' }

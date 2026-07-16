@@ -52,6 +52,7 @@ export function handleSettingsUpdated(
 ): PartialState {
   return {
     bidirectionalMode: message.payload.bidirectionalEdges,
+    showMinimap: message.payload.showMinimap,
     showOrphans: message.payload.showOrphans,
   };
 }

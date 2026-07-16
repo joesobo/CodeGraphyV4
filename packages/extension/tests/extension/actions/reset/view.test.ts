@@ -78,6 +78,7 @@ describe('ResetSettingsAction', () => {
     particleSpeed: 0.002,
     particleSize: 8,
     showLabels: false,
+    showMinimap: false,
     maxFiles: 1000,
     showFps: true,
     verboseDiagnostics: true,

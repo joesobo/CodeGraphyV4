@@ -21,6 +21,7 @@ export interface ISettingsSnapshot {
   particleSize: number;
   pluginData: Record<string, unknown>;
   showLabels: boolean;
+  showMinimap: boolean;
   nodeSizeMode: NodeSizeMode;
   maxFiles: number;
   showFps: boolean;

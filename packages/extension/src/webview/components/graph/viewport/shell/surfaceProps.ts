@@ -12,7 +12,7 @@ export interface CreateGraphViewportSurfacePropsInput {
   sharedProps: ViewportProps['surface2dProps']['sharedProps'];
   viewState: Pick<
     GraphViewStoreState,
-    'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps'
+    'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps' | 'showMinimap'
   >;
 }
 
@@ -42,6 +42,7 @@ export function createGraphViewportSurfaceProps({
       particleSpeed: viewState.particleSpeed,
       physicsSettings: viewState.physicsSettings,
       showFps: viewState.showFps,
+      showMinimap: viewState.showMinimap,
       sharedProps,
     },
   };

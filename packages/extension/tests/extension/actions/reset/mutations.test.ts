@@ -67,6 +67,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
+    showMinimap: true,
     maxFiles: 500,
     showFps: false,
     verboseDiagnostics: false,

@@ -25,6 +25,7 @@ export function createState(
     particleSpeed: 0,
     particleSize: 1,
     showLabels: true,
+    showMinimap: true,
     cssSnippets: {},
     graphViewportScale: null,
     nodeSizeMode: 'connections',

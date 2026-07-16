@@ -11,6 +11,7 @@ import { Switch } from '../../ui/switch';
 import { useDisplayStore } from './use/store';
 import { useParticleSettings } from './use/particles';
 import { getDisplayViewState } from './state/selectors';
+import { MinimapToggle } from './MinimapToggle';
 
 export function DisplaySection(): React.ReactElement {
   const {
@@ -28,8 +29,10 @@ export function DisplaySection(): React.ReactElement {
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
+    setShowMinimap,
     setShowOrphans,
     showLabels,
+    showMinimap,
     showOrphans,
   } = useDisplayStore();
   const {
@@ -75,6 +78,11 @@ export function DisplaySection(): React.ReactElement {
   const onShowOrphansChange = (checked: boolean) => {
     setShowOrphans(checked);
     postMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: checked } });
+  };
+
+  const onShowMinimapChange = (checked: boolean) => {
+    setShowMinimap(checked);
+    postMessage({ type: 'UPDATE_SHOW_MINIMAP', payload: { showMinimap: checked } });
   };
 
   return (
@@ -152,6 +160,7 @@ export function DisplaySection(): React.ReactElement {
       )}
 
       <LabelsToggle checked={showLabels} onCheckedChange={onShowLabelsChange} />
+      <MinimapToggle checked={showMinimap} onCheckedChange={onShowMinimapChange} />
     </section>
   );
 }

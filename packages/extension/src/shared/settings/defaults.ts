@@ -3,3 +3,4 @@
  */
 
 export const DEFAULT_MAX_FILES = 1000;
+export const DEFAULT_SHOW_MINIMAP = true;

@@ -49,6 +49,7 @@ export interface Surface2dProps {
   particleSize: number;
   particleSpeed: number;
   showFps: boolean;
+  showMinimap: boolean;
   physicsSettings: IPhysicsSettings;
   sharedProps: GraphSurfaceSharedProps;
 }

@@ -6,6 +6,7 @@ type SettingsUpdateConfigKey =
   | 'bidirectionalEdges'
   | 'maxFiles'
   | 'showFps'
+  | 'showMinimap'
   | 'verboseDiagnostics';
 
 function getSimpleSettingsUpdateConfig(
@@ -20,6 +21,8 @@ function getSimpleSettingsUpdateConfig(
       return { key: 'maxFiles', value: message.payload.maxFiles };
     case 'UPDATE_SHOW_FPS':
       return { key: 'showFps', value: message.payload.showFps };
+    case 'UPDATE_SHOW_MINIMAP':
+      return { key: 'showMinimap', value: message.payload.showMinimap };
     case 'UPDATE_VERBOSE_DIAGNOSTICS':
       return { key: 'verboseDiagnostics', value: message.payload.verboseDiagnostics };
     default:
