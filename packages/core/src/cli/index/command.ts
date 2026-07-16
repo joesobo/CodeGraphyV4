@@ -26,7 +26,7 @@ const DEFAULT_DEPENDENCIES: IndexCommandDependencies = {
 };
 
 function renderCommandResult(result: Record<string, unknown>): string {
-  return JSON.stringify(result, null, 2);
+  return JSON.stringify(result);
 }
 
 export async function runIndexCommand(

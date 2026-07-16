@@ -64,7 +64,7 @@ describe('cli/command', () => {
 
     expect(JSON.parse(result.output)).toMatchObject({
       workspaceRoot,
-      graphCache: '.codegraphy/graph.lbug',
+      graphCache: '.codegraphy/graph.sqlite',
     });
     expect(diagnostics).toEqual(expect.arrayContaining([
       expect.stringContaining('[CodeGraphy] Starting indexing:'),

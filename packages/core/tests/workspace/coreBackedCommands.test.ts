@@ -28,7 +28,13 @@ describe('core-backed CodeGraphy Workspace commands', () => {
 
     expect(indexResult).toMatchObject({
       workspaceRoot,
-      graphCache: '.codegraphy/graph.lbug',
+      graphCache: '.codegraphy/graph.sqlite',
+      indexing: {
+        mode: 'full',
+        analyzedFiles: 2,
+        deletedFiles: 0,
+        reusedFiles: 0,
+      },
     });
     expect(status).toMatchObject({
       workspaceRoot,
@@ -70,7 +76,7 @@ describe('core-backed CodeGraphy Workspace commands', () => {
           operationId: expect.any(String),
           files: 2,
           nodes: 2,
-          graphCache: '.codegraphy/graph.lbug',
+          graphCache: '.codegraphy/graph.sqlite',
         }),
       }),
     ]));
