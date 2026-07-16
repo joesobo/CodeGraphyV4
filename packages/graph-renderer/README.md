@@ -157,8 +157,12 @@ main controls are:
 - `pause()` / `resume()` — stop or resume stepping.
 
 Node radius is physically meaningful: collision separation uses the supplied
-radii and radius-squared correction weighting, so smaller nodes move around larger
-ones. `chargeStrengthMultipliers` scales each node's repulsion independently. A
+world-space radii and radius-squared correction weighting, so smaller nodes move
+around larger ones. Camera zoom is presentation-only and never changes collision
+envelopes or reheats a settled layout. A pinned node still pushes overlapping
+neighbors during ordinary simulation steps, which preserves direct drag interaction
+without coupling cluster geometry to the camera. `chargeStrengthMultipliers` scales
+each node's repulsion independently. A
 multiplier of `1` keeps the configured default charge, `0` disables that node's
 charge, and values above `1` give it more influence.
 
@@ -184,7 +188,6 @@ keeping ordinary force products numerically safe:
 | initial/setter velocities | magnitude up to 100,000,000 |
 | node radius | up to 100,000 |
 | charge multiplier | up to 100 |
-| collision scale | greater than 0, up to 100 |
 
 The package exports the corresponding `MAX_GRAPH_*` constants. Values outside
 these domains throw; they are never silently clamped.

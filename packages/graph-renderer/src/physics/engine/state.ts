@@ -4,7 +4,6 @@ import type { GraphWasmPhysicsKernel } from '../wasm/runtime/kernel';
 export interface GraphEngineState {
   alpha: number;
   alphaTarget: number;
-  collisionScale: number;
   config: GraphLayoutConfig;
   graph: GraphLayoutState;
   kernel: GraphWasmPhysicsKernel;

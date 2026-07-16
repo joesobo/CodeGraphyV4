@@ -1,24 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertGraphCollisionConfiguration } from '@graph-renderer/physics/wasm/abi/configuration';
+import { assertGraphCollisionCellSize } from '@graph-renderer/physics/wasm/abi/configuration';
 
 describe('graph WASM collision configuration', () => {
-  it('accepts finite positive scale and cell size', () => {
-    expect(() => assertGraphCollisionConfiguration(2, 68)).not.toThrow();
+  it('accepts a finite positive semantic-radius cell size', () => {
+    expect(() => assertGraphCollisionCellSize(68)).not.toThrow();
   });
-
-  it.each([0, -1, 101, Number.NaN, Number.POSITIVE_INFINITY])(
-    'rejects invalid collision scale %s',
-    (scale) => {
-      expect(() => assertGraphCollisionConfiguration(scale, 68))
-        .toThrow('Collision scale must be greater than zero');
-    },
-  );
 
   it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
     'rejects invalid collision cell size %s',
     (cellSize) => {
-      expect(() => assertGraphCollisionConfiguration(2, cellSize))
+      expect(() => assertGraphCollisionCellSize(cellSize))
         .toThrow('Grid cell size must be positive');
     },
   );

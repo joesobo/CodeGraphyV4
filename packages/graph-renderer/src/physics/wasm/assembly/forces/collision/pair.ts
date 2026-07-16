@@ -1,4 +1,4 @@
-import { collisionPadding, collisionScale, collisionStrength } from '../../parameters';
+import { collisionPadding, collisionStrength } from '../../parameters';
 import { deterministicDirectionAngle } from '../../initialization';
 import { isPinned, radius, x, y } from '../../memory';
 import { applyCollisionCorrection } from './correction';
@@ -16,8 +16,8 @@ export function applyCollisionPair(first: i32, second: i32): bool {
     distanceSquared = dx * dx + dy * dy;
   }
   const distance = Math.sqrt(distanceSquared);
-  const firstRadius = radius(first) * collisionScale;
-  const secondRadius = radius(second) * collisionScale;
+  const firstRadius = radius(first);
+  const secondRadius = radius(second);
   const minimumDistance = firstRadius + secondRadius + collisionPadding;
   if (distance + 0.25 >= minimumDistance) return false;
   const firstPinned = isPinned(first);

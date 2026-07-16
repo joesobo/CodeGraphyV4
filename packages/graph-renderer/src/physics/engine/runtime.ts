@@ -11,7 +11,7 @@ import { replaceKinematics } from '../node/kinematics';
 import { pinGraphNode, releaseGraphNode, setGraphNodePosition } from '../node/control';
 import { reheatSimulation, setSimulationAlphaTarget } from '../simulation/alpha';
 import { tickSimulation } from '../simulation/runtime';
-import { updateCollisionScale, updateEngineConfig } from './configuration';
+import { updateEngineConfig } from './configuration';
 import type { GraphEngineState } from './state';
 
 function createEngineState(
@@ -22,9 +22,8 @@ function createEngineState(
   return {
     alpha: 1,
     alphaTarget: 0,
-    collisionScale: 1,
     config,
-    ...createGraphStorage(input, config, 1, 1),
+    ...createGraphStorage(input, config, 1),
     paused: false,
     settled: false,
     settledStepCount: 0,
@@ -63,10 +62,6 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     if (updateEngineConfig(this.engine, config)) this.reheat(0.3);
-  }
-
-  setCollisionScale(scale: number): void {
-    updateCollisionScale(this.engine, scale);
   }
 
   tick(externalForce?: GraphLayoutExternalForce): GraphLayoutTickResult {

@@ -31,7 +31,7 @@ describe('graph WASM physics ABI', () => {
     const exports = instantiateGraphPhysics(memory);
 
     expect(exports.memory).toBe(memory);
-    expect(exports.abiVersion()).toBe(4);
+    expect(exports.abiVersion()).toBe(5);
     expect(exports.graphMemoryBase()).toBe(65_536);
   });
 

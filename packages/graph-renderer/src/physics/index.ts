@@ -20,7 +20,6 @@ export {
   MAX_GRAPH_RADIUS,
   MAX_GRAPH_VELOCITY,
 } from './validation/input';
-export { MAX_GRAPH_COLLISION_SCALE } from './wasm/abi/configuration';
 export { createGraphLayoutEngine, TypedGraphLayoutEngine } from './engine/runtime';
 export {
   GraphNodeFlag,
