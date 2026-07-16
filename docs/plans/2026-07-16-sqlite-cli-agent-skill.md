@@ -312,38 +312,35 @@ Keep `SKILL.md` concise. It teaches:
 
 ### Installation
 
-The current open Skills CLI accepts repository sources, URLs, and local paths;
-it does not resolve the bare registry alias `codegraphy`.
+The open Skills CLI accepts GitHub repository sources, so publish the skill from
+a dedicated public `codegraphy/skills` repository. This follows the same source
+shape as `mattpocock/skills` and gives CodeGraphy a short, ecosystem-native
+install command without requiring registry alias support.
 
-Supported initial installation:
+Canonical installation:
 
 ```bash
 # workspace installation
-npx skills@latest add joesobo/CodeGraphyV4 --skill codegraphy
+npx skills@latest add codegraphy/skills
 
 # global installation
-npx skills@latest add joesobo/CodeGraphyV4 --skill codegraphy --global
+npx skills@latest add codegraphy/skills --global
 ```
 
 The installer detects supported agents and can target one explicitly with
 `--agent`.
 
-Desired shorthand:
+During development, validate the in-monorepo canonical source before it is
+published to the dedicated repository:
 
 ```bash
-npx skills@latest add codegraphy
+npx skills@latest add ./skills/codegraphy
 ```
 
-Treat this shorthand as a distribution follow-up requiring one of:
-
-- alias/registry source resolution added to the upstream Skills CLI;
-- a first-party well-known skill endpoint accepted by a future bare-name
-  convention;
-- another standard ecosystem mechanism that preserves global/workspace and
-  multi-agent installation.
-
-Do not build an agent-directory copier into Core merely to obtain the preferred
-spelling. Use the Agent Skills ecosystem as the installation abstraction.
+The CodeGraphy monorepo owns the canonical skill source until the release
+process publishes or synchronizes it to `codegraphy/skills`. Do not build an
+agent-directory copier into Core; use the Agent Skills ecosystem as the
+installation abstraction.
 
 ## Delete MCP
 
@@ -433,8 +430,8 @@ reason to keep dead source in the monorepo.
 2. Remove all MCP and client-specific language.
 3. Validate Agent Skills metadata.
 4. Exercise global and workspace installs through the Skills CLI.
-5. Document the supported repository-source commands.
-6. Track the desired bare `codegraphy` source alias separately.
+5. Publish or synchronize the canonical source to `codegraphy/skills`.
+6. Document `npx skills@latest add codegraphy/skills` as the default command.
 
 ### Phase 7: Release
 
@@ -475,9 +472,7 @@ without restoring MCP-owned storage or analysis behavior.
 
 ## Remaining Review Questions
 
-1. Is the standard repository-source skill install acceptable for the first
-   release while the exact bare-name shorthand is pursued separately?
-2. Which example workspace should be the canonical one-file incremental
+1. Which example workspace should be the canonical one-file incremental
    performance fixture?
 
 The accepted initial query surface remains under the single `query` group with
