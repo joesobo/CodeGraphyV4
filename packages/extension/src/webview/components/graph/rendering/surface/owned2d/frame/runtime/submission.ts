@@ -1,17 +1,16 @@
 import { resetOwnedGraphNodeHover } from '../../interaction/hover/model';
-import {
-  measureGraphSceneBounds,
-  type WebGpuGraphSecondaryFrame,
-} from '@codegraphy-dev/graph-renderer';
+import { type WebGpuGraphSecondaryFrame } from '@codegraphy-dev/graph-renderer';
 import type { OwnedGraphFrameRuntime } from './render';
 import type { PreparedOverlayCanvas } from '../drawing/layer';
 import type { OwnedGraphLayout } from '../../layout/runtime/model';
+import { type MinimapProjection } from '../../minimap/projection';
 import {
-  expandMinimapBounds,
-  type MinimapBounds,
-} from '../../minimap/bounds';
-import { fitMinimapProjection, type MinimapProjection } from '../../minimap/projection';
-import { fitMinimapSceneProjection, type MinimapScene } from '../../minimap/scene';
+  expandMinimapSceneMeasurement,
+  fitMinimapSceneMeasurement,
+  measureMinimapScene,
+  type MinimapScene,
+  type MinimapSceneMeasurement,
+} from '../../minimap/scene';
 import {
   OWNED_GRAPH_MINIMAP_SIZE,
   updateOwnedGraphMinimapOverlay,
@@ -54,17 +53,17 @@ function failFrame(runtime: OwnedGraphFrameRuntime, layout: OwnedGraphLayout, er
   runtime.onRendererError(error instanceof Error ? error.message : String(error));
 }
 
-function resolveMinimapBounds(
+function resolveMinimapMeasurement(
   runtime: OwnedGraphFrameRuntime,
-  currentBounds: MinimapBounds | undefined,
+  current: MinimapSceneMeasurement | undefined,
   moving: boolean,
   decision: MinimapRefreshDecision,
-): MinimapBounds | undefined {
+): MinimapSceneMeasurement | undefined {
   if (decision.resetBounds) runtime.minimapBoundsRef.current = null;
-  if (!currentBounds) return undefined;
+  if (!current) return undefined;
   return moving && !decision.tightenBounds
-    ? expandMinimapBounds(runtime.minimapBoundsRef.current ?? undefined, currentBounds)
-    : currentBounds;
+    ? expandMinimapSceneMeasurement(runtime.minimapBoundsRef.current ?? undefined, current)
+    : current;
 }
 
 interface MinimapSurfaceDimensions {
@@ -88,14 +87,16 @@ function resolveMinimapProjection(
   decision: MinimapRefreshDecision,
 ): MinimapProjection | null {
   const size = Math.min(dimensions.width, dimensions.height);
-  const fittedProjection = fitMinimapSceneProjection(scene, size, MINIMAP_PADDING);
-  const currentBounds = fittedProjection
-    ? measureGraphSceneBounds({ ...scene, zoom: fittedProjection.zoom })
-    : undefined;
-  const bounds = resolveMinimapBounds(runtime, currentBounds, moving, decision);
-  runtime.minimapBoundsRef.current = bounds ?? null;
-  if (!bounds || bounds === currentBounds) return fittedProjection ?? null;
-  return fitMinimapProjection(bounds, size, MINIMAP_PADDING);
+  const measurement = resolveMinimapMeasurement(
+    runtime,
+    measureMinimapScene(scene),
+    moving,
+    decision,
+  );
+  runtime.minimapBoundsRef.current = measurement ?? null;
+  return measurement
+    ? fitMinimapSceneMeasurement(measurement, size, MINIMAP_PADDING)
+    : null;
 }
 
 function prepareMinimapSecondaryFrame(

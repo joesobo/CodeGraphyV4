@@ -50,7 +50,7 @@ import {
   invalidateMinimapScheduler,
   type MinimapScheduler,
 } from '../../minimap/state';
-import type { MinimapBounds } from '../../minimap/bounds';
+import type { MinimapSceneMeasurement } from '../../minimap/scene';
 import {
   createMinimapInteractionHandlers,
 } from '../../minimap/interaction';
@@ -60,7 +60,7 @@ const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
 
 interface OwnedMinimapLifecycleInput {
-  boundsRef: MutableRefObject<MinimapBounds | null>;
+  boundsRef: MutableRefObject<MinimapSceneMeasurement | null>;
   canvasRef: RefObject<HTMLCanvasElement>;
   enabled: boolean;
   navigationSessionRef: MutableRefObject<MinimapNavigationSession | null>;
@@ -135,7 +135,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const minimapOverlayRef = useRef<SVGSVGElement>(null);
   const minimapPanelRef = useRef<HTMLDivElement>(null);
   const minimapProjectionRef = useRef<MinimapProjection | null>(null);
-  const minimapBoundsRef = useRef<MinimapBounds | null>(null);
+  const minimapBoundsRef = useRef<MinimapSceneMeasurement | null>(null);
   const minimapSchedulerRef = useLazyRef(createMinimapScheduler);
   const minimapSurfaceRegisteredRef = useRef(false);
   const minimapViewportBoxRef = useRef<SVGRectElement>(null);

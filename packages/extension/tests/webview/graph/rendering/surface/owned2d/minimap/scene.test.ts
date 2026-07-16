@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { fitMinimapSceneProjection } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/scene';
+import {
+  expandMinimapSceneMeasurement,
+  fitMinimapSceneMeasurement,
+  fitMinimapSceneProjection,
+  measureMinimapScene,
+} from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/scene';
+import { measureGraphSceneBounds } from '@codegraphy-dev/graph-renderer';
 
 const style = {
   borderColor: '#000', borderWidth: 0, cornerRadius: 0,
@@ -68,5 +74,30 @@ describe('Relationship Graph minimap scene fitting', () => {
 
     expect(projection.centerY).toBe(0);
     expect(projection.zoom).toBeCloseTo(0.53387, 4);
+  });
+
+  it('keeps a large node inside padding after it crosses prior active-physics bounds', () => {
+    const largeStyle = { ...style, height: 120, width: 120 };
+    const initialScene = {
+      getNodeStyle: () => largeStyle,
+      links: [],
+      nodes: [{ id: 'moving', x: 0, y: 0 }],
+    };
+    const crossedScene = {
+      ...initialScene,
+      nodes: [{ id: 'moving', x: 300, y: 0 }],
+    };
+    const expanded = expandMinimapSceneMeasurement(
+      measureMinimapScene(initialScene)!,
+      measureMinimapScene(crossedScene)!,
+    );
+
+    const projection = fitMinimapSceneMeasurement(expanded, 160, 12);
+    const rendered = measureGraphSceneBounds({ ...crossedScene, zoom: projection.zoom })!;
+    const renderedRight = 80 + (rendered.maxX - projection.centerX) * projection.zoom;
+
+    expect(expanded.bounds).toEqual({ maxX: 300, maxY: 0, minX: 0, minY: 0 });
+    expect(renderedRight).toBeLessThanOrEqual(148);
+    expect(renderedRight).toBeCloseTo(148, 8);
   });
 });
