@@ -7,6 +7,7 @@ export interface MinimapScheduler {
   graphStyleRevision: number;
   lastRefreshTimestampMs: number;
   pendingBoundsReset: boolean;
+  projectionFitPending: boolean;
   positionVersion: number;
   surfaceHeight: number;
   surfaceWidth: number;
@@ -22,6 +23,7 @@ export function createMinimapScheduler(): MinimapScheduler {
     graphStyleRevision: -1,
     lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
     pendingBoundsReset: false,
+    projectionFitPending: true,
     positionVersion: -1,
     surfaceHeight: -1,
     surfaceWidth: -1,

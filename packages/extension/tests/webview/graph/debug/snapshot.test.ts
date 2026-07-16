@@ -21,6 +21,8 @@ describe('webview/graph/debug/snapshot', () => {
     });
 
     expect(snapshot).toEqual({
+      cameraCenterX: 155,
+      cameraCenterY: 95.33333333333333,
       containerHeight: 320,
       containerWidth: 480,
       fps: 57.5,
@@ -47,6 +49,8 @@ describe('webview/graph/debug/snapshot', () => {
     });
 
     expect(snapshot).toEqual({
+      cameraCenterX: null,
+      cameraCenterY: null,
       containerHeight: 0,
       containerWidth: 0,
       fps: null,

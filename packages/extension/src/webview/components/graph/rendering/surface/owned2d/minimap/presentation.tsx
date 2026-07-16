@@ -8,6 +8,8 @@ import {
 
 export { OWNED_GRAPH_MINIMAP_SIZE } from './layout';
 
+const MINIMAP_INSTRUCTIONS_ID = 'relationship-graph-minimap-instructions';
+
 interface OwnedGraphMinimapProps {
   canvasRef: RefObject<HTMLCanvasElement>;
   enabled: boolean;
@@ -31,8 +33,9 @@ export function OwnedGraphMinimap({
   return (
     <div
       ref={panelRef}
+      aria-describedby={MINIMAP_INSTRUCTIONS_ID}
       aria-label="Relationship Graph minimap"
-      className="absolute bottom-3 z-20 h-40 w-40 overflow-hidden rounded-sm border border-border bg-background shadow-md"
+      className="absolute bottom-3 z-20 h-40 w-40 cursor-grab overflow-hidden rounded-sm border border-border bg-background shadow-md active:cursor-grabbing"
       data-testid="graph-minimap"
       onContextMenu={interactionHandlers?.onContextMenu}
       onKeyDown={interactionHandlers?.onKeyDown}
@@ -44,8 +47,11 @@ export function OwnedGraphMinimap({
       onWheel={interactionHandlers?.onWheel}
       role="group"
       style={{ left: OWNED_GRAPH_MINIMAP_LEFT_INSET, touchAction: 'none' }}
-      tabIndex={-1}
+      tabIndex={0}
     >
+      <span className="sr-only" id={MINIMAP_INSTRUCTIONS_ID}>
+        Drag to pan the graph. Use the arrow keys to pan with the keyboard.
+      </span>
       <canvas
         ref={canvasRef}
         aria-hidden="true"

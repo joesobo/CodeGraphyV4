@@ -3,6 +3,8 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react';
 import type { MinimapInteractionRuntime } from './interaction';
+import { cancelOwnedGraphCameraTransition } from '../camera/runtime/model';
+import { keyboardMinimapCameraCenter } from './keyboard';
 
 export function suppressMinimapEvent(
   event: { preventDefault(): void; stopPropagation(): void },
@@ -25,11 +27,31 @@ export function handleMinimapKeyDown(
   runtime: MinimapInteractionRuntime,
   event: ReactKeyboardEvent<HTMLDivElement>,
 ): void {
-  if (event.key !== 'Escape') return;
-  const session = runtime.sessionRef.current;
-  if (!session) return;
+  if (event.key === 'Escape') {
+    const session = runtime.sessionRef.current;
+    if (!session) return;
+    suppressMinimapEvent(event);
+    endSession(runtime, event.currentTarget, session.pointerId);
+    return;
+  }
+  if (runtime.sessionRef.current) return;
+  const mainCanvas = runtime.mainCanvasRef.current;
+  if (!mainCanvas) return;
+  const bounds = mainCanvas.getBoundingClientRect();
+  const camera = runtime.cameraRef.current;
+  const center = keyboardMinimapCameraCenter(
+    event.key,
+    camera,
+    Math.max(1, bounds.width),
+    Math.max(1, bounds.height),
+    event.shiftKey,
+  );
+  if (!center) return;
   suppressMinimapEvent(event);
-  endSession(runtime, event.currentTarget, session.pointerId);
+  cancelOwnedGraphCameraTransition(camera);
+  camera.centerX = center.x;
+  camera.centerY = center.y;
+  runtime.requestFrame();
 }
 
 export function handleMinimapLostPointerCapture(

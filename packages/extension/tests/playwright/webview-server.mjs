@@ -184,7 +184,7 @@ const depthHarnessScript = `
     const publishSettings = () => {
       postToWebview({
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'separate', showOrphans: false },
+        payload: { bidirectionalEdges: 'separate', showMinimap: true, showOrphans: false },
       });
     };
 

@@ -18,6 +18,8 @@ The minimap is a navigation aid, not a second interactive graph. It does not run
 - Draw a high-contrast, translucent viewport box for the main camera. Panning moves the box; zooming changes its size around the camera center.
 - Clicking outside the viewport box centers the main camera at that minimap location. Dragging from outside the box continues centering the camera beneath the pointer. Dragging the viewport box preserves the pointer's initial grab offset so the camera does not jump when the drag begins. All navigation retains the current main-camera zoom.
 - Capture the pointer during a minimap drag so navigation remains continuous when the pointer briefly leaves the panel. `Escape` or pointer cancellation ends the drag.
+- Make the minimap keyboard-focusable. Arrow keys pan by one tenth of the visible graph area; `Shift` + Arrow pans five times farther.
+- Use grab and grabbing cursor feedback for pointer navigation.
 - Prevent minimap gestures from selecting nodes, opening graph context menus, panning the main canvas directly, or starting marquee selection.
 - Hide the minimap when the Visible Graph has no positioned nodes. If only some nodes lack finite positions during layout startup, fit and draw the positioned subset and incorporate the rest as their positions become available.
 - Add a **Show minimap** switch to Settings > Display. Persist it as a CodeGraphy Workspace setting and default it to on for discussion; see the open question below.
@@ -30,9 +32,10 @@ The minimap is a navigation aid, not a second interactive graph. It does not run
 - Its graph-to-minimap scale always fits the full current graph bounds inside an inner padded rectangle. The outer panel border is not part of this breathing room.
 - Wide and tall graphs are centered along the unused axis; they are never stretched to fill the square.
 - Main-camera pan and zoom update only the viewport box.
-- Layout movement or a Visible Graph change may update the fitted graph bounds because the graph itself changed.
+- Initial layout movement may update the fitted graph bounds until the layout settles. The settled projection then stays fixed while position-only updates repaint nodes and edges, so manually dragging a node far away cannot permanently zoom the minimap out.
+- A Visible Graph membership change, panel-size change, or base node-size/style change recomputes the fitted projection. Position-only changes do not.
 - A bounds change must not pan or zoom the main camera.
-- While physics is active, fitted bounds are expand-only so the minimap does not repeatedly zoom in and out as the layout moves. When physics settles, perform one final tight fit around the settled graph with the same internal padding.
+- While the initial or newly invalidated fit is active, fitted bounds are expand-only so the minimap does not repeatedly zoom in and out as the layout moves. When physics settles, perform one final tight fit around the settled graph with the same internal padding and lock that projection.
 
 The viewport box comes from the main camera's graph-space rectangle:
 
@@ -144,6 +147,7 @@ The minimap must remain synchronized without turning React state or extension me
 - Graph and style mutations outside active physics request one refresh.
 - Main-camera pan and zoom never refresh the secondary surface; they update only the viewport box.
 - Hidden minimaps allocate no target and perform no refresh work.
+- Failure to register the optional secondary WebGPU target hides only the minimap and leaves the primary Relationship Graph operational.
 - Reuse existing packed node and edge buffers and base pipelines; do not repack graph data for each refresh.
 - Avoid allocations in both steady-state composition and capped-refresh paths.
 
@@ -185,6 +189,7 @@ Follow Red -> Green -> Refactor. The human-owned acceptance Gherkin must not be 
 
 - The viewport box changes after toolbar/wheel zoom and graph pan.
 - Dragging across the minimap moves the visible graph continuously and preserves zoom.
+- A browser-level regression compares the viewport box with the debug camera while panning, resizing, and changing Visible Graph membership.
 - Graph-data updates add, remove, recolor, resize, and reposition minimap nodes without remounting a second graph runtime.
 - The minimap remains anchored after webview resize and recomputes its fit.
 - Bottom-left layout does not overlap Depth View controls, loading/error overlays, plugin UI slots, or accessibility controls at supported viewport sizes.

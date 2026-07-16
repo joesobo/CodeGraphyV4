@@ -24,7 +24,13 @@ describe('Relationship Graph minimap presentation', () => {
     />);
 
     const panel = screen.getByLabelText('Relationship Graph minimap');
-    expect(panel).toHaveClass('bottom-3', 'h-40', 'w-40', 'border');
+    expect(panel).toHaveClass(
+      'bottom-3', 'h-40', 'w-40', 'border', 'cursor-grab', 'active:cursor-grabbing',
+    );
+    expect(panel).toHaveAttribute('tabindex', '0');
+    expect(panel).toHaveAccessibleDescription(
+      'Drag to pan the graph. Use the arrow keys to pan with the keyboard.',
+    );
     expect(panel).toHaveStyle({ left: '12px' });
     expect(canvasRef.current).toHaveClass('absolute', 'inset-0', 'h-full', 'w-full');
     expect(overlayRef.current).toHaveAttribute('viewBox', '0 0 160 160');

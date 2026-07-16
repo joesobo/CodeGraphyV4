@@ -43,16 +43,28 @@ function minimapVisualsChanged(
     || scheduler.graphStyleRevision !== input.graphStyleRevision;
 }
 
+function minimapProjectionInputsChanged(
+  scheduler: MinimapScheduler,
+  input: MinimapRefreshInput,
+): boolean {
+  return graphMembershipChanged(scheduler, input)
+    || minimapSurfaceChanged(scheduler, input)
+    || scheduler.baseStyleVersion !== input.baseStyleVersion
+    || scheduler.graphStyleRevision !== input.graphStyleRevision;
+}
+
 export function observeMinimapChanges(
   scheduler: MinimapScheduler,
   input: MinimapRefreshInput,
 ): MinimapChangeObservation {
   const membershipChanged = graphMembershipChanged(scheduler, input);
+  const projectionInputsChanged = minimapProjectionInputsChanged(scheduler, input);
   const changed = membershipChanged
     || minimapSurfaceChanged(scheduler, input)
     || minimapVisualsChanged(scheduler, input);
   const settled = scheduler.wasMoving && !input.moving;
   if (membershipChanged) scheduler.pendingBoundsReset = true;
+  if (projectionInputsChanged) scheduler.projectionFitPending = true;
   if (changed || settled) scheduler.dirty = true;
   scheduler.graphIdentity = input.graphIdentity;
   scheduler.graphRevision = input.graphRevision;
