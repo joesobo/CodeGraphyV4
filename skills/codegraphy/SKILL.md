@@ -1,6 +1,6 @@
 ---
 name: codegraphy
-description: Use the CodeGraphy CLI to index a local workspace and query its files, symbols, relationships, dependencies, impact, and bounded paths before broad source search. Trigger for codebase structure, connected-file, symbol-location, dependency, relationship, and change-impact questions when shell access is available.
+description: Use the CodeGraphy CLI to index a local workspace, configure its saved Graph Scope and filters, and query nodes, symbols, edges, dependencies, dependents, and bounded paths before broad source search. Trigger for codebase structure, symbol-location, connected-file, dependency, relationship, graph-configuration, and change-impact questions when shell access is available.
 ---
 
 # CodeGraphy
@@ -21,27 +21,41 @@ If a global install is unavailable or inappropriate, use `npx --yes @codegraphy-
 ## Workflow
 
 1. Work from the target workspace root.
-2. Run `codegraphy index .` when opening an unknown workspace or after files, settings, or plugins may have changed. Indexing reuses unchanged analysis; do not run `status` first unless the user asks for diagnostics.
+2. Run `codegraphy index` when opening an unknown workspace or after files, filters, Graph Scope, or plugins may have changed. Indexing reuses unchanged analysis; do not run `status` first unless the user asks for diagnostics.
 3. Run the narrowest query that answers the structural question.
 4. Read the returned source files and locations before editing or making detailed claims.
 
 ## Queries
 
-Index, status, and graph report commands emit compact JSON. List queries return at most 100 items by default; narrow with selectors before raising `--limit`.
+Index, status, settings, and graph query commands emit compact JSON. Queries use bounded defaults and positional inputs; do not invent query flags.
 
 ```bash
-codegraphy nodes . --search settings --limit 25
-codegraphy edges . --from src/app.ts --type import
-codegraphy relationships . --to src/config.ts --limit 50
-codegraphy symbols . --file src/app.ts
-codegraphy symbols . --from src/app.ts --type call
-codegraphy paths . --from src/app.ts --to src/config.ts --depth 6 --limit 3
+codegraphy nodes
+codegraphy search SettingsPanel
+codegraphy edges
+codegraphy dependencies packages/core/src/cli/command.ts
+codegraphy dependents packages/core/src/workspace/settings.ts
+codegraphy path packages/core/src/cli/command.ts packages/core/src/workspace/requestQuery.ts
 ```
 
-- Use `nodes` to find indexed paths and node types.
-- Use `edges` for compact file-to-file connections and impact candidates.
-- Use `relationships` when provenance, relationship kinds, or symbol evidence matters.
-- Use `symbols` for declarations, signatures, ranges, and symbol-level evidence.
-- Use `paths` to explain how two exact nodes connect. Keep depth and path counts small.
+- Use `nodes` to list the saved Graph Scope. Symbols are Node Types and appear here when their Node Types are enabled.
+- Use `search` to find scoped nodes by text.
+- Use `edges` for compact scoped relationships.
+- Use `dependencies` for outgoing edges and `dependents` for incoming impact.
+- Use `path` to explain how two exact nodes connect.
+
+Inspect or change the same persisted workspace controls used by the extension:
+
+```bash
+codegraphy scope
+codegraphy scope node symbol:function on
+codegraphy scope edge call on
+codegraphy filter
+codegraphy filter add '**/generated/**'
+codegraphy filter remove '**/generated/**'
+codegraphy plugins list
+```
+
+Graph Scope and filter changes are written to `.codegraphy/settings.json`. Run `codegraphy index` after a setting or plugin change when cached analysis may need to change. Use `codegraphy doctor` for installation, settings, cache, or plugin diagnostics. All commands use the current directory by default; use the global `--workspace <path>` option only when operating elsewhere.
 
 Treat an empty result as evidence only about the current index and query. Read source or rerun `index` when recent changes may not be represented.

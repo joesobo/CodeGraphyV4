@@ -53,7 +53,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Custom graph renderer | CodeGraphy's own WebGPU renderer and deterministic WebAssembly physics keep large graphs responsive and configurable. |
 | Context actions | Preview, open, reveal, rename, delete, favorite, filter, and export directly from the graph. |
 | Graph Cache | Store workspace-local analysis and settings in `.codegraphy/` so graph behavior stays with the CodeGraphy Workspace. |
-| CLI and Agent Skill | Let shell-capable agents incrementally index and query nodes, edges, relationships, symbols, and bounded paths through `@codegraphy-dev/core`. |
+| CLI and Agent Skill | Let shell-capable agents incrementally index, configure the saved graph, and query scoped Nodes, Edges, dependencies, dependents, and bounded paths through `@codegraphy-dev/core`. |
 
 ## Gallery
 
@@ -146,27 +146,34 @@ after publication, the standard command above is canonical.
 
 ## CLI Commands
 
-All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. Indexing, status, and graph reports return compact JSON on stdout; help and plugin management use concise text.
+All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. Indexing, diagnostics, settings, and graph queries return compact JSON on stdout; help and plugin management use concise text. Commands target the current directory unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace.
 
 | Command | What It Does |
 |---|---|
 | `codegraphy --help` | Lists commands or shows scoped help after a command. |
 | `codegraphy --version` | Prints the installed Core CLI version. |
-| `codegraphy status [workspace]` | Reports fresh, stale, missing, or unusable Graph Cache state for the current folder or explicit CodeGraphy Workspace. |
-| `codegraphy index [workspace]` | Runs Indexing for the current folder or explicit CodeGraphy Workspace through `@codegraphy-dev/core`. |
-| `codegraphy nodes [workspace]` | Lists bounded indexed nodes with optional search and pagination. |
-| `codegraphy edges [workspace]` | Lists compact grouped connections with optional `from`, `to`, and `type` selectors. |
-| `codegraphy relationships [workspace]` | Lists detailed relationship evidence and provenance. |
-| `codegraphy symbols [workspace]` | Lists declarations, signatures, source ranges, and symbol relationship evidence. |
-| `codegraphy paths [workspace]` | Finds bounded directed paths between exact nodes. |
+| `codegraphy status` | Reports fresh, stale, missing, or unusable Graph Cache state. |
+| `codegraphy doctor` | Checks the local runtime, workspace settings, Graph Cache, and plugin state and reports actionable failures. |
+| `codegraphy index` | Makes the current Graph Cache current through automatic full or incremental Indexing. |
+| `codegraphy nodes` | Lists bounded nodes in the saved Graph Scope, including enabled Symbol Node Types. |
+| `codegraphy search <text>` | Searches nodes in the saved Graph Scope. |
+| `codegraphy edges` | Lists compact Edges in the saved Graph Scope. |
+| `codegraphy dependencies <node>` | Lists outgoing Edges from one exact node. |
+| `codegraphy dependents <node>` | Lists incoming Edges to one exact node. |
+| `codegraphy path <from> <to>` | Finds bounded directed paths between two exact nodes. |
+| `codegraphy scope` | Lists saved and available Node Type and Edge Type Graph Scope. |
+| `codegraphy scope node <type> <on\|off>` | Persists one Node Type Graph Scope toggle. |
+| `codegraphy scope edge <type> <on\|off>` | Persists one Edge Type Graph Scope toggle. |
+| `codegraphy filter` | Lists persisted workspace filter patterns. |
+| `codegraphy filter add <glob>` | Adds a persisted workspace filter pattern. |
+| `codegraphy filter remove <glob>` | Removes a persisted workspace filter pattern. |
 | `codegraphy plugins register <package>` | Registers a globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata. |
 | `codegraphy plugins link <package-root>` | Links a local plugin checkout into the user-level Plugin Registry. |
-| `codegraphy plugins list [workspace]` | Lists registered plugins and which ones are enabled for one CodeGraphy Workspace. |
-| `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin for one CodeGraphy Workspace. |
-| `codegraphy plugins disable <package> [workspace]` | Disables a registered plugin for one CodeGraphy Workspace. |
-| `codegraphy setup` | Prepares the user-level CodeGraphy directory. Normal Indexing and plugin writes create their own parent directories. |
+| `codegraphy plugins list` | Lists registered plugins and which ones are enabled for the selected CodeGraphy Workspace. |
+| `codegraphy plugins enable <package>` | Enables a registered plugin for the selected CodeGraphy Workspace. |
+| `codegraphy plugins disable <package>` | Disables a registered plugin for the selected CodeGraphy Workspace. |
 
-For commands with `[workspace]`, the workspace is an optional trailing positional argument. Omitting the path targets the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
+The CLI does not walk upward to find a parent repo or existing `.codegraphy` folder. Run it from the intended workspace root or select one once per invocation with `--workspace <path>`.
 
 Existing `.codegraphy/graph.lbug` caches are rebuildable generated data and are not migrated in place. The first new Indexing run creates `.codegraphy/graph.sqlite`; the legacy cache can then be removed.
 
@@ -177,11 +184,11 @@ The CodeGraphy Agent Skill teaches agents to use the Core CLI instead of owning 
 | CLI Command | Agent Can Ask For |
 |---|---|
 | `codegraphy index` | Make cached workspace knowledge current while reusing unchanged analysis. |
-| `codegraphy nodes` | List File Nodes, Folder Nodes, Package Nodes, or plugin-added nodes. |
-| `codegraphy edges` | List high-level `from` / `to` Edges and grouped Edge Types. |
-| `codegraphy relationships` | Inspect relationship evidence grouped by node pair and Edge Type. |
-| `codegraphy symbols` | List declarations or symbol-backed relationship evidence. |
-| `codegraphy paths` | Find bounded directed paths between exact node paths. |
+| `codegraphy nodes` / `search` | Find File, Folder, Package, Symbol, and plugin-defined Nodes enabled by Graph Scope. |
+| `codegraphy edges` | List high-level Edges and grouped Edge Types. |
+| `codegraphy dependencies` / `dependents` | Trace one Node outward or inspect its incoming change impact. |
+| `codegraphy path` | Find bounded directed paths between exact Nodes. |
+| `codegraphy scope` / `filter` | Inspect or persist the same Graph Scope and filter settings used by the extension. |
 
 ## Package Map
 
