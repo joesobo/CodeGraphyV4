@@ -18,6 +18,7 @@ import { createWorkspaceIndexPluginSignature, persistWorkspaceIndexMetadata } fr
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
+import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
 import {
   createWorkspaceIndexFileContentReader,
   findDeletedWorkspaceIndexDependents,
@@ -178,6 +179,7 @@ export async function indexCodeGraphyWorkspace(
       discoveryResult,
       options,
       registry,
+      settings,
       readContent,
       disabledPlugins,
       workspaceRoot,
@@ -199,6 +201,7 @@ export async function indexCodeGraphyWorkspace(
       disabledPlugins,
       fileAnalysis: analysisResult.fileAnalysis,
       getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
+      nodeVisibility: resolveSavedGraphScope(settings).nodes,
       showOrphans: true,
       workspaceRoot,
     }),

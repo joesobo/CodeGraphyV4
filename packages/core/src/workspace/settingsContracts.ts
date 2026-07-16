@@ -14,6 +14,8 @@ export interface CodeGraphyWorkspaceSettings {
   showOrphans: boolean;
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
+  nodeVisibility?: Record<string, boolean>;
+  edgeVisibility?: Record<string, boolean>;
   plugins: CodeGraphyWorkspacePluginSettings[];
   pluginData?: Record<string, unknown>;
 }

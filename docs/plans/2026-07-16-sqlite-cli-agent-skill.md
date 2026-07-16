@@ -241,7 +241,10 @@ codegraphy path <from> <to>
 Symbol Nodes and plugin-defined Nodes. Do not expose separate `symbols` or
 `relationships` commands: symbols are Nodes and Relationships render as Edges.
 `dependencies` and `dependents` are directional Edge queries, while `path` is
-the one bounded traversal command.
+the one bounded traversal command. A file operand expands across the visible
+Symbol Nodes declared by that file and projects results back to files. An
+explicit Symbol Node ID remains exact, and raw `edges` output is never
+projected.
 
 All query inputs are positional and all result sizes are bounded internally.
 There are no report-specific `--from`, `--to`, `--file`, `--type`, `--search`,

@@ -16,6 +16,11 @@ import {
   filterEdgesToReportNodes,
 } from './visible';
 import { applyDomainConnectionFilters } from './relationships/visibility';
+import {
+  applyConnectionEndpointFilters,
+  projectEdgesToFiles,
+  shouldProjectConnectionEndpoints,
+} from './fileEndpoints';
 
 export function listGraphNodes(
   graphData: IGraphData,
@@ -56,13 +61,19 @@ export function listGraphEdges(
 ): GraphQueryEdgeReport {
   const scopedGraph = deriveScopedGraphQueryData(graphData, config);
   const scopedEdges = filterEdgesToReportNodes(scopedGraph.edges, scopedGraph.nodes);
-  const domainFilteredEdges = applyDomainConnectionFilters(scopedEdges, config);
+  const domainFilteredEdges = config.expandFileSelectors
+    ? applyConnectionEndpointFilters(scopedGraph, scopedEdges, config)
+    : applyDomainConnectionFilters(scopedEdges, config);
   const filteredEdges = applyReportFilters(domainFilteredEdges, config.filters, readEdgeValue);
   const visibleGraph = applySearchAndOrphans({
     nodes: scopedGraph.nodes,
     edges: filteredEdges,
   }, config);
-  const groupedEdges = groupEdges(filterEdgesToReportNodes(visibleGraph.edges, visibleGraph.nodes));
+  const visibleEdges = filterEdgesToReportNodes(visibleGraph.edges, visibleGraph.nodes);
+  const reportEdges = shouldProjectConnectionEndpoints(scopedGraph, config)
+    ? projectEdgesToFiles(scopedGraph, visibleEdges)
+    : visibleEdges;
+  const groupedEdges = groupEdges(reportEdges);
   const sortedEdges = sortItems(
     groupedEdges,
     config.sort,

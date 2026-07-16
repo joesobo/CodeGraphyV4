@@ -53,7 +53,7 @@ export async function requestWorkspaceGraphQuery(
     };
   }
 
-  const { graphData, snapshotFacts } = readWorkspaceQueryGraph(
+  const { graphData, scope, settings, snapshotFacts } = readWorkspaceQueryGraph(
     workspaceRoot,
     dependencies.readInstalledPluginCache(),
   );
@@ -63,7 +63,14 @@ export async function requestWorkspaceGraphQuery(
     relations: snapshotFacts.relations,
   }, {
     report: input.report,
-    arguments: input.arguments,
+    arguments: {
+      scope: {
+        nodes: scope.nodes,
+        edges: scope.edges,
+      },
+      showOrphans: settings.showOrphans,
+      ...input.arguments,
+    },
   } as GraphQueryRequest);
   emitGraphQueryCompleted({
     diagnostics: input.diagnostics,

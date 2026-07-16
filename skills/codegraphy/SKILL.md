@@ -40,9 +40,10 @@ codegraphy path packages/core/src/cli/command.ts packages/core/src/workspace/req
 
 - Use `nodes` to list the saved Graph Scope. Symbols are Node Types and appear here when their Node Types are enabled.
 - Use `search` to find scoped nodes by text.
-- Use `edges` for compact scoped relationships.
-- Use `dependencies` for outgoing edges and `dependents` for incoming impact.
-- Use `path` to explain how two exact nodes connect.
+- Use `edges` for compact exact scoped relationships.
+- Use `dependencies` for outgoing edges and `dependents` for incoming impact. A file operand includes its visible Symbol Nodes; an explicit Symbol Node ID stays exact.
+- Use `path` to explain how files or exact Symbol Nodes connect.
+- If an expected relationship is absent, inspect `scope` before concluding it does not exist; disabled Edge Types are intentionally excluded from queries.
 
 Inspect or change the same persisted workspace controls used by the extension:
 

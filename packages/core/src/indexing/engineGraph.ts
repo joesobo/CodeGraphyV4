@@ -7,6 +7,7 @@ import { getGraphCachePath } from '../workspace/paths';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
 import type { WorkspaceEngineRuntime } from './engineRuntime';
 import { persistWorkspaceIndexMetadata } from './metadata';
+import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
 
 export function buildWorkspaceEngineGraph(
   runtime: WorkspaceEngineRuntime,
@@ -22,6 +23,7 @@ export function buildWorkspaceEngineGraph(
     disabledPlugins,
     fileAnalysis: state.fileAnalysis,
     getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),
+    nodeVisibility: resolveSavedGraphScope(state.settings).nodes,
     showOrphans: true,
     workspaceRoot,
   });

@@ -6,7 +6,6 @@ import { runCliCommand } from '../../src/cli/command';
 
 describe('cli/command', () => {
   it('dispatches help and plugin help without touching a workspace', async () => {
-    await expect(runCliCommand({ name: 'setup' })).resolves.toMatchObject({ exitCode: 0 });
     await expect(runCliCommand({ name: 'help' })).resolves.toMatchObject({
       exitCode: 0,
       output: expect.stringContaining('CodeGraphy CLI'),
@@ -27,15 +26,15 @@ describe('cli/command', () => {
   it('reports concise command-scoped help', async () => {
     await expect(runCliCommand({ name: 'help', helpPath: ['index'] })).resolves.toEqual({
       exitCode: 0,
-      output: 'Usage: codegraphy index [workspace]',
+      output: 'Usage: codegraphy index',
     });
     await expect(runCliCommand({ name: 'help', helpPath: ['edges'] })).resolves.toMatchObject({
       exitCode: 0,
-      output: expect.stringContaining('Usage: codegraphy edges [workspace]'),
+      output: 'Usage: codegraphy edges',
     });
     await expect(runCliCommand({ name: 'help', helpPath: ['plugins', 'enable'] })).resolves.toEqual({
       exitCode: 0,
-      output: 'Usage: codegraphy plugins enable <plugin-id-or-package> [workspace]',
+      output: 'Usage: codegraphy plugins enable <plugin-id-or-package>',
     });
   });
 
@@ -78,6 +77,11 @@ describe('cli/command', () => {
     await writeFile(join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n');
     await writeFile(join(workspaceRoot, 'Target.md'), 'Done.\n');
     await runCliCommand({ name: 'index', workspacePath: workspaceRoot });
+    await runCliCommand({
+      name: 'scope',
+      workspacePath: workspaceRoot,
+      arguments: { kind: 'edge', type: 'reference', enabled: true },
+    });
 
     const result = await runCliCommand({
       name: 'query',
@@ -123,10 +127,10 @@ describe('cli/command', () => {
   it('returns machine-readable errors for invalid query syntax', async () => {
     await expect(runCliCommand({
       name: 'query',
-      parseError: 'paths requires --from and --to',
+      parseError: 'path requires <from> <to>',
     })).resolves.toEqual({
       exitCode: 2,
-      output: '{"error":"invalid_arguments","message":"paths requires --from and --to"}',
+      output: '{"error":"invalid_arguments","message":"path requires <from> <to>"}',
     });
   });
 

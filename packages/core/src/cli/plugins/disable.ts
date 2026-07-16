@@ -22,6 +22,6 @@ export function runDisableCommand(
   dependencies.disableWorkspacePlugin(workspaceRoot, pluginId);
   return {
     exitCode: 0,
-    output: `Disabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+    output: `Disabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
   };
 }

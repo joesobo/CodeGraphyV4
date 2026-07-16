@@ -7,6 +7,13 @@ import { collectDiagnosticEvents } from '../../src/diagnostics/events';
 import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
 import { requestWorkspaceGraphQuery } from '../../src/workspace/requestQuery';
 import { readCodeGraphyWorkspaceStatusForCli } from '../../src/workspace/requestStatus';
+import {
+  readCodeGraphyWorkspaceSettings,
+  writeCodeGraphyWorkspaceSettings,
+} from '../../src/workspace/settings';
+import { loadWorkspaceAnalysisDatabaseCache } from '../../src/graphCache/database/storage';
+import { readAnalysisCacheTiers } from '../../src/analysis/fileAnalysis';
+import { runCli } from '../../src/cli/run';
 
 describe('core-backed CodeGraphy Workspace commands', () => {
   it('indexes, reports fresh status, and queries a workspace without VS Code', async () => {
@@ -19,6 +26,11 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     });
     const status = readCodeGraphyWorkspaceStatusForCli({
       workspacePath: workspaceRoot,
+    });
+    const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...settings,
+      edgeVisibility: { reference: true },
     });
     const queryResult = await requestWorkspaceGraphQuery({
       workspacePath: workspaceRoot,
@@ -78,6 +90,127 @@ describe('core-backed CodeGraphy Workspace commands', () => {
         ]),
       }),
     ]);
+  });
+
+  it('applies saved scope and filters while returning symbol nodes with metadata', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-saved-scope-'));
+    await fs.mkdir(path.join(workspaceRoot, 'generated'));
+    await fs.writeFile(path.join(workspaceRoot, 'entry.ts'), "import { target } from './target';\ntarget();\n");
+    await fs.writeFile(path.join(workspaceRoot, 'target.ts'), 'export function target(): void {}\n');
+    await fs.writeFile(path.join(workspaceRoot, 'generated/output.ts'), 'export function generated(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...settings,
+      filterPatterns: ['**/generated/**'],
+      nodeVisibility: { 'symbol:function': true },
+      edgeVisibility: { call: false },
+    });
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    const nodeReport = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'nodes',
+      arguments: {},
+    });
+    const edgeReport = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'edges',
+      arguments: {},
+    });
+
+    expect(nodeReport.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeType: 'symbol',
+        symbol: expect.objectContaining({
+          name: 'target',
+          kind: 'function',
+          filePath: 'target.ts',
+        }),
+      }),
+    ]));
+    expect(nodeReport.nodes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: expect.stringContaining('generated/output.ts') }),
+    ]));
+    expect(nodeReport.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'entry.ts', nodeType: 'file' }),
+    ]));
+    expect(edgeReport.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ edgeTypes: expect.arrayContaining(['import']) }),
+    ]));
+    expect(edgeReport.edges).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ edgeTypes: expect.arrayContaining(['call']) }),
+    ]));
+
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      edgeVisibility: { import: false, call: false, contains: false },
+    });
+    const pathReport = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'paths',
+      arguments: { from: 'entry.ts', to: 'target.ts' },
+    });
+    expect(pathReport.paths).toEqual([]);
+  });
+
+  it('upgrades a file-only cache after symbol scope is enabled', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-symbol-upgrade-'));
+    await fs.writeFile(path.join(workspaceRoot, 'target.ts'), 'export function target(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const baselineCache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+    expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).toContain('baseline');
+    expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).not.toContain('symbols');
+    const outputs: string[] = [];
+
+    await expect(runCli([
+      '-C', workspaceRoot, 'scope', 'node', 'symbol:function', 'on',
+    ], { stdout: output => { outputs.push(output); } })).resolves.toBe(0);
+
+    expect(JSON.parse(outputs[0])).toMatchObject({
+      indexRequired: true,
+      action: 'Run `codegraphy index` to hydrate the required symbol analysis.',
+    });
+    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('stale');
+
+    const upgrade = await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    expect(upgrade.indexing.analyzedFiles).toBe(1);
+    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('fresh');
+    const nodeReport = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'nodes',
+      arguments: {},
+    });
+    expect(nodeReport.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeType: 'symbol',
+        symbol: expect.objectContaining({ name: 'target', kind: 'function' }),
+      }),
+    ]));
+  });
+
+  it('expands file convenience queries across visible symbol endpoints', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-file-intent-'));
+    await fs.writeFile(path.join(workspaceRoot, 'app.ts'), "import { greet } from './greet';\ngreet();\n");
+    await fs.writeFile(path.join(workspaceRoot, 'greet.ts'), 'export function greet(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...settings,
+      nodeVisibility: { 'symbol:function': true },
+      edgeVisibility: { import: false, call: true, contains: true },
+    });
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const outputs: string[] = [];
+    const stdout = (output: string): void => { outputs.push(output); };
+
+    await runCli(['-C', workspaceRoot, 'dependents', 'greet.ts'], { stdout });
+    await runCli(['-C', workspaceRoot, 'path', 'app.ts', 'greet.ts'], { stdout });
+
+    expect(JSON.parse(outputs[0]).edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ from: 'app.ts', to: 'greet.ts' }),
+    ]));
+    expect(JSON.parse(outputs[1]).paths).toContainEqual(['app.ts', 'greet.ts']);
   });
 
   it('emits high-signal verbose diagnostics for indexing requests', async () => {

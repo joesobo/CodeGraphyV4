@@ -3,6 +3,10 @@ export type { CommandExecutionResult } from './cli/command';
 export { runCliCommand } from './cli/command';
 export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
 export { parseCliCommand } from './cli/parse';
+export {
+  CORE_GRAPH_EDGE_DEFAULT_VISIBILITY,
+  CORE_GRAPH_EDGE_TYPES,
+} from './workspace/graphScopeSettings';
 export type {
   DiagnosticContextValue,
   DiagnosticEvent,
@@ -16,7 +20,6 @@ export {
 } from './diagnostics/events';
 export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';
-export { runSetupCommand } from './cli/setup/command';
 export { runStatusCommand } from './cli/status/command';
 export {
   createWorkspaceIndexEngineState,

@@ -1,8 +1,10 @@
 import { runIndexCommand } from './index/command';
+import { runDoctorCommand } from './doctor/command';
+import { runFilterCommand } from './filter/command';
 import { createHelpResult } from './help/command';
 import { runPluginsCommand } from './plugins/command';
 import { runQueryCommand } from './query/command';
-import { runSetupCommand } from './setup/command';
+import { runScopeCommand } from './scope/command';
 import { runStatusCommand } from './status/command';
 import type { CliCommand } from './parse';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
@@ -65,8 +67,14 @@ export async function runCliCommand(
   let result: CommandExecutionResult;
 
   switch (command.name) {
-    case 'setup':
-      result = runSetupCommand();
+    case 'doctor':
+      result = runDoctorCommand(command);
+      break;
+    case 'filter':
+      result = runFilterCommand(command);
+      break;
+    case 'scope':
+      result = runScopeCommand(command);
       break;
     case 'status':
       result = runStatusCommand(command.workspacePath, undefined, {
