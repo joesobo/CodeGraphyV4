@@ -2,12 +2,19 @@ import * as path from 'node:path';
 import { requestWorkspaceGraphQuery } from '../../workspace/requestQuery';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from '../../workspace/requestTypes';
+import type { DiagnosticEvent, DiagnosticEventSink } from '../../diagnostics/events';
+import { formatDiagnosticEventLine } from '../../diagnostics/events';
 import type { CliCommand } from '../parseTypes';
 import type { CommandExecutionResult } from '../command';
 
 interface QueryCommandDependencies {
   cwd(): string;
   query(input: WorkspaceGraphQueryInput): Promise<WorkspaceGraphQueryResult>;
+}
+
+interface QueryCommandOptions {
+  verbose?: boolean;
+  writeDiagnostic?(line: string): void;
 }
 
 const DEFAULT_DEPENDENCIES: QueryCommandDependencies = {
@@ -57,6 +64,7 @@ function compactQueryResult(result: WorkspaceGraphQueryResult): WorkspaceGraphQu
 export async function runQueryCommand(
   command: CliCommand,
   dependencies: QueryCommandDependencies = DEFAULT_DEPENDENCIES,
+  options: QueryCommandOptions = {},
 ): Promise<CommandExecutionResult> {
   if (!command.report) {
     return {
@@ -66,16 +74,9 @@ export async function runQueryCommand(
   }
 
   const workspaceRoot = resolveCodeGraphyWorkspacePath(command.workspacePath, dependencies.cwd());
+  let queryArguments: Record<string, unknown>;
   try {
-    const result = await dependencies.query({
-      workspacePath: workspaceRoot,
-      report: command.report,
-      arguments: normalizeQueryArguments(command.arguments ?? {}, workspaceRoot),
-    });
-    return {
-      exitCode: result.error ? 1 : 0,
-      output: JSON.stringify(compactQueryResult(result)),
-    };
+    queryArguments = normalizeQueryArguments(command.arguments ?? {}, workspaceRoot);
   } catch (error) {
     return {
       exitCode: 2,
@@ -85,4 +86,27 @@ export async function runQueryCommand(
       }),
     };
   }
+
+  const diagnostics: DiagnosticEventSink | undefined = options.verbose
+    ? {
+        emit(event: DiagnosticEvent): void {
+          const line = formatDiagnosticEventLine(event);
+          if (options.writeDiagnostic) {
+            options.writeDiagnostic(line);
+            return;
+          }
+          process.stderr.write(`${line}\n`);
+        },
+      }
+    : undefined;
+  const result = await dependencies.query({
+    workspacePath: workspaceRoot,
+    report: command.report,
+    arguments: queryArguments,
+    ...(diagnostics ? { diagnostics } : {}),
+  });
+  return {
+    exitCode: result.error ? 1 : 0,
+    output: JSON.stringify(compactQueryResult(result)),
+  };
 }

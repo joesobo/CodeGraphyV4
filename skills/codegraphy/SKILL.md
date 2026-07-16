@@ -27,15 +27,15 @@ If a global install is unavailable or inappropriate, use `npx --yes @codegraphy-
 
 ## Queries
 
-All commands emit compact JSON. List queries return at most 100 items by default; narrow with selectors before raising `--limit`.
+Index, status, and graph report commands emit compact JSON. List queries return at most 100 items by default; narrow with selectors before raising `--limit`.
 
 ```bash
-codegraphy query nodes . --search settings --limit 25
-codegraphy query edges . --from src/app.ts --edge-type import
-codegraphy query relationships . --to src/config.ts --limit 50
-codegraphy query symbols . --file src/app.ts
-codegraphy query symbols . --related-from src/app.ts --edge-type call
-codegraphy query paths . --from src/app.ts --to src/config.ts --max-depth 6 --max-paths 3
+codegraphy nodes . --search settings --limit 25
+codegraphy edges . --from src/app.ts --type import
+codegraphy relationships . --to src/config.ts --limit 50
+codegraphy symbols . --file src/app.ts
+codegraphy symbols . --from src/app.ts --type call
+codegraphy paths . --from src/app.ts --to src/config.ts --depth 6 --limit 3
 ```
 
 - Use `nodes` to find indexed paths and node types.

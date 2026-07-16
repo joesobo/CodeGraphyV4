@@ -22,6 +22,7 @@ describe('status/command', () => {
       state: 'missing',
       enabledPlugins: ['codegraphy.markdown'],
     });
+    expect(result.output).not.toContain('\n');
   });
 
   it('passes verbose diagnostics to the workspace status request', () => {

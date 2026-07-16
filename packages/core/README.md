@@ -8,7 +8,19 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal subcommands live in this package. `codegraphy setup` prepares CodeGraphy's user state, `codegraphy index` incrementally makes a workspace Graph Cache current, and `codegraphy query` exposes bounded Graph Query reports.
+All `codegraphy ...` terminal commands live in this package. `codegraphy setup` prepares CodeGraphy's user state, `codegraphy index` incrementally makes a workspace Graph Cache current, and the top-level `nodes`, `edges`, `relationships`, `symbols`, and `paths` commands expose bounded Graph Query reports.
+
+```bash
+codegraphy index [workspace]
+codegraphy status [workspace]
+codegraphy nodes [workspace] --search settings --limit 25
+codegraphy edges [workspace] --from src/app.ts --type import
+codegraphy relationships [workspace] --to src/config.ts
+codegraphy symbols [workspace] --file src/app.ts
+codegraphy paths [workspace] --from src/app.ts --to src/config.ts --depth 6 --limit 3
+```
+
+Run `codegraphy <command> --help` for report-specific options. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
 
 ## Current Entry Points
 

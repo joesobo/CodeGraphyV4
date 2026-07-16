@@ -9,6 +9,10 @@ const QUERY_REPORTS = new Set<GraphQueryReport>([
   'paths',
 ]);
 
+export function isGraphQueryReport(value: string | undefined): value is GraphQueryReport {
+  return value !== undefined && QUERY_REPORTS.has(value as GraphQueryReport);
+}
+
 const LIST_FLAGS: Record<string, string> = {
   '--limit': 'limit',
   '--offset': 'offset',
@@ -17,16 +21,16 @@ const LIST_FLAGS: Record<string, string> = {
 
 const REPORT_FLAGS: Record<GraphQueryReport, Record<string, string>> = {
   nodes: LIST_FLAGS,
-  edges: { ...LIST_FLAGS, '--from': 'from', '--to': 'to', '--edge-type': 'edgeType' },
-  relationships: { ...LIST_FLAGS, '--from': 'from', '--to': 'to', '--edge-type': 'edgeType' },
+  edges: { ...LIST_FLAGS, '--from': 'from', '--to': 'to', '--type': 'edgeType' },
+  relationships: { ...LIST_FLAGS, '--from': 'from', '--to': 'to', '--type': 'edgeType' },
   symbols: {
     ...LIST_FLAGS,
     '--file': 'filePath',
-    '--related-from': 'relatedFrom',
-    '--related-to': 'relatedTo',
-    '--edge-type': 'edgeType',
+    '--from': 'relatedFrom',
+    '--to': 'relatedTo',
+    '--type': 'edgeType',
   },
-  paths: { '--from': 'from', '--to': 'to', '--max-depth': 'maxDepth', '--max-paths': 'maxPaths' },
+  paths: { '--from': 'from', '--to': 'to', '--depth': 'maxDepth', '--limit': 'maxPaths' },
 };
 
 const INTEGER_LIMITS: Record<string, { min: number; max: number }> = {
@@ -66,13 +70,14 @@ function parseOptionValue(
 
 export function parseQueryCommand(argv: string[]): CliCommand {
   const [reportInput, ...args] = argv;
-  if (!reportInput || !QUERY_REPORTS.has(reportInput as GraphQueryReport)) {
+  if (!isGraphQueryReport(reportInput)) {
     return parseError(`Unknown query report: ${reportInput ?? ''}`);
   }
 
-  const report = reportInput as GraphQueryReport;
+  const report = reportInput;
   const supportedFlags = REPORT_FLAGS[report];
   const queryArguments: Record<string, unknown> = report === 'paths' ? {} : { limit: 100 };
+  const seenOptions = new Set<string>();
   let workspacePath: string | undefined;
 
   for (let index = 0; index < args.length; index += 1) {
@@ -87,8 +92,12 @@ export function parseQueryCommand(argv: string[]): CliCommand {
 
     const key = supportedFlags[argument];
     if (!key) {
-      return parseError(`Unknown option for query ${report}: ${argument}`);
+      return parseError(`Unknown option for ${report}: ${argument}`);
     }
+    if (seenOptions.has(key)) {
+      return parseError(`Duplicate option for ${report}: ${argument}`);
+    }
+    seenOptions.add(key);
 
     const parsed = parseOptionValue(argument, key, args[index + 1]);
     if (typeof parsed === 'object') {
@@ -99,7 +108,7 @@ export function parseQueryCommand(argv: string[]): CliCommand {
   }
 
   if (report === 'paths' && (!queryArguments.from || !queryArguments.to)) {
-    return parseError('query paths requires --from and --to');
+    return parseError('paths requires --from and --to');
   }
 
   return {

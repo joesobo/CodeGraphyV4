@@ -337,7 +337,7 @@ The terminal `codegraphy` command installed by the **Core Package** npm package 
 _Avoid_: Agent server, extension command
 
 **Graph Query CLI**:
-The `codegraphy query` command group that exposes bounded Core **Graph Query** reports for nodes, edges, Relationships, symbols, and paths. It returns stable JSON on stdout and sends diagnostics to stderr so humans and shell-capable agents use the same interface.
+The top-level `codegraphy nodes`, `edges`, `relationships`, `symbols`, and `paths` commands that expose bounded Core **Graph Query** reports. They return stable JSON on stdout and send diagnostics to stderr so humans and shell-capable agents use the same interface.
 _Avoid_: Natural-language query, Graph View
 
 **CodeGraphy Agent Skill**:

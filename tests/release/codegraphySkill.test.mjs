@@ -12,9 +12,11 @@ test('the generalized CodeGraphy skill exposes the complete CLI workflow', () =>
   assert.match(skill, /^name: codegraphy$/m);
   assert.match(skill, /codegraphy index \./);
   for (const report of ['nodes', 'edges', 'relationships', 'symbols', 'paths']) {
-    assert.match(skill, new RegExp(`codegraphy query ${report}`));
+    assert.match(skill, new RegExp(`codegraphy ${report}`));
   }
+  assert.doesNotMatch(skill, /codegraphy query/);
   assert.doesNotMatch(skill, /MCP|graph\.lbug/);
+  assert.match(skill, /Index, status, and graph report commands emit compact JSON/);
 });
 
 test('the old MCP package and skill are absent from the release source', () => {

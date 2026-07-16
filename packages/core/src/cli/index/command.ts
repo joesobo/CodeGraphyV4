@@ -35,7 +35,7 @@ export async function runIndexCommand(
   options: IndexCommandOptions = {},
 ): Promise<CommandExecutionResult> {
   const resolvedWorkspaceRoot = resolveCodeGraphyWorkspacePath(workspacePath, dependencies.cwd());
-  dependencies.writeStatus(`CodeGraphy indexing started for ${resolvedWorkspaceRoot}...`);
+  dependencies.writeStatus(`Indexing ${resolvedWorkspaceRoot}...`);
   const diagnostics: DiagnosticEventSink | undefined = options.verbose
     ? {
         emit(event: DiagnosticEvent): void {
