@@ -20,40 +20,53 @@ try {
   }
 
   const runtimeDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-native-runtime-'));
-  const databasePath = path.join(runtimeDirectory, 'graph.sqlite');
-  const writeCache = (value) => {
-    const diskDatabase = new Database(databasePath);
-    diskDatabase.exec('CREATE TABLE IF NOT EXISTS RuntimeCheck(value TEXT NOT NULL)');
-    diskDatabase.exec('BEGIN TRANSACTION');
-    try {
-      diskDatabase.exec('DELETE FROM RuntimeCheck');
-      diskDatabase.prepare('INSERT INTO RuntimeCheck(value) VALUES (?)').run(value);
-      diskDatabase.exec('COMMIT');
-    } catch (error) {
-      diskDatabase.exec('ROLLBACK');
-      throw error;
-    } finally {
-      diskDatabase.close();
-    }
-  };
-  const readCache = () => {
-    const diskDatabase = new Database(databasePath);
-    try {
-      return diskDatabase.prepare('SELECT value FROM RuntimeCheck').get()?.value;
-    } finally {
-      diskDatabase.close();
-    }
-  };
+  try {
+    const databasePath = path.join(runtimeDirectory, 'graph.sqlite');
+    const writeCache = (value) => {
+      const diskDatabase = new Database(databasePath);
+      diskDatabase.exec('CREATE TABLE IF NOT EXISTS RuntimeCheck(value TEXT NOT NULL)');
+      diskDatabase.exec('BEGIN TRANSACTION');
+      try {
+        diskDatabase.exec('DELETE FROM RuntimeCheck');
+        diskDatabase.prepare('INSERT INTO RuntimeCheck(value) VALUES (?)').run(value);
+        diskDatabase.exec('COMMIT');
+      } catch (error) {
+        diskDatabase.exec('ROLLBACK');
+        throw error;
+      } finally {
+        diskDatabase.close();
+      }
+    };
+    const readCache = () => {
+      const diskDatabase = new Database(databasePath);
+      try {
+        return diskDatabase.prepare('SELECT value FROM RuntimeCheck').get()?.value;
+      } finally {
+        diskDatabase.close();
+      }
+    };
 
-  writeCache('first');
-  if (readCache() !== 'first') {
-    throw new Error('SQLite disk round-trip returned an unexpected first value.');
+    writeCache('first');
+    if (readCache() !== 'first') {
+      throw new Error('SQLite disk round-trip returned an unexpected first value.');
+    }
+    writeCache('second');
+    if (readCache() !== 'second') {
+      throw new Error('SQLite repeated disk save returned an unexpected second value.');
+    }
+
+    fs.truncateSync(databasePath, 0);
+    writeCache('reinitialized');
+    if (readCache() !== 'reinitialized') {
+      throw new Error('SQLite in-place cache reinitialization returned an unexpected value.');
+    }
+  } finally {
+    try {
+      fs.rmSync(runtimeDirectory, { force: true, recursive: true });
+    } catch {
+      // Windows can retain native statement handles until garbage collection.
+    }
   }
-  writeCache('second');
-  if (readCache() !== 'second') {
-    throw new Error('SQLite repeated disk save returned an unexpected second value.');
-  }
-  fs.rmSync(runtimeDirectory, { force: true, recursive: true });
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   throw new Error(

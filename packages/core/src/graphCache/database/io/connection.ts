@@ -71,25 +71,23 @@ export function isInvalidDatabaseError(error: unknown): boolean {
   return error.code === 'SQLITE_NOTADB' || error.code === 'SQLITE_CORRUPT';
 }
 
-function removeInvalidDatabase(databasePath: string): void {
-  for (const filePath of [
-    databasePath,
-    ...DATABASE_SIDECAR_SUFFIXES.map(suffix => `${databasePath}${suffix}`),
-  ]) {
-    fs.rmSync(filePath, { force: true });
+function resetInvalidDatabase(databasePath: string): void {
+  fs.truncateSync(databasePath, 0);
+  for (const suffix of DATABASE_SIDECAR_SUFFIXES) {
+    fs.rmSync(`${databasePath}${suffix}`, { force: true });
   }
 }
 
 export function recreateInvalidDatabase(
   databasePath: string,
   error: unknown,
-  remove: (path: string) => void = removeInvalidDatabase,
+  reset: (path: string) => void = resetInvalidDatabase,
 ): boolean {
   if (!isInvalidDatabaseError(error)) {
     return false;
   }
   try {
-    remove(databasePath);
+    reset(databasePath);
   } catch {
     throw error;
   }

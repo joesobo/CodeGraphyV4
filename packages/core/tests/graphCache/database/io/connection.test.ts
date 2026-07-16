@@ -86,7 +86,7 @@ describe('graphCache/database/io/connection', () => {
     }]);
   });
 
-  it('preserves the invalid database error when recreation cleanup fails', () => {
+  it('preserves the invalid database error when recreation reset fails', () => {
     const databasePath = createDatabasePath();
     fs.writeFileSync(databasePath, 'not a database');
     let invalidDatabaseError: unknown;
@@ -100,7 +100,7 @@ describe('graphCache/database/io/connection', () => {
       databasePath,
       invalidDatabaseError,
       () => {
-        throw new Error('cleanup failed');
+        throw new Error('reset failed');
       },
     )).toThrow('file is not a database');
   });

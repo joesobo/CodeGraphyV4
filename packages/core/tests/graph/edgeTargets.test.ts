@@ -33,6 +33,24 @@ describe('core/graph/edgeTargets', () => {
     ).toBe('src/utils.ts');
   });
 
+  it('normalizes Windows resolved paths to graph path separators', () => {
+    const connection: IProjectedConnection = {
+      kind: 'import',
+      resolvedPath: 'C:\\workspace\\src\\utils.ts',
+      sourceId: 'import',
+      specifier: './utils',
+    };
+
+    expect(
+      getConnectionTargetId(
+        createPlugin('plugin.typescript'),
+        connection,
+        new Map([['src/utils.ts', []]]),
+        'C:\\workspace',
+      ),
+    ).toBe('src/utils.ts');
+  });
+
   it('returns null for undiscovered resolved targets and unresolved relative imports', () => {
     const connection: IProjectedConnection = {
       kind: 'import',
