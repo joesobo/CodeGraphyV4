@@ -1,4 +1,6 @@
+import fs from 'node:fs';
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -16,6 +18,42 @@ try {
   if (row?.value !== 'ready') {
     throw new Error('SQLite query round-trip returned an unexpected value.');
   }
+
+  const runtimeDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-native-runtime-'));
+  const databasePath = path.join(runtimeDirectory, 'graph.sqlite');
+  const writeCache = (value) => {
+    const diskDatabase = new Database(databasePath);
+    diskDatabase.exec('CREATE TABLE IF NOT EXISTS RuntimeCheck(value TEXT NOT NULL)');
+    diskDatabase.exec('BEGIN TRANSACTION');
+    try {
+      diskDatabase.exec('DELETE FROM RuntimeCheck');
+      diskDatabase.prepare('INSERT INTO RuntimeCheck(value) VALUES (?)').run(value);
+      diskDatabase.exec('COMMIT');
+    } catch (error) {
+      diskDatabase.exec('ROLLBACK');
+      throw error;
+    } finally {
+      diskDatabase.close();
+    }
+  };
+  const readCache = () => {
+    const diskDatabase = new Database(databasePath);
+    try {
+      return diskDatabase.prepare('SELECT value FROM RuntimeCheck').get()?.value;
+    } finally {
+      diskDatabase.close();
+    }
+  };
+
+  writeCache('first');
+  if (readCache() !== 'first') {
+    throw new Error('SQLite disk round-trip returned an unexpected first value.');
+  }
+  writeCache('second');
+  if (readCache() !== 'second') {
+    throw new Error('SQLite repeated disk save returned an unexpected second value.');
+  }
+  fs.rmSync(runtimeDirectory, { force: true, recursive: true });
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   throw new Error(

@@ -1,7 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync, withConnection } from './connection';
+import {
+  recreateInvalidDatabase,
+  runStatementSync,
+  withConnection,
+} from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createWorkspaceAnalysisCachePatchWriter,
@@ -10,11 +14,6 @@ import {
   persistAnalysisEntry,
   sortedCacheEntries,
 } from '../query/write';
-import {
-  cleanupTemporaryDatabase,
-  createTemporaryDatabasePath,
-  replaceDatabaseCache,
-} from './temporary';
 
 export { saveWorkspaceAnalysisDatabaseCacheAsync } from './saveAsync';
 
@@ -62,10 +61,8 @@ export function saveWorkspaceAnalysisDatabaseCache(
   if (!fs.existsSync(path.dirname(databasePath))) {
     return;
   }
-  const tempDatabasePath = createTemporaryDatabasePath(databasePath);
-
-  try {
-    withConnection(tempDatabasePath, (connection) => {
+  const persist = (): void => {
+    withConnection(databasePath, (connection) => {
       runTransactionSync(connection, () => {
         runStatementSync(connection, 'DELETE FROM FileAnalysis');
         runStatementSync(connection, 'DELETE FROM Symbol');
@@ -77,14 +74,15 @@ export function saveWorkspaceAnalysisDatabaseCache(
         }
       });
     });
-    replaceDatabaseCache(tempDatabasePath, databasePath);
+  };
+
+  try {
+    persist();
   } catch (error) {
-    try {
-      cleanupTemporaryDatabase(tempDatabasePath);
-    } catch {
-      // Preserve the original save or replacement failure.
+    if (!recreateInvalidDatabase(databasePath, error)) {
+      throw error;
     }
-    throw error;
+    persist();
   }
 }
 
