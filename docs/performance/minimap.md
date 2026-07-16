@@ -39,18 +39,30 @@ the runtime refresh path.
 ## Result and response
 
 The first implementation used a 24-step rendered-bounds search. Its dense fit
-cost about 40.33 ms per refresh (roughly 5.38 ms amortized over 60 main frames
-at the 8 Hz cap), above the 1 ms/frame review threshold.
+cost about 40.33 ms per refresh, above the 1 ms/frame review threshold even at
+the initial 8 Hz cap.
 
 The shipped implementation replaces repeated scans with a conservative analytic
 fit. It measures node centers and sampled curve geometry once, records the
-maximum node half-size, and solves the square-root zoom equation per axis. The
-dense normal physics path is about 0.21 ms amortized per 60 Hz frame: 1.549 ms
-projection plus 0.007 ms retained secondary work, eight times per second. Even
-the deliberately forced base-style rebuild profile is about 0.94 ms/frame when
-combining projection with the renderer's measured enabled-minus-disabled cost.
-Both remain below the 1 ms/frame threshold, so the 8 Hz cadence remains
-appropriate and edge density reduction is not enabled.
+maximum node half-size, and solves the square-root zoom equation per axis.
+Repainting and fitting use separate cadences: moving positions repaint the
+retained surface at up to 60 Hz, while the full projection scan is capped at
+8 Hz and performs one immediate final tight fit when physics settles. The dense
+projection therefore contributes about 0.21 ms amortized per 60 Hz main frame.
+Once the fit is settled, user-driven position changes retain that projection and
+reuse the packed graph buffers, so dragging does not repay the projection scan.
+
+A production WebGPU runtime comparison used a 2,500-node, 7,500-edge graph in an
+editor-sized viewport, with the same node dragged repeatedly for roughly five
+seconds across three accepted runs per cadence. The minimap-disabled graph used
+4.00 ms of average frame work. The 60 Hz minimap used 4.75 ms and sustained
+59.61 FPS, an incremental 0.75 ms per frame. During initial physics, adding the
+dense 8 Hz projection cost yields roughly 0.96 ms of amortized CPU work per
+60 Hz main frame. This remains just below the 1 ms absolute regression guard and
+leaves substantial room in a 16.67 ms frame, so the repaint cap is 60 Hz while
+projection fitting remains 8 Hz. The minimap stops repainting when the graph
+settles, and edge density reduction remains disabled. These measurements cover
+CPU submission and frame work; GPU execution time is not separately instrumented.
 
 If repeated dense runs exceed 1 ms/frame amortized, reduce the moving refresh
 cap before considering deterministic edge sampling. Re-profile after each

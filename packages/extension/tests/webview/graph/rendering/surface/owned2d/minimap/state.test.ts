@@ -16,7 +16,9 @@ describe('Relationship Graph minimap scheduler state', () => {
       devicePixelRatio: -1,
       graphRevision: -1,
       graphStyleRevision: -1,
+      lastProjectionFitTimestampMs: Number.NEGATIVE_INFINITY,
       lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
+      nextMovingRefreshTimestampMs: Number.NEGATIVE_INFINITY,
       pendingBoundsReset: false,
       projectionFitPending: true,
       positionVersion: -1,
@@ -36,7 +38,7 @@ describe('Relationship Graph minimap scheduler state', () => {
     expect(scheduler.lastRefreshTimestampMs).toBe(Number.NEGATIVE_INFINITY);
   });
 
-  it('records a completed refresh and clears its bounds reset', () => {
+  it('records a completed refresh without consuming a pending bounds reset', () => {
     const scheduler = createMinimapScheduler();
     scheduler.pendingBoundsReset = true;
 
@@ -44,7 +46,7 @@ describe('Relationship Graph minimap scheduler state', () => {
 
     expect(scheduler.dirty).toBe(false);
     expect(scheduler.lastRefreshTimestampMs).toBe(75);
-    expect(scheduler.pendingBoundsReset).toBe(false);
+    expect(scheduler.pendingBoundsReset).toBe(true);
   });
 
   it.each([

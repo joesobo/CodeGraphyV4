@@ -6,6 +6,8 @@ import {
 } from '@codegraphy-dev/graph-renderer';
 import { fitMinimapSceneProjection } from '../src/webview/components/graph/rendering/surface/owned2d/minimap/scene';
 
+const MINIMAP_PROFILE_PROJECTION_HZ = 8;
+
 interface ProfileFixture {
   links: GraphRendererLink[];
   nodes: GraphRendererNode[];
@@ -61,7 +63,7 @@ for (const profile of [
   });
   console.log(JSON.stringify({
     ...profile,
-    cappedCpuMsPerSecond: projectionMs * 8,
+    cappedCpuMsPerSecond: projectionMs * MINIMAP_PROFILE_PROJECTION_HZ,
     projectionMs,
     renderedBoundsValidationMs,
   }));
