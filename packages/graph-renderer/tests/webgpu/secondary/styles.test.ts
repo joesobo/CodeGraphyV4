@@ -44,8 +44,9 @@ describe('secondary graph style buffers', () => {
     primary.renderedLinkCount = 1;
     primary.renderedLinkIndexes = Uint32Array.of(0);
     const styles = createSecondaryStyleBuffers(device, primary);
+    const secondary = secondaryFrame();
 
-    updateSecondaryStyleBuffers(device, styles, primary, frame, secondaryFrame());
+    expect(updateSecondaryStyleBuffers(device, styles, primary, frame, secondary)).toBe(true);
     const nodeValues = styles.nodeStyleValues;
     const linkValues = styles.linkStyleValues;
     const cachedLinkValues = styles.linkCachedStyleValues;
@@ -60,11 +61,23 @@ describe('secondary graph style buffers', () => {
     expect(styles.linkStyleStream.buffer.label).toBe('CodeGraphy secondary link styles');
     expect(styles.linkStyleValues[1]).toBeCloseTo(0.2);
 
-    updateSecondaryStyleBuffers(device, styles, primary, frame, secondaryFrame());
+    harness.writeBuffer.mockClear();
+    expect(updateSecondaryStyleBuffers(device, styles, primary, frame, secondary)).toBe(false);
 
     expect(styles.nodeStyleValues).toBe(nodeValues);
     expect(styles.linkStyleValues).toBe(linkValues);
     expect(styles.linkCachedStyleValues).toBe(cachedLinkValues);
+    expect(harness.writeBuffer).not.toHaveBeenCalled();
+
+    expect(updateSecondaryStyleBuffers(
+      device,
+      styles,
+      primary,
+      frame,
+      secondary,
+      true,
+    )).toBe(true);
+    expect(harness.writeBuffer).toHaveBeenCalledTimes(2);
   });
 
   it('resizes instance arrays and destroys only its owned streams', () => {

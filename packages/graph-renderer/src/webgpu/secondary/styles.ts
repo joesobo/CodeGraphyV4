@@ -11,6 +11,11 @@ import {
 } from '../buffer/vertexStream';
 import { createLinkStyles, writeLinkStyle } from '../link/style';
 import { writeNodeStyle } from '../node/style/model';
+import {
+  createSecondaryStyleIdentity,
+  secondaryStyleIdentityChanged,
+  type SecondaryStyleIdentity,
+} from './identity';
 
 export interface SecondaryStyleBuffers {
   linkCachedStyleValues: Float32Array;
@@ -20,52 +25,6 @@ export interface SecondaryStyleBuffers {
   nodeStyleValues: Float32Array;
   pass: GraphPassBufferState;
   styleIdentity?: SecondaryStyleIdentity;
-}
-
-interface SecondaryStyleIdentity {
-  getLinkColor: GraphRendererSecondaryFrame['getLinkColor'];
-  getLinkOpacity: GraphRendererSecondaryFrame['getLinkOpacity'];
-  getLinkWidth: GraphRendererSecondaryFrame['getLinkWidth'];
-  getNodeStyle: GraphRendererSecondaryFrame['getNodeStyle'];
-  links: GraphRendererFrame['links'];
-  nodes: GraphRendererFrame['nodes'];
-  renderedLinkOrderRevision: number;
-  version: number;
-}
-
-function secondaryStylesChanged(
-  styles: SecondaryStyleBuffers,
-  primary: GraphBufferState,
-  frame: GraphRendererFrame,
-  secondary: GraphRendererSecondaryFrame,
-): boolean {
-  const current = styles.styleIdentity;
-  return current?.version !== secondary.styleVersion
-    || current.renderedLinkOrderRevision !== primary.renderedLinkOrderRevision
-    || current.nodes !== frame.nodes
-    || current.links !== frame.links
-    || current.getNodeStyle !== secondary.getNodeStyle
-    || current.getLinkColor !== secondary.getLinkColor
-    || current.getLinkOpacity !== secondary.getLinkOpacity
-    || current.getLinkWidth !== secondary.getLinkWidth;
-}
-
-function rememberSecondaryStyles(
-  styles: SecondaryStyleBuffers,
-  primary: GraphBufferState,
-  frame: GraphRendererFrame,
-  secondary: GraphRendererSecondaryFrame,
-): void {
-  styles.styleIdentity = {
-    getLinkColor: secondary.getLinkColor,
-    getLinkOpacity: secondary.getLinkOpacity,
-    getLinkWidth: secondary.getLinkWidth,
-    getNodeStyle: secondary.getNodeStyle,
-    links: frame.links,
-    nodes: frame.nodes,
-    renderedLinkOrderRevision: primary.renderedLinkOrderRevision,
-    version: secondary.styleVersion,
-  };
 }
 
 export function createSecondaryStyleBuffers(
@@ -148,7 +107,12 @@ export function updateSecondaryStyleBuffers(
   secondary: GraphRendererSecondaryFrame,
   orderChanged = false,
 ): boolean {
-  if (!orderChanged && !secondaryStylesChanged(styles, primary, frame, secondary)) return false;
+  if (!orderChanged && !secondaryStyleIdentityChanged(
+    styles.styleIdentity,
+    primary,
+    frame,
+    secondary,
+  )) return false;
   packSecondaryNodeStyles(styles, primary, frame, secondary);
   packSecondaryLinkStyles(styles, primary, frame, secondary);
   uploadVertexStream(
@@ -164,7 +128,7 @@ export function updateSecondaryStyleBuffers(
     styles.linkStyleValues.byteLength,
   );
   styles.pass.renderedLinkCount = primary.renderedLinkCount;
-  rememberSecondaryStyles(styles, primary, frame, secondary);
+  styles.styleIdentity = createSecondaryStyleIdentity(primary, frame, secondary);
   return true;
 }
 
