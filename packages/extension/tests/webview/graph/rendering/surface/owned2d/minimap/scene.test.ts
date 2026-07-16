@@ -8,6 +8,14 @@ const style = {
 };
 
 describe('Relationship Graph minimap scene fitting', () => {
+  it('returns no projection for an empty scene', () => {
+    expect(fitMinimapSceneProjection({
+      getNodeStyle: () => style,
+      links: [],
+      nodes: [],
+    }, 160, 12)).toBeUndefined();
+  });
+
   it('keeps a single large sqrt-zoom-scaled node inside the padded square', () => {
     const projection = fitMinimapSceneProjection({
       getNodeStyle: () => style,
@@ -35,7 +43,30 @@ describe('Relationship Graph minimap scene fitting', () => {
     }, 160, 12)!;
 
     expect(curved.centerY).toBe(-12.5);
+    expect(curved.zoom).toBeCloseTo(1.36);
     expect(loop.centerX).toBeGreaterThan(0);
     expect(loop.centerY).toBeLessThan(0);
+  });
+
+  it('solves the sqrt-scaled node margin along the limiting width', () => {
+    const projection = fitMinimapSceneProjection({
+      getNodeStyle: () => style,
+      links: [],
+      nodes: [{ id: 'left', x: 0, y: 0 }, { id: 'right', x: 100, y: 0 }],
+    }, 160, 12)!;
+
+    expect(projection.centerX).toBe(50);
+    expect(projection.zoom).toBeCloseTo(0.59113, 4);
+  });
+
+  it('solves the sqrt-scaled node margin along the limiting height', () => {
+    const projection = fitMinimapSceneProjection({
+      getNodeStyle: () => style,
+      links: [],
+      nodes: [{ id: 'top', x: 0, y: -100 }, { id: 'bottom', x: 0, y: 100 }],
+    }, 160, 12)!;
+
+    expect(projection.centerY).toBe(0);
+    expect(projection.zoom).toBeCloseTo(0.53387, 4);
   });
 });
