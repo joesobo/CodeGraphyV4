@@ -71,7 +71,7 @@ export async function indexCodeGraphyWorkspace(
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
-  const canReusePersistedCache = previousStatus.hasGraphCache
+  let canReusePersistedCache = previousStatus.hasGraphCache
     && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files');
   const cache = canReusePersistedCache
     ? loadWorkspaceAnalysisDatabaseCache(workspaceRoot)
@@ -98,6 +98,13 @@ export async function indexCodeGraphyWorkspace(
       limitReached: result.limitReached,
     }),
   );
+  if (
+    canReusePersistedCache
+    && discoveryResult.files.length > 0
+    && previousCacheFingerprints.size === 0
+  ) {
+    canReusePersistedCache = false;
+  }
   const discoveredFilePaths = new Set(discoveryResult.files.map(file => file.relativePath));
   const deletedFilePaths = Object.keys(cache.files)
     .filter(filePath => !discoveredFilePaths.has(filePath));

@@ -195,4 +195,30 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     });
     expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
   });
+
+  it('reports a safe full rebuild when a compatible-looking Graph Cache is corrupt', async () => {
+    const workspaceRoot = await createWorkspace();
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+    const options = {
+      workspaceRoot,
+      plugins: [createTextPlugin(calls)],
+      includeCorePlugins: false,
+    };
+    const initial = await indexCodeGraphyWorkspace(options);
+    await fs.writeFile(initial.graphCachePath, 'not sqlite', 'utf-8');
+
+    const rebuilt = await indexCodeGraphyWorkspace(options);
+
+    expect(rebuilt.indexing).toEqual({
+      mode: 'full',
+      analyzedFiles: 2,
+      deletedFiles: 0,
+      reusedFiles: 0,
+    });
+  });
 });

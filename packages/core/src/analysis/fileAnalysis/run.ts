@@ -122,7 +122,11 @@ function readCacheHitAnalysis(
   stat: WorkspaceFileStat,
 ): IFileAnalysisResult | undefined {
   const cached = options.cache.files[file.relativePath];
-  if (!cached || cached.mtime !== stat?.mtime) {
+  if (
+    !cached
+    || cached.mtime !== stat?.mtime
+    || (cached.size !== undefined && cached.size !== stat?.size)
+  ) {
     return undefined;
   }
   if (options.forceAnalyze) {
