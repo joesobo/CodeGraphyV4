@@ -5,6 +5,7 @@ export interface RendererResources {
   arrow: GPURenderPipeline;
   context: GPUCanvasContext;
   device: GPUDevice;
+  format: GPUTextureFormat;
   link: GPURenderPipeline;
   node: GPURenderPipeline;
 }
@@ -69,7 +70,7 @@ export async function createRendererResources(
     if (internalError) {
       throw new Error(`WebGPU pipeline creation failed: ${internalError.message}`);
     }
-    return { arrow, context, device, link, node };
+    return { arrow, context, device, format, link, node };
   } catch (error) {
     context?.unconfigure();
     device.destroy();

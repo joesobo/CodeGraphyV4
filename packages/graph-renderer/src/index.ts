@@ -6,6 +6,7 @@ export {
   type GraphRendererLink,
   type GraphRendererNode,
   type GraphRendererNodeStyle,
+  type GraphRendererSecondaryFrame,
 } from './contracts';
 export {
   GRAPH_DETAIL_MIN_ZOOM,
@@ -54,5 +55,6 @@ export {
   WebGpuGraphRenderer,
   type WebGpuGraphFrame,
   type WebGpuGraphRendererOptions,
+  type WebGpuGraphSecondaryFrame,
 } from './webgpu/renderer';
 export { prepareGraphPhysics } from './physics/wasm/runtime/loader';
