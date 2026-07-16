@@ -22,7 +22,7 @@ import {
   type FGNode,
 } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
-import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
 

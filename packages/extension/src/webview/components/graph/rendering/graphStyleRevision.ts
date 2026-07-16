@@ -1,7 +1,8 @@
+import { cssColorRevision } from '../../../cssColors/resolver';
 import type { GraphCallbackContext } from './useGraphCallbacks';
 
 function styleSnapshot(context: GraphCallbackContext): unknown[] {
-  return [context.edgeDecorationsRef.current, context.graphAppearanceRef.current,
+  return [cssColorRevision(), context.edgeDecorationsRef.current, context.graphAppearanceRef.current,
     context.highlightedNeighborsRef.current, context.highlightedNodeRef.current,
     context.nodeDecorationsRef.current, context.selectedNodesSetRef.current];
 }

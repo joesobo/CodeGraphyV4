@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
-import { toOwnedPhysicsConfig } from '../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { toOwnedPhysicsConfig } from '../../../src/webview/components/graph/rendering/surface/owned2d/layout/runtime/model';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';

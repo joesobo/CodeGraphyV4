@@ -48,6 +48,7 @@ export function renderNodePluginOverlay(
   }
 
   for (const renderer of renderers) {
+    ctx.save();
     try {
       renderer({
         node,
@@ -57,6 +58,8 @@ export function renderNodePluginOverlay(
       });
     } catch (error) {
       console.error('[CodeGraphy] Plugin node renderer error:', error);
+    } finally {
+      ctx.restore();
     }
   }
 }

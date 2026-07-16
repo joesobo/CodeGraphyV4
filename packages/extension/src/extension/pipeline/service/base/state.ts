@@ -4,9 +4,9 @@ import {
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
 } from '../../database/cache/storage';
-import { WorkspacePipelineEngineStateBase } from './engineState';
-import { DEFAULT_GRAPH_CACHE_HYDRATION_TIERS } from './hydration/cache';
-import { WorkspacePipelineCacheHydrator } from './hydration/runtime';
+import { WorkspacePipelineEngineStateBase } from '../../indexingState/model';
+import { DEFAULT_GRAPH_CACHE_HYDRATION_TIERS } from '../../cacheHydration/tiers';
+import { WorkspacePipelineCacheHydrator } from '../../cacheHydration/runtime';
 
 export interface WorkspacePipelineGraphCacheHydrationOptions {
   activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];

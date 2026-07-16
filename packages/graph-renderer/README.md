@@ -54,7 +54,10 @@ const layout = createGraphLayoutEngine({
 
 const renderer = await WebGpuGraphRenderer.create(canvas, {
   onDeviceLost: message => console.error(`WebGPU device lost: ${message}`),
-  onFrameComplete: () => requestAnimationFrame(draw),
+  onFrameComplete: _submissionId => requestAnimationFrame(draw),
+  onFrameRejected: submissionId => {
+    console.warn(`WebGPU submission ${submissionId} was rejected`);
+  },
 });
 
 if (!renderer) {
@@ -111,6 +114,17 @@ requestAnimationFrame(draw);
 Call `renderer.dispose()` when the canvas is removed. A disposed renderer cannot
 be reused.
 
+### Color values
+
+Renderer frame colors must already be concrete GPU-uploadable colors: hexadecimal,
+numeric `rgb()` / `rgba()`, `color(srgb ...)`, or `transparent`. The package throws
+a descriptive error for unsupported values instead of silently drawing opaque
+black. Browser integrations that accept the full CSS color language—including
+named colors, HSL, `var()`, `currentColor`, and `color-mix()`—should resolve the
+value with `getComputedStyle()` in the element's theme context before building the
+frame. This keeps DOM and stylesheet ownership in the application while keeping
+the renderer package independent of any particular UI runtime.
+
 ## Data model and index contract
 
 `nodeIds`, `radii`, flags, positions, and charge multipliers use the same node
@@ -134,7 +148,7 @@ The package exposes `graphNodeDrawnArea`, `resolveGraphLinkGeometry`, and
 `createGraphLayoutEngine(input, config?)` returns a deterministic simulation. Its
 main controls are:
 
-- `tick()` — advance one fixed step.
+- `tick(externalForce?)` — advance one fixed step. `externalForce.beforeIntegration(alpha)` runs after alpha advances and owned forces update velocity, but before velocity decay, position integration, and collision correction. Optional `externalForce.afterIntegration()` runs after integration and collision correction, which lets hosts reassert fixed per-axis coordinates; it must return `{ positionChanged }` so settlement accounts for post-integration constraints. The engine rescans final velocity after this phase. If either phase throws, the engine still completes integration, the after-integration phase, and settlement bookkeeping before rethrowing the first callback error, so the engine never exposes a half-finished step.
 - `setConfig(partial)` — update force settings and reheat when needed.
 - `setGraph(input)` — atomically replace indexed graph storage.
 - `setNodePosition(index, x, y)` — move a node immediately.
@@ -148,8 +162,32 @@ ones. `chargeStrengthMultipliers` scales each node's repulsion independently. A
 multiplier of `1` keeps the configured default charge, `0` disables that node's
 charge, and values above `1` give it more influence.
 
-Invalid buffers, non-finite kinematics, duplicate node IDs, and missing edge
-endpoints are rejected before replacing the active graph.
+Invalid buffers, non-finite or Float32-overflowing kinematics, duplicate node
+IDs, missing edge endpoints, fractional/unbounded collision iterations, and
+out-of-range configuration are rejected before mutating the active graph. The
+public configuration limits are deliberately wider than CodeGraphy's UI while
+keeping ordinary force products numerically safe:
+
+| Configuration | Supported domain |
+| --- | --- |
+| `centralGravity` | 0–1 |
+| `chargeStrength` | -10,000–0 |
+| finite `chargeDistanceMin` / `chargeDistanceMax` | 0–1,000,000 (`Infinity` remains the unbounded maximum sentinel) |
+| `chargeTheta` | 0–2 |
+| `collisionPadding` | 0–100,000 |
+| `initializationSpacing` | greater than 0, up to 100,000 |
+| `linkDistance` | greater than 0, up to 100,000 |
+| `linkStrength` | 0–10 |
+| `settleSpeed` | 0–100,000 |
+| `settleSteps` | 1–86,400 |
+| initial/setter coordinates | magnitude up to 100,000,000 |
+| initial/setter velocities | magnitude up to 100,000,000 |
+| node radius | up to 100,000 |
+| charge multiplier | up to 100 |
+| collision scale | greater than 0, up to 100 |
+
+The package exports the corresponding `MAX_GRAPH_*` constants. Values outside
+these domains throw; they are never silently clamped.
 
 ## Rendering and browser support
 
@@ -161,7 +199,11 @@ There is intentionally no Canvas 2D or WebGL fallback in this package. A consumi
 application can show an unsupported-browser state or choose its own fallback. The
 renderer reports unexpected device loss through `onDeviceLost`; create a new
 renderer to recover. Frame submission is bounded to avoid an unbounded GPU queue,
-so check `canRender()` before calling `render()`.
+so check `canRender()` before calling `render()`. `render()` returns a submission
+ID. Exactly one settlement callback receives that ID: `onFrameComplete` after
+successful GPU work, or optional `onFrameRejected` after failed work. Rejection
+releases queue capacity but is not a successful frame; use the ID to discard the
+matching telemetry or other per-frame state.
 
 ## Public API
 
@@ -187,16 +229,24 @@ Internal WebGPU buffers, shaders, WASM storage, and test hooks are not public AP
 
 ```bash
 pnpm --filter @codegraphy-dev/graph-renderer build
+pnpm --filter @codegraphy-dev/graph-renderer build:wasm
+pnpm --filter @codegraphy-dev/graph-renderer watch:wasm
 pnpm --filter @codegraphy-dev/graph-renderer test
 pnpm --filter @codegraphy-dev/graph-renderer typecheck
 pnpm --filter @codegraphy-dev/graph-renderer lint
 ```
 
-`build` compiles the AssemblyScript physics engine, emits the bundled WASM under
-`dist/generated/physics.wasm`, and writes the JavaScript and declaration artifacts
-under `dist/`. The AssemblyScript source, TypeScript runtime, and generated module
-all live together under `src/physics/wasm`; `build:wasm` invokes AssemblyScript's
-`asc` CLI directly.
+`build` performs a deterministic AssemblyScript rebuild, emits the bundled WASM
+under `dist/generated/physics.wasm`, and writes the JavaScript and declaration
+artifacts under `dist/`. `build:wasm` runs the shared `scripts/buildPhysics.ts`
+builder once; `watch:wasm` runs the same builder whenever the AssemblyScript
+source changes. The normal repository and extension watch commands start this
+WASM watcher alongside the TypeScript and webview watchers.
+
+The AssemblyScript source, TypeScript runtime, and generated module live together
+under `src/physics/wasm`. The artifact test compiles to a temporary path and
+byte-compares that output with the committed generated module, so tests fail when
+source and WASM drift without rewriting the checkout.
 
 ## License
 

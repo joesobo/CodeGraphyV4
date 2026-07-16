@@ -7,11 +7,11 @@ describe('graph WASM collision configuration', () => {
     expect(() => assertGraphCollisionConfiguration(2, 68)).not.toThrow();
   });
 
-  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+  it.each([0, -1, 101, Number.NaN, Number.POSITIVE_INFINITY])(
     'rejects invalid collision scale %s',
     (scale) => {
       expect(() => assertGraphCollisionConfiguration(scale, 68))
-        .toThrow('Collision scale must be positive');
+        .toThrow('Collision scale must be greater than zero');
     },
   );
 

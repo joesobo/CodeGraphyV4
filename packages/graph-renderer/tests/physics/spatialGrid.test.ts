@@ -94,7 +94,7 @@ describe('WASM collision spatial grid', () => {
     expect(engine.x[3] - engine.x[2]).toBeCloseTo(4, 5);
   });
 
-  it('preserves fractional collision-iteration semantics', () => {
+  it('applies the configured integer collision iterations', () => {
     const engine = createGraphLayoutEngine({
       nodeIds: ['first', 'second'],
       initialX: Float32Array.of(0, 1),
@@ -105,7 +105,7 @@ describe('WASM collision spatial grid', () => {
     }, {
       centralGravity: 0,
       chargeStrength: 0,
-      collisionIterations: 1.5,
+      collisionIterations: 2,
       collisionStrength: 0.5,
       velocityDecay: 0,
     });

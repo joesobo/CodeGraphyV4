@@ -1,6 +1,6 @@
 import { requireGraphPhysicsModule } from '../runtime/module';
 
-export const GRAPH_GRAPH_PHYSICS_ABI_VERSION = 3;
+export const GRAPH_GRAPH_PHYSICS_ABI_VERSION = 4;
 export const GRAPH_GRAPH_PHYSICS_MEMORY_BASE = 65_536;
 export const MAXIMUM_GRAPH_GRAPH_PHYSICS_PAGES = 32_768;
 
@@ -64,7 +64,8 @@ export interface GraphPhysicsExports {
     velocityDecay: number,
     collisionCellSize: number,
   ): void;
-  step(alpha: number, collisionIterations: number): number;
+  applyForces(alpha: number): number;
+  integrate(collisionIterations: number): number;
   barnesHutOverflowed(): number;
   barnesHutRandomState(): number;
   restoreBarnesHutRandomState(value: number): void;

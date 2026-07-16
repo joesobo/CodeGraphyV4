@@ -8,7 +8,7 @@ import type {
 } from '../contextMenu/contracts';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { FGLink, FGNode } from '../model/build';
-import type { Surface2dProps } from '../rendering/surface/owned2d/contracts';
+import type { Surface2dProps } from '../rendering/surface/owned2d/view/surface/contracts';
 import type { GraphTooltipState } from '../tooltip/model';
 import type { GraphAccessibilityItems } from './accessibility';
 

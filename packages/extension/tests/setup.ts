@@ -18,7 +18,7 @@ global.ResizeObserver = class ResizeObserver {
 
 // Most graph interaction tests isolate the owned GPU surface behind its public props.
 vi.mock(
-  '../src/webview/components/graph/rendering/surface/owned2d/view',
+  '../src/webview/components/graph/rendering/surface/owned2d/view/surface/render',
   () => import('./__mocks__/ownedGraphSurface'),
 );
 

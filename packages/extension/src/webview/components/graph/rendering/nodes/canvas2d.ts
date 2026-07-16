@@ -70,6 +70,7 @@ export function renderNodeCanvasLabel(
       isHighlighted,
       node,
       opacity,
+      resolveColor: dependencies.resolveColor,
       spriteCache: labelSpriteCache,
       visualScale,
     });

@@ -14,5 +14,6 @@ export interface NodeCanvasRendererDependencies {
   showLabelsRef: GraphRef<boolean>;
   graphAppearanceRef: GraphRef<GraphAppearance>;
   pluginHost?: WebviewPluginHost;
+  resolveColor(this: void, value: string | undefined, fallback: string): string;
   triggerImageRerender: (this: void) => void;
 }

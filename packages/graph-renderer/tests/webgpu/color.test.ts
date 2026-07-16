@@ -31,9 +31,15 @@ describe('WebGPU color parsing', () => {
     expect(parseWebGpuColor('transparent')).toEqual([0, 0, 0, 0]);
   });
 
-  it('uses opaque black for unsupported CSS colors', () => {
-    expect(parseWebGpuColor('not-a-color')).toEqual([0, 0, 0, 1]);
-    expect(parseWebGpuColor('rgb(1..2, 0, 0)')).toEqual([0, 0, 0, 1]);
-    expect(parseWebGpuColor('color(srgb 1..2 0 0)')).toEqual([0, 0, 0, 1]);
+  it('rejects unsupported colors instead of silently rendering them as black', () => {
+    expect(() => parseWebGpuColor('not-a-color')).toThrowError(
+      'Unsupported WebGPU color: not-a-color',
+    );
+    expect(() => parseWebGpuColor('rgb(1..2, 0, 0)')).toThrowError(
+      'Unsupported WebGPU color: rgb(1..2, 0, 0)',
+    );
+    expect(() => parseWebGpuColor('color(srgb 1..2 0 0)')).toThrowError(
+      'Unsupported WebGPU color: color(srgb 1..2 0 0)',
+    );
   });
 });

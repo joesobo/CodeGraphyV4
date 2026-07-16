@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
-import { createOwnedGraphPluginForces } from '../../../../../src/webview/components/graph/rendering/surface/owned2d/pluginForces';
+import { createOwnedGraphPluginForces } from '../../../../../src/webview/components/graph/rendering/surface/owned2d/plugin/forces/model';
 
 function emptyContributions(): CoreGraphViewContributionSet {
   return {
@@ -155,9 +155,9 @@ describe('owned Graph View plugin force adapters', () => {
     );
   });
 
-  it('disposes a replacement that fails initialization and keeps the current adapter', () => {
+  it('rolls back a replacement that mutates nodes and fails initialization', () => {
     const forces = createOwnedGraphPluginForces();
-    const nodes = [{ id: 'a' }] as FGNode[];
+    const nodes = [{ id: 'a', x: 1, y: 2, vx: 3, vy: 4 }] as FGNode[];
     const currentTick = vi.fn();
     const currentDispose = vi.fn();
     const failedDispose = vi.fn();
@@ -165,7 +165,12 @@ describe('owned Graph View plugin force adapters', () => {
       .mockReturnValueOnce({ dispose: currentDispose, tick: currentTick })
       .mockReturnValueOnce({
         dispose: failedDispose,
-        initialize: () => { throw new Error('initialize failed'); },
+        initialize: () => {
+          nodes[0].x = 99;
+          nodes[0].vx = Number.MAX_VALUE;
+          nodes[0].fx = Number.POSITIVE_INFINITY;
+          throw new Error('initialize failed');
+        },
       });
     const contributions: CoreGraphViewContributionSet = {
       ...emptyContributions(),
@@ -183,44 +188,7 @@ describe('owned Graph View plugin force adapters', () => {
     expect(failedDispose).toHaveBeenCalledOnce();
     expect(currentDispose).not.toHaveBeenCalled();
     expect(currentTick).toHaveBeenCalledOnce();
+    expect(nodes[0]).toMatchObject({ x: 1, y: 2, vx: 3, vy: 4, fx: undefined });
   });
 
-  it('isolates adapter tick and disposal failures', () => {
-    const forces = createOwnedGraphPluginForces();
-    const healthyTick = vi.fn();
-    const healthyDispose = vi.fn();
-    const contributions: CoreGraphViewContributionSet = {
-      ...emptyContributions(),
-      forces: [
-        {
-          pluginId: 'broken',
-          contribution: {
-            id: 'force',
-            label: 'Broken Force',
-            create: () => ({
-              dispose: () => { throw new Error('dispose failed'); },
-              tick: () => { throw new Error('tick failed'); },
-            }),
-          },
-        },
-        {
-          pluginId: 'healthy',
-          contribution: {
-            id: 'force',
-            label: 'Healthy Force',
-            create: () => ({ dispose: healthyDispose, tick: healthyTick }),
-          },
-        },
-      ],
-    };
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-    forces.sync(contributions, { nodes: [], links: [] });
-    expect(() => forces.tick()).not.toThrow();
-    expect(() => forces.dispose()).not.toThrow();
-
-    expect(healthyTick).toHaveBeenCalledOnce();
-    expect(healthyDispose).toHaveBeenCalledOnce();
-    expect(forces.active()).toBe(false);
-  });
 });

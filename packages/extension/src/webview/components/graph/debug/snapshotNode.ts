@@ -1,6 +1,6 @@
 import type { GraphDebugControls, GraphDebugSnapshot } from './contracts/protocol';
 import type { DebugNode } from './snapshot';
-import { ownedNodeCollisionRadius } from '../rendering/surface/owned2d/collisionRadius';
+import { ownedNodeCollisionRadius } from '../rendering/surface/owned2d/layout/collision/radius';
 
 function optionalNodeProperties(node: DebugNode) {
   return {

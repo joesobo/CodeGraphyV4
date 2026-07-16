@@ -77,18 +77,27 @@ export class GraphWasmPhysicsKernel {
     );
   }
 
-  step(alpha: number, collisionIterations: number): number {
-    for (;;) {
-      const maximumVelocity = this.exports.step(alpha, collisionIterations);
-      if (Number.isFinite(maximumVelocity)) {
-        this.correctionCount = this.storage.result[0];
-        return maximumVelocity;
-      }
+  applyForces(alpha: number): void {
+    while (!this.exports.applyForces(alpha)) {
       if (!this.exports.barnesHutOverflowed()) {
-        throw new Error('Graph WASM physics returned a non-finite velocity');
+        throw new Error('Graph WASM physics could not apply graph forces');
       }
       this.growBarnesHutCapacity();
     }
+  }
+
+  integrate(collisionIterations: number): number {
+    const maximumVelocity = this.exports.integrate(collisionIterations);
+    if (!Number.isFinite(maximumVelocity)) {
+      throw new Error('Graph WASM physics returned a non-finite velocity');
+    }
+    this.correctionCount = this.storage.result[0];
+    return maximumVelocity;
+  }
+
+  step(alpha: number, collisionIterations: number): number {
+    this.applyForces(alpha);
+    return this.integrate(collisionIterations);
   }
 
   rebuildBarnesHutDiagnostics(chargeStrength: number): GraphBarnesHutDiagnostics {

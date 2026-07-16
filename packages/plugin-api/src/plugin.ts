@@ -126,6 +126,7 @@ export interface IPluginAnalysisContext {
 }
 
 export interface IPluginFileColorDefinition {
+  /** CSS color resolved in the Graph View theme context. */
   color: string;
   shape2D?: GraphNodeShape2D;
   /** Relative path from the plugin root to an image asset. */

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { OwnedGraph2dControls } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
+import type { OwnedGraph2dControls } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/contracts';
 import type { FGNode } from '../../../../../../../src/webview/components/graph/model/build';
 import { useTooltipEvents } from '../../../../../../../src/webview/components/graph/runtime/use/tooltip/events/handlers';
 

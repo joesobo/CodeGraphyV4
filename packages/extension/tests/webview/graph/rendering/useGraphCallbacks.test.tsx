@@ -48,6 +48,7 @@ function renderUseGraphCallbacks() {
   const refs = createRefs();
   const hook = renderHook(useGraphCallbacks, {
     initialProps: {
+      colorContextRef: { current: document.createElement('div') },
       pluginHost: { name: 'plugin-host' } as never,
       refs,
       triggerImageRerender: vi.fn(),
@@ -97,6 +98,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
     const nextRefs = createRefs();
     nextRefs.highlightedNodeRef.current = 'node-2';
     const initialProps: UseGraphCallbacksOptions = {
+      colorContextRef: { current: document.createElement('div') },
       pluginHost: { name: 'initial' } as never,
       refs: initialRefs,
       triggerImageRerender: vi.fn(),
@@ -107,6 +109,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
     renderingHarness.getNodeCanvasStyle.mockReturnValue({ shape: 'circle' });
 
     hook.rerender({
+      colorContextRef: initialProps.colorContextRef,
       pluginHost: { name: 'next' } as never,
       refs: nextRefs,
       triggerImageRerender: vi.fn(),
@@ -127,6 +130,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
     expect(result.current.getStyleRevision()).toBe(1);
     refs.showLabelsRef.current = false;
     rerender({
+      colorContextRef: { current: document.createElement('div') },
       pluginHost: { name: 'new-overlay-host' } as never,
       refs,
       triggerImageRerender: vi.fn(),

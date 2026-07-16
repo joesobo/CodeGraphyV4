@@ -24,6 +24,9 @@ function createDependencies(overrides: Partial<{
         linkMuted: overrides.linkMuted ?? '#2d3748',
       },
     },
+    resolveColor: (color: string | undefined, fallback: string) => (
+      color === 'not-a-hex-color' ? fallback : color ?? fallback
+    ),
   };
 }
 

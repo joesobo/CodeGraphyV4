@@ -7,11 +7,12 @@ import type { WebGpuColor } from './types';
 export function parseWebGpuColor(color: string): WebGpuColor {
   const value = color.trim();
   if (value.toLowerCase() === 'transparent') return [0, 0, 0, 0];
-  return parseShortHexColor(value)
+  const parsed = parseShortHexColor(value)
     ?? parseFullHexColor(value)
     ?? parseRgbColor(value)
-    ?? parseSrgbColor(value)
-    ?? [0, 0, 0, 1];
+    ?? parseSrgbColor(value);
+  if (parsed) return parsed;
+  throw new Error(`Unsupported WebGPU color: ${value}`);
 }
 
 export function cachedWebGpuColor(color: string): WebGpuColor {

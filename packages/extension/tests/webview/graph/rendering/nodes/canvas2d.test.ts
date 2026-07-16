@@ -15,6 +15,7 @@ function createDependencies(overrides: Partial<{
   pluginHost: WebviewPluginHost;
   selectedNodeIds: Set<string>;
   showLabels: boolean;
+  resolvedColors: Record<string, string>;
 }> = {}) {
   return {
     graphAppearanceRef: { current: DEFAULT_GRAPH_APPEARANCE },
@@ -28,6 +29,11 @@ function createDependencies(overrides: Partial<{
     selectedNodesSetRef: { current: overrides.selectedNodeIds ?? new Set<string>() },
     showLabelsRef: { current: overrides.showLabels ?? true },
     pluginHost: overrides.pluginHost,
+    resolveColor: (color: string | undefined, fallback: string) => color === undefined
+      ? fallback
+      : overrides.resolvedColors?.[color] ?? (
+        color === 'not-a-color' || color.startsWith('var(--missing') ? fallback : color
+      ),
     triggerImageRerender: vi.fn(),
   };
 }
@@ -113,6 +119,27 @@ describe('graph/rendering/nodes/canvas2d', () => {
     });
   });
 
+  it('resolves plugin CSS colors before sending them to WebGPU', () => {
+    const style = getNodeCanvasStyle(
+      createDependencies({
+        nodeDecoration: { color: 'var(--plugin-node)' },
+        resolvedColors: { 'var(--plugin-node)': 'rgb(249, 115, 22)' },
+      }),
+      createNode(),
+    );
+
+    expect(style.fillColor).toBe('rgb(249, 115, 22)');
+  });
+
+  it('falls back to the node color when a plugin decoration color is invalid', () => {
+    const style = getNodeCanvasStyle(
+      createDependencies({ nodeDecoration: { color: 'not-a-color' } }),
+      createNode({ color: '#3b82f6' }),
+    );
+
+    expect(style.fillColor).toBe('#3b82f6');
+  });
+
   it('mutes nodes outside the highlighted neighborhood', () => {
     const style = getNodeCanvasStyle(
       createDependencies({ highlightedNodeId: 'src/other.ts' }),
@@ -132,6 +159,30 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(context.save).toHaveBeenCalledOnce();
     expect(context.restore).toHaveBeenCalledOnce();
     expect(context.scale).not.toHaveBeenCalled();
+  });
+
+  it('resolves plugin CSS label colors before rasterizing the label sprite', () => {
+    const context = createContext();
+    const spriteProvider = {
+      get: vi.fn(() => ({ cssHeight: 15, cssWidth: 26, image: {} as CanvasImageSource })),
+    } satisfies NodeLabelSpriteProvider;
+
+    renderNodeCanvasLabel(
+      createDependencies({
+        nodeDecoration: { label: { color: 'var(--plugin-label)' } },
+        resolvedColors: { 'var(--plugin-label)': 'rgb(12, 34, 56)' },
+      }),
+      createNode(),
+      context,
+      4,
+      spriteProvider,
+    );
+
+    expect(spriteProvider.get).toHaveBeenCalledWith(
+      'app.ts',
+      'rgb(12, 34, 56)',
+      window.devicePixelRatio || 1,
+    );
   });
 
   it('applies zoom compensation only when a node has a scaled overlay', () => {

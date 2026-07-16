@@ -8,6 +8,29 @@ import { createRequire } from 'module';
 import { glob } from 'glob';
 import type MochaConstructor from 'mocha';
 
+const GRAPH_TEST_ORDER = [
+  'graph.test.js',
+  'graph/workspaceDiscovery.test.js',
+  'graph/workspaceIndexing.test.js',
+  'graph/workspaceStartup.test.js',
+  'graph/workspaceCacheRebuild.test.js',
+  'graph/workspaceCacheLifecycle.test.js',
+  'graph/layout.test.js',
+  'graph/messaging.test.js',
+  'graph/depthActiveFile.test.js',
+  'graph/depthSelection.test.js',
+  'graph/depthNeighbor.test.js',
+  'graph/depthClear.test.js',
+] as const;
+
+function graphTestPriority(file: string): number {
+  const normalizedFile = file.split(path.sep).join('/');
+  const graphIndex = GRAPH_TEST_ORDER.indexOf(
+    normalizedFile as typeof GRAPH_TEST_ORDER[number],
+  );
+  return graphIndex < 0 ? GRAPH_TEST_ORDER.length : graphIndex;
+}
+
 function findRepoRoot(startDir: string): string {
   let currentDir = startDir;
 
@@ -45,13 +68,8 @@ export async function run(): Promise<void> {
   const testsRoot = path.resolve(__dirname, '.');
   const files = await glob('**/*.test.js', { cwd: testsRoot });
   const orderedFiles = [...files].sort((left, right) => {
-    const leftPriority = left.endsWith('graph.test.js') ? 0 : 1;
-    const rightPriority = right.endsWith('graph.test.js') ? 0 : 1;
-    if (leftPriority !== rightPriority) {
-      return leftPriority - rightPriority;
-    }
-
-    return left.localeCompare(right);
+    const priorityDelta = graphTestPriority(left) - graphTestPriority(right);
+    return priorityDelta || left.localeCompare(right);
   });
 
   for (const file of orderedFiles) {

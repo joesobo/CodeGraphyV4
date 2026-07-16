@@ -1,4 +1,4 @@
-import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
 import type { MutableRefObject } from 'react';
 import type {
 	GraphTooltipRect,

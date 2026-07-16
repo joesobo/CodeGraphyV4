@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
-import { createDefaultViewportSurfaceProps } from '../rendering/surface/owned2d/surfaceFixture';
+import { createDefaultViewportSurfaceProps } from '../rendering/surface/owned2d/view/surface/fixture';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/owned2d/view', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/render', () => ({
   OwnedGraphSurface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;

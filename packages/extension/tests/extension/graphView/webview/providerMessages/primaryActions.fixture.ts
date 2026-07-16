@@ -53,6 +53,7 @@ export function createDependencies() {
     },
     window: {
       showInformationMessage: vi.fn(),
+      showWarningMessage: vi.fn(() => Promise.resolve(undefined)),
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
     getConfigTarget: vi.fn(),

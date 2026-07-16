@@ -104,7 +104,9 @@ export interface BadgeOptions {
   text: string;
   x: number;
   y: number;
+  /** CSS color resolved in the Graph View theme context. */
   color?: string;
+  /** CSS color resolved in the Graph View theme context. */
   bgColor?: string;
   fontSize?: number;
 }
@@ -113,6 +115,7 @@ export interface RingOptions {
   x: number;
   y: number;
   radius: number;
+  /** CSS color resolved in the Graph View theme context. */
   color: string;
   width?: number;
   progress?: number;
@@ -122,6 +125,7 @@ export interface LabelOptions {
   text: string;
   x: number;
   y: number;
+  /** CSS color resolved in the Graph View theme context. */
   color?: string;
   fontSize?: number;
   align?: CanvasTextAlign;

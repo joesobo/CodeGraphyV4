@@ -130,25 +130,33 @@ describe('graph/rendering/node/media', () => {
       ctx,
       globalScale: 1,
     }));
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
   });
 
-  it('swallows plugin renderer errors after logging them', () => {
+  it('restores Canvas state and continues after a plugin renderer error', () => {
     const error = new Error('boom');
-    const pluginRenderer = vi.fn(() => {
+    const failedRenderer = vi.fn(({ ctx }: { ctx: CanvasRenderingContext2D }) => {
+      ctx.globalAlpha = 0.2;
       throw error;
     });
-    const getNodeRenderers = vi.fn(() => [pluginRenderer]);
+    const healthyRenderer = vi.fn();
+    const getNodeRenderers = vi.fn(() => [failedRenderer, healthyRenderer]);
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const ctx = createContext();
 
     renderNodePluginOverlay(
       { getNodeRenderers } as unknown as WebviewPluginHost,
       createNode(),
-      createContext(),
+      ctx,
       1,
       undefined,
     );
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Plugin node renderer error:', error);
+    expect(healthyRenderer).toHaveBeenCalledOnce();
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
 
     consoleErrorSpy.mockRestore();
   });

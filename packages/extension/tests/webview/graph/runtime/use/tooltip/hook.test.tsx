@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import type { OwnedGraph2dControls } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
+import type { OwnedGraph2dControls } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/contracts';
 import { useGraphTooltip } from '../../../../../../src/webview/components/graph/runtime/use/tooltip/hook';
 
 function createNode(): FGNode {

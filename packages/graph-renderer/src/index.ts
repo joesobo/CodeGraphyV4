@@ -14,13 +14,34 @@ export {
   shouldEnableGraphEdgeHover,
   shouldRenderGraphDetails,
 } from './detailVisibility';
-export { graphNodeDrawnArea } from './nodeStacking';
+export {
+  createGraphNodeStackingOrder,
+  graphNodeDrawnArea,
+  type GraphNodeDrawnDimensions,
+} from './nodeStacking';
 export {
   createGraphLayoutEngine,
   graphNodeSizeChargeMultiplier,
   GraphNodeFlag,
+  MAX_GRAPH_CENTRAL_GRAVITY,
+  MAX_GRAPH_CHARGE_MULTIPLIER,
+  MAX_GRAPH_CHARGE_DISTANCE,
+  MAX_GRAPH_CHARGE_STRENGTH,
+  MAX_GRAPH_CHARGE_THETA,
+  MAX_GRAPH_COLLISION_PADDING,
+  MAX_GRAPH_COLLISION_SCALE,
+  MAX_GRAPH_COORDINATE,
+  MAX_GRAPH_INITIALIZATION_SPACING,
+  MAX_GRAPH_LINK_DISTANCE,
+  MAX_GRAPH_LINK_STRENGTH,
+  MAX_GRAPH_RADIUS,
+  MAX_GRAPH_SETTLE_SPEED,
+  MAX_GRAPH_SETTLE_STEPS,
+  MAX_GRAPH_VELOCITY,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
+  type GraphLayoutExternalForce,
+  type GraphLayoutExternalForceFinalization,
   type GraphLayoutInput,
   type GraphLayoutTickResult,
 } from './physics';

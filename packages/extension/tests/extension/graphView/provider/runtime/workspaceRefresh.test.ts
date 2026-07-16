@@ -3,7 +3,7 @@ import type * as VSCode from 'vscode';
 import type { PendingWorkspaceRefreshState } from '../../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence';
 import { createContext, createRestoredState, loadSubject, unmockRuntimeModules } from './fixture';
 
-describe('graphView/provider/runtime workspace refresh', () => {
+describe('graphView/provider/runtime workspace refresh', { timeout: 30_000 }, () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();

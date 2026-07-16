@@ -1,7 +1,7 @@
 import { memo, type ReactElement } from 'react';
 import type { DirectionMode } from '../../../../../shared/settings/modes';
-import type { Surface2dProps } from '../../rendering/surface/owned2d/contracts';
-import { OwnedGraphSurface2d } from '../../rendering/surface/owned2d/view';
+import type { Surface2dProps } from '../../rendering/surface/owned2d/view/surface/contracts';
+import { OwnedGraphSurface2d } from '../../rendering/surface/owned2d/view/surface/render';
 import { areViewportSurfacePropsEqual } from './equality';
 
 export interface ViewportSurfaceProps {
