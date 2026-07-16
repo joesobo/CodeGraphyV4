@@ -79,7 +79,11 @@ export function saveWorkspaceAnalysisDatabaseCache(
     });
     replaceDatabaseCache(tempDatabasePath, databasePath);
   } catch (error) {
-    cleanupTemporaryDatabase(tempDatabasePath);
+    try {
+      cleanupTemporaryDatabase(tempDatabasePath);
+    } catch {
+      // Preserve the original save or replacement failure.
+    }
     throw error;
   }
 }
