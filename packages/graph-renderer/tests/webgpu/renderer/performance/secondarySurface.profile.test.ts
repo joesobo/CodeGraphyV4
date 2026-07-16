@@ -11,6 +11,8 @@ import {
   webGpuHarness,
 } from '../harness/webgpu';
 
+const MINIMAP_PROFILE_REPAINT_HZ = 60;
+
 interface ProfileFixture {
   frame: GraphRendererFrame;
   secondary: GraphRendererSecondaryFrame;
@@ -168,8 +170,8 @@ describe.skipIf(process.env.CODEGRAPHY_PROFILE_MINIMAP !== '1')(
           refreshedCpuMs: refreshed.cpuMs,
           refreshedSecondaryCpuMs: refreshed.secondaryCpuMs,
           refreshIncrementMs,
-          cappedCpuMsPerSecond: refreshIncrementMs * 8,
-          amortizedCpuMsPerFrame: refreshIncrementMs * 8 / 60,
+          cappedCpuMsPerSecond: refreshIncrementMs * MINIMAP_PROFILE_REPAINT_HZ,
+          amortizedCpuMsPerFrame: refreshIncrementMs * MINIMAP_PROFILE_REPAINT_HZ / 60,
         })}\n`);
         expect(harness.device.queue.submit).toHaveBeenCalled();
         renderer!.dispose();

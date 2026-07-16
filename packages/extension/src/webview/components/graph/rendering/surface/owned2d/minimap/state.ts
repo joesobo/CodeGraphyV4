@@ -5,7 +5,9 @@ export interface MinimapScheduler {
   graphIdentity?: object;
   graphRevision: number;
   graphStyleRevision: number;
+  lastProjectionFitTimestampMs: number;
   lastRefreshTimestampMs: number;
+  nextMovingRefreshTimestampMs: number;
   pendingBoundsReset: boolean;
   projectionFitPending: boolean;
   positionVersion: number;
@@ -21,7 +23,9 @@ export function createMinimapScheduler(): MinimapScheduler {
     dirty: true,
     graphRevision: -1,
     graphStyleRevision: -1,
+    lastProjectionFitTimestampMs: Number.NEGATIVE_INFINITY,
     lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
+    nextMovingRefreshTimestampMs: Number.NEGATIVE_INFINITY,
     pendingBoundsReset: false,
     projectionFitPending: true,
     positionVersion: -1,
@@ -34,6 +38,7 @@ export function createMinimapScheduler(): MinimapScheduler {
 export function invalidateMinimapScheduler(scheduler: MinimapScheduler): void {
   scheduler.dirty = true;
   scheduler.lastRefreshTimestampMs = Number.NEGATIVE_INFINITY;
+  scheduler.nextMovingRefreshTimestampMs = Number.NEGATIVE_INFINITY;
 }
 
 export function minimapSettled(wasMoving: boolean, moving: boolean): boolean {
@@ -77,5 +82,4 @@ export function completeMinimapRefresh(
 ): void {
   scheduler.dirty = false;
   scheduler.lastRefreshTimestampMs = timestampMs;
-  scheduler.pendingBoundsReset = false;
 }

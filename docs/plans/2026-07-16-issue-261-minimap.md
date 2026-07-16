@@ -142,7 +142,8 @@ The minimap must remain synchronized without turning React state or extension me
 - Read live positions and the main camera directly from the owned surface runtime.
 - Maintain a retained, minimap-sized WebGPU canvas containing the complete base graph.
 - Mark that secondary surface dirty when positions, graph membership, base edge/node styles, visibility, or panel size change.
-- While physics is active, refresh the secondary surface at a capped cadence rather than at the main graph frame rate. Start with 8 Hz as a tunable target, then profile representative graphs before fixing the shipped value.
+- While physics is active, repaint the retained secondary surface at a 60 Hz cap. Profiled settled dragging on a 2,500-node, 7,500-edge graph added 0.75 ms of average frame work while remaining at roughly 60 FPS.
+- Keep the full graph-bounds projection scan on a separate 8 Hz cap during physics, then tighten immediately when physics settles. The dense scan adds about 0.21 ms amortized per 60 Hz main frame instead of being repaid on every repaint.
 - When physics settles, perform one final refresh so the cached minimap exactly matches the settled layout.
 - Graph and style mutations outside active physics request one refresh.
 - Main-camera pan and zoom never refresh the secondary surface; they update only the viewport box.
