@@ -19,6 +19,48 @@ export interface SecondaryStyleBuffers {
   nodeStyleStream: VertexStream;
   nodeStyleValues: Float32Array;
   pass: GraphPassBufferState;
+  styleIdentity?: SecondaryStyleIdentity;
+}
+
+interface SecondaryStyleIdentity {
+  getLinkColor: GraphRendererSecondaryFrame['getLinkColor'];
+  getLinkOpacity: GraphRendererSecondaryFrame['getLinkOpacity'];
+  getLinkWidth: GraphRendererSecondaryFrame['getLinkWidth'];
+  getNodeStyle: GraphRendererSecondaryFrame['getNodeStyle'];
+  links: GraphRendererFrame['links'];
+  nodes: GraphRendererFrame['nodes'];
+  version: number;
+}
+
+function secondaryStylesChanged(
+  styles: SecondaryStyleBuffers,
+  frame: GraphRendererFrame,
+  secondary: GraphRendererSecondaryFrame,
+): boolean {
+  const current = styles.styleIdentity;
+  return current?.version !== secondary.styleVersion
+    || current.nodes !== frame.nodes
+    || current.links !== frame.links
+    || current.getNodeStyle !== secondary.getNodeStyle
+    || current.getLinkColor !== secondary.getLinkColor
+    || current.getLinkOpacity !== secondary.getLinkOpacity
+    || current.getLinkWidth !== secondary.getLinkWidth;
+}
+
+function rememberSecondaryStyles(
+  styles: SecondaryStyleBuffers,
+  frame: GraphRendererFrame,
+  secondary: GraphRendererSecondaryFrame,
+): void {
+  styles.styleIdentity = {
+    getLinkColor: secondary.getLinkColor,
+    getLinkOpacity: secondary.getLinkOpacity,
+    getLinkWidth: secondary.getLinkWidth,
+    getNodeStyle: secondary.getNodeStyle,
+    links: frame.links,
+    nodes: frame.nodes,
+    version: secondary.styleVersion,
+  };
 }
 
 export function createSecondaryStyleBuffers(
@@ -99,7 +141,9 @@ export function updateSecondaryStyleBuffers(
   primary: GraphBufferState,
   frame: GraphRendererFrame,
   secondary: GraphRendererSecondaryFrame,
-): void {
+  orderChanged = false,
+): boolean {
+  if (!orderChanged && !secondaryStylesChanged(styles, frame, secondary)) return false;
   packSecondaryNodeStyles(styles, primary, frame, secondary);
   packSecondaryLinkStyles(styles, primary, frame, secondary);
   uploadVertexStream(
@@ -115,6 +159,8 @@ export function updateSecondaryStyleBuffers(
     styles.linkStyleValues.byteLength,
   );
   styles.pass.renderedLinkCount = primary.renderedLinkCount;
+  rememberSecondaryStyles(styles, frame, secondary);
+  return true;
 }
 
 export function destroySecondaryStyleBuffers(styles: SecondaryStyleBuffers): void {

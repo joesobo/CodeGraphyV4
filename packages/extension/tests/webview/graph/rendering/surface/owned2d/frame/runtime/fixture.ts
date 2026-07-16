@@ -59,7 +59,7 @@ export function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   const layout: OwnedGraphLayout = {
     engine,
     links: [],
-    membershipRevision: 0,
+    baseStyleRevision: 0, membershipRevision: 0,
     nodes: [node],
   };
   const props = createDefaultSurfaceProps();

@@ -30,6 +30,7 @@ function secondaryFrame(): GraphRendererSecondaryFrame {
       fillColor: '#010203', fillOpacity: 1, height: 12, opacity: 1,
       shape: 'circle', width: 12,
     }),
+    styleVersion: 1,
   };
 }
 

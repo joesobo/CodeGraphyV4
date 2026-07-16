@@ -18,3 +18,15 @@ export function createGraphStyleRevision(): (context: GraphCallbackContext) => n
     return revision;
   };
 }
+
+export function createGraphBaseStyleRevision(): () => number {
+  let revision = 0;
+  let previousCssRevision: number | undefined;
+  return () => {
+    const currentCssRevision = cssColorRevision();
+    if (previousCssRevision === currentCssRevision) return revision;
+    previousCssRevision = currentCssRevision;
+    revision += 1;
+    return revision;
+  };
+}

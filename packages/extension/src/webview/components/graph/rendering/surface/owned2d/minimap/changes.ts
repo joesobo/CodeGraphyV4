@@ -1,12 +1,13 @@
 import type { MinimapScheduler } from './state';
 
 export interface MinimapRefreshInput {
+  baseStyleVersion: number;
   devicePixelRatio: number;
   graphIdentity: object;
   graphRevision: number;
+  graphStyleRevision: number;
   moving: boolean;
   positionVersion: number;
-  styleVersion: number;
   surfaceHeight: number;
   surfaceWidth: number;
   timestampMs: number;
@@ -38,7 +39,8 @@ function minimapVisualsChanged(
   input: MinimapRefreshInput,
 ): boolean {
   return scheduler.positionVersion !== input.positionVersion
-    || scheduler.styleVersion !== input.styleVersion;
+    || scheduler.baseStyleVersion !== input.baseStyleVersion
+    || scheduler.graphStyleRevision !== input.graphStyleRevision;
 }
 
 export function observeMinimapChanges(
@@ -56,7 +58,8 @@ export function observeMinimapChanges(
   scheduler.graphRevision = input.graphRevision;
   scheduler.devicePixelRatio = input.devicePixelRatio;
   scheduler.positionVersion = input.positionVersion;
-  scheduler.styleVersion = input.styleVersion;
+  scheduler.baseStyleVersion = input.baseStyleVersion;
+  scheduler.graphStyleRevision = input.graphStyleRevision;
   scheduler.surfaceHeight = input.surfaceHeight;
   scheduler.surfaceWidth = input.surfaceWidth;
   return { settled };

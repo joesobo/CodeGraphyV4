@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { markCssColorsChanged } from '../../../../src/webview/cssColors/resolver';
-import { createGraphStyleRevision } from '../../../../src/webview/components/graph/rendering/graphStyleRevision';
+import {
+  createGraphBaseStyleRevision,
+  createGraphStyleRevision,
+} from '../../../../src/webview/components/graph/rendering/graphStyleRevision';
 import type { GraphCallbackContext } from '../../../../src/webview/components/graph/rendering/useGraphCallbacks';
 
 function createContext(): GraphCallbackContext {
@@ -25,5 +28,14 @@ describe('graph/rendering/graphStyleRevision', () => {
     markCssColorsChanged();
 
     expect(revision(context)).toBe(initial + 1);
+  });
+
+  it('invalidates base styles only after CSS colors change', () => {
+    const revision = createGraphBaseStyleRevision();
+    const initial = revision();
+
+    expect(revision()).toBe(initial);
+    markCssColorsChanged();
+    expect(revision()).toBe(initial + 1);
   });
 });

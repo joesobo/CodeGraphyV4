@@ -1,12 +1,13 @@
 export interface MinimapScheduler {
+  baseStyleVersion: number;
   devicePixelRatio: number;
   dirty: boolean;
   graphIdentity?: object;
   graphRevision: number;
+  graphStyleRevision: number;
   lastRefreshTimestampMs: number;
   pendingBoundsReset: boolean;
   positionVersion: number;
-  styleVersion: number;
   surfaceHeight: number;
   surfaceWidth: number;
   wasMoving: boolean;
@@ -14,13 +15,14 @@ export interface MinimapScheduler {
 
 export function createMinimapScheduler(): MinimapScheduler {
   return {
+    baseStyleVersion: -1,
     devicePixelRatio: -1,
     dirty: true,
     graphRevision: -1,
+    graphStyleRevision: -1,
     lastRefreshTimestampMs: Number.NEGATIVE_INFINITY,
     pendingBoundsReset: false,
     positionVersion: -1,
-    styleVersion: -1,
     surfaceHeight: -1,
     surfaceWidth: -1,
     wasMoving: false,

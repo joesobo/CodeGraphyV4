@@ -26,6 +26,9 @@ export function updateOwnedGraphLayout(layout: OwnedGraphLayout, nodes: FGNode[]
     applyOwnedPhysicsSettings(layout.engine, settings);
     layout.membershipRevision += 1;
   }
+  if (layout.nodes !== nodes || layout.links !== data.resolvedLinks) {
+    layout.baseStyleRevision += 1;
+  }
   layout.nodes = nodes;
   layout.links = data.resolvedLinks;
 }

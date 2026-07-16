@@ -56,9 +56,7 @@ describe('WebGPU renderer frame packing', () => {
       fillColor: '#010203', fillOpacity: 1, height: 12, opacity: 1,
       shape: 'circle' as const, width: 12,
     }));
-
-    renderer!.setSecondarySurface(secondaryCanvas);
-    renderer!.render(frame, {
+    const secondaryFrame = {
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       camera: { centerX: 50, centerY: 3, zoom: 1.5 },
       cssHeight: 160,
@@ -68,7 +66,11 @@ describe('WebGPU renderer frame packing', () => {
       getLinkOpacity: () => 0.3,
       getLinkWidth: () => 1,
       getNodeStyle: getBaseNodeStyle,
-    });
+      styleVersion: 1,
+    };
+
+    renderer!.setSecondarySurface(secondaryCanvas);
+    renderer!.render(frame, secondaryFrame);
 
     expect(secondaryContext.configure).toHaveBeenCalledWith(expect.objectContaining({
       device: harness.device,
@@ -103,6 +105,25 @@ describe('WebGPU renderer frame packing', () => {
         expect.closeTo(3 / 255, 5),
       ]);
     expect([secondaryCanvas.width, secondaryCanvas.height]).toEqual([100, 100]);
+
+    harness.writeBuffer.mockClear();
+    frame.nodeX[0] += 1;
+    frame.positionVersion += 1;
+    renderer!.render(frame, secondaryFrame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .not.toContain('CodeGraphy secondary node styles');
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .not.toContain('CodeGraphy secondary link styles');
+
+    harness.writeBuffer.mockClear();
+    secondaryFrame.styleVersion += 1;
+    renderer!.render(frame, secondaryFrame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
+      'CodeGraphy camera uniform',
+      'CodeGraphy secondary camera uniform',
+      'CodeGraphy secondary node styles',
+      'CodeGraphy secondary link styles',
+    ]);
 
     renderer!.setSecondarySurface(undefined);
     expect(secondaryContext.unconfigure).toHaveBeenCalledTimes(1);

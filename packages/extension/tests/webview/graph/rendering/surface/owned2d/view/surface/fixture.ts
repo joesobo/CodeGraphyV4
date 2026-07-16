@@ -21,6 +21,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
       shape: node.shape2D ?? 'circle',
       width: node.size * 2,
     })),
+    getBaseStyleRevision: vi.fn(() => 1),
     getArrowColor: vi.fn(() => '#ffffff'),
     getLinkColor: vi.fn(() => '#888888'),
     getLinkOpacity: vi.fn(() => 0.3),
