@@ -8,6 +8,8 @@ import {
 
 const renderingHarness = vi.hoisted(() => ({
   getGraphDirectionalColor: vi.fn(),
+  getBaseGraphLinkOpacity: vi.fn(() => 0.3),
+  getBaseGraphLinkWidth: vi.fn(() => 1),
   getGraphLinkColor: vi.fn(),
   getGraphLinkOpacity: vi.fn(),
   getGraphLinkParticles: vi.fn(),
@@ -22,6 +24,8 @@ vi.mock('../../../../src/webview/components/graph/rendering/link/colors/model', 
 }));
 
 vi.mock('../../../../src/webview/components/graph/rendering/link/metrics', () => ({
+  getBaseGraphLinkOpacity: renderingHarness.getBaseGraphLinkOpacity,
+  getBaseGraphLinkWidth: renderingHarness.getBaseGraphLinkWidth,
   getGraphLinkOpacity: renderingHarness.getGraphLinkOpacity,
   getGraphLinkParticles: renderingHarness.getGraphLinkParticles,
   getGraphLinkWidth: renderingHarness.getGraphLinkWidth,
