@@ -3,23 +3,21 @@ import type {
   GraphRendererNode,
   GraphRendererNodeStyle,
 } from './contracts';
+import type { GraphSceneBounds } from './sceneBounds';
 import { GRAPH_LINK_SEGMENTS } from './webgpu/shaders';
 import { resolveGraphLinkGeometry } from './webgpu/link/geometry/model';
 import { pointOnGraphLink } from './webgpu/link/geometry/point';
-import { graphNodeWorldScale } from './visualSize';
 
-export interface GraphSceneBounds {
-  maxX: number;
-  maxY: number;
-  minX: number;
-  minY: number;
-}
-
-export interface GraphSceneBoundsInput {
+export interface GraphSceneFitInput {
   getNodeStyle(this: void, node: GraphRendererNode): GraphRendererNodeStyle;
   links: readonly GraphRendererLink[];
   nodes: readonly GraphRendererNode[];
-  zoom: number;
+}
+
+export interface GraphSceneFitMeasurement {
+  bounds: GraphSceneBounds;
+  maxNodeHalfHeight: number;
+  maxNodeHalfWidth: number;
 }
 
 function includePoint(bounds: GraphSceneBounds, x: number, y: number): void {
@@ -27,18 +25,6 @@ function includePoint(bounds: GraphSceneBounds, x: number, y: number): void {
   bounds.maxY = Math.max(bounds.maxY, y);
   bounds.minX = Math.min(bounds.minX, x);
   bounds.minY = Math.min(bounds.minY, y);
-}
-
-function includeNodes(bounds: GraphSceneBounds, input: GraphSceneBoundsInput): void {
-  const worldScale = graphNodeWorldScale(input.zoom);
-  for (const node of input.nodes) {
-    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
-    const style = input.getNodeStyle(node);
-    const halfWidth = Math.max(0.5, style.width / 2) * worldScale;
-    const halfHeight = Math.max(0.5, style.height / 2) * worldScale;
-    includePoint(bounds, (node.x as number) - halfWidth, (node.y as number) - halfHeight);
-    includePoint(bounds, (node.x as number) + halfWidth, (node.y as number) + halfHeight);
-  }
 }
 
 function includeLinks(bounds: GraphSceneBounds, links: readonly GraphRendererLink[]): void {
@@ -52,16 +38,25 @@ function includeLinks(bounds: GraphSceneBounds, links: readonly GraphRendererLin
   }
 }
 
-export function measureGraphSceneBounds(
-  input: GraphSceneBoundsInput,
-): GraphSceneBounds | undefined {
+export function measureGraphSceneFit(
+  input: GraphSceneFitInput,
+): GraphSceneFitMeasurement | undefined {
   const bounds = {
     maxX: Number.NEGATIVE_INFINITY,
     maxY: Number.NEGATIVE_INFINITY,
     minX: Number.POSITIVE_INFINITY,
     minY: Number.POSITIVE_INFINITY,
   };
-  includeNodes(bounds, input);
+  let maxNodeHalfHeight = 0;
+  let maxNodeHalfWidth = 0;
+  for (const node of input.nodes) {
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
+    includePoint(bounds, node.x as number, node.y as number);
+    const style = input.getNodeStyle(node);
+    maxNodeHalfWidth = Math.max(maxNodeHalfWidth, Math.max(0.5, style.width / 2));
+    maxNodeHalfHeight = Math.max(maxNodeHalfHeight, Math.max(0.5, style.height / 2));
+  }
   includeLinks(bounds, input.links);
-  return Number.isFinite(bounds.minX) ? bounds : undefined;
+  if (!Number.isFinite(bounds.minX)) return undefined;
+  return { bounds, maxNodeHalfHeight, maxNodeHalfWidth };
 }
