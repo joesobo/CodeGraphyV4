@@ -49,12 +49,12 @@ import {
   createMinimapScheduler,
   invalidateMinimapScheduler,
   type MinimapScheduler,
-} from '../../minimap/scheduling';
-import type { MinimapBounds } from '../../minimap/projection';
+} from '../../minimap/state';
+import type { MinimapBounds } from '../../minimap/bounds';
 import {
   createMinimapInteractionHandlers,
-  type MinimapNavigationSession,
 } from '../../minimap/interaction';
+import type { MinimapNavigationSession } from '../../minimap/navigation';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;

@@ -1,22 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import {
-  expandMinimapBounds,
   fitMinimapProjection,
-  finiteMinimapBounds,
   graphPointFromMinimap,
   minimapPointFromGraph,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/projection';
 
 describe('Relationship Graph minimap projection', () => {
   it('fits a wide graph uniformly with centered breathing room', () => {
-    const bounds = finiteMinimapBounds(
-      Float32Array.of(-100, 100, Number.NaN),
-      Float32Array.of(-25, 25, 3),
-    );
+    expect(fitMinimapProjection(
+      { maxX: 210, maxY: 100, minX: 10, minY: 50 },
+      160,
+      12,
+    )).toEqual({
+      centerX: 110,
+      centerY: 75,
+      padding: 12,
+      size: 160,
+      zoom: 0.68,
+    });
+  });
 
-    expect(fitMinimapProjection(bounds!, 160, 12)).toEqual({
-      centerX: 0,
-      centerY: 0,
+  it('uses height as the limiting axis for a tall graph', () => {
+    expect(fitMinimapProjection(
+      { maxX: 60, maxY: 230, minX: 20, minY: 30 },
+      160,
+      12,
+    )).toEqual({
+      centerX: 40,
+      centerY: 130,
       padding: 12,
       size: 160,
       zoom: 0.68,
@@ -32,12 +43,5 @@ describe('Relationship Graph minimap projection', () => {
     const panelPoint = minimapPointFromGraph(projection, { x: 30, y: 20 });
 
     expect(graphPointFromMinimap(projection, panelPoint)).toEqual({ x: 30, y: 20 });
-  });
-
-  it('expands active bounds without contracting them', () => {
-    expect(expandMinimapBounds(
-      { maxX: 20, maxY: 20, minX: -20, minY: -20 },
-      { maxX: 15, maxY: 30, minX: -10, minY: -30 },
-    )).toEqual({ maxX: 20, maxY: 30, minX: -20, minY: -30 });
   });
 });

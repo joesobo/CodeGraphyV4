@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createMinimapScheduler,
-  scheduleMinimapRefresh,
-} from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/scheduling';
+import { createMinimapScheduler } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/state';
+import { scheduleMinimapRefresh } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/scheduling';
 
 describe('Relationship Graph minimap refresh scheduling', () => {
   it('caps moving refreshes at 8 Hz and refreshes immediately when physics settles', () => {

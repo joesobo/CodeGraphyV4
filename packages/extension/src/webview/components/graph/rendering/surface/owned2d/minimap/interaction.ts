@@ -5,68 +5,20 @@ import type {
   SyntheticEvent,
   WheelEvent as ReactWheelEvent,
 } from 'react';
+import type { OwnedGraphCamera } from '../camera/runtime/model';
 import {
-  cancelOwnedGraphCameraTransition,
-  type OwnedGraphCamera,
-} from '../camera/runtime/model';
+  handleMinimapPointerDown,
+  handleMinimapPointerMove,
+} from './drag';
 import {
-  graphPointFromMinimap,
-  type MinimapPoint,
-  type MinimapProjection,
-} from './projection';
-import { projectMinimapViewport, type MinimapViewport } from './viewport';
-
-export interface MinimapNavigationSession {
-  grabOffset: MinimapPoint;
-  pointerId: number;
-}
-
-interface BeginMinimapNavigationInput {
-  camera: OwnedGraphCamera;
-  panelPoint: MinimapPoint;
-  pointerId: number;
-  projection: MinimapProjection;
-  viewport: MinimapViewport;
-}
-
-function pointInsideViewport(point: MinimapPoint, viewport: MinimapViewport): boolean {
-  const box = viewport.box;
-  return Boolean(box
-    && point.x >= box.x
-    && point.x <= box.x + box.width
-    && point.y >= box.y
-    && point.y <= box.y + box.height);
-}
-
-export function beginMinimapNavigation(input: BeginMinimapNavigationInput): {
-  cameraCenter: MinimapPoint;
-  session: MinimapNavigationSession;
-} {
-  const graphPoint = graphPointFromMinimap(input.projection, input.panelPoint);
-  const grabOffset = pointInsideViewport(input.panelPoint, input.viewport)
-    ? {
-        x: graphPoint.x - input.camera.centerX,
-        y: graphPoint.y - input.camera.centerY,
-      }
-    : { x: 0, y: 0 };
-  const session = { grabOffset, pointerId: input.pointerId };
-  return {
-    cameraCenter: moveMinimapNavigation(session, input.projection, input.panelPoint),
-    session,
-  };
-}
-
-export function moveMinimapNavigation(
-  session: MinimapNavigationSession,
-  projection: MinimapProjection,
-  panelPoint: MinimapPoint,
-): MinimapPoint {
-  const graphPoint = graphPointFromMinimap(projection, panelPoint);
-  return {
-    x: graphPoint.x - session.grabOffset.x,
-    y: graphPoint.y - session.grabOffset.y,
-  };
-}
+  handleMinimapKeyDown,
+  handleMinimapLostPointerCapture,
+  handleMinimapPointerCancel,
+  handleMinimapPointerUp,
+  suppressMinimapEvent,
+} from './events';
+import type { MinimapNavigationSession } from './navigation';
+import type { MinimapProjection } from './projection';
 
 export interface MinimapInteractionRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
@@ -88,138 +40,17 @@ export interface MinimapInteractionHandlers {
   onWheel(this: void, event: ReactWheelEvent<HTMLDivElement>): void;
 }
 
-function panelPoint(
-  element: HTMLDivElement,
-  event: { clientX: number; clientY: number },
-  projection: MinimapProjection,
-): MinimapPoint {
-  const bounds = element.getBoundingClientRect();
-  return {
-    x: (event.clientX - bounds.left) * projection.size / Math.max(1, bounds.width),
-    y: (event.clientY - bounds.top) * projection.size / Math.max(1, bounds.height),
-  };
-}
-
-function applyCameraCenter(
-  runtime: MinimapInteractionRuntime,
-  center: MinimapPoint,
-): void {
-  const camera = runtime.cameraRef.current;
-  cancelOwnedGraphCameraTransition(camera);
-  camera.centerX = center.x;
-  camera.centerY = center.y;
-  runtime.requestFrame();
-}
-
-function endSession(
-  runtime: MinimapInteractionRuntime,
-  element: HTMLDivElement,
-  pointerId: number,
-): void {
-  if (runtime.sessionRef.current?.pointerId !== pointerId) return;
-  runtime.sessionRef.current = null;
-  if (element.hasPointerCapture?.(pointerId)) element.releasePointerCapture(pointerId);
-}
-
-function suppressEvent(event: { preventDefault(): void; stopPropagation(): void }): void {
-  event.preventDefault();
-  event.stopPropagation();
-}
-
-function handleKeyDown(
-  runtime: MinimapInteractionRuntime,
-  event: ReactKeyboardEvent<HTMLDivElement>,
-): void {
-  if (event.key !== 'Escape') return;
-  const session = runtime.sessionRef.current;
-  if (!session) return;
-  suppressEvent(event);
-  endSession(runtime, event.currentTarget, session.pointerId);
-}
-
-function handleLostPointerCapture(
-  runtime: MinimapInteractionRuntime,
-  event: ReactPointerEvent<HTMLDivElement>,
-): void {
-  if (runtime.sessionRef.current?.pointerId === event.pointerId) {
-    runtime.sessionRef.current = null;
-  }
-}
-
-function handlePointerCancel(
-  runtime: MinimapInteractionRuntime,
-  event: ReactPointerEvent<HTMLDivElement>,
-): void {
-  suppressEvent(event);
-  endSession(runtime, event.currentTarget, event.pointerId);
-}
-
-function handlePointerDown(
-  runtime: MinimapInteractionRuntime,
-  event: ReactPointerEvent<HTMLDivElement>,
-): void {
-  if (event.button !== 0 || runtime.sessionRef.current) return;
-  const projection = runtime.projectionRef.current;
-  const mainCanvas = runtime.mainCanvasRef.current;
-  if (!projection || !mainCanvas) return;
-  suppressEvent(event);
-  const mainBounds = mainCanvas.getBoundingClientRect();
-  const start = beginMinimapNavigation({
-    camera: runtime.cameraRef.current,
-    panelPoint: panelPoint(event.currentTarget, event, projection),
-    pointerId: event.pointerId,
-    projection,
-    viewport: projectMinimapViewport(projection, {
-      camera: runtime.cameraRef.current,
-      viewportHeight: Math.max(1, mainBounds.height),
-      viewportWidth: Math.max(1, mainBounds.width),
-    }),
-  });
-  runtime.sessionRef.current = start.session;
-  event.currentTarget.setPointerCapture(event.pointerId);
-  event.currentTarget.focus({ preventScroll: true });
-  runtime.clearHover();
-  applyCameraCenter(runtime, start.cameraCenter);
-}
-
-function handlePointerMove(
-  runtime: MinimapInteractionRuntime,
-  event: ReactPointerEvent<HTMLDivElement>,
-): void {
-  const session = runtime.sessionRef.current;
-  const projection = runtime.projectionRef.current;
-  if (!session || session.pointerId !== event.pointerId || !projection) return;
-  suppressEvent(event);
-  applyCameraCenter(
-    runtime,
-    moveMinimapNavigation(
-      session,
-      projection,
-      panelPoint(event.currentTarget, event, projection),
-    ),
-  );
-}
-
-function handlePointerUp(
-  runtime: MinimapInteractionRuntime,
-  event: ReactPointerEvent<HTMLDivElement>,
-): void {
-  if (runtime.sessionRef.current?.pointerId !== event.pointerId) return;
-  suppressEvent(event);
-  endSession(runtime, event.currentTarget, event.pointerId);
-}
-
 export function createMinimapInteractionHandlers(
   runtime: MinimapInteractionRuntime,
 ): MinimapInteractionHandlers {
   return {
-    onContextMenu: suppressEvent,
-    onKeyDown: event => handleKeyDown(runtime, event),
-    onLostPointerCapture: event => handleLostPointerCapture(runtime, event),
-    onPointerCancel: event => handlePointerCancel(runtime, event),
-    onPointerDown: event => handlePointerDown(runtime, event),
-    onPointerMove: event => handlePointerMove(runtime, event),
-    onPointerUp: event => handlePointerUp(runtime, event),
-    onWheel: suppressEvent,
+    onContextMenu: suppressMinimapEvent,
+    onKeyDown: event => handleMinimapKeyDown(runtime, event),
+    onLostPointerCapture: event => handleMinimapLostPointerCapture(runtime, event),
+    onPointerCancel: event => handleMinimapPointerCancel(runtime, event),
+    onPointerDown: event => handleMinimapPointerDown(runtime, event),
+    onPointerMove: event => handleMinimapPointerMove(runtime, event),
+    onPointerUp: event => handleMinimapPointerUp(runtime, event),
+    onWheel: suppressMinimapEvent,
   };
 }
