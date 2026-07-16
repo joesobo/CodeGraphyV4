@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import Database from 'libsql';
 import type { FileAnalysisRow } from '../records/contracts';
 import { ensureSchema } from './schema';
@@ -61,16 +62,64 @@ export async function readRowsAsync(
   return readRowsSync(connection, statement);
 }
 
-export function withConnection<T>(
-  databasePath: string,
-  callback: (connection: SQLiteConnection) => T,
-): T {
-  const connection = new Database(databasePath);
+const DATABASE_SIDECAR_SUFFIXES = ['-wal', '-shm', '-journal'];
 
+export function isInvalidDatabaseError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('code' in error)) {
+    return false;
+  }
+  return error.code === 'SQLITE_NOTADB' || error.code === 'SQLITE_CORRUPT';
+}
+
+function removeInvalidDatabase(databasePath: string): void {
+  for (const filePath of [
+    databasePath,
+    ...DATABASE_SIDECAR_SUFFIXES.map(suffix => `${databasePath}${suffix}`),
+  ]) {
+    fs.rmSync(filePath, { force: true });
+  }
+}
+
+export function recreateInvalidDatabase(
+  databasePath: string,
+  error: unknown,
+  remove: (path: string) => void = removeInvalidDatabase,
+): boolean {
+  if (!isInvalidDatabaseError(error)) {
+    return false;
+  }
+  try {
+    remove(databasePath);
+  } catch {
+    throw error;
+  }
+  return true;
+}
+
+function openConnection(databasePath: string): SQLiteConnection {
+  const connection = new Database(databasePath);
   try {
     connection.pragma('journal_mode = DELETE');
     connection.pragma('synchronous = NORMAL');
     ensureSchema(connection);
+    return connection;
+  } catch (error) {
+    try {
+      connection.close();
+    } catch {
+      // Preserve the original connection failure.
+    }
+    throw error;
+  }
+}
+
+export function withConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+): T {
+  const connection = openConnection(databasePath);
+
+  try {
     return callback(connection);
   } finally {
     connection.close();
@@ -81,12 +130,9 @@ export async function withConnectionAsync<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => Promise<T>,
 ): Promise<T> {
-  const connection = new Database(databasePath);
+  const connection = openConnection(databasePath);
 
   try {
-    connection.pragma('journal_mode = DELETE');
-    connection.pragma('synchronous = NORMAL');
-    ensureSchema(connection);
     return await callback(connection);
   } finally {
     connection.close();

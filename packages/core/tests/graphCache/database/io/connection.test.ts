@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   readRowsSync,
+  recreateInvalidDatabase,
   runStatementSync,
   withConnection,
 } from '../../../../src/graphCache/database/io/connection';
@@ -52,5 +53,55 @@ describe('graphCache/database/io/connection', () => {
     })).toThrow('boom');
 
     expect(() => fs.rmSync(databasePath, { force: true })).not.toThrow();
+  });
+
+  it('recreates an invalid database before opening it for a full save', () => {
+    const databasePath = createDatabasePath();
+    fs.writeFileSync(databasePath, 'not a database');
+    let invalidDatabaseError: unknown;
+    try {
+      withConnection(databasePath, () => undefined);
+    } catch (error) {
+      invalidDatabaseError = error;
+    }
+
+    expect(recreateInvalidDatabase(databasePath, invalidDatabaseError)).toBe(true);
+
+    withConnection(databasePath, (connection) => {
+      runStatementSync(
+        connection,
+        "INSERT INTO FileAnalysis(filePath, mtime, size, analysis) VALUES ('src/app.ts', 1, 2, '{}')",
+      );
+    });
+
+    const rows = withConnection(databasePath, connection => readRowsSync(
+      connection,
+      'SELECT filePath, mtime, size, analysis FROM FileAnalysis ORDER BY filePath',
+    ));
+    expect(rows).toEqual([{
+      filePath: 'src/app.ts',
+      mtime: 1,
+      size: 2,
+      analysis: '{}',
+    }]);
+  });
+
+  it('preserves the invalid database error when recreation cleanup fails', () => {
+    const databasePath = createDatabasePath();
+    fs.writeFileSync(databasePath, 'not a database');
+    let invalidDatabaseError: unknown;
+    try {
+      withConnection(databasePath, () => undefined);
+    } catch (error) {
+      invalidDatabaseError = error;
+    }
+
+    expect(() => recreateInvalidDatabase(
+      databasePath,
+      invalidDatabaseError,
+      () => {
+        throw new Error('cleanup failed');
+      },
+    )).toThrow('file is not a database');
   });
 });

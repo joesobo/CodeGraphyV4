@@ -436,6 +436,30 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     );
   });
 
+  it('recreates an unreadable database during the next full save', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+    fs.writeFileSync(databasePath, 'not-a-sqlite-database', 'utf8');
+    const cache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 1,
+          size: 2,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
+  });
+
   it('clears persisted analysis rows without deleting repo-local settings files', () => {
     const workspaceRoot = createWorkspaceRoot();
     const codeGraphyDirectory = path.join(workspaceRoot, '.codegraphy');

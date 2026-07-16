@@ -2,13 +2,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementAsync, withConnectionAsync } from './connection';
-import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
-  cleanupTemporaryDatabase,
-  createTemporaryDatabasePath,
-  replaceDatabaseCache,
-} from './temporary';
+  recreateInvalidDatabase,
+  runStatementAsync,
+  withConnectionAsync,
+} from './connection';
+import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createWorkspaceAnalysisCacheWriterAsync,
   persistAnalysisEntryAsync,
@@ -30,11 +29,12 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
   const entries = sortedCacheEntries(cache);
   const total = entries.length;
   const yieldEvery = options.yieldEvery ?? 100;
-  const tempDatabasePath = createTemporaryDatabasePath(databasePath);
+  let reportedProgress = 0;
   options.onProgress?.({ current: 0, total });
 
-  try {
-    await withConnectionAsync(tempDatabasePath, async (connection) => {
+  const persist = (): Promise<void> => withConnectionAsync(
+    databasePath,
+    async (connection) => {
       await runStatementAsync(connection, 'BEGIN TRANSACTION');
       let committed = false;
       try {
@@ -56,7 +56,10 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
         for (const [filePath, entry] of entries) {
           await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
           current += 1;
-          options.onProgress?.({ current, total });
+          if (current > reportedProgress) {
+            reportedProgress = current;
+            options.onProgress?.({ current, total });
+          }
         }
         await runStatementAsync(connection, 'COMMIT');
         committed = true;
@@ -70,14 +73,15 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
         }
         throw error;
       }
-    });
-    replaceDatabaseCache(tempDatabasePath, databasePath);
+    },
+  );
+
+  try {
+    await persist();
   } catch (error) {
-    try {
-      cleanupTemporaryDatabase(tempDatabasePath);
-    } catch {
-      // Preserve the original save or replacement failure.
+    if (!recreateInvalidDatabase(databasePath, error)) {
+      throw error;
     }
-    throw error;
+    await persist();
   }
 }
