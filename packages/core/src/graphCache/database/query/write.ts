@@ -11,7 +11,7 @@ import type {
   SQLiteValue,
 } from '../io/connection';
 
-const CREATE_FILE_ANALYSIS_STATEMENT = 'INSERT INTO FileAnalysis(filePath, mtime, size, analysis) VALUES (@filePath, @mtime, @size, @analysis)';
+const CREATE_FILE_ANALYSIS_STATEMENT = 'INSERT INTO FileAnalysis(filePath, mtime, size, contentHash, analysis) VALUES (@filePath, @mtime, @size, @contentHash, @analysis)';
 const DELETE_FILE_ANALYSIS_STATEMENT = 'DELETE FROM FileAnalysis WHERE filePath = @filePath';
 const DELETE_SYMBOL_STATEMENT = 'DELETE FROM Symbol WHERE filePath = @filePath';
 const DELETE_RELATION_STATEMENT = 'DELETE FROM Relation WHERE filePath = @filePath';
@@ -35,6 +35,7 @@ function createFileAnalysisParams(
     filePath,
     mtime: entry.mtime ?? 0,
     size: entry.size ?? 0,
+    contentHash: entry.contentHash ?? null,
     analysis: JSON.stringify(entry.analysis),
   };
 }

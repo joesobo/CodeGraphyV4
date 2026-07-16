@@ -102,6 +102,9 @@ export function createTextPlugin(calls: {
     async onPreAnalyze(files, workspaceRoot) {
       calls.onPreAnalyze(files, workspaceRoot);
     },
+    async onFilesChanged() {
+      return [];
+    },
     onPostAnalyze(graph) {
       calls.onPostAnalyze(graph);
     },

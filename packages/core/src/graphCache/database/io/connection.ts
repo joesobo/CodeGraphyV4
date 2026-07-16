@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import Database from 'libsql';
 import type { FileAnalysisRow } from '../records/contracts';
 import { ensureSchema } from './schema';
 

@@ -6,6 +6,7 @@ export function ensureSchema(connection: SQLiteConnection): void {
       filePath TEXT PRIMARY KEY,
       mtime INTEGER NOT NULL,
       size INTEGER NOT NULL,
+      contentHash TEXT,
       analysis TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS Symbol (
@@ -38,6 +39,11 @@ export function ensureSchema(connection: SQLiteConnection): void {
     );
     CREATE INDEX IF NOT EXISTS Relation_filePath_idx ON Relation(filePath);
   `);
+
+  const fileAnalysisColumns = connection.pragma('table_info(FileAnalysis)') as Array<{ name?: string }>;
+  if (!fileAnalysisColumns.some(column => column.name === 'contentHash')) {
+    connection.exec('ALTER TABLE FileAnalysis ADD COLUMN contentHash TEXT');
+  }
 }
 
 export async function ensureSchemaAsync(connection: SQLiteConnection): Promise<void> {

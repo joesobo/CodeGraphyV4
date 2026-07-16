@@ -98,7 +98,7 @@ function writeVsixFixture({
   const fixtureRoot = mkdtempSync(path.join(tmpdir(), `codegraphy-vsix-${target}-`));
   writeFixtureBinary(
     fixtureRoot,
-    'extension/dist/node_modules/better-sqlite3/build/Release/better_sqlite3.node',
+    libsqlNativeBinaryPath(target),
     sqliteBinary,
   );
   writeFixtureBinary(
@@ -117,6 +117,15 @@ function writeVsixFixture({
   if (zipResult.status !== 0) {
     throw new Error(`Unable to create VSIX fixture for ${target}.\n${zipResult.stderr}`);
   }
+}
+
+function libsqlNativeBinaryPath(target) {
+  const packageByTarget = {
+    'linux-x64': 'linux-x64-gnu',
+    'darwin-arm64': 'darwin-arm64',
+    'win32-x64': 'win32-x64-msvc',
+  };
+  return `extension/dist/node_modules/@libsql/${packageByTarget[target]}/index.node`;
 }
 
 function writeFixtureBinary(rootDir, relativePath, binary) {

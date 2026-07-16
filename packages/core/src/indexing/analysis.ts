@@ -7,6 +7,7 @@ import type { CorePluginRegistry } from '../plugins/registry';
 import { preAnalyzeCoreTreeSitterFiles } from '../treeSitter/core';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { getFileStat } from './fileStat';
+import type { WorkspaceIndexFileContentReader } from './workspace/changes';
 
 function createCachedWorkspaceFileContentReader(
   discovery: FileDiscovery,
@@ -32,9 +33,10 @@ export async function analyzeWorkspaceIndexFiles(input: {
   disabledPlugins: Set<string>;
   options: IndexCodeGraphyWorkspaceOptions;
   registry: CorePluginRegistry;
+  readContent?: WorkspaceIndexFileContentReader;
   workspaceRoot: string;
 }) {
-  const readContent = createCachedWorkspaceFileContentReader(input.discovery);
+  const readContent = input.readContent ?? createCachedWorkspaceFileContentReader(input.discovery);
 
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>

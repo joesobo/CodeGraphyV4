@@ -12,10 +12,18 @@ import { readCodeGraphyWorkspaceStatus } from '../workspace/status';
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
-import { persistWorkspaceIndexMetadata } from './metadata';
+import { createWorkspaceIndexPluginSignature, persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
+import {
+  createWorkspaceIndexFileContentReader,
+  findChangedWorkspaceIndexFiles,
+} from './workspace/changes';
+import {
+  mapDiscoveredWorkspaceIndexFilesByRelativePath,
+  mergeDiscoveredWorkspaceIndexFiles,
+} from './changedFiles';
 export {
   createCodeGraphyWorkspaceEngine,
   type CodeGraphyWorkspaceEngine,
@@ -67,13 +75,13 @@ export async function indexCodeGraphyWorkspace(
   );
 
   const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
-    plugins: registry.list().map(info => info.plugin),
+    pluginSignature: createWorkspaceIndexPluginSignature({ loadedPackagePlugins, registry }),
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
   let canReusePersistedCache = previousStatus.hasGraphCache
     && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files');
-  const cache = canReusePersistedCache
+  let cache = canReusePersistedCache
     ? loadWorkspaceAnalysisDatabaseCache(workspaceRoot)
     : createEmptyWorkspaceAnalysisCache();
   const previousCacheFingerprints = new Map(
@@ -108,8 +116,42 @@ export async function indexCodeGraphyWorkspace(
   const discoveredFilePaths = new Set(discoveryResult.files.map(file => file.relativePath));
   const deletedFilePaths = Object.keys(cache.files)
     .filter(filePath => !discoveredFilePaths.has(filePath));
-  for (const filePath of deletedFilePaths) {
-    delete cache.files[filePath];
+  const addedFilePaths = discoveryResult.files
+    .filter(file => !previousCacheFingerprints.has(file.relativePath))
+    .map(file => file.relativePath);
+  const readContent = createWorkspaceIndexFileContentReader(discovery);
+
+  if (canReusePersistedCache && (addedFilePaths.length > 0 || deletedFilePaths.length > 0)) {
+    canReusePersistedCache = false;
+    cache = createEmptyWorkspaceAnalysisCache();
+  } else if (canReusePersistedCache) {
+    const changedFiles = await findChangedWorkspaceIndexFiles({
+      cache,
+      files: discoveryResult.files,
+      readContent,
+    });
+    if (changedFiles.length > 0) {
+      const pluginChanges = await registry.notifyFilesChanged(
+        changedFiles,
+        workspaceRoot,
+        undefined,
+        disabledPlugins,
+      );
+      if (pluginChanges.requiresFullRefresh) {
+        canReusePersistedCache = false;
+        cache = createEmptyWorkspaceAnalysisCache();
+      } else {
+        const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(discoveryResult.files);
+        const invalidatedFiles = mergeDiscoveredWorkspaceIndexFiles(
+          changedFiles,
+          pluginChanges.additionalFilePaths,
+          discoveredByPath,
+        );
+        for (const file of invalidatedFiles) {
+          delete cache.files[file.relativePath];
+        }
+      }
+    }
   }
   const analysisResult = await timeIndexPhase(
     options,
@@ -120,6 +162,7 @@ export async function indexCodeGraphyWorkspace(
       discoveryResult,
       options,
       registry,
+      readContent,
       disabledPlugins,
       workspaceRoot,
     }),

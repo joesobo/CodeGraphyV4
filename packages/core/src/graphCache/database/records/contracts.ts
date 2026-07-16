@@ -2,6 +2,7 @@ export interface FileAnalysisRow {
   filePath?: unknown;
   mtime?: unknown;
   size?: unknown;
+  contentHash?: unknown;
   analysis?: unknown;
 }
 

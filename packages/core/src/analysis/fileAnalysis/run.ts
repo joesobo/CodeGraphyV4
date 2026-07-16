@@ -23,6 +23,7 @@ import type {
   WorkspaceFileAnalysisRequest,
   WorkspaceFileStat,
 } from './types';
+import { createWorkspaceFileContentHash } from '../cache';
 
 function createWorkspaceFileAnalysisState(): IWorkspaceFileAnalysisState {
   return {
@@ -116,32 +117,39 @@ function recordWorkspaceFileAnalysis(
   return connections;
 }
 
-function readCacheHitAnalysis(
+async function readCacheHitAnalysis(
   options: IWorkspaceFileAnalysisOptions,
   file: IDiscoveredFile,
   stat: WorkspaceFileStat,
-): IFileAnalysisResult | undefined {
+): Promise<{ analysis?: IFileAnalysisResult; content?: string }> {
   const cached = options.cache.files[file.relativePath];
   if (
     !cached
     || cached.mtime !== stat?.mtime
     || (cached.size !== undefined && cached.size !== stat?.size)
   ) {
-    return undefined;
+    return {};
   }
   if (options.forceAnalyze) {
-    return undefined;
+    return {};
   }
 
   if (!hasRequiredAnalysisCacheTiers(cached.analysis, options.cacheTiers?.required)) {
-    return undefined;
+    return {};
+  }
+
+  if (cached.contentHash !== undefined) {
+    const content = await options.readContent(file);
+    if (cached.contentHash !== createWorkspaceFileContentHash(content)) {
+      return { content };
+    }
   }
 
   if (cached.size === undefined && stat?.size !== undefined) {
     cached.size = stat.size;
   }
 
-  return prepareAnalysisForActiveCacheTiers(options, cached.analysis);
+  return { analysis: prepareAnalysisForActiveCacheTiers(options, cached.analysis) };
 }
 
 function readReusableCacheAnalysis(
@@ -192,12 +200,13 @@ async function analyzeCacheMiss(
   file: IDiscoveredFile,
   stat: WorkspaceFileStat,
   reusableAnalysis?: IFileAnalysisResult,
+  knownContent?: string,
 ): Promise<void> {
   state.cacheMisses += 1;
   state.cacheMissFilePaths.add(file.relativePath);
   throwIfWorkspaceAnalysisAborted(options.signal);
   await ensureWorkspaceFilePreAnalysis(options, state);
-  const content = await options.readContent(file);
+  const content = knownContent ?? await options.readContent(file);
   throwIfWorkspaceAnalysisAborted(options.signal);
   const cacheAnalysis = prepareAnalysisForCacheStorage(
     options,
@@ -224,6 +233,7 @@ async function analyzeCacheMiss(
   options.cache.files[file.relativePath] = {
     mtime: stat?.mtime ?? 0,
     analysis: cacheAnalysis,
+    contentHash: createWorkspaceFileContentHash(content),
     size: stat?.size,
   };
 }
@@ -236,9 +246,9 @@ async function analyzeWorkspaceFile(
   throwIfWorkspaceAnalysisAborted(options.signal);
 
   const stat = await options.getFileStat(file.absolutePath);
-  const cachedAnalysis = readCacheHitAnalysis(options, file, stat);
-  if (cachedAnalysis) {
-    recordCacheHit(options, state, file, cachedAnalysis);
+  const cacheLookup = await readCacheHitAnalysis(options, file, stat);
+  if (cacheLookup.analysis) {
+    recordCacheHit(options, state, file, cacheLookup.analysis);
     return;
   }
 
@@ -248,6 +258,7 @@ async function analyzeWorkspaceFile(
     file,
     stat,
     readReusableCacheAnalysis(options, file, stat),
+    cacheLookup.content,
   );
 }
 

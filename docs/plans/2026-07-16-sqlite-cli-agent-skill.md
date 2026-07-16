@@ -73,6 +73,12 @@ The canonical cache path becomes:
 Existing `graph.lbug` files are rebuildable cache artifacts. The first Indexing
 run creates `graph.sqlite`; do not keep a permanent dual-reader path.
 
+Core and the extension use `libsql` 0.5.29 for the local SQLite-compatible
+binding. Its synchronous API preserves the existing storage contract, while
+its platform packages use Node-API so the VSIX is not tied to the V8 ABI of the
+Node process that assembled it. Do not use a V8-ABI-specific binding in the
+extension package.
+
 ### 2. Index Is The Single Make-Current Operation
 
 `codegraphy index [workspace]` always means “make this CodeGraphy Workspace's
@@ -317,7 +323,7 @@ a dedicated public `codegraphy/skills` repository. This follows the same source
 shape as `mattpocock/skills` and gives CodeGraphy a short, ecosystem-native
 install command without requiring registry alias support.
 
-Canonical installation:
+Post-publication canonical installation:
 
 ```bash
 # workspace installation
@@ -341,6 +347,11 @@ The CodeGraphy monorepo owns the canonical skill source until the release
 process publishes or synchronizes it to `codegraphy/skills`. Do not build an
 agent-directory copier into Core; use the Agent Skills ecosystem as the
 installation abstraction.
+
+The public repository does not exist at implementation time. Creating it,
+synchronizing this canonical source, and smoke-testing the GitHub install are
+explicit release prerequisites; documentation must not claim the remote
+command is live before those steps complete.
 
 ## Delete MCP
 
@@ -379,7 +390,8 @@ reason to keep dead source in the monorepo.
 
 ### Phase 1: Select And Package SQLite
 
-1. Evaluate the SQLite binding on Node 20, 22, and 24 and supported platforms.
+1. Use `libsql` 0.5.29 and verify its Node-API platform packages on Node 20, 22,
+   and 24 and supported platforms.
 2. Verify npm, VSIX, Core CLI, transactions, WAL, foreign keys, and integrity
    checks.
 3. Record the binding choice in an ADR.
@@ -431,7 +443,8 @@ reason to keep dead source in the monorepo.
 3. Validate Agent Skills metadata.
 4. Exercise global and workspace installs through the Skills CLI.
 5. Publish or synchronize the canonical source to `codegraphy/skills`.
-6. Document `npx skills@latest add codegraphy/skills` as the default command.
+6. Smoke-test `npx skills@latest add codegraphy/skills` from a clean workspace.
+7. Promote that command from post-publication guidance to the live default.
 
 ### Phase 7: Release
 
