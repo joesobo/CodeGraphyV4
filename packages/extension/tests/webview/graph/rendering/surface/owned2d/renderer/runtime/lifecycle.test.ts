@@ -148,6 +148,31 @@ describe('owned WebGPU renderer lifecycle', () => {
     expect(runtime.requestFrameRef.current).toHaveBeenCalledTimes(2);
   });
 
+  it('recreates the renderer after an uncaptured runtime error', async () => {
+    const renderer = { dispose: vi.fn() };
+    const replacement = { dispose: vi.fn() };
+    rendererHarness.create
+      .mockResolvedValueOnce(renderer)
+      .mockResolvedValueOnce(replacement);
+    const { engine, runtime } = runtimeHarness();
+    startOwnedGraphRendererLifecycle(runtime, document.createElement('canvas'));
+    await flushLifecycle();
+    const options = rendererHarness.create.mock.calls[0][1] as {
+      onRendererError(message: string): void;
+    };
+
+    options.onRendererError('node buffer is too large');
+    await flushLifecycle();
+
+    expect(renderer.dispose).toHaveBeenCalledOnce();
+    expect(rendererHarness.create).toHaveBeenCalledTimes(2);
+    expect(runtime.gpuRendererRef.current).toBe(replacement);
+    expect(runtime.rendererOperationalRef.current).toBe(true);
+    expect(engine.pause).toHaveBeenCalledOnce();
+    expect(runtime.onRecovering).toHaveBeenCalledOnce();
+    expect(runtime.onError).not.toHaveBeenCalled();
+  });
+
   it('surfaces device loss after two replacement attempts fail', async () => {
     const renderer = { dispose: vi.fn() };
     rendererHarness.create

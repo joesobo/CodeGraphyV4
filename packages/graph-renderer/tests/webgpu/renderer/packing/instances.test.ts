@@ -16,6 +16,7 @@ describe('WebGPU renderer frame packing', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete,
+      onRendererError: vi.fn(),
     });
     expect(renderer).toBeDefined();
     const frame = rendererFrame();
@@ -93,8 +94,9 @@ describe('WebGPU renderer frame packing', () => {
       'CodeGraphy link styles',
       'CodeGraphy camera uniform',
     ]);
-    await Promise.resolve();
-    expect(onFrameComplete.mock.calls).toEqual([[1], [2], [3]]);
+    await vi.waitFor(() => {
+      expect(onFrameComplete.mock.calls).toEqual([[1], [2], [3]]);
+    });
   });
 
   it('packs node instances by ascending drawn size without reordering graph data', async () => {
@@ -102,6 +104,7 @@ describe('WebGPU renderer frame packing', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     const originalNodes = [...frame.nodes];
@@ -130,6 +133,7 @@ describe('WebGPU renderer frame packing', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     const getNodeStyle = vi.fn(frame.getNodeStyle);
@@ -152,6 +156,7 @@ describe('WebGPU renderer frame packing', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     frame.nodeX[0] = 11;

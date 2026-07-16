@@ -1,4 +1,4 @@
-import { GRAPH_EDGE_HOVER_MIN_ZOOM, graphDetailOpacity } from '../../detailVisibility';
+import { graphDetailOpacity } from '../../detailVisibility';
 import type { GraphRendererFrame } from '../../contracts';
 import { graphNodeWorldScale } from '../../visualSize';
 import type { GraphBufferState } from './state';
@@ -11,10 +11,7 @@ import { updateLinkRenderOrder } from '../link/order';
 import { uploadLinkBuffers } from '../link/upload';
 import { uploadNodeBuffers } from '../node/upload';
 import type { StyleCacheUpdate } from '../styleCache';
-
-function edgeStride(frame: GraphRendererFrame): number {
-  return frame.links.length > 250_000 && frame.camera.zoom < GRAPH_EDGE_HOVER_MIN_ZOOM ? 2 : 1;
-}
+import { graphEdgeStride } from './limits';
 
 export function updateGraphBuffers(
   device: GPUDevice,
@@ -22,7 +19,7 @@ export function updateGraphBuffers(
   frame: GraphRendererFrame,
   styleUpdate: StyleCacheUpdate,
 ): void {
-  const stride = edgeStride(frame);
+  const stride = graphEdgeStride(frame);
   const positionsChanged = graphPositionsChanged(state, frame);
   const strideChanged = state.uploadedEdgeStride !== stride;
   const orderChanged = updateLinkRenderOrder(state, frame, stride);

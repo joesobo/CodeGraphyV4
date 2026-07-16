@@ -15,6 +15,7 @@ describe('WebGPU renderer detail visibility', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     frame.camera.zoom = 0.35;

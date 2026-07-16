@@ -24,25 +24,42 @@ export function webGpuHarness() {
   const writeBuffer = vi.fn();
   const onSubmittedWorkDone = vi.fn(() => Promise.resolve());
   const pipeline = { getBindGroupLayout: vi.fn(() => ({})) };
+  const limits = {
+    maxBufferSize: 1_073_741_824,
+    maxTextureDimension2D: 100,
+    maxUniformBufferBindingSize: 65_536,
+  };
+  const uncapturedErrorListeners = new Set<(event: GPUUncapturedErrorEvent) => void>();
   let resolveDeviceLost!: (info: GPUDeviceLostInfo) => void;
   const deviceLost = new Promise<GPUDeviceLostInfo>((resolve) => {
     resolveDeviceLost = resolve;
   });
   const device = {
+    addEventListener: vi.fn((type: string, listener: (event: GPUUncapturedErrorEvent) => void) => {
+      if (type === 'uncapturederror') uncapturedErrorListeners.add(listener);
+    }),
     createBindGroup: vi.fn(() => ({})),
-    createBuffer: vi.fn((descriptor: GPUBufferDescriptor) => ({
-      destroy: vi.fn(),
-      label: descriptor.label,
-    })),
+    createBuffer: vi.fn((descriptor: GPUBufferDescriptor) => {
+      if (Number(descriptor.size) > limits.maxBufferSize) {
+        throw new Error(`createBuffer exceeds maxBufferSize: ${String(descriptor.size)}`);
+      }
+      return {
+        destroy: vi.fn(),
+        label: descriptor.label,
+      };
+    }),
     createCommandEncoder: vi.fn(() => encoder),
     createRenderPipeline: vi.fn((_descriptor: GPURenderPipelineDescriptor) => pipeline),
     createShaderModule: vi.fn(() => ({})),
     destroy: vi.fn(),
-    limits: { maxTextureDimension2D: 100 },
+    limits,
     lost: deviceLost,
     popErrorScope: vi.fn(async () => null),
     pushErrorScope: vi.fn(),
     queue: { onSubmittedWorkDone, submit: vi.fn(), writeBuffer },
+    removeEventListener: vi.fn((type: string, listener: (event: GPUUncapturedErrorEvent) => void) => {
+      if (type === 'uncapturederror') uncapturedErrorListeners.delete(listener);
+    }),
   };
   const context = {
     configure: vi.fn(),
@@ -65,6 +82,14 @@ export function webGpuHarness() {
     context,
     device,
     draw,
+    emitUncapturedError(message: string) {
+      const event = {
+        error: { message },
+        preventDefault: vi.fn(),
+      } as unknown as GPUUncapturedErrorEvent;
+      for (const listener of uncapturedErrorListeners) listener(event);
+      return event;
+    },
     gpu,
     pass,
     resolveDeviceLost,

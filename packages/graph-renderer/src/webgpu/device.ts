@@ -9,10 +9,26 @@ export interface RendererResources {
   node: GPURenderPipeline;
 }
 
-async function requestDevice(gpu: GPU): Promise<GPUDevice | undefined> {
-  const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' })
-    ?? await gpu.requestAdapter({ forceFallbackAdapter: true });
+async function requestAdapterDevice(
+  gpu: GPU,
+  options: GPURequestAdapterOptions,
+): Promise<GPUDevice | undefined> {
+  const adapter = await gpu.requestAdapter(options);
   return adapter?.requestDevice();
+}
+
+async function requestDevice(gpu: GPU): Promise<GPUDevice | undefined> {
+  let preferredError: Error | undefined;
+  try {
+    const preferredDevice = await requestAdapterDevice(gpu, { powerPreference: 'high-performance' });
+    if (preferredDevice) return preferredDevice;
+  } catch (error) {
+    preferredError = error instanceof Error ? error : new Error(String(error));
+  }
+  const fallbackDevice = await requestAdapterDevice(gpu, { forceFallbackAdapter: true });
+  if (fallbackDevice) return fallbackDevice;
+  if (preferredError !== undefined) throw preferredError;
+  return undefined;
 }
 
 export async function createRendererResources(
@@ -31,12 +47,27 @@ export async function createRendererResources(
     }
     const format = gpu.getPreferredCanvasFormat();
     context.configure({ alphaMode: 'premultiplied', device, format });
+    device.pushErrorScope('internal');
+    device.pushErrorScope('out-of-memory');
     device.pushErrorScope('validation');
     const node = createNodePipeline(device, format);
     const { arrow, link } = createLinkPipelines(device, format);
-    const validationError = await device.popErrorScope();
+    const validationResult = device.popErrorScope();
+    const outOfMemoryResult = device.popErrorScope();
+    const internalResult = device.popErrorScope();
+    const [validationError, outOfMemoryError, internalError] = await Promise.all([
+      validationResult,
+      outOfMemoryResult,
+      internalResult,
+    ]);
     if (validationError) {
       throw new Error(`WebGPU pipeline validation failed: ${validationError.message}`);
+    }
+    if (outOfMemoryError) {
+      throw new Error(`WebGPU pipeline allocation failed: ${outOfMemoryError.message}`);
+    }
+    if (internalError) {
+      throw new Error(`WebGPU pipeline creation failed: ${internalError.message}`);
     }
     return { arrow, context, device, link, node };
   } catch (error) {

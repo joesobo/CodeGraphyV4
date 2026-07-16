@@ -10,6 +10,7 @@ describe('WebGPU renderer interaction uniforms', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     frame.hoveredNodeIndex = 1;
@@ -39,6 +40,7 @@ describe('WebGPU renderer interaction uniforms', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     frame.hoveredLink = frame.links[0];
@@ -76,6 +78,7 @@ describe('WebGPU renderer interaction uniforms', () => {
     const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
       onDeviceLost: vi.fn(),
       onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
     });
     const frame = rendererFrame();
     frame.hoveredLink = frame.links[0];

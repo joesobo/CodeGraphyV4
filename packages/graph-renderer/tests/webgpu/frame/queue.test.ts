@@ -54,9 +54,9 @@ describe('FrameQueue', () => {
 
     expect(queue.canSubmit()).toBe(true);
     expect(settlements).toEqual([
-      { submissionId: 1, succeeded: false },
-      { submissionId: 2, succeeded: true },
-      { submissionId: 3, succeeded: false },
+      { error: null, submissionId: 1, succeeded: false },
+      { error: null, submissionId: 2, succeeded: true },
+      { error: null, submissionId: 3, succeeded: false },
     ]);
   });
 
@@ -72,8 +72,41 @@ describe('FrameQueue', () => {
     harness.completions[0].reject(new Error('lost'));
     await flushCompletion();
 
-    expect(onFrameSettled).toHaveBeenNthCalledWith(1, { submissionId: 2, succeeded: true });
-    expect(onFrameSettled).toHaveBeenNthCalledWith(2, { submissionId: 1, succeeded: false });
+    expect(onFrameSettled).toHaveBeenNthCalledWith(1, {
+      error: null,
+      submissionId: 2,
+      succeeded: true,
+    });
+    expect(onFrameSettled).toHaveBeenNthCalledWith(2, {
+      error: null,
+      submissionId: 1,
+      succeeded: false,
+    });
+  });
+
+  it('does not report success until frame validation settles', async () => {
+    const harness = queueHarness();
+    const onFrameSettled = vi.fn();
+    const queue = new FrameQueue(harness.device, onFrameSettled);
+    let resolveValidation!: (error: GPUError | null) => void;
+    const validation = new Promise<GPUError | null>(resolve => {
+      resolveValidation = resolve;
+    });
+
+    queue.trackSubmission(validation);
+    harness.completions[0].resolve();
+    await flushCompletion();
+    expect(onFrameSettled).not.toHaveBeenCalled();
+
+    const error = { message: 'frame validation failed' } as GPUError;
+    resolveValidation(error);
+    await flushCompletion();
+
+    expect(onFrameSettled).toHaveBeenCalledWith({
+      error,
+      submissionId: 1,
+      succeeded: false,
+    });
   });
 
   it('does not report settlement after disposal', async () => {
