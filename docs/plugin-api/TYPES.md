@@ -47,6 +47,8 @@ Key points:
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, defaults, and optional user-facing descriptions for Graph Scope.
 - `contributeGraphScopeCapabilities(context)` lets plugins declare core or plugin-owned Node Types and Edge Types that are relevant when the plugin is enabled and applies to the indexed workspace, even if the current graph has no matching nodes or relationships yet. Use `context.filePaths` when one plugin supports several languages or file families with different capabilities.
 - Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- `IPluginAnalysisContext.workspaceFiles`: lightweight discovered workspace
+  paths and extensions for cross-file invalidation without reading contents.
 
 ### `IPluginAnalysisContext`
 

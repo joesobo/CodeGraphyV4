@@ -26,6 +26,33 @@ function createCachedWorkspaceFileContentReader(
   };
 }
 
+function pluginPreAnalyzesFile(
+  registry: CorePluginRegistry,
+  relativePath: string,
+): boolean {
+  const lowercasePath = relativePath.toLowerCase();
+  return registry.list().some(({ plugin }) => (
+    plugin.onPreAnalyze !== undefined
+    && (
+      plugin.supportedExtensions.includes('*')
+      || plugin.supportedExtensions.some(extension => lowercasePath.endsWith(extension.toLowerCase()))
+    )
+  ));
+}
+
+function selectWorkspaceIndexPreAnalysisFiles(
+  input: {
+    options: Pick<IndexCodeGraphyWorkspaceOptions, 'includeCorePlugins'>;
+    registry: CorePluginRegistry;
+  },
+  files: IDiscoveryResult['files'],
+): IDiscoveryResult['files'] {
+  return files.filter(file => (
+    (input.options.includeCorePlugins !== false && file.extension === '.cs')
+    || pluginPreAnalyzesFile(input.registry, file.relativePath)
+  ));
+}
+
 export async function analyzeWorkspaceIndexFiles(input: {
   cache: IWorkspaceAnalysisCache;
   discovery: FileDiscovery;
@@ -61,7 +88,7 @@ export async function analyzeWorkspaceIndexFiles(input: {
     }),
     preAnalyzeFiles: (files, rootPath, signal) =>
       preAnalyzeWorkspacePipelineFiles(
-        files,
+        selectWorkspaceIndexPreAnalysisFiles(input, files),
         rootPath,
         {
           notifyPreAnalyze: async (preAnalyzeFiles, preAnalyzeRootPath) => {

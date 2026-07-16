@@ -126,6 +126,10 @@ Path contract:
 Called before an incremental save-driven re-analysis when CodeGraphy already has a warm Graph Cache. Return additional workspace-relative files when dependents also need analysis.
 The hook receives all changed workspace files, including configuration files
 outside the plugin's `supportedExtensions`; filter inside the hook when needed.
+`context.workspaceFiles` provides the complete discovered workspace inventory
+as paths and extensions without forcing Core to read every file. Use
+`context.fileSystem.readTextFile(...)` only when invalidation truly needs file
+contents.
 
 ```typescript
 async onFilesChanged(files, workspaceRoot, context) {

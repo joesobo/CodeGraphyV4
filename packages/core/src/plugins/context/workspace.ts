@@ -8,6 +8,7 @@ export function createWorkspacePluginAnalysisContext(
   options: {
     features?: IPluginAnalysisContext['features'];
     pluginOptions?: Record<string, unknown>;
+    workspaceFiles?: IPluginAnalysisContext['workspaceFiles'];
   } = {},
 ): IPluginAnalysisContext {
   const context: IPluginAnalysisContext = {
@@ -20,6 +21,10 @@ export function createWorkspacePluginAnalysisContext(
 
   if (options.pluginOptions) {
     context.options = { ...options.pluginOptions };
+  }
+
+  if (options.workspaceFiles) {
+    context.workspaceFiles = [...options.workspaceFiles];
   }
 
   return context;

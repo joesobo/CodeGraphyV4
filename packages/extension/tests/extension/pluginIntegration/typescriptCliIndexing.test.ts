@@ -1,8 +1,9 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
+import { FileDiscovery, indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
+import { vi } from 'vitest';
 
 describe('TypeScript CLI-style indexing', () => {
   it('rebuilds alias relationships when tsconfig changes in a fresh plugin process', async () => {
@@ -13,6 +14,7 @@ describe('TypeScript CLI-style indexing', () => {
     await fs.writeFile(path.join(workspaceRoot, 'src', 'app.ts'), "import { token } from '#/token';\n");
     await fs.writeFile(path.join(workspaceRoot, 'src-a', 'token.ts'), 'export const token = 1;\n');
     await fs.writeFile(path.join(workspaceRoot, 'src-b', 'token.ts'), 'export const token = 2;\n');
+    await fs.writeFile(path.join(workspaceRoot, 'README.md'), '# Unrelated\n');
 
     const writeConfig = (target: 'src-a' | 'src-b') => fs.writeFile(
       path.join(workspaceRoot, 'tsconfig.json'),
@@ -26,6 +28,7 @@ describe('TypeScript CLI-style indexing', () => {
 
     await writeConfig('src-a');
     const initial = await index();
+    const readContent = vi.spyOn(FileDiscovery.prototype, 'readContent');
     await writeConfig('src-b');
     const refreshed = await index();
 
@@ -45,5 +48,7 @@ describe('TypeScript CLI-style indexing', () => {
       to: 'src-a/token.ts',
       kind: 'codegraphy.typescript:alias-import',
     }));
+    expect(readContent.mock.calls.some(([file]) => file.relativePath === 'README.md')).toBe(false);
+    readContent.mockRestore();
   });
 });

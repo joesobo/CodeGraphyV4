@@ -117,8 +117,19 @@ export interface IPluginAnalysisFileSystem {
   readTextFile(filePath: string): Promise<string | null>;
 }
 
+export interface IPluginWorkspaceFile {
+  /** Absolute path to the discovered workspace file. */
+  absolutePath: string;
+  /** Path relative to the workspace root. */
+  relativePath: string;
+  /** Lowercase file extension, including the leading dot when present. */
+  extension: string;
+}
+
 export interface IPluginAnalysisContext {
   fileSystem: IPluginAnalysisFileSystem;
+  /** Lightweight discovered workspace inventory for cross-file invalidation. */
+  workspaceFiles?: readonly IPluginWorkspaceFile[];
   features?: {
     symbols?: boolean;
   };
