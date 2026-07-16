@@ -108,4 +108,17 @@ describe('Relationship Graph minimap change observation', () => {
     expect(scheduler.dirty).toBe(false);
     expect(scheduler.pendingBoundsReset).toBe(false);
   });
+
+  it('does not invalidate the settled projection for a position-only change', () => {
+    const scheduler = createMinimapScheduler();
+    const baseline = input();
+    observeMinimapChanges(scheduler, baseline);
+    scheduler.dirty = false;
+    scheduler.projectionFitPending = false;
+
+    observeMinimapChanges(scheduler, { ...baseline, positionVersion: 2 });
+
+    expect(scheduler.dirty).toBe(true);
+    expect(scheduler.projectionFitPending).toBe(false);
+  });
 });

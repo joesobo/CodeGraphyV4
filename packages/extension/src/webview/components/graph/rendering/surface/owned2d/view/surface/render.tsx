@@ -64,7 +64,7 @@ interface OwnedMinimapLifecycleInput {
   canvasRef: RefObject<HTMLCanvasElement>;
   enabled: boolean;
   navigationSessionRef: MutableRefObject<MinimapNavigationSession | null>;
-  onError(this: void, message: string): void;
+  panelRef: RefObject<HTMLDivElement>;
   projectionRef: MutableRefObject<MinimapProjection | null>;
   registeredRef: MutableRefObject<boolean>;
   rendererRef: MutableRefObject<WebGpuGraphRenderer | null>;
@@ -79,7 +79,7 @@ function useOwnedMinimapLifecycle(input: OwnedMinimapLifecycleInput): void {
     canvasRef,
     enabled,
     navigationSessionRef,
-    onError,
+    panelRef,
     projectionRef,
     registeredRef,
     rendererRef,
@@ -99,10 +99,12 @@ function useOwnedMinimapLifecycle(input: OwnedMinimapLifecycleInput): void {
     if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
     try {
       renderer.setSecondarySurface(minimapCanvas);
-    } catch (error) {
+    } catch {
       registeredRef.current = false;
       renderer.setSecondarySurface(undefined);
-      onError(error instanceof Error ? error.message : String(error));
+      boundsRef.current = null;
+      projectionRef.current = null;
+      if (panelRef.current) panelRef.current.hidden = true;
       return;
     }
     registeredRef.current = true;
@@ -117,7 +119,7 @@ function useOwnedMinimapLifecycle(input: OwnedMinimapLifecycleInput): void {
     canvasRef,
     enabled,
     navigationSessionRef,
-    onError,
+    panelRef,
     projectionRef,
     registeredRef,
     rendererRef,
@@ -172,10 +174,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const [rendererStatus, setRendererStatus] = useState<OwnedGraphRendererStatus>('initializing');
   const [rendererError, setRendererError] = useState<string | null>(null);
   const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
-  const handleMinimapRendererError = useCallback((message: string): void => {
-    setRendererError(message);
-    setRendererStatus('error');
-  }, []);
   const clearLinkHover = useCallback((): boolean => {
     if (!hoveredLinkRef.current) return false;
     hoveredLinkRef.current = null;
@@ -302,7 +300,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     canvasRef: minimapCanvasRef,
     enabled: props.showMinimap,
     navigationSessionRef: minimapNavigationSessionRef,
-    onError: handleMinimapRendererError,
+    panelRef: minimapPanelRef,
     projectionRef: minimapProjectionRef,
     registeredRef: minimapSurfaceRegisteredRef,
     rendererRef: gpuRendererRef,

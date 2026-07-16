@@ -12,6 +12,7 @@ export type { MinimapRefreshInput } from './changes';
 const MINIMAP_MOVING_REFRESH_INTERVAL_MS = 1000 / 8;
 
 export interface MinimapRefreshDecision {
+  fitProjection: boolean;
   refresh: boolean;
   resetBounds: boolean;
   tightenBounds: boolean;
@@ -33,12 +34,15 @@ export function scheduleMinimapRefresh(
   const { settled } = observeMinimapChanges(scheduler, input);
   const cadenceAllowsRefresh = movingCadenceAllowsRefresh(scheduler, input);
   const refresh = scheduler.dirty && (cadenceAllowsRefresh || settled);
+  const fitProjection = refresh && scheduler.projectionFitPending;
   const decision = {
+    fitProjection,
     refresh,
     resetBounds: refresh && scheduler.pendingBoundsReset,
-    tightenBounds: refresh && settled,
+    tightenBounds: fitProjection && (settled || !input.moving),
   };
   if (refresh) completeMinimapRefresh(scheduler, input.timestampMs);
+  if (fitProjection && !input.moving) scheduler.projectionFitPending = false;
   scheduler.wasMoving = input.moving;
   return decision;
 }

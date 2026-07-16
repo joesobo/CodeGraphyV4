@@ -127,7 +127,9 @@ function prepareMinimapSecondaryFrame(
     links: layout.links,
     nodes: layout.nodes,
   };
-  const projection = resolveMinimapProjection(runtime, scene, dimensions, moving, decision);
+  const projection = decision.fitProjection || !runtime.minimapProjectionRef.current
+    ? resolveMinimapProjection(runtime, scene, dimensions, moving, decision)
+    : runtime.minimapProjectionRef.current;
   runtime.minimapProjectionRef.current = projection;
   if (!projection) return undefined;
   return {

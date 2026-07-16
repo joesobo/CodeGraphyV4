@@ -57,6 +57,32 @@ describe('Relationship Graph minimap pointer events', () => {
     expect(panel.releasePointerCapture).not.toHaveBeenCalled();
   });
 
+  it('pans the camera with arrow keys and preserves zoom', () => {
+    const { panel, runtime } = createEventRuntime();
+    runtime.sessionRef.current = null;
+    runtime.mainCanvasRef.current = {
+      getBoundingClientRect: () => ({ height: 600, width: 1_000 }),
+    } as HTMLCanvasElement;
+    runtime.cameraRef.current = { centerX: 20, centerY: -10, zoom: 2 };
+    const handlers = createMinimapInteractionHandlers(runtime);
+    const event = {
+      currentTarget: panel,
+      key: 'ArrowRight',
+      shiftKey: false,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    };
+
+    handlers.onKeyDown(event as never);
+
+    expect(runtime.cameraRef.current).toEqual({
+      centerX: 70, centerY: -10, transition: null, zoom: 2,
+    });
+    expect(runtime.requestFrame).toHaveBeenCalledOnce();
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(event.stopPropagation).toHaveBeenCalledOnce();
+  });
+
   it('clears only the session whose pointer capture was lost', () => {
     const { panel, runtime } = createEventRuntime();
     const handlers = createMinimapInteractionHandlers(runtime);

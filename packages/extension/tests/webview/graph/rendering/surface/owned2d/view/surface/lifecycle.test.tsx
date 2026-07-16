@@ -147,7 +147,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(rendererHarness.setSecondarySurface).toHaveBeenLastCalledWith(undefined);
   });
 
-  it('reports secondary-surface setup failures without leaking registration', async () => {
+  it('keeps the primary graph operational when the optional minimap surface fails', async () => {
     rendererHarness.setSecondarySurface.mockImplementation((canvas?: HTMLCanvasElement) => {
       if (canvas) throw new Error('secondary surface failed');
     });
@@ -160,9 +160,10 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
 
     const { container } = render(<OwnedGraphSurface2d {...createDefaultSurfaceProps()} />);
 
-    expect(await screen.findByTestId('graph-webgpu-error'))
-      .toHaveTextContent('secondary surface failed');
-    expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'error');
+    await waitFor(() => expect(rendererHarness.setSecondarySurface).toHaveBeenCalled());
+    expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    expect(screen.getByTestId('graph-minimap')).not.toBeVisible();
     expect(rendererHarness.setSecondarySurface).toHaveBeenLastCalledWith(undefined);
   });
 

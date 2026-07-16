@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
 interface GraphDebugSnapshot {
+  cameraCenterX: number | null;
+  cameraCenterY: number | null;
   containerHeight: number;
   containerWidth: number;
   nodes: Array<{
@@ -10,6 +12,14 @@ interface GraphDebugSnapshot {
     size: number;
   }>;
   zoom: number | null;
+}
+
+interface MinimapCameraState {
+  boxCenterX: number;
+  boxCenterY: number;
+  boxHeight: number;
+  boxWidth: number;
+  snapshot: GraphDebugSnapshot;
 }
 
 async function waitForGraphDebugBridge(page: Page): Promise<void> {
@@ -69,7 +79,123 @@ function expectNodesToFit(snapshot: GraphDebugSnapshot): void {
   }
 }
 
+async function readMinimapCameraState(page: Page): Promise<MinimapCameraState> {
+  const viewportBox = page.getByTestId('graph-minimap-viewport');
+  await expect.poll(async () => viewportBox.evaluate(element => {
+    const height = Number(element.getAttribute('height'));
+    const width = Number(element.getAttribute('width'));
+    return Number.isFinite(height) && height > 0 && Number.isFinite(width) && width > 0;
+  })).toBe(true);
+  const box = await viewportBox.evaluate(element => ({
+    height: Number(element.getAttribute('height')),
+    width: Number(element.getAttribute('width')),
+    x: Number(element.getAttribute('x')),
+    y: Number(element.getAttribute('y')),
+  }));
+  return {
+    boxCenterX: box.x + box.width / 2,
+    boxCenterY: box.y + box.height / 2,
+    boxHeight: box.height,
+    boxWidth: box.width,
+    snapshot: await getGraphDebugSnapshot(page),
+  };
+}
+
+function expectViewportBoxMatchesCamera(before: MinimapCameraState, after: MinimapCameraState): void {
+  expect(before.snapshot.cameraCenterX).not.toBeNull();
+  expect(before.snapshot.cameraCenterY).not.toBeNull();
+  expect(after.snapshot.cameraCenterX).not.toBeNull();
+  expect(after.snapshot.cameraCenterY).not.toBeNull();
+  const cameraDeltaX = (after.snapshot.cameraCenterX ?? 0) - (before.snapshot.cameraCenterX ?? 0);
+  const cameraDeltaY = (after.snapshot.cameraCenterY ?? 0) - (before.snapshot.cameraCenterY ?? 0);
+  const boxDeltaX = after.boxCenterX - before.boxCenterX;
+  const boxDeltaY = after.boxCenterY - before.boxCenterY;
+
+  expect(cameraDeltaX * boxDeltaX).toBeGreaterThan(0);
+  expect(cameraDeltaY * boxDeltaY).toBeGreaterThan(0);
+}
+
+function expectViewportBoxAspect(state: MinimapCameraState): void {
+  expect(state.boxWidth / state.boxHeight).toBeCloseTo(
+    state.snapshot.containerWidth / state.snapshot.containerHeight,
+    3,
+  );
+}
+
+async function centerAndZoomGraph(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const debugBridge = window.__CODEGRAPHY_GRAPH_DEBUG__;
+    if (!debugBridge?.centerNode('src/index.ts', 50)) {
+      throw new Error('Expected debug bridge to center the graph');
+    }
+  });
+  await expect.poll(async () => (await getGraphDebugSnapshot(page)).zoom).toBe(50);
+  await page.evaluate(() => new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+  await expect.poll(async () => Number(
+    await page.getByTestId('graph-minimap-viewport').getAttribute('width'),
+  )).toBeLessThan(100);
+}
+
+async function dragMinimapCamera(page: Page, deltaX: number, deltaY: number): Promise<void> {
+  const minimap = page.getByTestId('graph-minimap');
+  const bounds = await minimap.boundingBox();
+  if (!bounds) throw new Error('Expected visible minimap bounds');
+  const startX = bounds.x + bounds.width / 2;
+  const startY = bounds.y + bounds.height / 2;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + deltaX, startY + deltaY, { steps: 4 });
+  await page.mouse.up();
+  await page.evaluate(() => new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+}
+
 test.describe('webview depth view', () => {
+  test('keeps the minimap viewport aligned with camera pan, resize, and graph changes', async ({
+    page,
+  }) => {
+    await page.goto('/depth-view');
+    await waitForGraphDebugBridge(page);
+    await expect(page.getByTestId('graph-minimap')).toBeVisible();
+    await centerAndZoomGraph(page);
+
+    const initial = await readMinimapCameraState(page);
+    expectViewportBoxAspect(initial);
+    await dragMinimapCamera(page, 20, 24);
+    const panned = await readMinimapCameraState(page);
+    expectViewportBoxMatchesCamera(initial, panned);
+
+    await page.setViewportSize({ width: 900, height: 650 });
+    await centerAndZoomGraph(page);
+    const resized = await readMinimapCameraState(page);
+    expectViewportBoxAspect(resized);
+
+    const slider = page.getByTestId('depth-view-slider').getByRole('slider');
+    await slider.focus();
+    await slider.press('ArrowRight');
+    await expect(page.getByTestId('depth-harness-node-count')).toHaveText('4');
+    await centerAndZoomGraph(page);
+    const changed = await readMinimapCameraState(page);
+    await dragMinimapCamera(page, -18, 22);
+    const changedAndPanned = await readMinimapCameraState(page);
+    expectViewportBoxAspect(changed);
+    expectViewportBoxMatchesCamera(changed, changedAndPanned);
+
+    const minimap = page.getByTestId('graph-minimap');
+    await minimap.focus();
+    await minimap.press('ArrowDown');
+    await page.evaluate(() => new Promise<void>(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    const keyboardPanned = await readMinimapCameraState(page);
+    expect(keyboardPanned.snapshot.cameraCenterY)
+      .toBeGreaterThan(changedAndPanned.snapshot.cameraCenterY ?? Number.NEGATIVE_INFINITY);
+    expect(keyboardPanned.boxCenterY).toBeGreaterThan(changedAndPanned.boxCenterY);
+  });
+
   test('renders the local depth graph and updates rendered bounds as depth changes', async ({
     page,
   }) => {

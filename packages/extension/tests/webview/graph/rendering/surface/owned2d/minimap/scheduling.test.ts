@@ -11,7 +11,7 @@ describe('Relationship Graph minimap refresh scheduling', () => {
       baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
       graphStyleRevision: 1, moving: true, positionVersion: 1,
       surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
-    })).toEqual({ refresh: true, resetBounds: true, tightenBounds: false });
+    })).toEqual({ fitProjection: true, refresh: true, resetBounds: true, tightenBounds: false });
     expect(scheduleMinimapRefresh(scheduler, {
       baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
       graphStyleRevision: 1, moving: true, positionVersion: 2,
@@ -26,7 +26,7 @@ describe('Relationship Graph minimap refresh scheduling', () => {
       baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity, graphRevision: 1,
       graphStyleRevision: 1, moving: false, positionVersion: 4,
       surfaceHeight: 160, surfaceWidth: 160, timestampMs: 130,
-    })).toEqual({ refresh: true, resetBounds: false, tightenBounds: true });
+    })).toEqual({ fitProjection: true, refresh: true, resetBounds: false, tightenBounds: true });
   });
 
   it('refreshes graph and style changes but ignores camera-only frames', () => {
@@ -62,7 +62,7 @@ describe('Relationship Graph minimap refresh scheduling', () => {
 
     expect(scheduleMinimapRefresh(scheduler, {
       ...input, graphRevision: 2, positionVersion: 2, timestampMs: 125,
-    })).toEqual({ refresh: true, resetBounds: true, tightenBounds: false });
+    })).toEqual({ fitProjection: true, refresh: true, resetBounds: true, tightenBounds: false });
   });
 
   it('refreshes the retained target when DPR or panel dimensions change', () => {
@@ -79,6 +79,28 @@ describe('Relationship Graph minimap refresh scheduling', () => {
     }).refresh).toBe(true);
     expect(scheduleMinimapRefresh(scheduler, {
       ...input, devicePixelRatio: 2, surfaceHeight: 144, surfaceWidth: 144, timestampMs: 2,
-    }).refresh).toBe(true);
+    })).toMatchObject({ fitProjection: true, refresh: true });
+  });
+
+  it('keeps the settled fit while repainting user-driven node positions', () => {
+    const scheduler = createMinimapScheduler();
+    const input = {
+      baseStyleVersion: 1, devicePixelRatio: 1, graphIdentity: {}, graphRevision: 1,
+      graphStyleRevision: 1, moving: true, positionVersion: 1,
+      surfaceHeight: 160, surfaceWidth: 160, timestampMs: 0,
+    };
+
+    scheduleMinimapRefresh(scheduler, input);
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, moving: false, positionVersion: 2, timestampMs: 10,
+    })).toMatchObject({ fitProjection: true, refresh: true, tightenBounds: true });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, moving: true, positionVersion: 3, timestampMs: 135,
+    })).toMatchObject({ fitProjection: false, refresh: true, resetBounds: false });
+
+    expect(scheduleMinimapRefresh(scheduler, {
+      ...input, moving: false, positionVersion: 4, timestampMs: 145,
+    })).toMatchObject({ fitProjection: false, refresh: true, tightenBounds: false });
   });
 });
