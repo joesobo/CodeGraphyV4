@@ -123,7 +123,11 @@ class BrowserCssColorResolver implements CssColorResolver {
     private readonly contextProvider: ColorContextProvider | undefined,
   ) {}
 
-  resolve(value: string | undefined, fallback: string, contextOverride?: Element | null): string {
+  readonly resolve = (
+    value: string | undefined,
+    fallback: string,
+    contextOverride?: Element | null,
+  ): string => {
     if (!value) return fallback;
     const context = this.resolveContext(contextOverride);
     if (!context || !this.ownerDocument || !this.ownerWindow) return fallback;
@@ -135,7 +139,7 @@ class BrowserCssColorResolver implements CssColorResolver {
       this.ownerDocument,
       this.ownerWindow,
     );
-  }
+  };
 
   private resolveContext(contextOverride: Element | null | undefined): Element | null {
     if (!this.ownerDocument?.body || !this.ownerWindow) return null;

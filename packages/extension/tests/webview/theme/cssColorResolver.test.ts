@@ -89,6 +89,13 @@ describe('webview/cssColors/resolver', () => {
     expect(resolver().resolve(input, '#010203')).toBe(output);
   });
 
+  it('keeps resolve callable when consumers pass it as a callback', () => {
+    computed.set('gold', 'rgb(255, 215, 0)');
+    const { resolve } = resolver();
+
+    expect(resolve('gold', '#010203')).toBe('rgb(255, 215, 0)');
+  });
+
   it.each([
     ['oklch(50% 0.2 30 / 50%)', 'oklch(0.5 0.2 30 / 0.5)', [190, 20, 30, 128], 'rgba(190, 20, 30, 0.502)'],
     ['lab(60% 80 70)', 'lab(60 80 70)', [255, 61, 0, 255], 'rgba(255, 61, 0, 1)'],
