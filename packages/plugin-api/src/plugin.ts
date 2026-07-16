@@ -1,7 +1,7 @@
 /**
  * @fileoverview The IPlugin interface — the canonical plugin contract.
  *
- * Plugin API v2 is required. Every plugin must declare `apiVersion`
+ * Plugin API v3 is required. Every plugin must declare `apiVersion`
  * and is validated by the host at registration time.
  *
  * @module @codegraphy-dev/plugin-api/plugin
@@ -175,7 +175,7 @@ export interface IPluginUpdateImpactPolicy {
  *   id: 'myplugin.coverage',
  *   name: 'Coverage Overlay',
  *   version: '0.1.0',
- *   apiVersion: '^2.0.0',
+ *   apiVersion: '^3.0.0',
  *   supportedExtensions: [],
  *   async analyzeFile(filePath) {
  *     return { filePath, relations: [] };

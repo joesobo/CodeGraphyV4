@@ -11,7 +11,7 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,

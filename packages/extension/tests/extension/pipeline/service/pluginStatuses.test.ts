@@ -59,7 +59,7 @@ class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
         id: 'codegraphy.typescript',
         name: 'TypeScript/JavaScript',
         version: '2.1.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         supportedExtensions: ['.ts', '.tsx'],
         analyzeFile: vi.fn(),
       },

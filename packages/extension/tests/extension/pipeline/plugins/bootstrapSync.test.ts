@@ -69,7 +69,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         disclosures: [],
         packageRoot,
         pluginId: 'acme.extension-bootstrap',

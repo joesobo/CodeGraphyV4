@@ -34,7 +34,7 @@ export function createPlugin(id: string, name: string, supportedExtensions: stri
     id,
     name,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions,
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;

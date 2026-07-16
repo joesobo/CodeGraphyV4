@@ -35,7 +35,7 @@ describe('pipeline/plugins/statusContext', () => {
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
             pluginId: 'codegraphy.vue',
@@ -43,7 +43,7 @@ describe('pipeline/plugins/statusContext', () => {
           {
             package: '@codegraphy-dev/plugin-godot',
             version: '3.0.0',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
             pluginId: 'codegraphy.godot',
@@ -82,7 +82,7 @@ describe('pipeline/plugins/statusContext', () => {
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },

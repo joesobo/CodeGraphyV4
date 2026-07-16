@@ -1,5 +1,46 @@
 # @codegraphy-dev/extension
 
+## 5.13.0
+
+### Minor Changes
+
+- Advance the host runtime compatibility protocol to Plugin API 3. Incompatible installed plugins are skipped with a warning instead of aborting workspace initialization.
+
+- [#308](https://github.com/joesobo/CodeGraphyV4/pull/308) [`ae76da4`](https://github.com/joesobo/CodeGraphyV4/commit/ae76da4c7c59436dcaa7e8776c8145e5b057926d) Thanks [@joesobo](https://github.com/joesobo)! - CodeGraphy now renders the Relationship Graph with its own WebGPU renderer and deterministic WebAssembly force-layout engine instead of `react-force-graph` and `d3-force`. Users get one maintained rendering path with size-aware collisions, stable node stacking, directional edges, device-loss recovery, and the remaining supported 2D graph interactions and settings. The accompanying changesets describe the intentionally removed 3D, Timeline, DAG-layout, Churn-sizing, and Uniform-sizing controls.
+
+  Node bodies and the always-on-top Canvas decoration layer now use the same ascending-size order, stable graph-index tie-break, hover-last order, and hover scale. Labels, images, badges, and plugin Canvas drawings remain a presentation layer above all WebGPU node bodies so labels stay readable; their relative node order matches the body order, but decoration pixels are intentionally not interleaved between WebGPU bodies.
+
+  The Graph View now requires WebGPU and WebAssembly support. When VS Code or the host GPU cannot create a WebGPU device, CodeGraphy shows an unsupported-renderer state rather than falling back to the previous Canvas or Three.js renderers.
+
+  A new public `@codegraphy-dev/graph-renderer` package exposes the renderer contracts, WebGPU renderer, typed-array physics engine, and WASM preparation entry point for browser applications. Package consumers must call `prepareGraphPhysics()` before creating a graph layout and must ship the package's generated WASM asset alongside the JavaScript bundle. Renderer consumers are responsible for their canvas, scheduling, camera, interactions, and recovery UI. The renderer now tries a software adapter when native device creation fails, rejects graph frames that exceed WebGPU buffer limits before changing renderer state, and reports uncaptured runtime GPU errors through the required `onRendererError` callback so hosts can replace the renderer instead of leaving blank output.
+
+  Physics consumers can install host forces through `tick({ beforeIntegration, afterIntegration })`. Owned forces accumulate first, host forces run before integration, and optional finalization runs after collision correction for fixed-coordinate constraints. The package rejects coordinates, velocities, radii, charge multipliers, and force settings outside its documented safe numerical domains instead of silently clamping or resetting nodes. Collision radii remain fixed in graph space: camera zoom never reheats or permanently spreads a settled layout, while a node pinned during dragging still pushes overlapping neighbors aside. Plugin `fx` and `fy` constraints retain per-axis behavior and do not release user or drag pins when a plugin clears them.
+
+  Plugin node and edge colors keep browser CSS compatibility after the WebGPU move. Named colors, HSL, percentage RGB, `currentColor`, and resolvable custom properties are computed in the active Graph View theme before upload; invalid or missing variables fall back to the normal graph color instead of turning black. Plugin and CSS-snippet stylesheet toggles refresh cached GPU colors. Direct `@codegraphy-dev/graph-renderer` consumers must provide concrete hexadecimal, numeric RGB, `color(srgb ...)`, or transparent frame colors.
+
+- [#308](https://github.com/joesobo/CodeGraphyV4/pull/308) [`b744f20`](https://github.com/joesobo/CodeGraphyV4/commit/b744f20bb1391e9a0c40d3e448a4f3f78bde4974) Thanks [@joesobo](https://github.com/joesobo)! - CodeGraphy now provides one supported 2D Relationship Graph and removes the 3D graph mode, its toolbar toggle, 3D node shapes, 3D camera state, and Three.js renderer settings. Existing workspaces open directly in the 2D graph; saved 3D preferences are ignored.
+
+  This is a breaking Plugin API change. Plugin authors must remove `GraphNodeShape3D`, `shape3D`, `graphMode`, three-dimensional node coordinates (`z`, `fz`, and `vz`), and 3D values in selected-node position payloads. Graph View contributions, drag callbacks, context-menu selectors, and viewport adapters now receive only two-dimensional graph state. The Unity plugin continues to contribute Unity graph data but no longer supplies 3D presentation metadata.
+
+- [#308](https://github.com/joesobo/CodeGraphyV4/pull/308) [`b5081b8`](https://github.com/joesobo/CodeGraphyV4/commit/b5081b81f0cf90a3132f7b56f1e63d9bfbb0d9a7) Thanks [@joesobo](https://github.com/joesobo)! - Simplify Relationship Graph presentation controls by removing the radial, top-down, and left-to-right DAG layouts and the Uniform node-size mode. Existing saved DAG selections now open in the force-directed layout, and saved Uniform sizing falls back to Connections sizing.
+
+  Use the force-directed layout for graph positioning. Choose Connections when important hubs should be larger, or File Size when node area should reflect file size. These removals do not change indexed graph data, Graph Scope, filters, or plugin-contributed relationships.
+
+- [#308](https://github.com/joesobo/CodeGraphyV4/pull/308) [`5a65047`](https://github.com/joesobo/CodeGraphyV4/commit/5a65047d1a715f005760ace0ebf0f550a16efa2e) Thanks [@joesobo](https://github.com/joesobo)! - CodeGraphy now opens one current-workspace Relationship Graph and removes the Timeline panel, commit-by-commit Graph Revision playback, revision controls, and Git-history Churn node sizing. Existing workspaces keep their current graph settings, but saved Timeline state and Churn sizing selections no longer affect the graph. Choose Connections or File Size for semantic node sizing.
+
+  This is a breaking Plugin API and Core package change. Plugin authors must remove the `timeline-panel` slot, Timeline lifecycle events and payloads, `timelineActive` contribution/context fields, Timeline analysis mode and `commitSha`, and the optional `churn` graph-node field. Core callers must stop passing churn counts into graph construction. Plugins should analyze the current CodeGraphy Workspace and contribute to the normal Graph View instead of branching on Timeline state.
+
+### Patch Changes
+
+- [#308](https://github.com/joesobo/CodeGraphyV4/pull/308) [`c43b50d`](https://github.com/joesobo/CodeGraphyV4/commit/c43b50d53c439d18f96a28f6d5340e752075ceff) Thanks [@joesobo](https://github.com/joesobo)! - Add an optional `FPS · ms` readout to the Relationship Graph's Performance settings. FPS is measured from the intervals between successfully completed rendered frames, while `ms` reports average CPU time spent running graph simulation and rendering work.
+
+  The readout waits for two successful frames before showing FPS, excludes rejected GPU submissions and stale renderer generations, and returns to `— FPS · — ms` when the demand-driven graph becomes idle. The setting is off by default and persists per CodeGraphy Workspace.
+
+- Updated dependencies [[`ae76da4`](https://github.com/joesobo/CodeGraphyV4/commit/ae76da4c7c59436dcaa7e8776c8145e5b057926d), [`b744f20`](https://github.com/joesobo/CodeGraphyV4/commit/b744f20bb1391e9a0c40d3e448a4f3f78bde4974), [`5a65047`](https://github.com/joesobo/CodeGraphyV4/commit/5a65047d1a715f005760ace0ebf0f550a16efa2e)]:
+  - @codegraphy-dev/graph-renderer@0.1.0
+  - @codegraphy-dev/plugin-api@6.0.0
+  - @codegraphy-dev/core@2.0.0
+
 ## 5.12.3
 
 ### Patch Changes

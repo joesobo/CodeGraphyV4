@@ -24,7 +24,7 @@ describe('CodeGraphy plugin package manifest', () => {
       version: '1.2.3',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         defaultOptions: {
           includeTests: true,
         },
@@ -40,7 +40,7 @@ describe('CodeGraphy plugin package manifest', () => {
     })).toEqual({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       defaultOptions: {
         includeTests: true,
       },
@@ -61,12 +61,12 @@ describe('CodeGraphy plugin package manifest', () => {
       version: '1.0.0',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '2',
+        apiVersion: '3',
       },
     })).toEqual({
       package: '@codegraphy-dev/plugin-markdown',
       version: '1.0.0',
-      apiVersion: '2',
+      apiVersion: '3',
       disclosures: [],
     });
   });
@@ -82,9 +82,9 @@ describe('CodeGraphy plugin package manifest', () => {
       version: '1.0.0',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^3.0.0',
+        apiVersion: '^4.0.0',
       },
-    })).toThrow("Plugin '@codegraphy-dev/plugin-future' targets unsupported CodeGraphy Plugin API '^3.0.0'.");
+    })).toThrow("Plugin '@codegraphy-dev/plugin-future' targets unsupported CodeGraphy Plugin API '^4.0.0'.");
   });
 
   it('rejects plugin metadata with missing required manifest values', () => {
@@ -94,7 +94,7 @@ describe('CodeGraphy plugin package manifest', () => {
       version: '1.0.0',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
       },
     })).toBeNull();
     expect(parseCodeGraphyPluginPackageManifest({
@@ -102,7 +102,7 @@ describe('CodeGraphy plugin package manifest', () => {
       version: '',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
       },
     })).toBeNull();
     expect(parseCodeGraphyPluginPackageManifest({
@@ -110,7 +110,7 @@ describe('CodeGraphy plugin package manifest', () => {
       version: '1.0.0',
       codegraphy: {
         type: 'theme',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
       },
     })).toBeNull();
     expect(parseCodeGraphyPluginPackageManifest({
@@ -123,14 +123,17 @@ describe('CodeGraphy plugin package manifest', () => {
     })).toBeNull();
   });
 
-  it('accepts compatible plugin API ranges and rejects unsupported versions', () => {
-    expect(() => assertPluginApiCompatibility(plugin('2'))).not.toThrow();
-    expect(() => assertPluginApiCompatibility(plugin('^2.0.0'))).not.toThrow();
+  it('accepts current plugin API ranges and rejects old or future versions', () => {
+    expect(() => assertPluginApiCompatibility(plugin('3'))).not.toThrow();
+    expect(() => assertPluginApiCompatibility(plugin('^3.0.0'))).not.toThrow();
     expect(() => assertPluginApiCompatibility(plugin(undefined))).toThrow(
       "Plugin 'codegraphy.test' must declare a string apiVersion",
     );
-    expect(() => assertPluginApiCompatibility(plugin('^3.0.0'))).toThrow(
-      "Plugin 'codegraphy.test' targets unsupported CodeGraphy Plugin API '^3.0.0'.",
+    expect(() => assertPluginApiCompatibility(plugin('^2.0.0'))).toThrow(
+      "Plugin 'codegraphy.test' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '3.0.0'.",
+    );
+    expect(() => assertPluginApiCompatibility(plugin('^4.0.0'))).toThrow(
+      "Plugin 'codegraphy.test' targets unsupported CodeGraphy Plugin API '^4.0.0'. Host provides '3.0.0'.",
     );
   });
 

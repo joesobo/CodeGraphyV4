@@ -38,7 +38,10 @@ export async function createPackageFixtureRoot(prefix: string): Promise<string> 
   return fs.mkdtemp(path.join(root, prefix));
 }
 
-export async function createPluginPackage(packageRoot: string): Promise<void> {
+export async function createPluginPackage(
+  packageRoot: string,
+  apiVersion = '^3.0.0',
+): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
     path.join(packageRoot, 'package.json'),
@@ -49,7 +52,7 @@ export async function createPluginPackage(packageRoot: string): Promise<void> {
       exports: './plugin.js',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion,
       },
     }, null, 2),
     'utf-8',
@@ -62,7 +65,7 @@ export default function createPlugin() {
     id: 'acme.extension-bootstrap',
     name: 'Extension Bootstrap',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '${apiVersion}',
     supportedExtensions: ['.txt'],
     async analyzeFile(filePath) {
       return { filePath, relations: [] };
@@ -99,7 +102,7 @@ export async function createManifestPluginPackage(
       exports: './plugin.js',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
       },
     }, null, 2),
     'utf-8',
@@ -110,7 +113,7 @@ export async function createManifestPluginPackage(
       id: pluginId,
       name: pluginName,
       version,
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.txt'],
       fileColors: {
         '*.txt': {
@@ -130,7 +133,7 @@ export default function createPlugin() {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginName)},
     version: ${JSON.stringify(version)},
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.txt'],
     fileColors: {
       '*.txt': {
@@ -164,7 +167,7 @@ export async function createPluginPackageWithRuntimeMarkers(packageRoot: string)
       exports: './plugin.js',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
       },
     }, null, 2),
     'utf-8',
@@ -182,7 +185,7 @@ export default function createPlugin() {
     id: 'acme.extension-bootstrap',
     name: 'Extension Bootstrap',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.txt']
   };
 }
@@ -204,7 +207,7 @@ export async function createDataHostPluginPackage(packageRoot: string): Promise<
       exports: './plugin.js',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
         defaultOptions: {
           mode: 'default',
         },
@@ -223,7 +226,7 @@ export default function createPlugin(factoryOptions = {}) {
     id: 'acme.extension-data-host',
     name: 'Extension Data Host',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: [],
     async initialize() {
       if (!dataHost) {

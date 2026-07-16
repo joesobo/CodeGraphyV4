@@ -28,7 +28,7 @@ describe('graph view settings plugin default options', () => {
             package: '@codegraphy-dev/plugin-godot',
             pluginId: 'codegraphy.godot',
             version: '2.1.2',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
             defaultOptions: {
@@ -55,7 +55,7 @@ describe('graph view settings plugin default options', () => {
           {
             package: '@codegraphy-dev/plugin-godot',
             version: '2.1.2',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
             defaultOptions: {
@@ -81,7 +81,7 @@ describe('graph view settings plugin default options', () => {
             package: '@codegraphy-dev/plugin-vue',
             pluginId: 'codegraphy.vue',
             version: '2.0.4',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
@@ -102,7 +102,7 @@ describe('graph view settings plugin default options', () => {
             package: '@codegraphy-dev/plugin-particles',
             pluginId: 'codegraphy.particles',
             version: '0.2.1',
-            apiVersion: '^2.0.0',
+            apiVersion: '^3.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-particles',
             updateImpact: {
