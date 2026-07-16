@@ -107,7 +107,7 @@ function getWorkspaceRoot(): string {
 }
 
 export function getGraphCachePath(): string {
-  return path.join(getWorkspaceRoot(), '.codegraphy', 'graph.lbug');
+  return path.join(getWorkspaceRoot(), '.codegraphy', 'graph.sqlite');
 }
 
 export function getRepoMetaPath(): string {
@@ -189,4 +189,3 @@ async function waitForDiscoveredGraph(
     `Timed out waiting for discovered graph: ${graphData.nodes.length} node(s), ${graphData.edges.length} edge(s)`,
   );
 }
-

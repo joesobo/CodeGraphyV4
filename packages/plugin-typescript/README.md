@@ -28,7 +28,7 @@ ecosystem defaults on top:
 
 **TypeScript Alias Import** is a plugin-owned edge type that Graph Scope can toggle
 separately from baseline import edges. The edge type defaults on, and the plugin
-processes aliases whenever the TypeScript plugin is enabled so Graph Query, MCP, and
+processes aliases whenever the TypeScript plugin is enabled so Graph Query CLI and
 exports can use the same relationship data even when Graph Scope hides it.
 
 Alias import support finds the nearest ancestor `tsconfig.json` for each TypeScript

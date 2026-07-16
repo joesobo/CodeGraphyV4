@@ -35,7 +35,7 @@ describe('graphControls/packages', () => {
   });
 
   it('creates deterministic workspace package nodes with readable labels', () => {
-    expect(createWorkspacePackageNodes(new Set(['packages/core', '.', 'packages/mcp']), '#abcdef')).toEqual([
+    expect(createWorkspacePackageNodes(new Set(['packages/core', '.', 'packages/plugin-api']), '#abcdef')).toEqual([
       {
         id: 'pkg:workspace:.',
         label: 'workspace',
@@ -51,8 +51,8 @@ describe('graphControls/packages', () => {
         shape2D: 'hexagon',
       },
       {
-        id: 'pkg:workspace:packages/mcp',
-        label: 'mcp',
+        id: 'pkg:workspace:packages/plugin-api',
+        label: 'plugin-api',
         color: '#abcdef',
         nodeType: 'package',
         shape2D: 'hexagon',

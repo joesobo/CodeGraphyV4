@@ -427,7 +427,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const workspaceRoot = createWorkspaceRoot();
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
     fs.mkdirSync(path.dirname(databasePath), { recursive: true });
-    fs.writeFileSync(databasePath, 'not-a-ladybug-database', 'utf8');
+    fs.writeFileSync(databasePath, 'not-a-sqlite-database', 'utf8');
 
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
       createEmptyWorkspaceAnalysisCache(),

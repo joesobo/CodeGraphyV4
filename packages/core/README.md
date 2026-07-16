@@ -2,15 +2,15 @@
 
 Shared CodeGraphy engine package for workspace indexing, Graph Cache access, plugin management, Graph Query behavior, and the terminal `codegraphy` command.
 
-This package is the headless core used by the VS Code extension, MCP server, and CLI.
+This package is the headless core used by the VS Code extension and CLI.
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal subcommands live in this package. The core CLI does not own MCP client configuration or MCP server startup. `codegraphy setup` prepares CodeGraphy's own user state, while `@codegraphy-dev/mcp` owns the optional agent-agnostic `codegraphy-mcp` server command.
+All `codegraphy ...` terminal subcommands live in this package. `codegraphy setup` prepares CodeGraphy's user state, `codegraphy index` incrementally makes a workspace Graph Cache current, and `codegraphy query` exposes bounded Graph Query reports.
 
 ## Current Entry Points
 
-- CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.lbug` for any folder path.
+- CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.sqlite` for any folder path.
 - Workspace Settings: read, normalize, write, and fingerprint workspace-local settings, including ordered plugin entries.
 - File Discovery: discover analyzable files and directories in any CodeGraphy Workspace without VS Code APIs.
 - Built-in language analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
@@ -26,7 +26,7 @@ All `codegraphy ...` terminal subcommands live in this package. The core CLI doe
 - Graph Cache storage: load, save, clear, and inspect the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
 - Graph Query: run node, edge, relationship, symbol, and path reports over Relationship Graph data plus persisted analysis metadata.
 
-The core package now exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code, MCP, and CLI adapters should call this package instead of owning independent indexing behavior.
+The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
 
 ## Built-In Language Coverage
 

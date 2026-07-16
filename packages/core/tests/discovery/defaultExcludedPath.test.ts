@@ -29,7 +29,7 @@ describe('discovery/defaultExcludedPath', () => {
     expect(isDefaultExcludedPath('packages/app/build/index.js')).toBe(true);
     expect(isDefaultExcludedPath('packages/app/out/index.js')).toBe(true);
     expect(isDefaultExcludedPath('.git/objects/HEAD')).toBe(true);
-    expect(isDefaultExcludedPath('.codegraphy/graph.lbug')).toBe(true);
+    expect(isDefaultExcludedPath('.codegraphy/graph.sqlite')).toBe(true);
     expect(isDefaultExcludedPath('packages/app/.turbo/cache')).toBe(true);
     expect(isDefaultExcludedPath('.worktrees/speed-up-codegraphy/src/app.ts')).toBe(true);
     expect(isDefaultExcludedPath('coverage/lcov.info')).toBe(true);
@@ -37,7 +37,7 @@ describe('discovery/defaultExcludedPath', () => {
 
   it('normalizes Windows separators before checking generated segments', () => {
     expect(isDefaultExcludedPath('packages\\app\\dist\\index.js')).toBe(true);
-    expect(isDefaultExcludedPath('.codegraphy\\graph.lbug')).toBe(true);
+    expect(isDefaultExcludedPath('.codegraphy\\graph.sqlite')).toBe(true);
     expect(isDefaultExcludedPath('.worktrees\\branch\\src\\app.ts')).toBe(true);
   });
 

@@ -9,7 +9,6 @@ Release-facing metadata is not all in one package:
 - `@codegraphy-dev/core` npm metadata lives in [`packages/core/package.json`](../packages/core/package.json)
 - Language plugin npm metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
-- MCP npm metadata lives in [`packages/mcp/package.json`](../packages/mcp/package.json)
 - The VS Code extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
 - Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
 
@@ -28,16 +27,14 @@ The repo-root [`package.json`](../package.json) is workspace metadata for the mo
 `all` discovers the publishable workspace packages from package metadata, publishes npm packages before Marketplace packages, and skips npm versions that already exist.
 
 The core VS Code extension release publishes platform-specific VSIX targets for
-the native LadybugDB runtime:
+the native SQLite and Tree-sitter runtimes:
 
 - `linux-x64`
 - `darwin-arm64`
 - `win32-x64`
 
-The release script stages the matching `@ladybugdb/core-*` native package before
-each `vsce --target` publish. It can fetch missing target-native packages with
-`npm pack`, so the release host does not need to be the same OS as every VSIX
-target.
+Each target is built on its matching release runner so `better-sqlite3` and
+Tree-sitter native bindings match the VSIX target.
 
 To dry-run extension packaging before publishing, run:
 
@@ -47,7 +44,7 @@ pnpm run check:vsix-native-artifacts
 ```
 
 This writes target-specific VSIX artifacts under `artifacts/vsix/`. If you
-inspect `extension/dist/node_modules/@ladybugdb/core/lbugjs.node` inside each
+inspect `extension/dist/node_modules/better-sqlite3/build/Release/better_sqlite3.node` inside each
 VSIX, Linux should be ELF x86-64, macOS should be Mach-O arm64, and Windows
 should be PE32+ x86-64.
 
@@ -66,7 +63,6 @@ pnpm run release:publish npm
 pnpm run release:publish extension
 pnpm run release:publish plugin-api
 pnpm run release:publish plugin-markdown
-pnpm run release:publish mcp
 pnpm run release:publish core
 pnpm run release:publish plugin-typescript
 pnpm run release:publish plugin-godot
@@ -107,7 +103,6 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish plugin-vue`
    - `pnpm run release:publish plugin-svelte`
    - `pnpm run release:publish core`
-   - `pnpm run release:publish mcp`
 13. Publish the VS Code extension with `pnpm run release:publish extension`.
 14. Open the Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
 15. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
@@ -117,7 +112,7 @@ vsce verify-pat codegraphy
 
 Use the `Release` workflow with `workflow_dispatch`.
 
-- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-godot`, `plugin-vue`, or `plugin-svelte`.
+- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-godot`, `plugin-vue`, or `plugin-svelte`.
 - The workflow publishes the selected Marketplace targets and npm packages.
 
 Required secrets:
@@ -147,4 +142,3 @@ If you ever move the core to a different publisher later, that would require a n
 - Markdown plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown>
 - Vue plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-vue>
 - Svelte plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte>
-- MCP: <https://www.npmjs.com/package/@codegraphy-dev/mcp>

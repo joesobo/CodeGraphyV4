@@ -346,7 +346,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     const provider = makeProvider();
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
-    watcherListeners.change?.(uri('/workspace/.codegraphy/graph.lbug'));
+    watcherListeners.change?.(uri('/workspace/.codegraphy/graph.sqlite'));
     vi.advanceTimersByTime(500);
 
     expect(provider.refresh).not.toHaveBeenCalled();
