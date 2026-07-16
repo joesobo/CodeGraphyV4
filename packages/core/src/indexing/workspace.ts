@@ -8,6 +8,7 @@ import {
   saveWorkspaceAnalysisDatabaseCache,
 } from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
+import { createWorkspacePluginAnalysisContext } from '../plugins/context/workspace';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { readCodeGraphyWorkspaceStatus } from '../workspace/status';
 import { analyzeWorkspaceIndexFiles } from './analysis';
@@ -21,7 +22,6 @@ import {
   createWorkspaceIndexFileContentReader,
   findDeletedWorkspaceIndexDependents,
   findChangedWorkspaceIndexFiles,
-  readWorkspaceIndexAnalysisFiles,
 } from './workspace/changes';
 import {
   mapDiscoveredWorkspaceIndexFilesByRelativePath,
@@ -138,20 +138,16 @@ export async function indexCodeGraphyWorkspace(
       content: '',
     }));
     if (changedFiles.length > 0 || deletedFiles.length > 0) {
-      const analysisFiles = await readWorkspaceIndexAnalysisFiles({
-        files: discoveryResult.files,
-        readContent,
-      });
-      await registry.notifyPreAnalyze(
-        analysisFiles,
-        workspaceRoot,
-        undefined,
-        disabledPlugins,
-      );
       const pluginChanges = await registry.notifyFilesChanged(
         [...changedFiles, ...deletedFiles],
         workspaceRoot,
-        undefined,
+        createWorkspacePluginAnalysisContext(workspaceRoot, {
+          workspaceFiles: discoveryResult.files.map(file => ({
+            absolutePath: file.absolutePath,
+            relativePath: file.relativePath,
+            extension: file.extension,
+          })),
+        }),
         disabledPlugins,
       );
       if (pluginChanges.requiresFullRefresh) {

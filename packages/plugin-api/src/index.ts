@@ -153,6 +153,7 @@ export type {
   IAnalysisFile,
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,
+  IPluginWorkspaceFile,
   IPluginFileColorDefinition,
 } from './plugin';
 

@@ -11,7 +11,9 @@ export function isTypeScriptConfigFile(filePath: string): boolean {
   return /^tsconfig(?:\..*)?\.json$/.test(path.basename(filePath));
 }
 
-export function collectTypeScriptFilePaths(files: IAnalysisFile[]): string[] {
+export function collectTypeScriptFilePaths(
+  files: ReadonlyArray<Pick<IAnalysisFile, 'relativePath'>>,
+): string[] {
   return files
     .filter(file => isTypeScriptSourceFile(file.relativePath))
     .map(file => file.relativePath);

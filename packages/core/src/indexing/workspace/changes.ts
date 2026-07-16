@@ -65,16 +65,6 @@ export async function findChangedWorkspaceIndexFiles(input: {
   return changedFiles;
 }
 
-export async function readWorkspaceIndexAnalysisFiles(input: {
-  files: IDiscoveryResult['files'];
-  readContent: WorkspaceIndexFileContentReader;
-}): Promise<Array<IDiscoveryResult['files'][number] & { content: string }>> {
-  return Promise.all(input.files.map(async file => ({
-    ...file,
-    content: await input.readContent(file),
-  })));
-}
-
 export function findDeletedWorkspaceIndexDependents(input: {
   cache: IWorkspaceAnalysisCache;
   deletedFilePaths: readonly string[];
