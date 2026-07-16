@@ -2,6 +2,10 @@ import { resetOwnedGraphNodeHover } from '../../interaction/hover/model';
 import type { OwnedGraphFrameRuntime } from './render';
 import type { PreparedOverlayCanvas } from '../drawing/layer';
 import type { OwnedGraphLayout } from '../../layout/runtime/model';
+import { finiteMinimapBounds, fitMinimapProjection } from '../../minimap/projection';
+import { OWNED_GRAPH_MINIMAP_SIZE } from '../../minimap/presentation';
+
+const MINIMAP_PADDING = 12;
 
 function hoveredNodeIndex(runtime: OwnedGraphFrameRuntime, layout: OwnedGraphLayout): number {
   const hover = runtime.nodeHoverRef.current;
@@ -38,6 +42,20 @@ export function submitOwnedWebGpuFrame(runtime: OwnedGraphFrameRuntime, layout: 
   if (!renderer) return null;
   const props = runtime.propsRef.current;
   try {
+    const bounds = finiteMinimapBounds(layout.engine.x, layout.engine.y);
+    const projection = bounds
+      ? fitMinimapProjection(bounds, OWNED_GRAPH_MINIMAP_SIZE, MINIMAP_PADDING)
+      : null;
+    runtime.minimapProjectionRef.current = projection;
+    const secondaryFrame = runtime.minimapSurfaceRegisteredRef.current && projection
+      ? {
+          backgroundColor: props.backgroundColor,
+          camera: projection,
+          cssHeight: projection.size,
+          cssWidth: projection.size,
+          devicePixelRatio: prepared.devicePixelRatio,
+        }
+      : undefined;
     return renderer.render({ backgroundColor: props.backgroundColor, camera: runtime.cameraRef.current,
       cssHeight: prepared.height, cssWidth: prepared.width, devicePixelRatio: prepared.devicePixelRatio,
       directionMode: props.directionMode, edgeSources: layout.engine.edgeSources, edgeTargets: layout.engine.edgeTargets,
@@ -45,6 +63,6 @@ export function submitOwnedWebGpuFrame(runtime: OwnedGraphFrameRuntime, layout: 
       getLinkWidth: props.getLinkWidth, getNodeStyle: props.getNodeStyle, hoveredLink: runtime.hoveredLinkRef.current,
       hoveredNodeIndex: hoveredNodeIndex(runtime, layout), hoveredNodeScale: runtime.nodeHoverRef.current.scale,
       links: layout.links, nodes: layout.nodes, nodeX: layout.engine.x, nodeY: layout.engine.y,
-      positionVersion: runtime.positionVersionRef.current, styleVersion: props.getStyleRevision() });
+      positionVersion: runtime.positionVersionRef.current, styleVersion: props.getStyleRevision() }, secondaryFrame);
   } catch (error) { failFrame(runtime, layout, error); return null; }
 }
