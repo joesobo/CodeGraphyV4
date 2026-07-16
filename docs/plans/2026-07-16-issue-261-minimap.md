@@ -6,16 +6,17 @@ Discussion plan for [Trello card 261](https://trello.com/c/gLFVYxX6/261-minimap)
 
 Add an optional minimap to the bottom-left corner of the Relationship Graph. It shows the entire current Visible Graph with a stable fitted view, preserves the nodes' current positions, sizes, shapes, and colors, and overlays a viewport box that tracks the main camera. Clicking or dragging in the minimap pans the main camera without changing its zoom.
 
-The minimap is a navigation aid, not a second interactive graph. It does not run physics, independently zoom or pan, show labels or edges, accept node selection, or change the graph camera when the minimap's own bounds are recomputed.
+The minimap is a navigation aid, not a second interactive graph. It does not run physics, independently zoom or pan, show labels or enhanced edge treatments, accept node selection, or change the graph camera when the minimap's own bounds are recomputed.
 
 ## Proposed experience
 
-- Place a compact, fixed-size panel in the bottom-left of the graph viewport, inset from the edges and above any existing controls.
-- Fit the complete Visible Graph into that panel with a constant padding ratio. The minimap projection changes only when graph bounds, panel dimensions, or node visual sizes change.
+- Place a compact, fixed-size square panel in the bottom-left of the graph viewport, inset from the edges and above any existing controls.
+- Give the square a clearly visible theme-aware border and contrasting background treatment so its boundary remains identifiable over every graph background. The viewport box must remain visually distinct from this outer border.
+- Fit the complete Visible Graph into the square with a uniform scale, preserve its aspect ratio, center it, and reserve consistent internal padding on every side for breathing room. The minimap projection changes only when graph bounds, panel dimensions, or node visual sizes change.
 - Draw each node at its live graph position using the same resolved fill color, opacity, shape, and relative visual size as the main graph. Clamp the smallest rendered radius so dense graphs remain legible.
-- Draw no labels, hover effects, particles, decorations, or edges in the first version. Nodes and the viewport box are enough for orientation and avoid a large rendering multiplier on dense graphs.
+- Draw base edges and nodes in the minimap. Omit labels, hover and selection effects, particles, and decorations. Plugin-owned visual effects are excluded unless their owning plugin later adds explicit minimap support.
 - Draw a high-contrast, translucent viewport box for the main camera. Panning moves the box; zooming changes its size around the camera center.
-- Clicking an empty minimap location centers the main camera there. Pointer-dragging continuously centers the camera beneath the pointer while retaining the current main-camera zoom.
+- Clicking outside the viewport box centers the main camera at that minimap location. Dragging from outside the box continues centering the camera beneath the pointer. Dragging the viewport box preserves the pointer's initial grab offset so the camera does not jump when the drag begins. All navigation retains the current main-camera zoom.
 - Capture the pointer during a minimap drag so navigation remains continuous when the pointer briefly leaves the panel. `Escape` or pointer cancellation ends the drag.
 - Prevent minimap gestures from selecting nodes, opening graph context menus, panning the main canvas directly, or starting marquee selection.
 - Hide the minimap when the Visible Graph has no positioned nodes. If only some nodes lack finite positions during layout startup, fit and draw the positioned subset and incorporate the rest as their positions become available.
@@ -26,10 +27,12 @@ The minimap is a navigation aid, not a second interactive graph. It does not run
 "Fixed" means the minimap panel and its projection are independent of the main camera:
 
 - The panel stays anchored to the same screen-space corner and keeps the same dimensions.
-- Its graph-to-minimap scale always fits the full current graph bounds plus border padding.
+- Its graph-to-minimap scale always fits the full current graph bounds inside an inner padded rectangle. The outer panel border is not part of this breathing room.
+- Wide and tall graphs are centered along the unused axis; they are never stretched to fill the square.
 - Main-camera pan and zoom update only the viewport box.
 - Layout movement or a Visible Graph change may update the fitted graph bounds because the graph itself changed.
 - A bounds change must not pan or zoom the main camera.
+- While physics is active, fitted bounds are expand-only so the minimap does not repeatedly zoom in and out as the layout moves. When physics settles, perform one final tight fit around the settled graph with the same internal padding.
 
 The viewport box comes from the main camera's graph-space rectangle:
 
@@ -43,11 +46,11 @@ top    = camera.centerY - halfHeight
 bottom = camera.centerY + halfHeight
 ```
 
-Project those four graph-space bounds through the minimap's fixed fit transform. Clip the result to the minimap panel, while retaining a visible indication when the main camera is completely outside the graph bounds.
+Project those four graph-space bounds through the minimap's fixed fit transform. Do not constrain the main camera to the fitted graph area. Clip the viewport box to the minimap square; when it is completely outside, draw a small directional indicator at the nearest inner edge so the camera's direction remains visible without drawing beyond the outer border.
 
 ## Architecture recommendation
 
-Implement the minimap as a feature owned by the current 2D graph surface, sharing its render loop, layout, resolved appearance, and camera. Do not mount a second graph component and do not mirror per-frame positions into React or the global store.
+Implement the minimap as a feature owned by the current 2D graph surface, sharing its layout, resolved appearance, camera, WebGPU device, pipelines, and packed graph buffers. The extension owns a retained square WebGPU canvas for the minimap panel and registers it as a secondary surface on the existing renderer. Do not mount a second graph component, create a second renderer or physics simulation, or mirror per-frame positions into React or the global store.
 
 The existing owned surface already has the necessary authoritative data:
 
@@ -63,25 +66,40 @@ Add a feature-first `minimap/` area beneath the owned 2D surface. Keep the respo
 ```text
 components/graph/rendering/surface/owned2d/minimap/
   projection.ts       graph bounds and graph/minimap coordinate transforms
-  drawing.ts          fixed-screen panel, nodes, and viewport box
+  presentation.ts     retained secondary canvas and viewport box presentation
   interaction.ts      hit testing, pointer capture, and camera centering
-  model.ts            cached bounds/projection and configuration contracts
+  scheduling.ts       dirty state, capped refresh, and settled refresh policy
+  model.ts            projection and feature configuration contracts
 ```
 
 Each source module should have a matching test module in the corresponding extension test path.
 
 ### Rendering integration
 
-Extend the owned frame drawing stage with a fixed-screen pass after the main graph transform is restored. That pass should:
+The extension owns minimap behavior, DOM placement, retained canvas, and refresh policy. The graph renderer owns a narrow secondary-surface operation that renders the already-packed base graph into that small WebGPU canvas. This operation reuses the current device, node and edge buffers, base rendering pipelines, queue, and synchronized live positions. It must not own settings, interaction, refresh timing, panel presentation, or camera-navigation policy.
+
+The square secondary render target uses its own fixed fit camera and draws:
+
+- base edge strokes, reusing the existing edge geometry and buffers with their resolved base color, opacity, and width;
+- base nodes, using their resolved fill color, opacity, shape, and relative size;
+- no arrowheads or other direction indicators, labels, hover or selection treatments, particles, relationship decorations, or plugin overlays.
+
+The renderer should not rebuild, resample, or create minimap-specific edge data. Its secondary pass reuses the current edge buffers and selects only the base edge-stroke layer. Optional presentation layers such as arrowheads and particles are skipped through render-pass configuration.
+
+The extension places the retained secondary canvas in a fixed screen-space panel and draws the live main-camera viewport box above it on a separate retained overlay. Main-camera pan and zoom update only the inexpensive viewport overlay and never request a secondary base-graph pass. The browser compositor keeps the last secondary-canvas image visible between refreshes.
+
+The minimap presentation pass should:
 
 1. Return immediately when the setting is off or no finite node positions exist.
-2. Recompute graph bounds only when the position version, style revision, node collection, or panel size changes.
-3. Compute one fixed fit transform from those bounds and the panel rectangle.
-4. Clip to the rounded panel rectangle.
-5. Draw the background/border, then nodes in the existing stable stacking order, then the viewport box.
-6. Restore the canvas state before plugin post-frame overlays continue.
+2. Recompute graph bounds and the fixed fit camera only when the cached minimap scene is refreshed or the panel size changes.
+3. Ask the renderer to update the retained secondary canvas only when the minimap scheduler marks the scene dirty and permits a refresh.
+4. Leave the last presented secondary-canvas image untouched between refreshes.
+5. Draw the theme-aware outer border and the live viewport box in the extension-owned presentation layer, using distinguishable colors and/or line styles.
+6. Restore rendering state before plugin post-frame overlays continue.
 
-The minimap should use the existing overlay canvas rather than allocate a second WebGPU renderer, physics engine, animation loop, or full-resolution offscreen canvas. Its nodes are simple 2D primitives derived from resolved node styles. This keeps the added work proportional to visible node count and avoids GPU resource duplication.
+The minimap should allocate only a minimap-sized secondary surface and its camera resources, not a second renderer, physics engine, animation loop, graph model, duplicated graph buffers, or full-resolution offscreen canvas. The surface should be disposed or remain unallocated while the minimap is disabled. Because base edges and nodes reuse existing GPU buffers, a refresh adds a small render pass without repacking or uploading the graph again.
+
+When both primary and secondary work occur in the same frame, encode their passes into one command encoder and one queue submission. Secondary work must use the graph buffers after primary synchronization. Omitting a secondary refresh must create no secondary render pass.
 
 Plugin post-frame overlays should retain their current graph-space contract. The minimap's screen-space pass must be isolated so it cannot alter the transform or clipping observed by plugins.
 
@@ -92,6 +110,8 @@ Minimap pointer handling belongs in the owned surface interaction runtime becaus
 - Hit-test the minimap rectangle before graph node/link picking.
 - On primary-button down inside the panel, enter a dedicated minimap gesture and capture the pointer.
 - Convert the pointer's panel coordinates through the inverse fixed fit transform.
+- If the pointer starts inside the viewport box, store its graph-space offset from the camera center and preserve that offset throughout the drag.
+- If the pointer starts outside the viewport box, center the camera beneath the pointer immediately and continue doing so throughout the drag.
 - Update `camera.centerX` and `camera.centerY`, cancel any active camera transition, and request a frame.
 - Preserve `camera.zoom` for both click and drag.
 - Suppress node/link hover and tooltip state while the minimap gesture is active.
@@ -116,21 +136,25 @@ This is a user-facing behavior change, so implementation requires an extension c
 
 The minimap must remain synchronized without turning React state or extension messages into a per-frame channel.
 
-- Read live node positions and the camera directly in the owned render frame.
-- Redraw as part of a frame the main surface already requested. Minimap interaction may request a frame, but it must not start a separate perpetual loop.
-- Cache graph bounds and the fixed fit transform. Invalidate them on `positionVersionRef`, node collection, node-style revision, or panel-size changes.
-- Camera-only changes reuse the cached bounds and redraw only the viewport box as part of the normal frame.
-- Reuse the renderer's stable node stacking order and resolved node styles.
-- Avoid allocating arrays, maps, path objects, or React objects in the steady-state frame path.
-- Keep edge rendering out of the first version. If later usability testing shows edges are necessary, add a density-aware sampled or rasterized mode rather than drawing every edge unconditionally.
+- Read live positions and the main camera directly from the owned surface runtime.
+- Maintain a retained, minimap-sized WebGPU canvas containing the complete base graph.
+- Mark that secondary surface dirty when positions, graph membership, base edge/node styles, visibility, or panel size change.
+- While physics is active, refresh the secondary surface at a capped cadence rather than at the main graph frame rate. Start with 8 Hz as a tunable target, then profile representative graphs before fixing the shipped value.
+- When physics settles, perform one final refresh so the cached minimap exactly matches the settled layout.
+- Graph and style mutations outside active physics request one refresh.
+- Main-camera pan and zoom never refresh the secondary surface; they update only the viewport box.
+- Hidden minimaps allocate no target and perform no refresh work.
+- Reuse existing packed node and edge buffers and base pipelines; do not repack graph data for each refresh.
+- Avoid allocations in both steady-state composition and capped-refresh paths.
 
 Proposed acceptance budgets for representative development fixtures:
 
 - No additional animation frames while the graph and camera are idle.
-- No second physics simulation or graph renderer.
-- At most one graph-bounds scan per position/style revision, not per camera frame.
+- No second physics simulation, graph model, renderer instance, or duplicated graph buffers.
+- At most the configured capped minimap refresh rate while physics is active, plus one final settled refresh.
 - Minimap navigation should update on the next animation frame while dragging.
-- The existing performance monitor should include minimap drawing time because it occurs inside the owned frame.
+- Main-camera-only frames should pay only for cached-texture composition and the viewport-box overlay.
+- The existing performance monitor should report secondary-target refresh cost separately from steady-state minimap composition cost.
 
 Before implementation, record main-renderer frame cost with the minimap disabled and enabled on small, medium, and dense graphs. Treat a sustained regression above 1 ms per frame or 10% of the existing render cost, whichever is larger, as a prompt to add density reduction before release rather than as an automatic acceptance threshold.
 
@@ -144,9 +168,14 @@ Follow Red -> Green -> Refactor. The human-owned acceptance Gherkin must not be 
 - Projection and inverse projection round-trip within a small tolerance.
 - Viewport box position follows camera pan and size follows camera zoom.
 - Bounds invalidation responds to position, style, collection, and panel-size revisions but not camera-only changes.
-- Drawing uses resolved node fill, opacity, shape, and relative dimensions; it omits labels, edges, particles, and decorations.
-- Drawing clips nodes and the viewport box to the panel and restores canvas state.
+- The secondary target reuses base edge-stroke and node data while omitting arrowheads, direction indicators, labels, transient effects, particles, relationship decorations, and plugin overlays.
+- The panel is square and its outer border remains distinguishable from both the graph background and the viewport box.
+- Presentation clips the cached texture and viewport box to the panel and restores rendering state.
+- Active physics refreshes no faster than the configured cap and always schedules a final settled refresh.
+- Active-physics projection bounds expand but do not contract; the settled refresh tightens them once while preserving uniform internal padding.
+- Camera-only movement does not invalidate or rerender the retained secondary canvas.
 - Click and drag center the camera in graph coordinates without changing zoom.
+- Viewport-box dragging preserves the initial grab offset, while interaction outside the box recenters beneath the pointer.
 - Minimap gestures take precedence over graph picking, selection, marquee, hover, and context-menu behavior.
 - Disabled settings and empty graphs do not draw or intercept input.
 - The Display switch updates local state, posts the protocol message, and hydrates from persisted settings.
@@ -166,39 +195,39 @@ Run the targeted minimap tests during development, then the repository quality g
 ## Delivery sequence
 
 1. Add failing projection and camera-viewport tests, then implement the pure minimap model.
-2. Add failing drawing tests, then integrate a fixed-screen minimap pass with cached bounds and shared node styles.
+2. Add failing renderer tests, then add a narrow secondary-viewport render target that reuses packed base edge and node data.
 3. Add failing gesture tests, then integrate minimap click/drag with camera and pointer arbitration.
-4. Add failing persistence/protocol/UI tests, then add the Display switch and workspace setting.
-5. Add browser coverage for pan, zoom, resize, and graph updates.
-6. Profile representative graph sizes, refine density behavior if needed, and run all quality gates.
-7. Add an extension changeset describing the optional Relationship Graph minimap.
+4. Add failing scheduling tests, then add dirty-state, capped active-physics refresh, and final settled refresh behavior.
+5. Add failing persistence/protocol/UI tests, then add the Display switch and workspace setting.
+6. Add browser coverage for pan, zoom, resize, and graph updates.
+7. Profile representative graph sizes, refine density behavior if needed, and run all quality gates.
+8. Add an extension changeset describing the optional Relationship Graph minimap.
 
 ## Risks and mitigations
 
-- **Dense-graph frame cost:** drawing every node adds CPU canvas work. Keep the first version node-only, cache projection inputs, avoid steady-state allocation, and profile before release.
+- **Dense-graph refresh cost:** base edges and nodes add an extra GPU pass. Reuse existing buffers and pipelines, render only to a small target, cap active-layout refreshes, and profile refresh cost separately from steady-state composition.
 - **Layout bounds churn:** live physics can continuously expand or contract bounds, making the minimap appear to breathe. Cache by position revision and consider a small hysteresis or settle-only bounds policy if profiling/usability testing shows visible instability.
 - **Gesture conflicts:** the minimap shares the overlay canvas with graph interaction. Give its rectangle first refusal and model its drag as an explicit pointer session.
 - **Color fidelity:** node appearance includes theme, legend, custom rule, decoration, hover, and selection effects. Use the resolved base node style, but intentionally omit transient hover/selection and plugin decorations unless product discussion chooses otherwise.
 - **Very large viewport box:** when the main camera is zoomed far out, its viewport can exceed minimap bounds. Clip the box and keep a minimum visible stroke.
-- **Camera outside graph bounds:** show the clipped box or a directional edge indicator rather than silently disappearing. Exact treatment needs a small visual prototype.
+- **Camera outside graph bounds:** clip a partially visible viewport box and show a small directional indicator at the nearest inner edge when it is completely outside. Keep both treatments contained by the outer border.
 - **Control overlap:** bottom-left currently participates in graph overlays and plugin UI. Establish a shared corner-control layout or reserved inset instead of relying on an isolated hard-coded offset.
 
 ## Open decisions for the PR discussion
 
 1. Should **Show minimap** default to on for existing and new workspaces, or default off until users opt in? Recommendation: on, because it is discoverable and immediately useful, with the persisted switch providing escape.
-2. Should the minimap show the full Visible Graph or the pre-search Filtered Graph? Recommendation: the current Visible Graph so it always matches what the user can navigate to on the main canvas.
-3. Should nodes include transient selection, favorite, hover, and plugin decoration treatments? Recommendation: use resolved base size/shape/color and omit transient/decorative overlays in version one.
-4. Should the viewport box be allowed to leave the minimap entirely when the camera moves outside graph bounds? Recommendation: clip it and show a subtle directional indicator so camera location is never ambiguous.
+2. **Resolved:** render the current Visible Graph so Graph Scope, filters, search, collapse, and Depth Mode are reflected exactly in the minimap.
+3. Should favorites be treated as base node appearance or as a transient/decorative treatment? Current decision: omit hover, selection, plugin decorations, particles, and labels; clarify favorites before implementation.
+4. **Resolved:** the camera remains unconstrained; clip a partially visible viewport box and show a subtle nearest-edge directional indicator when it is completely outside.
 5. Should clicking animate the main camera or move immediately? Recommendation: immediate movement during drag and a short existing-style camera transition for a standalone click, provided the transition does not make click-then-drag feel delayed.
-6. What fixed dimensions and small-screen behavior should ship? Recommendation: start near 180 x 120 CSS pixels, shrink at narrow widths, and auto-hide only when it would collide with primary controls.
-7. Do we want edges later? Recommendation: validate node-only orientation first; treat edges as a separate follow-up with an explicit density/performance design.
+6. What fixed square dimensions and small-screen behavior should ship? Recommendation: start near 160 x 160 CSS pixels, shrink at narrow widths, and auto-hide only when it would collide with primary controls.
 
 ## Explicitly out of scope
 
 - 3D minimap behavior.
 - Independent minimap pan or zoom.
 - Node selection, hover tooltips, context menus, or file opening from the minimap.
-- Labels, edges, particles, plugin overlays, and graph decorations in the minimap.
+- Arrowheads and other direction indicators, labels, particles, hover and selection effects, plugin overlays, and relationship decorations in the minimap.
 - A public Plugin API for minimap rendering.
 - Saving minimap dimensions or corner position.
 - Editing human-owned acceptance feature files without separate approval.
