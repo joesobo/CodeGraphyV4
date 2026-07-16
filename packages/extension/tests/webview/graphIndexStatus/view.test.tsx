@@ -79,9 +79,10 @@ describe('GraphIndexStatus', () => {
       />,
     );
 
-    const statusClass = screen.getByTestId('graph-index-status').className;
-    expect(statusClass).toContain('left-44');
-    expect(statusClass).not.toContain('left-2');
+    const status = screen.getByTestId('graph-index-status');
+    expect(status).toHaveStyle({ left: '184px' });
+    expect(status.className).not.toContain('left-44');
+    expect(status.className).not.toContain('left-2');
   });
 
   it('shows zero progress when the total is zero', () => {
