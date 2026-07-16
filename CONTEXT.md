@@ -333,11 +333,11 @@ _Avoid_: Refresh Graph
 ### Agent Access
 
 **CodeGraphy CLI**:
-The terminal `codegraphy` command installed by the **Core Package** npm package for path-first CodeGraphy Workspace commands such as setup, Indexing, Graph Query, status, plugin discovery, and workspace plugin enablement. Repo-local CLI commands take an optional trailing workspace path argument. When that path is omitted, they use the process current working directory exactly; they do not walk upward to find a parent repo or existing `.codegraphy` folder.
+The terminal `codegraphy` command installed by the **Core Package** npm package for Indexing, status and doctor diagnostics, Graph Query, persisted Graph Scope and Filter configuration, plugin discovery, and workspace plugin enablement. Commands use the process current working directory exactly unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace; they do not walk upward to find a parent repo or existing `.codegraphy` folder.
 _Avoid_: Agent server, extension command
 
 **Graph Query CLI**:
-The top-level `codegraphy nodes`, `edges`, `relationships`, `symbols`, and `paths` commands that expose bounded Core **Graph Query** reports. They return stable JSON on stdout and send diagnostics to stderr so humans and shell-capable agents use the same interface.
+The top-level `codegraphy nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path` commands that expose bounded Core **Graph Query** operations. Symbol Nodes are queried through the Node commands, and Edges are the single Relationship Graph connection primitive. Commands use positional query inputs, return stable JSON on stdout, and send diagnostics to stderr so humans and shell-capable agents use the same interface.
 _Avoid_: Natural-language query, Graph View
 
 **CodeGraphy Agent Skill**:

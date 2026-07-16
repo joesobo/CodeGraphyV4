@@ -6,26 +6,32 @@ This package is the headless core used by the VS Code extension and CLI.
 
 The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recommended. Node 23 and newer require an upstream Tree-sitter native build that is not yet available to npm consumers.
 
-The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin registration, or workspace plugin enablement.
+The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy setup` prepares CodeGraphy's user state, `codegraphy index` incrementally makes a workspace Graph Cache current, and the top-level `nodes`, `edges`, `relationships`, `symbols`, and `paths` commands expose bounded Graph Query reports.
+All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
 
 ```bash
-codegraphy index [workspace]
-codegraphy status [workspace]
-codegraphy nodes [workspace] --search settings --limit 25
-codegraphy edges [workspace] --from src/app.ts --type import
-codegraphy relationships [workspace] --to src/config.ts
-codegraphy symbols [workspace] --file src/app.ts
-codegraphy paths [workspace] --from src/app.ts --to src/config.ts --depth 6 --limit 3
+codegraphy index
+codegraphy status
+codegraphy doctor
+codegraphy nodes
+codegraphy search SettingsPanel
+codegraphy edges
+codegraphy dependencies src/app.ts
+codegraphy dependents src/config.ts
+codegraphy path src/app.ts src/config.ts
+codegraphy scope
+codegraphy scope node symbol:function on
+codegraphy scope edge call on
+codegraphy filter add '**/generated/**'
 ```
 
-Run `codegraphy <command> --help` for report-specific options. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
+Run `codegraphy <command> --help` for command usage. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
 
 ## Current Entry Points
 
 - CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.sqlite` for any folder path.
-- Workspace Settings: read, normalize, write, and fingerprint workspace-local settings, including ordered plugin entries.
+- Workspace Settings: read, normalize, write, and fingerprint workspace-local settings, including Graph Scope, filters, and ordered plugin entries without erasing extension-owned presentation settings.
 - File Discovery: discover analyzable files and directories in any CodeGraphy Workspace without VS Code APIs.
 - Built-in language analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
 - File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
@@ -38,7 +44,7 @@ Run `codegraphy <command> --help` for report-specific options. Indexing always c
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
 - Graph Cache storage: load, save, clear, and inspect the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
-- Graph Query: run node, edge, relationship, symbol, and path reports over Relationship Graph data plus persisted analysis metadata.
+- Graph Query: search scoped Nodes, list scoped Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
 
 The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
 
@@ -57,7 +63,7 @@ Plugin installation, global registration, and workspace enablement are separate:
 - New workspaces materialize `codegraphy.markdown` as the first `enabled: true` plugin during first Indexing.
 - The enabled plugin order is the order of `enabled: true` entries in the workspace `plugins` array.
 - `plugins register <package>` records one globally installed package in the user-level Plugin Registry after validating its CodeGraphy plugin metadata.
-- `plugins enable <plugin-id-or-package> [workspace]` and `plugins disable <plugin-id-or-package> [workspace]` take the workspace as an optional trailing positional argument. With no workspace path, they target the process current working directory and do not walk upward to find a parent repo or existing `.codegraphy` folder.
+- `plugins enable <plugin-id-or-package>` and `plugins disable <plugin-id-or-package>` target the selected workspace. By default this is the process current working directory; use the global `--workspace <path>` option to select another workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - `plugins link <package-root>` records a local package checkout in the user-level Plugin Registry, which is the preferred private-plugin development path.
 - Enabling or disabling a plugin changes workspace settings only; disabling persists `enabled: false` Plugin ID intent and keeps the runtime unloaded until the user enables that Plugin ID again.
 - Indexing imports enabled npm plugin packages through their normal package `exports`, merges manifest `defaultOptions` with workspace-local `options`, delivers the result to package factories as `factoryOptions.options`, and delivers the same result to plugin lifecycle and analysis hooks as `context.options`.

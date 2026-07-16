@@ -81,7 +81,7 @@ extension package.
 
 ### 2. Index Is The Single Make-Current Operation
 
-`codegraphy index [workspace]` always means “make this CodeGraphy Workspace's
+`codegraphy index` always means “make this CodeGraphy Workspace's
 Graph Cache current.” Core chooses the implementation:
 
 - missing, legacy, corrupt, interrupted, or incompatible cache: full Indexing;
@@ -129,13 +129,15 @@ It must not mention Codex-specific tools, MCP tool names, or VS Code focus.
 Core CLI already publishes:
 
 ```text
-codegraphy setup
-codegraphy status [workspace]
-codegraphy index [workspace]
+codegraphy status
+codegraphy index
 codegraphy plugins <register|link|list|enable|disable>
 ```
 
 These commands already use JSON stdout and send Indexing progress to stderr.
+The final CLI replaces per-command workspace positionals with one global
+`-C, --workspace <path>` selector and removes `setup`, whose directory creation
+is already performed by the commands that write user or workspace state.
 
 Core already contains:
 
@@ -157,7 +159,7 @@ reports. The CLI does not currently expose them.
 
 ### Reconciliation
 
-On `codegraphy index [workspace]`:
+On `codegraphy index`:
 
 1. Resolve settings and enabled Plugins.
 2. Open the existing SQLite Graph Cache when compatible.
@@ -218,57 +220,62 @@ invalidation reasons in normal output.
 
 The final CLI cleanup also adds strict unknown/extra-argument errors,
 command-scoped help, `--version`, compact status JSON, and concise Indexing
-progress. Indexing keeps one automatic `codegraphy index [workspace]` contract;
+progress. Indexing keeps one automatic `codegraphy index` contract;
 there are no public full/incremental mode flags.
 
 ### Command Shape
 
-Expose the existing Graph Query reports as concise top-level commands:
+Expose graph concepts and common traversal intent as concise top-level
+commands:
 
 ```text
-codegraphy nodes [workspace]
-codegraphy edges [workspace]
-codegraphy relationships [workspace]
-codegraphy symbols [workspace]
-codegraphy paths [workspace]
+codegraphy nodes
+codegraphy search <text>
+codegraphy edges
+codegraphy dependencies <node>
+codegraphy dependents <node>
+codegraphy path <from> <to>
 ```
 
-The workspace remains an optional positional path, matching existing CLI
-commands. Omission means the exact current working directory.
+`nodes` includes every Node Type enabled by saved Graph Scope, including
+Symbol Nodes and plugin-defined Nodes. Do not expose separate `symbols` or
+`relationships` commands: symbols are Nodes and Relationships render as Edges.
+`dependencies` and `dependents` are directional Edge queries, while `path` is
+the one bounded traversal command.
 
-### Narrow Inputs
+All query inputs are positional and all result sizes are bounded internally.
+There are no report-specific `--from`, `--to`, `--file`, `--type`, `--search`,
+`--offset`, `--depth`, or `--limit` flags in the MVP. Commands target the exact
+current working directory by default. A caller working elsewhere selects one
+workspace for the invocation with global `-C, --workspace <path>`.
 
-Start with report-specific flags rather than a generic filter language:
+### Workspace Controls
+
+Expose the same durable graph controls that the extension persists:
 
 ```text
-codegraphy nodes --search executeGraphQuery --limit 20
-
-codegraphy edges \
-  --from packages/core/src/graphQuery/execute.ts \
-  --type call \
-  --limit 100
-
-codegraphy relationships \
-  --from packages/core/src/graphQuery/execute.ts \
-  --to packages/core/src/graphQuery/reports.ts
-
-codegraphy symbols \
-  --file packages/core/src/graphQuery/execute.ts \
-  --search executeGraphQuery
-
-codegraphy paths \
-  --from packages/core/src/cli/query/command.ts \
-  --to packages/core/src/graphQuery/reports.ts \
-  --depth 4 \
-  --limit 10
+codegraphy scope
+codegraphy scope node <type> <on|off>
+codegraphy scope edge <type> <on|off>
+codegraphy filter
+codegraphy filter add <glob>
+codegraphy filter remove <glob>
+codegraphy plugins <register|link|list|enable|disable>
 ```
+
+`scope` reports available and saved Node Type and Edge Type state so agents can
+discover plugin-defined capabilities without prior documentation. Scope and
+filter mutations update `.codegraphy/settings.json`, share state with the
+extension, and preserve unrelated extension-owned settings. `doctor` reports
+runtime, settings, Graph Cache, and plugin health; `status` remains the narrow
+cache-freshness command.
 
 ### Output Contract
 
 - JSON is the canonical output; no `--json` flag is required.
 - stdout contains exactly one JSON result.
 - progress, warnings, and diagnostics go to stderr.
-- invalid flags and ambiguous paths fail nonzero instead of broadening a query.
+- invalid arguments and ambiguous paths fail nonzero instead of broadening a query.
 - default and maximum limits are bounded.
 - results include workspace-relative `file:line` locations where source ranges
   exist.
@@ -296,6 +303,14 @@ Defer:
 - token-budget estimation beyond hard result limits;
 - `explain` until its exact output is grounded in existing Core facts.
 
+Graphify's wiki is not a generic source-code documentation generator. It
+rebuilds the extracted graph, groups nodes by previously analyzed communities,
+adds optional community labels, cohesion, and high-centrality node data, then
+writes `graphify-out/wiki/index.md` plus one Markdown article per community for
+an agent to crawl. CodeGraphy does not yet own the community analysis or stable
+article semantics needed to make an equivalent export precise, so the
+extension plus direct graph queries remain the current interfaces.
+
 ## Agent Skill
 
 ### Canonical Source
@@ -311,8 +326,9 @@ Keep `SKILL.md` concise. It teaches:
    bounded path questions.
 2. Run `codegraphy index` before trusting cached knowledge when entering a
    workspace or after relevant changes.
-3. Prefer the narrowest top-level graph report command.
-4. Use bounded limits.
+3. Prefer the narrowest top-level graph query command.
+4. Use persisted Graph Scope and filters when the question needs more than the
+   default File Nodes; rely on the CLI's bounded result defaults.
 5. Read source after CodeGraphy identifies the relevant files/symbols; the Graph
    Cache is structure memory, not a replacement for implementation details.
 6. If the CLI is missing, install the current Core package globally or use the
@@ -433,9 +449,10 @@ reason to keep dead source in the monorepo.
 ### Phase 5: Add Graph Query CLI
 
 1. Add `query` parsing and help.
-2. Add nodes, edges, Relationships, symbols, and paths subcommands.
+2. Add positional nodes, search, edges, dependencies, dependents, and path
+   commands plus persisted scope, filter, and doctor commands.
 3. Route commands directly to Core Graph Query APIs.
-4. Add strict report-specific flags and bounded output.
+4. Add strict positional arguments and bounded output without query-specific flags.
 5. Add source locations and evidence already present in Core facts.
 6. Prove invalid narrow inputs never become broad queries.
 

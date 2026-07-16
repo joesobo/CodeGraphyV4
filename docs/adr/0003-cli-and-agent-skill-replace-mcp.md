@@ -19,9 +19,19 @@ MCP-specific product surface will be deleted.
 
 **Decision**
 
-Add strict JSON Graph Query commands to the Core CLI, make `codegraphy index`
-reuse and incrementally patch compatible persisted cache data, publish a
-generalized `codegraphy` Agent Skill, and delete MCP completely.
+Add a small positional JSON Graph Query surface to the Core CLI, expose the
+extension's persisted Graph Scope, Filter, and plugin controls through the same
+workspace settings, make `codegraphy index` reuse and incrementally patch
+compatible persisted cache data, publish a generalized `codegraphy` Agent
+Skill, and delete MCP completely.
+
+The public graph query vocabulary is `nodes`, `search`, `edges`,
+`dependencies`, `dependents`, and `path`. Symbols remain Node Types rather than
+receiving a parallel report command, and Relationships remain Edges rather than
+receiving a parallel command. Queries use bounded defaults instead of
+report-specific pagination and selector flags. Commands target the current
+directory unless the global `-C, --workspace <path>` option selects another
+CodeGraphy Workspace.
 
 The Agent Skill is installed globally or per workspace through the open Skills
 CLI and published from a dedicated `codegraphy/skills` repository. The
@@ -36,6 +46,9 @@ repository-source convention already used by projects such as
 - Agents without shell access and remote/shared MCP use cases are unsupported.
 - Typed protocol discovery is replaced by concise skill guidance, strict CLI
   parsing, stable JSON stdout, bounded results, and documented exit codes.
+- CLI settings writes must preserve the complete workspace settings document so
+  terminal Graph Scope, Filter, and plugin changes cannot erase extension-owned
+  presentation settings.
 - Graph Query remains a Core API, so a future protocol adapter can be introduced
   if evidence justifies it.
 - The published MCP package is deprecated during release, but dead MCP source is
