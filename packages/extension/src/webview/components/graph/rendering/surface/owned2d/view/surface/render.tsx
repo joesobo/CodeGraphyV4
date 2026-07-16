@@ -43,6 +43,8 @@ import { useOwnedRendererLifecycle } from '../../renderer/runtime/useLifecycle';
 import { useOwnedPerformancePresentation } from './performancePresentation';
 import { OwnedGraphMinimap } from '../../minimap/presentation';
 import type { MinimapProjection } from '../../minimap/projection';
+import { createMinimapScheduler, invalidateMinimapScheduler } from '../../minimap/scheduling';
+import type { MinimapBounds } from '../../minimap/projection';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
@@ -55,7 +57,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const minimapOverlayRef = useRef<SVGSVGElement>(null);
   const minimapPanelRef = useRef<HTMLDivElement>(null);
   const minimapProjectionRef = useRef<MinimapProjection | null>(null);
+  const minimapBoundsRef = useRef<MinimapBounds | null>(null);
+  const minimapSchedulerRef = useLazyRef(createMinimapScheduler);
   const minimapSurfaceRegisteredRef = useRef(false);
+  const minimapViewportBoxRef = useRef<SVGRectElement>(null);
+  const minimapDirectionIndicatorRef = useRef<SVGPathElement>(null);
   const rendererOperationalRef = useRef(false);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
@@ -129,7 +135,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       hoveredNodeRef,
       layoutRef,
       minimapProjectionRef,
+      minimapBoundsRef,
+      minimapSchedulerRef,
       minimapSurfaceRegisteredRef,
+      minimapPanelRef,
+      minimapViewportBoxRef,
+      minimapDirectionIndicatorRef,
       nodeHoverRef,
       performanceMonitorRef,
       pointerSessionRef,
@@ -199,12 +210,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
     renderer.setSecondarySurface(minimapCanvas);
     minimapSurfaceRegisteredRef.current = true;
+    invalidateMinimapScheduler(minimapSchedulerRef.current);
     requestFrameRef.current();
     return () => {
       minimapSurfaceRegisteredRef.current = false;
       if (gpuRendererRef.current === renderer) renderer.setSecondarySurface(undefined);
     };
-  }, [rendererStatus]);
+  }, [minimapSchedulerRef, rendererStatus]);
 
   useEffect(() => {
     requestFrameRef.current();
@@ -264,6 +276,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         canvasRef={minimapCanvasRef}
         overlayRef={minimapOverlayRef}
         panelRef={minimapPanelRef}
+        viewportBoxRef={minimapViewportBoxRef}
+        directionIndicatorRef={minimapDirectionIndicatorRef}
       />
       <OwnedGraphStatusOverlays error={rendererError} fpsOutputRef={fpsOutputRef}
         performanceSample={performanceSample} tooltip={linkTooltip} width={props.sharedProps.width ?? 0} />
