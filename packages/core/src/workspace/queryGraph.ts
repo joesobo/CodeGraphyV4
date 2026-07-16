@@ -6,6 +6,7 @@ import { filterInactivePluginFileAnalysis, filterInactivePluginSnapshotFacts } f
 import { createDisabledPluginSet, createPluginActivityState } from '../plugins/activityState/model';
 import type { CodeGraphyInstalledPluginCache } from '../plugins/installedCache';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_ID, readCodeGraphyWorkspaceSettings } from './settings';
+import { normalizeWorkspaceQueryFacts } from './queryFacts';
 
 function collectDirectoryPaths(filePaths: Iterable<string>): string[] {
   const directories = new Set<string>();
@@ -47,6 +48,9 @@ export function readWorkspaceQueryGraph(
 
   return {
     graphData,
-    snapshotFacts: filterInactivePluginSnapshotFacts(snapshot, activePluginIds),
+    snapshotFacts: normalizeWorkspaceQueryFacts(
+      filterInactivePluginSnapshotFacts(snapshot, activePluginIds),
+      workspaceRoot,
+    ),
   };
 }
