@@ -6,7 +6,10 @@ import {
   createEmptyWorkspaceAnalysisCache,
   createWorkspaceFileContentHash,
 } from '../../src/analysis/cache';
-import { findChangedWorkspaceIndexFiles } from '../../src/indexing/workspace/changes';
+import {
+  findAffectedWorkspaceIndexDependents,
+  findChangedWorkspaceIndexFiles,
+} from '../../src/indexing/workspace/changes';
 
 async function createFileFixture() {
   const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-changes-'));
@@ -53,5 +56,47 @@ describe('indexing/workspace changes', () => {
       .resolves.toEqual([]);
     expect(readContent).toHaveBeenCalledOnce();
     expect(cache.files['app.ts']?.mtime).toBe(stat.mtimeMs);
+  });
+
+  it('finds the transitive reverse-dependency closure without unrelated files', () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['a.ts'] = {
+      mtime: 0,
+      analysis: {
+        filePath: '/workspace/a.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'a-imports-b',
+          fromFilePath: '/workspace/a.ts',
+          toFilePath: '/workspace/b.ts',
+        }],
+      },
+    };
+    cache.files['b.ts'] = {
+      mtime: 0,
+      analysis: { filePath: '/workspace/b.ts', relations: [] },
+    };
+    cache.files['c.ts'] = {
+      mtime: 0,
+      analysis: {
+        filePath: '/workspace/c.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'c-imports-a',
+          fromFilePath: '/workspace/c.ts',
+          resolvedPath: 'a.ts',
+        }],
+      },
+    };
+    cache.files['unrelated.ts'] = {
+      mtime: 0,
+      analysis: { filePath: '/workspace/unrelated.ts', relations: [] },
+    };
+
+    expect(findAffectedWorkspaceIndexDependents({
+      cache,
+      invalidatedFilePaths: ['b.ts'],
+      workspaceRoot: '/workspace',
+    })).toEqual(['a.ts', 'c.ts']);
   });
 });

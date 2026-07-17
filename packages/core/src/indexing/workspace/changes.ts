@@ -65,26 +65,44 @@ export async function findChangedWorkspaceIndexFiles(input: {
   return changedFiles;
 }
 
-export function findDeletedWorkspaceIndexDependents(input: {
+export function findAffectedWorkspaceIndexDependents(input: {
   cache: IWorkspaceAnalysisCache;
-  deletedFilePaths: readonly string[];
+  invalidatedFilePaths: readonly string[];
   workspaceRoot: string;
 }): string[] {
-  const deletedFilePaths = new Set(input.deletedFilePaths);
-  const deletedAbsolutePaths = new Set(input.deletedFilePaths.map(filePath => (
+  const dependentsByTarget = new Map<string, Set<string>>();
+
+  for (const [filePath, entry] of Object.entries(input.cache.files)) {
+    const sourcePath = path.resolve(input.workspaceRoot, filePath);
+    for (const relation of entry.analysis.relations ?? []) {
+      const target = relation.toFilePath ?? relation.resolvedPath;
+      if (typeof target !== 'string') continue;
+
+      const targetPath = path.resolve(input.workspaceRoot, target);
+      const dependents = dependentsByTarget.get(targetPath) ?? new Set<string>();
+      dependents.add(sourcePath);
+      dependentsByTarget.set(targetPath, dependents);
+    }
+  }
+
+  const invalidatedPaths = new Set(input.invalidatedFilePaths.map(filePath => (
     path.resolve(input.workspaceRoot, filePath)
   )));
+  const pendingPaths = [...invalidatedPaths];
+  const affectedDependents: string[] = [];
+  let pendingIndex = 0;
 
-  return Object.entries(input.cache.files)
-    .filter(([filePath, entry]) => (
-      !deletedFilePaths.has(filePath)
-      && (entry.analysis.relations ?? []).some(relation => {
-        const target = relation.toFilePath ?? relation.resolvedPath;
-        const absoluteTarget = typeof target === 'string'
-          ? path.resolve(input.workspaceRoot, target)
-          : undefined;
-        return absoluteTarget !== undefined && deletedAbsolutePaths.has(absoluteTarget);
-      })
-    ))
-    .map(([filePath]) => filePath);
+  while (pendingIndex < pendingPaths.length) {
+    const targetPath = pendingPaths[pendingIndex];
+    pendingIndex += 1;
+
+    for (const dependentPath of dependentsByTarget.get(targetPath) ?? []) {
+      if (invalidatedPaths.has(dependentPath)) continue;
+      invalidatedPaths.add(dependentPath);
+      pendingPaths.push(dependentPath);
+      affectedDependents.push(path.relative(input.workspaceRoot, dependentPath));
+    }
+  }
+
+  return affectedDependents;
 }
