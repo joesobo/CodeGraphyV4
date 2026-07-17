@@ -54,9 +54,10 @@ export async function requestCodeGraphyIndexWorkspace(
   return {
     workspaceRoot: result.workspaceRoot,
     graphCache,
-    message: 'CodeGraphy indexing completed. Query tools can now read the Graph Cache.',
+    message: 'CodeGraphy indexing completed. CLI queries can now read the Graph Cache.',
     files: result.files.length,
     nodes: result.graph.nodes.length,
     edges: result.graph.edges.length,
+    indexing: result.indexing,
   };
 }

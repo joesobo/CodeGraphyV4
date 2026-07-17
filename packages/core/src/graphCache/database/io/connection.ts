@@ -1,140 +1,138 @@
-import { Connection, Database } from '@ladybugdb/core';
-import type * as lb from '@ladybugdb/core';
+import * as fs from 'node:fs';
+import Database from 'libsql';
 import type { FileAnalysisRow } from '../records/contracts';
-import { ensureSchema, ensureSchemaAsync } from './schema';
+import { ensureSchema } from './schema';
 
-interface LadybugQueryResultLike {
-  getAll?(): Promise<FileAnalysisRow[]>;
-  getAllSync?(): FileAnalysisRow[];
-  close?(): void;
+export type SQLiteConnection = Database.Database;
+export type SQLiteStatement = Database.Statement;
+export type SQLiteValue = string | number | bigint | Buffer | null;
+
+export function runStatementSync(connection: SQLiteConnection, statement: string): void {
+  connection.exec(statement);
 }
 
-function closeQueryResults(result: unknown): void {
-  const queryResults = Array.isArray(result) ? result : [result];
-
-  for (const queryResult of queryResults) {
-    try {
-      (queryResult as LadybugQueryResultLike | undefined)?.close?.();
-    } catch {
-      // Best effort only.
-    }
-  }
-}
-
-function firstQueryResult(result: unknown): LadybugQueryResultLike | undefined {
-  return (Array.isArray(result) ? result[0] : result) as LadybugQueryResultLike | undefined;
-}
-
-function readRowsFromQueryResultSync(queryResult: LadybugQueryResultLike | undefined): FileAnalysisRow[] {
-  return queryResult?.getAllSync?.() ?? [];
-}
-
-async function readRowsFromQueryResultAsync(
-  queryResult: LadybugQueryResultLike | undefined,
-): Promise<FileAnalysisRow[]> {
-  return queryResult?.getAll?.() ?? [];
-}
-
-export function runStatementSync(connection: lb.Connection, statement: string): void {
-  const result = connection.querySync(statement);
-  closeQueryResults(result);
-}
-
-export async function runStatementAsync(connection: lb.Connection, statement: string): Promise<void> {
-  const result = await connection.query(statement);
-  closeQueryResults(result);
+export async function runStatementAsync(
+  connection: SQLiteConnection,
+  statement: string,
+): Promise<void> {
+  runStatementSync(connection, statement);
 }
 
 export function prepareStatementSync(
-  connection: lb.Connection,
+  connection: SQLiteConnection,
   statement: string,
-): lb.PreparedStatement {
-  const preparedStatement = connection.prepareSync(statement);
-  if (!preparedStatement.isSuccess()) {
-    throw new Error(preparedStatement.getErrorMessage());
-  }
-  return preparedStatement;
+): SQLiteStatement {
+  return connection.prepare(statement);
 }
 
 export async function prepareStatementAsync(
-  connection: lb.Connection,
+  connection: SQLiteConnection,
   statement: string,
-): Promise<lb.PreparedStatement> {
-  const preparedStatement = await connection.prepare(statement);
-  if (!preparedStatement.isSuccess()) {
-    throw new Error(preparedStatement.getErrorMessage());
-  }
-  return preparedStatement;
+): Promise<SQLiteStatement> {
+  return prepareStatementSync(connection, statement);
 }
 
 export function executeStatementSync(
-  connection: lb.Connection,
-  preparedStatement: lb.PreparedStatement,
-  params: Record<string, lb.LbugValue>,
+  _connection: SQLiteConnection,
+  preparedStatement: SQLiteStatement,
+  params: Record<string, SQLiteValue>,
 ): void {
-  const result = connection.executeSync(preparedStatement, params);
-  closeQueryResults(result);
+  preparedStatement.run(params);
 }
 
 export async function executeStatementAsync(
-  connection: lb.Connection,
-  preparedStatement: lb.PreparedStatement,
-  params: Record<string, lb.LbugValue>,
+  connection: SQLiteConnection,
+  preparedStatement: SQLiteStatement,
+  params: Record<string, SQLiteValue>,
 ): Promise<void> {
-  const result = await connection.execute(preparedStatement, params);
-  closeQueryResults(result);
+  executeStatementSync(connection, preparedStatement, params);
 }
 
-export function readRowsSync(connection: lb.Connection, statement: string): FileAnalysisRow[] {
-  const result = connection.querySync(statement);
+export function readRowsSync(
+  connection: SQLiteConnection,
+  statement: string,
+): FileAnalysisRow[] {
+  return connection.prepare(statement).all() as FileAnalysisRow[];
+}
 
-  try {
-    return readRowsFromQueryResultSync(firstQueryResult(result));
-  } finally {
-    closeQueryResults(result);
+export async function readRowsAsync(
+  connection: SQLiteConnection,
+  statement: string,
+): Promise<FileAnalysisRow[]> {
+  return readRowsSync(connection, statement);
+}
+
+const DATABASE_SIDECAR_SUFFIXES = ['-wal', '-shm', '-journal'];
+
+export function isInvalidDatabaseError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('code' in error)) {
+    return false;
+  }
+  return error.code === 'SQLITE_NOTADB' || error.code === 'SQLITE_CORRUPT';
+}
+
+function resetInvalidDatabase(databasePath: string): void {
+  fs.truncateSync(databasePath, 0);
+  for (const suffix of DATABASE_SIDECAR_SUFFIXES) {
+    fs.rmSync(`${databasePath}${suffix}`, { force: true });
   }
 }
 
-export async function readRowsAsync(connection: lb.Connection, statement: string): Promise<FileAnalysisRow[]> {
-  const result = await connection.query(statement);
-
+export function recreateInvalidDatabase(
+  databasePath: string,
+  error: unknown,
+  reset: (path: string) => void = resetInvalidDatabase,
+): boolean {
+  if (!isInvalidDatabaseError(error)) {
+    return false;
+  }
   try {
-    return await readRowsFromQueryResultAsync(firstQueryResult(result));
-  } finally {
-    closeQueryResults(result);
+    reset(databasePath);
+  } catch {
+    throw error;
+  }
+  return true;
+}
+
+function openConnection(databasePath: string): SQLiteConnection {
+  const connection = new Database(databasePath);
+  try {
+    connection.pragma('journal_mode = DELETE');
+    connection.pragma('synchronous = NORMAL');
+    ensureSchema(connection);
+    return connection;
+  } catch (error) {
+    try {
+      connection.close();
+    } catch {
+      // Preserve the original connection failure.
+    }
+    throw error;
   }
 }
 
 export function withConnection<T>(
   databasePath: string,
-  callback: (connection: lb.Connection) => T,
+  callback: (connection: SQLiteConnection) => T,
 ): T {
-  const database = new Database(databasePath);
-  const connection = new Connection(database);
+  const connection = openConnection(databasePath);
 
   try {
-    connection.initSync();
-    ensureSchema(connection);
     return callback(connection);
   } finally {
-    connection.closeSync();
-    database.closeSync();
+    connection.close();
   }
 }
 
 export async function withConnectionAsync<T>(
   databasePath: string,
-  callback: (connection: lb.Connection) => Promise<T>,
+  callback: (connection: SQLiteConnection) => Promise<T>,
 ): Promise<T> {
-  const database = new Database(databasePath);
-  const connection = new Connection(database);
+  const connection = openConnection(databasePath);
 
   try {
-    await connection.init();
-    await ensureSchemaAsync(connection);
     return await callback(connection);
   } finally {
-    await connection.close();
-    await database.close();
+    connection.close();
   }
 }

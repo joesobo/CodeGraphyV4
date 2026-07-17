@@ -66,6 +66,7 @@ describe('indexing/analysis', () => {
           relations: [],
           symbols: content.trim().length > 0 ? [] : undefined,
         })),
+        list: vi.fn(() => []),
         notifyPreAnalyze: vi.fn(async () => undefined),
       } as never,
       workspaceRoot,

@@ -32,6 +32,6 @@ export function runEnableCommand(
   const pluginId = getRegisteredPluginId(plugin);
   return {
     exitCode: 0,
-    output: `Enabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+    output: `Enabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
   };
 }

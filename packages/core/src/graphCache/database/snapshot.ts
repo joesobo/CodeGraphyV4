@@ -20,6 +20,7 @@ export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{
     filePath: string;
     mtime: number;
+    contentHash?: string;
     size?: number;
     analysis: IFileAnalysisResult;
   }>;

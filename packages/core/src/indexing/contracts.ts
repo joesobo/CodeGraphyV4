@@ -43,4 +43,10 @@ export interface IndexCodeGraphyWorkspaceResult {
   gitIgnoredPaths?: string[];
   limitReached: boolean;
   totalFound: number;
+  indexing: {
+    mode: 'full' | 'incremental';
+    analyzedFiles: number;
+    deletedFiles: number;
+    reusedFiles: number;
+  };
 }

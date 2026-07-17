@@ -46,21 +46,21 @@ test('rejects a linux x64 VSIX with a macOS Apple Silicon Tree-sitter binding', 
     artifactsDir,
     version,
     target: 'linux-x64',
-    ladybugBinary: createElfX64Binary(),
+    sqliteBinary: createElfX64Binary(),
     treeSitterBinary: createMachOArm64Binary(),
   });
   writeVsixFixture({
     artifactsDir,
     version,
     target: 'darwin-arm64',
-    ladybugBinary: createMachOArm64Binary(),
+    sqliteBinary: createMachOArm64Binary(),
     treeSitterBinary: createMachOArm64Binary(),
   });
   writeVsixFixture({
     artifactsDir,
     version,
     target: 'win32-x64',
-    ladybugBinary: createPe32PlusX64Binary(),
+    sqliteBinary: createPe32PlusX64Binary(),
     treeSitterBinary: createPe32PlusX64Binary(),
   });
 
@@ -79,7 +79,7 @@ test('validates only the requested VSIX artifact targets', () => {
     artifactsDir,
     version,
     target: 'linux-x64',
-    ladybugBinary: createElfX64Binary(),
+    sqliteBinary: createElfX64Binary(),
     treeSitterBinary: createElfX64Binary(),
   });
 
@@ -92,14 +92,14 @@ function writeVsixFixture({
   artifactsDir,
   version,
   target,
-  ladybugBinary,
+  sqliteBinary,
   treeSitterBinary,
 }) {
   const fixtureRoot = mkdtempSync(path.join(tmpdir(), `codegraphy-vsix-${target}-`));
   writeFixtureBinary(
     fixtureRoot,
-    'extension/dist/node_modules/@ladybugdb/core/lbugjs.node',
-    ladybugBinary,
+    libsqlNativeBinaryPath(target),
+    sqliteBinary,
   );
   writeFixtureBinary(
     fixtureRoot,
@@ -117,6 +117,15 @@ function writeVsixFixture({
   if (zipResult.status !== 0) {
     throw new Error(`Unable to create VSIX fixture for ${target}.\n${zipResult.stderr}`);
   }
+}
+
+function libsqlNativeBinaryPath(target) {
+  const packageByTarget = {
+    'linux-x64': 'linux-x64-gnu',
+    'darwin-arm64': 'darwin-arm64',
+    'win32-x64': 'win32-x64-msvc',
+  };
+  return `extension/dist/node_modules/@libsql/${packageByTarget[target]}/index.node`;
 }
 
 function writeFixtureBinary(rootDir, relativePath, binary) {

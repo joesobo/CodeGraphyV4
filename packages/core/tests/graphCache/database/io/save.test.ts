@@ -9,7 +9,6 @@ import {
 import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../../../src/graphCache/database/io/saveAsync';
 import * as connectionModule from '../../../../src/graphCache/database/io/connection';
 import * as pathsModule from '../../../../src/graphCache/database/io/paths';
-import * as temporaryModule from '../../../../src/graphCache/database/io/temporary';
 import * as writeModule from '../../../../src/graphCache/database/query/write';
 
 const timerPromisesMock = vi.hoisted(() => ({
@@ -30,6 +29,7 @@ vi.mock('node:timers/promises', () => ({
 }));
 
 vi.mock('../../../../src/graphCache/database/io/connection', () => ({
+  recreateInvalidDatabase: vi.fn(() => false),
   runStatementAsync: vi.fn(async () => undefined),
   runStatementSync: vi.fn(),
   withConnection: vi.fn(),
@@ -39,12 +39,6 @@ vi.mock('../../../../src/graphCache/database/io/connection', () => ({
 vi.mock('../../../../src/graphCache/database/io/paths', () => ({
   ensureDatabaseDirectory: vi.fn(),
   getWorkspaceAnalysisDatabasePath: vi.fn(),
-}));
-
-vi.mock('../../../../src/graphCache/database/io/temporary', () => ({
-  cleanupTemporaryDatabase: vi.fn(),
-  createTemporaryDatabasePath: vi.fn(),
-  replaceDatabaseCache: vi.fn(),
 }));
 
 vi.mock('../../../../src/graphCache/database/query/write', () => ({
@@ -70,9 +64,7 @@ describe('graphCache/database/io/save', () => {
     vi.clearAllMocks();
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(pathsModule.getWorkspaceAnalysisDatabasePath)
-      .mockReturnValue('/workspace/.codegraphy/graph.lbug');
-    vi.mocked(temporaryModule.createTemporaryDatabasePath)
-      .mockReturnValue('/workspace/.codegraphy/graph.lbug.tmp');
+      .mockReturnValue('/workspace/.codegraphy/graph.sqlite');
     vi.mocked(writeModule.sortedCacheEntries).mockImplementation(cacheInput =>
       Object.entries(cacheInput.files)
         .sort(([left], [right]) => left.localeCompare(right)) as never,
@@ -103,28 +95,38 @@ describe('graphCache/database/io/save', () => {
     });
   });
 
-  it('writes a temporary database, replaces the cache, and persists sorted entries', () => {
+  it('replaces the cache in one direct transaction and persists sorted entries', () => {
     saveWorkspaceAnalysisDatabaseCache('/workspace', cache);
 
     expect(pathsModule.ensureDatabaseDirectory).toHaveBeenCalledWith('/workspace');
     expect(connectionModule.withConnection).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug.tmp',
+      '/workspace/.codegraphy/graph.sqlite',
       expect.any(Function),
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'BEGIN TRANSACTION',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'MATCH (entry:Relation) DELETE entry',
+      'DELETE FROM Symbol',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      4,
+      'connection',
+      'DELETE FROM Relation',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      5,
+      'connection',
+      'COMMIT',
     );
     expect(writeModule.persistAnalysisEntry).toHaveBeenNthCalledWith(
       1,
@@ -138,11 +140,6 @@ describe('graphCache/database/io/save', () => {
       'src/b.ts',
       { mtime: 2, size: 20, analysis: {} },
     );
-    expect(temporaryModule.replaceDatabaseCache).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug.tmp',
-      '/workspace/.codegraphy/graph.lbug',
-    );
-    expect(temporaryModule.cleanupTemporaryDatabase).not.toHaveBeenCalled();
   });
 
   it('does not write when the database directory cannot be created', () => {
@@ -151,41 +148,55 @@ describe('graphCache/database/io/save', () => {
     saveWorkspaceAnalysisDatabaseCache('/workspace', cache);
 
     expect(connectionModule.withConnection).not.toHaveBeenCalled();
-    expect(temporaryModule.createTemporaryDatabasePath).not.toHaveBeenCalled();
-    expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
   });
 
-  it('cleans up the temporary database when saving fails', () => {
+  it('preserves direct transaction failures', () => {
     vi.mocked(connectionModule.withConnection).mockImplementationOnce(() => {
       throw new Error('write failed');
     });
 
     expect(() => saveWorkspaceAnalysisDatabaseCache('/workspace', cache)).toThrow('write failed');
-    expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug.tmp');
-    expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
+  });
+
+  it('recreates a database that becomes corrupt during a full transaction', () => {
+    const corruption = Object.assign(new Error('database disk image is malformed'), {
+      code: 'SQLITE_CORRUPT',
+    });
+    vi.mocked(writeModule.persistAnalysisEntry).mockImplementationOnce(() => {
+      throw corruption;
+    });
+    vi.mocked(connectionModule.recreateInvalidDatabase).mockReturnValueOnce(true);
+
+    expect(() => saveWorkspaceAnalysisDatabaseCache('/workspace', cache)).not.toThrow();
+
+    expect(connectionModule.recreateInvalidDatabase).toHaveBeenCalledWith(
+      '/workspace/.codegraphy/graph.sqlite',
+      corruption,
+    );
+    expect(connectionModule.withConnection).toHaveBeenCalledTimes(2);
   });
 
   it('clears existing database rows from every cache table', () => {
     clearWorkspaceAnalysisDatabaseCache('/workspace');
 
     expect(connectionModule.withConnection).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug',
+      '/workspace/.codegraphy/graph.sqlite',
       expect.any(Function),
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'DELETE FROM Symbol',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'MATCH (entry:Relation) DELETE entry',
+      'DELETE FROM Relation',
     );
   });
 
@@ -276,26 +287,36 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'BEGIN TRANSACTION',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'DELETE FROM FileAnalysis',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'MATCH (entry:Relation) DELETE entry',
+      'DELETE FROM Symbol',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
+      4,
+      'connection',
+      'DELETE FROM Relation',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
+      5,
+      'connection',
+      'COMMIT',
     );
     expect(writeModule.persistAnalysisEntryAsync).toHaveBeenCalledTimes(2);
     expect(waitForImmediate).toHaveBeenCalledTimes(2);
     expect(onProgress).toHaveBeenNthCalledWith(1, { current: 0, total: 2 });
     expect(onProgress).toHaveBeenNthCalledWith(2, { current: 1, total: 2 });
     expect(onProgress).toHaveBeenNthCalledWith(3, { current: 2, total: 2 });
-    expect(temporaryModule.replaceDatabaseCache).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.lbug.tmp',
-      '/workspace/.codegraphy/graph.lbug',
+    expect(connectionModule.withConnectionAsync).toHaveBeenCalledWith(
+      '/workspace/.codegraphy/graph.sqlite',
+      expect.any(Function),
     );
   });
 
@@ -305,8 +326,6 @@ describe('graphCache/database/io/save', () => {
     await saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache);
 
     expect(connectionModule.withConnectionAsync).not.toHaveBeenCalled();
-    expect(temporaryModule.createTemporaryDatabasePath).not.toHaveBeenCalled();
-    expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
   });
 
   it('waits for the async yield interval before yielding', async () => {
@@ -326,12 +345,43 @@ describe('graphCache/database/io/save', () => {
     expect(writeModule.persistAnalysisEntryAsync).toHaveBeenCalledTimes(2);
   });
 
-  it('cleans up the temporary database when async saving fails', async () => {
+  it('preserves async transaction failures', async () => {
     vi.mocked(connectionModule.withConnectionAsync).mockRejectedValueOnce(new Error('async write failed'));
 
     await expect(saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache))
       .rejects.toThrow('async write failed');
-    expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug.tmp');
-    expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
+  });
+
+  it('retries async transaction corruption without replaying progress', async () => {
+    const corruption = Object.assign(new Error('database disk image is malformed'), {
+      code: 'SQLITE_CORRUPT',
+    });
+    const onProgress = vi.fn();
+    let persistCalls = 0;
+    vi.mocked(writeModule.persistAnalysisEntryAsync).mockImplementation(async (
+      _writer,
+      _filePath,
+      _entry,
+      afterStatement,
+    ) => {
+      await afterStatement();
+      persistCalls += 1;
+      if (persistCalls === 2) {
+        throw corruption;
+      }
+    });
+    vi.mocked(connectionModule.recreateInvalidDatabase).mockReturnValueOnce(true);
+
+    await saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache, {
+      onProgress,
+      yieldEvery: 1,
+    });
+
+    expect(connectionModule.withConnectionAsync).toHaveBeenCalledTimes(2);
+    expect(onProgress.mock.calls).toEqual([
+      [{ current: 0, total: 2 }],
+      [{ current: 1, total: 2 }],
+      [{ current: 2, total: 2 }],
+    ]);
   });
 });

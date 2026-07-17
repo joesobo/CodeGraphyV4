@@ -13,6 +13,8 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
     showOrphans: true,
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
+    nodeVisibility: {},
+    edgeVisibility: {},
     plugins: [],
     pluginData: {},
   };

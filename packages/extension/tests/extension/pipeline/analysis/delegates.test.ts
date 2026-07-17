@@ -6,6 +6,7 @@ import { WorkspacePipeline } from '../../../../src/extension/pipeline/service/li
 import * as pluginModule from '../../../../src/extension/pipeline/plugins/queries';
 import * as runModule from '../../../../src/extension/pipeline/analysis/run';
 import * as stateModule from '../../../../src/extension/pipeline/analysis/state';
+import * as cacheStorageModule from '../../../../src/extension/pipeline/service/cache/storage';
 import * as repoMetaModule from '../../../../src/extension/repoSettings/meta';
 
 let workspaceFoldersValue:
@@ -278,7 +279,7 @@ describe('WorkspacePipeline delegates', () => {
     const replacementCache = { version: '1.9.0', files: {} };
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const clearSpy = vi
-      .spyOn(stateModule, 'clearWorkspacePipelineCache')
+      .spyOn(cacheStorageModule, 'clearWorkspacePipelineStoredCache')
       .mockImplementation((workspaceRoot, logInfo: (message: string) => void) => {
         expect(workspaceRoot).toBe('/test/workspace');
         logInfo('[CodeGraphy] Cache cleared');

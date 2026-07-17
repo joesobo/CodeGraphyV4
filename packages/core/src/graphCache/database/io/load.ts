@@ -30,6 +30,7 @@ function addSnapshotEntryToCache(
   cache.files[entry.filePath] = {
     mtime: entry.mtime,
     size: entry.size,
+    ...(entry.contentHash ? { contentHash: entry.contentHash } : {}),
     analysis: projectAnalysisForCacheTiers(
       entry.analysis,
       options.activeAnalysisCacheTiers,

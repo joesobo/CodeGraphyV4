@@ -15,7 +15,6 @@ const packages = [
     config: 'vitest.config.ts',
     extraArgs: ['--testTimeout', '60000', '--silent'],
   },
-  { name: 'mcp', directory: 'packages/mcp', config: 'vitest.config.ts' },
   { name: 'plugin-godot', directory: 'packages/plugin-godot' },
   { name: 'plugin-unity', directory: 'packages/plugin-unity' },
   { name: 'plugin-markdown', directory: 'packages/plugin-markdown' },

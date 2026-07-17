@@ -18,6 +18,7 @@ export async function indexWorkspaceEngine(
     disabledPlugins,
     options,
     registry: state.registry!,
+    settings: state.settings!,
     workspaceRoot,
   });
   state.fileAnalysis = analysis.fileAnalysis;

@@ -116,6 +116,20 @@ describe('core/graphQuery reports', () => {
     ]);
   });
 
+  it('applies direct connection arguments before grouping edge reports', () => {
+    const result = listGraphEdges(graphData, {
+      from: 'packages/app/src/a.ts',
+      to: 'packages/app/src/b.ts',
+      edgeType: 'type-import',
+    });
+
+    expect(result.edges).toEqual([{
+      from: 'packages/app/src/a.ts',
+      to: 'packages/app/src/b.ts',
+      edgeTypes: ['type-import'],
+    }]);
+  });
+
   it('filters nodes by report fields before orphan handling', () => {
     const result = listGraphNodes(graphData, {
       scope: {

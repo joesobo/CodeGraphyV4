@@ -239,7 +239,7 @@ _Avoid_: Preview file
 ### Indexing And Cache
 
 **Indexing**:
-The first-use workflow that discovers repo files, analyzes relationships, lets plugins enrich the result, projects graph data, and caches it for reuse.
+The public make-current workflow for a CodeGraphy Workspace. Core runs full analysis for a missing or incompatible Graph Cache, or the fastest correct incremental path for a compatible cache. The caller asks to make the cache current; Core owns the full-versus-incremental decision.
 _Avoid_: Scanning when analysis and graph projection are included
 
 **File Discovery**:
@@ -303,7 +303,7 @@ The indexing stage that turns discovered files and analysis results into graph n
 _Avoid_: Rendering
 
 **Graph Cache**:
-The workspace-local LadybugDB graph data at `<workspace-root>/.codegraphy/graph.lbug` that stores indexed Relationship Graph data for CodeGraphy and agent access.
+The workspace-local SQLite data at `<workspace-root>/.codegraphy/graph.sqlite` that stores indexed Relationship Graph data for CodeGraphy and agent access. SQLite is the persistence implementation; Graph Cache is the product and domain term.
 _Avoid_: Saved index, saved DB, CodeGraphy database when speaking in domain terms
 
 **Live Update**:
@@ -333,12 +333,16 @@ _Avoid_: Refresh Graph
 ### Agent Access
 
 **CodeGraphy CLI**:
-The terminal `codegraphy` command installed by the **Core Package** npm package for path-first CodeGraphy Workspace commands such as setup, Indexing, status, plugin discovery, and workspace plugin enablement. Repo-local CLI commands take an optional trailing workspace path argument. When that path is omitted, they use the process current working directory exactly; they do not walk upward to find a parent repo or existing `.codegraphy` folder.
-_Avoid_: MCP CLI when the command does not require an MCP server
+The terminal `codegraphy` command installed by the **Core Package** npm package for Indexing, status and doctor diagnostics, Graph Query, persisted Graph Scope and Filter configuration, plugin discovery, and workspace plugin enablement. Commands use the process current working directory exactly unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace; they do not walk upward to find a parent repo or existing `.codegraphy` folder.
+_Avoid_: Agent server, extension command
 
-**CodeGraphy MCP**:
-The optional local MCP server and agent adapter that lets agents inspect a CodeGraphy Workspace through **Graph Query** and ask the **Core Package** to run Indexing without opening or focusing VS Code. The MCP package depends on the **Core Package**, owns the agent-agnostic `codegraphy-mcp` server command, and exposes MCP tools that mirror **CodeGraphy CLI** semantics without owning normal CLI workflows.
-_Avoid_: Agent bridge, MCP indexer, MCP graph
+**Graph Query CLI**:
+The top-level `codegraphy nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path` commands that expose bounded Core **Graph Query** operations. Symbol Nodes are queried through the Node commands, and Edges are the single Relationship Graph connection primitive. Commands use positional query inputs, return stable JSON on stdout, and send diagnostics to stderr so humans and shell-capable agents use the same interface.
+_Avoid_: Natural-language query, Graph View
+
+**CodeGraphy Agent Skill**:
+A generalized Agent Skills-compatible instruction package that teaches shell-capable coding agents when to run **Indexing**, how to choose the narrowest **Graph Query CLI** command, and when to read source files after graph discovery. It is installable globally or per workspace and does not depend on a specific agent client.
+_Avoid_: Codex-only skill, CLI implementation
 
 **Graph Query**:
 An agent or Graph View request against Relationship Graph data that can apply Graph Scope, Filter, Search, sorting, pagination, traversal, and result limits before returning graph data.
@@ -405,7 +409,7 @@ The `@codegraphy-dev/core` npm package that owns the central CodeGraphy engine: 
 _Avoid_: VS Code extension when referring to headless engine behavior
 
 **CodeGraphy Interface**:
-A user, agent, terminal, or programmer-facing way to interact with the **Core Package** without owning the engine. The **VS Code Extension** is the graphical user interface, **CodeGraphy CLI** is the terminal interface, **CodeGraphy MCP** is the agent interface, and **Plugin API** is the programmer interface for plugin authors.
+A user, agent, terminal, or programmer-facing way to interact with the **Core Package** without owning the engine. The **VS Code Extension** is the graphical user interface, **CodeGraphy CLI** is the terminal and shell-capable agent interface, **CodeGraphy Agent Skill** teaches agents that interface, and **Plugin API** is the programmer interface for plugin authors.
 _Avoid_: Engine, core owner, implementation package
 
 **Plugin Processing**:
@@ -421,7 +425,7 @@ An npm package that declares package compatibility in `package.json#codegraphy`,
 _Avoid_: VS Code extension package
 
 **Installed Plugin Package**:
-A Plugin Package registered in the user-level Plugin Registry and discoverable through CodeGraphy Interfaces such as the CodeGraphy CLI, CodeGraphy MCP, and VS Code Extension. An Installed Plugin Package is available to enable from any CodeGraphy Workspace, but installation does not make it active in any workspace. Its npm package name and version identify the installed package source; its Plugin ID identifies the CodeGraphy capability that can become workspace active. CodeGraphy Interfaces should receive installed package identity and Plugin ID from Core and render available Disabled Plugins from static metadata, without importing or creating the plugin runtime.
+A Plugin Package registered in the user-level Plugin Registry and discoverable through CodeGraphy Interfaces such as the CodeGraphy CLI and VS Code Extension. An Installed Plugin Package is available to enable from any CodeGraphy Workspace, but installation does not make it active in any workspace. Its npm package name and version identify the installed package source; its Plugin ID identifies the CodeGraphy capability that can become workspace active. CodeGraphy Interfaces should receive installed package identity and Plugin ID from Core and render available Disabled Plugins from static metadata, without importing or creating the plugin runtime.
 _Avoid_: Enabled plugin, active plugin
 
 **Plugin ID**:
@@ -632,12 +636,13 @@ _Avoid_: Graph export
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.
 - **Graph Cache Sync** keeps a readable but out-of-date **Graph Cache** useful by rendering cached graph data first, then updating it in the background.
 - Any graph-changing update from added files, renamed files, changed code, or settings that affect graph data should be saved to **Graph Cache**.
-- A stale status is a reporting signal that **Graph Cache Sync** is needed; it does not mean the **Graph Cache** should be cleared or hidden.
-- **CodeGraphy MCP** is a lightweight command and query adapter; the **Core Package** owns **Graph Cache** access, **Indexing**, plugin wiring, and Graph Query execution.
-- **CodeGraphy MCP** runs against the current or explicit **CodeGraphy Workspace** path and should not require a prior repo selection or VS Code focus for normal Indexing and Graph Query.
-- **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should ask the **Core Package** for **Relationship Graph** data and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
+- **CodeGraphy Agent Skill** teaches an agent to run **Indexing** when entering a workspace whose cache it does not trust and after relevant workspace changes, then use the narrowest bounded **Graph Query CLI** command.
+- Agents do not call status before every **Graph Query**. Their task context determines when cached knowledge may have changed, and repeated **Indexing** is expected to be inexpensive because Core reuses compatible cached analysis.
+- **Graph Query CLI** commands do not silently run **Indexing**. Indexing and querying are separate, explicit operations so agents can avoid hidden work and redundant round trips.
+- Changed paths, invalidation reasons, and cache reconciliation detail are Core diagnostics rather than normal agent context.
+- **Graph Query CLI** reports use the **Relationship Graph**, not only the **Visible Graph**, and can apply **Graph Scope**, **Filter**, **Search**, and strict result limits to reduce noise.
 - A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
-- **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
+- **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing CLI-specific equivalents for the same graph narrowing stages.
 - **Refresh Graph** and **Re-index Workspace** should be distinct UI actions.
 - **Refresh** only restarts graph physics and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
@@ -738,13 +743,13 @@ _Avoid_: Graph export
 - `maxFiles` is a Performance setting, not a **Display Setting**.
 - **Graph View Zoom** is a view interaction only; it does not change **Relationship Graph** data, **Graph Scope**, **Filter**, or **Search**.
 - **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
-- **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
+- **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **Graph Query CLI** use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
 - The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, and pagination.
 - **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
 - Core **Edge Types** should use canonical core ids such as `nests`; namespaced ids are appropriate for plugin-owned **Edge Types**.
 - A **Graph Query** configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filters`, `search`, `sort`, `limit`, and `offset`.
 - **Show Orphans** remains a boolean **Graph View** presentation setting, not a **Graph Query** configuration field.
-- Structural **Folder Node** and **Workspace Package** projection belongs inside the **Graph Query** **Module**, so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same structural graph behavior.
+- Structural **Folder Node** and **Workspace Package** projection belongs inside the **Graph Query** **Module**, so the **Graph View** Adapter and **Graph Query CLI** use the same structural graph behavior.
 - When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, then sorting and pagination.
 - The **Core Package** and **VS Code Extension** together provide the out-of-box Relationship Graph product and should work for most users without optional plugins.
 - The **Core Package** uses Tree-sitter coverage and the bundled **Markdown Plugin** to provide useful default analysis; the **VS Code Extension** adds visualization and Material icon styling.
@@ -760,13 +765,12 @@ _Avoid_: Graph export
 - **Graph Scope**, **Filter Setting**, **Display Setting**, **Verbose Diagnostics**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
 - The **Verbose Diagnostics** persisted settings key is `verboseDiagnostics`.
 - **Verbose Diagnostics** takes effect immediately for newly occurring diagnostics after the Setting changes. Restarting VS Code is only required when a support workflow needs startup lifecycle diagnostics.
-- **Verbose Diagnostics** should expose Core Package diagnostics through the active **CodeGraphy Interface**: VS Code Developer Tools for the **VS Code Extension**, terminal diagnostic output for **CodeGraphy CLI**, and tool-result or MCP-safe diagnostic output for **CodeGraphy MCP**.
-- The persisted **Verbose Diagnostics** Setting controls only the **VS Code Extension** interface. **CodeGraphy CLI** and **CodeGraphy MCP** should opt into verbose diagnostics per invocation so scripts and agent tool calls stay quiet by default.
+- **Verbose Diagnostics** should expose Core Package diagnostics through the active **CodeGraphy Interface**: VS Code Developer Tools for the **VS Code Extension** and stderr diagnostic output for **CodeGraphy CLI**.
+- The persisted **Verbose Diagnostics** Setting controls only the **VS Code Extension** interface. **CodeGraphy CLI** should opt into verbose diagnostics per invocation so scripts and agent command calls stay quiet by default.
 - **CodeGraphy CLI** should accept `--verbose` consistently across commands, even if some commands have fewer diagnostic events than others.
-- **CodeGraphy MCP** should accept `verboseDiagnostics` consistently across tools, even if some tools only report Graph Cache read or Graph Query diagnostics.
 - **Verbose Diagnostics** should report factual Core Package state, VS Code Extension lifecycle state, decisions, counts, and execution context. They should not include suggested next actions or prescriptive guidance, though each interface may format the same facts for its output sink.
 - **Verbose Diagnostics** events should carry stable area and event identifiers so humans can grep logs and agents can reason over diagnostics without parsing prose.
-- **Verbose Diagnostics** context should be JSON-serializable plain data so the same event can render consistently through the VS Code Extension, CodeGraphy CLI, and CodeGraphy MCP.
+- **Verbose Diagnostics** context should be JSON-serializable plain data so the same event can render consistently through the VS Code Extension and CodeGraphy CLI.
 - **Verbose Diagnostics** should prefer workspace-relative paths when a CodeGraphy Workspace root is known. Absolute paths should be limited to explicit workspace roots, external package locations, or existing error surfaces where the absolute path is already part of the reported failure.
 - **Verbose Diagnostics** should include timing and duration facts for phase boundaries when they are cheap and reliable to measure.
 - **Verbose Diagnostics** should include operation or request identifiers for multi-event indexing, query, cache sync, and lifecycle operations so interleaved diagnostics can be correlated.
@@ -831,8 +835,8 @@ _Avoid_: Graph export
 > **Dev:** "Is Refresh the same as Re-index?"
 > **Domain expert:** "No. **Refresh** restarts graph physics. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
 >
-> **Dev:** "Does CodeGraphy MCP build its own graph?"
-> **Domain expert:** "No. **CodeGraphy MCP** asks the **Core Package** to run **Indexing** when needed and returns **Graph Query** results produced by the **Core Package**."
+> **Dev:** "Does the CodeGraphy Agent Skill build its own graph?"
+> **Domain expert:** "No. The **CodeGraphy Agent Skill** teaches agents to use Core-owned **Indexing** and **Graph Query CLI** commands. The **Core Package** builds and queries the graph."
 >
 > **Dev:** "Is the current collapsed graph a view?"
 > **Domain expert:** "No. Use **Visible Graph** for graph state. A **View** is the VS Code UI container, such as the **Graph View**."
@@ -854,8 +858,8 @@ _Avoid_: Graph export
 - "dependency" is not generic relationship direction; resolved: use **Dependency** only when the edge type specifically means one node needs another.
 - "downstream" is directional only; resolved: it says a relationship exists in that direction, not what kind of relationship the edge represents.
 - "connection" is acceptable in conversation as an informal synonym for **Relationship**, but docs and code should prefer **Relationship**.
-- **CodeGraphy MCP** delegates **Graph Cache** reads/writes and **Graph Query** execution to the **Core Package**.
-- Current MCP and extension code exposes freshness/staleness language; resolved: stale status is a status/reporting concern, not a replacement term for **Graph Cache** or **Relationship Graph**.
+- Agent access uses the **CodeGraphy Agent Skill** plus **CodeGraphy CLI**; resolved: no separate agent server is part of the current product foundation.
+- Cache invalidation detail belongs inside Core reconciliation and diagnostics; resolved: agents explicitly run **Indexing** when they believe cached knowledge may have changed rather than managing a public freshness state machine.
 - "package" can be local or external; resolved: use **Workspace Package** when CodeGraphy can read and expand it, and **External Package** when the package is outside the local context and represented as one node.
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
 - Shared downstream relationship targets stay visible when they are still related to by visible nodes outside the collapsed subgraph.

@@ -45,10 +45,10 @@ Installation and enablement are separate:
 - `npm i -g @codegraphy-dev/plugin-vue` installs a plugin package for the developer's toolchain.
 - `codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata.
 - `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins.
-- `codegraphy plugins enable <plugin-id-or-package> [workspace]` writes `enabled: true` Plugin ID activity into the workspace-local `plugins` array.
-- `codegraphy plugins disable <plugin-id-or-package> [workspace]` writes `enabled: false` Plugin ID activity into the workspace-local `plugins` array.
-- `[workspace]` is an optional trailing positional argument. When it is omitted, plugin enablement commands target the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
-- Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index [workspace]` once to refresh the Graph Cache.
+- `codegraphy plugins enable <plugin-id-or-package>` writes `enabled: true` Plugin ID activity into the workspace-local `plugins` array.
+- `codegraphy plugins disable <plugin-id-or-package>` writes `enabled: false` Plugin ID activity into the workspace-local `plugins` array.
+- Plugin commands target the process current working directory unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
+- Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index` once to refresh the Graph Cache.
 - `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes `codegraphy.markdown` as the first `enabled: true` plugin when a new CodeGraphy Workspace is indexed for the first time.
 
 Plugin packages declare package-level CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:

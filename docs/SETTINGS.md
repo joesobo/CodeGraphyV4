@@ -265,7 +265,7 @@ First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
 }
 ```
 
-Setting that entry to `enabled: false` disables Markdown for the workspace. Other registered plugins stay disabled until they are enabled through the VS Code UI, CLI, or MCP. Absence means the plugin has never been toggled in that workspace.
+Setting that entry to `enabled: false` disables Markdown for the workspace. Other registered plugins stay disabled until they are enabled through the VS Code UI or CLI. Absence means the plugin has never been toggled in that workspace.
 
 Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
 
@@ -287,7 +287,7 @@ When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin
 }
 ```
 
-CLI, MCP, and the VS Code plugin popup should all produce the same workspace shape when they enable the same registered plugin.
+The CLI and VS Code plugin popup should produce the same workspace shape when they enable the same registered plugin.
 
 ## Settings Panel
 
@@ -310,7 +310,7 @@ Adjusts CodeGraphy's custom WebAssembly physics in real time. Global charge sepa
 - **Show FPS** displays `x FPS · y ms` beneath the top-right graph count. FPS is measured from the intervals between successfully completed rendered frames; rejected GPU work and callbacks from an obsolete renderer generation are excluded. Two successful frames are required before a finite FPS can be shown. The milliseconds value is the rolling average CPU time spent simulating and rendering each submitted frame, not total display latency. When the demand-driven graph is idle, the readout shows `— FPS · — ms` instead of retaining stale activity. The setting persists as `showFps` in `.codegraphy/settings.json` and is off by default.
 - **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
 
-See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.
+See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code and CLI support workflow.
 
 
 ### Legends
@@ -558,7 +558,8 @@ This setting is also accessible from the Settings panel.
 CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
 
 - `.codegraphy/settings.json` is workspace-local configuration. Teams can commit it when they want shared CodeGraphy behavior.
-- `.codegraphy/graph.lbug` is generated Graph Cache output and should stay local by default.
+- `.codegraphy/graph.sqlite` is generated Graph Cache output and should stay local by default.
+- Existing `.codegraphy/graph.lbug` files are legacy generated caches. Run new Indexing to create `graph.sqlite`, then remove the old file; CodeGraphy does not migrate the old cache in place.
 - `~/.codegraphy/plugins.json` is user-level Plugin Registry state and is not part of any source workspace.
 - `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
 

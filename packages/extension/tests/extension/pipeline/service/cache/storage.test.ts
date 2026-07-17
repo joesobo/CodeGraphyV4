@@ -1,16 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearWorkspacePipelineCache } from '../../../../../src/extension/pipeline/analysis/state';
-import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../../../../src/extension/pipeline/database/cache/storage.ts';
+import { createEmptyWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
+import {
+  clearWorkspaceAnalysisDatabaseCacheQueued,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
+} from '../../../../../src/extension/pipeline/database/cache/storage.ts';
 import {
   clearWorkspacePipelineStoredCache,
   persistWorkspacePipelineCache,
 } from '../../../../../src/extension/pipeline/service/cache/storage';
 
-vi.mock('../../../../../src/extension/pipeline/analysis/state', () => ({
-  clearWorkspacePipelineCache: vi.fn(),
+vi.mock('../../../../../src/extension/pipeline/cache', () => ({
+  createEmptyWorkspaceAnalysisCache: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
+  clearWorkspaceAnalysisDatabaseCacheQueued: vi.fn(async () => undefined),
   saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
 }));
 
@@ -19,13 +23,14 @@ describe('pipeline/service/cache/storage', () => {
     vi.clearAllMocks();
   });
 
-  it('delegates cache clearing to the shared workspace cache helper', () => {
+  it('returns an empty cache immediately and queues repo-local clearing', () => {
     const cache = { files: {} };
-    vi.mocked(clearWorkspacePipelineCache).mockReturnValue(cache as never);
+    vi.mocked(createEmptyWorkspaceAnalysisCache).mockReturnValue(cache as never);
     const logInfo = vi.fn();
 
     expect(clearWorkspacePipelineStoredCache('/workspace', logInfo)).toBe(cache);
-    expect(clearWorkspacePipelineCache).toHaveBeenCalledWith('/workspace', logInfo);
+    expect(clearWorkspaceAnalysisDatabaseCacheQueued).toHaveBeenCalledWith('/workspace');
+    expect(logInfo).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
   });
 
   it('skips cache persistence when no workspace root is available', () => {

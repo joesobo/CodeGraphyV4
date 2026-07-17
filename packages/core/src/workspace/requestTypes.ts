@@ -28,6 +28,12 @@ export interface IndexWorkspaceResult {
   workspaceRoot: string;
   graphCache: string;
   message: string;
+  indexing: {
+    mode: 'full' | 'incremental';
+    analyzedFiles: number;
+    deletedFiles: number;
+    reusedFiles: number;
+  };
 }
 
 export interface WorkspaceGraphQueryInput extends WorkspacePathInput {

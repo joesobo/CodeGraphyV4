@@ -29,6 +29,7 @@ export interface IWorkspaceFileAnalysisOptions {
   cache: {
     files: Record<string, {
       analysis: IFileAnalysisResult;
+      contentHash?: string;
       mtime: number;
       size?: number;
     }>;

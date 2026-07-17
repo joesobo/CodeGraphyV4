@@ -143,7 +143,7 @@ describe('pipeline/fileAnalysis', () => {
     });
   });
 
-  it('keeps the cached size when a cache hit already has size data', async () => {
+  it('keeps the cached size when a cache hit already has matching size data', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     cache.files['src/index.ts'] = {
       mtime: 25,
@@ -155,12 +155,58 @@ describe('pipeline/fileAnalysis', () => {
       analyzeFile: vi.fn(async () => createEmptyAnalysis()),
       cache,
       files: [createFile('src/index.ts')],
-      getFileStat: vi.fn(async () => ({ mtime: 25, size: 99 })),
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
       readContent: vi.fn(async () => 'ignored'),
       workspaceRoot: '/workspace',
     });
 
     expect(cache.files['src/index.ts'].size).toBe(12);
+  });
+
+  it('treats a size change at the same mtime as a cache miss', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['src/index.ts'] = {
+      mtime: 25,
+      analysis: createEmptyAnalysis(),
+      size: 12,
+    };
+    const analyzeFile = vi.fn(async () => createEmptyAnalysis());
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 99 })),
+      readContent: vi.fn(async () => 'changed'),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(result.cacheHits).toBe(0);
+    expect(result.cacheMisses).toBe(1);
+    expect(analyzeFile).toHaveBeenCalledOnce();
+  });
+
+  it('treats a content change with the same mtime and size as a cache miss', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const file = createFile('src/index.ts');
+    const analyzeFile = vi.fn(async () => createEmptyAnalysis());
+    let content = 'first';
+    const options = {
+      analyzeFile,
+      cache,
+      files: [file],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 5 })),
+      readContent: vi.fn(async () => content),
+      workspaceRoot: '/workspace',
+    };
+
+    await analyzeWorkspaceFiles(options);
+    content = 'other';
+    const result = await analyzeWorkspaceFiles(options);
+
+    expect(result.cacheHits).toBe(0);
+    expect(result.cacheMisses).toBe(1);
+    expect(analyzeFile).toHaveBeenCalledTimes(2);
   });
 
   it('analyzes uncached files and stores the new cache entry', async () => {
@@ -188,6 +234,7 @@ describe('pipeline/fileAnalysis', () => {
     expect(cache.files['src/index.ts']).toEqual({
       mtime: 50,
       analysis,
+      contentHash: expect.any(String),
       size: 12,
     });
     expect(onProgress).toHaveBeenCalledWith({
@@ -265,6 +312,7 @@ describe('pipeline/fileAnalysis', () => {
     expect(cache.files['src/index.ts']).toEqual({
       mtime: 0,
       analysis: createEmptyAnalysis(),
+      contentHash: expect.any(String),
       size: undefined,
     });
   });

@@ -286,32 +286,6 @@
 				]
 			}
 		},
-		"mcp": {
-			"crap": {
-				"coverage": {
-					"command": "pnpm",
-					"args": [
-						"exec",
-						"vitest",
-						"run",
-						"--config",
-						"vitest.config.ts",
-						"--coverage",
-						"--coverage.provider",
-						"istanbul",
-						"--coverage.reportsDirectory",
-						"{repoRoot}/{reportsDir}/crap/{reportKey}"
-					],
-					"cwd": "{packageRoot}",
-					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-				}
-			},
-			"boundaries": {
-				"entrypoints": [
-					"src/cli/main.ts"
-				]
-			}
-		},
 		"plugin-api": {
 			"mutation": {
 				"exclude": [

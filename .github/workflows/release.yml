@@ -10,13 +10,16 @@ on:
         type: choice
         options:
           - core
-          - mcp
-          - typescript
-          - godot
-          - unity
-          - markdown
-          - vue
+          - extension
+          - graph-renderer
           - plugin-api
+          - plugin-typescript
+          - plugin-godot
+          - plugin-unity
+          - plugin-markdown
+          - plugin-particles
+          - plugin-vue
+          - plugin-svelte
           - npm
           - vsce
           - all
@@ -30,7 +33,7 @@ concurrency:
 
 jobs:
   release-npm:
-    if: ${{ inputs.target != 'vsce' && inputs.target != 'core' }}
+    if: ${{ inputs.target != 'vsce' && inputs.target != 'extension' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -65,7 +68,8 @@ jobs:
           fi
 
   release-vsix:
-    if: ${{ inputs.target == 'all' || inputs.target == 'vsce' || inputs.target == 'core' }}
+    needs: release-npm
+    if: ${{ always() && (inputs.target == 'all' || inputs.target == 'vsce' || inputs.target == 'extension') && (needs.release-npm.result == 'success' || needs.release-npm.result == 'skipped') }}
     name: Release VSIX / ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

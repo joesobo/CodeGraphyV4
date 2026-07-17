@@ -34,13 +34,15 @@ export function createTypeScriptPlugin(): IPlugin {
     async onPreAnalyze(files) {
       typeScriptFiles = collectTypeScriptFilePaths(files);
     },
-    async onFilesChanged(files) {
+    async onFilesChanged(files, _workspaceRoot, context) {
       if (!files.some(file => isTypeScriptConfigFile(file.relativePath))) {
         return undefined;
       }
 
       clearTypeScriptAliasConfigCache();
-      return typeScriptFiles;
+      return context?.workspaceFiles
+        ? collectTypeScriptFilePaths(context.workspaceFiles)
+        : typeScriptFiles;
     },
   };
 }

@@ -45,7 +45,7 @@ vi.mock('../../../src/graphCache/database/records/symbol', () => ({
 describe('pipeline/database/cache/snapshot', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.lbug');
+    vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.sqlite');
   });
 
   it('returns an empty snapshot when the repo-local database does not exist', () => {

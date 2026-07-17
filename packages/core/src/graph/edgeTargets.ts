@@ -1,8 +1,8 @@
-import * as path from 'path';
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { isExternalPackageSpecifier } from './packageSpecifiers/match';
 import { getExternalPackageNodeId } from './packageSpecifiers/nodeId';
+import { toRepoRelativeGraphPath } from './symbolPaths';
 
 export function getConnectionTargetId(
   _plugin: IPlugin | undefined,
@@ -11,7 +11,7 @@ export function getConnectionTargetId(
   workspaceRoot: string,
 ): string | null {
   if (connection.resolvedPath) {
-    const targetRelative = path.relative(workspaceRoot, connection.resolvedPath);
+    const targetRelative = toRepoRelativeGraphPath(connection.resolvedPath, workspaceRoot);
     return fileConnections.has(targetRelative) ? targetRelative : null;
   }
 

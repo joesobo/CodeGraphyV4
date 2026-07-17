@@ -17,31 +17,31 @@ const EXTENSION_PACKAGE_ROOT = path.resolve(
 );
 
 describe('runtime package build support', () => {
-  it('resolves the installed Ladybug package root', () => {
-    const packageRootPath = resolveRuntimePackageRootPath('@ladybugdb/core');
+  it('resolves the installed SQLite package root', () => {
+    const packageRootPath = resolveRuntimePackageRootPath('libsql');
 
-    expect(path.basename(packageRootPath)).toBe('core');
+    expect(path.basename(packageRootPath)).toBe('libsql');
     expect(fs.existsSync(path.join(packageRootPath, 'package.json'))).toBe(true);
   });
 
   it('copies a scoped runtime package into dist/node_modules', () => {
     const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-build-'));
     const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
-    const sourcePackageRootPath = path.join(tempDirectoryPath, 'vendor', '@ladybugdb', 'core');
+    const sourcePackageRootPath = path.join(tempDirectoryPath, 'vendor', 'libsql');
     const sourcePackageJsonPath = path.join(sourcePackageRootPath, 'package.json');
 
     fs.mkdirSync(sourcePackageRootPath, { recursive: true });
-    fs.writeFileSync(sourcePackageJsonPath, '{"name":"@ladybugdb/core"}');
+    fs.writeFileSync(sourcePackageJsonPath, '{"name":"libsql"}');
 
     const copiedPackageRootPath = copyRuntimePackage(
       outputFilePath,
-      '@ladybugdb/core',
+      'libsql',
       () => sourcePackageRootPath,
     );
 
-    expect(copiedPackageRootPath).toBe(getVendoredPackageRootPath(outputFilePath, '@ladybugdb/core'));
+    expect(copiedPackageRootPath).toBe(getVendoredPackageRootPath(outputFilePath, 'libsql'));
     expect(fs.readFileSync(path.join(copiedPackageRootPath, 'package.json'), 'utf8')).toBe(
-      '{"name":"@ladybugdb/core"}',
+      '{"name":"libsql"}',
     );
   });
 
@@ -92,6 +92,10 @@ describe('runtime package build support', () => {
   it('vendors every Tree-sitter grammar needed by the core runtime', () => {
     expect(EXTENSION_RUNTIME_PACKAGE_NAMES).toEqual(
       expect.arrayContaining([
+        'libsql',
+        '@neon-rs/load',
+        'detect-libc',
+        expect.stringMatching(/^@libsql\//),
         'material-icon-theme',
         'tree-sitter',
         'tree-sitter-c',
@@ -126,7 +130,7 @@ describe('runtime package build support', () => {
     expect(EXTENSION_EXTERNAL_PACKAGE_NAMES).toEqual(
       expect.arrayContaining([
         'vscode',
-        '@ladybugdb/core',
+        'libsql',
         'tree-sitter',
       ]),
     );
