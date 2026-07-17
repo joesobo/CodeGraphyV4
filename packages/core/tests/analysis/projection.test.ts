@@ -64,6 +64,35 @@ describe('analysis/projection', () => {
     })).toEqual([]);
   });
 
+  it('does not downgrade same-file symbol calls into file self-connections', () => {
+    expect(projectProjectedConnectionsFromFileAnalysis({
+      filePath: '/workspace/src/app.py',
+      symbols: [],
+      relations: [
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter:call',
+          fromFilePath: '/workspace/src/app.py',
+          fromSymbolId: '/workspace/src/app.py:function:main',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:helper',
+        },
+        {
+          kind: 'call',
+          sourceId: 'plugin:file-call',
+          fromFilePath: '/workspace/src/app.py',
+          toFilePath: '/workspace/src/app.py',
+        },
+      ],
+    })).toEqual([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'plugin:file-call',
+        resolvedPath: '/workspace/src/app.py',
+      }),
+    ]);
+  });
+
   it('projects a file analysis map entry by entry', () => {
     const firstAnalysis: IFileAnalysisResult = {
       filePath: '/workspace/src/app.ts',
