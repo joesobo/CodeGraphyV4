@@ -126,7 +126,6 @@ function buildAnalysisNodeEdges(
 export function buildCompleteWorkspaceGraphData(
   options: CompleteWorkspaceGraphDataOptions,
 ): IGraphData {
-  const fileGraph = buildWorkspaceGraphDataFromAnalysis({ ...options, nodeVisibility: {} });
   const symbolGraph = buildWorkspaceGraphDataFromAnalysis({
     ...options,
     nodeVisibility: COMPLETE_SYMBOL_VISIBILITY,
@@ -135,5 +134,5 @@ export function buildCompleteWorkspaceGraphData(
     nodes: buildAnalysisNodes(options.fileAnalysis, options.workspaceRoot),
     edges: buildAnalysisNodeEdges(options.fileAnalysis, options.workspaceRoot),
   };
-  return mergeGraphData(fileGraph, symbolGraph, analysisGraph);
+  return mergeGraphData(symbolGraph, analysisGraph);
 }
