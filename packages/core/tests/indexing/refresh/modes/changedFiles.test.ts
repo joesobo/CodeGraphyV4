@@ -58,6 +58,49 @@ describe('indexing/refresh/modes/changedFiles', () => {
     });
   });
 
+  it('reanalyzes the transitive reverse dependents of a changed file', async () => {
+    const discoveredFiles = [
+      createDiscoveredFile('src/a.ts'),
+      createDiscoveredFile('src/b.ts'),
+      createDiscoveredFile('src/c.ts'),
+      createDiscoveredFile('src/unrelated.ts'),
+    ];
+    const source = createSource({
+      _lastFileAnalysis: new Map([
+        ['src/a.ts', createAnalysisWithTarget('src/a.ts', 'src/b.ts')],
+        ['src/b.ts', createFileAnalysis('/workspace/src/b.ts')],
+        ['src/c.ts', createAnalysisWithTarget('src/c.ts', 'src/a.ts')],
+        ['src/unrelated.ts', createFileAnalysis('/workspace/src/unrelated.ts')],
+      ]),
+      _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => (
+        createAnalysisResult(files.map(file => file.relativePath))
+      )),
+    });
+
+    await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles,
+      filePaths: ['/workspace/src/b.ts'],
+    }));
+
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({ relativePath: 'src/b.ts' }),
+        expect.objectContaining({ relativePath: 'src/a.ts' }),
+        expect.objectContaining({ relativePath: 'src/c.ts' }),
+      ],
+      '/workspace',
+      expect.any(Function),
+      undefined,
+      undefined,
+      new Set(),
+    );
+    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/workspace/src/b.ts',
+      '/workspace/src/a.ts',
+      '/workspace/src/c.ts',
+    ], { persist: false });
+  });
+
   it('rebuilds from retained analysis without analyzing when no files remain to refresh', async () => {
     const graph: IGraphData = {
       nodes: [createGraphNode('src/app.ts')],
@@ -300,6 +343,18 @@ function createAnalysisResult(relativePaths: string[]) {
       ]),
     ),
     fileConnections: new Map(relativePaths.map(relativePath => [relativePath, []])),
+  };
+}
+
+function createAnalysisWithTarget(sourcePath: string, targetPath: string): IFileAnalysisResult {
+  return {
+    filePath: `/workspace/${sourcePath}`,
+    relations: [{
+      kind: 'import',
+      sourceId: `${sourcePath}-imports-${targetPath}`,
+      fromFilePath: `/workspace/${sourcePath}`,
+      toFilePath: `/workspace/${targetPath}`,
+    }],
   };
 }
 

@@ -143,6 +143,34 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] }).state).toBe('fresh');
   });
 
+  it('reanalyzes reverse dependents when a target file changes', async () => {
+    const workspaceRoot = await createWorkspace();
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+    const plugin = createTextPlugin(calls);
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+
+    await engine.index();
+    await fs.writeFile(path.join(workspaceRoot, 'target.txt'), 'changed\n', 'utf-8');
+    await engine.applyChangedFiles(['target.txt']);
+
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(4);
+    expect(calls.analyzeFile).toHaveBeenNthCalledWith(
+      4,
+      path.join(workspaceRoot, 'source.txt'),
+      'target.txt\n',
+      path.resolve(workspaceRoot),
+    );
+  });
+
   it('reuses compatible persisted analysis and reparses only changed files across CLI-style runs', async () => {
     const workspaceRoot = await createWorkspace();
     const calls = {
