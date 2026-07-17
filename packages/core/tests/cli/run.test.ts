@@ -25,7 +25,11 @@ describe('cli/run', () => {
     const stdout = vi.fn();
     const stderr = vi.fn();
 
-    await expect(runCli(['--version'], { stdout, stderr })).resolves.toBe(0);
+    await expect(runCli(['--version'], {
+      runCommand: async () => ({ exitCode: 0, output: '3.0.0' }),
+      stdout,
+      stderr,
+    })).resolves.toBe(0);
 
     expect(stdout).toHaveBeenCalledWith(expect.stringMatching(/^\d+\.\d+\.\d+(?:[-+].+)?\n$/));
     expect(stderr).not.toHaveBeenCalled();

@@ -168,8 +168,10 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     ], { stdout: output => { outputs.push(output); } })).resolves.toBe(0);
 
     expect(JSON.parse(outputs[0])).toMatchObject({
-      indexRequired: true,
-      action: 'Run `codegraphy index` to hydrate the required symbol analysis.',
+      data: {
+        indexRequired: true,
+        action: 'Run `codegraphy index` to hydrate the required symbol analysis.',
+      },
     });
     expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('stale');
 
@@ -207,10 +209,10 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     await runCli(['-C', workspaceRoot, 'dependents', 'greet.ts'], { stdout });
     await runCli(['-C', workspaceRoot, 'path', 'app.ts', 'greet.ts'], { stdout });
 
-    expect(JSON.parse(outputs[0]).edges).toEqual(expect.arrayContaining([
+    expect(JSON.parse(outputs[0]).data.edges).toEqual(expect.arrayContaining([
       expect.objectContaining({ from: 'app.ts', to: 'greet.ts' }),
     ]));
-    expect(JSON.parse(outputs[1]).paths).toContainEqual(['app.ts', 'greet.ts']);
+    expect(JSON.parse(outputs[1]).data.paths).toContainEqual(['app.ts', 'greet.ts']);
   });
 
   it('emits high-signal verbose diagnostics for indexing requests', async () => {
