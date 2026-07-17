@@ -144,6 +144,19 @@ describe('createMarkdownPlugin', () => {
       });
     });
 
+    it('ignores binary file content that happens to contain wikilink bytes', async () => {
+      const plugin = createMarkdownPlugin();
+
+      await plugin.initialize?.(workspaceA);
+      const analysis = await plugin.analyzeFile(
+        path.join(workspaceA, 'image.png'),
+        '\u0089PNG\r\n\u001a\n\u0000[[binary-garbage]]',
+        workspaceA,
+      );
+
+      expect(analysis.relations).toEqual([]);
+    });
+
     it('updates the workspace root when onPreAnalyze is called with a new root', async () => {
       const plugin = createMarkdownPlugin();
       const targetA = createMarkdownFile(workspaceA, 'docs/Shared.md');
