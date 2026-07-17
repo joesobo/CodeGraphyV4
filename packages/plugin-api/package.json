@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-api",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "description": "Type definitions for CodeGraphy plugins",
   "engines": {
     "node": ">=20"

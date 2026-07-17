@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/graph-renderer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CodeGraphy's WebGPU graph renderer and deterministic WebAssembly physics engine",
   "license": "MIT",
   "type": "module",

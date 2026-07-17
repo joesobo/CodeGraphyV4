@@ -1,5 +1,11 @@
 # @codegraphy-dev/graph-renderer
 
+## 0.2.0
+
+### Minor Changes
+
+- [#311](https://github.com/joesobo/CodeGraphyV4/pull/311) [`03d9489`](https://github.com/joesobo/CodeGraphyV4/commit/03d948904d85128d9953fd7fb3ac64df4ab7d945) Thanks [@joesobo](https://github.com/joesobo)! - Add an optional Relationship Graph minimap with stable fitted rendering, pointer and keyboard navigation, and a persisted Display setting.
+
 ## 0.1.0
 
 ### Minor Changes

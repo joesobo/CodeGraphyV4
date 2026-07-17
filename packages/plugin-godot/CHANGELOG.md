@@ -1,5 +1,12 @@
 # @codegraphy-dev/plugin-godot
 
+## 2.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962)]:
+  - @codegraphy-dev/plugin-api@6.1.0
+
 ## 2.3.2
 
 ### Patch Changes

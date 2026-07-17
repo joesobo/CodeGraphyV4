@@ -1,5 +1,20 @@
 # @codegraphy-dev/extension
 
+## 5.14.0
+
+### Minor Changes
+
+- [#311](https://github.com/joesobo/CodeGraphyV4/pull/311) [`03d9489`](https://github.com/joesobo/CodeGraphyV4/commit/03d948904d85128d9953fd7fb3ac64df4ab7d945) Thanks [@joesobo](https://github.com/joesobo)! - Add an optional Relationship Graph minimap with stable fitted rendering, pointer and keyboard navigation, and a persisted Display setting.
+
+### Patch Changes
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962) Thanks [@joesobo](https://github.com/joesobo)! - Store workspace Graph Caches in portable SQLite files and bundle the matching native runtime in each supported VS Code extension build.
+
+- Updated dependencies [[`03d9489`](https://github.com/joesobo/CodeGraphyV4/commit/03d948904d85128d9953fd7fb3ac64df4ab7d945), [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962), [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962), [`e2db569`](https://github.com/joesobo/CodeGraphyV4/commit/e2db569e0044ff5d656c6a11c7979cab3d6f7121), [`1384c5d`](https://github.com/joesobo/CodeGraphyV4/commit/1384c5d8ff9c22fb9b283c937d4bbb45ca7cac44), [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962), [`1384c5d`](https://github.com/joesobo/CodeGraphyV4/commit/1384c5d8ff9c22fb9b283c937d4bbb45ca7cac44)]:
+  - @codegraphy-dev/graph-renderer@0.2.0
+  - @codegraphy-dev/core@3.0.0
+  - @codegraphy-dev/plugin-api@6.1.0
+
 ## 5.13.0
 
 ### Minor Changes
