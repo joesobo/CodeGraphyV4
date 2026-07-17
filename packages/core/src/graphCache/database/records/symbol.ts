@@ -1,4 +1,8 @@
-import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type {
+  GraphMetadata,
+  IAnalysisRange,
+  IAnalysisSymbol,
+} from '@codegraphy-dev/plugin-api';
 import type { SymbolRow } from './contracts';
 import {
   parseOptionalJson,
@@ -16,13 +20,16 @@ export function createSnapshotSymbolEntry(row: SymbolRow): IAnalysisSymbol | und
     return undefined;
   }
 
+  const signature = readOptionalString(row.signature);
+  const range = parseOptionalJson<IAnalysisRange>(row.rangeJson);
+  const metadata = parseOptionalJson<GraphMetadata>(row.metadataJson);
   return {
     id: symbolId,
     filePath,
     name,
     kind,
-    signature: readOptionalString(row.signature),
-    range: parseOptionalJson(row.rangeJson),
-    metadata: parseOptionalJson(row.metadataJson),
+    ...(signature === undefined ? {} : { signature }),
+    ...(range === undefined ? {} : { range }),
+    ...(metadata === undefined ? {} : { metadata }),
   };
 }

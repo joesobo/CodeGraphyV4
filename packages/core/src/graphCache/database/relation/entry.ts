@@ -16,11 +16,8 @@ export function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelation
     return undefined;
   }
 
-  return {
-    kind: kind as IAnalysisRelation['kind'],
+  const optional = {
     pluginId: readOptionalString(row.pluginId),
-    sourceId,
-    fromFilePath,
     toFilePath: readOptionalString(row.toFilePath),
     fromNodeId: readOptionalString(row.fromNodeId),
     toNodeId: readOptionalString(row.toNodeId),
@@ -31,5 +28,11 @@ export function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelation
     variant: readOptionalString(row.variant),
     resolvedPath: readOptionalString(row.resolvedPath),
     metadata: parseOptionalJson(row.metadataJson),
+  };
+  return {
+    kind: kind as IAnalysisRelation['kind'],
+    sourceId,
+    fromFilePath,
+    ...Object.fromEntries(Object.entries(optional).filter(([, value]) => value !== undefined)),
   };
 }

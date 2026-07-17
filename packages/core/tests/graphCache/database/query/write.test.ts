@@ -24,31 +24,43 @@ describe('graphCache/database/writeStatements', () => {
 
   it('prepares the canonical file analysis write statement once per cache write session', () => {
     const fileStatement = {};
+    const symbolStatement = {};
+    const relationStatement = {};
     const prepareStatementSyncSpy = vi
       .spyOn(cacheConnectionModule, 'prepareStatementSync')
-      .mockReturnValueOnce(fileStatement as never);
+      .mockReturnValueOnce(fileStatement as never)
+      .mockReturnValueOnce(symbolStatement as never)
+      .mockReturnValueOnce(relationStatement as never);
 
     expect(createWorkspaceAnalysisCacheWriter({} as never)).toEqual({
       connection: {},
       fileAnalysisStatement: fileStatement,
+      symbolStatement,
+      relationStatement,
     });
 
-    expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(1);
+    expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(3);
     expect(prepareStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
   });
 
   it('prepares the async canonical file analysis write statement once per cache write session', async () => {
     const fileStatement = {};
+    const symbolStatement = {};
+    const relationStatement = {};
     const prepareStatementAsyncSpy = vi
       .spyOn(cacheConnectionModule, 'prepareStatementAsync')
-      .mockResolvedValueOnce(fileStatement as never);
+      .mockResolvedValueOnce(fileStatement as never)
+      .mockResolvedValueOnce(symbolStatement as never)
+      .mockResolvedValueOnce(relationStatement as never);
 
     await expect(createWorkspaceAnalysisCacheWriterAsync({} as never)).resolves.toEqual({
       connection: {},
       fileAnalysisStatement: fileStatement,
+      symbolStatement,
+      relationStatement,
     });
 
-    expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(1);
+    expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(3);
     expect(prepareStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
   });
 
@@ -59,6 +71,8 @@ describe('graphCache/database/writeStatements', () => {
     const writer = {
       connection: {} as never,
       fileAnalysisStatement: { kind: 'file' } as never,
+      symbolStatement: { kind: 'symbol' } as never,
+      relationStatement: { kind: 'relation' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
     const analysis = {
       symbols: [
@@ -90,14 +104,29 @@ describe('graphCache/database/writeStatements', () => {
       } as never,
     );
 
-    expect(executeStatementSyncSpy).toHaveBeenCalledTimes(1);
+    expect(executeStatementSyncSpy).toHaveBeenCalledTimes(3);
     expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, { kind: 'file' }, {
       filePath: '/workspace/src/app.ts',
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
-      analysis: JSON.stringify(analysis),
+      analysis: JSON.stringify({}),
     });
+    expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(2, {}, { kind: 'symbol' }, {
+      symbolId: 'symbol-1',
+      filePath: '/workspace/src/app.ts',
+      name: 'App',
+      kind: 'class',
+      signature: null,
+      rangeJson: null,
+      metadataJson: null,
+    });
+    expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(3, {}, { kind: 'relation' }, expect.objectContaining({
+      relationId: '/workspace/src/app.ts:0',
+      filePath: '/workspace/src/app.ts',
+      kind: 'import',
+      sourceId: 'plugin:import',
+    }));
   });
 
   it('persists only the canonical row when the analysis omits symbols and relations', () => {
@@ -107,6 +136,8 @@ describe('graphCache/database/writeStatements', () => {
     const writer = {
       connection: {} as never,
       fileAnalysisStatement: { kind: 'file' } as never,
+      symbolStatement: { kind: 'symbol' } as never,
+      relationStatement: { kind: 'relation' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
     persistAnalysisEntry(
@@ -142,6 +173,8 @@ describe('graphCache/database/writeStatements', () => {
     const writer = {
       connection: {} as never,
       fileAnalysisStatement: { kind: 'file' } as never,
+      symbolStatement: { kind: 'symbol' } as never,
+      relationStatement: { kind: 'relation' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
     await persistAnalysisEntryAsync(

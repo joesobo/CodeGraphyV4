@@ -20,6 +20,11 @@ import {
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../../src/graphCache/database/storage';
+import {
+  readRowsSync,
+  runStatementSync,
+  withConnection,
+} from '../../../src/graphCache/database/io/connection';
 
 const tempRoots = new Set<string>();
 
@@ -125,6 +130,78 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         },
       ],
     });
+  });
+
+  it('persists symbols and relationships as queryable Graph Cache records', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const analysis = {
+      filePath: '/workspace/src/index.ts',
+      symbols: [{
+        id: '/workspace/src/index.ts:function:main',
+        filePath: '/workspace/src/index.ts',
+        kind: 'function',
+        name: 'main',
+      }],
+      relations: [{
+        kind: 'import' as const,
+        sourceId: 'core:treesitter:import',
+        fromFilePath: '/workspace/src/index.ts',
+        toFilePath: '/workspace/src/utils.ts',
+      }],
+    };
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': { mtime: 1, size: 2, analysis },
+      },
+    });
+
+    const records = withConnection(
+      getWorkspaceAnalysisDatabasePath(workspaceRoot),
+      connection => ({
+        files: readRowsSync(connection, 'SELECT analysis FROM FileAnalysis'),
+        symbols: readRowsSync(connection, 'SELECT symbolId, filePath FROM Symbol'),
+        relations: readRowsSync(connection, 'SELECT filePath, kind FROM Relation'),
+      }),
+    );
+
+    expect(JSON.parse(String(records.files[0]!.analysis))).toEqual({
+      filePath: '/workspace/src/index.ts',
+    });
+    expect(records.symbols).toEqual([{
+      symbolId: '/workspace/src/index.ts:function:main',
+      filePath: 'src/index.ts',
+    }]);
+    expect(records.relations).toEqual([{
+      filePath: 'src/index.ts',
+      kind: 'import',
+    }]);
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': { mtime: 1, size: 2, analysis },
+      },
+    });
+  });
+
+  it('invalidates Graph Caches with structured records embedded in file analysis', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, createEmptyWorkspaceAnalysisCache());
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+
+    withConnection(databasePath, (connection) => {
+      runStatementSync(
+        connection,
+        `INSERT INTO FileAnalysis(filePath, mtime, size, analysis)
+         VALUES ('src/index.ts', 1, 2, '{"relations":[{"kind":"import"}]}')`,
+      );
+    });
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
+      createEmptyWorkspaceAnalysisCache(),
+    );
+    expect(fs.existsSync(databasePath)).toBe(false);
   });
 
   it('persists asynchronously and reports cache write progress', async () => {
