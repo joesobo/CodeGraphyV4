@@ -55,7 +55,7 @@ export function createSymbolRelationEdges(
   workspaceRoot: string,
 ): IGraphEdge[] {
   const symbolIds = createCanonicalSymbolIds(fileAnalysis, workspaceRoot);
-  const edges: IGraphEdge[] = [];
+  const edgesById = new Map<string, IGraphEdge>();
 
   for (const analysis of fileAnalysis.values()) {
     for (const relation of analysis.relations ?? []) {
@@ -70,14 +70,23 @@ export function createSymbolRelationEdges(
       }
 
       const source = createRelationEdgeSource(relation);
-      edges.push({
-        id: createGraphEdgeId({
-          from,
-          to,
-          kind: relation.kind,
-          type: relation.type,
-          variant: relation.variant,
-        }),
+      const id = createGraphEdgeId({
+        from,
+        to,
+        kind: relation.kind,
+        type: relation.type,
+        variant: relation.variant,
+      });
+      const existing = edgesById.get(id);
+      if (existing) {
+        if (source && !existing.sources.some(existingSource => existingSource.id === source.id)) {
+          existing.sources.push(source);
+        }
+        continue;
+      }
+
+      edgesById.set(id, {
+        id,
         from,
         to,
         kind: relation.kind,
@@ -86,5 +95,5 @@ export function createSymbolRelationEdges(
     }
   }
 
-  return edges;
+  return [...edgesById.values()];
 }
