@@ -163,7 +163,8 @@ describe('Viewport (mutation targets)', () => {
     renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)' });
 
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container).toHaveClass('inset-2');
+    expect(container).toHaveStyle({ inset: '8px' });
+    expect(container).not.toHaveClass('inset-2');
     expect(container).not.toHaveClass('m-1');
     expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
     expect(container.style.borderWidth).toBe('');

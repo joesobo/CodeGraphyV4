@@ -13,6 +13,7 @@ export type GraphViewStoreState = Pick<
   | 'pluginContextMenuItems'
   | 'showFps'
   | 'showLabels'
+  | 'showMinimap'
   | 'depthMode'
 >;
 
@@ -29,5 +30,6 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
     showFps: useGraphStore(state => state.showFps),
     showLabels: useGraphStore(state => state.showLabels),
+    showMinimap: useGraphStore(state => state.showMinimap),
   };
 }

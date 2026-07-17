@@ -7,6 +7,7 @@ import type { FGNode } from '../../../../../../../../src/webview/components/grap
 import type { OwnedGraphFrameRuntime } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame/runtime/render';
 import type { OwnedGraphLayout } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/runtime/model';
 import { createOwnedGraphNodeHover } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/interaction/hover/model';
+import { createMinimapScheduler } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/minimap/state';
 import { createGraphLayoutFixedTimestepClock } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/simulation/timing/clock';
 import { createDefaultSurfaceProps } from '../../view/surface/fixture';
 
@@ -58,6 +59,7 @@ export function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   const layout: OwnedGraphLayout = {
     engine,
     links: [],
+    baseStyleRevision: 0, membershipRevision: 0,
     nodes: [node],
   };
   const props = createDefaultSurfaceProps();
@@ -69,6 +71,13 @@ export function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     hoveredLinkRef: { current: null },
     hoveredNodeRef: { current: null },
     layoutRef: { current: layout },
+    minimapProjectionRef: { current: null },
+    minimapBoundsRef: { current: null },
+    minimapSchedulerRef: { current: createMinimapScheduler() },
+    minimapSurfaceRegisteredRef: { current: false },
+    minimapPanelRef: { current: null },
+    minimapViewportBoxRef: { current: null },
+    minimapDirectionIndicatorRef: { current: null },
     nodeHoverRef: { current: createOwnedGraphNodeHover() },
     onRendererError: vi.fn(),
     pointerSessionRef: { current: null },

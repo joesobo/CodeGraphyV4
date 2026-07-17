@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR, normalizeHexColor } from '../../../shared/fileColors';
 import type { BidirectionalEdgeMode, DirectionMode } from '../../../shared/settings/modes';
+import { DEFAULT_SHOW_MINIMAP } from '../../../shared/settings/defaults';
 
 export interface IGraphViewSettingsSnapshot {
   bidirectionalEdges: BidirectionalEdgeMode;
@@ -10,6 +11,7 @@ export interface IGraphViewSettingsSnapshot {
   particleSize: number;
   directionColor: string;
   showLabels: boolean;
+  showMinimap: boolean;
 }
 
 interface IGraphViewSettingsReader {
@@ -45,5 +47,6 @@ export function readGraphViewSettings(
       config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)
     ),
     showLabels: config.get<boolean>('showLabels', true),
+    showMinimap: config.get<boolean>('showMinimap', DEFAULT_SHOW_MINIMAP),
   };
 }

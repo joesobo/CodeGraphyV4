@@ -113,10 +113,10 @@ describe('Viewport style mutations (L72)', () => {
 
 
 
-    it('applies inset-2 class to the viewport div', () => {
+    it('applies the shared stage inset to the viewport div', () => {
       renderViewport();
       const container = document.querySelector('.graph-container') as HTMLElement;
-      expect(container.className).toContain('inset-2');
+      expect(container).toHaveStyle({ inset: '8px' });
     });
 
 

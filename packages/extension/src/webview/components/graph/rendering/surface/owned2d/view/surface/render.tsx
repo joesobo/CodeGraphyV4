@@ -3,7 +3,9 @@ import {
   useEffect,
   useRef,
   useState,
+  type MutableRefObject,
   type ReactElement,
+  type RefObject,
 } from 'react';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import { type OwnedGraphCamera } from '../../camera/runtime/model';
@@ -33,7 +35,7 @@ import {
 import { useLazyRef } from './lazyRef';
 import { OwnedGraphLinkPicker } from '../../picking/link/model';
 import { OwnedGraphNodePicker } from '../../picking/node/model';
-import { createOwnedGraphNodeHover } from '../../interaction/hover/model';
+import { createOwnedGraphNodeHover, setOwnedGraphNodeHover } from '../../interaction/hover/model';
 import { createOwnedGraphPluginForces } from '../../plugin/forces/model';
 import { createGraphLayoutFixedTimestepClock } from '../../simulation/timing/clock';
 import { type OwnedGraphRendererStatus } from '../../renderer/runtime/lifecycle';
@@ -41,14 +43,106 @@ import { WebGpuGraphRenderer } from '@codegraphy-dev/graph-renderer';
 import { OwnedGraphStatusOverlays } from './overlays';
 import { useOwnedRendererLifecycle } from '../../renderer/runtime/useLifecycle';
 import { useOwnedPerformancePresentation } from './performancePresentation';
+import { OwnedGraphMinimap } from '../../minimap/presentation';
+import type { MinimapProjection } from '../../minimap/projection';
+import {
+  createMinimapScheduler,
+  invalidateMinimapScheduler,
+  type MinimapScheduler,
+} from '../../minimap/state';
+import type { MinimapSceneMeasurement } from '../../minimap/scene';
+import {
+  createMinimapInteractionHandlers,
+} from '../../minimap/interaction';
+import type { MinimapNavigationSession } from '../../minimap/navigation';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const NOOP = (): void => undefined;
+
+interface OwnedMinimapLifecycleInput {
+  boundsRef: MutableRefObject<MinimapSceneMeasurement | null>;
+  canvasRef: RefObject<HTMLCanvasElement>;
+  enabled: boolean;
+  navigationSessionRef: MutableRefObject<MinimapNavigationSession | null>;
+  panelRef: RefObject<HTMLDivElement>;
+  projectionRef: MutableRefObject<MinimapProjection | null>;
+  registeredRef: MutableRefObject<boolean>;
+  rendererRef: MutableRefObject<WebGpuGraphRenderer | null>;
+  rendererStatus: OwnedGraphRendererStatus;
+  requestFrameRef: MutableRefObject<() => void>;
+  schedulerRef: MutableRefObject<MinimapScheduler>;
+}
+
+function useOwnedMinimapLifecycle(input: OwnedMinimapLifecycleInput): void {
+  const {
+    boundsRef,
+    canvasRef,
+    enabled,
+    navigationSessionRef,
+    panelRef,
+    projectionRef,
+    registeredRef,
+    rendererRef,
+    rendererStatus,
+    requestFrameRef,
+    schedulerRef,
+  } = input;
+  useEffect(() => {
+    if (!enabled) {
+      boundsRef.current = null;
+      projectionRef.current = null;
+      navigationSessionRef.current = null;
+      return;
+    }
+    const renderer = rendererRef.current;
+    const minimapCanvas = canvasRef.current;
+    if (rendererStatus !== 'webgpu' || !renderer || !minimapCanvas) return;
+    try {
+      renderer.setSecondarySurface(minimapCanvas);
+    } catch {
+      registeredRef.current = false;
+      renderer.setSecondarySurface(undefined);
+      boundsRef.current = null;
+      projectionRef.current = null;
+      if (panelRef.current) panelRef.current.hidden = true;
+      return;
+    }
+    registeredRef.current = true;
+    invalidateMinimapScheduler(schedulerRef.current);
+    requestFrameRef.current();
+    return () => {
+      registeredRef.current = false;
+      renderer.setSecondarySurface(undefined);
+    };
+  }, [
+    boundsRef,
+    canvasRef,
+    enabled,
+    navigationSessionRef,
+    panelRef,
+    projectionRef,
+    registeredRef,
+    rendererRef,
+    rendererStatus,
+    requestFrameRef,
+    schedulerRef,
+  ]);
+}
 
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
   const gpuRendererRef = useRef<WebGpuGraphRenderer | null>(null);
+  const minimapCanvasRef = useRef<HTMLCanvasElement>(null);
+  const minimapOverlayRef = useRef<SVGSVGElement>(null);
+  const minimapPanelRef = useRef<HTMLDivElement>(null);
+  const minimapProjectionRef = useRef<MinimapProjection | null>(null);
+  const minimapBoundsRef = useRef<MinimapSceneMeasurement | null>(null);
+  const minimapSchedulerRef = useLazyRef(createMinimapScheduler);
+  const minimapSurfaceRegisteredRef = useRef(false);
+  const minimapViewportBoxRef = useRef<SVGRectElement>(null);
+  const minimapDirectionIndicatorRef = useRef<SVGPathElement>(null);
+  const minimapNavigationSessionRef = useRef<MinimapNavigationSession | null>(null);
   const rendererOperationalRef = useRef(false);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
@@ -85,6 +179,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     setLinkTooltip(null);
     return true;
   }, []);
+  const clearMinimapHover = useCallback((): void => {
+    clearLinkHover();
+    if (!hoveredNodeRef.current) return;
+    hoveredNodeRef.current = null;
+    setOwnedGraphNodeHover(nodeHoverRef.current, null, performance.now());
+    propsRef.current.sharedProps.onNodeHover(null);
+  }, [clearLinkHover, nodeHoverRef]);
   const layoutRuntime = useLazyRef<OwnedGraphLayoutRuntime>(() => ({
     cameraRef,
     canvasRef,
@@ -121,6 +222,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       hoveredLinkRef,
       hoveredNodeRef,
       layoutRef,
+      minimapProjectionRef,
+      minimapBoundsRef,
+      minimapSchedulerRef,
+      minimapSurfaceRegisteredRef,
+      minimapPanelRef,
+      minimapViewportBoxRef,
+      minimapDirectionIndicatorRef,
       nodeHoverRef,
       performanceMonitorRef,
       pointerSessionRef,
@@ -152,6 +260,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     clearLinkHover,
     nodeHoverRef,
     performanceMonitorRef,
+    minimapSchedulerRef,
     pluginForcesRef,
     props.fg2dRef,
     simulationClockRef,
@@ -184,6 +293,20 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
 
   useOwnedPerformancePresentation(props.showFps, performanceMonitorRef, fpsOutputRef);
 
+  useOwnedMinimapLifecycle({
+    boundsRef: minimapBoundsRef,
+    canvasRef: minimapCanvasRef,
+    enabled: props.showMinimap,
+    navigationSessionRef: minimapNavigationSessionRef,
+    panelRef: minimapPanelRef,
+    projectionRef: minimapProjectionRef,
+    registeredRef: minimapSurfaceRegisteredRef,
+    rendererRef: gpuRendererRef,
+    rendererStatus,
+    requestFrameRef,
+    schedulerRef: minimapSchedulerRef,
+  });
+
   useEffect(() => {
     requestFrameRef.current();
   });
@@ -207,6 +330,14 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     requestFrameRef,
     setLinkTooltip,
     synchronizedPositionVersionRef,
+  })).current;
+  const minimapInteractionHandlers = useLazyRef(() => createMinimapInteractionHandlers({
+    cameraRef,
+    clearHover: clearMinimapHover,
+    mainCanvasRef: canvasRef,
+    projectionRef: minimapProjectionRef,
+    requestFrame: () => requestFrameRef.current(),
+    sessionRef: minimapNavigationSessionRef,
   })).current;
 
   const performanceSample = props.showFps
@@ -237,6 +368,15 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onPointerUp={interactionHandlers.handlePointerUp}
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
+      />
+      <OwnedGraphMinimap
+        canvasRef={minimapCanvasRef}
+        enabled={props.showMinimap}
+        overlayRef={minimapOverlayRef}
+        panelRef={minimapPanelRef}
+        viewportBoxRef={minimapViewportBoxRef}
+        directionIndicatorRef={minimapDirectionIndicatorRef}
+        interactionHandlers={minimapInteractionHandlers}
       />
       <OwnedGraphStatusOverlays error={rendererError} fpsOutputRef={fpsOutputRef}
         performanceSample={performanceSample} tooltip={linkTooltip} width={props.sharedProps.width ?? 0} />

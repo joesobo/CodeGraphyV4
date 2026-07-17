@@ -2,7 +2,15 @@ import type { GraphRendererFrame, GraphRendererLink, GraphRendererNode } from '.
 import { NodeStyleBuffer } from '../node/style/buffer';
 import { createVertexStream, type VertexStream } from './vertexStream';
 
-export interface GraphBufferState {
+export interface GraphPassBufferState {
+  linkGeometryStream: VertexStream;
+  linkStyleStream: VertexStream;
+  nodePositionStream: VertexStream;
+  nodeStyleStream: VertexStream;
+  renderedLinkCount: number;
+}
+
+export interface GraphBufferState extends GraphPassBufferState {
   indexedEdgeSources?: Uint32Array;
   indexedEdgeStride: number;
   indexedEdgeTargets?: Uint32Array;
@@ -20,6 +28,7 @@ export interface GraphBufferState {
   renderedLinkCount: number;
   renderedLinkIndexes: Uint32Array;
   renderedLinkIndexByLink: WeakMap<GraphRendererLink, number>;
+  renderedLinkOrderRevision: number;
   styleIdentity?: StyleIdentity;
   uploadedArrowsVisible: boolean;
   uploadedEdgeStride: number;
@@ -55,6 +64,7 @@ export function createGraphBufferState(device: GPUDevice): GraphBufferState {
     renderedLinkCount: 0,
     renderedLinkIndexes: new Uint32Array(),
     renderedLinkIndexByLink: new WeakMap(),
+    renderedLinkOrderRevision: 0,
     uploadedArrowsVisible: false,
     uploadedEdgeStride: 1,
     uploadedNodeVisualScale: 1,

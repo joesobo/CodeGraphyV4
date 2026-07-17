@@ -43,5 +43,6 @@ export function updateLinkRenderOrder(
     ? indexes
     : indexes.slice(0, renderedCount);
   state.renderedLinkIndexByLink = indexByLink;
+  state.renderedLinkOrderRevision += 1;
   return true;
 }

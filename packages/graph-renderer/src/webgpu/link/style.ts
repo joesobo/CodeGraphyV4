@@ -2,8 +2,12 @@ import type { GraphRendererFrame, GraphRendererLink } from '../../contracts';
 import { LINK_CACHED_STYLE_FLOATS, LINK_INSTANCE_STYLE_FLOATS } from '../buffer/layout';
 import { cachedWebGpuColor } from '../color/parser';
 
-export function createLinkStyles(frame: GraphRendererFrame): Float32Array {
-  const output = new Float32Array(frame.links.length * LINK_CACHED_STYLE_FLOATS);
+export function createLinkStyles(
+  frame: GraphRendererFrame,
+  retained?: Float32Array,
+): Float32Array {
+  const length = frame.links.length * LINK_CACHED_STYLE_FLOATS;
+  const output = retained?.length === length ? retained : new Float32Array(length);
   frame.links.forEach((link, index) => {
     const offset = index * LINK_CACHED_STYLE_FLOATS;
     output[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);

@@ -15,6 +15,7 @@ export function buildGraphViewSettingsMessages(
       type: 'SETTINGS_UPDATED',
       payload: {
         bidirectionalEdges: settings.bidirectionalEdges,
+        showMinimap: settings.showMinimap,
         showOrphans: settings.showOrphans,
       },
     },
@@ -53,6 +54,7 @@ export function buildGraphViewAllSettingsMessages(
         particleSize: snapshot.particleSize,
         directionColor: snapshot.directionColor,
         showLabels: snapshot.showLabels,
+        showMinimap: snapshot.showMinimap,
       }),
     ],
     postGroupMessages: [

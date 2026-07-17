@@ -6,6 +6,7 @@ const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
   dispose: vi.fn(),
   render: vi.fn(),
+  setSecondarySurface: vi.fn(),
 }));
 
 vi.unmock('../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/render');
@@ -40,6 +41,7 @@ describe('OwnedGraphSurface2d pointer integration', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
       bottom: 100,
@@ -137,6 +139,7 @@ describe('OwnedGraphSurface2d pointer integration', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
       bottom: 100,
@@ -187,6 +190,7 @@ describe('OwnedGraphSurface2d pointer integration', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
       bottom: 100,
@@ -225,6 +229,7 @@ describe('OwnedGraphSurface2d pointer integration', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
       bottom: 100,

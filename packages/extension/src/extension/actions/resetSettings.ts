@@ -38,6 +38,7 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   showLabels: 'showLabels',
   maxFiles: 'maxFiles',
   showFps: 'showFps',
+  showMinimap: 'showMinimap',
   verboseDiagnostics: 'verboseDiagnostics',
 };
 

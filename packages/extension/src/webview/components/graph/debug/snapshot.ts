@@ -29,6 +29,22 @@ function getContainerSize(containerRef: RefObject<HTMLElement | null>): {
   };
 }
 
+function inferCameraCenter(
+  nodes: GraphDebugSnapshot['nodes'],
+  containerWidth: number,
+  containerHeight: number,
+  zoom: number | null,
+): { cameraCenterX: number | null; cameraCenterY: number | null } {
+  const node = nodes.find(candidate => candidate.positionFinite);
+  if (!node || zoom === null || !Number.isFinite(zoom) || zoom === 0) {
+    return { cameraCenterX: null, cameraCenterY: null };
+  }
+  return {
+    cameraCenterX: node.x - (node.screenX - containerWidth / 2) / zoom,
+    cameraCenterY: node.y - (node.screenY - containerHeight / 2) / zoom,
+  };
+}
+
 export function buildGraphDebugSnapshot({
   containerRef,
   graph,
@@ -38,10 +54,19 @@ export function buildGraphDebugSnapshot({
   graph: GraphDebugControls | undefined;
   nodes: DebugNode[];
 }): GraphDebugSnapshot {
+  const container = getContainerSize(containerRef);
+  const nodeSnapshots = nodes.map((node) => buildDebugNodeSnapshot(node, graph));
+  const zoom = graph?.zoom?.() ?? null;
   return {
-    ...getContainerSize(containerRef),
+    ...inferCameraCenter(
+      nodeSnapshots,
+      container.containerWidth,
+      container.containerHeight,
+      zoom,
+    ),
+    ...container,
     fps: graph?.getFps?.() ?? null,
-    nodes: nodes.map((node) => buildDebugNodeSnapshot(node, graph)),
-    zoom: graph?.zoom?.() ?? null,
+    nodes: nodeSnapshots,
+    zoom,
   };
 }

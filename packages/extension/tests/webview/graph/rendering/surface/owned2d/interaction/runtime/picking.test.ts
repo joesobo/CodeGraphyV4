@@ -27,6 +27,7 @@ describe('owned graph lazy interaction picking', () => {
     const layout: OwnedGraphLayout = {
       engine,
       links: [],
+      baseStyleRevision: 0, membershipRevision: 0,
       nodes: [graphNode],
     };
     const picker = new OwnedGraphNodePicker();
@@ -90,6 +91,7 @@ describe('owned graph lazy interaction picking', () => {
     const layout: OwnedGraphLayout = {
       engine,
       links: [link],
+      baseStyleRevision: 0, membershipRevision: 0,
       nodes: [source, target],
     };
     const linkPicker = new OwnedGraphLinkPicker();

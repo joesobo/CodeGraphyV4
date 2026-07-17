@@ -8,6 +8,8 @@ import {
 
 const renderingHarness = vi.hoisted(() => ({
   getGraphDirectionalColor: vi.fn(),
+  getBaseGraphLinkOpacity: vi.fn(() => 0.3),
+  getBaseGraphLinkWidth: vi.fn(() => 1),
   getGraphLinkColor: vi.fn(),
   getGraphLinkOpacity: vi.fn(),
   getGraphLinkParticles: vi.fn(),
@@ -22,6 +24,8 @@ vi.mock('../../../../src/webview/components/graph/rendering/link/colors/model', 
 }));
 
 vi.mock('../../../../src/webview/components/graph/rendering/link/metrics', () => ({
+  getBaseGraphLinkOpacity: renderingHarness.getBaseGraphLinkOpacity,
+  getBaseGraphLinkWidth: renderingHarness.getBaseGraphLinkWidth,
   getGraphLinkOpacity: renderingHarness.getGraphLinkOpacity,
   getGraphLinkParticles: renderingHarness.getGraphLinkParticles,
   getGraphLinkWidth: renderingHarness.getGraphLinkWidth,
@@ -141,6 +145,18 @@ describe('graph/rendering/useGraphCallbacks', () => {
     expect(result.current.getStyleRevision()).toBe(2);
     refs.selectedNodesSetRef.current = new Set(['node-2']);
     expect(result.current.getStyleRevision()).toBe(3);
+  });
+
+  it('keeps the base-style revision stable for transient selection and decoration changes', () => {
+    const { refs, result } = renderUseGraphCallbacks();
+
+    expect(result.current.getBaseStyleRevision()).toBe(1);
+    refs.highlightedNodeRef.current = 'node-2';
+    refs.selectedNodesSetRef.current = new Set(['node-2']);
+    refs.nodeDecorationsRef.current = new Map([['node-2', { color: '#ff0000' }]]) as never;
+    refs.edgeDecorationsRef.current = new Map([['edge-1', { opacity: 0.1 }]]) as never;
+
+    expect(result.current.getBaseStyleRevision()).toBe(1);
   });
 
   it('uses the directional color for arrows and particles', () => {

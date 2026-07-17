@@ -16,8 +16,10 @@ export type DisplayStoreState = {
   setParticleSize: (size: number) => void;
   setParticleSpeed: (speed: number) => void;
   setShowLabels: (showLabels: boolean) => void;
+  setShowMinimap: (showMinimap: boolean) => void;
   setShowOrphans: (showOrphans: boolean) => void;
   showLabels: boolean;
+  showMinimap: boolean;
   showOrphans: boolean;
 };
 
@@ -36,8 +38,10 @@ export function useDisplayStore(): DisplayStoreState {
   const setParticleSize = useGraphStore((state) => state.setParticleSize);
   const setParticleSpeed = useGraphStore((state) => state.setParticleSpeed);
   const setShowLabels = useGraphStore((state) => state.setShowLabels);
+  const setShowMinimap = useGraphStore((state) => state.setShowMinimap);
   const setShowOrphans = useGraphStore((state) => state.setShowOrphans);
   const showLabels = useGraphStore((state) => state.showLabels);
+  const showMinimap = useGraphStore((state) => state.showMinimap);
   const showOrphans = useGraphStore((state) => state.showOrphans);
 
   return {
@@ -55,8 +59,10 @@ export function useDisplayStore(): DisplayStoreState {
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
+    setShowMinimap,
     setShowOrphans,
     showLabels,
+    showMinimap,
     showOrphans,
   };
 }

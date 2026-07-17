@@ -54,6 +54,7 @@ describe('DepthViewControls', () => {
       depthMode: false,
       depthLimit: 1,
       maxDepthLimit: 10,
+      showMinimap: true,
     });
   });
 
@@ -73,7 +74,7 @@ describe('DepthViewControls', () => {
     render(<DepthViewControls />);
 
     expect(screen.getByTestId('depth-view-controls')).toBeInTheDocument();
-    expect(screen.getByTestId('depth-view-controls').className).toContain('pl-16');
+    expect(screen.getByTestId('depth-view-controls').className).toContain('pl-48');
     expect(screen.getByTestId('depth-view-controls').className).toContain('pr-4');
     expect(screen.getByTestId('depth-view-slider')).toBeInTheDocument();
     expect(screen.getByTestId('depth-view-shell')).toBeInTheDocument();
@@ -82,6 +83,19 @@ describe('DepthViewControls', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByTestId('depth-view-max')).toHaveTextContent('4');
     expect(screen.queryByText('1')).not.toBeInTheDocument();
+  });
+
+  it('reclaims the bottom-left space when the minimap is hidden', () => {
+    graphStore.setState({
+      depthMode: true,
+      depthLimit: 2,
+      maxDepthLimit: 4,
+      showMinimap: false,
+    });
+
+    render(<DepthViewControls />);
+
+    expect(screen.getByTestId('depth-view-controls').className).toContain('pl-16');
   });
 
   it('posts CHANGE_DEPTH_LIMIT when the slider changes', () => {

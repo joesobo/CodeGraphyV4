@@ -148,6 +148,8 @@ describe('owned graph dynamic updates', () => {
       bidirectional: false,
     }];
     const layout = createOwnedGraphLayout(initialNodes, initialLinks, DEFAULT_SETTINGS);
+    expect(layout.baseStyleRevision).toBe(0);
+    expect(layout.membershipRevision).toBe(0);
     const engine = layout.engine;
     engine.setKinematics(
       Float32Array.of(100, 300),
@@ -162,6 +164,8 @@ describe('owned graph dynamic updates', () => {
       source: recolored[0],
       target: recolored[1],
     }], DEFAULT_SETTINGS);
+    expect(layout.membershipRevision).toBe(0);
+    expect(layout.baseStyleRevision).toBe(1);
     expect(layout.engine).toBe(engine);
     expect(layout.nodes[0].color).toBe('#ff0000');
     expect(Array.from(layout.engine.x)).toEqual([100, 300]);
@@ -179,6 +183,8 @@ describe('owned graph dynamic updates', () => {
       target: added[2],
       bidirectional: false,
     }], DEFAULT_SETTINGS);
+    expect(layout.membershipRevision).toBe(1);
+    expect(layout.baseStyleRevision).toBe(2);
     expect(layout.engine).toBe(engine);
     expect(Array.from(layout.engine.x)).toEqual([100, 300, 500]);
     expect(Array.from(layout.engine.y)).toEqual([200, 400, 600]);

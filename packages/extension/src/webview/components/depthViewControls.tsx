@@ -11,6 +11,7 @@ export function DepthViewControls(): React.ReactElement | null {
   const depthMode = useGraphStore(state => state.depthMode);
   const depthLimit = useGraphStore(state => state.depthLimit);
   const maxDepthLimit = useGraphStore(state => state.maxDepthLimit);
+  const showMinimap = useGraphStore(state => state.showMinimap);
   const effectiveDepthLimit = Math.min(depthLimit, maxDepthLimit);
   const isCompactControl = maxDepthLimit === MIN_DEPTH;
 
@@ -26,7 +27,9 @@ export function DepthViewControls(): React.ReactElement | null {
   return (
     <div
       data-testid="depth-view-controls"
-      className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center pl-16 pr-4 sm:pl-20 sm:pr-6"
+      className={`pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center pr-4 sm:pr-6 ${
+        showMinimap ? 'pl-48' : 'pl-16 sm:pl-20'
+      }`}
     >
       <div
         data-testid="depth-view-shell"

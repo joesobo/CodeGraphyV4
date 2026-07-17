@@ -1,6 +1,8 @@
 import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/view/surface/contracts';
 
 export interface GraphDebugSnapshot {
+  cameraCenterX: number | null;
+  cameraCenterY: number | null;
   containerHeight: number;
   containerWidth: number;
   fps: number | null;

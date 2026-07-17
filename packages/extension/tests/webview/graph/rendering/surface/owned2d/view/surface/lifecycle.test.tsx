@@ -6,6 +6,7 @@ const rendererHarness = vi.hoisted(() => ({
   create: vi.fn(),
   dispose: vi.fn(),
   render: vi.fn(),
+  setSecondarySurface: vi.fn(),
 }));
 
 vi.unmock('../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/render');
@@ -29,6 +30,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     rendererHarness.create.mockReset();
     rendererHarness.dispose.mockReset();
     rendererHarness.render.mockReset();
+    rendererHarness.setSecondarySurface.mockReset();
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     vi.stubGlobal('PointerEvent', MouseEvent);
@@ -39,6 +41,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     const { container } = render(<OwnedGraphSurface2d {...createDefaultSurfaceProps()} />);
 
@@ -46,7 +49,10 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
     });
     expect(container.firstElementChild).toHaveAttribute('data-codegraphy-physics', 'wasm');
-    expect(container.querySelectorAll('canvas')).toHaveLength(2);
+    expect(container.querySelectorAll('canvas')).toHaveLength(3);
+    expect(rendererHarness.setSecondarySurface).toHaveBeenCalledWith(
+      screen.getByTestId('graph-minimap').querySelector('canvas'),
+    );
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
@@ -68,6 +74,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
     });
     const props = createDefaultSurfaceProps();
     props.sharedProps.graphData = { links: [], nodes: [{
@@ -110,6 +117,54 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     );
     expect(new Set(styleVersions).size).toBe(1);
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
+  });
+
+  it('does not retain or render a secondary surface while the minimap is disabled', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
+    });
+    const props = createDefaultSurfaceProps();
+    props.showMinimap = false;
+    const { container, rerender } = render(<OwnedGraphSurface2d {...props} />);
+
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    expect(container.querySelectorAll('canvas')).toHaveLength(2);
+    expect(rendererHarness.setSecondarySurface).not.toHaveBeenCalled();
+
+    rerender(<OwnedGraphSurface2d {...props} showMinimap />);
+    expect(container.querySelectorAll('canvas')).toHaveLength(3);
+    expect(rendererHarness.setSecondarySurface).toHaveBeenCalledWith(
+      screen.getByTestId('graph-minimap').querySelector('canvas'),
+    );
+
+    rerender(<OwnedGraphSurface2d {...props} showMinimap={false} />);
+    expect(container.querySelectorAll('canvas')).toHaveLength(2);
+    expect(rendererHarness.setSecondarySurface).toHaveBeenLastCalledWith(undefined);
+  });
+
+  it('keeps the primary graph operational when the optional minimap surface fails', async () => {
+    rendererHarness.setSecondarySurface.mockImplementation((canvas?: HTMLCanvasElement) => {
+      if (canvas) throw new Error('secondary surface failed');
+    });
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+      setSecondarySurface: rendererHarness.setSecondarySurface,
+    });
+
+    const { container } = render(<OwnedGraphSurface2d {...createDefaultSurfaceProps()} />);
+
+    await waitFor(() => expect(rendererHarness.setSecondarySurface).toHaveBeenCalled());
+    expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    expect(screen.getByTestId('graph-minimap')).not.toBeVisible();
+    expect(rendererHarness.setSecondarySurface).toHaveBeenLastCalledWith(undefined);
   });
 
   it('shows an explicit error instead of switching to a Canvas graph renderer', async () => {

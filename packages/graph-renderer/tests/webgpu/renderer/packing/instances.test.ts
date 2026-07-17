@@ -10,6 +10,170 @@ import {
 afterEach(cleanUpWebGpuHarness);
 
 describe('WebGPU renderer frame packing', () => {
+  it('cleans up a secondary context when surface setup fails', async () => {
+    const harness = webGpuHarness();
+    const secondaryContext = {
+      configure: vi.fn(() => { throw new Error('secondary configure failed'); }),
+      unconfigure: vi.fn(),
+    };
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => secondaryContext,
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    });
+
+    expect(() => renderer!.setSecondarySurface(secondaryCanvas))
+      .toThrow('secondary configure failed');
+    expect(secondaryContext.unconfigure).toHaveBeenCalledOnce();
+    expect(renderer!.render(rendererFrame())).toBe(1);
+  });
+
+  it('renders a registered secondary surface from shared graph buffers in one submission', async () => {
+    const harness = webGpuHarness();
+    const secondaryContext = {
+      configure: vi.fn(),
+      getCurrentTexture: vi.fn(() => ({ createView: vi.fn(() => ({})) })),
+      unconfigure: vi.fn(),
+    };
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => secondaryContext,
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+      onRendererError: vi.fn(),
+    });
+    const frame = rendererFrame();
+    const getBaseNodeStyle = vi.fn(() => ({
+      borderColor: '#000000', borderWidth: 0, cornerRadius: 0,
+      fillColor: '#010203', fillOpacity: 1, height: 12, opacity: 1,
+      shape: 'circle' as const, width: 12,
+    }));
+    const secondaryFrame = {
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      camera: { centerX: 50, centerY: 3, zoom: 1.5 },
+      cssHeight: 160,
+      cssWidth: 160,
+      devicePixelRatio: 2,
+      getLinkColor: () => '#abcdef',
+      getLinkOpacity: () => 0.3,
+      getLinkWidth: () => 1,
+      getNodeStyle: getBaseNodeStyle,
+      styleVersion: 1,
+    };
+
+    renderer!.setSecondarySurface(secondaryCanvas);
+    renderer!.render(frame, secondaryFrame);
+
+    expect(secondaryContext.configure).toHaveBeenCalledWith(expect.objectContaining({
+      device: harness.device,
+    }));
+    expect(harness.device.createCommandEncoder).toHaveBeenCalledTimes(1);
+    expect(harness.device.queue.submit).toHaveBeenCalledTimes(1);
+    expect(harness.device.createCommandEncoder.mock.results[0]?.value.beginRenderPass)
+      .toHaveBeenCalledTimes(2);
+    expect(harness.draw.mock.calls).toEqual([
+      [34, 1],
+      [6, 1],
+      [6, 2],
+      [34, 1],
+      [6, 2],
+    ]);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
+      'CodeGraphy node positions',
+      'CodeGraphy node styles',
+      'CodeGraphy link geometry',
+      'CodeGraphy link styles',
+      'CodeGraphy camera uniform',
+      'CodeGraphy secondary camera uniform',
+      'CodeGraphy secondary node styles',
+      'CodeGraphy secondary link styles',
+    ]);
+    expect(getBaseNodeStyle).toHaveBeenCalledTimes(2);
+    expect(Array.from(uploadedFloats(harness, 'CodeGraphy secondary node styles').slice(2, 5)))
+      .toEqual([
+        expect.closeTo(1 / 255, 5),
+        expect.closeTo(2 / 255, 5),
+        expect.closeTo(3 / 255, 5),
+      ]);
+    expect([secondaryCanvas.width, secondaryCanvas.height]).toEqual([100, 100]);
+
+    harness.writeBuffer.mockClear();
+    frame.nodeX[0] += 1;
+    frame.positionVersion += 1;
+    renderer!.render(frame, secondaryFrame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .not.toContain('CodeGraphy secondary node styles');
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .not.toContain('CodeGraphy secondary link styles');
+
+    harness.writeBuffer.mockClear();
+    secondaryFrame.styleVersion += 1;
+    renderer!.render(frame, secondaryFrame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
+      'CodeGraphy camera uniform',
+      'CodeGraphy secondary camera uniform',
+      'CodeGraphy secondary node styles',
+      'CodeGraphy secondary link styles',
+    ]);
+
+    renderer!.setSecondarySurface(undefined);
+    expect(secondaryContext.unconfigure).toHaveBeenCalledTimes(1);
+  });
+
+  it('repacks secondary links after an intervening primary-only stride change', async () => {
+    const harness = webGpuHarness();
+    const secondaryCanvas = document.createElement('canvas');
+    Object.defineProperty(secondaryCanvas, 'getContext', {
+      configurable: true,
+      value: () => harness.context,
+    });
+    const renderer = await WebGpuGraphRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(), onFrameComplete: vi.fn(), onRendererError: vi.fn(),
+    });
+    const frame = rendererFrame();
+    const edgeCount = 250_001;
+    frame.links = Array.from({ length: edgeCount }, () => frame.links[0]);
+    frame.edgeSources = new Uint32Array(edgeCount);
+    frame.edgeTargets = new Uint32Array(edgeCount).fill(1);
+    const secondaryFrame = {
+      backgroundColor: '#000000',
+      camera: { centerX: 0, centerY: 0, zoom: 1 },
+      cssHeight: 160,
+      cssWidth: 160,
+      devicePixelRatio: 1,
+      getLinkColor: () => '#112233',
+      getLinkOpacity: () => 1,
+      getLinkWidth: () => 1,
+      getNodeStyle: frame.getNodeStyle,
+      styleVersion: 1,
+    };
+    renderer!.setSecondarySurface(secondaryCanvas);
+    renderer!.render(frame, secondaryFrame);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    frame.camera.zoom = 0.1;
+    renderer!.render(frame);
+    await Promise.resolve();
+    await Promise.resolve();
+    harness.writeBuffer.mockClear();
+
+    renderer!.render(frame, secondaryFrame);
+
+    const secondaryLinkUpload = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy secondary link styles',
+    );
+    expect(secondaryLinkUpload?.[4]).toBe(Math.ceil(edgeCount / 2) * 11 * 4);
+  }, 30_000);
+
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();
     const onFrameComplete = vi.fn();

@@ -78,6 +78,7 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_PLUGIN_DATA'; payload: { pluginId: string; data: unknown } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
+  | { type: 'UPDATE_SHOW_MINIMAP'; payload: { showMinimap: boolean } }
   | { type: 'UPDATE_CSS_SNIPPET'; payload: { path: string; enabled: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; packageName?: string; enabled: boolean } }

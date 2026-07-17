@@ -40,6 +40,7 @@ export function createSettingsSnapshot(): ISettingsSnapshot {
     particleSize: 4,
     pluginData: {},
     showLabels: true,
+    showMinimap: true,
     maxFiles: DEFAULT_MAX_FILES,
     showFps: false,
     verboseDiagnostics: false,

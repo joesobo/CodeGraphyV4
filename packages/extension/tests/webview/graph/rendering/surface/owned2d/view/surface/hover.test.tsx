@@ -25,6 +25,7 @@ describe('OwnedGraphSurface2d hover presentation', () => {
       canRender: () => true,
       dispose: vi.fn(),
       render: vi.fn(),
+      setSecondarySurface: vi.fn(),
     });
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
     vi.stubGlobal('cancelAnimationFrame', vi.fn());

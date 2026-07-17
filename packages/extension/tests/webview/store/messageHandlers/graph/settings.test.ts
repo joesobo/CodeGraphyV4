@@ -20,9 +20,10 @@ describe('graph message handlers: settings',()=>{
   it('maps settings and filter payloads', () => {
       expect(handleSettingsUpdated({
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'combined', showOrphans: false },
+        payload: { bidirectionalEdges: 'combined', showMinimap: false, showOrphans: false },
       })).toEqual({
         bidirectionalMode: 'combined',
+        showMinimap: false,
         showOrphans: false,
       });
   
