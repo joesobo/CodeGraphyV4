@@ -20,6 +20,37 @@ export function ensureSchema(connection: SQLiteConnection): void {
       metadataJson TEXT
     );
     CREATE INDEX IF NOT EXISTS Symbol_filePath_idx ON Symbol(filePath);
+    CREATE TABLE IF NOT EXISTS Node (
+      nodeId TEXT PRIMARY KEY,
+      filePath TEXT NOT NULL,
+      nodeType TEXT NOT NULL,
+      label TEXT NOT NULL,
+      sourceFilePath TEXT,
+      parentId TEXT,
+      metadataJson TEXT
+    );
+    CREATE INDEX IF NOT EXISTS Node_filePath_idx ON Node(filePath);
+    CREATE TABLE IF NOT EXISTS NodeType (
+      recordId TEXT PRIMARY KEY,
+      filePath TEXT NOT NULL,
+      typeId TEXT NOT NULL,
+      label TEXT NOT NULL,
+      defaultColor TEXT NOT NULL,
+      defaultVisible INTEGER NOT NULL,
+      parentId TEXT,
+      descriptionJson TEXT
+    );
+    CREATE INDEX IF NOT EXISTS NodeType_filePath_idx ON NodeType(filePath);
+    CREATE TABLE IF NOT EXISTS EdgeType (
+      recordId TEXT PRIMARY KEY,
+      filePath TEXT NOT NULL,
+      typeId TEXT NOT NULL,
+      label TEXT NOT NULL,
+      defaultColor TEXT NOT NULL,
+      defaultVisible INTEGER NOT NULL,
+      descriptionJson TEXT
+    );
+    CREATE INDEX IF NOT EXISTS EdgeType_filePath_idx ON EdgeType(filePath);
     CREATE TABLE IF NOT EXISTS Relation (
       relationId TEXT PRIMARY KEY,
       filePath TEXT NOT NULL,

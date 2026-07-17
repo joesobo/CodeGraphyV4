@@ -136,6 +136,24 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const workspaceRoot = createWorkspaceRoot();
     const analysis = {
       filePath: '/workspace/src/index.ts',
+      nodeTypes: [{
+        id: 'plugin:test:route',
+        label: 'Route',
+        defaultColor: '#123456',
+        defaultVisible: true,
+      }],
+      edgeTypes: [{
+        id: 'test:routes-to' as const,
+        label: 'Routes to',
+        defaultColor: '#654321',
+        defaultVisible: false,
+      }],
+      nodes: [{
+        id: '/workspace/src/index.ts:route:home',
+        nodeType: 'plugin:test:route',
+        label: 'Home',
+        filePath: '/workspace/src/index.ts',
+      }],
       symbols: [{
         id: '/workspace/src/index.ts:function:main',
         filePath: '/workspace/src/index.ts',
@@ -162,19 +180,32 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       connection => ({
         tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
         files: readRowsSync(connection, 'SELECT factsJson FROM File'),
+        nodes: readRowsSync(connection, 'SELECT nodeId, nodeType, label FROM Node'),
+        nodeTypes: readRowsSync(connection, 'SELECT typeId, label FROM NodeType'),
+        edgeTypes: readRowsSync(connection, 'SELECT typeId, label FROM EdgeType'),
         symbols: readRowsSync(connection, 'SELECT symbolId, filePath FROM Symbol'),
         relations: readRowsSync(connection, 'SELECT filePath, kind FROM Relation'),
       }),
     );
 
     expect(records.tables).toEqual([
+      { name: 'EdgeType' },
       { name: 'File' },
+      { name: 'Node' },
+      { name: 'NodeType' },
       { name: 'Relation' },
       { name: 'Symbol' },
     ]);
     expect(JSON.parse(String(records.files[0]!.factsJson))).toEqual({
       filePath: '/workspace/src/index.ts',
     });
+    expect(records.nodes).toEqual([{
+      nodeId: '/workspace/src/index.ts:route:home',
+      nodeType: 'plugin:test:route',
+      label: 'Home',
+    }]);
+    expect(records.nodeTypes).toEqual([{ typeId: 'plugin:test:route', label: 'Route' }]);
+    expect(records.edgeTypes).toEqual([{ typeId: 'test:routes-to', label: 'Routes to' }]);
     expect(records.symbols).toEqual([{
       symbolId: '/workspace/src/index.ts:function:main',
       filePath: 'src/index.ts',

@@ -66,6 +66,9 @@ export function saveWorkspaceAnalysisDatabaseCache(
       runTransactionSync(connection, () => {
         runStatementSync(connection, 'DELETE FROM File');
         runStatementSync(connection, 'DELETE FROM Symbol');
+        runStatementSync(connection, 'DELETE FROM Node');
+        runStatementSync(connection, 'DELETE FROM NodeType');
+        runStatementSync(connection, 'DELETE FROM EdgeType');
         runStatementSync(connection, 'DELETE FROM Relation');
 
         const writer = createWorkspaceAnalysisCacheWriter(connection);
@@ -126,6 +129,9 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   withConnection(databasePath, (connection) => {
     runStatementSync(connection, 'DELETE FROM File');
     runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Node');
+    runStatementSync(connection, 'DELETE FROM NodeType');
+    runStatementSync(connection, 'DELETE FROM EdgeType');
     runStatementSync(connection, 'DELETE FROM Relation');
   });
 }

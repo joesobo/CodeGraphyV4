@@ -19,7 +19,7 @@ export interface IWorkspaceAnalysisCache {
 }
 
 export const WORKSPACE_ANALYSIS_CACHE_KEY = 'codegraphy.analysisCache';
-export const WORKSPACE_ANALYSIS_CACHE_VERSION = '2.2.0';
+export const WORKSPACE_ANALYSIS_CACHE_VERSION = '2.3.0';
 
 export function createWorkspaceFileContentHash(content: string): string {
   return createHash('sha256').update(content).digest('hex');

@@ -11,6 +11,9 @@ import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parseTypes';
 import { hasSupportedRawPluginIdentity } from '../../workspace/settingsPlugins';
+import { readWorkspaceAnalysisDatabaseRecordCounts } from '../../graphCache/database/storage';
+import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
+import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../analysis/cache';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -93,6 +96,8 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
   const runtimeOk = runtimeMajor >= 20 && runtimeMajor < 23;
   const settingsCheck = readSettingsCheck(workspaceRoot);
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
+  const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+  const records = readWorkspaceAnalysisDatabaseRecordCounts(workspaceRoot);
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   const activity = createPluginActivityState({
     settings,
@@ -111,6 +116,10 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
       ok: status.state === 'fresh',
       state: status.state,
       path: status.graphCachePath,
+      staleReasons: status.staleReasons,
+      schemaVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      indexedAt: meta.lastIndexedAt,
+      records,
       ...(status.state === 'fresh' ? {} : { action: 'Run `codegraphy index`.' }),
     },
     plugins: {

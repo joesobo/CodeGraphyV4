@@ -65,7 +65,10 @@ describe('pipeline/database/cache/snapshot', () => {
     vi.mocked(readRowsSync)
       .mockReturnValueOnce([{ id: 'file-1' }, { id: 'file-2' }] as never)
       .mockReturnValueOnce([{ id: 'symbol-1' }] as never)
-      .mockReturnValueOnce([{ id: 'relation-1' }, { id: 'relation-2' }] as never);
+      .mockReturnValueOnce([{ id: 'relation-1' }, { id: 'relation-2' }] as never)
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([]);
     vi.mocked(createSnapshotFileEntry)
       .mockReturnValueOnce({ filePath: 'src/file.ts', mtime: 1, analysis: { filePath: 'src/file.ts', relations: [] } } as never)
       .mockReturnValueOnce(undefined);
@@ -98,6 +101,9 @@ describe('pipeline/database/cache/snapshot', () => {
     vi.mocked(withConnection).mockImplementation((_path, callback) => callback('connection' as never));
     vi.mocked(readRowsSync)
       .mockReturnValueOnce([{ id: 'file-1' }] as never)
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([])
       .mockReturnValueOnce([])
       .mockReturnValueOnce([]);
     vi.mocked(createSnapshotFileEntry).mockReturnValueOnce({

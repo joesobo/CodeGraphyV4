@@ -10,12 +10,15 @@ import {
 } from '../../../analysis/fileAnalysis/cacheTiers';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
-import { createSnapshotFileEntry } from '../records/file';
+import { createSnapshotEdgeTypeEntry, createSnapshotFileEntry, createSnapshotNodeEntry, createSnapshotNodeTypeEntry } from '../records/file';
 import { createSnapshotSymbolEntry } from '../records/symbol';
 import { createSnapshotRelationEntry } from '../relation/entry';
-import type { RelationRow, SymbolRow } from '../records/contracts';
+import type { GraphTypeRow, NodeRow, RelationRow, SymbolRow } from '../records/contracts';
 import {
   FILE_ROWS_QUERY,
+  EDGE_TYPE_ROWS_QUERY,
+  NODE_ROWS_QUERY,
+  NODE_TYPE_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
 } from '../query/read';
@@ -33,11 +36,17 @@ function containsEmbeddedStructuredAnalysis(
     if (typeof row.factsJson !== 'string') return false;
     try {
       const analysis = JSON.parse(row.factsJson) as {
+        nodes?: unknown[];
+        nodeTypes?: unknown[];
+        edgeTypes?: unknown[];
         symbols?: unknown[];
         relations?: unknown[];
       };
       return (analysis.symbols?.length ?? 0) > 0
-        || (analysis.relations?.length ?? 0) > 0;
+        || (analysis.relations?.length ?? 0) > 0
+        || (analysis.nodes?.length ?? 0) > 0
+        || (analysis.nodeTypes?.length ?? 0) > 0
+        || (analysis.edgeTypes?.length ?? 0) > 0;
     } catch {
       return false;
     }
@@ -49,6 +58,9 @@ function addSnapshotEntryToCache(
   row: Parameters<typeof createSnapshotFileEntry>[0],
   symbolRows: readonly SymbolRow[],
   relationRows: readonly RelationRow[],
+  nodeRows: readonly NodeRow[],
+  nodeTypeRows: readonly GraphTypeRow[],
+  edgeTypeRows: readonly GraphTypeRow[],
   options: WorkspaceAnalysisDatabaseLoadOptions,
 ): void {
   const entry = createSnapshotFileEntry(row);
@@ -69,10 +81,25 @@ function addSnapshotEntryToCache(
       const relation = createSnapshotRelationEntry(row);
       return relation ? [relation] : [];
     });
+  const nodes = nodeRows.filter(row => row.filePath === entry.filePath).flatMap(row => {
+    const node = createSnapshotNodeEntry(row);
+    return node ? [node] : [];
+  });
+  const nodeTypes = nodeTypeRows.filter(row => row.filePath === entry.filePath).flatMap(row => {
+    const type = createSnapshotNodeTypeEntry(row);
+    return type ? [type] : [];
+  });
+  const edgeTypes = edgeTypeRows.filter(row => row.filePath === entry.filePath).flatMap(row => {
+    const type = createSnapshotEdgeTypeEntry(row);
+    return type ? [type] : [];
+  });
   const analysis = {
     ...entry.analysis,
     ...(symbols.length > 0 ? { symbols } : {}),
     ...(relations.length > 0 ? { relations } : {}),
+    ...(nodes.length > 0 ? { nodes } : {}),
+    ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
+    ...(edgeTypes.length > 0 ? { edgeTypes } : {}),
   };
   cache.files[entry.filePath] = {
     mtime: entry.mtime,
@@ -102,11 +129,14 @@ export function loadWorkspaceAnalysisDatabaseCache(
       }
       const symbolRows = readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[];
       const relationRows = readRowsSync(connection, RELATION_ROWS_QUERY) as RelationRow[];
+      const nodeRows = readRowsSync(connection, NODE_ROWS_QUERY) as NodeRow[];
+      const nodeTypeRows = readRowsSync(connection, NODE_TYPE_ROWS_QUERY) as GraphTypeRow[];
+      const edgeTypeRows = readRowsSync(connection, EDGE_TYPE_ROWS_QUERY) as GraphTypeRow[];
       const cache = createEmptyWorkspaceAnalysisCache();
 
       for (const row of rows) {
         try {
-          addSnapshotEntryToCache(cache, row, symbolRows, relationRows, options);
+          addSnapshotEntryToCache(cache, row, symbolRows, relationRows, nodeRows, nodeTypeRows, edgeTypeRows, options);
         } catch (error) {
           console.warn('[CodeGraphy] Skipping unreadable persisted analysis row.', error);
         }
@@ -143,11 +173,14 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
       }
       const symbolRows = await readRowsAsync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[];
       const relationRows = await readRowsAsync(connection, RELATION_ROWS_QUERY) as RelationRow[];
+      const nodeRows = await readRowsAsync(connection, NODE_ROWS_QUERY) as NodeRow[];
+      const nodeTypeRows = await readRowsAsync(connection, NODE_TYPE_ROWS_QUERY) as GraphTypeRow[];
+      const edgeTypeRows = await readRowsAsync(connection, EDGE_TYPE_ROWS_QUERY) as GraphTypeRow[];
       const cache = createEmptyWorkspaceAnalysisCache();
 
       for (const row of rows) {
         try {
-          addSnapshotEntryToCache(cache, row, symbolRows, relationRows, options);
+          addSnapshotEntryToCache(cache, row, symbolRows, relationRows, nodeRows, nodeTypeRows, edgeTypeRows, options);
         } catch (error) {
           console.warn('[CodeGraphy] Skipping unreadable persisted analysis row.', error);
         }
