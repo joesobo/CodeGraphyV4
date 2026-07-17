@@ -2,6 +2,25 @@ import { describe, expect, it, vi } from 'vitest';
 import { runCli } from '../../src/cli/run';
 
 describe('cli/run', () => {
+  it('wraps successful data commands in the stable JSON envelope', async () => {
+    const stdout = vi.fn();
+    const stderr = vi.fn();
+
+    await expect(runCli(['nodes'], {
+      runCommand: async () => ({
+        exitCode: 0,
+        output: '{"nodes":[],"page":{"returned":0}}',
+      }),
+      stdout,
+      stderr,
+    })).resolves.toBe(0);
+
+    expect(stdout).toHaveBeenCalledWith(
+      '{"ok":true,"command":"nodes","data":{"nodes":[],"page":{"returned":0}}}\n',
+    );
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
   it('writes successful output to stdout', async () => {
     const stdout = vi.fn();
     const stderr = vi.fn();
@@ -20,7 +39,7 @@ describe('cli/run', () => {
 
     expect(stdout).not.toHaveBeenCalled();
     expect(stderr).toHaveBeenCalledWith(
-      '{"error":"invalid_arguments","message":"Unknown command: wat"}\n',
+      '{"ok":false,"command":"help","error":{"code":"invalid_arguments","message":"Unknown command: wat"}}\n',
     );
   });
 
@@ -38,7 +57,7 @@ describe('cli/run', () => {
 
     expect(stdout).not.toHaveBeenCalled();
     expect(stderr).toHaveBeenCalledWith(
-      '{"error":"command_failed","message":"database unavailable"}\n',
+      '{"ok":false,"command":"index","error":{"code":"command_failed","message":"database unavailable"}}\n',
     );
   });
 });

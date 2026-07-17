@@ -15,13 +15,18 @@ describe('cli doctor', () => {
     expect(stdout).not.toHaveBeenCalled();
     const result = JSON.parse(stderr.mock.calls[0][0]);
     expect(result).toMatchObject({
-      healthy: false,
-      checks: {
-        runtime: { supported: expect.any(String) },
-        settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
-        cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
-        plugins: { ok: true, warnings: [] },
+      ok: false,
+      command: 'doctor',
+      data: {
+        healthy: false,
+        checks: {
+          runtime: { supported: expect.any(String) },
+          settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
+          cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
+          plugins: { ok: true, warnings: [] },
+        },
       },
+      error: { code: 'workspace_unhealthy' },
     });
   });
 
@@ -37,10 +42,12 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: {
-        settings: {
-          ok: false,
-          message: 'filterPatterns must be an array of strings',
+      data: {
+        checks: {
+          settings: {
+            ok: false,
+            message: 'filterPatterns must be an array of strings',
+          },
         },
       },
     });
@@ -58,7 +65,7 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: { settings: { ok: false, message: 'pluginData must be an object' } },
+      data: { checks: { settings: { ok: false, message: 'pluginData must be an object' } } },
     });
   });
 
@@ -79,7 +86,7 @@ describe('cli doctor', () => {
     await runCli(['-C', workspace, 'doctor'], { stderr });
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: { settings: { ok: true } },
+      data: { checks: { settings: { ok: true } } },
     });
   });
 
@@ -101,7 +108,7 @@ describe('cli doctor', () => {
     await runCli(['-C', workspace, 'doctor'], { stderr });
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: { settings: { ok: false } },
+      data: { checks: { settings: { ok: false } } },
     });
   });
 });
