@@ -29,7 +29,8 @@ function resolveRelationSourceId(
   workspaceRoot: string,
 ): string {
   return relation.fromSymbolId
-    ? symbolIds.get(relation.fromSymbolId) ?? relation.fromSymbolId
+    ? symbolIds.get(relation.fromSymbolId)
+      ?? toRepoRelativeGraphPath(relation.fromFilePath, workspaceRoot)
     : toRepoRelativeGraphPath(relation.fromFilePath, workspaceRoot);
 }
 
@@ -39,7 +40,10 @@ function resolveRelationTargetId(
   workspaceRoot: string,
 ): string | undefined {
   if (relation.toSymbolId) {
-    return symbolIds.get(relation.toSymbolId) ?? relation.toSymbolId;
+    const symbolId = symbolIds.get(relation.toSymbolId);
+    if (symbolId) {
+      return symbolId;
+    }
   }
 
   const targetPath = relation.toFilePath ?? relation.resolvedPath;
