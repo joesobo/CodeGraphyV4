@@ -79,7 +79,12 @@ export async function indexCodeGraphyWorkspace(
   );
 
   const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
-    pluginSignature: createWorkspaceIndexPluginSignature({ loadedPackagePlugins, registry }),
+    pluginSignature: createWorkspaceIndexPluginSignature({
+      loadedPackagePlugins,
+      registry,
+      settings,
+      includeMissingConfiguredPlugins: options.plugins === undefined,
+    }),
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
@@ -248,6 +253,7 @@ export async function indexCodeGraphyWorkspace(
       registry,
       settings,
       workspaceRoot,
+      includeMissingConfiguredPlugins: options.plugins === undefined,
     }),
   );
   options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);

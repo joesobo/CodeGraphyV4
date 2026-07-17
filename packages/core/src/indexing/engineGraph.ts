@@ -62,6 +62,7 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
     registry: state.registry,
     settings: state.settings,
     workspaceRoot,
+    includeMissingConfiguredPlugins: runtime.options.plugins === undefined,
   });
 }
 

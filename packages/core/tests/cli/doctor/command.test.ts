@@ -3,8 +3,41 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { runCli } from '../../../src/cli/run';
+import { requestCodeGraphyIndexWorkspace } from '../../../src/workspace/requestIndexing';
 
 describe('cli doctor', () => {
+  it('reports index metadata and normalized graph record counts', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-indexed-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), 'See [[Target.md]].\n');
+    await fs.writeFile(path.join(workspace, 'Target.md'), '# Target\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const stdout = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: {
+        checks: {
+          cache: {
+            ok: true,
+            state: 'fresh',
+            staleReasons: [],
+            schemaVersion: expect.any(String),
+            indexedAt: expect.any(String),
+            records: {
+              files: 2,
+              nodes: expect.any(Number),
+              symbols: expect.any(Number),
+              relations: expect.any(Number),
+              nodeTypes: expect.any(Number),
+              edgeTypes: expect.any(Number),
+            },
+          },
+        },
+      },
+    });
+  });
+
   it('returns actionable JSON and a nonzero exit when the workspace is unhealthy', async () => {
     const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-'));
     const stdout = vi.fn();

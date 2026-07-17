@@ -61,6 +61,25 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     ]);
   });
 
+  it('reports a fresh cache immediately after indexing with an unavailable configured plugin', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-missing-plugin-'));
+    await fs.writeFile(path.join(workspaceRoot, 'Home.md'), '# Home\n', 'utf-8');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: '@example/codegraphy-plugin', enabled: true },
+      ],
+    });
+
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot })).toMatchObject({
+      state: 'fresh',
+      staleReasons: [],
+    });
+  });
+
   it('returns indexed Tree-sitter relationships through repo-relative query paths', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-relationships-'));
     await fs.writeFile(

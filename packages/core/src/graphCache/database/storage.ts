@@ -6,6 +6,7 @@ import {
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
 import {
   readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
+  readWorkspaceAnalysisDatabaseRecordCounts as readWorkspaceAnalysisDatabaseRecordCountsImpl,
   type WorkspaceAnalysisDatabaseSnapshot as WorkspaceAnalysisDatabaseSnapshotImpl,
 } from './snapshot';
 import {
@@ -24,6 +25,10 @@ export function getWorkspaceAnalysisDatabasePath(
   workspaceRoot: string,
 ): string {
   return getWorkspaceAnalysisDatabasePathImpl(workspaceRoot);
+}
+
+export function readWorkspaceAnalysisDatabaseRecordCounts(workspaceRoot: string) {
+  return readWorkspaceAnalysisDatabaseRecordCountsImpl(workspaceRoot);
 }
 
 export function loadWorkspaceAnalysisDatabaseCache(

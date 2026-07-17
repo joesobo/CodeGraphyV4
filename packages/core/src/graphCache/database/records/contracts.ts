@@ -16,6 +16,27 @@ export interface SymbolRow {
   metadataJson?: unknown;
 }
 
+export interface NodeRow {
+  nodeId?: unknown;
+  filePath?: unknown;
+  nodeType?: unknown;
+  label?: unknown;
+  sourceFilePath?: unknown;
+  parentId?: unknown;
+  metadataJson?: unknown;
+}
+
+export interface GraphTypeRow {
+  recordId?: unknown;
+  filePath?: unknown;
+  typeId?: unknown;
+  label?: unknown;
+  defaultColor?: unknown;
+  defaultVisible?: unknown;
+  parentId?: unknown;
+  descriptionJson?: unknown;
+}
+
 export interface RelationRow {
   relationId?: unknown;
   filePath?: unknown;

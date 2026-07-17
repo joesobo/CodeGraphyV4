@@ -121,10 +121,17 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       4,
       'connection',
-      'DELETE FROM Relation',
+      'DELETE FROM Node',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       5,
+      'connection',
+      'DELETE FROM NodeType',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(6, 'connection', 'DELETE FROM EdgeType');
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(7, 'connection', 'DELETE FROM Relation');
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      8,
       'connection',
       'COMMIT',
     );
@@ -196,8 +203,11 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'DELETE FROM Relation',
+      'DELETE FROM Node',
     );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(4, 'connection', 'DELETE FROM NodeType');
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(5, 'connection', 'DELETE FROM EdgeType');
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(6, 'connection', 'DELETE FROM Relation');
   });
 
   it('patches changed rows inside a transaction and commits the complete patch', () => {
@@ -302,10 +312,17 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       4,
       'connection',
-      'DELETE FROM Relation',
+      'DELETE FROM Node',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       5,
+      'connection',
+      'DELETE FROM NodeType',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(6, 'connection', 'DELETE FROM EdgeType');
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(7, 'connection', 'DELETE FROM Relation');
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
+      8,
       'connection',
       'COMMIT',
     );

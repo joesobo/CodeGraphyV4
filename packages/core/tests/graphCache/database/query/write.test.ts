@@ -25,42 +25,60 @@ describe('graphCache/database/writeStatements', () => {
   it('prepares the canonical file analysis write statement once per cache write session', () => {
     const fileStatement = {};
     const symbolStatement = {};
+    const nodeStatement = {};
+    const nodeTypeStatement = {};
+    const edgeTypeStatement = {};
     const relationStatement = {};
     const prepareStatementSyncSpy = vi
       .spyOn(cacheConnectionModule, 'prepareStatementSync')
       .mockReturnValueOnce(fileStatement as never)
       .mockReturnValueOnce(symbolStatement as never)
+      .mockReturnValueOnce(nodeStatement as never)
+      .mockReturnValueOnce(nodeTypeStatement as never)
+      .mockReturnValueOnce(edgeTypeStatement as never)
       .mockReturnValueOnce(relationStatement as never);
 
     expect(createWorkspaceAnalysisCacheWriter({} as never)).toEqual({
       connection: {},
       fileAnalysisStatement: fileStatement,
       symbolStatement,
+      nodeStatement,
+      nodeTypeStatement,
+      edgeTypeStatement,
       relationStatement,
     });
 
-    expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(3);
+    expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(6);
     expect(prepareStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
   });
 
   it('prepares the async canonical file analysis write statement once per cache write session', async () => {
     const fileStatement = {};
     const symbolStatement = {};
+    const nodeStatement = {};
+    const nodeTypeStatement = {};
+    const edgeTypeStatement = {};
     const relationStatement = {};
     const prepareStatementAsyncSpy = vi
       .spyOn(cacheConnectionModule, 'prepareStatementAsync')
       .mockResolvedValueOnce(fileStatement as never)
       .mockResolvedValueOnce(symbolStatement as never)
+      .mockResolvedValueOnce(nodeStatement as never)
+      .mockResolvedValueOnce(nodeTypeStatement as never)
+      .mockResolvedValueOnce(edgeTypeStatement as never)
       .mockResolvedValueOnce(relationStatement as never);
 
     await expect(createWorkspaceAnalysisCacheWriterAsync({} as never)).resolves.toEqual({
       connection: {},
       fileAnalysisStatement: fileStatement,
       symbolStatement,
+      nodeStatement,
+      nodeTypeStatement,
+      edgeTypeStatement,
       relationStatement,
     });
 
-    expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(3);
+    expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(6);
     expect(prepareStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
   });
 
@@ -72,6 +90,9 @@ describe('graphCache/database/writeStatements', () => {
       connection: {} as never,
       fileAnalysisStatement: { kind: 'file' } as never,
       symbolStatement: { kind: 'symbol' } as never,
+      nodeStatement: { kind: 'node' } as never,
+      nodeTypeStatement: { kind: 'node-type' } as never,
+      edgeTypeStatement: { kind: 'edge-type' } as never,
       relationStatement: { kind: 'relation' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
     const analysis = {
@@ -137,6 +158,9 @@ describe('graphCache/database/writeStatements', () => {
       connection: {} as never,
       fileAnalysisStatement: { kind: 'file' } as never,
       symbolStatement: { kind: 'symbol' } as never,
+      nodeStatement: { kind: 'node' } as never,
+      nodeTypeStatement: { kind: 'node-type' } as never,
+      edgeTypeStatement: { kind: 'edge-type' } as never,
       relationStatement: { kind: 'relation' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
@@ -174,6 +198,9 @@ describe('graphCache/database/writeStatements', () => {
       connection: {} as never,
       fileAnalysisStatement: { kind: 'file' } as never,
       symbolStatement: { kind: 'symbol' } as never,
+      nodeStatement: { kind: 'node' } as never,
+      nodeTypeStatement: { kind: 'node-type' } as never,
+      edgeTypeStatement: { kind: 'edge-type' } as never,
       relationStatement: { kind: 'relation' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
