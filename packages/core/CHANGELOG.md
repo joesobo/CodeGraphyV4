@@ -1,5 +1,29 @@
 # @codegraphy-dev/core
 
+## 3.0.0
+
+### Major Changes
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`1384c5d`](https://github.com/joesobo/CodeGraphyV4/commit/1384c5d8ff9c22fb9b283c937d4bbb45ca7cac44) Thanks [@joesobo](https://github.com/joesobo)! - Simplify workspace selection around the current directory and one global `-C, --workspace <path>` option. Remove trailing workspace arguments and the redundant `setup` command.
+
+### Minor Changes
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962) Thanks [@joesobo](https://github.com/joesobo)! - Query the saved Graph Scope with concise positional `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path` commands. Symbol Nodes include their source metadata without requiring a separate symbols command.
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962) Thanks [@joesobo](https://github.com/joesobo)! - Make repeated workspace Indexing reuse unchanged file analysis while giving plugins the changed files and lightweight workspace inventory needed for safe invalidation.
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`1384c5d`](https://github.com/joesobo/CodeGraphyV4/commit/1384c5d8ff9c22fb9b283c937d4bbb45ca7cac44) Thanks [@joesobo](https://github.com/joesobo)! - Inspect and update workspace Graph Scope, filters, plugin state, and local health from the CLI while sharing `.codegraphy/settings.json` safely with the VS Code extension.
+
+### Patch Changes
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`e2db569`](https://github.com/joesobo/CodeGraphyV4/commit/e2db569e0044ff5d656c6a11c7979cab3d6f7121) Thanks [@joesobo](https://github.com/joesobo)! - Add strict CLI argument errors, command-scoped help, version output, compact status JSON, and clearer Indexing progress.
+
+- [#312](https://github.com/joesobo/CodeGraphyV4/pull/312) [`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962) Thanks [@joesobo](https://github.com/joesobo)! - Store workspace Graph Caches in portable SQLite files and bundle the matching native runtime in each supported VS Code extension build.
+
+- Updated dependencies [[`ae8cbcd`](https://github.com/joesobo/CodeGraphyV4/commit/ae8cbcdd2b75cbf3e16475608727dbba96039962)]:
+  - @codegraphy-dev/plugin-api@6.1.0
+  - @codegraphy-dev/plugin-markdown@1.1.10
+
 ## 2.0.0
 
 ### Major Changes
