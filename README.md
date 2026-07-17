@@ -146,7 +146,7 @@ after publication, the standard command above is canonical.
 
 ## CLI Commands
 
-All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. Indexing, diagnostics, settings, and graph queries return compact JSON on stdout; help and plugin management use concise text. Commands target the current directory unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace.
+All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. Data commands return a stable JSON envelope on stdout. Failures return the same envelope shape on stderr and use a nonzero exit code. Help and version output stay plain text. Commands target the current directory unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace.
 
 | Command | What It Does |
 |---|---|
