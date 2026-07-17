@@ -78,7 +78,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     );
 
     const analysisCacheTiers = createWorkspacePipelineAnalysisCacheTiers(
-      this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
       analysisPluginIds,
     );
 

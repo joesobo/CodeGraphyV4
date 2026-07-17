@@ -154,13 +154,16 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     expect(pathReport.paths).toEqual([]);
   });
 
-  it('upgrades a file-only cache after symbol scope is enabled', async () => {
+  it('indexes symbols once and reveals them when symbol scope is enabled', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-symbol-upgrade-'));
     await fs.writeFile(path.join(workspaceRoot, 'target.ts'), 'export function target(): void {}\n');
     await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
     const baselineCache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
     expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).toContain('baseline');
-    expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).not.toContain('symbols');
+    expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).toContain('symbols');
+    expect(baselineCache.files['target.ts']!.analysis.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'target', kind: 'function' }),
+    ]));
     const outputs: string[] = [];
 
     await expect(runCli([
@@ -169,14 +172,9 @@ describe('core-backed CodeGraphy Workspace commands', () => {
 
     expect(JSON.parse(outputs[0])).toMatchObject({
       data: {
-        indexRequired: true,
-        action: 'Run `codegraphy index` to hydrate the required symbol analysis.',
+        indexRequired: false,
       },
     });
-    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('stale');
-
-    const upgrade = await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    expect(upgrade.indexing.analyzedFiles).toBe(1);
     expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('fresh');
     const nodeReport = await requestWorkspaceGraphQuery({
       workspacePath: workspaceRoot,
