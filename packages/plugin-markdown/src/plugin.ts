@@ -18,6 +18,10 @@ import { detect as detectWikilink } from './sources/wikilink';
 export { PathResolver } from './PathResolver';
 export type { IDetectedWikilink, MarkdownRuleContext } from './sources/wikilink';
 
+function isBinaryContent(content: string): boolean {
+  return content.includes('\u0000');
+}
+
 /**
  * Built-in plugin for Markdown files.
  *
@@ -35,7 +39,9 @@ export function createMarkdownPlugin(): IPlugin {
     filePath: string,
     content: string,
   ): Promise<IFileAnalysisResult> => {
-    const connections = detectWikilink(content, filePath, { resolver });
+    const connections = isBinaryContent(content)
+      ? []
+      : detectWikilink(content, filePath, { resolver });
 
     return {
       filePath,
