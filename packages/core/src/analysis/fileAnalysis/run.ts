@@ -268,21 +268,6 @@ async function analyzeWorkspaceFile(
   );
 }
 
-function updateCachedEnrichedAnalysis(
-  options: IWorkspaceFileAnalysisOptions,
-  enrichedFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
-): void {
-  const symbolTierIsInactive = options.cacheTiers?.active !== undefined
-    && !options.cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER);
-
-  for (const [relativePath, analysis] of enrichedFileAnalysis.entries()) {
-    if (symbolTierIsInactive) {
-      continue;
-    }
-    options.cache.files[relativePath].analysis = analysis;
-  }
-}
-
 export async function analyzeWorkspaceFiles(
   options: IWorkspaceFileAnalysisOptions
 ): Promise<IWorkspaceFileAnalysisResult> {
@@ -295,7 +280,6 @@ export async function analyzeWorkspaceFiles(
   }
 
   const enrichedFileAnalysis = enrichWorkspaceFileAnalysis(state.fileAnalysis);
-  updateCachedEnrichedAnalysis(options, enrichedFileAnalysis);
 
   return {
     cacheHits: state.cacheHits,
