@@ -251,7 +251,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 10,
           analysis: {
             filePath: '/workspace/src/first.ts',
-            relations: [],
           },
         },
         'src/second.ts': {
@@ -259,7 +258,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 20,
           analysis: {
             filePath: '/workspace/src/second.ts',
-            relations: [],
           },
         },
       },
@@ -384,7 +382,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           mtime: 1,
           analysis: {
             filePath: '/workspace/src/index.ts',
-            relations: [],
           },
         },
       },
@@ -403,7 +400,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 10,
           analysis: {
             filePath: '/workspace/src/first.ts',
-            relations: [],
           },
         },
       },
@@ -416,7 +412,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 20,
           analysis: {
             filePath: '/workspace/src/second.ts',
-            relations: [],
           },
         },
       },
@@ -439,7 +434,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 10,
           analysis: {
             filePath: '/workspace/src/changed.ts',
-            relations: [],
           },
         },
         'src/deleted.ts': {
@@ -447,7 +441,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 20,
           analysis: {
             filePath: '/workspace/src/deleted.ts',
-            relations: [],
           },
         },
         'src/stable.ts': {
@@ -482,7 +475,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
               kind: 'function',
               name: 'changed',
             }],
-            relations: [],
           },
         },
         'src/created.ts': {
@@ -490,7 +482,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 50,
           analysis: {
             filePath: '/workspace/src/created.ts',
-            relations: [],
           },
         },
       },
@@ -510,7 +501,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
               kind: 'function',
               name: 'changed',
             }],
-            relations: [],
           },
         },
         'src/created.ts': {
@@ -518,7 +508,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 50,
           analysis: {
             filePath: '/workspace/src/created.ts',
-            relations: [],
           },
         },
         'src/stable.ts': initialCache.files['src/stable.ts']!,
@@ -563,7 +552,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 2,
           analysis: {
             filePath: '/workspace/src/index.ts',
-            relations: [],
           },
         },
       },
@@ -587,7 +575,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           mtime: 1,
           analysis: {
             filePath: '/workspace/src/index.ts',
-            relations: [],
           },
         },
       },

@@ -49,11 +49,11 @@ function createFileAnalysisParams(
   entry: IWorkspaceAnalysisCache['files'][string],
 ): Record<string, SQLiteValue> {
   const analysis = { ...entry.analysis };
-  if ((analysis.symbols?.length ?? 0) > 0) delete analysis.symbols;
-  if ((analysis.relations?.length ?? 0) > 0) delete analysis.relations;
-  if ((analysis.nodes?.length ?? 0) > 0) delete analysis.nodes;
-  if ((analysis.nodeTypes?.length ?? 0) > 0) delete analysis.nodeTypes;
-  if ((analysis.edgeTypes?.length ?? 0) > 0) delete analysis.edgeTypes;
+  delete analysis.symbols;
+  delete analysis.relations;
+  delete analysis.nodes;
+  delete analysis.nodeTypes;
+  delete analysis.edgeTypes;
   return {
     filePath,
     mtime: entry.mtime ?? 0,
