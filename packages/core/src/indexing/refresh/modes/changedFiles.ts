@@ -17,6 +17,7 @@ import {
   applyWorkspaceIndexAnalysisResult,
   retainWorkspaceIndexDiscoveredFileConnections,
 } from '../state';
+import { findAffectedWorkspaceIndexAnalysisDependents } from '../../workspace/changes';
 import { invalidateDeletedWorkspaceIndexFiles } from './changedFileDeletion';
 import {
   buildGraphWithoutChangedFileAnalysis,
@@ -60,9 +61,18 @@ export async function refreshWorkspaceIndexChangedFiles(
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
+  const affectedDependents = findAffectedWorkspaceIndexAnalysisDependents({
+    fileAnalysis: source._lastFileAnalysis,
+    invalidatedFilePaths: [
+      ...changedFiles.map(file => file.relativePath),
+      ...deleteFilePaths,
+      ...incrementalLifecycle.additionalFilePaths,
+    ],
+    workspaceRoot: dependencies.workspaceRoot,
+  });
   const filesToAnalyze = mergeDiscoveredWorkspaceIndexFiles(
     changedFiles,
-    incrementalLifecycle.additionalFilePaths,
+    [...incrementalLifecycle.additionalFilePaths, ...affectedDependents],
     discoveredByRelativePath,
   );
   source._lastDiscoveredDirectories = dependencies.discoveredDirectories ?? [];

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../analysis/cache';
 import {
   createWorkspaceFileContentHash,
@@ -70,11 +71,25 @@ export function findAffectedWorkspaceIndexDependents(input: {
   invalidatedFilePaths: readonly string[];
   workspaceRoot: string;
 }): string[] {
+  return findAffectedWorkspaceIndexAnalysisDependents({
+    fileAnalysis: Object.entries(input.cache.files).map(([filePath, entry]) => (
+      [filePath, entry.analysis] as const
+    )),
+    invalidatedFilePaths: input.invalidatedFilePaths,
+    workspaceRoot: input.workspaceRoot,
+  });
+}
+
+export function findAffectedWorkspaceIndexAnalysisDependents(input: {
+  fileAnalysis: Iterable<readonly [string, IFileAnalysisResult]>;
+  invalidatedFilePaths: readonly string[];
+  workspaceRoot: string;
+}): string[] {
   const dependentsByTarget = new Map<string, Set<string>>();
 
-  for (const [filePath, entry] of Object.entries(input.cache.files)) {
+  for (const [filePath, analysis] of input.fileAnalysis) {
     const sourcePath = path.resolve(input.workspaceRoot, filePath);
-    for (const relation of entry.analysis.relations ?? []) {
+    for (const relation of analysis.relations ?? []) {
       const target = relation.toFilePath ?? relation.resolvedPath;
       if (typeof target !== 'string') continue;
 
