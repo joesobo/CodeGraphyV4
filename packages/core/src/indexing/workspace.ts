@@ -179,7 +179,6 @@ export async function indexCodeGraphyWorkspace(
       discoveryResult,
       options,
       registry,
-      settings,
       readContent,
       disabledPlugins,
       workspaceRoot,

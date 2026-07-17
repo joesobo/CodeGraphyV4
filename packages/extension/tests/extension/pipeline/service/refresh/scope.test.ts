@@ -50,7 +50,6 @@ describe('extension/pipeline/service/refresh/scope', () => {
         discoveredFiles: [],
         disabledPlugins: new Set(),
         lastFileAnalysis: new Map(),
-        nodeVisibility: { file: true },
       }),
     ).toBe(false);
     expect(createWorkspacePipelineAnalysisCacheTiers).not.toHaveBeenCalled();
@@ -73,12 +72,10 @@ describe('extension/pipeline/service/refresh/scope', () => {
         discoveredFiles: [createFile('src/a.ts'), createFile('src/b.ts')],
         disabledPlugins: new Set(['plugin.disabled']),
         lastFileAnalysis: lastFileAnalysis as never,
-        nodeVisibility: { file: true, symbol: false },
       }),
     ).toBe(false);
 
     expect(createWorkspacePipelineAnalysisCacheTiers).toHaveBeenCalledWith(
-      { file: true, symbol: false },
       ['plugin.a'],
     );
     expect(hasRequiredAnalysisCacheTiers).toHaveBeenNthCalledWith(
@@ -101,7 +98,6 @@ describe('extension/pipeline/service/refresh/scope', () => {
         discoveredFiles: [createFile('src/a.ts'), createFile('src/b.ts')],
         disabledPlugins: new Set(),
         lastFileAnalysis: lastFileAnalysis as never,
-        nodeVisibility: { file: true, symbol: false },
       }),
     ).toBe(true);
   });
@@ -115,7 +111,6 @@ describe('extension/pipeline/service/refresh/scope', () => {
         discoveredFiles: [createFile('src/missing.ts')],
         disabledPlugins: new Set(),
         lastFileAnalysis: new Map() as never,
-        nodeVisibility: {},
       }),
     ).toBe(false);
     expect(hasRequiredAnalysisCacheTiers).not.toHaveBeenCalled();

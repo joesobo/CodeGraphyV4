@@ -40,7 +40,6 @@ function createOptions(
     disabledPlugins: new Set(['plugin.disabled']),
     files: [selectedFile],
     getActiveAnalysisPluginIds: vi.fn(() => ['plugin.active']),
-    nodeVisibility: { Symbol: true },
     registry: {
       analyzeFileResultForPlugins: vi.fn(),
       supportsFile: vi.fn(() => true),
@@ -87,7 +86,6 @@ describe('extension/pipeline/service/cachedGraphWarmup/input', () => {
 
     expect(options.getActiveAnalysisPluginIds).toHaveBeenCalledWith(new Set(['plugin.disabled']));
     expect(createWorkspacePipelineAnalysisCacheTiers).toHaveBeenCalledWith(
-      { Symbol: true },
       ['plugin.active'],
     );
     expect(createWorkspacePluginAnalysisContext).toHaveBeenCalledWith('/workspace', {

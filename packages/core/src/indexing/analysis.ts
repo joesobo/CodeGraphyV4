@@ -8,10 +8,7 @@ import { preAnalyzeCoreTreeSitterFiles } from '../treeSitter/core';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { getFileStat } from './fileStat';
 import type { WorkspaceIndexFileContentReader } from './workspace/changes';
-import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 import { createWorkspaceIndexAnalysisCacheTiers } from '../analysis/fileAnalysis';
-import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
-import { createDefaultCodeGraphyWorkspaceSettings } from '../workspace/settingsDefaults';
 
 function createCachedWorkspaceFileContentReader(
   discovery: FileDiscovery,
@@ -64,17 +61,14 @@ export async function analyzeWorkspaceIndexFiles(input: {
   disabledPlugins: Set<string>;
   options: IndexCodeGraphyWorkspaceOptions;
   registry: CorePluginRegistry;
-  settings?: CodeGraphyWorkspaceSettings;
   readContent?: WorkspaceIndexFileContentReader;
   workspaceRoot: string;
 }) {
   const readContent = input.readContent ?? createCachedWorkspaceFileContentReader(input.discovery);
-  const settings = input.settings ?? createDefaultCodeGraphyWorkspaceSettings();
   const activePluginIds = input.registry.list()
     .map(({ plugin }) => plugin.id)
     .filter(pluginId => !input.disabledPlugins.has(pluginId));
   const cacheTiers = createWorkspaceIndexAnalysisCacheTiers(
-    resolveSavedGraphScope(settings).nodes,
     activePluginIds,
   );
 
