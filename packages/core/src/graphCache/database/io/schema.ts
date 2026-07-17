@@ -1,5 +1,7 @@
 import type { SQLiteConnection } from './connection';
 
+export const GRAPH_CACHE_SCHEMA_VERSION = 4;
+
 function hasLegacySchema(connection: SQLiteConnection): boolean {
   const tables = connection.prepare(
     "SELECT name FROM sqlite_master WHERE type = 'table'",
@@ -9,20 +11,32 @@ function hasLegacySchema(connection: SQLiteConnection): boolean {
     return true;
   }
 
-  if (!tableNames.has('Node')) return false;
-  const nodeColumns = connection.pragma('table_info(Node)') as Array<{ name?: string }>;
-  return !nodeColumns.some(column => column.name === 'id');
+  if (tableNames.has('IndexedFile')) {
+    const indexedFileColumns = connection.pragma('table_info(IndexedFile)') as Array<{ name?: string }>;
+    if (!indexedFileColumns.some(column => column.name === 'factsJson')) return true;
+  }
+  if (tableNames.has('Node')) {
+    const nodeColumns = connection.pragma('table_info(Node)') as Array<{ name?: string }>;
+    if (!nodeColumns.some(column => column.name === 'id')) return true;
+  }
+  if (tableNames.has('Edge')) {
+    const edgeColumns = connection.pragma('table_info(Edge)') as Array<{ name?: string }>;
+    if (!edgeColumns.some(column => column.name === 'sourcesJson')) return true;
+  }
+  return false;
 }
 
 function dropLegacySchema(connection: SQLiteConnection): void {
   connection.exec(`
+    DROP TABLE IF EXISTS Edge;
+    DROP TABLE IF EXISTS Node;
+    DROP TABLE IF EXISTS IndexedFile;
     DROP TABLE IF EXISTS FileAnalysis;
     DROP TABLE IF EXISTS File;
     DROP TABLE IF EXISTS Symbol;
     DROP TABLE IF EXISTS Relation;
     DROP TABLE IF EXISTS NodeType;
     DROP TABLE IF EXISTS EdgeType;
-    DROP TABLE IF EXISTS Node;
   `);
 }
 
@@ -37,7 +51,7 @@ export function ensureSchema(connection: SQLiteConnection): void {
       mtime INTEGER NOT NULL,
       size INTEGER NOT NULL,
       contentHash TEXT,
-      analyzerStateJson TEXT NOT NULL
+      factsJson TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS Node (
       id TEXT PRIMARY KEY,
@@ -56,11 +70,11 @@ export function ensureSchema(connection: SQLiteConnection): void {
       targetId TEXT NOT NULL REFERENCES Node(id) ON DELETE CASCADE,
       type TEXT NOT NULL,
       propertiesJson TEXT NOT NULL,
-      provenanceJson TEXT NOT NULL
+      sourcesJson TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS Edge_source_type_idx ON Edge(sourceId, type);
     CREATE INDEX IF NOT EXISTS Edge_target_type_idx ON Edge(targetId, type);
-    PRAGMA user_version = 3;
+    PRAGMA user_version = ${GRAPH_CACHE_SCHEMA_VERSION};
   `);
 }
 

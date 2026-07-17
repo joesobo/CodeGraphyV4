@@ -14,7 +14,7 @@ export function createSnapshotFileEntry(
     }
   | undefined {
   const filePath = readRequiredString(row.path);
-  const analysisText = readRequiredString(row.analyzerStateJson);
+  const analysisText = readRequiredString(row.factsJson);
 
   if (!filePath || !analysisText) return undefined;
 

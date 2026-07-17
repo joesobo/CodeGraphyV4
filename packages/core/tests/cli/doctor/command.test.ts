@@ -22,7 +22,7 @@ describe('cli doctor', () => {
             ok: true,
             state: 'fresh',
             staleReasons: [],
-            schemaVersion: 3,
+            schemaVersion: 4,
             indexedAt: expect.any(String),
             records: {
               indexedFiles: 2,

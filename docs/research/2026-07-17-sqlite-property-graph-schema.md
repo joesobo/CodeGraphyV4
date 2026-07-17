@@ -35,7 +35,7 @@ CREATE TABLE IndexedFile (
   mtime INTEGER NOT NULL,
   size INTEGER NOT NULL,
   contentHash TEXT,
-  analyzerStateJson TEXT
+  factsJson TEXT
 );
 
 CREATE TABLE Node (
@@ -54,7 +54,7 @@ CREATE TABLE Edge (
   targetId TEXT NOT NULL,
   type TEXT NOT NULL,
   propertiesJson TEXT,
-  provenanceJson TEXT,
+  sourcesJson TEXT,
   FOREIGN KEY (sourceId) REFERENCES Node(id) ON DELETE CASCADE,
   FOREIGN KEY (targetId) REFERENCES Node(id) ON DELETE CASCADE
 );

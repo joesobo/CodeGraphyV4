@@ -12,9 +12,9 @@ import type {
   SQLiteValue,
 } from '../io/connection';
 
-const CREATE_INDEXED_FILE_STATEMENT = 'INSERT INTO IndexedFile(path, mtime, size, contentHash, analyzerStateJson) VALUES (@path, @mtime, @size, @contentHash, @analyzerStateJson)';
+const CREATE_INDEXED_FILE_STATEMENT = 'INSERT INTO IndexedFile(path, mtime, size, contentHash, factsJson) VALUES (@path, @mtime, @size, @contentHash, @factsJson)';
 const CREATE_NODE_STATEMENT = 'INSERT INTO Node(id, type, label, filePath, parentId, propertiesJson) VALUES (@id, @type, @label, @filePath, @parentId, @propertiesJson)';
-const CREATE_EDGE_STATEMENT = 'INSERT INTO Edge(id, sourceId, targetId, type, propertiesJson, provenanceJson) VALUES (@id, @sourceId, @targetId, @type, @propertiesJson, @provenanceJson)';
+const CREATE_EDGE_STATEMENT = 'INSERT INTO Edge(id, sourceId, targetId, type, propertiesJson, sourcesJson) VALUES (@id, @sourceId, @targetId, @type, @propertiesJson, @sourcesJson)';
 const DELETE_INDEXED_FILE_STATEMENT = 'DELETE FROM IndexedFile WHERE path = @path';
 
 export interface WorkspaceAnalysisCacheWriter {
@@ -37,7 +37,7 @@ function createIndexedFileParams(
     mtime: entry.mtime ?? 0,
     size: entry.size ?? 0,
     contentHash: entry.contentHash ?? null,
-    analyzerStateJson: JSON.stringify(entry.analysis),
+    factsJson: JSON.stringify(entry.analysis),
   };
 }
 
@@ -73,7 +73,7 @@ function createEdgeParams(edge: IGraphEdge): Record<string, SQLiteValue> {
     targetId: to,
     type: kind,
     propertiesJson: JSON.stringify(properties),
-    provenanceJson: JSON.stringify(sources),
+    sourcesJson: JSON.stringify(sources),
   };
 }
 

@@ -26,6 +26,6 @@ export function createSnapshotGraphEdge(row: GraphEdgeRow): IGraphEdge | undefin
   if (!id || !from || !to || !kind) return undefined;
 
   const properties = parseOptionalJson<Record<string, unknown>>(row.propertiesJson) ?? {};
-  const sources = parseOptionalJson<IGraphEdge['sources']>(row.provenanceJson) ?? [];
+  const sources = parseOptionalJson<IGraphEdge['sources']>(row.sourcesJson) ?? [];
   return { ...properties, id, from, to, kind, sources } as IGraphEdge;
 }

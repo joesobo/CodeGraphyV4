@@ -50,7 +50,7 @@ describe('graphCache/database/writeStatements', () => {
     expect(prepare).toHaveBeenCalledTimes(3);
   });
 
-  it('stores complete analyzer state in IndexedFile', () => {
+  it('stores complete raw file facts in IndexedFile', () => {
     const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
     const writer = {
       connection: {} as never,
@@ -75,7 +75,7 @@ describe('graphCache/database/writeStatements', () => {
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
-      analyzerStateJson: JSON.stringify(analysis),
+      factsJson: JSON.stringify(analysis),
     });
   });
 
@@ -109,7 +109,7 @@ describe('graphCache/database/writeStatements', () => {
       targetId: 'src/model.ts',
       type: 'import',
       propertiesJson: '{}',
-      provenanceJson: '[]',
+      sourcesJson: '[]',
     });
   });
 
