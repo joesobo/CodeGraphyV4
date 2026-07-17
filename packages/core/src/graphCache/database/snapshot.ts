@@ -11,7 +11,7 @@ import { createSnapshotRelationEntry } from './relation/entry';
 import { createSnapshotSymbolEntry } from './records/symbol';
 import type { RelationRow, SymbolRow } from './records/contracts';
 import {
-  FILE_ANALYSIS_ROWS_QUERY,
+  FILE_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
 } from './query/read';
@@ -38,7 +38,7 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
 
   try {
     return withConnection(databasePath, (connection) => {
-      const fileRows = readRowsSync(connection, FILE_ANALYSIS_ROWS_QUERY);
+      const fileRows = readRowsSync(connection, FILE_ROWS_QUERY);
       const symbolRows = readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[];
       const relationRows = readRowsSync(connection, RELATION_ROWS_QUERY) as RelationRow[];
       const files = fileRows.flatMap((row) => {

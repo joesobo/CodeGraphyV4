@@ -1,5 +1,5 @@
-export const FILE_ANALYSIS_ROWS_QUERY =
-  'SELECT filePath, mtime, size, contentHash, analysis FROM FileAnalysis ORDER BY filePath';
+export const FILE_ROWS_QUERY =
+  'SELECT filePath, mtime, size, contentHash, factsJson FROM File ORDER BY filePath';
 
 export const SYMBOL_ROWS_QUERY =
   'SELECT symbolId, filePath, name, kind, signature, rangeJson, metadataJson FROM Symbol ORDER BY filePath, symbolId';

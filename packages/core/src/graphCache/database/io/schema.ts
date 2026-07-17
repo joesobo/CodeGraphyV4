@@ -2,12 +2,13 @@ import type { SQLiteConnection } from './connection';
 
 export function ensureSchema(connection: SQLiteConnection): void {
   connection.exec(`
-    CREATE TABLE IF NOT EXISTS FileAnalysis (
+    DROP TABLE IF EXISTS FileAnalysis;
+    CREATE TABLE IF NOT EXISTS File (
       filePath TEXT PRIMARY KEY,
       mtime INTEGER NOT NULL,
       size INTEGER NOT NULL,
       contentHash TEXT,
-      analysis TEXT NOT NULL
+      factsJson TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS Symbol (
       symbolId TEXT PRIMARY KEY,
@@ -40,9 +41,9 @@ export function ensureSchema(connection: SQLiteConnection): void {
     CREATE INDEX IF NOT EXISTS Relation_filePath_idx ON Relation(filePath);
   `);
 
-  const fileAnalysisColumns = connection.pragma('table_info(FileAnalysis)') as Array<{ name?: string }>;
-  if (!fileAnalysisColumns.some(column => column.name === 'contentHash')) {
-    connection.exec('ALTER TABLE FileAnalysis ADD COLUMN contentHash TEXT');
+  const fileColumns = connection.pragma('table_info(File)') as Array<{ name?: string }>;
+  if (!fileColumns.some(column => column.name === 'contentHash')) {
+    connection.exec('ALTER TABLE File ADD COLUMN contentHash TEXT');
   }
 }
 

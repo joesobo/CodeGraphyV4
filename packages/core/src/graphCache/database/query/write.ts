@@ -12,10 +12,10 @@ import type {
   SQLiteValue,
 } from '../io/connection';
 
-const CREATE_FILE_ANALYSIS_STATEMENT = 'INSERT INTO FileAnalysis(filePath, mtime, size, contentHash, analysis) VALUES (@filePath, @mtime, @size, @contentHash, @analysis)';
+const CREATE_FILE_STATEMENT = 'INSERT INTO File(filePath, mtime, size, contentHash, factsJson) VALUES (@filePath, @mtime, @size, @contentHash, @factsJson)';
 const CREATE_SYMBOL_STATEMENT = 'INSERT INTO Symbol(symbolId, filePath, name, kind, signature, rangeJson, metadataJson) VALUES (@symbolId, @filePath, @name, @kind, @signature, @rangeJson, @metadataJson)';
 const CREATE_RELATION_STATEMENT = 'INSERT INTO Relation(relationId, filePath, kind, pluginId, sourceId, fromFilePath, toFilePath, fromNodeId, toNodeId, fromSymbolId, toSymbolId, specifier, relationType, variant, resolvedPath, metadataJson) VALUES (@relationId, @filePath, @kind, @pluginId, @sourceId, @fromFilePath, @toFilePath, @fromNodeId, @toNodeId, @fromSymbolId, @toSymbolId, @specifier, @relationType, @variant, @resolvedPath, @metadataJson)';
-const DELETE_FILE_ANALYSIS_STATEMENT = 'DELETE FROM FileAnalysis WHERE filePath = @filePath';
+const DELETE_FILE_STATEMENT = 'DELETE FROM File WHERE filePath = @filePath';
 const DELETE_SYMBOL_STATEMENT = 'DELETE FROM Symbol WHERE filePath = @filePath';
 const DELETE_RELATION_STATEMENT = 'DELETE FROM Relation WHERE filePath = @filePath';
 
@@ -44,7 +44,7 @@ function createFileAnalysisParams(
     mtime: entry.mtime ?? 0,
     size: entry.size ?? 0,
     contentHash: entry.contentHash ?? null,
-    analysis: JSON.stringify(analysis),
+    factsJson: JSON.stringify(analysis),
   };
 }
 
@@ -100,7 +100,7 @@ export function createWorkspaceAnalysisCacheWriter(
 ): WorkspaceAnalysisCacheWriter {
   return {
     connection,
-    fileAnalysisStatement: prepareStatementSync(connection, CREATE_FILE_ANALYSIS_STATEMENT),
+    fileAnalysisStatement: prepareStatementSync(connection, CREATE_FILE_STATEMENT),
     symbolStatement: prepareStatementSync(connection, CREATE_SYMBOL_STATEMENT),
     relationStatement: prepareStatementSync(connection, CREATE_RELATION_STATEMENT),
   };
@@ -111,7 +111,7 @@ export function createWorkspaceAnalysisCachePatchWriter(
 ): WorkspaceAnalysisCachePatchWriter {
   return {
     ...createWorkspaceAnalysisCacheWriter(connection),
-    deleteFileAnalysisStatement: prepareStatementSync(connection, DELETE_FILE_ANALYSIS_STATEMENT),
+    deleteFileAnalysisStatement: prepareStatementSync(connection, DELETE_FILE_STATEMENT),
     deleteSymbolStatement: prepareStatementSync(connection, DELETE_SYMBOL_STATEMENT),
     deleteRelationStatement: prepareStatementSync(connection, DELETE_RELATION_STATEMENT),
   };
@@ -121,7 +121,7 @@ export async function createWorkspaceAnalysisCacheWriterAsync(
   connection: SQLiteConnection,
 ): Promise<WorkspaceAnalysisCacheWriter> {
   const [fileAnalysisStatement, symbolStatement, relationStatement] = await Promise.all([
-    prepareStatementAsync(connection, CREATE_FILE_ANALYSIS_STATEMENT),
+    prepareStatementAsync(connection, CREATE_FILE_STATEMENT),
     prepareStatementAsync(connection, CREATE_SYMBOL_STATEMENT),
     prepareStatementAsync(connection, CREATE_RELATION_STATEMENT),
   ]);

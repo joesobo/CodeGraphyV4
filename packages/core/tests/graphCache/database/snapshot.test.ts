@@ -9,7 +9,7 @@ import {
 import { createSnapshotRelationEntry } from '../../../src/graphCache/database/relation/entry';
 import { createSnapshotSymbolEntry } from '../../../src/graphCache/database/records/symbol';
 import {
-  FILE_ANALYSIS_ROWS_QUERY,
+  FILE_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
 } from '../../../src/graphCache/database/query/read';
@@ -88,7 +88,7 @@ describe('pipeline/database/cache/snapshot', () => {
       relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
     });
 
-    expect(readRowsSync).toHaveBeenNthCalledWith(1, 'connection', FILE_ANALYSIS_ROWS_QUERY);
+    expect(readRowsSync).toHaveBeenNthCalledWith(1, 'connection', FILE_ROWS_QUERY);
     expect(readRowsSync).toHaveBeenNthCalledWith(2, 'connection', SYMBOL_ROWS_QUERY);
     expect(readRowsSync).toHaveBeenNthCalledWith(3, 'connection', RELATION_ROWS_QUERY);
   });

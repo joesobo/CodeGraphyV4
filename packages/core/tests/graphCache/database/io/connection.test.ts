@@ -29,11 +29,11 @@ describe('graphCache/database/io/connection', () => {
     const rows = withConnection(createDatabasePath(), (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO FileAnalysis(filePath, mtime, size, analysis) VALUES ('src/app.ts', 1, 2, '{}')",
+        "INSERT INTO File(filePath, mtime, size, factsJson) VALUES ('src/app.ts', 1, 2, '{}')",
       );
       return readRowsSync(
         connection,
-        'SELECT filePath, mtime, size, analysis FROM FileAnalysis ORDER BY filePath',
+        'SELECT filePath, mtime, size, factsJson FROM File ORDER BY filePath',
       );
     });
 
@@ -41,7 +41,7 @@ describe('graphCache/database/io/connection', () => {
       filePath: 'src/app.ts',
       mtime: 1,
       size: 2,
-      analysis: '{}',
+      factsJson: '{}',
     }]);
   });
 
@@ -70,19 +70,19 @@ describe('graphCache/database/io/connection', () => {
     withConnection(databasePath, (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO FileAnalysis(filePath, mtime, size, analysis) VALUES ('src/app.ts', 1, 2, '{}')",
+        "INSERT INTO File(filePath, mtime, size, factsJson) VALUES ('src/app.ts', 1, 2, '{}')",
       );
     });
 
     const rows = withConnection(databasePath, connection => readRowsSync(
       connection,
-      'SELECT filePath, mtime, size, analysis FROM FileAnalysis ORDER BY filePath',
+      'SELECT filePath, mtime, size, factsJson FROM File ORDER BY filePath',
     ));
     expect(rows).toEqual([{
       filePath: 'src/app.ts',
       mtime: 1,
       size: 2,
-      analysis: '{}',
+      factsJson: '{}',
     }]);
   });
 
