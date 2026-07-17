@@ -57,13 +57,15 @@ describe('cli graph controls', () => {
     const settings = JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf-8'));
     expect(settings.filterPatterns).toEqual(['**/generated/**']);
     expect(JSON.parse(outputs.at(-1) ?? '')).toMatchObject({
-      nodes: expect.arrayContaining([
-        { type: 'file', enabled: true, available: true },
-        { type: 'symbol:function', enabled: false, available: false },
-      ]),
-      edges: expect.arrayContaining([
-        { type: 'import', enabled: true, available: false },
-      ]),
+      data: {
+        nodes: expect.arrayContaining([
+          { type: 'file', enabled: true, available: true },
+          { type: 'symbol:function', enabled: false, available: false },
+        ]),
+        edges: expect.arrayContaining([
+          { type: 'import', enabled: true, available: false },
+        ]),
+      },
     });
   });
 });
