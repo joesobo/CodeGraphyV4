@@ -7,7 +7,7 @@ describe('graphCache/database/fileEntry', () => {
       path: 'src/app.ts',
       mtime: 42n,
       size: 7,
-      analyzerStateJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
+      factsJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
     })).toEqual({
       filePath: 'src/app.ts',
       mtime: 42,
@@ -24,7 +24,7 @@ describe('graphCache/database/fileEntry', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
       size: '7',
-      analyzerStateJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
+      factsJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
     })).toEqual({
       filePath: 'src/app.ts',
       mtime: 0,
@@ -38,7 +38,7 @@ describe('graphCache/database/fileEntry', () => {
 
   it('returns undefined when required persisted values are missing', () => {
     expect(createSnapshotFileEntry({
-      analyzerStateJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
+      factsJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
     })).toBeUndefined();
 
     expect(createSnapshotFileEntry({
@@ -49,7 +49,7 @@ describe('graphCache/database/fileEntry', () => {
   it('throws when persisted analysis JSON is malformed', () => {
     expect(() => createSnapshotFileEntry({
       path: 'src/app.ts',
-      analyzerStateJson: '{',
+      factsJson: '{',
     })).toThrow(SyntaxError);
   });
 });

@@ -18,6 +18,30 @@ one setting.
 
 ## First PR Scope
 
+### Incremental ownership contract
+
+The Graph Cache separates source facts from their derived graph projection:
+
+- `IndexedFile` owns filesystem freshness metadata and one `factsJson` document
+  containing the raw facts produced while analyzing that file.
+- `Node` and `Edge` are the canonical, queryable property graph derived from
+  all current file facts.
+- Cached file facts must not contain workspace-derived enrichment. In
+  particular, resolving a relation to a target symbol is repeated from the
+  current target file facts whenever the graph is rebuilt.
+
+For a changed file, Indexing reads and analyzes that file, atomically replaces
+the facts it owns, rebuilds the affected graph projection from cached facts,
+and leaves unrelated files as cache hits. A plugin may request additional file
+analysis through `onFilesChanged` when its own resolution depends on more than
+the changed file facts. The caller still runs only `codegraphy index`; it never
+chooses an invalidation mode.
+
+`propertiesJson` remains the property-graph extension bag for sparse node or
+edge properties that are not indexed columns. `sourcesJson` stores the exact
+`IGraphEdge.sources` provenance array; the broader `provenanceJson` name is not
+used.
+
 ### Useful Graph Cache data
 
 The SQLite Graph Cache currently creates `FileAnalysis`, `Symbol`, and

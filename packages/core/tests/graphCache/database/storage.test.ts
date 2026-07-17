@@ -194,9 +194,9 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => ({
         tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
-        indexedFiles: readRowsSync(connection, 'SELECT path, analyzerStateJson FROM IndexedFile'),
+        indexedFiles: readRowsSync(connection, 'SELECT path, factsJson FROM IndexedFile'),
         nodes: readRowsSync(connection, 'SELECT id, type, label, filePath, propertiesJson FROM Node ORDER BY id'),
-        edges: readRowsSync(connection, 'SELECT id, sourceId, targetId, type, propertiesJson, provenanceJson FROM Edge'),
+        edges: readRowsSync(connection, 'SELECT id, sourceId, targetId, type, propertiesJson, sourcesJson FROM Edge'),
       }),
     );
 
@@ -205,7 +205,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       { name: 'IndexedFile' },
       { name: 'Node' },
     ]);
-    expect(JSON.parse(String(records.indexedFiles[0]!.analyzerStateJson))).toEqual(analysis);
+    expect(JSON.parse(String(records.indexedFiles[0]!.factsJson))).toEqual(analysis);
     expect(records.nodes.map(row => ({
       ...row,
       propertiesJson: JSON.parse(String(row.propertiesJson)),
@@ -243,14 +243,14 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     expect(records.edges.map(row => ({
       ...row,
       propertiesJson: JSON.parse(String(row.propertiesJson)),
-      provenanceJson: JSON.parse(String(row.provenanceJson)),
+      sourcesJson: JSON.parse(String(row.sourcesJson)),
     }))).toEqual([{
       id: 'src/index.ts->src/utils.ts#import',
       sourceId: 'src/index.ts',
       targetId: 'src/utils.ts',
       type: 'import',
       propertiesJson: {},
-      provenanceJson: [{
+      sourcesJson: [{
         id: 'core:treesitter:import',
         pluginId: 'core',
         sourceId: 'treesitter:import',

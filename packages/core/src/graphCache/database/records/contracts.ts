@@ -3,7 +3,7 @@ export interface IndexedFileRow {
   mtime?: unknown;
   size?: unknown;
   contentHash?: unknown;
-  analyzerStateJson?: unknown;
+  factsJson?: unknown;
 }
 
 export interface GraphNodeRow {
@@ -21,5 +21,5 @@ export interface GraphEdgeRow {
   targetId?: unknown;
   type?: unknown;
   propertiesJson?: unknown;
-  provenanceJson?: unknown;
+  sourcesJson?: unknown;
 }

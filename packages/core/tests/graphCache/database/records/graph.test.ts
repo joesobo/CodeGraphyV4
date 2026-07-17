@@ -27,7 +27,7 @@ describe('graphCache/database/graph records', () => {
       targetId: 'b',
       type: 'import',
       propertiesJson: '{"color":"#fff"}',
-      provenanceJson: '[{"id":"plugin:import","pluginId":"plugin","sourceId":"import","label":"Import"}]',
+      sourcesJson: '[{"id":"plugin:import","pluginId":"plugin","sourceId":"import","label":"Import"}]',
     })).toEqual({
       id: 'a->b#import',
       from: 'a',

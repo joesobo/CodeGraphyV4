@@ -25,7 +25,7 @@ describe('graphCache/database/snapshot', () => {
     });
   });
 
-  it('reads analyzer state and canonical graph records', () => {
+  it('reads raw file facts and canonical graph records', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(connectionModule.withConnection).mockImplementation((_path, callback) => callback('connection' as never));
     vi.mocked(connectionModule.readRowsSync).mockImplementation((_connection, query) => {
@@ -33,7 +33,7 @@ describe('graphCache/database/snapshot', () => {
         path: 'src/app.ts',
         mtime: 1,
         size: 2,
-        analyzerStateJson: JSON.stringify({
+        factsJson: JSON.stringify({
           filePath: '/workspace/src/app.ts',
           symbols: [{ id: 'symbol-1', filePath: '/workspace/src/app.ts', name: 'App', kind: 'class' }],
           relations: [],

@@ -14,6 +14,7 @@ import { hasSupportedRawPluginIdentity } from '../../workspace/settingsPlugins';
 import { readWorkspaceAnalysisDatabaseRecordCounts } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../analysis/cache';
+import { GRAPH_CACHE_SCHEMA_VERSION } from '../../graphCache/database/io/schema';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -117,7 +118,7 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
       state: status.state,
       path: status.graphCachePath,
       staleReasons: status.staleReasons,
-      schemaVersion: 3,
+      schemaVersion: GRAPH_CACHE_SCHEMA_VERSION,
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       indexedAt: meta.lastIndexedAt,
       records,
