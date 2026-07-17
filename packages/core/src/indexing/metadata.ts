@@ -45,14 +45,12 @@ export function createWorkspaceIndexPluginSignature(input: {
 }
 
 export function persistWorkspaceIndexMetadata(input: {
-  loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
-  registry: CorePluginRegistry;
+  pluginSignature: string | null;
   settings: CodeGraphyWorkspaceSettings;
   workspaceRoot: string;
-  includeMissingConfiguredPlugins?: boolean;
 }): void {
   persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
-    pluginSignature: createWorkspaceIndexPluginSignature(input),
+    pluginSignature: input.pluginSignature,
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(input.settings),
   });
 }

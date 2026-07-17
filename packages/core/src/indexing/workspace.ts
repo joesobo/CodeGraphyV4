@@ -19,6 +19,7 @@ import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
+import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
 import {
   createWorkspaceIndexFileContentReader,
   findDeletedWorkspaceIndexDependents,
@@ -78,13 +79,16 @@ export async function indexCodeGraphyWorkspace(
     () => ({ registeredPlugins: registry.list().length }),
   );
 
-  const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
-    pluginSignature: createWorkspaceIndexPluginSignature({
+  const pluginSignature = options.plugins === undefined
+    ? createDefaultStatusPluginSignature(settings, options.userHomeDir)
+    : createWorkspaceIndexPluginSignature({
       loadedPackagePlugins,
       registry,
       settings,
-      includeMissingConfiguredPlugins: options.plugins === undefined,
-    }),
+      includeMissingConfiguredPlugins: false,
+    });
+  const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
+    pluginSignature,
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
@@ -249,11 +253,9 @@ export async function indexCodeGraphyWorkspace(
     options,
     'persist-metadata',
     () => persistWorkspaceIndexMetadata({
-      loadedPackagePlugins,
-      registry,
+      pluginSignature,
       settings,
       workspaceRoot,
-      includeMissingConfiguredPlugins: options.plugins === undefined,
     }),
   );
   options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
