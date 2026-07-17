@@ -1,9 +1,9 @@
-export interface FileAnalysisRow {
+export interface FileRow {
   filePath?: unknown;
   mtime?: unknown;
   size?: unknown;
   contentHash?: unknown;
-  analysis?: unknown;
+  factsJson?: unknown;
 }
 
 export interface SymbolRow {

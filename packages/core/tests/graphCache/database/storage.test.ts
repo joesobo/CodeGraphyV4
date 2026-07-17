@@ -160,13 +160,19 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const records = withConnection(
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => ({
-        files: readRowsSync(connection, 'SELECT analysis FROM FileAnalysis'),
+        tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
+        files: readRowsSync(connection, 'SELECT factsJson FROM File'),
         symbols: readRowsSync(connection, 'SELECT symbolId, filePath FROM Symbol'),
         relations: readRowsSync(connection, 'SELECT filePath, kind FROM Relation'),
       }),
     );
 
-    expect(JSON.parse(String(records.files[0]!.analysis))).toEqual({
+    expect(records.tables).toEqual([
+      { name: 'File' },
+      { name: 'Relation' },
+      { name: 'Symbol' },
+    ]);
+    expect(JSON.parse(String(records.files[0]!.factsJson))).toEqual({
       filePath: '/workspace/src/index.ts',
     });
     expect(records.symbols).toEqual([{
@@ -193,7 +199,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     withConnection(databasePath, (connection) => {
       runStatementSync(
         connection,
-        `INSERT INTO FileAnalysis(filePath, mtime, size, analysis)
+        `INSERT INTO File(filePath, mtime, size, factsJson)
          VALUES ('src/index.ts', 1, 2, '{"relations":[{"kind":"import"}]}')`,
       );
     });

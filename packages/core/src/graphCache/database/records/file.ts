@@ -1,9 +1,9 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import type { FileAnalysisRow } from './contracts';
+import type { FileRow } from './contracts';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
 export function createSnapshotFileEntry(
-  row: FileAnalysisRow,
+  row: FileRow,
 ):
   | {
       filePath: string;
@@ -14,7 +14,7 @@ export function createSnapshotFileEntry(
     }
   | undefined {
   const filePath = readRequiredString(row.filePath);
-  const analysisText = readRequiredString(row.analysis);
+  const analysisText = readRequiredString(row.factsJson);
 
   if (!filePath || !analysisText) {
     return undefined;

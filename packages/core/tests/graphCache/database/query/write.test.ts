@@ -110,7 +110,7 @@ describe('graphCache/database/writeStatements', () => {
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
-      analysis: JSON.stringify({}),
+      factsJson: JSON.stringify({}),
     });
     expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(2, {}, { kind: 'symbol' }, {
       symbolId: 'symbol-1',
@@ -156,7 +156,7 @@ describe('graphCache/database/writeStatements', () => {
       mtime: 10,
       size: 20,
       contentHash: null,
-      analysis: JSON.stringify({}),
+      factsJson: JSON.stringify({}),
     });
   });
 
@@ -192,7 +192,7 @@ describe('graphCache/database/writeStatements', () => {
       mtime: 0,
       size: 0,
       contentHash: null,
-      analysis: JSON.stringify({}),
+      factsJson: JSON.stringify({}),
     });
     expect(afterStatement).toHaveBeenCalledOnce();
     expect(sequence).toEqual(['execute', 'yield']);

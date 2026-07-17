@@ -15,7 +15,7 @@ import { createSnapshotSymbolEntry } from '../records/symbol';
 import { createSnapshotRelationEntry } from '../relation/entry';
 import type { RelationRow, SymbolRow } from '../records/contracts';
 import {
-  FILE_ANALYSIS_ROWS_QUERY,
+  FILE_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
 } from '../query/read';
@@ -30,9 +30,9 @@ function containsEmbeddedStructuredAnalysis(
   rows: readonly Parameters<typeof createSnapshotFileEntry>[0][],
 ): boolean {
   return rows.some((row) => {
-    if (typeof row.analysis !== 'string') return false;
+    if (typeof row.factsJson !== 'string') return false;
     try {
-      const analysis = JSON.parse(row.analysis) as {
+      const analysis = JSON.parse(row.factsJson) as {
         symbols?: unknown[];
         relations?: unknown[];
       };
@@ -96,7 +96,7 @@ export function loadWorkspaceAnalysisDatabaseCache(
 
   try {
     return withConnection(databasePath, (connection) => {
-      const rows = readRowsSync(connection, FILE_ANALYSIS_ROWS_QUERY);
+      const rows = readRowsSync(connection, FILE_ROWS_QUERY);
       if (containsEmbeddedStructuredAnalysis(rows)) {
         throw new LegacyGraphCacheError();
       }
@@ -137,7 +137,7 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
 
   try {
     return await withConnectionAsync(databasePath, async (connection) => {
-      const rows = await readRowsAsync(connection, FILE_ANALYSIS_ROWS_QUERY);
+      const rows = await readRowsAsync(connection, FILE_ROWS_QUERY);
       if (containsEmbeddedStructuredAnalysis(rows)) {
         throw new LegacyGraphCacheError();
       }

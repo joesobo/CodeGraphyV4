@@ -111,7 +111,7 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM FileAnalysis',
+      'DELETE FROM File',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
@@ -186,7 +186,7 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'DELETE FROM FileAnalysis',
+      'DELETE FROM File',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
@@ -292,7 +292,7 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM FileAnalysis',
+      'DELETE FROM File',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       3,
