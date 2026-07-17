@@ -65,9 +65,12 @@ const features: Feature[] = [
   {
     icon: Layers,
     layout: 'square',
-    media: gifMedia('view-modes', 'Animation of switching between Graph View modes'),
-    title: 'Multiple Graph View modes',
-    summary: 'Switch between 2D and 3D rendering, focus with Depth Mode, cycle layouts, or scrub Git history in the Timeline.',
+    media: gifMedia(
+      'force-graph',
+      'Animation of CodeGraphy rendering and laying out a Relationship Graph',
+    ),
+    title: 'Our own graph renderer',
+    summary: 'A custom @codegraphy-dev/graph-renderer package draws with WebGPU while deterministic WebAssembly physics keeps large graphs responsive.',
   },
 ];
 
@@ -94,7 +97,7 @@ export function Features(): React.ReactElement {
     <section className="mx-auto grid w-full max-w-7xl gap-6 px-6 sm:px-8 lg:px-12" id="features">
       <SectionHeader
         title="Features"
-        description="Explore the Relationship Graph, narrow it to the code you care about, and reuse the same local Graph Cache from the editor, CLI, MCP, and Plugins."
+        description="Explore the Relationship Graph, narrow it to the code you care about, and reuse the same local Graph Cache from the editor, CLI, Agent Skill, and Plugins."
       />
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6">
         {features.map((feature) => (

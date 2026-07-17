@@ -5,9 +5,9 @@ export function renderLlmsTxt(siteUrl: URL): string {
 
 > CodeGraphy indexes a CodeGraphy Workspace into one local Relationship Graph for VS Code, coding agents, the CLI, and Plugins.
 
-Use this as the agent-readable entry point for CodeGraphy. Prefer the linked Markdown docs and package pages for implementation details. CodeGraphy is local-first: Indexing writes a Graph Cache on disk, and MCP tools let agents query that same cache without rereading every file.
+Use this as the agent-readable entry point for CodeGraphy. Prefer the linked Markdown docs and package pages for implementation details. CodeGraphy is local-first: Indexing writes a SQLite Graph Cache on disk, and the Core CLI plus CodeGraphy Agent Skill let agents query that same cache without rereading every file.
 
-Key terms: Relationship Graph, CodeGraphy Workspace, Indexing, Graph Cache, Graph Query, Graph Scope, Graph View, MCP server, Plugin API, VS Code extension.
+Key terms: Relationship Graph, CodeGraphy Workspace, Indexing, SQLite Graph Cache, Graph Query, Graph Scope, Graph View, Core CLI, Agent Skill, Plugin API, VS Code extension, WebGPU, WebAssembly.
 
 ## Site pages
 
@@ -21,11 +21,12 @@ Key terms: Relationship Graph, CodeGraphy Workspace, Indexing, Graph Cache, Grap
 - [Docs overview](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/README.md): Start here for the project docs index and the main reference map.
 - [Commands](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/COMMANDS.md): Every command and keybinding the extension contributes, and what each one does.
 - [Settings](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/SETTINGS.md): The .codegraphy/settings.json reference: Filters, physics, colors, and theming.
-- [MCP server](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/MCP.md): Headless Indexing and Graph Query tools so agents can read the same Graph Cache.
+- [CodeGraphy Agent Skill](https://github.com/joesobo/CodeGraphyV4/blob/main/skills/codegraphy/SKILL.md): Teaches shell-capable agents to index and query CodeGraphy before broad source search.
 - [Plugin API lifecycle](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/LIFECYCLE.md): The hooks a Plugin implements and when the Core Package calls them during Indexing.
 - [Plugin API types](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/TYPES.md): The typed contracts exported by @codegraphy-dev/plugin-api.
 - [Examples README](https://github.com/joesobo/CodeGraphyV4/blob/main/examples/README.md): Runnable CodeGraphy Workspaces used to verify language and Plugin coverage.
 - [Core package](https://github.com/joesobo/CodeGraphyV4/blob/main/packages/core/README.md): Core Package entry point for discovery, Indexing, and Relationship Graph concepts.
+- [Graph renderer](https://github.com/joesobo/CodeGraphyV4/blob/main/packages/graph-renderer/README.md): Custom WebGPU graph drawing and deterministic WebAssembly physics.
 
 ## Plugin packages
 
@@ -68,7 +69,8 @@ Key terms: Relationship Graph, CodeGraphy Workspace, Indexing, Graph Cache, Grap
 
 - [GitHub repository](https://github.com/joesobo/CodeGraphyV4): Source repository for CodeGraphy, including packages, docs, examples, and issue history.
 - [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy): Install page for the CodeGraphy VS Code extension.
-- [@codegraphy-dev/mcp on npm](https://www.npmjs.com/package/@codegraphy-dev/mcp): Package page for the MCP server used by coding agents.
+- [@codegraphy-dev/core on npm](https://www.npmjs.com/package/@codegraphy-dev/core): Core engine and the terminal codegraphy CLI used by the Agent Skill.
+- [@codegraphy-dev/graph-renderer on npm](https://www.npmjs.com/package/@codegraphy-dev/graph-renderer): Custom WebGPU renderer and WebAssembly physics package.
 - [Repository README](https://github.com/joesobo/CodeGraphyV4/blob/main/README.md): Repository-level introduction and development entry point.
 `;
 }

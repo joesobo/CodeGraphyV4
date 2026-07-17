@@ -2,7 +2,10 @@ import { CodeBlock } from '@/components/code-block';
 import { Link } from '@/components/link';
 import { SectionHeader } from '@/components/section-header';
 import { Card, CardContent } from '@/components/ui/card';
-import { githubBlobHref, npmPackageRootHref } from '@/content/links';
+import { npmPackageRootHref } from '@/content/links';
+
+const agentSkillHref = 'https://github.com/codegraphy/skills';
+const corePackageHref = `${npmPackageRootHref}/@codegraphy-dev/core`;
 
 const agentCapabilities: string[] = [
   'Index the CodeGraphy Workspace',
@@ -17,18 +20,18 @@ export function Agents(): React.ReactElement {
       <div className="max-w-xl">
         <SectionHeader
           title="Let agents read the Relationship Graph."
-          description="CodeGraphy MCP gives agents a focused set of tools backed by the same local Graph Cache that powers the VS Code extension. Agents can ask for Nodes, Edges, symbols, paths, and more."
+          description="The CodeGraphy Agent Skill teaches coding agents to query the same local Graph Cache that powers the VS Code extension. One CLI answers focused questions about Nodes, Edges, dependencies, dependents, and paths."
         />
         <p className="mt-4 text-base leading-7 text-muted-foreground">
           Index the CodeGraphy Workspace once, then use your agent for targeted Relationship
           questions instead of broad file-by-file exploration.
         </p>
         <div className="mt-6 flex flex-wrap gap-4">
-          <Link href={`${githubBlobHref}/docs/MCP.md`} icon="github" variant="text">
-            MCP setup guide
+          <Link href={agentSkillHref} icon="github" variant="text">
+            CodeGraphy Agent Skill
           </Link>
-          <Link href={`${npmPackageRootHref}/@codegraphy-dev/mcp`} variant="text">
-            @codegraphy-dev/mcp
+          <Link href={corePackageHref} variant="text">
+            @codegraphy-dev/core
           </Link>
         </div>
       </div>
@@ -39,7 +42,9 @@ export function Agents(): React.ReactElement {
             <p className="font-mono text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Install
             </p>
-            <CodeBlock className="mt-2 text-xs leading-5">npm install -g @codegraphy-dev/mcp</CodeBlock>
+            <CodeBlock className="mt-2 text-xs leading-5">
+              npx skills@latest add codegraphy/skills
+            </CodeBlock>
           </div>
 
           <div>
@@ -47,7 +52,7 @@ export function Agents(): React.ReactElement {
               Ask your agent
             </p>
             <blockquote className="mt-2 rounded-md bg-secondary/60 px-3 py-2.5 text-sm leading-6 text-foreground">
-              &ldquo;Use CodeGraphy to explain how my code connects.&rdquo;
+              codegraphy search SettingsPanel
             </blockquote>
           </div>
 

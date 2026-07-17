@@ -1,5 +1,4 @@
 import {
-  AccountTree,
   Computer,
   Database,
   East,
@@ -23,16 +22,16 @@ interface StageNode {
 const sourceNodes: StageNode[] = [
   { icon: Folder, title: 'Workspace files' },
   { icon: Settings, title: 'Settings' },
-  { icon: AccountTree, title: 'Git history' },
+  { icon: Extension, title: 'Enabled Plugins' },
 ];
 
 const surfaceNodes: StageNode[] = [
   { icon: Computer, title: 'VS Code extension' },
-  { icon: SmartToy, title: 'MCP server' },
+  { icon: SmartToy, title: 'Agent Skill' },
   { icon: Terminal, title: 'CLI' },
 ];
 
-const coreChips: string[] = ['Tree-sitter', 'Indexing', 'Graph Cache', 'Plugin host'];
+const coreChips: string[] = ['Tree-sitter', 'Indexing', 'SQLite Graph Cache', 'Plugin host'];
 
 export function HowItWorks(): React.ReactElement {
   return (

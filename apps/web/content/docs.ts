@@ -41,16 +41,10 @@ export const docsGroups: readonly DocsGroup[] = [
         summary: 'The .codegraphy/settings.json reference — Filters, physics, colors, and theming.',
       },
       {
-        id: 'timeline',
-        title: 'Timeline',
-        href: `${githubBlobHref}/docs/TIMELINE.md`,
-        summary: 'Index Git history and scrub how the Relationship Graph changes across commits.',
-      },
-      {
-        id: 'mcp',
-        title: 'MCP server',
-        href: `${githubBlobHref}/docs/MCP.md`,
-        summary: 'Headless Indexing and Graph Query tools so agents can read the same Graph Cache.',
+        id: 'agent-skill',
+        title: 'CLI and Agent Skill',
+        href: `${githubBlobHref}/skills/codegraphy/SKILL.md`,
+        summary: 'Index and query the local Graph Cache from a terminal or shell-capable coding agent.',
       },
       {
         id: 'examples',
@@ -105,6 +99,12 @@ export const docsGroups: readonly DocsGroup[] = [
         title: 'Extension package',
         href: `${githubBlobHref}/packages/extension/docs/README.md`,
         summary: 'Extension-specific implementation and user-facing behavior notes.',
+      },
+      {
+        id: 'graph-renderer-package',
+        title: 'Graph renderer package',
+        href: `${githubBlobHref}/packages/graph-renderer/README.md`,
+        summary: 'Custom WebGPU graph drawing and deterministic WebAssembly physics.',
       },
     ],
   },

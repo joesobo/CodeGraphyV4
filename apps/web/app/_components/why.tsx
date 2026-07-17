@@ -26,7 +26,7 @@ const reasons: {
     icon: SmartToy,
     title: 'Give agents a map',
     summary:
-      'Agents query the same Graph Cache through MCP to learn how a CodeGraphy Workspace connects — without reading every file just to understand the structure.',
+      'Agents use the CodeGraphy CLI and Agent Skill to query the same Graph Cache — without reading every file just to understand the structure.',
   },
 ];
 

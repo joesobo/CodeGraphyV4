@@ -8,22 +8,17 @@ import {
   extensionVersionUrl,
   marketplaceHref,
   npmPackageRootHref,
-  npmRegistryRootUrl,
   pluginsHref,
   vscodeExtensionHref,
 } from '@/content/links';
 import { cn, getPackageVersion } from '@/lib/utils';
 
-const mcpPackageName = '@codegraphy-dev/mcp';
-const mcpPackageHref = `${npmPackageRootHref}/${mcpPackageName}`;
-const mcpVersionUrl = `${npmRegistryRootUrl}/${encodeURIComponent(mcpPackageName)}/latest`;
-const mcpInstallCommand = `npm install -g ${mcpPackageName}`;
+const corePackageName = '@codegraphy-dev/core';
+const corePackageHref = `${npmPackageRootHref}/${corePackageName}`;
+const agentSkillInstallCommand = 'npx skills@latest add codegraphy/skills';
 
 export async function GetStarted(): Promise<React.ReactElement> {
-  const [extensionVersion, mcpVersion] = await Promise.all([
-    getPackageVersion(extensionVersionUrl),
-    getPackageVersion(mcpVersionUrl),
-  ]);
+  const extensionVersion = await getPackageVersion(extensionVersionUrl);
 
   return (
     <section className="w-full border-y border-border bg-secondary/50 px-6 py-16 sm:px-8 sm:py-20 lg:px-12">
@@ -72,25 +67,20 @@ export async function GetStarted(): Promise<React.ReactElement> {
           <Card as="article" className="min-w-0 flex flex-col" interactive>
             <CardHeader className="flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <CardTitle className="text-lg">MCP</CardTitle>
-                {mcpVersion ? (
-                  <Badge className="font-mono text-[0.7rem]" variant="secondary">
-                    v{mcpVersion}
-                  </Badge>
-                ) : null}
+                <CardTitle className="text-lg">CLI + Agent Skill</CardTitle>
               </div>
               <CardDescription className="mt-1">
-                Give agents headless access to index and query the same Graph Cache — no editor required.
+                Install the skill, then let shell-capable agents index and query the same Graph Cache without opening VS Code.
               </CardDescription>
               <CodeBlock className="mt-3 px-3 py-2.5 text-xs leading-5">
-                {mcpInstallCommand}
+                {agentSkillInstallCommand}
               </CodeBlock>
             </CardHeader>
             <CardFooter>
               <Link
-                aria-label={`View ${mcpPackageName} on npm`}
+                aria-label={`View ${corePackageName} on npm`}
                 className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
-                href={mcpPackageHref}
+                href={corePackageHref}
               >
                 View on npm
               </Link>

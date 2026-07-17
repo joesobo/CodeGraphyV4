@@ -1,6 +1,8 @@
 {
-  "version": 1,
+  "version": 2,
   "maxFiles": 3000,
+  "showFps": true,
+  "showMinimap": true,
   "verboseDiagnostics": false,
   "include": [
     "**/*"
@@ -23,7 +25,7 @@
     },
     {
       "id": "codegraphy.particles",
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "codegraphy.unity",
@@ -381,18 +383,12 @@
   "particleSize": 4,
   "depthMode": false,
   "depthLimit": 1,
-  "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
     "repelForce": 17,
     "linkDistance": 70,
-    "linkForce": 1,
-    "damping": 0.7,
-    "centerForce": 0.17,
-    "chargeRange": 200
-  },
-  "timeline": {
-    "maxCommits": 500,
-    "playbackSpeed": 1
+    "linkForce": 2,
+    "damping": 0.4,
+    "centerForce": 0.15
   }
 }
