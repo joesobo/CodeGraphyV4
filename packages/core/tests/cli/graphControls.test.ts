@@ -33,7 +33,13 @@ describe('cli graph controls', () => {
 
     expect(JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf-8'))).toMatchObject({
       extensionPanelPlacement: 'right',
-      nodeVisibility: { file: true, symbol: true, 'symbol:function': true },
+      nodeVisibility: {
+        file: true,
+        symbol: true,
+        'symbol:function': true,
+        'symbol:callable': true,
+        'symbol:method': true,
+      },
       edgeVisibility: { import: true, call: false },
       plugins: [{
         id: 'codegraphy.future',
