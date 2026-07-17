@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
+import type { IGraphData } from '../../../graph/contracts';
 import {
   recreateInvalidDatabase,
   runStatementSync,
@@ -12,6 +13,7 @@ import {
   createWorkspaceAnalysisCacheWriter,
   deleteAnalysisEntry,
   persistAnalysisEntry,
+  persistGraph,
   sortedCacheEntries,
 } from '../query/write';
 
@@ -23,6 +25,7 @@ export interface WorkspaceAnalysisDatabaseSaveProgress {
 }
 
 export interface WorkspaceAnalysisDatabaseSaveOptions {
+  graph?: IGraphData;
   onProgress?: (progress: WorkspaceAnalysisDatabaseSaveProgress) => void;
   yieldEvery?: number;
 }
@@ -30,6 +33,7 @@ export interface WorkspaceAnalysisDatabaseSaveOptions {
 export interface WorkspaceAnalysisDatabasePatch {
   deleteFilePaths?: readonly string[];
   upsertFiles?: IWorkspaceAnalysisCache['files'];
+  graph?: IGraphData;
 }
 
 function runTransactionSync(connection: Parameters<typeof runStatementSync>[0], patch: () => void): void {
@@ -55,6 +59,7 @@ function runTransactionSync(connection: Parameters<typeof runStatementSync>[0], 
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
+  graph: IGraphData = { nodes: [], edges: [] },
 ): void {
   ensureDatabaseDirectory(workspaceRoot);
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
@@ -64,17 +69,15 @@ export function saveWorkspaceAnalysisDatabaseCache(
   const persist = (): void => {
     withConnection(databasePath, (connection) => {
       runTransactionSync(connection, () => {
-        runStatementSync(connection, 'DELETE FROM File');
-        runStatementSync(connection, 'DELETE FROM Symbol');
+        runStatementSync(connection, 'DELETE FROM Edge');
         runStatementSync(connection, 'DELETE FROM Node');
-        runStatementSync(connection, 'DELETE FROM NodeType');
-        runStatementSync(connection, 'DELETE FROM EdgeType');
-        runStatementSync(connection, 'DELETE FROM Relation');
+        runStatementSync(connection, 'DELETE FROM IndexedFile');
 
         const writer = createWorkspaceAnalysisCacheWriter(connection);
         for (const [filePath, entry] of sortedCacheEntries(cache)) {
           persistAnalysisEntry(writer, filePath, entry);
         }
+        persistGraph(writer, graph);
       });
     });
   };
@@ -116,6 +119,11 @@ export function patchWorkspaceAnalysisDatabaseCache(
       })) {
         persistAnalysisEntry(writer, filePath, entry);
       }
+      if (patch.graph) {
+        runStatementSync(connection, 'DELETE FROM Edge');
+        runStatementSync(connection, 'DELETE FROM Node');
+        persistGraph(writer, patch.graph);
+      }
     });
   });
 }
@@ -127,11 +135,8 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   }
 
   withConnection(databasePath, (connection) => {
-    runStatementSync(connection, 'DELETE FROM File');
-    runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Edge');
     runStatementSync(connection, 'DELETE FROM Node');
-    runStatementSync(connection, 'DELETE FROM NodeType');
-    runStatementSync(connection, 'DELETE FROM EdgeType');
-    runStatementSync(connection, 'DELETE FROM Relation');
+    runStatementSync(connection, 'DELETE FROM IndexedFile');
   });
 }

@@ -48,6 +48,8 @@ vi.mock('../../../../src/graphCache/database/query/write', () => ({
   deleteAnalysisEntry: vi.fn(),
   persistAnalysisEntry: vi.fn(),
   persistAnalysisEntryAsync: vi.fn(),
+  persistGraph: vi.fn(),
+  persistGraphAsync: vi.fn(async () => undefined),
   sortedCacheEntries: vi.fn(),
 }));
 
@@ -70,17 +72,15 @@ describe('graphCache/database/io/save', () => {
         .sort(([left], [right]) => left.localeCompare(right)) as never,
     );
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriter)
-      .mockReturnValue({ connection: 'connection', fileAnalysisStatement: 'statement' } as never);
+      .mockReturnValue({ connection: 'connection', indexedFileStatement: 'statement' } as never);
     vi.mocked(writeModule.createWorkspaceAnalysisCachePatchWriter)
       .mockReturnValue({
         connection: 'connection',
-        deleteFileAnalysisStatement: 'delete-file-statement',
-        deleteRelationStatement: 'delete-relation-statement',
-        deleteSymbolStatement: 'delete-symbol-statement',
-        fileAnalysisStatement: 'statement',
+        deleteIndexedFileStatement: 'delete-file-statement',
+        indexedFileStatement: 'statement',
       } as never);
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriterAsync)
-      .mockResolvedValue({ connection: 'connection', fileAnalysisStatement: 'statement' } as never);
+      .mockResolvedValue({ connection: 'connection', indexedFileStatement: 'statement' } as never);
     vi.mocked(connectionModule.withConnection).mockImplementation((_databasePath, callback) =>
       callback('connection' as never));
     vi.mocked(connectionModule.withConnectionAsync).mockImplementation(async (_databasePath, callback) =>
@@ -111,39 +111,32 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM File',
+      'DELETE FROM Edge',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'DELETE FROM Symbol',
+      'DELETE FROM Node',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       4,
       'connection',
-      'DELETE FROM Node',
+      'DELETE FROM IndexedFile',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       5,
-      'connection',
-      'DELETE FROM NodeType',
-    );
-    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(6, 'connection', 'DELETE FROM EdgeType');
-    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(7, 'connection', 'DELETE FROM Relation');
-    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
-      8,
       'connection',
       'COMMIT',
     );
     expect(writeModule.persistAnalysisEntry).toHaveBeenNthCalledWith(
       1,
-      { connection: 'connection', fileAnalysisStatement: 'statement' },
+      { connection: 'connection', indexedFileStatement: 'statement' },
       'src/a.ts',
       { mtime: 1, size: 10, analysis: {} },
     );
     expect(writeModule.persistAnalysisEntry).toHaveBeenNthCalledWith(
       2,
-      { connection: 'connection', fileAnalysisStatement: 'statement' },
+      { connection: 'connection', indexedFileStatement: 'statement' },
       'src/b.ts',
       { mtime: 2, size: 20, analysis: {} },
     );
@@ -193,21 +186,18 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'DELETE FROM File',
+      'DELETE FROM Edge',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM Symbol',
+      'DELETE FROM Node',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'DELETE FROM Node',
+      'DELETE FROM IndexedFile',
     );
-    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(4, 'connection', 'DELETE FROM NodeType');
-    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(5, 'connection', 'DELETE FROM EdgeType');
-    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(6, 'connection', 'DELETE FROM Relation');
   });
 
   it('patches changed rows inside a transaction and commits the complete patch', () => {
@@ -302,27 +292,20 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'DELETE FROM File',
+      'DELETE FROM Edge',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       3,
       'connection',
-      'DELETE FROM Symbol',
+      'DELETE FROM Node',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       4,
       'connection',
-      'DELETE FROM Node',
+      'DELETE FROM IndexedFile',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       5,
-      'connection',
-      'DELETE FROM NodeType',
-    );
-    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(6, 'connection', 'DELETE FROM EdgeType');
-    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(7, 'connection', 'DELETE FROM Relation');
-    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
-      8,
       'connection',
       'COMMIT',
     );

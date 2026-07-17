@@ -4,6 +4,7 @@ import {
   createWorkspaceAnalysisCacheWriterAsync,
   persistAnalysisEntry,
   persistAnalysisEntryAsync,
+  persistGraph,
   sortedCacheEntries,
   type WorkspaceAnalysisCacheWriter,
 } from '../../../../src/graphCache/database/query/write';
@@ -13,215 +14,125 @@ describe('graphCache/database/writeStatements', () => {
   it('sorts cache entries by file path', () => {
     const entries = sortedCacheEntries({
       files: {
-        'src/z.ts': { mtime: 2, size: 1, analysis: { symbols: [], relations: [] } },
-        'src/a.ts': { mtime: 1, size: 1, analysis: { symbols: [], relations: [] } },
+        'src/z.ts': { mtime: 2, size: 1, analysis: { filePath: 'src/z.ts' } },
+        'src/a.ts': { mtime: 1, size: 1, analysis: { filePath: 'src/a.ts' } },
       },
       version: '1',
-    } as never);
-
+    });
     expect(entries.map(([filePath]) => filePath)).toEqual(['src/a.ts', 'src/z.ts']);
   });
 
-  it('prepares the canonical file analysis write statement once per cache write session', () => {
-    const fileStatement = {};
-    const symbolStatement = {};
-    const nodeStatement = {};
-    const nodeTypeStatement = {};
-    const edgeTypeStatement = {};
-    const relationStatement = {};
-    const prepareStatementSyncSpy = vi
-      .spyOn(cacheConnectionModule, 'prepareStatementSync')
-      .mockReturnValueOnce(fileStatement as never)
-      .mockReturnValueOnce(symbolStatement as never)
-      .mockReturnValueOnce(nodeStatement as never)
-      .mockReturnValueOnce(nodeTypeStatement as never)
-      .mockReturnValueOnce(edgeTypeStatement as never)
-      .mockReturnValueOnce(relationStatement as never);
+  it('prepares one statement for each canonical table', () => {
+    const statements = [{}, {}, {}];
+    const prepare = vi.spyOn(cacheConnectionModule, 'prepareStatementSync');
+    statements.forEach(statement => prepare.mockReturnValueOnce(statement as never));
 
     expect(createWorkspaceAnalysisCacheWriter({} as never)).toEqual({
       connection: {},
-      fileAnalysisStatement: fileStatement,
-      symbolStatement,
-      nodeStatement,
-      nodeTypeStatement,
-      edgeTypeStatement,
-      relationStatement,
+      indexedFileStatement: statements[0],
+      nodeStatement: statements[1],
+      edgeStatement: statements[2],
     });
-
-    expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(6);
-    expect(prepareStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
+    expect(prepare).toHaveBeenCalledTimes(3);
   });
 
-  it('prepares the async canonical file analysis write statement once per cache write session', async () => {
-    const fileStatement = {};
-    const symbolStatement = {};
-    const nodeStatement = {};
-    const nodeTypeStatement = {};
-    const edgeTypeStatement = {};
-    const relationStatement = {};
-    const prepareStatementAsyncSpy = vi
-      .spyOn(cacheConnectionModule, 'prepareStatementAsync')
-      .mockResolvedValueOnce(fileStatement as never)
-      .mockResolvedValueOnce(symbolStatement as never)
-      .mockResolvedValueOnce(nodeStatement as never)
-      .mockResolvedValueOnce(nodeTypeStatement as never)
-      .mockResolvedValueOnce(edgeTypeStatement as never)
-      .mockResolvedValueOnce(relationStatement as never);
+  it('prepares one async statement for each canonical table', async () => {
+    const statements = [{}, {}, {}];
+    const prepare = vi.spyOn(cacheConnectionModule, 'prepareStatementAsync');
+    statements.forEach(statement => prepare.mockResolvedValueOnce(statement as never));
 
     await expect(createWorkspaceAnalysisCacheWriterAsync({} as never)).resolves.toEqual({
       connection: {},
-      fileAnalysisStatement: fileStatement,
-      symbolStatement,
-      nodeStatement,
-      nodeTypeStatement,
-      edgeTypeStatement,
-      relationStatement,
+      indexedFileStatement: statements[0],
+      nodeStatement: statements[1],
+      edgeStatement: statements[2],
     });
-
-    expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(6);
-    expect(prepareStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('@filePath'));
+    expect(prepare).toHaveBeenCalledTimes(3);
   });
 
-  it('persists one canonical file analysis row through a prepared statement', () => {
-    const executeStatementSyncSpy = vi
-      .spyOn(cacheConnectionModule, 'executeStatementSync')
-      .mockImplementation(() => []);
+  it('stores complete analyzer state in IndexedFile', () => {
+    const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
     const writer = {
       connection: {} as never,
-      fileAnalysisStatement: { kind: 'file' } as never,
-      symbolStatement: { kind: 'symbol' } as never,
+      indexedFileStatement: { kind: 'indexed-file' } as never,
       nodeStatement: { kind: 'node' } as never,
-      nodeTypeStatement: { kind: 'node-type' } as never,
-      edgeTypeStatement: { kind: 'edge-type' } as never,
-      relationStatement: { kind: 'relation' } as never,
+      edgeStatement: { kind: 'edge' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
     const analysis = {
-      symbols: [
-        {
-          id: 'symbol-1',
-          filePath: '/workspace/src/app.ts',
-          name: 'App',
-          kind: 'class',
-        },
-      ],
-      relations: [
-        {
-          filePath: '/workspace/src/app.ts',
-          fromFilePath: '/workspace/src/app.ts',
-          kind: 'import',
-          sourceId: 'plugin:import',
-        },
-      ],
+      filePath: '/workspace/src/app.ts',
+      symbols: [{ id: 'symbol-1', filePath: '/workspace/src/app.ts', name: 'App', kind: 'class' }],
     };
 
-    persistAnalysisEntry(
-      writer,
-      '/workspace/src/app.ts',
-      {
-        mtime: 10,
-        size: 20,
-        contentHash: 'sha256:app',
-        analysis,
-      } as never,
-    );
-
-    expect(executeStatementSyncSpy).toHaveBeenCalledTimes(3);
-    expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, { kind: 'file' }, {
-      filePath: '/workspace/src/app.ts',
+    persistAnalysisEntry(writer, 'src/app.ts', {
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
-      factsJson: JSON.stringify({}),
+      analysis,
     });
-    expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(2, {}, { kind: 'symbol' }, {
-      symbolId: 'symbol-1',
-      filePath: '/workspace/src/app.ts',
-      name: 'App',
-      kind: 'class',
-      signature: null,
-      rangeJson: null,
-      metadataJson: null,
-    });
-    expect(executeStatementSyncSpy).toHaveBeenNthCalledWith(3, {}, { kind: 'relation' }, expect.objectContaining({
-      relationId: '/workspace/src/app.ts:0',
-      filePath: '/workspace/src/app.ts',
-      kind: 'import',
-      sourceId: 'plugin:import',
-    }));
-  });
 
-  it('persists only the canonical row when the analysis omits symbols and relations', () => {
-    const executeStatementSyncSpy = vi
-      .spyOn(cacheConnectionModule, 'executeStatementSync')
-      .mockImplementation(() => []);
-    const writer = {
-      connection: {} as never,
-      fileAnalysisStatement: { kind: 'file' } as never,
-      symbolStatement: { kind: 'symbol' } as never,
-      nodeStatement: { kind: 'node' } as never,
-      nodeTypeStatement: { kind: 'node-type' } as never,
-      edgeTypeStatement: { kind: 'edge-type' } as never,
-      relationStatement: { kind: 'relation' } as never,
-    } satisfies WorkspaceAnalysisCacheWriter;
-
-    persistAnalysisEntry(
-      writer,
-      '/workspace/src/app.ts',
-      {
-        mtime: 10,
-        size: 20,
-        analysis: {},
-      } as never,
-    );
-
-    expect(executeStatementSyncSpy).toHaveBeenCalledTimes(1);
-    expect(executeStatementSyncSpy).toHaveBeenCalledWith(writer.connection, writer.fileAnalysisStatement, {
-      filePath: '/workspace/src/app.ts',
+    expect(execute).toHaveBeenCalledWith(writer.connection, writer.indexedFileStatement, {
+      path: 'src/app.ts',
       mtime: 10,
       size: 20,
-      contentHash: null,
-      factsJson: JSON.stringify({}),
+      contentHash: 'sha256:app',
+      analyzerStateJson: JSON.stringify(analysis),
     });
   });
 
-  it('persists one canonical file analysis row asynchronously before yielding', async () => {
-    const sequence: string[] = [];
-    const executeStatementAsyncSpy = vi
-      .spyOn(cacheConnectionModule, 'executeStatementAsync')
-      .mockImplementation(async () => {
-        sequence.push('execute');
-      });
-    const afterStatement = vi.fn(async () => {
-      sequence.push('yield');
-    });
+  it('stores nodes and edges as typed property-graph records', () => {
+    const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
     const writer = {
       connection: {} as never,
-      fileAnalysisStatement: { kind: 'file' } as never,
-      symbolStatement: { kind: 'symbol' } as never,
+      indexedFileStatement: { kind: 'indexed-file' } as never,
       nodeStatement: { kind: 'node' } as never,
-      nodeTypeStatement: { kind: 'node-type' } as never,
-      edgeTypeStatement: { kind: 'edge-type' } as never,
-      relationStatement: { kind: 'relation' } as never,
+      edgeStatement: { kind: 'edge' } as never,
+    } satisfies WorkspaceAnalysisCacheWriter;
+
+    persistGraph(writer, {
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#fff', nodeType: 'file' },
+        { id: 'src/model.ts', label: 'model.ts', color: '#fff', nodeType: 'file' },
+      ],
+      edges: [{
+        id: 'src/app.ts->src/model.ts#import',
+        from: 'src/app.ts',
+        to: 'src/model.ts',
+        kind: 'import',
+        sources: [],
+      }],
+    });
+
+    expect(execute).toHaveBeenCalledTimes(3);
+    expect(execute).toHaveBeenLastCalledWith(writer.connection, writer.edgeStatement, {
+      id: 'src/app.ts->src/model.ts#import',
+      sourceId: 'src/app.ts',
+      targetId: 'src/model.ts',
+      type: 'import',
+      propertiesJson: '{}',
+      provenanceJson: '[]',
+    });
+  });
+
+  it('persists one IndexedFile asynchronously before yielding', async () => {
+    const sequence: string[] = [];
+    vi.spyOn(cacheConnectionModule, 'executeStatementAsync').mockImplementation(async () => {
+      sequence.push('execute');
+    });
+    const afterStatement = vi.fn(async () => { sequence.push('yield'); });
+    const writer = {
+      connection: {} as never,
+      indexedFileStatement: { kind: 'indexed-file' } as never,
+      nodeStatement: { kind: 'node' } as never,
+      edgeStatement: { kind: 'edge' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
     await persistAnalysisEntryAsync(
       writer,
-      '/workspace/src/app.ts',
-      {
-        analysis: {},
-      } as never,
+      'src/app.ts',
+      { mtime: 0, analysis: { filePath: 'src/app.ts' } },
       afterStatement,
     );
 
-    expect(executeStatementAsyncSpy).toHaveBeenCalledTimes(1);
-    expect(executeStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, { kind: 'file' }, {
-      filePath: '/workspace/src/app.ts',
-      mtime: 0,
-      size: 0,
-      contentHash: null,
-      factsJson: JSON.stringify({}),
-    });
-    expect(afterStatement).toHaveBeenCalledOnce();
     expect(sequence).toEqual(['execute', 'yield']);
   });
 });

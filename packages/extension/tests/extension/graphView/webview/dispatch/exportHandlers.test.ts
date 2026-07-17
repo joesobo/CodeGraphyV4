@@ -27,6 +27,7 @@ describe('createGraphViewPrimaryExportHandlers', () => {
 
   it('exports snapshot-backed symbol data when structured snapshot files exist', async () => {
     const snapshot: WorkspaceAnalysisDatabaseSnapshot = {
+      graph: { nodes: [], edges: [] },
       files: [{
         filePath: 'src/app.ts',
         mtime: 1,
@@ -56,7 +57,7 @@ describe('createGraphViewPrimaryExportHandlers', () => {
     const lastFileAnalysis = new Map([['src/app.ts', { filePath: 'src/app.ts' }]]);
     const handlers = createGraphViewPrimaryExportHandlers({
       getAnalyzer: () => ({
-        readStructuredAnalysisSnapshot: () => ({ files: [], symbols: [], relations: [] } satisfies WorkspaceAnalysisDatabaseSnapshot),
+        readStructuredAnalysisSnapshot: () => ({ files: [], graph: { nodes: [], edges: [] }, symbols: [], relations: [] } satisfies WorkspaceAnalysisDatabaseSnapshot),
         lastFileAnalysis,
       }),
     });

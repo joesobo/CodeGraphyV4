@@ -2,6 +2,7 @@ import path from 'node:path';
 import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
+import { buildCompleteWorkspaceGraphData } from '../graph/complete';
 import {
   loadWorkspaceAnalysisDatabaseCache,
   patchWorkspaceAnalysisDatabaseCache,
@@ -218,6 +219,16 @@ export async function indexCodeGraphyWorkspace(
       edges: result.edges.length,
     }),
   );
+  const completeGraph = buildCompleteWorkspaceGraphData({
+    cacheFiles: cache.files,
+    directoryPaths: discoveryResult.directories ?? [],
+    gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
+    disabledPlugins,
+    fileAnalysis: analysisResult.fileAnalysis,
+    getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
+    showOrphans: true,
+    workspaceRoot,
+  });
 
   registry.notifyPostAnalyze(graph, disabledPlugins);
   registry.notifyWorkspaceReady(graph, disabledPlugins);
@@ -227,7 +238,7 @@ export async function indexCodeGraphyWorkspace(
     'save-graph-cache',
     () => {
       if (indexingMode === 'full') {
-        saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+        saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, completeGraph);
         return;
       }
 
@@ -239,6 +250,7 @@ export async function indexCodeGraphyWorkspace(
       patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
         deleteFilePaths: deletedFilePaths,
         upsertFiles,
+        graph: completeGraph,
       });
     },
     () => ({
