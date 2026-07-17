@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '@codegraphy-dev/core';
 import { EventBus } from '../../../../src/core/plugins/events/bus';
 import { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import { WorkspacePipelineEngineStateBase } from '../../../../src/extension/pipeline/indexingState/model';
@@ -49,7 +50,7 @@ describe('workspace pipeline indexing state', () => {
 
     expect(state.registry).toBeInstanceOf(PluginRegistry);
     expect(state.lastFileAnalysis).toEqual(new Map());
-    expect(snapshot.cache).toEqual({ version: '2.1.0', files: {} });
+    expect(snapshot.cache).toEqual({ version: WORKSPACE_ANALYSIS_CACHE_VERSION, files: {} });
     expect(snapshot.discoveredDirectories).toEqual([]);
     expect(snapshot.discoveredFiles).toEqual([]);
     expect(snapshot.workspaceRoot).toBe('');

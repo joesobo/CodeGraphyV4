@@ -16,6 +16,18 @@ function runtimeSignaturePlugins(registry: CorePluginRegistry): IPlugin[] {
     .map(info => info.plugin);
 }
 
+export function createWorkspaceIndexPluginSignature(input: {
+  loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
+  registry: CorePluginRegistry;
+}): string | null {
+  return createCodeGraphyWorkspacePackageAwarePluginSignature({
+    runtimePlugins: runtimeSignaturePlugins(input.registry),
+    packagePlugins: input.loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
+  }) ?? createCodeGraphyWorkspacePluginSignature(
+    input.registry.list().map(info => info.plugin),
+  );
+}
+
 export function persistWorkspaceIndexMetadata(input: {
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
   registry: CorePluginRegistry;
@@ -23,12 +35,7 @@ export function persistWorkspaceIndexMetadata(input: {
   workspaceRoot: string;
 }): void {
   persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
-    pluginSignature: createCodeGraphyWorkspacePackageAwarePluginSignature({
-      runtimePlugins: runtimeSignaturePlugins(input.registry),
-      packagePlugins: input.loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
-    }) ?? createCodeGraphyWorkspacePluginSignature(
-      input.registry.list().map(info => info.plugin),
-    ),
+    pluginSignature: createWorkspaceIndexPluginSignature(input),
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(input.settings),
   });
 }

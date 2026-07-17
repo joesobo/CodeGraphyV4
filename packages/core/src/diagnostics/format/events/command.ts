@@ -14,6 +14,7 @@ export function formatCommandEvent(
     const details = joinDetails([
       command,
       formatContextDetail(context, 'action'),
+      formatContextDetail(context, 'report'),
       formatContextDetail(context, 'workspacePath', 'workspace'),
     ]);
     return details ? `Starting command: ${details}` : 'Starting command';
@@ -22,6 +23,7 @@ export function formatCommandEvent(
   if (event === 'command-completed') {
     const details = joinDetails([
       command,
+      formatContextDetail(context, 'report'),
       formatContextDetail(context, 'exitCode'),
     ]);
     return details ? `Command complete: ${details}` : 'Command complete';

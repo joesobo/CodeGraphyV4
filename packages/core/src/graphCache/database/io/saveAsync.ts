@@ -2,13 +2,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementAsync, withConnectionAsync } from './connection';
-import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
-  cleanupTemporaryDatabase,
-  createTemporaryDatabasePath,
-  replaceDatabaseCache,
-} from './temporary';
+  recreateInvalidDatabase,
+  runStatementAsync,
+  withConnectionAsync,
+} from './connection';
+import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createWorkspaceAnalysisCacheWriterAsync,
   persistAnalysisEntryAsync,
@@ -30,35 +29,59 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
   const entries = sortedCacheEntries(cache);
   const total = entries.length;
   const yieldEvery = options.yieldEvery ?? 100;
-  const tempDatabasePath = createTemporaryDatabasePath(databasePath);
+  let reportedProgress = 0;
   options.onProgress?.({ current: 0, total });
 
-  try {
-    await withConnectionAsync(tempDatabasePath, async (connection) => {
-      await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
-      const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
+  const persist = (): Promise<void> => withConnectionAsync(
+    databasePath,
+    async (connection) => {
+      await runStatementAsync(connection, 'BEGIN TRANSACTION');
+      let committed = false;
+      try {
+        await runStatementAsync(connection, 'DELETE FROM FileAnalysis');
+        await runStatementAsync(connection, 'DELETE FROM Symbol');
+        await runStatementAsync(connection, 'DELETE FROM Relation');
+        const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
-      let current = 0;
-      let statementsSinceYield = 0;
-      const yieldAfterStatement = async (): Promise<void> => {
-        statementsSinceYield += 1;
-        if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
-          statementsSinceYield = 0;
-          await waitForImmediate();
+        let current = 0;
+        let statementsSinceYield = 0;
+        const yieldAfterStatement = async (): Promise<void> => {
+          statementsSinceYield += 1;
+          if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
+            statementsSinceYield = 0;
+            await waitForImmediate();
+          }
+        };
+
+        for (const [filePath, entry] of entries) {
+          await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
+          current += 1;
+          if (current > reportedProgress) {
+            reportedProgress = current;
+            options.onProgress?.({ current, total });
+          }
         }
-      };
-
-      for (const [filePath, entry] of entries) {
-        await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
-        current += 1;
-        options.onProgress?.({ current, total });
+        await runStatementAsync(connection, 'COMMIT');
+        committed = true;
+      } catch (error) {
+        if (!committed) {
+          try {
+            await runStatementAsync(connection, 'ROLLBACK');
+          } catch {
+            // Preserve the original save failure.
+          }
+        }
+        throw error;
       }
-    });
-    replaceDatabaseCache(tempDatabasePath, databasePath);
+    },
+  );
+
+  try {
+    await persist();
   } catch (error) {
-    cleanupTemporaryDatabase(tempDatabasePath);
-    throw error;
+    if (!recreateInvalidDatabase(databasePath, error)) {
+      throw error;
+    }
+    await persist();
   }
 }

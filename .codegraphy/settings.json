@@ -228,14 +228,6 @@
       "shape3D": "sphere"
     },
     {
-      "pattern": "packages/mcp/**",
-      "displayLabel": "MCP / CLI + Query Server",
-      "color": "#C4B5FD",
-      "target": "node",
-      "shape2D": "circle",
-      "shape3D": "sphere"
-    },
-    {
       "pattern": "packages/plugin-api/**",
       "displayLabel": "Plugin API / Contracts",
       "color": "#DDD6FE",

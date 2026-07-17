@@ -11,6 +11,8 @@ const workspaceSettingsShapeSchema = z.looseObject({
   showOrphans: z.boolean().optional().catch(undefined),
   filterPatterns: looseStringArraySchema,
   disabledCustomFilterPatterns: looseStringArraySchema,
+  nodeVisibility: unknownRecordSchema.catch({}),
+  edgeVisibility: unknownRecordSchema.catch({}),
   plugins: z.unknown(),
   pluginData: unknownRecordSchema.catch({}),
 });
@@ -25,6 +27,9 @@ export function normalizeCodeGraphyWorkspaceSettings(
   }
 
   const shape = parsed.data;
+  const booleanEntries = (value: Record<string, unknown>): Record<string, boolean> => Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean'),
+  );
   return {
     version: 1,
     maxFiles: shape.maxFiles ?? defaults.maxFiles,
@@ -33,6 +38,8 @@ export function normalizeCodeGraphyWorkspaceSettings(
     showOrphans: shape.showOrphans ?? defaults.showOrphans,
     filterPatterns: [...new Set(shape.filterPatterns)],
     disabledCustomFilterPatterns: [...new Set(shape.disabledCustomFilterPatterns)],
+    nodeVisibility: booleanEntries(shape.nodeVisibility),
+    edgeVisibility: booleanEntries(shape.edgeVisibility),
     plugins: normalizePluginSettings(shape.plugins),
     pluginData: { ...shape.pluginData },
   };

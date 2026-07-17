@@ -117,8 +117,19 @@ export interface IPluginAnalysisFileSystem {
   readTextFile(filePath: string): Promise<string | null>;
 }
 
+export interface IPluginWorkspaceFile {
+  /** Absolute path to the discovered workspace file. */
+  absolutePath: string;
+  /** Path relative to the workspace root. */
+  relativePath: string;
+  /** Lowercase file extension, including the leading dot when present. */
+  extension: string;
+}
+
 export interface IPluginAnalysisContext {
   fileSystem: IPluginAnalysisFileSystem;
+  /** Lightweight discovered workspace inventory for cross-file invalidation. */
+  workspaceFiles?: readonly IPluginWorkspaceFile[];
   features?: {
     symbols?: boolean;
   };
@@ -326,7 +337,9 @@ export interface IPlugin {
   ): Promise<void>;
 
   /**
-   * Called before an incremental save-driven re-analysis.
+   * Called before an incremental save-driven re-analysis. Receives all changed
+   * workspace files, including configuration files outside supportedExtensions,
+   * so plugins can invalidate cross-file state.
    * Plugins can update internal indexes from the changed files and optionally
    * request additional workspace-relative files to re-analyze.
    *

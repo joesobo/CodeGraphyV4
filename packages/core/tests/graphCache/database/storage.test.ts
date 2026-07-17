@@ -45,13 +45,14 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     );
   });
 
-  it('persists and reloads file analysis entries from .codegraphy/graph.lbug', () => {
+  it('persists and reloads file analysis entries from .codegraphy/graph.sqlite', () => {
     const workspaceRoot = createWorkspaceRoot();
     const cache: IWorkspaceAnalysisCache = {
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {
         'src/index.ts': {
           mtime: 123,
+          contentHash: 'sha256:index',
           size: 456,
           analysis: {
             filePath: '/workspace/src/index.ts',
@@ -80,6 +81,9 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
 
+    expect(getWorkspaceAnalysisDatabasePath(workspaceRoot)).toBe(
+      path.join(workspaceRoot, '.codegraphy', 'graph.sqlite'),
+    );
     expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(true);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
@@ -87,6 +91,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         {
           filePath: 'src/index.ts',
           mtime: 123,
+          contentHash: 'sha256:index',
           size: 456,
           analysis: cache.files['src/index.ts']!.analysis,
         },
@@ -424,11 +429,35 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const workspaceRoot = createWorkspaceRoot();
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
     fs.mkdirSync(path.dirname(databasePath), { recursive: true });
-    fs.writeFileSync(databasePath, 'not-a-ladybug-database', 'utf8');
+    fs.writeFileSync(databasePath, 'not-a-sqlite-database', 'utf8');
 
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
       createEmptyWorkspaceAnalysisCache(),
     );
+  });
+
+  it('recreates an unreadable database during the next full save', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+    fs.writeFileSync(databasePath, 'not-a-sqlite-database', 'utf8');
+    const cache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 1,
+          size: 2,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
   });
 
   it('clears persisted analysis rows without deleting repo-local settings files', () => {

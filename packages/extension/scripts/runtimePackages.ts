@@ -1,11 +1,16 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createRequire } from 'node:module';
+import { currentTarget } from '@neon-rs/load';
+import { familySync, GLIBC, MUSL } from 'detect-libc';
 
 const require = createRequire(import.meta.url);
 
 export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
-  '@ladybugdb/core',
+  'libsql',
+  '@neon-rs/load',
+  'detect-libc',
+  getLibsqlNativePackageName(),
   'material-icon-theme',
   'node-gyp-build',
   'tree-sitter',
@@ -28,6 +33,18 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'tree-sitter-swift',
   'tree-sitter-typescript',
 ] as const;
+
+export function getLibsqlNativePackageName(): string {
+  let target = currentTarget();
+  if (familySync() === GLIBC) {
+    if (target === 'linux-x64-musl') target = 'linux-x64-gnu';
+    if (target === 'linux-arm64-musl') target = 'linux-arm64-gnu';
+  } else if (familySync() === MUSL && target === 'linux-arm-gnueabihf') {
+    target = 'linux-arm-musleabihf';
+  }
+
+  return `@libsql/${target}`;
+}
 
 function resolvePackageEntryPath(packageName: string): string {
   return require.resolve(packageName);

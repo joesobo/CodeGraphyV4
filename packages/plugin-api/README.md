@@ -117,7 +117,7 @@ Path and source rules:
 Symbol analysis:
 
 - `symbols` describe declarations discovered in a file. Each symbol should have a stable plugin-local `id`, `name`, `kind`, and absolute `filePath`.
-- Optional `range` and `signature` values make navigation, exports, and MCP Graph Query results more precise.
+- Optional `range` and `signature` values make navigation, exports, and Graph Query CLI results more precise.
 - Symbol metadata can include scalar fields such as `language`, `source`, and `pluginKind`; the host preserves these for Legend scoping, exports, and Graph Query payloads.
 - `relations` can point at symbols with `fromSymbolId` and `toSymbolId`. The host projects those endpoints into Symbol Nodes and connects files to symbols with `contains` edges.
 - Variable-like symbol kinds such as `variable`, `constant`, and `field` project as Variable Nodes under the Symbols Graph Scope. More specific language kinds project as Symbol Nodes unless a plugin contributes its own Node Type and Legend defaults.

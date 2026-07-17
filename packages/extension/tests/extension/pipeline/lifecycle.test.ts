@@ -405,7 +405,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
 
     analyzer.clearCache();
 
-    expect(fs.existsSync(path.join(workspaceRoot, '.codegraphy', 'graph.lbug'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceRoot, '.codegraphy', 'graph.sqlite'))).toBe(true);
     expect(
       (analyzer as unknown as {
         _cache: {

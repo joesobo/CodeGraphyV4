@@ -8,6 +8,7 @@ import {
   listDirectoryWithinWorkspace,
   readTextFileWithinWorkspace,
 } from '../../../src/plugins/context/workspaceRead';
+import { createWorkspacePluginAnalysisContext } from '../../../src/plugins/context/workspace';
 
 describe('plugins/context workspace bounds and file access', () => {
   it('keeps plugin file access inside the workspace root', async () => {
@@ -53,5 +54,18 @@ describe('plugins/context workspace bounds and file access', () => {
     await expect(fileSystem.exists(join(workspaceRoot, 'missing.ts'))).resolves.toBe(false);
     await expect(fileSystem.isDirectory(join(workspaceRoot, 'missing'))).resolves.toBe(false);
     await expect(fileSystem.isFile(join(workspaceRoot, 'missing.ts'))).resolves.toBe(false);
+  });
+
+  it('exposes a lightweight discovered workspace inventory', () => {
+    const workspaceFiles = [{
+      absolutePath: '/workspace/src/app.ts',
+      relativePath: 'src/app.ts',
+      extension: '.ts',
+    }];
+
+    const context = createWorkspacePluginAnalysisContext('/workspace', { workspaceFiles });
+
+    expect(context.workspaceFiles).toEqual(workspaceFiles);
+    expect(context.workspaceFiles).not.toBe(workspaceFiles);
   });
 });

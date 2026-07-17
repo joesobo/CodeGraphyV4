@@ -251,7 +251,7 @@ async function countVisibleEdgesBetween(
 
 function graphCachePath(context: GraphAcceptanceContext): string {
   const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-  return path.join(workspacePath, '.codegraphy', 'graph.lbug');
+  return path.join(workspacePath, '.codegraphy', 'graph.sqlite');
 }
 
 function expectWorkspaceHasNoGraphCache(context: GraphAcceptanceContext): void {

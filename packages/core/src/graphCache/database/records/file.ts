@@ -1,6 +1,6 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { FileAnalysisRow } from './contracts';
-import { readOptionalNumber, readRequiredString } from './values';
+import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
 export function createSnapshotFileEntry(
   row: FileAnalysisRow,
@@ -9,6 +9,7 @@ export function createSnapshotFileEntry(
       filePath: string;
       mtime: number;
       size?: number;
+      contentHash?: string;
       analysis: IFileAnalysisResult;
     }
   | undefined {
@@ -19,10 +20,12 @@ export function createSnapshotFileEntry(
     return undefined;
   }
 
+  const contentHash = readOptionalString(row.contentHash);
   return {
     filePath,
     mtime: Number(row.mtime ?? 0),
     size: readOptionalNumber(row.size),
+    ...(contentHash ? { contentHash } : {}),
     analysis: JSON.parse(analysisText) as IFileAnalysisResult,
   };
 }

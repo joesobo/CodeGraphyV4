@@ -15,8 +15,9 @@ describe('index/command', () => {
 
         return {
           workspaceRoot: '/workspace/project',
-          graphCache: '.codegraphy/graph.lbug',
-          message: 'CodeGraphy indexing completed. Query tools can now read the Graph Cache.',
+          graphCache: '.codegraphy/graph.sqlite',
+          message: 'CodeGraphy indexing completed. CLI queries can now read the Graph Cache.',
+          indexing: { mode: 'full', analyzedFiles: 2, deletedFiles: 0, reusedFiles: 0 },
         };
       },
       writeStatus,
@@ -25,7 +26,7 @@ describe('index/command', () => {
     await Promise.resolve();
 
     expect(writeStatus).toHaveBeenCalledWith(
-      'CodeGraphy indexing started for /workspace/project...',
+      'Indexing /workspace/project...',
     );
 
     finishIndex?.();
@@ -37,8 +38,9 @@ describe('index/command', () => {
       cwd: () => '/workspace/project',
       indexWorkspace: async ({ workspacePath }) => ({
         workspaceRoot: workspacePath ?? '/workspace/project',
-        graphCache: '.codegraphy/graph.lbug',
+        graphCache: '.codegraphy/graph.sqlite',
         message: 'indexed',
+        indexing: { mode: 'full', analyzedFiles: 0, deletedFiles: 0, reusedFiles: 0 },
       }),
       writeStatus: vi.fn(),
     });
@@ -61,8 +63,9 @@ describe('index/command', () => {
         });
         return {
           workspaceRoot: '/workspace/other',
-          graphCache: '.codegraphy/graph.lbug',
+          graphCache: '.codegraphy/graph.sqlite',
           message: 'indexed',
+          indexing: { mode: 'full', analyzedFiles: 2, deletedFiles: 0, reusedFiles: 0 },
         };
       },
       writeDiagnostic: line => diagnosticAreas.push(line),

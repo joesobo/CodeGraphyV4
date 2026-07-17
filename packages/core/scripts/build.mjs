@@ -31,4 +31,9 @@ await Promise.all([
       js: '#!/usr/bin/env node',
     },
   }),
+  build({
+    ...sharedOptions,
+    entryPoints: ['src/graphScope/defaults.ts'],
+    outfile: 'dist/graphScope/defaults.js',
+  }),
 ]);

@@ -14,10 +14,21 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./graph-scope": {
+      "types": "./dist/graphScope/defaults.d.ts",
+      "default": "./dist/graphScope/defaults.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "graph-scope": [
+        "dist/graphScope/defaults.d.ts"
+      ]
     }
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20 <23"
   },
   "publishConfig": {
     "access": "public"
@@ -29,7 +40,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ./scripts/build.mjs",
+    "build": "node ./scripts/clean.mjs && tsc -p tsconfig.build.json --emitDeclarationOnly && node ./scripts/build.mjs",
     "lint": "eslint src tests scripts bin vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -38,9 +49,9 @@
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@codegraphy-dev/plugin-markdown": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
-    "@ladybugdb/core": "^0.15.3",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
     "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
+    "libsql": "0.5.29",
     "minimatch": "^10.2.5",
     "tree-sitter": "^0.25.0",
     "tree-sitter-c": "0.24.1",

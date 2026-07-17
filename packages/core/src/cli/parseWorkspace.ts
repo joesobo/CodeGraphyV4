@@ -1,6 +1,11 @@
 import type { CliCommand } from './parseTypes';
 
-export function parseWorkspaceCommand(name: 'index' | 'status', argv: string[]): CliCommand {
-  const [workspacePath] = argv;
-  return workspacePath ? { name, workspacePath } : { name };
+export function parseWorkspaceCommand(
+  name: 'doctor' | 'filter' | 'index' | 'scope' | 'status',
+  argv: string[],
+): CliCommand {
+  const [extra] = argv;
+  return extra
+    ? { name, parseError: `Unexpected argument for ${name}: ${extra}` }
+    : { name };
 }

@@ -11,13 +11,13 @@ describe('discovery/knownDirectory', () => {
   it('skips descendants of generated and repository metadata directories', () => {
     expect(shouldSkipKnownDirectory('node_modules/react')).toBe(true);
     expect(shouldSkipKnownDirectory('.git/objects')).toBe(true);
-    expect(shouldSkipKnownDirectory('.codegraphy/graph.lbug')).toBe(true);
+    expect(shouldSkipKnownDirectory('.codegraphy/graph.sqlite')).toBe(true);
   });
 
   it('normalizes Windows separators before checking known directories', () => {
     expect(shouldSkipKnownDirectory('node_modules\\react')).toBe(true);
     expect(shouldSkipKnownDirectory('.git\\objects')).toBe(true);
-    expect(shouldSkipKnownDirectory('.codegraphy\\graph.lbug')).toBe(true);
+    expect(shouldSkipKnownDirectory('.codegraphy\\graph.sqlite')).toBe(true);
   });
 
   it('does not skip similarly named or nested directories', () => {

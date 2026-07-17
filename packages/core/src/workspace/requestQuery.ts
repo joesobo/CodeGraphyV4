@@ -48,12 +48,12 @@ export async function requestWorkspaceGraphQuery(
     });
     return {
       error: 'graph_cache_not_found',
-      message: 'This CodeGraphy Workspace has not been indexed. Run `codegraphy_index`, then retry.',
+      message: 'This CodeGraphy Workspace has not been indexed. Run `codegraphy index`, then retry.',
       workspaceRoot,
     };
   }
 
-  const { graphData, snapshotFacts } = readWorkspaceQueryGraph(
+  const { graphData, scope, settings, snapshotFacts } = readWorkspaceQueryGraph(
     workspaceRoot,
     dependencies.readInstalledPluginCache(),
   );
@@ -63,7 +63,14 @@ export async function requestWorkspaceGraphQuery(
     relations: snapshotFacts.relations,
   }, {
     report: input.report,
-    arguments: input.arguments,
+    arguments: {
+      scope: {
+        nodes: scope.nodes,
+        edges: scope.edges,
+      },
+      showOrphans: settings.showOrphans,
+      ...input.arguments,
+    },
   } as GraphQueryRequest);
   emitGraphQueryCompleted({
     diagnostics: input.diagnostics,

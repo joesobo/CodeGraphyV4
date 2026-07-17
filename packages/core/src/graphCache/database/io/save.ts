@@ -1,7 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync, withConnection } from './connection';
+import {
+  recreateInvalidDatabase,
+  runStatementSync,
+  withConnection,
+} from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createWorkspaceAnalysisCachePatchWriter,
@@ -10,11 +14,6 @@ import {
   persistAnalysisEntry,
   sortedCacheEntries,
 } from '../query/write';
-import {
-  cleanupTemporaryDatabase,
-  createTemporaryDatabasePath,
-  replaceDatabaseCache,
-} from './temporary';
 
 export { saveWorkspaceAnalysisDatabaseCacheAsync } from './saveAsync';
 
@@ -62,23 +61,28 @@ export function saveWorkspaceAnalysisDatabaseCache(
   if (!fs.existsSync(path.dirname(databasePath))) {
     return;
   }
-  const tempDatabasePath = createTemporaryDatabasePath(databasePath);
+  const persist = (): void => {
+    withConnection(databasePath, (connection) => {
+      runTransactionSync(connection, () => {
+        runStatementSync(connection, 'DELETE FROM FileAnalysis');
+        runStatementSync(connection, 'DELETE FROM Symbol');
+        runStatementSync(connection, 'DELETE FROM Relation');
+
+        const writer = createWorkspaceAnalysisCacheWriter(connection);
+        for (const [filePath, entry] of sortedCacheEntries(cache)) {
+          persistAnalysisEntry(writer, filePath, entry);
+        }
+      });
+    });
+  };
 
   try {
-    withConnection(tempDatabasePath, (connection) => {
-      runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
-
-      const writer = createWorkspaceAnalysisCacheWriter(connection);
-      for (const [filePath, entry] of sortedCacheEntries(cache)) {
-        persistAnalysisEntry(writer, filePath, entry);
-      }
-    });
-    replaceDatabaseCache(tempDatabasePath, databasePath);
+    persist();
   } catch (error) {
-    cleanupTemporaryDatabase(tempDatabasePath);
-    throw error;
+    if (!recreateInvalidDatabase(databasePath, error)) {
+      throw error;
+    }
+    persist();
   }
 }
 
@@ -120,8 +124,8 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   }
 
   withConnection(databasePath, (connection) => {
-    runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-    runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-    runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
+    runStatementSync(connection, 'DELETE FROM FileAnalysis');
+    runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Relation');
   });
 }

@@ -16,6 +16,20 @@ const pluginEntrySchema = z.looseObject({
 
 type PluginEntryShape = z.infer<typeof pluginEntrySchema>;
 
+export function hasSupportedRawPluginIdentity(value: unknown): boolean {
+  const parsed = unknownRecordSchema.safeParse(value);
+  if (!parsed.success) return false;
+  const entry = parsed.data;
+  if ('id' in entry && typeof entry.id !== 'string') return false;
+  if ('package' in entry && typeof entry.package !== 'string') return false;
+  if ('enabled' in entry && typeof entry.enabled !== 'boolean') return false;
+
+  const id = typeof entry.id === 'string' ? entry.id.trim() : '';
+  if (id && typeof entry.enabled === 'boolean') return true;
+  const packageName = typeof entry.package === 'string' ? entry.package.trim() : '';
+  return packageName.length > 0;
+}
+
 function readPluginId(entry: PluginEntryShape): string {
   const id = entry.id?.trim() ?? '';
   if (id.length > 0) {
