@@ -29,8 +29,8 @@ describe("CodeGraphy architecture board generator", () => {
     expect(serialized).toContain("SQLite Graph Cache");
     expect(serialized).toContain("WebGPU drawing · WASM physics");
     expect(serialized).toContain("Plugin API");
-    expect(serialized).toContain("Entrypoints");
-    expect(serialized).toContain("Plugin boundary");
+    expect(serialized).toContain("PRODUCT SURFACES");
+    expect(serialized).toContain("CAPABILITY PROVIDERS");
   });
 
   it("records the three load-bearing architecture decisions", () => {
