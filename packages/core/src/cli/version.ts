@@ -7,5 +7,5 @@ interface PackageMetadata {
 export function readCliVersion(): string {
   const packagePath = new URL('../../package.json', import.meta.url);
   const metadata = JSON.parse(readFileSync(packagePath, 'utf8')) as PackageMetadata;
-  return metadata.version;
+  return `codegraphy ${metadata.version}`;
 }

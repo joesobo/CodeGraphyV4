@@ -19,7 +19,7 @@ describe('cli/command', () => {
   it('reports the installed Core package version', async () => {
     await expect(runCliCommand({ name: 'version' })).resolves.toMatchObject({
       exitCode: 0,
-      output: expect.stringMatching(/^\d+\.\d+\.\d+(?:[-+].+)?$/),
+      output: expect.stringMatching(/^codegraphy \d+\.\d+\.\d+(?:[-+].+)?$/),
     });
   });
 
@@ -94,7 +94,7 @@ describe('cli/command', () => {
     expect(result.output).not.toContain('\n');
     expect(JSON.parse(result.output)).toEqual({
       edges: [{ from: 'Home.md', to: 'Target.md', edgeTypes: ['reference'] }],
-      page: { offset: 0, limit: 100, returned: 1, total: 1 },
+      page: { offset: 0, limit: 100, returned: 1, total: 1, nextOffset: null },
     });
 
     const reports = await Promise.all([
@@ -127,10 +127,11 @@ describe('cli/command', () => {
   it('returns machine-readable errors for invalid query syntax', async () => {
     await expect(runCliCommand({
       name: 'query',
+      invokedCommand: 'path',
       parseError: 'path requires <from> <to>',
     })).resolves.toEqual({
       exitCode: 2,
-      output: '{"error":"invalid_arguments","message":"path requires <from> <to>"}',
+      output: '{"error":"invalid_arguments","message":"path requires <from> <to>","action":"Run `codegraphy path --help`."}',
     });
   });
 

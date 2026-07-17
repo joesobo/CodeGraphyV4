@@ -9,6 +9,7 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['-h'])).toEqual({ name: 'help' });
     expect(parseCliCommand(['--version'])).toEqual({ name: 'version' });
     expect(parseCliCommand(['-V'])).toEqual({ name: 'version' });
+    expect(parseCliCommand(['--', 'index'])).toEqual({ name: 'index' });
   });
 
   it('uses cwd by default and one global workspace override for every workspace command', () => {
@@ -45,6 +46,14 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['filter', 'remove', '**/generated/**'])).toEqual({
       name: 'filter',
       arguments: { action: 'remove', pattern: '**/generated/**' },
+    });
+    expect(parseCliCommand(['filter', 'add', '--', '-draft/**'])).toEqual({
+      name: 'filter',
+      arguments: { action: 'add', pattern: '-draft/**' },
+    });
+    expect(parseCliCommand(['search', '--', '-C'])).toMatchObject({
+      invokedCommand: 'search',
+      arguments: { search: '-C', limit: 100 },
     });
   });
 

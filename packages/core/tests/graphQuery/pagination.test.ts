@@ -12,6 +12,7 @@ describe('core/graphQuery pagination', () => {
         limit: 500,
         returned: 4,
         total: 4,
+        nextOffset: null,
       },
     });
   });
@@ -24,6 +25,7 @@ describe('core/graphQuery pagination', () => {
         limit: 0,
         returned: 0,
         total: 4,
+        nextOffset: null,
       },
     });
   });
@@ -36,6 +38,7 @@ describe('core/graphQuery pagination', () => {
         limit: 2,
         returned: 2,
         total: 4,
+        nextOffset: 3,
       },
     });
   });

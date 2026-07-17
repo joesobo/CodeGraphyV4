@@ -63,6 +63,7 @@ export interface GraphQueryPage {
   limit: number;
   returned: number;
   total: number;
+  nextOffset: number | null;
 }
 
 export interface GraphQueryNodeReportItem {
@@ -142,6 +143,7 @@ export interface GraphQueryPathReport {
   from: string;
   to: string;
   paths: string[][];
+  complete: boolean;
   limits: {
     maxDepth: number;
     maxPaths: number;

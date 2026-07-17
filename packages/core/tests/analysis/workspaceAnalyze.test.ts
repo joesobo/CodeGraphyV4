@@ -175,7 +175,7 @@ describe('pipeline/analysis/analyze', () => {
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
-    expect(dependencies.saveCache).toHaveBeenCalledWith(expect.any(Function));
+    expect(dependencies.saveCache).toHaveBeenCalledWith(graphData, expect.any(Function));
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Discovered 1 files in 4ms');
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Graph built: 1 nodes, 1 edges');
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(1, {

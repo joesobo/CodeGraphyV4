@@ -18,21 +18,25 @@ describe('cli/parseQuery', () => {
   it('maps intent commands to graph reports with positional operands', () => {
     expect(parseQueryCommand(['search', 'render settings'])).toEqual({
       name: 'query',
+      invokedCommand: 'search',
       report: 'nodes',
       arguments: { search: 'render settings', limit: 100 },
     });
     expect(parseQueryCommand(['dependencies', 'src/app.ts'])).toEqual({
       name: 'query',
+      invokedCommand: 'dependencies',
       report: 'edges',
       arguments: { from: 'src/app.ts', expandFileSelectors: true, projectFileEndpoints: true, limit: 100 },
     });
     expect(parseQueryCommand(['dependents', 'src/config.ts'])).toEqual({
       name: 'query',
+      invokedCommand: 'dependents',
       report: 'edges',
       arguments: { to: 'src/config.ts', expandFileSelectors: true, projectFileEndpoints: true, limit: 100 },
     });
     expect(parseQueryCommand(['path', 'src/app.ts', 'src/config.ts'])).toEqual({
       name: 'query',
+      invokedCommand: 'path',
       report: 'paths',
       arguments: {
         from: 'src/app.ts',
@@ -45,11 +49,29 @@ describe('cli/parseQuery', () => {
     });
   });
 
-  it('rejects flags, missing operands, extra operands, and retired reports', () => {
-    expect(parseQueryCommand(['nodes', '--limit', '5'])).toMatchObject({
-      parseError: 'Unknown option for nodes: --limit',
+  it('parses local pagination options and the end-of-options delimiter', () => {
+    expect(parseQueryCommand(['search', '--limit', '5', '--offset', '10', 'render'])).toMatchObject({
+      invokedCommand: 'search',
+      arguments: { search: 'render', limit: 5, offset: 10 },
+    });
+    expect(parseQueryCommand(['search', '--', '-generated'])).toMatchObject({
+      invokedCommand: 'search',
+      arguments: { search: '-generated', limit: 100 },
+    });
+  });
+
+  it('rejects invalid flags, pagination values, operands, and retired reports', () => {
+    expect(parseQueryCommand(['nodes', '--unknown'])).toMatchObject({
+      parseError: 'Unknown option for nodes: --unknown',
+    });
+    expect(parseQueryCommand(['nodes', '--limit', '0'])).toMatchObject({
+      parseError: '--limit requires a positive integer',
+    });
+    expect(parseQueryCommand(['nodes', '--offset', '-1'])).toMatchObject({
+      parseError: '--offset requires a non-negative integer',
     });
     expect(parseQueryCommand(['search'])).toMatchObject({
+      invokedCommand: 'search',
       parseError: 'search requires <text>',
     });
     expect(parseQueryCommand(['dependencies', 'a.ts', 'b.ts'])).toMatchObject({

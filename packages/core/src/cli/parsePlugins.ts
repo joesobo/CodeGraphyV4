@@ -7,7 +7,9 @@ export function isPluginCommand(value: string | undefined): boolean {
 }
 
 export function parsePluginsCommand(argv: string[]): CliCommand {
-  const [action, packageName, extra] = argv;
+  const [action, ...rawOperands] = argv;
+  const operands = rawOperands[0] === '--' ? rawOperands.slice(1) : rawOperands;
+  const [packageName, extra] = operands;
 
   if (!action || action === 'help') {
     return { name: 'help', helpPath: ['plugins'] };

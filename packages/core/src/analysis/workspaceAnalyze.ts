@@ -63,6 +63,7 @@ export interface WorkspacePipelineAnalysisDependencies
   getWorkspaceRoot(): string | undefined;
   logInfo(message: string): void;
   saveCache(
+    graph: IGraphData,
     onProgress?: (progress: { current: number; total: number }) => void,
   ): void | Promise<void>;
   showWarningMessage(message: string): void;
@@ -176,13 +177,16 @@ export async function analyzeWorkspaceWithAnalyzer(
     current: 0,
     total: 1,
   });
-  await dependencies.saveCache(progress => {
-    dependencies.sendProgress?.({
-      phase: 'Saving Graph Cache',
-      current: progress.current,
-      total: progress.total,
-    });
-  });
+  await dependencies.saveCache(
+    graphData,
+    progress => {
+      dependencies.sendProgress?.({
+        phase: 'Saving Graph Cache',
+        current: progress.current,
+        total: progress.total,
+      });
+    },
+  );
   dependencies.sendProgress?.({
     phase: 'Saving Graph Cache',
     current: 1,

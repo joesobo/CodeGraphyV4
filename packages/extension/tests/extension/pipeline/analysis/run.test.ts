@@ -88,8 +88,13 @@ describe('pipeline/analysis/run', () => {
     expect(logSpy).toHaveBeenCalledWith('hello');
     dependencies.showWarningMessage('warning');
     expect(showWarningMessageSpy).toHaveBeenCalledWith('warning');
-    await dependencies.saveCache();
+    const graphData = {
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      edges: [],
+    };
+    await dependencies.saveCache(graphData);
     expect(saveWorkspaceAnalysisDatabaseCacheSpy).toHaveBeenCalledWith('/workspace', cache, {
+      graph: graphData,
       onProgress: undefined,
     });
   });
@@ -172,7 +177,7 @@ describe('pipeline/analysis/run', () => {
       () => undefined,
     );
 
-    await analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache();
+    await analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache({ nodes: [], edges: [] });
     expect(saveWorkspaceAnalysisDatabaseCacheSpy).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
   });
@@ -217,7 +222,7 @@ describe('pipeline/analysis/run', () => {
       () => '/workspace',
     );
 
-    await analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache();
+    await analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache({ nodes: [], edges: [] });
     expect(warnSpy).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to persist repo-local analysis cache.',
       failure,

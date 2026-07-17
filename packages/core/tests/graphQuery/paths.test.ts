@@ -26,6 +26,7 @@ describe('core/graphQuery paths report', () => {
         ['a.ts', 'b.ts', 'd.ts'],
         ['a.ts', 'c.ts', 'd.ts'],
       ],
+      complete: true,
       limits: {
         maxDepth: 10,
         maxPaths: 3,
@@ -38,6 +39,7 @@ describe('core/graphQuery paths report', () => {
       from: 'd.ts',
       to: 'a.ts',
       paths: [],
+      complete: true,
       limits: {
         maxDepth: 10,
         maxPaths: 3,
@@ -50,6 +52,7 @@ describe('core/graphQuery paths report', () => {
       from: 'a.ts',
       to: 'd.ts',
       paths: [],
+      complete: false,
       limits: {
         maxDepth: 1,
         maxPaths: 1,
