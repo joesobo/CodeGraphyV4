@@ -75,7 +75,15 @@ describe('pipeline/database/cache/snapshot', () => {
       .mockReturnValueOnce(undefined);
 
     expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
-      files: [{ filePath: 'src/file.ts', mtime: 1, analysis: { filePath: 'src/file.ts', relations: [] } }],
+      files: [{
+        filePath: 'src/file.ts',
+        mtime: 1,
+        analysis: {
+          filePath: 'src/file.ts',
+          symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
+          relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
+        },
+      }],
       symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
       relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
     });
@@ -85,7 +93,7 @@ describe('pipeline/database/cache/snapshot', () => {
     expect(readRowsSync).toHaveBeenNthCalledWith(3, 'connection', RELATION_ROWS_QUERY);
   });
 
-  it('derives structured symbols and relations from file analysis rows when dedicated rows are absent', () => {
+  it('does not treat legacy file-analysis blobs as normalized records', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(withConnection).mockImplementation((_path, callback) => callback('connection' as never));
     vi.mocked(readRowsSync)
@@ -116,8 +124,8 @@ describe('pipeline/database/cache/snapshot', () => {
           relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
         },
       }],
-      symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
-      relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
+      symbols: [],
+      relations: [],
     });
   });
 

@@ -28,14 +28,6 @@ export interface WorkspaceAnalysisDatabaseSnapshot {
   relations: IAnalysisRelation[];
 }
 
-function readSymbolsFromFileAnalysis(files: WorkspaceAnalysisDatabaseSnapshot['files']): IAnalysisSymbol[] {
-  return files.flatMap(file => file.analysis.symbols ?? []);
-}
-
-function readRelationsFromFileAnalysis(files: WorkspaceAnalysisDatabaseSnapshot['files']): IAnalysisRelation[] {
-  return files.flatMap(file => file.analysis.relations ?? []);
-}
-
 export function readWorkspaceAnalysisDatabaseSnapshot(
   workspaceRoot: string,
 ): WorkspaceAnalysisDatabaseSnapshot {
@@ -53,19 +45,54 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
         const entry = createSnapshotFileEntry(row);
         return entry ? [entry] : [];
       });
-      const symbols = symbolRows.flatMap((row) => {
+      const analysisPathByFilePath = new Map(files.map(file => [
+        file.filePath,
+        file.analysis.filePath ?? file.filePath,
+      ]));
+      const symbolRecords = symbolRows.flatMap((row) => {
         const entry = createSnapshotSymbolEntry(row);
-        return entry ? [entry] : [];
+        const ownerFilePath = typeof row.filePath === 'string' ? row.filePath : entry?.filePath;
+        const filePath = ownerFilePath ? analysisPathByFilePath.get(ownerFilePath) : undefined;
+        return entry && ownerFilePath
+          ? [{ ownerFilePath, value: { ...entry, filePath: filePath ?? entry.filePath } }]
+          : [];
       });
-      const relations = relationRows.flatMap((row) => {
+      const relationRecords = relationRows.flatMap((row) => {
         const entry = createSnapshotRelationEntry(row);
-        return entry ? [entry] : [];
+        const ownerFilePath = typeof row.filePath === 'string' ? row.filePath : entry?.fromFilePath;
+        return entry && ownerFilePath
+          ? [{ ownerFilePath, value: entry }]
+          : [];
       });
+      const symbolsByFilePath = new Map<string, IAnalysisSymbol[]>();
+      for (const record of symbolRecords) {
+        const entries = symbolsByFilePath.get(record.ownerFilePath) ?? [];
+        entries.push(record.value);
+        symbolsByFilePath.set(record.ownerFilePath, entries);
+      }
+      const relationsByFilePath = new Map<string, IAnalysisRelation[]>();
+      for (const record of relationRecords) {
+        const entries = relationsByFilePath.get(record.ownerFilePath) ?? [];
+        entries.push(record.value);
+        relationsByFilePath.set(record.ownerFilePath, entries);
+      }
+      const hydratedFiles = files.map(file => ({
+        ...file,
+        analysis: {
+          ...file.analysis,
+          ...((symbolsByFilePath.get(file.filePath)?.length ?? 0) > 0
+            ? { symbols: symbolsByFilePath.get(file.filePath) }
+            : {}),
+          ...((relationsByFilePath.get(file.filePath)?.length ?? 0) > 0
+            ? { relations: relationsByFilePath.get(file.filePath) }
+            : {}),
+        },
+      }));
 
       return {
-        files,
-        symbols: symbols.length > 0 ? symbols : readSymbolsFromFileAnalysis(files),
-        relations: relations.length > 0 ? relations : readRelationsFromFileAnalysis(files),
+        files: hydratedFiles,
+        symbols: symbolRecords.map(record => record.value),
+        relations: relationRecords.map(record => record.value),
       };
     });
   } catch (error) {
