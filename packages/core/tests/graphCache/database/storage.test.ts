@@ -101,38 +101,13 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           analysis: cache.files['src/index.ts']!.analysis,
         },
       ],
-      symbols: [
-        {
-          id: '/workspace/src/index.ts:function:main',
-          filePath: '/workspace/src/index.ts',
-          kind: 'function',
-          name: 'main',
-          signature: undefined,
-          range: undefined,
-          metadata: undefined,
-        },
-      ],
-      relations: [
-        {
-          kind: 'import',
-          sourceId: 'core:treesitter:import',
-          fromFilePath: '/workspace/src/index.ts',
-          toFilePath: '/workspace/src/utils.ts',
-          specifier: './utils',
-          resolvedPath: '/workspace/src/utils.ts',
-          fromNodeId: undefined,
-          toNodeId: undefined,
-          fromSymbolId: undefined,
-          toSymbolId: undefined,
-          type: undefined,
-          variant: undefined,
-          metadata: undefined,
-        },
-      ],
+      graph: { nodes: [], edges: [] },
+      symbols: cache.files['src/index.ts']!.analysis.symbols,
+      relations: cache.files['src/index.ts']!.analysis.relations,
     });
   });
 
-  it('persists symbols and relationships as queryable Graph Cache records', () => {
+  it('persists indexing state and the canonical property graph in three queryable tables', () => {
     const workspaceRoot = createWorkspaceRoot();
     const analysis = {
       filePath: '/workspace/src/index.ts',
@@ -173,46 +148,114 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       files: {
         'src/index.ts': { mtime: 1, size: 2, analysis },
       },
+    }, {
+      nodes: [
+        {
+          id: 'src/index.ts',
+          label: 'index.ts',
+          color: '#ffffff',
+          nodeType: 'file',
+          fileSize: 2,
+        },
+        {
+          id: 'src/index.ts:function:main',
+          label: 'main',
+          color: '#ffffff',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'src/index.ts:function:main',
+            filePath: 'src/index.ts',
+            kind: 'function',
+            name: 'main',
+          },
+        },
+        {
+          id: 'src/utils.ts',
+          label: 'utils.ts',
+          color: '#ffffff',
+          nodeType: 'file',
+        },
+      ],
+      edges: [{
+        id: 'src/index.ts->src/utils.ts#import',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [{
+          id: 'core:treesitter:import',
+          pluginId: 'core',
+          sourceId: 'treesitter:import',
+          label: 'TypeScript import',
+        }],
+      }],
     });
 
     const records = withConnection(
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => ({
         tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
-        files: readRowsSync(connection, 'SELECT factsJson FROM File'),
-        nodes: readRowsSync(connection, 'SELECT nodeId, nodeType, label FROM Node'),
-        nodeTypes: readRowsSync(connection, 'SELECT typeId, label FROM NodeType'),
-        edgeTypes: readRowsSync(connection, 'SELECT typeId, label FROM EdgeType'),
-        symbols: readRowsSync(connection, 'SELECT symbolId, filePath FROM Symbol'),
-        relations: readRowsSync(connection, 'SELECT filePath, kind FROM Relation'),
+        indexedFiles: readRowsSync(connection, 'SELECT path, analyzerStateJson FROM IndexedFile'),
+        nodes: readRowsSync(connection, 'SELECT id, type, label, filePath, propertiesJson FROM Node ORDER BY id'),
+        edges: readRowsSync(connection, 'SELECT id, sourceId, targetId, type, propertiesJson, provenanceJson FROM Edge'),
       }),
     );
 
     expect(records.tables).toEqual([
-      { name: 'EdgeType' },
-      { name: 'File' },
+      { name: 'Edge' },
+      { name: 'IndexedFile' },
       { name: 'Node' },
-      { name: 'NodeType' },
-      { name: 'Relation' },
-      { name: 'Symbol' },
     ]);
-    expect(JSON.parse(String(records.files[0]!.factsJson))).toEqual({
-      filePath: '/workspace/src/index.ts',
-    });
-    expect(records.nodes).toEqual([{
-      nodeId: '/workspace/src/index.ts:route:home',
-      nodeType: 'plugin:test:route',
-      label: 'Home',
-    }]);
-    expect(records.nodeTypes).toEqual([{ typeId: 'plugin:test:route', label: 'Route' }]);
-    expect(records.edgeTypes).toEqual([{ typeId: 'test:routes-to', label: 'Routes to' }]);
-    expect(records.symbols).toEqual([{
-      symbolId: '/workspace/src/index.ts:function:main',
-      filePath: 'src/index.ts',
-    }]);
-    expect(records.relations).toEqual([{
-      filePath: 'src/index.ts',
-      kind: 'import',
+    expect(JSON.parse(String(records.indexedFiles[0]!.analyzerStateJson))).toEqual(analysis);
+    expect(records.nodes.map(row => ({
+      ...row,
+      propertiesJson: JSON.parse(String(row.propertiesJson)),
+    }))).toEqual([
+      {
+        id: 'src/index.ts',
+        type: 'file',
+        label: 'index.ts',
+        filePath: 'src/index.ts',
+        propertiesJson: { color: '#ffffff', fileSize: 2 },
+      },
+      {
+        id: 'src/index.ts:function:main',
+        type: 'symbol',
+        label: 'main',
+        filePath: 'src/index.ts',
+        propertiesJson: {
+          color: '#ffffff',
+          symbol: {
+            id: 'src/index.ts:function:main',
+            filePath: 'src/index.ts',
+            kind: 'function',
+            name: 'main',
+          },
+          },
+        },
+      {
+        id: 'src/utils.ts',
+        type: 'file',
+        label: 'utils.ts',
+        filePath: 'src/utils.ts',
+        propertiesJson: { color: '#ffffff' },
+      },
+    ]);
+    expect(records.edges.map(row => ({
+      ...row,
+      propertiesJson: JSON.parse(String(row.propertiesJson)),
+      provenanceJson: JSON.parse(String(row.provenanceJson)),
+    }))).toEqual([{
+      id: 'src/index.ts->src/utils.ts#import',
+      sourceId: 'src/index.ts',
+      targetId: 'src/utils.ts',
+      type: 'import',
+      propertiesJson: {},
+      provenanceJson: [{
+        id: 'core:treesitter:import',
+        pluginId: 'core',
+        sourceId: 'treesitter:import',
+        label: 'TypeScript import',
+      }],
     }]);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
@@ -222,23 +265,23 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     });
   });
 
-  it('invalidates Graph Caches with structured records embedded in file analysis', () => {
+  it('migrates the previous normalized schema to an empty canonical Graph Cache', () => {
     const workspaceRoot = createWorkspaceRoot();
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, createEmptyWorkspaceAnalysisCache());
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
 
     withConnection(databasePath, (connection) => {
-      runStatementSync(
-        connection,
-        `INSERT INTO File(filePath, mtime, size, factsJson)
-         VALUES ('src/index.ts', 1, 2, '{"relations":[{"kind":"import"}]}')`,
-      );
+      runStatementSync(connection, 'DROP TABLE IndexedFile');
+      runStatementSync(connection, 'DROP TABLE Edge');
+      runStatementSync(connection, 'DROP TABLE Node');
+      runStatementSync(connection, 'CREATE TABLE File(filePath TEXT PRIMARY KEY, mtime INTEGER, size INTEGER, factsJson TEXT)');
+      runStatementSync(connection, `INSERT INTO File VALUES ('src/index.ts', 1, 2, '{}')`);
     });
 
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
       createEmptyWorkspaceAnalysisCache(),
     );
-    expect(fs.existsSync(databasePath)).toBe(false);
+    expect(fs.existsSync(databasePath)).toBe(true);
   });
 
   it('persists asynchronously and reports cache write progress', async () => {
@@ -587,6 +630,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     );
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
       files: [],
+      graph: { nodes: [], edges: [] },
       symbols: [],
       relations: [],
     });

@@ -1,9 +1,6 @@
-import * as path from 'node:path';
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import { loadWorkspaceAnalysisDatabaseCache, readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
-import { buildWorkspaceGraphDataFromAnalysis } from '../graph/data';
-import { filterInactivePluginFileAnalysis, filterInactivePluginSnapshotFacts } from '../plugins/activityState/analysisFacts';
-import { createDisabledPluginSet, createPluginActivityState } from '../plugins/activityState/model';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
+import { filterInactivePluginSnapshotFacts } from '../plugins/activityState/analysisFacts';
+import { createPluginActivityState } from '../plugins/activityState/model';
 import type { CodeGraphyInstalledPluginCache } from '../plugins/installedCache';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_ID, readCodeGraphyWorkspaceSettings } from './settings';
 import { normalizeWorkspaceQueryFacts } from './queryFacts';
@@ -24,24 +21,11 @@ function applySavedPathFilters(graphData: IGraphData, patterns: readonly string[
   };
 }
 
-function collectDirectoryPaths(filePaths: Iterable<string>): string[] {
-  const directories = new Set<string>();
-  for (const filePath of filePaths) {
-    let directory = path.posix.dirname(filePath.replace(/\\/g, '/'));
-    while (directory && directory !== '.') {
-      directories.add(directory);
-      directory = path.posix.dirname(directory);
-    }
-  }
-  return [...directories].sort();
-}
-
 export function readWorkspaceQueryGraph(
   workspaceRoot: string,
   installedPluginCache: CodeGraphyInstalledPluginCache,
 ) {
   const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
-  const cache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
   const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
   const activity = createPluginActivityState({
     settings,
@@ -53,20 +37,7 @@ export function readWorkspaceQueryGraph(
     nodes: snapshot.files.flatMap(file => file.analysis.nodeTypes ?? []),
     edges: snapshot.files.flatMap(file => file.analysis.edgeTypes ?? []),
   };
-  const savedScope = resolveSavedGraphScope(settings, undefined, declarations);
-  const fileAnalysis = new Map<string, IFileAnalysisResult>(
-    Object.entries(cache.files).map(([filePath, entry]) => [filePath, entry.analysis]),
-  );
-  const graphData = applySavedPathFilters(buildWorkspaceGraphDataFromAnalysis({
-    cacheFiles: cache.files,
-    directoryPaths: collectDirectoryPaths(Object.keys(cache.files)),
-    disabledPlugins: createDisabledPluginSet(settings),
-    fileAnalysis: filterInactivePluginFileAnalysis(fileAnalysis, activePluginIds),
-    getPluginForFile: () => undefined,
-    nodeVisibility: savedScope.nodes,
-    showOrphans: settings.showOrphans,
-    workspaceRoot,
-  }), settings.filterPatterns);
+  const graphData = applySavedPathFilters(snapshot.graph, settings.filterPatterns);
 
   return {
     graphData,

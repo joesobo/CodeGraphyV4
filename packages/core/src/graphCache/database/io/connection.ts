@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import Database from 'libsql';
-import type { FileRow } from '../records/contracts';
 import { ensureSchema } from './schema';
 
 export type SQLiteConnection = Database.Database;
@@ -51,14 +50,14 @@ export async function executeStatementAsync(
 export function readRowsSync(
   connection: SQLiteConnection,
   statement: string,
-): FileRow[] {
-  return connection.prepare(statement).all() as FileRow[];
+): Record<string, unknown>[] {
+  return connection.prepare(statement).all() as Record<string, unknown>[];
 }
 
 export async function readRowsAsync(
   connection: SQLiteConnection,
   statement: string,
-): Promise<FileRow[]> {
+): Promise<Record<string, unknown>[]> {
   return readRowsSync(connection, statement);
 }
 

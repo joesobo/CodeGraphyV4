@@ -29,7 +29,7 @@ export abstract class WorkspacePipelineStateBase extends WorkspacePipelineEngine
     const workspaceRoot = this._getWorkspaceRoot();
     return workspaceRoot
       ? readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)
-      : { files: [], symbols: [], relations: [] };
+      : { files: [], graph: { nodes: [], edges: [] }, symbols: [], relations: [] };
   }
 
   protected async _hydrateCacheFromGraphCache(

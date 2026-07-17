@@ -11,7 +11,11 @@ import {
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src/workspace/settings';
-import { loadWorkspaceAnalysisDatabaseCache } from '../../src/graphCache/database/storage';
+import {
+  getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache,
+} from '../../src/graphCache/database/storage';
+import { readRowsSync, withConnection } from '../../src/graphCache/database/io/connection';
 import { readAnalysisCacheTiers } from '../../src/analysis/fileAnalysis';
 import { runCli } from '../../src/cli/run';
 
@@ -182,6 +186,20 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).toContain('symbols');
     expect(baselineCache.files['target.ts']!.analysis.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ name: 'target', kind: 'function' }),
+    ]));
+    const persistedSymbolNodes = withConnection(
+      getWorkspaceAnalysisDatabasePath(workspaceRoot),
+      connection => readRowsSync(
+        connection,
+        "SELECT id, type, filePath FROM Node WHERE type = 'symbol'",
+      ),
+    );
+    expect(persistedSymbolNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: expect.stringContaining('target.ts'),
+        type: 'symbol',
+        filePath: 'target.ts',
+      }),
     ]));
     const outputs: string[] = [];
 

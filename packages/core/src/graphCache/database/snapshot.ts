@@ -3,21 +3,14 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
+  IGraphData,
 } from '@codegraphy-dev/plugin-api';
 import { readRowsSync, withConnection } from './io/connection';
 import { getWorkspaceAnalysisDatabasePath } from './io/paths';
-import { createSnapshotEdgeTypeEntry, createSnapshotFileEntry, createSnapshotNodeEntry, createSnapshotNodeTypeEntry } from './records/file';
-import { createSnapshotRelationEntry } from './relation/entry';
-import { createSnapshotSymbolEntry } from './records/symbol';
-import type { GraphTypeRow, NodeRow, RelationRow, SymbolRow } from './records/contracts';
-import {
-  FILE_ROWS_QUERY,
-  EDGE_TYPE_ROWS_QUERY,
-  NODE_ROWS_QUERY,
-  NODE_TYPE_ROWS_QUERY,
-  RELATION_ROWS_QUERY,
-  SYMBOL_ROWS_QUERY,
-} from './query/read';
+import { createSnapshotFileEntry } from './records/file';
+import { createSnapshotGraphEdge, createSnapshotGraphNode } from './records/graph';
+import type { GraphEdgeRow, GraphNodeRow, IndexedFileRow } from './records/contracts';
+import { EDGE_ROWS_QUERY, INDEXED_FILE_ROWS_QUERY, NODE_ROWS_QUERY } from './query/read';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{
@@ -27,39 +20,50 @@ export interface WorkspaceAnalysisDatabaseSnapshot {
     size?: number;
     analysis: IFileAnalysisResult;
   }>;
+  graph: IGraphData;
   symbols: IAnalysisSymbol[];
   relations: IAnalysisRelation[];
 }
 
 export interface WorkspaceAnalysisDatabaseRecordCounts {
-  files: number;
+  indexedFiles: number;
   nodes: number;
-  symbols: number;
-  relations: number;
-  nodeTypes: number;
-  edgeTypes: number;
+  edges: number;
 }
+
+const EMPTY_COUNTS: WorkspaceAnalysisDatabaseRecordCounts = {
+  indexedFiles: 0,
+  nodes: 0,
+  edges: 0,
+};
+
+const EMPTY_SNAPSHOT: WorkspaceAnalysisDatabaseSnapshot = {
+  files: [],
+  graph: { nodes: [], edges: [] },
+  symbols: [],
+  relations: [],
+};
 
 export function readWorkspaceAnalysisDatabaseRecordCounts(
   workspaceRoot: string,
 ): WorkspaceAnalysisDatabaseRecordCounts {
-  const empty = { files: 0, nodes: 0, symbols: 0, relations: 0, nodeTypes: 0, edgeTypes: 0 };
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(databasePath)) return empty;
+  if (!fs.existsSync(databasePath)) return EMPTY_COUNTS;
   try {
     return withConnection(databasePath, connection => {
       const rows = readRowsSync(connection, `SELECT
-        (SELECT count(*) FROM File) AS files,
+        (SELECT count(*) FROM IndexedFile) AS indexedFiles,
         (SELECT count(*) FROM Node) AS nodes,
-        (SELECT count(*) FROM Symbol) AS symbols,
-        (SELECT count(*) FROM Relation) AS relations,
-        (SELECT count(*) FROM NodeType) AS nodeTypes,
-        (SELECT count(*) FROM EdgeType) AS edgeTypes`);
-      const row = rows[0] as Record<keyof WorkspaceAnalysisDatabaseRecordCounts, number> | undefined;
-      return row ?? empty;
+        (SELECT count(*) FROM Edge) AS edges`);
+      const row = rows[0] as Partial<WorkspaceAnalysisDatabaseRecordCounts> | undefined;
+      return {
+        indexedFiles: Number(row?.indexedFiles ?? 0),
+        nodes: Number(row?.nodes ?? 0),
+        edges: Number(row?.edges ?? 0),
+      };
     });
   } catch {
-    return empty;
+    return EMPTY_COUNTS;
   }
 }
 
@@ -67,94 +71,35 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
   workspaceRoot: string,
 ): WorkspaceAnalysisDatabaseSnapshot {
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(databasePath)) {
-    return { files: [], symbols: [], relations: [] };
-  }
+  if (!fs.existsSync(databasePath)) return EMPTY_SNAPSHOT;
 
   try {
-    return withConnection(databasePath, (connection) => {
-      const fileRows = readRowsSync(connection, FILE_ROWS_QUERY);
-      const symbolRows = readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[];
-      const relationRows = readRowsSync(connection, RELATION_ROWS_QUERY) as RelationRow[];
-      const nodeRows = readRowsSync(connection, NODE_ROWS_QUERY) as NodeRow[];
-      const nodeTypeRows = readRowsSync(connection, NODE_TYPE_ROWS_QUERY) as GraphTypeRow[];
-      const edgeTypeRows = readRowsSync(connection, EDGE_TYPE_ROWS_QUERY) as GraphTypeRow[];
-      const files = fileRows.flatMap((row) => {
-        const entry = createSnapshotFileEntry(row);
-        return entry ? [entry] : [];
-      });
-      const analysisPathByFilePath = new Map(files.map(file => [
-        file.filePath,
-        file.analysis.filePath ?? file.filePath,
-      ]));
-      const symbolRecords = symbolRows.flatMap((row) => {
-        const entry = createSnapshotSymbolEntry(row);
-        const ownerFilePath = typeof row.filePath === 'string' ? row.filePath : entry?.filePath;
-        const filePath = ownerFilePath ? analysisPathByFilePath.get(ownerFilePath) : undefined;
-        return entry && ownerFilePath
-          ? [{ ownerFilePath, value: { ...entry, filePath: filePath ?? entry.filePath } }]
-          : [];
-      });
-      const relationRecords = relationRows.flatMap((row) => {
-        const entry = createSnapshotRelationEntry(row);
-        const ownerFilePath = typeof row.filePath === 'string' ? row.filePath : entry?.fromFilePath;
-        return entry && ownerFilePath
-          ? [{ ownerFilePath, value: entry }]
-          : [];
-      });
-      const symbolsByFilePath = new Map<string, IAnalysisSymbol[]>();
-      for (const record of symbolRecords) {
-        const entries = symbolsByFilePath.get(record.ownerFilePath) ?? [];
-        entries.push(record.value);
-        symbolsByFilePath.set(record.ownerFilePath, entries);
-      }
-      const relationsByFilePath = new Map<string, IAnalysisRelation[]>();
-      for (const record of relationRecords) {
-        const entries = relationsByFilePath.get(record.ownerFilePath) ?? [];
-        entries.push(record.value);
-        relationsByFilePath.set(record.ownerFilePath, entries);
-      }
-      const normalizedFactsByFilePath = new Map(files.map(file => [file.filePath, {
-        nodes: nodeRows.filter(row => row.filePath === file.filePath).flatMap(row => {
-          const value = createSnapshotNodeEntry(row); return value ? [value] : [];
-        }),
-        nodeTypes: nodeTypeRows.filter(row => row.filePath === file.filePath).flatMap(row => {
-          const value = createSnapshotNodeTypeEntry(row); return value ? [value] : [];
-        }),
-        edgeTypes: edgeTypeRows.filter(row => row.filePath === file.filePath).flatMap(row => {
-          const value = createSnapshotEdgeTypeEntry(row); return value ? [value] : [];
-        }),
-      }]));
-      const hydratedFiles = files.map(file => ({
-        ...file,
-        analysis: {
-          ...file.analysis,
-          ...((symbolsByFilePath.get(file.filePath)?.length ?? 0) > 0
-            ? { symbols: symbolsByFilePath.get(file.filePath) }
-            : {}),
-          ...((relationsByFilePath.get(file.filePath)?.length ?? 0) > 0
-            ? { relations: relationsByFilePath.get(file.filePath) }
-            : {}),
-          ...((normalizedFactsByFilePath.get(file.filePath)?.nodes.length ?? 0) > 0
-            ? { nodes: normalizedFactsByFilePath.get(file.filePath)?.nodes }
-            : {}),
-          ...((normalizedFactsByFilePath.get(file.filePath)?.nodeTypes.length ?? 0) > 0
-            ? { nodeTypes: normalizedFactsByFilePath.get(file.filePath)?.nodeTypes }
-            : {}),
-          ...((normalizedFactsByFilePath.get(file.filePath)?.edgeTypes.length ?? 0) > 0
-            ? { edgeTypes: normalizedFactsByFilePath.get(file.filePath)?.edgeTypes }
-            : {}),
-        },
-      }));
+    return withConnection(databasePath, connection => {
+      const files = (readRowsSync(connection, INDEXED_FILE_ROWS_QUERY) as IndexedFileRow[])
+        .flatMap(row => {
+          const entry = createSnapshotFileEntry(row);
+          return entry ? [entry] : [];
+        });
+      const nodes = (readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[])
+        .flatMap(row => {
+          const node = createSnapshotGraphNode(row);
+          return node ? [node] : [];
+        });
+      const edges = (readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[])
+        .flatMap(row => {
+          const edge = createSnapshotGraphEdge(row);
+          return edge ? [edge] : [];
+        });
 
       return {
-        files: hydratedFiles,
-        symbols: symbolRecords.map(record => record.value),
-        relations: relationRecords.map(record => record.value),
+        files,
+        graph: { nodes, edges },
+        symbols: files.flatMap(file => file.analysis.symbols ?? []),
+        relations: files.flatMap(file => file.analysis.relations ?? []),
       };
     });
   } catch (error) {
     console.warn('[CodeGraphy] Failed to read structured analysis snapshot.', error);
-    return { files: [], symbols: [], relations: [] };
+    return EMPTY_SNAPSHOT;
   }
 }

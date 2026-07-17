@@ -1,17 +1,8 @@
-export const FILE_ROWS_QUERY =
-  'SELECT filePath, mtime, size, contentHash, factsJson FROM File ORDER BY filePath';
-
-export const SYMBOL_ROWS_QUERY =
-  'SELECT symbolId, filePath, name, kind, signature, rangeJson, metadataJson FROM Symbol ORDER BY filePath, symbolId';
-
-export const RELATION_ROWS_QUERY =
-  'SELECT relationId, filePath, kind, pluginId, sourceId, fromFilePath, toFilePath, fromNodeId, toNodeId, fromSymbolId, toSymbolId, specifier, relationType, variant, resolvedPath, metadataJson FROM Relation ORDER BY filePath, relationId';
+export const INDEXED_FILE_ROWS_QUERY =
+  'SELECT path, mtime, size, contentHash, analyzerStateJson FROM IndexedFile ORDER BY path';
 
 export const NODE_ROWS_QUERY =
-  'SELECT nodeId, filePath, nodeType, label, sourceFilePath, parentId, metadataJson FROM Node ORDER BY filePath, nodeId';
+  'SELECT id, type, label, filePath, parentId, propertiesJson FROM Node ORDER BY id';
 
-export const NODE_TYPE_ROWS_QUERY =
-  'SELECT recordId, filePath, typeId, label, defaultColor, defaultVisible, parentId, descriptionJson FROM NodeType ORDER BY filePath, typeId';
-
-export const EDGE_TYPE_ROWS_QUERY =
-  'SELECT recordId, filePath, typeId, label, defaultColor, defaultVisible, descriptionJson FROM EdgeType ORDER BY filePath, typeId';
+export const EDGE_ROWS_QUERY =
+  'SELECT id, sourceId, targetId, type, propertiesJson, provenanceJson FROM Edge ORDER BY id';

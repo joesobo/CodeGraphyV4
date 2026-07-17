@@ -1,5 +1,5 @@
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import type { IAnalysisNode, IAnalysisRelation, IAnalysisSymbol, IPluginEdgeType, IPluginNodeType } from '@codegraphy-dev/plugin-api';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../graph/contracts';
 import {
   executeStatementAsync,
   executeStatementSync,
@@ -12,107 +12,68 @@ import type {
   SQLiteValue,
 } from '../io/connection';
 
-const CREATE_FILE_STATEMENT = 'INSERT INTO File(filePath, mtime, size, contentHash, factsJson) VALUES (@filePath, @mtime, @size, @contentHash, @factsJson)';
-const CREATE_SYMBOL_STATEMENT = 'INSERT INTO Symbol(symbolId, filePath, name, kind, signature, rangeJson, metadataJson) VALUES (@symbolId, @filePath, @name, @kind, @signature, @rangeJson, @metadataJson)';
-const CREATE_NODE_STATEMENT = 'INSERT INTO Node(nodeId, filePath, nodeType, label, sourceFilePath, parentId, metadataJson) VALUES (@nodeId, @filePath, @nodeType, @label, @sourceFilePath, @parentId, @metadataJson)';
-const CREATE_NODE_TYPE_STATEMENT = 'INSERT INTO NodeType(recordId, filePath, typeId, label, defaultColor, defaultVisible, parentId, descriptionJson) VALUES (@recordId, @filePath, @typeId, @label, @defaultColor, @defaultVisible, @parentId, @descriptionJson)';
-const CREATE_EDGE_TYPE_STATEMENT = 'INSERT INTO EdgeType(recordId, filePath, typeId, label, defaultColor, defaultVisible, descriptionJson) VALUES (@recordId, @filePath, @typeId, @label, @defaultColor, @defaultVisible, @descriptionJson)';
-const CREATE_RELATION_STATEMENT = 'INSERT INTO Relation(relationId, filePath, kind, pluginId, sourceId, fromFilePath, toFilePath, fromNodeId, toNodeId, fromSymbolId, toSymbolId, specifier, relationType, variant, resolvedPath, metadataJson) VALUES (@relationId, @filePath, @kind, @pluginId, @sourceId, @fromFilePath, @toFilePath, @fromNodeId, @toNodeId, @fromSymbolId, @toSymbolId, @specifier, @relationType, @variant, @resolvedPath, @metadataJson)';
-const DELETE_FILE_STATEMENT = 'DELETE FROM File WHERE filePath = @filePath';
-const DELETE_SYMBOL_STATEMENT = 'DELETE FROM Symbol WHERE filePath = @filePath';
-const DELETE_NODE_STATEMENT = 'DELETE FROM Node WHERE filePath = @filePath';
-const DELETE_NODE_TYPE_STATEMENT = 'DELETE FROM NodeType WHERE filePath = @filePath';
-const DELETE_EDGE_TYPE_STATEMENT = 'DELETE FROM EdgeType WHERE filePath = @filePath';
-const DELETE_RELATION_STATEMENT = 'DELETE FROM Relation WHERE filePath = @filePath';
+const CREATE_INDEXED_FILE_STATEMENT = 'INSERT INTO IndexedFile(path, mtime, size, contentHash, analyzerStateJson) VALUES (@path, @mtime, @size, @contentHash, @analyzerStateJson)';
+const CREATE_NODE_STATEMENT = 'INSERT INTO Node(id, type, label, filePath, parentId, propertiesJson) VALUES (@id, @type, @label, @filePath, @parentId, @propertiesJson)';
+const CREATE_EDGE_STATEMENT = 'INSERT INTO Edge(id, sourceId, targetId, type, propertiesJson, provenanceJson) VALUES (@id, @sourceId, @targetId, @type, @propertiesJson, @provenanceJson)';
+const DELETE_INDEXED_FILE_STATEMENT = 'DELETE FROM IndexedFile WHERE path = @path';
 
 export interface WorkspaceAnalysisCacheWriter {
   connection: SQLiteConnection;
-  fileAnalysisStatement: SQLiteStatement;
-  symbolStatement: SQLiteStatement;
+  indexedFileStatement: SQLiteStatement;
   nodeStatement: SQLiteStatement;
-  nodeTypeStatement: SQLiteStatement;
-  edgeTypeStatement: SQLiteStatement;
-  relationStatement: SQLiteStatement;
+  edgeStatement: SQLiteStatement;
 }
 
 export interface WorkspaceAnalysisCachePatchWriter extends WorkspaceAnalysisCacheWriter {
-  deleteFileAnalysisStatement: SQLiteStatement;
-  deleteSymbolStatement: SQLiteStatement;
-  deleteNodeStatement: SQLiteStatement;
-  deleteNodeTypeStatement: SQLiteStatement;
-  deleteEdgeTypeStatement: SQLiteStatement;
-  deleteRelationStatement: SQLiteStatement;
+  deleteIndexedFileStatement: SQLiteStatement;
 }
 
-function createFileAnalysisParams(
+function createIndexedFileParams(
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
 ): Record<string, SQLiteValue> {
-  const analysis = { ...entry.analysis };
-  delete analysis.symbols;
-  delete analysis.relations;
-  delete analysis.nodes;
-  delete analysis.nodeTypes;
-  delete analysis.edgeTypes;
   return {
-    filePath,
+    path: filePath,
     mtime: entry.mtime ?? 0,
     size: entry.size ?? 0,
     contentHash: entry.contentHash ?? null,
-    factsJson: JSON.stringify(analysis),
+    analyzerStateJson: JSON.stringify(entry.analysis),
   };
 }
 
-function createNodeParams(filePath: string, node: IAnalysisNode): Record<string, SQLiteValue> {
-  return { nodeId: node.id, filePath, nodeType: node.nodeType, label: node.label, sourceFilePath: node.filePath ?? null, parentId: node.parentId ?? null, metadataJson: optionalJson(node.metadata) };
+function nodeFilePath(node: IGraphNode): string | null {
+  if (node.symbol?.filePath) return node.symbol.filePath;
+  if ((node.nodeType ?? 'file') === 'file') return node.id;
+  const metadataPath = node.metadata?.filePath;
+  return typeof metadataPath === 'string' ? metadataPath : null;
 }
 
-function createNodeTypeParams(filePath: string, type: IPluginNodeType): Record<string, SQLiteValue> {
-  return { recordId: `${filePath}:${type.id}`, filePath, typeId: type.id, label: type.label, defaultColor: type.defaultColor, defaultVisible: type.defaultVisible ? 1 : 0, parentId: type.parentId ?? null, descriptionJson: optionalJson(type.description) };
+function nodeParentId(node: IGraphNode): string | null {
+  const parentId = node.metadata?.parentId;
+  return typeof parentId === 'string' ? parentId : null;
 }
 
-function createEdgeTypeParams(filePath: string, type: IPluginEdgeType): Record<string, SQLiteValue> {
-  return { recordId: `${filePath}:${type.id}`, filePath, typeId: type.id, label: type.label, defaultColor: type.defaultColor, defaultVisible: type.defaultVisible ? 1 : 0, descriptionJson: optionalJson(type.description) };
-}
-
-function optionalJson(value: unknown): string | null {
-  return value === undefined ? null : JSON.stringify(value);
-}
-
-function createSymbolParams(filePath: string, symbol: IAnalysisSymbol): Record<string, SQLiteValue> {
+function createNodeParams(node: IGraphNode): Record<string, SQLiteValue> {
+  const { id, label, nodeType, ...properties } = node;
   return {
-    symbolId: symbol.id,
-    filePath,
-    name: symbol.name,
-    kind: symbol.kind,
-    signature: symbol.signature ?? null,
-    rangeJson: optionalJson(symbol.range),
-    metadataJson: optionalJson(symbol.metadata),
+    id,
+    type: nodeType ?? 'file',
+    label,
+    filePath: nodeFilePath(node),
+    parentId: nodeParentId(node),
+    propertiesJson: JSON.stringify(properties),
   };
 }
 
-function createRelationParams(
-  filePath: string,
-  relation: IAnalysisRelation,
-  index: number,
-): Record<string, SQLiteValue> {
+function createEdgeParams(edge: IGraphEdge): Record<string, SQLiteValue> {
+  const { id, from, to, kind, sources, ...properties } = edge;
   return {
-    relationId: `${filePath}:${index}`,
-    filePath,
-    kind: relation.kind,
-    pluginId: relation.pluginId ?? null,
-    sourceId: relation.sourceId,
-    fromFilePath: relation.fromFilePath ?? null,
-    toFilePath: relation.toFilePath ?? null,
-    fromNodeId: relation.fromNodeId ?? null,
-    toNodeId: relation.toNodeId ?? null,
-    fromSymbolId: relation.fromSymbolId ?? null,
-    toSymbolId: relation.toSymbolId ?? null,
-    specifier: relation.specifier ?? null,
-    relationType: relation.type ?? null,
-    variant: relation.variant ?? null,
-    resolvedPath: relation.resolvedPath ?? null,
-    metadataJson: optionalJson(relation.metadata),
+    id,
+    sourceId: from,
+    targetId: to,
+    type: kind,
+    propertiesJson: JSON.stringify(properties),
+    provenanceJson: JSON.stringify(sources),
   };
 }
 
@@ -127,12 +88,9 @@ export function createWorkspaceAnalysisCacheWriter(
 ): WorkspaceAnalysisCacheWriter {
   return {
     connection,
-    fileAnalysisStatement: prepareStatementSync(connection, CREATE_FILE_STATEMENT),
-    symbolStatement: prepareStatementSync(connection, CREATE_SYMBOL_STATEMENT),
+    indexedFileStatement: prepareStatementSync(connection, CREATE_INDEXED_FILE_STATEMENT),
     nodeStatement: prepareStatementSync(connection, CREATE_NODE_STATEMENT),
-    nodeTypeStatement: prepareStatementSync(connection, CREATE_NODE_TYPE_STATEMENT),
-    edgeTypeStatement: prepareStatementSync(connection, CREATE_EDGE_TYPE_STATEMENT),
-    relationStatement: prepareStatementSync(connection, CREATE_RELATION_STATEMENT),
+    edgeStatement: prepareStatementSync(connection, CREATE_EDGE_STATEMENT),
   };
 }
 
@@ -141,32 +99,19 @@ export function createWorkspaceAnalysisCachePatchWriter(
 ): WorkspaceAnalysisCachePatchWriter {
   return {
     ...createWorkspaceAnalysisCacheWriter(connection),
-    deleteFileAnalysisStatement: prepareStatementSync(connection, DELETE_FILE_STATEMENT),
-    deleteSymbolStatement: prepareStatementSync(connection, DELETE_SYMBOL_STATEMENT),
-    deleteNodeStatement: prepareStatementSync(connection, DELETE_NODE_STATEMENT),
-    deleteNodeTypeStatement: prepareStatementSync(connection, DELETE_NODE_TYPE_STATEMENT),
-    deleteEdgeTypeStatement: prepareStatementSync(connection, DELETE_EDGE_TYPE_STATEMENT),
-    deleteRelationStatement: prepareStatementSync(connection, DELETE_RELATION_STATEMENT),
+    deleteIndexedFileStatement: prepareStatementSync(connection, DELETE_INDEXED_FILE_STATEMENT),
   };
 }
 
 export async function createWorkspaceAnalysisCacheWriterAsync(
   connection: SQLiteConnection,
 ): Promise<WorkspaceAnalysisCacheWriter> {
-  const [fileAnalysisStatement, symbolStatement, nodeStatement, nodeTypeStatement, edgeTypeStatement, relationStatement] = await Promise.all([
-    prepareStatementAsync(connection, CREATE_FILE_STATEMENT),
-    prepareStatementAsync(connection, CREATE_SYMBOL_STATEMENT),
+  const [indexedFileStatement, nodeStatement, edgeStatement] = await Promise.all([
+    prepareStatementAsync(connection, CREATE_INDEXED_FILE_STATEMENT),
     prepareStatementAsync(connection, CREATE_NODE_STATEMENT),
-    prepareStatementAsync(connection, CREATE_NODE_TYPE_STATEMENT),
-    prepareStatementAsync(connection, CREATE_EDGE_TYPE_STATEMENT),
-    prepareStatementAsync(connection, CREATE_RELATION_STATEMENT),
+    prepareStatementAsync(connection, CREATE_EDGE_STATEMENT),
   ]);
-  return {
-    connection,
-    fileAnalysisStatement,
-    symbolStatement, nodeStatement, nodeTypeStatement, edgeTypeStatement,
-    relationStatement,
-  };
+  return { connection, indexedFileStatement, nodeStatement, edgeStatement };
 }
 
 export function persistAnalysisEntry(
@@ -174,15 +119,25 @@ export function persistAnalysisEntry(
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
 ): void {
-  executeStatementSync(writer.connection, writer.fileAnalysisStatement, createFileAnalysisParams(filePath, entry));
-  for (const symbol of entry.analysis.symbols ?? []) {
-    executeStatementSync(writer.connection, writer.symbolStatement, createSymbolParams(filePath, symbol));
+  executeStatementSync(
+    writer.connection,
+    writer.indexedFileStatement,
+    createIndexedFileParams(filePath, entry),
+  );
+}
+
+export function persistGraph(
+  writer: WorkspaceAnalysisCacheWriter,
+  graph: IGraphData,
+): void {
+  const nodeIds = new Set(graph.nodes.map(node => node.id));
+  for (const node of [...graph.nodes].sort((left, right) => left.id.localeCompare(right.id))) {
+    executeStatementSync(writer.connection, writer.nodeStatement, createNodeParams(node));
   }
-  for (const node of entry.analysis.nodes ?? []) executeStatementSync(writer.connection, writer.nodeStatement, createNodeParams(filePath, node));
-  for (const type of entry.analysis.nodeTypes ?? []) executeStatementSync(writer.connection, writer.nodeTypeStatement, createNodeTypeParams(filePath, type));
-  for (const type of entry.analysis.edgeTypes ?? []) executeStatementSync(writer.connection, writer.edgeTypeStatement, createEdgeTypeParams(filePath, type));
-  for (const [index, relation] of (entry.analysis.relations ?? []).entries()) {
-    executeStatementSync(writer.connection, writer.relationStatement, createRelationParams(filePath, relation, index));
+  for (const edge of [...graph.edges]
+    .filter(edge => nodeIds.has(edge.from) && nodeIds.has(edge.to))
+    .sort((left, right) => left.id.localeCompare(right.id))) {
+    executeStatementSync(writer.connection, writer.edgeStatement, createEdgeParams(edge));
   }
 }
 
@@ -190,13 +145,11 @@ export function deleteAnalysisEntry(
   writer: WorkspaceAnalysisCachePatchWriter,
   filePath: string,
 ): void {
-  const params = { filePath };
-  executeStatementSync(writer.connection, writer.deleteFileAnalysisStatement, params);
-  executeStatementSync(writer.connection, writer.deleteSymbolStatement, params);
-  executeStatementSync(writer.connection, writer.deleteNodeStatement, params);
-  executeStatementSync(writer.connection, writer.deleteNodeTypeStatement, params);
-  executeStatementSync(writer.connection, writer.deleteEdgeTypeStatement, params);
-  executeStatementSync(writer.connection, writer.deleteRelationStatement, params);
+  executeStatementSync(
+    writer.connection,
+    writer.deleteIndexedFileStatement,
+    { path: filePath },
+  );
 }
 
 async function executeStatementAndYield(
@@ -217,27 +170,24 @@ export async function persistAnalysisEntryAsync(
 ): Promise<void> {
   await executeStatementAndYield(
     writer,
-    writer.fileAnalysisStatement,
-    createFileAnalysisParams(filePath, entry),
+    writer.indexedFileStatement,
+    createIndexedFileParams(filePath, entry),
     afterStatement,
   );
-  for (const symbol of entry.analysis.symbols ?? []) {
-    await executeStatementAndYield(
-      writer,
-      writer.symbolStatement,
-      createSymbolParams(filePath, symbol),
-      afterStatement,
-    );
+}
+
+export async function persistGraphAsync(
+  writer: WorkspaceAnalysisCacheWriter,
+  graph: IGraphData,
+  afterStatement: () => Promise<void>,
+): Promise<void> {
+  const nodeIds = new Set(graph.nodes.map(node => node.id));
+  for (const node of [...graph.nodes].sort((left, right) => left.id.localeCompare(right.id))) {
+    await executeStatementAndYield(writer, writer.nodeStatement, createNodeParams(node), afterStatement);
   }
-  for (const node of entry.analysis.nodes ?? []) await executeStatementAndYield(writer, writer.nodeStatement, createNodeParams(filePath, node), afterStatement);
-  for (const type of entry.analysis.nodeTypes ?? []) await executeStatementAndYield(writer, writer.nodeTypeStatement, createNodeTypeParams(filePath, type), afterStatement);
-  for (const type of entry.analysis.edgeTypes ?? []) await executeStatementAndYield(writer, writer.edgeTypeStatement, createEdgeTypeParams(filePath, type), afterStatement);
-  for (const [index, relation] of (entry.analysis.relations ?? []).entries()) {
-    await executeStatementAndYield(
-      writer,
-      writer.relationStatement,
-      createRelationParams(filePath, relation, index),
-      afterStatement,
-    );
+  for (const edge of [...graph.edges]
+    .filter(edge => nodeIds.has(edge.from) && nodeIds.has(edge.to))
+    .sort((left, right) => left.id.localeCompare(right.id))) {
+    await executeStatementAndYield(writer, writer.edgeStatement, createEdgeParams(edge), afterStatement);
   }
 }

@@ -60,8 +60,9 @@ export function clearWorkspaceAnalysisDatabaseCache(
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
+  graph?: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[2],
 ): void {
-  saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache);
+  saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache, graph);
 }
 
 export function patchWorkspaceAnalysisDatabaseCache(

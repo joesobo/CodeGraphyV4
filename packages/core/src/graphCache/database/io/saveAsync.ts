@@ -11,6 +11,7 @@ import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './pat
 import {
   createWorkspaceAnalysisCacheWriterAsync,
   persistAnalysisEntryAsync,
+  persistGraphAsync,
   sortedCacheEntries,
 } from '../query/write';
 import type { WorkspaceAnalysisDatabaseSaveOptions } from './save';
@@ -38,12 +39,9 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       await runStatementAsync(connection, 'BEGIN TRANSACTION');
       let committed = false;
       try {
-        await runStatementAsync(connection, 'DELETE FROM File');
-        await runStatementAsync(connection, 'DELETE FROM Symbol');
+        await runStatementAsync(connection, 'DELETE FROM Edge');
         await runStatementAsync(connection, 'DELETE FROM Node');
-        await runStatementAsync(connection, 'DELETE FROM NodeType');
-        await runStatementAsync(connection, 'DELETE FROM EdgeType');
-        await runStatementAsync(connection, 'DELETE FROM Relation');
+        await runStatementAsync(connection, 'DELETE FROM IndexedFile');
         const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
         let current = 0;
@@ -64,6 +62,11 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
             options.onProgress?.({ current, total });
           }
         }
+        await persistGraphAsync(
+          writer,
+          options.graph ?? { nodes: [], edges: [] },
+          yieldAfterStatement,
+        );
         await runStatementAsync(connection, 'COMMIT');
         committed = true;
       } catch (error) {

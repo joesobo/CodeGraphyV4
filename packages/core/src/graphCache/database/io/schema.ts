@@ -1,81 +1,67 @@
 import type { SQLiteConnection } from './connection';
 
-export function ensureSchema(connection: SQLiteConnection): void {
+function hasLegacySchema(connection: SQLiteConnection): boolean {
+  const tables = connection.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table'",
+  ).all() as Array<{ name?: string }>;
+  const tableNames = new Set(tables.map(table => table.name));
+  if (tableNames.has('File') || tableNames.has('Symbol') || tableNames.has('Relation')) {
+    return true;
+  }
+
+  if (!tableNames.has('Node')) return false;
+  const nodeColumns = connection.pragma('table_info(Node)') as Array<{ name?: string }>;
+  return !nodeColumns.some(column => column.name === 'id');
+}
+
+function dropLegacySchema(connection: SQLiteConnection): void {
   connection.exec(`
     DROP TABLE IF EXISTS FileAnalysis;
-    CREATE TABLE IF NOT EXISTS File (
-      filePath TEXT PRIMARY KEY,
+    DROP TABLE IF EXISTS File;
+    DROP TABLE IF EXISTS Symbol;
+    DROP TABLE IF EXISTS Relation;
+    DROP TABLE IF EXISTS NodeType;
+    DROP TABLE IF EXISTS EdgeType;
+    DROP TABLE IF EXISTS Node;
+  `);
+}
+
+export function ensureSchema(connection: SQLiteConnection): void {
+  if (hasLegacySchema(connection)) {
+    dropLegacySchema(connection);
+  }
+
+  connection.exec(`
+    CREATE TABLE IF NOT EXISTS IndexedFile (
+      path TEXT PRIMARY KEY,
       mtime INTEGER NOT NULL,
       size INTEGER NOT NULL,
       contentHash TEXT,
-      factsJson TEXT NOT NULL
+      analyzerStateJson TEXT NOT NULL
     );
-    CREATE TABLE IF NOT EXISTS Symbol (
-      symbolId TEXT PRIMARY KEY,
-      filePath TEXT NOT NULL,
-      name TEXT NOT NULL,
-      kind TEXT NOT NULL,
-      signature TEXT,
-      rangeJson TEXT,
-      metadataJson TEXT
-    );
-    CREATE INDEX IF NOT EXISTS Symbol_filePath_idx ON Symbol(filePath);
     CREATE TABLE IF NOT EXISTS Node (
-      nodeId TEXT PRIMARY KEY,
-      filePath TEXT NOT NULL,
-      nodeType TEXT NOT NULL,
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
       label TEXT NOT NULL,
-      sourceFilePath TEXT,
+      filePath TEXT,
       parentId TEXT,
-      metadataJson TEXT
+      propertiesJson TEXT NOT NULL
     );
+    CREATE INDEX IF NOT EXISTS Node_type_idx ON Node(type);
     CREATE INDEX IF NOT EXISTS Node_filePath_idx ON Node(filePath);
-    CREATE TABLE IF NOT EXISTS NodeType (
-      recordId TEXT PRIMARY KEY,
-      filePath TEXT NOT NULL,
-      typeId TEXT NOT NULL,
-      label TEXT NOT NULL,
-      defaultColor TEXT NOT NULL,
-      defaultVisible INTEGER NOT NULL,
-      parentId TEXT,
-      descriptionJson TEXT
+    CREATE INDEX IF NOT EXISTS Node_parentId_idx ON Node(parentId);
+    CREATE TABLE IF NOT EXISTS Edge (
+      id TEXT PRIMARY KEY,
+      sourceId TEXT NOT NULL REFERENCES Node(id) ON DELETE CASCADE,
+      targetId TEXT NOT NULL REFERENCES Node(id) ON DELETE CASCADE,
+      type TEXT NOT NULL,
+      propertiesJson TEXT NOT NULL,
+      provenanceJson TEXT NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS NodeType_filePath_idx ON NodeType(filePath);
-    CREATE TABLE IF NOT EXISTS EdgeType (
-      recordId TEXT PRIMARY KEY,
-      filePath TEXT NOT NULL,
-      typeId TEXT NOT NULL,
-      label TEXT NOT NULL,
-      defaultColor TEXT NOT NULL,
-      defaultVisible INTEGER NOT NULL,
-      descriptionJson TEXT
-    );
-    CREATE INDEX IF NOT EXISTS EdgeType_filePath_idx ON EdgeType(filePath);
-    CREATE TABLE IF NOT EXISTS Relation (
-      relationId TEXT PRIMARY KEY,
-      filePath TEXT NOT NULL,
-      kind TEXT NOT NULL,
-      pluginId TEXT,
-      sourceId TEXT NOT NULL,
-      fromFilePath TEXT,
-      toFilePath TEXT,
-      fromNodeId TEXT,
-      toNodeId TEXT,
-      fromSymbolId TEXT,
-      toSymbolId TEXT,
-      specifier TEXT,
-      relationType TEXT,
-      variant TEXT,
-      resolvedPath TEXT,
-      metadataJson TEXT
-    );
-    CREATE INDEX IF NOT EXISTS Relation_filePath_idx ON Relation(filePath);
+    CREATE INDEX IF NOT EXISTS Edge_source_type_idx ON Edge(sourceId, type);
+    CREATE INDEX IF NOT EXISTS Edge_target_type_idx ON Edge(targetId, type);
+    PRAGMA user_version = 3;
   `);
-
-  const fileColumns = connection.pragma('table_info(File)') as Array<{ name?: string }>;
-  if (!fileColumns.some(column => column.name === 'contentHash')) {
-    connection.exec('ALTER TABLE File ADD COLUMN contentHash TEXT');
-  }
 }
 
 export async function ensureSchemaAsync(connection: SQLiteConnection): Promise<void> {

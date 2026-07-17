@@ -1,156 +1,77 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/graphCache/database/snapshot';
-import { readRowsSync, withConnection } from '../../../src/graphCache/database/io/connection';
-import { getWorkspaceAnalysisDatabasePath } from '../../../src/graphCache/database/io/paths';
-import {
-  createSnapshotFileEntry,
-} from '../../../src/graphCache/database/records/file';
-import { createSnapshotRelationEntry } from '../../../src/graphCache/database/relation/entry';
-import { createSnapshotSymbolEntry } from '../../../src/graphCache/database/records/symbol';
-import {
-  FILE_ROWS_QUERY,
-  RELATION_ROWS_QUERY,
-  SYMBOL_ROWS_QUERY,
-} from '../../../src/graphCache/database/query/read';
+import * as connectionModule from '../../../src/graphCache/database/io/connection';
+import * as pathModule from '../../../src/graphCache/database/io/paths';
+import { EDGE_ROWS_QUERY, INDEXED_FILE_ROWS_QUERY, NODE_ROWS_QUERY } from '../../../src/graphCache/database/query/read';
 
-vi.mock('node:fs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('node:fs')>();
-  return {
-    ...actual,
-    existsSync: vi.fn(),
-  };
-});
+vi.mock('node:fs');
+vi.mock('../../../src/graphCache/database/io/connection');
+vi.mock('../../../src/graphCache/database/io/paths');
 
-vi.mock('../../../src/graphCache/database/io/connection', () => ({
-  readRowsSync: vi.fn(),
-  withConnection: vi.fn(),
-}));
-
-vi.mock('../../../src/graphCache/database/io/paths', () => ({
-  getWorkspaceAnalysisDatabasePath: vi.fn(),
-}));
-
-vi.mock('../../../src/graphCache/database/records/file', () => ({
-  createSnapshotFileEntry: vi.fn(),
-}));
-
-vi.mock('../../../src/graphCache/database/relation/entry', () => ({
-  createSnapshotRelationEntry: vi.fn(),
-}));
-
-vi.mock('../../../src/graphCache/database/records/symbol', () => ({
-  createSnapshotSymbolEntry: vi.fn(),
-}));
-describe('pipeline/database/cache/snapshot', () => {
+describe('graphCache/database/snapshot', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.sqlite');
+    vi.resetAllMocks();
+    vi.mocked(pathModule.getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.sqlite');
   });
 
-  it('returns an empty snapshot when the repo-local database does not exist', () => {
+  it('returns an empty snapshot when the database does not exist', () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
+    expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
+      files: [],
+      graph: { nodes: [], edges: [] },
+      symbols: [],
+      relations: [],
+    });
+  });
+
+  it('reads analyzer state and canonical graph records', () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(connectionModule.withConnection).mockImplementation((_path, callback) => callback('connection' as never));
+    vi.mocked(connectionModule.readRowsSync).mockImplementation((_connection, query) => {
+      if (query === INDEXED_FILE_ROWS_QUERY) return [{
+        path: 'src/app.ts',
+        mtime: 1,
+        size: 2,
+        analyzerStateJson: JSON.stringify({
+          filePath: '/workspace/src/app.ts',
+          symbols: [{ id: 'symbol-1', filePath: '/workspace/src/app.ts', name: 'App', kind: 'class' }],
+          relations: [],
+        }),
+      }];
+      if (query === NODE_ROWS_QUERY) return [{
+        id: 'src/app.ts',
+        type: 'file',
+        label: 'app.ts',
+        filePath: 'src/app.ts',
+        propertiesJson: '{"color":"#fff"}',
+      }];
+      if (query === EDGE_ROWS_QUERY) return [];
+      return [];
+    });
+
+    expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toMatchObject({
+      files: [{ filePath: 'src/app.ts', mtime: 1, size: 2 }],
+      graph: { nodes: [{ id: 'src/app.ts', nodeType: 'file' }], edges: [] },
+      symbols: [{ id: 'symbol-1', name: 'App' }],
+      relations: [],
+    });
+  });
+
+  it('warns and returns an empty snapshot when reading fails', () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(connectionModule.withConnection).mockImplementation(() => { throw new Error('broken'); });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
       files: [],
+      graph: { nodes: [], edges: [] },
       symbols: [],
       relations: [],
     });
-    expect(withConnection).not.toHaveBeenCalled();
-  });
-
-  it('reads rows through the database connection and drops invalid snapshot entries', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(withConnection).mockImplementation((_path, callback) => callback('connection' as never));
-    vi.mocked(readRowsSync)
-      .mockReturnValueOnce([{ id: 'file-1' }, { id: 'file-2' }] as never)
-      .mockReturnValueOnce([{ id: 'symbol-1' }] as never)
-      .mockReturnValueOnce([{ id: 'relation-1' }, { id: 'relation-2' }] as never)
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([]);
-    vi.mocked(createSnapshotFileEntry)
-      .mockReturnValueOnce({ filePath: 'src/file.ts', mtime: 1, analysis: { filePath: 'src/file.ts', relations: [] } } as never)
-      .mockReturnValueOnce(undefined);
-    vi.mocked(createSnapshotSymbolEntry).mockReturnValueOnce({ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' } as never);
-    vi.mocked(createSnapshotRelationEntry)
-      .mockReturnValueOnce({ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' } as never)
-      .mockReturnValueOnce(undefined);
-
-    expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
-      files: [{
-        filePath: 'src/file.ts',
-        mtime: 1,
-        analysis: {
-          filePath: 'src/file.ts',
-          symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
-          relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
-        },
-      }],
-      symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
-      relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
-    });
-
-    expect(readRowsSync).toHaveBeenNthCalledWith(1, 'connection', FILE_ROWS_QUERY);
-    expect(readRowsSync).toHaveBeenNthCalledWith(2, 'connection', SYMBOL_ROWS_QUERY);
-    expect(readRowsSync).toHaveBeenNthCalledWith(3, 'connection', RELATION_ROWS_QUERY);
-  });
-
-  it('does not treat legacy file-analysis blobs as normalized records', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(withConnection).mockImplementation((_path, callback) => callback('connection' as never));
-    vi.mocked(readRowsSync)
-      .mockReturnValueOnce([{ id: 'file-1' }] as never)
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([])
-      .mockReturnValueOnce([]);
-    vi.mocked(createSnapshotFileEntry).mockReturnValueOnce({
-      filePath: 'src/file.ts',
-      mtime: 1,
-      analysis: {
-        filePath: 'src/file.ts',
-        symbols: [
-          { id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' },
-        ],
-        relations: [
-          { kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' },
-        ],
-      },
-    } as never);
-
-    expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
-      files: [{
-        filePath: 'src/file.ts',
-        mtime: 1,
-        analysis: {
-          filePath: 'src/file.ts',
-          symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
-          relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
-        },
-      }],
-      symbols: [],
-      relations: [],
-    });
-  });
-
-  it('warns and falls back to an empty snapshot when reading the database fails', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const error = new Error('corrupt database');
-    vi.mocked(withConnection).mockImplementation(() => {
-      throw error;
-    });
-
-    expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
-      files: [],
-      symbols: [],
-      relations: [],
-    });
-    expect(warning).toHaveBeenCalledWith(
+    expect(warn).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to read structured analysis snapshot.',
-      error,
+      expect.any(Error),
     );
   });
 });
