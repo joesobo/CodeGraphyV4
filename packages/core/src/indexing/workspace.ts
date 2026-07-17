@@ -23,7 +23,7 @@ import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
 import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
 import {
   createWorkspaceIndexFileContentReader,
-  findDeletedWorkspaceIndexDependents,
+  findAffectedWorkspaceIndexDependents,
   findChangedWorkspaceIndexFiles,
 } from './workspace/changes';
 import {
@@ -138,11 +138,6 @@ export async function indexCodeGraphyWorkspace(
       files: discoveryResult.files,
       readContent,
     });
-    const deletedDependents = findDeletedWorkspaceIndexDependents({
-      cache,
-      deletedFilePaths,
-      workspaceRoot,
-    });
     const deletedFiles = deletedFilePaths.map(filePath => ({
       absolutePath: path.resolve(workspaceRoot, filePath),
       relativePath: filePath,
@@ -166,9 +161,18 @@ export async function indexCodeGraphyWorkspace(
         cache = createEmptyWorkspaceAnalysisCache();
       } else {
         const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(discoveryResult.files);
+        const affectedDependents = findAffectedWorkspaceIndexDependents({
+          cache,
+          invalidatedFilePaths: [
+            ...changedFiles.map(file => file.relativePath),
+            ...deletedFilePaths,
+            ...pluginChanges.additionalFilePaths,
+          ],
+          workspaceRoot,
+        });
         const invalidatedFiles = mergeDiscoveredWorkspaceIndexFiles(
           changedFiles,
-          [...deletedDependents, ...pluginChanges.additionalFilePaths],
+          [...pluginChanges.additionalFilePaths, ...affectedDependents],
           discoveredByPath,
         );
         for (const filePath of deletedFilePaths) {

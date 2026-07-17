@@ -188,12 +188,19 @@ filesystem enumeration.
 A changed file may invalidate more than its own row. Core must account for:
 
 - removed or renamed files;
-- imports and resolution targets;
+- the transitive reverse-dependency closure from changed, deleted, and
+  Plugin-invalidated files, using cached imports and resolution targets;
 - project-aware configuration such as `tsconfig`;
 - Plugin `notifyFilesChanged` results and additional file requests;
 - Plugin pre-analysis indexes;
 - settings, plugin, and analysis-version changes;
 - symbol declarations and Relationship evidence owned by the changed file.
+
+Reverse-dependency invalidation is an in-memory Indexing state, not a persisted
+`stale` flag. Core reanalyzes the bounded affected set, rebuilds its derived
+Nodes and Edges, then commits the changed file facts and complete current graph
+in one SQLite transaction. Readers therefore see either the previous complete
+index or the replacement complete index, never a partially stale graph.
 
 Use the existing full-refresh fallback whenever the invalidation closure cannot
 be proven safe.

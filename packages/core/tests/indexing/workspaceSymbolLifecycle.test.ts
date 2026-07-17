@@ -22,10 +22,11 @@ function createSymbolPlugin(analyzeFile: ReturnType<typeof vi.fn>): IPlugin {
     async analyzeFile(filePath, content, workspaceRoot): Promise<IFileAnalysisResult> {
       analyzeFile(filePath, content, workspaceRoot);
       if (path.basename(filePath) === 'b.ts') {
+        const targetVersion = content.trim();
         return {
           filePath,
-          symbols: [{
-            id: `${filePath}:target:${content.trim()}`,
+          symbols: targetVersion === 'removed' ? [] : [{
+            id: `${filePath}:target:${targetVersion}`,
             name: 'target',
             kind: 'function',
             filePath,
@@ -35,9 +36,10 @@ function createSymbolPlugin(analyzeFile: ReturnType<typeof vi.fn>): IPlugin {
       }
 
       const targetPath = path.join(workspaceRoot, 'b.ts');
+      const targetVersion = (await fs.readFile(targetPath, 'utf8')).trim();
       return {
         filePath,
-        relations: [{
+        relations: targetVersion === 'removed' ? [] : [{
           kind: 'call',
           sourceId: 'call-target',
           fromFilePath: filePath,
@@ -75,11 +77,11 @@ describe('indexCodeGraphyWorkspace symbol lifecycle', () => {
     }));
     expect(refreshed.indexing).toEqual({
       mode: 'incremental',
-      analyzedFiles: 1,
+      analyzedFiles: 2,
       deletedFiles: 0,
-      reusedFiles: 1,
+      reusedFiles: 0,
     });
-    expect(analyzeFile).toHaveBeenCalledTimes(3);
+    expect(analyzeFile).toHaveBeenCalledTimes(4);
     expect(analyzeFile).toHaveBeenLastCalledWith(
       path.join(workspaceRoot, 'b.ts'),
       'v2\n',
@@ -93,6 +95,40 @@ describe('indexCodeGraphyWorkspace symbol lifecycle', () => {
     expect(refreshedFacts.graph.edges).not.toContainEqual(expect.objectContaining({
       from: 'a.ts',
       to: 'b.ts',
+      kind: 'call',
+    }));
+  });
+
+  it('removes target-driven relationship evidence when a dependency changes', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-edge-refresh-'));
+    await fs.writeFile(path.join(workspaceRoot, 'a.ts'), 'target();\n', 'utf8');
+    await fs.writeFile(path.join(workspaceRoot, 'b.ts'), 'v1\n', 'utf8');
+    const analyzeFile = vi.fn();
+    const options = {
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [createSymbolPlugin(analyzeFile)],
+    };
+
+    await indexCodeGraphyWorkspace(options);
+    const initialFacts = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    await fs.writeFile(path.join(workspaceRoot, 'b.ts'), 'removed\n', 'utf8');
+    const refreshed = await indexCodeGraphyWorkspace(options);
+    const refreshedFacts = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+
+    expect(initialFacts.graph.edges).toContainEqual(expect.objectContaining({
+      from: 'a.ts',
+      to: 'b.ts#target:function',
+      kind: 'call',
+    }));
+    expect(refreshed.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 2,
+      deletedFiles: 0,
+      reusedFiles: 0,
+    });
+    expect(refreshedFacts.graph.edges).not.toContainEqual(expect.objectContaining({
+      from: 'a.ts',
       kind: 'call',
     }));
   });
