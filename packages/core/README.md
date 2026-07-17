@@ -26,7 +26,7 @@ codegraphy scope edge call on
 codegraphy filter add '**/generated/**'
 ```
 
-Run `codegraphy <command> --help` for command usage. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
+Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for purpose, arguments, effects, output, and examples. Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
 
 ## Current Entry Points
 
@@ -43,7 +43,7 @@ Run `codegraphy <command> --help` for command usage. Indexing always chooses the
 - Workspace plugin activity: enable or disable Plugin IDs by writing explicit `enabled: true` or `enabled: false` entries in the workspace-local `plugins` array.
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
-- Graph Cache storage: load, save, clear, and inspect the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
+- Graph Cache storage: load, save, clear, and inspect normalized FileAnalysis, Symbol, and Relation rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
 - Graph Query: search scoped Nodes, list scoped Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
 
 The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
