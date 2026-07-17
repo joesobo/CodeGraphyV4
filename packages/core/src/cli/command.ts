@@ -58,9 +58,16 @@ export async function runCliCommand(
   dependencies: CliCommandDependencies = {},
 ): Promise<CommandExecutionResult> {
   if (command.parseError) {
+    const helpTarget = command.name === 'help'
+      ? 'codegraphy --help'
+      : `codegraphy ${command.invokedCommand ?? command.name} --help`;
     return {
       exitCode: 2,
-      output: JSON.stringify({ error: 'invalid_arguments', message: command.parseError }),
+      output: JSON.stringify({
+        error: 'invalid_arguments',
+        message: command.parseError,
+        action: `Run \`${helpTarget}\`.`,
+      }),
     };
   }
   emitCliDiagnostic(command, dependencies, 'command-started', createCommandContext(command));

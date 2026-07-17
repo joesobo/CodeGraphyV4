@@ -200,6 +200,7 @@ describe('core/graphQuery relationships report', () => {
       limit: 500,
       returned: 1,
       total: 1,
+      nextOffset: null,
     });
   });
 

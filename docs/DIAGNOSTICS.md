@@ -42,7 +42,7 @@ Pass `--verbose` to any `codegraphy` command:
 
 ```bash
 codegraphy --verbose status
-codegraphy --verbose index /absolute/path/to/workspace
+codegraphy --verbose --workspace /absolute/path/to/workspace index
 ```
 
 Verbose CLI diagnostics are written outside normal JSON stdout so command output remains parseable.

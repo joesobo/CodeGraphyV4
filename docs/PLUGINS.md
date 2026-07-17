@@ -100,7 +100,7 @@ For local private plugin development, keep the private source outside this publi
 ```bash
 codegraphy plugins link ~/src/acme-graph-tools
 codegraphy plugins enable acme.graph-tools /path/to/indexed-folder
-codegraphy index /path/to/indexed-folder
+codegraphy --workspace /path/to/indexed-folder index
 ```
 
 When testing through F5, launch only the public CodeGraphy VS Code extension. Do not add headless plugin package folders to VS Code's `extensionDevelopmentPath`; the extension host loads linked packages from `~/.codegraphy/plugins.json` and the opened workspace's `.codegraphy/settings.json`.

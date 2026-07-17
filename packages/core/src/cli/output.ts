@@ -3,7 +3,7 @@ import { parseCliOutput, readCliError } from './outputValue';
 import type { CliCommand } from './parseTypes';
 
 function commandName(command: CliCommand): string {
-  return command.report ?? command.name;
+  return command.invokedCommand ?? command.report ?? command.name;
 }
 
 export function formatCliResult(command: CliCommand, result: CommandExecutionResult): string {

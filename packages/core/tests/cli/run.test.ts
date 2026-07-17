@@ -21,6 +21,18 @@ describe('cli/run', () => {
     expect(stderr).not.toHaveBeenCalled();
   });
 
+  it('names intent commands instead of their internal graph reports', async () => {
+    const stdout = vi.fn();
+    await runCli(['dependencies', 'src/app.ts'], {
+      runCommand: async () => ({ exitCode: 0, output: '{"edges":[]}' }),
+      stdout,
+    });
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      ok: true,
+      command: 'dependencies',
+    });
+  });
+
   it('writes successful output to stdout', async () => {
     const stdout = vi.fn();
     const stderr = vi.fn();
@@ -43,7 +55,7 @@ describe('cli/run', () => {
 
     expect(stdout).not.toHaveBeenCalled();
     expect(stderr).toHaveBeenCalledWith(
-      '{"ok":false,"command":"help","error":{"code":"invalid_arguments","message":"Unknown command: wat"}}\n',
+      '{"ok":false,"command":"wat","error":{"code":"invalid_arguments","message":"Unknown command: wat","action":"Run `codegraphy --help`."}}\n',
     );
   });
 

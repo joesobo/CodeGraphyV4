@@ -17,6 +17,7 @@ export interface CliCommand {
   action?: PluginsCommandAction;
   arguments?: Record<string, unknown>;
   helpPath?: string[];
+  invokedCommand?: string;
   packageName?: string;
   packageRoot?: string;
   parseError?: string;

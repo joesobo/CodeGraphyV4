@@ -28,13 +28,17 @@ describe('cli/help/command', () => {
     expect(output).toContain('codegraphy index                         Create or update the Graph Cache');
     expect(output).toContain('codegraphy filter                        Read or change persisted Filters');
     expect(output).toContain('codegraphy dependencies <node>           List outgoing Relationships');
+    expect(output).toContain('Exit status: 0 success, 1 operational failure, 2 invalid invocation.');
+    expect(output).toContain('Data is JSON on stdout; failures are JSON on stderr.');
   });
 
-  it('reports flag-free query usage', () => {
+  it('reports local pagination options for bounded list queries', () => {
     expect(createHelpResult(['status']).output).toContain('Usage: codegraphy status');
     expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
-    expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search <text>');
-    expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies <node>');
+    expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search');
+    expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
+    expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
+    expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');
     expect(createHelpResult(['path']).output).toContain('Usage: codegraphy path <from> <to>');
   });
 

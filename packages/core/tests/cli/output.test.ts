@@ -9,9 +9,9 @@ describe('cli/output', () => {
 
   it('wraps JSON and plain-text success data', () => {
     expect(JSON.parse(formatCliResult(
-      { name: 'query', report: 'nodes' },
+      { name: 'query', report: 'nodes', invokedCommand: 'search' },
       { exitCode: 0, output: '{"nodes":[]}' },
-    ))).toEqual({ ok: true, command: 'nodes', data: { nodes: [] } });
+    ))).toEqual({ ok: true, command: 'search', data: { nodes: [] } });
     expect(JSON.parse(formatCliResult(
       { name: 'index' },
       { exitCode: 0, output: 'complete' },
