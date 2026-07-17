@@ -223,4 +223,46 @@ describe('core/graph/symbols', () => {
       ]);
     }
   });
+
+  it('merges duplicate symbol relation edges and preserves their sources', () => {
+    const targetPath = '/workspace/src/target.ts';
+    const targetSymbol = graphSymbol(targetPath, 'type', 'User');
+    const duplicateRelation = {
+      kind: 'reference' as const,
+      fromFilePath: '/workspace/src/app.ts',
+      toFilePath: targetPath,
+      toSymbolId: targetSymbol.id,
+    };
+    const result = buildSymbolNodesAndEdges(new Map([
+      ['/workspace/src/app.ts', analysis({
+        relations: [
+          {
+            ...duplicateRelation,
+            pluginId: 'plugin.first',
+            sourceId: 'first',
+          },
+          {
+            ...duplicateRelation,
+            pluginId: 'plugin.second',
+            sourceId: 'second',
+          },
+        ],
+      })],
+      [targetPath, analysis({
+        filePath: targetPath,
+        symbols: [targetSymbol],
+      })],
+    ]), '/workspace');
+
+    expect(result.edges.filter(edge => edge.kind === 'reference')).toEqual([
+      expect.objectContaining({
+        from: 'src/app.ts',
+        to: 'src/target.ts#User:type',
+        sources: [
+          expect.objectContaining({ id: 'plugin.first:first' }),
+          expect.objectContaining({ id: 'plugin.second:second' }),
+        ],
+      }),
+    ]);
+  });
 });
