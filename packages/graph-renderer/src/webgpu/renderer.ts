@@ -1,6 +1,6 @@
 /// <reference types="@webgpu/types" />
 
-import type { GraphRendererFrame } from '../contracts';
+import type { GraphRendererFrame, GraphRendererSecondaryFrame } from '../contracts';
 import {
   createGraphBufferState,
   destroyGraphBufferState,
@@ -12,13 +12,28 @@ import { validateGraphBufferLimits } from './buffer/limits';
 import { resizeGraphCanvas } from './frame/canvas';
 import { beginFrameValidation, endFrameValidation } from './frame/validation';
 import { createRendererResources, type RendererResources } from './device';
-import { submitRenderPass, type RenderPassResources } from './frame/pass';
+import { encodeRenderPass, type RenderPassResources } from './frame/pass';
 import { FrameQueue } from './frame/queue';
 import { updateStyleCache } from './styleCache';
+import {
+  createSecondaryStyleBuffers,
+  destroySecondaryStyleBuffers,
+  type SecondaryStyleBuffers,
+  updateSecondaryStyleBuffers,
+} from './secondary/styles';
 
 export { webGpuNodeShapeCode } from './node/style/model';
 
 export type WebGpuGraphFrame = GraphRendererFrame;
+export type WebGpuGraphSecondaryFrame = GraphRendererSecondaryFrame;
+
+interface SecondarySurface {
+  camera: CameraBuffer;
+  canvas: HTMLCanvasElement;
+  context: GPUCanvasContext;
+  passResources: RenderPassResources;
+  styles: SecondaryStyleBuffers;
+}
 
 export interface WebGpuGraphRendererOptions {
   onDeviceLost(this: void, message: string): void;
@@ -34,6 +49,7 @@ export class WebGpuGraphRenderer {
   private readonly passResources: RenderPassResources;
   private readonly uncapturedErrorListener: (event: GPUUncapturedErrorEvent) => void;
   private disposed = false;
+  private secondarySurface?: SecondarySurface;
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -101,7 +117,15 @@ export class WebGpuGraphRenderer {
     return this.frameQueue.canSubmit();
   }
 
-  render(frame: WebGpuGraphFrame): number {
+  setSecondarySurface(canvas: HTMLCanvasElement | undefined): void {
+    this.releaseSecondarySurface();
+    if (!canvas) return;
+    const context = canvas.getContext('webgpu');
+    if (!context) throw new Error('WebGPU is unavailable for the secondary graph surface');
+    this.secondarySurface = this.createSecondarySurface(canvas, context);
+  }
+
+  render(frame: WebGpuGraphFrame, secondaryFrame?: WebGpuGraphSecondaryFrame): number {
     if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
     const device = this.resources.device;
     validateGraphBufferLimits(frame, device.limits.maxBufferSize);
@@ -109,9 +133,39 @@ export class WebGpuGraphRenderer {
     try {
       const styleUpdate = updateStyleCache(this.buffers, frame);
       resizeGraphCanvas(this.canvas, device, frame);
-      updateGraphBuffers(device, this.buffers, frame, styleUpdate);
+      const graphUpdate = updateGraphBuffers(device, this.buffers, frame, styleUpdate);
       this.camera.upload(frame, this.buffers);
-      submitRenderPass(this.passResources, this.buffers, frame, this.camera.values[8]);
+      const encoder = device.createCommandEncoder({ label: 'Graph frame' });
+      encodeRenderPass(
+        this.passResources,
+        this.buffers,
+        frame,
+        this.camera.values[8],
+        encoder,
+        true,
+      );
+      const secondary = this.secondarySurface;
+      if (secondary && secondaryFrame) {
+        resizeGraphCanvas(secondary.canvas, device, secondaryFrame);
+        secondary.camera.uploadSecondary(secondaryFrame);
+        updateSecondaryStyleBuffers(
+          device,
+          secondary.styles,
+          this.buffers,
+          frame,
+          secondaryFrame,
+          styleUpdate.nodeOrderChanged || graphUpdate.linkOrderChanged,
+        );
+        encodeRenderPass(
+          secondary.passResources,
+          secondary.styles.pass,
+          { ...frame, ...secondaryFrame, directionMode: 'none' },
+          -1,
+          encoder,
+          false,
+        );
+      }
+      device.queue.submit([encoder.finish()]);
       return this.frameQueue.trackSubmission(endFrameValidation(device));
     } catch (error) {
       void endFrameValidation(device).catch(() => {});
@@ -124,9 +178,57 @@ export class WebGpuGraphRenderer {
     this.disposed = true;
     this.resources.device.removeEventListener('uncapturederror', this.uncapturedErrorListener);
     this.frameQueue.dispose();
+    this.releaseSecondarySurface();
     this.camera.buffer.destroy();
     destroyGraphBufferState(this.buffers);
     this.resources.context.unconfigure();
     this.resources.device.destroy();
+  }
+
+  private releaseSecondarySurface(): void {
+    const secondary = this.secondarySurface;
+    if (!secondary) return;
+    this.secondarySurface = undefined;
+    secondary.camera.buffer.destroy();
+    destroySecondaryStyleBuffers(secondary.styles);
+    secondary.context.unconfigure();
+  }
+
+  private createSecondarySurface(
+    canvas: HTMLCanvasElement,
+    context: GPUCanvasContext,
+  ): SecondarySurface {
+    let camera: CameraBuffer | undefined;
+    let styles: SecondaryStyleBuffers | undefined;
+    try {
+      context.configure({
+        alphaMode: 'premultiplied',
+        device: this.resources.device,
+        format: this.resources.format,
+      });
+      camera = new CameraBuffer(this.resources.device, 'CodeGraphy secondary camera uniform');
+      styles = createSecondaryStyleBuffers(this.resources.device, this.buffers);
+      return {
+        camera,
+        canvas,
+        context,
+        passResources: {
+          ...this.resources,
+          context,
+          arrowCamera: camera.bind(this.resources.arrow, 'Secondary graph arrow camera'),
+          arrowPipeline: this.resources.arrow,
+          linkCamera: camera.bind(this.resources.link, 'Secondary graph link camera'),
+          linkPipeline: this.resources.link,
+          nodeCamera: camera.bind(this.resources.node, 'Secondary graph node camera'),
+          nodePipeline: this.resources.node,
+        },
+        styles,
+      };
+    } catch (error) {
+      if (styles) destroySecondaryStyleBuffers(styles);
+      camera?.buffer.destroy();
+      context.unconfigure();
+      throw error;
+    }
   }
 }

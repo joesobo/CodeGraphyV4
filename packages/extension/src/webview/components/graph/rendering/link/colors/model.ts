@@ -37,3 +37,10 @@ export function getGraphDirectionalColor(
     DEFAULT_DIRECTION_COLOR,
   );
 }
+
+export function getBaseGraphLinkColor(
+  dependencies: Pick<LinkRenderingDependencies, 'resolveColor'>,
+  link: FGLink,
+): string {
+  return dependencies.resolveColor(link.baseColor, DEFAULT_DIRECTION_COLOR);
+}

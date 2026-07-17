@@ -12,7 +12,7 @@ export interface CreateGraphViewportSurfacePropsInput {
   sharedProps: ViewportProps['surface2dProps']['sharedProps'];
   viewState: Pick<
     GraphViewStoreState,
-    'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps'
+    'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps' | 'showMinimap'
   >;
 }
 
@@ -28,6 +28,11 @@ export function createGraphViewportSurfaceProps({
     surface2dProps: {
       fg2dRef: graphState.renderer.fg2dRef,
       graphViewContributions,
+      getBaseLinkColor: callbacks.getBaseLinkColor,
+      getBaseLinkOpacity: callbacks.getBaseLinkOpacity,
+      getBaseLinkWidth: callbacks.getBaseLinkWidth,
+      getBaseNodeStyle: callbacks.getBaseNodeStyle,
+      getBaseStyleRevision: callbacks.getBaseStyleRevision,
       getArrowColor: callbacks.getArrowColor,
       getLinkColor: callbacks.getLinkColor,
       getLinkOpacity: callbacks.getLinkOpacity,
@@ -42,6 +47,7 @@ export function createGraphViewportSurfaceProps({
       particleSpeed: viewState.particleSpeed,
       physicsSettings: viewState.physicsSettings,
       showFps: viewState.showFps,
+      showMinimap: viewState.showMinimap,
       sharedProps,
     },
   };

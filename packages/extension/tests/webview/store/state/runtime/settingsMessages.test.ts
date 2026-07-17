@@ -9,9 +9,10 @@ describe('GraphStore settings messages',()=>{
   it('handles SETTINGS_UPDATED message', () => {
       store.getState().handleExtensionMessage({
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'combined', showOrphans: false },
+        payload: { bidirectionalEdges: 'combined', showMinimap: false, showOrphans: false },
       });
       expect(store.getState().bidirectionalMode).toBe('combined');
+      expect(store.getState().showMinimap).toBe(false);
       expect(store.getState().showOrphans).toBe(false);
     });
 

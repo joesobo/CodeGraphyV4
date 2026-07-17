@@ -6,6 +6,7 @@ export {
   type GraphRendererLink,
   type GraphRendererNode,
   type GraphRendererNodeStyle,
+  type GraphRendererSecondaryFrame,
 } from './contracts';
 export {
   GRAPH_DETAIL_MIN_ZOOM,
@@ -51,8 +52,19 @@ export {
   graphNodeWorldScale,
 } from './visualSize';
 export {
+  measureGraphSceneBounds,
+  type GraphSceneBounds,
+  type GraphSceneBoundsInput,
+} from './sceneBounds';
+export {
+  measureGraphSceneFit,
+  type GraphSceneFitInput,
+  type GraphSceneFitMeasurement,
+} from './sceneFit';
+export {
   WebGpuGraphRenderer,
   type WebGpuGraphFrame,
   type WebGpuGraphRendererOptions,
+  type WebGpuGraphSecondaryFrame,
 } from './webgpu/renderer';
 export { prepareGraphPhysics } from './physics/wasm/runtime/loader';

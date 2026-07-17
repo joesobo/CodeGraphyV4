@@ -1,9 +1,9 @@
-import type { GraphRendererFrame } from '../../contracts';
+import type { GraphRendererSecondaryFrame } from '../../contracts';
 
 export function resizeGraphCanvas(
   canvas: HTMLCanvasElement,
   device: GPUDevice,
-  frame: GraphRendererFrame,
+  frame: GraphRendererSecondaryFrame,
 ): void {
   const maximum = device.limits.maxTextureDimension2D;
   const width = Math.min(Math.max(1, Math.round(frame.cssWidth * frame.devicePixelRatio)), maximum);

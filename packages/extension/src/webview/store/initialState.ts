@@ -1,7 +1,7 @@
 import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
-import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
+import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
@@ -25,6 +25,7 @@ export const INITIAL_STATE: GraphStateFields = {
   particleSpeed: 0.005,
   particleSize: 4,
   showLabels: true,
+  showMinimap: DEFAULT_SHOW_MINIMAP,
   cssSnippets: {},
   graphViewportScale: null,
   nodeSizeMode: 'connections' as const,

@@ -1,6 +1,7 @@
 import type {
   WebGpuGraphFrame as OwnedWebGpuFrame,
   WebGpuGraphRenderer as OwnedWebGpuRenderer,
+  WebGpuGraphSecondaryFrame as OwnedWebGpuSecondaryFrame,
 } from '@codegraphy-dev/graph-renderer';
 import { describe, expect, it, vi } from 'vitest';
 import { renderOwnedGraphFrame } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame/runtime/render';
@@ -116,6 +117,36 @@ describe('owned graph frame execution', () => {
     expect(submittedFrame?.nodes[0]).toMatchObject({ x: 42, y: 24 });
     expect(runtime.recordRenderedFrame).toHaveBeenCalledOnce();
     expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
+  });
+
+  it('repaints a manually moved node without changing the settled minimap fit', () => {
+    const secondaryFrames: Array<{ camera: { centerX: number; centerY: number; zoom: number } }> = [];
+    const renderer = {
+      render: vi.fn((_frame: OwnedWebGpuFrame, secondaryFrame?: OwnedWebGpuSecondaryFrame) => {
+        if (secondaryFrame) secondaryFrames.push(secondaryFrame);
+        return secondaryFrames.length;
+      }),
+    } as unknown as OwnedWebGpuRenderer;
+    const { layout, node, runtime } = runtimeFixture(renderer);
+    runtime.minimapSurfaceRegisteredRef.current = true;
+    runtime.minimapPanelRef.current = {
+      getBoundingClientRect: () => ({ height: 160, width: 160 }),
+    } as HTMLDivElement;
+    runtime.pluginForcesRef.current.active = () => false;
+    while (!layout.engine.settled) layout.engine.tick();
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 0);
+    const settledCamera = { ...secondaryFrames[0].camera };
+    layout.engine.setNodePosition(0, 10_000, -10_000);
+    node.x = 10_000;
+    node.y = -10_000;
+    runtime.positionVersionRef.current += 1;
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 125);
+
+    expect(secondaryFrames).toHaveLength(2);
+    expect(secondaryFrames[1].camera).toEqual(settledCamera);
+    expect(secondaryFrames[1].camera.zoom).toBeGreaterThan(1);
   });
 
   it('does not run plugin forces when no fixed simulation step is due', () => {

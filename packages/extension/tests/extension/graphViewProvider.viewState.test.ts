@@ -212,7 +212,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     expect(sendMessageSpy).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
-      payload: { bidirectionalEdges: 'combined', showOrphans: false },
+        payload: { bidirectionalEdges: 'combined', showMinimap: true, showOrphans: false },
     });
     expect(sendMessageSpy).toHaveBeenNthCalledWith(2, {
       type: 'DIRECTION_SETTINGS_UPDATED',

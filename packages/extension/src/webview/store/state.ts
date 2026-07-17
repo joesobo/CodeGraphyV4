@@ -48,6 +48,7 @@ export interface GraphState {
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;
+  showMinimap: boolean;
   cssSnippets: Record<string, boolean>;
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
@@ -104,6 +105,7 @@ export interface GraphState {
   setParticleSize: (size: number) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
+  setShowMinimap: (show: boolean) => void;
   setCssSnippets: (snippets: Record<string, boolean>) => void;
   setDepthMode: (depthMode: boolean) => void;
   setMaxFiles: (max: number) => void;

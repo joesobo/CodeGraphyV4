@@ -6,6 +6,14 @@ const ORDINARY_LINK_OPACITY = 0.3;
 const CONNECTED_LINK_OPACITY = 0.9;
 const MUTED_LINK_OPACITY = 0.12;
 
+export function getBaseGraphLinkOpacity(): number {
+  return ORDINARY_LINK_OPACITY;
+}
+
+export function getBaseGraphLinkWidth(): number {
+  return 1;
+}
+
 function linkConnectsNode(link: FGLink, nodeId: string): boolean {
   return resolveLinkEndpointId(link.source) === nodeId
     || resolveLinkEndpointId(link.target) === nodeId;

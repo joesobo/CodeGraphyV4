@@ -23,6 +23,8 @@
     "test:node": "vitest run --config vitest.config.ts --project node",
     "test:webview": "vitest run --config vitest.config.ts --project webview",
     "test:playwright": "pnpm run generate:acceptance && pnpm run build:vscode && playwright test --config playwright.vscode.config.ts",
+    "test:webview-browser": "pnpm run build:webview && playwright test --config playwright.config.ts",
+    "test:webview-browser:minimap": "pnpm run build:webview && playwright test --config playwright.config.ts tests/playwright/depth-view.spec.ts --grep \"keeps the minimap viewport aligned\"",
     "test:vscode": "pnpm run test:playwright",
     "lint": "pnpm run generate:acceptance && eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",
     "typecheck": "pnpm run generate:acceptance && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && pnpm -w exec turbo run build --filter=@codegraphy-dev/core... && tsc --noEmit -p tests/playwright/tsconfig.json"

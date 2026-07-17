@@ -4,7 +4,13 @@ import type { FGLink, FGNode } from '../../../../../model/build';
 import { buildOwnedGraphLayoutData } from './data';
 import { toOwnedPhysicsConfig } from './settings';
 
-export interface OwnedGraphLayout { engine: GraphLayoutEngine; links: FGLink[]; nodes: FGNode[] }
+export interface OwnedGraphLayout {
+  baseStyleRevision: number;
+  engine: GraphLayoutEngine;
+  links: FGLink[];
+  membershipRevision: number;
+  nodes: FGNode[];
+}
 
 export { applyOwnedPhysicsSettings, toOwnedPhysicsConfig } from './settings';
 export { syncOwnedLayoutNodes, syncOwnedLayoutNodesAtVersion, updateOwnedGraphLayout } from './update';
@@ -12,8 +18,10 @@ export { syncOwnedLayoutNodes, syncOwnedLayoutNodesAtVersion, updateOwnedGraphLa
 export function createOwnedGraphLayout(nodes: FGNode[], links: FGLink[], settings: IPhysicsSettings): OwnedGraphLayout {
   const data = buildOwnedGraphLayoutData(nodes, links);
   return {
+    baseStyleRevision: 0,
     engine: createGraphLayoutEngine(data.input, toOwnedPhysicsConfig(settings)),
     links: data.resolvedLinks,
+    membershipRevision: 0,
     nodes,
   };
 }

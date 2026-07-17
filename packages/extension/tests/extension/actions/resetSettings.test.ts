@@ -33,6 +33,7 @@ const SNAPSHOT: ISettingsSnapshot = {
   particleSpeed: 0.75,
   particleSize: 6,
   showLabels: false,
+  showMinimap: false,
   maxFiles: 321,
   showFps: true,
   verboseDiagnostics: true,
@@ -74,6 +75,7 @@ describe('extension/actions/resetSettings', () => {
       ['showLabels', undefined],
       ['maxFiles', undefined],
       ['showFps', undefined],
+      ['showMinimap', undefined],
       ['verboseDiagnostics', undefined],
       ['nodeSizeMode', 'connections'],
     ]);
@@ -108,6 +110,7 @@ describe('extension/actions/resetSettings', () => {
       ['showLabels', false],
       ['maxFiles', 321],
       ['showFps', true],
+      ['showMinimap', false],
       ['verboseDiagnostics', true],
       ['nodeSizeMode', 'file-size'],
     ]);

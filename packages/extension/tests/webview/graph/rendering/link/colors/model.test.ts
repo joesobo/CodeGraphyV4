@@ -3,6 +3,7 @@ import type { EdgeDecorationPayload } from '../../../../../../src/shared/plugins
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import type { FGLink } from '../../../../../../src/webview/components/graph/model/build';
 import {
+  getBaseGraphLinkColor,
   getGraphLinkColor
 } from '../../../../../../src/webview/components/graph/rendering/link/colors/model';
 
@@ -44,6 +45,20 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
 }
 
 describe('graph/rendering/link/colors', () => {
+
+    it('keeps the base color when search and plugin decoration styles are active', () => {
+      const color = getBaseGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: '#f97316' },
+          },
+          highlightedNodeId: 'src/app.ts',
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
+
+      expect(color).toBe('#3b82f6');
+    });
 
     it('prefers edge decoration color over the link base color', () => {
       const color = getGraphLinkColor(

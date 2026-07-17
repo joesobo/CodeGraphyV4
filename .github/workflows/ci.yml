@@ -447,6 +447,55 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+  webview-browser:
+    name: Playwright / Webview browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.8
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.22.0
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: packages/extension
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Webview browser tests
+        run: pnpm --filter @codegraphy-dev/extension run test:webview-browser:minimap
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report-webview-browser
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload Playwright traces/videos
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-test-results-webview-browser
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 30
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20

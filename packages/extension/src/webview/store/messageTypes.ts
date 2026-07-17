@@ -44,6 +44,7 @@ export interface IStoreFields {
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;
+  showMinimap: boolean;
   cssSnippets: Record<string, boolean>;
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;

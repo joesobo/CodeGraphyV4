@@ -64,3 +64,16 @@ export interface GraphRendererFrame {
   positionVersion: number;
   styleVersion: number;
 }
+
+export interface GraphRendererSecondaryFrame {
+  backgroundColor: string;
+  camera: GraphRendererCamera;
+  cssHeight: number;
+  cssWidth: number;
+  devicePixelRatio: number;
+  getLinkColor(this: void, link: GraphRendererLink): string;
+  getLinkOpacity(this: void, link: GraphRendererLink): number;
+  getLinkWidth(this: void, link: GraphRendererLink): number;
+  getNodeStyle(this: void, node: GraphRendererNode): GraphRendererNodeStyle;
+  styleVersion: number;
+}

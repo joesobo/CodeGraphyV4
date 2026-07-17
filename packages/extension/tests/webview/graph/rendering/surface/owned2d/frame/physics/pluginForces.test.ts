@@ -31,7 +31,7 @@ function physicsFixture(tick: (node: FGNode, alpha?: number) => void): {
     collisionIterations: 0,
     velocityDecay: 0,
   });
-  const layout = { engine, links: [], nodes: [node] } as OwnedGraphLayout;
+  const layout = { engine, links: [], baseStyleRevision: 0, membershipRevision: 0, nodes: [node] };
   const runtime = {
     cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
     engineStopNotifiedRef: { current: false },
@@ -122,7 +122,7 @@ describe('owned graph frame plugin forces', () => {
       fixed.fy = 0;
       return true;
     });
-    const layout = { engine, links: [], nodes: [fixed, other] } as OwnedGraphLayout;
+    const layout = { engine, links: [], baseStyleRevision: 0, membershipRevision: 0, nodes: [fixed, other] };
 
     engine.tick(createOwnedGraphExternalForce(runtime, layout));
 

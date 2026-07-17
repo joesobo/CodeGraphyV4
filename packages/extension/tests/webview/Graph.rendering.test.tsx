@@ -38,7 +38,8 @@ describe('Graph rendering', () => {
   it('should apply correct container styles', () => {
     const { container } = render(<Graph data={graphData} />);
     const graphContainer = container.querySelector('div');
-    expect(graphContainer).toHaveClass('absolute', 'inset-2', 'rounded-md', 'overflow-hidden');
+    expect(graphContainer).toHaveClass('absolute', 'rounded-md', 'overflow-hidden');
+    expect(graphContainer).toHaveStyle({ inset: '8px' });
     expect(graphContainer?.getAttribute('style')).toContain('background-color: canvas');
     expect(graphContainer?.style.borderWidth).toBe('');
     expect(graphContainer?.style.borderStyle).toBe('');
