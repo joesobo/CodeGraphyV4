@@ -18,6 +18,30 @@ one setting.
 
 ## First PR Scope
 
+### Useful Graph Cache data
+
+The SQLite Graph Cache currently creates `FileAnalysis`, `Symbol`, and
+`Relation` tables but writes only `FileAnalysis`. Symbols and Relationships are
+embedded in `FileAnalysis.analysis` JSON, while snapshot reads silently fall
+back to that blob when the normalized tables are empty.
+
+Make the persisted model match its schema:
+
+- `FileAnalysis` owns per-file cache metadata and remaining analysis data.
+- `Symbol` owns declared Symbol records.
+- `Relation` owns Relationship records.
+- Do not duplicate Symbols and Relationships inside `FileAnalysis.analysis`.
+- Full saves and incremental patches maintain all three tables atomically.
+- Loads reconstruct the existing in-memory file-analysis contract without a
+  legacy fallback path.
+- Existing Graph Caches are rebuilt through the normal cache-version boundary
+  rather than supported through a parallel compatibility path.
+
+`FileAnalysis.contentHash` remains cache-validity metadata: the lowercase
+SHA-256 digest of the file's exact text content. It lets Indexing detect content
+changes when filesystem metadata is ambiguous and avoid reanalysis when a
+timestamp changed but content did not.
+
 ### Self-sufficient help
 
 - Make `codegraphy --help` describe the workflow and every command in one line.
@@ -120,6 +144,8 @@ These public seams require confirmation before implementation:
    both the envelope and preservation of unrelated settings.
 4. The published `skills/codegraphy/SKILL.md` content as a concise workflow
    contract.
+5. The raw SQLite Graph Cache after public full-save and incremental-patch
+   operations, plus round-trip loading through the public storage API.
 
 Implementation will proceed in vertical TDD slices after these seams are
 confirmed.
