@@ -157,7 +157,6 @@ describe('extension/pipeline/service/internalBase analysis', () => {
       disabledPlugins,
     );
     expect(createWorkspacePipelineAnalysisCacheTiers).toHaveBeenCalledWith(
-      { file: true, symbol: false },
       ['plugin.a'],
     );
     await expect(

@@ -60,6 +60,7 @@ describe('GraphViewProvider query methods', () => {
         limit: 500,
         returned: 1,
         total: 1,
+        nextOffset: null,
       },
     });
     expect(readStructuredAnalysisSnapshot).toHaveBeenCalledTimes(1);

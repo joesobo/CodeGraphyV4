@@ -242,7 +242,6 @@ describe('extension/pipeline/service/cachedGraph', () => {
       disabledPlugins,
       files: cachedFiles,
       getActiveAnalysisPluginIds: expect.any(Function),
-      nodeVisibility: { symbol: true, 'symbol:function': true },
       registry: facade._registry,
       signal,
       workspaceRoot: '/workspace',
@@ -362,11 +361,8 @@ describe('extension/pipeline/service/cachedGraph', () => {
     );
   });
 
-  it('hydrates only baseline runtime tiers when symbols and plugin analysis are inactive', async () => {
+  it('hydrates baseline and symbol tiers when plugin analysis is inactive', async () => {
     const facade = new TestCachedGraphFacade();
-    vi.mocked(facade._config.get).mockImplementation((key: string, defaultValue: unknown) =>
-      key === 'nodeVisibility' ? { symbol: false } : defaultValue,
-    );
     facade.activeAnalysisPluginIds.mockReturnValue([]);
 
     await facade.loadCachedGraph([], new Set(), undefined, {
@@ -374,7 +370,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
     });
 
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
-      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
     });
   });
 
