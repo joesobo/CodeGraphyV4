@@ -19,16 +19,39 @@ describe('cli/help/command', () => {
     expect(result.output).not.toContain('[workspace]');
   });
 
+  it('explains the index, settings, and query workflow from root help', () => {
+    const output = createHelpResult().output;
+
+    expect(output).toContain('1. Index the workspace into its Graph Cache.');
+    expect(output).toContain('2. Shape the graph with Filters, Graph Scope, and Plugins.');
+    expect(output).toContain('3. Query the resulting graph.');
+    expect(output).toContain('codegraphy index                         Create or update the Graph Cache');
+    expect(output).toContain('codegraphy filter                        Read or change persisted Filters');
+    expect(output).toContain('codegraphy dependencies <node>           List outgoing Relationships');
+  });
+
   it('reports flag-free query usage', () => {
-    expect(createHelpResult(['status']).output).toBe('Usage: codegraphy status');
-    expect(createHelpResult(['nodes']).output).toBe('Usage: codegraphy nodes');
-    expect(createHelpResult(['search']).output).toBe('Usage: codegraphy search <text>');
-    expect(createHelpResult(['dependencies']).output).toBe('Usage: codegraphy dependencies <node>');
-    expect(createHelpResult(['path']).output).toBe('Usage: codegraphy path <from> <to>');
+    expect(createHelpResult(['status']).output).toContain('Usage: codegraphy status');
+    expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
+    expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search <text>');
+    expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies <node>');
+    expect(createHelpResult(['path']).output).toContain('Usage: codegraphy path <from> <to>');
+  });
+
+  it('explains command purpose, effects, output, and examples', () => {
+    const indexHelp = createHelpResult(['index']).output;
+    expect(indexHelp).toContain('Create or update the workspace Graph Cache.');
+    expect(indexHelp).toContain('Effects: Writes .codegraphy/graph.sqlite');
+    expect(indexHelp).toContain('Output: JSON indexing summary.');
+    expect(indexHelp).toContain('Example: codegraphy index');
+
+    const filterHelp = createHelpResult(['filter']).output;
+    expect(filterHelp).toContain('Filters are persisted in .codegraphy/settings.json');
+    expect(filterHelp).toContain("codegraphy filter add '**/generated/**'");
   });
 
   it('reports workspace-free plugin usage', () => {
-    expect(createHelpResult(['plugins', 'enable']).output).toBe(
+    expect(createHelpResult(['plugins', 'enable']).output).toContain(
       'Usage: codegraphy plugins enable <plugin-id-or-package>',
     );
   });
