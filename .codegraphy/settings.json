@@ -365,7 +365,8 @@
     ".superpowers/**",
     "reports/**",
     ".pnpm-store/**",
-    "docs/**"
+    "docs/**",
+    ".claude/**"
   ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
