@@ -1,6 +1,8 @@
 {
-  "version": 1,
+  "version": 2,
   "maxFiles": 500,
+  "showFps": false,
+  "showMinimap": true,
   "verboseDiagnostics": false,
   "include": [
     "**/*"
@@ -45,12 +47,20 @@
     {
       "id": "codegraphy.particles",
       "enabled": true
+    },
+    {
+      "id": "codegraphy.svelte",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.unity",
+      "enabled": true
     }
   ],
   "pluginData": {
     "codegraphy.particles": {
-      "enabled": true,
-      "preset": "snow"
+      "enabled": false,
+      "preset": "none"
     }
   },
   "nodeColors": {
@@ -62,9 +72,16 @@
     "symbol:namespace": "#64748B",
     "symbol:callable": "#8B5CF6",
     "symbol:method": "#A855F7",
+    "symbol:constructor": "#C084FC",
     "symbol:prototype": "#A78BFA",
     "symbol:class": "#3B82F6",
+    "symbol:mixin": "#2563EB",
+    "symbol:extension": "#4F46E5",
     "symbol:interface": "#06B6D4",
+    "symbol:record": "#6366F1",
+    "symbol:delegate": "#10B981",
+    "symbol:property": "#84CC16",
+    "symbol:event": "#F97316",
     "symbol:type": "#EC4899",
     "symbol:struct": "#0EA5E9",
     "symbol:union": "#14B8A6",
@@ -72,13 +89,23 @@
     "symbol:typedef": "#F472B6",
     "symbol:alias": "#F472B6",
     "symbol:template": "#C084FC",
+    "plugin:codegraphy.gdscript:symbol:scene": "#478CBF",
+    "plugin:codegraphy.gdscript:symbol:resource": "#F59E0B",
+    "plugin:codegraphy.gdscript:symbol:autoload": "#10B981",
+    "plugin:codegraphy.gdscript:symbol:scene-node": "#A855F7",
+    "plugin:codegraphy.gdscript:symbol:signal": "#EF4444",
     "variable": "#14B8A6",
+    "variable:plain": "#14B8A6",
     "symbol:constant": "#22C55E",
     "symbol:global": "#0D9488",
     "symbol:field": "#84CC16",
     "symbol:parameter": "#2DD4BF",
     "symbol:local": "#10B981",
-    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF",
+    "plugin:codegraphy.gdscript:symbol:exported-property": "#2DD4BF",
+    "plugin:codegraphy.unity:symbol": "#F97316",
+    "plugin:codegraphy.unity:symbol:game-object": "#0EA5E9",
+    "plugin:codegraphy.unity:symbol:component": "#22C55E"
   },
   "nodeVisibility": {
     "file": true,
@@ -89,9 +116,16 @@
     "symbol:namespace": false,
     "symbol:callable": false,
     "symbol:method": false,
+    "symbol:constructor": false,
     "symbol:prototype": false,
     "symbol:class": false,
+    "symbol:mixin": false,
+    "symbol:extension": false,
     "symbol:interface": false,
+    "symbol:record": false,
+    "symbol:delegate": false,
+    "symbol:property": false,
+    "symbol:event": false,
     "symbol:type": false,
     "symbol:struct": false,
     "symbol:union": false,
@@ -99,25 +133,40 @@
     "symbol:typedef": false,
     "symbol:alias": false,
     "symbol:template": false,
+    "plugin:codegraphy.gdscript:symbol:scene": false,
+    "plugin:codegraphy.gdscript:symbol:resource": false,
+    "plugin:codegraphy.gdscript:symbol:autoload": false,
+    "plugin:codegraphy.gdscript:symbol:scene-node": false,
+    "plugin:codegraphy.gdscript:symbol:signal": false,
     "variable": false,
+    "variable:plain": false,
     "symbol:constant": false,
     "symbol:global": false,
     "symbol:field": false,
     "symbol:parameter": false,
     "symbol:local": false,
-    "plugin:codegraphy.gdscript:symbol:godot-class-name": false
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": false,
+    "plugin:codegraphy.gdscript:symbol:exported-property": false,
+    "plugin:codegraphy.unity:symbol": false,
+    "plugin:codegraphy.unity:symbol:game-object": false,
+    "plugin:codegraphy.unity:symbol:component": false
   },
   "edgeVisibility": {
     "include": true,
     "import": true,
-    "reference": true,
+    "using": true,
+    "nests": false,
     "call": false,
-    "type-import": true,
+    "contains": false,
+    "event": true,
+    "implements": true,
     "inherit": true,
     "load": true,
-    "nests": false,
-    "contains": false,
     "overrides": true,
+    "reference": true,
+    "type": true,
+    "type-import": true,
+    "codegraphy.gdscript:signal-connection": true,
     "codegraphy.typescript:alias-import": true
   },
   "favorites": [],
@@ -147,18 +196,12 @@
   "particleSize": 4,
   "depthMode": false,
   "depthLimit": 1,
-  "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
     "repelForce": 18,
     "linkDistance": 50,
     "linkForce": 1,
-    "damping": 0.7,
-    "centerForce": 0.2,
-    "chargeRange": 200
-  },
-  "timeline": {
-    "maxCommits": 500,
-    "playbackSpeed": 1
+    "damping": 0.4,
+    "centerForce": 0.2
   }
 }
