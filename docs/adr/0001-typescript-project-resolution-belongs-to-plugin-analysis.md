@@ -1,5 +1,7 @@
 # TypeScript Project Resolution Belongs To Plugin Analysis
 
+**Status:** Accepted
+
 TypeScript `compilerOptions.paths` and related project configuration are **Project-Aware Analysis Semantics**, not baseline syntax parsing. Core should provide the plugin substrate for adding relationship data and projecting it into the Relationship Graph, while TypeScript-specific project resolution such as `compilerOptions.paths` belongs in Plugin Analysis so workspaces that do not care about TypeScript semantics do not pay for tsconfig discovery, parsing, and alias matching.
 
 **Considered Options**

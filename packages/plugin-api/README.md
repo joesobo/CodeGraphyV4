@@ -73,7 +73,7 @@ Current Legend Layer precedence in the host is:
 2. plugin defaults
 3. custom user Legend Entries
 
-That means a plugin can contribute default Legend styling for its own files or concepts, and a user can layer custom Legend Entries above built-in defaults through the Legends and Plugins popups.
+That means a plugin can contribute default Legend styling for its own files or concepts, and a user can layer custom Legend Entries above built-in defaults through the Themes panel.
 
 Exact merge behavior:
 
@@ -161,4 +161,8 @@ The published CodeGraphy plugin packages use the same API surface:
 
 - [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
 - [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
+- [`@codegraphy-dev/plugin-unity`](https://www.npmjs.com/package/@codegraphy-dev/plugin-unity)
 - [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)
+- [`@codegraphy-dev/plugin-particles`](https://www.npmjs.com/package/@codegraphy-dev/plugin-particles)
+- [`@codegraphy-dev/plugin-vue`](https://www.npmjs.com/package/@codegraphy-dev/plugin-vue)
+- [`@codegraphy-dev/plugin-svelte`](https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte)

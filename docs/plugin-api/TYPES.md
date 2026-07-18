@@ -154,7 +154,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 
 The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw graph-renderer instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
 
-Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and MCP consume the same core analysis path without installing VS Code or webview dependencies.
+Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and VS Code extension consume the same Core analysis path without making plugins depend on VS Code or webview code.
 
 ## Data Types
 
