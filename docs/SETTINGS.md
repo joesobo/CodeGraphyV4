@@ -1,601 +1,252 @@
 # Settings
 
-CodeGraphy keeps CodeGraphy Workspace settings under `.codegraphy/settings.json`.
+CodeGraphy stores workspace behavior in `.codegraphy/settings.json`. The extension creates the file, watches it, and writes controls back to it. You can edit valid JSON by hand; CodeGraphy ignores an invalid save until you fix it.
 
-- The graph UI writes to that file for you.
-- The file is mostly internal, but still human-editable.
-- CodeGraphy watches it for changes and updates relevant graph state when it changes.
-- `.codegraphy/settings.json` is the source of truth for workspace-local behavior.
-- These settings are no longer intended to be managed from VS Code's built-in Settings UI.
+Display and projection changes update the current Graph View from runtime memory. Discovery or analyzer-plugin changes can schedule graph work. Re-index remains the explicit full refresh path.
 
-Settings do not all trigger the same graph work. Display and projection settings
-such as filters, Graph Scope visibility, node colors, edge colors, visual plugin
-data, and CSS snippets update the live Graph View from runtime memory without
-marking Graph Cache stale. Analyzer plugin settings and discovery settings can
-schedule targeted graph work, and explicit Re-index remains the full refresh
-path that rebuilds Graph Cache from the current settings.
-
-## Workspace-local settings file
-
-The workspace-local settings file lives at:
+## Settings File
 
 ```text
-.codegraphy/settings.json
+<workspace-root>/.codegraphy/settings.json
 ```
 
-Common top-level sections include:
-
-- `nodeVisibility`
-- `nodeColors`
-- `edgeVisibility`
-- `edgeColors`
-- `legend` (the stored Legend Entry list used by the Legends popup)
-- `cssSnippets`
-- `plugins`
-- `physics`
-
-Example:
+A small hand-written file can override only the values you care about:
 
 ```json
 {
-  "version": 1,
-  "nodeVisibility": {
-    "file": true,
-    "folder": false,
-    "package": false
-  },
-  "edgeVisibility": {
-    "nests": true,
-    "import": true,
-    "reference": true
-  },
-  "edgeColors": {
-    "import": "#60A5FA",
-    "reference": "#F97316"
-  },
+  "version": 2,
+  "maxFiles": 2000,
+  "showMinimap": true,
+  "showOrphans": false,
+  "filterPatterns": ["**/generated/**", "**/*.snap"],
   "plugins": [
-    {
-      "id": "codegraphy.markdown",
-      "enabled": true
-    },
-    {
-      "id": "codegraphy.vue",
-      "enabled": true,
-      "options": {
-        "includeTests": true
-      }
-    }
-  ],
-  "legend": [
-    { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
+    { "id": "codegraphy.markdown", "enabled": true },
+    { "id": "codegraphy.vue", "enabled": true }
   ],
   "cssSnippets": {
-    ".codegraphy/snippets/base-grid.css": true
-  },
-  "pluginData": {
-    "codegraphy.particles": {
-      "enabled": true,
-      "preset": "embers"
-    }
+    ".codegraphy/snippets/team.css": true
   }
 }
 ```
 
-## Core settings reference
+The extension normalizes missing values against current defaults and preserves recognized extension-owned fields when the Core CLI updates Graph Scope, filters, or plugins.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `maxFiles` | number | `1000` | Maximum files to discover/analyze |
-| `showFps` | boolean | `false` | Shows measured rendered FPS and average simulation/render CPU cost in the Graph Stage |
-| `verboseDiagnostics` | boolean | `false` | Enables CodeGraphy-prefixed support diagnostics in the VS Code Developer Tools console |
-| `include` | string[] | `["**/*"]` | Glob patterns for files to include |
-| `filterPatterns` | string[] | `[]` | Filter Settings for files to exclude |
-| `respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
-| `showOrphans` | boolean | `true` | Keep Orphan Nodes after final graph stages |
-| `showLabels` | boolean | `true` | Show file name labels on nodes |
-| `bidirectionalEdges` | string | `"separate"` | How to render bidirectional file edges |
-| `directionMode` | string | `"arrows"` | Direction indicator mode |
-| `directionColor` | string | `"#475569"` | Direction indicator color |
-| `particleSpeed` | number | `0.005` | Particle direction speed |
-| `particleSize` | number | `4` | Particle size in pixels |
-| `favorites` | string[] | `[]` | Favorite file paths |
-| `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
-| `cssSnippets` | object | `{}` | Workspace-relative CSS snippet paths mapped to `true` to load or `false` to keep disabled |
-| `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
-| `pluginData` | object | `{}` | Plugin-owned workspace settings keyed by Plugin ID |
-| `nodeVisibility` | object | generated | Graph Scope by Node Type id |
-| `nodeColors` | object | generated | Node-type colors by id |
-| `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
-| `edgeColors` | object | generated | Edge-kind colors by id |
-| `physics.*` | object | see file | Force simulation controls |
+## Reference
 
-## CSS Snippets
+| Key | Type | Default | Purpose |
+|---|---|---|---|
+| `version` | number | `2` | Persisted extension settings schema. |
+| `maxFiles` | number | `1000` | Maximum files discovered during Indexing. |
+| `include` | string[] | `["**/*"]` | Workspace-relative discovery globs. |
+| `respectGitignore` | boolean | `true` | Exclude paths Git reports as ignored. |
+| `filterPatterns` | string[] | `[]` | Enabled custom exclusion patterns. |
+| `disabledCustomFilterPatterns` | string[] | `[]` | Custom filter patterns retained in a disabled state. |
+| `disabledPluginFilterPatterns` | string[] | `[]` | Disabled source-owned plugin filter patterns. |
+| `showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
+| `showLabels` | boolean | `true` | Draw Node labels. |
+| `showMinimap` | boolean | `true` | Show the interactive graph minimap. |
+| `showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |
+| `verboseDiagnostics` | boolean | `false` | Emit extension support diagnostics. |
+| `nodeVisibility` | object | generated | Graph Scope intent by Node Type ID. |
+| `edgeVisibility` | object | generated | Graph Scope intent by Edge Type ID. |
+| `nodeColors` | object | generated | Node Type colors. |
+| `legend` | object[] | `[]` | Custom Legend Entries. |
+| `legendVisibility` | object | `{}` | Enabled state for source-owned Legend entries and groups. |
+| `legendOrder` | string[] | `[]` | Custom Legend priority order. |
+| `favorites` | string[] | `[]` | Favorite Node paths. |
+| `bidirectionalEdges` | string | `"separate"` | Draw mutual Edges separately or combined. |
+| `directionMode` | string | `"arrows"` | Use arrows, particles, or no direction indicator. |
+| `directionColor` | string | `"#475569"` | Direction indicator color. |
+| `particleSpeed` | number | `0.005` | Direction-particle speed. |
+| `particleSize` | number | `4` | Direction-particle size in pixels. |
+| `depthMode` | boolean | `false` | Focus around the selected Node by Edge depth. |
+| `depthLimit` | number | `1` | Depth Mode hop limit, clamped from 1 to 10 and to reachable graph depth. |
+| `nodeSizeMode` | string | `"connections"` | Size Nodes by Connections or File Size. |
+| `physics` | object | see below | WebAssembly force settings. |
+| `cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
+| `plugins` | object[] | Markdown enabled | Workspace Plugin ID activity and options. |
+| `pluginData` | object | `{}` | Plugin-owned persisted data keyed by Plugin ID. |
 
-CodeGraphy CSS Snippets let a workspace apply small CSS files to the CodeGraphy Extension UI without rebuilding a full VS Code theme.
+Edge colors come from Edge Type definitions and Legend layers. There is no current `edgeColors` settings map.
 
-Create a CSS file inside the CodeGraphy Workspace, usually:
-
-```text
-.codegraphy/snippets/base-grid.css
-```
-
-Then enable it in `.codegraphy/settings.json`:
+### Physics
 
 ```json
 {
-  "cssSnippets": {
-    ".codegraphy/snippets/base-grid.css": true,
-    ".codegraphy/snippets/forest.css": false,
-    ".codegraphy/snippets/ocean-image.css": true
+  "physics": {
+    "repelForce": 10,
+    "linkDistance": 80,
+    "linkForce": 1,
+    "damping": 0.4,
+    "centerForce": 0.1
   }
 }
 ```
 
-The object is the snippet toggle map. A path set to `true` loads into the webview. A path set to `false` stays in settings but does not load. A path that is not included does nothing. Enabled snippets load in object insertion order, so later enabled entries can override earlier enabled entries through the normal CSS cascade.
+The Settings > Forces controls apply these values to the live WebAssembly layout.
 
-Path rules:
+## Discovery and Filters
 
-- Paths are relative to the CodeGraphy Workspace root.
-- Paths must end in `.css`.
-- Paths must stay inside the CodeGraphy Workspace.
-- Absolute paths and `../` parent traversal are rejected.
-- Missing, invalid, or rejected paths write `[CodeGraphy]` warnings to the VS Code Developer Tools console.
-
-CodeGraphy watches `.codegraphy/settings.json`, so adding or removing entries updates the loaded snippet list. Editing the contents of an already loaded CSS file does not auto-reload yet; reload the webview or touch the settings file after changing snippet contents.
-
-### Styling Hooks
-
-Snippets should target CodeGraphy Styling Hooks: stable `data-codegraphy-*` attributes exposed by the extension UI. These hooks are the customization contract; avoid targeting generated classes or incidental React wrapper structure.
-
-Common hooks:
-
-| Hook | Values | Surface |
-|------|--------|---------|
-| `data-codegraphy-surface` | `app`, `graph-view`, `graph-stage` | Main view surfaces |
-| `data-codegraphy-layer` | `graph-overlay`, `graph-stage-world-overlay`, `graph-stage-viewport-overlay`, `graph-accessibility` | Graph overlay layers |
-| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `graph-index-progress-track`, `graph-index-progress-fill` | Reusable regions inside views and panels |
-| `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings` | Panels |
-| `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs` | Interactive controls |
-| `data-codegraphy-section` | `particles`, `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
-| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `theme-panel`, `toolbar` | Plugin contribution slots |
-| `data-codegraphy-state` | `loading`, `empty`, `graph-indexing` | View states |
-| `data-codegraphy-row` | `plugin`, `css-snippet`, `display-direction`, `display-bidirectional` | Repeated rows |
-
-Example:
-
-```css
-[data-codegraphy-surface='graph-stage'] {
-  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 32%);
-}
-
-[data-codegraphy-panel='graph-scope'] {
-  backdrop-filter: blur(12px);
-}
-```
-
-See `examples/.codegraphy/snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
-
-### Colors used by the WebGPU graph
-
-The graph bodies and edges are rendered into a WebGPU canvas rather than as DOM elements. CSS snippets and plugin styles can still define global color tokens, and plugin node or edge decorations can refer to those tokens with any browser-supported CSS color value:
-
-```css
-:root {
-  --workspace-important-node: hsl(38 92% 50%);
-  --workspace-related-edge: color-mix(in srgb, #38bdf8 70%, transparent);
-}
-```
-
-A plugin decoration can use `var(--workspace-important-node)`, named colors, HSL, percentage RGB, or `currentColor`. CodeGraphy resolves the browser's computed color before uploading it to WebGPU. Enabling, disabling, or finishing the load of a plugin/snippet stylesheet invalidates the GPU style cache so toggleable plugin themes update the graph. Invalid or unresolved decoration colors fall back to the node or edge's normal color instead of silently becoming black.
-
-The `data-codegraphy-*` hooks above apply to real DOM UI surfaces and overlays. There is intentionally no `[data-node-id]` hook for graph nodes: WebGPU nodes are GPU instances, not DOM elements, so ordinary CSS selectors cannot select one node. Use node and edge decoration contributions for per-item styling. A future selector feature would need to evaluate selectors against graph node metadata and repack matching GPU styles; adding invisible per-node DOM elements would not style the canvas and would create unacceptable large-graph overhead.
-
-## Particles
-
-The `codegraphy.particles` plugin injects a **Particles** section into the
-Theme popup when that plugin is active. The extension does not own these
-particles directly; the plugin owns the controls, canvas renderer, presets, and
-settings shape.
-
-Particle state is stored in `.codegraphy/settings.json` under
-`pluginData["codegraphy.particles"]`:
+`include` limits File Discovery before analysis:
 
 ```json
 {
-  "pluginData": {
-    "codegraphy.particles": {
-      "enabled": true,
-      "preset": "constellations"
-    }
-  }
+  "include": ["packages/core/src/**/*", "packages/extension/src/**/*"]
 }
 ```
 
-Built-in presets are `synapse`, `rain`, `constellations`, `perlin-flow`, `leaves`, `sparkles`, `embers`, and `snow`. Use `none` with `enabled: false` to disable the canvas.
-
-Custom particle effects are TypeScript files in `.codegraphy/particles/`.
-The Particles plugin compiles them for the Graph View webview and shows them
-as custom toggles in the Theme popup. Store the selected effect id in
-`customEffectId`:
+`filterPatterns` removes recurring noise after Graph Scope. Patterns support basename matching, so `*.png` matches at any depth.
 
 ```json
 {
-  "pluginData": {
-    "codegraphy.particles": {
-      "enabled": true,
-      "preset": "custom",
-      "customEffectId": "fireflies"
-    }
-  }
+  "filterPatterns": ["*.png", "**/*.snap", "vendor/**"]
 }
 ```
 
-For example, `examples/.codegraphy/particles/fireflies.ts` appears as a
-Fireflies toggle when the `examples/` workspace is open. Custom effect files
-should export `activateParticleEffect(context)` and may return a cleanup
-function.
+Core also excludes common generated directories and artifacts such as `node_modules`, `dist`, `build`, `.git`, coverage output, minified JavaScript, and bundles. When `respectGitignore` is true, Git-ignored paths do not enter File Discovery.
 
-## Graph Scope settings
+An empty `include` normalizes to `["**/*"]`. Duplicate filters are removed during normalization.
 
-Graph Scope writes Node Type visibility to `nodeVisibility` and Edge Type visibility to `edgeVisibility`. These maps store user intent by type id. A key can remain in settings even when the current workspace no longer shows that row; CodeGraphy preserves the saved value so toggles come back with the user's last choice if the relevant language or plugin returns.
+## Graph Scope and Legend
 
-Node Type rows are capability-driven:
+Graph Scope writes Node Type intent to `nodeVisibility` and Edge Type intent to `edgeVisibility`. These maps retain saved values when a language or plugin capability disappears, so the value returns if that capability becomes relevant again.
 
-- `file`, `folder`, and `package` are structural Node Types and are always available in Graph Scope.
-- `symbol` and `variable` are parent toggles. They appear only when at least one visible child Node Type belongs under them.
-- Child Symbol and Variable rows appear when the active analyzer or plugin declares them relevant for the indexed workspace through Graph Scope capabilities.
-- Before a workspace has indexed file paths and Node Type capabilities, Graph Scope shows only structural Node Types.
-
-Edge Type rows follow the same workspace-capability model. Active analyzers and plugins declare which Edge Types are relevant for all indexed files in the workspace, so mixed-language workspaces show the union of relevant controls while single-language workspaces hide impossible controls.
-
-## Plugin settings
-
-Plugin enablement is workspace-local. Installing a plugin package only makes it available; enabling it writes Plugin ID activity into the workspace `plugins` array.
-
-First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
-
-```json
-{
-  "plugins": [
-    {
-      "id": "codegraphy.markdown",
-      "enabled": true
-    }
-  ]
-}
-```
-
-Setting that entry to `enabled: false` disables Markdown for the workspace. Other registered plugins stay disabled until they are enabled through the VS Code UI or CLI. Absence means the plugin has never been toggled in that workspace.
-
-Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
-
-When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin copies those defaults into the workspace entry. That makes the settings explicit and editable:
-
-```json
-{
-  "plugins": [
-    {
-      "id": "codegraphy.gdscript",
-      "enabled": true,
-      "options": {
-        "includeSceneResources": true,
-        "includeAutoloads": true,
-        "includeClassNameUsage": true
-      }
-    }
-  ]
-}
-```
-
-The CLI and VS Code plugin popup should produce the same workspace shape when they enable the same registered plugin.
-
-## Settings Panel
-
-Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.
-
-### Forces
-
-Adjusts CodeGraphy's custom WebAssembly physics in real time. Global charge separates nodes, degree-aware edge forces keep hubs stable while connected nodes cluster, and setting changes reheat the layout smoothly. The default force values are Repel `10`, Center `0.1`, Link Distance `80`, Link Force `1`, and velocity decay `0.4`.
-
-| Control | Range | Description |
-|---------|-------|-------------|
-| Repel Force | 0-20 | How strongly nodes push apart. Higher values spread nodes out more. |
-| Center Force | 0-1 | Pull toward the viewport center. |
-| Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
-| Link Force | 0-2 | How strongly edges pull connected nodes together; `1` is the tuned baseline. |
-
-### Performance
-
-- **Max Files** limits how many files are discovered and analyzed.
-- **Show FPS** displays `x FPS · y ms` beneath the top-right graph count. FPS is measured from the intervals between successfully completed rendered frames; rejected GPU work and callbacks from an obsolete renderer generation are excluded. Two successful frames are required before a finite FPS can be shown. The milliseconds value is the rolling average CPU time spent simulating and rendering each submitted frame, not total display latency. When the demand-driven graph is idle, the readout shows `— FPS · — ms` instead of retaining stale activity. The setting persists as `showFps` in `.codegraphy/settings.json` and is off by default.
-- **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
-
-See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code and CLI support workflow.
-
-
-### Legends
-
-Legend Entries now live in the **Themes** panel under the **Legends** section, not inside the settings panel.
-The persisted key remains `legend`.
-
-For node styling, the popup is split into these subsections from top to bottom:
-
-1. `Custom`
-2. `Plugins`
-3. `Material Icon Theme`
-4. `Defaults`
-
-`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin entries sit above core. Custom Legend Entries sit above both.
+Before Indexing, Node Types show structural File, Folder, and Package controls. Symbol, Variable, language, and plugin child rows appear from indexed capability declarations. Edge Type controls become available after a Graph Cache exists.
 
 Legend styling resolves in this order:
 
-1. core defaults
-2. plugin defaults
-3. custom Legend Entries
+1. Core defaults
+2. Plugin defaults
+3. Custom Legend Entries
 
-Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom Legend Entry can add an icon on top of an existing color choice.
+Turning off a Legend Entry disables its styling. It does not hide matching Nodes or Edges. Custom entries can match file paths, symbol names, symbol kinds, plugin kinds, languages, and containing file paths.
 
-Custom Legend Entries use glob matching and are applied in drag order:
-
-- bottom entry applies first
-- top entry applies last
-- top entries can override lower entries
-
-Custom Legend Entries can target files, folders, packages, and plugin-added Node Types through one shared priority system.
-
-Symbol nodes are available through Graph Scope as **Symbol**, with **Variable** shown as a dependent Node Type. Turning Symbol off hides symbol-kind and variable rows without erasing their saved on/off state, so turning Symbol back on restores the previous child choices. When Symbol is off, Graph View keeps symbol analysis in the Graph Cache but does not project symbol nodes, `contains` edges, or symbol-to-symbol edges into the graph payload. When Symbol is on, the `contains` Edge Type connects File Nodes to their contained symbol nodes, and symbol-to-symbol relationship edges such as calls, references, imports, and overrides can appear when analysis provides that detail.
-
-Built-in Legend defaults include common symbol kinds such as Function, Class, Interface, Struct, Enum, Type, Variable, and Constant when the current graph contains those symbol kinds. Function covers function-like and method-like declarations. More specific language kinds still appear as Symbol Nodes through the fallback Symbol styling, and users can target them with Custom Legend Entries by symbol kind. Default node Legend entries provide colors directly; use a Custom Legend Entry when you want to override one. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes `Plugins` / `Godot` / `class_name` for GDScript `class_name` symbols when those symbols are present, and emits GDScript functions, constants, variables, and enums into the shared symbol-kind defaults. It also contributes plugin-owned Graph Scope rows for Scene, Resource, Autoload, Scene Node, Signal, and Exported Property symbols. In Graph Scope, Godot `class_name` rows are grouped under Variable because they behave like plugin-owned variable-style declarations.
-
-Custom Legend Entry patterns can match symbol IDs, symbol names, symbol kinds, plugin kinds, and containing file paths. For example, a custom node Legend Entry with pattern `Function` can override the default Function symbol color, and `*.ts` can style symbols contained by TypeScript files.
-
-- Enter a glob pattern and choose a color, optional shape, and optional icon, then click Add.
-- Click the x button next to a custom Legend Entry to delete it.
-- Lower entries apply first, higher entries apply last.
-- Drag custom entries to reorder priority.
-- Changes sync back to the extension immediately.
-
-Legend colors support opacity. The color popover stores opaque colors as `#RRGGBB` and transparent colors as `rgba(...)`.
-
-Group patterns match by basename or path suffix. Simple extension patterns like `*.ts` match files at any depth, `src/*` matches files directly inside any `src/` folder, and `src/**` matches files at any depth under any `src/` folder.
-
-**Example custom Legend Entries:**
-```
-Pattern: src/**    Color: #3B82F6        (blue, all source files)
-Pattern: *.test.*  Color: #10B981        (green, test files)
-Pattern: *.md      Color: rgba(107, 114, 128, 0.65)  (faded documentation)
-Pattern: tests/*   Color: #F59E0B        (amber, files directly inside any tests folder)
-Pattern: **/*.gd   Color: #478CBF        (Godot symbol file scope)
-```
-
-Legend Entry Toggles for `Plugins`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
-
-To reuse custom Legend Entries across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
-```json
-{
-  "legend": [
-    { "id": "src", "pattern": "src/**", "color": "#3B82F6" },
-    { "id": "docs", "pattern": "*.md", "color": "rgba(107, 114, 128, 0.65)" }
-  ]
-}
-```
-
-### Filters
-
-Controls Filter Settings for durable noise removal. These are applied during File Discovery, not as a temporary Search.
-
-- **Show Orphans** keeps or removes Orphan Nodes after Graph Scope, filtering, search, and view settings have been applied.
-- **Max Files** limits how many files are analyzed.
-- **Exclude patterns** are Filter Settings for files to remove entirely. Patterns support `matchBase`, so `*.png` excludes PNG files at any depth.
-
-Exclude patterns are appended to the built-in excludes (`node_modules`, `dist`, `build`, etc.).
-
-**Common exclude patterns:**
-```
-*.png           all PNG images
-*.svg           all SVG files
-**/*.test.*     all test files
-vendor/**       a vendor directory
-```
-
-To version-control filter patterns, add them to `settings.json`:
-```json
-{
-  "filterPatterns": ["*.png", "*.svg", "**/*.test.*"]
-}
-```
-
-### Display
-
-- **Direction** switches between arrows, particles, and none.
-- **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
-- **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
-- **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Node / edge colors** now live in the **Themes** panel's **Legends** section and are stored under `nodeColors` / `edgeColors`.
-
-Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups. The Graph View no longer switches between separate built-in graph views.
-
-## Graph scope and settings controls
-
-- **Nodes**: choose Graph Scope for File, Folder, Package, Symbol, Variable, and plugin-added Node Types
-- **Edges**: choose Graph Scope for indexed workspace Edge Type capabilities, including structural `NESTS`, semantic Edge Types, and plugin-added Edge Types
-- **Themes**: edit Legend Entries and their priority in **Legends**, and toggle configured CSS Snippets
-- **Plugins**: enable/disable plugins and reorder them
-- **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
-
-Fresh CodeGraphy Workspaces default built-in Edge Type scope to **Imports** and **Nests** on, with other built-in Edge Types off. **Nests** edges remain dormant until Folder Nodes are enabled. Package Nodes do not use **Nests** edges. Plugin-contributed Edge Types default off unless the plugin explicitly defines a different `defaultVisible` value. Existing values saved in `.codegraphy/settings.json` remain the expected workspace values and are not migrated to new defaults. Users can enable additional Edge Types from Graph Scope without re-indexing when those relationships are already present in the Graph Cache.
-
-Hover a Graph Scope row to see a short description of what that Node Type or Edge Type means. Rows may include a compact example, such as a file path for File Nodes or a source snippet for an Edge Type. These tooltips explain the meaning of the type only; they do not explain why a contextual toggle is currently visible.
-
-Graph Scope lists Edge Types that are relevant to the indexed workspace. Relevance comes from active Edge Type Capability Providers, such as Core Tree-sitter coverage for detected file extensions and enabled plugins that declare core or plugin-owned edge capabilities. An Edge Type can appear even when the current graph has zero matching edges, because Graph Scope reflects what the indexed workspace can produce rather than only what the latest graph already contains. CodeGraphy decides this Edge Type list from the indexed workspace before Depth Mode, Filter Settings, Search, or other view narrowing changes what is displayed. **References** and structural **Nests** remain available for indexed file graphs. Until a workspace has a Graph Cache, Edge Type controls are visible but disabled with a short indexing tooltip. Any existing Graph Cache enables Edge Type controls, even while Graph Cache Sync catches up.
-
-Disabling a plugin makes that plugin inactive for the workspace graph surface. Its analysis, filter groups, Node Type definitions, Edge Type definitions, Edge Type capabilities, Graph View contributions, toolbar/context/export actions, and webview assets are not used while the plugin is disabled.
-
-When several relevant Edge Types are available, built-in Edge Types keep their common-usefulness order: **Imports**, **References**, **Calls**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
-
-Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first. Graph View loads that baseline into runtime memory first, then hydrates Symbol or plugin-owned evidence only when a scope toggle needs it. Once a tier has been loaded, CodeGraphy keeps it in runtime memory for faster future toggles even if the scope is turned off again.
-
-Normal file edits patch the changed Graph Cache rows atomically. Re-index is the force-refresh path that rebuilds and replaces the complete Graph Cache with the current settings.
-
-## File discovery settings
-
-### `maxFiles`
-
-Limits the number of files analyzed to prevent performance issues in large repos.
-
-```json
-{ "maxFiles": 1000 }
-```
-
-When the limit is hit, a warning appears and only the first N files are processed. Use `include` and `filterPatterns` to narrow scope rather than raising this indefinitely.
-
-### `include`
-
-Glob patterns for which files to discover, relative to the workspace root.
-
-```json
-{
-  "include": ["src/**/*", "lib/**/*"]
-}
-```
-
-Common patterns:
-- `**/*` all files (default)
-- `src/**/*` only files in `src/`
-- `**/*.ts` only TypeScript files
-- `{src,lib}/**/*` multiple directories
-
-### `filterPatterns`
-
-Glob patterns for files to exclude, appended to built-in excludes. Supports `matchBase` so `*.png` matches at any depth.
-
-**Built-in excludes (always applied):**
-```
-**/node_modules/**
-**/dist/**
-**/build/**
-**/.git/**
-**/coverage/**
-**/*.min.js
-**/*.bundle.js
-```
-
-**Adding custom exclusions:**
-```json
-{
-  "filterPatterns": ["*.png", "*.svg", "**/__tests__/**", "vendor/**"]
-}
-```
-
-Your patterns are merged with the built-ins, so you don't need to repeat them.
-
-If you hand-edit `.codegraphy/settings.json`, CodeGraphy only applies the save when the file is valid JSON. Invalid saves are ignored until the file is fixed.
-
-When older settings contain symbol kinds that are no longer exposed, CodeGraphy prunes those stale Graph Scope and Legend color keys the next time settings are normalized and saved.
-
-### `respectGitignore`
-
-When `true`, reads `.gitignore` and excludes matching files automatically.
-
-```json
-{ "respectGitignore": true }
-```
-
-### `bidirectionalEdges`
-
-Controls how mutual import relationships (A imports B and B imports A) are drawn.
-
-```json
-{ "bidirectionalEdges": "combined" }
-```
-
-- `separate` (default): two arrows, one in each direction (overlapping links are automatically curved apart)
-- `combined`: a single line with arrowheads on both ends
-
-This setting is also accessible from the Settings panel.
-
-## Example configurations
-
-### Small TypeScript project
-```json
-{
-  "maxFiles": 50,
-  "include": ["src/**/*"],
-  "showOrphans": false
-}
-```
-
-### Large monorepo (focus on one package)
-```json
-{
-  "maxFiles": 1000,
-  "include": ["packages/my-package/src/**/*"],
-  "filterPatterns": ["**/*.test.ts", "**/*.spec.ts"]
-}
-```
-
-### Source files only, no assets
-```json
-{
-  "include": ["**/*.{ts,tsx,js,jsx}"],
-  "filterPatterns": ["**/*.d.ts"]
-}
-```
-
-### Team-shared Legend Entries
 ```json
 {
   "legend": [
     { "id": "features", "pattern": "src/features/**", "color": "#3B82F6" },
-    { "id": "shared",   "pattern": "src/shared/**",   "color": "#8B5CF6" },
-    { "id": "tests",    "pattern": "**/*.test.*",      "color": "#10B981" }
+    { "id": "tests", "pattern": "**/*.test.*", "color": "#10B981" }
   ]
 }
 ```
 
-## Workspace-local vs user-level state
+Use Graph Scope for visibility and Themes for styling.
 
-CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
+## Plugins
 
-- `.codegraphy/settings.json` is workspace-local configuration. Teams can commit it when they want shared CodeGraphy behavior.
-- `.codegraphy/graph.sqlite` is generated Graph Cache output and should stay local by default.
-- Existing `.codegraphy/graph.lbug` files are legacy generated caches. Run new Indexing to create `graph.sqlite`, then remove the old file; CodeGraphy does not migrate the old cache in place.
-- `~/.codegraphy/plugins.json` is user-level Plugin Registry state and is not part of any source workspace.
-- `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
+Installing or registering a package does not enable it in a workspace. The `plugins` array stores explicit Plugin ID activity:
 
-Recommended default `.gitignore` entry:
+```json
+{
+  "plugins": [
+    { "id": "codegraphy.markdown", "enabled": true },
+    {
+      "id": "codegraphy.gdscript",
+      "enabled": true,
+      "options": {
+        "includeSceneResources": true
+      }
+    }
+  ]
+}
+```
+
+The Markdown plugin starts enabled in new workspaces. Other registered plugins remain disabled until the UI or CLI enables them. Core merges package `defaultOptions` with workspace `options`, with workspace values winning.
+
+Plugins store their own state under `pluginData[pluginId]`. Plugin Data does not control plugin enablement.
+
+See the [Plugin Guide](./PLUGINS.md) for installation, registration, and package metadata.
+
+## CSS Snippets
+
+CSS Snippets style stable CodeGraphy webview surfaces without rebuilding a VS Code theme.
+
+```json
+{
+  "cssSnippets": {
+    ".codegraphy/snippets/team.css": true,
+    ".codegraphy/snippets/experiment.css": false
+  }
+}
+```
+
+Snippet paths:
+
+- are relative to the workspace root
+- must end in `.css`
+- must stay inside the workspace
+- load in object insertion order
+
+CodeGraphy rejects absolute paths and parent traversal. It warns about invalid or missing enabled snippets in VS Code Developer Tools. Changing the settings map reloads the enabled list. Editing the contents of an already loaded CSS file requires a webview reload or another settings change.
+
+Target stable `data-codegraphy-*` hooks rather than generated classes. Common hook categories include `data-codegraphy-surface`, `data-codegraphy-region`, `data-codegraphy-panel`, `data-codegraphy-control`, `data-codegraphy-section`, `data-codegraphy-slot`, `data-codegraphy-state`, and `data-codegraphy-row`.
+
+```css
+[data-codegraphy-surface='graph-stage'] {
+  background: #101412;
+}
+
+[data-codegraphy-panel='graph-scope'] {
+  color: var(--vscode-foreground);
+}
+```
+
+WebGPU graph Nodes are GPU instances rather than DOM elements. CSS selectors cannot target individual Nodes. Plugins use Node and Edge decoration contributions for per-item styling.
+
+Copyable snippets live under `examples/.codegraphy/snippets/`.
+
+## Settings Panel
+
+The left rail opens four Settings sections:
+
+- **Display**: direction mode, bidirectional Edges, Depth Mode, Show Orphans, direction particles, labels, and minimap.
+- **Forces**: repel, center, link distance, link force, and damping.
+- **Performance**: Max Files, Verbose Diagnostics, and Show FPS.
+- **Export**: image, graph data, symbol data, and plugin exports.
+
+Graph Scope and Themes have separate panels because they control graph eligibility and semantic styling rather than general display preferences.
+
+## Repository State
+
+Generated and user-level data use separate locations:
+
+- `.codegraphy/settings.json`: workspace settings; teams may commit this file.
+- `.codegraphy/graph.sqlite`: generated Graph Cache; keep it local.
+- `~/.codegraphy/plugins.json`: user-level Plugin Registry.
+- `~/.codegraphy/settings.json`: user-level CodeGraphy defaults.
+
+Recommended default ignore:
 
 ```gitignore
 .codegraphy/*
 ```
 
-That default keeps generated Graph Cache artifacts, imported icons, and other CodeGraphy-managed files out of source control. If you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates, add an explicit exception for the settings file:
+To share settings while ignoring generated data:
 
 ```gitignore
 .codegraphy/*
 !.codegraphy/settings.json
 ```
 
-Do not use `.codegraphy/` if you want to share any files under `.codegraphy/`; ignoring the directory itself prevents Git from re-including files inside it.
+Do not ignore `.codegraphy/` as a directory if you need to re-include a file inside it.
+
+Old `.codegraphy/graph.lbug` files are obsolete generated caches. Run Indexing to create `graph.sqlite`, then remove the old file. CodeGraphy does not migrate LadybugDB caches in place.
 
 ## Troubleshooting
 
-**Graph is empty**
-1. Check that `include` patterns match your files
-2. Verify files aren't excluded by `filterPatterns`, `.gitignore`, or the built-in excludes
-3. Make sure `maxFiles` is high enough
+**Empty graph**
 
-**Nodes are all grey**
+- Check `include`, `filterPatterns`, `.gitignore`, and `maxFiles`.
+- Confirm File, Folder, or relevant Symbol Node Types are enabled in Graph Scope.
 
-No Legend Entries are configured. Add them in the **Themes** panel's **Legends** section or directly in `.codegraphy/settings.json`.
+**Missing Relationships**
 
-**Too many files**
-1. Add exclusion patterns in the Filters section or `filterPatterns`
-2. Narrow `include` to specific directories
-3. Lower `maxFiles`
+- Run Indexing after relevant workspace changes.
+- Confirm the language has Core coverage or its plugin is registered and enabled.
+- Check Edge Type scope and plugin options.
 
-**Missing relationships**
-1. Make sure the file type is covered by core analysis or an enabled plugin. Core covers JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal; plugins add Markdown, GDScript, Vue, Svelte, and other package-owned relationships.
-2. Check that imported files are within the `include` patterns
-3. `node_modules` imports are intentionally excluded
-4. Check `.codegraphy/settings.json` for an unintended disabled plugin, Node Type, or Edge Type
+**Unexpected plugin behavior**
+
+- Run `codegraphy plugins list` from the workspace root.
+- Run `codegraphy doctor` for registry, compatibility, settings, and Graph Cache checks.
+- Enable [Verbose Diagnostics](./DIAGNOSTICS.md) while reproducing the problem.

@@ -53,7 +53,7 @@ pnpm --filter @codegraphy-dev/extension run test:node
 pnpm --filter @codegraphy-dev/extension run test:webview
 pnpm --filter @codegraphy-dev/extension run test:playwright
 pnpm --filter @codegraphy-dev/extension run test:vscode
-pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/runtime/events.test.tsx
+pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/effects/messages.test.ts
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/graphViewProvider.bootstrap.test.ts
 pnpm --filter @codegraphy-dev/extension lint
 pnpm --filter @codegraphy-dev/extension typecheck
