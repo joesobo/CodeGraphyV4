@@ -27,11 +27,11 @@
   <a href="https://trello.com/b/wG65Lfrb/codegraphy">Roadmap</a>
 </p>
 
-CodeGraphy indexes a folder, projects files and declarations into Nodes, and renders their imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships. Search narrows the current view. Graph Scope controls Node and Edge Types. Persistent filters remove noise. The same Core engine backs the extension and terminal CLI.
+CodeGraphy indexes a folder, projects its files and declarations into Nodes, and renders their imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships as an interactive graph inside VS Code. Search, Graph Scope, and persistent filters narrow the view to the question you are asking. The same Core engine backs the extension, the terminal CLI, and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
 
-## Product Surface
+## Features
 
 | Capability | What it provides |
 |---|---|
@@ -113,7 +113,15 @@ codegraphy -C /path/to/workspace index
 
 Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
 
-The canonical Agent Skill source lives at [`skills/codegraphy`](./skills/codegraphy/SKILL.md). The separate `codegraphy/skills` public repository has not been published yet, so contributors can install from a clone with `npx skills@latest add ./skills/codegraphy`.
+### Agent Skill
+
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current, pick a bounded Graph Query, and only then read source. Install it from a clone of this repo:
+
+```bash
+npx skills@latest add ./skills/codegraphy
+```
+
+A public `codegraphy/skills` repository will host the skill once published.
 
 ## Architecture
 
@@ -124,7 +132,7 @@ The canonical Agent Skill source lives at [`skills/codegraphy`](./skills/codegra
 | Package | Role |
 |---|---|
 | [`@codegraphy-dev/core`](./packages/core/README.md) | Shared indexing, cache, plugin, query, and CLI engine. |
-| `@codegraphy-dev/extension` | VS Code host and Graph View product integration. |
+| [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
 | [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | WebGPU graph renderer and WebAssembly physics. |
 | [`@codegraphy-dev/plugin-api`](./packages/plugin-api/README.md) | Public TypeScript contracts for plugins. |
 | `@codegraphy-dev/plugin-*` | Optional language, framework, Unity, and visual plugins. |

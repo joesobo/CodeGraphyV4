@@ -112,7 +112,7 @@ pnpm --filter @codegraphy-dev/extension exec playwright install chromium  # Brow
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```
 
-The published CLI supports Node 20 through 22. The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
+The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
 
 ## Reporting bugs
 
