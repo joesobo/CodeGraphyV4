@@ -1,45 +1,24 @@
 # Commands
 
-All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). Search for "CodeGraphy".
+All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). Search for "CodeGraphy". Command IDs are used for keybinding customization and extension integration.
 
-| Command | Description |
-|---------|-------------|
-| `CodeGraphy: Open` | Open the CodeGraphy panel |
-| `CodeGraphy: Open in Editor` | Open the current graph or export target in a regular editor tab |
-| `CodeGraphy: Fit All Nodes in View` | Reset zoom to show all nodes |
-| `CodeGraphy: Zoom In` | Increase zoom level |
-| `CodeGraphy: Zoom Out` | Decrease zoom level |
-| `CodeGraphy: Undo` | Undo last graph action |
-| `CodeGraphy: Redo` | Redo last undone action |
-| `CodeGraphy: Export as PNG` | Save the graph as a rasterized image |
-| `CodeGraphy: Export as SVG` | Save the graph as a scalable vector |
-| `CodeGraphy: Export as JPEG` | Save the graph as a JPEG image |
-| `CodeGraphy: Export Graph as JSON` | Save the current graph data as structured JSON |
-| `CodeGraphy: Export Graph as Markdown` | Save the current graph data as markdown |
-| `CodeGraphy: Toggle Depth Mode` | Toggle Depth Mode on the Visible Graph |
-| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and rebuild the graph |
+| Command | Command ID | Description |
+|---------|-----------|-------------|
+| `CodeGraphy: Open` | `codegraphy.open` | Open the CodeGraphy panel |
+| `CodeGraphy: Open in Editor` | `codegraphy.openInEditor` | Open the current graph or export target in a regular editor tab |
+| `CodeGraphy: Fit All Nodes in View` | `codegraphy.fitView` | Reset zoom to show all nodes |
+| `CodeGraphy: Zoom In` | `codegraphy.zoomIn` | Increase zoom level |
+| `CodeGraphy: Zoom Out` | `codegraphy.zoomOut` | Decrease zoom level |
+| `CodeGraphy: Undo` | `codegraphy.undo` | Undo last graph action |
+| `CodeGraphy: Redo` | `codegraphy.redo` | Redo last undone action |
+| `CodeGraphy: Export as PNG` | `codegraphy.exportPng` | Save the graph as a rasterized image |
+| `CodeGraphy: Export as SVG` | `codegraphy.exportSvg` | Save the graph as a scalable vector |
+| `CodeGraphy: Export as JPEG` | `codegraphy.exportJpeg` | Save the graph as a JPEG image |
+| `CodeGraphy: Export Graph as JSON` | `codegraphy.exportJson` | Save the current graph data as structured JSON |
+| `CodeGraphy: Export Graph as Markdown` | `codegraphy.exportMarkdown` | Save the current graph data as markdown |
+| `CodeGraphy: Toggle Depth Mode` | `codegraphy.toggleDepthMode` | Toggle Depth Mode on the Visible Graph |
+| `CodeGraphy: Clear Cache and Refresh` | `codegraphy.clearCache` | Clear cached graph data and rebuild the graph |
 
-## Command IDs
+Symbol export is available from Settings > Export as `Export Symbols as JSON`.
 
-For keybinding customization or extension integration:
-
-| Command ID | Maps to |
-|-----------|---------|
-| `codegraphy.open` | Open |
-| `codegraphy.openInEditor` | Open in Editor |
-| `codegraphy.fitView` | Fit All Nodes in View |
-| `codegraphy.zoomIn` | Zoom In |
-| `codegraphy.zoomOut` | Zoom Out |
-| `codegraphy.undo` | Undo |
-| `codegraphy.redo` | Redo |
-| `codegraphy.exportPng` | Export as PNG |
-| `codegraphy.exportSvg` | Export as SVG |
-| `codegraphy.exportJpeg` | Export as JPEG |
-| `codegraphy.exportJson` | Export Graph as JSON |
-| `codegraphy.exportMarkdown` | Export Graph as Markdown |
-| `codegraphy.toggleDepthMode` | Toggle Depth Mode |
-| `codegraphy.clearCache` | Clear Cache and Refresh |
-
-See [Keybindings](./KEYBINDINGS.md) for default shortcuts and customization.
-
-Symbol export is available from the graph toolbar export menu as `Export Symbols as JSON`.
+See [Keyboard Shortcuts](./KEYBINDINGS.md) for default shortcuts and customization.

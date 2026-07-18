@@ -2,7 +2,7 @@
 
 Public CodeGraphy web app target for account, subscription, billing, and Access flows.
 
-This first Extract Pro slice establishes the workspace package and route contract:
+The app currently reserves these routes:
 
 - `/register`
 - `/login`
@@ -11,4 +11,4 @@ This first Extract Pro slice establishes the workspace package and route contrac
 - `/billing`
 - `/access/:accessKey`
 
-The access route is the host callback surface for returning paid capability state to CodeGraphy hosts and paid plugins. Full UI, auth, and billing implementation belongs directly in this web app.
+The access route is the host callback surface for returning paid capability state to CodeGraphy hosts and paid plugins. Account, authentication, subscription, and billing code belongs in this app rather than the VS Code extension.
