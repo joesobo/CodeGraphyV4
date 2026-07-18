@@ -1,18 +1,18 @@
 # Contributing
 
-Thanks for your interest in contributing to CodeGraphy!
+CodeGraphy accepts focused changes through pull requests against `main`.
 
 ## Setup
 
 ### Prerequisites
 
-- Node.js 20 or newer
+- Node.js 20 through 22; use the repository-pinned Node 22 runtime
 - pnpm 10+
 - VS Code 1.85+
 
 ### Getting started
 
-1. Fork and clone the repository
+1. Fork and clone the repository.
 2. Install dependencies:
    ```bash
    nvm use
@@ -22,7 +22,7 @@ Thanks for your interest in contributing to CodeGraphy!
    ```bash
    pnpm run build
    ```
-4. Run tests to verify:
+4. Run the test suite:
    ```bash
    pnpm test
    ```
@@ -31,7 +31,7 @@ Thanks for your interest in contributing to CodeGraphy!
 
 1. Create a branch:
    ```bash
-   git checkout -b feat/your-feature
+   git switch -c feat/your-feature
    ```
 
 2. Start watch mode:
@@ -41,9 +41,9 @@ Thanks for your interest in contributing to CodeGraphy!
 
 3. Press F5 in VS Code to launch the Extension Development Host
 
-4. Make your changes and test them
+4. Make the change. Add a failing test first for production behavior.
 
-5. Run all checks before committing:
+5. Run the checks that cover the change before committing:
    ```bash
    pnpm run lint
    pnpm run typecheck
@@ -52,10 +52,17 @@ Thanks for your interest in contributing to CodeGraphy!
 
 ## Code style
 
-- TypeScript for all code
-- Follow existing formatting (Prettier defaults)
-- Meaningful variable and function names
-- Keep functions small and focused
+- Follow the package and feature boundaries described in [`AGENTS.md`](./AGENTS.md).
+- Prefer explicit TypeScript types for arrays, objects, and component data.
+- Keep one reason to change per source file and give files role-based names.
+- Put dependencies in the package that imports them.
+
+## Documentation
+
+- Document current behavior in the closest user, package, or developer reference.
+- Record durable technical decisions under `docs/adr/`.
+- Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan documents.
+- Add a changeset only for a user-facing package change. Docs-only changes do not need one.
 
 ## Commit messages
 
@@ -77,9 +84,9 @@ docs: update README with installation instructions
 
 ## Pull requests
 
-1. Create PRs against the `main` branch
-2. Ensure CI passes (lint, typecheck, tests, build)
-3. Request review from maintainers
+1. Create PRs against `main`.
+2. Explain the behavior change and the checks you ran.
+3. Request review after CI passes.
 
 ### PR checklist
 
@@ -88,28 +95,26 @@ docs: update README with installation instructions
 - [ ] No lint errors
 - [ ] Type checking passes
 - [ ] All tests pass
-- [ ] Playwright smoke tests pass
+- [ ] Relevant Playwright acceptance tests pass
 
 ## Testing
 
-- Write tests for new functionality
-- Place tests in `tests/` mirroring the `src/` structure
-- Use Vitest with jsdom environment
-- Aim for meaningful coverage, not 100%
+- Write a failing behavior test before production code.
+- Keep tests in the owning package's test tree.
+- Run mutation testing on the changed module when behavior changes.
 
 ```bash
 pnpm test             # Unit and Playwright suites that CI trusts
 pnpm run test:unit    # All package Vitest suites
 pnpm run test:playwright  # Browser/webview E2E suite
-pnpm run test:vscode      # Local VS Code Electron smoke suite
-CODEGRAPHY_E2E_FULL=1 pnpm run test:vscode  # Full local VS Code Electron suite
+pnpm run test:vscode      # Local VS Code acceptance path
 pnpm --filter @codegraphy-dev/extension exec playwright install chromium  # Browser install
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```
 
-The published packages support Node 20 and newer. The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
+The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
 
-## Reporting issues
+## Reporting bugs
 
 When reporting bugs, please include:
 
@@ -122,4 +127,4 @@ When reporting bugs, please include:
 
 ## Feature requests
 
-We welcome suggestions! Please check existing issues first, describe the use case, and explain why it would benefit users.
+Check the [CodeGraphy Trello board](https://trello.com/b/wG65Lfrb/codegraphy) first. Describe the user problem and the result you want, without prescribing an implementation unless the constraint matters.

@@ -8,7 +8,7 @@ This folder documents the current `@codegraphy-dev/extension` package.
 - `plugin-lifecycle.md` - plugin readiness and lifecycle
 - `testing.md` - package testing strategy and commands
 
-These docs describe the current runtime seams after the graph-view/provider refactor. Historical plans stay in `/docs/archive/`.
+These docs describe current runtime seams. Task plans and superseded implementation notes do not belong in the repository.
 
 Current extension behavior to keep in mind while reading the package docs:
 
@@ -18,7 +18,7 @@ Current extension behavior to keep in mind while reading the package docs:
 - CSS Snippets are built into the extension: workspace-local `.css` files listed in `.codegraphy/settings.json` under `cssSnippets` can style stable `data-codegraphy-*` hooks without rebuilding a VS Code theme
 - the language plugins in `packages/plugin-*` are now mostly for ecosystem filters and optional semantic enrichment rather than baseline file coloring
 
-Published packages support Node 20 and newer. Local tooling and CI are pinned to Node `22.22.0` LTS.
+The published CLI supports Node 20 through 22. Local tooling and CI use the repository-pinned Node runtime.
 
 The source tree is split by runtime boundary:
 
@@ -27,5 +27,3 @@ The source tree is split by runtime boundary:
 - `src/webview/` - React webview UI and runtime helpers
 - `src/shared/` - protocol and shared types used across the host/webview bridge
 - `src/e2e/` - end-to-end harness
-
-Older refactor plans and superseded docs live under `/docs/archive/`.

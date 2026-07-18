@@ -55,5 +55,5 @@ See [Commands](./COMMANDS.md) for the full list of command IDs.
 
 | Context | Active when |
 |---------|-------------|
-| `codegraphy.graphFocused` | The graph canvas has focus (not an input field) |
+| `codegraphy.graphFocused` | The Graph Stage has focus (not an input field) |
 | `codegraphy.viewVisible` | The CodeGraphy panel is open and visible |
