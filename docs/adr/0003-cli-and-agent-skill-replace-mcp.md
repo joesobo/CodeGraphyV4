@@ -1,5 +1,7 @@
 # CLI And Agent Skill Replace MCP
 
+**Status:** Accepted
+
 CodeGraphy's agent interface will be the Core-owned `codegraphy` CLI plus a
 generalized, distributable Agent Skill. The `@codegraphy-dev/mcp` package and
 MCP-specific product surface will be deleted.
@@ -33,11 +35,10 @@ report-specific pagination and selector flags. Commands target the current
 directory unless the global `-C, --workspace <path>` option selects another
 CodeGraphy Workspace.
 
-The Agent Skill is installed globally or per workspace through the open Skills
-CLI and published from a dedicated `codegraphy/skills` repository. The
-canonical command is `npx skills@latest add codegraphy/skills`, matching the
-repository-source convention already used by projects such as
-`mattpocock/skills`.
+The Agent Skill lives in this repository at `skills/codegraphy`. It can be
+installed globally or per workspace from a local checkout. A dedicated public
+skill repository may be added later, but it is not part of the accepted runtime
+contract.
 
 **Consequences**
 
@@ -51,5 +52,5 @@ repository-source convention already used by projects such as
   presentation settings.
 - Graph Query remains a Core API, so a future protocol adapter can be introduced
   if evidence justifies it.
-- The published MCP package is deprecated during release, but dead MCP source is
-  not retained in the monorepo.
+- The MCP package was never published. Its dead source is not retained in the
+  monorepo.

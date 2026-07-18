@@ -8,7 +8,7 @@
 - `src/core/` owns extension-local graph view and plugin UI infrastructure. Shared Indexing, Graph Cache, Graph Query, discovery, and analysis behavior lives in `@codegraphy-dev/core`.
 - `src/webview/` owns the React UI, store, graph controls and interaction state, renderer integration, and browser-side message handling.
 - `src/shared/protocol/` owns extension-to-webview and webview-to-extension message unions.
-- `src/shared/graph/`, `src/shared/files/`, `src/shared/settings/`, `src/shared/plugins/`, and `src/shared/view/` own shared payload types.
+- `src/shared/graph/`, `src/shared/files/`, `src/shared/settings/`, `src/shared/plugins/`, and `src/shared/graphControls/` own shared payload types.
 - `src/shared/mock/` owns fixture-only graph data helpers and is excluded from runtime boundary checks.
 - `src/e2e/` owns the VS Code end-to-end harness.
 

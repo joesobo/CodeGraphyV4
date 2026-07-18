@@ -1,87 +1,53 @@
 # Philosophy
 
-## The problem
+A file tree tells you where code is stored. It does not tell you which files call, import, test, inherit from, contain, or reference one another.
 
-File systems are a legacy metaphor. They were designed for physical paper organization: file cabinets, folders, labels. We brought that structure into computing not because it's ideal, but because it's what we knew.
+CodeGraphy makes those Relationships visible. Files provide the first useful map. Symbol Nodes and plugins add detail when a question needs it.
 
-As codebases grow, the metaphor breaks down. Folder names become arbitrary. File locations reflect organizational decisions made years ago by people who may not even work on the project anymore. New developers see a tree of folders that tells them nothing about how the code actually works.
+## Principles
 
-**The file system shows you where things are stored. It doesn't show you how things connect.**
+### Relationships carry the architecture
 
-## The insight
+Folder structure records one organizational choice. The Relationship Graph exposes runtime, type, test, content, and framework connections that cross those folders.
 
-Code has a hidden structure that the file system obscures: the Relationship Graph. Files import other files. Functions call other functions. Types inherit from other types. Markdown notes link to other files. This web of Relationships is the real architecture of a codebase, but it's invisible unless you trace it manually.
+### Start coarse and reveal detail
 
-CodeGraphy makes that structure visible.
+The first graph should remain readable. File Nodes show broad structure. Graph Scope can add folders, packages, Symbols, variables, and plugin-defined concepts without forcing all of that density into every view.
 
-## The vision
+### Visual properties need meaning
 
-A force-directed graph where:
-- **Nodes start as files** and can expand to folders, packages, or plugin-defined Node Types
-- **Edges are relationships** projected from indexed code facts
-- **Physics creates meaning**: related code pulls together into stable shapes
+- Position comes from deterministic relationship-driven physics.
+- Size can represent Connection count or File Size.
+- Color and shape come from Node Types, Edge Types, plugin defaults, and user Legend Entries.
+- Edge direction and type explain how two Nodes relate.
 
-This isn't visualization for its own sake. It builds on a fundamental truth about human cognition: we have an innate sense of place.
+### Stable layouts build spatial memory
 
-Humans are spatial creatures. We remember where things are. Maps work because they tap into our natural sense of geography. A stable graph layout becomes a place you can learn. Instead of memorizing folder paths, you build spatial intuition: "that green cluster in the upper-right is the auth system." Over time, navigating the graph becomes as natural as navigating a city you know well.
+Deterministic physics, persistent settings, and user-controlled focus let a developer learn the rough geography of a codebase. The graph remains a working map rather than a disposable diagram.
 
-## Core principles
+### Core provides the baseline
 
-### Relationships over containers
+Core owns File Discovery, parser-backed analysis, Graph Projection, Graph Cache storage, and Graph Query. The extension adds the VS Code experience. Optional plugins provide deeper project and ecosystem semantics without duplicating the Core pipeline.
 
-The file system groups files by folder. CodeGraphy groups files by Relationship. A utility file in `src/utils/` that's imported by 30 components will appear at the center of those components in the graph, not hidden away in a utils folder.
+### One graph serves people and agents
 
-### Visual information density
+The extension and CLI use the same Indexing, Graph Cache, Graph Scope, filters, and Relationships. A visual investigation and an agent query should not disagree because they came from separate indexers.
 
-Every visual property carries meaning:
-- **Position**: Clusters emerge from force physics. Related files pull together.
-- **Size**: Configurable by relationship count, file size, or access frequency.
-- **Color**: Encodes Node Types, Edge Types, or user-defined Legend Entries.
-- **Edges**: Render structural and semantic Relationships between nodes.
+## Useful Signals
 
-### Stability creates memory
+The graph can expose:
 
-The graph must produce consistent layouts. If nodes shuffle randomly each time, the spatial memory benefit disappears. Layouts are deterministic, and user adjustments are persisted across sessions.
+- central files used by many callers
+- isolated clusters that may form module boundaries
+- circular Relationships
+- bridge files between otherwise separate areas
+- structural context through folders, packages, and `nests` Edges
+- exact declarations behind a file-level Relationship
 
-### Core pipeline first, plugins for enrichment
+These are prompts for investigation, not automatic architecture judgments.
 
-CodeGraphy now has a built-in analysis pipeline:
-- core discovers files once
-- core reads each file once
-- core runs Tree-sitter Analysis where language coverage exists
-- built-in analysis and enabled npm plugin packages run on the same in-memory file data
-- plugin output can add to or deterministically merge with earlier results
+## Boundaries
 
-That means the core is no longer "empty" until an external language plugin shows up. You still get useful graph edges out of the box where Tree-sitter coverage exists, and optional npm plugins stay valuable for language- or framework-specific semantics.
+CodeGraphy complements the file tree rather than replacing it. The graph must preserve concrete paths and editor navigation.
 
-Today that built-in baseline covers JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal.
-
-Examples:
-- JavaScript/TypeScript: built-in Tree-sitter analysis finds baseline syntax and relationships, plugins can add path alias or framework-aware semantics
-- Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal: built-in analysis finds baseline imports, symbols, and low-noise structural relationships, plugins can add richer project-aware semantics
-- GDScript: plugin fills the gap where built-in Tree-sitter coverage is missing or weak
-- Vue and Svelte: framework plugins parse Single-File Component scripts with their ecosystem compilers and add component import relationships on top of the core file graph
-- Markdown wikilinks: built-in wildcard plugin scans for Obsidian-style links across files
-
-### Insights through visualization
-
-The graph reveals patterns that are invisible in the file tree:
-- **Central nodes**: Files imported by everything, potential bottlenecks or core utilities
-- **Isolated clusters**: Groups of files that only talk to each other, natural module boundaries
-- **Circular relationships**: Loops that might indicate design issues
-- **Bridge files**: Files that connect otherwise separate clusters
-- **Structural context**: Folders and packages can be shown as nodes with `NESTS` edges
-- **Focused traversal**: Depth Mode focuses the Visible Graph around the Focused Node instead of switching to a separate built-in view
-
-## What CodeGraphy is not
-
-- **Not a replacement for the file system.** You still need folders. CodeGraphy is an additional lens.
-- **Not just a pretty picture.** Every visual element conveys meaningful information.
-- **Not only a plugin host.** The core owns discovery, indexing, projection, Graph Cache state, and built-in analysis.
-- **Not external-plugin-first anymore.** The core owns Tree-sitter Analysis, and optional npm plugins enrich it.
-
-## Inspiration
-
-- **Obsidian.md**: Graph view for markdown notes, showing the power of visualizing relationships
-- **Dependency graphs in package managers**: npm, cargo, etc., but at the file level instead of the package level
-- **City planning metaphors**: Codebases as cities, with neighborhoods, highways, and landmarks
+CodeGraphy is also more than a rendering package or plugin host. Core owns the graph data model and pipeline. The custom renderer draws the result. Plugins enrich it.

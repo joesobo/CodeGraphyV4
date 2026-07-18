@@ -44,11 +44,11 @@ Plugin-facing messaging is layered on top of the core bridge.
 - Webview plugin APIs send plugin-scoped actions through the provider bridge.
 - Plugin enablement and late external registration reprocess plugin-owned files instead of clearing the Graph Cache.
 - Shared payload ownership is explicit:
-  - `src/shared/graph/types.ts` for graph data
+  - `src/shared/graph/contracts.ts` for graph data
   - `src/shared/files/info.ts` for file info
   - `src/shared/settings/` for settings snapshots and display/runtime modes
   - `src/shared/plugins/` for plugin status, decorations, and context menu payloads
-  - `src/shared/view/types.ts` for view payloads
+  - `src/shared/graphControls/` for persisted graph-control state
 
 ## Practical rule
 

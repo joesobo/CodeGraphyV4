@@ -42,4 +42,4 @@ For keybinding customization or extension integration:
 
 See [Keybindings](./KEYBINDINGS.md) for default shortcuts and customization.
 
-Symbol export is available from the graph toolbar export menu as `Export Symbols as JSON`.
+Symbol export is available from Settings > Export as `Export Symbols as JSON`.
