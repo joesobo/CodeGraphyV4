@@ -10,9 +10,7 @@ import {
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createWorkspaceAnalysisCacheWriterAsync,
-  persistAnalysisEntryAsync,
-  persistGraphAsync,
-  sortedCacheEntries,
+  persistWorkspaceCacheAsync,
 } from '../query/write';
 import type { WorkspaceAnalysisDatabaseSaveOptions } from './save';
 
@@ -27,8 +25,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
     return;
   }
 
-  const entries = sortedCacheEntries(cache);
-  const total = entries.length;
+  const total = Object.keys(cache.files).length;
   const yieldEvery = options.yieldEvery ?? 100;
   let reportedProgress = 0;
   options.onProgress?.({ current: 0, total });
@@ -41,30 +38,30 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       try {
         await runStatementAsync(connection, 'DELETE FROM Edge');
         await runStatementAsync(connection, 'DELETE FROM Node');
-        await runStatementAsync(connection, 'DELETE FROM IndexedFile');
+        await runStatementAsync(connection, 'DELETE FROM File');
         const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
         let current = 0;
         let statementsSinceYield = 0;
         const yieldAfterStatement = async (): Promise<void> => {
           statementsSinceYield += 1;
+          if (current < total) {
+            current += 1;
+            if (current > reportedProgress) {
+              reportedProgress = current;
+              options.onProgress?.({ current, total });
+            }
+          }
           if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
             statementsSinceYield = 0;
             await waitForImmediate();
           }
         };
 
-        for (const [filePath, entry] of entries) {
-          await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
-          current += 1;
-          if (current > reportedProgress) {
-            reportedProgress = current;
-            options.onProgress?.({ current, total });
-          }
-        }
-        await persistGraphAsync(
+        await persistWorkspaceCacheAsync(
           writer,
-          options.graph ?? { nodes: [], edges: [] },
+          cache,
+          options.graph,
           yieldAfterStatement,
         );
         await runStatementAsync(connection, 'COMMIT');

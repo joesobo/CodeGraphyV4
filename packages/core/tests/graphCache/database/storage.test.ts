@@ -101,7 +101,41 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           analysis: cache.files['src/index.ts']!.analysis,
         },
       ],
-      graph: { nodes: [], edges: [] },
+      graph: {
+        nodes: [
+          {
+            id: 'src/index.ts',
+            label: 'index.ts',
+            color: '#808080',
+            nodeType: 'file',
+          },
+          {
+            id: 'src/index.ts:function:main',
+            label: 'main',
+            color: '#808080',
+            nodeType: 'symbol',
+            symbol: {
+              id: '/workspace/src/index.ts:function:main',
+              filePath: 'src/index.ts',
+              kind: 'function',
+              name: 'main',
+            },
+          },
+          {
+            id: 'src/utils.ts',
+            label: 'utils.ts',
+            color: '#808080',
+            nodeType: 'file',
+          },
+        ],
+        edges: [{
+          id: 'src/index.ts->src/utils.ts#import',
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+          kind: 'import',
+          sources: [],
+        }],
+      },
       symbols: cache.files['src/index.ts']!.analysis.symbols,
       relations: cache.files['src/index.ts']!.analysis.relations,
     });
@@ -194,73 +228,98 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => ({
         tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
-        indexedFiles: readRowsSync(connection, 'SELECT path, factsJson FROM IndexedFile'),
-        nodes: readRowsSync(connection, 'SELECT id, type, label, filePath, propertiesJson FROM Node ORDER BY id'),
-        edges: readRowsSync(connection, 'SELECT id, sourceId, targetId, type, propertiesJson, sourcesJson FROM Edge'),
+        files: readRowsSync(connection, `SELECT path, analysisPath, mtime, size, contentHash,
+          nodesIndexed, symbolsIndexed, relationsIndexed FROM File`),
+        nodes: readRowsSync(connection, `SELECT id, type, label, filePath, analysisNodeId,
+          analysisSymbolId, symbolName, symbolKind FROM Node ORDER BY id`),
+        edges: readRowsSync(connection, `SELECT graphId, sourceNodeId, targetNodeId, type,
+          ownerFilePath, sourcePluginId, relationPluginId, sourceKey, pluginSourceId,
+          analysisSourceId, specifier, resolvedPath, analysisRelation FROM Edge`),
       }),
     );
 
     expect(records.tables).toEqual([
       { name: 'Edge' },
-      { name: 'IndexedFile' },
+      { name: 'File' },
       { name: 'Node' },
     ]);
-    expect(JSON.parse(String(records.indexedFiles[0]!.factsJson))).toEqual(analysis);
-    expect(records.nodes.map(row => ({
-      ...row,
-      propertiesJson: JSON.parse(String(row.propertiesJson)),
-    }))).toEqual([
+    expect(records.files).toEqual([{
+      path: 'src/index.ts',
+      analysisPath: '/workspace/src/index.ts',
+      mtime: 1,
+      size: 2,
+      contentHash: null,
+      nodesIndexed: 1,
+      symbolsIndexed: 1,
+      relationsIndexed: 1,
+    }]);
+    expect(records.nodes).toEqual([
       {
         id: 'src/index.ts',
         type: 'file',
         label: 'index.ts',
         filePath: 'src/index.ts',
-        propertiesJson: { color: '#ffffff', fileSize: 2 },
+        analysisNodeId: null,
+        analysisSymbolId: null,
+        symbolName: null,
+        symbolKind: null,
       },
       {
         id: 'src/index.ts:function:main',
         type: 'symbol',
         label: 'main',
         filePath: 'src/index.ts',
-        propertiesJson: {
-          color: '#ffffff',
-          symbol: {
-            id: 'src/index.ts:function:main',
-            filePath: 'src/index.ts',
-            kind: 'function',
-            name: 'main',
-          },
-          },
-        },
+        analysisNodeId: null,
+        analysisSymbolId: '/workspace/src/index.ts:function:main',
+        symbolName: 'main',
+        symbolKind: 'function',
+      },
+      {
+        id: 'src/index.ts:route:home',
+        type: 'plugin:test:route',
+        label: 'Home',
+        filePath: 'src/index.ts',
+        analysisNodeId: '/workspace/src/index.ts:route:home',
+        analysisSymbolId: null,
+        symbolName: null,
+        symbolKind: null,
+      },
       {
         id: 'src/utils.ts',
         type: 'file',
         label: 'utils.ts',
-        filePath: 'src/utils.ts',
-        propertiesJson: { color: '#ffffff' },
+        filePath: null,
+        analysisNodeId: null,
+        analysisSymbolId: null,
+        symbolName: null,
+        symbolKind: null,
       },
     ]);
-    expect(records.edges.map(row => ({
-      ...row,
-      propertiesJson: JSON.parse(String(row.propertiesJson)),
-      sourcesJson: JSON.parse(String(row.sourcesJson)),
-    }))).toEqual([{
-      id: 'src/index.ts->src/utils.ts#import',
-      sourceId: 'src/index.ts',
-      targetId: 'src/utils.ts',
+    expect(records.edges).toEqual([{
+      graphId: 'src/index.ts->src/utils.ts#import',
+      sourceNodeId: 'src/index.ts',
+      targetNodeId: 'src/utils.ts',
       type: 'import',
-      propertiesJson: {},
-      sourcesJson: [{
-        id: 'core:treesitter:import',
-        pluginId: 'core',
-        sourceId: 'treesitter:import',
-        label: 'TypeScript import',
-      }],
+      ownerFilePath: 'src/index.ts',
+      sourcePluginId: 'core',
+      relationPluginId: null,
+      sourceKey: 'core:treesitter:import',
+      pluginSourceId: 'treesitter:import',
+      analysisSourceId: 'core:treesitter:import',
+      specifier: null,
+      resolvedPath: null,
+      analysisRelation: 1,
     }]);
+    const storedAnalysis = {
+      filePath: analysis.filePath,
+      nodes: analysis.nodes,
+      symbols: analysis.symbols,
+      relations: analysis.relations,
+    };
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {
-        'src/index.ts': { mtime: 1, size: 2, analysis },
+        'src/index.ts': { mtime: 1, size: 2, analysis: storedAnalysis },
       },
     });
   });
@@ -271,9 +330,9 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
 
     withConnection(databasePath, (connection) => {
-      runStatementSync(connection, 'DROP TABLE IndexedFile');
       runStatementSync(connection, 'DROP TABLE Edge');
       runStatementSync(connection, 'DROP TABLE Node');
+      runStatementSync(connection, 'DROP TABLE File');
       runStatementSync(connection, 'CREATE TABLE File(filePath TEXT PRIMARY KEY, mtime INTEGER, size INTEGER, factsJson TEXT)');
       runStatementSync(connection, `INSERT INTO File VALUES ('src/index.ts', 1, 2, '{}')`);
     });
@@ -330,13 +389,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 10,
           analysis: {
             filePath: '/workspace/src/App.vue',
-            cache: {
-              tiers: [
-                BASELINE_ANALYSIS_CACHE_TIER,
-                SYMBOLS_ANALYSIS_CACHE_TIER,
-                'plugin:codegraphy.vue',
-              ],
-            },
             nodes: [
               {
                 id: 'src/App.vue',
@@ -388,7 +440,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           size: 10,
           analysis: {
             filePath: '/workspace/src/App.vue',
-            cache: { tiers: [BASELINE_ANALYSIS_CACHE_TIER] },
             nodes: [{
               id: 'src/App.vue',
               label: 'App.vue',
@@ -467,7 +518,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(secondCache);
   });
 
-  it('patches changed file analysis rows without rewriting unrelated Graph Cache entries', () => {
+  it('rebuilds normalized facts when patching changed files', () => {
     const workspaceRoot = createWorkspaceRoot();
     const initialCache: IWorkspaceAnalysisCache = {
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,

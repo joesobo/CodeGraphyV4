@@ -29,7 +29,7 @@ describe('graphCache/database/writeStatements', () => {
 
     expect(createWorkspaceAnalysisCacheWriter({} as never)).toEqual({
       connection: {},
-      indexedFileStatement: statements[0],
+      fileStatement: statements[0],
       nodeStatement: statements[1],
       edgeStatement: statements[2],
     });
@@ -43,18 +43,18 @@ describe('graphCache/database/writeStatements', () => {
 
     await expect(createWorkspaceAnalysisCacheWriterAsync({} as never)).resolves.toEqual({
       connection: {},
-      indexedFileStatement: statements[0],
+      fileStatement: statements[0],
       nodeStatement: statements[1],
       edgeStatement: statements[2],
     });
     expect(prepare).toHaveBeenCalledTimes(3);
   });
 
-  it('stores complete raw file facts in IndexedFile', () => {
+  it('stores file state and analysis facts as normalized records', () => {
     const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
     const writer = {
       connection: {} as never,
-      indexedFileStatement: { kind: 'indexed-file' } as never,
+      fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
       edgeStatement: { kind: 'edge' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
@@ -70,20 +70,33 @@ describe('graphCache/database/writeStatements', () => {
       analysis,
     });
 
-    expect(execute).toHaveBeenCalledWith(writer.connection, writer.indexedFileStatement, {
+    expect(execute).toHaveBeenCalledWith(writer.connection, writer.fileStatement, {
       path: 'src/app.ts',
+      analysisPath: '/workspace/src/app.ts',
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
-      factsJson: JSON.stringify(analysis),
+      nodesIndexed: 0,
+      symbolsIndexed: 1,
+      relationsIndexed: 0,
+      cacheTiersIndexed: 0,
     });
+    expect(execute).toHaveBeenCalledWith(
+      writer.connection,
+      writer.nodeStatement,
+      expect.objectContaining({
+        id: 'symbol-1',
+        analysisSymbolId: 'symbol-1',
+        symbolName: 'App',
+      }),
+    );
   });
 
   it('stores nodes and edges as typed property-graph records', () => {
     const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
     const writer = {
       connection: {} as never,
-      indexedFileStatement: { kind: 'indexed-file' } as never,
+      fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
       edgeStatement: { kind: 'edge' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
@@ -103,17 +116,19 @@ describe('graphCache/database/writeStatements', () => {
     });
 
     expect(execute).toHaveBeenCalledTimes(3);
-    expect(execute).toHaveBeenLastCalledWith(writer.connection, writer.edgeStatement, {
-      id: 'src/app.ts->src/model.ts#import',
-      sourceId: 'src/app.ts',
-      targetId: 'src/model.ts',
+    expect(execute).toHaveBeenLastCalledWith(
+      writer.connection,
+      writer.edgeStatement,
+      expect.objectContaining({
+      graphId: 'src/app.ts->src/model.ts#import',
+      sourceNodeId: 'src/app.ts',
+      targetNodeId: 'src/model.ts',
       type: 'import',
-      propertiesJson: '{}',
-      sourcesJson: '[]',
-    });
+      analysisRelation: 0,
+    }));
   });
 
-  it('persists one IndexedFile asynchronously before yielding', async () => {
+  it('persists normalized records asynchronously and yields after each statement', async () => {
     const sequence: string[] = [];
     vi.spyOn(cacheConnectionModule, 'executeStatementAsync').mockImplementation(async () => {
       sequence.push('execute');
@@ -121,7 +136,7 @@ describe('graphCache/database/writeStatements', () => {
     const afterStatement = vi.fn(async () => { sequence.push('yield'); });
     const writer = {
       connection: {} as never,
-      indexedFileStatement: { kind: 'indexed-file' } as never,
+      fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
       edgeStatement: { kind: 'edge' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
@@ -133,6 +148,6 @@ describe('graphCache/database/writeStatements', () => {
       afterStatement,
     );
 
-    expect(sequence).toEqual(['execute', 'yield']);
+    expect(sequence).toEqual(['execute', 'yield', 'execute', 'yield']);
   });
 });

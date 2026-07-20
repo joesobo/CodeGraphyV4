@@ -8,13 +8,10 @@ import {
   withConnection,
 } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
+import { loadWorkspaceAnalysisDatabaseCache } from './load';
 import {
-  createWorkspaceAnalysisCachePatchWriter,
   createWorkspaceAnalysisCacheWriter,
-  deleteAnalysisEntry,
-  persistAnalysisEntry,
-  persistGraph,
-  sortedCacheEntries,
+  persistWorkspaceCache,
 } from '../query/write';
 
 export { saveWorkspaceAnalysisDatabaseCacheAsync } from './saveAsync';
@@ -59,7 +56,7 @@ function runTransactionSync(connection: Parameters<typeof runStatementSync>[0], 
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
-  graph: IGraphData = { nodes: [], edges: [] },
+  graph?: IGraphData,
 ): void {
   ensureDatabaseDirectory(workspaceRoot);
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
@@ -71,13 +68,10 @@ export function saveWorkspaceAnalysisDatabaseCache(
       runTransactionSync(connection, () => {
         runStatementSync(connection, 'DELETE FROM Edge');
         runStatementSync(connection, 'DELETE FROM Node');
-        runStatementSync(connection, 'DELETE FROM IndexedFile');
+        runStatementSync(connection, 'DELETE FROM File');
 
         const writer = createWorkspaceAnalysisCacheWriter(connection);
-        for (const [filePath, entry] of sortedCacheEntries(cache)) {
-          persistAnalysisEntry(writer, filePath, entry);
-        }
-        persistGraph(writer, graph);
+        persistWorkspaceCache(writer, cache, graph);
       });
     });
   };
@@ -96,36 +90,12 @@ export function patchWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   patch: WorkspaceAnalysisDatabasePatch,
 ): void {
-  ensureDatabaseDirectory(workspaceRoot);
-  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(path.dirname(databasePath))) {
-    return;
+  const cache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+  for (const filePath of patch.deleteFilePaths ?? []) {
+    delete cache.files[filePath];
   }
-
-  const deleteFilePaths = new Set([
-    ...(patch.deleteFilePaths ?? []),
-    ...Object.keys(patch.upsertFiles ?? {}),
-  ]);
-
-  withConnection(databasePath, (connection) => {
-    runTransactionSync(connection, () => {
-      const writer = createWorkspaceAnalysisCachePatchWriter(connection);
-      for (const filePath of [...deleteFilePaths].sort()) {
-        deleteAnalysisEntry(writer, filePath);
-      }
-      for (const [filePath, entry] of sortedCacheEntries({
-        version: '',
-        files: patch.upsertFiles ?? {},
-      })) {
-        persistAnalysisEntry(writer, filePath, entry);
-      }
-      if (patch.graph) {
-        runStatementSync(connection, 'DELETE FROM Edge');
-        runStatementSync(connection, 'DELETE FROM Node');
-        persistGraph(writer, patch.graph);
-      }
-    });
-  });
+  Object.assign(cache.files, patch.upsertFiles ?? {});
+  saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, patch.graph);
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void {
@@ -137,6 +107,6 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   withConnection(databasePath, (connection) => {
     runStatementSync(connection, 'DELETE FROM Edge');
     runStatementSync(connection, 'DELETE FROM Node');
-    runStatementSync(connection, 'DELETE FROM IndexedFile');
+    runStatementSync(connection, 'DELETE FROM File');
   });
 }

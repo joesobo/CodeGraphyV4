@@ -2,54 +2,49 @@ import { describe, expect, it } from 'vitest';
 import { createSnapshotFileEntry } from '../../../../src/graphCache/database/records/file';
 
 describe('graphCache/database/fileEntry', () => {
-  it('creates a snapshot entry from valid persisted values', () => {
+  it('creates a snapshot entry from explicit file columns', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
+      analysisPath: '/workspace/src/app.ts',
       mtime: 42n,
       size: 7,
-      factsJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
+      nodesIndexed: 1,
+      symbolsIndexed: 1n,
+      relationsIndexed: 1,
     })).toEqual({
       filePath: 'src/app.ts',
       mtime: 42,
       size: 7,
       analysis: {
-        filePath: 'src/app.ts',
+        filePath: '/workspace/src/app.ts',
+        nodes: [],
         symbols: [],
         relations: [],
       },
     });
   });
 
-  it('defaults missing mtimes to zero and drops non-numeric sizes', () => {
+  it('preserves absent analysis collections and an unknown file size', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
-      size: '7',
-      factsJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
+      analysisPath: '/workspace/src/app.ts',
+      size: -1,
+      nodesIndexed: 0,
+      symbolsIndexed: 0,
+      relationsIndexed: 0,
     })).toEqual({
       filePath: 'src/app.ts',
       mtime: 0,
-      analysis: {
-        filePath: 'src/app.ts',
-        symbols: [],
-        relations: [],
-      },
+      analysis: { filePath: '/workspace/src/app.ts' },
     });
   });
 
-  it('returns undefined when required persisted values are missing', () => {
+  it('returns undefined when required identity columns are missing', () => {
     expect(createSnapshotFileEntry({
-      factsJson: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
+      analysisPath: '/workspace/src/app.ts',
     })).toBeUndefined();
-
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
     })).toBeUndefined();
-  });
-
-  it('throws when persisted analysis JSON is malformed', () => {
-    expect(() => createSnapshotFileEntry({
-      path: 'src/app.ts',
-      factsJson: '{',
-    })).toThrow(SyntaxError);
   });
 });

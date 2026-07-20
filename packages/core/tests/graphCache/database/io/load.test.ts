@@ -6,12 +6,10 @@ import {
 } from '../../../../src/analysis/cache';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from '../../../../src/graphCache/database/io/connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../src/graphCache/database/io/paths';
-import { createSnapshotFileEntry } from '../../../../src/graphCache/database/records/file';
+import { hydrateDatabaseRecords } from '../../../../src/graphCache/database/records/hydrate';
 
 vi.mock('node:fs', () => ({
-  default: {
-    existsSync: vi.fn(),
-  },
+  default: { existsSync: vi.fn() },
   existsSync: vi.fn(),
 }));
 
@@ -32,48 +30,45 @@ vi.mock('../../../../src/graphCache/database/io/paths', () => ({
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/graphCache/database/records/file', () => ({
-  createSnapshotFileEntry: vi.fn(),
+vi.mock('../../../../src/graphCache/database/records/hydrate', () => ({
+  hydrateDatabaseRecords: vi.fn(),
 }));
 
 const fsModule = await import('node:fs');
+const hydrated = {
+  files: [{
+    filePath: 'src/app.ts',
+    mtime: 1,
+    size: 2,
+    analysis: { filePath: '/workspace/src/app.ts', relations: [] },
+  }],
+  graph: { nodes: [], edges: [] },
+  symbols: [],
+  relations: [],
+};
 
 describe('graphCache/database/load', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.sqlite');
-    vi.mocked(createEmptyWorkspaceAnalysisCache).mockImplementation(() => ({
-      version: '0.0.0',
-      files: {},
-    }) as never);
+    vi.mocked(createEmptyWorkspaceAnalysisCache).mockReturnValue({ version: '0.0.0', files: {} });
+    vi.mocked(hydrateDatabaseRecords).mockReturnValue(hydrated as never);
   });
 
   it('returns an empty cache when the database file does not exist', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(false);
 
-    expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({
-      version: '0.0.0',
-      files: {},
-    });
+    expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({ version: '0.0.0', files: {} });
     expect(withConnection).not.toHaveBeenCalled();
   });
 
-  it('loads readable rows, skips empty entries, and warns for unreadable rows', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  it('loads and hydrates all three relational tables', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
     vi.mocked(withConnection).mockImplementation((_databasePath, callback) => callback('connection' as never));
-    vi.mocked(readRowsSync).mockReturnValue(['good-row', 'empty-row', 'bad-row'] as never);
-    vi.mocked(createSnapshotFileEntry)
-      .mockReturnValueOnce({
-        filePath: 'src/app.ts',
-        mtime: 1,
-        size: 2,
-        analysis: { filePath: '/workspace/src/app.ts', relations: [] },
-      } as never)
-      .mockImplementationOnce(() => null as never)
-      .mockImplementationOnce(() => {
-        throw new Error('bad row');
-      });
+    vi.mocked(readRowsSync)
+      .mockReturnValueOnce(['file-row'] as never)
+      .mockReturnValueOnce(['node-row'] as never)
+      .mockReturnValueOnce(['edge-row'] as never);
 
     expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
@@ -85,23 +80,15 @@ describe('graphCache/database/load', () => {
         },
       },
     });
-    expect(createSnapshotFileEntry).toHaveBeenCalledTimes(3);
-    expect(readRowsSync).toHaveBeenCalledWith('connection', expect.any(String));
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn).toHaveBeenCalledWith('[CodeGraphy] Skipping unreadable persisted analysis row.', expect.any(Error));
+    expect(hydrateDatabaseRecords).toHaveBeenCalledWith(['file-row'], ['node-row'], ['edge-row']);
   });
 
-  it('clears broken database artifacts and falls back to an empty cache when the database read fails', () => {
+  it('clears broken database artifacts and falls back to an empty cache', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withConnection).mockImplementation(() => {
-      throw new Error('sqlite error');
-    });
+    vi.mocked(withConnection).mockImplementation(() => { throw new Error('sqlite error'); });
 
-    expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({
-      version: '0.0.0',
-      files: {},
-    });
+    expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({ version: '0.0.0', files: {} });
     expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite');
     expect(warn).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.',
@@ -109,17 +96,13 @@ describe('graphCache/database/load', () => {
     );
   });
 
-  it('loads rows asynchronously and skips unreadable entries', async () => {
+  it('loads all three tables asynchronously', async () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
     vi.mocked(withConnectionAsync).mockImplementation(async (_path, callback) => callback('connection' as never));
-    vi.mocked(readRowsAsync).mockResolvedValue(['good-row', 'bad-row'] as never);
-    vi.mocked(createSnapshotFileEntry)
-      .mockReturnValueOnce({
-        filePath: 'src/app.ts', mtime: 1, size: 2,
-        analysis: { filePath: '/workspace/src/app.ts', relations: [] },
-      } as never)
-      .mockImplementationOnce(() => { throw new Error('bad row'); });
-    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.mocked(readRowsAsync)
+      .mockResolvedValueOnce(['file-row'] as never)
+      .mockResolvedValueOnce(['node-row'] as never)
+      .mockResolvedValueOnce(['edge-row'] as never);
 
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toMatchObject({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
