@@ -10,46 +10,32 @@ import {
 } from '../../../analysis/fileAnalysis/cacheTiers';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
-import { createSnapshotFileEntry } from '../records/file';
-import type { IndexedFileRow } from '../records/contracts';
-import { INDEXED_FILE_ROWS_QUERY } from '../query/read';
+import type { FileRow, GraphEdgeRow, GraphNodeRow } from '../records/contracts';
+import { hydrateDatabaseRecords } from '../records/hydrate';
+import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY } from '../query/read';
 
 export interface WorkspaceAnalysisDatabaseLoadOptions {
   activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
 }
 
-function addSnapshotEntryToCache(
-  cache: IWorkspaceAnalysisCache,
-  row: IndexedFileRow,
-  options: WorkspaceAnalysisDatabaseLoadOptions,
-): void {
-  const entry = createSnapshotFileEntry(row);
-  if (!entry) return;
-  cache.files[entry.filePath] = {
-    mtime: entry.mtime,
-    ...(entry.size !== undefined ? { size: entry.size } : {}),
-    ...(entry.contentHash ? { contentHash: entry.contentHash } : {}),
-    analysis: projectAnalysisForCacheTiers(
-      entry.analysis,
-      options.activeAnalysisCacheTiers,
-    ),
-  };
-}
-
-function createCacheFromRows(
-  rows: readonly IndexedFileRow[],
+function createCache(
+  fileRows: readonly FileRow[],
+  nodeRows: readonly GraphNodeRow[],
+  edgeRows: readonly GraphEdgeRow[],
   options: WorkspaceAnalysisDatabaseLoadOptions,
 ): IWorkspaceAnalysisCache {
+  const hydrated = hydrateDatabaseRecords(fileRows, nodeRows, edgeRows);
   const cache: IWorkspaceAnalysisCache = {
     version: WORKSPACE_ANALYSIS_CACHE_VERSION,
     files: {},
   };
-  for (const row of rows) {
-    try {
-      addSnapshotEntryToCache(cache, row, options);
-    } catch (error) {
-      console.warn('[CodeGraphy] Skipping unreadable persisted analysis row.', error);
-    }
+  for (const entry of hydrated.files) {
+    cache.files[entry.filePath] = {
+      mtime: entry.mtime,
+      ...(entry.size !== undefined ? { size: entry.size } : {}),
+      ...(entry.contentHash ? { contentHash: entry.contentHash } : {}),
+      analysis: projectAnalysisForCacheTiers(entry.analysis, options.activeAnalysisCacheTiers),
+    };
   }
   return cache;
 }
@@ -67,8 +53,10 @@ export function loadWorkspaceAnalysisDatabaseCache(
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return withConnection(databasePath, connection => createCacheFromRows(
-      readRowsSync(connection, INDEXED_FILE_ROWS_QUERY) as IndexedFileRow[],
+    return withConnection(databasePath, connection => createCache(
+      readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
+      readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
+      readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
       options,
     ));
   } catch (error) {
@@ -83,10 +71,19 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return await withConnectionAsync(databasePath, async connection => createCacheFromRows(
-      await readRowsAsync(connection, INDEXED_FILE_ROWS_QUERY) as IndexedFileRow[],
-      options,
-    ));
+    return await withConnectionAsync(databasePath, async connection => {
+      const [fileRows, nodeRows, edgeRows] = await Promise.all([
+        readRowsAsync(connection, FILE_ROWS_QUERY),
+        readRowsAsync(connection, NODE_ROWS_QUERY),
+        readRowsAsync(connection, EDGE_ROWS_QUERY),
+      ]);
+      return createCache(
+        fileRows as FileRow[],
+        nodeRows as GraphNodeRow[],
+        edgeRows as GraphEdgeRow[],
+        options,
+      );
+    });
   } catch (error) {
     return recoverUnreadableDatabase(databasePath, error);
   }

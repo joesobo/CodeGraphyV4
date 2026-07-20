@@ -5,12 +5,13 @@ import {
 } from '../../../../src/graphCache/database/records/graph';
 
 describe('graphCache/database/graph records', () => {
-  it('hydrates a graph node from canonical columns and properties', () => {
+  it('hydrates a graph node from explicit columns', () => {
     expect(createSnapshotGraphNode({
       id: 'src/app.ts',
       type: 'file',
       label: 'app.ts',
-      propertiesJson: '{"color":"#fff","fileSize":42}',
+      color: '#fff',
+      fileSize: 42,
     })).toEqual({
       id: 'src/app.ts',
       nodeType: 'file',
@@ -20,14 +21,18 @@ describe('graphCache/database/graph records', () => {
     });
   });
 
-  it('hydrates a graph edge with properties and provenance', () => {
+  it('hydrates a graph edge and one normalized source row', () => {
     expect(createSnapshotGraphEdge({
-      id: 'a->b#import',
-      sourceId: 'a',
-      targetId: 'b',
+      id: 'physical-row',
+      graphId: 'a->b#import',
+      sourceNodeId: 'a',
+      targetNodeId: 'b',
       type: 'import',
-      propertiesJson: '{"color":"#fff"}',
-      sourcesJson: '[{"id":"plugin:import","pluginId":"plugin","sourceId":"import","label":"Import"}]',
+      color: '#fff',
+      sourceKey: 'plugin:import',
+      sourcePluginId: 'plugin',
+      pluginSourceId: 'import',
+      sourceLabel: 'Import',
     })).toEqual({
       id: 'a->b#import',
       from: 'a',
@@ -40,6 +45,6 @@ describe('graphCache/database/graph records', () => {
 
   it('drops records missing required identity columns', () => {
     expect(createSnapshotGraphNode({ type: 'file', label: 'app.ts' })).toBeUndefined();
-    expect(createSnapshotGraphEdge({ sourceId: 'a', targetId: 'b', type: 'import' })).toBeUndefined();
+    expect(createSnapshotGraphEdge({ sourceNodeId: 'a', targetNodeId: 'b', type: 'import' })).toBeUndefined();
   });
 });

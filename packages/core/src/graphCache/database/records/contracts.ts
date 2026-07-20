@@ -1,9 +1,17 @@
-export interface IndexedFileRow {
+export const CACHE_TIER_NODE_TYPE = 'codegraphy:cache-tier';
+export const CACHE_TIER_EDGE_TYPE = 'codegraphy:has-cache-tier';
+export const CACHE_TIER_NODE_PREFIX = 'codegraphy:cache-tier:';
+
+export interface FileRow {
   path?: unknown;
+  analysisPath?: unknown;
   mtime?: unknown;
   size?: unknown;
   contentHash?: unknown;
-  factsJson?: unknown;
+  nodesIndexed?: unknown;
+  symbolsIndexed?: unknown;
+  relationsIndexed?: unknown;
+  cacheTiersIndexed?: unknown;
 }
 
 export interface GraphNodeRow {
@@ -12,14 +20,92 @@ export interface GraphNodeRow {
   label?: unknown;
   filePath?: unknown;
   parentId?: unknown;
-  propertiesJson?: unknown;
+  color?: unknown;
+  x?: unknown;
+  y?: unknown;
+  favorite?: unknown;
+  fileSize?: unknown;
+  depthLevel?: unknown;
+  shape?: unknown;
+  shapeWidth?: unknown;
+  shapeHeight?: unknown;
+  cornerRadius?: unknown;
+  collisionRadius?: unknown;
+  chargeStrengthMultiplier?: unknown;
+  fillOpacity?: unknown;
+  pointerWidth?: unknown;
+  pointerHeight?: unknown;
+  imageUrl?: unknown;
+  isCollapsible?: unknown;
+  isCollapsed?: unknown;
+  collapsedDescendantCount?: unknown;
+  analysisNodeId?: unknown;
+  analysisNodeFilePath?: unknown;
+  analysisParentId?: unknown;
+  analysisNodeOrder?: unknown;
+  analysisSymbolId?: unknown;
+  analysisSymbolFilePath?: unknown;
+  analysisSymbolOrder?: unknown;
+  pluginId?: unknown;
+  language?: unknown;
+  analysisSource?: unknown;
+  pluginKind?: unknown;
+  symbolName?: unknown;
+  symbolKind?: unknown;
+  symbolSignature?: unknown;
+  startLine?: unknown;
+  startColumn?: unknown;
+  endLine?: unknown;
+  endColumn?: unknown;
+  gitIgnored?: unknown;
+  gitIgnoredReason?: unknown;
+  unityClass?: unknown;
+  unityFileId?: unknown;
+  unityGameObjectFileId?: unknown;
+  unityScriptGuid?: unknown;
+  unityScriptPath?: unknown;
 }
 
 export interface GraphEdgeRow {
   id?: unknown;
-  sourceId?: unknown;
-  targetId?: unknown;
+  graphId?: unknown;
+  sourceNodeId?: unknown;
+  targetNodeId?: unknown;
   type?: unknown;
-  propertiesJson?: unknown;
-  sourcesJson?: unknown;
+  ownerFilePath?: unknown;
+  color?: unknown;
+  sourcePluginId?: unknown;
+  relationPluginId?: unknown;
+  sourceKey?: unknown;
+  pluginSourceId?: unknown;
+  analysisSourceId?: unknown;
+  sourceLabel?: unknown;
+  variant?: unknown;
+  specifier?: unknown;
+  resolvedPath?: unknown;
+  relationType?: unknown;
+  fromFilePath?: unknown;
+  toFilePath?: unknown;
+  fromAnalysisNodeId?: unknown;
+  toAnalysisNodeId?: unknown;
+  fromSymbolId?: unknown;
+  toSymbolId?: unknown;
+  language?: unknown;
+  analysisSource?: unknown;
+  bindingKind?: unknown;
+  importedName?: unknown;
+  localName?: unknown;
+  memberName?: unknown;
+  signalName?: unknown;
+  eventMethodName?: unknown;
+  targetFileId?: unknown;
+  targetScriptPath?: unknown;
+  targetScriptGuid?: unknown;
+  scriptGuid?: unknown;
+  prefabGuid?: unknown;
+  fieldName?: unknown;
+  guid?: unknown;
+  analysisRelation?: unknown;
+  analysisOrder?: unknown;
+  canonicalGraphEdge?: unknown;
 }

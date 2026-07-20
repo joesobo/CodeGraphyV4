@@ -7,10 +7,9 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { readRowsSync, withConnection } from './io/connection';
 import { getWorkspaceAnalysisDatabasePath } from './io/paths';
-import { createSnapshotFileEntry } from './records/file';
-import { createSnapshotGraphEdge, createSnapshotGraphNode } from './records/graph';
-import type { GraphEdgeRow, GraphNodeRow, IndexedFileRow } from './records/contracts';
-import { EDGE_ROWS_QUERY, INDEXED_FILE_ROWS_QUERY, NODE_ROWS_QUERY } from './query/read';
+import { hydrateDatabaseRecords } from './records/hydrate';
+import type { FileRow, GraphEdgeRow, GraphNodeRow } from './records/contracts';
+import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY } from './query/read';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{
@@ -52,7 +51,7 @@ export function readWorkspaceAnalysisDatabaseRecordCounts(
   try {
     return withConnection(databasePath, connection => {
       const rows = readRowsSync(connection, `SELECT
-        (SELECT count(*) FROM IndexedFile) AS indexedFiles,
+        (SELECT count(*) FROM File) AS indexedFiles,
         (SELECT count(*) FROM Node) AS nodes,
         (SELECT count(*) FROM Edge) AS edges`);
       const row = rows[0] as Partial<WorkspaceAnalysisDatabaseRecordCounts> | undefined;
@@ -75,28 +74,11 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
 
   try {
     return withConnection(databasePath, connection => {
-      const files = (readRowsSync(connection, INDEXED_FILE_ROWS_QUERY) as IndexedFileRow[])
-        .flatMap(row => {
-          const entry = createSnapshotFileEntry(row);
-          return entry ? [entry] : [];
-        });
-      const nodes = (readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[])
-        .flatMap(row => {
-          const node = createSnapshotGraphNode(row);
-          return node ? [node] : [];
-        });
-      const edges = (readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[])
-        .flatMap(row => {
-          const edge = createSnapshotGraphEdge(row);
-          return edge ? [edge] : [];
-        });
-
-      return {
-        files,
-        graph: { nodes, edges },
-        symbols: files.flatMap(file => file.analysis.symbols ?? []),
-        relations: files.flatMap(file => file.analysis.relations ?? []),
-      };
+      return hydrateDatabaseRecords(
+        readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
+        readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
+        readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
+      );
     });
   } catch (error) {
     console.warn('[CodeGraphy] Failed to read structured analysis snapshot.', error);
