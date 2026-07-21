@@ -154,7 +154,7 @@ describe('core-backed CodeGraphy Workspace commands', () => {
 
     expect(nodeReport.nodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        nodeType: 'symbol',
+        nodeType: 'symbol:function',
         symbol: expect.objectContaining({
           name: 'target',
           kind: 'function',
@@ -205,13 +205,13 @@ describe('core-backed CodeGraphy Workspace commands', () => {
           FROM Symbol
           JOIN Node ON Node.id = Symbol.nodeId
           LEFT JOIN File ON File.id = Node.fileId
-          WHERE Node.type = 'symbol'`,
+          WHERE Node.type = 'symbol:function'`,
       ),
     );
     expect(persistedSymbolNodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: expect.stringContaining('target.ts'),
-        type: 'symbol',
+        type: 'symbol:function',
         filePath: 'target.ts',
       }),
     ]));
@@ -234,7 +234,7 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     });
     expect(nodeReport.nodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        nodeType: 'symbol',
+        nodeType: 'symbol:function',
         symbol: expect.objectContaining({ name: 'target', kind: 'function' }),
       }),
     ]));
