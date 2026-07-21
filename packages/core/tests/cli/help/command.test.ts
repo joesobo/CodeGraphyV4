@@ -43,6 +43,16 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['path']).output).toContain('Usage: codegraphy path <from> <to>');
   });
 
+  it('documents one-off query projections without implying settings changes', () => {
+    for (const command of ['nodes', 'search', 'edges', 'dependencies', 'dependents', 'path']) {
+      const output = createHelpResult([command]).output;
+      expect(output).toContain('--filter <glob[,glob...]>');
+      expect(output).toContain('--node-type <type[,type...]>');
+      expect(output).toContain('--edge-type <type[,type...]>');
+      expect(output).toContain('do not change .codegraphy/settings.json');
+    }
+  });
+
   it('explains command purpose, effects, output, and examples', () => {
     const indexHelp = createHelpResult(['index']).output;
     expect(indexHelp).toContain('Create or update the workspace Graph Cache.');

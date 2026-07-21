@@ -31,9 +31,15 @@ The public graph query vocabulary is `nodes`, `search`, `edges`,
 `dependencies`, `dependents`, and `path`. Symbols remain Node Types rather than
 receiving a parallel report command, and Relationships remain Edges rather than
 receiving a parallel command. Queries use bounded defaults instead of
-report-specific pagination and selector flags. Commands target the current
+report-specific pagination flags. Commands target the current
 directory unless the global `-C, --workspace <path>` option selects another
 CodeGraphy Workspace.
+
+Every query accepts repeatable, comma-separated `--filter`, `--node-type`, and
+`--edge-type` options. These are one-off projections layered over the persisted
+workspace settings for that invocation. They do not write
+`.codegraphy/settings.json`: durable changes still use `codegraphy filter` and
+`codegraphy scope`.
 
 The Agent Skill lives in this repository at `skills/codegraphy`. It can be
 installed globally or per workspace from a local checkout. A dedicated public
