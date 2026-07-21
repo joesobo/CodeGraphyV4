@@ -13,6 +13,23 @@ import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
+const BINARY_SAMPLE_SIZE = 8_192;
+
+async function hasNulByte(absolutePath: string): Promise<boolean> {
+  try {
+    const file = await fs.promises.open(absolutePath, 'r');
+    try {
+      const sample = Buffer.alloc(BINARY_SAMPLE_SIZE);
+      const { bytesRead } = await file.read(sample, 0, sample.length, 0);
+      return sample.subarray(0, bytesRead).includes(0);
+    } finally {
+      await file.close();
+    }
+  } catch {
+    return false;
+  }
+}
+
 function getDiscoveryConfig(options: IDiscoveryOptions) {
   return {
     maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
@@ -109,7 +126,7 @@ export class FileDiscovery {
     await walkDirectory(
       rootPath,
       rootPath,
-      (relativePath, absolutePath) => {
+      async (relativePath, absolutePath) => {
         throwIfAborted(signal);
 
         if (discoveredFiles.length >= maxFiles) {
@@ -124,6 +141,10 @@ export class FileDiscovery {
           extensions,
           gitignore: null,
         })) {
+          return true;
+        }
+
+        if (await hasNulByte(absolutePath)) {
           return true;
         }
 

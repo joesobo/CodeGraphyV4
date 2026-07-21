@@ -326,21 +326,6 @@ export function persistWorkspaceCachePatch(
   persistPatchRecords(writer, serializeDatabaseRecords(cache, graph));
 }
 
-export function persistAnalysisEntry(
-  writer: WorkspaceAnalysisCacheWriter,
-  filePath: string,
-  entry: IWorkspaceAnalysisCache['files'][string],
-): void {
-  persistWorkspaceCache(writer, { version: '', files: { [filePath]: entry } });
-}
-
-export function persistGraph(
-  writer: WorkspaceAnalysisCacheWriter,
-  graph: IGraphData,
-): void {
-  persistRecords(writer, serializeDatabaseRecords({ version: '', files: {} }, graph));
-}
-
 export function deleteAnalysisEntry(
   writer: WorkspaceAnalysisCachePatchWriter,
   filePath: string,
@@ -369,29 +354,37 @@ async function executeStatementAndYield(
 async function persistRecordsAsync(
   writer: WorkspaceAnalysisCacheWriter,
   records: NormalizedDatabaseRecords,
-  afterStatement: () => Promise<void>,
+  callbacks: WorkspaceCacheAsyncCallbacks,
 ): Promise<void> {
   for (const record of records.files) {
-    await executeStatementAndYield(writer, writer.fileStatement, record, afterStatement);
+    await executeStatementAndYield(writer, writer.fileStatement, record, callbacks.afterStatement);
+    await callbacks.afterFile();
   }
   const fileIds = readIdMap(writer.connection, 'File', 'path');
   for (const record of records.nodes) {
-    await executeStatementAndYield(writer, writer.nodeStatement, storedNodeRecord(record, fileIds), afterStatement);
+    await executeStatementAndYield(
+      writer,
+      writer.nodeStatement,
+      storedNodeRecord(record, fileIds),
+      callbacks.afterStatement,
+    );
   }
   for (const record of records.nodeViews) {
-    await executeStatementAndYield(writer, writer.nodeViewStatement, record, afterStatement);
+    await executeStatementAndYield(writer, writer.nodeViewStatement, record, callbacks.afterStatement);
   }
   const nodeIds = readIdMap(writer.connection, 'Node', 'key');
   for (const record of records.nodes) {
     const update = parentUpdate(record, nodeIds);
-    if (update) await executeStatementAndYield(writer, writer.nodeParentStatement, update, afterStatement);
+    if (update) {
+      await executeStatementAndYield(writer, writer.nodeParentStatement, update, callbacks.afterStatement);
+    }
   }
   for (const record of records.symbols) {
     await executeStatementAndYield(
       writer,
       writer.symbolStatement,
       storedSymbolRecord(record, nodeIds),
-      afterStatement,
+      callbacks.afterStatement,
     );
   }
   for (const record of records.edges) {
@@ -399,41 +392,21 @@ async function persistRecordsAsync(
       writer,
       writer.edgeStatement,
       storedEdgeRecord(record, nodeIds),
-      afterStatement,
+      callbacks.afterStatement,
     );
   }
+}
+
+export interface WorkspaceCacheAsyncCallbacks {
+  afterFile: () => Promise<void>;
+  afterStatement: () => Promise<void>;
 }
 
 export async function persistWorkspaceCacheAsync(
   writer: WorkspaceAnalysisCacheWriter,
   cache: IWorkspaceAnalysisCache,
   graph: IGraphData | undefined,
-  afterStatement: () => Promise<void>,
+  callbacks: WorkspaceCacheAsyncCallbacks,
 ): Promise<void> {
-  await persistRecordsAsync(writer, serializeDatabaseRecords(cache, graph), afterStatement);
-}
-
-export async function persistAnalysisEntryAsync(
-  writer: WorkspaceAnalysisCacheWriter,
-  filePath: string,
-  entry: IWorkspaceAnalysisCache['files'][string],
-  afterStatement: () => Promise<void>,
-): Promise<void> {
-  await persistRecordsAsync(
-    writer,
-    serializeDatabaseRecords({ version: '', files: { [filePath]: entry } }),
-    afterStatement,
-  );
-}
-
-export async function persistGraphAsync(
-  writer: WorkspaceAnalysisCacheWriter,
-  graph: IGraphData,
-  afterStatement: () => Promise<void>,
-): Promise<void> {
-  await persistRecordsAsync(
-    writer,
-    serializeDatabaseRecords({ version: '', files: {} }, graph),
-    afterStatement,
-  );
+  await persistRecordsAsync(writer, serializeDatabaseRecords(cache, graph), callbacks);
 }

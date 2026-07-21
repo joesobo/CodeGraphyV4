@@ -129,7 +129,3 @@ export function ensureSchema(connection: SQLiteConnection): void {
     PRAGMA user_version = ${GRAPH_CACHE_SCHEMA_VERSION};
   `);
 }
-
-export async function ensureSchemaAsync(connection: SQLiteConnection): Promise<void> {
-  ensureSchema(connection);
-}
