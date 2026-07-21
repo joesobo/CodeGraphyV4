@@ -13,6 +13,7 @@ import {
   type EdgeMetadataRole,
   type GraphEdgeRow,
   type GraphNodeRow,
+  type SymbolRow,
 } from './types';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
@@ -43,7 +44,16 @@ function nodeMetadata(row: GraphNodeRow): GraphMetadata | undefined {
     ['gameObjectFileId', readOptionalString(row.unityGameObjectFileId)],
     ['scriptGuid', readOptionalString(row.unityScriptGuid)],
     ['scriptPath', readOptionalString(row.unityScriptPath)],
-    ['parentId', readOptionalString(row.parentId)],
+    ['parentId', readOptionalString(row.parentKey)],
+  ]);
+}
+
+function symbolMetadata(row: SymbolRow): GraphMetadata | undefined {
+  return compactMetadata([
+    ['pluginId', readOptionalString(row.pluginId)],
+    ['language', readOptionalString(row.language)],
+    ['source', readOptionalString(row.analysisSource)],
+    ['pluginKind', readOptionalString(row.pluginKind)],
   ]);
 }
 
@@ -65,8 +75,11 @@ function optionalNumber(value: unknown): number | undefined {
   return readOptionalNumber(value);
 }
 
-export function createSnapshotGraphNode(row: GraphNodeRow): IGraphNode | undefined {
-  const id = readRequiredString(row.id);
+export function createSnapshotGraphNode(
+  row: GraphNodeRow,
+  symbolRow?: SymbolRow,
+): IGraphNode | undefined {
+  const id = readRequiredString(row.key);
   const nodeType = readRequiredString(row.type);
   const label = readRequiredString(row.label);
   if (!id || !nodeType || !label) return undefined;
@@ -76,12 +89,13 @@ export function createSnapshotGraphNode(row: GraphNodeRow): IGraphNode | undefin
   const shapeHeight = optionalNumber(row.shapeHeight);
   const pointerWidth = optionalNumber(row.pointerWidth);
   const pointerHeight = optionalNumber(row.pointerHeight);
-  const symbolName = readOptionalString(row.symbolName);
-  const symbolKind = readOptionalString(row.symbolKind);
-  const symbolFilePath = readOptionalString(row.filePath);
-  const symbolId = readOptionalString(row.analysisSymbolId) ?? id;
-  const startLine = optionalNumber(row.startLine);
-  const endLine = optionalNumber(row.endLine);
+  const symbolName = readOptionalString(symbolRow?.name);
+  const symbolKind = readOptionalString(symbolRow?.kind);
+  const symbolFilePath = readOptionalString(row.filePath)
+    ?? readOptionalString(symbolRow?.analysisPath);
+  const symbolId = readOptionalString(symbolRow?.analysisId) ?? id;
+  const startLine = optionalNumber(symbolRow?.startLine);
+  const endLine = optionalNumber(symbolRow?.endLine);
   const metadata = nodeMetadata(row);
 
   return {
@@ -120,17 +134,17 @@ export function createSnapshotGraphNode(row: GraphNodeRow): IGraphNode | undefin
             name: symbolName,
             kind: symbolKind,
             filePath: symbolFilePath,
-            ...(readOptionalString(row.pluginKind) ? { pluginKind: readOptionalString(row.pluginKind) } : {}),
-            ...(readOptionalString(row.symbolSignature) ? { signature: readOptionalString(row.symbolSignature) } : {}),
-            ...(readOptionalString(row.language) ? { language: readOptionalString(row.language) } : {}),
-            ...(readOptionalString(row.analysisSource) ? { source: readOptionalString(row.analysisSource) } : {}),
+            ...(readOptionalString(symbolRow?.pluginKind) ? { pluginKind: readOptionalString(symbolRow?.pluginKind) } : {}),
+            ...(readOptionalString(symbolRow?.signature) ? { signature: readOptionalString(symbolRow?.signature) } : {}),
+            ...(readOptionalString(symbolRow?.language) ? { language: readOptionalString(symbolRow?.language) } : {}),
+            ...(readOptionalString(symbolRow?.analysisSource) ? { source: readOptionalString(symbolRow?.analysisSource) } : {}),
             ...(startLine !== undefined && endLine !== undefined
               ? {
                   range: {
                     startLine,
                     endLine,
-                    ...(optionalNumber(row.startColumn) !== undefined ? { startColumn: optionalNumber(row.startColumn) } : {}),
-                    ...(optionalNumber(row.endColumn) !== undefined ? { endColumn: optionalNumber(row.endColumn) } : {}),
+                    ...(optionalNumber(symbolRow?.startColumn) !== undefined ? { startColumn: optionalNumber(symbolRow?.startColumn) } : {}),
+                    ...(optionalNumber(symbolRow?.endColumn) !== undefined ? { endColumn: optionalNumber(symbolRow?.endColumn) } : {}),
                   },
                 }
               : {}),
@@ -159,21 +173,21 @@ export function createSnapshotAnalysisNode(row: GraphNodeRow): IAnalysisNode | u
   };
 }
 
-export function createSnapshotAnalysisSymbol(row: GraphNodeRow): IAnalysisSymbol | undefined {
-  const id = readRequiredString(row.analysisSymbolId);
-  const name = readRequiredString(row.symbolName);
-  const kind = readRequiredString(row.symbolKind);
-  const filePath = readRequiredString(row.analysisSymbolFilePath);
+export function createSnapshotAnalysisSymbol(row: SymbolRow): IAnalysisSymbol | undefined {
+  const id = readRequiredString(row.analysisId);
+  const name = readRequiredString(row.name);
+  const kind = readRequiredString(row.kind);
+  const filePath = readRequiredString(row.analysisPath);
   if (!id || !name || !kind || !filePath) return undefined;
   const startLine = optionalNumber(row.startLine);
   const endLine = optionalNumber(row.endLine);
-  const metadata = nodeMetadata(row);
+  const metadata = symbolMetadata(row);
   return {
     id,
     name,
     kind: kind as GraphEdgeKind,
     filePath,
-    ...(readOptionalString(row.symbolSignature) ? { signature: readOptionalString(row.symbolSignature) } : {}),
+    ...(readOptionalString(row.signature) ? { signature: readOptionalString(row.signature) } : {}),
     ...(startLine !== undefined && endLine !== undefined
       ? {
           range: {
@@ -206,9 +220,9 @@ function createGraphEdgeSource(row: GraphEdgeRow): IGraphEdgeSource | undefined 
 }
 
 export function createSnapshotGraphEdge(row: GraphEdgeRow): IGraphEdge | undefined {
-  const id = readRequiredString(row.graphId);
-  const from = readRequiredString(row.sourceNodeId);
-  const to = readRequiredString(row.targetNodeId);
+  const id = readRequiredString(row.graphKey);
+  const from = readRequiredString(row.sourceNodeKey) ?? readRequiredString(row.sourceNodeId);
+  const to = readRequiredString(row.targetNodeKey) ?? readRequiredString(row.targetNodeId);
   const kind = readRequiredString(row.type);
   if (!id || !from || !to || !kind) return undefined;
   const source = createGraphEdgeSource(row);
@@ -243,7 +257,7 @@ export function createSnapshotAnalysisRelation(row: GraphEdgeRow): IAnalysisRela
     ...(readOptionalString(row.toAnalysisNodeId) ? { toNodeId: readOptionalString(row.toAnalysisNodeId) } : {}),
     ...(readOptionalString(row.fromSymbolId) ? { fromSymbolId: readOptionalString(row.fromSymbolId) } : {}),
     ...(readOptionalString(row.toSymbolId) ? { toSymbolId: readOptionalString(row.toSymbolId) } : {}),
-    ...(readOptionalString(row.specifier) ? { specifier: readOptionalString(row.specifier) } : {}),
+    ...(readOptionalString(row.relationSpecifier) ? { specifier: readOptionalString(row.relationSpecifier) } : {}),
     ...(readOptionalString(row.relationType) ? { type: readOptionalString(row.relationType) } : {}),
     ...(readOptionalString(row.variant) ? { variant: readOptionalString(row.variant) } : {}),
     ...(resolvedPath ? { resolvedPath } : {}),

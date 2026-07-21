@@ -8,9 +8,6 @@ describe('graphCache/database/fileEntry', () => {
       analysisPath: '/workspace/src/app.ts',
       mtime: 42n,
       size: 7,
-      nodesIndexed: 1,
-      symbolsIndexed: 1n,
-      relationsIndexed: 1,
     })).toEqual({
       filePath: 'src/app.ts',
       mtime: 42,
@@ -24,18 +21,20 @@ describe('graphCache/database/fileEntry', () => {
     });
   });
 
-  it('preserves absent analysis collections and an unknown file size', () => {
+  it('creates complete empty analysis collections for an unknown file size', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
       analysisPath: '/workspace/src/app.ts',
       size: -1,
-      nodesIndexed: 0,
-      symbolsIndexed: 0,
-      relationsIndexed: 0,
     })).toEqual({
       filePath: 'src/app.ts',
       mtime: 0,
-      analysis: { filePath: '/workspace/src/app.ts' },
+      analysis: {
+        filePath: '/workspace/src/app.ts',
+        nodes: [],
+        symbols: [],
+        relations: [],
+      },
     });
   });
 

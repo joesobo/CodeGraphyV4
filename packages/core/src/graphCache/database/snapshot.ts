@@ -8,8 +8,8 @@ import type {
 import { readRowsSync, withConnection } from './io/connection';
 import { getWorkspaceAnalysisDatabasePath } from './io/paths';
 import { parseDatabaseRecords } from './records/parser';
-import type { FileRow, GraphEdgeRow, GraphNodeRow } from './records/types';
-import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY } from './query/read';
+import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from './records/types';
+import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY, SYMBOL_ROWS_QUERY } from './query/read';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{
@@ -77,6 +77,7 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
       return parseDatabaseRecords(
         readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
         readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
+        readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
         readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
       );
     });

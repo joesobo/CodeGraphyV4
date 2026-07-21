@@ -10,16 +10,17 @@ import type {
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { readAnalysisCacheTiers } from '../../../analysis/fileAnalysis';
 import type { SQLiteValue } from '../io/connection';
 import {
   EDGE_COLUMNS,
   EDGE_METADATA_COLUMNS,
   NODE_COLUMNS,
+  SYMBOL_COLUMNS,
   type EdgeMetadataRole,
   type EdgeRecord,
   type FileRecord,
   type NodeRecord,
+  type SymbolRecord,
 } from './types';
 
 export type DatabaseRecord = Record<string, SQLiteValue>;
@@ -27,6 +28,7 @@ export type DatabaseRecord = Record<string, SQLiteValue>;
 export interface NormalizedDatabaseRecords {
   files: FileRecord[];
   nodes: NodeRecord[];
+  symbols: SymbolRecord[];
   edges: EdgeRecord[];
 }
 
@@ -115,13 +117,12 @@ function graphNodeRecord(
   knownFilePaths: ReadonlySet<string>,
   analysisToCachePath: ReadonlyMap<string, string>,
 ): NodeRecord {
-  const symbol = node.symbol;
   return {
     ...emptyRecord(NODE_COLUMNS),
-    id: node.id,
+    key: node.id,
     type: node.nodeType ?? 'file',
     label: node.label,
-    filePath: graphNodeFilePath(node, knownFilePaths, analysisToCachePath),
+    fileId: graphNodeFilePath(node, knownFilePaths, analysisToCachePath),
     parentId: normalizeAnalysisId(
       typeof node.metadata?.parentId === 'string' ? node.metadata.parentId : undefined,
       analysisToCachePath,
@@ -145,16 +146,6 @@ function graphNodeRecord(
     isCollapsible: sqliteBoolean(node.isCollapsible),
     isCollapsed: sqliteBoolean(node.isCollapsed),
     collapsedDescendantCount: node.collapsedDescendantCount ?? null,
-    symbolName: symbol?.name ?? null,
-    symbolKind: symbol?.kind ?? null,
-    symbolSignature: symbol?.signature ?? null,
-    startLine: symbol?.range?.startLine ?? null,
-    startColumn: symbol?.range?.startColumn ?? null,
-    endLine: symbol?.range?.endLine ?? null,
-    endColumn: symbol?.range?.endColumn ?? null,
-    language: symbol?.language ?? null,
-    analysisSource: symbol?.source ?? null,
-    pluginKind: symbol?.pluginKind ?? null,
     ...nodeMetadataColumns(node.metadata),
   };
 }
@@ -170,10 +161,10 @@ function analysisNodeRecord(
   return {
     ...emptyRecord(NODE_COLUMNS),
     ...existing,
-    id,
+    key: id,
     type: node.nodeType,
     label: node.label,
-    filePath: ownerFilePath,
+    fileId: ownerFilePath,
     parentId: normalizeAnalysisId(node.parentId, analysisToCachePath),
     analysisNodeId: node.id,
     analysisNodeFilePath: node.filePath ?? null,
@@ -183,33 +174,25 @@ function analysisNodeRecord(
   };
 }
 
-function analysisSymbolRecord(
+function symbolRecord(
   symbol: IAnalysisSymbol,
-  ownerFilePath: string,
   analysisOrder: number,
-  existing: NodeRecord | undefined,
   analysisToCachePath: ReadonlyMap<string, string>,
-): NodeRecord {
-  const id = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
+): SymbolRecord {
+  const nodeKey = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
   return {
-    ...emptyRecord(NODE_COLUMNS),
-    ...existing,
-    id,
-    type: existing?.type ?? 'symbol',
-    label: existing?.label ?? symbol.name,
-    filePath: ownerFilePath,
-    parentId: existing?.parentId ?? null,
-    color: existing?.color ?? '#808080',
-    analysisSymbolId: symbol.id,
-    analysisSymbolFilePath: symbol.filePath,
-    analysisSymbolOrder: analysisOrder,
+    ...emptyRecord(SYMBOL_COLUMNS),
+    nodeId: nodeKey,
+    analysisId: symbol.id,
+    analysisPath: symbol.filePath,
+    analysisOrder,
     pluginId: metadataString(symbol.metadata, 'pluginId'),
     language: metadataString(symbol.metadata, 'language'),
     analysisSource: metadataString(symbol.metadata, 'source'),
     pluginKind: metadataString(symbol.metadata, 'pluginKind'),
-    symbolName: symbol.name,
-    symbolKind: symbol.kind,
-    symbolSignature: symbol.signature ?? null,
+    name: symbol.name,
+    kind: symbol.kind,
+    signature: symbol.signature ?? null,
     startLine: symbol.range?.startLine ?? null,
     startColumn: symbol.range?.startColumn ?? null,
     endLine: symbol.range?.endLine ?? null,
@@ -277,12 +260,12 @@ function createRelationEdgeRecord(
   const sourceKey = source?.sourceId ?? relation.sourceId;
   return {
     ...emptyRecord(EDGE_COLUMNS),
-    id: physicalEdgeId(graphId, sourceKey, `${ownerFilePath}:${relationIndex}`),
-    graphId,
+    key: physicalEdgeId(graphId, sourceKey, `${ownerFilePath}:${relationIndex}`),
+    graphKey: graphId,
     sourceNodeId: endpoints.from,
     targetNodeId: endpoints.to,
     type: relation.kind,
-    ownerFilePath,
+    ownerFileId: ownerFilePath,
     color: graphEdge?.color ?? null,
     sourcePluginId: source?.pluginId ?? null,
     relationPluginId: relation.pluginId ?? null,
@@ -291,7 +274,7 @@ function createRelationEdgeRecord(
     analysisSourceId: relation.sourceId,
     sourceLabel: source?.label ?? relation.sourceId,
     variant: relation.variant ?? source?.variant ?? null,
-    specifier: relation.specifier ?? null,
+    relationSpecifier: relation.specifier ?? null,
     resolvedPath: relation.resolvedPath ?? null,
     relationType: relation.type ?? null,
     fromFilePath: relation.fromFilePath,
@@ -317,8 +300,8 @@ function createGraphEdgeRecord(
   const sourceKey = source?.sourceId ?? 'graph';
   return {
     ...emptyRecord(EDGE_COLUMNS),
-    id: physicalEdgeId(edge.id, sourceKey, `graph:${sourceIndex}`),
-    graphId: edge.id,
+    key: physicalEdgeId(edge.id, sourceKey, `graph:${sourceIndex}`),
+    graphKey: edge.id,
     sourceNodeId: edge.from,
     targetNodeId: edge.to,
     type: edge.kind,
@@ -345,10 +328,10 @@ function addEndpointNode(
   if (nodes.has(id)) return;
   nodes.set(id, {
     ...emptyRecord(NODE_COLUMNS),
-    id,
+    key: id,
     type,
     label: path.basename(id),
-    filePath: knownFilePaths.has(id) ? id : null,
+    fileId: knownFilePaths.has(id) ? id : null,
     parentId: null,
     color: '#808080',
   });
@@ -368,10 +351,6 @@ export function serializeDatabaseRecords(
     mtime: entry.mtime ?? 0,
     size: entry.size ?? -1,
     contentHash: entry.contentHash ?? null,
-    baselineIndexed: Number(readAnalysisCacheTiers(entry.analysis).includes('baseline')),
-    nodesIndexed: Number(entry.analysis.nodes !== undefined),
-    symbolsIndexed: Number(entry.analysis.symbols !== undefined),
-    relationsIndexed: Number(entry.analysis.relations !== undefined),
   }));
 
   const nodes = new Map<string, NodeRecord>();
@@ -388,9 +367,29 @@ export function serializeDatabaseRecords(
       const id = normalizeAnalysisId(node.id, analysisToCachePath) ?? node.id;
       nodes.set(id, analysisNodeRecord(node, filePath, analysisOrder, nodes.get(id), analysisToCachePath));
     }
-    for (const [analysisOrder, symbol] of (entry.analysis.symbols ?? []).entries()) {
+    for (const symbol of entry.analysis.symbols ?? []) {
       const id = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
-      nodes.set(id, analysisSymbolRecord(symbol, filePath, analysisOrder, nodes.get(id), analysisToCachePath));
+      if (!nodes.has(id)) {
+        addEndpointNode(nodes, id, knownFilePaths, 'symbol');
+      }
+      const symbolNode = nodes.get(id);
+      if (symbolNode) {
+        if (symbolNode.fileId === null) symbolNode.fileId = filePath;
+        if (symbolNode.type === 'symbol') symbolNode.label = symbol.name;
+      }
+    }
+  }
+
+  const symbols = new Map<string, SymbolRecord>();
+  for (const node of graphData.nodes) {
+    if (node.symbol) {
+      symbols.set(node.id, symbolRecord(node.symbol, -1, analysisToCachePath));
+    }
+  }
+  for (const [, entry] of sortedFiles) {
+    for (const [analysisOrder, symbol] of (entry.analysis.symbols ?? []).entries()) {
+      const nodeKey = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
+      symbols.set(nodeKey, symbolRecord(symbol, analysisOrder, analysisToCachePath));
     }
   }
 
@@ -413,7 +412,7 @@ export function serializeDatabaseRecords(
         graph === undefined || graphEdge !== undefined,
       );
       edges.push(record);
-      representedSources.add(`${String(record.graphId)}\u0000${String(record.sourceKey ?? '')}`);
+      representedSources.add(`${String(record.graphKey)}\u0000${String(record.sourceKey ?? '')}`);
     }
   }
 
@@ -437,7 +436,8 @@ export function serializeDatabaseRecords(
 
   return {
     files,
-    nodes: [...nodes.values()].sort((left, right) => String(left.id).localeCompare(String(right.id))),
-    edges: edges.sort((left, right) => String(left.id).localeCompare(String(right.id))),
+    nodes: [...nodes.values()].sort((left, right) => String(left.key).localeCompare(String(right.key))),
+    symbols: [...symbols.values()].sort((left, right) => String(left.nodeId).localeCompare(String(right.nodeId))),
+    edges: edges.sort((left, right) => String(left.key).localeCompare(String(right.key))),
   };
 }

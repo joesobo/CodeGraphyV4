@@ -96,6 +96,7 @@ export function recreateInvalidDatabase(
 function openConnection(databasePath: string): SQLiteConnection {
   const connection = new Database(databasePath);
   try {
+    connection.pragma('foreign_keys = ON');
     connection.pragma('journal_mode = DELETE');
     connection.pragma('synchronous = NORMAL');
     ensureSchema(connection);

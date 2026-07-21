@@ -7,7 +7,7 @@ import {
 describe('graphCache/database/graph records', () => {
   it('hydrates a graph node from explicit columns', () => {
     expect(createSnapshotGraphNode({
-      id: 'src/app.ts',
+      key: 'src/app.ts',
       type: 'file',
       label: 'app.ts',
       color: '#fff',
@@ -23,10 +23,10 @@ describe('graphCache/database/graph records', () => {
 
   it('hydrates a graph edge and one normalized source row', () => {
     expect(createSnapshotGraphEdge({
-      id: 'physical-row',
-      graphId: 'a->b#import',
-      sourceNodeId: 'a',
-      targetNodeId: 'b',
+      key: 'physical-row',
+      graphKey: 'a->b#import',
+      sourceNodeKey: 'a',
+      targetNodeKey: 'b',
       type: 'import',
       color: '#fff',
       sourceKey: 'plugin:import',
@@ -45,6 +45,6 @@ describe('graphCache/database/graph records', () => {
 
   it('drops records missing required identity columns', () => {
     expect(createSnapshotGraphNode({ type: 'file', label: 'app.ts' })).toBeUndefined();
-    expect(createSnapshotGraphEdge({ sourceNodeId: 'a', targetNodeId: 'b', type: 'import' })).toBeUndefined();
+    expect(createSnapshotGraphEdge({ sourceNodeKey: 'a', targetNodeKey: 'b', type: 'import' })).toBeUndefined();
   });
 });

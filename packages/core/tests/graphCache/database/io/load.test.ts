@@ -62,12 +62,13 @@ describe('graphCache/database/load', () => {
     expect(withConnection).not.toHaveBeenCalled();
   });
 
-  it('loads and hydrates all three relational tables', () => {
+  it('loads and hydrates all relational tables', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
     vi.mocked(withConnection).mockImplementation((_databasePath, callback) => callback('connection' as never));
     vi.mocked(readRowsSync)
       .mockReturnValueOnce(['file-row'] as never)
       .mockReturnValueOnce(['node-row'] as never)
+      .mockReturnValueOnce(['symbol-row'] as never)
       .mockReturnValueOnce(['edge-row'] as never);
 
     expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({
@@ -80,7 +81,12 @@ describe('graphCache/database/load', () => {
         },
       },
     });
-    expect(parseDatabaseRecords).toHaveBeenCalledWith(['file-row'], ['node-row'], ['edge-row']);
+    expect(parseDatabaseRecords).toHaveBeenCalledWith(
+      ['file-row'],
+      ['node-row'],
+      ['symbol-row'],
+      ['edge-row'],
+    );
   });
 
   it('clears broken database artifacts and falls back to an empty cache', () => {
@@ -96,12 +102,13 @@ describe('graphCache/database/load', () => {
     );
   });
 
-  it('loads all three tables asynchronously', async () => {
+  it('loads all relational tables asynchronously', async () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
     vi.mocked(withConnectionAsync).mockImplementation(async (_path, callback) => callback('connection' as never));
     vi.mocked(readRowsAsync)
       .mockResolvedValueOnce(['file-row'] as never)
       .mockResolvedValueOnce(['node-row'] as never)
+      .mockResolvedValueOnce(['symbol-row'] as never)
       .mockResolvedValueOnce(['edge-row'] as never);
 
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toMatchObject({

@@ -26,12 +26,13 @@ describe('graphCache/database/parser', () => {
       },
     };
     const records = serializeDatabaseRecords(cache);
-    const hydrated = parseDatabaseRecords(records.files, records.nodes, records.edges);
+    const hydrated = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges);
 
     expect(hydrated.files[0]?.analysis).toEqual({
-      cache: { tiers: ['baseline', 'symbols'] },
       filePath: analysis.filePath,
+      nodes: [],
       symbols: analysis.symbols,
+      relations: [],
     });
     expect(hydrated.graph.nodes.map(node => node.nodeType)).not.toContain('codegraphy:cache-tier');
     expect(hydrated.graph.edges.map(edge => edge.kind)).not.toContain('codegraphy:has-cache-tier');
@@ -41,17 +42,18 @@ describe('graphCache/database/parser', () => {
     const hydrated = parseDatabaseRecords(
       [],
       [
-        { id: 'a', type: 'file', label: 'a', color: '#fff' },
-        { id: 'b', type: 'file', label: 'b', color: '#fff' },
+        { id: 1, key: 'a', type: 'file', label: 'a', color: '#fff' },
+        { id: 2, key: 'b', type: 'file', label: 'b', color: '#fff' },
       ],
+      [],
       [
         {
-          id: 'edge-source-one', graphId: 'a->b#import', sourceNodeId: 'a', targetNodeId: 'b',
+          key: 'edge-source-one', graphKey: 'a->b#import', sourceNodeKey: 'a', targetNodeKey: 'b',
           type: 'import', sourcePluginId: 'one', sourceKey: 'one:import',
           pluginSourceId: 'import', sourceLabel: 'One', canonicalGraphEdge: 1,
         },
         {
-          id: 'edge-source-two', graphId: 'a->b#import', sourceNodeId: 'a', targetNodeId: 'b',
+          key: 'edge-source-two', graphKey: 'a->b#import', sourceNodeKey: 'a', targetNodeKey: 'b',
           type: 'import', sourcePluginId: 'two', sourceKey: 'two:import',
           pluginSourceId: 'import', sourceLabel: 'Two', canonicalGraphEdge: 1,
         },
@@ -107,7 +109,7 @@ describe('graphCache/database/parser', () => {
       }],
     });
 
-    const parsed = parseDatabaseRecords(records.files, records.nodes, records.edges);
+    const parsed = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges);
 
     expect(parsed.graph.edges[0]?.metadata).toEqual({ language: 'edge-language' });
     expect(parsed.graph.edges[0]?.sources[0]?.metadata).toEqual({ language: 'source-language' });
