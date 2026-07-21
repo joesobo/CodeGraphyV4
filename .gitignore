@@ -21,6 +21,13 @@ packages/extension/tests/playwright-vscode/generated-ir/
 reports/
 .stryker-tmp/
 .pnpm-store/
+
+# Task artifacts belong in Trello, Codex tasks, or pull requests.
+/docs/plans/
+/docs/handoff/
+/docs/archive/
+/docs/superpowers/
+
 .codegraphy/*
 !.codegraphy/settings.json
 !.codegraphy/particles/

@@ -24,8 +24,9 @@ test('the old MCP package and skill are absent from the release source', () => {
   assert.equal(existsSync(path.join(repoRoot, 'docs', 'MCP.md')), false);
 });
 
-test('the documented install source uses the standard Skills CLI repository form', () => {
+test('the documented install source matches the currently available local skill', () => {
   const readme = readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
 
-  assert.match(readme, /npx skills@latest add codegraphy\/skills/);
+  assert.match(readme, /npx skills@latest add \.\/skills\/codegraphy/);
+  assert.doesNotMatch(readme, /npx skills@latest add codegraphy\/skills/);
 });
