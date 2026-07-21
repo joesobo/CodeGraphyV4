@@ -3,28 +3,14 @@
 **Status:** Accepted
 
 CodeGraphy Core is a headless graph engine and CLI. Products that present its
-graph are independently installed rendering interfaces, not Core plugins or
-Core-managed command packages.
-
-**Considered Options**
-
-- Let Core install interface packages and expose their commands beneath the
-  `codegraphy` executable. This creates a polished two-word command, but turns
-  Core into a package manager and application host for products it should not
-  know exist.
-- Discover companion executables through naming conventions or `PATH`. This
-  avoids a package manager in Core, but makes command discovery implicit and
-  still treats interface launch as a Core concern.
-- Give each interface its own installation and launcher. This makes installation
-  differ by host, while preserving a one-way dependency on Core and allowing
-  every interface to choose the lifecycle its environment requires.
+graph are independently installed rendering interfaces. Each interface owns
+the user experience for its host while sharing Core's indexed graph.
 
 **Decision**
 
 Rendering interfaces own their installation, launch, document lifecycle, and
 host-specific interaction model. They import Core to index and query a
-workspace. Core does not discover, install, register, or name rendering
-interfaces.
+workspace.
 
 The VS Code extension remains a VS Code Marketplace product. The tldraw
 interface will be published as `@codegraphy-dev/tldraw` with its own executable
@@ -37,8 +23,7 @@ npm install --global @codegraphy-dev/core @codegraphy-dev/tldraw
 codegraphy-tldraw
 ```
 
-The package may also support one-off npm execution, but it will not add
-`codegraphy tldraw` or a `codegraphy packages install` command to Core.
+The package may also support one-off npm execution.
 
 The dependency and responsibility boundaries are:
 
@@ -62,8 +47,8 @@ The first tldraw launch for a workspace creates a new unsaved offline draft.
 The user chooses its durable name and location through tldraw's normal save
 flow. A refresh reindexes through Core and reconciles only the shapes owned by
 CodeGraphy in the matching open document. User-created notes, drawings, and
-other shapes remain untouched. The launcher does not overwrite a closed
-`.tldraw` file or save a canvas into the workspace automatically.
+other shapes remain untouched. The user remains responsible for choosing the
+saved document and its location through tldraw.
 
 Rendering interfaces are also distinct from plugins:
 
@@ -71,20 +56,14 @@ Rendering interfaces are also distinct from plugins:
 - A rendering interface consumes Core and presents the graph.
 - A host plugin changes one rendering interface's presentation or interaction.
 
-The current `plugin-particles` packaging does not fit the last boundary cleanly.
-Its migration and the design of independently installable Extension-owned
-plugins are intentionally handled as a separate product decision.
+**Resulting Contract**
 
-**Consequences**
-
-- Installing Core alone never installs or references tldraw.
-- Installing the tldraw package adds only the tldraw package's launcher; Core's
-  CLI surface remains unchanged.
-- The Extension and tldraw may share Core and physics behavior without sharing
-  a rendering host or document model.
-- An interface can evolve its own UI and plugin seam without adding DOM,
-  webview, or canvas contracts to Core.
-- A saved tldraw canvas is user-authored project material, not CodeGraphy cache
-  data. Refresh must therefore be ownership-aware and non-destructive.
+- Core remains directly usable as a headless library and CLI.
+- Installing the tldraw package adds the `codegraphy-tldraw` launcher.
+- The Extension and tldraw share Core and physics behavior while retaining
+  host-specific rendering and document models.
+- Each interface can evolve its own UI and host-specific plugin seam.
+- A saved tldraw canvas is user-authored project material. Refresh reconciles
+  CodeGraphy-owned shapes while preserving the user's canvas additions.
 - The first tldraw implementation can stay narrow: launch, index, render native
   shapes, run forces, refresh, and preserve an added note.
