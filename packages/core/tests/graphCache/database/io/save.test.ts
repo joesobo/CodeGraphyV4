@@ -45,9 +45,13 @@ vi.mock('../../../../src/graphCache/database/io/paths', () => ({
 }));
 
 vi.mock('../../../../src/graphCache/database/query/write', () => ({
+  createWorkspaceAnalysisCachePatchWriter: vi.fn(),
   createWorkspaceAnalysisCacheWriter: vi.fn(),
   createWorkspaceAnalysisCacheWriterAsync: vi.fn(),
+  deleteAnalysisEntry: vi.fn(),
+  deleteAnalysisEntryNodes: vi.fn(),
   persistWorkspaceCache: vi.fn(),
+  persistWorkspaceCachePatch: vi.fn(),
   persistWorkspaceCacheAsync: vi.fn(),
 }));
 
@@ -71,6 +75,7 @@ describe('graphCache/database/io/save', () => {
     vi.mocked(pathsModule.getWorkspaceAnalysisDatabasePath)
       .mockReturnValue('/workspace/.codegraphy/graph.sqlite');
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriter).mockReturnValue(writer);
+    vi.mocked(writeModule.createWorkspaceAnalysisCachePatchWriter).mockReturnValue(writer as never);
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriterAsync).mockResolvedValue(writer);
     vi.mocked(connectionModule.withConnection).mockImplementation((_databasePath, callback) =>
       callback('connection' as never));
@@ -151,7 +156,7 @@ describe('graphCache/database/io/save', () => {
     ]);
   });
 
-  it('rebuilds normalized records from the patched cache', () => {
+  it('patches changed files without loading or replacing the complete cache', () => {
     patchWorkspaceAnalysisDatabaseCache('/workspace', {
       deleteFilePaths: ['src/deleted.ts'],
       upsertFiles: {
@@ -163,21 +168,12 @@ describe('graphCache/database/io/save', () => {
       },
     });
 
-    expect(writeModule.persistWorkspaceCache).toHaveBeenCalledWith(
-      writer,
-      {
-        version: '1',
-        files: {
-          'src/stable.ts': { mtime: 2, analysis: { filePath: '/workspace/src/stable.ts' } },
-          'src/changed.ts': {
-            mtime: 4,
-            size: 40,
-            analysis: { filePath: '/workspace/src/changed.ts' },
-          },
-        },
-      },
-      { nodes: [], edges: [] },
-    );
+    expect(loadModule.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+    expect(snapshotModule.readWorkspaceAnalysisDatabaseSnapshot).not.toHaveBeenCalled();
+    expect(connectionModule.runStatementSync).not.toHaveBeenCalledWith('connection', 'DELETE FROM Edge');
+    expect(connectionModule.runStatementSync).not.toHaveBeenCalledWith('connection', 'DELETE FROM Symbol');
+    expect(connectionModule.runStatementSync).not.toHaveBeenCalledWith('connection', 'DELETE FROM Node');
+    expect(connectionModule.runStatementSync).not.toHaveBeenCalledWith('connection', 'DELETE FROM File');
   });
 
   it('rolls back when normalized persistence fails', () => {

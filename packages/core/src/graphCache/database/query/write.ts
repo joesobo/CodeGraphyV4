@@ -34,11 +34,24 @@ function createInsertStatement(table: string, columns: readonly string[]): strin
   return `INSERT INTO ${table}(${columns.join(', ')}) VALUES (${columns.map(column => `@${column}`).join(', ')})`;
 }
 
-const CREATE_FILE_STATEMENT = createInsertStatement('File', FILE_COLUMNS);
-const CREATE_NODE_STATEMENT = createInsertStatement('Node', NODE_COLUMNS);
-const CREATE_SYMBOL_STATEMENT = createInsertStatement('Symbol', SYMBOL_COLUMNS);
-const CREATE_EDGE_STATEMENT = createInsertStatement('Edge', EDGE_COLUMNS);
+function createUpsertStatement(
+  table: string,
+  columns: readonly string[],
+  conflictColumn: string,
+): string {
+  const updates = columns
+    .filter(column => column !== conflictColumn)
+    .map(column => `${column} = excluded.${column}`)
+    .join(', ');
+  return `${createInsertStatement(table, columns)} ON CONFLICT(${conflictColumn}) DO UPDATE SET ${updates}`;
+}
+
+const CREATE_FILE_STATEMENT = createUpsertStatement('File', FILE_COLUMNS, 'path');
+const CREATE_NODE_STATEMENT = createUpsertStatement('Node', NODE_COLUMNS, 'key');
+const CREATE_SYMBOL_STATEMENT = createUpsertStatement('Symbol', SYMBOL_COLUMNS, 'nodeId');
+const CREATE_EDGE_STATEMENT = createUpsertStatement('Edge', EDGE_COLUMNS, 'key');
 const UPDATE_NODE_PARENT_STATEMENT = 'UPDATE Node SET parentId = @parentId WHERE id = @id';
+const DELETE_FILE_NODES_STATEMENT = 'DELETE FROM Node WHERE fileId = (SELECT id FROM File WHERE path = @path)';
 const DELETE_FILE_STATEMENT = 'DELETE FROM File WHERE path = @path';
 
 export interface WorkspaceAnalysisCacheWriter {
@@ -51,6 +64,7 @@ export interface WorkspaceAnalysisCacheWriter {
 }
 
 export interface WorkspaceAnalysisCachePatchWriter extends WorkspaceAnalysisCacheWriter {
+  deleteFileNodesStatement: SQLiteStatement;
   deleteFileStatement: SQLiteStatement;
 }
 
@@ -78,6 +92,7 @@ export function createWorkspaceAnalysisCachePatchWriter(
 ): WorkspaceAnalysisCachePatchWriter {
   return {
     ...createWorkspaceAnalysisCacheWriter(connection),
+    deleteFileNodesStatement: prepareStatementSync(connection, DELETE_FILE_NODES_STATEMENT),
     deleteFileStatement: prepareStatementSync(connection, DELETE_FILE_STATEMENT),
   };
 }
@@ -101,6 +116,29 @@ function readIdMap(
   keyColumn: 'path' | 'key',
 ): Map<string, number> {
   return new Map(readRowsSync(connection, `SELECT id, ${keyColumn} AS key FROM ${table}`).flatMap(row => (
+    typeof row.key === 'string' && (typeof row.id === 'number' || typeof row.id === 'bigint')
+      ? [[row.key, Number(row.id)] as const]
+      : []
+  )));
+}
+
+function readSelectedIdMap(
+  connection: SQLiteConnection,
+  table: 'File' | 'Node',
+  keyColumn: 'path' | 'key',
+  keys: readonly string[],
+): Map<string, number> {
+  const uniqueKeys = [...new Set(keys)];
+  if (uniqueKeys.length === 0) return new Map();
+  const params: Record<string, SQLiteValue> = {};
+  const placeholders = uniqueKeys.map((key, index) => {
+    params[`key${index}`] = key;
+    return `@key${index}`;
+  });
+  const rows = connection.prepare(
+    `SELECT id, ${keyColumn} AS key FROM ${table} WHERE ${keyColumn} IN (${placeholders.join(', ')})`,
+  ).all(params) as Array<{ id?: number | bigint; key?: string }>;
+  return new Map(rows.flatMap(row => (
     typeof row.key === 'string' && (typeof row.id === 'number' || typeof row.id === 'bigint')
       ? [[row.key, Number(row.id)] as const]
       : []
@@ -189,12 +227,72 @@ function persistRecords(
   }
 }
 
+function persistPatchRecords(
+  writer: WorkspaceAnalysisCacheWriter,
+  records: NormalizedDatabaseRecords,
+): void {
+  for (const record of records.files) {
+    executeStatementSync(writer.connection, writer.fileStatement, record);
+  }
+  const affectedFilePaths = new Set(records.files.map(record => record.path));
+  const fileIds = readSelectedIdMap(
+    writer.connection,
+    'File',
+    'path',
+    records.nodes.flatMap(record => typeof record.fileId === 'string' ? [record.fileId] : []),
+  );
+  const existingNodeIds = readSelectedIdMap(
+    writer.connection,
+    'Node',
+    'key',
+    records.nodes.map(record => record.key),
+  );
+  const nodes = records.nodes.filter(record => (
+    (typeof record.fileId === 'string' && affectedFilePaths.has(record.fileId))
+    || !existingNodeIds.has(record.key)
+  ));
+  for (const record of nodes) {
+    executeStatementSync(writer.connection, writer.nodeStatement, storedNodeRecord(record, fileIds));
+  }
+  const nodeKeys = new Set<string>();
+  for (const record of records.nodes) nodeKeys.add(record.key);
+  for (const record of records.nodes) {
+    if (typeof record.parentId === 'string') nodeKeys.add(record.parentId);
+  }
+  for (const record of records.symbols) nodeKeys.add(record.nodeId);
+  for (const record of records.edges) {
+    nodeKeys.add(String(record.sourceNodeId));
+    nodeKeys.add(String(record.targetNodeId));
+  }
+  const nodeIds = readSelectedIdMap(writer.connection, 'Node', 'key', [...nodeKeys]);
+  for (const record of nodes) {
+    const update = parentUpdate(record, nodeIds);
+    if (update) executeStatementSync(writer.connection, writer.nodeParentStatement, update);
+  }
+  const writtenNodeKeys = new Set(nodes.map(record => record.key));
+  for (const record of records.symbols) {
+    if (!writtenNodeKeys.has(record.nodeId)) continue;
+    executeStatementSync(writer.connection, writer.symbolStatement, storedSymbolRecord(record, nodeIds));
+  }
+  for (const record of records.edges) {
+    executeStatementSync(writer.connection, writer.edgeStatement, storedEdgeRecord(record, nodeIds));
+  }
+}
+
 export function persistWorkspaceCache(
   writer: WorkspaceAnalysisCacheWriter,
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
 ): void {
   persistRecords(writer, serializeDatabaseRecords(cache, graph));
+}
+
+export function persistWorkspaceCachePatch(
+  writer: WorkspaceAnalysisCacheWriter,
+  cache: IWorkspaceAnalysisCache,
+  graph?: IGraphData,
+): void {
+  persistPatchRecords(writer, serializeDatabaseRecords(cache, graph));
 }
 
 export function persistAnalysisEntry(
@@ -216,7 +314,15 @@ export function deleteAnalysisEntry(
   writer: WorkspaceAnalysisCachePatchWriter,
   filePath: string,
 ): void {
+  executeStatementSync(writer.connection, writer.deleteFileNodesStatement, { path: filePath });
   executeStatementSync(writer.connection, writer.deleteFileStatement, { path: filePath });
+}
+
+export function deleteAnalysisEntryNodes(
+  writer: WorkspaceAnalysisCachePatchWriter,
+  filePath: string,
+): void {
+  executeStatementSync(writer.connection, writer.deleteFileNodesStatement, { path: filePath });
 }
 
 async function executeStatementAndYield(
