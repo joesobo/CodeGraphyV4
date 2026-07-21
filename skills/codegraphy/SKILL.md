@@ -9,7 +9,7 @@ CodeGraphy turns a workspace into a queryable graph.
 
 ## Workflow
 
-1. Configure graph contributors with `codegraphy plugins`, then run `codegraphy index`.
+1. Run `codegraphy index`. Configure graph contributors with `codegraphy plugins` before indexing when needed.
 2. Shape returned results with `codegraphy filter` and `codegraphy scope`. These do not reindex or remove stored graph facts.
 3. Query with `nodes`, `search`, `edges`, `dependencies`, `dependents`, or `path`.
 

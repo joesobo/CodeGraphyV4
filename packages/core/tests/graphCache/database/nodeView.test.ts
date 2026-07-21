@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createEmptyWorkspaceAnalysisCache } from '../../../src/analysis/cache';
 import { withConnection, readRowsSync } from '../../../src/graphCache/database/io/connection';
 import {
+  clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
@@ -64,6 +65,19 @@ describe('Graph Cache node views', () => {
     await saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, {
       graph: graphWithNode('current.ts'),
     });
+
+    expect(readNodeViewKeys(workspaceRoot)).toEqual([{ nodeKey: 'current.ts' }]);
+  });
+
+  it('retains compatible view state when graph facts are explicitly cleared', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    saveWorkspaceAnalysisDatabaseCache(
+      workspaceRoot,
+      createEmptyWorkspaceAnalysisCache(),
+      graphWithNode('current.ts'),
+    );
+
+    clearWorkspaceAnalysisDatabaseCache(workspaceRoot);
 
     expect(readNodeViewKeys(workspaceRoot)).toEqual([{ nodeKey: 'current.ts' }]);
   });

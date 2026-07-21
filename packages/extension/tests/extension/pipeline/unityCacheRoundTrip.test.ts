@@ -15,6 +15,7 @@ import {
   createWorkspaceTempRoot,
   readExampleWorkspaceFiles,
 } from '../../acceptance/graphView/workspace';
+import { applyGraphScope } from '../../../src/shared/visibleGraph/scope';
 
 const tempRoots = new Set<string>();
 
@@ -24,7 +25,7 @@ afterEach(async () => {
 });
 
 describe('Unity Graph Cache round trip', { timeout: 30_000 }, () => {
-  it('persists each complete graph node under its canonical key once', async () => {
+  it('persists canonical node keys and restores Unity scope metadata', async () => {
     const tempRoot = createWorkspaceTempRoot();
     tempRoots.add(tempRoot);
     const workspaceRoot = copyExampleWorkspace(tempRoot, 'example-unity');
@@ -60,5 +61,15 @@ describe('Unity Graph Cache round trip', { timeout: 30_000 }, () => {
     expect(graph.nodes).toHaveLength(135);
     expect(persistedKeys).toHaveLength(135);
     expect(persistedKeys).toEqual(expectedKeys);
+    expect(applyGraphScope(persistedGraph, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
+      ],
+      edges: [{ type: 'contains', enabled: true }],
+    }).nodes).toHaveLength(135);
   });
 });

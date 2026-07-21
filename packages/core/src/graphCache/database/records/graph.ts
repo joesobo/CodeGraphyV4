@@ -8,6 +8,7 @@ import type {
   IGraphEdge,
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
+import { CORE_GRAPH_NODE_TYPES } from '../../../graphControls/defaults/definitions';
 import type { GraphEdgeRow, GraphNodeRow, SymbolRow } from './types';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
@@ -31,6 +32,20 @@ function nodeMetadata(row: GraphNodeRow): GraphMetadata | undefined {
     ['language', readOptionalString(row.language)],
     ['parentId', readOptionalString(row.parentKey)],
   ]);
+}
+
+function derivedPluginKind(
+  pluginId: string,
+  language: string | undefined,
+  symbolKind: string,
+): string {
+  const definition = CORE_GRAPH_NODE_TYPES.find(candidate => (
+    candidate.matchSymbolPluginKind
+    && candidate.matchSymbolSource === pluginId
+    && (!candidate.matchSymbolLanguage || candidate.matchSymbolLanguage === language)
+    && (!candidate.matchSymbolKinds || candidate.matchSymbolKinds.includes(symbolKind))
+  ));
+  return definition?.matchSymbolPluginKind ?? symbolKind;
 }
 
 function analysisIdentity(
@@ -60,6 +75,7 @@ export function createSnapshotGraphNode(
   const symbolName = readOptionalString(symbolRow?.name);
   const symbolKind = readOptionalString(symbolRow?.kind);
   const symbolLanguage = readOptionalString(symbolRow?.language);
+  const symbolPluginId = readOptionalString(symbolRow?.pluginId);
   const metadata = nodeMetadata(row);
   return {
     id,
@@ -81,6 +97,10 @@ export function createSnapshotGraphNode(
             name: symbolName,
             kind: symbolKind,
             filePath,
+            ...(symbolPluginId ? {
+              pluginKind: derivedPluginKind(symbolPluginId, symbolLanguage, symbolKind),
+              source: symbolPluginId,
+            } : {}),
             ...(symbolLanguage ? { language: symbolLanguage } : {}),
           },
         }
@@ -121,6 +141,7 @@ export function createSnapshotAnalysisSymbol(
   if (!key || !filePath || !name || !kind) return undefined;
   const metadata = compactMetadata([
     ['pluginId', readOptionalString(row.pluginId)],
+    ['source', readOptionalString(row.pluginId)],
     ['language', readOptionalString(row.language)],
   ]);
   return {
