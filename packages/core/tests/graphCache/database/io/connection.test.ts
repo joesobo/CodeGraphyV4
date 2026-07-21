@@ -29,19 +29,18 @@ describe('graphCache/database/io/connection', () => {
     const rows = withConnection(createDatabasePath(), (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO File(path, analysisPath, mtime, size) VALUES ('src/app.ts', '/workspace/src/app.ts', 1, 2)",
+        "INSERT INTO File(path, size, contentHash) VALUES ('src/app.ts', 2, 'sha256:app')",
       );
       return readRowsSync(
         connection,
-        'SELECT path, analysisPath, mtime, size FROM File ORDER BY path',
+        'SELECT path, size, contentHash FROM File ORDER BY path',
       );
     });
 
     expect(rows).toEqual([{
       path: 'src/app.ts',
-      mtime: 1,
       size: 2,
-      analysisPath: '/workspace/src/app.ts',
+      contentHash: 'sha256:app',
     }]);
   });
 
@@ -70,19 +69,18 @@ describe('graphCache/database/io/connection', () => {
     withConnection(databasePath, (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO File(path, analysisPath, mtime, size) VALUES ('src/app.ts', '/workspace/src/app.ts', 1, 2)",
+        "INSERT INTO File(path, size, contentHash) VALUES ('src/app.ts', 2, 'sha256:app')",
       );
     });
 
     const rows = withConnection(databasePath, connection => readRowsSync(
       connection,
-      'SELECT path, analysisPath, mtime, size FROM File ORDER BY path',
+      'SELECT path, size, contentHash FROM File ORDER BY path',
     ));
     expect(rows).toEqual([{
       path: 'src/app.ts',
-      mtime: 1,
       size: 2,
-      analysisPath: '/workspace/src/app.ts',
+      contentHash: 'sha256:app',
     }]);
   });
 

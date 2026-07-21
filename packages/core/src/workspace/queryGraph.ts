@@ -7,8 +7,9 @@ import { normalizeWorkspaceQueryFacts } from './queryFacts';
 import { matchesAnyPattern } from '../discovery/pathMatching';
 import type { IGraphData } from '../graph/contracts';
 import { resolveSavedGraphScope } from './graphScopeSettings';
+import type { WorkspaceGraphQueryProjection } from './requestTypes';
 
-function applySavedPathFilters(graphData: IGraphData, patterns: readonly string[]): IGraphData {
+function applyPathFilters(graphData: IGraphData, patterns: readonly string[]): IGraphData {
   if (patterns.length === 0) return graphData;
   const nodes = graphData.nodes.filter((node) => {
     const graphPath = node.symbol?.filePath ?? node.id;
@@ -24,6 +25,7 @@ function applySavedPathFilters(graphData: IGraphData, patterns: readonly string[
 export function readWorkspaceQueryGraph(
   workspaceRoot: string,
   installedPluginCache: CodeGraphyInstalledPluginCache,
+  projection: WorkspaceGraphQueryProjection = {},
 ) {
   const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
   const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
@@ -37,11 +39,29 @@ export function readWorkspaceQueryGraph(
     nodes: snapshot.files.flatMap(file => file.analysis.nodeTypes ?? []),
     edges: snapshot.files.flatMap(file => file.analysis.edgeTypes ?? []),
   };
-  const graphData = applySavedPathFilters(snapshot.graph, settings.filterPatterns);
+  const graphData = applyPathFilters(
+    snapshot.graph,
+    [...settings.filterPatterns, ...(projection.filterPatterns ?? [])],
+  );
+  const savedScope = resolveSavedGraphScope(settings, graphData, declarations);
+  const scope = {
+    nodes: projection.nodeTypes
+      ? Object.fromEntries([
+          ...Object.keys(savedScope.nodes).map(type => [type, false] as const),
+          ...projection.nodeTypes.map(type => [type, true] as const),
+        ])
+      : savedScope.nodes,
+    edges: projection.edgeTypes
+      ? Object.fromEntries([
+          ...Object.keys(savedScope.edges).map(type => [type, false] as const),
+          ...projection.edgeTypes.map(type => [type, true] as const),
+        ])
+      : savedScope.edges,
+  };
 
   return {
     graphData,
-    scope: resolveSavedGraphScope(settings, graphData, declarations),
+    scope,
     settings,
     snapshotFacts: normalizeWorkspaceQueryFacts(
       filterInactivePluginSnapshotFacts(snapshot, activePluginIds),

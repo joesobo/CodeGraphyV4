@@ -90,6 +90,7 @@ describe('graphCache/database/load', () => {
       ['node-row'],
       ['symbol-row'],
       ['edge-row'],
+      '/workspace',
     );
   });
 

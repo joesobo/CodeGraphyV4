@@ -1,4 +1,4 @@
-import type { GraphQueryReport } from '../workspace/requestTypes';
+import type { GraphQueryReport, WorkspaceGraphQueryProjection } from '../workspace/requestTypes';
 import type { CliCommand } from './parseTypes';
 
 const QUERY_COMMANDS = new Set([
@@ -19,6 +19,7 @@ interface ParsedQueryArguments {
   limit: number;
   offset?: number;
   parseError?: string;
+  projection?: WorkspaceGraphQueryProjection;
 }
 
 export function isGraphQueryReport(value: string | undefined): boolean {
@@ -44,6 +45,7 @@ function parseArguments(
   let limit = DEFAULT_LIMIT;
   let offset: number | undefined;
   let optionsEnded = false;
+  const projection: NonNullable<ParsedQueryArguments['projection']> = {};
 
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
@@ -66,13 +68,34 @@ function parseArguments(
       index += 1;
       continue;
     }
+    if (!optionsEnded && (
+      argument === '--filter'
+      || argument === '--node-type'
+      || argument === '--edge-type'
+    )) {
+      const values = argv[index + 1]?.split(',').map(value => value.trim()).filter(Boolean) ?? [];
+      if (values.length === 0) {
+        return { operands, limit, parseError: `${argument} requires a comma-separated list` };
+      }
+      const key = argument === '--filter'
+        ? 'filterPatterns'
+        : argument === '--node-type' ? 'nodeTypes' : 'edgeTypes';
+      projection[key] = [...new Set([...(projection[key] ?? []), ...values])];
+      index += 1;
+      continue;
+    }
     if (!optionsEnded && argument.startsWith('-')) {
       return { operands, limit, parseError: `Unknown option for ${command}: ${argument}` };
     }
     operands.push(argument);
   }
 
-  return { operands, limit, ...(offset !== undefined ? { offset } : {}) };
+  return {
+    operands,
+    limit,
+    ...(offset !== undefined ? { offset } : {}),
+    ...(Object.keys(projection).length > 0 ? { projection } : {}),
+  };
 }
 
 function requireOperands(command: string, args: string[], count: number, usage: string): CliCommand | undefined {
@@ -85,12 +108,14 @@ function query(
   invokedCommand: string,
   report: GraphQueryReport,
   arguments_: Record<string, unknown>,
+  projection?: ParsedQueryArguments['projection'],
 ): CliCommand {
   return {
     name: 'query',
     ...(invokedCommand === report ? {} : { invokedCommand }),
     report,
     arguments: arguments_,
+    ...(projection ? { projection } : {}),
   };
 }
 
@@ -103,30 +128,30 @@ export function parseQueryCommand(argv: string[]): CliCommand {
   const acceptsPagination = command !== 'path';
   const parsed = parseArguments(command, rawArgs, acceptsPagination);
   if (parsed.parseError) return parseError(command, parsed.parseError);
-  const { operands, limit, offset } = parsed;
+  const { operands, limit, offset, projection } = parsed;
   const page = { limit, ...(offset !== undefined ? { offset } : {}) };
 
   switch (command) {
     case 'nodes':
     case 'edges': {
       const invalid = requireOperands(command, operands, 0, '');
-      return invalid ?? query(command, command, page);
+      return invalid ?? query(command, command, page, projection);
     }
     case 'search': {
       const invalid = requireOperands(command, operands, 1, '<text>');
-      return invalid ?? query(command, 'nodes', { search: operands[0], ...page });
+      return invalid ?? query(command, 'nodes', { search: operands[0], ...page }, projection);
     }
     case 'dependencies': {
       const invalid = requireOperands(command, operands, 1, '<node>');
       return invalid ?? query(command, 'edges', {
         from: operands[0], expandFileSelectors: true, projectFileEndpoints: true, ...page,
-      });
+      }, projection);
     }
     case 'dependents': {
       const invalid = requireOperands(command, operands, 1, '<node>');
       return invalid ?? query(command, 'edges', {
         to: operands[0], expandFileSelectors: true, projectFileEndpoints: true, ...page,
-      });
+      }, projection);
     }
     case 'path': {
       const invalid = requireOperands(command, operands, 2, '<from> <to>');
@@ -137,7 +162,7 @@ export function parseQueryCommand(argv: string[]): CliCommand {
         maxPaths: DEFAULT_MAX_PATHS,
         expandFileSelectors: true,
         projectFileEndpoints: true,
-      });
+      }, projection);
     }
   }
 

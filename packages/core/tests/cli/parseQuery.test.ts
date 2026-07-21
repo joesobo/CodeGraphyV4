@@ -60,6 +60,30 @@ describe('cli/parseQuery', () => {
     });
   });
 
+  it('parses one-off Filter and Graph Scope overrides for every query', () => {
+    expect(parseQueryCommand([
+      'dependencies', 'src/app.ts',
+      '--filter', '**/*.test.ts,docs/**',
+      '--node-type', 'file,symbol:function',
+      '--edge-type', 'import',
+      '--edge-type', 'call',
+    ])).toMatchObject({
+      invokedCommand: 'dependencies',
+      projection: {
+        filterPatterns: ['**/*.test.ts', 'docs/**'],
+        nodeTypes: ['file', 'symbol:function'],
+        edgeTypes: ['import', 'call'],
+      },
+    });
+
+    expect(parseQueryCommand([
+      'path', 'src/app.ts', 'src/model.ts', '--filter', 'generated/**',
+    ])).toMatchObject({
+      invokedCommand: 'path',
+      projection: { filterPatterns: ['generated/**'] },
+    });
+  });
+
   it('rejects invalid flags, pagination values, operands, and retired reports', () => {
     expect(parseQueryCommand(['nodes', '--unknown'])).toMatchObject({
       parseError: 'Unknown option for nodes: --unknown',
@@ -69,6 +93,9 @@ describe('cli/parseQuery', () => {
     });
     expect(parseQueryCommand(['nodes', '--offset', '-1'])).toMatchObject({
       parseError: '--offset requires a non-negative integer',
+    });
+    expect(parseQueryCommand(['nodes', '--filter', ','])).toMatchObject({
+      parseError: '--filter requires a comma-separated list',
     });
     expect(parseQueryCommand(['search'])).toMatchObject({
       invokedCommand: 'search',

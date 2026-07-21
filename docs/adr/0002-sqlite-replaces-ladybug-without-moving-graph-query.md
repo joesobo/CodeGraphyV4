@@ -37,46 +37,45 @@ as independent, measured changes.
 
 Persist the Graph Cache as four relational tables:
 
-- `File` stores one row per indexed workspace file, including the cache path,
-  analyzer path, filesystem identity, and content hash.
+- `File(id, path, size, contentHash)` stores one row per indexed workspace
+  file. `path` is the stable workspace-relative identity; the generated `id`
+  is used by foreign keys.
 - `Node` stores files, folders, packages, symbols, and plugin concepts. A node
   references its owning `File` and parent `Node` through generated integer
-  identifiers. Stable graph identity remains a separate unique `key`.
+  identifiers. Stable graph identity remains a separate unique `key`. The
+  remaining columns are `type`, `label`, `color`, `x`, `y`, `favorite`,
+  `shape`, `imageUrl`, `isCollapsed`, `pluginId`, and `language`.
 - `Symbol` stores the optional symbol subtype of a `Node` as a one-to-one row.
-  Symbol identity, source range, and supported plugin metadata use explicit
-  typed columns, so non-symbol nodes do not carry nullable symbol fields.
-  `filePath` belongs to every symbol; nullable `analysisId`, `analysisPath`,
-  and `analysisOrder` distinguish analyzer facts from graph-only presentation
-  without allowing graph rows to become analyzer facts on the next index.
+  Its complete contract is `nodeId`, `name`, `kind`, `pluginId`, and
+  `language`. File ownership is obtained through the referenced `Node`; it is
+  not duplicated on `Symbol`.
 - `Edge` stores directed typed relationships between `Node` rows. Each physical
-  row stores one contributing source, while `graphKey` groups rows that form
-  one canonical multi-source graph edge. `sourceNodeId`, `targetNodeId`, and
-  `ownerFileId` are integer foreign keys. Raw analysis relation fields and
-  source provenance use separate explicit columns.
+  row has only `id`, stable `key`, `sourceNodeId`, `targetNodeId`, and `type`.
+  Source and target are generated `Node.id` foreign keys. Edge ownership is
+  derived from its endpoints instead of duplicated in an `ownerFileId`.
 
-The schema does not use JSON columns. Facts needed for identity, joins,
-filtering, ownership, provenance, or cache reconstruction remain ordinary
-SQLite values with foreign keys and indexes. `INTEGER PRIMARY KEY` provides
+The schema does not use JSON columns and does not persist analyzer bookkeeping,
+source provenance, source ranges, renderer physics, Unity-specific fields, or
+duplicated paths and identities. `INTEGER PRIMARY KEY` provides
 database-generated row identities without `AUTOINCREMENT`; domain keys such as
-paths and plugin identifiers remain unique ordinary columns. When one node is
-both a plugin node and a symbol, `Symbol.nodeId` points to that existing `Node`
-instead of creating a duplicate node.
+paths remain unique ordinary columns. When one node is both a plugin node and a
+symbol, `Symbol.nodeId` points to that existing `Node` instead of creating a
+duplicate node.
 
+The persisted Relationship Graph is the source of truth. Runtime analysis
+objects needed by existing Core indexing paths are reconstructed minimally from
+the four tables and relational joins; removed analyzer details are not recreated.
 Every persisted file record represents a completed core analysis, including an
-empty symbol result, so per-collection `*Indexed` flags are unnecessary. Active
-plugin tiers are restored only after the existing settings and plugin
-signatures have validated the cache. `canonicalGraphEdge` distinguishes a raw
-analysis relation that must remain queryable from an edge that belongs in the
-canonical Relationship Graph.
+empty symbol result, so per-collection `*Indexed` flags are unnecessary.
 
-Discovery Filters define which files belong in an index and can reduce indexing
-work. Once a file is selected, indexing stores its complete nodes, symbols, and
-edges independently of Graph Scope and edge visibility. Graph Scope and edge
-visibility shape extension display and CLI query results without requiring a
-new index. The CLI keeps indexing explicit for now. Automatic stale
-notifications, watchers, and background reindexing are separate future work;
-the extension may continue responding to editor lifecycle events through its
-Core indexing path.
+Indexing stores complete nodes, symbols, and edges independently of Filters,
+Graph Scope, and edge visibility. Those settings shape extension display and
+CLI query results without requiring a new index. `contentHash` allows an
+explicit later index to validate file reuse without persisting modification
+times; it is not exposed as a stale row flag. The CLI keeps indexing explicit
+for now. Automatic stale notifications, watchers, and background reindexing are
+separate future work; the extension may continue responding to editor lifecycle
+events through its Core indexing path.
 
 **Consequences**
 

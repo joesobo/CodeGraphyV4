@@ -31,6 +31,7 @@ const ROOT_HELP = [
   '  codegraphy dependencies <node>           List outgoing Relationships',
   '  codegraphy dependents <node>             List incoming Relationships',
   '  codegraphy path <from> <to>              Find a bounded path between Nodes',
+  '  All query commands accept one-off --filter, --node-type, and --edge-type options.',
   '',
   'Global options:',
   '  -C, --workspace <path>  Use another workspace (default: current directory)',
@@ -46,6 +47,13 @@ const ROOT_HELP = [
   '',
   'Run `codegraphy <command> --help` for arguments, effects, output, and examples.',
 ].join('\n');
+
+const QUERY_PROJECTION_OPTIONS = [
+  '  --filter <glob[,glob...]>      Exclude matching paths for this query (repeatable)',
+  '  --node-type <type[,type...]>   Include only these Node Types (repeatable)',
+  '  --edge-type <type[,type...]>   Include only these Edge Types (repeatable)',
+  '  These one-off options do not change .codegraphy/settings.json.',
+];
 
 const COMMAND_HELP: Record<string, string> = {
   index: [
@@ -87,6 +95,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Options:',
     '  --limit <count>   Maximum results to return (default: 100)',
     '  --offset <count>  Zero-based result offset (default: 0)',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy nodes',
   ].join('\n'),
   search: [
@@ -102,6 +111,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Options:',
     '  --limit <count>   Maximum results to return (default: 100)',
     '  --offset <count>  Zero-based result offset (default: 0)',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy search SettingsPanel',
   ].join('\n'),
   edges: [
@@ -114,6 +124,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Options:',
     '  --limit <count>   Maximum results to return (default: 100)',
     '  --offset <count>  Zero-based result offset (default: 0)',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy edges',
   ].join('\n'),
   dependencies: [
@@ -129,6 +140,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Options:',
     '  --limit <count>   Maximum results to return (default: 100)',
     '  --offset <count>  Zero-based result offset (default: 0)',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy dependencies packages/core/src/cli/command.ts',
   ].join('\n'),
   dependents: [
@@ -144,6 +156,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Options:',
     '  --limit <count>   Maximum results to return (default: 100)',
     '  --offset <count>  Zero-based result offset (default: 0)',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy dependents packages/core/src/cli/command.ts',
   ].join('\n'),
   path: [
@@ -157,6 +170,8 @@ const COMMAND_HELP: Record<string, string> = {
     '',
     'Effects: Read-only.',
     'Output: JSON path result, limits, and `complete` search status.',
+    'Options:',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy path src/app.ts src/model.ts',
   ].join('\n'),
   scope: [

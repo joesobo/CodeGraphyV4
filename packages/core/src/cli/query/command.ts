@@ -125,6 +125,7 @@ export async function runQueryCommand(
     workspacePath: workspaceRoot,
     report: command.report,
     arguments: queryArguments,
+    ...(command.projection ? { projection: command.projection } : {}),
     ...(diagnostics ? { diagnostics } : {}),
   });
   return {

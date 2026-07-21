@@ -1,4 +1,7 @@
-import type { GraphQueryReport } from '../workspace/requestTypes';
+import type {
+  GraphQueryReport,
+  WorkspaceGraphQueryProjection,
+} from '../workspace/requestTypes';
 
 export type CliCommandName =
   | 'doctor'
@@ -21,6 +24,7 @@ export interface CliCommand {
   packageName?: string;
   packageRoot?: string;
   parseError?: string;
+  projection?: WorkspaceGraphQueryProjection;
   report?: GraphQueryReport;
   verbose?: boolean;
   workspacePath?: string;
