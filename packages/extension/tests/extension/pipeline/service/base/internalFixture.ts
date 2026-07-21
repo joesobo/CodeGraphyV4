@@ -162,6 +162,10 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
   public persistCache(): void {
     this._persistCache();
   }
+
+  public get completeGraphData() {
+    return this._completeGraphData;
+  }
 }
 
 

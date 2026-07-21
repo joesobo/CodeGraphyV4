@@ -38,6 +38,7 @@ export interface WorkspacePipelineAnalysisSource {
     disabledPlugins: Set<string>,
   ): IGraphData;
   _eventBus?: WorkspacePipelineEventBus;
+  _completeGraphData?: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
@@ -173,7 +174,7 @@ export async function analyzeWorkspaceWithAnalyzer(
     total: 1,
   });
   await dependencies.saveCache(
-    graphData,
+    source._completeGraphData ?? graphData,
     progress => {
       dependencies.sendProgress?.({
         phase: 'Saving Graph Cache',

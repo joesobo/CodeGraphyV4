@@ -36,7 +36,12 @@ describe('pipeline/service/cache/storage', () => {
   it('skips cache persistence when no workspace root is available', () => {
     const warn = vi.fn();
 
-    persistWorkspacePipelineCache(undefined, { files: {} } as never, warn);
+    persistWorkspacePipelineCache(
+      undefined,
+      { files: {} } as never,
+      { nodes: [], edges: [] },
+      warn,
+    );
 
     expect(saveWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
@@ -44,16 +49,18 @@ describe('pipeline/service/cache/storage', () => {
 
   it('persists the repo-local cache when a workspace root is available', () => {
     const cache = { files: { 'src/a.ts': {} } };
+    const graph = { nodes: [{ id: 'src/a.ts' }], edges: [] };
     const warn = vi.fn();
 
-    persistWorkspacePipelineCache('/workspace', cache as never, warn);
+    persistWorkspacePipelineCache('/workspace', cache as never, graph as never, warn);
 
-    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache, { graph });
     expect(warn).not.toHaveBeenCalled();
   });
 
   it('returns before repo-local cache persistence settles', async () => {
     const cache = { files: { 'src/a.ts': {} } };
+    const graph = { nodes: [], edges: [] };
     const warn = vi.fn();
     let resolveSave!: () => void;
     const savePromise = new Promise<void>((resolve) => {
@@ -61,9 +68,9 @@ describe('pipeline/service/cache/storage', () => {
     });
     vi.mocked(saveWorkspaceAnalysisDatabaseCacheAsync).mockReturnValue(savePromise);
 
-    persistWorkspacePipelineCache('/workspace', cache as never, warn);
+    persistWorkspacePipelineCache('/workspace', cache as never, graph, warn);
 
-    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache, { graph });
     expect(warn).not.toHaveBeenCalled();
 
     resolveSave();
@@ -72,11 +79,12 @@ describe('pipeline/service/cache/storage', () => {
 
   it('warns when saving the repo-local cache rejects', async () => {
     const cache = { files: {} };
+    const graph = { nodes: [], edges: [] };
     const warn = vi.fn();
     const error = new Error('save failed');
     vi.mocked(saveWorkspaceAnalysisDatabaseCacheAsync).mockRejectedValue(error);
 
-    persistWorkspacePipelineCache('/workspace', cache as never, warn);
+    persistWorkspacePipelineCache('/workspace', cache as never, graph, warn);
 
     await vi.waitFor(() => {
       expect(warn).toHaveBeenCalledWith(

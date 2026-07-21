@@ -89,6 +89,9 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
     const gitIgnoredPaths = ['src/generated/cache.py'];
     source.setLastDiscoveredDirectories(discoveredDirectories);
     source.setLastGitIgnoredPaths(gitIgnoredPaths);
+    vi.mocked(buildWorkspacePipelineGraphFromAnalysis)
+      .mockReturnValueOnce({ nodes: [{ id: 'complete-analysis-graph' }], edges: [] } as never)
+      .mockReturnValueOnce({ nodes: [{ id: 'analysis-graph' }], edges: [] } as never);
 
     expect(
       source.buildGraphData(fileConnections, '/workspace', true, disabledPlugins),
@@ -118,7 +121,24 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
       nodes: [{ id: 'analysis-graph' }],
       edges: [],
     });
-    expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenCalledWith(
+    expect(source.completeGraphData).toEqual({
+      nodes: [{ id: 'complete-analysis-graph' }],
+      edges: [],
+    });
+    expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenNthCalledWith(
+      1,
+      source._cache,
+      source._registry,
+      fileAnalysis,
+      '/workspace',
+      false,
+      disabledPlugins,
+      discoveredDirectories,
+      {},
+      gitIgnoredPaths,
+    );
+    expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenNthCalledWith(
+      2,
       source._cache,
       source._registry,
       fileAnalysis,
