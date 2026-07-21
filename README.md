@@ -96,7 +96,7 @@ codegraphy -C /path/to/workspace index
 
 ## CLI Reference
 
-All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data commands return a stable JSON envelope on stdout. Failures return the same envelope shape on stderr and use a nonzero exit code. Help and version output stay plain text.
+All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data commands return a stable JSON envelope on stdout. Failures return the same envelope shape on stderr and use a nonzero exit code. An unhealthy `doctor` result also includes `data` with every completed check, beside the standard `error` field. Help and version output stay plain text.
 
 | Command | Result |
 |---|---|

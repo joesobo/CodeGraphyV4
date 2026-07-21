@@ -97,6 +97,15 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['nodes', '--filter', ','])).toMatchObject({
       parseError: '--filter requires a comma-separated list',
     });
+    expect(parseQueryCommand(['nodes', '--filter', '--node-type', 'file'])).toMatchObject({
+      parseError: '--filter requires a comma-separated list',
+    });
+    expect(parseQueryCommand(['nodes', '--node-type', '--edge-type', 'import'])).toMatchObject({
+      parseError: '--node-type requires a comma-separated list',
+    });
+    expect(parseQueryCommand(['nodes', '--edge-type', '--limit', '5'])).toMatchObject({
+      parseError: '--edge-type requires a comma-separated list',
+    });
     expect(parseQueryCommand(['search'])).toMatchObject({
       invokedCommand: 'search',
       parseError: 'search requires <text>',

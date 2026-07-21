@@ -24,7 +24,7 @@ describe('cli doctor', () => {
             ok: true,
             state: 'fresh',
             staleReasons: [],
-            schemaVersion: 7,
+            schemaVersion: 8,
             indexedAt: expect.any(String),
             records: {
               indexedFiles: 2,
@@ -56,8 +56,8 @@ describe('cli doctor', () => {
         checks: {
           cache: {
             ok: false,
-            schemaVersion: 7,
-            expectedSchemaVersion: 7,
+            schemaVersion: 8,
+            expectedSchemaVersion: 8,
             schemaCompatible: false,
           },
         },

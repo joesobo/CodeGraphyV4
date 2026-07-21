@@ -73,7 +73,10 @@ function parseArguments(
       || argument === '--node-type'
       || argument === '--edge-type'
     )) {
-      const values = argv[index + 1]?.split(',').map(value => value.trim()).filter(Boolean) ?? [];
+      const optionValue = argv[index + 1];
+      const values = !optionValue || optionValue.startsWith('-')
+        ? []
+        : optionValue.split(',').map(value => value.trim()).filter(Boolean);
       if (values.length === 0) {
         return { operands, limit, parseError: `${argument} requires a comma-separated list` };
       }

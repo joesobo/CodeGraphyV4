@@ -26,7 +26,7 @@ codegraphy scope edge call on
 codegraphy filter add '**/generated/**'
 ```
 
-Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for purpose, arguments, effects, output, and examples. Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
+Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for purpose, arguments, effects, output, and examples. Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. An unhealthy `doctor` result also includes `data` with all completed checks. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
 
 ## Current Entry Points
 

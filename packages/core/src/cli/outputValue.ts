@@ -6,9 +6,14 @@ export interface CliError {
 
 interface ParsedOutput {
   action?: unknown;
+  code?: unknown;
   error?: unknown;
   message?: unknown;
   [key: string]: unknown;
+}
+
+function isParsedOutput(value: unknown): value is ParsedOutput {
+  return typeof value === 'object' && value !== null;
 }
 
 export function parseCliOutput(output: string): unknown {
@@ -24,11 +29,17 @@ export function readCliError(output: unknown): CliError {
     return { code: 'command_failed', message: String(output) };
   }
   const parsed = output as ParsedOutput;
-  const code = typeof parsed.error === 'string' ? parsed.error : 'command_failed';
-  const message = typeof parsed.message === 'string' ? parsed.message : 'Command failed.';
+  const nested = isParsedOutput(parsed.error) ? parsed.error : undefined;
+  const code = typeof parsed.error === 'string'
+    ? parsed.error
+    : typeof nested?.code === 'string' ? nested.code : 'command_failed';
+  const message = typeof nested?.message === 'string'
+    ? nested.message
+    : typeof parsed.message === 'string' ? parsed.message : 'Command failed.';
+  const action = typeof nested?.action === 'string' ? nested.action : parsed.action;
   return {
     code,
     message,
-    ...(typeof parsed.action === 'string' ? { action: parsed.action } : {}),
+    ...(typeof action === 'string' ? { action } : {}),
   };
 }
