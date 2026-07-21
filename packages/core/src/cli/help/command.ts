@@ -83,6 +83,7 @@ const COMMAND_HELP: Record<string, string> = {
     '',
     'Effects: Read-only.',
     'Output: JSON checks with recovery actions. Exits nonzero when unhealthy.',
+    'Failure envelope: Adds data with the completed checks beside the standard error field.',
     'Example: codegraphy doctor',
   ].join('\n'),
   nodes: [

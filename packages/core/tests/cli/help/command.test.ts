@@ -53,6 +53,12 @@ describe('cli/help/command', () => {
     }
   });
 
+  it('documents the doctor failure data exception', () => {
+    expect(createHelpResult(['doctor']).output).toContain(
+      'Failure envelope: Adds data with the completed checks',
+    );
+  });
+
   it('explains command purpose, effects, output, and examples', () => {
     const indexHelp = createHelpResult(['index']).output;
     expect(indexHelp).toContain('Create or update the workspace Graph Cache.');

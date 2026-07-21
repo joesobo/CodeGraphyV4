@@ -20,5 +20,12 @@ describe('cli/outputValue', () => {
       message: 'Failure.',
       action: 'Retry.',
     });
+    expect(readCliError({
+      error: { code: 'bad', message: 'Nested failure.', action: 'Repair settings.' },
+    })).toEqual({
+      code: 'bad',
+      message: 'Nested failure.',
+      action: 'Repair settings.',
+    });
   });
 });
