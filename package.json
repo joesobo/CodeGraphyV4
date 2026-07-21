@@ -31,8 +31,7 @@
 		"check:vsix-activation": "node scripts/smoke-installed-vsix.mjs",
 		"publish:vsce": "node scripts/release-core.mjs publish",
 		"release:publish": "node scripts/release.mjs publish",
-		"typecheck": "turbo run typecheck",
-		"prepare": "husky"
+		"typecheck": "turbo run typecheck"
 	},
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive dependency graph inside VS Code",
@@ -223,7 +222,6 @@
 		"eslint-plugin-react-hooks": "^5.0.0",
 		"glob": "^13.0.6",
 		"globals": "^15.0.0",
-		"husky": "^9.0.0",
 		"lint-staged": "^15.0.0",
 		"tsx": "^4.21.0",
 		"turbo": "^2.5.8",
