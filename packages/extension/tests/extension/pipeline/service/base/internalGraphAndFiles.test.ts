@@ -14,6 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/service/runtime/graph', () => ({
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis: vi.fn(),
   buildWorkspacePipelineGraph: vi.fn(),
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
@@ -70,6 +71,7 @@ import {
   TestInternalBase,
   vscode,
   readWorkspacePipelineFileStat,
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
   readWorkspacePipelineAnalysisFiles,
@@ -89,9 +91,10 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
     const gitIgnoredPaths = ['src/generated/cache.py'];
     source.setLastDiscoveredDirectories(discoveredDirectories);
     source.setLastGitIgnoredPaths(gitIgnoredPaths);
+    vi.mocked(buildWorkspacePipelineCompleteGraphDataFromAnalysis)
+      .mockReturnValue({ nodes: [{ id: 'complete-analysis-graph' }], edges: [] } as never);
     vi.mocked(buildWorkspacePipelineGraphFromAnalysis)
-      .mockReturnValueOnce({ nodes: [{ id: 'complete-analysis-graph' }], edges: [] } as never)
-      .mockReturnValueOnce({ nodes: [{ id: 'analysis-graph' }], edges: [] } as never);
+      .mockReturnValue({ nodes: [{ id: 'analysis-graph' }], edges: [] } as never);
 
     expect(
       source.buildGraphData(fileConnections, '/workspace', true, disabledPlugins),
@@ -125,8 +128,7 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
       nodes: [{ id: 'complete-analysis-graph' }],
       edges: [],
     });
-    expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenNthCalledWith(
-      1,
+    expect(buildWorkspacePipelineCompleteGraphDataFromAnalysis).toHaveBeenCalledWith(
       source._cache,
       source._registry,
       fileAnalysis,
@@ -134,11 +136,9 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
       false,
       disabledPlugins,
       discoveredDirectories,
-      {},
       gitIgnoredPaths,
     );
-    expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenNthCalledWith(
-      2,
+    expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenCalledWith(
       source._cache,
       source._registry,
       fileAnalysis,

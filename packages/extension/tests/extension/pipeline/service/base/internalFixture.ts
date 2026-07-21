@@ -12,6 +12,7 @@ import {
 } from '../../../../../src/extension/pipeline/service/runtime/analysis';
 import { persistWorkspacePipelineCache } from '../../../../../src/extension/pipeline/service/cache/storage';
 import {
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
 } from '../../../../../src/extension/pipeline/service/runtime/graph';
@@ -194,6 +195,10 @@ export function setUpInternalBase(): void {
       nodes: [{ id: 'graph' }],
       edges: [],
     } as never);
+    vi.mocked(buildWorkspacePipelineCompleteGraphDataFromAnalysis).mockReturnValue({
+      nodes: [{ id: 'complete-analysis-graph' }],
+      edges: [],
+    } as never);
     vi.mocked(buildWorkspacePipelineGraphFromAnalysis).mockReturnValue({
       nodes: [{ id: 'analysis-graph' }],
       edges: [],
@@ -214,6 +219,7 @@ export {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
   persistWorkspacePipelineCache,
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
   persistWorkspacePipelineIndexMetadata,
