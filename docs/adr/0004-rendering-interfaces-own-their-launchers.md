@@ -28,12 +28,19 @@ The launcher accepts an optional `.tldraw` document path:
 
 ```text
 codegraphy-tldraw
-    Create a new unnamed, unsaved document and open it in tldraw offline.
+    Index the workspace through Core and open a new unnamed, unsaved document
+    showing the latest graph.
 
 codegraphy-tldraw PATH
-    Create PATH when it is absent. Reconcile PATH when it exists and is not
-    open in tldraw offline. Open the document afterward.
+    Create PATH from the latest index when it is absent. Reconcile PATH with
+    the latest index when it exists. Open the document.
 ```
+
+The interaction model is command-driven: the user runs the command, works in
+the workspace, and runs the command again to see the updated graph. Each run
+without a path opens a fresh canvas from the current index. Each run with a
+path updates that saved canvas. The MVP does not update a canvas without the
+user running the command.
 
 The launcher exits after completing the operation. The generated document
 contains the persistent script that continues running the force simulation in
@@ -48,26 +55,27 @@ document script; if it cannot, the unnamed flow instead generates a `.tldraw`
 file in a temporary location and tldraw's Save as / Rename flow assigns the
 durable path.
 
-tldraw offline does not merge external changes into an open document, and a
-later in-app save can overwrite an external write. The launcher therefore
-never rewrites a document that is currently open. When it detects or cannot
-rule out an open working copy, it reports that the document must be closed
-and reopened to pick up the refresh. Live reconciliation of an open canvas is
-a follow-up that goes through tldraw offline's agent-skill channel, where
-edits land in the working copy as unsaved changes for the user to review and
-save.
+A path refresh takes effect when the document is opened. tldraw offline does
+not merge external changes into a document that is already open, and a later
+in-app save can overwrite an external write. When the target document is
+still open from an earlier run, the launcher performs the refresh on disk and
+tells the user to close the stale window and reopen the file — closing
+without saving, since the file on disk is now newer than the open working
+copy. The user should save the canvas before rerunning the command so notes
+and layout adjustments are reconciled rather than discarded.
 
 **Considered refresh mechanisms**
 
-- Rewrite PATH while the document is open. Rejected: tldraw offline documents
-  this as unsafe — the app does not merge external content changes, and the
-  user's next save silently overwrites the refresh (or the refresh clobbers
-  unsaved canvas work).
+- Update the open canvas in place from the launcher. Rejected for the MVP:
+  tldraw offline documents external writes to open documents as unmerged and
+  overwritable, and provides no external API for editing a live canvas apart
+  from the agent-skill channel.
 - Reconcile the open canvas through the tldraw agent skills. Supported by the
   app and preserves the live session, but couples refresh to an installed AI
   tool. Deferred to a follow-up rather than required for the MVP.
-- Require the document to be closed for a path refresh, then open it. Chosen
-  for the MVP: it uses only documented, supported behavior.
+- Command-driven refresh that lands on disk and becomes visible on open or
+  reopen. Chosen for the MVP: it uses only documented, supported behavior,
+  and the user's rerun of the command is the single update trigger.
 
 The dependency and responsibility boundaries are:
 
@@ -132,8 +140,9 @@ Rendering interfaces are also distinct from plugins:
 - Each interface can evolve its own UI and host-specific plugin seam.
 - A saved tldraw canvas is user-authored project material. Refresh reconciles
   CodeGraphy-owned shapes while preserving the user's canvas additions.
-- The launcher never rewrites an open document; live-canvas reconciliation is
-  an agent-skill follow-up.
+- The rerun of `codegraphy-tldraw` is the only update trigger in the MVP. A
+  refresh lands on disk and appears when the document is opened or reopened;
+  updating a live canvas without a command run is an agent-skill follow-up.
 - The document script is stable across refreshes so trusted documents do not
   re-prompt for script consent.
 - The first compatibility proof uses the repository's complete `examples/`
@@ -142,6 +151,7 @@ Rendering interfaces are also distinct from plugins:
   physics simulation. It also verifies whether a `.tldr` import carries the
   embedded document script, settling the unnamed-flow mechanism.
 - The MVP then adds unnamed-document launch and ownership-aware path refresh.
-  Its acceptance check adds a native tldraw note, closes the document,
-  refreshes after a workspace change, reopens without a new script-consent
-  prompt, and verifies that the graph updates while the note remains.
+  Its acceptance check adds a native tldraw note, saves and closes the
+  document, changes the workspace, reruns the command, and verifies that the
+  reopened canvas shows the updated graph and the preserved note without a
+  new script-consent prompt.
