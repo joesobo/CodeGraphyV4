@@ -21,6 +21,7 @@ import {
   EDGE_COLUMNS,
   FILE_COLUMNS,
   NODE_COLUMNS,
+  NODE_VIEW_COLUMNS,
   SYMBOL_COLUMNS,
   type EdgeRecord,
   type NodeRecord,
@@ -48,6 +49,17 @@ function createUpsertStatement(
 
 const CREATE_FILE_STATEMENT = createUpsertStatement('File', FILE_COLUMNS, 'path');
 const CREATE_NODE_STATEMENT = createUpsertStatement('Node', NODE_COLUMNS, 'key');
+const CREATE_NODE_VIEW_STATEMENT = `INSERT INTO NodeView(${NODE_VIEW_COLUMNS.join(', ')}) VALUES (
+    @nodeKey, @color, @x, @y, COALESCE(@favorite, 0), @shape, @imageUrl, COALESCE(@isCollapsed, 0)
+  )
+  ON CONFLICT(nodeKey) DO UPDATE SET
+    color = excluded.color,
+    x = COALESCE(excluded.x, NodeView.x),
+    y = COALESCE(excluded.y, NodeView.y),
+    favorite = COALESCE(@favorite, NodeView.favorite),
+    shape = excluded.shape,
+    imageUrl = excluded.imageUrl,
+    isCollapsed = COALESCE(@isCollapsed, NodeView.isCollapsed)`;
 const CREATE_SYMBOL_STATEMENT = createUpsertStatement('Symbol', SYMBOL_COLUMNS, 'nodeId');
 const CREATE_EDGE_STATEMENT = createUpsertStatement('Edge', EDGE_COLUMNS, 'key');
 const UPDATE_NODE_PARENT_STATEMENT = 'UPDATE Node SET parentId = @parentId WHERE id = @id';
@@ -58,6 +70,7 @@ export interface WorkspaceAnalysisCacheWriter {
   connection: SQLiteConnection;
   fileStatement: SQLiteStatement;
   nodeStatement: SQLiteStatement;
+  nodeViewStatement: SQLiteStatement;
   symbolStatement: SQLiteStatement;
   edgeStatement: SQLiteStatement;
   nodeParentStatement: SQLiteStatement;
@@ -81,6 +94,7 @@ export function createWorkspaceAnalysisCacheWriter(
     connection,
     fileStatement: prepareStatementSync(connection, CREATE_FILE_STATEMENT),
     nodeStatement: prepareStatementSync(connection, CREATE_NODE_STATEMENT),
+    nodeViewStatement: prepareStatementSync(connection, CREATE_NODE_VIEW_STATEMENT),
     symbolStatement: prepareStatementSync(connection, CREATE_SYMBOL_STATEMENT),
     edgeStatement: prepareStatementSync(connection, CREATE_EDGE_STATEMENT),
     nodeParentStatement: prepareStatementSync(connection, UPDATE_NODE_PARENT_STATEMENT),
@@ -100,14 +114,24 @@ export function createWorkspaceAnalysisCachePatchWriter(
 export async function createWorkspaceAnalysisCacheWriterAsync(
   connection: SQLiteConnection,
 ): Promise<WorkspaceAnalysisCacheWriter> {
-  const [fileStatement, nodeStatement, symbolStatement, edgeStatement, nodeParentStatement] = await Promise.all([
+  const [fileStatement, nodeStatement, nodeViewStatement, symbolStatement, edgeStatement, nodeParentStatement]
+    = await Promise.all([
     prepareStatementAsync(connection, CREATE_FILE_STATEMENT),
     prepareStatementAsync(connection, CREATE_NODE_STATEMENT),
+    prepareStatementAsync(connection, CREATE_NODE_VIEW_STATEMENT),
     prepareStatementAsync(connection, CREATE_SYMBOL_STATEMENT),
     prepareStatementAsync(connection, CREATE_EDGE_STATEMENT),
     prepareStatementAsync(connection, UPDATE_NODE_PARENT_STATEMENT),
   ]);
-  return { connection, fileStatement, nodeStatement, symbolStatement, edgeStatement, nodeParentStatement };
+  return {
+    connection,
+    fileStatement,
+    nodeStatement,
+    nodeViewStatement,
+    symbolStatement,
+    edgeStatement,
+    nodeParentStatement,
+  };
 }
 
 function readIdMap(
@@ -219,6 +243,9 @@ function persistRecords(
     const update = parentUpdate(record, nodeIds);
     if (update) executeStatementSync(writer.connection, writer.nodeParentStatement, update);
   }
+  for (const record of records.nodeViews) {
+    executeStatementSync(writer.connection, writer.nodeViewStatement, record);
+  }
   for (const record of records.symbols) {
     executeStatementSync(writer.connection, writer.symbolStatement, storedSymbolRecord(record, nodeIds));
   }
@@ -270,6 +297,10 @@ function persistPatchRecords(
     if (update) executeStatementSync(writer.connection, writer.nodeParentStatement, update);
   }
   const writtenNodeKeys = new Set(nodes.map(record => record.key));
+  for (const record of records.nodeViews) {
+    if (!writtenNodeKeys.has(record.nodeKey)) continue;
+    executeStatementSync(writer.connection, writer.nodeViewStatement, record);
+  }
   for (const record of records.symbols) {
     if (!writtenNodeKeys.has(record.nodeId)) continue;
     executeStatementSync(writer.connection, writer.symbolStatement, storedSymbolRecord(record, nodeIds));
@@ -346,6 +377,9 @@ async function persistRecordsAsync(
   const fileIds = readIdMap(writer.connection, 'File', 'path');
   for (const record of records.nodes) {
     await executeStatementAndYield(writer, writer.nodeStatement, storedNodeRecord(record, fileIds), afterStatement);
+  }
+  for (const record of records.nodeViews) {
+    await executeStatementAndYield(writer, writer.nodeViewStatement, record, afterStatement);
   }
   const nodeIds = readIdMap(writer.connection, 'Node', 'key');
   for (const record of records.nodes) {

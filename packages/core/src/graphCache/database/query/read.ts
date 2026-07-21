@@ -1,9 +1,12 @@
 export const FILE_ROWS_QUERY = 'SELECT * FROM File ORDER BY path';
 
-export const NODE_ROWS_QUERY = `SELECT Node.*, File.path AS filePath, Parent.key AS parentKey
+export const NODE_ROWS_QUERY = `SELECT Node.*, File.path AS filePath, Parent.key AS parentKey,
+  NodeView.color, NodeView.x, NodeView.y, NodeView.favorite, NodeView.shape,
+  NodeView.imageUrl, NodeView.isCollapsed
   FROM Node
   LEFT JOIN File ON File.id = Node.fileId
   LEFT JOIN Node AS Parent ON Parent.id = Node.parentId
+  LEFT JOIN NodeView ON NodeView.nodeKey = Node.key
   ORDER BY Node.key`;
 
 export const SYMBOL_ROWS_QUERY = `SELECT Symbol.*, Node.key AS nodeKey, File.path AS ownerFilePath
