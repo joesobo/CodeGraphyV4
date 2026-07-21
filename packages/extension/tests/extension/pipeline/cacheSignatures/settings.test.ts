@@ -17,12 +17,12 @@ function settings(overrides: Record<string, unknown> = {}) {
 }
 
 describe('workspace pipeline settings signature', () => {
-  it('includes workspace plugin settings and filter patterns', () => {
+  it('includes workspace plugin settings but excludes query-only Filters', () => {
     const config = { getAll: vi.fn(() => settings()) };
     const signature = createWorkspacePipelineSettingsSignature(config as never);
 
     expect(config.getAll).toHaveBeenCalledOnce();
-    expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({
+    expect(signature).toBe(createWorkspacePipelineSettingsSignature({
       getAll: () => settings({ filterPatterns: [] }),
     } as never));
     expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({
