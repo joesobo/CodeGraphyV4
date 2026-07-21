@@ -7,7 +7,7 @@ import {
 import type { IGraphNodeTypeDefinition } from '../../../shared/graphControls/contracts';
 import { CORE_GRAPH_NODE_TYPES } from '../../../shared/graphControls/defaults/nodeTypes';
 import { symbolMatchesScopedDefinition } from '../../../shared/visibleGraph/scope/symbolMatch';
-import { isPluginScopedGraphNodeType } from '@codegraphy-dev/core/graph-scope';
+import { isPluginScopedGraphNodeType } from '../../../shared/graphControls/pluginScope';
 
 function getResolvedNodeType(node: IGraphNode): string {
   return node.nodeType ?? 'file';
