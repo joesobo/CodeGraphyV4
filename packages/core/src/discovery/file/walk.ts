@@ -8,10 +8,7 @@ import * as path from 'path';
 import { throwIfAborted } from '../abort';
 import { shouldSkipKnownDirectory } from '../pathMatching';
 
-type WalkDirectoryCallback = (
-  relativePath: string,
-  absolutePath: string,
-) => boolean | Promise<boolean>;
+type WalkDirectoryCallback = (relativePath: string, absolutePath: string) => boolean;
 type WalkDirectoryListener = (relativePath: string, absolutePath: string) => void;
 type DirectoryListenerOrSignal = WalkDirectoryListener | AbortSignal;
 
