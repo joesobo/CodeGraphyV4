@@ -77,10 +77,17 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     });
 
     await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const repeatIndex = await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
 
     expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot })).toMatchObject({
       state: 'fresh',
       staleReasons: [],
+    });
+    expect(repeatIndex.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 1,
     });
   });
 
@@ -191,7 +198,11 @@ describe('core-backed CodeGraphy Workspace commands', () => {
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => readRowsSync(
         connection,
-        "SELECT id, type, filePath FROM Node WHERE type = 'symbol'",
+        `SELECT Node.key AS id, Node.type, File.path AS filePath
+          FROM Symbol
+          JOIN Node ON Node.id = Symbol.nodeId
+          LEFT JOIN File ON File.id = Node.fileId
+          WHERE Node.type = 'symbol'`,
       ),
     );
     expect(persistedSymbolNodes).toEqual(expect.arrayContaining([

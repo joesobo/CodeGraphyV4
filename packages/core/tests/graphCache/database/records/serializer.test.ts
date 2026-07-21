@@ -1,7 +1,43 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { serializeDatabaseRecords } from '../../../../src/graphCache/database/records/serializer';
 
 describe('graphCache/database/serializer', () => {
+  it('normalizes file-owned analysis IDs without scanning every known file mapping', () => {
+    const mapIterations = vi.spyOn(Map.prototype, Symbol.iterator);
+
+    serializeDatabaseRecords({
+      version: '1',
+      files: {
+        'src/a.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/a.ts',
+            symbols: [{
+              id: '/workspace/src/a.ts#A',
+              filePath: '/workspace/src/a.ts',
+              name: 'A',
+              kind: 'class',
+            }],
+          },
+        },
+        'src/b.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/b.ts',
+            symbols: [{
+              id: '/workspace/src/b.ts#B',
+              filePath: '/workspace/src/b.ts',
+              name: 'B',
+              kind: 'class',
+            }],
+          },
+        },
+      },
+    });
+
+    expect(mapIterations).not.toHaveBeenCalled();
+  });
+
   it('normalizes files, nodes, symbols, and edge provenance without JSON', () => {
     const records = serializeDatabaseRecords({
       version: '1',

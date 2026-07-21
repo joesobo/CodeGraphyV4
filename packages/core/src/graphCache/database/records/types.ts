@@ -16,7 +16,7 @@ export const NODE_COLUMNS = [
 ] as const;
 
 export const SYMBOL_COLUMNS = [
-  'nodeId', 'analysisId', 'analysisPath', 'analysisOrder', 'name', 'kind',
+  'nodeId', 'filePath', 'analysisId', 'analysisPath', 'analysisOrder', 'name', 'kind',
   'signature', 'startLine', 'startColumn', 'endLine', 'endColumn', 'pluginId',
   'language', 'analysisSource', 'pluginKind',
 ] as const;
@@ -135,6 +135,7 @@ export interface SymbolRow {
   nodeId?: unknown;
   nodeKey?: unknown;
   filePath?: unknown;
+  ownerFilePath?: unknown;
   analysisId?: unknown;
   analysisPath?: unknown;
   analysisOrder?: unknown;

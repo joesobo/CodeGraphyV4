@@ -10,9 +10,13 @@ test('the generalized CodeGraphy skill teaches the lifecycle and delegates synta
   const skill = readFileSync(skillPath, 'utf8');
 
   assert.match(skill, /^name: codegraphy$/m);
-  assert.match(skill, /Index the workspace/i);
-  assert.match(skill, /Shape the graph/i);
-  assert.match(skill, /Query nodes/i);
+  const lifecycle = ['codegraphy index', 'codegraphy filter', 'Query with'];
+  const lifecyclePositions = lifecycle.map(term => skill.indexOf(term));
+  assert.ok(lifecyclePositions.every(position => position >= 0));
+  assert.deepEqual(lifecyclePositions, [...lifecyclePositions].sort((left, right) => left - right));
+  for (const command of ['nodes', 'search', 'edges', 'dependencies', 'dependents', 'path']) {
+    assert.match(skill, new RegExp(`\\b${command}\\b`));
+  }
   assert.match(skill, /codegraphy --help/);
   assert.match(skill, /codegraphy <command> --help/);
   assert.doesNotMatch(skill, /MCP|graph\.lbug/);

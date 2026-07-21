@@ -5,6 +5,33 @@ import { parseDatabaseRecords } from '../../../../src/graphCache/database/record
 import { serializeDatabaseRecords } from '../../../../src/graphCache/database/records/serializer';
 
 describe('graphCache/database/parser', () => {
+  it('hydrates normalized rows without rescanning every row for each file', () => {
+    let filePathReads = 0;
+    const ownedNode = {
+      id: 1,
+      key: 'a.ts',
+      type: 'file',
+      label: 'a.ts',
+      color: '#fff',
+      get filePath() {
+        filePathReads += 1;
+        if (filePathReads > 2) throw new Error('node rows were rescanned');
+        return 'a.ts';
+      },
+    };
+
+    expect(() => parseDatabaseRecords(
+      [
+        { path: 'a.ts', analysisPath: '/workspace/a.ts', mtime: 1 },
+        { path: 'b.ts', analysisPath: '/workspace/b.ts', mtime: 1 },
+        { path: 'c.ts', analysisPath: '/workspace/c.ts', mtime: 1 },
+      ],
+      [ownedNode],
+      [],
+      [],
+    )).not.toThrow();
+  });
+
   it('reconstructs analysis facts without adding cache bookkeeping to the graph', () => {
     const analysis: IFileAnalysisResult & { cache: { tiers: string[] } } = {
       filePath: '/workspace/src/app.ts',
@@ -67,6 +94,31 @@ describe('graphCache/database/parser', () => {
         expect.objectContaining({ id: 'two:import', pluginId: 'two' }),
       ],
     })]);
+  });
+
+  it('does not promote graph-only symbol presentation into analysis facts', () => {
+    const records = serializeDatabaseRecords({ version: '1', files: {} }, {
+      nodes: [{
+        id: 'external#run:function',
+        label: 'run',
+        color: '#fff',
+        nodeType: 'symbol',
+        symbol: {
+          id: 'external#run:function',
+          filePath: 'external.ts',
+          name: 'run',
+          kind: 'function',
+        },
+      }],
+      edges: [],
+    });
+
+    expect(records.symbols).toEqual([
+      expect.objectContaining({ nodeId: 'external#run:function', analysisId: null }),
+    ]);
+    const parsed = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges);
+    expect(parsed.symbols).toEqual([]);
+    expect(parsed.graph.nodes[0]?.symbol).toMatchObject({ name: 'run', kind: 'function' });
   });
 
   it('keeps edge, source, and analysis-relation metadata in their own roles', () => {

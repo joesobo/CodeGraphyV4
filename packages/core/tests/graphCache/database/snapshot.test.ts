@@ -51,7 +51,8 @@ describe('graphCache/database/snapshot', () => {
       if (query === SYMBOL_ROWS_QUERY) return [{
         nodeId: 2,
         nodeKey: 'symbol-1',
-        filePath: 'src/app.ts',
+        filePath: '/workspace/src/app.ts',
+        ownerFilePath: 'src/app.ts',
         analysisId: 'symbol-1',
         analysisPath: '/workspace/src/app.ts',
         name: 'App',

@@ -7,7 +7,8 @@ import {
 import {
   projectAnalysisForCacheTiers,
   markAnalysisCacheTiers,
-  readAnalysisCacheTiers,
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
   type AnalysisCacheTier,
 } from '../../../analysis/fileAnalysis/cacheTiers';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
@@ -37,9 +38,11 @@ function createCache(
       entry.analysis,
       options.activeAnalysisCacheTiers,
     );
-    const analysis = readAnalysisCacheTiers(projectedAnalysis).length > 0
-      ? markAnalysisCacheTiers(projectedAnalysis, options.activeAnalysisCacheTiers)
-      : projectedAnalysis;
+    const completedTiers = options.activeAnalysisCacheTiers ?? [
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ];
+    const analysis = markAnalysisCacheTiers(projectedAnalysis, completedTiers);
     cache.files[entry.filePath] = {
       mtime: entry.mtime,
       ...(entry.size !== undefined ? { size: entry.size } : {}),

@@ -92,6 +92,7 @@ export function createSnapshotGraphNode(
   const symbolName = readOptionalString(symbolRow?.name);
   const symbolKind = readOptionalString(symbolRow?.kind);
   const symbolFilePath = readOptionalString(row.filePath)
+    ?? readOptionalString(symbolRow?.filePath)
     ?? readOptionalString(symbolRow?.analysisPath);
   const symbolId = readOptionalString(symbolRow?.analysisId) ?? id;
   const startLine = optionalNumber(symbolRow?.startLine);
