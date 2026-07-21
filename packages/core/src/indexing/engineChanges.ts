@@ -14,7 +14,7 @@ export async function applyWorkspaceEngineChangedFiles(
 ): Promise<IndexCodeGraphyWorkspaceResult> {
   const { state, workspaceRoot } = runtime;
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
-  await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
+  await discoverWorkspaceEngineFiles(runtime);
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);
   const changes = selectDiscoveredWorkspaceIndexFileChanges(workspaceRoot, filePaths, discoveredByPath);
 

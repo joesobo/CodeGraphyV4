@@ -136,7 +136,10 @@ describe('core-backed CodeGraphy Workspace commands', () => {
       nodeVisibility: { 'symbol:function': true },
       edgeVisibility: { call: false },
     });
-    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files).toHaveProperty(
+      'generated/output.ts',
+    );
 
     const nodeReport = await requestWorkspaceGraphQuery({
       workspacePath: workspaceRoot,

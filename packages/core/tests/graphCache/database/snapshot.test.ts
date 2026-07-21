@@ -32,7 +32,9 @@ describe('graphCache/database/snapshot', () => {
 
   it('reads raw file facts and canonical graph records', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(connectionModule.withConnection).mockImplementation((_path, callback) => callback('connection' as never));
+    vi.mocked(connectionModule.withReadOnlyConnection).mockImplementation(
+      (_path, callback) => callback('connection' as never),
+    );
     vi.mocked(connectionModule.readRowsSync).mockImplementation((_connection, query) => {
       if (query === FILE_ROWS_QUERY) return [{
         path: 'src/app.ts',
@@ -79,7 +81,7 @@ describe('graphCache/database/snapshot', () => {
 
   it('warns and returns an empty snapshot when reading fails', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(connectionModule.withConnection).mockImplementation(() => { throw new Error('broken'); });
+    vi.mocked(connectionModule.withReadOnlyConnection).mockImplementation(() => { throw new Error('broken'); });
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({

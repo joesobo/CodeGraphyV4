@@ -22,9 +22,10 @@ describe('cli/help/command', () => {
   it('explains the index, settings, and query workflow from root help', () => {
     const output = createHelpResult().output;
 
-    expect(output).toContain('1. Index the workspace into its Graph Cache.');
-    expect(output).toContain('2. Shape the graph with Filters, Graph Scope, and Plugins.');
-    expect(output).toContain('3. Query the resulting graph.');
+    expect(output).toContain('1. Configure graph contributors with Plugins when needed.');
+    expect(output).toContain('2. Index the complete workspace graph into its Graph Cache.');
+    expect(output).toContain('3. Shape returned results with Filters and Graph Scope.');
+    expect(output).toContain('4. Query the resulting graph.');
     expect(output).toContain('codegraphy index                         Create or update the Graph Cache');
     expect(output).toContain('codegraphy filter                        Read or change persisted Filters');
     expect(output).toContain('codegraphy dependencies <node>           List outgoing Relationships');
@@ -52,6 +53,9 @@ describe('cli/help/command', () => {
     const filterHelp = createHelpResult(['filter']).output;
     expect(filterHelp).toContain('Filters are persisted in .codegraphy/settings.json');
     expect(filterHelp).toContain("codegraphy filter add '**/generated/**'");
+
+    const pluginHelp = createHelpResult(['plugins', 'enable']).output;
+    expect(pluginHelp).toContain('Run `codegraphy index` to include its facts.');
   });
 
   it('reports workspace-free plugin usage', () => {

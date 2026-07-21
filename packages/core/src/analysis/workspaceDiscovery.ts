@@ -30,21 +30,13 @@ export async function discoverWorkspacePipelineFiles<TFile>(
   dependencies: WorkspacePipelineDiscoveryDependencies<TFile>,
   workspaceRoot: string,
   config: WorkspacePipelineDiscoveryConfig,
-  filterPatterns: string[],
-  pluginFilterPatterns: string[],
   signal?: AbortSignal,
 ): Promise<WorkspacePipelineDiscoveryResult<TFile>> {
   return dependencies.discover({
     rootPath: workspaceRoot,
     maxFiles: config.maxFiles,
     include: config.include,
-    exclude: [
-        ...new Set([
-        ...DEFAULT_EXCLUDE,
-        ...pluginFilterPatterns,
-        ...filterPatterns,
-      ]),
-    ],
+    exclude: [...DEFAULT_EXCLUDE],
     respectGitignore: config.respectGitignore,
     signal,
   });

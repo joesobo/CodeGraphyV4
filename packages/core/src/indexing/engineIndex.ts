@@ -10,7 +10,7 @@ export async function indexWorkspaceEngine(
   const { discovery, options, state, workspaceRoot } = runtime;
   await initializeWorkspaceEngine(runtime);
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
-  await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
+  await discoverWorkspaceEngineFiles(runtime);
   const analysis = await analyzeWorkspaceIndexFiles({
     cache: state.cache,
     discovery,

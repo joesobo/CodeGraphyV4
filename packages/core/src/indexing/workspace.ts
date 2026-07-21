@@ -112,10 +112,8 @@ export async function indexCodeGraphyWorkspace(
     options,
     'discover-files',
     () => discoverWorkspaceIndexFiles({
-      disabledPlugins,
       discovery,
       options,
-      registry,
       settings,
       workspaceRoot,
     }),

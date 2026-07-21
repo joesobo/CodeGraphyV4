@@ -107,4 +107,49 @@ describe('graphCache/database/serializer', () => {
     expect(records.nodes.map(node => node.type)).not.toContain('codegraphy:cache-tier');
     expect(records.edges.map(edge => edge.type)).not.toContain('codegraphy:has-cache-tier');
   });
+
+  it('persists external package relations as owned analysis facts', () => {
+    const records = serializeDatabaseRecords({
+      version: '1',
+      files: {
+        'eslint.config.mjs': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/eslint.config.mjs',
+            relations: [{
+              kind: 'import',
+              sourceId: 'tree-sitter:import',
+              fromFilePath: '/workspace/eslint.config.mjs',
+              specifier: '@eslint/js',
+            }],
+          },
+        },
+      },
+    }, {
+      nodes: [
+        { id: 'eslint.config.mjs', nodeType: 'file', label: 'eslint.config.mjs', color: '#fff' },
+        { id: 'pkg:@eslint/js', nodeType: 'package', label: '@eslint/js', color: '#fff' },
+      ],
+      edges: [{
+        id: 'eslint.config.mjs->pkg:@eslint/js#import',
+        from: 'eslint.config.mjs',
+        to: 'pkg:@eslint/js',
+        kind: 'import',
+        sources: [],
+      }],
+    });
+
+    expect(records.nodes).toContainEqual(expect.objectContaining({
+      key: 'pkg:@eslint/js',
+      type: 'package',
+    }));
+    expect(records.edges).toContainEqual(expect.objectContaining({
+      sourceNodeId: 'eslint.config.mjs',
+      targetNodeId: 'pkg:@eslint/js',
+      ownerFileId: 'eslint.config.mjs',
+      relationSpecifier: '@eslint/js',
+      analysisRelation: 1,
+      canonicalGraphEdge: 1,
+    }));
+  });
 });

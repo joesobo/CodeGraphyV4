@@ -1,9 +1,11 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import Database from 'libsql';
 import { describe, expect, it, vi } from 'vitest';
 import { runCli } from '../../../src/cli/run';
 import { requestCodeGraphyIndexWorkspace } from '../../../src/workspace/requestIndexing';
+import { getWorkspaceAnalysisDatabasePath } from '../../../src/graphCache/database/storage';
 
 describe('cli doctor', () => {
   it('reports index metadata and normalized graph record counts', async () => {
@@ -34,6 +36,54 @@ describe('cli doctor', () => {
         },
       },
     });
+  });
+
+  it('reports a schema mismatch without repairing or erasing the cache', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-schema-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), '# Home\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    const damaged = new Database(databasePath);
+    damaged.exec('DROP TABLE Symbol');
+    damaged.close();
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      data: {
+        healthy: false,
+        checks: {
+          cache: {
+            ok: false,
+            schemaVersion: 6,
+            expectedSchemaVersion: 6,
+            schemaCompatible: false,
+          },
+        },
+      },
+    });
+    const unchanged = new Database(databasePath, { readonly: true, fileMustExist: true });
+    expect(unchanged.prepare("SELECT count(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'Symbol'").get())
+      .toMatchObject({ count: 0 });
+    expect(unchanged.prepare('SELECT count(*) AS count FROM File').get()).toMatchObject({ count: 1 });
+    unchanged.close();
+  });
+
+  it('reports an unreadable cache without replacing its bytes', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-corrupt-'));
+    await fs.mkdir(path.join(workspace, '.codegraphy'));
+    await fs.writeFile(path.join(workspace, '.codegraphy/settings.json'), '{}');
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    await fs.writeFile(databasePath, 'not sqlite');
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      data: { checks: { cache: { ok: false, schemaCompatible: false } } },
+    });
+    await expect(fs.readFile(databasePath, 'utf8')).resolves.toBe('not sqlite');
   });
 
   it('returns actionable JSON and a nonzero exit when the workspace is unhealthy', async () => {

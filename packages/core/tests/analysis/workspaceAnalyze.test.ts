@@ -85,7 +85,7 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.saveCache).not.toHaveBeenCalled();
   });
 
-  it('uses only default and plugin filters when user filters are omitted', async () => {
+  it('uses only index-membership exclusions during discovery', async () => {
     const source = createSource();
     const dependencies = createDependencies();
 
@@ -95,7 +95,7 @@ describe('pipeline/analysis/analyze', () => {
       rootPath: '/workspace',
       maxFiles: 25,
       include: ['**/*'],
-      exclude: [...DEFAULT_EXCLUDE, '**/*.generated.ts'],
+      exclude: [...DEFAULT_EXCLUDE],
       respectGitignore: true,
       signal: undefined,
     });
