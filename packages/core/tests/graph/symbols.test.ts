@@ -54,6 +54,14 @@ describe('core/graph/symbols', () => {
             toFilePath: '/workspace/src/dep.ts',
             toSymbolId: 'dep:helper',
           },
+          {
+            kind: 'call',
+            sourceId: 'local-call',
+            fromFilePath: '/workspace/src/app.ts',
+            fromSymbolId: 'app:run',
+            toFilePath: '/workspace/src/app.ts',
+            toSymbolId: 'app:helper',
+          },
         ],
       })],
       ['/workspace/src/empty.ts', analysis({ relations: undefined })],
@@ -64,11 +72,12 @@ describe('core/graph/symbols', () => {
     })).toEqual(new Map([
       ['src/app.ts', [
         expect.objectContaining({ kind: 'import', specifier: './dep' }),
+        expect.objectContaining({ kind: 'call', sourceId: 'local-call' }),
       ]],
       ['src/empty.ts', []],
     ]));
     expect(projectFileAnalysisConnections(fileAnalysis, '/workspace').get('src/app.ts'))
-      ?.toHaveLength(2);
+      ?.toHaveLength(3);
   });
 
   it('projects single namespaces and ignores files without symbols', () => {

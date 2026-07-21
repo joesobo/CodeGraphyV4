@@ -377,6 +377,37 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('omits hidden symbol self-relations but keeps explicit file self-relations', () => {
+    const fileNode = node('src/app.py', 'file');
+    const functionNode = node('src/app.py#main:function', 'symbol:function', symbol({
+      id: 'src/app.py:function:main',
+      filePath: 'src/app.py',
+      kind: 'function',
+      name: 'main',
+    }));
+    const fileOnlyScope: VisibleGraphScopeConfig = {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol:function', enabled: false },
+      ],
+      edges: [{ type: 'call', enabled: true }],
+    };
+
+    const hiddenSymbolResult = applyGraphScope({
+      nodes: [fileNode, functionNode],
+      edges: [edge(functionNode.id, functionNode.id, 'call')],
+    }, fileOnlyScope);
+    expect(hiddenSymbolResult).toEqual({ nodes: [fileNode], edges: [] });
+
+    expect(applyGraphScope({
+      nodes: [fileNode, functionNode],
+      edges: [edge(fileNode.id, fileNode.id, 'call')],
+    }, fileOnlyScope)).toEqual({
+      nodes: [fileNode],
+      edges: [edge(fileNode.id, fileNode.id, 'call')],
+    });
+  });
+
   it('keeps file-level type imports when imported type symbols are visible', () => {
     const graphData: IGraphData = {
       nodes: [
