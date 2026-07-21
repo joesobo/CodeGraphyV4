@@ -64,7 +64,7 @@ describe('analysis/projection', () => {
     })).toEqual([]);
   });
 
-  it('does not downgrade same-file symbol calls into file self-connections', () => {
+  it('preserves same-file symbol calls but omits symbol containment connections', () => {
     expect(projectProjectedConnectionsFromFileAnalysis({
       filePath: '/workspace/src/app.py',
       symbols: [],
@@ -83,8 +83,21 @@ describe('analysis/projection', () => {
           fromFilePath: '/workspace/src/app.py',
           toFilePath: '/workspace/src/app.py',
         },
+        {
+          kind: 'contains',
+          sourceId: 'core:treesitter:contains',
+          fromFilePath: '/workspace/src/app.py',
+          fromSymbolId: '/workspace/src/app.py:class:App',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:main',
+        },
       ],
     })).toEqual([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        resolvedPath: '/workspace/src/app.py',
+      }),
       expect.objectContaining({
         kind: 'call',
         sourceId: 'plugin:file-call',
