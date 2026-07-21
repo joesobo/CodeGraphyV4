@@ -1,6 +1,6 @@
 # Commands
 
-All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). Search for "CodeGraphy". Command IDs are used for keybinding customization and extension integration.
+Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and search for "CodeGraphy" to find these commands. Use command IDs to customize keybindings or integrate with the extension.
 
 | Command | Command ID | Description |
 |---------|-----------|-------------|

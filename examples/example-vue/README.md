@@ -2,8 +2,7 @@
 
 Small Vue 3 workspace for checking CodeGraphy's Vue support.
 
-The fixture intentionally uses several Vue SFC script patterns that a Vue plugin
-should parse:
+The fixture intentionally uses several Vue SFC script patterns that a Vue plugin should parse:
 
 - `src/App.vue` uses `<script setup lang="ts">`
 - `src/components/UserCard.vue` uses normal `<script lang="ts">`
@@ -22,14 +21,11 @@ Expected baseline before Vue plugin work:
 
 - TypeScript helper files may appear.
 - `.vue` file nodes and their script imports may be missing or incomplete.
-- The screenshot should show whether Core Material Theme fallback already gives `.vue`
-  files a useful icon/color when they appear in the graph.
+- The screenshot should show whether Core Material Theme fallback already gives `.vue` files a useful icon/color when they appear in the graph.
 
 ## Baseline Graph Screenshot
 
-This screenshot was captured before adding the Vue plugin. It shows that `.vue`
-files already render as green Vue file nodes through Material Theme fallback, while
-the graph still misses imports inside the `.vue` script blocks.
+This screenshot was captured before adding the Vue plugin. It shows that `.vue` files already render as green Vue file nodes through Material Theme fallback, while the graph still misses imports inside the `.vue` script blocks.
 
 ![Vue baseline graph screenshot](../assets/graphs/vue-baseline.png)
 

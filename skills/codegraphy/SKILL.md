@@ -38,7 +38,7 @@ codegraphy dependents packages/core/src/workspace/settings.ts
 codegraphy path packages/core/src/cli/command.ts packages/core/src/workspace/requestQuery.ts
 ```
 
-- Use `nodes` to list the saved Graph Scope. Symbols are Node Types and appear here when their Node Types are enabled.
+- Use `nodes` to list Nodes from the saved Graph Scope. It includes Symbol Nodes when Graph Scope enables their Node Types.
 - Use `search` to find scoped nodes by text.
 - Use `edges` for compact exact scoped relationships.
 - Use `dependencies` for outgoing edges and `dependents` for incoming impact. A file operand includes its visible Symbol Nodes; an explicit Symbol Node ID stays exact.
@@ -57,6 +57,6 @@ codegraphy filter remove '**/generated/**'
 codegraphy plugins list
 ```
 
-Graph Scope and filter changes are written to `.codegraphy/settings.json`. Run `codegraphy index` after a setting or plugin change when cached analysis may need to change. Use `codegraphy doctor` for installation, settings, cache, or plugin diagnostics. All commands use the current directory by default; use the global `--workspace <path>` option only when operating elsewhere.
+The CLI writes Graph Scope and filter changes to `.codegraphy/settings.json`. Run `codegraphy index` after a setting or plugin change that may affect cached analysis. Use `codegraphy doctor` for installation, settings, cache, or plugin diagnostics. Commands use the current directory by default. Use the global `--workspace <path>` option when you need another workspace.
 
 Treat an empty result as evidence only about the current index and query. Read source or rerun `index` when recent changes may not be represented.

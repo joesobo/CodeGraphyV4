@@ -19,7 +19,7 @@ Mutation requires one source module. Bare repository, package, and directory tar
 
 Scoped file calls can either use a repo-relative path or `PACKAGE FILE`. The `PACKAGE FILE` form resolves the file inside the package before delegating to the generic mutation runner.
 
-Mutation scope is defined in the repo root [quality.config.json](../../quality.config.json). Generic Stryker orchestration lives in `@poleski/quality-tools`; CodeGraphy keeps the monorepo wrapper and Vitest scope wiring in `scripts/mutation/`, `stryker.config.cjs`, `stryker.extension.config.cjs`, and `packages/extension/vitest.config.ts`.
+The root [quality.config.json](../../quality.config.json) defines mutation scope. `@poleski/quality-tools` provides generic Stryker orchestration. CodeGraphy keeps the monorepo wrapper and Vitest scope wiring in `scripts/mutation/`, `stryker.config.cjs`, `stryker.extension.config.cjs`, and `packages/extension/vitest.config.ts`.
 
 Operational notes:
 

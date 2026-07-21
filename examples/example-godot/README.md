@@ -1,13 +1,11 @@
 # Godot Example
 
-This example workspace is used by CodeGraphy's extension-host e2e tests for the
-GDScript plugin and doubles as a small Godot project you can open in VS Code to
-try the Graph View.
+CodeGraphy's extension-host end-to-end tests use this workspace for the GDScript plugin. You can also open it as a small Godot project in VS Code and try the Graph View.
 
 Project shape:
 
 - `project.godot` boots into `scenes/main.tscn`
-- `scripts/game_manager.gd` is configured as an autoload singleton
+- `project.godot` registers `scripts/game_manager.gd` as an autoload singleton
 - `scenes/player.tscn`, `scenes/enemy.tscn`, `scenes/projectile.tscn`, and `scenes/ui/game_ui.tscn` make the project feel like a real Godot workspace instead of isolated fixture files
 - `scenes/main.tscn` starts the player and enemy on a visible `StaticBody2D` platform with collision shapes, so the example can be run directly in Godot
 - `resources/enemy_spawn_config.tres` is a real data resource backed by `scripts/data/spawn_config.gd`
@@ -67,7 +65,7 @@ Expected behavior:
 
 ## Supported Godot Graph Contract
 
-This example defines the Godot graph contract exercised by the plugin. Generic CodeGraphy concepts are used for `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Godot-specific concepts use plugin-owned rows: `Scene`, `Resource`, `Autoload`, `Scene Node`, `Godot class_name`, `Signal`, `Exported Property`, and `Signal Connections`.
+This example defines the Godot graph contract that the plugin tests. Generic CodeGraphy rows cover `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Plugin-owned rows cover `Scene`, `Resource`, `Autoload`, `Scene Node`, `Godot class_name`, `Signal`, `Exported Property`, and `Signal Connections`.
 
 Measured current parser/plugin output for the generic surface:
 

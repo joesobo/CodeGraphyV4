@@ -35,20 +35,11 @@ Recommended plugins keep analysis headless and use host-agnostic webview assets 
 
 The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw graph-renderer instance intentionally stay inside `@codegraphy-dev/extension`.
 
-Webview plugins can persist their own workspace UI state with
-`api.getPluginData()` and `api.setPluginData(data)`. The host stores that data
-by Plugin ID and replays updates only to the owning plugin, so plugin UI can
-remember settings without adding extension-owned settings keys.
+Webview plugins can persist their own workspace UI state with `api.getPluginData()` and `api.setPluginData(data)`. The host stores that data by Plugin ID and replays updates only to the owning plugin, so plugin UI can remember settings without adding extension-owned settings keys.
 
-Webview plugins can inject UI into named CodeGraphy slots with
-`api.registerSlotContribution(slot, { id, order, render })`. The host creates
-the slot container, orders contributions, and disposes the returned cleanup when
-the plugin is disabled or reset.
+Webview plugins can add UI to named CodeGraphy slots with `api.registerSlotContribution(slot, { id, order, render })`. The host creates the slot container and orders its contributions. When the host disables or resets the plugin, it runs the returned cleanup.
 
-Webview plugin `activate(api)` functions may return a cleanup function or
-`Disposable`. CodeGraphy calls that cleanup when the plugin is disabled or its
-webview assets are reset, so plugins should release animation loops, DOM
-subscriptions, timers, and injected styles from that cleanup.
+Webview plugin `activate(api)` functions may return a cleanup function or `Disposable`. CodeGraphy runs it when the host disables the plugin or resets its webview assets. The cleanup should release animation loops, document object model (DOM) subscriptions, timers, and injected styles.
 
 Package plugins need static metadata before Core can import runtime code. Put package compatibility, default options, and disclosures in `package.json#codegraphy`; put the Plugin ID and display metadata in `codegraphy.json`:
 
@@ -82,7 +73,7 @@ Exact merge behavior:
   - imports/loads/inherits override by shared source identity
   - distinct call/reference targets coexist
 
-Node Type and Edge Type definitions are separate from workspace relevance. Use `contributeNodeTypes()` or `contributeEdgeTypes()` when a plugin owns new labels, colors, defaults, and descriptions. Use `contributeGraphScopeCapabilities(context)` to declare which core or plugin-owned Node Types and Edge Types are relevant when the plugin is enabled and applicable to the indexed workspace:
+Node Type and Edge Type definitions do not establish workspace relevance. Use `contributeNodeTypes()` or `contributeEdgeTypes()` when a plugin owns new labels, colors, defaults, and descriptions. An active plugin uses `contributeGraphScopeCapabilities(context)` to declare relevant Core or plugin-owned Node Types and Edge Types for the indexed workspace:
 
 ```ts
 const plugin: IPlugin = {
@@ -105,7 +96,7 @@ const plugin: IPlugin = {
 
 The `context.filePaths` array contains indexed workspace files that made the plugin applicable, so multi-language plugins can return a precise union instead of one broad package-level list. Capability declarations are not emitted graph records; they only let Graph Scope present the right toggles before matching nodes or edges exist.
 
-When a workspace disables a plugin, CodeGraphy treats that plugin as inactive for graph analysis and Graph View UI contributions. Disabled plugins do not contribute filter groups, Node Types, Edge Types, Graph Scope capabilities, Graph View toolbar/context/export actions, runtime graph contributions, or webview assets until they are enabled again.
+When a workspace disables a plugin, CodeGraphy removes it from graph analysis and Graph View UI contributions. Until the workspace enables it again, the plugin cannot contribute filter groups, Node Types, Edge Types, Graph Scope capabilities, Graph View toolbar, context menu, export actions, runtime graph data, or webview assets.
 
 Path and source rules:
 
