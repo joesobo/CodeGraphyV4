@@ -11,7 +11,6 @@ import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import { getExternalPackageNodeId } from '../../../graph/packageSpecifiers/nodeId';
 import type { SQLiteValue } from '../io/connection';
 import {
-  NODE_COLUMNS,
   type EdgeRecord,
   type FileRecord,
   type NodeRecord,
@@ -27,8 +26,20 @@ export interface NormalizedDatabaseRecords {
   edges: EdgeRecord[];
 }
 
-function emptyNodeRecord(): NodeRecord {
-  return Object.fromEntries(NODE_COLUMNS.map(column => [column, null])) as unknown as NodeRecord;
+type NullableNodeFields = Omit<NodeRecord, 'key' | 'type' | 'label' | 'fileId' | 'parentId'>;
+
+function emptyNullableNodeFields(): NullableNodeFields {
+  return {
+    color: null,
+    x: null,
+    y: null,
+    favorite: null,
+    shape: null,
+    imageUrl: null,
+    isCollapsed: null,
+    pluginId: null,
+    language: null,
+  };
 }
 
 function sqliteBoolean(value: boolean | undefined): number | null {
@@ -106,7 +117,7 @@ function graphNodeRecord(
   analysisToCachePath: ReadonlyMap<string, string>,
 ): NodeRecord {
   return {
-    ...emptyNodeRecord(),
+    ...emptyNullableNodeFields(),
     key: node.id,
     type: node.nodeType ?? 'file',
     label: node.label,
@@ -135,7 +146,7 @@ function analysisNodeRecord(
 ): NodeRecord {
   const analysisFilePath = node.filePath ?? ownerAnalysisPath;
   return {
-    ...emptyNodeRecord(),
+    ...emptyNullableNodeFields(),
     key: normalizeAnalysisIdForFile(node.id, analysisFilePath, analysisToCachePath) ?? node.id,
     type: node.nodeType,
     label: node.label,
@@ -212,7 +223,7 @@ function addEndpointNode(
 ): void {
   if (nodes.has(id)) return;
   nodes.set(id, {
-    ...emptyNodeRecord(),
+    ...emptyNullableNodeFields(),
     key: id,
     type,
     label: path.basename(id),
