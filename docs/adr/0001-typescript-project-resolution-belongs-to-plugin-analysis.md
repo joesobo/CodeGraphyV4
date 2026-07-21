@@ -1,19 +1,19 @@
-# TypeScript Project Resolution Belongs To Plugin Analysis
+# TypeScript project resolution belongs to Plugin Analysis
 
 **Status:** Accepted
 
-TypeScript `compilerOptions.paths` and related project configuration are **Project-Aware Analysis Semantics**, not baseline syntax parsing. Core should provide the plugin substrate for adding relationship data and projecting it into the Relationship Graph, while TypeScript-specific project resolution such as `compilerOptions.paths` belongs in Plugin Analysis so workspaces that do not care about TypeScript semantics do not pay for tsconfig discovery, parsing, and alias matching.
+TypeScript `compilerOptions.paths` and related project configuration define **Project-Aware Analysis Semantics**. Core provides the plugin substrate that adds relationship data and projects it into the Relationship Graph. Plugin Analysis owns TypeScript project resolution. Workspaces that do not need TypeScript semantics avoid tsconfig discovery, parsing, and alias matching.
 
 **Considered Options**
 
-- Put `compilerOptions.paths` in Core's JS/TS Tree-sitter resolver. This makes alias imports work out of the box, but it makes every Core JS/TS analysis path responsible for TypeScript project configuration and risks turning shallow Core Tree-sitter Language Coverage into TypeScript-aware project analysis.
-- Put `compilerOptions.paths` in `@codegraphy-dev/plugin-typescript`. This keeps Core light and lets users opt into TypeScript ecosystem semantics, but Core must continue to support plugin-owned relationship data flowing through the normal merge and Graph Projection pipeline.
+- Put `compilerOptions.paths` in Core's JS/TS Tree-sitter resolver. Alias imports would work without a plugin, but every Core JS/TS analysis path would become responsible for TypeScript project configuration. Shallow Core Tree-sitter Language Coverage would then expand into TypeScript-aware project analysis.
+- Put `compilerOptions.paths` in `@codegraphy-dev/plugin-typescript`. Core stays light, and users opt into TypeScript ecosystem semantics. Core must still merge and project plugin-owned relationship data through the standard pipeline.
 
 **Consequences**
 
-The TypeScript plugin may need to resume supplemental analysis for project-aware import resolution. It should create plugin-owned relationships from TypeScript project data, such as alias-mapped imports, and Core should merge and project that additional data without needing TypeScript-specific resolution logic itself. Alias-derived relationships should use a TypeScript-plugin-owned Edge Type labeled **TypeScript Alias Import** so Graph Scope can toggle them independently from baseline import edges.
+The TypeScript plugin may need supplemental analysis for project-aware import resolution. It should create plugin-owned relationships from TypeScript project data, such as alias-mapped imports. Core should merge and project that data without TypeScript-specific resolution logic. Alias-derived relationships should use a TypeScript-plugin-owned Edge Type labeled **TypeScript Alias Import** so Graph Scope can toggle them apart from baseline import edges.
 
-That Edge Type should default on in Graph Scope so alias-derived relationships are visible when the TypeScript plugin is enabled. The plugin should process `compilerOptions.paths` whenever the plugin is enabled so the Relationship Graph, Graph Query CLI, Graph View, and export paths have the same relationship data available. Graph Scope should hide or show those relationships in visual and scoped graph views without controlling whether the plugin collects the data. If the existing plugin contract is not sufficient for plugin-owned edge-type contribution, extend the plugin contract deliberately instead of moving TypeScript project semantics into Core by default.
+Graph Scope should enable that Edge Type by default when the TypeScript plugin is active. The plugin should process `compilerOptions.paths` whenever it is active so the Relationship Graph, Graph Query CLI, Graph View, and exports share the same data. Graph Scope controls visibility without controlling data collection. If the plugin contract cannot support a plugin-owned Edge Type, extend the contract instead of moving TypeScript project semantics into Core.
 
 **Implementation Alignment**
 

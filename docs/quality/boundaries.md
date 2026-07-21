@@ -29,4 +29,4 @@ The command reads `quality.config.json`:
 - The first cut is file-graph based and path-first.
 - It ignores barrel files, tests, and generated surfaces through config.
 - Use `--json` when you want the raw report shape for automation.
-- Use `--strict` when you want dead surfaces to fail the command, not just layer violations and dead ends.
+- Use `--strict` to fail the command for dead surfaces, layer violations, or dead ends.

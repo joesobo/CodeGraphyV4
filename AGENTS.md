@@ -1,12 +1,12 @@
 # AGENTS.md
 
-## Intent Over Literal Words
+## Intent over literal wording
 
-My requests are APPROXIMATE. I am not the one coding; you are. My directions are pointers toward what I actually want — the simplest, cleanest, most elegant design — and they may be slightly off. That goal ALWAYS outranks my literal words.
+Treat my requests as direction toward the simplest, cleanest design. I may describe the implementation imprecisely because you are the one writing the code. Prefer the design goal when my wording conflicts with it.
 
-When you hit a wall — a case that doesn't fit, a spec that breaks, an assumption that fails — the wall is information: the design is wrong somewhere. STOP. Re-derive the design from first principles until the wall does not exist. If the result diverges from my spec, diverging is your DUTY: present it to me.
+If a case does not fit, a specification breaks, or an assumption fails, stop and re-derive the design from first principles. Present any required departure from my request before you implement it.
 
-NEVER patch around the wall to comply with my words: a flag, a special case, a conversion shim, a parallel path, a test rewritten to dodge a broken rule. The patch IS the failure and will be rejected regardless of cost sunk. A blocker honestly reported is a good outcome; a jury-rigged "working" deliverable is the worst one.
+Do not add a flag, special case, conversion shim, parallel path, or weakened test to preserve a broken design. Report a blocker instead of shipping a workaround.
 
 ## Commands
 
@@ -20,13 +20,13 @@ pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.t
 
 Never create `architecture.md`. Package boundaries are the map:
 
-- `packages/extension/src/extension/` — VS Code extension host
-- `packages/extension/src/core/` — discovery, registry, views, colors
-- `packages/extension/src/webview/` — React webview UI
-- `packages/extension/src/shared/` — shared protocol/types
-- `packages/graph-renderer/src/` — custom WebGPU rendering and WebAssembly physics/layout
-- `packages/plugin-api/src/` — plugin API contracts
-- `packages/plugin-*/src/` — built-in language plugins
+- `packages/extension/src/extension/`: VS Code extension host
+- `packages/extension/src/core/`: discovery, registry, views, and colors
+- `packages/extension/src/webview/`: React webview UI
+- `packages/extension/src/shared/`: shared protocols and types
+- `packages/graph-renderer/src/`: custom WebGPU rendering and WebAssembly physics and layout
+- `packages/plugin-api/src/`: plugin API contracts
+- `packages/plugin-*/src/`: built-in language plugins
 
 ## Workflow
 
@@ -35,8 +35,8 @@ Discuss and plan before implementing. Work in a dedicated branch/worktree, commi
 - Issues/PRDs live on the CodeGraphy Trello board (`docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md`).
 - Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan or handoff documents. Record durable technical decisions as ADRs and current behavior in the relevant reference doc.
 - Read root `CONTEXT.md` and `docs/adr/` when present.
-- The user's open worktree is **protected**: never `git switch`, `git checkout <branch>`, or `git rebase` there — do branch work in a separate agent worktree.
-- Refactors that change a contract: move fully to the new contract — update callers, tests, docs, changesets. One forward path, no legacy shims.
+- The user's open worktree is **protected**. Do not run `git switch`, `git checkout <branch>`, or `git rebase` there. Use a separate agent worktree for branch work.
+- Refactors that change a contract must update callers, tests, docs, and changesets in one move. Keep one forward path without legacy shims.
 
 ## Code Organization
 

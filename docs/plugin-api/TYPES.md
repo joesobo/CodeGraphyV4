@@ -39,16 +39,16 @@ The public package is host-agnostic. VS Code-specific bridge types, decorations,
 Defined in `plugin.ts`.
 
 Key points:
-- `apiVersion: string` is required (for example `'^3.0.0'`).
+
+- Every plugin must define `apiVersion: string` (for example `'^3.0.0'`).
 - `sources?: IConnectionSource[]` declares the plugin's Relationship Source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, defaults, and optional user-facing descriptions for Graph Scope.
-- `contributeGraphScopeCapabilities(context)` lets plugins declare core or plugin-owned Node Types and Edge Types that are relevant when the plugin is enabled and applies to the indexed workspace, even if the current graph has no matching nodes or relationships yet. Use `context.filePaths` when one plugin supports several languages or file families with different capabilities.
+- `contributeGraphScopeCapabilities(context)` lets an active plugin declare relevant Core or plugin-owned Node Types and Edge Types for the indexed workspace. The current graph does not need matching Nodes or Relationships. Use `context.filePaths` when one plugin supports languages or file families with different capabilities.
 - Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
-- `IPluginAnalysisContext.workspaceFiles`: lightweight discovered workspace
-  paths and extensions for cross-file invalidation without reading contents.
+- `IPluginAnalysisContext.workspaceFiles` provides workspace paths and extensions for cross-file invalidation without reading file contents.
 
 ### `IPluginAnalysisContext`
 
@@ -233,13 +233,13 @@ Graph View contributions run from a live host context. `visibleGraph` is the cur
 - `WebviewPluginActivate`
 - `WebviewPluginActivationCleanup`
 
-Webview assets are package-owned scripts/styles declared through `IPlugin.webviewContributions`. They can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })`, exchange plugin-scoped messages, read and write plugin-owned webview state through `getPluginData()` and `setPluginData(data)`, and return cleanup work that the host runs when the plugin is disabled or reset.
+Plugins declare package-owned webview scripts and styles through `IPlugin.webviewContributions`. These assets can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })` and exchange plugin-scoped messages. They can also read and write plugin-owned state through `getPluginData()` and `setPluginData(data)`. The host runs returned cleanup work when it disables or resets the plugin.
 
-Runtime node contributions may supply coordinate state (`x`/`y`), fixed coordinate state (`fx`/`fy`), and velocity state (`vx`/`vy`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to graph physics without inventing a separate layout channel.
+Runtime node contributions may supply coordinates (`x` and `y`), fixed coordinates (`fx` and `fy`), and velocity (`vx` and `vy`) when a plugin owns its node layout. Core treats these fields as graph physics state. A plugin can fix a runtime Node, release it, or return it to graph physics without a separate layout channel.
 
 Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 
-Context menu contributions render in the normal graph context menu by default. Contributions that set `placement: { menu: 'create' }` join the graph background create actions instead, so the same action appears beside `New File...` and `New Folder...` in the background context menu and in the toolbar `New...` popup while the plugin is enabled.
+By default, the host renders context menu contributions in the graph context menu. Set `placement: { menu: 'create' }` to add an action to the graph background creation commands. While the plugin is active, the action then appears beside `New File...` and `New Folder...` in the background context menu and the toolbar `New...` popup.
 
 ## Theme-Style Plugins
 

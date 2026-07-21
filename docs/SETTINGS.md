@@ -105,7 +105,7 @@ The Settings > Forces controls apply these values to the live WebAssembly layout
 
 Core also excludes common generated directories and artifacts such as `node_modules`, `dist`, `build`, `.git`, coverage output, minified JavaScript, and bundles. When `respectGitignore` is true, Git-ignored paths do not enter File Discovery.
 
-An empty `include` normalizes to `["**/*"]`. Duplicate filters are removed during normalization.
+CodeGraphy normalizes an empty `include` to `["**/*"]` and removes duplicate filters.
 
 ## Graph Scope and Legend
 
@@ -237,7 +237,7 @@ Old `.codegraphy/graph.lbug` files are obsolete generated caches. Run Indexing t
 **Empty graph**
 
 - Check `include`, `filterPatterns`, `.gitignore`, and `maxFiles`.
-- Confirm File, Folder, or relevant Symbol Node Types are enabled in Graph Scope.
+- In Graph Scope, enable File, Folder, or the relevant Symbol Node Types.
 
 **Missing Relationships**
 

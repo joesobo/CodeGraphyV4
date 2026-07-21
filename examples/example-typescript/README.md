@@ -1,6 +1,6 @@
 # TypeScript Palette Generator
 
-This example is a tiny TypeScript palette generator you can actually run while inspecting CodeGraphy's TypeScript graph support. It prints a named palette, loads a theme pack through a TypeScript path alias, reads a legacy CommonJS settings module, and lazily renders a preview.
+This runnable TypeScript palette generator demonstrates CodeGraphy's TypeScript graph support. It prints a named palette, loads a theme pack through a TypeScript path alias, reads a legacy CommonJS settings module, and renders a preview through a dynamic import.
 
 ```bash
 pnpm install
@@ -30,7 +30,7 @@ The code is intentionally small, but it behaves like a real project:
 - `src/paletteRunner.ts` extends `BaseGenerator` and implements `PaletteExporter`.
 - `src/seedSettings.ts` is loaded with `require()` to keep a CommonJS compatibility edge visible.
 - `src/lazyPreview.ts` is loaded with dynamic `import()` to show lazy module relationships.
-- `src/alias/themePack.ts` is resolved through the `#example/*` TypeScript path alias.
+- The `#example/*` TypeScript path alias resolves `src/alias/themePack.ts`.
 - `src/scratchpad.ts` is intentionally disconnected so Orphan Node behavior stays obvious.
 
 ## Graph Screenshot
@@ -81,7 +81,7 @@ The example keeps relative imports for the built-in TypeScript graph behavior an
 Suggested alias check:
 
 1. Open this folder in VS Code.
-2. Make sure the TypeScript plugin is enabled.
+2. Enable the TypeScript plugin.
 3. Open `src/index.ts`.
 4. In Graph Scope, enable **TypeScript Alias Import**.
 
