@@ -15,8 +15,7 @@ workspace.
 The VS Code extension remains a VS Code Marketplace product. The tldraw
 interface will be published as `@codegraphy-dev/tldraw` with its own executable
 launcher, `codegraphy-tldraw`. A user installs Core and the tldraw interface
-through npm, then runs the interface launcher from the workspace to open or
-refresh its canvas:
+through npm, then runs the interface launcher from the workspace:
 
 ```sh
 npm install --global @codegraphy-dev/core @codegraphy-dev/tldraw
@@ -24,6 +23,21 @@ codegraphy-tldraw
 ```
 
 The package may also support one-off npm execution.
+
+The launcher accepts an optional `.tldraw` document path:
+
+```text
+codegraphy-tldraw
+    Create a new unnamed, unsaved document and open it in tldraw offline.
+
+codegraphy-tldraw PATH
+    Create PATH when it is absent. Reconcile PATH when it exists. Open the
+    document in tldraw offline or refresh its visible canvas when already open.
+```
+
+The launcher exits after completing the operation. The generated document
+contains the persistent script that continues running the force simulation in
+tldraw offline.
 
 The dependency and responsibility boundaries are:
 
@@ -38,17 +52,23 @@ tldraw interface --------> native tldraw shapes
 ```
 
 Core owns workspace discovery, indexing, graph semantics, settings that affect
-the indexed graph, and cache data. `graph-renderer` owns reusable force-directed
-layout and physics calculations. The tldraw interface translates indexed graph
-entities and calculated positions into native tldraw shapes, so users can keep
-editing the canvas while forces continue to move CodeGraphy-owned nodes.
+the indexed graph, and cache data. The tldraw interface calls Core's public API
+to run the normal index and obtain the default file-level graph shown by a fresh
+Extension workspace. Core retains ownership of its cache representation.
 
-The first tldraw launch for a workspace creates a new unsaved offline draft.
-The user chooses its durable name and location through tldraw's normal save
-flow. A refresh reindexes through Core and reconciles only the shapes owned by
-CodeGraphy in the matching open document. User-created notes, drawings, and
-other shapes remain untouched. The user remains responsible for choosing the
-saved document and its location through tldraw.
+`graph-renderer` supplies the same force-directed physics implementation and
+configuration used by the Extension. The tldraw interface translates indexed
+graph entities and calculated positions into native tldraw circles and
+connectors. The persistent document script keeps those shapes synchronized with
+the simulation while the user interacts with the canvas.
+
+An unnamed document receives its durable name and location through tldraw's
+normal save flow. A path-based refresh reindexes through Core and reconciles
+CodeGraphy-owned shapes by stable identity. New graph entities are added,
+changed entities are updated, and removed entities are deleted. User-created
+notes, drawings, and other shapes remain untouched. When the document is open,
+the reconciliation updates the live document and preserves the current tldraw
+session. Every successful command opens or foregrounds the resulting canvas.
 
 Rendering interfaces are also distinct from plugins:
 
@@ -65,5 +85,10 @@ Rendering interfaces are also distinct from plugins:
 - Each interface can evolve its own UI and host-specific plugin seam.
 - A saved tldraw canvas is user-authored project material. Refresh reconciles
   CodeGraphy-owned shapes while preserving the user's canvas additions.
-- The first tldraw implementation can stay narrow: launch, index, render native
-  shapes, run forces, refresh, and preserve an added note.
+- The first compatibility proof uses the repository's complete `examples/`
+  directory as its workspace fixture. It generates a path-based document,
+  opens it in tldraw offline, renders native shapes, and visibly runs the shared
+  physics simulation.
+- The MVP then adds unnamed-document launch and ownership-aware path refresh.
+  Its acceptance check adds a native tldraw note, refreshes after a workspace
+  change, and verifies that the graph updates while the note remains.
