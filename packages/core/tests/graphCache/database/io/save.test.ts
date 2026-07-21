@@ -98,10 +98,11 @@ describe('graphCache/database/io/save', () => {
       _writer,
       input,
       _graph,
-      afterStatement,
+      callbacks,
     ) => {
       for (let index = 0; index < Object.keys(input.files).length; index += 1) {
-        await afterStatement();
+        await callbacks.afterStatement();
+        await callbacks.afterFile();
       }
     });
   });
@@ -208,6 +209,35 @@ describe('graphCache/database/io/save', () => {
     expect(waitForImmediate).toHaveBeenCalledTimes(2);
   });
 
+  it('does not report all files before graph-heavy persistence finishes', async () => {
+    const sequence: string[] = [];
+    const onProgress = vi.fn(({ current }: { current: number }) => {
+      sequence.push(`progress:${current}`);
+    });
+    vi.mocked(writeModule.persistWorkspaceCacheAsync).mockImplementationOnce(async (
+      _writer,
+      _input,
+      _graph,
+      callbacks,
+    ) => {
+      await callbacks.afterFile();
+      await callbacks.afterFile();
+      for (let index = 0; index < 20; index += 1) {
+        await callbacks.afterStatement();
+      }
+      sequence.push('persistence:complete');
+    });
+
+    await saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache, { onProgress });
+
+    expect(sequence).toEqual([
+      'progress:0',
+      'progress:1',
+      'persistence:complete',
+      'progress:2',
+    ]);
+  });
+
   it('does not write an async cache when the database directory is absent', async () => {
     vi.mocked(fs.existsSync).mockReturnValueOnce(false);
     await saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache);
@@ -224,10 +254,11 @@ describe('graphCache/database/io/save', () => {
       _writer,
       input,
       _graph,
-      afterStatement,
+      callbacks,
     ) => {
       for (let index = 0; index < Object.keys(input.files).length; index += 1) {
-        await afterStatement();
+        await callbacks.afterStatement();
+        await callbacks.afterFile();
         calls += 1;
         if (calls === 2) throw corruption;
       }

@@ -54,6 +54,15 @@ describe('FileDiscovery discover', () => {
     );
   });
 
+  it('excludes NUL-containing files before plugin analysis', async () => {
+    createFile('src/app.ts', 'export const app = true;');
+    createFile('src/generated.ts', 'prefix\0binary payload');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+  });
+
   it('includes file metadata', async () => {
     createFile('src/app.ts');
 

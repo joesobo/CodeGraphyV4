@@ -2,9 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createWorkspaceAnalysisCacheWriter,
   createWorkspaceAnalysisCacheWriterAsync,
-  persistAnalysisEntry,
-  persistAnalysisEntryAsync,
-  persistGraph,
+  persistWorkspaceCache,
+  persistWorkspaceCacheAsync,
   sortedCacheEntries,
   type WorkspaceAnalysisCacheWriter,
 } from '../../../../src/graphCache/database/query/write';
@@ -78,11 +77,16 @@ describe('graphCache/database/writeStatements', () => {
       symbols: [{ id: 'symbol-1', filePath: '/workspace/src/app.ts', name: 'App', kind: 'class' }],
     };
 
-    persistAnalysisEntry(writer, 'src/app.ts', {
-      mtime: 10,
-      size: 20,
-      contentHash: 'sha256:app',
-      analysis,
+    persistWorkspaceCache(writer, {
+      version: '',
+      files: {
+        'src/app.ts': {
+          mtime: 10,
+          size: 20,
+          contentHash: 'sha256:app',
+          analysis,
+        },
+      },
     });
 
     expect(execute).toHaveBeenCalledWith(writer.connection, writer.fileStatement, {
@@ -118,7 +122,7 @@ describe('graphCache/database/writeStatements', () => {
       nodeParentStatement: { kind: 'node-parent' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
-    persistGraph(writer, {
+    persistWorkspaceCache(writer, { version: '', files: {} }, {
       nodes: [
         { id: 'src/app.ts', label: 'app.ts', color: '#fff', nodeType: 'file' },
         { id: 'src/model.ts', label: 'model.ts', color: '#fff', nodeType: 'file' },
@@ -164,13 +168,19 @@ describe('graphCache/database/writeStatements', () => {
       nodeParentStatement: { kind: 'node-parent' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
-    await persistAnalysisEntryAsync(
+    await persistWorkspaceCacheAsync(
       writer,
-      'src/app.ts',
-      { mtime: 0, analysis: { filePath: 'src/app.ts' } },
-      afterStatement,
+      {
+        version: '',
+        files: { 'src/app.ts': { mtime: 0, analysis: { filePath: 'src/app.ts' } } },
+      },
+      undefined,
+      {
+        afterFile: async () => { sequence.push('file'); },
+        afterStatement,
+      },
     );
 
-    expect(sequence).toEqual(['execute', 'yield', 'execute', 'yield']);
+    expect(sequence).toEqual(['execute', 'yield', 'file', 'execute', 'yield']);
   });
 });

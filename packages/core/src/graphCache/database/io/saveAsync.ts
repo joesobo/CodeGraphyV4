@@ -46,16 +46,16 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
         let statementsSinceYield = 0;
         const yieldAfterStatement = async (): Promise<void> => {
           statementsSinceYield += 1;
-          if (current < total) {
-            current += 1;
-            if (current > reportedProgress) {
-              reportedProgress = current;
-              options.onProgress?.({ current, total });
-            }
-          }
           if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
             statementsSinceYield = 0;
             await waitForImmediate();
+          }
+        };
+        const reportPersistedFile = async (): Promise<void> => {
+          current += 1;
+          if (current < total && current > reportedProgress) {
+            reportedProgress = current;
+            options.onProgress?.({ current, total });
           }
         };
 
@@ -63,10 +63,14 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
           writer,
           cache,
           options.graph,
-          yieldAfterStatement,
+          { afterFile: reportPersistedFile, afterStatement: yieldAfterStatement },
         );
         await runStatementAsync(connection, 'COMMIT');
         committed = true;
+        if (total > reportedProgress) {
+          reportedProgress = total;
+          options.onProgress?.({ current: total, total });
+        }
       } catch (error) {
         if (!committed) {
           try {
