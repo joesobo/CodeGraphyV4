@@ -319,7 +319,10 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
           size: 10,
           analysis: {
             filePath: '/workspace/src/index.ts',
+            nodes: [],
+            symbols: [],
             relations: [],
+            cache: { tiers: ['baseline', 'symbols'] },
           },
         },
       },
@@ -680,8 +683,13 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     await vi.waitFor(() => {
       expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/keep.ts']).toEqual({
         mtime: 10,
-        size: 0,
-        analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+        analysis: {
+          filePath: '/workspace/src/keep.ts',
+          nodes: [],
+          symbols: [],
+          relations: [],
+          cache: { tiers: ['baseline', 'symbols'] },
+        },
       });
     });
   });
