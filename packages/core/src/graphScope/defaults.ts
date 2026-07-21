@@ -1,3 +1,11 @@
+export function isPluginScopedGraphNodeType(nodeType: string): boolean {
+  return nodeType.startsWith('plugin:');
+}
+
+export function isPluginScopedGraphEdgeKind(edgeKind: string): boolean {
+  return edgeKind.includes(':');
+}
+
 export const CORE_GRAPH_EDGE_TYPES = [
   'call',
   'contains',

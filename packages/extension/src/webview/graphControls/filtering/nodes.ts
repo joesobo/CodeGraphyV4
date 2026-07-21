@@ -7,6 +7,7 @@ import {
 import type { IGraphNodeTypeDefinition } from '../../../shared/graphControls/contracts';
 import { CORE_GRAPH_NODE_TYPES } from '../../../shared/graphControls/defaults/nodeTypes';
 import { symbolMatchesScopedDefinition } from '../../../shared/visibleGraph/scope/symbolMatch';
+import { isPluginScopedGraphNodeType } from '@codegraphy-dev/core/graph-scope';
 
 function getResolvedNodeType(node: IGraphNode): string {
   return node.nodeType ?? 'file';
@@ -34,7 +35,8 @@ function getColorNodeType(node: IGraphNode, nodeColors: Record<string, string>):
 }
 
 export function isNodeVisible(node: IGraphNode, visibility: Record<string, boolean>): boolean {
-  return visibility[getResolvedNodeType(node)] ?? true;
+  const nodeType = getResolvedNodeType(node);
+  return visibility[nodeType] ?? !isPluginScopedGraphNodeType(nodeType);
 }
 
 export function withResolvedNodeTypes(nodes: IGraphNode[]): IGraphNode[] {
