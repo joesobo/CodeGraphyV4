@@ -91,6 +91,22 @@ describe('analysis/projection', () => {
           toFilePath: '/workspace/src/app.py',
           toSymbolId: '/workspace/src/app.py:function:main',
         },
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter:binding-call',
+          fromFilePath: '/workspace/src/app.py',
+          fromSymbolId: '/workspace/src/app.py:function:main',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:bound',
+          metadata: { bindingKind: 'named' },
+        },
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter:file-to-symbol-call',
+          fromFilePath: '/workspace/src/app.py',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:main',
+        },
       ],
     })).toEqual([
       expect.objectContaining({

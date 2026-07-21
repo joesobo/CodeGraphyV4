@@ -90,6 +90,7 @@ describe('Graph Cache example round trips', { timeout: 30_000 }, () => {
   it.each([
     ['example-c', new Set(['.c', '.h']), 4],
     ['example-dart', new Set(['.dart']), 7],
+    ['example-python', new Set(['.py']), 6],
   ] as const)('preserves file-projected Calls in %s', async (exampleName, extensions, expectedCount) => {
     const { cache, fileAnalysis, workspaceRoot } = await createExampleAnalysis(exampleName, extensions);
     const graph = buildCompleteWorkspaceGraphData({
