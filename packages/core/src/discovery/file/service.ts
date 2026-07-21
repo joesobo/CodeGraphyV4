@@ -13,41 +13,6 @@ import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
-const BINARY_SAMPLE_SIZE = 8_192;
-const KNOWN_TEXT_EXTENSIONS: ReadonlySet<string> = new Set([
-  '.asset', '.asmdef', '.c', '.cc', '.cpp', '.cs', '.css', '.cxx', '.dart',
-  '.gd', '.go', '.godot', '.h', '.hpp', '.hs', '.html', '.inputactions', '.java',
-  '.js', '.json', '.jsx', '.kt', '.kts', '.lua', '.m', '.markdown', '.mat', '.md',
-  '.meta', '.mm', '.pas', '.php', '.prefab', '.py', '.rb', '.rs', '.scala', '.scss',
-  '.shader', '.sh', '.sql', '.svelte', '.swift', '.toml', '.tres', '.ts', '.tscn',
-  '.tsx', '.txt', '.unity', '.vue', '.xml', '.yaml', '.yml',
-]);
-const KNOWN_TEXT_BASENAMES: ReadonlySet<string> = new Set([
-  '.editorconfig', '.env', '.gitattributes', '.gitignore', 'dockerfile', 'license',
-  'makefile', 'readme',
-]);
-
-function shouldSampleForNulByte(absolutePath: string): boolean {
-  const extension = path.extname(absolutePath).toLowerCase();
-  if (KNOWN_TEXT_EXTENSIONS.has(extension)) return false;
-  return !KNOWN_TEXT_BASENAMES.has(path.basename(absolutePath).toLowerCase());
-}
-
-async function hasNulByte(absolutePath: string): Promise<boolean> {
-  try {
-    const file = await fs.promises.open(absolutePath, 'r');
-    try {
-      const sample = Buffer.alloc(BINARY_SAMPLE_SIZE);
-      const { bytesRead } = await file.read(sample, 0, sample.length, 0);
-      return sample.subarray(0, bytesRead).includes(0);
-    } finally {
-      await file.close();
-    }
-  } catch {
-    return false;
-  }
-}
-
 function getDiscoveryConfig(options: IDiscoveryOptions) {
   return {
     maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
@@ -144,7 +109,7 @@ export class FileDiscovery {
     await walkDirectory(
       rootPath,
       rootPath,
-      async (relativePath, absolutePath) => {
+      (relativePath, absolutePath) => {
         throwIfAborted(signal);
 
         if (discoveredFiles.length >= maxFiles) {
@@ -159,10 +124,6 @@ export class FileDiscovery {
           extensions,
           gitignore: null,
         })) {
-          return true;
-        }
-
-        if (shouldSampleForNulByte(absolutePath) && await hasNulByte(absolutePath)) {
           return true;
         }
 
