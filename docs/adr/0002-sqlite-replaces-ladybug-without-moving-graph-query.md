@@ -17,7 +17,8 @@ Use `libsql` 0.5.29 as the Node binding. Its synchronous local database API matc
 
 Do not add SQL-native graph traversal, full-text search (FTS), semantic search, or a new query model to the LadybugDB replacement. Evaluate them later as separate, measured changes.
 
-Persist the Graph Cache as four relational tables:
+Persist the Graph Cache as five relational tables. All five tables use SQLite
+`STRICT` mode so invalid storage types fail at the write boundary.
 
 - `File(id, path, size, contentHash)` stores one row per indexed workspace
   file. `path` is the stable workspace-relative identity; the generated `id`
@@ -25,8 +26,11 @@ Persist the Graph Cache as four relational tables:
 - `Node` stores files, folders, packages, symbols, and plugin concepts. A node
   references its owning `File` and parent `Node` through generated integer
   identifiers. Stable graph identity remains a separate unique `key`. The
-  remaining columns are `type`, `label`, `color`, `x`, `y`, `favorite`,
-  `shape`, `imageUrl`, `isCollapsed`, `pluginId`, and `language`.
+  remaining columns are `type`, `label`, `pluginId`, and `language`.
+- `NodeView` stores display state by stable `Node.key`: `color`, `x`, `y`,
+  `favorite`, `shape`, `imageUrl`, and `isCollapsed`. It does not reference the
+  generated `Node.id`. This lets display state survive a fact-table rebuild.
+  `favorite` and `isCollapsed` are non-null integers with a default of `0`.
 - `Symbol` stores the optional symbol subtype of a `Node` as a one-to-one row.
   Its complete contract is `nodeId`, `name`, `kind`, `pluginId`, and
   `language`. File ownership is obtained through the referenced `Node`; it is
@@ -46,7 +50,7 @@ duplicate node.
 
 The persisted Relationship Graph is the source of truth. Runtime analysis
 objects needed by existing Core indexing paths are reconstructed minimally from
-the four tables and relational joins; removed analyzer details are not recreated.
+the five tables and relational joins; removed analyzer details are not recreated.
 Every persisted file record represents a completed core analysis, including an
 empty symbol result, so per-collection `*Indexed` flags are unnecessary.
 
@@ -65,6 +69,8 @@ events through its Core indexing path.
 - VSIX releases include the host platform's `@libsql/*` Node-API binary and validate an in-memory query round trip without an Electron rebuild.
 - Extension and CLI continue consuming the same Core APIs.
 - SQLite schema and indexes should optimize current save, patch, and snapshot reads.
-- Old Graph Cache schemas are rebuilt into the current four-table contract; there is no legacy JSON read path.
+- Old Graph Cache fact schemas are rebuilt into the current five-table contract.
+  A compatible `NodeView` table is retained during later fact-schema rebuilds;
+  there is no legacy JSON read path.
 - The migration will not reduce Graph Query memory usage or CLI response size by itself.
 - Later agent tools may reuse the SQLite data, but this storage migration must not depend on them.

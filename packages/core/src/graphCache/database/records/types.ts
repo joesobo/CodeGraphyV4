@@ -3,8 +3,11 @@ import type { SQLiteValue } from '../io/connection';
 export const FILE_COLUMNS = ['path', 'size', 'contentHash'] as const;
 
 export const NODE_COLUMNS = [
-  'key', 'type', 'label', 'fileId', 'parentId', 'color', 'x', 'y',
-  'favorite', 'shape', 'imageUrl', 'isCollapsed', 'pluginId', 'language',
+  'key', 'type', 'label', 'fileId', 'parentId', 'pluginId', 'language',
+] as const;
+
+export const NODE_VIEW_COLUMNS = [
+  'nodeKey', 'color', 'x', 'y', 'favorite', 'shape', 'imageUrl', 'isCollapsed',
 ] as const;
 
 export const SYMBOL_COLUMNS = ['nodeId', 'name', 'kind', 'pluginId', 'language'] as const;
@@ -30,6 +33,12 @@ export type NodeRecord = ColumnRecord<typeof NODE_COLUMNS> & {
 export type StoredNodeRecord = Omit<NodeRecord, 'fileId' | 'parentId'> & {
   fileId: number | null;
   parentId: number | null;
+};
+
+export type NodeViewRecord = ColumnRecord<typeof NODE_VIEW_COLUMNS> & {
+  nodeKey: string;
+  favorite: number | null;
+  isCollapsed: number | null;
 };
 
 export type SymbolRecord = ColumnRecord<typeof SYMBOL_COLUMNS> & {

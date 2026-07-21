@@ -1,7 +1,13 @@
 import type { SQLiteConnection } from './connection';
-import { EDGE_COLUMNS, FILE_COLUMNS, NODE_COLUMNS, SYMBOL_COLUMNS } from '../records/types';
+import {
+  EDGE_COLUMNS,
+  FILE_COLUMNS,
+  NODE_COLUMNS,
+  NODE_VIEW_COLUMNS,
+  SYMBOL_COLUMNS,
+} from '../records/types';
 
-export const GRAPH_CACHE_SCHEMA_VERSION = 7;
+export const GRAPH_CACHE_SCHEMA_VERSION = 8;
 
 function tableColumns(connection: SQLiteConnection, table: string): string[] {
   const rows = connection.pragma(`table_info(${table})`) as Array<{ name?: string }>;
@@ -19,16 +25,26 @@ function cacheTableNames(connection: SQLiteConnection): Set<string> {
   return new Set(tables.flatMap(table => table.name === undefined ? [] : [table.name]));
 }
 
+function isStrictTable(connection: SQLiteConnection, table: string): boolean {
+  const rows = connection.prepare(
+    'SELECT strict FROM pragma_table_list WHERE name = @table',
+  ).all({ table }) as Array<{ strict?: number | bigint }>;
+  return Number(rows[0]?.strict) === 1;
+}
+
 export function hasCurrentGraphCacheSchema(connection: SQLiteConnection): boolean {
   const tableNames = cacheTableNames(connection);
   const cacheTables = [...tableNames].filter(name => name !== 'sqlite_sequence');
 
-  if (cacheTables.length !== 4) return false;
+  if (cacheTables.length !== 5) return false;
   if (!tableNames.has('File') || !tableNames.has('Node')
-    || !tableNames.has('Symbol') || !tableNames.has('Edge')) return false;
+    || !tableNames.has('NodeView') || !tableNames.has('Symbol') || !tableNames.has('Edge')) return false;
 
-  return hasExpectedColumns(tableColumns(connection, 'File'), ['id', ...FILE_COLUMNS])
+  return ['File', 'Node', 'NodeView', 'Symbol', 'Edge']
+    .every(table => isStrictTable(connection, table))
+    && hasExpectedColumns(tableColumns(connection, 'File'), ['id', ...FILE_COLUMNS])
     && hasExpectedColumns(tableColumns(connection, 'Node'), ['id', ...NODE_COLUMNS])
+    && hasExpectedColumns(tableColumns(connection, 'NodeView'), [...NODE_VIEW_COLUMNS])
     && hasExpectedColumns(tableColumns(connection, 'Symbol'), [...SYMBOL_COLUMNS])
     && hasExpectedColumns(tableColumns(connection, 'Edge'), ['id', ...EDGE_COLUMNS]);
 }
@@ -40,6 +56,9 @@ function hasLegacySchema(connection: SQLiteConnection): boolean {
 }
 
 function dropLegacySchema(connection: SQLiteConnection): void {
+  const nodeViewIsReusable = cacheTableNames(connection).has('NodeView')
+    && hasExpectedColumns(tableColumns(connection, 'NodeView'), [...NODE_VIEW_COLUMNS])
+    && isStrictTable(connection, 'NodeView');
   connection.exec(`
     DROP TABLE IF EXISTS Edge;
     DROP TABLE IF EXISTS Symbol;
@@ -51,6 +70,9 @@ function dropLegacySchema(connection: SQLiteConnection): void {
     DROP TABLE IF EXISTS EdgeType;
     DROP TABLE IF EXISTS File;
   `);
+  if (!nodeViewIsReusable) {
+    connection.exec('DROP TABLE IF EXISTS NodeView');
+  }
 }
 
 export function ensureSchema(connection: SQLiteConnection): void {
@@ -64,7 +86,7 @@ export function ensureSchema(connection: SQLiteConnection): void {
       path TEXT NOT NULL UNIQUE,
       size INTEGER NOT NULL,
       contentHash TEXT
-    );
+    ) STRICT;
     CREATE TABLE IF NOT EXISTS Node (
       id INTEGER PRIMARY KEY,
       key TEXT NOT NULL UNIQUE,
@@ -72,33 +94,36 @@ export function ensureSchema(connection: SQLiteConnection): void {
       label TEXT NOT NULL,
       fileId INTEGER REFERENCES File(id) ON DELETE SET NULL,
       parentId INTEGER REFERENCES Node(id) ON DELETE SET NULL,
-      color TEXT,
-      x REAL,
-      y REAL,
-      favorite INTEGER CHECK (favorite IN (0, 1)),
-      shape TEXT,
-      imageUrl TEXT,
-      isCollapsed INTEGER CHECK (isCollapsed IN (0, 1)),
       pluginId TEXT,
       language TEXT
-    );
+    ) STRICT;
     CREATE INDEX IF NOT EXISTS Node_type_idx ON Node(type);
     CREATE INDEX IF NOT EXISTS Node_fileId_idx ON Node(fileId);
     CREATE INDEX IF NOT EXISTS Node_parentId_idx ON Node(parentId);
+    CREATE TABLE IF NOT EXISTS NodeView (
+      nodeKey TEXT PRIMARY KEY,
+      color TEXT,
+      x REAL,
+      y REAL,
+      favorite INTEGER NOT NULL DEFAULT 0 CHECK (favorite IN (0, 1)),
+      shape TEXT,
+      imageUrl TEXT,
+      isCollapsed INTEGER NOT NULL DEFAULT 0 CHECK (isCollapsed IN (0, 1))
+    ) STRICT;
     CREATE TABLE IF NOT EXISTS Symbol (
       nodeId INTEGER PRIMARY KEY REFERENCES Node(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       kind TEXT NOT NULL,
       pluginId TEXT,
       language TEXT
-    );
+    ) STRICT;
     CREATE TABLE IF NOT EXISTS Edge (
       id INTEGER PRIMARY KEY,
       key TEXT NOT NULL UNIQUE,
       sourceNodeId INTEGER NOT NULL REFERENCES Node(id) ON DELETE CASCADE,
       targetNodeId INTEGER NOT NULL REFERENCES Node(id) ON DELETE CASCADE,
       type TEXT NOT NULL
-    );
+    ) STRICT;
     CREATE INDEX IF NOT EXISTS Edge_source_type_idx ON Edge(sourceNodeId, type);
     CREATE INDEX IF NOT EXISTS Edge_target_type_idx ON Edge(targetNodeId, type);
     PRAGMA user_version = ${GRAPH_CACHE_SCHEMA_VERSION};

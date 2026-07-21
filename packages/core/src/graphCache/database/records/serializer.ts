@@ -14,6 +14,7 @@ import {
   type EdgeRecord,
   type FileRecord,
   type NodeRecord,
+  type NodeViewRecord,
   type SymbolRecord,
 } from './types';
 
@@ -22,6 +23,7 @@ export type DatabaseRecord = Record<string, SQLiteValue>;
 export interface NormalizedDatabaseRecords {
   files: FileRecord[];
   nodes: NodeRecord[];
+  nodeViews: NodeViewRecord[];
   symbols: SymbolRecord[];
   edges: EdgeRecord[];
 }
@@ -35,20 +37,13 @@ type NullableNodeFields = Omit<NodeRecord, 'key' | 'type' | 'label' | 'fileId' |
 
 function emptyNullableNodeFields(): NullableNodeFields {
   return {
-    color: null,
-    x: null,
-    y: null,
-    favorite: null,
-    shape: null,
-    imageUrl: null,
-    isCollapsed: null,
     pluginId: null,
     language: null,
   };
 }
 
-function sqliteBoolean(value: boolean | undefined): number | null {
-  return value === undefined ? null : Number(value);
+function sqliteBoolean(value: boolean): number {
+  return Number(value);
 }
 
 function metadataString(metadata: GraphMetadata | undefined, key: string): string | null {
@@ -147,15 +142,21 @@ function graphNodeRecord(
       typeof node.metadata?.parentId === 'string' ? node.metadata.parentId : undefined,
       context,
     ),
+    pluginId: metadataString(node.metadata, 'pluginId'),
+    language: node.symbol?.language ?? metadataString(node.metadata, 'language'),
+  };
+}
+
+function graphNodeViewRecord(node: IGraphNode, nodeKey: string): NodeViewRecord {
+  return {
+    nodeKey,
     color: node.color,
     x: node.x ?? null,
     y: node.y ?? null,
-    favorite: sqliteBoolean(node.favorite),
+    favorite: node.favorite === undefined ? null : sqliteBoolean(node.favorite),
     shape: node.shape2D ?? null,
     imageUrl: node.imageUrl ?? null,
-    isCollapsed: sqliteBoolean(node.isCollapsed),
-    pluginId: metadataString(node.metadata, 'pluginId'),
-    language: node.symbol?.language ?? metadataString(node.metadata, 'language'),
+    isCollapsed: node.isCollapsed === undefined ? null : sqliteBoolean(node.isCollapsed),
   };
 }
 
@@ -173,7 +174,6 @@ function analysisNodeRecord(
     label: node.label,
     fileId: ownerFilePath,
     parentId: normalizeAnalysisIdForFile(node.parentId, analysisFilePath, context),
-    color: '#808080',
     pluginId: metadataString(node.metadata, 'pluginId'),
     language: metadataString(node.metadata, 'language'),
   };
@@ -256,7 +256,6 @@ function addEndpointNode(
     label: path.basename(id),
     fileId: knownFilePaths.has(id) ? id : null,
     parentId: null,
-    color: '#808080',
   });
 }
 
@@ -325,9 +324,11 @@ export function serializeDatabaseRecords(
   }));
 
   const nodes = new Map<string, NodeRecord>();
+  const nodeViews = new Map<string, NodeViewRecord>();
   for (const node of graphData.nodes) {
     const record = graphNodeRecord(node, knownFilePaths, normalization);
     nodes.set(record.key, record);
+    nodeViews.set(record.key, graphNodeViewRecord(node, record.key));
   }
   for (const [filePath] of sortedFiles) addEndpointNode(nodes, filePath, knownFilePaths);
   for (const [filePath, entry] of sortedFiles) {
@@ -411,6 +412,7 @@ export function serializeDatabaseRecords(
   return {
     files,
     nodes: [...nodes.values()].sort((left, right) => left.key.localeCompare(right.key)),
+    nodeViews: [...nodeViews.values()].sort((left, right) => left.nodeKey.localeCompare(right.nodeKey)),
     symbols: [...symbols.values()].sort((left, right) => left.nodeId.localeCompare(right.nodeId)),
     edges: [...edges.values()].sort((left, right) => left.key.localeCompare(right.key)),
   };
