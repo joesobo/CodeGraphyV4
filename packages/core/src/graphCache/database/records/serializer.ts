@@ -8,6 +8,7 @@ import type {
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
+import { CORE_GRAPH_NODE_TYPES } from '../../../graphControls/defaults/definitions';
 import { getExternalPackageNodeId } from '../../../graph/packageSpecifiers/nodeId';
 import type { SQLiteValue } from '../io/connection';
 import {
@@ -53,6 +54,62 @@ function metadataString(metadata: GraphMetadata | undefined, key: string): strin
 
 function metadataPluginId(metadata: GraphMetadata | undefined): string | null {
   return metadataString(metadata, 'pluginId') ?? metadataString(metadata, 'source');
+}
+
+interface SymbolNodeTypeFacts {
+  kind: string;
+  language: string | null;
+  pluginId: string | null;
+  pluginKind: string | null;
+}
+
+function isGenericSymbolNodeType(type: string): boolean {
+  return type === 'symbol' || type === 'variable';
+}
+
+function matchesSymbolNodeTypeDefinition(
+  facts: SymbolNodeTypeFacts,
+  definition: (typeof CORE_GRAPH_NODE_TYPES)[number],
+): boolean {
+  return Boolean(definition.parentId)
+    && (!definition.matchSymbolKinds || definition.matchSymbolKinds.includes(facts.kind))
+    && (!definition.matchSymbolSource || definition.matchSymbolSource === facts.pluginId)
+    && (!definition.matchSymbolLanguage || definition.matchSymbolLanguage === facts.language)
+    && (!definition.matchSymbolPluginKind || definition.matchSymbolPluginKind === facts.pluginKind);
+}
+
+function resolveSymbolNodeType(facts: SymbolNodeTypeFacts, fallback: string): string {
+  if (!isGenericSymbolNodeType(fallback)) return fallback;
+
+  const pluginType = CORE_GRAPH_NODE_TYPES.find(definition =>
+    Boolean(definition.matchSymbolSource)
+    && matchesSymbolNodeTypeDefinition(facts, definition),
+  );
+  if (pluginType) return pluginType.id;
+
+  const exactCoreTypeId = facts.kind === 'variable' ? 'variable:plain' : `symbol:${facts.kind}`;
+  return CORE_GRAPH_NODE_TYPES.some(definition => definition.id === exactCoreTypeId)
+    ? exactCoreTypeId
+    : fallback;
+}
+
+function analysisSymbolNodeType(symbol: IAnalysisSymbol, fallback: string): string {
+  return resolveSymbolNodeType({
+    kind: symbol.kind,
+    language: metadataString(symbol.metadata, 'language'),
+    pluginId: metadataPluginId(symbol.metadata),
+    pluginKind: metadataString(symbol.metadata, 'pluginKind'),
+  }, fallback);
+}
+
+function graphSymbolNodeType(node: IGraphNode, fallback: string): string {
+  if (!node.symbol) return fallback;
+  return resolveSymbolNodeType({
+    kind: node.symbol.kind,
+    language: node.symbol.language ?? null,
+    pluginId: node.symbol.source ?? metadataPluginId(node.metadata),
+    pluginKind: node.symbol.pluginKind ?? null,
+  }, fallback);
 }
 
 function normalizeSlashes(value: string): string {
@@ -136,10 +193,11 @@ function graphNodeRecord(
   knownFilePaths: ReadonlySet<string>,
   context: IdentityNormalizationContext,
 ): NodeRecord {
+  const fallbackType = node.nodeType ?? 'file';
   return {
     ...emptyNullableNodeFields(),
     key: normalizeAnalysisId(node.id, context) ?? node.id,
-    type: node.nodeType ?? 'file',
+    type: graphSymbolNodeType(node, fallbackType),
     label: node.label,
     fileId: graphNodeFilePath(node, knownFilePaths, context),
     parentId: normalizeAnalysisId(
@@ -250,7 +308,7 @@ function addEndpointNode(
   nodes: Map<string, NodeRecord>,
   id: string,
   knownFilePaths: ReadonlySet<string>,
-  type: 'file' | 'package' | 'symbol' = knownFilePaths.has(id) ? 'file' : 'symbol',
+  type: string = knownFilePaths.has(id) ? 'file' : 'symbol',
 ): void {
   if (nodes.has(id)) return;
   nodes.set(id, {
@@ -349,8 +407,12 @@ export function serializeDatabaseRecords(
       addEndpointNode(nodes, key, knownFilePaths, 'symbol');
       const node = nodes.get(key);
       if (node) {
+        const wasGenericSymbol = isGenericSymbolNodeType(node.type);
         node.fileId ??= filePath;
-        if (node.type === 'symbol') node.label = symbol.name;
+        node.type = analysisSymbolNodeType(symbol, node.type);
+        node.pluginId ??= metadataPluginId(symbol.metadata);
+        node.language ??= metadataString(symbol.metadata, 'language');
+        if (wasGenericSymbol) node.label = symbol.name;
       }
     }
   }

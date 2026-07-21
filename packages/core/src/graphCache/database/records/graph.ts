@@ -62,6 +62,14 @@ function analysisIdentity(
   return key;
 }
 
+function isSymbolNodeType(nodeType: string | undefined): boolean {
+  return nodeType === 'symbol'
+    || nodeType === 'variable'
+    || nodeType?.startsWith('symbol:') === true
+    || nodeType?.startsWith('variable:') === true
+    || nodeType?.includes(':symbol') === true;
+}
+
 export function createSnapshotGraphNode(
   row: GraphNodeRow,
   symbolRow?: SymbolRow,
@@ -184,10 +192,10 @@ export function createSnapshotAnalysisRelation(
     fromFilePath: path.resolve(workspaceRoot, sourceFilePath),
     ...(targetFilePath ? { toFilePath: path.resolve(workspaceRoot, targetFilePath) } : {}),
     ...(sourceKey !== sourceFilePath
-      ? sourceNodeType === 'symbol' ? { fromSymbolId: fromIdentity } : { fromNodeId: fromIdentity }
+      ? isSymbolNodeType(sourceNodeType) ? { fromSymbolId: fromIdentity } : { fromNodeId: fromIdentity }
       : {}),
     ...(targetFilePath && targetKey === targetFilePath
       ? {}
-      : targetNodeType === 'symbol' ? { toSymbolId: toIdentity } : { toNodeId: toIdentity }),
+      : isSymbolNodeType(targetNodeType) ? { toSymbolId: toIdentity } : { toNodeId: toIdentity }),
   };
 }
