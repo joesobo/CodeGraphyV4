@@ -553,7 +553,19 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         },
       },
     };
-    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, initialCache);
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, initialCache, {
+      nodes: [
+        { id: 'src', label: 'src', color: '#808080', nodeType: 'folder' },
+        { id: 'src/stable.ts', label: 'stable.ts', color: '#808080', nodeType: 'file' },
+      ],
+      edges: [{
+        id: 'src->src/stable.ts#nests',
+        from: 'src',
+        to: 'src/stable.ts',
+        kind: 'nests',
+        sources: [],
+      }],
+    });
 
     patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
       deleteFilePaths: ['src/deleted.ts'],
@@ -619,6 +631,14 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         kind: 'function',
         name: 'changed',
       }],
+      graph: {
+        nodes: expect.arrayContaining([
+          expect.objectContaining({ id: 'src', nodeType: 'folder' }),
+        ]),
+        edges: expect.arrayContaining([
+          expect.objectContaining({ id: 'src->src/stable.ts#nests', kind: 'nests' }),
+        ]),
+      },
     });
   });
 

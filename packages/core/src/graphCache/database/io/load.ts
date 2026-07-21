@@ -6,12 +6,14 @@ import {
 } from '../../../analysis/cache';
 import {
   projectAnalysisForCacheTiers,
+  markAnalysisCacheTiers,
+  readAnalysisCacheTiers,
   type AnalysisCacheTier,
 } from '../../../analysis/fileAnalysis/cacheTiers';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
-import type { FileRow, GraphEdgeRow, GraphNodeRow } from '../records/contracts';
-import { hydrateDatabaseRecords } from '../records/hydrate';
+import type { FileRow, GraphEdgeRow, GraphNodeRow } from '../records/types';
+import { parseDatabaseRecords } from '../records/parser';
 import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY } from '../query/read';
 
 export interface WorkspaceAnalysisDatabaseLoadOptions {
@@ -24,17 +26,24 @@ function createCache(
   edgeRows: readonly GraphEdgeRow[],
   options: WorkspaceAnalysisDatabaseLoadOptions,
 ): IWorkspaceAnalysisCache {
-  const hydrated = hydrateDatabaseRecords(fileRows, nodeRows, edgeRows);
+  const hydrated = parseDatabaseRecords(fileRows, nodeRows, edgeRows);
   const cache: IWorkspaceAnalysisCache = {
     version: WORKSPACE_ANALYSIS_CACHE_VERSION,
     files: {},
   };
   for (const entry of hydrated.files) {
+    const projectedAnalysis = projectAnalysisForCacheTiers(
+      entry.analysis,
+      options.activeAnalysisCacheTiers,
+    );
+    const analysis = readAnalysisCacheTiers(projectedAnalysis).length > 0
+      ? markAnalysisCacheTiers(projectedAnalysis, options.activeAnalysisCacheTiers)
+      : projectedAnalysis;
     cache.files[entry.filePath] = {
       mtime: entry.mtime,
       ...(entry.size !== undefined ? { size: entry.size } : {}),
       ...(entry.contentHash ? { contentHash: entry.contentHash } : {}),
-      analysis: projectAnalysisForCacheTiers(entry.analysis, options.activeAnalysisCacheTiers),
+      analysis,
     };
   }
   return cache;

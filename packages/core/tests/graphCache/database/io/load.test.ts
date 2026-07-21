@@ -6,7 +6,7 @@ import {
 } from '../../../../src/analysis/cache';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from '../../../../src/graphCache/database/io/connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../src/graphCache/database/io/paths';
-import { hydrateDatabaseRecords } from '../../../../src/graphCache/database/records/hydrate';
+import { parseDatabaseRecords } from '../../../../src/graphCache/database/records/parser';
 
 vi.mock('node:fs', () => ({
   default: { existsSync: vi.fn() },
@@ -30,8 +30,8 @@ vi.mock('../../../../src/graphCache/database/io/paths', () => ({
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/graphCache/database/records/hydrate', () => ({
-  hydrateDatabaseRecords: vi.fn(),
+vi.mock('../../../../src/graphCache/database/records/parser', () => ({
+  parseDatabaseRecords: vi.fn(),
 }));
 
 const fsModule = await import('node:fs');
@@ -52,7 +52,7 @@ describe('graphCache/database/load', () => {
     vi.clearAllMocks();
     vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.sqlite');
     vi.mocked(createEmptyWorkspaceAnalysisCache).mockReturnValue({ version: '0.0.0', files: {} });
-    vi.mocked(hydrateDatabaseRecords).mockReturnValue(hydrated as never);
+    vi.mocked(parseDatabaseRecords).mockReturnValue(hydrated as never);
   });
 
   it('returns an empty cache when the database file does not exist', () => {
@@ -80,7 +80,7 @@ describe('graphCache/database/load', () => {
         },
       },
     });
-    expect(hydrateDatabaseRecords).toHaveBeenCalledWith(['file-row'], ['node-row'], ['edge-row']);
+    expect(parseDatabaseRecords).toHaveBeenCalledWith(['file-row'], ['node-row'], ['edge-row']);
   });
 
   it('clears broken database artifacts and falls back to an empty cache', () => {

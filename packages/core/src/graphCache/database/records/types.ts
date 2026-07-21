@@ -1,0 +1,213 @@
+import type { SQLiteValue } from '../io/connection';
+
+export const FILE_COLUMNS = [
+  'path', 'analysisPath', 'mtime', 'size', 'contentHash', 'baselineIndexed',
+  'nodesIndexed', 'symbolsIndexed', 'relationsIndexed',
+] as const;
+
+export const NODE_COLUMNS = [
+  'id', 'type', 'label', 'filePath', 'parentId', 'color', 'x', 'y', 'favorite',
+  'fileSize', 'depthLevel', 'shape', 'shapeWidth', 'shapeHeight', 'cornerRadius',
+  'collisionRadius', 'chargeStrengthMultiplier', 'fillOpacity', 'pointerWidth',
+  'pointerHeight', 'imageUrl', 'isCollapsible', 'isCollapsed',
+  'collapsedDescendantCount', 'analysisNodeId', 'analysisNodeFilePath',
+  'analysisParentId', 'analysisNodeOrder', 'analysisSymbolId',
+  'analysisSymbolFilePath', 'analysisSymbolOrder', 'pluginId', 'language',
+  'analysisSource', 'pluginKind', 'symbolName', 'symbolKind', 'symbolSignature',
+  'startLine', 'startColumn', 'endLine', 'endColumn', 'gitIgnored',
+  'gitIgnoredReason', 'unityClass', 'unityFileId', 'unityGameObjectFileId',
+  'unityScriptGuid', 'unityScriptPath',
+] as const;
+
+export const EDGE_COLUMNS = [
+  'id', 'graphId', 'sourceNodeId', 'targetNodeId', 'type', 'ownerFilePath',
+  'color', 'sourcePluginId', 'relationPluginId', 'sourceKey', 'pluginSourceId',
+  'analysisSourceId', 'sourceLabel', 'variant', 'specifier', 'resolvedPath',
+  'relationType', 'fromFilePath', 'toFilePath', 'fromAnalysisNodeId',
+  'toAnalysisNodeId', 'fromSymbolId', 'toSymbolId',
+  'edgeLanguage', 'edgeOrigin', 'edgeBindingKind', 'edgeImportedName',
+  'edgeLocalName', 'edgeMemberName', 'edgeSignalName', 'edgeEventMethodName',
+  'edgeTargetFileId', 'edgeTargetScriptPath', 'edgeTargetScriptGuid',
+  'edgeScriptGuid', 'edgePrefabGuid', 'edgeFieldName', 'edgeGuid',
+  'sourceLanguage', 'sourceOrigin', 'sourceBindingKind', 'sourceImportedName',
+  'sourceLocalName', 'sourceMemberName', 'sourceSignalName', 'sourceEventMethodName',
+  'sourceTargetFileId', 'sourceTargetScriptPath', 'sourceTargetScriptGuid',
+  'sourceScriptGuid', 'sourcePrefabGuid', 'sourceFieldName', 'sourceGuid',
+  'relationLanguage', 'relationOrigin', 'relationBindingKind', 'relationImportedName',
+  'relationLocalName', 'relationMemberName', 'relationSignalName',
+  'relationEventMethodName', 'relationTargetFileId', 'relationTargetScriptPath',
+  'relationTargetScriptGuid', 'relationScriptGuid', 'relationPrefabGuid',
+  'relationFieldName', 'relationGuid', 'analysisRelation',
+  'analysisOrder', 'canonicalGraphEdge',
+] as const;
+
+export type FileRecord = Record<(typeof FILE_COLUMNS)[number], SQLiteValue>;
+export type NodeRecord = Record<(typeof NODE_COLUMNS)[number], SQLiteValue>;
+export type EdgeRecord = Record<(typeof EDGE_COLUMNS)[number], SQLiteValue>;
+
+export const EDGE_METADATA_COLUMNS = {
+  edge: {
+    language: 'edgeLanguage', source: 'edgeOrigin', bindingKind: 'edgeBindingKind',
+    importedName: 'edgeImportedName', localName: 'edgeLocalName', memberName: 'edgeMemberName',
+    signalName: 'edgeSignalName', eventMethodName: 'edgeEventMethodName',
+    targetFileId: 'edgeTargetFileId', targetScriptPath: 'edgeTargetScriptPath',
+    targetScriptGuid: 'edgeTargetScriptGuid', scriptGuid: 'edgeScriptGuid',
+    prefabGuid: 'edgePrefabGuid', fieldName: 'edgeFieldName', guid: 'edgeGuid',
+  },
+  source: {
+    language: 'sourceLanguage', source: 'sourceOrigin', bindingKind: 'sourceBindingKind',
+    importedName: 'sourceImportedName', localName: 'sourceLocalName', memberName: 'sourceMemberName',
+    signalName: 'sourceSignalName', eventMethodName: 'sourceEventMethodName',
+    targetFileId: 'sourceTargetFileId', targetScriptPath: 'sourceTargetScriptPath',
+    targetScriptGuid: 'sourceTargetScriptGuid', scriptGuid: 'sourceScriptGuid',
+    prefabGuid: 'sourcePrefabGuid', fieldName: 'sourceFieldName', guid: 'sourceGuid',
+  },
+  relation: {
+    language: 'relationLanguage', source: 'relationOrigin', bindingKind: 'relationBindingKind',
+    importedName: 'relationImportedName', localName: 'relationLocalName', memberName: 'relationMemberName',
+    signalName: 'relationSignalName', eventMethodName: 'relationEventMethodName',
+    targetFileId: 'relationTargetFileId', targetScriptPath: 'relationTargetScriptPath',
+    targetScriptGuid: 'relationTargetScriptGuid', scriptGuid: 'relationScriptGuid',
+    prefabGuid: 'relationPrefabGuid', fieldName: 'relationFieldName', guid: 'relationGuid',
+  },
+} as const;
+
+export type EdgeMetadataRole = keyof typeof EDGE_METADATA_COLUMNS;
+
+export interface FileRow {
+  path?: unknown;
+  analysisPath?: unknown;
+  mtime?: unknown;
+  size?: unknown;
+  contentHash?: unknown;
+  baselineIndexed?: unknown;
+  nodesIndexed?: unknown;
+  symbolsIndexed?: unknown;
+  relationsIndexed?: unknown;
+}
+
+export interface GraphNodeRow {
+  id?: unknown;
+  type?: unknown;
+  label?: unknown;
+  filePath?: unknown;
+  parentId?: unknown;
+  color?: unknown;
+  x?: unknown;
+  y?: unknown;
+  favorite?: unknown;
+  fileSize?: unknown;
+  depthLevel?: unknown;
+  shape?: unknown;
+  shapeWidth?: unknown;
+  shapeHeight?: unknown;
+  cornerRadius?: unknown;
+  collisionRadius?: unknown;
+  chargeStrengthMultiplier?: unknown;
+  fillOpacity?: unknown;
+  pointerWidth?: unknown;
+  pointerHeight?: unknown;
+  imageUrl?: unknown;
+  isCollapsible?: unknown;
+  isCollapsed?: unknown;
+  collapsedDescendantCount?: unknown;
+  analysisNodeId?: unknown;
+  analysisNodeFilePath?: unknown;
+  analysisParentId?: unknown;
+  analysisNodeOrder?: unknown;
+  analysisSymbolId?: unknown;
+  analysisSymbolFilePath?: unknown;
+  analysisSymbolOrder?: unknown;
+  pluginId?: unknown;
+  language?: unknown;
+  analysisSource?: unknown;
+  pluginKind?: unknown;
+  symbolName?: unknown;
+  symbolKind?: unknown;
+  symbolSignature?: unknown;
+  startLine?: unknown;
+  startColumn?: unknown;
+  endLine?: unknown;
+  endColumn?: unknown;
+  gitIgnored?: unknown;
+  gitIgnoredReason?: unknown;
+  unityClass?: unknown;
+  unityFileId?: unknown;
+  unityGameObjectFileId?: unknown;
+  unityScriptGuid?: unknown;
+  unityScriptPath?: unknown;
+}
+
+export interface GraphEdgeRow {
+  id?: unknown;
+  graphId?: unknown;
+  sourceNodeId?: unknown;
+  targetNodeId?: unknown;
+  type?: unknown;
+  ownerFilePath?: unknown;
+  color?: unknown;
+  sourcePluginId?: unknown;
+  relationPluginId?: unknown;
+  sourceKey?: unknown;
+  pluginSourceId?: unknown;
+  analysisSourceId?: unknown;
+  sourceLabel?: unknown;
+  variant?: unknown;
+  specifier?: unknown;
+  resolvedPath?: unknown;
+  relationType?: unknown;
+  fromFilePath?: unknown;
+  toFilePath?: unknown;
+  fromAnalysisNodeId?: unknown;
+  toAnalysisNodeId?: unknown;
+  fromSymbolId?: unknown;
+  toSymbolId?: unknown;
+  edgeLanguage?: unknown;
+  edgeOrigin?: unknown;
+  edgeBindingKind?: unknown;
+  edgeImportedName?: unknown;
+  edgeLocalName?: unknown;
+  edgeMemberName?: unknown;
+  edgeSignalName?: unknown;
+  edgeEventMethodName?: unknown;
+  edgeTargetFileId?: unknown;
+  edgeTargetScriptPath?: unknown;
+  edgeTargetScriptGuid?: unknown;
+  edgeScriptGuid?: unknown;
+  edgePrefabGuid?: unknown;
+  edgeFieldName?: unknown;
+  edgeGuid?: unknown;
+  sourceLanguage?: unknown;
+  sourceOrigin?: unknown;
+  sourceBindingKind?: unknown;
+  sourceImportedName?: unknown;
+  sourceLocalName?: unknown;
+  sourceMemberName?: unknown;
+  sourceSignalName?: unknown;
+  sourceEventMethodName?: unknown;
+  sourceTargetFileId?: unknown;
+  sourceTargetScriptPath?: unknown;
+  sourceTargetScriptGuid?: unknown;
+  sourceScriptGuid?: unknown;
+  sourcePrefabGuid?: unknown;
+  sourceFieldName?: unknown;
+  sourceGuid?: unknown;
+  relationLanguage?: unknown;
+  relationOrigin?: unknown;
+  relationBindingKind?: unknown;
+  relationImportedName?: unknown;
+  relationLocalName?: unknown;
+  relationMemberName?: unknown;
+  relationSignalName?: unknown;
+  relationEventMethodName?: unknown;
+  relationTargetFileId?: unknown;
+  relationTargetScriptPath?: unknown;
+  relationTargetScriptGuid?: unknown;
+  relationScriptGuid?: unknown;
+  relationPrefabGuid?: unknown;
+  relationFieldName?: unknown;
+  relationGuid?: unknown;
+  analysisRelation?: unknown;
+  analysisOrder?: unknown;
+  canonicalGraphEdge?: unknown;
+}

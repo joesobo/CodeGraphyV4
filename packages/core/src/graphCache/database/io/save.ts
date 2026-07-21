@@ -13,6 +13,7 @@ import {
   createWorkspaceAnalysisCacheWriter,
   persistWorkspaceCache,
 } from '../query/write';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '../snapshot';
 
 export { saveWorkspaceAnalysisDatabaseCacheAsync } from './saveAsync';
 
@@ -91,11 +92,12 @@ export function patchWorkspaceAnalysisDatabaseCache(
   patch: WorkspaceAnalysisDatabasePatch,
 ): void {
   const cache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+  const graph = patch.graph ?? readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).graph;
   for (const filePath of patch.deleteFilePaths ?? []) {
     delete cache.files[filePath];
   }
   Object.assign(cache.files, patch.upsertFiles ?? {});
-  saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, patch.graph);
+  saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, graph);
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void {
