@@ -43,10 +43,57 @@ export const EDGE_COLUMNS = [
   'analysisOrder', 'canonicalGraphEdge',
 ] as const;
 
-export type FileRecord = Record<(typeof FILE_COLUMNS)[number], SQLiteValue>;
-export type NodeRecord = Record<(typeof NODE_COLUMNS)[number], SQLiteValue>;
-export type SymbolRecord = Record<(typeof SYMBOL_COLUMNS)[number], SQLiteValue>;
-export type EdgeRecord = Record<(typeof EDGE_COLUMNS)[number], SQLiteValue>;
+type ColumnRecord<Columns extends readonly string[]> = Record<Columns[number], SQLiteValue>;
+
+export type FileRecord = ColumnRecord<typeof FILE_COLUMNS> & {
+  path: string;
+  analysisPath: string;
+  mtime: number;
+  size: number;
+  contentHash: string | null;
+};
+
+export type NodeRecord = ColumnRecord<typeof NODE_COLUMNS> & {
+  key: string;
+  type: string;
+  label: string;
+  fileId: string | null;
+  parentId: string | null;
+};
+
+export type StoredNodeRecord = Omit<NodeRecord, 'fileId' | 'parentId'> & {
+  fileId: number | null;
+  parentId: number | null;
+};
+
+export type SymbolRecord = ColumnRecord<typeof SYMBOL_COLUMNS> & {
+  nodeId: string;
+  filePath: string;
+  name: string;
+  kind: string;
+};
+
+export type StoredSymbolRecord = Omit<SymbolRecord, 'nodeId'> & {
+  nodeId: number;
+};
+
+export type EdgeRecord = ColumnRecord<typeof EDGE_COLUMNS> & {
+  key: string;
+  graphKey: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  type: string;
+  ownerFileId: string | null;
+};
+
+export type StoredEdgeRecord = Omit<
+  EdgeRecord,
+  'sourceNodeId' | 'targetNodeId' | 'ownerFileId'
+> & {
+  sourceNodeId: number;
+  targetNodeId: number;
+  ownerFileId: number | null;
+};
 
 export const EDGE_METADATA_COLUMNS = {
   edge: {

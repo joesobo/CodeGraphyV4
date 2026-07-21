@@ -2,11 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_INCLUDE } from '../../src/discovery/file/defaults';
 import type { FileDiscovery } from '../../src/discovery/file/service';
 import { discoverWorkspaceIndexFiles } from '../../src/indexing/discovery';
-import type { CorePluginRegistry } from '../../src/plugins/registry';
 import { createDefaultCodeGraphyWorkspaceSettings } from '../../src/workspace/settingsDefaults';
 
 describe('indexing/discovery', () => {
-  it('discovers workspace files with plugin filters, disabled filter overrides, and user filters', async () => {
+  it('discovers the complete workspace independently of saved graph filters', async () => {
     const discover = vi.fn(async () => ({
       files: [],
       directories: ['src'],
@@ -20,12 +19,8 @@ describe('indexing/discovery', () => {
     const signal = new AbortController().signal;
 
     await expect(discoverWorkspaceIndexFiles({
-      disabledPlugins: new Set(['disabled-plugin']),
       discovery: { discover } as unknown as FileDiscovery,
       options: { workspaceRoot: '/workspace', warn, logInfo, signal },
-      registry: {
-        getPluginFilterPatterns: vi.fn(() => ['**/dist/**', '**/ignored/**', '**/dist/**']),
-      } as unknown as CorePluginRegistry,
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         include: [],
@@ -48,7 +43,7 @@ describe('indexing/discovery', () => {
     expect(discover).toHaveBeenCalledWith({
       rootPath: '/workspace',
       include: DEFAULT_INCLUDE,
-      exclude: ['**/dist/**', '**/generated/**'],
+      exclude: [],
       maxFiles: 50,
       respectGitignore: true,
       signal,
@@ -67,12 +62,8 @@ describe('indexing/discovery', () => {
     }));
 
     const result = await discoverWorkspaceIndexFiles({
-      disabledPlugins: new Set(),
       discovery: { discover } as unknown as FileDiscovery,
       options: { workspaceRoot: '/workspace' },
-      registry: {
-        getPluginFilterPatterns: vi.fn(() => []),
-      } as unknown as CorePluginRegistry,
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         include: ['src/**/*.ts'],

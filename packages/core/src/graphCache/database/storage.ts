@@ -7,6 +7,8 @@ import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImp
 import {
   readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
   readWorkspaceAnalysisDatabaseRecordCounts as readWorkspaceAnalysisDatabaseRecordCountsImpl,
+  inspectWorkspaceAnalysisDatabase as inspectWorkspaceAnalysisDatabaseImpl,
+  type WorkspaceAnalysisDatabaseInspection as WorkspaceAnalysisDatabaseInspectionImpl,
   type WorkspaceAnalysisDatabaseSnapshot as WorkspaceAnalysisDatabaseSnapshotImpl,
 } from './snapshot';
 import {
@@ -19,6 +21,7 @@ import {
 } from './io/save';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
+export type WorkspaceAnalysisDatabaseInspection = WorkspaceAnalysisDatabaseInspectionImpl;
 export type { WorkspaceAnalysisDatabaseLoadOptions };
 
 export function getWorkspaceAnalysisDatabasePath(
@@ -29,6 +32,12 @@ export function getWorkspaceAnalysisDatabasePath(
 
 export function readWorkspaceAnalysisDatabaseRecordCounts(workspaceRoot: string) {
   return readWorkspaceAnalysisDatabaseRecordCountsImpl(workspaceRoot);
+}
+
+export function inspectWorkspaceAnalysisDatabase(
+  workspaceRoot: string,
+): WorkspaceAnalysisDatabaseInspection {
+  return inspectWorkspaceAnalysisDatabaseImpl(workspaceRoot);
 }
 
 export function loadWorkspaceAnalysisDatabaseCache(

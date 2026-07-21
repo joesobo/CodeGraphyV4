@@ -11,10 +11,9 @@ import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parseTypes';
 import { hasSupportedRawPluginIdentity } from '../../workspace/settingsPlugins';
-import { readWorkspaceAnalysisDatabaseRecordCounts } from '../../graphCache/database/storage';
+import { inspectWorkspaceAnalysisDatabase } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../analysis/cache';
-import { GRAPH_CACHE_SCHEMA_VERSION } from '../../graphCache/database/io/schema';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -98,7 +97,7 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
   const settingsCheck = readSettingsCheck(workspaceRoot);
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
-  const records = readWorkspaceAnalysisDatabaseRecordCounts(workspaceRoot);
+  const cacheInspection = inspectWorkspaceAnalysisDatabase(workspaceRoot);
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   const activity = createPluginActivityState({
     settings,
@@ -114,15 +113,20 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
     },
     settings: settingsCheck,
     cache: {
-      ok: status.state === 'fresh',
+      ok: status.state === 'fresh' && cacheInspection.ok,
       state: status.state,
       path: status.graphCachePath,
       staleReasons: status.staleReasons,
-      schemaVersion: GRAPH_CACHE_SCHEMA_VERSION,
+      schemaVersion: cacheInspection.schemaVersion,
+      expectedSchemaVersion: cacheInspection.expectedSchemaVersion,
+      schemaCompatible: cacheInspection.schemaCompatible,
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       indexedAt: meta.lastIndexedAt,
-      records,
-      ...(status.state === 'fresh' ? {} : { action: 'Run `codegraphy index`.' }),
+      records: cacheInspection.records,
+      ...(cacheInspection.message ? { message: cacheInspection.message } : {}),
+      ...(status.state === 'fresh' && cacheInspection.ok
+        ? {}
+        : { action: 'Run `codegraphy index`.' }),
     },
     plugins: {
       ok: activity.warnings.length === 0,

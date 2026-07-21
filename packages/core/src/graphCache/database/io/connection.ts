@@ -111,6 +111,10 @@ function openConnection(databasePath: string): SQLiteConnection {
   }
 }
 
+function openReadOnlyConnection(databasePath: string): SQLiteConnection {
+  return new Database(databasePath, { readonly: true, fileMustExist: true });
+}
+
 export function withConnection<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => T,
@@ -132,6 +136,19 @@ export async function withConnectionAsync<T>(
 
   try {
     return await callback(connection);
+  } finally {
+    connection.close();
+  }
+}
+
+export function withReadOnlyConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+): T {
+  const connection = openReadOnlyConnection(databasePath);
+
+  try {
+    return callback(connection);
   } finally {
     connection.close();
   }

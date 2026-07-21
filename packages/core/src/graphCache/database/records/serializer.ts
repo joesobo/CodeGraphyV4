@@ -10,6 +10,7 @@ import type {
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
+import { getExternalPackageNodeId } from '../../../graph/packageSpecifiers/nodeId';
 import type { SQLiteValue } from '../io/connection';
 import {
   EDGE_COLUMNS,
@@ -233,14 +234,19 @@ function edgeKey(from: string, to: string, kind: string): string {
   return `${from}\u0000${to}\u0000${kind}`;
 }
 
-function physicalEdgeId(graphId: string, sourceKey: string, suffix: string): string {
+function edgeRecordKey(graphId: string, sourceKey: string, suffix: string): string {
   return `${graphId}::${sourceKey}::${suffix}`;
 }
 
 function relationEndpoints(
   relation: IAnalysisRelation,
   analysisToCachePath: ReadonlyMap<string, string>,
-): { from: string; fromType: 'file' | 'symbol'; to: string; toType: 'file' | 'symbol' } | undefined {
+): {
+  from: string;
+  fromType: 'file' | 'symbol';
+  to: string;
+  toType: 'file' | 'package' | 'symbol';
+} | undefined {
   const from = normalizeAnalysisIdForFile(
     relation.fromSymbolId ?? relation.fromNodeId,
     relation.fromFilePath,
@@ -248,6 +254,9 @@ function relationEndpoints(
   )
     ?? normalizeKnownPath(relation.fromFilePath, analysisToCachePath);
   const targetFilePath = relation.resolvedPath ?? relation.toFilePath;
+  const externalPackageId = targetFilePath
+    ? null
+    : getExternalPackageNodeId(relation.specifier ?? '');
   const to = (targetFilePath
     ? normalizeAnalysisIdForFile(
         relation.toSymbolId ?? relation.toNodeId,
@@ -255,13 +264,16 @@ function relationEndpoints(
         analysisToCachePath,
       )
     : normalizeAnalysisId(relation.toSymbolId ?? relation.toNodeId, analysisToCachePath))
-    ?? normalizeKnownPath(relation.resolvedPath ?? relation.toFilePath, analysisToCachePath);
+    ?? normalizeKnownPath(relation.resolvedPath ?? relation.toFilePath, analysisToCachePath)
+    ?? externalPackageId;
   return from && to
     ? {
         from,
         fromType: relation.fromSymbolId || relation.fromNodeId ? 'symbol' : 'file',
         to,
-        toType: relation.toSymbolId || relation.toNodeId ? 'symbol' : 'file',
+        toType: externalPackageId === to
+          ? 'package'
+          : relation.toSymbolId || relation.toNodeId ? 'symbol' : 'file',
       }
     : undefined;
 }
@@ -290,7 +302,7 @@ function createRelationEdgeRecord(
   const sourceKey = source?.sourceId ?? relation.sourceId;
   return {
     ...emptyRecord(EDGE_COLUMNS),
-    key: physicalEdgeId(graphId, sourceKey, `${ownerFilePath}:${relationIndex}`),
+    key: edgeRecordKey(graphId, sourceKey, `${ownerFilePath}:${relationIndex}`),
     graphKey: graphId,
     sourceNodeId: endpoints.from,
     targetNodeId: endpoints.to,
@@ -330,11 +342,12 @@ function createGraphEdgeRecord(
   const sourceKey = source?.sourceId ?? 'graph';
   return {
     ...emptyRecord(EDGE_COLUMNS),
-    key: physicalEdgeId(edge.id, sourceKey, `graph:${sourceIndex}`),
+    key: edgeRecordKey(edge.id, sourceKey, `graph:${sourceIndex}`),
     graphKey: edge.id,
     sourceNodeId: edge.from,
     targetNodeId: edge.to,
     type: edge.kind,
+    ownerFileId: null,
     color: edge.color ?? null,
     sourcePluginId: source?.pluginId ?? null,
     sourceKey: source?.id ?? null,
@@ -353,7 +366,7 @@ function addEndpointNode(
   nodes: Map<string, NodeRecord>,
   id: string,
   knownFilePaths: ReadonlySet<string>,
-  type: 'file' | 'symbol' = knownFilePaths.has(id) ? 'file' : 'symbol',
+  type: 'file' | 'package' | 'symbol' = knownFilePaths.has(id) ? 'file' : 'symbol',
 ): void {
   if (nodes.has(id)) return;
   nodes.set(id, {

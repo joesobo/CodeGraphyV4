@@ -12,22 +12,31 @@ function hasExpectedColumns(actual: string[], expected: string[]): boolean {
   return actual.length === expected.length && actual.every((column, index) => column === expected[index]);
 }
 
-function hasLegacySchema(connection: SQLiteConnection): boolean {
+function cacheTableNames(connection: SQLiteConnection): Set<string> {
   const tables = connection.prepare(
     "SELECT name FROM sqlite_master WHERE type = 'table'",
   ).all() as Array<{ name?: string }>;
-  const tableNames = new Set(tables.flatMap(table => table.name === undefined ? [] : [table.name]));
+  return new Set(tables.flatMap(table => table.name === undefined ? [] : [table.name]));
+}
+
+export function hasCurrentGraphCacheSchema(connection: SQLiteConnection): boolean {
+  const tableNames = cacheTableNames(connection);
   const cacheTables = [...tableNames].filter(name => name !== 'sqlite_sequence');
 
-  if (cacheTables.length === 0) return false;
-  if (cacheTables.length !== 4) return true;
+  if (cacheTables.length !== 4) return false;
   if (!tableNames.has('File') || !tableNames.has('Node')
-    || !tableNames.has('Symbol') || !tableNames.has('Edge')) return true;
+    || !tableNames.has('Symbol') || !tableNames.has('Edge')) return false;
 
-  return !hasExpectedColumns(tableColumns(connection, 'File'), ['id', ...FILE_COLUMNS])
-    || !hasExpectedColumns(tableColumns(connection, 'Node'), ['id', ...NODE_COLUMNS])
-    || !hasExpectedColumns(tableColumns(connection, 'Symbol'), [...SYMBOL_COLUMNS])
-    || !hasExpectedColumns(tableColumns(connection, 'Edge'), ['id', ...EDGE_COLUMNS]);
+  return hasExpectedColumns(tableColumns(connection, 'File'), ['id', ...FILE_COLUMNS])
+    && hasExpectedColumns(tableColumns(connection, 'Node'), ['id', ...NODE_COLUMNS])
+    && hasExpectedColumns(tableColumns(connection, 'Symbol'), [...SYMBOL_COLUMNS])
+    && hasExpectedColumns(tableColumns(connection, 'Edge'), ['id', ...EDGE_COLUMNS]);
+}
+
+function hasLegacySchema(connection: SQLiteConnection): boolean {
+  const tableNames = cacheTableNames(connection);
+  const cacheTables = [...tableNames].filter(name => name !== 'sqlite_sequence');
+  return cacheTables.length > 0 && !hasCurrentGraphCacheSchema(connection);
 }
 
 function dropLegacySchema(connection: SQLiteConnection): void {

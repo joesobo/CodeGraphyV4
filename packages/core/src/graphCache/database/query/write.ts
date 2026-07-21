@@ -24,6 +24,9 @@ import {
   SYMBOL_COLUMNS,
   type EdgeRecord,
   type NodeRecord,
+  type StoredEdgeRecord,
+  type StoredNodeRecord,
+  type StoredSymbolRecord,
   type SymbolRecord,
 } from '../records/types';
 
@@ -120,7 +123,10 @@ function requiredReferenceId(
   return id;
 }
 
-function storedNodeRecord(record: NodeRecord, fileIds: ReadonlyMap<string, number>): NodeRecord {
+function storedNodeRecord(
+  record: NodeRecord,
+  fileIds: ReadonlyMap<string, number>,
+): StoredNodeRecord {
   return {
     ...record,
     fileId: optionalReferenceId(record.fileId, fileIds),
@@ -128,7 +134,10 @@ function storedNodeRecord(record: NodeRecord, fileIds: ReadonlyMap<string, numbe
   };
 }
 
-function storedSymbolRecord(record: SymbolRecord, nodeIds: ReadonlyMap<string, number>): SymbolRecord {
+function storedSymbolRecord(
+  record: SymbolRecord,
+  nodeIds: ReadonlyMap<string, number>,
+): StoredSymbolRecord {
   return {
     ...record,
     nodeId: requiredReferenceId(record.nodeId, nodeIds, 'symbol node'),
@@ -139,7 +148,7 @@ function storedEdgeRecord(
   record: EdgeRecord,
   fileIds: ReadonlyMap<string, number>,
   nodeIds: ReadonlyMap<string, number>,
-): EdgeRecord {
+): StoredEdgeRecord {
   return {
     ...record,
     sourceNodeId: requiredReferenceId(record.sourceNodeId, nodeIds, 'edge source'),

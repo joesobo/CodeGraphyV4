@@ -30,15 +30,12 @@ export async function discoverRefreshWorkspaceFiles(
   input: RefreshWorkspaceFileDiscoveryInput,
 ): Promise<RefreshWorkspaceFileDiscoveryResult> {
   const config = input.configReader.getAll();
-  const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns);
-  const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns);
   const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
     createWorkspacePipelineDiscoveryDependencies(input.discovery),
     input.workspaceRoot,
     config,
-    input.filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
-    input.getPluginFilterPatterns(input.disabledPlugins)
-      .filter(pattern => !disabledPluginPatterns.has(pattern)),
+    [...input.filterPatterns],
+    input.getPluginFilterPatterns(input.disabledPlugins),
     input.signal,
     message => {
       vscode.window.showWarningMessage(message);

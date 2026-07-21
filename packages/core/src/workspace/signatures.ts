@@ -44,13 +44,9 @@ export function createCodeGraphyWorkspaceSettingsSignature(
     maxFiles: settings.maxFiles,
     include: settings.include,
     respectGitignore: settings.respectGitignore,
-    showOrphans: settings.showOrphans,
-    filterPatterns: settings.filterPatterns,
-    disabledCustomFilterPatterns: settings.disabledCustomFilterPatterns,
     plugins: settings.plugins.map(plugin => ({
       id: plugin.id,
       enabled: plugin.enabled,
-      disabledFilterPatterns: plugin.disabledFilterPatterns ?? [],
       options: sortRecord(plugin.options),
     })),
   };
