@@ -38,6 +38,7 @@ describe('graphCache/database/snapshot', () => {
     vi.mocked(connectionModule.readRowsSync).mockImplementation((_connection, query) => {
       if (query === FILE_ROWS_QUERY) return [{
         path: 'src/app.ts',
+        mtime: 123.5,
         size: 2,
         contentHash: 'sha256:app',
       }];
@@ -61,7 +62,7 @@ describe('graphCache/database/snapshot', () => {
     });
 
     expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toMatchObject({
-      files: [{ filePath: 'src/app.ts', mtime: 0, size: 2 }],
+      files: [{ filePath: 'src/app.ts', mtime: 123.5, size: 2 }],
       graph: {
         nodes: [
           { id: 'src/app.ts', nodeType: 'file' },

@@ -92,7 +92,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(true);
     const loaded = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
     expect(loaded.files['src/index.ts']).toMatchObject({
-      mtime: 0,
+      mtime: 123,
       contentHash: 'sha256:index',
       size: 456,
       analysis: {
@@ -204,7 +204,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => ({
         tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
-        files: readRowsSync(connection, 'SELECT id, path, size, contentHash FROM File'),
+        files: readRowsSync(connection, 'SELECT id, path, mtime, size, contentHash FROM File'),
         nodes: readRowsSync(connection, `SELECT Node.*, File.path AS filePath,
           Parent.key AS parentKey
           FROM Node
@@ -232,6 +232,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     expect(records.files).toEqual([{
       id: 1,
       path: 'src/index.ts',
+      mtime: 1,
       size: 2,
       contentHash: null,
     }]);
@@ -336,7 +337,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     }]);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/index.ts'])
       .toMatchObject({
-        mtime: 0,
+        mtime: 1,
         size: 2,
         analysis: {
           filePath: path.join(workspaceRoot, 'src/index.ts'),
@@ -401,12 +402,12 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const loaded = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
     expect(Object.keys(loaded.files)).toEqual(['src/first.ts', 'src/second.ts']);
     expect(loaded.files['src/first.ts']).toMatchObject({
-      mtime: 0,
+      mtime: 1,
       size: 10,
       analysis: { filePath: path.join(workspaceRoot, 'src/first.ts') },
     });
     expect(loaded.files['src/second.ts']).toMatchObject({
-      mtime: 0,
+      mtime: 2,
       size: 20,
       analysis: { filePath: path.join(workspaceRoot, 'src/second.ts') },
     });
@@ -472,7 +473,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
     });
     expect(baselineCache.files['src/App.vue']).toMatchObject({
-      mtime: 0,
+      mtime: 1,
       size: 10,
       analysis: {
         cache: { tiers: ['baseline'] },
@@ -495,7 +496,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {
         'src/App.vue': {
-          mtime: 0,
+          mtime: 1,
           size: 10,
           analysis: {
             cache: { tiers: ['baseline', 'symbols', 'plugin:codegraphy.vue'] },
@@ -558,12 +559,12 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, firstCache);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files).toMatchObject({
-      'src/first.ts': { mtime: 0, size: 10 },
+      'src/first.ts': { mtime: 1, size: 10 },
     });
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, secondCache);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files).toEqual({
-      'src/second.ts': expect.objectContaining({ mtime: 0, size: 20 }),
+      'src/second.ts': expect.objectContaining({ mtime: 2, size: 20 }),
     });
   });
 
@@ -649,17 +650,17 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       'src/stable.ts',
     ]);
     expect(patched.files['src/changed.ts']).toMatchObject({
-      mtime: 0,
+      mtime: 4,
       size: 40,
       analysis: { symbols: [expect.objectContaining({ name: 'changed', kind: 'function' })] },
     });
-    expect(patched.files['src/created.ts']).toMatchObject({ mtime: 0, size: 50 });
-    expect(patched.files['src/stable.ts']).toMatchObject({ mtime: 0, size: 30 });
+    expect(patched.files['src/created.ts']).toMatchObject({ mtime: 5, size: 50 });
+    expect(patched.files['src/stable.ts']).toMatchObject({ mtime: 3, size: 30 });
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toMatchObject({
       files: [
-        { filePath: 'src/changed.ts', mtime: 0, size: 40 },
-        { filePath: 'src/created.ts', mtime: 0, size: 50 },
-        { filePath: 'src/stable.ts', mtime: 0, size: 30 },
+        { filePath: 'src/changed.ts', mtime: 4, size: 40 },
+        { filePath: 'src/created.ts', mtime: 5, size: 50 },
+        { filePath: 'src/stable.ts', mtime: 3, size: 30 },
       ],
       symbols: [{
         id: path.join(workspaceRoot, 'src/changed.ts:function:changed'),
@@ -711,7 +712,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/index.ts'])
       .toMatchObject({
-        mtime: 0,
+        mtime: 1,
         size: 2,
         analysis: { filePath: path.join(workspaceRoot, 'src/index.ts') },
       });

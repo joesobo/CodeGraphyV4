@@ -29,16 +29,17 @@ describe('graphCache/database/io/connection', () => {
     const rows = withConnection(createDatabasePath(), (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO File(path, size, contentHash) VALUES ('src/app.ts', 2, 'sha256:app')",
+        "INSERT INTO File(path, mtime, size, contentHash) VALUES ('src/app.ts', 123.5, 2, 'sha256:app')",
       );
       return readRowsSync(
         connection,
-        'SELECT path, size, contentHash FROM File ORDER BY path',
+        'SELECT path, mtime, size, contentHash FROM File ORDER BY path',
       );
     });
 
     expect(rows).toEqual([{
       path: 'src/app.ts',
+      mtime: 123.5,
       size: 2,
       contentHash: 'sha256:app',
     }]);
@@ -69,16 +70,17 @@ describe('graphCache/database/io/connection', () => {
     withConnection(databasePath, (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO File(path, size, contentHash) VALUES ('src/app.ts', 2, 'sha256:app')",
+        "INSERT INTO File(path, mtime, size, contentHash) VALUES ('src/app.ts', 123.5, 2, 'sha256:app')",
       );
     });
 
     const rows = withConnection(databasePath, connection => readRowsSync(
       connection,
-      'SELECT path, size, contentHash FROM File ORDER BY path',
+      'SELECT path, mtime, size, contentHash FROM File ORDER BY path',
     ));
     expect(rows).toEqual([{
       path: 'src/app.ts',
+      mtime: 123.5,
       size: 2,
       contentHash: 'sha256:app',
     }]);

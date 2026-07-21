@@ -66,6 +66,7 @@ describe('graphCache/database/serializer', () => {
 
     expect(records.files).toEqual([{
       path: 'src/app.ts',
+      mtime: 1,
       size: -1,
       contentHash: null,
     }]);

@@ -91,6 +91,7 @@ describe('graphCache/database/writeStatements', () => {
 
     expect(execute).toHaveBeenCalledWith(writer.connection, writer.fileStatement, {
       path: 'src/app.ts',
+      mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
     });

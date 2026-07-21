@@ -5,10 +5,11 @@ describe('graphCache/database/fileEntry', () => {
   it('creates a snapshot entry from explicit file columns', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
+      mtime: 123.5,
       size: 7,
     }, '/workspace')).toEqual({
       filePath: 'src/app.ts',
-      mtime: 0,
+      mtime: 123.5,
       size: 7,
       analysis: {
         filePath: '/workspace/src/app.ts',

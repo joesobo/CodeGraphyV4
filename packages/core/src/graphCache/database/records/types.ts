@@ -1,6 +1,6 @@
 import type { SQLiteValue } from '../io/connection';
 
-export const FILE_COLUMNS = ['path', 'size', 'contentHash'] as const;
+export const FILE_COLUMNS = ['path', 'mtime', 'size', 'contentHash'] as const;
 
 export const NODE_COLUMNS = [
   'key', 'type', 'label', 'fileId', 'parentId', 'pluginId', 'language',
@@ -18,6 +18,7 @@ type ColumnRecord<Columns extends readonly string[]> = Record<Columns[number], S
 
 export type FileRecord = ColumnRecord<typeof FILE_COLUMNS> & {
   path: string;
+  mtime: number;
   size: number;
   contentHash: string | null;
 };
@@ -66,6 +67,7 @@ export type StoredEdgeRecord = Omit<EdgeRecord, 'sourceNodeId' | 'targetNodeId'>
 export interface FileRow {
   id?: unknown;
   path?: unknown;
+  mtime?: unknown;
   size?: unknown;
   contentHash?: unknown;
 }
