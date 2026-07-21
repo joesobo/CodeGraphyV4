@@ -1,11 +1,12 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from './projectedConnection';
 
-function isSameFileSymbolRelation(
+function isSameFileSymbolContainmentRelation(
   relation: NonNullable<IFileAnalysisResult['relations']>[number],
 ): boolean {
   const targetPath = relation.resolvedPath ?? relation.toFilePath ?? null;
-  return Boolean(relation.fromSymbolId || relation.toSymbolId)
+  return relation.kind === 'contains'
+    && Boolean(relation.fromSymbolId || relation.toSymbolId)
     && Boolean(targetPath)
     && targetPath === relation.fromFilePath;
 }
@@ -14,7 +15,7 @@ export function projectProjectedConnectionsFromFileAnalysis(
   analysis: IFileAnalysisResult,
 ): IProjectedConnection[] {
   return (analysis.relations ?? [])
-    .filter(relation => !isSameFileSymbolRelation(relation))
+    .filter(relation => !isSameFileSymbolContainmentRelation(relation))
     .map(relation => ({
       kind: relation.kind,
       pluginId: relation.pluginId,
