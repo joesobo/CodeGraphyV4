@@ -11,6 +11,7 @@ import * as connectionModule from '../../../../src/graphCache/database/io/connec
 import * as loadModule from '../../../../src/graphCache/database/io/load';
 import * as pathsModule from '../../../../src/graphCache/database/io/paths';
 import * as writeModule from '../../../../src/graphCache/database/query/write';
+import * as snapshotModule from '../../../../src/graphCache/database/snapshot';
 
 const timerPromisesMock = vi.hoisted(() => ({
   setImmediate: vi.fn(async () => undefined),
@@ -50,6 +51,10 @@ vi.mock('../../../../src/graphCache/database/query/write', () => ({
   persistWorkspaceCacheAsync: vi.fn(),
 }));
 
+vi.mock('../../../../src/graphCache/database/snapshot', () => ({
+  readWorkspaceAnalysisDatabaseSnapshot: vi.fn(),
+}));
+
 const cache = {
   version: '1',
   files: {
@@ -77,6 +82,12 @@ describe('graphCache/database/io/save', () => {
         'src/deleted.ts': { mtime: 1, analysis: { filePath: '/workspace/src/deleted.ts' } },
         'src/stable.ts': { mtime: 2, analysis: { filePath: '/workspace/src/stable.ts' } },
       },
+    });
+    vi.mocked(snapshotModule.readWorkspaceAnalysisDatabaseSnapshot).mockReturnValue({
+      files: [],
+      graph: { nodes: [], edges: [] },
+      symbols: [],
+      relations: [],
     });
     vi.mocked(writeModule.persistWorkspaceCacheAsync).mockImplementation(async (
       _writer,
@@ -163,7 +174,7 @@ describe('graphCache/database/io/save', () => {
           },
         },
       },
-      undefined,
+      { nodes: [], edges: [] },
     );
   });
 

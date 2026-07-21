@@ -1,5 +1,5 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import type { FileRow } from './contracts';
+import type { FileRow } from './types';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
 export interface SnapshotFileEntry {

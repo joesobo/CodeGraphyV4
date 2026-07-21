@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeDatabaseRecords } from '../../../../src/graphCache/database/records/normalize';
+import { serializeDatabaseRecords } from '../../../../src/graphCache/database/records/serializer';
 
-describe('graphCache/database/normalize', () => {
+describe('graphCache/database/serializer', () => {
   it('normalizes files, collocated node and symbol facts, and edge provenance without JSON', () => {
-    const records = normalizeDatabaseRecords({
+    const records = serializeDatabaseRecords({
       version: '1',
       files: {
         'src/app.ts': {
@@ -50,5 +50,25 @@ describe('graphCache/database/normalize', () => {
       canonicalGraphEdge: 1,
     }));
     expect(JSON.stringify(records)).not.toMatch(/factsJson|propertiesJson|sourcesJson|provenanceJson/);
+  });
+
+  it('does not encode analysis cache bookkeeping as graph nodes or edges', () => {
+    const records = serializeDatabaseRecords({
+      version: '1',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/app.ts',
+            cache: { tiers: ['baseline', 'symbols', 'plugin:codegraphy.typescript'] },
+            relations: [],
+            symbols: [],
+          } as never,
+        },
+      },
+    });
+
+    expect(records.nodes.map(node => node.type)).not.toContain('codegraphy:cache-tier');
+    expect(records.edges.map(edge => edge.type)).not.toContain('codegraphy:has-cache-tier');
   });
 });

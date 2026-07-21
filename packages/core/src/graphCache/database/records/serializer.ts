@@ -10,51 +10,30 @@ import type {
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
+import { readAnalysisCacheTiers } from '../../../analysis/fileAnalysis';
 import type { SQLiteValue } from '../io/connection';
 import {
-  CACHE_TIER_EDGE_TYPE,
-  CACHE_TIER_NODE_PREFIX,
-  CACHE_TIER_NODE_TYPE,
-} from './contracts';
+  EDGE_COLUMNS,
+  EDGE_METADATA_COLUMNS,
+  NODE_COLUMNS,
+  type EdgeMetadataRole,
+  type EdgeRecord,
+  type FileRecord,
+  type NodeRecord,
+} from './types';
 
 export type DatabaseRecord = Record<string, SQLiteValue>;
 
 export interface NormalizedDatabaseRecords {
-  files: DatabaseRecord[];
-  nodes: DatabaseRecord[];
-  edges: DatabaseRecord[];
+  files: FileRecord[];
+  nodes: NodeRecord[];
+  edges: EdgeRecord[];
 }
 
-const NODE_OPTIONAL_COLUMNS = [
-  'color', 'x', 'y', 'favorite', 'fileSize', 'depthLevel', 'shape', 'shapeWidth',
-  'shapeHeight', 'cornerRadius', 'collisionRadius', 'chargeStrengthMultiplier',
-  'fillOpacity', 'pointerWidth', 'pointerHeight', 'imageUrl', 'isCollapsible',
-  'isCollapsed', 'collapsedDescendantCount', 'analysisNodeId', 'analysisNodeFilePath',
-  'analysisParentId', 'analysisNodeOrder', 'analysisSymbolId', 'analysisSymbolFilePath',
-  'analysisSymbolOrder', 'pluginId',
-  'language', 'analysisSource', 'pluginKind', 'symbolName', 'symbolKind', 'symbolSignature',
-  'startLine', 'startColumn', 'endLine', 'endColumn', 'gitIgnored', 'gitIgnoredReason',
-  'unityClass', 'unityFileId', 'unityGameObjectFileId', 'unityScriptGuid', 'unityScriptPath',
-] as const;
-
-const EDGE_OPTIONAL_COLUMNS = [
-  'ownerFilePath', 'color', 'sourcePluginId', 'relationPluginId', 'sourceKey',
-  'pluginSourceId', 'analysisSourceId', 'sourceLabel', 'variant',
-  'specifier', 'resolvedPath', 'relationType', 'fromFilePath', 'toFilePath',
-  'fromAnalysisNodeId', 'toAnalysisNodeId', 'fromSymbolId', 'toSymbolId', 'language',
-  'analysisSource', 'bindingKind', 'importedName', 'localName', 'memberName', 'signalName',
-  'eventMethodName', 'targetFileId', 'targetScriptPath', 'targetScriptGuid', 'scriptGuid',
-  'prefabGuid', 'fieldName', 'guid',
-  'analysisOrder',
-  'canonicalGraphEdge',
-] as const;
-
-interface TieredAnalysis {
-  cache?: { tiers?: string[] };
-}
-
-function emptyRecord(columns: readonly string[]): DatabaseRecord {
-  return Object.fromEntries(columns.map(column => [column, null]));
+function emptyRecord<const Columns extends readonly string[]>(
+  columns: Columns,
+): Record<Columns[number], SQLiteValue> {
+  return Object.fromEntries(columns.map(column => [column, null])) as Record<Columns[number], SQLiteValue>;
 }
 
 function sqliteBoolean(value: boolean | undefined): number | null {
@@ -135,10 +114,10 @@ function graphNodeRecord(
   node: IGraphNode,
   knownFilePaths: ReadonlySet<string>,
   analysisToCachePath: ReadonlyMap<string, string>,
-): DatabaseRecord {
+): NodeRecord {
   const symbol = node.symbol;
   return {
-    ...emptyRecord(NODE_OPTIONAL_COLUMNS),
+    ...emptyRecord(NODE_COLUMNS),
     id: node.id,
     type: node.nodeType ?? 'file',
     label: node.label,
@@ -184,12 +163,12 @@ function analysisNodeRecord(
   node: IAnalysisNode,
   ownerFilePath: string,
   analysisOrder: number,
-  existing: DatabaseRecord | undefined,
+  existing: NodeRecord | undefined,
   analysisToCachePath: ReadonlyMap<string, string>,
-): DatabaseRecord {
+): NodeRecord {
   const id = normalizeAnalysisId(node.id, analysisToCachePath) ?? node.id;
   return {
-    ...emptyRecord(NODE_OPTIONAL_COLUMNS),
+    ...emptyRecord(NODE_COLUMNS),
     ...existing,
     id,
     type: node.nodeType,
@@ -208,12 +187,12 @@ function analysisSymbolRecord(
   symbol: IAnalysisSymbol,
   ownerFilePath: string,
   analysisOrder: number,
-  existing: DatabaseRecord | undefined,
+  existing: NodeRecord | undefined,
   analysisToCachePath: ReadonlyMap<string, string>,
-): DatabaseRecord {
+): NodeRecord {
   const id = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
   return {
-    ...emptyRecord(NODE_OPTIONAL_COLUMNS),
+    ...emptyRecord(NODE_COLUMNS),
     ...existing,
     id,
     type: existing?.type ?? 'symbol',
@@ -238,24 +217,14 @@ function analysisSymbolRecord(
   };
 }
 
-function edgeMetadataColumns(metadata: GraphMetadata | undefined): DatabaseRecord {
-  return {
-    language: metadataString(metadata, 'language'),
-    analysisSource: metadataString(metadata, 'source'),
-    bindingKind: metadataString(metadata, 'bindingKind'),
-    importedName: metadataString(metadata, 'importedName'),
-    localName: metadataString(metadata, 'localName'),
-    memberName: metadataString(metadata, 'memberName'),
-    signalName: metadataString(metadata, 'signalName'),
-    eventMethodName: metadataString(metadata, 'eventMethodName'),
-    targetFileId: metadataString(metadata, 'targetFileId'),
-    targetScriptPath: metadataString(metadata, 'targetScriptPath'),
-    targetScriptGuid: metadataString(metadata, 'targetScriptGuid'),
-    scriptGuid: metadataString(metadata, 'scriptGuid'),
-    prefabGuid: metadataString(metadata, 'prefabGuid'),
-    fieldName: metadataString(metadata, 'fieldName'),
-    guid: metadataString(metadata, 'guid'),
-  };
+function edgeMetadataColumns(
+  metadata: GraphMetadata | undefined,
+  role: EdgeMetadataRole,
+): DatabaseRecord {
+  return Object.fromEntries(
+    Object.entries(EDGE_METADATA_COLUMNS[role])
+      .map(([metadataKey, column]) => [column, metadataString(metadata, metadataKey)]),
+  );
 }
 
 function edgeKey(from: string, to: string, kind: string): string {
@@ -302,12 +271,12 @@ function createRelationEdgeRecord(
   graphEdge: IGraphEdge | undefined,
   endpoints: { from: string; to: string },
   canonicalGraphEdge: boolean,
-): DatabaseRecord {
+): EdgeRecord {
   const source = sourceForRelation(relation, graphEdge);
   const graphId = graphEdge?.id ?? `${endpoints.from}->${endpoints.to}#${relation.kind}`;
   const sourceKey = source?.sourceId ?? relation.sourceId;
   return {
-    ...emptyRecord(EDGE_OPTIONAL_COLUMNS),
+    ...emptyRecord(EDGE_COLUMNS),
     id: physicalEdgeId(graphId, sourceKey, `${ownerFilePath}:${relationIndex}`),
     graphId,
     sourceNodeId: endpoints.from,
@@ -334,9 +303,9 @@ function createRelationEdgeRecord(
     analysisRelation: 1,
     analysisOrder: relationIndex,
     canonicalGraphEdge: Number(canonicalGraphEdge),
-    ...edgeMetadataColumns(graphEdge?.metadata),
-    ...edgeMetadataColumns(source?.metadata),
-    ...edgeMetadataColumns(relation.metadata),
+    ...edgeMetadataColumns(graphEdge?.metadata, 'edge'),
+    ...edgeMetadataColumns(source?.metadata, 'source'),
+    ...edgeMetadataColumns(relation.metadata, 'relation'),
   };
 }
 
@@ -344,10 +313,10 @@ function createGraphEdgeRecord(
   edge: IGraphEdge,
   source: IGraphEdgeSource | undefined,
   sourceIndex: number,
-): DatabaseRecord {
+): EdgeRecord {
   const sourceKey = source?.sourceId ?? 'graph';
   return {
-    ...emptyRecord(EDGE_OPTIONAL_COLUMNS),
+    ...emptyRecord(EDGE_COLUMNS),
     id: physicalEdgeId(edge.id, sourceKey, `graph:${sourceIndex}`),
     graphId: edge.id,
     sourceNodeId: edge.from,
@@ -362,20 +331,20 @@ function createGraphEdgeRecord(
     analysisRelation: 0,
     analysisOrder: null,
     canonicalGraphEdge: 1,
-    ...edgeMetadataColumns(edge.metadata),
-    ...edgeMetadataColumns(source?.metadata),
+    ...edgeMetadataColumns(edge.metadata, 'edge'),
+    ...edgeMetadataColumns(source?.metadata, 'source'),
   };
 }
 
 function addEndpointNode(
-  nodes: Map<string, DatabaseRecord>,
+  nodes: Map<string, NodeRecord>,
   id: string,
   knownFilePaths: ReadonlySet<string>,
   type: 'file' | 'symbol' = knownFilePaths.has(id) ? 'file' : 'symbol',
 ): void {
   if (nodes.has(id)) return;
   nodes.set(id, {
-    ...emptyRecord(NODE_OPTIONAL_COLUMNS),
+    ...emptyRecord(NODE_COLUMNS),
     id,
     type,
     label: path.basename(id),
@@ -385,7 +354,7 @@ function addEndpointNode(
   });
 }
 
-export function normalizeDatabaseRecords(
+export function serializeDatabaseRecords(
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
 ): NormalizedDatabaseRecords {
@@ -393,19 +362,19 @@ export function normalizeDatabaseRecords(
   const sortedFiles = Object.entries(cache.files).sort(([left], [right]) => left.localeCompare(right));
   const knownFilePaths = new Set(sortedFiles.map(([filePath]) => filePath));
   const analysisToCachePath = new Map(sortedFiles.map(([filePath, entry]) => [entry.analysis.filePath, filePath]));
-  const files: DatabaseRecord[] = sortedFiles.map(([filePath, entry]) => ({
+  const files: FileRecord[] = sortedFiles.map(([filePath, entry]) => ({
     path: filePath,
     analysisPath: entry.analysis.filePath,
     mtime: entry.mtime ?? 0,
     size: entry.size ?? -1,
     contentHash: entry.contentHash ?? null,
+    baselineIndexed: Number(readAnalysisCacheTiers(entry.analysis).includes('baseline')),
     nodesIndexed: Number(entry.analysis.nodes !== undefined),
     symbolsIndexed: Number(entry.analysis.symbols !== undefined),
     relationsIndexed: Number(entry.analysis.relations !== undefined),
-    cacheTiersIndexed: Number((entry.analysis as TieredAnalysis).cache?.tiers !== undefined),
   }));
 
-  const nodes = new Map<string, DatabaseRecord>();
+  const nodes = new Map<string, NodeRecord>();
   for (const node of graphData.nodes) {
     nodes.set(node.id, graphNodeRecord(node, knownFilePaths, analysisToCachePath));
   }
@@ -425,39 +394,8 @@ export function normalizeDatabaseRecords(
     }
   }
 
-  const cacheTierEdges: DatabaseRecord[] = [];
-  for (const [filePath, entry] of sortedFiles) {
-    const tiers = (entry.analysis as TieredAnalysis).cache?.tiers ?? [];
-    tiers.forEach((tier, tierIndex) => {
-      const tierNodeId = `${CACHE_TIER_NODE_PREFIX}${encodeURIComponent(tier)}`;
-      if (!nodes.has(tierNodeId)) {
-        nodes.set(tierNodeId, {
-          ...emptyRecord(NODE_OPTIONAL_COLUMNS),
-          id: tierNodeId,
-          type: CACHE_TIER_NODE_TYPE,
-          label: tier,
-          filePath: null,
-          parentId: null,
-          color: '#808080',
-        });
-      }
-      cacheTierEdges.push({
-        ...emptyRecord(EDGE_OPTIONAL_COLUMNS),
-        id: `${filePath}->${tierNodeId}#${CACHE_TIER_EDGE_TYPE}`,
-        graphId: `${filePath}->${tierNodeId}#${CACHE_TIER_EDGE_TYPE}`,
-        sourceNodeId: filePath,
-        targetNodeId: tierNodeId,
-        type: CACHE_TIER_EDGE_TYPE,
-        ownerFilePath: filePath,
-        analysisRelation: 0,
-        analysisOrder: tierIndex,
-        canonicalGraphEdge: 0,
-      });
-    });
-  }
-
   const graphEdgesByKey = new Map(graphData.edges.map(edge => [edgeKey(edge.from, edge.to, edge.kind), edge]));
-  const edges: DatabaseRecord[] = [...cacheTierEdges];
+  const edges: EdgeRecord[] = [];
   const representedSources = new Set<string>();
   for (const [filePath, entry] of sortedFiles) {
     for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {

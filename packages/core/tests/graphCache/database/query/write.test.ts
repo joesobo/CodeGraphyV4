@@ -76,10 +76,10 @@ describe('graphCache/database/writeStatements', () => {
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
+      baselineIndexed: 0,
       nodesIndexed: 0,
       symbolsIndexed: 1,
       relationsIndexed: 0,
-      cacheTiersIndexed: 0,
     });
     expect(execute).toHaveBeenCalledWith(
       writer.connection,

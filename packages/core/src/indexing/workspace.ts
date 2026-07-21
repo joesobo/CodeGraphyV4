@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
+import { createWorkspaceIndexAnalysisCacheTiers } from '../analysis/fileAnalysis';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { buildCompleteWorkspaceGraphData } from '../graph/complete';
@@ -95,8 +96,13 @@ export async function indexCodeGraphyWorkspace(
   });
   let canReusePersistedCache = previousStatus.hasGraphCache
     && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files');
+  const activeAnalysisCacheTiers = createWorkspaceIndexAnalysisCacheTiers(
+    registry.list()
+      .map(({ plugin }) => plugin.id)
+      .filter(pluginId => !disabledPlugins.has(pluginId)),
+  ).active;
   let cache = canReusePersistedCache
-    ? loadWorkspaceAnalysisDatabaseCache(workspaceRoot)
+    ? loadWorkspaceAnalysisDatabaseCache(workspaceRoot, { activeAnalysisCacheTiers })
     : createEmptyWorkspaceAnalysisCache();
   const previousCacheFingerprints = new Map(
     Object.entries(cache.files).map(([filePath, entry]) => [filePath, JSON.stringify(entry)] as const),

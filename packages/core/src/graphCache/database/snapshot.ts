@@ -7,8 +7,8 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { readRowsSync, withConnection } from './io/connection';
 import { getWorkspaceAnalysisDatabasePath } from './io/paths';
-import { hydrateDatabaseRecords } from './records/hydrate';
-import type { FileRow, GraphEdgeRow, GraphNodeRow } from './records/contracts';
+import { parseDatabaseRecords } from './records/parser';
+import type { FileRow, GraphEdgeRow, GraphNodeRow } from './records/types';
 import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY } from './query/read';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
@@ -74,7 +74,7 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
 
   try {
     return withConnection(databasePath, connection => {
-      return hydrateDatabaseRecords(
+      return parseDatabaseRecords(
         readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
         readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
         readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],

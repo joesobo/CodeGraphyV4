@@ -11,58 +11,19 @@ import type {
   SQLiteStatement,
 } from '../io/connection';
 import {
-  normalizeDatabaseRecords,
+  serializeDatabaseRecords,
   type DatabaseRecord,
   type NormalizedDatabaseRecords,
-} from '../records/normalize';
+} from '../records/serializer';
+import { EDGE_COLUMNS, FILE_COLUMNS, NODE_COLUMNS } from '../records/types';
 
-const CREATE_FILE_STATEMENT = `INSERT INTO File(
-  path, analysisPath, mtime, size, contentHash, nodesIndexed, symbolsIndexed, relationsIndexed,
-  cacheTiersIndexed
-) VALUES (
-  @path, @analysisPath, @mtime, @size, @contentHash, @nodesIndexed, @symbolsIndexed,
-  @relationsIndexed, @cacheTiersIndexed
-)`;
+function createInsertStatement(table: string, columns: readonly string[]): string {
+  return `INSERT INTO ${table}(${columns.join(', ')}) VALUES (${columns.map(column => `@${column}`).join(', ')})`;
+}
 
-const CREATE_NODE_STATEMENT = `INSERT INTO Node(
-  id, type, label, filePath, parentId, color, x, y, favorite, fileSize, depthLevel,
-  shape, shapeWidth, shapeHeight, cornerRadius, collisionRadius, chargeStrengthMultiplier,
-  fillOpacity, pointerWidth, pointerHeight, imageUrl, isCollapsible, isCollapsed,
-  collapsedDescendantCount, analysisNodeId, analysisNodeFilePath, analysisParentId,
-  analysisNodeOrder, analysisSymbolId, analysisSymbolFilePath, analysisSymbolOrder,
-  pluginId, language, analysisSource, pluginKind,
-  symbolName, symbolKind, symbolSignature, startLine, startColumn, endLine, endColumn,
-  gitIgnored, gitIgnoredReason, unityClass, unityFileId, unityGameObjectFileId,
-  unityScriptGuid, unityScriptPath
-) VALUES (
-  @id, @type, @label, @filePath, @parentId, @color, @x, @y, @favorite, @fileSize, @depthLevel,
-  @shape, @shapeWidth, @shapeHeight, @cornerRadius, @collisionRadius, @chargeStrengthMultiplier,
-  @fillOpacity, @pointerWidth, @pointerHeight, @imageUrl, @isCollapsible, @isCollapsed,
-  @collapsedDescendantCount, @analysisNodeId, @analysisNodeFilePath, @analysisParentId,
-  @analysisNodeOrder, @analysisSymbolId, @analysisSymbolFilePath, @analysisSymbolOrder,
-  @pluginId, @language, @analysisSource, @pluginKind,
-  @symbolName, @symbolKind, @symbolSignature, @startLine, @startColumn, @endLine, @endColumn,
-  @gitIgnored, @gitIgnoredReason, @unityClass, @unityFileId, @unityGameObjectFileId,
-  @unityScriptGuid, @unityScriptPath
-)`;
-
-const CREATE_EDGE_STATEMENT = `INSERT INTO Edge(
-  id, graphId, sourceNodeId, targetNodeId, type, ownerFilePath, color, sourcePluginId,
-  relationPluginId, sourceKey, pluginSourceId, analysisSourceId, sourceLabel, variant,
-  specifier, resolvedPath, relationType, fromFilePath,
-  toFilePath, fromAnalysisNodeId, toAnalysisNodeId, fromSymbolId, toSymbolId, language,
-  analysisSource, bindingKind, importedName, localName, memberName, signalName, eventMethodName,
-  targetFileId, targetScriptPath, targetScriptGuid, scriptGuid, prefabGuid, fieldName,
-  guid, analysisRelation, analysisOrder, canonicalGraphEdge
-) VALUES (
-  @id, @graphId, @sourceNodeId, @targetNodeId, @type, @ownerFilePath, @color, @sourcePluginId,
-  @relationPluginId, @sourceKey, @pluginSourceId, @analysisSourceId, @sourceLabel, @variant,
-  @specifier, @resolvedPath, @relationType, @fromFilePath,
-  @toFilePath, @fromAnalysisNodeId, @toAnalysisNodeId, @fromSymbolId, @toSymbolId, @language,
-  @analysisSource, @bindingKind, @importedName, @localName, @memberName, @signalName, @eventMethodName,
-  @targetFileId, @targetScriptPath, @targetScriptGuid, @scriptGuid, @prefabGuid, @fieldName,
-  @guid, @analysisRelation, @analysisOrder, @canonicalGraphEdge
-)`;
+const CREATE_FILE_STATEMENT = createInsertStatement('File', FILE_COLUMNS);
+const CREATE_NODE_STATEMENT = createInsertStatement('Node', NODE_COLUMNS);
+const CREATE_EDGE_STATEMENT = createInsertStatement('Edge', EDGE_COLUMNS);
 
 const DELETE_FILE_STATEMENT = 'DELETE FROM File WHERE path = @path';
 
@@ -134,7 +95,7 @@ export function persistWorkspaceCache(
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
 ): void {
-  persistRecords(writer, normalizeDatabaseRecords(cache, graph));
+  persistRecords(writer, serializeDatabaseRecords(cache, graph));
 }
 
 export function persistAnalysisEntry(
@@ -149,7 +110,7 @@ export function persistGraph(
   writer: WorkspaceAnalysisCacheWriter,
   graph: IGraphData,
 ): void {
-  const records = normalizeDatabaseRecords({ version: '', files: {} }, graph);
+  const records = serializeDatabaseRecords({ version: '', files: {} }, graph);
   for (const record of records.nodes) {
     executeStatementSync(writer.connection, writer.nodeStatement, record);
   }
@@ -197,7 +158,7 @@ export async function persistWorkspaceCacheAsync(
   graph: IGraphData | undefined,
   afterStatement: () => Promise<void>,
 ): Promise<void> {
-  await persistRecordsAsync(writer, normalizeDatabaseRecords(cache, graph), afterStatement);
+  await persistRecordsAsync(writer, serializeDatabaseRecords(cache, graph), afterStatement);
 }
 
 export async function persistAnalysisEntryAsync(
@@ -208,7 +169,7 @@ export async function persistAnalysisEntryAsync(
 ): Promise<void> {
   await persistRecordsAsync(
     writer,
-    normalizeDatabaseRecords({ version: '', files: { [filePath]: entry } }),
+    serializeDatabaseRecords({ version: '', files: { [filePath]: entry } }),
     afterStatement,
   );
 }
@@ -218,6 +179,6 @@ export async function persistGraphAsync(
   graph: IGraphData,
   afterStatement: () => Promise<void>,
 ): Promise<void> {
-  const records = normalizeDatabaseRecords({ version: '', files: {} }, graph);
+  const records = serializeDatabaseRecords({ version: '', files: {} }, graph);
   await persistRecordsAsync(writer, { files: [], nodes: records.nodes, edges: records.edges }, afterStatement);
 }

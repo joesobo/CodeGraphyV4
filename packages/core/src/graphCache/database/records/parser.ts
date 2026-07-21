@@ -1,11 +1,9 @@
 import type { IAnalysisRelation, IAnalysisSymbol, IGraphData, IGraphEdge } from '@codegraphy-dev/plugin-api';
 import {
-  CACHE_TIER_EDGE_TYPE,
-  CACHE_TIER_NODE_TYPE,
   type FileRow,
   type GraphEdgeRow,
   type GraphNodeRow,
-} from './contracts';
+} from './types';
 import { createSnapshotFileEntry, type SnapshotFileEntry } from './file';
 import {
   createSnapshotAnalysisNode,
@@ -45,7 +43,7 @@ function mergeGraphEdges(rows: readonly GraphEdgeRow[]): IGraphEdge[] {
   return [...edges.values()].sort((left, right) => left.id.localeCompare(right.id));
 }
 
-export function hydrateDatabaseRecords(
+export function parseDatabaseRecords(
   fileRows: readonly FileRow[],
   nodeRows: readonly GraphNodeRow[],
   edgeRows: readonly GraphEdgeRow[],
@@ -56,14 +54,12 @@ export function hydrateDatabaseRecords(
   });
   const symbols: IAnalysisSymbol[] = [];
   const relations: IAnalysisRelation[] = [];
-  const nodeLabels = new Map(nodeRows.flatMap(row => {
-    const id = readOptionalString(row.id);
-    const label = readOptionalString(row.label);
-    return id && label ? [[id, label] as const] : [];
+  const fileRowsByPath = new Map(fileRows.flatMap(row => {
+    const filePath = readOptionalString(row.path);
+    return filePath ? [[filePath, row] as const] : [];
   }));
-
-  for (const [fileIndex, file] of files.entries()) {
-    const fileRow = fileRows[fileIndex];
+  for (const file of files) {
+    const fileRow = fileRowsByPath.get(file.filePath);
     const ownedNodeRows = nodeRows.filter(row => readOptionalString(row.filePath) === file.filePath);
     const analysisNodes = [...ownedNodeRows]
       .sort((left, right) => Number(left.analysisNodeOrder ?? Number.MAX_SAFE_INTEGER)
@@ -90,24 +86,19 @@ export function hydrateDatabaseRecords(
     if (file.analysis.nodes !== undefined) file.analysis.nodes = analysisNodes;
     if (file.analysis.symbols !== undefined) file.analysis.symbols = analysisSymbols;
     if (file.analysis.relations !== undefined) file.analysis.relations = analysisRelations;
-    if (fileRow?.cacheTiersIndexed === 1 || fileRow?.cacheTiersIndexed === 1n) {
-      const tiers = edgeRows
-        .filter(row => row.type === CACHE_TIER_EDGE_TYPE && row.ownerFilePath === file.filePath)
-        .sort((left, right) => Number(left.analysisOrder ?? Number.MAX_SAFE_INTEGER)
-          - Number(right.analysisOrder ?? Number.MAX_SAFE_INTEGER))
-        .flatMap(row => {
-          const targetNodeId = readOptionalString(row.targetNodeId);
-          const tier = targetNodeId ? nodeLabels.get(targetNodeId) : undefined;
-          return tier ? [tier] : [];
-        });
-      (file.analysis as typeof file.analysis & { cache: { tiers: string[] } }).cache = { tiers };
+    if (fileRow?.baselineIndexed === 1 || fileRow?.baselineIndexed === 1n) {
+      (file.analysis as typeof file.analysis & { cache: { tiers: string[] } }).cache = {
+        tiers: [
+          'baseline',
+          ...(file.analysis.symbols !== undefined ? ['symbols'] : []),
+        ],
+      };
     }
     symbols.push(...analysisSymbols);
     relations.push(...analysisRelations);
   }
 
   const nodes = nodeRows.flatMap(row => {
-    if (row.type === CACHE_TIER_NODE_TYPE) return [];
     const node = createSnapshotGraphNode(row);
     return node ? [node] : [];
   });

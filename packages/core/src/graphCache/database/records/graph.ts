@@ -8,7 +8,12 @@ import type {
   IGraphEdgeSource,
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
-import type { GraphEdgeRow, GraphNodeRow } from './contracts';
+import {
+  EDGE_METADATA_COLUMNS,
+  type EdgeMetadataRole,
+  type GraphEdgeRow,
+  type GraphNodeRow,
+} from './types';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
 function readBoolean(value: unknown): boolean | undefined {
@@ -42,24 +47,18 @@ function nodeMetadata(row: GraphNodeRow): GraphMetadata | undefined {
   ]);
 }
 
-function edgeMetadata(row: GraphEdgeRow): GraphMetadata | undefined {
-  return compactMetadata([
-    ['language', readOptionalString(row.language)],
-    ['source', readOptionalString(row.analysisSource)],
-    ['bindingKind', readOptionalString(row.bindingKind)],
-    ['importedName', readOptionalString(row.importedName)],
-    ['localName', readOptionalString(row.localName)],
-    ['memberName', readOptionalString(row.memberName)],
-    ['signalName', readOptionalString(row.signalName)],
-    ['eventMethodName', readOptionalString(row.eventMethodName)],
-    ['targetFileId', readOptionalString(row.targetFileId)],
-    ['targetScriptPath', readOptionalString(row.targetScriptPath)],
-    ['targetScriptGuid', readOptionalString(row.targetScriptGuid)],
-    ['scriptGuid', readOptionalString(row.scriptGuid)],
-    ['prefabGuid', readOptionalString(row.prefabGuid)],
-    ['fieldName', readOptionalString(row.fieldName)],
-    ['guid', readOptionalString(row.guid)],
-  ]);
+function edgeMetadata(
+  row: GraphEdgeRow,
+  role: EdgeMetadataRole,
+): GraphMetadata | undefined {
+  const columns = Object.entries(EDGE_METADATA_COLUMNS[role]) as Array<[
+    string,
+    keyof GraphEdgeRow,
+  ]>;
+  return compactMetadata(columns.map(([metadataKey, column]) => [
+    metadataKey,
+    readOptionalString(row[column]),
+  ]));
 }
 
 function optionalNumber(value: unknown): number | undefined {
@@ -195,7 +194,7 @@ function createGraphEdgeSource(row: GraphEdgeRow): IGraphEdgeSource | undefined 
   const sourceId = readOptionalString(row.pluginSourceId);
   const label = readOptionalString(row.sourceLabel);
   if (!id || !pluginId || !sourceId || !label) return undefined;
-  const metadata = edgeMetadata(row);
+  const metadata = edgeMetadata(row, 'source');
   return {
     id,
     pluginId,
@@ -213,7 +212,7 @@ export function createSnapshotGraphEdge(row: GraphEdgeRow): IGraphEdge | undefin
   const kind = readRequiredString(row.type);
   if (!id || !from || !to || !kind) return undefined;
   const source = createGraphEdgeSource(row);
-  const metadata = edgeMetadata(row);
+  const metadata = edgeMetadata(row, 'edge');
   return {
     id,
     from,
@@ -231,7 +230,7 @@ export function createSnapshotAnalysisRelation(row: GraphEdgeRow): IAnalysisRela
   const sourceId = readRequiredString(row.analysisSourceId);
   const fromFilePath = readRequiredString(row.fromFilePath);
   if (!kind || !sourceId || !fromFilePath) return undefined;
-  const metadata = edgeMetadata(row);
+  const metadata = edgeMetadata(row, 'relation');
   const toFilePath = readOptionalString(row.toFilePath);
   const resolvedPath = readOptionalString(row.resolvedPath);
   return {
