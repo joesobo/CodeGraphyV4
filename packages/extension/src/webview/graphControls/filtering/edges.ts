@@ -1,6 +1,7 @@
 import type { EdgeDecorationPayload } from '../../../shared/plugins/decorations';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IGraphEdgeTypeDefinition } from '../../../shared/graphControls/contracts';
+import { isPluginScopedGraphEdgeKind } from '@codegraphy-dev/core/graph-scope';
 
 export function filterSemanticEdges(
   edges: IGraphData['edges'],
@@ -8,7 +9,7 @@ export function filterSemanticEdges(
   edgeVisibility: Record<string, boolean>,
 ): IGraphData['edges'] {
   return edges.filter((edge) =>
-    (edgeVisibility[edge.kind] ?? true)
+    (edgeVisibility[edge.kind] ?? !isPluginScopedGraphEdgeKind(edge.kind))
     && visibleNodeIds.has(edge.from)
     && visibleNodeIds.has(edge.to),
   );

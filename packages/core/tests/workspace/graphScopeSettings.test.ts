@@ -23,14 +23,39 @@ describe('workspace graph scope settings', () => {
     });
   });
 
-  it('respects declared plugin defaults before saved overrides', () => {
+  it('forces plugin-scoped declarations to default hidden until manually enabled', () => {
     const scope = resolveSavedGraphScope({}, undefined, {
       nodes: [{ id: 'plugin:route', defaultVisible: true }],
-      edges: [{ id: 'plugin:route-link', defaultVisible: false }],
+      edges: [{ id: 'codegraphy.route:route-link', defaultVisible: true }],
     });
 
-    expect(scope.nodes['plugin:route']).toBe(true);
-    expect(scope.edges['plugin:route-link']).toBe(false);
+    expect(scope.nodes['plugin:route']).toBe(false);
+    expect(scope.edges['codegraphy.route:route-link']).toBe(false);
+  });
+
+  it('keeps manually enabled plugin scope entries enabled', () => {
+    const scope = resolveSavedGraphScope({
+      nodeVisibility: { 'plugin:codegraphy.unity:symbol:game-object': true },
+      edgeVisibility: { 'codegraphy.gdscript:signal-connection': true },
+    }, undefined, {
+      nodes: [{ id: 'plugin:codegraphy.unity:symbol:game-object', defaultVisible: false }],
+    });
+
+    expect(scope.nodes['plugin:codegraphy.unity:symbol:game-object']).toBe(true);
+    expect(scope.edges['codegraphy.gdscript:signal-connection']).toBe(true);
+  });
+
+  it('defaults unknown plugin-namespaced edge kinds from graph data to hidden', () => {
+    const scope = resolveSavedGraphScope({}, {
+      nodes: [],
+      edges: [
+        { id: 'a', from: 'x', to: 'y', kind: 'custom-kind', sources: [] },
+        { id: 'b', from: 'x', to: 'y', kind: 'codegraphy.unity:event-link', sources: [] },
+      ],
+    } as never);
+
+    expect(scope.edges['custom-kind']).toBe(true);
+    expect(scope.edges['codegraphy.unity:event-link']).toBe(false);
   });
 
   it('never lets derived overlap or parent enablement override an explicit off', () => {

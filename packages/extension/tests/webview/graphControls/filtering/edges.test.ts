@@ -35,6 +35,14 @@ describe('webview/graphControls/filtering edges', () => {
     ]);
   });
 
+  it('hides plugin-scoped edge kinds unless explicitly enabled', () => {
+    const pluginEdges = [edge('a->b#signal', 'a.ts', 'b.ts', 'codegraphy.gdscript:signal-connection')];
+    expect(filterSemanticEdges(pluginEdges, new Set(['a.ts', 'b.ts']), {})).toEqual([]);
+    expect(filterSemanticEdges(pluginEdges, new Set(['a.ts', 'b.ts']), {
+      'codegraphy.gdscript:signal-connection': true,
+    })).toEqual(pluginEdges);
+  });
+
   it('hides otherwise visible semantic edges when their edge type is disabled', () => {
     expect(filterSemanticEdges(edges, new Set(['a.ts', 'b.ts']), {
       import: false,

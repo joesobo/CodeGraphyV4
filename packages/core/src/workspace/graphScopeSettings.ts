@@ -1,6 +1,10 @@
 import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import type { IGraphData } from '../graph/contracts';
-import { CORE_GRAPH_EDGE_DEFAULT_VISIBILITY } from '../graphScope/defaults';
+import {
+  CORE_GRAPH_EDGE_DEFAULT_VISIBILITY,
+  isPluginScopedGraphEdgeKind,
+  isPluginScopedGraphNodeType,
+} from '../graphScope/defaults';
 import type { CodeGraphyWorkspaceSettings } from './settingsContracts';
 
 const NODE_DEFINITION_BY_ID = new Map(CORE_GRAPH_NODE_TYPES.map(definition => [definition.id, definition]));
@@ -63,10 +67,14 @@ export function resolveSavedGraphScope(
   );
   const edges: Record<string, boolean> = { ...CORE_GRAPH_EDGE_DEFAULT_VISIBILITY };
   const explicitNodeTypes = new Set(Object.keys(settings.nodeVisibility ?? {}));
-  for (const definition of declarations.nodes ?? []) nodes[definition.id] = definition.defaultVisible;
-  for (const definition of declarations.edges ?? []) edges[definition.id] = definition.defaultVisible;
+  for (const definition of declarations.nodes ?? []) {
+    nodes[definition.id] = definition.defaultVisible && !isPluginScopedGraphNodeType(definition.id);
+  }
+  for (const definition of declarations.edges ?? []) {
+    edges[definition.id] = definition.defaultVisible && !isPluginScopedGraphEdgeKind(definition.id);
+  }
   for (const node of graphData?.nodes ?? []) nodes[node.nodeType ?? 'file'] ??= node.nodeType === undefined;
-  for (const edge of graphData?.edges ?? []) edges[edge.kind] ??= true;
+  for (const edge of graphData?.edges ?? []) edges[edge.kind] ??= !isPluginScopedGraphEdgeKind(edge.kind);
   Object.assign(nodes, settings.nodeVisibility ?? {});
   Object.assign(edges, settings.edgeVisibility ?? {});
   enableOverlappingCoreSymbolRows(nodes, explicitNodeTypes);
