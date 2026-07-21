@@ -69,8 +69,12 @@ Expected behavior:
 The example keeps relative imports for the built-in TypeScript graph behavior and includes a `compilerOptions.paths` alias for the TypeScript plugin:
 
 ```json
-"paths": {
-  "#example/*": ["src/alias/*"]
+{
+  "compilerOptions": {
+    "paths": {
+      "#example/*": ["src/alias/*"]
+    }
+  }
 }
 ```
 

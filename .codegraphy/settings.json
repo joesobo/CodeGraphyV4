@@ -1,6 +1,8 @@
 {
-  "version": 1,
+  "version": 2,
   "maxFiles": 3000,
+  "showFps": false,
+  "showMinimap": true,
   "verboseDiagnostics": false,
   "include": [
     "**/*"
@@ -48,8 +50,8 @@
   ],
   "pluginData": {
     "codegraphy.particles": {
-      "enabled": true,
-      "preset": "rain"
+      "enabled": false,
+      "preset": "none"
     }
   },
   "nodeColors": {
@@ -144,17 +146,17 @@
     "include": true,
     "import": true,
     "using": true,
-    "type": true,
-    "reference": true,
-    "call": false,
-    "type-import": true,
-    "inherit": true,
-    "implements": true,
-    "event": true,
-    "load": true,
     "nests": true,
+    "call": false,
     "contains": false,
+    "event": true,
+    "implements": true,
+    "inherit": true,
+    "load": true,
     "overrides": true,
+    "reference": true,
+    "type": true,
+    "type-import": true,
     "codegraphy.gdscript:signal-connection": true,
     "test": true,
     "reexport": true,
@@ -362,7 +364,9 @@
     "packages/extension/tests/playwright-vscode/generated-ir/**",
     ".superpowers/**",
     "reports/**",
-    ".pnpm-store/**"
+    ".pnpm-store/**",
+    "docs/**",
+    ".claude/**"
   ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
@@ -373,18 +377,12 @@
   "particleSize": 4,
   "depthMode": false,
   "depthLimit": 1,
-  "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
     "repelForce": 17,
     "linkDistance": 70,
     "linkForce": 1,
-    "damping": 0.7,
-    "centerForce": 0.17,
-    "chargeRange": 200
-  },
-  "timeline": {
-    "maxCommits": 500,
-    "playbackSpeed": 1
+    "damping": 0.4,
+    "centerForce": 0.17
   }
 }

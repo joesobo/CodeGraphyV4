@@ -1,5 +1,7 @@
 # SQLite Replaces LadybugDB Without Moving Graph Query
 
+**Status:** Accepted
+
 The workspace-local **Graph Cache** will use SQLite instead of LadybugDB.
 This change replaces the persistence package and file format while preserving
 the existing Core storage API, in-memory **Graph Query**, and **Relationship
