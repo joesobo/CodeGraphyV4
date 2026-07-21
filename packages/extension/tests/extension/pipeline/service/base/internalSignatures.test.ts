@@ -14,6 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/service/runtime/graph', () => ({
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis: vi.fn(),
   buildWorkspacePipelineGraph: vi.fn(),
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
