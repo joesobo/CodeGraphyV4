@@ -34,7 +34,8 @@ Persist the Graph Cache as five relational tables. All five tables use SQLite
 - `Symbol` stores the optional symbol subtype of a `Node` as a one-to-one row.
   Its complete contract is `nodeId`, `name`, `kind`, `pluginId`, and
   `language`. File ownership is obtained through the referenced `Node`; it is
-  not duplicated on `Symbol`.
+  not duplicated on `Symbol`. Runtime graph projection derives built-in scope
+  matching fields from the stored plugin, language, and symbol kind values.
 - `Edge` stores directed typed relationships between `Node` rows. Each physical
   row has only `id`, stable `key`, `sourceNodeId`, `targetNodeId`, and `type`.
   Source and target are generated `Node.id` foreign keys. Edge ownership is
@@ -72,5 +73,8 @@ events through its Core indexing path.
 - Old Graph Cache fact schemas are rebuilt into the current five-table contract.
   A compatible `NodeView` table is retained during later fact-schema rebuilds;
   there is no legacy JSON read path.
+- Full saves prune `NodeView` rows whose stable graph keys are absent after all
+  live nodes are inserted. An explicit cache clear retains compatible view
+  state so rebuilding the same stable keys can restore the layout.
 - The migration will not reduce Graph Query memory usage or CLI response size by itself.
 - Later agent tools may reuse the SQLite data, but this storage migration must not depend on them.

@@ -51,6 +51,10 @@ function metadataString(metadata: GraphMetadata | undefined, key: string): strin
   return typeof value === 'string' ? value : null;
 }
 
+function metadataPluginId(metadata: GraphMetadata | undefined): string | null {
+  return metadataString(metadata, 'pluginId') ?? metadataString(metadata, 'source');
+}
+
 function normalizeSlashes(value: string): string {
   return value.replace(/\\/g, '/');
 }
@@ -142,7 +146,7 @@ function graphNodeRecord(
       typeof node.metadata?.parentId === 'string' ? node.metadata.parentId : undefined,
       context,
     ),
-    pluginId: metadataString(node.metadata, 'pluginId'),
+    pluginId: node.symbol?.source ?? metadataPluginId(node.metadata),
     language: node.symbol?.language ?? metadataString(node.metadata, 'language'),
   };
 }
@@ -174,7 +178,7 @@ function analysisNodeRecord(
     label: node.label,
     fileId: ownerFilePath,
     parentId: normalizeAnalysisIdForFile(node.parentId, analysisFilePath, context),
-    pluginId: metadataString(node.metadata, 'pluginId'),
+    pluginId: metadataPluginId(node.metadata),
     language: metadataString(node.metadata, 'language'),
   };
 }
@@ -199,7 +203,7 @@ function symbolRecord(
     nodeId,
     name: symbol.name,
     kind: symbol.kind,
-    pluginId: metadataString(symbol.metadata, 'pluginId'),
+    pluginId: metadataPluginId(symbol.metadata),
     language: language ?? metadataString(symbol.metadata, 'language'),
   };
 }
@@ -358,7 +362,7 @@ export function serializeDatabaseRecords(
         nodeId,
         name: node.symbol.name,
         kind: node.symbol.kind,
-        pluginId: metadataString(node.metadata, 'pluginId'),
+        pluginId: node.symbol.source ?? metadataPluginId(node.metadata),
         language: node.symbol.language ?? metadataString(node.metadata, 'language'),
       });
     }
