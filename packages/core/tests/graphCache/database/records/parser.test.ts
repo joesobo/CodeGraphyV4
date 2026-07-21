@@ -22,13 +22,14 @@ describe('graphCache/database/parser', () => {
 
     expect(() => parseDatabaseRecords(
       [
-        { path: 'a.ts', analysisPath: '/workspace/a.ts', mtime: 1 },
-        { path: 'b.ts', analysisPath: '/workspace/b.ts', mtime: 1 },
-        { path: 'c.ts', analysisPath: '/workspace/c.ts', mtime: 1 },
+        { path: 'a.ts' },
+        { path: 'b.ts' },
+        { path: 'c.ts' },
       ],
       [ownedNode],
       [],
       [],
+      '/workspace',
     )).not.toThrow();
   });
 
@@ -53,7 +54,7 @@ describe('graphCache/database/parser', () => {
       },
     };
     const records = serializeDatabaseRecords(cache);
-    const hydrated = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges);
+    const hydrated = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges, '/workspace');
 
     expect(hydrated.files[0]?.analysis).toEqual({
       filePath: analysis.filePath,
@@ -65,7 +66,7 @@ describe('graphCache/database/parser', () => {
     expect(hydrated.graph.edges.map(edge => edge.kind)).not.toContain('codegraphy:has-cache-tier');
   });
 
-  it('groups physical source rows into one canonical multi-source edge', () => {
+  it('hydrates one canonical Edge row without serialized provenance', () => {
     const hydrated = parseDatabaseRecords(
       [],
       [
@@ -75,29 +76,28 @@ describe('graphCache/database/parser', () => {
       [],
       [
         {
-          key: 'edge-source-one', graphKey: 'a->b#import', sourceNodeKey: 'a', targetNodeKey: 'b',
-          type: 'import', sourcePluginId: 'one', sourceKey: 'one:import',
-          pluginSourceId: 'import', sourceLabel: 'One', canonicalGraphEdge: 1,
-        },
-        {
-          key: 'edge-source-two', graphKey: 'a->b#import', sourceNodeKey: 'a', targetNodeKey: 'b',
-          type: 'import', sourcePluginId: 'two', sourceKey: 'two:import',
-          pluginSourceId: 'import', sourceLabel: 'Two', canonicalGraphEdge: 1,
+          key: 'a->b#import', sourceNodeKey: 'a', targetNodeKey: 'b', type: 'import',
         },
       ],
+      '/workspace',
     );
 
     expect(hydrated.graph.edges).toEqual([expect.objectContaining({
       id: 'a->b#import',
-      sources: [
-        expect.objectContaining({ id: 'one:import', pluginId: 'one' }),
-        expect.objectContaining({ id: 'two:import', pluginId: 'two' }),
-      ],
+      sources: [],
     })]);
   });
 
-  it('does not promote graph-only symbol presentation into analysis facts', () => {
-    const records = serializeDatabaseRecords({ version: '1', files: {} }, {
+  it('resolves Symbol ownership through its Node File reference', () => {
+    const records = serializeDatabaseRecords({
+      version: '1',
+      files: {
+        'external.ts': {
+          mtime: 0,
+          analysis: { filePath: '/workspace/external.ts' },
+        },
+      },
+    }, {
       nodes: [{
         id: 'external#run:function',
         label: 'run',
@@ -114,14 +114,17 @@ describe('graphCache/database/parser', () => {
     });
 
     expect(records.symbols).toEqual([
-      expect.objectContaining({ nodeId: 'external#run:function', analysisId: null }),
+      expect.objectContaining({ nodeId: 'external#run:function' }),
     ]);
-    const parsed = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges);
-    expect(parsed.symbols).toEqual([]);
-    expect(parsed.graph.nodes[0]?.symbol).toMatchObject({ name: 'run', kind: 'function' });
+    const parsed = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges, '/workspace');
+    expect(parsed.symbols).toEqual([
+      expect.objectContaining({ name: 'run', kind: 'function' }),
+    ]);
+    expect(parsed.graph.nodes.find(node => node.id === 'external#run:function')?.symbol)
+      .toMatchObject({ name: 'run', kind: 'function' });
   });
 
-  it('keeps edge, source, and analysis-relation metadata in their own roles', () => {
+  it('does not persist Edge provenance or analyzer metadata', () => {
     const records = serializeDatabaseRecords({
       version: '1',
       files: {
@@ -161,10 +164,10 @@ describe('graphCache/database/parser', () => {
       }],
     });
 
-    const parsed = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges);
+    const parsed = parseDatabaseRecords(records.files, records.nodes, records.symbols, records.edges, '/workspace');
 
-    expect(parsed.graph.edges[0]?.metadata).toEqual({ language: 'edge-language' });
-    expect(parsed.graph.edges[0]?.sources[0]?.metadata).toEqual({ language: 'source-language' });
-    expect(parsed.relations[0]?.metadata).toEqual({ language: 'relation-language' });
+    expect(parsed.graph.edges[0]).not.toHaveProperty('metadata');
+    expect(parsed.graph.edges[0]?.sources).toEqual([]);
+    expect(parsed.relations[0]).not.toHaveProperty('metadata');
   });
 });

@@ -80,14 +80,13 @@ describe('workspace analysis database schema', () => {
       node: ['id', ...NODE_COLUMNS],
       symbol: [...SYMBOL_COLUMNS],
       edge: ['id', ...EDGE_COLUMNS],
-      userVersion: 6,
+      userVersion: 7,
       nodeForeignKeys: [
         { from: 'parentId', table: 'Node', to: 'id' },
         { from: 'fileId', table: 'File', to: 'id' },
       ],
       symbolForeignKeys: [{ from: 'nodeId', table: 'Node', to: 'id' }],
       edgeForeignKeys: [
-        { from: 'ownerFileId', table: 'File', to: 'id' },
         { from: 'targetNodeId', table: 'Node', to: 'id' },
         { from: 'sourceNodeId', table: 'Node', to: 'id' },
       ],

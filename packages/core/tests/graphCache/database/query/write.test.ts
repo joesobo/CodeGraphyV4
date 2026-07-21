@@ -84,8 +84,6 @@ describe('graphCache/database/writeStatements', () => {
 
     expect(execute).toHaveBeenCalledWith(writer.connection, writer.fileStatement, {
       path: 'src/app.ts',
-      analysisPath: '/workspace/src/app.ts',
-      mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
     });
@@ -94,7 +92,6 @@ describe('graphCache/database/writeStatements', () => {
       writer.symbolStatement,
       expect.objectContaining({
         nodeId: 11,
-        analysisId: 'symbol-1',
         name: 'App',
       }),
     );
@@ -135,13 +132,13 @@ describe('graphCache/database/writeStatements', () => {
     expect(execute).toHaveBeenLastCalledWith(
       writer.connection,
       writer.edgeStatement,
-      expect.objectContaining({
-      graphKey: 'src/app.ts->src/model.ts#import',
-      sourceNodeId: 1,
-      targetNodeId: 2,
-      type: 'import',
-      analysisRelation: 0,
-    }));
+      {
+        key: 'src/app.ts->src/model.ts#import',
+        sourceNodeId: 1,
+        targetNodeId: 2,
+        type: 'import',
+      },
+    );
   });
 
   it('persists normalized records asynchronously and yields after each statement', async () => {

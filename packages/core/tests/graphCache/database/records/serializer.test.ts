@@ -38,7 +38,7 @@ describe('graphCache/database/serializer', () => {
     expect(mapIterations).not.toHaveBeenCalled();
   });
 
-  it('normalizes files, nodes, symbols, and edge provenance without JSON', () => {
+  it('normalizes files, nodes, symbols, and edges into the minimal schema', () => {
     const records = serializeDatabaseRecords({
       version: '1',
       files: {
@@ -64,27 +64,25 @@ describe('graphCache/database/serializer', () => {
       },
     });
 
-    expect(records.files).toEqual([expect.objectContaining({
+    expect(records.files).toEqual([{
       path: 'src/app.ts',
-      analysisPath: '/workspace/src/app.ts',
-    })]);
+      size: -1,
+      contentHash: null,
+    }]);
     expect(records.nodes).toContainEqual(expect.objectContaining({
       key: 'src/app.ts#App',
       type: 'component',
-      analysisNodeId: '/workspace/src/app.ts#App',
     }));
     expect(records.symbols).toContainEqual(expect.objectContaining({
       nodeId: 'src/app.ts#App',
-      analysisId: '/workspace/src/app.ts#App',
       kind: 'class',
     }));
-    expect(records.edges).toContainEqual(expect.objectContaining({
+    expect(records.edges).toContainEqual({
+      key: 'src/app.ts->src/model.ts#import',
       sourceNodeId: 'src/app.ts',
       targetNodeId: 'src/model.ts',
-      analysisSourceId: 'tree-sitter:import',
-      analysisRelation: 1,
-      canonicalGraphEdge: 1,
-    }));
+      type: 'import',
+    });
     expect(JSON.stringify(records)).not.toMatch(/factsJson|propertiesJson|sourcesJson|provenanceJson/);
   });
 
@@ -108,7 +106,7 @@ describe('graphCache/database/serializer', () => {
     expect(records.edges.map(edge => edge.type)).not.toContain('codegraphy:has-cache-tier');
   });
 
-  it('persists external package relations as owned analysis facts', () => {
+  it('persists external package relations as graph nodes and edges', () => {
     const records = serializeDatabaseRecords({
       version: '1',
       files: {
@@ -143,13 +141,11 @@ describe('graphCache/database/serializer', () => {
       key: 'pkg:@eslint/js',
       type: 'package',
     }));
-    expect(records.edges).toContainEqual(expect.objectContaining({
+    expect(records.edges).toContainEqual({
+      key: 'eslint.config.mjs->pkg:@eslint/js#import',
       sourceNodeId: 'eslint.config.mjs',
       targetNodeId: 'pkg:@eslint/js',
-      ownerFileId: 'eslint.config.mjs',
-      relationSpecifier: '@eslint/js',
-      analysisRelation: 1,
-      canonicalGraphEdge: 1,
-    }));
+      type: 'import',
+    });
   });
 });

@@ -34,25 +34,6 @@ function createWorkspaceRoot(): string {
   return workspaceRoot;
 }
 
-function completeCache(cache: IWorkspaceAnalysisCache): IWorkspaceAnalysisCache {
-  return {
-    ...cache,
-    files: Object.fromEntries(Object.entries(cache.files).map(([filePath, entry]) => [
-      filePath,
-      {
-        ...entry,
-        analysis: {
-          ...entry.analysis,
-          cache: { tiers: ['baseline', 'symbols'] },
-          nodes: entry.analysis.nodes ?? [],
-          symbols: entry.analysis.symbols ?? [],
-          relations: entry.analysis.relations ?? [],
-        },
-      },
-    ])),
-  };
-}
-
 afterEach(() => {
   for (const workspaceRoot of tempRoots) {
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
@@ -109,58 +90,31 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       path.join(workspaceRoot, '.codegraphy', 'graph.sqlite'),
     );
     expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(true);
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(completeCache(cache));
-    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
-      files: [
-        {
-          filePath: 'src/index.ts',
-          mtime: 123,
-          contentHash: 'sha256:index',
-          size: 456,
-          analysis: {
-            ...cache.files['src/index.ts']!.analysis,
-            nodes: [],
-          },
-        },
-      ],
-      graph: {
-        nodes: [
-          {
-            id: 'src/index.ts',
-            label: 'index.ts',
-            color: '#808080',
-            nodeType: 'file',
-          },
-          {
-            id: 'src/index.ts:function:main',
-            label: 'main',
-            color: '#808080',
-            nodeType: 'symbol',
-            symbol: {
-              id: '/workspace/src/index.ts:function:main',
-              filePath: 'src/index.ts',
-              kind: 'function',
-              name: 'main',
-            },
-          },
-          {
-            id: 'src/utils.ts',
-            label: 'utils.ts',
-            color: '#808080',
-            nodeType: 'file',
-          },
-        ],
-        edges: [{
-          id: 'src/index.ts->src/utils.ts#import',
-          from: 'src/index.ts',
-          to: 'src/utils.ts',
-          kind: 'import',
-          sources: [],
-        }],
+    const loaded = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+    expect(loaded.files['src/index.ts']).toMatchObject({
+      mtime: 0,
+      contentHash: 'sha256:index',
+      size: 456,
+      analysis: {
+        filePath: path.join(workspaceRoot, 'src/index.ts'),
+        symbols: [expect.objectContaining({ name: 'main', kind: 'function' })],
+        relations: [expect.objectContaining({ kind: 'import' })],
       },
-      symbols: cache.files['src/index.ts']!.analysis.symbols,
-      relations: cache.files['src/index.ts']!.analysis.relations,
     });
+    const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshot.graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'src/index.ts', nodeType: 'file' }),
+      expect.objectContaining({ id: 'src/index.ts:function:main', nodeType: 'symbol' }),
+      expect.objectContaining({ id: 'src/utils.ts', nodeType: 'file' }),
+    ]));
+    expect(snapshot.graph.edges).toEqual([
+      expect.objectContaining({
+        id: 'src/index.ts->src/utils.ts#import',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+      }),
+    ]);
   });
 
   it('persists indexing state and the canonical property graph in normalized queryable tables', () => {
@@ -250,22 +204,20 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       getWorkspaceAnalysisDatabasePath(workspaceRoot),
       connection => ({
         tables: readRowsSync(connection, "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name"),
-        files: readRowsSync(connection, 'SELECT id, path, analysisPath, mtime, size, contentHash FROM File'),
-        nodes: readRowsSync(connection, `SELECT Node.id, Node.key, Node.type, Node.label,
-          File.path AS filePath, Node.analysisNodeId
-          FROM Node LEFT JOIN File ON File.id = Node.fileId ORDER BY Node.id`),
-        symbols: readRowsSync(connection, `SELECT Symbol.nodeId, Node.key AS nodeKey,
-          Symbol.analysisId, Symbol.name, Symbol.kind
+        files: readRowsSync(connection, 'SELECT id, path, size, contentHash FROM File'),
+        nodes: readRowsSync(connection, `SELECT Node.*, File.path AS filePath,
+          Parent.key AS parentKey
+          FROM Node
+          LEFT JOIN File ON File.id = Node.fileId
+          LEFT JOIN Node AS Parent ON Parent.id = Node.parentId
+          ORDER BY Node.id`),
+        symbols: readRowsSync(connection, `SELECT Symbol.*, Node.key AS nodeKey
           FROM Symbol JOIN Node ON Node.id = Symbol.nodeId ORDER BY Symbol.nodeId`),
-        edges: readRowsSync(connection, `SELECT Edge.graphKey, Edge.sourceNodeId,
-          Source.key AS sourceNodeKey, Edge.targetNodeId, Target.key AS targetNodeKey,
-          Edge.type, Edge.ownerFileId, File.path AS ownerFilePath, Edge.sourcePluginId,
-          Edge.relationPluginId, Edge.sourceKey, Edge.pluginSourceId,
-          Edge.analysisSourceId, Edge.relationSpecifier, Edge.resolvedPath, Edge.analysisRelation
+        edges: readRowsSync(connection, `SELECT Edge.*, Source.key AS sourceNodeKey,
+          Target.key AS targetNodeKey
           FROM Edge
           JOIN Node AS Source ON Source.id = Edge.sourceNodeId
-          JOIN Node AS Target ON Target.id = Edge.targetNodeId
-          LEFT JOIN File ON File.id = Edge.ownerFileId`),
+          JOIN Node AS Target ON Target.id = Edge.targetNodeId`),
       }),
     );
 
@@ -278,8 +230,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     expect(records.files).toEqual([{
       id: 1,
       path: 'src/index.ts',
-      analysisPath: '/workspace/src/index.ts',
-      mtime: 1,
       size: 2,
       contentHash: null,
     }]);
@@ -289,71 +239,108 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         key: 'src/index.ts',
         type: 'file',
         label: 'index.ts',
+        fileId: 1,
         filePath: 'src/index.ts',
-        analysisNodeId: null,
+        parentId: null,
+        parentKey: null,
+        color: '#ffffff',
+        x: null,
+        y: null,
+        favorite: null,
+        shape: null,
+        imageUrl: null,
+        isCollapsed: null,
+        pluginId: null,
+        language: null,
       },
       {
         id: 2,
         key: 'src/index.ts:function:main',
         type: 'symbol',
         label: 'main',
+        fileId: 1,
         filePath: 'src/index.ts',
-        analysisNodeId: null,
+        parentId: null,
+        parentKey: null,
+        color: '#ffffff',
+        x: null,
+        y: null,
+        favorite: null,
+        shape: null,
+        imageUrl: null,
+        isCollapsed: null,
+        pluginId: null,
+        language: null,
       },
       {
         id: 3,
         key: 'src/index.ts:route:home',
         type: 'plugin:test:route',
         label: 'Home',
+        fileId: 1,
         filePath: 'src/index.ts',
-        analysisNodeId: '/workspace/src/index.ts:route:home',
+        parentId: null,
+        parentKey: null,
+        color: '#808080',
+        x: null,
+        y: null,
+        favorite: null,
+        shape: null,
+        imageUrl: null,
+        isCollapsed: null,
+        pluginId: null,
+        language: null,
       },
       {
         id: 4,
         key: 'src/utils.ts',
         type: 'file',
         label: 'utils.ts',
+        fileId: null,
         filePath: null,
-        analysisNodeId: null,
+        parentId: null,
+        parentKey: null,
+        color: '#ffffff',
+        x: null,
+        y: null,
+        favorite: null,
+        shape: null,
+        imageUrl: null,
+        isCollapsed: null,
+        pluginId: null,
+        language: null,
       },
     ]);
     expect(records.symbols).toEqual([{
       nodeId: 2,
       nodeKey: 'src/index.ts:function:main',
-      analysisId: '/workspace/src/index.ts:function:main',
       name: 'main',
       kind: 'function',
+      pluginId: null,
+      language: null,
     }]);
     expect(records.edges).toEqual([{
-      graphKey: 'src/index.ts->src/utils.ts#import',
+      id: 1,
+      key: 'src/index.ts->src/utils.ts#import',
       sourceNodeId: 1,
       sourceNodeKey: 'src/index.ts',
       targetNodeId: 4,
       targetNodeKey: 'src/utils.ts',
       type: 'import',
-      ownerFileId: 1,
-      ownerFilePath: 'src/index.ts',
-      sourcePluginId: 'core',
-      relationPluginId: null,
-      sourceKey: 'core:treesitter:import',
-      pluginSourceId: 'treesitter:import',
-      analysisSourceId: 'core:treesitter:import',
-      relationSpecifier: null,
-      resolvedPath: null,
-      analysisRelation: 1,
     }]);
-    const storedAnalysis = {
-      cache: { tiers: ['baseline', 'symbols'] },
-      filePath: analysis.filePath,
-      nodes: analysis.nodes,
-      symbols: analysis.symbols,
-      relations: analysis.relations,
-    };
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual({
-      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
-      files: {
-        'src/index.ts': { mtime: 1, size: 2, analysis: storedAnalysis },
-      },
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/index.ts'])
+      .toMatchObject({
+        mtime: 0,
+        size: 2,
+        analysis: {
+          filePath: path.join(workspaceRoot, 'src/index.ts'),
+          nodes: [expect.objectContaining({
+            nodeType: 'plugin:test:route',
+            label: 'Home',
+          })],
+          symbols: [expect.objectContaining({ name: 'main', kind: 'function' })],
+          relations: [expect.objectContaining({ kind: 'import' })],
+        },
     });
   });
 
@@ -405,7 +392,18 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       yieldEvery: 1,
     });
 
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(completeCache(cache));
+    const loaded = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+    expect(Object.keys(loaded.files)).toEqual(['src/first.ts', 'src/second.ts']);
+    expect(loaded.files['src/first.ts']).toMatchObject({
+      mtime: 0,
+      size: 10,
+      analysis: { filePath: path.join(workspaceRoot, 'src/first.ts') },
+    });
+    expect(loaded.files['src/second.ts']).toMatchObject({
+      mtime: 0,
+      size: 20,
+      analysis: { filePath: path.join(workspaceRoot, 'src/second.ts') },
+    });
     expect(progressUpdates).toEqual([
       { current: 0, total: 2 },
       { current: 1, total: 2 },
@@ -464,31 +462,20 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     } as never;
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, fullCache);
 
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+    const baselineCache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot, {
       activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
-    })).toEqual({
-      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
-      files: {
-        'src/App.vue': {
-          mtime: 1,
-          size: 10,
-          analysis: {
-            cache: { tiers: ['baseline'] },
-            filePath: '/workspace/src/App.vue',
-            nodes: [{
-              id: 'src/App.vue',
-              label: 'App.vue',
-              nodeType: 'file',
-            }],
-            symbols: [],
-            relations: [{
-              kind: 'import',
-              sourceId: 'core:treesitter:import',
-              fromFilePath: '/workspace/src/App.vue',
-              toFilePath: '/workspace/src/main.ts',
-            }],
-          },
-        },
+    });
+    expect(baselineCache.files['src/App.vue']).toMatchObject({
+      mtime: 0,
+      size: 10,
+      analysis: {
+        cache: { tiers: ['baseline'] },
+        filePath: path.join(workspaceRoot, 'src/App.vue'),
+        symbols: [],
+        relations: [
+          expect.objectContaining({ kind: 'contains' }),
+          expect.objectContaining({ kind: 'import' }),
+        ],
       },
     });
 
@@ -498,14 +485,20 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         SYMBOLS_ANALYSIS_CACHE_TIER,
         'plugin:codegraphy.vue',
       ],
-    })).toEqual({
-      ...fullCache,
+    })).toMatchObject({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {
         'src/App.vue': {
-          ...fullCache.files['src/App.vue'],
+          mtime: 0,
+          size: 10,
           analysis: {
-            ...fullCache.files['src/App.vue']!.analysis,
             cache: { tiers: ['baseline', 'symbols', 'plugin:codegraphy.vue'] },
+            filePath: path.join(workspaceRoot, 'src/App.vue'),
+            symbols: [expect.objectContaining({ name: 'App', kind: 'component' })],
+            relations: [
+              expect.objectContaining({ kind: 'contains' }),
+              expect.objectContaining({ kind: 'import' }),
+            ],
           },
         },
       },
@@ -558,10 +551,14 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     };
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, firstCache);
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(completeCache(firstCache));
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files).toMatchObject({
+      'src/first.ts': { mtime: 0, size: 10 },
+    });
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, secondCache);
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(completeCache(secondCache));
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files).toEqual({
+      'src/second.ts': expect.objectContaining({ mtime: 0, size: 20 }),
+    });
   });
 
   it('rebuilds normalized facts when patching changed files', () => {
@@ -639,41 +636,28 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       },
     });
 
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(completeCache({
-      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
-      files: {
-        'src/changed.ts': {
-          mtime: 4,
-          size: 40,
-          analysis: {
-            filePath: '/workspace/src/changed.ts',
-            symbols: [{
-              id: '/workspace/src/changed.ts:function:changed',
-              filePath: '/workspace/src/changed.ts',
-              kind: 'function',
-              name: 'changed',
-            }],
-          },
-        },
-        'src/created.ts': {
-          mtime: 5,
-          size: 50,
-          analysis: {
-            filePath: '/workspace/src/created.ts',
-          },
-        },
-        'src/stable.ts': initialCache.files['src/stable.ts']!,
-      },
-    }));
+    const patched = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+    expect(Object.keys(patched.files)).toEqual([
+      'src/changed.ts',
+      'src/created.ts',
+      'src/stable.ts',
+    ]);
+    expect(patched.files['src/changed.ts']).toMatchObject({
+      mtime: 0,
+      size: 40,
+      analysis: { symbols: [expect.objectContaining({ name: 'changed', kind: 'function' })] },
+    });
+    expect(patched.files['src/created.ts']).toMatchObject({ mtime: 0, size: 50 });
+    expect(patched.files['src/stable.ts']).toMatchObject({ mtime: 0, size: 30 });
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toMatchObject({
       files: [
-        { filePath: 'src/changed.ts', mtime: 4, size: 40 },
-        { filePath: 'src/created.ts', mtime: 5, size: 50 },
-        { filePath: 'src/stable.ts', mtime: 3, size: 30 },
+        { filePath: 'src/changed.ts', mtime: 0, size: 40 },
+        { filePath: 'src/created.ts', mtime: 0, size: 50 },
+        { filePath: 'src/stable.ts', mtime: 0, size: 30 },
       ],
       symbols: [{
-        id: '/workspace/src/changed.ts:function:changed',
-        filePath: '/workspace/src/changed.ts',
+        id: path.join(workspaceRoot, 'src/changed.ts:function:changed'),
+        filePath: path.join(workspaceRoot, 'src/changed.ts'),
         kind: 'function',
         name: 'changed',
       }],
@@ -719,7 +703,12 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
 
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(completeCache(cache));
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/index.ts'])
+      .toMatchObject({
+        mtime: 0,
+        size: 2,
+        analysis: { filePath: path.join(workspaceRoot, 'src/index.ts') },
+      });
   });
 
   it('clears persisted analysis rows without deleting repo-local settings files', () => {

@@ -161,6 +161,7 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
         readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
         readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
         readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
+        workspaceRoot,
       );
     });
   } catch (error) {

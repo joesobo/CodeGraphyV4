@@ -38,9 +38,8 @@ describe('graphCache/database/snapshot', () => {
     vi.mocked(connectionModule.readRowsSync).mockImplementation((_connection, query) => {
       if (query === FILE_ROWS_QUERY) return [{
         path: 'src/app.ts',
-        analysisPath: '/workspace/src/app.ts',
-        mtime: 1,
         size: 2,
+        contentHash: 'sha256:app',
       }];
       if (query === NODE_ROWS_QUERY) return [
         {
@@ -53,20 +52,16 @@ describe('graphCache/database/snapshot', () => {
       if (query === SYMBOL_ROWS_QUERY) return [{
         nodeId: 2,
         nodeKey: 'symbol-1',
-        filePath: '/workspace/src/app.ts',
         ownerFilePath: 'src/app.ts',
-        analysisId: 'symbol-1',
-        analysisPath: '/workspace/src/app.ts',
         name: 'App',
         kind: 'class',
-        analysisOrder: 0,
       }];
       if (query === EDGE_ROWS_QUERY) return [];
       return [];
     });
 
     expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toMatchObject({
-      files: [{ filePath: 'src/app.ts', mtime: 1, size: 2 }],
+      files: [{ filePath: 'src/app.ts', mtime: 0, size: 2 }],
       graph: {
         nodes: [
           { id: 'src/app.ts', nodeType: 'file' },

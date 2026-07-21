@@ -1,20 +1,14 @@
+import * as path from 'node:path';
 import type {
-  GraphMetadata,
   GraphEdgeKind,
+  GraphMetadata,
   IAnalysisNode,
   IAnalysisRelation,
   IAnalysisSymbol,
   IGraphEdge,
-  IGraphEdgeSource,
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
-import {
-  EDGE_METADATA_COLUMNS,
-  type EdgeMetadataRole,
-  type GraphEdgeRow,
-  type GraphNodeRow,
-  type SymbolRow,
-} from './types';
+import type { GraphEdgeRow, GraphNodeRow, SymbolRow } from './types';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
 function readBoolean(value: unknown): boolean | undefined {
@@ -23,7 +17,7 @@ function readBoolean(value: unknown): boolean | undefined {
   return undefined;
 }
 
-function compactMetadata(entries: Array<[string, string | number | boolean | undefined]>): GraphMetadata | undefined {
+function compactMetadata(entries: Array<[string, string | undefined]>): GraphMetadata | undefined {
   const metadata: GraphMetadata = {};
   for (const [key, value] of entries) {
     if (value !== undefined) metadata[key] = value;
@@ -35,44 +29,22 @@ function nodeMetadata(row: GraphNodeRow): GraphMetadata | undefined {
   return compactMetadata([
     ['pluginId', readOptionalString(row.pluginId)],
     ['language', readOptionalString(row.language)],
-    ['source', readOptionalString(row.analysisSource)],
-    ['pluginKind', readOptionalString(row.pluginKind)],
-    ['gitIgnored', readBoolean(row.gitIgnored)],
-    ['gitIgnoredReason', readOptionalString(row.gitIgnoredReason)],
-    ['unityClass', readOptionalString(row.unityClass)],
-    ['fileId', readOptionalString(row.unityFileId)],
-    ['gameObjectFileId', readOptionalString(row.unityGameObjectFileId)],
-    ['scriptGuid', readOptionalString(row.unityScriptGuid)],
-    ['scriptPath', readOptionalString(row.unityScriptPath)],
     ['parentId', readOptionalString(row.parentKey)],
   ]);
 }
 
-function symbolMetadata(row: SymbolRow): GraphMetadata | undefined {
-  return compactMetadata([
-    ['pluginId', readOptionalString(row.pluginId)],
-    ['language', readOptionalString(row.language)],
-    ['source', readOptionalString(row.analysisSource)],
-    ['pluginKind', readOptionalString(row.pluginKind)],
-  ]);
-}
-
-function edgeMetadata(
-  row: GraphEdgeRow,
-  role: EdgeMetadataRole,
-): GraphMetadata | undefined {
-  const columns = Object.entries(EDGE_METADATA_COLUMNS[role]) as Array<[
-    string,
-    keyof GraphEdgeRow,
-  ]>;
-  return compactMetadata(columns.map(([metadataKey, column]) => [
-    metadataKey,
-    readOptionalString(row[column]),
-  ]));
-}
-
-function optionalNumber(value: unknown): number | undefined {
-  return readOptionalNumber(value);
+function analysisIdentity(
+  key: string,
+  filePath: string | undefined,
+  workspaceRoot: string,
+): string {
+  if (!filePath) return key;
+  const absoluteFilePath = path.resolve(workspaceRoot, filePath);
+  if (key === filePath) return absoluteFilePath;
+  if (key.startsWith(`${filePath}:`) || key.startsWith(`${filePath}#`)) {
+    return `${absoluteFilePath}${key.slice(filePath.length)}`;
+  }
+  return key;
 }
 
 export function createSnapshotGraphNode(
@@ -84,71 +56,32 @@ export function createSnapshotGraphNode(
   const label = readRequiredString(row.label);
   if (!id || !nodeType || !label) return undefined;
 
-  const color = readOptionalString(row.color) ?? '#808080';
-  const shapeWidth = optionalNumber(row.shapeWidth);
-  const shapeHeight = optionalNumber(row.shapeHeight);
-  const pointerWidth = optionalNumber(row.pointerWidth);
-  const pointerHeight = optionalNumber(row.pointerHeight);
+  const filePath = readOptionalString(row.filePath);
   const symbolName = readOptionalString(symbolRow?.name);
   const symbolKind = readOptionalString(symbolRow?.kind);
-  const symbolFilePath = readOptionalString(row.filePath)
-    ?? readOptionalString(symbolRow?.filePath)
-    ?? readOptionalString(symbolRow?.analysisPath);
-  const symbolId = readOptionalString(symbolRow?.analysisId) ?? id;
-  const startLine = optionalNumber(symbolRow?.startLine);
-  const endLine = optionalNumber(symbolRow?.endLine);
+  const symbolLanguage = readOptionalString(symbolRow?.language);
   const metadata = nodeMetadata(row);
-
   return {
     id,
     label,
     nodeType,
-    color,
-    ...(optionalNumber(row.x) !== undefined ? { x: optionalNumber(row.x) } : {}),
-    ...(optionalNumber(row.y) !== undefined ? { y: optionalNumber(row.y) } : {}),
+    color: readOptionalString(row.color) ?? '#808080',
+    ...(readOptionalNumber(row.x) !== undefined ? { x: readOptionalNumber(row.x) } : {}),
+    ...(readOptionalNumber(row.y) !== undefined ? { y: readOptionalNumber(row.y) } : {}),
     ...(readBoolean(row.favorite) !== undefined ? { favorite: readBoolean(row.favorite) } : {}),
-    ...(optionalNumber(row.fileSize) !== undefined ? { fileSize: optionalNumber(row.fileSize) } : {}),
-    ...(optionalNumber(row.depthLevel) !== undefined ? { depthLevel: optionalNumber(row.depthLevel) } : {}),
-    ...(readOptionalString(row.shape) ? { shape2D: readOptionalString(row.shape) as IGraphNode['shape2D'] } : {}),
-    ...(shapeWidth !== undefined && shapeHeight !== undefined
-      ? { shapeSize2D: { width: shapeWidth, height: shapeHeight } }
-      : {}),
-    ...(optionalNumber(row.cornerRadius) !== undefined ? { cornerRadius2D: optionalNumber(row.cornerRadius) } : {}),
-    ...(optionalNumber(row.collisionRadius) !== undefined ? { collisionRadius2D: optionalNumber(row.collisionRadius) } : {}),
-    ...(optionalNumber(row.chargeStrengthMultiplier) !== undefined
-      ? { chargeStrengthMultiplier2D: optionalNumber(row.chargeStrengthMultiplier) }
-      : {}),
-    ...(optionalNumber(row.fillOpacity) !== undefined ? { fillOpacity2D: optionalNumber(row.fillOpacity) } : {}),
-    ...(pointerWidth !== undefined && pointerHeight !== undefined
-      ? { pointerArea2D: { width: pointerWidth, height: pointerHeight } }
+    ...(readOptionalString(row.shape)
+      ? { shape2D: readOptionalString(row.shape) as IGraphNode['shape2D'] }
       : {}),
     ...(readOptionalString(row.imageUrl) ? { imageUrl: readOptionalString(row.imageUrl) } : {}),
-    ...(readBoolean(row.isCollapsible) !== undefined ? { isCollapsible: readBoolean(row.isCollapsible) } : {}),
     ...(readBoolean(row.isCollapsed) !== undefined ? { isCollapsed: readBoolean(row.isCollapsed) } : {}),
-    ...(optionalNumber(row.collapsedDescendantCount) !== undefined
-      ? { collapsedDescendantCount: optionalNumber(row.collapsedDescendantCount) }
-      : {}),
-    ...(symbolName && symbolKind && symbolFilePath
+    ...(symbolName && symbolKind && filePath
       ? {
           symbol: {
-            id: symbolId,
+            id,
             name: symbolName,
             kind: symbolKind,
-            filePath: symbolFilePath,
-            ...(readOptionalString(symbolRow?.pluginKind) ? { pluginKind: readOptionalString(symbolRow?.pluginKind) } : {}),
-            ...(readOptionalString(symbolRow?.signature) ? { signature: readOptionalString(symbolRow?.signature) } : {}),
-            ...(readOptionalString(symbolRow?.language) ? { language: readOptionalString(symbolRow?.language) } : {}),
-            ...(readOptionalString(symbolRow?.analysisSource) ? { source: readOptionalString(symbolRow?.analysisSource) } : {}),
-            ...(startLine !== undefined && endLine !== undefined
-              ? {
-                  range: {
-                    startLine,
-                    endLine,
-                    ...(optionalNumber(symbolRow?.startColumn) !== undefined ? { startColumn: optionalNumber(symbolRow?.startColumn) } : {}),
-                    ...(optionalNumber(symbolRow?.endColumn) !== undefined ? { endColumn: optionalNumber(symbolRow?.endColumn) } : {}),
-                  },
-                }
-              : {}),
+            filePath,
+            ...(symbolLanguage ? { language: symbolLanguage } : {}),
           },
         }
       : {}),
@@ -156,112 +89,84 @@ export function createSnapshotGraphNode(
   };
 }
 
-export function createSnapshotAnalysisNode(row: GraphNodeRow): IAnalysisNode | undefined {
-  const id = readRequiredString(row.analysisNodeId);
+export function createSnapshotAnalysisNode(
+  row: GraphNodeRow,
+  workspaceRoot: string,
+): IAnalysisNode | undefined {
+  const key = readRequiredString(row.key);
   const nodeType = readRequiredString(row.type);
   const label = readRequiredString(row.label);
-  if (!id || !nodeType || !label) return undefined;
-  const filePath = readOptionalString(row.analysisNodeFilePath);
-  const parentId = readOptionalString(row.analysisParentId);
+  const filePath = readOptionalString(row.filePath);
+  if (!key || !nodeType || !label || !filePath) return undefined;
+  const parentKey = readOptionalString(row.parentKey);
   const metadata = nodeMetadata(row);
   return {
-    id,
+    id: analysisIdentity(key, filePath, workspaceRoot),
     nodeType,
     label,
-    ...(filePath ? { filePath } : {}),
-    ...(parentId ? { parentId } : {}),
+    filePath: path.resolve(workspaceRoot, filePath),
+    ...(parentKey ? { parentId: analysisIdentity(parentKey, filePath, workspaceRoot) } : {}),
     ...(metadata ? { metadata } : {}),
   };
 }
 
-export function createSnapshotAnalysisSymbol(row: SymbolRow): IAnalysisSymbol | undefined {
-  const id = readRequiredString(row.analysisId);
+export function createSnapshotAnalysisSymbol(
+  row: SymbolRow,
+  workspaceRoot: string,
+): IAnalysisSymbol | undefined {
+  const key = readRequiredString(row.nodeKey);
+  const filePath = readRequiredString(row.ownerFilePath);
   const name = readRequiredString(row.name);
   const kind = readRequiredString(row.kind);
-  const filePath = readRequiredString(row.analysisPath);
-  if (!id || !name || !kind || !filePath) return undefined;
-  const startLine = optionalNumber(row.startLine);
-  const endLine = optionalNumber(row.endLine);
-  const metadata = symbolMetadata(row);
+  if (!key || !filePath || !name || !kind) return undefined;
+  const metadata = compactMetadata([
+    ['pluginId', readOptionalString(row.pluginId)],
+    ['language', readOptionalString(row.language)],
+  ]);
   return {
-    id,
+    id: analysisIdentity(key, filePath, workspaceRoot),
     name,
-    kind: kind as GraphEdgeKind,
-    filePath,
-    ...(readOptionalString(row.signature) ? { signature: readOptionalString(row.signature) } : {}),
-    ...(startLine !== undefined && endLine !== undefined
-      ? {
-          range: {
-            startLine,
-            endLine,
-            ...(optionalNumber(row.startColumn) !== undefined ? { startColumn: optionalNumber(row.startColumn) } : {}),
-            ...(optionalNumber(row.endColumn) !== undefined ? { endColumn: optionalNumber(row.endColumn) } : {}),
-          },
-        }
-      : {}),
-    ...(metadata ? { metadata } : {}),
-  };
-}
-
-function createGraphEdgeSource(row: GraphEdgeRow): IGraphEdgeSource | undefined {
-  const id = readOptionalString(row.sourceKey);
-  const pluginId = readOptionalString(row.sourcePluginId);
-  const sourceId = readOptionalString(row.pluginSourceId);
-  const label = readOptionalString(row.sourceLabel);
-  if (!id || !pluginId || !sourceId || !label) return undefined;
-  const metadata = edgeMetadata(row, 'source');
-  return {
-    id,
-    pluginId,
-    sourceId,
-    label,
-    ...(readOptionalString(row.variant) ? { variant: readOptionalString(row.variant) } : {}),
+    kind,
+    filePath: path.resolve(workspaceRoot, filePath),
     ...(metadata ? { metadata } : {}),
   };
 }
 
 export function createSnapshotGraphEdge(row: GraphEdgeRow): IGraphEdge | undefined {
-  const id = readRequiredString(row.graphKey);
-  const from = readRequiredString(row.sourceNodeKey) ?? readRequiredString(row.sourceNodeId);
-  const to = readRequiredString(row.targetNodeKey) ?? readRequiredString(row.targetNodeId);
+  const id = readRequiredString(row.key);
+  const from = readRequiredString(row.sourceNodeKey);
+  const to = readRequiredString(row.targetNodeKey);
   const kind = readRequiredString(row.type);
   if (!id || !from || !to || !kind) return undefined;
-  const source = createGraphEdgeSource(row);
-  const metadata = edgeMetadata(row, 'edge');
-  return {
-    id,
-    from,
-    to,
-    kind: kind as GraphEdgeKind,
-    ...(readOptionalString(row.color) ? { color: readOptionalString(row.color) } : {}),
-    sources: source ? [source] : [],
-    ...(metadata ? { metadata } : {}),
-  };
+  return { id, from, to, kind: kind as GraphEdgeKind, sources: [] };
 }
 
-export function createSnapshotAnalysisRelation(row: GraphEdgeRow): IAnalysisRelation | undefined {
-  if (readBoolean(row.analysisRelation) !== true) return undefined;
+export function createSnapshotAnalysisRelation(
+  row: GraphEdgeRow,
+  workspaceRoot: string,
+): IAnalysisRelation | undefined {
+  const sourceKey = readRequiredString(row.sourceNodeKey);
+  const targetKey = readRequiredString(row.targetNodeKey);
+  const sourceFilePath = readRequiredString(row.sourceFilePath);
+  const targetFilePath = readOptionalString(row.targetFilePath);
+  const sourceNodeType = readOptionalString(row.sourceNodeType);
+  const targetNodeType = readOptionalString(row.targetNodeType);
   const kind = readRequiredString(row.type);
-  const sourceId = readRequiredString(row.analysisSourceId);
-  const fromFilePath = readRequiredString(row.fromFilePath);
-  if (!kind || !sourceId || !fromFilePath) return undefined;
-  const metadata = edgeMetadata(row, 'relation');
-  const toFilePath = readOptionalString(row.toFilePath);
-  const resolvedPath = readOptionalString(row.resolvedPath);
+  const sourceId = readRequiredString(row.key);
+  if (!sourceKey || !targetKey || !sourceFilePath || !kind || !sourceId) return undefined;
+
+  const fromIdentity = analysisIdentity(sourceKey, sourceFilePath, workspaceRoot);
+  const toIdentity = analysisIdentity(targetKey, targetFilePath, workspaceRoot);
   return {
     kind: kind as GraphEdgeKind,
     sourceId,
-    fromFilePath,
-    ...(readOptionalString(row.relationPluginId) ? { pluginId: readOptionalString(row.relationPluginId) } : {}),
-    ...(toFilePath ? { toFilePath } : {}),
-    ...(readOptionalString(row.fromAnalysisNodeId) ? { fromNodeId: readOptionalString(row.fromAnalysisNodeId) } : {}),
-    ...(readOptionalString(row.toAnalysisNodeId) ? { toNodeId: readOptionalString(row.toAnalysisNodeId) } : {}),
-    ...(readOptionalString(row.fromSymbolId) ? { fromSymbolId: readOptionalString(row.fromSymbolId) } : {}),
-    ...(readOptionalString(row.toSymbolId) ? { toSymbolId: readOptionalString(row.toSymbolId) } : {}),
-    ...(readOptionalString(row.relationSpecifier) ? { specifier: readOptionalString(row.relationSpecifier) } : {}),
-    ...(readOptionalString(row.relationType) ? { type: readOptionalString(row.relationType) } : {}),
-    ...(readOptionalString(row.variant) ? { variant: readOptionalString(row.variant) } : {}),
-    ...(resolvedPath ? { resolvedPath } : {}),
-    ...(metadata ? { metadata } : {}),
+    fromFilePath: path.resolve(workspaceRoot, sourceFilePath),
+    ...(targetFilePath ? { toFilePath: path.resolve(workspaceRoot, targetFilePath) } : {}),
+    ...(sourceKey !== sourceFilePath
+      ? sourceNodeType === 'symbol' ? { fromSymbolId: fromIdentity } : { fromNodeId: fromIdentity }
+      : {}),
+    ...(targetFilePath && targetKey === targetFilePath
+      ? {}
+      : targetNodeType === 'symbol' ? { toSymbolId: toIdentity } : { toNodeId: toIdentity }),
   };
 }
