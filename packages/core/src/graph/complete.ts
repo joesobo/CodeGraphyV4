@@ -21,7 +21,10 @@ function mergeGraphData(...graphs: readonly IGraphData[]): IGraphData {
   const nodes = new Map<string, IGraphNode>();
   const edges = new Map<string, IGraphEdge>();
   for (const graph of graphs) {
-    for (const node of graph.nodes) nodes.set(node.id, node);
+    for (const node of graph.nodes) {
+      const existing = nodes.get(node.id);
+      nodes.set(node.id, existing ? mergeGraphNode(existing, node) : node);
+    }
     for (const edge of graph.edges) {
       const existing = edges.get(edge.id);
       if (!existing) {
@@ -34,6 +37,24 @@ function mergeGraphData(...graphs: readonly IGraphData[]): IGraphData {
     }
   }
   return { nodes: [...nodes.values()], edges: [...edges.values()] };
+}
+
+function mergeGraphNode(existing: IGraphNode, incoming: IGraphNode): IGraphNode {
+  const symbolNode = incoming.symbol ? incoming : existing.symbol ? existing : undefined;
+  const metadata = existing.metadata || incoming.metadata
+    ? { ...existing.metadata, ...incoming.metadata }
+    : undefined;
+  return {
+    ...existing,
+    ...incoming,
+    ...(symbolNode ? {
+      color: symbolNode.color,
+      label: symbolNode.label,
+      nodeType: symbolNode.nodeType,
+      symbol: symbolNode.symbol,
+    } : {}),
+    ...(metadata ? { metadata } : {}),
+  };
 }
 
 function normalizeGraphId(id: string, workspaceRoot: string): string {

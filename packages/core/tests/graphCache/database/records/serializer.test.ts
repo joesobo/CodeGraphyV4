@@ -107,6 +107,81 @@ describe('graphCache/database/serializer', () => {
     expect(records.edges.map(edge => edge.type)).not.toContain('codegraphy:has-cache-tier');
   });
 
+  it('stores symbol-backed nodes with their specific Graph Scope type', () => {
+    const records = serializeDatabaseRecords({
+      version: '1',
+      files: {
+        'src/player.cs': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/player.cs',
+            symbols: [{
+              id: '/workspace/src/player.cs:field:speed',
+              filePath: '/workspace/src/player.cs',
+              name: 'speed',
+              kind: 'field',
+            }],
+          },
+        },
+      },
+    }, {
+      nodes: [{
+        id: 'src/player.cs#speed:field',
+        nodeType: 'variable',
+        label: 'speed',
+        color: '#fff',
+        symbol: {
+          id: 'src/player.cs#speed:field',
+          filePath: 'src/player.cs',
+          name: 'speed',
+          kind: 'field',
+        },
+      }],
+      edges: [],
+    });
+
+    expect(records.nodes).toContainEqual(expect.objectContaining({
+      key: 'src/player.cs#speed:field',
+      type: 'symbol:field',
+    }));
+  });
+
+  it('uses symbol facts when an analysis endpoint has no graph node', () => {
+    const records = serializeDatabaseRecords({
+      version: '1',
+      files: {
+        'src/player.cs': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/player.cs',
+            symbols: [{
+              id: '/workspace/src/player.cs#speed:field',
+              filePath: '/workspace/src/player.cs',
+              name: 'speed',
+              kind: 'field',
+            }],
+            relations: [{
+              kind: 'reference',
+              sourceId: 'field-reference',
+              fromFilePath: '/workspace/src/player.cs',
+              toFilePath: '/workspace/src/player.cs',
+              toSymbolId: '/workspace/src/player.cs#speed:field',
+            }],
+          },
+        },
+      },
+    });
+
+    expect(records.nodes).toContainEqual(expect.objectContaining({
+      key: 'src/player.cs#speed:field',
+      label: 'speed',
+      type: 'symbol:field',
+    }));
+    expect(records.edges).toContainEqual(expect.objectContaining({
+      targetNodeId: 'src/player.cs#speed:field',
+    }));
+  });
+
   it('persists external package relations as graph nodes and edges', () => {
     const records = serializeDatabaseRecords({
       version: '1',

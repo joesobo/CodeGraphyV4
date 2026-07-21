@@ -104,7 +104,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
     expect(snapshot.graph.nodes).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'src/index.ts', nodeType: 'file' }),
-      expect.objectContaining({ id: 'src/index.ts:function:main', nodeType: 'symbol' }),
+      expect.objectContaining({ id: 'src/index.ts:function:main', nodeType: 'symbol:function' }),
       expect.objectContaining({ id: 'src/utils.ts', nodeType: 'file' }),
     ]));
     expect(snapshot.graph.edges).toEqual([
@@ -252,7 +252,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       {
         id: 2,
         key: 'src/index.ts:function:main',
-        type: 'symbol',
+        type: 'symbol:function',
         label: 'main',
         fileId: 1,
         filePath: 'src/index.ts',

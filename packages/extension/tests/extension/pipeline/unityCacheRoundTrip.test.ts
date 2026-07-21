@@ -56,11 +56,21 @@ describe('Unity Graph Cache round trip', { timeout: 30_000 }, () => {
     const persistedGraph = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).graph;
     const expectedKeys = [...new Set(graph.nodes.map(node => node.id))].sort();
     const persistedKeys = persistedGraph.nodes.map(node => node.id).sort();
+    const persistedGameObjects = persistedGraph.nodes.filter(node => node.symbol?.kind === 'game-object');
+    const persistedComponents = persistedGraph.nodes.filter(node => node.symbol?.kind === 'component');
 
     expect(relativePaths).toHaveLength(36);
     expect(graph.nodes).toHaveLength(135);
     expect(persistedKeys).toHaveLength(135);
     expect(persistedKeys).toEqual(expectedKeys);
+    expect(persistedGameObjects.length).toBeGreaterThan(0);
+    expect(new Set(persistedGameObjects.map(node => node.nodeType))).toEqual(
+      new Set(['plugin:codegraphy.unity:symbol:game-object']),
+    );
+    expect(persistedComponents.length).toBeGreaterThan(0);
+    expect(new Set(persistedComponents.map(node => node.nodeType))).toEqual(
+      new Set(['plugin:codegraphy.unity:symbol:component']),
+    );
     expect(applyGraphScope(persistedGraph, {
       nodes: [
         { type: 'file', enabled: true },

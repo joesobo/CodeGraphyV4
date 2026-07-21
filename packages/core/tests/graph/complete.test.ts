@@ -24,11 +24,21 @@ describe('complete workspace graph', () => {
             nodeType: 'plugin:test:route',
             label: 'Home',
             filePath: '/workspace/src/app.ts',
+          }, {
+            id: 'src/app.ts#speed:field',
+            nodeType: 'variable',
+            label: 'speed',
+            filePath: '/workspace/src/app.ts',
           }],
           symbols: [{
             id: '/workspace/src/app.ts:function:run',
             name: 'run',
             kind: 'function',
+            filePath: '/workspace/src/app.ts',
+          }, {
+            id: '/workspace/src/app.ts:field:speed',
+            name: 'speed',
+            kind: 'field',
             filePath: '/workspace/src/app.ts',
           }],
           relations: [{
@@ -58,6 +68,11 @@ describe('complete workspace graph', () => {
         id: 'src/app.ts:route:home',
         nodeType: 'plugin:test:route',
         color: '#123456',
+      }),
+      expect.objectContaining({
+        id: 'src/app.ts#speed:field',
+        nodeType: 'variable',
+        symbol: expect.objectContaining({ kind: 'field', name: 'speed' }),
       }),
     ]));
     expect(graph.edges).toEqual(expect.arrayContaining([
