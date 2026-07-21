@@ -7,7 +7,7 @@ import {
   SYMBOL_COLUMNS,
 } from '../records/types';
 
-export const GRAPH_CACHE_SCHEMA_VERSION = 8;
+export const GRAPH_CACHE_SCHEMA_VERSION = 9;
 
 function tableColumns(connection: SQLiteConnection, table: string): string[] {
   const rows = connection.pragma(`table_info(${table})`) as Array<{ name?: string }>;
@@ -84,6 +84,7 @@ export function ensureSchema(connection: SQLiteConnection): void {
     CREATE TABLE IF NOT EXISTS File (
       id INTEGER PRIMARY KEY,
       path TEXT NOT NULL UNIQUE,
+      mtime REAL NOT NULL,
       size INTEGER NOT NULL,
       contentHash TEXT
     ) STRICT;

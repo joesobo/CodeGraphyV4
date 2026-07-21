@@ -325,6 +325,7 @@ export function serializeDatabaseRecords(
   const analysisToGraphId = createAnalysisToGraphId(sortedFiles, graphData, normalization);
   const files: FileRecord[] = sortedFiles.map(([filePath, entry]) => ({
     path: filePath,
+    mtime: entry.mtime,
     size: entry.size ?? -1,
     contentHash: entry.contentHash ?? null,
   }));

@@ -19,10 +19,11 @@ export function createSnapshotFileEntry(
   if (!filePath) return undefined;
 
   const contentHash = readOptionalString(row.contentHash);
+  const mtime = readOptionalNumber(row.mtime) ?? 0;
   const size = readOptionalNumber(row.size);
   return {
     filePath,
-    mtime: 0,
+    mtime,
     ...(size !== undefined && size >= 0 ? { size } : {}),
     ...(contentHash ? { contentHash } : {}),
     analysis: {

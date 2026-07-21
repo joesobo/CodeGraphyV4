@@ -9,7 +9,7 @@ import {
 
 describe('graphCache/database/record types', () => {
   it('defines explicit non-JSON columns for the normalized graph tables', () => {
-    expect(FILE_COLUMNS).toEqual(['path', 'size', 'contentHash']);
+    expect(FILE_COLUMNS).toEqual(['path', 'mtime', 'size', 'contentHash']);
     expect(NODE_COLUMNS).toEqual([
       'key', 'type', 'label', 'fileId', 'parentId', 'pluginId', 'language',
     ]);

@@ -20,9 +20,11 @@ Do not add SQL-native graph traversal, full-text search (FTS), semantic search, 
 Persist the Graph Cache as five relational tables. All five tables use SQLite
 `STRICT` mode so invalid storage types fail at the write boundary.
 
-- `File(id, path, size, contentHash)` stores one row per indexed workspace
-  file. `path` is the stable workspace-relative identity; the generated `id`
-  is used by foreign keys.
+- `File(id, path, mtime, size, contentHash)` stores one row per indexed
+  workspace file. `path` is the stable workspace-relative identity; the
+  generated `id` is used by foreign keys. `mtime` avoids reading and hashing
+  unchanged files after cache hydration. The content hash handles ambiguous
+  filesystem timestamps.
 - `Node` stores files, folders, packages, symbols, and plugin concepts. A node
   references its owning `File` and parent `Node` through generated integer
   identifiers. Stable graph identity remains a separate unique `key`. The

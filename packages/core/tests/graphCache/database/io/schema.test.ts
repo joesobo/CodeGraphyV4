@@ -91,7 +91,7 @@ describe('workspace analysis database schema', () => {
       nodeView: [...NODE_VIEW_COLUMNS],
       symbol: [...SYMBOL_COLUMNS],
       edge: ['id', ...EDGE_COLUMNS],
-      userVersion: 8,
+      userVersion: 9,
       nodeForeignKeys: [
         { from: 'parentId', table: 'Node', to: 'id' },
         { from: 'fileId', table: 'File', to: 'id' },
