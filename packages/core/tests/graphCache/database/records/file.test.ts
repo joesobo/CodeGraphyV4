@@ -5,12 +5,10 @@ describe('graphCache/database/fileEntry', () => {
   it('creates a snapshot entry from explicit file columns', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
-      analysisPath: '/workspace/src/app.ts',
-      mtime: 42n,
       size: 7,
-    })).toEqual({
+    }, '/workspace')).toEqual({
       filePath: 'src/app.ts',
-      mtime: 42,
+      mtime: 0,
       size: 7,
       analysis: {
         filePath: '/workspace/src/app.ts',
@@ -24,9 +22,8 @@ describe('graphCache/database/fileEntry', () => {
   it('creates complete empty analysis collections for an unknown file size', () => {
     expect(createSnapshotFileEntry({
       path: 'src/app.ts',
-      analysisPath: '/workspace/src/app.ts',
       size: -1,
-    })).toEqual({
+    }, '/workspace')).toEqual({
       filePath: 'src/app.ts',
       mtime: 0,
       analysis: {
@@ -40,10 +37,7 @@ describe('graphCache/database/fileEntry', () => {
 
   it('returns undefined when required identity columns are missing', () => {
     expect(createSnapshotFileEntry({
-      analysisPath: '/workspace/src/app.ts',
-    })).toBeUndefined();
-    expect(createSnapshotFileEntry({
-      path: 'src/app.ts',
-    })).toBeUndefined();
+      size: 1,
+    }, '/workspace')).toBeUndefined();
   });
 });

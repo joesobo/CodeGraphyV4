@@ -11,35 +11,28 @@ describe('graphCache/database/graph records', () => {
       type: 'file',
       label: 'app.ts',
       color: '#fff',
-      fileSize: 42,
+      favorite: 1,
     })).toEqual({
       id: 'src/app.ts',
       nodeType: 'file',
       label: 'app.ts',
       color: '#fff',
-      fileSize: 42,
+      favorite: true,
     });
   });
 
-  it('hydrates a graph edge and one normalized source row', () => {
+  it('hydrates a graph edge from its referenced Nodes', () => {
     expect(createSnapshotGraphEdge({
-      key: 'physical-row',
-      graphKey: 'a->b#import',
+      key: 'a->b#import',
       sourceNodeKey: 'a',
       targetNodeKey: 'b',
       type: 'import',
-      color: '#fff',
-      sourceKey: 'plugin:import',
-      sourcePluginId: 'plugin',
-      pluginSourceId: 'import',
-      sourceLabel: 'Import',
     })).toEqual({
       id: 'a->b#import',
       from: 'a',
       to: 'b',
       kind: 'import',
-      color: '#fff',
-      sources: [{ id: 'plugin:import', pluginId: 'plugin', sourceId: 'import', label: 'Import' }],
+      sources: [],
     });
   });
 

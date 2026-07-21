@@ -27,8 +27,9 @@ function createCache(
   symbolRows: readonly SymbolRow[],
   edgeRows: readonly GraphEdgeRow[],
   options: WorkspaceAnalysisDatabaseLoadOptions,
+  workspaceRoot: string,
 ): IWorkspaceAnalysisCache {
-  const hydrated = parseDatabaseRecords(fileRows, nodeRows, symbolRows, edgeRows);
+  const hydrated = parseDatabaseRecords(fileRows, nodeRows, symbolRows, edgeRows, workspaceRoot);
   const cache: IWorkspaceAnalysisCache = {
     version: WORKSPACE_ANALYSIS_CACHE_VERSION,
     files: {},
@@ -72,6 +73,7 @@ export function loadWorkspaceAnalysisDatabaseCache(
       readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
       readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
       options,
+      workspaceRoot,
     ));
   } catch (error) {
     return recoverUnreadableDatabase(databasePath, error);
@@ -98,6 +100,7 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
         symbolRows as SymbolRow[],
         edgeRows as GraphEdgeRow[],
         options,
+        workspaceRoot,
       );
     });
   } catch (error) {

@@ -146,14 +146,12 @@ function storedSymbolRecord(
 
 function storedEdgeRecord(
   record: EdgeRecord,
-  fileIds: ReadonlyMap<string, number>,
   nodeIds: ReadonlyMap<string, number>,
 ): StoredEdgeRecord {
   return {
     ...record,
     sourceNodeId: requiredReferenceId(record.sourceNodeId, nodeIds, 'edge source'),
     targetNodeId: requiredReferenceId(record.targetNodeId, nodeIds, 'edge target'),
-    ownerFileId: optionalReferenceId(record.ownerFileId, fileIds),
   };
 }
 
@@ -187,7 +185,7 @@ function persistRecords(
     executeStatementSync(writer.connection, writer.symbolStatement, storedSymbolRecord(record, nodeIds));
   }
   for (const record of records.edges) {
-    executeStatementSync(writer.connection, writer.edgeStatement, storedEdgeRecord(record, fileIds, nodeIds));
+    executeStatementSync(writer.connection, writer.edgeStatement, storedEdgeRecord(record, nodeIds));
   }
 }
 
@@ -260,7 +258,7 @@ async function persistRecordsAsync(
     await executeStatementAndYield(
       writer,
       writer.edgeStatement,
-      storedEdgeRecord(record, fileIds, nodeIds),
+      storedEdgeRecord(record, nodeIds),
       afterStatement,
     );
   }

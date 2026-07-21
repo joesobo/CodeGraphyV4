@@ -13,9 +13,12 @@ export const SYMBOL_ROWS_QUERY = `SELECT Symbol.*, Node.key AS nodeKey, File.pat
   ORDER BY Node.key`;
 
 export const EDGE_ROWS_QUERY = `SELECT Edge.*, Source.key AS sourceNodeKey,
-  Target.key AS targetNodeKey, File.path AS ownerFilePath
+  Source.type AS sourceNodeType, SourceFile.path AS sourceFilePath,
+  Target.key AS targetNodeKey, Target.type AS targetNodeType,
+  TargetFile.path AS targetFilePath
   FROM Edge
   JOIN Node AS Source ON Source.id = Edge.sourceNodeId
   JOIN Node AS Target ON Target.id = Edge.targetNodeId
-  LEFT JOIN File ON File.id = Edge.ownerFileId
-  ORDER BY Edge.graphKey, Edge.key`;
+  LEFT JOIN File AS SourceFile ON SourceFile.id = Source.fileId
+  LEFT JOIN File AS TargetFile ON TargetFile.id = Target.fileId
+  ORDER BY Edge.key`;

@@ -5,19 +5,13 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IGraphData,
-  IGraphEdge,
-  IGraphEdgeSource,
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import { getExternalPackageNodeId } from '../../../graph/packageSpecifiers/nodeId';
 import type { SQLiteValue } from '../io/connection';
 import {
-  EDGE_COLUMNS,
-  EDGE_METADATA_COLUMNS,
   NODE_COLUMNS,
-  SYMBOL_COLUMNS,
-  type EdgeMetadataRole,
   type EdgeRecord,
   type FileRecord,
   type NodeRecord,
@@ -33,10 +27,8 @@ export interface NormalizedDatabaseRecords {
   edges: EdgeRecord[];
 }
 
-function emptyRecord<const Columns extends readonly string[]>(
-  columns: Columns,
-): Record<Columns[number], SQLiteValue> {
-  return Object.fromEntries(columns.map(column => [column, null])) as Record<Columns[number], SQLiteValue>;
+function emptyNodeRecord(): NodeRecord {
+  return Object.fromEntries(NODE_COLUMNS.map(column => [column, null])) as unknown as NodeRecord;
 }
 
 function sqliteBoolean(value: boolean | undefined): number | null {
@@ -46,11 +38,6 @@ function sqliteBoolean(value: boolean | undefined): number | null {
 function metadataString(metadata: GraphMetadata | undefined, key: string): string | null {
   const value = metadata?.[key];
   return typeof value === 'string' ? value : null;
-}
-
-function metadataBoolean(metadata: GraphMetadata | undefined, key: string): number | null {
-  const value = metadata?.[key];
-  return typeof value === 'boolean' ? Number(value) : null;
 }
 
 function normalizeKnownPath(
@@ -85,19 +72,6 @@ function normalizeAnalysisId(
   return value;
 }
 
-function graphNodeFilePath(
-  node: IGraphNode,
-  knownFilePaths: ReadonlySet<string>,
-  analysisToCachePath: ReadonlyMap<string, string>,
-): string | null {
-  const candidate = node.symbol?.filePath
-    ?? (typeof node.metadata?.filePath === 'string' ? node.metadata.filePath : undefined)
-    ?? ((node.nodeType ?? 'file') === 'file' ? node.id : undefined);
-  if (candidate && knownFilePaths.has(candidate)) return candidate;
-  const normalized = normalizeKnownPath(candidate, analysisToCachePath);
-  return normalized && knownFilePaths.has(normalized) ? normalized : null;
-}
-
 function normalizeAnalysisIdForFile(
   value: string | undefined,
   analysisFilePath: string,
@@ -113,20 +87,17 @@ function normalizeAnalysisIdForFile(
   return value;
 }
 
-function nodeMetadataColumns(metadata: GraphMetadata | undefined): DatabaseRecord {
-  return {
-    pluginId: metadataString(metadata, 'pluginId'),
-    language: metadataString(metadata, 'language'),
-    analysisSource: metadataString(metadata, 'source'),
-    pluginKind: metadataString(metadata, 'pluginKind'),
-    gitIgnored: metadataBoolean(metadata, 'gitIgnored'),
-    gitIgnoredReason: metadataString(metadata, 'gitIgnoredReason'),
-    unityClass: metadataString(metadata, 'unityClass'),
-    unityFileId: metadataString(metadata, 'fileId'),
-    unityGameObjectFileId: metadataString(metadata, 'gameObjectFileId'),
-    unityScriptGuid: metadataString(metadata, 'scriptGuid'),
-    unityScriptPath: metadataString(metadata, 'scriptPath'),
-  };
+function graphNodeFilePath(
+  node: IGraphNode,
+  knownFilePaths: ReadonlySet<string>,
+  analysisToCachePath: ReadonlyMap<string, string>,
+): string | null {
+  const candidate = node.symbol?.filePath
+    ?? (typeof node.metadata?.filePath === 'string' ? node.metadata.filePath : undefined)
+    ?? ((node.nodeType ?? 'file') === 'file' ? node.id : undefined);
+  if (candidate && knownFilePaths.has(candidate)) return candidate;
+  const normalized = normalizeKnownPath(candidate, analysisToCachePath);
+  return normalized && knownFilePaths.has(normalized) ? normalized : null;
 }
 
 function graphNodeRecord(
@@ -135,7 +106,7 @@ function graphNodeRecord(
   analysisToCachePath: ReadonlyMap<string, string>,
 ): NodeRecord {
   return {
-    ...emptyRecord(NODE_COLUMNS),
+    ...emptyNodeRecord(),
     key: node.id,
     type: node.nodeType ?? 'file',
     label: node.label,
@@ -148,22 +119,11 @@ function graphNodeRecord(
     x: node.x ?? null,
     y: node.y ?? null,
     favorite: sqliteBoolean(node.favorite),
-    fileSize: node.fileSize ?? null,
-    depthLevel: node.depthLevel ?? null,
     shape: node.shape2D ?? null,
-    shapeWidth: node.shapeSize2D?.width ?? null,
-    shapeHeight: node.shapeSize2D?.height ?? null,
-    cornerRadius: node.cornerRadius2D ?? null,
-    collisionRadius: node.collisionRadius2D ?? null,
-    chargeStrengthMultiplier: node.chargeStrengthMultiplier2D ?? null,
-    fillOpacity: node.fillOpacity2D ?? null,
-    pointerWidth: node.pointerArea2D?.width ?? null,
-    pointerHeight: node.pointerArea2D?.height ?? null,
     imageUrl: node.imageUrl ?? null,
-    isCollapsible: sqliteBoolean(node.isCollapsible),
     isCollapsed: sqliteBoolean(node.isCollapsed),
-    collapsedDescendantCount: node.collapsedDescendantCount ?? null,
-    ...nodeMetadataColumns(node.metadata),
+    pluginId: metadataString(node.metadata, 'pluginId'),
+    language: node.symbol?.language ?? metadataString(node.metadata, 'language'),
   };
 }
 
@@ -171,88 +131,56 @@ function analysisNodeRecord(
   node: IAnalysisNode,
   ownerFilePath: string,
   ownerAnalysisPath: string,
-  analysisOrder: number,
-  existing: NodeRecord | undefined,
   analysisToCachePath: ReadonlyMap<string, string>,
 ): NodeRecord {
   const analysisFilePath = node.filePath ?? ownerAnalysisPath;
-  const id = normalizeAnalysisIdForFile(node.id, analysisFilePath, analysisToCachePath) ?? node.id;
   return {
-    ...emptyRecord(NODE_COLUMNS),
-    ...existing,
-    key: id,
+    ...emptyNodeRecord(),
+    key: normalizeAnalysisIdForFile(node.id, analysisFilePath, analysisToCachePath) ?? node.id,
     type: node.nodeType,
     label: node.label,
     fileId: ownerFilePath,
     parentId: normalizeAnalysisIdForFile(node.parentId, analysisFilePath, analysisToCachePath),
-    analysisNodeId: node.id,
-    analysisNodeFilePath: node.filePath ?? null,
-    analysisParentId: node.parentId ?? null,
-    analysisNodeOrder: analysisOrder,
-    ...nodeMetadataColumns(node.metadata),
+    color: '#808080',
+    pluginId: metadataString(node.metadata, 'pluginId'),
+    language: metadataString(node.metadata, 'language'),
+  };
+}
+
+function mergeAnalysisNode(existing: NodeRecord | undefined, analysis: NodeRecord): NodeRecord {
+  if (!existing) return analysis;
+  return {
+    ...existing,
+    fileId: existing.fileId ?? analysis.fileId,
+    parentId: existing.parentId ?? analysis.parentId,
+    pluginId: existing.pluginId ?? analysis.pluginId,
+    language: existing.language ?? analysis.language,
   };
 }
 
 function symbolRecord(
-  symbol: IAnalysisSymbol,
-  analysisOrder: number | null,
-  analysisToCachePath: ReadonlyMap<string, string>,
+  nodeId: string,
+  symbol: Pick<IAnalysisSymbol, 'kind' | 'metadata' | 'name'>,
+  language?: string,
 ): SymbolRecord {
-  const nodeKey = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
   return {
-    ...emptyRecord(SYMBOL_COLUMNS),
-    nodeId: nodeKey,
-    filePath: symbol.filePath,
-    analysisId: analysisOrder === null ? null : symbol.id,
-    analysisPath: analysisOrder === null ? null : symbol.filePath,
-    analysisOrder,
-    pluginId: metadataString(symbol.metadata, 'pluginId'),
-    language: metadataString(symbol.metadata, 'language'),
-    analysisSource: metadataString(symbol.metadata, 'source'),
-    pluginKind: metadataString(symbol.metadata, 'pluginKind'),
+    nodeId,
     name: symbol.name,
     kind: symbol.kind,
-    signature: symbol.signature ?? null,
-    startLine: symbol.range?.startLine ?? null,
-    startColumn: symbol.range?.startColumn ?? null,
-    endLine: symbol.range?.endLine ?? null,
-    endColumn: symbol.range?.endColumn ?? null,
+    pluginId: metadataString(symbol.metadata, 'pluginId'),
+    language: language ?? metadataString(symbol.metadata, 'language'),
   };
-}
-
-function edgeMetadataColumns(
-  metadata: GraphMetadata | undefined,
-  role: EdgeMetadataRole,
-): DatabaseRecord {
-  return Object.fromEntries(
-    Object.entries(EDGE_METADATA_COLUMNS[role])
-      .map(([metadataKey, column]) => [column, metadataString(metadata, metadataKey)]),
-  );
-}
-
-function edgeKey(from: string, to: string, kind: string): string {
-  return `${from}\u0000${to}\u0000${kind}`;
-}
-
-function edgeRecordKey(graphId: string, sourceKey: string, suffix: string): string {
-  return `${graphId}::${sourceKey}::${suffix}`;
 }
 
 function relationEndpoints(
   relation: IAnalysisRelation,
   analysisToCachePath: ReadonlyMap<string, string>,
-): {
-  from: string;
-  fromType: 'file' | 'symbol';
-  to: string;
-  toType: 'file' | 'package' | 'symbol';
-} | undefined {
+): { from: string; to: string; toType: 'file' | 'package' | 'symbol' } | undefined {
   const from = normalizeAnalysisIdForFile(
     relation.fromSymbolId ?? relation.fromNodeId,
     relation.fromFilePath,
     analysisToCachePath,
-  )
-    ?? normalizeKnownPath(relation.fromFilePath, analysisToCachePath);
+  ) ?? normalizeKnownPath(relation.fromFilePath, analysisToCachePath);
   const targetFilePath = relation.resolvedPath ?? relation.toFilePath;
   const externalPackageId = targetFilePath
     ? null
@@ -264,101 +192,15 @@ function relationEndpoints(
         analysisToCachePath,
       )
     : normalizeAnalysisId(relation.toSymbolId ?? relation.toNodeId, analysisToCachePath))
-    ?? normalizeKnownPath(relation.resolvedPath ?? relation.toFilePath, analysisToCachePath)
+    ?? normalizeKnownPath(targetFilePath, analysisToCachePath)
     ?? externalPackageId;
-  return from && to
-    ? {
-        from,
-        fromType: relation.fromSymbolId || relation.fromNodeId ? 'symbol' : 'file',
-        to,
-        toType: externalPackageId === to
-          ? 'package'
-          : relation.toSymbolId || relation.toNodeId ? 'symbol' : 'file',
-      }
-    : undefined;
-}
-
-function sourceForRelation(
-  relation: IAnalysisRelation,
-  graphEdge: IGraphEdge | undefined,
-): IGraphEdgeSource | undefined {
-  return graphEdge?.sources.find(source =>
-    source.id === relation.sourceId
-    || source.sourceId === relation.sourceId
-    || source.id.endsWith(`:${relation.sourceId}`),
-  );
-}
-
-function createRelationEdgeRecord(
-  relation: IAnalysisRelation,
-  ownerFilePath: string,
-  relationIndex: number,
-  graphEdge: IGraphEdge | undefined,
-  endpoints: { from: string; to: string },
-  canonicalGraphEdge: boolean,
-): EdgeRecord {
-  const source = sourceForRelation(relation, graphEdge);
-  const graphId = graphEdge?.id ?? `${endpoints.from}->${endpoints.to}#${relation.kind}`;
-  const sourceKey = source?.sourceId ?? relation.sourceId;
+  if (!from || !to) return undefined;
   return {
-    ...emptyRecord(EDGE_COLUMNS),
-    key: edgeRecordKey(graphId, sourceKey, `${ownerFilePath}:${relationIndex}`),
-    graphKey: graphId,
-    sourceNodeId: endpoints.from,
-    targetNodeId: endpoints.to,
-    type: relation.kind,
-    ownerFileId: ownerFilePath,
-    color: graphEdge?.color ?? null,
-    sourcePluginId: source?.pluginId ?? null,
-    relationPluginId: relation.pluginId ?? null,
-    sourceKey: source?.id ?? relation.sourceId,
-    pluginSourceId: sourceKey,
-    analysisSourceId: relation.sourceId,
-    sourceLabel: source?.label ?? relation.sourceId,
-    variant: relation.variant ?? source?.variant ?? null,
-    relationSpecifier: relation.specifier ?? null,
-    resolvedPath: relation.resolvedPath ?? null,
-    relationType: relation.type ?? null,
-    fromFilePath: relation.fromFilePath,
-    toFilePath: relation.toFilePath ?? null,
-    fromAnalysisNodeId: relation.fromNodeId ?? null,
-    toAnalysisNodeId: relation.toNodeId ?? null,
-    fromSymbolId: relation.fromSymbolId ?? null,
-    toSymbolId: relation.toSymbolId ?? null,
-    analysisRelation: 1,
-    analysisOrder: relationIndex,
-    canonicalGraphEdge: Number(canonicalGraphEdge),
-    ...edgeMetadataColumns(graphEdge?.metadata, 'edge'),
-    ...edgeMetadataColumns(source?.metadata, 'source'),
-    ...edgeMetadataColumns(relation.metadata, 'relation'),
-  };
-}
-
-function createGraphEdgeRecord(
-  edge: IGraphEdge,
-  source: IGraphEdgeSource | undefined,
-  sourceIndex: number,
-): EdgeRecord {
-  const sourceKey = source?.sourceId ?? 'graph';
-  return {
-    ...emptyRecord(EDGE_COLUMNS),
-    key: edgeRecordKey(edge.id, sourceKey, `graph:${sourceIndex}`),
-    graphKey: edge.id,
-    sourceNodeId: edge.from,
-    targetNodeId: edge.to,
-    type: edge.kind,
-    ownerFileId: null,
-    color: edge.color ?? null,
-    sourcePluginId: source?.pluginId ?? null,
-    sourceKey: source?.id ?? null,
-    pluginSourceId: source?.sourceId ?? null,
-    sourceLabel: source?.label ?? null,
-    variant: source?.variant ?? null,
-    analysisRelation: 0,
-    analysisOrder: null,
-    canonicalGraphEdge: 1,
-    ...edgeMetadataColumns(edge.metadata, 'edge'),
-    ...edgeMetadataColumns(source?.metadata, 'source'),
+    from,
+    to,
+    toType: externalPackageId === to
+      ? 'package'
+      : relation.toSymbolId || relation.toNodeId ? 'symbol' : 'file',
   };
 }
 
@@ -370,7 +212,7 @@ function addEndpointNode(
 ): void {
   if (nodes.has(id)) return;
   nodes.set(id, {
-    ...emptyRecord(NODE_COLUMNS),
+    ...emptyNodeRecord(),
     key: id,
     type,
     label: path.basename(id),
@@ -378,6 +220,10 @@ function addEndpointNode(
     parentId: null,
     color: '#808080',
   });
+}
+
+function edgeIdentity(from: string, to: string, type: string): string {
+  return `${from}\u0000${to}\u0000${type}`;
 }
 
 export function serializeDatabaseRecords(
@@ -390,8 +236,6 @@ export function serializeDatabaseRecords(
   const analysisToCachePath = new Map(sortedFiles.map(([filePath, entry]) => [entry.analysis.filePath, filePath]));
   const files: FileRecord[] = sortedFiles.map(([filePath, entry]) => ({
     path: filePath,
-    analysisPath: entry.analysis.filePath,
-    mtime: entry.mtime ?? 0,
     size: entry.size ?? -1,
     contentHash: entry.contentHash ?? null,
   }));
@@ -400,36 +244,19 @@ export function serializeDatabaseRecords(
   for (const node of graphData.nodes) {
     nodes.set(node.id, graphNodeRecord(node, knownFilePaths, analysisToCachePath));
   }
-  for (const [filePath] of sortedFiles) {
-    if (!nodes.has(filePath)) {
-      addEndpointNode(nodes, filePath, knownFilePaths);
-    }
-  }
+  for (const [filePath] of sortedFiles) addEndpointNode(nodes, filePath, knownFilePaths);
   for (const [filePath, entry] of sortedFiles) {
-    for (const [analysisOrder, node] of (entry.analysis.nodes ?? []).entries()) {
-      const id = normalizeAnalysisIdForFile(
-        node.id,
-        node.filePath ?? entry.analysis.filePath,
-        analysisToCachePath,
-      ) ?? node.id;
-      nodes.set(id, analysisNodeRecord(
-        node,
-        filePath,
-        entry.analysis.filePath,
-        analysisOrder,
-        nodes.get(id),
-        analysisToCachePath,
-      ));
+    for (const node of entry.analysis.nodes ?? []) {
+      const record = analysisNodeRecord(node, filePath, entry.analysis.filePath, analysisToCachePath);
+      nodes.set(record.key, mergeAnalysisNode(nodes.get(record.key), record));
     }
     for (const symbol of entry.analysis.symbols ?? []) {
-      const id = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
-      if (!nodes.has(id)) {
-        addEndpointNode(nodes, id, knownFilePaths, 'symbol');
-      }
-      const symbolNode = nodes.get(id);
-      if (symbolNode) {
-        if (symbolNode.fileId === null) symbolNode.fileId = filePath;
-        if (symbolNode.type === 'symbol') symbolNode.label = symbol.name;
+      const key = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
+      addEndpointNode(nodes, key, knownFilePaths, 'symbol');
+      const node = nodes.get(key);
+      if (node) {
+        node.fileId ??= filePath;
+        if (node.type === 'symbol') node.label = symbol.name;
       }
     }
   }
@@ -437,61 +264,61 @@ export function serializeDatabaseRecords(
   const symbols = new Map<string, SymbolRecord>();
   for (const node of graphData.nodes) {
     if (node.symbol) {
-      symbols.set(node.id, symbolRecord(node.symbol, null, analysisToCachePath));
+      symbols.set(node.id, {
+        nodeId: node.id,
+        name: node.symbol.name,
+        kind: node.symbol.kind,
+        pluginId: metadataString(node.metadata, 'pluginId'),
+        language: node.symbol.language ?? metadataString(node.metadata, 'language'),
+      });
     }
   }
   for (const [, entry] of sortedFiles) {
-    for (const [analysisOrder, symbol] of (entry.analysis.symbols ?? []).entries()) {
-      const nodeKey = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
-      symbols.set(nodeKey, symbolRecord(symbol, analysisOrder, analysisToCachePath));
+    for (const symbol of entry.analysis.symbols ?? []) {
+      const key = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
+      symbols.set(key, symbolRecord(key, symbol));
     }
   }
 
-  const graphEdgesByKey = new Map(graphData.edges.map(edge => [edgeKey(edge.from, edge.to, edge.kind), edge]));
-  const edges: EdgeRecord[] = [];
-  const representedSources = new Set<string>();
-  for (const [filePath, entry] of sortedFiles) {
-    for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-      const endpoints = relationEndpoints(relation, analysisToCachePath);
-      if (!endpoints) continue;
-      addEndpointNode(nodes, endpoints.from, knownFilePaths, endpoints.fromType);
-      addEndpointNode(nodes, endpoints.to, knownFilePaths, endpoints.toType);
-      const graphEdge = graphEdgesByKey.get(edgeKey(endpoints.from, endpoints.to, relation.kind));
-      const record = createRelationEdgeRecord(
-        relation,
-        filePath,
-        relationIndex,
-        graphEdge,
-        endpoints,
-        graph === undefined || graphEdge !== undefined,
-      );
-      edges.push(record);
-      representedSources.add(`${String(record.graphKey)}\u0000${String(record.sourceKey ?? '')}`);
-    }
-  }
-
+  const edges = new Map<string, EdgeRecord>();
   for (const edge of graphData.edges) {
-    const sources: Array<IGraphEdgeSource | undefined> = edge.sources.length > 0
-      ? edge.sources
-      : [undefined];
-    sources.forEach((source, sourceIndex) => {
-      const key = `${edge.id}\u0000${source?.id ?? ''}`;
-      if (!representedSources.has(key)) {
-        edges.push(createGraphEdgeRecord(edge, source, sourceIndex));
-      }
+    addEndpointNode(nodes, edge.from, knownFilePaths);
+    addEndpointNode(nodes, edge.to, knownFilePaths);
+    edges.set(edgeIdentity(edge.from, edge.to, edge.kind), {
+      key: edge.id,
+      sourceNodeId: edge.from,
+      targetNodeId: edge.to,
+      type: edge.kind,
     });
+  }
+  if (!graph) {
+    for (const [, entry] of sortedFiles) {
+      for (const relation of entry.analysis.relations ?? []) {
+        const endpoints = relationEndpoints(relation, analysisToCachePath);
+        if (!endpoints) continue;
+        addEndpointNode(nodes, endpoints.from, knownFilePaths);
+        addEndpointNode(nodes, endpoints.to, knownFilePaths, endpoints.toType);
+        const identity = edgeIdentity(endpoints.from, endpoints.to, relation.kind);
+        if (!edges.has(identity)) {
+          edges.set(identity, {
+            key: `${endpoints.from}->${endpoints.to}#${relation.kind}`,
+            sourceNodeId: endpoints.from,
+            targetNodeId: endpoints.to,
+            type: relation.kind,
+          });
+        }
+      }
+    }
   }
 
   for (const record of nodes.values()) {
-    if (record.parentId !== null && !nodes.has(String(record.parentId))) {
-      record.parentId = null;
-    }
+    if (record.parentId !== null && !nodes.has(String(record.parentId))) record.parentId = null;
   }
 
   return {
     files,
-    nodes: [...nodes.values()].sort((left, right) => String(left.key).localeCompare(String(right.key))),
-    symbols: [...symbols.values()].sort((left, right) => String(left.nodeId).localeCompare(String(right.nodeId))),
-    edges: edges.sort((left, right) => String(left.key).localeCompare(String(right.key))),
+    nodes: [...nodes.values()].sort((left, right) => left.key.localeCompare(right.key)),
+    symbols: [...symbols.values()].sort((left, right) => left.nodeId.localeCompare(right.nodeId)),
+    edges: [...edges.values()].sort((left, right) => left.key.localeCompare(right.key)),
   };
 }

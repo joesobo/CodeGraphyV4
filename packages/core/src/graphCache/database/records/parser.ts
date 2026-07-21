@@ -1,10 +1,5 @@
-import type { IAnalysisRelation, IAnalysisSymbol, IGraphData, IGraphEdge } from '@codegraphy-dev/plugin-api';
-import {
-  type FileRow,
-  type GraphEdgeRow,
-  type GraphNodeRow,
-  type SymbolRow,
-} from './types';
+import type { IAnalysisRelation, IAnalysisSymbol, IGraphData } from '@codegraphy-dev/plugin-api';
+import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from './types';
 import { createSnapshotFileEntry, type SnapshotFileEntry } from './file';
 import {
   createSnapshotAnalysisNode,
@@ -22,36 +17,6 @@ export interface HydratedDatabaseRecords {
   relations: IAnalysisRelation[];
 }
 
-function mergeGraphEdges(rows: readonly GraphEdgeRow[]): IGraphEdge[] {
-  const edges = new Map<string, IGraphEdge>();
-  for (const row of rows) {
-    if (row.canonicalGraphEdge !== 1 && row.canonicalGraphEdge !== 1n) continue;
-    const edge = createSnapshotGraphEdge(row);
-    if (!edge) continue;
-    const existing = edges.get(edge.id);
-    if (!existing) {
-      edges.set(edge.id, edge);
-      continue;
-    }
-    const sourceIds = new Set(existing.sources.map(source => source.id));
-    for (const source of edge.sources) {
-      if (!sourceIds.has(source.id)) {
-        existing.sources.push(source);
-        sourceIds.add(source.id);
-      }
-    }
-  }
-  return [...edges.values()].sort((left, right) => left.id.localeCompare(right.id));
-}
-
-function nodeFilePath(row: GraphNodeRow): string | undefined {
-  return readOptionalString(row.filePath) ?? readOptionalString(row.fileId);
-}
-
-function symbolNodeKey(row: SymbolRow): string | undefined {
-  return readOptionalString(row.nodeKey) ?? readOptionalString(row.nodeId);
-}
-
 function appendGroupedRow<Row>(groups: Map<string, Row[]>, key: string | undefined, row: Row): void {
   if (!key) return;
   const rows = groups.get(key) ?? [];
@@ -64,63 +29,75 @@ export function parseDatabaseRecords(
   nodeRows: readonly GraphNodeRow[],
   symbolRows: readonly SymbolRow[],
   edgeRows: readonly GraphEdgeRow[],
+  workspaceRoot: string,
 ): HydratedDatabaseRecords {
   const files = fileRows.flatMap(row => {
-    const entry = createSnapshotFileEntry(row);
+    const entry = createSnapshotFileEntry(row, workspaceRoot);
     return entry ? [entry] : [];
   });
-  const symbols: IAnalysisSymbol[] = [];
-  const relations: IAnalysisRelation[] = [];
-  const nodeRowsByFilePath = new Map<string, GraphNodeRow[]>();
-  const nodeFilePathsByKey = new Map<string, string>();
-  for (const row of nodeRows) {
-    const filePath = nodeFilePath(row);
-    appendGroupedRow(nodeRowsByFilePath, filePath, row);
+  const hydratedNodeRows = nodeRows.map(row => ({
+    ...row,
+    filePath: readOptionalString(row.filePath) ?? readOptionalString(row.fileId),
+    parentKey: readOptionalString(row.parentKey) ?? readOptionalString(row.parentId),
+  }));
+  const nodeRowsByKey = new Map(hydratedNodeRows.flatMap(row => {
     const key = readOptionalString(row.key);
-    if (key && filePath) nodeFilePathsByKey.set(key, filePath);
+    return key ? [[key, row] as const] : [];
+  }));
+  const nodeRowsByFilePath = new Map<string, GraphNodeRow[]>();
+  for (const row of hydratedNodeRows) {
+    appendGroupedRow(nodeRowsByFilePath, readOptionalString(row.filePath), row);
   }
   const symbolRowsByFilePath = new Map<string, SymbolRow[]>();
   const symbolRowsByNodeKey = new Map<string, SymbolRow>();
   for (const row of symbolRows) {
-    const nodeKey = symbolNodeKey(row);
-    appendGroupedRow(
-      symbolRowsByFilePath,
-      readOptionalString(row.ownerFilePath) ?? (nodeKey ? nodeFilePathsByKey.get(nodeKey) : undefined),
-      row,
-    );
-    if (nodeKey) symbolRowsByNodeKey.set(nodeKey, row);
+    const nodeKey = readOptionalString(row.nodeKey) ?? readOptionalString(row.nodeId);
+    const hydratedRow = {
+      ...row,
+      nodeKey,
+      ownerFilePath: readOptionalString(row.ownerFilePath)
+        ?? (nodeKey ? readOptionalString(nodeRowsByKey.get(nodeKey)?.filePath) : undefined),
+    };
+    appendGroupedRow(symbolRowsByFilePath, readOptionalString(hydratedRow.ownerFilePath), hydratedRow);
+    if (nodeKey) symbolRowsByNodeKey.set(nodeKey, hydratedRow);
   }
-  const edgeRowsByOwnerFilePath = new Map<string, GraphEdgeRow[]>();
-  for (const row of edgeRows) {
-    appendGroupedRow(
-      edgeRowsByOwnerFilePath,
-      readOptionalString(row.ownerFilePath) ?? readOptionalString(row.ownerFileId),
-      row,
-    );
+  const hydratedEdgeRows = edgeRows.map(row => {
+    const sourceNodeKey = readOptionalString(row.sourceNodeKey) ?? readOptionalString(row.sourceNodeId);
+    const targetNodeKey = readOptionalString(row.targetNodeKey) ?? readOptionalString(row.targetNodeId);
+    const sourceNode = sourceNodeKey ? nodeRowsByKey.get(sourceNodeKey) : undefined;
+    const targetNode = targetNodeKey ? nodeRowsByKey.get(targetNodeKey) : undefined;
+    return {
+      ...row,
+      sourceNodeKey,
+      sourceNodeType: readOptionalString(row.sourceNodeType) ?? readOptionalString(sourceNode?.type),
+      sourceFilePath: readOptionalString(row.sourceFilePath) ?? readOptionalString(sourceNode?.filePath),
+      targetNodeKey,
+      targetNodeType: readOptionalString(row.targetNodeType) ?? readOptionalString(targetNode?.type),
+      targetFilePath: readOptionalString(row.targetFilePath) ?? readOptionalString(targetNode?.filePath),
+    };
+  });
+  const edgeRowsBySourceFilePath = new Map<string, GraphEdgeRow[]>();
+  for (const row of hydratedEdgeRows) {
+    appendGroupedRow(edgeRowsBySourceFilePath, readOptionalString(row.sourceFilePath), row);
   }
+
+  const symbols: IAnalysisSymbol[] = [];
+  const relations: IAnalysisRelation[] = [];
   for (const file of files) {
-    const ownedNodeRows = nodeRowsByFilePath.get(file.filePath) ?? [];
-    const analysisNodes = [...ownedNodeRows]
-      .sort((left, right) => Number(left.analysisNodeOrder ?? Number.MAX_SAFE_INTEGER)
-        - Number(right.analysisNodeOrder ?? Number.MAX_SAFE_INTEGER))
-      .flatMap(row => {
-        const node = createSnapshotAnalysisNode(row);
-        return node ? [node] : [];
-      });
-    const analysisSymbols = [...(symbolRowsByFilePath.get(file.filePath) ?? [])]
-      .sort((left, right) => Number(left.analysisOrder ?? Number.MAX_SAFE_INTEGER)
-        - Number(right.analysisOrder ?? Number.MAX_SAFE_INTEGER))
-      .flatMap(row => {
-        const symbol = createSnapshotAnalysisSymbol(row);
-        return symbol ? [symbol] : [];
-      });
-    const analysisRelations = [...(edgeRowsByOwnerFilePath.get(file.filePath) ?? [])]
-      .sort((left, right) => Number(left.analysisOrder ?? Number.MAX_SAFE_INTEGER)
-        - Number(right.analysisOrder ?? Number.MAX_SAFE_INTEGER))
-      .flatMap(row => {
-        const relation = createSnapshotAnalysisRelation(row);
-        return relation ? [relation] : [];
-      });
+    const analysisNodes = (nodeRowsByFilePath.get(file.filePath) ?? []).flatMap(row => {
+      const key = readOptionalString(row.key);
+      if (!key || key === file.filePath || symbolRowsByNodeKey.has(key)) return [];
+      const node = createSnapshotAnalysisNode(row, workspaceRoot);
+      return node ? [node] : [];
+    });
+    const analysisSymbols = (symbolRowsByFilePath.get(file.filePath) ?? []).flatMap(row => {
+      const symbol = createSnapshotAnalysisSymbol(row, workspaceRoot);
+      return symbol ? [symbol] : [];
+    });
+    const analysisRelations = (edgeRowsBySourceFilePath.get(file.filePath) ?? []).flatMap(row => {
+      const relation = createSnapshotAnalysisRelation(row, workspaceRoot);
+      return relation ? [relation] : [];
+    });
     file.analysis.nodes = analysisNodes;
     file.analysis.symbols = analysisSymbols;
     file.analysis.relations = analysisRelations;
@@ -128,15 +105,14 @@ export function parseDatabaseRecords(
     relations.push(...analysisRelations);
   }
 
-  const nodes = nodeRows.flatMap(row => {
+  const nodes = hydratedNodeRows.flatMap(row => {
     const key = readOptionalString(row.key);
     const node = createSnapshotGraphNode(row, key ? symbolRowsByNodeKey.get(key) : undefined);
     return node ? [node] : [];
   });
-  return {
-    files,
-    graph: { nodes, edges: mergeGraphEdges(edgeRows) },
-    symbols,
-    relations,
-  };
+  const edges = hydratedEdgeRows.flatMap(row => {
+    const edge = createSnapshotGraphEdge(row);
+    return edge ? [edge] : [];
+  });
+  return { files, graph: { nodes, edges }, symbols, relations };
 }
