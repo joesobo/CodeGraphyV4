@@ -66,7 +66,7 @@ Plugin installation, global registration, and workspace enablement are separate:
 - `plugins enable <plugin-id-or-package>` and `plugins disable <plugin-id-or-package>` target the selected workspace. By default this is the process current working directory; use the global `--workspace <path>` option to select another workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - `plugins link <package-root>` records a local package checkout in the user-level Plugin Registry, which is the preferred private-plugin development path.
 - Enabling or disabling a plugin changes workspace settings only; disabling persists `enabled: false` Plugin ID intent and keeps the runtime unloaded until the user enables that Plugin ID again.
-- Indexing imports enabled npm plugin packages through their normal package `exports`, merges manifest `defaultOptions` with workspace-local `options`, delivers the result to package factories as `factoryOptions.options`, and delivers the same result to plugin lifecycle and analysis hooks as `context.options`.
+- Indexing imports active npm plugin packages through their package `exports`. It merges manifest `defaultOptions` with workspace-local `options`. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
 - Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a plugin-owned persistence host bound to the plugin id returned by the factory.
 
 Plugin npm packages identify themselves with package metadata:

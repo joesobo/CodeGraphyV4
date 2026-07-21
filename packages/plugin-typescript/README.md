@@ -18,30 +18,17 @@ codegraphy index
 
 ## What It Provides
 
-Core Tree-sitter Analysis now handles JS/TS analysis inside `@codegraphy-dev/core`.
-This plugin contributes TypeScript project-aware analysis and TypeScript/JavaScript
-ecosystem defaults on top:
+Core Tree-sitter Analysis handles JS/TS analysis inside `@codegraphy-dev/core`. This plugin adds TypeScript project-aware analysis and TypeScript/JavaScript ecosystem defaults:
 
 - default ignore filters for common build output and package folders
 - workspace enablement for TypeScript/JavaScript-specific defaults
 - **TypeScript Alias Import** relationships from TypeScript `compilerOptions.paths`
 
-**TypeScript Alias Import** is a plugin-owned edge type that Graph Scope can toggle
-separately from baseline import edges. The edge type defaults on, and the plugin
-processes aliases whenever the TypeScript plugin is enabled so Graph Query CLI and
-exports can use the same relationship data even when Graph Scope hides it.
+**TypeScript Alias Import** is a plugin-owned Edge Type that Graph Scope can toggle apart from baseline import Edges. The Edge Type starts enabled. An active TypeScript plugin processes aliases so the Graph Query CLI and exports can use the same relationship data when Graph Scope hides it.
 
-Alias import support finds the nearest ancestor `tsconfig.json` for each TypeScript
-source file, stopping at the CodeGraphy Workspace root. It parses normal TypeScript
-JSONC config files, follows local relative and package-based `extends` chains,
-honors `compilerOptions.baseUrl`, reads `compilerOptions.paths` with TypeScript
-inheritance and pattern precedence, supports exact and wildcard mappings, honors
-fallback target arrays in order, and emits no relationship when an alias cannot
-resolve to a workspace file. Changes to `tsconfig*.json` re-analyze affected
-TypeScript files.
+Alias import support finds the nearest ancestor `tsconfig.json` for each TypeScript source file and stops at the CodeGraphy Workspace root. It parses TypeScript JSONC files and follows relative or package-based `extends` chains. It honors `compilerOptions.baseUrl`, TypeScript inheritance, pattern precedence, exact mappings, wildcards, and ordered fallback targets. It emits no Relationship when an alias does not resolve to a workspace file. Changes to `tsconfig*.json` trigger analysis for affected TypeScript files.
 
-Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme.
-This plugin no longer ships general file theming.
+Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme. This plugin no longer ships general file theming.
 
 ## More
 

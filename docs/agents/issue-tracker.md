@@ -36,20 +36,14 @@ Use Trello labels for package or area ownership:
 
 ## Conventions
 
-- Create a card:
-  `curl -s -X POST "https://api.trello.com/1/cards?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "idList={listId}" --data-urlencode "name={title}" --data-urlencode "desc={body}"`
-- Read a card:
-  `curl -s "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq`
-- List cards on a list:
-  `curl -s "https://api.trello.com/1/lists/{listId}/cards?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq`
-- Comment on a card:
-  `curl -s -X POST "https://api.trello.com/1/cards/{cardId}/actions/comments?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" --data-urlencode "text={comment}"`
-- Move a card:
-  `curl -s -X PUT "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "idList={listId}"`
-- Archive a card:
-  `curl -s -X PUT "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "closed=true"`
+- Create a card: `curl -s -X POST "https://api.trello.com/1/cards?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "idList={listId}" --data-urlencode "name={title}" --data-urlencode "desc={body}"`
+- Read a card: `curl -s "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq`
+- List cards on a list: `curl -s "https://api.trello.com/1/lists/{listId}/cards?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq`
+- Comment on a card: `curl -s -X POST "https://api.trello.com/1/cards/{cardId}/actions/comments?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" --data-urlencode "text={comment}"`
+- Move a card: `curl -s -X PUT "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "idList={listId}"`
+- Archive a card: `curl -s -X PUT "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "closed=true"`
 
-GitHub Issues are not the active tracker. If a GitHub issue is created by mistake, mirror it to Trello, comment with the Trello card URL, and close the GitHub issue.
+Trello is the active tracker. If someone creates a GitHub issue by mistake, mirror it to Trello, comment with the Trello card URL, and close the GitHub issue.
 
 ## Skill phrases
 

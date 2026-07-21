@@ -45,7 +45,7 @@ The same package declares its static Plugin ID and display metadata in `codegrap
 }
 ```
 
-`codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating both files. A plugin becomes active only when its `codegraphy.json#id` is enabled in the workspace-local `plugins` array.
+`codegraphy plugins register <package>` validates both files and records one installed plugin package in the user-level Plugin Registry. Enable its `codegraphy.json#id` in the workspace-local `plugins` array to activate it.
 
 ### 2. Runtime Load
 
@@ -123,13 +123,7 @@ Path contract:
 
 ### onFilesChanged(files, workspaceRoot, context?)
 
-Called before an incremental save-driven re-analysis when CodeGraphy already has a warm Graph Cache. Return additional workspace-relative files when dependents also need analysis.
-The hook receives all changed workspace files, including configuration files
-outside the plugin's `supportedExtensions`; filter inside the hook when needed.
-`context.workspaceFiles` provides the complete discovered workspace inventory
-as paths and extensions without forcing Core to read every file. Use
-`context.fileSystem.readTextFile(...)` only when invalidation truly needs file
-contents.
+CodeGraphy calls this hook before an incremental, save-driven analysis when it has a warm Graph Cache. Return more workspace-relative files when dependents also need analysis. The hook receives all changed workspace files, including configuration files outside the plugin's `supportedExtensions`. Filter inside the hook when needed. `context.workspaceFiles` provides the discovered workspace inventory as paths and extensions without forcing Core to read each file. Use `context.fileSystem.readTextFile(...)` when invalidation needs file contents.
 
 ```typescript
 async onFilesChanged(files, workspaceRoot, context) {

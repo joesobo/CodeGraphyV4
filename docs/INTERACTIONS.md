@@ -22,7 +22,7 @@ Git-ignored File and Folder Nodes remain visible with muted styling. CodeGraphy 
 
 ## Minimap
 
-The 160 by 160 minimap appears at the lower left when **Show Minimap** is enabled under Settings > Display. It renders the current Visible Graph and marks the viewport.
+Enable **Show Minimap** under Settings > Display to show a 160 by 160 minimap at the lower left. It renders the current Visible Graph and marks the viewport.
 
 | Input | Result |
 |---|---|

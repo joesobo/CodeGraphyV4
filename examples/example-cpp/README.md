@@ -1,7 +1,6 @@
 # C++ Example
 
-Small C++ task queue runner for checking that CodeGraphy can show a real
-project shape instead of a one-file syntax sample.
+Small C++ task queue runner for checking that CodeGraphy can show a real project shape instead of a one-file syntax sample.
 
 Build and run it with CMake:
 
@@ -24,7 +23,4 @@ The example contains these C++ graph targets for the C++ upgrade work:
 - Template: `TaskQueue<Item>`.
 - Variables: namespace-scope `next_task_id`, constants such as `kDefaultPriority`, class fields such as `queue_`, parameters such as `task`, and locals such as `completed`.
 
-Local includes connect the project across headers and source files. The worker
-hierarchy gives inheritance and override edges, while the runner, worker, and
-seed functions give obvious calls and type references for later Graph Scope
-acceptance coverage.
+Local includes connect the project across headers and source files. The worker hierarchy gives inheritance and override edges, while the runner, worker, and seed functions give obvious calls and type references for later Graph Scope acceptance coverage.
