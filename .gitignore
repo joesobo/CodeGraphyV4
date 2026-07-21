@@ -22,7 +22,8 @@ reports/
 .stryker-tmp/
 .pnpm-store/
 
-# Task artifacts belong in Trello, Codex tasks, or pull requests.
+.claude/
+
 /docs/plans/
 /docs/handoff/
 /docs/archive/

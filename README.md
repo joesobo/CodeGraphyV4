@@ -5,7 +5,7 @@
 <h1 align="center">CodeGraphy</h1>
 
 <p align="center">
-  An interactive VS Code Relationship Graph for exploring how files and code concepts connect.
+An interactive VS Code Relationship Graph for exploring how files and code concepts connect.
 </p>
 
 <p align="center">
@@ -17,17 +17,17 @@
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy">Install</a>
-  ·
+·
   <a href="./docs/README.md">Docs</a>
-  ·
+·
   <a href="./docs/PLUGINS.md">Build a plugin</a>
-  ·
+·
   <a href="./CONTRIBUTING.md">Contribute</a>
-  ·
+·
   <a href="https://trello.com/b/wG65Lfrb/codegraphy">Roadmap</a>
 </p>
 
-CodeGraphy indexes a folder, projects its files and declarations into Nodes, and renders their imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships as an interactive graph inside VS Code. Search, Graph Scope, and persistent filters narrow the view to the question you are asking. The same Core engine backs the extension, the terminal CLI, and agent queries.
+CodeGraphy indexes a folder and projects its files and declarations into Nodes. It renders imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships as an interactive graph inside VS Code. Search, Graph Scope, and persistent filters narrow the view. The same Core engine supports the extension, terminal CLI, and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
 
@@ -64,7 +64,7 @@ CodeGraphy indexes a folder, projects its files and declarations into Nodes, and
 1. Install [CodeGraphy from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 2. Open a folder or workspace.
 3. Open CodeGraphy from the Activity Bar.
-4. Select **Index Workspace** to add semantic Relationships beyond the initial file graph.
+4. Select **Index Workspace** to add semantic Relationships to the initial file graph.
 
 The extension publishes native runtime targets for Linux x64, macOS Apple Silicon, and Windows x64. It bundles Core plus baseline analysis for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Markdown analysis ships as a bundled plugin that starts enabled in new workspaces.
 
@@ -115,7 +115,7 @@ Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current, pick a bounded Graph Query, and only then read source. Install it from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current and choose a bounded Graph Query before reading source. Install it from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
@@ -127,7 +127,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension adapts Core to editor lifecycle and the React Graph View. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Plugins remain headless and communicate through `@codegraphy-dev/plugin-api` contracts.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension connects Core to the editor lifecycle and React Graph View. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Headless plugins communicate through `@codegraphy-dev/plugin-api` contracts.
 
 | Package | Role |
 |---|---|
