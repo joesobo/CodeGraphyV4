@@ -92,8 +92,24 @@ function graphNodeFilePath(
   const candidate = node.symbol?.filePath
     ?? (typeof node.metadata?.filePath === 'string' ? node.metadata.filePath : undefined)
     ?? ((node.nodeType ?? 'file') === 'file' ? node.id : undefined);
+  if (candidate && knownFilePaths.has(candidate)) return candidate;
   const normalized = normalizeKnownPath(candidate, analysisToCachePath);
   return normalized && knownFilePaths.has(normalized) ? normalized : null;
+}
+
+function normalizeAnalysisIdForFile(
+  value: string | undefined,
+  analysisFilePath: string,
+  analysisToCachePath: ReadonlyMap<string, string>,
+): string | null {
+  if (!value) return null;
+  const cachePath = analysisToCachePath.get(analysisFilePath);
+  if (!cachePath) return value;
+  if (value === analysisFilePath) return cachePath;
+  if (value.startsWith(`${analysisFilePath}:`) || value.startsWith(`${analysisFilePath}#`)) {
+    return `${cachePath}${value.slice(analysisFilePath.length)}`;
+  }
+  return value;
 }
 
 function nodeMetadataColumns(metadata: GraphMetadata | undefined): DatabaseRecord {
@@ -153,11 +169,13 @@ function graphNodeRecord(
 function analysisNodeRecord(
   node: IAnalysisNode,
   ownerFilePath: string,
+  ownerAnalysisPath: string,
   analysisOrder: number,
   existing: NodeRecord | undefined,
   analysisToCachePath: ReadonlyMap<string, string>,
 ): NodeRecord {
-  const id = normalizeAnalysisId(node.id, analysisToCachePath) ?? node.id;
+  const analysisFilePath = node.filePath ?? ownerAnalysisPath;
+  const id = normalizeAnalysisIdForFile(node.id, analysisFilePath, analysisToCachePath) ?? node.id;
   return {
     ...emptyRecord(NODE_COLUMNS),
     ...existing,
@@ -165,7 +183,7 @@ function analysisNodeRecord(
     type: node.nodeType,
     label: node.label,
     fileId: ownerFilePath,
-    parentId: normalizeAnalysisId(node.parentId, analysisToCachePath),
+    parentId: normalizeAnalysisIdForFile(node.parentId, analysisFilePath, analysisToCachePath),
     analysisNodeId: node.id,
     analysisNodeFilePath: node.filePath ?? null,
     analysisParentId: node.parentId ?? null,
@@ -176,15 +194,16 @@ function analysisNodeRecord(
 
 function symbolRecord(
   symbol: IAnalysisSymbol,
-  analysisOrder: number,
+  analysisOrder: number | null,
   analysisToCachePath: ReadonlyMap<string, string>,
 ): SymbolRecord {
-  const nodeKey = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
+  const nodeKey = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
   return {
     ...emptyRecord(SYMBOL_COLUMNS),
     nodeId: nodeKey,
-    analysisId: symbol.id,
-    analysisPath: symbol.filePath,
+    filePath: symbol.filePath,
+    analysisId: analysisOrder === null ? null : symbol.id,
+    analysisPath: analysisOrder === null ? null : symbol.filePath,
     analysisOrder,
     pluginId: metadataString(symbol.metadata, 'pluginId'),
     language: metadataString(symbol.metadata, 'language'),
@@ -222,9 +241,20 @@ function relationEndpoints(
   relation: IAnalysisRelation,
   analysisToCachePath: ReadonlyMap<string, string>,
 ): { from: string; fromType: 'file' | 'symbol'; to: string; toType: 'file' | 'symbol' } | undefined {
-  const from = normalizeAnalysisId(relation.fromSymbolId ?? relation.fromNodeId, analysisToCachePath)
+  const from = normalizeAnalysisIdForFile(
+    relation.fromSymbolId ?? relation.fromNodeId,
+    relation.fromFilePath,
+    analysisToCachePath,
+  )
     ?? normalizeKnownPath(relation.fromFilePath, analysisToCachePath);
-  const to = normalizeAnalysisId(relation.toSymbolId ?? relation.toNodeId, analysisToCachePath)
+  const targetFilePath = relation.resolvedPath ?? relation.toFilePath;
+  const to = (targetFilePath
+    ? normalizeAnalysisIdForFile(
+        relation.toSymbolId ?? relation.toNodeId,
+        targetFilePath,
+        analysisToCachePath,
+      )
+    : normalizeAnalysisId(relation.toSymbolId ?? relation.toNodeId, analysisToCachePath))
     ?? normalizeKnownPath(relation.resolvedPath ?? relation.toFilePath, analysisToCachePath);
   return from && to
     ? {
@@ -364,11 +394,22 @@ export function serializeDatabaseRecords(
   }
   for (const [filePath, entry] of sortedFiles) {
     for (const [analysisOrder, node] of (entry.analysis.nodes ?? []).entries()) {
-      const id = normalizeAnalysisId(node.id, analysisToCachePath) ?? node.id;
-      nodes.set(id, analysisNodeRecord(node, filePath, analysisOrder, nodes.get(id), analysisToCachePath));
+      const id = normalizeAnalysisIdForFile(
+        node.id,
+        node.filePath ?? entry.analysis.filePath,
+        analysisToCachePath,
+      ) ?? node.id;
+      nodes.set(id, analysisNodeRecord(
+        node,
+        filePath,
+        entry.analysis.filePath,
+        analysisOrder,
+        nodes.get(id),
+        analysisToCachePath,
+      ));
     }
     for (const symbol of entry.analysis.symbols ?? []) {
-      const id = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
+      const id = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
       if (!nodes.has(id)) {
         addEndpointNode(nodes, id, knownFilePaths, 'symbol');
       }
@@ -383,12 +424,12 @@ export function serializeDatabaseRecords(
   const symbols = new Map<string, SymbolRecord>();
   for (const node of graphData.nodes) {
     if (node.symbol) {
-      symbols.set(node.id, symbolRecord(node.symbol, -1, analysisToCachePath));
+      symbols.set(node.id, symbolRecord(node.symbol, null, analysisToCachePath));
     }
   }
   for (const [, entry] of sortedFiles) {
     for (const [analysisOrder, symbol] of (entry.analysis.symbols ?? []).entries()) {
-      const nodeKey = normalizeAnalysisId(symbol.id, analysisToCachePath) ?? symbol.id;
+      const nodeKey = normalizeAnalysisIdForFile(symbol.id, symbol.filePath, analysisToCachePath) ?? symbol.id;
       symbols.set(nodeKey, symbolRecord(symbol, analysisOrder, analysisToCachePath));
     }
   }

@@ -105,6 +105,7 @@ export function ensureSchema(connection: SQLiteConnection): void {
     CREATE INDEX IF NOT EXISTS Node_parentId_idx ON Node(parentId);
     CREATE TABLE IF NOT EXISTS Symbol (
       nodeId INTEGER PRIMARY KEY REFERENCES Node(id) ON DELETE CASCADE,
+      filePath TEXT NOT NULL,
       analysisId TEXT,
       analysisPath TEXT,
       analysisOrder INTEGER,

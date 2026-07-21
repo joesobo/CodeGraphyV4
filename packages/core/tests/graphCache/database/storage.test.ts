@@ -43,6 +43,7 @@ function completeCache(cache: IWorkspaceAnalysisCache): IWorkspaceAnalysisCache 
         ...entry,
         analysis: {
           ...entry.analysis,
+          cache: { tiers: ['baseline', 'symbols'] },
           nodes: entry.analysis.nodes ?? [],
           symbols: entry.analysis.symbols ?? [],
           relations: entry.analysis.relations ?? [],
@@ -116,7 +117,10 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           mtime: 123,
           contentHash: 'sha256:index',
           size: 456,
-          analysis: completeCache(cache).files['src/index.ts']!.analysis,
+          analysis: {
+            ...cache.files['src/index.ts']!.analysis,
+            nodes: [],
+          },
         },
       ],
       graph: {
@@ -159,7 +163,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     });
   });
 
-  it('persists indexing state and the canonical property graph in three queryable tables', () => {
+  it('persists indexing state and the canonical property graph in normalized queryable tables', () => {
     const workspaceRoot = createWorkspaceRoot();
     const analysis = {
       filePath: '/workspace/src/index.ts',
@@ -339,6 +343,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       analysisRelation: 1,
     }]);
     const storedAnalysis = {
+      cache: { tiers: ['baseline', 'symbols'] },
       filePath: analysis.filePath,
       nodes: analysis.nodes,
       symbols: analysis.symbols,
@@ -468,6 +473,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           mtime: 1,
           size: 10,
           analysis: {
+            cache: { tiers: ['baseline'] },
             filePath: '/workspace/src/App.vue',
             nodes: [{
               id: 'src/App.vue',
@@ -492,7 +498,18 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         SYMBOLS_ANALYSIS_CACHE_TIER,
         'plugin:codegraphy.vue',
       ],
-    })).toEqual(fullCache);
+    })).toEqual({
+      ...fullCache,
+      files: {
+        'src/App.vue': {
+          ...fullCache.files['src/App.vue'],
+          analysis: {
+            ...fullCache.files['src/App.vue']!.analysis,
+            cache: { tiers: ['baseline', 'symbols', 'plugin:codegraphy.vue'] },
+          },
+        },
+      },
+    });
   });
 
   it('skips persistence when the workspace root no longer exists', () => {

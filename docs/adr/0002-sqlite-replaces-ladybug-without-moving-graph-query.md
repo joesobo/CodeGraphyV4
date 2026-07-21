@@ -35,32 +35,39 @@ Do not introduce SQL-native graph traversal, FTS, semantic search, or a new
 query model as part of the LadybugDB replacement. Those may be evaluated later
 as independent, measured changes.
 
-Persist the Graph Cache as three relational tables:
+Persist the Graph Cache as four relational tables:
 
 - `File` stores one row per indexed workspace file, including the cache path,
-  analyzer path, filesystem identity, content hash, and which analysis
-  collections were completed.
+  analyzer path, filesystem identity, and content hash.
 - `Node` stores files, folders, packages, symbols, and plugin concepts. A node
-  may reference its owning `File` and parent `Node`. Symbol identity, source
-  range, presentation, and supported plugin metadata use explicit typed
-  columns. Indexing bookkeeping is not represented as graph nodes or edges.
+  references its owning `File` and parent `Node` through generated integer
+  identifiers. Stable graph identity remains a separate unique `key`.
+- `Symbol` stores the optional symbol subtype of a `Node` as a one-to-one row.
+  Symbol identity, source range, and supported plugin metadata use explicit
+  typed columns, so non-symbol nodes do not carry nullable symbol fields.
+  `filePath` belongs to every symbol; nullable `analysisId`, `analysisPath`,
+  and `analysisOrder` distinguish analyzer facts from graph-only presentation
+  without allowing graph rows to become analyzer facts on the next index.
 - `Edge` stores directed typed relationships between `Node` rows. Each physical
-  row stores one contributing source, while `graphId` groups rows that form one
-  canonical multi-source graph edge. Raw analysis relation fields and source
-  provenance use separate explicit columns.
+  row stores one contributing source, while `graphKey` groups rows that form
+  one canonical multi-source graph edge. `sourceNodeId`, `targetNodeId`, and
+  `ownerFileId` are integer foreign keys. Raw analysis relation fields and
+  source provenance use separate explicit columns.
 
 The schema does not use JSON columns. Facts needed for identity, joins,
 filtering, ownership, provenance, or cache reconstruction remain ordinary
-SQLite values with foreign keys and indexes. When one node is both a plugin
-node and a symbol, the single row carries both sets of explicit analysis
-columns instead of creating duplicate nodes.
+SQLite values with foreign keys and indexes. `INTEGER PRIMARY KEY` provides
+database-generated row identities without `AUTOINCREMENT`; domain keys such as
+paths and plugin identifiers remain unique ordinary columns. When one node is
+both a plugin node and a symbol, `Symbol.nodeId` points to that existing `Node`
+instead of creating a duplicate node.
 
-`File.baselineIndexed`, `File.symbolsIndexed`, and the other indexed-state
-columns record which core analysis collections are complete. Active plugin
-tiers are restored only after the existing settings and plugin signatures have
-validated the cache. `canonicalGraphEdge` distinguishes a raw analysis
-relation that must remain queryable from an edge that belongs in the canonical
-Relationship Graph.
+Every persisted file record represents a completed core analysis, including an
+empty symbol result, so per-collection `*Indexed` flags are unnecessary. Active
+plugin tiers are restored only after the existing settings and plugin
+signatures have validated the cache. `canonicalGraphEdge` distinguishes a raw
+analysis relation that must remain queryable from an edge that belongs in the
+canonical Relationship Graph.
 
 Discovery Filters define which files belong in an index and can reduce indexing
 work. Once a file is selected, indexing stores its complete nodes, symbols, and
@@ -79,7 +86,7 @@ Core indexing path.
 - Extension and CLI continue consuming the same Core APIs.
 - SQLite schema and indexes should optimize current save, patch, and snapshot
   reads rather than speculative future queries.
-- Old Graph Cache schemas are rebuilt into the current three-table contract;
+- Old Graph Cache schemas are rebuilt into the current four-table contract;
   there is no legacy JSON read path.
 - The migration will not by itself reduce Graph Query memory usage or CLI
   response size.

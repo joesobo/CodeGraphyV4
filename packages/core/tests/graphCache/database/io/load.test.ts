@@ -77,7 +77,11 @@ describe('graphCache/database/load', () => {
         'src/app.ts': {
           mtime: 1,
           size: 2,
-          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
+          analysis: {
+            cache: { tiers: ['baseline', 'symbols'] },
+            filePath: '/workspace/src/app.ts',
+            relations: [],
+          },
         },
       },
     });

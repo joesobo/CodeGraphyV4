@@ -52,6 +52,13 @@ function symbolNodeKey(row: SymbolRow): string | undefined {
   return readOptionalString(row.nodeKey) ?? readOptionalString(row.nodeId);
 }
 
+function appendGroupedRow<Row>(groups: Map<string, Row[]>, key: string | undefined, row: Row): void {
+  if (!key) return;
+  const rows = groups.get(key) ?? [];
+  rows.push(row);
+  groups.set(key, rows);
+}
+
 export function parseDatabaseRecords(
   fileRows: readonly FileRow[],
   nodeRows: readonly GraphNodeRow[],
@@ -64,8 +71,35 @@ export function parseDatabaseRecords(
   });
   const symbols: IAnalysisSymbol[] = [];
   const relations: IAnalysisRelation[] = [];
+  const nodeRowsByFilePath = new Map<string, GraphNodeRow[]>();
+  const nodeFilePathsByKey = new Map<string, string>();
+  for (const row of nodeRows) {
+    const filePath = nodeFilePath(row);
+    appendGroupedRow(nodeRowsByFilePath, filePath, row);
+    const key = readOptionalString(row.key);
+    if (key && filePath) nodeFilePathsByKey.set(key, filePath);
+  }
+  const symbolRowsByFilePath = new Map<string, SymbolRow[]>();
+  const symbolRowsByNodeKey = new Map<string, SymbolRow>();
+  for (const row of symbolRows) {
+    const nodeKey = symbolNodeKey(row);
+    appendGroupedRow(
+      symbolRowsByFilePath,
+      readOptionalString(row.ownerFilePath) ?? (nodeKey ? nodeFilePathsByKey.get(nodeKey) : undefined),
+      row,
+    );
+    if (nodeKey) symbolRowsByNodeKey.set(nodeKey, row);
+  }
+  const edgeRowsByOwnerFilePath = new Map<string, GraphEdgeRow[]>();
+  for (const row of edgeRows) {
+    appendGroupedRow(
+      edgeRowsByOwnerFilePath,
+      readOptionalString(row.ownerFilePath) ?? readOptionalString(row.ownerFileId),
+      row,
+    );
+  }
   for (const file of files) {
-    const ownedNodeRows = nodeRows.filter(row => nodeFilePath(row) === file.filePath);
+    const ownedNodeRows = nodeRowsByFilePath.get(file.filePath) ?? [];
     const analysisNodes = [...ownedNodeRows]
       .sort((left, right) => Number(left.analysisNodeOrder ?? Number.MAX_SAFE_INTEGER)
         - Number(right.analysisNodeOrder ?? Number.MAX_SAFE_INTEGER))
@@ -73,21 +107,14 @@ export function parseDatabaseRecords(
         const node = createSnapshotAnalysisNode(row);
         return node ? [node] : [];
       });
-    const ownedNodeKeys = new Set(ownedNodeRows.flatMap(row => {
-      const key = readOptionalString(row.key);
-      return key ? [key] : [];
-    }));
-    const analysisSymbols = symbolRows
-      .filter(row => readOptionalString(row.filePath) === file.filePath
-        || ownedNodeKeys.has(symbolNodeKey(row) ?? ''))
+    const analysisSymbols = [...(symbolRowsByFilePath.get(file.filePath) ?? [])]
       .sort((left, right) => Number(left.analysisOrder ?? Number.MAX_SAFE_INTEGER)
         - Number(right.analysisOrder ?? Number.MAX_SAFE_INTEGER))
       .flatMap(row => {
         const symbol = createSnapshotAnalysisSymbol(row);
         return symbol ? [symbol] : [];
       });
-    const analysisRelations = edgeRows
-      .filter(row => (readOptionalString(row.ownerFilePath) ?? readOptionalString(row.ownerFileId)) === file.filePath)
+    const analysisRelations = [...(edgeRowsByOwnerFilePath.get(file.filePath) ?? [])]
       .sort((left, right) => Number(left.analysisOrder ?? Number.MAX_SAFE_INTEGER)
         - Number(right.analysisOrder ?? Number.MAX_SAFE_INTEGER))
       .flatMap(row => {
@@ -101,10 +128,6 @@ export function parseDatabaseRecords(
     relations.push(...analysisRelations);
   }
 
-  const symbolRowsByNodeKey = new Map(symbolRows.flatMap(row => {
-    const key = symbolNodeKey(row);
-    return key ? [[key, row] as const] : [];
-  }));
   const nodes = nodeRows.flatMap(row => {
     const key = readOptionalString(row.key);
     const node = createSnapshotGraphNode(row, key ? symbolRowsByNodeKey.get(key) : undefined);

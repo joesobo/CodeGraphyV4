@@ -6,7 +6,7 @@ export const NODE_ROWS_QUERY = `SELECT Node.*, File.path AS filePath, Parent.key
   LEFT JOIN Node AS Parent ON Parent.id = Node.parentId
   ORDER BY Node.key`;
 
-export const SYMBOL_ROWS_QUERY = `SELECT Symbol.*, Node.key AS nodeKey, File.path AS filePath
+export const SYMBOL_ROWS_QUERY = `SELECT Symbol.*, Node.key AS nodeKey, File.path AS ownerFilePath
   FROM Symbol
   JOIN Node ON Node.id = Symbol.nodeId
   LEFT JOIN File ON File.id = Node.fileId

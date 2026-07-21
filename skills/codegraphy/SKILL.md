@@ -9,14 +9,8 @@ CodeGraphy turns a workspace into a queryable graph.
 
 ## Workflow
 
-1. Index the workspace.
+1. `codegraphy index` writes the complete workspace graph to `.codegraphy/graph.sqlite`.
+2. Shape the graph with `codegraphy filter`, `scope`, and `plugins`.
+3. Query with `nodes`, `search`, `edges`, `dependencies`, `dependents`, or `path`.
 
-```bash
-codegraphy index
-```
-
-2. Shape the graph with filters, Graph Scope, and plugins when needed.
-
-3. Query nodes, search results, edges, dependencies, dependents, or paths.
-
-Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for arguments, effects, output, and examples. Commands use the current directory by default and return JSON unless they are help or version commands.
+Use `status` for cache freshness and `doctor` for runtime, settings, cache, and plugin diagnostics. Run `codegraphy --help` or `codegraphy <command> --help` for the exact contract and examples. Commands use the current directory by default, accept `-C <path>` for another workspace, and return a JSON envelope unless they are help or version commands.
