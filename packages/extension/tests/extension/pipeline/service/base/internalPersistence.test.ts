@@ -14,6 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/service/runtime/graph', () => ({
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis: vi.fn(),
   buildWorkspacePipelineGraph: vi.fn(),
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
@@ -68,6 +69,7 @@ vi.mock('vscode', () => ({
 
 import {
   TestInternalBase,
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraphFromAnalysis,
   persistWorkspacePipelineCache,
   persistWorkspacePipelineIndexMetadata,
@@ -111,9 +113,10 @@ describe('extension/pipeline/service/internalBase persistence', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const completeGraphData = { nodes: [{ id: 'complete' }], edges: [] };
     const scopedGraphData = { nodes: [{ id: 'scoped' }], edges: [] };
+    vi.mocked(buildWorkspacePipelineCompleteGraphDataFromAnalysis)
+      .mockReturnValue(completeGraphData as never);
     vi.mocked(buildWorkspacePipelineGraphFromAnalysis)
-      .mockReturnValueOnce(completeGraphData as never)
-      .mockReturnValueOnce(scopedGraphData as never);
+      .mockReturnValue(scopedGraphData as never);
     const graphData = source.buildGraphDataFromAnalysis(new Map(), '/workspace', true);
 
     expect(graphData).toBe(scopedGraphData);

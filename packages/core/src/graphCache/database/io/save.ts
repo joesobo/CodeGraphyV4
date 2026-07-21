@@ -116,6 +116,10 @@ export function saveWorkspaceAnalysisDatabaseCache(
 
         const writer = createWorkspaceAnalysisCacheWriter(connection);
         persistWorkspaceCache(writer, cache, graph);
+        runStatementSync(
+          connection,
+          'DELETE FROM NodeView WHERE NOT EXISTS (SELECT 1 FROM Node WHERE Node.key = NodeView.nodeKey)',
+        );
       });
     });
   };

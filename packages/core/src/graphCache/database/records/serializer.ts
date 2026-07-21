@@ -295,6 +295,8 @@ function createAnalysisToGraphId(
 
   const graphIndexBySymbol = new Map<string, number>();
   const analysisToGraphId = new Map<string, string>();
+  // Identical symbol identities are paired by their deterministic file and symbol iteration order.
+  // A producer that cannot preserve this order must provide another stable identity discriminator.
   for (const [filePath, entry] of sortedFiles) {
     for (const symbol of entry.analysis.symbols ?? []) {
       const identity = graphSymbolIdentity(filePath, symbol.name, symbol.kind, symbol.signature);

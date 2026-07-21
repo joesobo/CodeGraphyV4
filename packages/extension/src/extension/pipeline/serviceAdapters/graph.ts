@@ -3,6 +3,7 @@ import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from '../cache';
 import {
+  buildCompleteWorkspaceGraphData,
   buildWorkspacePipelineGraphFromAnalysis,
   buildWorkspacePipelineGraphForSource,
   type WorkspacePipelineGraphSource,
@@ -76,6 +77,30 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     fileAnalysis: filterAnalysisByActivePlugins(fileAnalysis, activePluginIds, disabledPlugins),
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
     nodeVisibility: graphScope.nodeVisibility,
+    showOrphans,
+    workspaceRoot,
+  });
+}
+
+export function buildWorkspacePipelineCompleteGraphDataFromAnalysis(
+  cache: IWorkspaceAnalysisCache,
+  registry: PluginRegistry,
+  fileAnalysis: Map<string, IFileAnalysisResult>,
+  workspaceRoot: string,
+  showOrphans: boolean,
+  disabledPlugins: Set<string> = new Set(),
+  directoryPaths: readonly string[] = [],
+  gitIgnoredPaths: readonly string[] = [],
+): IGraphData {
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const source = createGraphSource(cache, registry, directoryPaths, gitIgnoredPaths);
+  return buildCompleteWorkspaceGraphData({
+    cacheFiles: source._cache.files,
+    directoryPaths: source._lastDiscoveredDirectories ?? [],
+    gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
+    disabledPlugins,
+    fileAnalysis: filterAnalysisByActivePlugins(fileAnalysis, activePluginIds, disabledPlugins),
+    getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
     showOrphans,
     workspaceRoot,
   });

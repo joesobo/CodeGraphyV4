@@ -9,6 +9,7 @@ import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
 } from '../runtime/graph';
@@ -149,7 +150,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
-    const completeGraphData = buildWorkspacePipelineGraphFromAnalysis(
+    const completeGraphData = buildWorkspacePipelineCompleteGraphDataFromAnalysis(
       this._cache,
       this._registry,
       fileAnalysis,
@@ -157,7 +158,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       showOrphans,
       disabledPlugins,
       this._lastDiscoveredDirectories,
-      {},
       this._lastGitIgnoredPaths,
     );
     const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};

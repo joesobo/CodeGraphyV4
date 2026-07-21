@@ -71,7 +71,7 @@ describe('shared/visibleGraph/scope/edgeProjection', () => {
 		});
 	});
 
-	it('drops hidden symbol edges projected onto the same visible file', () => {
+	it('projects hidden symbol edges onto the same visible file', () => {
 		const result = projectEdgesToVisibleNodes(
 			[
 				edge('src/runner.dart#run:method', 'src/runner.dart#Runner:class', 'call'),
@@ -98,7 +98,7 @@ describe('shared/visibleGraph/scope/edgeProjection', () => {
 
 		expect(ids({ nodes: [], edges: result })).toEqual({
 			nodes: [],
-			edges: [],
+			edges: ['src/runner.dart->src/runner.dart#call'],
 		});
 	});
 

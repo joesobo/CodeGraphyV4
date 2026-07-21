@@ -39,10 +39,6 @@ function projectEdgeToVisibleNodes(
     return edge;
   }
 
-  if (from === to) {
-    return undefined;
-  }
-
   return {
     ...edge,
     id: `${from}->${to}${getEdgeKindSuffix(edge)}`,

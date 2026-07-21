@@ -14,6 +14,24 @@ import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
 const BINARY_SAMPLE_SIZE = 8_192;
+const KNOWN_TEXT_EXTENSIONS: ReadonlySet<string> = new Set([
+  '.asset', '.asmdef', '.c', '.cc', '.cpp', '.cs', '.css', '.cxx', '.dart',
+  '.gd', '.go', '.godot', '.h', '.hpp', '.hs', '.html', '.inputactions', '.java',
+  '.js', '.json', '.jsx', '.kt', '.kts', '.lua', '.m', '.markdown', '.mat', '.md',
+  '.meta', '.mm', '.pas', '.php', '.prefab', '.py', '.rb', '.rs', '.scala', '.scss',
+  '.shader', '.sh', '.sql', '.svelte', '.swift', '.toml', '.tres', '.ts', '.tscn',
+  '.tsx', '.txt', '.unity', '.vue', '.xml', '.yaml', '.yml',
+]);
+const KNOWN_TEXT_BASENAMES: ReadonlySet<string> = new Set([
+  '.editorconfig', '.env', '.gitattributes', '.gitignore', 'dockerfile', 'license',
+  'makefile', 'readme',
+]);
+
+function shouldSampleForNulByte(absolutePath: string): boolean {
+  const extension = path.extname(absolutePath).toLowerCase();
+  if (KNOWN_TEXT_EXTENSIONS.has(extension)) return false;
+  return !KNOWN_TEXT_BASENAMES.has(path.basename(absolutePath).toLowerCase());
+}
 
 async function hasNulByte(absolutePath: string): Promise<boolean> {
   try {
@@ -144,7 +162,7 @@ export class FileDiscovery {
           return true;
         }
 
-        if (await hasNulByte(absolutePath)) {
+        if (shouldSampleForNulByte(absolutePath) && await hasNulByte(absolutePath)) {
           return true;
         }
 

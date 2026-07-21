@@ -56,11 +56,21 @@ describe('FileDiscovery discover', () => {
 
   it('excludes NUL-containing files before plugin analysis', async () => {
     createFile('src/app.ts', 'export const app = true;');
-    createFile('src/generated.ts', 'prefix\0binary payload');
+    createFile('src/generated.dat', 'prefix\0binary payload');
 
     const result = await discovery.discover({ rootPath: tempDir });
 
     expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+  });
+
+  it('does not sample known text extensions for NUL bytes', async () => {
+    createFile('src/app.ts', 'export const app = true;');
+    const open = vi.spyOn(fs.promises, 'open');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+    expect(open).not.toHaveBeenCalled();
   });
 
   it('includes file metadata', async () => {
