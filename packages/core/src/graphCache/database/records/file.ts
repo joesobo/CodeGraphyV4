@@ -10,19 +10,17 @@ export interface SnapshotFileEntry {
   analysis: IFileAnalysisResult;
 }
 
-function indexedFlag(value: unknown): boolean {
-  return value === 1 || value === 1n;
-}
-
 export function createSnapshotFileEntry(row: FileRow): SnapshotFileEntry | undefined {
   const filePath = readRequiredString(row.path);
   const analysisPath = readRequiredString(row.analysisPath);
   if (!filePath || !analysisPath) return undefined;
 
-  const analysis: IFileAnalysisResult = { filePath: analysisPath };
-  if (indexedFlag(row.nodesIndexed)) analysis.nodes = [];
-  if (indexedFlag(row.symbolsIndexed)) analysis.symbols = [];
-  if (indexedFlag(row.relationsIndexed)) analysis.relations = [];
+  const analysis: IFileAnalysisResult = {
+    filePath: analysisPath,
+    nodes: [],
+    symbols: [],
+    relations: [],
+  };
 
   const contentHash = readOptionalString(row.contentHash);
   const size = readOptionalNumber(row.size);

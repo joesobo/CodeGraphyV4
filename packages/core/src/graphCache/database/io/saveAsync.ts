@@ -37,6 +37,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       let committed = false;
       try {
         await runStatementAsync(connection, 'DELETE FROM Edge');
+        await runStatementAsync(connection, 'DELETE FROM Symbol');
         await runStatementAsync(connection, 'DELETE FROM Node');
         await runStatementAsync(connection, 'DELETE FROM File');
         const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);

@@ -29,7 +29,7 @@ describe('graphCache/database/io/connection', () => {
     const rows = withConnection(createDatabasePath(), (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO File(path, analysisPath, mtime, size, baselineIndexed, nodesIndexed, symbolsIndexed, relationsIndexed) VALUES ('src/app.ts', '/workspace/src/app.ts', 1, 2, 0, 0, 0, 0)",
+        "INSERT INTO File(path, analysisPath, mtime, size) VALUES ('src/app.ts', '/workspace/src/app.ts', 1, 2)",
       );
       return readRowsSync(
         connection,
@@ -70,7 +70,7 @@ describe('graphCache/database/io/connection', () => {
     withConnection(databasePath, (connection) => {
       runStatementSync(
         connection,
-        "INSERT INTO File(path, analysisPath, mtime, size, baselineIndexed, nodesIndexed, symbolsIndexed, relationsIndexed) VALUES ('src/app.ts', '/workspace/src/app.ts', 1, 2, 0, 0, 0, 0)",
+        "INSERT INTO File(path, analysisPath, mtime, size) VALUES ('src/app.ts', '/workspace/src/app.ts', 1, 2)",
       );
     });
 

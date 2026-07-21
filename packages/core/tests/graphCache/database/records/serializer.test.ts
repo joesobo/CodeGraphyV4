@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { serializeDatabaseRecords } from '../../../../src/graphCache/database/records/serializer';
 
 describe('graphCache/database/serializer', () => {
-  it('normalizes files, collocated node and symbol facts, and edge provenance without JSON', () => {
+  it('normalizes files, nodes, symbols, and edge provenance without JSON', () => {
     const records = serializeDatabaseRecords({
       version: '1',
       files: {
@@ -31,16 +31,16 @@ describe('graphCache/database/serializer', () => {
     expect(records.files).toEqual([expect.objectContaining({
       path: 'src/app.ts',
       analysisPath: '/workspace/src/app.ts',
-      nodesIndexed: 1,
-      symbolsIndexed: 1,
-      relationsIndexed: 1,
     })]);
     expect(records.nodes).toContainEqual(expect.objectContaining({
-      id: 'src/app.ts#App',
+      key: 'src/app.ts#App',
       type: 'component',
       analysisNodeId: '/workspace/src/app.ts#App',
-      analysisSymbolId: '/workspace/src/app.ts#App',
-      symbolKind: 'class',
+    }));
+    expect(records.symbols).toContainEqual(expect.objectContaining({
+      nodeId: 'src/app.ts#App',
+      analysisId: '/workspace/src/app.ts#App',
+      kind: 'class',
     }));
     expect(records.edges).toContainEqual(expect.objectContaining({
       sourceNodeId: 'src/app.ts',

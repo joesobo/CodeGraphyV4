@@ -14,7 +14,12 @@ import {
   runStatementSync,
   withConnection,
 } from '../../../../src/graphCache/database/io/connection';
-import { EDGE_COLUMNS, FILE_COLUMNS, NODE_COLUMNS } from '../../../../src/graphCache/database/records/types';
+import {
+  EDGE_COLUMNS,
+  FILE_COLUMNS,
+  NODE_COLUMNS,
+  SYMBOL_COLUMNS,
+} from '../../../../src/graphCache/database/records/types';
 
 const tempRoots = new Set<string>();
 
@@ -32,13 +37,14 @@ afterEach(() => {
 });
 
 describe('workspace analysis database schema', () => {
-  it('rebuilds the JSON cache into three explicit relational tables', () => {
+  it('rebuilds the cache into normalized relational tables with generated identities', () => {
     const workspaceRoot = createWorkspaceRoot();
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, createEmptyWorkspaceAnalysisCache());
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
 
     withConnection(databasePath, (connection) => {
       runStatementSync(connection, 'DROP TABLE Edge');
+      runStatementSync(connection, 'DROP TABLE Symbol');
       runStatementSync(connection, 'DROP TABLE Node');
       runStatementSync(connection, 'DROP TABLE File');
       runStatementSync(connection, 'CREATE TABLE IndexedFile(path TEXT PRIMARY KEY, mtime INTEGER NOT NULL, size INTEGER NOT NULL, contentHash TEXT, analyzerStateJson TEXT NOT NULL)');
@@ -55,6 +61,7 @@ describe('workspace analysis database schema', () => {
       edge: readRowsSync(connection, 'PRAGMA table_info(Edge)').map(row => row.name),
       file: readRowsSync(connection, 'PRAGMA table_info(File)').map(row => row.name),
       node: readRowsSync(connection, 'PRAGMA table_info(Node)').map(row => row.name),
+      symbol: readRowsSync(connection, 'PRAGMA table_info(Symbol)').map(row => row.name),
       tables: readRowsSync(
         connection,
         "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
@@ -62,21 +69,25 @@ describe('workspace analysis database schema', () => {
       userVersion: readRowsSync(connection, 'PRAGMA user_version')[0]?.user_version,
       nodeForeignKeys: readRowsSync(connection, 'PRAGMA foreign_key_list(Node)')
         .map(row => ({ from: row.from, table: row.table, to: row.to })),
+      symbolForeignKeys: readRowsSync(connection, 'PRAGMA foreign_key_list(Symbol)')
+        .map(row => ({ from: row.from, table: row.table, to: row.to })),
       edgeForeignKeys: readRowsSync(connection, 'PRAGMA foreign_key_list(Edge)')
         .map(row => ({ from: row.from, table: row.table, to: row.to })),
     }));
     expect(columns).toEqual({
-      tables: ['Edge', 'File', 'Node'],
-      file: [...FILE_COLUMNS],
-      node: [...NODE_COLUMNS],
-      edge: [...EDGE_COLUMNS],
-      userVersion: 5,
+      tables: ['Edge', 'File', 'Node', 'Symbol'],
+      file: ['id', ...FILE_COLUMNS],
+      node: ['id', ...NODE_COLUMNS],
+      symbol: [...SYMBOL_COLUMNS],
+      edge: ['id', ...EDGE_COLUMNS],
+      userVersion: 6,
       nodeForeignKeys: [
         { from: 'parentId', table: 'Node', to: 'id' },
-        { from: 'filePath', table: 'File', to: 'path' },
+        { from: 'fileId', table: 'File', to: 'id' },
       ],
+      symbolForeignKeys: [{ from: 'nodeId', table: 'Node', to: 'id' }],
       edgeForeignKeys: [
-        { from: 'ownerFilePath', table: 'File', to: 'path' },
+        { from: 'ownerFileId', table: 'File', to: 'id' },
         { from: 'targetNodeId', table: 'Node', to: 'id' },
         { from: 'sourceNodeId', table: 'Node', to: 'id' },
       ],

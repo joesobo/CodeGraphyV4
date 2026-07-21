@@ -1,28 +1,30 @@
 import type { SQLiteValue } from '../io/connection';
 
 export const FILE_COLUMNS = [
-  'path', 'analysisPath', 'mtime', 'size', 'contentHash', 'baselineIndexed',
-  'nodesIndexed', 'symbolsIndexed', 'relationsIndexed',
+  'path', 'analysisPath', 'mtime', 'size', 'contentHash',
 ] as const;
 
 export const NODE_COLUMNS = [
-  'id', 'type', 'label', 'filePath', 'parentId', 'color', 'x', 'y', 'favorite',
+  'key', 'type', 'label', 'fileId', 'parentId', 'color', 'x', 'y', 'favorite',
   'fileSize', 'depthLevel', 'shape', 'shapeWidth', 'shapeHeight', 'cornerRadius',
   'collisionRadius', 'chargeStrengthMultiplier', 'fillOpacity', 'pointerWidth',
   'pointerHeight', 'imageUrl', 'isCollapsible', 'isCollapsed',
   'collapsedDescendantCount', 'analysisNodeId', 'analysisNodeFilePath',
-  'analysisParentId', 'analysisNodeOrder', 'analysisSymbolId',
-  'analysisSymbolFilePath', 'analysisSymbolOrder', 'pluginId', 'language',
-  'analysisSource', 'pluginKind', 'symbolName', 'symbolKind', 'symbolSignature',
-  'startLine', 'startColumn', 'endLine', 'endColumn', 'gitIgnored',
-  'gitIgnoredReason', 'unityClass', 'unityFileId', 'unityGameObjectFileId',
-  'unityScriptGuid', 'unityScriptPath',
+  'analysisParentId', 'analysisNodeOrder', 'pluginId', 'language',
+  'analysisSource', 'pluginKind', 'gitIgnored', 'gitIgnoredReason', 'unityClass',
+  'unityFileId', 'unityGameObjectFileId', 'unityScriptGuid', 'unityScriptPath',
+] as const;
+
+export const SYMBOL_COLUMNS = [
+  'nodeId', 'analysisId', 'analysisPath', 'analysisOrder', 'name', 'kind',
+  'signature', 'startLine', 'startColumn', 'endLine', 'endColumn', 'pluginId',
+  'language', 'analysisSource', 'pluginKind',
 ] as const;
 
 export const EDGE_COLUMNS = [
-  'id', 'graphId', 'sourceNodeId', 'targetNodeId', 'type', 'ownerFilePath',
+  'key', 'graphKey', 'sourceNodeId', 'targetNodeId', 'type', 'ownerFileId',
   'color', 'sourcePluginId', 'relationPluginId', 'sourceKey', 'pluginSourceId',
-  'analysisSourceId', 'sourceLabel', 'variant', 'specifier', 'resolvedPath',
+  'analysisSourceId', 'sourceLabel', 'variant', 'relationSpecifier', 'resolvedPath',
   'relationType', 'fromFilePath', 'toFilePath', 'fromAnalysisNodeId',
   'toAnalysisNodeId', 'fromSymbolId', 'toSymbolId',
   'edgeLanguage', 'edgeOrigin', 'edgeBindingKind', 'edgeImportedName',
@@ -43,6 +45,7 @@ export const EDGE_COLUMNS = [
 
 export type FileRecord = Record<(typeof FILE_COLUMNS)[number], SQLiteValue>;
 export type NodeRecord = Record<(typeof NODE_COLUMNS)[number], SQLiteValue>;
+export type SymbolRecord = Record<(typeof SYMBOL_COLUMNS)[number], SQLiteValue>;
 export type EdgeRecord = Record<(typeof EDGE_COLUMNS)[number], SQLiteValue>;
 
 export const EDGE_METADATA_COLUMNS = {
@@ -75,23 +78,23 @@ export const EDGE_METADATA_COLUMNS = {
 export type EdgeMetadataRole = keyof typeof EDGE_METADATA_COLUMNS;
 
 export interface FileRow {
+  id?: unknown;
   path?: unknown;
   analysisPath?: unknown;
   mtime?: unknown;
   size?: unknown;
   contentHash?: unknown;
-  baselineIndexed?: unknown;
-  nodesIndexed?: unknown;
-  symbolsIndexed?: unknown;
-  relationsIndexed?: unknown;
 }
 
 export interface GraphNodeRow {
   id?: unknown;
+  key?: unknown;
   type?: unknown;
   label?: unknown;
+  fileId?: unknown;
   filePath?: unknown;
   parentId?: unknown;
+  parentKey?: unknown;
   color?: unknown;
   x?: unknown;
   y?: unknown;
@@ -115,20 +118,10 @@ export interface GraphNodeRow {
   analysisNodeFilePath?: unknown;
   analysisParentId?: unknown;
   analysisNodeOrder?: unknown;
-  analysisSymbolId?: unknown;
-  analysisSymbolFilePath?: unknown;
-  analysisSymbolOrder?: unknown;
   pluginId?: unknown;
   language?: unknown;
   analysisSource?: unknown;
   pluginKind?: unknown;
-  symbolName?: unknown;
-  symbolKind?: unknown;
-  symbolSignature?: unknown;
-  startLine?: unknown;
-  startColumn?: unknown;
-  endLine?: unknown;
-  endColumn?: unknown;
   gitIgnored?: unknown;
   gitIgnoredReason?: unknown;
   unityClass?: unknown;
@@ -138,12 +131,36 @@ export interface GraphNodeRow {
   unityScriptPath?: unknown;
 }
 
+export interface SymbolRow {
+  nodeId?: unknown;
+  nodeKey?: unknown;
+  filePath?: unknown;
+  analysisId?: unknown;
+  analysisPath?: unknown;
+  analysisOrder?: unknown;
+  name?: unknown;
+  kind?: unknown;
+  signature?: unknown;
+  startLine?: unknown;
+  startColumn?: unknown;
+  endLine?: unknown;
+  endColumn?: unknown;
+  pluginId?: unknown;
+  language?: unknown;
+  analysisSource?: unknown;
+  pluginKind?: unknown;
+}
+
 export interface GraphEdgeRow {
   id?: unknown;
-  graphId?: unknown;
+  key?: unknown;
+  graphKey?: unknown;
   sourceNodeId?: unknown;
+  sourceNodeKey?: unknown;
   targetNodeId?: unknown;
+  targetNodeKey?: unknown;
   type?: unknown;
+  ownerFileId?: unknown;
   ownerFilePath?: unknown;
   color?: unknown;
   sourcePluginId?: unknown;
@@ -153,7 +170,7 @@ export interface GraphEdgeRow {
   analysisSourceId?: unknown;
   sourceLabel?: unknown;
   variant?: unknown;
-  specifier?: unknown;
+  relationSpecifier?: unknown;
   resolvedPath?: unknown;
   relationType?: unknown;
   fromFilePath?: unknown;

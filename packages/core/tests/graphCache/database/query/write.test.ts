@@ -23,7 +23,7 @@ describe('graphCache/database/writeStatements', () => {
   });
 
   it('prepares one statement for each canonical table', () => {
-    const statements = [{}, {}, {}];
+    const statements = [{}, {}, {}, {}, {}];
     const prepare = vi.spyOn(cacheConnectionModule, 'prepareStatementSync');
     statements.forEach(statement => prepare.mockReturnValueOnce(statement as never));
 
@@ -31,13 +31,15 @@ describe('graphCache/database/writeStatements', () => {
       connection: {},
       fileStatement: statements[0],
       nodeStatement: statements[1],
-      edgeStatement: statements[2],
+      symbolStatement: statements[2],
+      edgeStatement: statements[3],
+      nodeParentStatement: statements[4],
     });
-    expect(prepare).toHaveBeenCalledTimes(3);
+    expect(prepare).toHaveBeenCalledTimes(5);
   });
 
   it('prepares one async statement for each canonical table', async () => {
-    const statements = [{}, {}, {}];
+    const statements = [{}, {}, {}, {}, {}];
     const prepare = vi.spyOn(cacheConnectionModule, 'prepareStatementAsync');
     statements.forEach(statement => prepare.mockResolvedValueOnce(statement as never));
 
@@ -45,18 +47,28 @@ describe('graphCache/database/writeStatements', () => {
       connection: {},
       fileStatement: statements[0],
       nodeStatement: statements[1],
-      edgeStatement: statements[2],
+      symbolStatement: statements[2],
+      edgeStatement: statements[3],
+      nodeParentStatement: statements[4],
     });
-    expect(prepare).toHaveBeenCalledTimes(3);
+    expect(prepare).toHaveBeenCalledTimes(5);
   });
 
   it('stores file state and analysis facts as normalized records', () => {
     const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
+    vi.spyOn(cacheConnectionModule, 'readRowsSync')
+      .mockReturnValueOnce([{ id: 1, key: 'src/app.ts' }])
+      .mockReturnValueOnce([
+        { id: 10, key: 'src/app.ts' },
+        { id: 11, key: 'symbol-1' },
+      ]);
     const writer = {
       connection: {} as never,
       fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
+      symbolStatement: { kind: 'symbol' } as never,
       edgeStatement: { kind: 'edge' } as never,
+      nodeParentStatement: { kind: 'node-parent' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
     const analysis = {
       filePath: '/workspace/src/app.ts',
@@ -76,29 +88,33 @@ describe('graphCache/database/writeStatements', () => {
       mtime: 10,
       size: 20,
       contentHash: 'sha256:app',
-      baselineIndexed: 0,
-      nodesIndexed: 0,
-      symbolsIndexed: 1,
-      relationsIndexed: 0,
     });
     expect(execute).toHaveBeenCalledWith(
       writer.connection,
-      writer.nodeStatement,
+      writer.symbolStatement,
       expect.objectContaining({
-        id: 'symbol-1',
-        analysisSymbolId: 'symbol-1',
-        symbolName: 'App',
+        nodeId: 11,
+        analysisId: 'symbol-1',
+        name: 'App',
       }),
     );
   });
 
   it('stores nodes and edges as typed property-graph records', () => {
     const execute = vi.spyOn(cacheConnectionModule, 'executeStatementSync').mockImplementation(() => []);
+    vi.spyOn(cacheConnectionModule, 'readRowsSync')
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([
+        { id: 1, key: 'src/app.ts' },
+        { id: 2, key: 'src/model.ts' },
+      ]);
     const writer = {
       connection: {} as never,
       fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
+      symbolStatement: { kind: 'symbol' } as never,
       edgeStatement: { kind: 'edge' } as never,
+      nodeParentStatement: { kind: 'node-parent' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
     persistGraph(writer, {
@@ -120,9 +136,9 @@ describe('graphCache/database/writeStatements', () => {
       writer.connection,
       writer.edgeStatement,
       expect.objectContaining({
-      graphId: 'src/app.ts->src/model.ts#import',
-      sourceNodeId: 'src/app.ts',
-      targetNodeId: 'src/model.ts',
+      graphKey: 'src/app.ts->src/model.ts#import',
+      sourceNodeId: 1,
+      targetNodeId: 2,
       type: 'import',
       analysisRelation: 0,
     }));
@@ -133,12 +149,17 @@ describe('graphCache/database/writeStatements', () => {
     vi.spyOn(cacheConnectionModule, 'executeStatementAsync').mockImplementation(async () => {
       sequence.push('execute');
     });
+    vi.spyOn(cacheConnectionModule, 'readRowsSync')
+      .mockReturnValueOnce([{ id: 1, key: 'src/app.ts' }])
+      .mockReturnValueOnce([{ id: 2, key: 'src/app.ts' }]);
     const afterStatement = vi.fn(async () => { sequence.push('yield'); });
     const writer = {
       connection: {} as never,
       fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
+      symbolStatement: { kind: 'symbol' } as never,
       edgeStatement: { kind: 'edge' } as never,
+      nodeParentStatement: { kind: 'node-parent' } as never,
     } satisfies WorkspaceAnalysisCacheWriter;
 
     await persistAnalysisEntryAsync(

@@ -101,12 +101,13 @@ describe('graphCache/database/io/save', () => {
     });
   });
 
-  it('replaces all three tables in one transaction', () => {
+  it('replaces all normalized tables in one transaction', () => {
     saveWorkspaceAnalysisDatabaseCache('/workspace', cache);
 
     expect(vi.mocked(connectionModule.runStatementSync).mock.calls).toEqual([
       ['connection', 'BEGIN TRANSACTION'],
       ['connection', 'DELETE FROM Edge'],
+      ['connection', 'DELETE FROM Symbol'],
       ['connection', 'DELETE FROM Node'],
       ['connection', 'DELETE FROM File'],
       ['connection', 'COMMIT'],
@@ -140,10 +141,11 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.withConnection).toHaveBeenCalledTimes(2);
   });
 
-  it('clears rows from File, Node, and Edge without deleting the database', () => {
+  it('clears normalized rows without deleting the database', () => {
     clearWorkspaceAnalysisDatabaseCache('/workspace');
     expect(vi.mocked(connectionModule.runStatementSync).mock.calls).toEqual([
       ['connection', 'DELETE FROM Edge'],
+      ['connection', 'DELETE FROM Symbol'],
       ['connection', 'DELETE FROM Node'],
       ['connection', 'DELETE FROM File'],
     ]);
@@ -197,6 +199,7 @@ describe('graphCache/database/io/save', () => {
     expect(vi.mocked(connectionModule.runStatementAsync).mock.calls).toEqual([
       ['connection', 'BEGIN TRANSACTION'],
       ['connection', 'DELETE FROM Edge'],
+      ['connection', 'DELETE FROM Symbol'],
       ['connection', 'DELETE FROM Node'],
       ['connection', 'DELETE FROM File'],
       ['connection', 'COMMIT'],

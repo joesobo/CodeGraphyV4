@@ -12,9 +12,9 @@ import {
 } from '../../../analysis/fileAnalysis/cacheTiers';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
-import type { FileRow, GraphEdgeRow, GraphNodeRow } from '../records/types';
+import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from '../records/types';
 import { parseDatabaseRecords } from '../records/parser';
-import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY } from '../query/read';
+import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY, SYMBOL_ROWS_QUERY } from '../query/read';
 
 export interface WorkspaceAnalysisDatabaseLoadOptions {
   activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
@@ -23,10 +23,11 @@ export interface WorkspaceAnalysisDatabaseLoadOptions {
 function createCache(
   fileRows: readonly FileRow[],
   nodeRows: readonly GraphNodeRow[],
+  symbolRows: readonly SymbolRow[],
   edgeRows: readonly GraphEdgeRow[],
   options: WorkspaceAnalysisDatabaseLoadOptions,
 ): IWorkspaceAnalysisCache {
-  const hydrated = parseDatabaseRecords(fileRows, nodeRows, edgeRows);
+  const hydrated = parseDatabaseRecords(fileRows, nodeRows, symbolRows, edgeRows);
   const cache: IWorkspaceAnalysisCache = {
     version: WORKSPACE_ANALYSIS_CACHE_VERSION,
     files: {},
@@ -65,6 +66,7 @@ export function loadWorkspaceAnalysisDatabaseCache(
     return withConnection(databasePath, connection => createCache(
       readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
       readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
+      readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
       readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
       options,
     ));
@@ -81,14 +83,16 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
     return await withConnectionAsync(databasePath, async connection => {
-      const [fileRows, nodeRows, edgeRows] = await Promise.all([
+      const [fileRows, nodeRows, symbolRows, edgeRows] = await Promise.all([
         readRowsAsync(connection, FILE_ROWS_QUERY),
         readRowsAsync(connection, NODE_ROWS_QUERY),
+        readRowsAsync(connection, SYMBOL_ROWS_QUERY),
         readRowsAsync(connection, EDGE_ROWS_QUERY),
       ]);
       return createCache(
         fileRows as FileRow[],
         nodeRows as GraphNodeRow[],
+        symbolRows as SymbolRow[],
         edgeRows as GraphEdgeRow[],
         options,
       );

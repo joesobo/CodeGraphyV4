@@ -68,6 +68,7 @@ export function saveWorkspaceAnalysisDatabaseCache(
     withConnection(databasePath, (connection) => {
       runTransactionSync(connection, () => {
         runStatementSync(connection, 'DELETE FROM Edge');
+        runStatementSync(connection, 'DELETE FROM Symbol');
         runStatementSync(connection, 'DELETE FROM Node');
         runStatementSync(connection, 'DELETE FROM File');
 
@@ -108,6 +109,7 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
 
   withConnection(databasePath, (connection) => {
     runStatementSync(connection, 'DELETE FROM Edge');
+    runStatementSync(connection, 'DELETE FROM Symbol');
     runStatementSync(connection, 'DELETE FROM Node');
     runStatementSync(connection, 'DELETE FROM File');
   });
