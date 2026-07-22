@@ -5,6 +5,7 @@ import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 export interface LoadedCodeGraphyWorkspacePluginPackage {
   buildIdentity: string;
   bundled?: boolean;
+  packageSnapshotRoot: string;
   plugin: IPlugin;
   packageName: string;
   record: CodeGraphyInstalledPluginRecord;
@@ -14,6 +15,7 @@ export interface LoadedCodeGraphyWorkspacePluginPackage {
 export interface PreparedCodeGraphyWorkspacePluginPackage {
   buildIdentity: string;
   bundled?: boolean;
+  packageSnapshotRoot: string;
   packageName: string;
   record: CodeGraphyInstalledPluginRecord;
   options?: Record<string, unknown>;
@@ -23,6 +25,7 @@ export interface PreparedCodeGraphyWorkspacePluginPackage {
 export interface LoadedCodeGraphyPluginPackageModule {
   buildIdentity: string;
   moduleNamespace: unknown;
+  packageSnapshotRoot: string;
 }
 
 export interface LoadCodeGraphyWorkspacePluginPackagesOptions {

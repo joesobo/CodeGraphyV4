@@ -66,13 +66,19 @@ async function loadExtensionPluginModule(
   buildIdentity: string;
   moduleNamespace: unknown;
   options?: Record<string, unknown>;
+  packageSnapshotRoot: string;
 }> {
   assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
-  const { buildIdentity, moduleNamespace } = await importCodeGraphyPluginPackageModule(record);
+  const {
+    buildIdentity,
+    moduleNamespace,
+    packageSnapshotRoot,
+  } = await importCodeGraphyPluginPackageModule(record);
   const options = mergePluginOptions(record, settings);
   return {
     buildIdentity,
     moduleNamespace,
+    packageSnapshotRoot,
     ...(options ? { options } : {}),
   };
 }
@@ -103,14 +109,19 @@ export async function prepareWorkspaceExtensionPluginCandidates(
         id: record.id,
         activation: 'inherit' as const,
       };
-      const { buildIdentity, moduleNamespace, options } = await loadExtensionPluginModule(
+      const {
+        buildIdentity,
+        moduleNamespace,
+        options,
+        packageSnapshotRoot,
+      } = await loadExtensionPluginModule(
         record,
         pluginSettings,
       );
       const registrationOptions: WorkspaceExtensionPluginRegistration['options'] = {
         ...(resolved.bundledPackageRoots.has(record.packageRoot) ? { builtIn: true } : {}),
         sourcePackage: record.package,
-        sourcePackageRoot: record.packageRoot,
+        sourcePackageRoot: packageSnapshotRoot,
         descriptorSignature: createWorkspacePluginDescriptorSignature(record, buildIdentity),
         ...(options ? { options } : {}),
       };

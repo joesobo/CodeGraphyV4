@@ -79,10 +79,10 @@ export async function prepareWorkspacePackagePluginCandidates(
     const candidateOptions: WorkspacePipelinePluginRegistration['options'] = {
       ...(prepared.bundled ? { builtIn: true } : {}),
       sourcePackage: prepared.packageName,
-      sourcePackageRoot: prepared.record.packageRoot,
+      sourcePackageRoot: prepared.packageSnapshotRoot,
       sourceSignature,
       ...(prepared.options ? { options: prepared.options } : {}),
-      interfaces: readPackageInterfaceData(prepared.record.packageRoot),
+      interfaces: readPackageInterfaceData(prepared.packageSnapshotRoot),
     };
     return {
       id: prepared.record.id,

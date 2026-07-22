@@ -34,6 +34,7 @@ export async function importCodeGraphyPluginPackageModule(
   return {
     buildIdentity,
     moduleNamespace: await import(moduleUrl.href),
+    packageSnapshotRoot: snapshotPackageRoot,
   };
 }
 
@@ -63,11 +64,16 @@ export async function prepareCodeGraphyWorkspacePluginPackage(
   workspaceRoot?: string,
 ): Promise<PreparedCodeGraphyWorkspacePluginPackage> {
   assertPluginDescriptorApiCompatibility(record.id, record.apiVersion);
-  const { buildIdentity, moduleNamespace } = await importCodeGraphyPluginPackageModule(record);
+  const {
+    buildIdentity,
+    moduleNamespace,
+    packageSnapshotRoot,
+  } = await importCodeGraphyPluginPackageModule(record);
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
 
   return {
     buildIdentity,
+    packageSnapshotRoot,
     packageName: record.package,
     record,
     ...(options ? { options } : {}),
@@ -89,6 +95,7 @@ export async function prepareCodeGraphyWorkspacePluginPackage(
       }
       return {
         buildIdentity,
+        packageSnapshotRoot,
         plugin,
         packageName: record.package,
         record,

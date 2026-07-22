@@ -171,9 +171,11 @@ describe('pipeline/plugins/bootstrap packages', () => {
       expect.objectContaining({ id: 'acme.particles' }),
       expect.objectContaining({
         sourcePackage: '@acme/codegraphy-extension-particles',
-        sourcePackageRoot: packageRoot,
+        sourcePackageRoot: expect.any(String),
       }),
     );
+    expect(registry.extensionPlugins.register.mock.calls[0]?.[1].sourcePackageRoot)
+      .not.toBe(packageRoot);
     expect(registry.extensionPlugins.initializeAll).toHaveBeenCalledWith(workspaceRoot);
     expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).not.toContain('acme.particles');
   });
@@ -245,7 +247,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
     expect(bundledRegistration?.[1]).toEqual({
       builtIn: true,
       sourcePackage: packageName,
-      sourcePackageRoot: bundledPackageRoot,
+      sourcePackageRoot: expect.any(String),
       descriptorSignature: expect.any(String),
       sourceSignature: expect.any(String),
       interfaces: [{
@@ -261,6 +263,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
         },
       }],
     });
+    expect(bundledRegistration?.[1].sourcePackageRoot).not.toBe(bundledPackageRoot);
     expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual([
       'codegraphy.markdown',
       pluginId,

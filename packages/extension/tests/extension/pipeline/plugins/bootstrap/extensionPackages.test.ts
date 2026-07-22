@@ -125,5 +125,6 @@ export default function createPlugin() {
 
     expect(first?.plugin.version).toBe('runtime-v1');
     expect(second?.plugin.version).toBe('runtime-v2');
+    expect(second?.options.sourcePackageRoot).not.toBe(first?.options.sourcePackageRoot);
   });
 });
