@@ -42,8 +42,8 @@ export function writeAcceptanceInstalledPluginCache(
   repoRoot: string,
   pluginPackageRelativePaths: readonly string[],
 ): void {
-  const plugins = pluginPackageRelativePaths.map(relativePath =>
-    readAcceptanceInstalledPluginRecord(path.resolve(repoRoot, relativePath)),
+  const plugins = pluginPackageRelativePaths.flatMap(relativePath =>
+    readAcceptanceInstalledPluginRecords(path.resolve(repoRoot, relativePath)),
   );
   const userDirectoryPath = path.join(homeDir, '.codegraphy');
 
@@ -54,38 +54,31 @@ export function writeAcceptanceInstalledPluginCache(
   );
 }
 
-function readAcceptanceInstalledPluginRecord(packageRoot: string): AcceptanceInstalledPluginRecord {
+function readAcceptanceInstalledPluginRecords(packageRoot: string): AcceptanceInstalledPluginRecord[] {
   const packageJsonPath = path.join(packageRoot, 'package.json');
   const manifest = parseCodeGraphyPluginPackageManifest(
     JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')),
   );
-  const descriptor = manifest?.plugins.find(
-    (plugin: CodeGraphyPluginPackageDescriptor) => plugin.host === 'core',
-  );
   const displayFields = readAcceptancePluginDisplayFields(packageRoot);
 
-  if (!manifest || !descriptor) {
+  if (!manifest) {
     throw new Error(`Acceptance plugin package is not a CodeGraphy plugin: ${packageRoot}`);
   }
 
-  const record: AcceptanceInstalledPluginRecord = {
+  const metadata = JSON.parse(
+    fs.readFileSync(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
+  ) as Record<string, unknown>;
+  const defaultOptions = unknownRecordSchema.safeParse(metadata.defaultOptions);
+
+  return manifest.plugins.map((descriptor: CodeGraphyPluginPackageDescriptor) => ({
     package: manifest.package,
     version: manifest.version,
     packageRoot,
     globallyEnabled: false,
     ...descriptor,
     ...displayFields,
-  };
-
-  const metadata = JSON.parse(
-    fs.readFileSync(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
-  ) as Record<string, unknown>;
-  const defaultOptions = unknownRecordSchema.safeParse(metadata.defaultOptions);
-  if (defaultOptions.success) {
-    record.defaultOptions = { ...defaultOptions.data };
-  }
-
-  return record;
+    ...(defaultOptions.success ? { defaultOptions: { ...defaultOptions.data } } : {}),
+  }));
 }
 
 function readAcceptancePluginDisplayFields(

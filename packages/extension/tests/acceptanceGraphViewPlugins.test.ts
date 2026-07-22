@@ -45,6 +45,26 @@ describe('acceptance graph view plugin fixtures', () => {
     ]);
   });
 
+  it('registers Extension-hosted plugins in the installed plugin cache', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgv-plugin-test-'));
+    try {
+      writeAcceptanceInstalledPluginCache(homeDir, repoRoot(), [
+        'packages/plugin-particles',
+      ]);
+
+      const cache = readPluginCache(homeDir);
+      expect(cache.plugins).toEqual([
+        expect.objectContaining({
+          package: '@codegraphy-dev/plugin-particles',
+          id: 'codegraphy.particles',
+          host: 'codegraphy.extension',
+        }),
+      ]);
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+    }
+  });
+
   it('registers the Svelte plugin for the Svelte example', () => {
     expect(acceptancePluginPackageRelativePathsForExample('example-svelte')).toEqual([
       'packages/plugin-svelte',
