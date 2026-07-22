@@ -16,6 +16,26 @@ export interface RegisterExtensionPluginOptions {
   sourcePackageRoot?: string;
 }
 
+function assertExtensionApiCompatibility(
+  subject: string,
+  pluginId: string,
+  apiVersion: string,
+): void {
+  if (!satisfiesSemverRange(EXTENSION_PLUGIN_API_VERSION, apiVersion)) {
+    throw new Error(
+      `${subject} '${pluginId}' requires API '${apiVersion}', `
+      + `but the VS Code extension provides '${EXTENSION_PLUGIN_API_VERSION}'.`,
+    );
+  }
+}
+
+export function assertExtensionPluginDescriptorApiCompatibility(
+  pluginId: string,
+  apiVersion: string,
+): void {
+  assertExtensionApiCompatibility('Extension plugin descriptor', pluginId, apiVersion);
+}
+
 export class ExtensionPluginRegistry {
   private readonly plugins = new Map<string, ExtensionPluginInfo>();
   private readonly initializedPlugins = new Set<string>();
@@ -24,12 +44,7 @@ export class ExtensionPluginRegistry {
     if (this.plugins.has(plugin.id)) {
       throw new Error(`Extension plugin '${plugin.id}' is already registered.`);
     }
-    if (!satisfiesSemverRange(EXTENSION_PLUGIN_API_VERSION, plugin.apiVersion)) {
-      throw new Error(
-        `Extension plugin '${plugin.id}' requires API '${plugin.apiVersion}', `
-        + `but the VS Code extension provides '${EXTENSION_PLUGIN_API_VERSION}'.`,
-      );
-    }
+    assertExtensionApiCompatibility('Extension plugin', plugin.id, plugin.apiVersion);
 
     this.plugins.set(plugin.id, {
       plugin,

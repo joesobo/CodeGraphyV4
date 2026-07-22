@@ -17,6 +17,53 @@ import {
 } from './packageRuntimeFixture';
 
 describe('CodeGraphy package runtime', () => {
+  it('rejects an incompatible Core descriptor before importing its runtime', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-incompatible',
+    );
+    const markers = await createPluginPackageWithRuntimeMarkers(
+      packageRoot,
+      '@acme/codegraphy-plugin-incompatible',
+      'acme.incompatible',
+      'Incompatible Plugin',
+      '1.0.0',
+      '^99.0.0',
+    );
+    const warn = vi.fn();
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-incompatible',
+        version: '1.0.0',
+        id: 'acme.incompatible',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^99.0.0',
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+
+    await expect(loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+      warn,
+    })).resolves.toEqual([]);
+
+    expect(warn).toHaveBeenCalledWith(
+      "CodeGraphy plugin 'acme.incompatible' could not be loaded: Plugin descriptor 'acme.incompatible' targets unsupported CodeGraphy Plugin API '^99.0.0'. Host provides '4.0.0'.",
+    );
+    await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(markers.factoryMarkerPath)).rejects.toThrow();
+  });
+
   it('leaves an enabled non-Core plugin dormant', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));

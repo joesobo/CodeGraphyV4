@@ -30,13 +30,14 @@ export async function loadWorkspacePackagePluginRegistrations(
   workspaceRoot: string,
   dependencies: WorkspacePackagePluginRegistrationDependencies,
 ): Promise<WorkspacePipelinePluginRegistration[]> {
+  const warn = dependencies.warn ?? console.warn;
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
     bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
     settings,
     workspaceRoot,
     homeDir: dependencies.userHomeDir,
-    warn: dependencies.warn,
+    warn,
   });
 
   return loadedPackagePlugins.map(loadedPlugin => ({

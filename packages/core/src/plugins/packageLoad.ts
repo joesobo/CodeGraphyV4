@@ -7,6 +7,7 @@ import type {
   LoadedCodeGraphyWorkspacePluginPackage,
 } from './packageRuntimeContracts';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
+import { assertPluginDescriptorApiCompatibility } from './compatibility';
 
 function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
   return record.id;
@@ -29,6 +30,7 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   record: CodeGraphyInstalledPluginRecord,
   workspaceRoot?: string,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+  assertPluginDescriptorApiCompatibility(record.id, record.apiVersion);
   const modulePath = path.resolve(record.packageRoot, record.entry);
   const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);

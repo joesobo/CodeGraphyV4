@@ -9,7 +9,10 @@ import type {
   IExtensionPlugin,
   IExtensionPluginFactory,
 } from '@codegraphy-dev/extension-plugin-api';
-import type { ExtensionPluginRegistry } from '../../../plugins/registry';
+import {
+  assertExtensionPluginDescriptorApiCompatibility,
+  type ExtensionPluginRegistry,
+} from '../../../plugins/registry';
 import type { WorkspacePackagePluginRegistrationDependencies } from './packages';
 
 const EXTENSION_PLUGIN_HOST = 'codegraphy.extension';
@@ -47,6 +50,7 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
 async function loadExtensionPlugin(
   record: CodeGraphyInstalledPluginRecord,
 ): Promise<IExtensionPlugin> {
+  assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
   const modulePath = path.resolve(record.packageRoot, record.entry);
   const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
   const plugin = await readFactory(moduleNamespace, record.package)();

@@ -64,6 +64,7 @@ export async function createPluginPackageWithRuntimeMarkers(
   pluginId = 'acme.disabled-runtime',
   pluginName = 'Disabled Runtime Plugin',
   version = '1.0.0',
+  apiVersion = '^4.0.0',
 ): Promise<{
   factoryMarkerPath: string;
   importMarkerPath: string;
@@ -85,7 +86,7 @@ export async function createPluginPackageWithRuntimeMarkers(
           name: pluginName,
           host: 'core',
           entry: './plugin.js',
-          apiVersion: '^4.0.0',
+          apiVersion,
         }],
       },
     }, null, 2)}\n`,
@@ -97,7 +98,7 @@ export async function createPluginPackageWithRuntimeMarkers(
       id: pluginId,
       name: pluginName,
       version,
-      apiVersion: '^4.0.0',
+      apiVersion,
       supportedExtensions: ['.disabled'],
     }, null, 2)}\n`,
     'utf-8',
@@ -115,7 +116,7 @@ export default function createPlugin() {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginName)},
     version: ${JSON.stringify(version)},
-    apiVersion: '^4.0.0',
+    apiVersion: ${JSON.stringify(apiVersion)},
     supportedExtensions: ['.disabled']
   };
 }

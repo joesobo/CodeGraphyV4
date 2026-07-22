@@ -4,6 +4,7 @@ import {
   createWorkspace,
   createPackageFixtureRoot,
   createExtensionPluginPackage,
+  createIncompatibleExtensionPluginPackageWithRuntimeMarkers,
   createPluginPackage,
   createManifestPluginPackage,
   readCodeGraphyWorkspaceSettings,
@@ -16,6 +17,51 @@ import {
 } from './bootstrapFixture';
 
 describe('pipeline/plugins/bootstrap packages', () => {
+  it('rejects an incompatible Extension descriptor before importing its runtime', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-extension-incompatible',
+    );
+    const markers = await createIncompatibleExtensionPluginPackageWithRuntimeMarkers(packageRoot);
+    const warn = vi.fn();
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-incompatible',
+        version: '1.0.0',
+        id: 'acme.extension-incompatible',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^99.0.0',
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      warn,
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      "CodeGraphy Extension plugin 'acme.extension-incompatible' could not be loaded: Extension plugin descriptor 'acme.extension-incompatible' requires API '^99.0.0', but the VS Code extension provides '1.0.0'.",
+    );
+    expect(registry.extensionPlugins.register).not.toHaveBeenCalled();
+    await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(markers.factoryMarkerPath)).rejects.toThrow();
+  });
+
   it('loads an enabled Extension plugin through the Extension Plugin API only', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
@@ -240,19 +286,13 @@ describe('pipeline/plugins/bootstrap packages', () => {
         { id: 'acme.extension-bootstrap', activation: 'enabled' },
       ],
     });
-    registry.register.mockImplementation((plugin) => {
-      if (plugin.apiVersion === '^2.0.0') {
-        throw new Error("Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '4.0.0'.");
-      }
-    });
-
     await expect(initializeWorkspacePipeline(registry as never, {
       getWorkspaceRoot: () => workspaceRoot,
       userHomeDir: homeDir,
     })).resolves.toBeUndefined();
 
     expect(warn).toHaveBeenCalledWith(
-      "CodeGraphy plugin 'acme.extension-bootstrap' could not be registered: Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '4.0.0'.",
+      "CodeGraphy plugin 'acme.extension-bootstrap' could not be loaded: Plugin descriptor 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '4.0.0'.",
     );
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
     warn.mockRestore();

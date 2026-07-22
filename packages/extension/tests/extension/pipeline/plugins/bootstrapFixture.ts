@@ -72,6 +72,56 @@ export default function createPlugin() {
   );
 }
 
+export async function createIncompatibleExtensionPluginPackageWithRuntimeMarkers(
+  packageRoot: string,
+): Promise<{
+  factoryMarkerPath: string;
+  importMarkerPath: string;
+}> {
+  const importMarkerPath = path.join(packageRoot, 'runtime-imported.txt');
+  const factoryMarkerPath = path.join(packageRoot, 'factory-called.txt');
+
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-extension-incompatible',
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.extension-incompatible',
+          host: 'codegraphy.extension',
+          entry: './plugin.js',
+          apiVersion: '^99.0.0',
+        }],
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+import { writeFileSync } from 'node:fs';
+
+writeFileSync(${JSON.stringify(importMarkerPath)}, 'imported');
+
+export default function createPlugin() {
+  writeFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory called');
+  return {
+    id: 'acme.extension-incompatible',
+    name: 'Incompatible Extension Plugin',
+    version: '1.0.0',
+    apiVersion: '^99.0.0'
+  };
+}
+`,
+    'utf-8',
+  );
+
+  return { factoryMarkerPath, importMarkerPath };
+}
+
 export async function createWorkspace(): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-bootstrap-'));
 }
