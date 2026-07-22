@@ -40,7 +40,11 @@ function deliverPluginScopedMessage(
 
 function createMessageConsumers(runtime: MessageRouteRuntime): MessageConsumer[] {
   return [
-    message => handlePluginInjectMessage(message, runtime.injectPluginAssets),
+    message => handlePluginInjectMessage(
+      message,
+      runtime.injectPluginAssets,
+      runtime.knownPluginIds,
+    ),
     handleCssSnippetsUpdatedMessage,
     message => deliverPluginScopedMessage(message, runtime.pluginHost),
     message => handlePluginDataUpdatedMessage(message, runtime.updatePluginData),

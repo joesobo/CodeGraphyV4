@@ -8,7 +8,11 @@ describe('app/shell/messageListener/pluginInjection', () => {
   });
 
   it('returns false for non-inject messages', () => {
-    expect(handlePluginInjectMessage({ type: 'GRAPH_DATA_UPDATED' }, vi.fn())).toBe(false);
+    expect(handlePluginInjectMessage(
+      { type: 'GRAPH_DATA_UPDATED' },
+      vi.fn(),
+      new Set<string>(),
+    )).toBe(false);
   });
 
   it('handles invalid inject payloads without forwarding to the graph store', () => {
@@ -23,7 +27,7 @@ describe('app/shell/messageListener/pluginInjection', () => {
     expect(handlePluginInjectMessage({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: { scripts: ['one.js'] },
-    }, injectPluginAssets)).toBe(true);
+    }, injectPluginAssets, new Set<string>())).toBe(true);
 
     expect(injectPluginAssets).not.toHaveBeenCalled();
     expect(beginPluginAssetLoad).not.toHaveBeenCalled();
@@ -34,6 +38,7 @@ describe('app/shell/messageListener/pluginInjection', () => {
     const injectPluginAssets = vi.fn().mockResolvedValue(undefined);
     const beginPluginAssetLoad = vi.fn();
     const finishPluginAssetLoad = vi.fn();
+    const knownPluginIds = new Set<string>();
     vi.spyOn(graphStore, 'getState').mockReturnValue({
       beginPluginAssetLoad,
       finishPluginAssetLoad,
@@ -49,7 +54,7 @@ describe('app/shell/messageListener/pluginInjection', () => {
           { id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' },
         ],
       },
-    }, injectPluginAssets)).toBe(true);
+    }, injectPluginAssets, knownPluginIds)).toBe(true);
     await Promise.resolve();
     await Promise.resolve();
 
@@ -63,5 +68,6 @@ describe('app/shell/messageListener/pluginInjection', () => {
       ],
     });
     expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
+    expect(knownPluginIds).toEqual(new Set(['codegraphy.organize']));
   });
 });

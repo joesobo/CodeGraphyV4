@@ -5,6 +5,7 @@ import type { InjectAssetsParams } from '../messageListener';
 export function handlePluginInjectMessage(
   raw: { type?: unknown; payload?: unknown },
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>,
+  knownPluginIds: Set<string>,
 ): boolean {
   if (raw.type !== 'PLUGIN_WEBVIEW_INJECT') {
     return false;
@@ -12,6 +13,7 @@ export function handlePluginInjectMessage(
 
   const payload = normalizePluginInjectPayload(raw.payload);
   if (payload) {
+    knownPluginIds.add(payload.pluginId);
     const store = graphStore.getState();
     store.beginPluginAssetLoad();
     void injectPluginAssets({
