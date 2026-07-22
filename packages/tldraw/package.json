@@ -1,0 +1,46 @@
+{
+  "name": "@codegraphy-dev/tldraw",
+  "version": "0.1.0",
+  "description": "Render a CodeGraphy workspace as a native tldraw document",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "codegraphy-tldraw": "./bin/codegraphy-tldraw.js"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ./scripts/clean.mjs && node ./scripts/build.mjs",
+    "lint": "eslint src bin vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/core": "workspace:*",
+    "@codegraphy-dev/graph-renderer": "workspace:*",
+    "@tldraw/tlschema": "^5.2.5",
+    "@tldraw/utils": "^5.2.5",
+    "libsql": "0.5.29",
+    "yauzl": "^3.2.0",
+    "yazl": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/yauzl": "^2.10.3",
+    "@types/yazl": "^3.3.1",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3",
+    "vitest": "^3.0.0"
+  }
+}

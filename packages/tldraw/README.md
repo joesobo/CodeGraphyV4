@@ -1,0 +1,22 @@
+# `@codegraphy-dev/tldraw`
+
+Render a CodeGraphy workspace as native shapes in tldraw offline.
+
+Install Node.js 22.12 or newer, Core, this interface package, and the tldraw offline desktop app. Run the launcher from the workspace that you want to index:
+
+```sh
+npm install --global @codegraphy-dev/core @codegraphy-dev/tldraw
+codegraphy-tldraw
+```
+
+Without a path, the launcher saves a new `CodeGraphy.tldraw` document in the current workspace and opens it. If that name exists, it uses `CodeGraphy 2.tldraw`, then the next available number.
+
+Give a path to create or refresh a specific document:
+
+```sh
+codegraphy-tldraw architecture.tldraw
+```
+
+Each run indexes the current workspace through `@codegraphy-dev/core`. The document uses native tldraw circles and connectors. Its persistent document script runs the same WebAssembly force physics as the CodeGraphy Extension.
+
+When the requested file is already open, the launcher uses tldraw offline's authenticated local API to update that live canvas. A closed file is reconciled on disk before it opens. CodeGraphy-owned graph shapes use stable identities, so refresh preserves surviving node positions and leaves user-created notes and drawings unchanged.
