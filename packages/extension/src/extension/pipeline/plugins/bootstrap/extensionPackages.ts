@@ -12,6 +12,7 @@ import type {
 } from '@codegraphy-dev/extension-plugin-api';
 import {
   assertExtensionPluginDescriptorApiCompatibility,
+  assertExtensionPluginApiCompatibility,
   type ExtensionPluginRegistry,
 } from '../../../plugins/registry';
 import type { WorkspacePackagePluginRegistrationDependencies } from './packages';
@@ -121,7 +122,22 @@ export async function prepareWorkspaceExtensionPluginCandidates(
             dataHost: createWorkspacePluginDataHost(workspaceRoot, record.id),
             ...(options ? { options } : {}),
           });
-          validatePlugin(plugin, record);
+          try {
+            validatePlugin(plugin, record);
+            assertExtensionPluginApiCompatibility(plugin);
+          } catch (error) {
+            try {
+              plugin.onUnload?.();
+            } catch (unloadError) {
+              const message = unloadError instanceof Error
+                ? unloadError.message
+                : String(unloadError);
+              warn(
+                `CodeGraphy Extension plugin '${plugin.id}' could not be unloaded after runtime validation failed: ${message}`,
+              );
+            }
+            throw error;
+          }
           return { plugin, options: registrationOptions };
         },
       });

@@ -40,6 +40,10 @@ export function assertExtensionPluginDescriptorApiCompatibility(
   assertExtensionApiCompatibility('Extension plugin descriptor', pluginId, apiVersion);
 }
 
+export function assertExtensionPluginApiCompatibility(plugin: IExtensionPlugin): void {
+  assertExtensionApiCompatibility('Extension plugin', plugin.id, plugin.apiVersion);
+}
+
 export class ExtensionPluginRegistry {
   private readonly plugins = new Map<string, ExtensionPluginInfo>();
   private readonly initializedPlugins = new Set<string>();
@@ -50,7 +54,7 @@ export class ExtensionPluginRegistry {
     if (this.plugins.has(plugin.id)) {
       throw new Error(`Extension plugin '${plugin.id}' is already registered.`);
     }
-    assertExtensionApiCompatibility('Extension plugin', plugin.id, plugin.apiVersion);
+    assertExtensionPluginApiCompatibility(plugin);
 
     this.plugins.set(plugin.id, {
       plugin,

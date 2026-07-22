@@ -9,7 +9,10 @@ import type {
   PreparedCodeGraphyWorkspacePluginPackage,
 } from './packageRuntimeContracts';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
-import { assertPluginDescriptorApiCompatibility } from './compatibility';
+import {
+  assertPluginApiCompatibility,
+  assertPluginDescriptorApiCompatibility,
+} from './compatibility';
 import { prepareCodeGraphyPackageBuildSnapshot } from './packageBuildSnapshot';
 
 function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
@@ -70,7 +73,20 @@ export async function prepareCodeGraphyWorkspacePluginPackage(
     ...(options ? { options } : {}),
     async load(): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
       const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
-      validateRuntimePluginId(plugin.id, record);
+      try {
+        validateRuntimePluginId(plugin.id, record);
+        assertPluginApiCompatibility(plugin);
+      } catch (error) {
+        try {
+          plugin.onUnload?.();
+        } catch (unloadError) {
+          console.error(
+            `[CodeGraphy] Error unloading rejected plugin ${plugin.id}:`,
+            unloadError,
+          );
+        }
+        throw error;
+      }
       return {
         buildIdentity,
         plugin,
