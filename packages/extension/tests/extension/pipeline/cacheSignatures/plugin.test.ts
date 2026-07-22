@@ -16,7 +16,10 @@ describe('workspace pipeline plugin signature', () => {
       },
     ] as never, {
       installedPlugins: [
-        { package: '@codegraphy-dev/plugin-vue', version: '2.0.4', id: 'codegraphy.vue' },
+        {
+          package: '@codegraphy-dev/plugin-vue', version: '2.0.4', id: 'codegraphy.vue',
+          host: 'core', globallyEnabled: false,
+        },
       ],
       settings: {
         plugins: [
@@ -27,7 +30,7 @@ describe('workspace pipeline plugin signature', () => {
     });
 
     expect(signature).toBe(
-      'codegraphy.markdown@1.0.4|npm:@codegraphy-dev/plugin-vue@2.0.4',
+      'codegraphy.markdown@1.0.4|npm:codegraphy.vue:@codegraphy-dev/plugin-vue@2.0.4',
     );
   });
 
@@ -36,5 +39,45 @@ describe('workspace pipeline plugin signature', () => {
       installedPlugins: [],
       settings: { plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }] },
     })).toBe('npm:codegraphy.vue@missing');
+  });
+
+  it('matches runtime records by plugin ID inside a multi-plugin package', () => {
+    const signature = createWorkspacePipelinePluginSignature([{
+      builtIn: false,
+      sourcePackage: '@acme/codegraphy-tools',
+      plugin: { id: 'acme.core', version: 'runtime-version' },
+    }], {
+      installedPlugins: [
+        {
+          package: '@acme/codegraphy-tools', version: '1.0.0', id: 'acme.core',
+          host: 'core', globallyEnabled: true,
+        },
+        {
+          package: '@acme/codegraphy-tools', version: '9.9.9', id: 'acme.view',
+          host: 'codegraphy.extension', globallyEnabled: true,
+        },
+      ],
+    });
+
+    expect(signature).toBe('npm:acme.core:@acme/codegraphy-tools@1.0.0');
+  });
+
+  it('ignores inactive and wrong-host descriptors when no Core runtime loaded', () => {
+    expect(createWorkspacePipelinePluginSignature([], {
+      installedPlugins: [
+        {
+          package: '@acme/core', version: '1.0.0', id: 'acme.inactive',
+          host: 'core', globallyEnabled: false,
+        },
+        {
+          package: '@acme/view', version: '1.0.0', id: 'acme.view',
+          host: 'codegraphy.extension', globallyEnabled: true,
+        },
+      ],
+      settings: { plugins: [
+        { id: 'acme.inactive', activation: 'inherit' },
+        { id: 'acme.view', activation: 'inherit' },
+      ] },
+    })).toBeNull();
   });
 });

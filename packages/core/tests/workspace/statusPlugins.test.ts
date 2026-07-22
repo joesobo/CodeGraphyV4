@@ -27,6 +27,27 @@ describe('workspace status plugin signature', () => {
     expect(createDefaultStatusPluginSignature(
       createInitialCodeGraphyWorkspaceSettings(),
       homeDir,
-    )).toContain('npm:@acme/codegraphy-plugin-example@1.0.0');
+    )).toContain('npm:acme.example:@acme/codegraphy-plugin-example@1.0.0');
+  });
+
+  it('keeps Extension-only activation out of Core cache freshness', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-status-home-'));
+    const settings = createInitialCodeGraphyWorkspaceSettings();
+    const baseline = createDefaultStatusPluginSignature(settings, homeDir);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-view',
+        id: 'acme.view',
+        version: '1.0.0',
+        host: 'codegraphy.extension',
+        entry: './view.js',
+        apiVersion: '^1.0.0',
+        packageRoot: '/global/codegraphy-view',
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+
+    expect(createDefaultStatusPluginSignature(settings, homeDir)).toBe(baseline);
   });
 });

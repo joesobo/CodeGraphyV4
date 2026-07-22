@@ -44,7 +44,7 @@ export function createDefaultStatusPluginSignature(
 
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
     runtimePlugins: createDefaultStatusRuntimePlugins(activity.activePluginIds),
-    packagePlugins: activity.packagePlugins,
+    packagePlugins: activity.packagePlugins.filter(plugin => plugin.host === 'core'),
     missingPackagePlugins,
   });
 }

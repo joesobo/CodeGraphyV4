@@ -21,10 +21,22 @@ describe('workspace/signatures', () => {
     })).toBeNull();
     expect(createCodeGraphyWorkspacePackageAwarePluginSignature({
       runtimePlugins: [{ id: 'markdown', version: '1.0.0' }],
-      packagePlugins: [{ package: '@codegraphy-dev/plugin-vue', version: '2.0.0' }],
+      packagePlugins: [{ id: 'codegraphy.vue', package: '@codegraphy-dev/plugin-vue', version: '2.0.0' }],
       missingPackagePlugins: ['@codegraphy-dev/plugin-ruby'],
     })).toBe(
-      'markdown@1.0.0|npm:@codegraphy-dev/plugin-vue@2.0.0|npm:@codegraphy-dev/plugin-ruby@missing',
+      'markdown@1.0.0|npm:codegraphy.vue:@codegraphy-dev/plugin-vue@2.0.0|npm:@codegraphy-dev/plugin-ruby@missing',
+    );
+  });
+
+  it('fingerprints each plugin descriptor from a multi-plugin package', () => {
+    expect(createCodeGraphyWorkspacePackageAwarePluginSignature({
+      runtimePlugins: [],
+      packagePlugins: [
+        { id: 'acme.core', package: '@acme/codegraphy-tools', version: '1.0.0' },
+        { id: 'acme.view', package: '@acme/codegraphy-tools', version: '1.0.0' },
+      ],
+    })).toBe(
+      'npm:acme.core:@acme/codegraphy-tools@1.0.0|npm:acme.view:@acme/codegraphy-tools@1.0.0',
     );
   });
 

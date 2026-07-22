@@ -24,12 +24,12 @@ export function createCodeGraphyWorkspacePluginSignature(
 
 export function createCodeGraphyWorkspacePackageAwarePluginSignature(input: {
   runtimePlugins: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
-  packagePlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version'>>;
+  packagePlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'id' | 'package' | 'version'>>;
   missingPackagePlugins?: readonly string[];
 }): string | null {
   const entries = [
     ...input.runtimePlugins.map(plugin => `${plugin.id}@${plugin.version}`),
-    ...(input.packagePlugins ?? []).map(plugin => `npm:${plugin.package}@${plugin.version}`),
+    ...(input.packagePlugins ?? []).map(plugin => `npm:${plugin.id}:${plugin.package}@${plugin.version}`),
     ...(input.missingPackagePlugins ?? []).map(packageName => `npm:${packageName}@missing`),
   ];
 
