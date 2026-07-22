@@ -104,7 +104,12 @@ async function createPackageBuildSnapshot(
     .update(path.resolve(packageRoot))
     .digest('hex')
     .slice(0, 24);
-  const snapshotRoot = path.join(os.tmpdir(), 'codegraphy-plugin-modules', packageIdentity);
+  const snapshotRoot = path.join(
+    os.tmpdir(),
+    'codegraphy-plugin-modules',
+    String(process.pid),
+    packageIdentity,
+  );
   const buildRoot = path.join(snapshotRoot, buildIdentity);
   const snapshotPackageRoot = path.join(buildRoot, 'package');
   await fs.mkdir(snapshotRoot, { recursive: true });
