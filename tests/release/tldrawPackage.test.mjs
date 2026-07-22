@@ -9,7 +9,13 @@ const repoRoot = process.cwd();
 const packageRoot = path.join(repoRoot, 'packages', 'tldraw');
 
 function packTldraw(destination) {
-  execFileSync('pnpm', ['--filter', '@codegraphy-dev/tldraw', 'run', 'build'], {
+  execFileSync('pnpm', [
+    'exec',
+    'turbo',
+    'run',
+    'build',
+    '--filter=@codegraphy-dev/tldraw...',
+  ], {
     cwd: repoRoot,
     stdio: 'pipe',
   });
