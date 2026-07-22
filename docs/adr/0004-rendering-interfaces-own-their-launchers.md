@@ -76,12 +76,12 @@ tldraw interface --------> native tldraw shapes
 
 Core owns workspace discovery, indexing, graph semantics, settings that affect
 the indexed graph, and cache data. The tldraw interface calls Core's public API
-to run the normal index and obtain the default file-level graph shown by a fresh
-Extension workspace. Core retains ownership of its cache representation.
+to run the normal index and obtain the file-level graph defined by Core's
+default visibility rules. Core retains ownership of its cache representation.
 
-`graph-renderer` supplies the same force-directed physics implementation and
-configuration used by the Extension. The physics engine is deterministic
-WebAssembly with no WebGPU or Node dependency, so it runs inside tldraw
+`graph-renderer` supplies the force-directed physics implementation. The
+physics engine is deterministic WebAssembly with no WebGPU or Node dependency,
+so it runs inside tldraw
 offline's document-script environment. That environment provides only the
 `tldraw`, React, and React DOM modules plus relative imports, so the launcher
 bundles the physics runtime into the document's `script/` files and embeds the
@@ -120,8 +120,8 @@ Rendering interfaces are also distinct from plugins:
 - Core remains directly usable as a headless library and CLI.
 - Installing the tldraw package adds the `codegraphy-tldraw` launcher.
 - The first launcher release supports macOS.
-- The Extension and tldraw share Core and physics behavior while retaining
-  host-specific rendering and document models.
+- Each rendering interface consumes Core and graph-renderer independently. It
+  owns its host-specific rendering, defaults, and document model.
 - Each interface can evolve its own UI and host-specific plugin seam.
 - A saved tldraw canvas is user-authored project material. Refresh reconciles
   CodeGraphy-owned shapes while preserving the user's canvas additions.

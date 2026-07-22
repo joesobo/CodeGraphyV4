@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getFileColor } from '../../src/fileColors';
+import { DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import { buildWorkspaceGraphDataFromAnalysis } from '../../src/graph/data';
 import { createPlugin, SYMBOL_NODE_VISIBILITY } from './data/fixture';
 
@@ -44,7 +44,7 @@ describe('core/graph/data symbol nodes', () => {
       {
         id: 'src/player.gd',
         label: 'player.gd',
-        color: getFileColor('.gd'),
+        color: DEFAULT_NODE_COLOR,
         fileSize: 20,
       },
       {
@@ -161,7 +161,7 @@ describe('core/graph/data symbol nodes', () => {
       {
         id: 'generated/virtual.ts',
         label: 'virtual.ts',
-        color: getFileColor('.ts'),
+        color: DEFAULT_NODE_COLOR,
         fileSize: undefined,
       },
       {

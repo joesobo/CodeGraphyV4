@@ -3,8 +3,6 @@ import {
   FILE_TYPE_COLORS,
 } from './fileColorConstants';
 
-const FILE_TYPE_COLOR_PALETTE: readonly string[] = Object.values(FILE_TYPE_COLORS);
-
 export {
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
@@ -25,17 +23,8 @@ export function normalizeHexColor(value: string | undefined, defaultColor: strin
  * Get the display color for a file based on its extension.
  *
  * @param extension - File extension including leading dot (e.g., '.ts')
- * @returns The configured color, a deterministic palette color for an unknown
- * extension, or the default color when the extension is empty
+ * @returns Hex color string for the file type
  */
 export function getFileColor(extension: string): string {
-  const normalizedExtension = extension.toLowerCase();
-  const configuredColor = FILE_TYPE_COLORS[normalizedExtension];
-  if (configuredColor) return configuredColor;
-  if (!normalizedExtension) return DEFAULT_NODE_COLOR;
-  let hash = 0;
-  for (const character of normalizedExtension) {
-    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-  }
-  return FILE_TYPE_COLOR_PALETTE[hash % FILE_TYPE_COLOR_PALETTE.length] ?? DEFAULT_NODE_COLOR;
+  return FILE_TYPE_COLORS[extension.toLowerCase()] ?? DEFAULT_NODE_COLOR;
 }

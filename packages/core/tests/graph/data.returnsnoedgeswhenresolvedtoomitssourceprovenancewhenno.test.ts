@@ -1,7 +1,7 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
-import { DEFAULT_FOLDER_NODE_COLOR, getFileColor } from '../../src/fileColors';
+import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import {
   buildWorkspaceGraphData
 } from '../../src/graph/data';
@@ -102,7 +102,7 @@ describe('core/graph/data', () => {
         {
           id: 'src/app.ts',
           label: 'app.ts',
-          color: getFileColor('.ts'),
+          color: DEFAULT_NODE_COLOR,
           fileSize: 10,
         },
         {

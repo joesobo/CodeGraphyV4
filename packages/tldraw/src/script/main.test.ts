@@ -70,7 +70,7 @@ describe('CodeGraphy tldraw document script', () => {
     ]));
   });
 
-  it('normalizes native circle geometry to the Extension physics scale', async () => {
+  it('normalizes native circle geometry to physics coordinates', async () => {
     const listeners = new Map<string, (payload: unknown) => void>();
     const editor = {
       getCurrentPage: () => ({ meta: {} }),

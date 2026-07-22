@@ -1,6 +1,5 @@
-import path from 'node:path';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import { getFileColor } from '../fileColors';
+import { DEFAULT_NODE_COLOR } from '../fileColors';
 import type { IGraphNode } from './contracts';
 import { toRepoRelativeGraphPath } from './symbolPaths';
 
@@ -26,7 +25,7 @@ export function createContainingFileNode(
   return {
     id: filePath,
     label: filePath.split('/').pop() ?? filePath,
-    color: getFileColor(path.extname(filePath)),
+    color: DEFAULT_NODE_COLOR,
     fileSize: cacheFiles[filePath]?.size,
   };
 }

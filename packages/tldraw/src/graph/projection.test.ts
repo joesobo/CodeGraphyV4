@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { projectDefaultFileGraph } from './projection';
 
 describe('projectDefaultFileGraph', () => {
-  it('keeps the file nodes and relationship kinds visible in a fresh Extension workspace', () => {
+  it('keeps file nodes and Core-default relationship kinds', () => {
     const graph = {
       nodes: [
         { id: 'src/a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },

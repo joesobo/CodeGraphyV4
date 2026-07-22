@@ -23,7 +23,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@codegraphy-dev/core/file-colors': resolve(workspaceRoot, 'packages/core/src/fileColors.ts'),
       '@': resolve(__dirname, 'src'),
     },
   },

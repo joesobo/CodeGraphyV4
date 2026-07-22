@@ -6,7 +6,7 @@ import {
 } from './model';
 
 describe('tldraw physics coordinate scale', () => {
-  it('maps a 120-unit native node to the Extension minimum collision diameter', () => {
+  it('maps native canvas geometry to physics coordinates', () => {
     expect(TLDRAW_PHYSICS_COORDINATE_SCALE).toBe(5);
     expect(toPhysicsCoordinate(120)).toBe(24);
     expect(toCanvasCoordinate(24)).toBe(120);

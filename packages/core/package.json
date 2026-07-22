@@ -18,17 +18,10 @@
     "./graph-scope": {
       "types": "./dist/graphScope/defaults.d.ts",
       "default": "./dist/graphScope/defaults.js"
-    },
-    "./file-colors": {
-      "types": "./dist/fileColors.d.ts",
-      "default": "./dist/fileColors.js"
     }
   },
   "typesVersions": {
     "*": {
-      "file-colors": [
-        "dist/fileColors.d.ts"
-      ],
       "graph-scope": [
         "dist/graphScope/defaults.d.ts"
       ]

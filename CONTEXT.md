@@ -144,7 +144,7 @@ The Markdown plugin ships with Core and starts enabled in new workspaces. Other 
 
 Graph Scope decides eligibility. Legend decides styling. Turning off a Legend Entry never hides matching graph items. Legend precedence is Core defaults, plugin defaults, then custom user entries.
 
-Extension chrome inherits the active VS Code theme. Graph Data Color may encode Node or Edge meaning, but it must remain legible on the themed Graph Stage. Renderers consume resolved concrete colors rather than owning separate theme rules.
+Extension chrome inherits the active VS Code theme. Graph Data Color may encode Node or Edge meaning, but it must remain legible on the themed Graph Stage. Each rendering interface owns its host-specific theme rules and supplies resolved colors to its renderer.
 
 ## Package Boundaries
 

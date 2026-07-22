@@ -7,7 +7,7 @@ import {
 } from './model';
 
 describe('tldraw force controls', () => {
-  it('matches the Extension slider definitions', () => {
+  it('defines the tldraw force sliders', () => {
     expect(FORCE_CONTROLS).toEqual([
       { key: 'repelForce', label: 'Repel Force', minimum: 0, maximum: 20, step: 1, decimals: 0 },
       { key: 'centerForce', label: 'Center Force', minimum: 0, maximum: 1, step: 0.01, decimals: 2 },
@@ -16,7 +16,7 @@ describe('tldraw force controls', () => {
     ]);
   });
 
-  it('starts with the Extension defaults', () => {
+  it('starts with the tldraw defaults', () => {
     expect(DEFAULT_FORCE_SETTINGS).toEqual({
       repelForce: 10,
       centerForce: 0.1,
@@ -25,7 +25,7 @@ describe('tldraw force controls', () => {
     });
   });
 
-  it('maps the controls to the complete Extension graph-renderer configuration', () => {
+  it('maps the controls to graph-renderer physics configuration', () => {
     expect(toGraphLayoutConfig(DEFAULT_FORCE_SETTINGS)).toEqual({
       centralGravity: 0.1,
       chargeStrength: -250,

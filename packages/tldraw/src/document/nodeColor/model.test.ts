@@ -1,15 +1,18 @@
 import type { IGraphNode } from '@codegraphy-dev/core';
-import { FILE_TYPE_COLORS } from '@codegraphy-dev/core/file-colors';
 import { describe, expect, it } from 'vitest';
 import { createNodeColorMap } from './model';
 
+function fileNode(id: string): IGraphNode {
+  return { id, label: id, color: '#A1A1AA', nodeType: 'file' };
+}
+
 describe('tldraw node color', () => {
-  it('maps Core-resolved colors to native tldraw colors', () => {
+  it('maps file extensions to native tldraw colors', () => {
     const nodes = [
-      { id: 'src/app.ts', label: 'app.ts', color: FILE_TYPE_COLORS['.ts'], nodeType: 'file' },
-      { id: 'tests/app.ts', label: 'app.ts', color: FILE_TYPE_COLORS['.ts'], nodeType: 'file' },
-      { id: 'tools/build.py', label: 'build.py', color: FILE_TYPE_COLORS['.json'], nodeType: 'file' },
-    ] satisfies IGraphNode[];
+      fileNode('src/app.ts'),
+      fileNode('tests/app.ts'),
+      fileNode('tools/build.py'),
+    ];
 
     const colors = createNodeColorMap(nodes);
 
@@ -17,26 +20,22 @@ describe('tldraw node color', () => {
     expect(colors.get('src/app.ts')).not.toBe(colors.get('tools/build.py'));
   });
 
-  it('uses all ten native colors for the Core file palette', () => {
-    const nodes: IGraphNode[] = Object.values(FILE_TYPE_COLORS).map((color, index) => ({
-      id: `file-${index}`,
-      label: `file-${index}`,
-      color,
-      nodeType: 'file',
-    }));
+  it('uses all ten native colors for its common file-extension palette', () => {
+    const extensions = ['ts', 'tsx', 'js', 'jsx', 'css', 'scss', 'json', 'md', 'html', 'svg'];
+    const nodes = extensions.map(extension => fileNode(`file.${extension}`));
 
     expect(new Set(createNodeColorMap(nodes).values()).size).toBe(10);
   });
 
   it('keeps colors stable when another node is added', () => {
     const firstGraph = [
-      { id: 'src/app.ts', label: 'app.ts', color: FILE_TYPE_COLORS['.ts'], nodeType: 'file' },
-      { id: 'tools/build.py', label: 'build.py', color: FILE_TYPE_COLORS['.json'], nodeType: 'file' },
-    ] satisfies IGraphNode[];
+      fileNode('src/app.ts'),
+      fileNode('tools/build.py'),
+    ];
     const refreshedGraph = [
-      { id: 'README.md', label: 'README.md', color: FILE_TYPE_COLORS['.md'], nodeType: 'file' },
+      fileNode('README.md'),
       ...firstGraph,
-    ] satisfies IGraphNode[];
+    ];
 
     const initialColors = createNodeColorMap(firstGraph);
     const refreshedColors = createNodeColorMap(refreshedGraph);

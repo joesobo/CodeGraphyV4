@@ -51,21 +51,3 @@ test('Core publishes dependency-free Graph Scope defaults as a focused subpath',
     /src\/graphScope\/defaults\.ts/,
   );
 });
-
-test('Core publishes dependency-free file colors as a focused subpath', () => {
-  const manifest = JSON.parse(
-    fs.readFileSync(path.join(repoRoot, 'packages', 'core', 'package.json'), 'utf8'),
-  );
-
-  assert.deepEqual(manifest.exports['./file-colors'], {
-    types: './dist/fileColors.d.ts',
-    default: './dist/fileColors.js',
-  });
-  assert.deepEqual(manifest.typesVersions['*']['file-colors'], [
-    'dist/fileColors.d.ts',
-  ]);
-  assert.match(
-    fs.readFileSync(path.join(repoRoot, 'packages', 'core', 'scripts', 'build.mjs'), 'utf8'),
-    /src\/fileColors\.ts/,
-  );
-});

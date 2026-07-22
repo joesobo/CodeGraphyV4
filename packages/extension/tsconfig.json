@@ -20,7 +20,6 @@
     "baseUrl": ".",
     "paths": {
       "@codegraphy-dev/core": ["../core/src/index.ts"],
-      "@codegraphy-dev/core/file-colors": ["../core/src/fileColors.ts"],
       "@codegraphy-dev/core/graph-scope": ["../core/src/graphScope/defaults.ts"],
       "@codegraphy-dev/plugin-api": ["../plugin-api/src/index.ts"],
       "@codegraphy-dev/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],

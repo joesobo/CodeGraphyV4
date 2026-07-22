@@ -52,8 +52,8 @@ nodes use an 80-unit diameter. Connected nodes grow on a bounded square-root
 scale from 110 to 300 units, so ordinary nodes and hubs remain visibly
 different without allowing one hub to dominate the canvas.
 
-The persistent document script runs the same WebAssembly force physics as the
-CodeGraphy Extension. It derives collision spacing and repel strength from each
+The persistent document script runs WebAssembly force physics from
+`@codegraphy-dev/graph-renderer`. It derives collision spacing and repel strength from each
 circle's visible size. Resizing a node updates both values and restarts the
 layout around the new size.
 
@@ -66,6 +66,6 @@ The canvas includes these controls:
 | Link Distance | `80` | `5–100` |
 | Link Force | `1.00` | `0–2` |
 
-The controls use the Extension defaults, velocity decay, and force mapping.
-Link Distance uses the tldraw canvas's focused `5–100` range. Changes apply to
+The tldraw interface owns these defaults, velocity decay, and control mapping.
+Link Distance uses the canvas's focused `5–100` range. Changes apply to
 the active graph immediately and remain saved in the document.

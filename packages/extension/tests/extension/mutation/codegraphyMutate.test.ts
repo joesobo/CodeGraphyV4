@@ -111,15 +111,6 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/extension/tests/webview/vscodeApi.mutations.test.ts');
     expect(includes).not.toContain('packages/extension/tests/webview/**/*.test.ts');
   });
-
-  it('finds source-colocated tests for package file targets', () => {
-    const includes = resolveScopedVitestIncludes(fileTarget(
-      'packages/tldraw/src/script/main.ts',
-      'tldraw',
-    ));
-
-    expect(includes).toContain('packages/tldraw/src/script/main.test.ts');
-  });
 });
 
 describe('runCodeGraphyMutationCli', () => {

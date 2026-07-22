@@ -8,7 +8,7 @@ export interface ForceSettings {
 }
 
 export type ForceSettingKey = keyof ForceSettings;
-const EXTENSION_DEFAULT_VELOCITY_DECAY: number = 0.4;
+const DEFAULT_VELOCITY_DECAY: number = 0.4;
 
 export interface ForceControl {
   decimals: number;
@@ -69,6 +69,6 @@ export function toGraphLayoutConfig(settings: ForceSettings): Partial<GraphLayou
     chargeStrength: -(settings.repelForce / 20) * 500,
     linkDistance: settings.linkDistance,
     linkStrength: settings.linkForce,
-    velocityDecay: EXTENSION_DEFAULT_VELOCITY_DECAY,
+    velocityDecay: DEFAULT_VELOCITY_DECAY,
   };
 }
