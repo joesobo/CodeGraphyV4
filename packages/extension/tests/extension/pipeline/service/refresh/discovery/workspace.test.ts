@@ -30,7 +30,7 @@ describe('extension/pipeline/service/refresh/discovery/workspace', () => {
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
   });
 
-  it('discovers workspace files with enabled filter patterns and relays warnings', async () => {
+  it('discovers the complete workspace without applying query Filters', async () => {
     const config = {
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: ['plugin.disabled/**'],
@@ -69,8 +69,8 @@ describe('extension/pipeline/service/refresh/discovery/workspace', () => {
       'discovery-deps',
       '/workspace',
       config,
-      ['src/**', 'tests/**'],
-      ['plugin.enabled/**'],
+      ['src/**', 'dist/**', 'tests/**'],
+      ['plugin.enabled/**', 'plugin.disabled/**'],
       signal,
       expect.any(Function),
     );

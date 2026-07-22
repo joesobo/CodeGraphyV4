@@ -6,7 +6,9 @@ function error(name: 'filter' | 'scope', message: string): CliCommand {
 
 export function parseScopeCommand(argv: string[]): CliCommand {
   if (argv.length === 0) return { name: 'scope' };
-  const [kind, type, state, extra] = argv;
+  const [kind, ...rawOperands] = argv;
+  const operands = rawOperands[0] === '--' ? rawOperands.slice(1) : rawOperands;
+  const [type, state, extra] = operands;
   if (kind !== 'node' && kind !== 'edge') {
     return error('scope', `scope requires node or edge, received: ${kind}`);
   }
@@ -22,7 +24,9 @@ export function parseScopeCommand(argv: string[]): CliCommand {
 
 export function parseFilterCommand(argv: string[]): CliCommand {
   if (argv.length === 0) return { name: 'filter' };
-  const [action, pattern, extra] = argv;
+  const [action, ...rawOperands] = argv;
+  const operands = rawOperands[0] === '--' ? rawOperands.slice(1) : rawOperands;
+  const [pattern, extra] = operands;
   if (action !== 'add' && action !== 'remove') {
     return error('filter', `filter requires add or remove, received: ${action}`);
   }

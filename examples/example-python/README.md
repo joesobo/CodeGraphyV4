@@ -58,24 +58,24 @@ orphan.py (Orphan Node - only visible with showOrphans=true)
 
 | File | Imports From | Imported By |
 |------|--------------|-------------|
-| `main.py` | config, api, helpers | — |
-| `member_imports.py` | services/api.py, utils/helpers.py, requests (unresolved) | — |
-| `namespace_consumer.py` | ns_pkg/member.py | — |
-| `config.py` | — | main |
-| `orphan.py` | — | — |
-| `ns_pkg/member.py` | — | namespace_consumer |
+| `main.py` | config, api, helpers | None |
+| `member_imports.py` | services/api.py, utils/helpers.py, requests (unresolved) | None |
+| `namespace_consumer.py` | ns_pkg/member.py | None |
+| `config.py` | None | main |
+| `orphan.py` | None | None |
+| `ns_pkg/member.py` | None | namespace_consumer |
 | `utils/helpers.py` | format | main, api |
-| `utils/format.py` | — | helpers |
+| `utils/format.py` | None | helpers |
 | `services/api.py` | base, helpers | main |
-| `services/base.py` | — | api |
+| `services/base.py` | None | api |
 
 ## How to Test
 
-1. Open CodeGraphy repo in VSCode
-2. Press F5 to launch Extension Development Host
-3. In the new window: **File → Open Folder → examples/example-python**
-4. Click the CodeGraphy icon in the activity bar
-5. Compare the graph to the expected structure above
+1. Open the CodeGraphy repository in VS Code.
+2. Press F5 to launch the Extension Development Host.
+3. In the new window, select **File > Open Folder > examples/example-python**.
+4. Select the CodeGraphy icon in the Activity Bar.
+5. Compare the graph with the expected structure above.
 
 ## Symbol Node Demo
 

@@ -72,7 +72,7 @@ describe('agentBridge/uri', () => {
     const query: GraphQueryRequest = { report: 'nodes', arguments: {} };
     const queryGraph = vi.fn(() => ({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' as const }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
     }));
     const dependencies = createDependencies({
       repo: workspaceRoot,
@@ -97,7 +97,7 @@ describe('agentBridge/uri', () => {
         status: 'ok',
         result: {
           nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-          page: { offset: 0, limit: 500, returned: 1, total: 1 },
+          page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
         },
       },
     );

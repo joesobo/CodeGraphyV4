@@ -18,17 +18,17 @@
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy">Install</a>
-  ·
+·
   <a href="./docs/README.md">Docs</a>
-  ·
+·
   <a href="./docs/PLUGINS.md">Build a plugin</a>
-  ·
+·
   <a href="./CONTRIBUTING.md">Contribute</a>
-  ·
+·
   <a href="https://trello.com/b/wG65Lfrb/codegraphy">Roadmap</a>
 </p>
 
-CodeGraphy indexes a folder, projects its files and declarations into Nodes, and renders their imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships. Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view to the question you are asking. The same Core engine backs both interfaces, the terminal CLI, and agent queries.
+CodeGraphy indexes a folder and projects its files and declarations into Nodes. It renders imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships. Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view. The same Core engine supports both interfaces, the terminal CLI, and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
 
@@ -66,7 +66,7 @@ CodeGraphy indexes a folder, projects its files and declarations into Nodes, and
 1. Install [CodeGraphy from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 2. Open a folder or workspace.
 3. Open CodeGraphy from the Activity Bar.
-4. Select **Index Workspace** to add semantic Relationships beyond the initial file graph.
+4. Select **Index Workspace** to add semantic Relationships to the initial file graph.
 
 The extension publishes native runtime targets for Linux x64, macOS Apple Silicon, and Windows x64. It bundles Core plus baseline analysis for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Markdown analysis ships as a bundled plugin that starts enabled in new workspaces.
 
@@ -116,10 +116,12 @@ Run the same command after workspace changes. An open canvas updates in place an
 
 ## CLI Reference
 
+All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data commands return `{ "ok": true, "command": "...", "data": ... }` on stdout. Failures return `{ "ok": false, "command": "...", "error": ... }` on stderr and use a nonzero exit code. An unhealthy `doctor` result keeps every completed check in `error.details`. Help and version output stay plain text.
+
 | Command | Result |
 |---|---|
 | `codegraphy status` | Reports fresh, stale, missing, or unusable Graph Cache state. |
-| `codegraphy doctor` | Checks runtime, settings, Graph Cache, and plugin state. |
+| `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
 | `codegraphy index` | Makes the selected workspace Graph Cache current. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
 | `codegraphy search <text>` | Searches Nodes. |
@@ -135,7 +137,7 @@ Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current, pick a bounded Graph Query, and only then read source. Install it from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current and choose a bounded Graph Query before reading source. Install it from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
@@ -147,7 +149,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension adapts Core to editor lifecycle and the React Graph View. The tldraw interface adapts Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Plugins remain headless and communicate through `@codegraphy-dev/plugin-api` contracts.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Headless plugins communicate through `@codegraphy-dev/plugin-api` contracts.
 
 | Package | Role |
 |---|---|

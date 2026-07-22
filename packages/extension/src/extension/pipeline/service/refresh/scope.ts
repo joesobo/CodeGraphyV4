@@ -11,7 +11,6 @@ interface CurrentAnalysisScopeInput {
   discoveredFiles: readonly IDiscoveredFile[];
   disabledPlugins: Set<string>;
   lastFileAnalysis: WorkspacePipelineRefreshSource['_lastFileAnalysis'];
-  nodeVisibility: Record<string, boolean>;
 }
 
 export function canReuseCurrentAnalysisForScope(input: CurrentAnalysisScopeInput): boolean {
@@ -20,7 +19,6 @@ export function canReuseCurrentAnalysisForScope(input: CurrentAnalysisScopeInput
   }
 
   const requiredTiers = createWorkspacePipelineAnalysisCacheTiers(
-    input.nodeVisibility,
     input.activePluginIds,
   ).required;
 

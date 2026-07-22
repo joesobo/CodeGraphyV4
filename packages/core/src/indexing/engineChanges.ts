@@ -5,6 +5,7 @@ import { analyzeWorkspaceEngineChangedFiles, applyWorkspaceEngineAnalysisResult,
 import { buildWorkspaceEngineGraph, createWorkspaceEngineIndexResult, patchWorkspaceEngineCache } from './engineGraph';
 import type { WorkspaceEngineRuntime } from './engineRuntime';
 import { createWorkspaceEngineDisabledPlugins, discoverWorkspaceEngineFiles } from './engineSetup';
+import { findAffectedWorkspaceIndexAnalysisDependents } from './workspace/changes';
 
 export async function applyWorkspaceEngineChangedFiles(
   runtime: WorkspaceEngineRuntime,
@@ -13,7 +14,7 @@ export async function applyWorkspaceEngineChangedFiles(
 ): Promise<IndexCodeGraphyWorkspaceResult> {
   const { state, workspaceRoot } = runtime;
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
-  await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
+  await discoverWorkspaceEngineFiles(runtime);
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);
   const changes = selectDiscoveredWorkspaceIndexFileChanges(workspaceRoot, filePaths, discoveredByPath);
 
@@ -31,9 +32,17 @@ export async function applyWorkspaceEngineChangedFiles(
   );
   if (pluginChanges.requiresFullRefresh) return fullIndex();
 
+  const affectedDependents = findAffectedWorkspaceIndexAnalysisDependents({
+    fileAnalysis: state.fileAnalysis,
+    invalidatedFilePaths: [
+      ...changes.files.map(file => file.relativePath),
+      ...pluginChanges.additionalFilePaths,
+    ],
+    workspaceRoot,
+  });
   const files = mergeDiscoveredWorkspaceIndexFiles(
     changes.files,
-    pluginChanges.additionalFilePaths,
+    [...pluginChanges.additionalFilePaths, ...affectedDependents],
     discoveredByPath,
   );
   invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, files.map(file => file.absolutePath));

@@ -347,7 +347,6 @@
   "filterPatterns": [
     "**/tests/**",
     ".stryker-tmp/**",
-    ".husky/**",
     "**/.vscode-test/**",
     "**/.vscode/settings.json",
     "**/*.vsix",

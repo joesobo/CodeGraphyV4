@@ -1,12 +1,8 @@
 # JavaScript Example
 
-This example workspace is used by CodeGraphy's extension-host e2e tests and
-doubles as a small JavaScript project you can open in VS Code to try the Graph
-View.
+CodeGraphy's extension-host end-to-end tests use this workspace. You can also open it as a small JavaScript project in VS Code and try the Graph View.
 
-It mirrors the TypeScript example's file graph with JavaScript source files,
-plain imports, calls, a class inheritance edge, and an intentionally
-disconnected file. It does not include the TypeScript-only alias import demo.
+It mirrors the TypeScript example's file graph with JavaScript source files, plain imports, calls, a class inheritance edge, and an intentionally disconnected file. It does not include the TypeScript-only alias import demo.
 
 Suggested Depth Mode check:
 
@@ -29,12 +25,10 @@ Suggested symbol check:
 
 1. Open `src/index.js`.
 2. In Graph Scope, enable **Symbol** and **Variable**.
-3. Search for `buildGreeting`, `AppRunner`, `BaseRunner`, `RunnableThing`, and
-   `currentUser`.
+3. Search for `buildGreeting`, `AppRunner`, `BaseRunner`, `RunnableThing`, and `currentUser`.
 
 Expected behavior:
 
 - `buildGreeting` appears as a Function symbol imported from `src/utils.js`.
-- `AppRunner` imports `RunnableThing` and extends `BaseRunner`, giving the
-  JavaScript example both import and inheritance checks.
+- `AppRunner` imports `RunnableThing` and extends `BaseRunner`, giving the JavaScript example both import and inheritance checks.
 - `currentUser` appears as a Variable node, giving the tiny app a file/function/value story.

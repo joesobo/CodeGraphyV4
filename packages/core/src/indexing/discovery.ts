@@ -1,32 +1,19 @@
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
 import type { IDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
-import type { CorePluginRegistry } from '../plugins/registry';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
-import { getDisabledPluginFilterPatterns } from './settings';
 
 export async function discoverWorkspaceIndexFiles(input: {
-  disabledPlugins: ReadonlySet<string>;
   discovery: FileDiscovery;
   options: IndexCodeGraphyWorkspaceOptions;
-  registry: CorePluginRegistry;
   settings: CodeGraphyWorkspaceSettings;
   workspaceRoot: string;
 }): Promise<IDiscoveryResult> {
-  const disabledPluginPatterns = getDisabledPluginFilterPatterns(input.settings);
-  const pluginFilterPatterns = input.registry
-    .getPluginFilterPatterns(input.disabledPlugins)
-    .filter(pattern => !disabledPluginPatterns.has(pattern));
   const discoveryResult = await input.discovery.discover({
     rootPath: input.workspaceRoot,
     include: input.settings.include.length > 0 ? input.settings.include : DEFAULT_INCLUDE,
-    exclude: [
-      ...new Set([
-        ...pluginFilterPatterns,
-        ...input.settings.filterPatterns,
-      ]),
-    ],
+    exclude: [],
     maxFiles: input.settings.maxFiles ?? DEFAULT_MAX_FILES,
     respectGitignore: input.settings.respectGitignore,
     signal: input.options.signal,

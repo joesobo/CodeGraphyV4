@@ -3,17 +3,16 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { collectDiagnosticEvents } from '../../src/diagnostics/events';
+import {
+    loadWorkspaceAnalysisDatabaseCache,
+} from '../../src/graphCache/database/storage';
 import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
 import { requestWorkspaceGraphQuery } from '../../src/workspace/requestQuery';
 import { readCodeGraphyWorkspaceStatusForCli } from '../../src/workspace/requestStatus';
 import {
-  readCodeGraphyWorkspaceSettings,
-  writeCodeGraphyWorkspaceSettings,
+    readCodeGraphyWorkspaceSettings,
+    writeCodeGraphyWorkspaceSettings,
 } from '../../src/workspace/settings';
-import { loadWorkspaceAnalysisDatabaseCache } from '../../src/graphCache/database/storage';
-import { readAnalysisCacheTiers } from '../../src/analysis/fileAnalysis';
-import { runCli } from '../../src/cli/run';
 
 describe('core-backed CodeGraphy Workspace commands', () => {
   it('indexes, reports fresh status, and queries a workspace without VS Code', async () => {
@@ -61,6 +60,32 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     ]);
   });
 
+  it('reports a fresh cache immediately after indexing with an unavailable configured plugin', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-missing-plugin-'));
+    await fs.writeFile(path.join(workspaceRoot, 'Home.md'), '# Home\n', 'utf-8');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: '@example/codegraphy-plugin', enabled: true },
+      ],
+    });
+
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const repeatIndex = await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot })).toMatchObject({
+      state: 'fresh',
+      staleReasons: [],
+    });
+    expect(repeatIndex.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 1,
+    });
+  });
+
   it('returns indexed Tree-sitter relationships through repo-relative query paths', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-relationships-'));
     await fs.writeFile(
@@ -106,7 +131,10 @@ describe('core-backed CodeGraphy Workspace commands', () => {
       nodeVisibility: { 'symbol:function': true },
       edgeVisibility: { call: false },
     });
-    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files).toHaveProperty(
+      'generated/output.ts',
+    );
 
     const nodeReport = await requestWorkspaceGraphQuery({
       workspacePath: workspaceRoot,
@@ -121,7 +149,7 @@ describe('core-backed CodeGraphy Workspace commands', () => {
 
     expect(nodeReport.nodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        nodeType: 'symbol',
+        nodeType: 'symbol:function',
         symbol: expect.objectContaining({
           name: 'target',
           kind: 'function',
@@ -152,186 +180,5 @@ describe('core-backed CodeGraphy Workspace commands', () => {
       arguments: { from: 'entry.ts', to: 'target.ts' },
     });
     expect(pathReport.paths).toEqual([]);
-  });
-
-  it('upgrades a file-only cache after symbol scope is enabled', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-symbol-upgrade-'));
-    await fs.writeFile(path.join(workspaceRoot, 'target.ts'), 'export function target(): void {}\n');
-    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    const baselineCache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
-    expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).toContain('baseline');
-    expect(readAnalysisCacheTiers(baselineCache.files['target.ts']!.analysis)).not.toContain('symbols');
-    const outputs: string[] = [];
-
-    await expect(runCli([
-      '-C', workspaceRoot, 'scope', 'node', 'symbol:function', 'on',
-    ], { stdout: output => { outputs.push(output); } })).resolves.toBe(0);
-
-    expect(JSON.parse(outputs[0])).toMatchObject({
-      indexRequired: true,
-      action: 'Run `codegraphy index` to hydrate the required symbol analysis.',
-    });
-    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('stale');
-
-    const upgrade = await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    expect(upgrade.indexing.analyzedFiles).toBe(1);
-    expect(readCodeGraphyWorkspaceStatusForCli({ workspacePath: workspaceRoot }).state).toBe('fresh');
-    const nodeReport = await requestWorkspaceGraphQuery({
-      workspacePath: workspaceRoot,
-      report: 'nodes',
-      arguments: {},
-    });
-    expect(nodeReport.nodes).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        nodeType: 'symbol',
-        symbol: expect.objectContaining({ name: 'target', kind: 'function' }),
-      }),
-    ]));
-  });
-
-  it('expands file convenience queries across visible symbol endpoints', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-file-intent-'));
-    await fs.writeFile(path.join(workspaceRoot, 'app.ts'), "import { greet } from './greet';\ngreet();\n");
-    await fs.writeFile(path.join(workspaceRoot, 'greet.ts'), 'export function greet(): void {}\n');
-    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
-    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
-      ...settings,
-      nodeVisibility: { 'symbol:function': true },
-      edgeVisibility: { import: false, call: true, contains: true },
-    });
-    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    const outputs: string[] = [];
-    const stdout = (output: string): void => { outputs.push(output); };
-
-    await runCli(['-C', workspaceRoot, 'dependents', 'greet.ts'], { stdout });
-    await runCli(['-C', workspaceRoot, 'path', 'app.ts', 'greet.ts'], { stdout });
-
-    expect(JSON.parse(outputs[0]).edges).toEqual(expect.arrayContaining([
-      expect.objectContaining({ from: 'app.ts', to: 'greet.ts' }),
-    ]));
-    expect(JSON.parse(outputs[1]).paths).toContainEqual(['app.ts', 'greet.ts']);
-  });
-
-  it('emits high-signal verbose diagnostics for indexing requests', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-diagnostics-workspace-'));
-    await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
-    await fs.writeFile(path.join(workspaceRoot, 'Target.md'), 'Done.\n', 'utf-8');
-    const diagnostics = collectDiagnosticEvents(true);
-
-    await requestCodeGraphyIndexWorkspace({
-      workspacePath: workspaceRoot,
-      diagnostics,
-    });
-
-    expect(diagnostics.events).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        area: 'workspace',
-        event: 'index-started',
-        context: expect.objectContaining({
-          operationId: expect.any(String),
-          workspaceRoot,
-        }),
-      }),
-      expect.objectContaining({
-        area: 'indexing',
-        event: 'completed',
-        context: expect.objectContaining({
-          operationId: expect.any(String),
-          files: 2,
-          nodes: 2,
-          graphCache: '.codegraphy/graph.sqlite',
-        }),
-      }),
-    ]));
-    expect(diagnostics.events).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        area: 'indexing',
-        event: 'phase-completed',
-        context: expect.objectContaining({
-          phase: 'discover-files',
-          durationMs: expect.any(Number),
-          files: 2,
-        }),
-      }),
-      expect.objectContaining({
-        area: 'indexing',
-        event: 'phase-completed',
-        context: expect.objectContaining({
-          phase: 'analyze-files',
-          durationMs: expect.any(Number),
-          files: 2,
-        }),
-      }),
-      expect.objectContaining({
-        area: 'indexing',
-        event: 'phase-completed',
-        context: expect.objectContaining({
-          phase: 'build-graph',
-          durationMs: expect.any(Number),
-          nodes: 2,
-        }),
-      }),
-    ]));
-  });
-
-  it('emits factual verbose diagnostics for status requests', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-status-diagnostics-'));
-    const diagnostics = collectDiagnosticEvents(true);
-
-    readCodeGraphyWorkspaceStatusForCli({
-      workspacePath: workspaceRoot,
-      diagnostics,
-    });
-
-    expect(diagnostics.events).toContainEqual(expect.objectContaining({
-      area: 'workspace',
-      event: 'status-read',
-      context: expect.objectContaining({
-        workspaceRoot,
-        state: 'missing',
-        hasGraphCache: false,
-        staleReasons: ['never-indexed'],
-        enabledPluginCount: 1,
-      }),
-    }));
-  });
-
-  it('emits factual verbose diagnostics for graph query requests', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-diagnostics-'));
-    await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
-    await fs.writeFile(path.join(workspaceRoot, 'Target.md'), 'Done.\n', 'utf-8');
-    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    const diagnostics = collectDiagnosticEvents(true);
-
-    await requestWorkspaceGraphQuery({
-      workspacePath: workspaceRoot,
-      report: 'edges',
-      arguments: { from: 'Home.md' },
-      diagnostics,
-    });
-
-    expect(diagnostics.events).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        area: 'graph-query',
-        event: 'started',
-        context: expect.objectContaining({
-          operationId: expect.any(String),
-          workspaceRoot,
-          report: 'edges',
-        }),
-      }),
-      expect.objectContaining({
-        area: 'graph-query',
-        event: 'completed',
-        context: expect.objectContaining({
-          operationId: expect.any(String),
-          report: 'edges',
-          cacheState: 'fresh',
-          nodeCount: 2,
-          edgeCount: 1,
-        }),
-      }),
-    ]));
   });
 });

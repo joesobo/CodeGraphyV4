@@ -21,7 +21,6 @@ export interface IndexCodeGraphyWorkspaceOptions {
   settings?: CodeGraphyWorkspaceSettings;
   includeCorePlugins?: boolean;
   include?: string[];
-  filterPatterns?: string[];
   disabledPlugins?: Iterable<string>;
   maxFiles?: number;
   respectGitignore?: boolean;

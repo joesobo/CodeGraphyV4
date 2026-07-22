@@ -34,7 +34,6 @@ export interface CachedGraphAnalysisWarmupOptions {
   getActiveAnalysisPluginIds(
     disabledPluginSnapshot: Set<string>,
   ): readonly string[];
-  nodeVisibility: Record<string, boolean>;
   registry: CachedGraphWarmupRegistry;
   signal?: AbortSignal;
   workspaceRoot: string;

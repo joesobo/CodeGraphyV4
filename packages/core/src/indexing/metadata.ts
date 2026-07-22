@@ -19,23 +19,38 @@ function runtimeSignaturePlugins(registry: CorePluginRegistry): IPlugin[] {
 export function createWorkspaceIndexPluginSignature(input: {
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
   registry: CorePluginRegistry;
+  settings: CodeGraphyWorkspaceSettings;
+  includeMissingConfiguredPlugins?: boolean;
 }): string | null {
+  const runtimePlugins = runtimeSignaturePlugins(input.registry);
+  const representedPluginIds = new Set([
+    ...runtimePlugins.map(plugin => plugin.id),
+    ...input.loadedPackagePlugins.flatMap(loadedPlugin => [
+      loadedPlugin.record.package,
+      loadedPlugin.record.pluginId,
+    ].filter((value): value is string => Boolean(value))),
+  ]);
+  const missingPackagePlugins = input.includeMissingConfiguredPlugins === false
+    ? []
+    : input.settings.plugins
+      .filter(plugin => plugin.enabled && !representedPluginIds.has(plugin.id))
+      .map(plugin => plugin.id);
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
-    runtimePlugins: runtimeSignaturePlugins(input.registry),
+    runtimePlugins,
     packagePlugins: input.loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
+    missingPackagePlugins,
   }) ?? createCodeGraphyWorkspacePluginSignature(
     input.registry.list().map(info => info.plugin),
   );
 }
 
 export function persistWorkspaceIndexMetadata(input: {
-  loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
-  registry: CorePluginRegistry;
+  pluginSignature: string | null;
   settings: CodeGraphyWorkspaceSettings;
   workspaceRoot: string;
 }): void {
   persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
-    pluginSignature: createWorkspaceIndexPluginSignature(input),
+    pluginSignature: input.pluginSignature,
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(input.settings),
   });
 }

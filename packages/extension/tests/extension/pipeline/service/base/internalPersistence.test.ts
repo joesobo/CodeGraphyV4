@@ -14,6 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/service/runtime/graph', () => ({
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis: vi.fn(),
   buildWorkspacePipelineGraph: vi.fn(),
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
@@ -68,6 +69,8 @@ vi.mock('vscode', () => ({
 
 import {
   TestInternalBase,
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
+  buildWorkspacePipelineGraphFromAnalysis,
   persistWorkspacePipelineCache,
   persistWorkspacePipelineIndexMetadata,
   readWorkspacePipelineCurrentCommitShaSync,
@@ -108,15 +111,25 @@ describe('extension/pipeline/service/internalBase persistence', () => {
   it('persists the cache through the shared helper and warning logger', () => {
     const source = new TestInternalBase();
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const completeGraphData = { nodes: [{ id: 'complete' }], edges: [] };
+    const scopedGraphData = { nodes: [{ id: 'scoped' }], edges: [] };
+    vi.mocked(buildWorkspacePipelineCompleteGraphDataFromAnalysis)
+      .mockReturnValue(completeGraphData as never);
+    vi.mocked(buildWorkspacePipelineGraphFromAnalysis)
+      .mockReturnValue(scopedGraphData as never);
+    const graphData = source.buildGraphDataFromAnalysis(new Map(), '/workspace', true);
+
+    expect(graphData).toBe(scopedGraphData);
 
     source.persistCache();
 
     expect(persistWorkspacePipelineCache).toHaveBeenCalledWith(
       '/workspace',
       source._cache,
+      completeGraphData,
       expect.any(Function),
     );
-    const warn = vi.mocked(persistWorkspacePipelineCache).mock.calls[0][2];
+    const warn = vi.mocked(persistWorkspacePipelineCache).mock.calls[0][3];
     warn('cache warning', new Error('boom'));
     expect(warnSpy).toHaveBeenCalledWith('cache warning', expect.any(Error));
   });

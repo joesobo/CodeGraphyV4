@@ -58,14 +58,22 @@ describe('workspace/signatures', () => {
     expect(first).not.toBe(withoutOptions);
   });
 
-  it('changes settings signatures when visible graph settings or plugin filters change', () => {
+  it('keeps query-only graph settings out of index freshness signatures', () => {
     const defaults = createDefaultCodeGraphyWorkspaceSettings();
     const first = createCodeGraphyWorkspaceSettingsSignature(defaults);
 
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       showOrphans: false,
-    })).not.toBe(first);
+    })).toBe(first);
+    expect(createCodeGraphyWorkspaceSettingsSignature({
+      ...defaults,
+      filterPatterns: ['**/__pycache__/**'],
+    })).toBe(first);
+    const plugin = createCodeGraphyWorkspaceSettingsSignature({
+      ...defaults,
+      plugins: [{ id: 'codegraphy.vue', enabled: true }],
+    });
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
@@ -73,10 +81,10 @@ describe('workspace/signatures', () => {
         enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
-    })).not.toBe(first);
+    })).toBe(plugin);
   });
 
-  it('distinguishes plugin packages, empty filters, and populated filters in settings signatures', () => {
+  it('distinguishes plugin packages without treating plugin filters as index inputs', () => {
     const defaults = createDefaultCodeGraphyWorkspaceSettings();
     const pythonPlugin = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
@@ -108,6 +116,6 @@ describe('workspace/signatures', () => {
         enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
-    })).not.toBe(pythonPlugin);
+    })).toBe(pythonPlugin);
   });
 });

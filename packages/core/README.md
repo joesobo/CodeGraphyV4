@@ -8,7 +8,7 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
 
 ```bash
 codegraphy index
@@ -26,7 +26,7 @@ codegraphy scope edge call on
 codegraphy filter add '**/generated/**'
 ```
 
-Run `codegraphy <command> --help` for command usage. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
+Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for purpose, arguments, effects, output, and examples. Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. An unhealthy `doctor` result keeps all completed checks in `error.details`. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
 
 ## Current Entry Points
 
@@ -43,7 +43,7 @@ Run `codegraphy <command> --help` for command usage. Indexing always chooses the
 - Workspace plugin activity: enable or disable Plugin IDs by writing explicit `enabled: true` or `enabled: false` entries in the workspace-local `plugins` array.
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
-- Graph Cache storage: load, save, clear, and inspect the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
+- Graph Cache storage: load, save, clear, and inspect normalized File, Node, NodeView, Symbol, and Edge rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
 - Graph Query: search scoped Nodes, list scoped Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
 
 The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
@@ -66,7 +66,7 @@ Plugin installation, global registration, and workspace enablement are separate:
 - `plugins enable <plugin-id-or-package>` and `plugins disable <plugin-id-or-package>` target the selected workspace. By default this is the process current working directory; use the global `--workspace <path>` option to select another workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - `plugins link <package-root>` records a local package checkout in the user-level Plugin Registry, which is the preferred private-plugin development path.
 - Enabling or disabling a plugin changes workspace settings only; disabling persists `enabled: false` Plugin ID intent and keeps the runtime unloaded until the user enables that Plugin ID again.
-- Indexing imports enabled npm plugin packages through their normal package `exports`, merges manifest `defaultOptions` with workspace-local `options`, delivers the result to package factories as `factoryOptions.options`, and delivers the same result to plugin lifecycle and analysis hooks as `context.options`.
+- Indexing imports active npm plugin packages through their package `exports`. It merges manifest `defaultOptions` with workspace-local `options`. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
 - Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a plugin-owned persistence host bound to the plugin id returned by the factory.
 
 Plugin npm packages identify themselves with package metadata:

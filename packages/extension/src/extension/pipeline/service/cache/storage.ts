@@ -7,6 +7,7 @@ import {
   patchWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../database/cache/storage';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 
 export interface WorkspacePipelineCachePatch {
   deleteFilePaths: readonly string[];
@@ -31,13 +32,14 @@ export function clearWorkspacePipelineStoredCache(
 export function persistWorkspacePipelineCache(
   workspaceRoot: string | undefined,
   cache: IWorkspaceAnalysisCache,
+  graph: IGraphData,
   warn: (message: string, error: unknown) => void,
 ): void {
   if (!workspaceRoot) {
     return;
   }
 
-  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache)
+  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, { graph })
     .catch((error: unknown) => {
       warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
     });

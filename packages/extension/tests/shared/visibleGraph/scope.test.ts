@@ -425,7 +425,7 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
-	it('keeps file-level self edges while dropping symbol edges projected onto the same file', () => {
+	it('deduplicates file-level self edges and symbol edges projected onto the same file', () => {
 		const result = applyGraphScope(
 			{
 				nodes: [

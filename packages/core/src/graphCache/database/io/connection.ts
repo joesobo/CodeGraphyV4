@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import Database from 'libsql';
-import type { FileAnalysisRow } from '../records/contracts';
 import { ensureSchema } from './schema';
 
 export type SQLiteConnection = Database.Database;
@@ -51,14 +50,14 @@ export async function executeStatementAsync(
 export function readRowsSync(
   connection: SQLiteConnection,
   statement: string,
-): FileAnalysisRow[] {
-  return connection.prepare(statement).all() as FileAnalysisRow[];
+): Record<string, unknown>[] {
+  return connection.prepare(statement).all() as Record<string, unknown>[];
 }
 
 export async function readRowsAsync(
   connection: SQLiteConnection,
   statement: string,
-): Promise<FileAnalysisRow[]> {
+): Promise<Record<string, unknown>[]> {
   return readRowsSync(connection, statement);
 }
 
@@ -97,6 +96,7 @@ export function recreateInvalidDatabase(
 function openConnection(databasePath: string): SQLiteConnection {
   const connection = new Database(databasePath);
   try {
+    connection.pragma('foreign_keys = ON');
     connection.pragma('journal_mode = DELETE');
     connection.pragma('synchronous = NORMAL');
     ensureSchema(connection);
@@ -109,6 +109,10 @@ function openConnection(databasePath: string): SQLiteConnection {
     }
     throw error;
   }
+}
+
+function openReadOnlyConnection(databasePath: string): SQLiteConnection {
+  return new Database(databasePath, { readonly: true, fileMustExist: true });
 }
 
 export function withConnection<T>(
@@ -132,6 +136,19 @@ export async function withConnectionAsync<T>(
 
   try {
     return await callback(connection);
+  } finally {
+    connection.close();
+  }
+}
+
+export function withReadOnlyConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+): T {
+  const connection = openReadOnlyConnection(databasePath);
+
+  try {
+    return callback(connection);
   } finally {
     connection.close();
   }

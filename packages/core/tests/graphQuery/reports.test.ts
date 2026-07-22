@@ -49,6 +49,7 @@ describe('core/graphQuery reports', () => {
         limit: 2,
         returned: 2,
         total: 3,
+        nextOffset: 2,
       },
     });
   });
@@ -95,6 +96,7 @@ describe('core/graphQuery reports', () => {
       limit: 500,
       returned: 1,
       total: 1,
+      nextOffset: null,
     });
   });
 

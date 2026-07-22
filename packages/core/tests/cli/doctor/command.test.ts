@@ -1,10 +1,154 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import Database from 'libsql';
 import { describe, expect, it, vi } from 'vitest';
 import { runCli } from '../../../src/cli/run';
+import { requestCodeGraphyIndexWorkspace } from '../../../src/workspace/requestIndexing';
+import { getWorkspaceAnalysisDatabasePath } from '../../../src/graphCache/database/storage';
 
 describe('cli doctor', () => {
+  it('reports index metadata and normalized graph record counts', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-indexed-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), 'See [[Target.md]].\n');
+    await fs.writeFile(path.join(workspace, 'Target.md'), '# Target\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const stdout = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: {
+        checks: {
+          cache: {
+            ok: true,
+            state: 'fresh',
+            staleReasons: [],
+            schemaVersion: 9,
+            integrityOk: true,
+            foreignKeyOk: true,
+            indexedAt: expect.any(String),
+            records: {
+              indexedFiles: 2,
+              nodes: expect.any(Number),
+              symbols: expect.any(Number),
+              edges: expect.any(Number),
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('reports a schema mismatch without repairing or erasing the cache', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-schema-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), '# Home\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    const damaged = new Database(databasePath);
+    damaged.exec('DROP TABLE Symbol');
+    damaged.close();
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        details: {
+          healthy: false,
+          checks: {
+            cache: {
+              ok: false,
+              schemaVersion: 9,
+              expectedSchemaVersion: 9,
+              schemaCompatible: false,
+            },
+          },
+        },
+      },
+    });
+    const unchanged = new Database(databasePath, { readonly: true, fileMustExist: true });
+    expect(unchanged.prepare("SELECT count(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'Symbol'").get())
+      .toMatchObject({ count: 0 });
+    expect(unchanged.prepare('SELECT count(*) AS count FROM File').get()).toMatchObject({ count: 1 });
+    unchanged.close();
+  });
+
+  it('reports foreign-key damage separately from database integrity', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-foreign-key-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), '# Home\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    const damaged = new Database(databasePath);
+    damaged.pragma('foreign_keys = OFF');
+    damaged.prepare(`INSERT INTO Edge(key, sourceNodeId, targetNodeId, type)
+      VALUES ('broken-edge', 999999, 999999, 'import')`).run();
+    damaged.close();
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        details: {
+          checks: {
+            cache: {
+              ok: false,
+              schemaCompatible: true,
+              integrityOk: true,
+              foreignKeyOk: false,
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('reports integrity damage separately from foreign-key health', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-integrity-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), '# Home\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    const damaged = new Database(databasePath);
+    damaged.pragma('ignore_check_constraints = ON');
+    damaged.prepare('UPDATE NodeView SET favorite = 2').run();
+    damaged.close();
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        details: {
+          checks: {
+            cache: {
+              ok: false,
+              schemaCompatible: true,
+              integrityOk: false,
+              foreignKeyOk: true,
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('reports an unreadable cache without replacing its bytes', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-corrupt-'));
+    await fs.mkdir(path.join(workspace, '.codegraphy'));
+    await fs.writeFile(path.join(workspace, '.codegraphy/settings.json'), '{}');
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    await fs.writeFile(databasePath, 'not sqlite');
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: { details: { checks: { cache: { ok: false, schemaCompatible: false } } } },
+    });
+    await expect(fs.readFile(databasePath, 'utf8')).resolves.toBe('not sqlite');
+  });
+
   it('returns actionable JSON and a nonzero exit when the workspace is unhealthy', async () => {
     const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-'));
     const stdout = vi.fn();
@@ -15,14 +159,22 @@ describe('cli doctor', () => {
     expect(stdout).not.toHaveBeenCalled();
     const result = JSON.parse(stderr.mock.calls[0][0]);
     expect(result).toMatchObject({
-      healthy: false,
-      checks: {
-        runtime: { supported: expect.any(String) },
-        settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
-        cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
-        plugins: { ok: true, warnings: [] },
+      ok: false,
+      command: 'doctor',
+      error: {
+        code: 'workspace_unhealthy',
+        details: {
+          healthy: false,
+          checks: {
+            runtime: { supported: expect.any(String) },
+            settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
+            cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
+            plugins: { ok: true, warnings: [] },
+          },
+        },
       },
     });
+    expect(result).not.toHaveProperty('data');
   });
 
   it('rejects malformed known settings fields', async () => {
@@ -37,10 +189,14 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: {
-        settings: {
-          ok: false,
-          message: 'filterPatterns must be an array of strings',
+      error: {
+        details: {
+          checks: {
+            settings: {
+              ok: false,
+              message: 'filterPatterns must be an array of strings',
+            },
+          },
         },
       },
     });
@@ -58,7 +214,7 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: { settings: { ok: false, message: 'pluginData must be an object' } },
+      error: { details: { checks: { settings: { ok: false, message: 'pluginData must be an object' } } } },
     });
   });
 
@@ -79,7 +235,7 @@ describe('cli doctor', () => {
     await runCli(['-C', workspace, 'doctor'], { stderr });
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: { settings: { ok: true } },
+      error: { details: { checks: { settings: { ok: true } } } },
     });
   });
 
@@ -101,7 +257,7 @@ describe('cli doctor', () => {
     await runCli(['-C', workspace, 'doctor'], { stderr });
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      checks: { settings: { ok: false } },
+      error: { details: { checks: { settings: { ok: false } } } },
     });
   });
 });

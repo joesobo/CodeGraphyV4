@@ -3,18 +3,16 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
+  IGraphData,
 } from '@codegraphy-dev/plugin-api';
-import { readRowsSync, withConnection } from './io/connection';
-import { getWorkspaceAnalysisDatabasePath } from './io/paths';
-import { createSnapshotFileEntry } from './records/file';
-import { createSnapshotRelationEntry } from './relation/entry';
-import { createSnapshotSymbolEntry } from './records/symbol';
-import type { RelationRow, SymbolRow } from './records/contracts';
 import {
-  FILE_ANALYSIS_ROWS_QUERY,
-  RELATION_ROWS_QUERY,
-  SYMBOL_ROWS_QUERY,
-} from './query/read';
+  readRowsSync,
+  withReadOnlyConnection,
+} from './io/connection';
+import { getWorkspaceAnalysisDatabasePath } from './io/paths';
+import { parseDatabaseRecords } from './records/parser';
+import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from './records/types';
+import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY, SYMBOL_ROWS_QUERY } from './query/read';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{
@@ -24,52 +22,36 @@ export interface WorkspaceAnalysisDatabaseSnapshot {
     size?: number;
     analysis: IFileAnalysisResult;
   }>;
+  graph: IGraphData;
   symbols: IAnalysisSymbol[];
   relations: IAnalysisRelation[];
 }
 
-function readSymbolsFromFileAnalysis(files: WorkspaceAnalysisDatabaseSnapshot['files']): IAnalysisSymbol[] {
-  return files.flatMap(file => file.analysis.symbols ?? []);
-}
-
-function readRelationsFromFileAnalysis(files: WorkspaceAnalysisDatabaseSnapshot['files']): IAnalysisRelation[] {
-  return files.flatMap(file => file.analysis.relations ?? []);
-}
+const EMPTY_SNAPSHOT: WorkspaceAnalysisDatabaseSnapshot = {
+  files: [],
+  graph: { nodes: [], edges: [] },
+  symbols: [],
+  relations: [],
+};
 
 export function readWorkspaceAnalysisDatabaseSnapshot(
   workspaceRoot: string,
 ): WorkspaceAnalysisDatabaseSnapshot {
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(databasePath)) {
-    return { files: [], symbols: [], relations: [] };
-  }
+  if (!fs.existsSync(databasePath)) return EMPTY_SNAPSHOT;
 
   try {
-    return withConnection(databasePath, (connection) => {
-      const fileRows = readRowsSync(connection, FILE_ANALYSIS_ROWS_QUERY);
-      const symbolRows = readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[];
-      const relationRows = readRowsSync(connection, RELATION_ROWS_QUERY) as RelationRow[];
-      const files = fileRows.flatMap((row) => {
-        const entry = createSnapshotFileEntry(row);
-        return entry ? [entry] : [];
-      });
-      const symbols = symbolRows.flatMap((row) => {
-        const entry = createSnapshotSymbolEntry(row);
-        return entry ? [entry] : [];
-      });
-      const relations = relationRows.flatMap((row) => {
-        const entry = createSnapshotRelationEntry(row);
-        return entry ? [entry] : [];
-      });
-
-      return {
-        files,
-        symbols: symbols.length > 0 ? symbols : readSymbolsFromFileAnalysis(files),
-        relations: relations.length > 0 ? relations : readRelationsFromFileAnalysis(files),
-      };
+    return withReadOnlyConnection(databasePath, connection => {
+      return parseDatabaseRecords(
+        readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
+        readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
+        readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
+        readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
+        workspaceRoot,
+      );
     });
   } catch (error) {
     console.warn('[CodeGraphy] Failed to read structured analysis snapshot.', error);
-    return { files: [], symbols: [], relations: [] };
+    return EMPTY_SNAPSHOT;
   }
 }

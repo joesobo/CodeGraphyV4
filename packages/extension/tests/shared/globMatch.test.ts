@@ -155,8 +155,9 @@ describe('shared/globMatch', () => {
 
     expect(matcher('project/Assets/AddressableAssetsData/android/catalog.bin.hash')).toBe(true);
     expect(matcher('project/Assets/AddressableAssetsData/catalog.json')).toBe(false);
-    expect(matcher('project/Library/generated.asset')).toBe(false);
-    expect(matcher('project/[Ll]ibrary/generated.asset')).toBe(true);
+    expect(matcher('project/Library/generated.asset')).toBe(true);
+    expect(matcher('project/library/generated.asset')).toBe(true);
+    expect(matcher('project/Bibrary/generated.asset')).toBe(false);
   });
 
   it('creates an empty combined matcher that never matches', () => {
@@ -234,5 +235,18 @@ describe('shared/globMatch', () => {
     expectWallClockBudgetOutsideMutationRun(() => {
       expect(elapsedMs).toBeLessThan(120);
     });
+  });
+
+  it('matches character classes like Unity default filters', () => {
+    expect(globMatch('ProjectSettings/AudioManager.asset', '**/[Pp]roject[Ss]ettings/**')).toBe(true);
+    expect(globMatch('Projectxettings/EditorSettings.asset', '**/[Pp]roject[Ss]ettings/**')).toBe(false);
+    expect(globMatch('Library/foo.asset', '**/[Ll]ibrary/**')).toBe(true);
+    expect(globMatch('library/foo.asset', '**/[Ll]ibrary/**')).toBe(true);
+  });
+
+  it('supports negated character classes and treats unterminated brackets literally', () => {
+    expect(globMatch('a.ts', '[!b].ts')).toBe(true);
+    expect(globMatch('b.ts', '[!b].ts')).toBe(false);
+    expect(globMatch('[x.ts', '[x.ts')).toBe(true);
   });
 });

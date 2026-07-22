@@ -18,16 +18,14 @@ codegraphy index
 
 ## What It Provides
 
-This plugin parses Vue 3 Single-File Components with `@vue/compiler-sfc` and
-indexes relative imports from `<script>` and `<script setup>` blocks.
+This plugin parses Vue 3 Single-File Components with `@vue/compiler-sfc` and indexes relative imports from `<script>` and `<script setup>` blocks.
 
 - runtime imports become baseline import relationships
 - type-only imports become type-import relationships
 - explicit `.vue` component imports resolve to Vue SFC files
 - TypeScript and JavaScript script imports resolve with the baseline extension candidates
 
-Core CodeGraphy owns the default `.vue` icon and color through Material Icon Theme.
-This plugin does not ship general file theming or Vue-specific graph node/edge types.
+Core CodeGraphy owns the default `.vue` icon and color through Material Icon Theme. This plugin does not ship general file theming or Vue-specific graph node/edge types.
 
 ## More
 

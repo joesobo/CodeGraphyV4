@@ -18,14 +18,20 @@ function readGlobalFlags(argv: string[]): GlobalFlags {
   const positional: string[] = [];
   let verbose = false;
   let workspacePath: string | undefined;
+  let optionsEnded = false;
 
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
-    if (argument === '--verbose') {
+    if (argument === '--') {
+      optionsEnded = true;
+      if (positional.length > 0) positional.push(argument);
+      continue;
+    }
+    if (!optionsEnded && argument === '--verbose') {
       verbose = true;
       continue;
     }
-    if (argument === '-C' || argument === '--workspace') {
+    if (!optionsEnded && (argument === '-C' || argument === '--workspace')) {
       if (workspacePath !== undefined) {
         return { argv: positional, verbose, workspacePath, parseError: `Duplicate workspace option: ${argument}` };
       }
@@ -121,7 +127,7 @@ export function parseCliCommand(argv: string[]): CliCommand {
     default:
       command = isGraphQueryReport(name)
         ? parseQueryCommand([name, ...rest])
-        : { name: 'help', parseError: `Unknown command: ${name}` };
+        : { name: 'help', invokedCommand: name, parseError: `Unknown command: ${name}` };
   }
 
   return withGlobalFlags(command, flags);

@@ -3,8 +3,6 @@ import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
 import type { CodeGraphyWorkspaceSettings } from './settings';
 import type { CodeGraphyInstalledPluginRecord } from '../plugins/installedCache';
-import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis';
-import { resolveSavedGraphScope } from './graphScopeSettings';
 
 function sortRecord(value: Record<string, unknown> | undefined): Array<[string, unknown]> {
   return Object.keys(value ?? {})
@@ -46,14 +44,9 @@ export function createCodeGraphyWorkspaceSettingsSignature(
     maxFiles: settings.maxFiles,
     include: settings.include,
     respectGitignore: settings.respectGitignore,
-    showOrphans: settings.showOrphans,
-    filterPatterns: settings.filterPatterns,
-    disabledCustomFilterPatterns: settings.disabledCustomFilterPatterns,
-    symbolAnalysis: requiresSymbolAnalysisCacheTier(resolveSavedGraphScope(settings).nodes),
     plugins: settings.plugins.map(plugin => ({
       id: plugin.id,
       enabled: plugin.enabled,
-      disabledFilterPatterns: plugin.disabledFilterPatterns ?? [],
       options: sortRecord(plugin.options),
     })),
   };

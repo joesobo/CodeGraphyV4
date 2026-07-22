@@ -19,16 +19,13 @@ export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime)
 
 export async function discoverWorkspaceEngineFiles(
   runtime: WorkspaceEngineRuntime,
-  disabledPlugins: Set<string>,
 ): Promise<void> {
   const { discovery, options, state, workspaceRoot } = runtime;
   if (!state.registry || !state.settings) return;
 
   state.discoveryResult = await discoverWorkspaceIndexFiles({
-    disabledPlugins,
     discovery,
     options,
-    registry: state.registry,
     settings: state.settings,
     workspaceRoot,
   });

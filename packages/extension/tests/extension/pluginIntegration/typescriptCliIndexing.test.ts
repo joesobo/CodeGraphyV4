@@ -1,9 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { FileDiscovery, indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
+import { indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
-import { vi } from 'vitest';
 
 describe('TypeScript CLI-style indexing', () => {
   it('rebuilds alias relationships when tsconfig changes in a fresh plugin process', async () => {
@@ -28,7 +27,6 @@ describe('TypeScript CLI-style indexing', () => {
 
     await writeConfig('src-a');
     const initial = await index();
-    const readContent = vi.spyOn(FileDiscovery.prototype, 'readContent');
     await writeConfig('src-b');
     const refreshed = await index();
 
@@ -48,7 +46,6 @@ describe('TypeScript CLI-style indexing', () => {
       to: 'src-a/token.ts',
       kind: 'codegraphy.typescript:alias-import',
     }));
-    expect(readContent.mock.calls.some(([file]) => file.relativePath === 'README.md')).toBe(false);
-    readContent.mockRestore();
+    expect(refreshed.indexing.reusedFiles).toBeGreaterThan(0);
   });
 });

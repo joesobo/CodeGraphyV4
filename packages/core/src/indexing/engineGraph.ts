@@ -1,13 +1,17 @@
 import type { IWorkspaceAnalysisCache } from '../analysis/cache';
 import type { IDiscoveryResult } from '../discovery/contracts';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
+import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import type { IGraphData } from '../graph/contracts';
 import { patchWorkspaceAnalysisDatabaseCache, saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
+import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { getGraphCachePath } from '../workspace/paths';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
 import type { WorkspaceEngineRuntime } from './engineRuntime';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
+import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
+import { createWorkspaceIndexPluginSignature } from './metadata';
 
 export function buildWorkspaceEngineGraph(
   runtime: WorkspaceEngineRuntime,
@@ -57,16 +61,44 @@ export function createWorkspaceEngineIndexResult(
 function persistMetadata(runtime: WorkspaceEngineRuntime): void {
   const { state, workspaceRoot } = runtime;
   if (!state.registry || !state.settings) return;
+  const pluginSignature = runtime.options.plugins === undefined
+    ? createDefaultStatusPluginSignature(state.settings, runtime.options.userHomeDir)
+    : createWorkspaceIndexPluginSignature({
+      loadedPackagePlugins: state.loadedPackagePlugins,
+      registry: state.registry,
+      settings: state.settings,
+      includeMissingConfiguredPlugins: false,
+    });
   persistWorkspaceIndexMetadata({
-    loadedPackagePlugins: state.loadedPackagePlugins,
-    registry: state.registry,
+    pluginSignature,
     settings: state.settings,
     workspaceRoot,
   });
 }
 
+function buildCompleteEngineGraph(runtime: WorkspaceEngineRuntime): IGraphData {
+  const { state, workspaceRoot } = runtime;
+  if (!state.registry || !state.discoveryResult || !state.settings) {
+    return state.graph;
+  }
+  return buildCompleteWorkspaceGraphData({
+    cacheFiles: state.cache.files,
+    directoryPaths: state.discoveredDirectories,
+    gitIgnoredPaths: state.discoveryResult.gitIgnoredPaths ?? [],
+    disabledPlugins: createDisabledPluginSet(state.settings),
+    fileAnalysis: state.fileAnalysis,
+    getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),
+    showOrphans: true,
+    workspaceRoot,
+  });
+}
+
 export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
-  saveWorkspaceAnalysisDatabaseCache(runtime.workspaceRoot, runtime.state.cache);
+  saveWorkspaceAnalysisDatabaseCache(
+    runtime.workspaceRoot,
+    runtime.state.cache,
+    buildCompleteEngineGraph(runtime),
+  );
   persistMetadata(runtime);
 }
 
@@ -79,6 +111,10 @@ export function patchWorkspaceEngineCache(
     const entry = runtime.state.cache.files[filePath];
     if (entry) upsertFiles[filePath] = entry;
   }
-  patchWorkspaceAnalysisDatabaseCache(runtime.workspaceRoot, { deleteFilePaths: [], upsertFiles });
+  patchWorkspaceAnalysisDatabaseCache(runtime.workspaceRoot, {
+    deleteFilePaths: [],
+    upsertFiles,
+    graph: buildCompleteEngineGraph(runtime),
+  });
   persistMetadata(runtime);
 }
