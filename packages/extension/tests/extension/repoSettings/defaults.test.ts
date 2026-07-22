@@ -15,6 +15,9 @@ import {
 describe('extension/repoSettings/defaults', () => {
   it('builds the full repo settings defaults', () => {
     const extensionData = {
+      showFps: false,
+      showMinimap: true,
+      cssSnippets: {},
       nodeColors: createDefaultNodeColors(),
       favorites: [],
       bidirectionalEdges: 'separate',
@@ -39,15 +42,12 @@ describe('extension/repoSettings/defaults', () => {
     } satisfies ICodeGraphyExtensionInterfaceSettings;
 
     expect(createDefaultCodeGraphyRepoSettings()).toEqual({
-      version: 3,
+      version: 4,
       maxFiles: DEFAULT_MAX_FILES,
-      showFps: false,
-      showMinimap: true,
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      cssSnippets: {},
       plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' }],
       interfaces: [{ id: 'codegraphy.extension', data: extensionData }],
       pluginData: {},

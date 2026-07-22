@@ -14,9 +14,8 @@ A small hand-written file can override only the values you care about:
 
 ```json
 {
-  "version": 3,
+  "version": 4,
   "maxFiles": 2000,
-  "showMinimap": true,
   "showOrphans": false,
   "filterPatterns": ["**/generated/**", "**/*.snap"],
   "plugins": [
@@ -29,13 +28,14 @@ A small hand-written file can override only the values you care about:
       "data": {
         "favorites": [],
         "directionMode": "arrows",
-        "pinnedNodes": []
+        "pinnedNodes": [],
+        "showMinimap": true,
+        "cssSnippets": {
+          ".codegraphy/snippets/team.css": true
+        }
       }
     }
-  ],
-  "cssSnippets": {
-    ".codegraphy/snippets/team.css": true
-  }
+  ]
 }
 ```
 
@@ -45,7 +45,7 @@ The extension normalizes missing values against current defaults and preserves r
 
 | Key | Type | Default | Purpose |
 |---|---|---|---|
-| `version` | number | `3` | Persisted extension settings schema. |
+| `version` | number | `4` | Persisted extension settings schema. |
 | `maxFiles` | number | `1000` | Maximum files discovered during Indexing. |
 | `include` | string[] | `["**/*"]` | Workspace-relative discovery globs. |
 | `respectGitignore` | boolean | `true` | Exclude paths Git reports as ignored. |
@@ -54,8 +54,8 @@ The extension normalizes missing values against current defaults and preserves r
 | `disabledPluginFilterPatterns` | string[] | `[]` | Disabled source-owned plugin filter patterns. |
 | `showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
 | `interfaces[].data.showLabels` | boolean | `true` | Draw Node labels. |
-| `showMinimap` | boolean | `true` | Show the interactive graph minimap. |
-| `showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |
+| `interfaces[].data.showMinimap` | boolean | `true` | Show the interactive graph minimap. |
+| `interfaces[].data.showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |
 | `verboseDiagnostics` | boolean | `false` | Emit extension support diagnostics. |
 | `nodeVisibility` | object | generated | Graph Scope intent by Node Type ID. |
 | `edgeVisibility` | object | generated | Graph Scope intent by Edge Type ID. |
@@ -73,7 +73,7 @@ The extension normalizes missing values against current defaults and preserves r
 | `interfaces[].data.depthLimit` | number | `1` | Depth Mode hop limit, clamped from 1 to 10 and to reachable graph depth. |
 | `interfaces[].data.nodeSizeMode` | string | `"connections"` | Size Nodes by Connections or File Size. |
 | `interfaces[].data.physics` | object | see below | WebAssembly force settings. |
-| `cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
+| `interfaces[].data.cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
 | `plugins` | object[] | Markdown enabled | Workspace Plugin ID activity and options. |
 | `pluginData` | object | `{}` | Plugin-owned persisted data keyed by Plugin ID. |
 | `interfaces` | object[] | Extension defaults | Open interface-owned `{ id, data }` entries. |
@@ -185,10 +185,15 @@ CSS Snippets style stable CodeGraphy webview surfaces without rebuilding a VS Co
 
 ```json
 {
-  "cssSnippets": {
-    ".codegraphy/snippets/team.css": true,
-    ".codegraphy/snippets/experiment.css": false
-  }
+  "interfaces": [{
+    "id": "codegraphy.extension",
+    "data": {
+      "cssSnippets": {
+        ".codegraphy/snippets/team.css": true,
+        ".codegraphy/snippets/experiment.css": false
+      }
+    }
+  }]
 }
 ```
 

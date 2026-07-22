@@ -20,6 +20,9 @@ import {
 export const CODEGRAPHY_EXTENSION_INTERFACE_ID = 'codegraphy.extension';
 
 export interface ICodeGraphyExtensionInterfaceSettings {
+  showFps: boolean;
+  showMinimap: boolean;
+  cssSnippets: Record<string, boolean>;
   nodeColors: Record<string, string>;
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
@@ -38,6 +41,9 @@ export interface ICodeGraphyExtensionInterfaceSettings {
 }
 
 export const CODEGRAPHY_EXTENSION_INTERFACE_SETTING_KEYS = [
+  'showFps',
+  'showMinimap',
+  'cssSnippets',
   'nodeColors',
   'favorites',
   'bidirectionalEdges',
@@ -56,15 +62,12 @@ export const CODEGRAPHY_EXTENSION_INTERFACE_SETTING_KEYS = [
 ] satisfies readonly (keyof ICodeGraphyExtensionInterfaceSettings)[];
 
 export interface ICodeGraphyRepoSettings extends ICodeGraphyExtensionInterfaceSettings {
-  version: 3;
+  version: 4;
   maxFiles: number;
-  showFps: boolean;
-  showMinimap: boolean;
   verboseDiagnostics: boolean;
   include: string[];
   respectGitignore: boolean;
   showOrphans: boolean;
-  cssSnippets: Record<string, boolean>;
   plugins: CodeGraphyWorkspacePluginSettings[];
   interfaces: CodeGraphyWorkspaceInterfaceSettings[];
   pluginData: Record<string, unknown>;
@@ -77,6 +80,9 @@ export interface ICodeGraphyRepoSettings extends ICodeGraphyExtensionInterfaceSe
 
 function createDefaultExtensionInterfaceSettings(): ICodeGraphyExtensionInterfaceSettings {
   return {
+    showFps: false,
+    showMinimap: DEFAULT_SHOW_MINIMAP,
+    cssSnippets: {},
     nodeColors: createDefaultNodeColors(),
     favorites: [],
     bidirectionalEdges: 'separate',
@@ -99,15 +105,12 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
   const extensionSettings = createDefaultExtensionInterfaceSettings();
 
   return {
-    version: 3,
+    version: 4,
     maxFiles: DEFAULT_MAX_FILES,
-    showFps: false,
-    showMinimap: DEFAULT_SHOW_MINIMAP,
     verboseDiagnostics: false,
     include: ['**/*'],
     respectGitignore: true,
     showOrphans: true,
-    cssSnippets: {},
     plugins: [{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
       activation: 'enabled',

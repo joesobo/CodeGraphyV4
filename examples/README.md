@@ -39,11 +39,16 @@ The `.codegraphy/snippets/` folder contains reference snippets for CodeGraphy CS
 
 ```json
 {
-  "cssSnippets": {
-    ".codegraphy/snippets/base-grid.css": true,
-    ".codegraphy/snippets/forest.css": false,
-    ".codegraphy/snippets/ocean-image.css": true
-  }
+  "interfaces": [{
+    "id": "codegraphy.extension",
+    "data": {
+      "cssSnippets": {
+        ".codegraphy/snippets/base-grid.css": true,
+        ".codegraphy/snippets/forest.css": false,
+        ".codegraphy/snippets/ocean-image.css": true
+      }
+    }
+  }]
 }
 ```
 

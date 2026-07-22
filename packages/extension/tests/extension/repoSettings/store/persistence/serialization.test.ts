@@ -75,6 +75,9 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     settings.depthLimit = 4;
     settings.nodeSizeMode = 'file-size';
     settings.physics = { ...settings.physics, damping: 0.2 };
+    settings.showFps = true;
+    settings.showMinimap = false;
+    settings.cssSnippets = { '.codegraphy/snippets/graph.css': true };
 
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
     const interfaces = parsed.interfaces as Array<{ id: string; data: Record<string, unknown> }>;
@@ -88,6 +91,9 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
       depthLimit: 4,
       nodeSizeMode: 'file-size',
       physics: { damping: 0.2 },
+      showFps: true,
+      showMinimap: false,
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
     });
     expect(parsed).not.toHaveProperty('nodeColors');
     expect(parsed).not.toHaveProperty('favorites');
@@ -95,6 +101,9 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(parsed).not.toHaveProperty('depthLimit');
     expect(parsed).not.toHaveProperty('nodeSizeMode');
     expect(parsed).not.toHaveProperty('physics');
+    expect(parsed).not.toHaveProperty('showFps');
+    expect(parsed).not.toHaveProperty('showMinimap');
+    expect(parsed).not.toHaveProperty('cssSnippets');
   });
 
   it('keeps malformed values for known settings so validation remains explicit', () => {

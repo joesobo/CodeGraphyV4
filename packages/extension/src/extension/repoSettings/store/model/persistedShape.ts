@@ -17,10 +17,10 @@ export function normalizePersistedSettingsShape(
   value: unknown,
 ): Record<string, unknown> {
   const normalized = pickTopLevelSettings(value);
-  normalizePersistedCssSnippets(normalized);
   normalizePersistedPlugins(normalized);
   normalizePersistedInterfaces(normalized);
   mergeExtensionInterfaceDataIntoSettings(normalized);
+  normalizePersistedCssSnippets(normalized);
   normalizePersistedPluginData(normalized);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "maxFiles": 1000,
   "verboseDiagnostics": false,
   "include": [
@@ -58,6 +58,9 @@
     {
       "id": "codegraphy.extension",
       "data": {
+        "showFps": false,
+        "showMinimap": true,
+        "cssSnippets": {},
         "nodeColors": {
           "file": "#A1A1AA",
           "folder": "#A1A1AA",
