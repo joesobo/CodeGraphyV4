@@ -1,6 +1,6 @@
 export interface CodeGraphyWorkspacePluginSettings {
   id: string;
-  enabled: boolean;
+  activation: 'inherit' | 'enabled' | 'disabled';
   package?: string;
   disabledFilterPatterns?: string[];
   options?: Record<string, unknown>;

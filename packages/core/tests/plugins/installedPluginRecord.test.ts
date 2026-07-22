@@ -18,6 +18,7 @@ describe('plugins/installedPluginCache record normalization', () => {
       version: '1.0.0',
       apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
+      globallyEnabled: false,
       disclosures: ['network', 'invalid'],
       defaultOptions: { includeTests: true },
       updateImpact: {
@@ -29,6 +30,7 @@ describe('plugins/installedPluginCache record normalization', () => {
       version: '1.0.0',
       apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
+      globallyEnabled: false,
       disclosures: ['network'],
       defaultOptions: { includeTests: true },
       updateImpact: {
@@ -51,6 +53,7 @@ describe('plugins/installedPluginCache record normalization', () => {
       version: '1.0.0',
       apiVersion: '^3.0.0',
       packageRoot: '/global/plugin-vue',
+      globallyEnabled: false,
       disclosures: [],
     });
   });

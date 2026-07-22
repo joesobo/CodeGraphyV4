@@ -14,6 +14,7 @@ export type {
   UpdateCodeGraphyWorkspacePluginSelectionOptions,
 } from './installedPluginCache/workspaceSelection';
 export { createBundledMarkdownInstalledPluginRecord } from './installedPluginCache/bundled';
+export { setCodeGraphyInstalledPluginGlobalActivation } from './installedPluginCache/globalActivation';
 export {
   getCodeGraphyUserDirectoryPath,
   getCodeGraphyUserSettingsPath,
@@ -32,5 +33,6 @@ export {
   createCodeGraphyWorkspacePluginTogglePlan,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
+  inheritCodeGraphyWorkspacePlugin,
   updateCodeGraphyWorkspacePluginSelection,
 } from './installedPluginCache/workspaceSelection';

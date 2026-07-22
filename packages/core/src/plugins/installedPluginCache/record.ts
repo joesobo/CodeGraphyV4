@@ -11,6 +11,7 @@ const installedPluginRecordShapeSchema = z.looseObject({
   version: nonEmptyStringSchema,
   apiVersion: nonEmptyStringSchema,
   packageRoot: nonEmptyStringSchema,
+  globallyEnabled: z.boolean().optional().catch(undefined),
   disclosures: z.unknown(),
   defaultOptions: unknownRecordSchema.optional().catch(undefined),
   pluginId: nonEmptyStringSchema.optional().catch(undefined),
@@ -33,6 +34,7 @@ export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstal
     apiVersion: shape.apiVersion,
     disclosures: readDisclosures(shape.disclosures),
     packageRoot: shape.packageRoot,
+    globallyEnabled: shape.globallyEnabled ?? false,
   };
 
   if (shape.defaultOptions) {

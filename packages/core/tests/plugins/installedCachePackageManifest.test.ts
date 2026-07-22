@@ -44,6 +44,7 @@ describe('CodeGraphy installed plugin package manifests', () => {
       },
       disclosures: [],
       packageRoot: pluginRoot,
+      globallyEnabled: false,
     });
     await expect(readPackageManifest(nonPluginRoot)).resolves.toBeNull();
     await expect(readPackageManifest(path.join(pluginRoot, 'missing'))).resolves.toBeNull();
@@ -100,6 +101,7 @@ describe('CodeGraphy installed plugin package manifests', () => {
       pluginId: 'codegraphy.vue',
       disclosures: ['network'],
       packageRoot: pluginRoot,
+      globallyEnabled: false,
     });
     await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', path.join(pluginRoot, 'missing')))
       .rejects.toThrow('Run `npm i -g @codegraphy-dev/plugin-vue` first.');

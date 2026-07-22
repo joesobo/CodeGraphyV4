@@ -219,7 +219,7 @@ describe('cli doctor', () => {
   });
 
   it.each([
-    { id: 'codegraphy.vue', enabled: true },
+    { id: 'codegraphy.vue', activation: 'enabled' },
     { package: '@codegraphy-dev/plugin-markdown' },
     { package: '@codegraphy-dev/plugin-markdown', enabled: false },
     { id: 'codegraphy.markdown', package: '@codegraphy-dev/plugin-markdown' },
@@ -242,7 +242,7 @@ describe('cli doctor', () => {
   it.each([
     { id: 'codegraphy.vue' },
     { enabled: true },
-    { id: '', enabled: true },
+    { id: '', activation: 'enabled' },
     { package: '' },
     {},
   ])('rejects unsupported raw plugin shape %#', async (plugin) => {

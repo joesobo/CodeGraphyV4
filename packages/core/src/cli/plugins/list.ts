@@ -1,4 +1,5 @@
 import { readCodeGraphyWorkspaceSettingsOrInitial } from '../../workspace/settings';
+import { createPluginActivityState } from '../../plugins/activityState/model';
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
@@ -18,10 +19,11 @@ export function runListCommand(
       homeDir: dependencies.homeDir,
     }),
   );
-  const enabledPluginIds = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
-    .plugins
-    .filter(plugin => plugin.enabled)
-    .map(plugin => plugin.id);
+  const activity = createPluginActivityState({
+    settings: readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot),
+    installedPlugins: registeredPlugins,
+  });
+  const enabledPluginIds = [...activity.activePluginIds];
   const enabledPluginIdSet = new Set(enabledPluginIds);
   const disabledPlugins = registeredPlugins.filter(plugin =>
     !enabledPluginIdSet.has(getRegisteredPluginId(plugin))

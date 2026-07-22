@@ -16,6 +16,39 @@ import {
 } from './packageRuntimeFixture';
 
 describe('CodeGraphy package runtime', () => {
+  it('loads a globally enabled plugin when the workspace inherits its activation', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-data-host',
+    );
+
+    await createPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 2,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-data-host',
+        version: '1.0.0',
+        apiVersion: '^3.0.0',
+        disclosures: [],
+        globallyEnabled: true,
+        packageRoot,
+        pluginId: 'acme.data-host',
+      }],
+    }, { homeDir });
+
+    const loadedPlugins = await loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+    });
+
+    expect(loadedPlugins.map(plugin => plugin.plugin.id)).toEqual(['acme.data-host']);
+  });
+
   it('passes workspace plugin data host and options to package plugin factories', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
@@ -28,7 +61,7 @@ describe('CodeGraphy package runtime', () => {
 
     await createPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [{
         package: '@acme/codegraphy-plugin-data-host',
         version: '1.0.0',
@@ -45,7 +78,7 @@ describe('CodeGraphy package runtime', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.data-host',
-        enabled: true,
+        activation: 'enabled',
         options: {
           marker: 'from-workspace-options',
         },
@@ -79,7 +112,7 @@ describe('CodeGraphy package runtime', () => {
     const { factoryMarkerPath, importMarkerPath } = await createPluginPackageWithRuntimeMarkers(packageRoot);
 
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [{
         package: '@acme/codegraphy-plugin-disabled-runtime',
         version: '1.0.0',
@@ -95,7 +128,7 @@ describe('CodeGraphy package runtime', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.disabled-runtime',
-        enabled: true,
+        activation: 'enabled',
       }],
     });
 
@@ -139,7 +172,7 @@ describe('CodeGraphy package runtime', () => {
     const warn = vi.fn();
 
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [
         {
           package: '@acme/codegraphy-plugin-vue-one',
@@ -163,7 +196,7 @@ describe('CodeGraphy package runtime', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
       }],
     });
 

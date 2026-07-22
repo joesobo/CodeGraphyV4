@@ -16,8 +16,10 @@ export async function loadActivePluginPackage(input: {
   const pluginId = input.record.pluginId ?? input.record.package;
   if (input.disabledPluginIds.has(pluginId)) return undefined;
 
-  const pluginSettings = input.settingsById.get(pluginId);
-  if (!pluginSettings) return undefined;
+  const pluginSettings = input.settingsById.get(pluginId) ?? {
+    id: pluginId,
+    activation: 'inherit' as const,
+  };
 
   try {
     const loaded = await loadCodeGraphyWorkspacePluginPackage(

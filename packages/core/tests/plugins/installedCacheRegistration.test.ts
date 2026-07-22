@@ -38,6 +38,7 @@ describe('CodeGraphy installed plugin registration', () => {
       pluginId: 'private-plugin',
       disclosures: ['externalProcesses'],
       packageRoot: path.join(globalRoot, 'private-plugin'),
+      globallyEnabled: false,
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });
@@ -82,6 +83,7 @@ describe('CodeGraphy installed plugin registration', () => {
       supportedExtensions: ['.acme'],
       disclosures: ['workspaceWrites'],
       packageRoot,
+      globallyEnabled: false,
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });

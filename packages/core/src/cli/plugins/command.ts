@@ -4,6 +4,7 @@ import { DEFAULT_DEPENDENCIES, type PluginsCommandDependencies } from './depende
 import { runDisableCommand } from './disable';
 import { runEnableCommand } from './enable';
 import { createHelpResult } from './help';
+import { runInheritCommand } from './inherit';
 import { runLinkCommand } from './link';
 import { runListCommand } from './list';
 import { runRegisterCommand } from './register';
@@ -20,6 +21,7 @@ const PLUGIN_COMMAND_RUNNERS: Partial<Record<PluginCommandAction, PluginCommandR
   link: runLinkCommand,
   enable: runEnableCommand,
   disable: runDisableCommand,
+  inherit: runInheritCommand,
   list: runListCommand,
 };
 

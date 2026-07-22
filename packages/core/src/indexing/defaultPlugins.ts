@@ -26,14 +26,14 @@ function shouldRegisterDefaultMarkdownPlugin(
   }
 
   const providedPluginIds = new Set((options.plugins ?? []).map(plugin => readPluginEntry(plugin).plugin.id));
-  return settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)
+  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID)?.activation !== 'disabled'
     && !providedPluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID);
 }
 
 function getDefaultMarkdownPluginOptions(
   settings: CodeGraphyWorkspaceSettings,
 ): Record<string, unknown> | undefined {
-  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)?.options;
+  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID)?.options;
 }
 
 export async function registerDefaultIndexPlugins(

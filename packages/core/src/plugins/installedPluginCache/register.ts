@@ -18,10 +18,14 @@ function upsertInstalledPluginRecord(
   const recordByPackage = new Map(
     cache.plugins.map(plugin => [plugin.package, plugin] as const),
   );
-  recordByPackage.set(record.package, record);
+  const current = recordByPackage.get(record.package);
+  recordByPackage.set(record.package, {
+    ...record,
+    globallyEnabled: current?.globallyEnabled ?? false,
+  });
 
   return {
-    version: 1,
+    version: 2,
     plugins: [...recordByPackage.values()]
       .sort((left, right) => left.package.localeCompare(right.package)),
   };

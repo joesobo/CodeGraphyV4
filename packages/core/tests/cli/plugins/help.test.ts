@@ -15,8 +15,9 @@ describe('cli/plugins/help', () => {
         '  codegraphy plugins register <package>',
         '  codegraphy plugins link <package-root>',
         '  codegraphy plugins list',
-        '  codegraphy plugins enable <plugin-id-or-package>',
-        '  codegraphy plugins disable <plugin-id-or-package>',
+        '  codegraphy plugins enable [--global] <plugin-id-or-package>',
+        '  codegraphy plugins disable [--global] <plugin-id-or-package>',
+        '  codegraphy plugins inherit <plugin-id-or-package>',
       ].join('\n'),
     });
   });
@@ -33,6 +34,10 @@ describe('cli/plugins/help', () => {
     expect(createMissingPackageResult('disable')).toEqual({
       exitCode: 1,
       output: 'Usage: codegraphy plugins disable <plugin-id-or-package>',
+    });
+    expect(createMissingPackageResult('inherit')).toEqual({
+      exitCode: 1,
+      output: 'Usage: codegraphy plugins inherit <plugin-id-or-package>',
     });
   });
 });

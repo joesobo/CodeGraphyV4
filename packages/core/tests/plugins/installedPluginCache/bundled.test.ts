@@ -29,6 +29,7 @@ describe('plugins/installedPluginCache/bundled', () => {
       },
       disclosures: [],
       packageRoot: '',
+      globallyEnabled: true,
     });
   });
 });

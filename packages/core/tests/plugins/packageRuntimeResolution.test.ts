@@ -46,7 +46,7 @@ describe('CodeGraphy package runtime', () => {
       '1.0.1',
     );
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [{
         package: packageName,
         version: '1.0.0',
@@ -61,7 +61,7 @@ describe('CodeGraphy package runtime', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: pluginId,
-        enabled: true,
+        activation: 'enabled',
       }],
     });
 
@@ -97,7 +97,7 @@ describe('CodeGraphy package runtime', () => {
     const warn = vi.fn();
 
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [{
         package: '@acme/codegraphy-plugin-id-mismatch',
         version: '1.0.0',
@@ -111,7 +111,7 @@ describe('CodeGraphy package runtime', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.static-id',
-        enabled: true,
+        activation: 'enabled',
       }],
     });
 

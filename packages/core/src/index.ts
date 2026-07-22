@@ -303,9 +303,11 @@ export {
   getCodeGraphyUserDirectoryPath,
   getCodeGraphyUserSettingsPath,
   getInstalledPluginsCachePath,
+  inheritCodeGraphyWorkspacePlugin,
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
+  setCodeGraphyInstalledPluginGlobalActivation,
   updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';

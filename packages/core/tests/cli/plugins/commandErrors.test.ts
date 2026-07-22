@@ -16,8 +16,9 @@ describe('plugins/command help and failures', () => {
         '  codegraphy plugins register <package>',
         '  codegraphy plugins link <package-root>',
         '  codegraphy plugins list',
-        '  codegraphy plugins enable <plugin-id-or-package>',
-        '  codegraphy plugins disable <plugin-id-or-package>',
+        '  codegraphy plugins enable [--global] <plugin-id-or-package>',
+        '  codegraphy plugins disable [--global] <plugin-id-or-package>',
+        '  codegraphy plugins inherit <plugin-id-or-package>',
       ].join('\n'),
     });
   });

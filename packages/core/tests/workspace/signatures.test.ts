@@ -34,14 +34,14 @@ describe('workspace/signatures', () => {
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
       }],
     });
     const first = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         options: { includeTests: true, pythonVersion: '3.12' },
       }],
     });
@@ -49,7 +49,7 @@ describe('workspace/signatures', () => {
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         options: { pythonVersion: '3.12', includeTests: true },
       }],
     });
@@ -72,13 +72,13 @@ describe('workspace/signatures', () => {
     })).toBe(first);
     const plugin = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
-      plugins: [{ id: 'codegraphy.vue', enabled: true }],
+      plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],
     });
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
     })).toBe(plugin);
@@ -90,7 +90,7 @@ describe('workspace/signatures', () => {
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
       }],
     });
 
@@ -98,14 +98,14 @@ describe('workspace/signatures', () => {
       ...defaults,
       plugins: [{
         id: 'codegraphy.ruby',
-        enabled: true,
+        activation: 'enabled',
       }],
     })).not.toBe(pythonPlugin);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         disabledFilterPatterns: [],
       }],
     })).toBe(pythonPlugin);
@@ -113,7 +113,7 @@ describe('workspace/signatures', () => {
       ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
     })).toBe(pythonPlugin);

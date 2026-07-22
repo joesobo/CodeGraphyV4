@@ -9,10 +9,11 @@ export type PluginActivityClassification =
 
 export function classifyPluginActivity(input: {
   builtInPluginIds: ReadonlySet<string>;
+  enabled: boolean;
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[];
   plugin: CodeGraphyWorkspacePluginSettings;
 }): PluginActivityClassification {
-  if (!input.plugin.enabled) return { kind: 'disabled' };
+  if (!input.enabled) return { kind: 'disabled' };
   if (input.builtInPluginIds.has(input.plugin.id)) return { kind: 'active-built-in' };
   if (input.installedPlugins.length === 1) {
     return { kind: 'active-package', record: input.installedPlugins[0] };

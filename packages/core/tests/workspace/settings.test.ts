@@ -29,7 +29,7 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(settings.plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'enabled',
     }]);
     expect(JSON.parse(
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
@@ -41,7 +41,7 @@ describe('CodeGraphy Workspace settings', () => {
     )).toMatchObject({
       plugins: [{
         id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        enabled: true,
+        activation: 'enabled',
       }],
     });
   });
@@ -65,7 +65,7 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'enabled',
     }]);
     await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });
@@ -96,7 +96,7 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: 50,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],
@@ -110,8 +110,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: 'codegraphy.vue', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: 'codegraphy.vue', activation: 'enabled' },
       ],
     });
 
@@ -121,8 +121,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { id: 'codegraphy.vue', enabled: true },
-        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'codegraphy.vue', activation: 'enabled' },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
       ],
     });
 
@@ -189,7 +189,7 @@ describe('CodeGraphy Workspace settings', () => {
     await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
     await fs.writeFile(getWorkspaceSettingsPath(workspaceRoot), JSON.stringify({
       plugins: [
-        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
         { id: 'future.plugin', futureOnlyShape: true },
         3,
       ],
@@ -255,7 +255,7 @@ describe('CodeGraphy Workspace settings', () => {
       pluginData: {},
       plugins: [{
         id: '@codegraphy-dev/plugin-vue',
-        enabled: true,
+        activation: 'enabled',
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],

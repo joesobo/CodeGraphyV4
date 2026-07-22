@@ -12,5 +12,6 @@ export function createBundledMarkdownInstalledPluginRecord(): CodeGraphyInstalle
     updateImpact: { ...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.updateImpact },
     disclosures: [...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.disclosures],
     packageRoot: '',
+    globallyEnabled: true,
   };
 }

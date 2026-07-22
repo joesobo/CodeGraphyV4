@@ -27,9 +27,19 @@ export function runEnableCommand(
     };
   }
 
+  const pluginId = getRegisteredPluginId(plugin);
+  if (command.pluginScope === 'global') {
+    dependencies.setGlobalPluginActivation(pluginId, true, {
+      ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
+    });
+    return {
+      exitCode: 0,
+      output: `Enabled ${pluginId} globally.`,
+    };
+  }
+
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
   dependencies.enableWorkspacePlugin(workspaceRoot, plugin);
-  const pluginId = getRegisteredPluginId(plugin);
   return {
     exitCode: 0,
     output: `Enabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,

@@ -55,21 +55,48 @@ function groupInstalledPluginsById(
   return byId;
 }
 
+function getEffectivePluginIds(
+  settings: CodeGraphyWorkspaceSettings,
+  installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
+): string[] {
+  return [...new Set([
+    ...settings.plugins.map(plugin => plugin.id),
+    ...installedPlugins.map(getInstalledPluginId),
+  ])];
+}
+
+function isPluginEnabled(
+  plugin: CodeGraphyWorkspaceSettings['plugins'][number],
+  installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
+): boolean {
+  if (plugin.activation === 'enabled') return true;
+  if (plugin.activation === 'disabled') return false;
+  return installedPlugins.some(installed => installed.globallyEnabled);
+}
+
 export function createPluginActivityState(
   options: CreatePluginActivityStateOptions,
 ): PluginActivityState {
   const builtInPluginIds = new Set(options.builtInPluginIds ?? []);
-  const installedPluginsById = groupInstalledPluginsById(options.installedPlugins ?? []);
+  const installedPlugins = options.installedPlugins ?? [];
+  const installedPluginsById = groupInstalledPluginsById(installedPlugins);
+  const settingsById = new Map(options.settings.plugins.map(plugin => [plugin.id, plugin] as const));
   const activePluginIds = new Set<string>();
   const disabledPluginIds = new Set<string>();
   const inactivePluginIds = new Set<string>();
   const packagePlugins: CodeGraphyInstalledPluginRecord[] = [];
   const warnings: string[] = [];
 
-  for (const plugin of options.settings.plugins) {
-    const installedPlugins = installedPluginsById.get(plugin.id) ?? [];
-    const classification = classifyPluginActivity({ builtInPluginIds, installedPlugins, plugin });
-    applyPluginClassification(plugin.id, classification, {
+  for (const pluginId of getEffectivePluginIds(options.settings, installedPlugins)) {
+    const pluginRecords = installedPluginsById.get(pluginId) ?? [];
+    const plugin = settingsById.get(pluginId) ?? { id: pluginId, activation: 'inherit' };
+    const classification = classifyPluginActivity({
+      builtInPluginIds,
+      enabled: isPluginEnabled(plugin, pluginRecords),
+      installedPlugins: pluginRecords,
+      plugin,
+    });
+    applyPluginClassification(pluginId, classification, {
       activePluginIds,
       disabledPluginIds,
       inactivePluginIds,
@@ -93,7 +120,7 @@ export function createDisabledPluginSet(
 ): Set<string> {
   const disabledPlugins = new Set(disabledPluginsInput);
   for (const plugin of settings.plugins) {
-    if (!plugin.enabled) {
+    if (plugin.activation === 'disabled') {
       disabledPlugins.add(plugin.id);
     }
   }

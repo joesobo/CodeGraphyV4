@@ -30,7 +30,7 @@ describe('Workspace plugin data host', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        enabled: true,
+        activation: 'enabled',
       }],
     });
 
@@ -47,7 +47,7 @@ describe('Workspace plugin data host', () => {
     )).toMatchObject({
       plugins: [{
         id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        enabled: true,
+        activation: 'enabled',
       }],
       pluginData: {
         'acme.workspace-notes': {
@@ -63,7 +63,7 @@ describe('Workspace plugin data host', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        enabled: true,
+        activation: 'enabled',
       }],
     });
     const settingsPath = getWorkspaceSettingsPath(workspaceRoot);

@@ -2,13 +2,14 @@ import type { CodeGraphyPluginPackageManifest } from '../packageManifest';
 
 export interface CodeGraphyInstalledPluginRecord extends CodeGraphyPluginPackageManifest {
   packageRoot: string;
+  globallyEnabled?: boolean;
   pluginId?: string;
   pluginName?: string;
   supportedExtensions?: string[];
 }
 
 export interface CodeGraphyInstalledPluginCache {
-  version: 1;
+  version: 2;
   plugins: CodeGraphyInstalledPluginRecord[];
 }
 

@@ -61,7 +61,7 @@ export async function readPackageManifest(packageRoot: string): Promise<CodeGrap
     const descriptor = manifest ? await readPluginPackageDisplayFields(packageRoot) : null;
     return manifest
       && descriptor
-      ? { ...manifest, ...descriptor, packageRoot }
+      ? { ...manifest, ...descriptor, packageRoot, globallyEnabled: false }
       : null;
   } catch {
     return null;
@@ -100,5 +100,5 @@ export async function readRequiredPackageManifest(
     throw createMissingStaticPluginIdError(packageName);
   }
 
-  return { ...manifest, ...descriptor, packageRoot };
+  return { ...manifest, ...descriptor, packageRoot, globallyEnabled: false };
 }

@@ -46,7 +46,7 @@ export function createCodeGraphyWorkspaceSettingsSignature(
     respectGitignore: settings.respectGitignore,
     plugins: settings.plugins.map(plugin => ({
       id: plugin.id,
-      enabled: plugin.enabled,
+      activation: plugin.activation,
       options: sortRecord(plugin.options),
     })),
   };

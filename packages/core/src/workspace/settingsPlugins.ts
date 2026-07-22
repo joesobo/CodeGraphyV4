@@ -9,6 +9,7 @@ import { looseStringArraySchema, unknownRecordSchema } from '../values';
 const pluginEntrySchema = z.looseObject({
   id: z.string().optional().catch(undefined),
   package: z.string().optional().catch(undefined),
+  activation: z.enum(['inherit', 'enabled', 'disabled']).optional().catch(undefined),
   enabled: z.boolean().optional().catch(undefined),
   disabledFilterPatterns: looseStringArraySchema,
   options: unknownRecordSchema.optional().catch(undefined),
@@ -22,10 +23,11 @@ export function hasSupportedRawPluginIdentity(value: unknown): boolean {
   const entry = parsed.data;
   if ('id' in entry && typeof entry.id !== 'string') return false;
   if ('package' in entry && typeof entry.package !== 'string') return false;
+  if ('activation' in entry && !['inherit', 'enabled', 'disabled'].includes(String(entry.activation))) return false;
   if ('enabled' in entry && typeof entry.enabled !== 'boolean') return false;
 
   const id = typeof entry.id === 'string' ? entry.id.trim() : '';
-  if (id && typeof entry.enabled === 'boolean') return true;
+  if (id && (typeof entry.activation === 'string' || typeof entry.enabled === 'boolean')) return true;
   const packageName = typeof entry.package === 'string' ? entry.package.trim() : '';
   return packageName.length > 0;
 }
@@ -44,12 +46,10 @@ function readPluginId(entry: PluginEntryShape): string {
   return packageName;
 }
 
-function readPluginEnabled(entry: PluginEntryShape): boolean | null {
-  if (typeof entry.enabled === 'boolean') {
-    return entry.enabled;
-  }
-
-  return (entry.package?.trim() ?? '').length > 0 ? true : null;
+function readPluginActivation(entry: PluginEntryShape): CodeGraphyWorkspacePluginSettings['activation'] | null {
+  if (entry.activation) return entry.activation;
+  if (typeof entry.enabled === 'boolean') return entry.enabled ? 'enabled' : 'disabled';
+  return (entry.package?.trim() ?? '').length > 0 ? 'enabled' : null;
 }
 
 export function normalizePluginSettings(value: unknown): CodeGraphyWorkspacePluginSettings[] {
@@ -64,14 +64,14 @@ export function normalizePluginSettings(value: unknown): CodeGraphyWorkspacePlug
     .map((result): CodeGraphyWorkspacePluginSettings | null => {
       const entry = result.data;
       const id = readPluginId(entry);
-      const enabled = readPluginEnabled(entry);
-      if (id.length === 0 || enabled === null) {
+      const activation = readPluginActivation(entry);
+      if (id.length === 0 || activation === null) {
         return null;
       }
 
       const plugin: CodeGraphyWorkspacePluginSettings = {
         id,
-        enabled,
+        activation,
       };
       if (entry.disabledFilterPatterns.length > 0) {
         plugin.disabledFilterPatterns = [...new Set(entry.disabledFilterPatterns)];

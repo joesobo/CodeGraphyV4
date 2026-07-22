@@ -33,7 +33,7 @@ export function createWorkspaceIndexPluginSignature(input: {
   const missingPackagePlugins = input.includeMissingConfiguredPlugins === false
     ? []
     : input.settings.plugins
-      .filter(plugin => plugin.enabled && !representedPluginIds.has(plugin.id))
+      .filter(plugin => plugin.activation === 'enabled' && !representedPluginIds.has(plugin.id))
       .map(plugin => plugin.id);
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
     runtimePlugins,

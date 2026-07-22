@@ -13,12 +13,27 @@ export function runDisableCommand(
     return createMissingPackageResult('disable');
   }
 
-  const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
   const plugin = findRegisteredPlugin(
     dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
     command.packageName,
   );
   const pluginId = plugin ? getRegisteredPluginId(plugin) : command.packageName;
+  if (command.pluginScope === 'global') {
+    if (!plugin) {
+      return {
+        exitCode: 1,
+        output: `Plugin '${command.packageName}' is not in ~/.codegraphy/plugins.json.`,
+      };
+    }
+    dependencies.setGlobalPluginActivation(pluginId, false, {
+      ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
+    });
+    return {
+      exitCode: 0,
+      output: `Disabled ${pluginId} globally.`,
+    };
+  }
+  const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
   dependencies.disableWorkspacePlugin(workspaceRoot, pluginId);
   return {
     exitCode: 0,

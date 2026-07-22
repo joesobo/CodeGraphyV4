@@ -61,7 +61,7 @@ describe('core-backed CodeGraphy Workspace plugin visibility', () => {
         showOrphans: true,
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
-        plugins: [{ id: pluginId, enabled: true }],
+        plugins: [{ id: pluginId, activation: 'enabled' }],
         pluginData: {},
       },
     });
@@ -73,7 +73,7 @@ describe('core-backed CodeGraphy Workspace plugin visibility', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      plugins: [{ id: pluginId, enabled: false }],
+      plugins: [{ id: pluginId, activation: 'disabled' }],
       pluginData: {},
     });
 
@@ -150,7 +150,7 @@ describe('core-backed CodeGraphy Workspace plugin visibility', () => {
         showOrphans: true,
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
-        plugins: [{ id: pluginId, enabled: true }],
+        plugins: [{ id: pluginId, activation: 'enabled' }],
         pluginData: {},
       },
     });

@@ -8,12 +8,15 @@ import type { CodeGraphyInstalledPluginRecord } from './contracts';
 
 export interface UpdateCodeGraphyWorkspacePluginSelectionOptions {
   pluginId: string;
-  enabled: boolean;
+  activation: CodeGraphyWorkspacePluginSettings['activation'];
   defaultOptions?: Record<string, unknown>;
   updateImpact?: IPluginUpdateImpactPolicy;
 }
 
-export type CodeGraphyWorkspacePluginToggleOptions = UpdateCodeGraphyWorkspacePluginSelectionOptions;
+export interface CodeGraphyWorkspacePluginToggleOptions
+  extends Omit<UpdateCodeGraphyWorkspacePluginSelectionOptions, 'activation'> {
+  enabled: boolean;
+}
 
 export type CodeGraphyWorkspacePluginIndexingPlan =
   | { kind: 'projection-only' }
@@ -43,7 +46,7 @@ export function updateCodeGraphyWorkspacePluginSelection(
   const nextPlugin: CodeGraphyWorkspacePluginSettings = {
     ...(existingIndex >= 0 ? plugins[existingIndex] : {}),
     id: options.pluginId,
-    enabled: options.enabled,
+    activation: options.activation,
   };
   if (options.defaultOptions && Object.keys(options.defaultOptions).length > 0) {
     nextPlugin.options = {
@@ -64,7 +67,10 @@ export function createCodeGraphyWorkspacePluginTogglePlan(
   options: CodeGraphyWorkspacePluginToggleOptions,
 ): CodeGraphyWorkspacePluginTogglePlan {
   return {
-    plugins: updateCodeGraphyWorkspacePluginSelection(plugins, options),
+    plugins: updateCodeGraphyWorkspacePluginSelection(plugins, {
+      ...options,
+      activation: options.enabled ? 'enabled' : 'disabled',
+    }),
     indexing: createPluginToggleIndexingPlan(
       options.pluginId,
       options.enabled,
@@ -165,7 +171,7 @@ export function enableCodeGraphyWorkspacePlugin(
   const existingIndex = settings.plugins.findIndex(entry => entry.id === pluginId);
   const entry = {
     id: pluginId,
-    enabled: true,
+    activation: 'enabled' as const,
     ...(plugin.defaultOptions ? { options: { ...plugin.defaultOptions } } : {}),
   };
 
@@ -178,7 +184,7 @@ export function enableCodeGraphyWorkspacePlugin(
     plugins[existingIndex] = {
       ...plugins[existingIndex],
       id: pluginId,
-      enabled: true,
+      activation: 'enabled',
       ...(Object.keys(mergedOptions).length > 0 ? { options: mergedOptions } : {}),
     };
   } else {
@@ -189,7 +195,7 @@ export function enableCodeGraphyWorkspacePlugin(
     ...settings,
     plugins: updateCodeGraphyWorkspacePluginSelection(plugins, {
       pluginId,
-      enabled: true,
+      activation: 'enabled',
       defaultOptions: plugin.defaultOptions,
       updateImpact: plugin.updateImpact,
     }),
@@ -205,7 +211,21 @@ export function disableCodeGraphyWorkspacePlugin(
     ...settings,
     plugins: updateCodeGraphyWorkspacePluginSelection(settings.plugins, {
       pluginId,
-      enabled: false,
+      activation: 'disabled',
+    }),
+  });
+}
+
+export function inheritCodeGraphyWorkspacePlugin(
+  workspaceRoot: string,
+  pluginId: string,
+): void {
+  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+    ...settings,
+    plugins: updateCodeGraphyWorkspacePluginSelection(settings.plugins, {
+      pluginId,
+      activation: 'inherit',
     }),
   });
 }

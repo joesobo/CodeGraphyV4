@@ -6,13 +6,66 @@ import {
 } from '../../../src/plugins/activityState/model';
 
 describe('plugins/activityState/model', () => {
+  it('combines global defaults with workspace inherit, enabled, and disabled overrides', () => {
+    const state = createPluginActivityState({
+      settings: {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [
+          { id: 'codegraphy.vue', activation: 'disabled' },
+          { id: 'codegraphy.particles', activation: 'enabled' },
+          { id: 'acme.inherited', activation: 'inherit' },
+        ],
+      },
+      installedPlugins: [
+        {
+          package: '@codegraphy-dev/plugin-vue',
+          version: '1.0.0',
+          apiVersion: '^3.0.0',
+          disclosures: [],
+          packageRoot: '/global/@codegraphy-dev/plugin-vue',
+          pluginId: 'codegraphy.vue',
+          globallyEnabled: true,
+        },
+        {
+          package: '@codegraphy-dev/plugin-particles',
+          version: '1.0.0',
+          apiVersion: '^3.0.0',
+          disclosures: [],
+          packageRoot: '/global/@codegraphy-dev/plugin-particles',
+          pluginId: 'codegraphy.particles',
+          globallyEnabled: false,
+        },
+        {
+          package: '@acme/codegraphy-inherited',
+          version: '1.0.0',
+          apiVersion: '^3.0.0',
+          disclosures: [],
+          packageRoot: '/global/@acme/codegraphy-inherited',
+          pluginId: 'acme.inherited',
+          globallyEnabled: true,
+        },
+      ],
+    });
+
+    expect([...state.activePluginIds]).toEqual([
+      'codegraphy.particles',
+      'acme.inherited',
+    ]);
+    expect([...state.disabledPluginIds]).toEqual(['codegraphy.vue']);
+    expect(state.packagePlugins.map(plugin => plugin.pluginId)).toEqual([
+      'codegraphy.particles',
+      'acme.inherited',
+    ]);
+    expect(state.warnings).toEqual([]);
+  });
+
   it('keeps duplicate installed package claims inactive with a developer-console warning', () => {
     const state = createPluginActivityState({
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
           id: 'codegraphy.vue',
-          enabled: true,
+          activation: 'enabled',
         }],
       },
       installedPlugins: [
@@ -23,6 +76,7 @@ describe('plugins/activityState/model', () => {
           disclosures: [],
           packageRoot: '/global/@acme/codegraphy-vue-one',
           pluginId: 'codegraphy.vue',
+          globallyEnabled: false,
         },
         {
           package: '@acme/codegraphy-vue-two',
@@ -31,6 +85,7 @@ describe('plugins/activityState/model', () => {
           disclosures: [],
           packageRoot: '/global/@acme/codegraphy-vue-two',
           pluginId: 'codegraphy.vue',
+          globallyEnabled: false,
         },
       ],
     });
@@ -49,7 +104,7 @@ describe('plugins/activityState/model', () => {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
           id: 'codegraphy.vue',
-          enabled: true,
+          activation: 'enabled',
         }],
       },
       installedPlugins: [],
@@ -69,7 +124,7 @@ describe('plugins/activityState/model', () => {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
           id: 'codegraphy.vue',
-          enabled: false,
+          activation: 'disabled',
         }],
       },
       installedPlugins: [{
@@ -79,6 +134,7 @@ describe('plugins/activityState/model', () => {
         disclosures: [],
         packageRoot: '/global/@codegraphy-dev/plugin-vue',
         pluginId: 'codegraphy.vue',
+        globallyEnabled: false,
       }],
     });
 
@@ -92,8 +148,8 @@ describe('plugins/activityState/model', () => {
     const disabledPlugins = createDisabledPluginSet({
       ...createDefaultCodeGraphyWorkspaceSettings(),
       plugins: [
-        { id: 'codegraphy.vue', enabled: false },
-        { id: 'codegraphy.vue', enabled: true },
+        { id: 'codegraphy.vue', activation: 'disabled' },
+        { id: 'codegraphy.vue', activation: 'enabled' },
       ],
     }, ['codegraphy.markdown']);
 

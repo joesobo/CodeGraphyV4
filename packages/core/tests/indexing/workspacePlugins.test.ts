@@ -104,7 +104,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'enabled',
     }]);
     expect(result.graph.edges).toContainEqual(
       expect.objectContaining({
@@ -127,7 +127,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
 
     await createPackageBackedPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [{
         package: '@acme/codegraphy-plugin-options',
         version: '1.0.0',
@@ -144,7 +144,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.options',
-        enabled: true,
+        activation: 'enabled',
         options: {
           targetFile: 'target.txt',
         },
@@ -201,7 +201,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
         plugins: [{
           id: 'codegraphy.test-text',
-          enabled: true,
+          activation: 'enabled',
           disabledFilterPatterns: ['**/ignored.txt'],
         }],
       },
@@ -232,7 +232,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
         plugins: [{
           id: 'codegraphy.test-text',
-          enabled: false,
+          activation: 'disabled',
         }],
       },
     });

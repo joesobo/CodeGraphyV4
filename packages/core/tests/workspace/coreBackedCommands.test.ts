@@ -13,8 +13,31 @@ import {
     readCodeGraphyWorkspaceSettings,
     writeCodeGraphyWorkspaceSettings,
 } from '../../src/workspace/settings';
+import { writeCodeGraphyInstalledPluginCache } from '../../src/plugins/installedCache';
 
 describe('core-backed CodeGraphy Workspace commands', () => {
+  it('reports globally enabled plugins when the workspace inherits activation', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-workspace-'));
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-home-'));
+    writeCodeGraphyInstalledPluginCache({
+      version: 2,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-example',
+        pluginId: 'acme.example',
+        version: '1.0.0',
+        apiVersion: '^3.0.0',
+        disclosures: [],
+        packageRoot: '/global/codegraphy-plugin-example',
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+
+    expect(readCodeGraphyWorkspaceStatusForCli(
+      { workspacePath: workspaceRoot },
+      { cwd: () => workspaceRoot, homeDir },
+    ).enabledPlugins).toEqual(['codegraphy.markdown', 'acme.example']);
+  });
+
   it('indexes, reports fresh status, and queries a workspace without VS Code', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-workspace-'));
     await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
@@ -66,8 +89,8 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: '@example/codegraphy-plugin', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: '@example/codegraphy-plugin', activation: 'enabled' },
       ],
     });
 

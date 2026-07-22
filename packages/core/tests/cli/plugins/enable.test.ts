@@ -7,10 +7,12 @@ function dependencies(overrides: Partial<PluginsCommandDependencies> = {}): Plug
     cwd: () => '/workspace/current',
     disableWorkspacePlugin: vi.fn(),
     enableWorkspacePlugin: vi.fn(),
+    inheritWorkspacePlugin: vi.fn(),
     linkInstalledPluginPackage: vi.fn(),
-    readInstalledPluginCache: () => ({ version: 1, plugins: [] }),
+    readInstalledPluginCache: () => ({ version: 2, plugins: [] }),
     registerInstalledPlugin: vi.fn(),
     resolveGlobalPackageRoots: () => [],
+    setGlobalPluginActivation: vi.fn(),
     ...overrides,
   };
 }
@@ -58,11 +60,41 @@ describe('cli/plugins/enable', () => {
     }, dependencies({
       cwd: () => '/workspace/current',
       enableWorkspacePlugin,
-      readInstalledPluginCache: () => ({ version: 1, plugins: [plugin] }),
+      readInstalledPluginCache: () => ({ version: 2, plugins: [plugin] }),
     }))).toEqual({
       exitCode: 0,
       output: 'Enabled codegraphy.vue for /workspace/repo. Run `codegraphy -C "/workspace/repo" index` to refresh the Graph Cache.',
     });
     expect(enableWorkspacePlugin).toHaveBeenCalledWith('/workspace/repo', plugin);
+  });
+
+  it('enables a registered plugin globally without resolving a workspace', () => {
+    const setGlobalPluginActivation = vi.fn();
+    const plugin = {
+      package: '@codegraphy-dev/plugin-particles',
+      pluginId: 'codegraphy.particles',
+      version: '1.0.0',
+      apiVersion: '^3.0.0',
+      disclosures: [],
+      packageRoot: '/global/plugin-particles',
+      globallyEnabled: false,
+    };
+
+    expect(runEnableCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'codegraphy.particles',
+      pluginScope: 'global',
+    }, dependencies({
+      cwd: () => {
+        throw new Error('workspace resolution must stay dormant');
+      },
+      readInstalledPluginCache: () => ({ version: 2, plugins: [plugin] }),
+      setGlobalPluginActivation,
+    }))).toEqual({
+      exitCode: 0,
+      output: 'Enabled codegraphy.particles globally.',
+    });
+    expect(setGlobalPluginActivation).toHaveBeenCalledWith('codegraphy.particles', true, {});
   });
 });

@@ -17,13 +17,13 @@ describe('plugins/command workspace state', () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-lossless-'));
     const record = createPluginRecord('@codegraphy-dev/plugin-vue', '/global/plugin-vue', 'codegraphy.vue');
-    writeCodeGraphyInstalledPluginCache({ version: 1, plugins: [record] }, { homeDir });
+    writeCodeGraphyInstalledPluginCache({ version: 2, plugins: [record] }, { homeDir });
     await fs.mkdir(path.join(workspaceRoot, '.codegraphy'));
     await fs.writeFile(path.join(workspaceRoot, '.codegraphy/settings.json'), JSON.stringify({
       version: 2,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         futurePluginSetting: { mode: 'fast' },
       }],
     }));
@@ -38,7 +38,7 @@ describe('plugins/command workspace state', () => {
     const raw = JSON.parse(await fs.readFile(path.join(workspaceRoot, '.codegraphy/settings.json'), 'utf-8'));
     expect(raw.plugins).toEqual([expect.objectContaining({
       id: 'codegraphy.vue',
-      enabled: true,
+      activation: 'enabled',
       futurePluginSetting: { mode: 'fast' },
     })]);
   });
@@ -52,7 +52,7 @@ describe('plugins/command workspace state', () => {
       'codegraphy.vue',
     );
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [record],
     }, { homeDir });
 
@@ -68,10 +68,10 @@ describe('plugins/command workspace state', () => {
       output: `Enabled codegraphy.vue for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
       {
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         options: { includeTests: true },
       },
     ]);
@@ -88,10 +88,10 @@ describe('plugins/command workspace state', () => {
       output: `Disabled codegraphy.vue for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
       {
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         options: { includeTests: true },
       },
     ]);
@@ -110,7 +110,7 @@ describe('plugins/command workspace state', () => {
     expect(disableResult.exitCode).toBe(0);
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: false,
+      activation: 'disabled',
     }]);
 
     const enableResult = await runPluginsCommand({
@@ -126,7 +126,7 @@ describe('plugins/command workspace state', () => {
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'enabled',
     }]);
   });
 
@@ -156,7 +156,7 @@ describe('plugins/command workspace state', () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 2,
       plugins: [
         createPluginRecord(
           '@codegraphy-dev/plugin-markdown',

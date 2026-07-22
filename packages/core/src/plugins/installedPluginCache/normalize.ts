@@ -11,7 +11,7 @@ const installedPluginCacheShapeSchema = z.looseObject({
 
 function createEmptyInstalledPluginCache(): CodeGraphyInstalledPluginCache {
   return {
-    version: 1,
+    version: 2,
     plugins: [],
   };
 }
@@ -23,7 +23,7 @@ export function normalizeInstalledPluginCache(value: unknown): CodeGraphyInstall
   }
 
   return {
-    version: 1,
+    version: 2,
     plugins: parsed.data.plugins
       .map(normalizeInstalledPluginRecord)
       .filter((entry): entry is CodeGraphyInstalledPluginRecord => entry !== null),

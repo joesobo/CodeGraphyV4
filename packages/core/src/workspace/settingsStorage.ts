@@ -42,11 +42,13 @@ function mergeRawPluginEntries(rawValue: unknown, plugins: CodeGraphyWorkspaceSe
     usedIndexes.add(rawIndex);
     const raw = unknownRecordSchema.safeParse(rawPlugins[rawIndex]);
     if (!raw.success) return plugin;
+    const rawFields = { ...raw.data };
+    delete rawFields.enabled;
     const rawOptions = unknownRecordSchema.safeParse(raw.data.options);
     const pluginFields: Record<string, unknown> = { ...plugin };
     if (!('id' in raw.data) && 'package' in raw.data) delete pluginFields.id;
     return {
-      ...raw.data,
+      ...rawFields,
       ...pluginFields,
       ...(plugin.options || rawOptions.success
         ? { options: { ...(rawOptions.success ? rawOptions.data : {}), ...(plugin.options ?? {}) } }
