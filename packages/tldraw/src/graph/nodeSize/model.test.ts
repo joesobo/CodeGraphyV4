@@ -7,7 +7,7 @@ import {
 } from './model';
 
 describe('connection-based tldraw node sizes', () => {
-  it('uses the Extension bounded square-root range', () => {
+  it('uses a bounded square-root range with a distinct orphan size', () => {
     const leaves = Array.from({ length: 100 }, (_, index) => ({
       color: '#fff',
       id: `leaf-${index}.ts`,
@@ -30,6 +30,7 @@ describe('connection-based tldraw node sizes', () => {
     expect(MAXIMUM_NODE_RADIUS).toBe(30);
     expect(diameters.get('solo.ts')).toBe(80);
     expect(diameters.get('hub.ts')).toBe(300);
+    expect(diameters.get('leaf-0.ts')).toBe(110);
   });
 
   it('counts each resolved neighbor once', () => {
@@ -45,8 +46,8 @@ describe('connection-based tldraw node sizes', () => {
     ];
 
     expect(createNodeDiameterMap(nodes, edges)).toEqual(new Map([
-      ['a.ts', 80],
-      ['b.ts', 80],
+      ['a.ts', 110],
+      ['b.ts', 110],
     ]));
   });
 });

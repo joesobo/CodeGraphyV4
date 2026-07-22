@@ -8,6 +8,6 @@ Add the `codegraphy-tldraw` workspace launcher with native tldraw shapes, determ
 
 Normalize tldraw canvas geometry to the Extension's physics scale. Dragged nodes now pin and reheat the shared simulation while they follow the pointer, move connected neighbors through link forces, and release back into the layout when the drag ends.
 
-Size generated nodes from their unique connection counts with the Extension's bounded square-root scale. Rebuild collision radii and scale repel strength from visible tldraw node dimensions so generated and manually resized nodes use one stable physics model.
+Size generated nodes from their unique connection counts with a bounded square-root scale that gives orphans, ordinary connected nodes, and hubs visibly different sizes. Refresh untouched fixed-size MVP nodes into the new scale while preserving intentional manual resizing. Rebuild collision radii and scale repel strength from visible tldraw node dimensions so generated and manually resized nodes use one stable physics model.
 
 Allow rendering interfaces to prepare graph physics from embedded WebAssembly bytes.

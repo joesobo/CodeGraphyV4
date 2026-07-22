@@ -20,6 +20,7 @@ import { createNodeColorMap } from './nodeColor/model';
 import { createNodeIconMap, type NodeIcon } from './nodeIcon/model';
 
 const PAGE_ID = 'page:page' as TLPageId;
+const LEGACY_NODE_DIAMETER = 120;
 const LABEL_WIDTH = 180;
 const LABEL_GAP = 8;
 const ICON_SIZE = 56;
@@ -47,6 +48,21 @@ function metadataString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
+function metadataNumber(value: unknown): number | undefined {
+  return typeof value === 'number' ? value : undefined;
+}
+
+function shouldApplyGeneratedDiameter(existing: TLGeoShape | undefined): boolean {
+  if (!existing) return true;
+  const previousGeneratedDiameter = metadataNumber(existing.meta.codegraphyGeneratedDiameter);
+  if (previousGeneratedDiameter !== undefined) {
+    return existing.props.w === previousGeneratedDiameter
+      && existing.props.h === previousGeneratedDiameter;
+  }
+  return existing.props.w === LEGACY_NODE_DIAMETER
+    && existing.props.h === LEGACY_NODE_DIAMETER;
+}
+
 function initialNodePosition(
   index: number,
   count: number,
@@ -69,6 +85,7 @@ function createNodeShape(
   existing?: TLShape,
 ): TLGeoShape {
   const preserved = existing?.type === 'geo' ? existing : undefined;
+  const applyGeneratedDiameter = shouldApplyGeneratedDiameter(preserved);
   const generatedStyle = {
     labelColor: 'black',
     color,
@@ -90,19 +107,20 @@ function createNodeShape(
     meta: {
       ...(preserved?.meta ?? {}),
       codegraphyEntityId: node.id,
+      codegraphyGeneratedDiameter: diameter,
       codegraphyKind: 'node',
       codegraphyNodeType: node.nodeType ?? 'file',
     },
     props: {
       url: '',
-      w: diameter,
-      h: diameter,
       growY: 0,
       scale: 1,
       size: 'm',
       align: 'middle',
       verticalAlign: 'middle',
       ...(preserved?.props ?? {}),
+      w: applyGeneratedDiameter ? diameter : preserved?.props.w ?? diameter,
+      h: applyGeneratedDiameter ? diameter : preserved?.props.h ?? diameter,
       ...generatedStyle,
       geo: 'ellipse',
       richText: toRichText(''),

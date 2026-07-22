@@ -12,7 +12,77 @@ const INITIAL_GRAPH = {
 } satisfies IGraphData;
 
 describe('reconcileGraphRecords', () => {
-  it('sizes generated nodes from their unique connection counts within the Extension range', () => {
+  it('renders connected nodes larger than nodes with no connections', () => {
+    const graph = {
+      nodes: [
+        { id: 'src/orphan.ts', label: 'orphan.ts', color: '#111111', nodeType: 'file' },
+        { id: 'src/connected-a.ts', label: 'connected-a.ts', color: '#222222', nodeType: 'file' },
+        { id: 'src/connected-b.ts', label: 'connected-b.ts', color: '#333333', nodeType: 'file' },
+      ],
+      edges: [{
+        id: 'connected-a-imports-b',
+        from: 'src/connected-a.ts',
+        to: 'src/connected-b.ts',
+        kind: 'import' as const,
+        sources: [],
+      }],
+    } satisfies IGraphData;
+
+    const records = reconcileGraphRecords([], graph);
+    const orphan = records.find(record => record.meta.codegraphyEntityId === 'src/orphan.ts');
+    const connected = records.find(record => record.meta.codegraphyEntityId === 'src/connected-a.ts');
+    if (orphan?.typeName !== 'shape' || orphan.type !== 'geo') throw new Error('Expected orphan node');
+    if (connected?.typeName !== 'shape' || connected.type !== 'geo') {
+      throw new Error('Expected connected node');
+    }
+
+    expect(orphan.props).toMatchObject({ h: 80, w: 80 });
+    expect(connected.props.w).toBeGreaterThan(orphan.props.w);
+    expect(connected.props.h).toBeGreaterThan(orphan.props.h);
+  });
+
+  it('migrates untouched legacy nodes from the fixed size to connection-based sizes', () => {
+    const leaves = Array.from({ length: 35 }, (_, index) => ({
+      id: `src/legacy-leaf-${index}.ts`,
+      label: `legacy-leaf-${index}.ts`,
+      color: '#111111',
+      nodeType: 'file',
+    }));
+    const graph = {
+      nodes: [
+        { id: 'src/legacy-hub.ts', label: 'legacy-hub.ts', color: '#222222', nodeType: 'file' },
+        ...leaves,
+      ],
+      edges: leaves.map((leaf, index) => ({
+        id: `legacy-hub-${index}`,
+        from: 'src/legacy-hub.ts',
+        to: leaf.id,
+        kind: 'import' as const,
+        sources: [],
+      })),
+    } satisfies IGraphData;
+    const legacyRecords = reconcileGraphRecords([], graph).map(record => {
+      if (record.typeName !== 'shape'
+        || record.type !== 'geo'
+        || record.meta.codegraphyKind !== 'node') return record;
+      const legacyRecord = {
+        ...record,
+        meta: { ...record.meta },
+        props: { ...record.props, h: 120, w: 120 },
+      } satisfies TLRecord;
+      delete legacyRecord.meta.codegraphyGeneratedDiameter;
+      return legacyRecord;
+    });
+
+    const refreshed = reconcileGraphRecords(legacyRecords, graph);
+    const hub = refreshed.find(record => record.meta.codegraphyEntityId === 'src/legacy-hub.ts');
+    const leaf = refreshed.find(record => record.meta.codegraphyEntityId === 'src/legacy-leaf-0.ts');
+
+    expect(hub).toMatchObject({ props: { h: 257, w: 257 } });
+    expect(leaf).toMatchObject({ props: { h: 110, w: 110 } });
+  });
+
+  it('sizes generated nodes from their unique connection counts within the bounded range', () => {
     const leaves = Array.from({ length: 35 }, (_, index) => ({
       id: `src/leaf-${index}.ts`,
       label: `leaf-${index}.ts`,
@@ -48,8 +118,8 @@ describe('reconcileGraphRecords', () => {
     if (hub?.typeName !== 'shape' || hub.type !== 'geo') throw new Error('Expected hub node');
     if (leaf?.typeName !== 'shape' || leaf.type !== 'geo') throw new Error('Expected leaf node');
 
-    expect(hub.props).toMatchObject({ h: 180, w: 180 });
-    expect(leaf.props).toMatchObject({ h: 80, w: 80 });
+    expect(hub.props).toMatchObject({ h: 257, w: 257 });
+    expect(leaf.props).toMatchObject({ h: 110, w: 110 });
   });
 
   it('groups file extensions into solid native palette fills', () => {
