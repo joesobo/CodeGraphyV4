@@ -12,6 +12,7 @@ export interface CreatePluginActivityStateOptions {
 export interface PluginActivityState {
   activePluginIds: ReadonlySet<string>;
   disabledPluginIds: ReadonlySet<string>;
+  enabledPluginIds: ReadonlySet<string>;
   inactivePluginIds: ReadonlySet<string>;
   packagePlugins: readonly CodeGraphyInstalledPluginRecord[];
   warnings: readonly string[];
@@ -83,6 +84,7 @@ export function createPluginActivityState(
   const settingsById = new Map(options.settings.plugins.map(plugin => [plugin.id, plugin] as const));
   const activePluginIds = new Set<string>();
   const disabledPluginIds = new Set<string>();
+  const enabledPluginIds = new Set<string>();
   const inactivePluginIds = new Set<string>();
   const packagePlugins: CodeGraphyInstalledPluginRecord[] = [];
   const warnings: string[] = [];
@@ -90,9 +92,11 @@ export function createPluginActivityState(
   for (const pluginId of getEffectivePluginIds(options.settings, installedPlugins)) {
     const pluginRecords = installedPluginsById.get(pluginId) ?? [];
     const plugin = settingsById.get(pluginId) ?? { id: pluginId, activation: 'inherit' };
+    const enabled = isPluginEnabled(plugin, pluginRecords);
+    if (enabled) enabledPluginIds.add(pluginId);
     const classification = classifyPluginActivity({
       builtInPluginIds,
-      enabled: isPluginEnabled(plugin, pluginRecords),
+      enabled,
       installedPlugins: pluginRecords,
       plugin,
     });
@@ -108,6 +112,7 @@ export function createPluginActivityState(
   return {
     activePluginIds,
     disabledPluginIds,
+    enabledPluginIds,
     inactivePluginIds,
     packagePlugins,
     warnings,

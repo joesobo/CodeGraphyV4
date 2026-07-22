@@ -1,5 +1,7 @@
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  createPluginActivityState,
   createBundledMarkdownInstalledPluginRecord,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettingsOrInitial,
@@ -37,13 +39,15 @@ export function readWorkspacePluginStatusContext(
     return { installedPlugins };
   }
 
-  const workspacePluginIds = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
-    .plugins
-    .filter(plugin => plugin.activation !== 'disabled')
-    .map(plugin => plugin.id);
+  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  const activity = createPluginActivityState({
+    settings,
+    installedPlugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
 
   return {
     installedPlugins,
-    workspaceEnabledPluginIds: new Set(workspacePluginIds),
+    workspaceEnabledPluginIds: activity.enabledPluginIds,
   };
 }

@@ -110,7 +110,54 @@ describe('pipeline/plugins/statusContext', () => {
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 
-  it('includes bundled Markdown as an installed disabled plugin when workspace settings remove it', () => {
+  it('uses global defaults for missing and inherited workspace activation', () => {
+    writeCodeGraphyInstalledPluginCache(
+      {
+        version: 3,
+        plugins: [
+          {
+            package: '@acme/global-on',
+            version: '1.0.0',
+            id: 'acme.global-on',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-on',
+            globallyEnabled: true,
+          },
+          {
+            package: '@acme/global-off',
+            version: '1.0.0',
+            id: 'acme.global-off',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-off',
+            globallyEnabled: false,
+          },
+        ],
+      },
+      { homeDir },
+    );
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      version: 1,
+      maxFiles: 1000,
+      include: ['**/*'],
+      respectGitignore: true,
+      showOrphans: true,
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      plugins: [{ id: 'acme.global-off', activation: 'inherit' }],
+      interfaces: [],
+    });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).toContain('acme.global-on');
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).not.toContain('acme.global-off');
+  });
+
+  it('uses the bundled Markdown global default when workspace settings omit it', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       version: 1,
       maxFiles: 1000,
@@ -128,6 +175,6 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toContain(
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     );
-    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(true);
   });
 });

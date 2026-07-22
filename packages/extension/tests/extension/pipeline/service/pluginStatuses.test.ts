@@ -71,6 +71,21 @@ class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
     logSpy.mockRestore();
   }
 
+  registerExtensionPackagePlugin(): void {
+    this._registry.extensionPlugins.register(
+      {
+        id: 'acme.particles',
+        name: 'Particles',
+        version: '1.0.0',
+        apiVersion: '^1.0.0',
+      },
+      {
+        sourcePackage: '@acme/plugin-particles',
+        sourcePackageRoot: '/global/node_modules/@acme/plugin-particles',
+      },
+    );
+  }
+
   protected override _getWorkspaceRoot(): string | undefined {
     return this.workspaceRoot;
   }
@@ -134,5 +149,43 @@ describe('pipeline/service plugin statuses', () => {
         status: 'installed',
       }),
     ]);
+  });
+
+  it('reports a loaded Extension plugin as active', () => {
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/plugin-particles',
+        version: '1.0.0',
+        id: 'acme.particles',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        packageRoot: '/global/node_modules/@acme/plugin-particles',
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      version: 1,
+      maxFiles: 1000,
+      include: ['**/*'],
+      respectGitignore: true,
+      showOrphans: true,
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      plugins: [{ id: 'acme.particles', activation: 'inherit' }],
+      interfaces: [],
+    });
+
+    const reader = new PluginStatusReader(workspaceRoot);
+    reader.registerExtensionPackagePlugin();
+
+    expect(reader.getPluginStatuses(new Set())).toContainEqual(
+      expect.objectContaining({
+        id: 'acme.particles',
+        enabled: true,
+        status: 'active',
+      }),
+    );
   });
 });

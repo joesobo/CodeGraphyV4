@@ -55,6 +55,10 @@ describe('plugins/activityState/model', () => {
       'acme.inherited',
     ]);
     expect([...state.disabledPluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual([
+      'codegraphy.particles',
+      'acme.inherited',
+    ]);
     expect(state.packagePlugins.map(plugin => plugin.id)).toEqual([
       'codegraphy.particles',
       'acme.inherited',
@@ -97,6 +101,7 @@ describe('plugins/activityState/model', () => {
 
     expect([...state.activePluginIds]).toEqual([]);
     expect([...state.inactivePluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual(['codegraphy.vue']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([
       "CodeGraphy plugin 'codegraphy.vue' is enabled but multiple installed packages claim it: @acme/codegraphy-vue-one, @acme/codegraphy-vue-two. No runtime was loaded.",
@@ -117,6 +122,7 @@ describe('plugins/activityState/model', () => {
 
     expect([...state.activePluginIds]).toEqual([]);
     expect([...state.inactivePluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual(['codegraphy.vue']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([
       "CodeGraphy plugin 'codegraphy.vue' is enabled but not installed. No runtime was loaded.",
@@ -146,6 +152,7 @@ describe('plugins/activityState/model', () => {
 
     expect([...state.activePluginIds]).toEqual([]);
     expect([...state.disabledPluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual([]);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([]);
   });
