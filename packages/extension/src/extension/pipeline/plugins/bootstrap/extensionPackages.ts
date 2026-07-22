@@ -49,12 +49,20 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
   }
 }
 
+function createPluginModuleUrl(record: CodeGraphyInstalledPluginRecord): string {
+  const modulePath = path.resolve(record.packageRoot, record.entry);
+  const moduleUrl = pathToFileURL(modulePath);
+  moduleUrl.searchParams.set('codegraphyPluginId', record.id);
+  moduleUrl.searchParams.set('codegraphyPluginApiVersion', record.apiVersion);
+  moduleUrl.searchParams.set('codegraphyPackageVersion', record.version);
+  return moduleUrl.href;
+}
+
 async function loadExtensionPlugin(
   record: CodeGraphyInstalledPluginRecord,
 ): Promise<IExtensionPlugin> {
   assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
-  const modulePath = path.resolve(record.packageRoot, record.entry);
-  const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
+  const moduleNamespace: unknown = await import(createPluginModuleUrl(record));
   const plugin = await readFactory(moduleNamespace, record.package)();
   validatePlugin(plugin, record);
   return plugin;

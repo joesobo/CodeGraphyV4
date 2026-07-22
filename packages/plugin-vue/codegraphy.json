@@ -2,7 +2,7 @@
   "$schema": "../../codegraphy.schema.json",
   "id": "codegraphy.vue",
   "name": "Vue",
-  "version": "0.1.0",
+  "version": "0.3.6",
   "apiVersion": "^4.0.0",
   "supportedExtensions": [
     ".vue"

@@ -13,6 +13,15 @@ function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
   return record.id;
 }
 
+function createPluginModuleUrl(record: CodeGraphyInstalledPluginRecord): string {
+  const modulePath = path.resolve(record.packageRoot, record.entry);
+  const moduleUrl = pathToFileURL(modulePath);
+  moduleUrl.searchParams.set('codegraphyPluginId', record.id);
+  moduleUrl.searchParams.set('codegraphyPluginApiVersion', record.apiVersion);
+  moduleUrl.searchParams.set('codegraphyPackageVersion', record.version);
+  return moduleUrl.href;
+}
+
 function validateRuntimePluginId(
   pluginId: string,
   record: CodeGraphyInstalledPluginRecord,
@@ -31,8 +40,7 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   workspaceRoot?: string,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
   assertPluginDescriptorApiCompatibility(record.id, record.apiVersion);
-  const modulePath = path.resolve(record.packageRoot, record.entry);
-  const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
+  const moduleNamespace: unknown = await import(createPluginModuleUrl(record));
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
   const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
   validateRuntimePluginId(plugin.id, record);

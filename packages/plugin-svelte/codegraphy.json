@@ -2,7 +2,7 @@
   "$schema": "../../codegraphy.schema.json",
   "id": "codegraphy.svelte",
   "name": "Svelte",
-  "version": "0.1.0",
+  "version": "0.2.6",
   "apiVersion": "^4.0.0",
   "supportedExtensions": [
     ".svelte"

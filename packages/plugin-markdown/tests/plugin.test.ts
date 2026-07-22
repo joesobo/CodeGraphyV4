@@ -45,7 +45,7 @@ describe('createMarkdownPlugin', () => {
     it('exposes the plugin version from codegraphy.json', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.version).toBe('1.0.0');
+      expect(plugin.version).toBe('1.1.10');
     });
 
     it('exposes the apiVersion from codegraphy.json', () => {

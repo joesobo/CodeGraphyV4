@@ -149,18 +149,17 @@ describe('pipeline plugin sync identity', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(await createPackageFixtureRoot('codegraphy-core-linked-'), 'package');
-    await writeCorePluginRuntime(packageRoot, 'plugin-v1.js', 'acme.linked', '1.0.0');
-    await writeCorePluginRuntime(packageRoot, 'plugin-v2.js', 'acme.linked', '2.0.0');
-    const writeInstalledRecord = (version: string, entry: string): void => {
+    await writeCorePluginRuntime(packageRoot, 'plugin.js', 'acme.linked', '1.0.0');
+    const writeInstalledRecord = (version: string): void => {
       writeCodeGraphyInstalledPluginCache({
         version: 3,
         plugins: [{
           package: '@acme/codegraphy-linked', version, id: 'acme.linked', host: 'core',
-          entry, apiVersion: '^4.0.0', packageRoot, globallyEnabled: true,
+          entry: './plugin.js', apiVersion: '^4.0.0', packageRoot, globallyEnabled: true,
         }],
       }, { homeDir });
     };
-    writeInstalledRecord('1.0.0', './plugin-v1.js');
+    writeInstalledRecord('1.0.0');
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{ id: 'acme.linked', activation: 'enabled' }],
@@ -173,7 +172,8 @@ describe('pipeline plugin sync identity', () => {
     registry.register.mockClear();
     registry.unregister.mockClear();
     registry.initializePlugin.mockClear();
-    writeInstalledRecord('2.0.0', './plugin-v2.js');
+    await writeCorePluginRuntime(packageRoot, 'plugin.js', 'acme.linked', '2.0.0');
+    writeInstalledRecord('2.0.0');
     await syncWorkspacePipelinePlugins(registry as never, dependencies);
 
     expect(registry.unregister).toHaveBeenCalledExactlyOnceWith('acme.linked');
@@ -188,19 +188,18 @@ describe('pipeline plugin sync identity', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(await createPackageFixtureRoot('codegraphy-extension-linked-'), 'package');
-    await writeExtensionPluginRuntime(packageRoot, 'plugin-v1.js', '1.0.0');
-    await writeExtensionPluginRuntime(packageRoot, 'plugin-v2.js', '2.0.0');
-    const writeInstalledRecord = (version: string, entry: string): void => {
+    await writeExtensionPluginRuntime(packageRoot, 'plugin.js', '1.0.0');
+    const writeInstalledRecord = (version: string): void => {
       writeCodeGraphyInstalledPluginCache({
         version: 3,
         plugins: [{
           package: '@acme/codegraphy-extension-linked', version,
-          id: 'acme.extension-linked', host: 'codegraphy.extension', entry,
+          id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
           apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
         }],
       }, { homeDir });
     };
-    writeInstalledRecord('1.0.0', './plugin-v1.js');
+    writeInstalledRecord('1.0.0');
     writeCodeGraphyWorkspaceSettings(
       workspaceRoot,
       readCodeGraphyWorkspaceSettings(workspaceRoot),
@@ -235,7 +234,8 @@ describe('pipeline plugin sync identity', () => {
     extensionPlugins.register.mockClear();
     extensionPlugins.unregister.mockClear();
     extensionPlugins.initializeAll.mockClear();
-    writeInstalledRecord('2.0.0', './plugin-v2.js');
+    await writeExtensionPluginRuntime(packageRoot, 'plugin.js', '2.0.0');
+    writeInstalledRecord('2.0.0');
     await syncWorkspacePipelinePlugins(registry as never, dependencies);
 
     expect(extensionPlugins.unregister).toHaveBeenCalledExactlyOnceWith('acme.extension-linked');

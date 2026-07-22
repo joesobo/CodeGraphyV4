@@ -53,3 +53,19 @@ test('bundled plugin manifests declare the current runtime API consistently', ()
     }
   }
 });
+
+test('bundled plugin runtime versions match their package versions', () => {
+  for (const host of PLUGIN_HOSTS) {
+    for (const plugin of host.plugins) {
+      const packageRoot = `packages/plugin-${plugin}`;
+      const manifest = readJson(`${packageRoot}/codegraphy.json`);
+      const packageManifest = readJson(`${packageRoot}/package.json`);
+
+      assert.equal(
+        manifest.version,
+        packageManifest.version,
+        `${plugin} runtime and package versions`,
+      );
+    }
+  }
+});

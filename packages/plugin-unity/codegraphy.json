@@ -2,7 +2,7 @@
   "$schema": "../../codegraphy.schema.json",
   "id": "codegraphy.unity",
   "name": "Unity",
-  "version": "1.0.1",
+  "version": "0.2.5",
   "apiVersion": "^4.0.0",
   "supportedExtensions": [
     ".unity",
