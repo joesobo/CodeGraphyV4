@@ -22,6 +22,7 @@ interface PointerPosition {
   active: boolean;
   currentX: number;
   currentY: number;
+  motion: number;
   targetX: number;
   targetY: number;
 }
@@ -65,7 +66,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     if (!context) return;
 
     const layout = createGraphLayoutEngine(graphData.input, {
-      centralGravity: 0.004,
+      centralGravity: 0,
       chargeDistanceMax: 250,
       chargeStrength: -175,
       collisionPadding: 6,
@@ -79,6 +80,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       active: false,
       currentX: 0,
       currentY: 0,
+      motion: 0,
       targetX: 0,
       targetY: 0,
     };
@@ -113,9 +115,18 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       }
 
       const scale = graphScale(canvasSize);
-      pointer.targetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
-      pointer.targetY = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-      layout.reheat(0.3);
+      const nextTargetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
+      const nextTargetY = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
+      if (wasActive) {
+        const distance = Math.hypot(
+          nextTargetX - pointer.targetX,
+          nextTargetY - pointer.targetY,
+        );
+        pointer.motion = Math.min(1, pointer.motion + distance / 72);
+      }
+      pointer.targetX = nextTargetX;
+      pointer.targetY = nextTargetY;
+      layout.reheat(pointer.motion > 0.18 ? 0.42 : 0.32);
     };
     window.addEventListener('pointermove', updatePointer, {
       passive: true,
@@ -244,9 +255,10 @@ function createSeededRandom(seed: number): () => number {
 }
 
 function updatePointerCenter(pointer: PointerPosition): void {
-  const smoothing = pointer.active ? 0.14 : 0.06;
+  const smoothing = pointer.active ? 0.32 : 0.09;
   pointer.currentX += (pointer.targetX - pointer.currentX) * smoothing;
   pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
+  pointer.motion *= pointer.active ? 0.84 : 0.72;
 }
 
 function createPointerGravity(
@@ -255,11 +267,22 @@ function createPointerGravity(
 ): GraphLayoutExternalForce {
   return {
     beforeIntegration: alpha => {
-      const strength = (pointer.active ? 0.007 : 0.0045) * Math.max(alpha, 0.14);
+      const effectiveAlpha = Math.max(alpha, pointer.active ? 0.22 : 0.12);
+      const restingStrength = pointer.active ? 0.03 : 0.009;
+      const centerStrength = (restingStrength - pointer.motion * 0.022) * effectiveAlpha;
+      const expansionStrength = pointer.active
+        ? pointer.motion * 1.15 * effectiveAlpha
+        : 0;
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
-        layout.vx[index] += (pointer.currentX - layout.x[index]) * strength;
-        layout.vy[index] += (pointer.currentY - layout.y[index]) * strength;
+        const offsetX = layout.x[index] - pointer.currentX;
+        const offsetY = layout.y[index] - pointer.currentY;
+        const distance = Math.max(1, Math.hypot(offsetX, offsetY));
+
+        layout.vx[index] -= offsetX * centerStrength;
+        layout.vy[index] -= offsetY * centerStrength;
+        layout.vx[index] += (offsetX / distance) * expansionStrength;
+        layout.vy[index] += (offsetY / distance) * expansionStrength;
       }
     },
   };
@@ -318,18 +341,6 @@ function drawGraph(
     context.lineWidth = 0.9 / scale;
     context.strokeStyle = 'rgba(224, 244, 255, 0.7)';
     context.stroke();
-
-    const highlightRadius = Math.max(1.1, radius * 0.18);
-    context.beginPath();
-    context.arc(
-      layout.x[index] - radius * 0.28,
-      layout.y[index] - radius * 0.3,
-      highlightRadius,
-      0,
-      Math.PI * 2,
-    );
-    context.fillStyle = 'rgba(255, 255, 255, 0.72)';
-    context.fill();
   }
 
   context.restore();

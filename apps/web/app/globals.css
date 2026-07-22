@@ -64,8 +64,8 @@
   --example-graph-surface: #eef0f4;
   --graph-surface: #eaedf2;
   --depth-surface: #e9edf2;
-  --install: #ff9d82;
-  --install-hover: #ffb49f;
+  --install: #c8dcff;
+  --install-hover: #b4ccf8;
   --install-foreground: #17283b;
   --brand-mark: url("/codegraphy.svg");
   --font-family-sans: var(--font-dm-sans, "DM Sans"), ui-sans-serif, system-ui, sans-serif;
