@@ -118,7 +118,6 @@ describe('pipeline/service plugin statuses', () => {
       maxFiles: 1000,
       include: ['**/*'],
       respectGitignore: true,
-      showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [
@@ -172,7 +171,6 @@ describe('pipeline/service plugin statuses', () => {
       maxFiles: 1000,
       include: ['**/*'],
       respectGitignore: true,
-      showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [{ id: 'acme.particles', activation: 'inherit' }],
@@ -210,7 +208,6 @@ describe('pipeline/service plugin statuses', () => {
       maxFiles: 1000,
       include: ['**/*'],
       respectGitignore: true,
-      showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [{ id: 'acme.particles', activation: 'inherit' }],

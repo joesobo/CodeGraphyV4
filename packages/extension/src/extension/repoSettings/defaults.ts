@@ -20,6 +20,7 @@ import {
 export const CODEGRAPHY_EXTENSION_INTERFACE_ID = 'codegraphy.extension';
 
 export interface ICodeGraphyExtensionInterfaceSettings {
+  showOrphans: boolean;
   showFps: boolean;
   showMinimap: boolean;
   cssSnippets: Record<string, boolean>;
@@ -41,6 +42,7 @@ export interface ICodeGraphyExtensionInterfaceSettings {
 }
 
 export const CODEGRAPHY_EXTENSION_INTERFACE_SETTING_KEYS = [
+  'showOrphans',
   'showFps',
   'showMinimap',
   'cssSnippets',
@@ -67,7 +69,6 @@ export interface ICodeGraphyRepoSettings extends ICodeGraphyExtensionInterfaceSe
   verboseDiagnostics: boolean;
   include: string[];
   respectGitignore: boolean;
-  showOrphans: boolean;
   plugins: CodeGraphyWorkspacePluginSettings[];
   interfaces: CodeGraphyWorkspaceInterfaceSettings[];
   pluginData: Record<string, unknown>;
@@ -80,6 +81,7 @@ export interface ICodeGraphyRepoSettings extends ICodeGraphyExtensionInterfaceSe
 
 function createDefaultExtensionInterfaceSettings(): ICodeGraphyExtensionInterfaceSettings {
   return {
+    showOrphans: true,
     showFps: false,
     showMinimap: DEFAULT_SHOW_MINIMAP,
     cssSnippets: {},
@@ -110,7 +112,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     verboseDiagnostics: false,
     include: ['**/*'],
     respectGitignore: true,
-    showOrphans: true,
     plugins: [{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
       activation: 'enabled',

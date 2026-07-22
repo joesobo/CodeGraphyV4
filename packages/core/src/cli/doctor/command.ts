@@ -32,7 +32,7 @@ function validateKnownSettings(value: Record<string, unknown>): string | undefin
   for (const key of stringArrays) {
     if (key in value && !isStringArray(value[key])) return `${key} must be an array of strings`;
   }
-  const booleans = ['respectGitignore', 'showOrphans'] as const;
+  const booleans = ['respectGitignore'] as const;
   for (const key of booleans) {
     if (key in value && typeof value[key] !== 'boolean') return `${key} must be a boolean`;
   }

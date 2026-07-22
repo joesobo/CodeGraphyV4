@@ -211,6 +211,22 @@ describe('CodeGraphy Workspace settings', () => {
     expect(normalizeCodeGraphyWorkspaceSettings([])).toEqual(defaults);
   });
 
+  it('preserves Extension show-orphans intent only inside the open interface envelope', () => {
+    const normalized = normalizeCodeGraphyWorkspaceSettings({
+      showOrphans: false,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { showOrphans: false },
+      }],
+    });
+
+    expect(normalized).not.toHaveProperty('showOrphans');
+    expect(normalized.interfaces).toEqual([{
+      id: 'codegraphy.extension',
+      data: { showOrphans: false },
+    }]);
+  });
+
   it('falls back to defaults for invalid scalar settings', () => {
     const defaults = createDefaultCodeGraphyWorkspaceSettings();
 
@@ -253,7 +269,6 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: 25,
       include: ['src/**/*.ts', 'packages/**/*.ts'],
       respectGitignore: false,
-      showOrphans: false,
       filterPatterns: ['dist/**'],
       disabledCustomFilterPatterns: ['generated/**'],
       nodeVisibility: { file: true, 'symbol:function': false },

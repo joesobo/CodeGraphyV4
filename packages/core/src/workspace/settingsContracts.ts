@@ -16,7 +16,6 @@ export interface CodeGraphyWorkspaceSettings {
   maxFiles: number;
   include: string[];
   respectGitignore: boolean;
-  showOrphans: boolean;
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
   nodeVisibility?: Record<string, boolean>;

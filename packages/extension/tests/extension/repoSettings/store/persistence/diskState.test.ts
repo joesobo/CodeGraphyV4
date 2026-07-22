@@ -163,6 +163,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
       version: 3,
       showFps: true,
       showMinimap: false,
+      showOrphans: false,
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
     }), 'utf8');
 
@@ -174,6 +175,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
       version: 4,
       showFps: true,
       showMinimap: false,
+      showOrphans: false,
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
     });
     expect(interfaces.find(entry => entry.id === 'codegraphy.extension')?.data).toMatchObject({
@@ -183,6 +185,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     });
     expect(persisted).not.toHaveProperty('showFps');
     expect(persisted).not.toHaveProperty('showMinimap');
+    expect(persisted).not.toHaveProperty('showOrphans');
     expect(persisted).not.toHaveProperty('cssSnippets');
   });
 

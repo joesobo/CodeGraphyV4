@@ -16,7 +16,6 @@ A small hand-written file can override only the values you care about:
 {
   "version": 4,
   "maxFiles": 2000,
-  "showOrphans": false,
   "filterPatterns": ["**/generated/**", "**/*.snap"],
   "plugins": [
     { "id": "codegraphy.markdown", "activation": "enabled" },
@@ -26,6 +25,7 @@ A small hand-written file can override only the values you care about:
     {
       "id": "codegraphy.extension",
       "data": {
+        "showOrphans": false,
         "favorites": [],
         "directionMode": "arrows",
         "pinnedNodes": [],
@@ -52,7 +52,7 @@ The extension normalizes missing values against current defaults and preserves r
 | `filterPatterns` | string[] | `[]` | Enabled custom exclusion patterns. |
 | `disabledCustomFilterPatterns` | string[] | `[]` | Custom filter patterns retained in a disabled state. |
 | `disabledPluginFilterPatterns` | string[] | `[]` | Disabled source-owned plugin filter patterns. |
-| `showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
+| `interfaces[].data.showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
 | `interfaces[].data.showLabels` | boolean | `true` | Draw Node labels. |
 | `interfaces[].data.showMinimap` | boolean | `true` | Show the interactive graph minimap. |
 | `interfaces[].data.showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |

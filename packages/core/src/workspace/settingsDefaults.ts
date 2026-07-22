@@ -10,7 +10,6 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
     maxFiles: DEFAULT_MAX_FILES,
     include: DEFAULT_INCLUDE,
     respectGitignore: true,
-    showOrphans: true,
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     nodeVisibility: {},

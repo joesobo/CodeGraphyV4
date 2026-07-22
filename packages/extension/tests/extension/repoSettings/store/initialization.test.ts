@@ -23,7 +23,8 @@ describe('extension/repoSettings/store initialization and normalization', () => 
     expect(store.workspaceRoot).toBe(workspaceRoot);
     expect(store.settingsPath).toBe(settingsPath);
     expect(store.get('showOrphans', true)).toBe(true);
-    expect(persisted.showOrphans).toBe(true);
+    expect(persisted).not.toHaveProperty('showOrphans');
+    expect(readExtensionInterfaceData(persisted).showOrphans).toBe(true);
     expect(readExtensionInterfaceData(persisted).legend).toEqual([]);
     expect(warnSpy).not.toHaveBeenCalled();
   });

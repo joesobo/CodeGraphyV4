@@ -11,7 +11,6 @@ describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
         maxFiles: 1000,
         include: ['**/*'],
         respectGitignore: true,
-        showOrphans: true,
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
         plugins: [{ id: 'codegraphy.markdown', activation: 'enabled' }],

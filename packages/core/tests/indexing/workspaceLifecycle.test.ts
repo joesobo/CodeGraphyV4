@@ -61,7 +61,10 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unlinked\n', 'utf-8');
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      showOrphans: false,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { showOrphans: false },
+      }],
     });
 
     const result = await indexCodeGraphyWorkspace({

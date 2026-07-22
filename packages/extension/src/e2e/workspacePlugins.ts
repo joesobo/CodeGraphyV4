@@ -28,7 +28,6 @@ interface E2EWorkspaceSettings {
   maxFiles: number;
   include: string[];
   respectGitignore: boolean;
-  showOrphans: boolean;
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
@@ -42,7 +41,6 @@ const workspaceSettingsShapeSchema = z.looseObject({
   maxFiles: z.number().optional().catch(undefined),
   include: z.unknown(),
   respectGitignore: z.boolean().optional().catch(undefined),
-  showOrphans: z.boolean().optional().catch(undefined),
   filterPatterns: z.unknown(),
   disabledCustomFilterPatterns: z.unknown(),
   plugins: z.array(z.unknown()),
@@ -107,7 +105,6 @@ function createInitialWorkspaceSettings(
     maxFiles: DEFAULT_MAX_FILES,
     include: DEFAULT_INCLUDE,
     respectGitignore: true,
-    showOrphans: true,
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     plugins: [
@@ -149,7 +146,6 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
     maxFiles: settings.maxFiles ?? DEFAULT_MAX_FILES,
     include: include.length > 0 ? include : DEFAULT_INCLUDE,
     respectGitignore: settings.respectGitignore ?? true,
-    showOrphans: settings.showOrphans ?? true,
     filterPatterns: looseStringArraySchema.parse(settings.filterPatterns),
     disabledCustomFilterPatterns: looseStringArraySchema.parse(settings.disabledCustomFilterPatterns),
     plugins: settings.plugins

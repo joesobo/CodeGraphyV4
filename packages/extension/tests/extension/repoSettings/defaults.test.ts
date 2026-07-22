@@ -15,6 +15,7 @@ import {
 describe('extension/repoSettings/defaults', () => {
   it('builds the full repo settings defaults', () => {
     const extensionData = {
+      showOrphans: true,
       showFps: false,
       showMinimap: true,
       cssSnippets: {},
@@ -47,7 +48,6 @@ describe('extension/repoSettings/defaults', () => {
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,
-      showOrphans: true,
       plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' }],
       interfaces: [{ id: 'codegraphy.extension', data: extensionData }],
       pluginData: {},

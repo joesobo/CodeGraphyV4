@@ -53,7 +53,7 @@ export async function requestWorkspaceGraphQuery(
     };
   }
 
-  const { graphData, scope, settings, snapshotFacts } = readWorkspaceQueryGraph(
+  const { graphData, scope, snapshotFacts } = readWorkspaceQueryGraph(
     workspaceRoot,
     dependencies.readInstalledPluginCache(),
     input.projection,
@@ -72,7 +72,6 @@ export async function requestWorkspaceGraphQuery(
       ...(input.projection?.nodeTypes
         ? { projectedNodeTypes: input.projection.nodeTypes }
         : {}),
-      showOrphans: settings.showOrphans,
       ...input.arguments,
     },
   } as GraphQueryRequest);

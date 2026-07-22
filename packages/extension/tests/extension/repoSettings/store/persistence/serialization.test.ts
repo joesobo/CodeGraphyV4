@@ -77,6 +77,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     settings.physics = { ...settings.physics, damping: 0.2 };
     settings.showFps = true;
     settings.showMinimap = false;
+    settings.showOrphans = false;
     settings.cssSnippets = { '.codegraphy/snippets/graph.css': true };
 
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
@@ -93,6 +94,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
       physics: { damping: 0.2 },
       showFps: true,
       showMinimap: false,
+      showOrphans: false,
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
     });
     expect(parsed).not.toHaveProperty('nodeColors');
@@ -103,6 +105,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(parsed).not.toHaveProperty('physics');
     expect(parsed).not.toHaveProperty('showFps');
     expect(parsed).not.toHaveProperty('showMinimap');
+    expect(parsed).not.toHaveProperty('showOrphans');
     expect(parsed).not.toHaveProperty('cssSnippets');
   });
 

@@ -64,7 +64,10 @@ describe('workspace/signatures', () => {
 
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
-      showOrphans: false,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { showOrphans: false },
+      }],
     })).toBe(first);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
