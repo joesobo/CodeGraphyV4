@@ -7,10 +7,12 @@ import type { WorkspaceEngineRuntime } from './engineRuntime';
 
 export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime): Promise<void> {
   const { options, state, workspaceRoot } = runtime;
+  const previousRegistry = state.registry;
   state.cache = createEmptyWorkspaceAnalysisCache();
   state.settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(state.settings, options.disabledPlugins);
   const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot, disabledPlugins);
+  previousRegistry?.disposeAll();
   state.registry = registryResult.registry;
   state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
   state.workspaceRoot = workspaceRoot;

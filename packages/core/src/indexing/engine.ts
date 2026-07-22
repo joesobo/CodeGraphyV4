@@ -5,6 +5,7 @@ import { createWorkspaceEngineRuntime, hasWorkspaceEngineIndexState } from './en
 
 export interface CodeGraphyWorkspaceEngine {
   applyChangedFiles(filePaths: readonly string[]): Promise<IndexCodeGraphyWorkspaceResult>;
+  dispose(): void;
   index(): Promise<IndexCodeGraphyWorkspaceResult>;
 }
 
@@ -18,5 +19,9 @@ export function createCodeGraphyWorkspaceEngine(
       ? applyWorkspaceEngineChangedFiles(runtime, filePaths, index)
       : index()
   );
-  return { applyChangedFiles, index };
+  const dispose = () => {
+    runtime.state.registry?.disposeAll();
+    runtime.state.registry = undefined;
+  };
+  return { applyChangedFiles, dispose, index };
 }

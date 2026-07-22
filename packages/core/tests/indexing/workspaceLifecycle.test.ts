@@ -22,10 +22,11 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       onWorkspaceReady: vi.fn(),
       analyzeFile: vi.fn(),
     };
+    const onUnload = vi.fn();
 
     const result = await indexCodeGraphyWorkspace({
       workspaceRoot,
-      plugins: [createTextPlugin(calls)],
+      plugins: [{ ...createTextPlugin(calls), onUnload }],
       includeCorePlugins: false,
     });
 
@@ -50,6 +51,7 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     expect(calls.analyzeFile).toHaveBeenCalledTimes(2);
     expect(calls.onPostAnalyze).toHaveBeenCalledWith(result.graph);
     expect(calls.onWorkspaceReady).toHaveBeenCalledWith(result.graph);
+    expect(onUnload).toHaveBeenCalledOnce();
     expect(readGraphCacheStatus(workspaceRoot).state).toBe('available');
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual(
       expect.arrayContaining(['source.txt', 'target.txt']),
@@ -82,6 +84,31 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       expect.arrayContaining(['source.txt', 'target.txt', 'orphan.txt']),
     );
     expect(result.graph.nodes.map(node => node.id)).not.toContain('.codegraphy');
+  });
+
+  it('unloads one-shot plugins when indexing fails', async () => {
+    const workspaceRoot = await createWorkspace();
+    const onUnload = vi.fn();
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      onUnload,
+    };
+
+    await expect(indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+      logInfo: () => {
+        throw new Error('logging failed');
+      },
+    })).rejects.toThrow('logging failed');
+
+    expect(onUnload).toHaveBeenCalledOnce();
   });
 
   it('keeps indexing state in core so changed files update the graph without full indexing', async () => {
@@ -172,5 +199,34 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       'target.txt\n',
       path.resolve(workspaceRoot),
     );
+  });
+
+  it('keeps plugins loaded until the persistent workspace engine is disposed', async () => {
+    const workspaceRoot = await createWorkspace();
+    const onUnload = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        onUnload,
+      }],
+      includeCorePlugins: false,
+    });
+
+    await engine.index();
+    expect(onUnload).not.toHaveBeenCalled();
+
+    await engine.index();
+    expect(onUnload).toHaveBeenCalledOnce();
+
+    engine.dispose();
+    engine.dispose();
+
+    expect(onUnload).toHaveBeenCalledTimes(2);
   });
 });

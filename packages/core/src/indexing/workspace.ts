@@ -74,6 +74,8 @@ export async function indexCodeGraphyWorkspace(
     }),
   );
 
+  try {
+
   await timeIndexPhase(
     options,
     'initialize-plugins',
@@ -297,4 +299,7 @@ export async function indexCodeGraphyWorkspace(
       reusedFiles: analysisResult.cacheHits,
     },
   };
+  } finally {
+    registry.disposeAll();
+  }
 }

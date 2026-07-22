@@ -213,6 +213,36 @@ describe('CorePluginRegistry', () => {
     consoleError.mockRestore();
   });
 
+  it('unloads registered plugins without letting one failure block later cleanup', () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const brokenUnload = vi.fn(() => {
+      throw new Error('broken cleanup');
+    });
+    const healthyUnload = vi.fn();
+
+    registry.register(plugin({
+      id: 'broken',
+      supportedExtensions: ['.bad'],
+      onUnload: brokenUnload,
+    }));
+    registry.register(plugin({
+      id: 'healthy',
+      supportedExtensions: ['.good'],
+      onUnload: healthyUnload,
+    }));
+
+    expect(registry.unregister('missing')).toBe(false);
+    registry.disposeAll();
+
+    expect(brokenUnload).toHaveBeenCalledOnce();
+    expect(healthyUnload).toHaveBeenCalledOnce();
+    expect(registry.list()).toEqual([]);
+    expect(registry.getPluginForFile('src/file.bad')).toBeUndefined();
+    expect(registry.getPluginForFile('src/file.good')).toBeUndefined();
+    consoleError.mockRestore();
+  });
+
   it('lists node and edge type contributions through the registry facade', () => {
     const registry = new CorePluginRegistry();
 

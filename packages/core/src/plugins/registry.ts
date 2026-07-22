@@ -71,7 +71,7 @@ export class CorePluginRegistry {
       this.initializedPlugins,
     );
     for (const pluginId of failedPluginIds) {
-      this.removePluginRegistration(pluginId);
+      this.unregister(pluginId);
     }
   }
 
@@ -83,7 +83,7 @@ export class CorePluginRegistry {
 
     const initialized = await initializePlugin(info, workspaceRoot, this.initializedPlugins);
     if (!initialized) {
-      this.removePluginRegistration(pluginId);
+      this.unregister(pluginId);
     }
   }
 
@@ -109,6 +109,26 @@ export class CorePluginRegistry {
 
   list(): CorePluginInfo[] {
     return [...this.plugins.values()];
+  }
+
+  unregister(pluginId: string): boolean {
+    const info = this.plugins.get(pluginId);
+    if (!info) {
+      return false;
+    }
+
+    try {
+      info.plugin.onUnload?.();
+    } catch (error) {
+      console.error(`[CodeGraphy] Error unloading plugin ${pluginId}:`, error);
+    }
+    return this.removePluginRegistration(pluginId);
+  }
+
+  disposeAll(): void {
+    for (const pluginId of [...this.plugins.keys()]) {
+      this.unregister(pluginId);
+    }
   }
 
   listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
