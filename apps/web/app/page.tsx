@@ -10,7 +10,7 @@ export default function HomePage(): React.ReactElement {
       <Header />
       <ProductDive />
       <Agents />
-      <div className="py-24 sm:py-32"><SupportedMarquee /></div>
+      <div className="py-20 sm:py-24"><SupportedMarquee /></div>
       <GetStarted />
     </div>
   );

@@ -70,7 +70,7 @@ function NavigationMenuTrigger({
       {children}{' '}
       <NavigationMenuPrimitive.Icon
         render={
-          <KeyboardArrowDown className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-popup-open:rotate-180" />
+          <KeyboardArrowDown className="relative top-[1px] ml-1 size-3 transition-transform duration-200 group-data-popup-open:rotate-180" />
         }
       />
     </NavigationMenuPrimitive.Trigger>
@@ -127,7 +127,7 @@ function NavigationMenuLink({
   return (
     <NavigationMenuPrimitive.Link
       className={cn(
-        "flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-accent/50 data-active:text-accent-foreground data-active:hover:bg-accent data-active:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+        "flex flex-col gap-1 rounded-sm p-2 text-sm transition-[background-color,color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-accent/50 data-active:text-accent-foreground data-active:hover:bg-accent data-active:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className,
       )}
       closeOnClick

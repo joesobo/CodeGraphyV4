@@ -7,7 +7,6 @@ import {
   type MaterialSymbolsComponent,
 } from '@material-symbols-svg/react/rounded';
 import { SectionHeader } from '@/components/section-header';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const pluginFeatures: { icon: MaterialSymbolsComponent; title: string; summary: string }[] = [
   {
@@ -44,19 +43,13 @@ export function PluginFeatures(): React.ReactElement {
         title="More meaning, without a heavier Core."
         description="Plugins enrich the Relationship Graph through a typed, headless contract while the Core Package keeps Indexing, caching, queries, and lifecycle behavior consistent."
       />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
         {pluginFeatures.map((capability) => (
-          <Card as="article" className="rounded-3xl bg-card/75" key={capability.title}>
-            <CardHeader>
-              <div className="mb-2">
-                <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-primary">
-                  <capability.icon aria-hidden="true" className="size-4.5" />
-                </span>
-              </div>
-              <CardTitle className="text-base">{capability.title}</CardTitle>
-              <CardDescription>{capability.summary}</CardDescription>
-            </CardHeader>
-          </Card>
+          <article className="border-t border-border pt-5" key={capability.title}>
+            <capability.icon aria-hidden="true" className="size-5 text-primary" />
+            <h3 className="mt-5 text-xl font-medium">{capability.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{capability.summary}</p>
+          </article>
         ))}
       </div>
     </section>

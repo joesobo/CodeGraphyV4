@@ -90,7 +90,7 @@ export function ProductDive(): React.ReactElement {
               <MediaImage
                 className="depth-media"
                 height={1000}
-                imageClassName="h-full w-full object-cover object-top"
+                imageClassName="h-full w-full object-contain object-center"
                 media={chapter.media}
                 sizes="(min-width: 1024px) 62vw, 100vw"
                 width={1600}

@@ -24,7 +24,7 @@ function SheetOverlay({
   return (
     <SheetPrimitive.Backdrop
       className={cn(
-        'fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-opacity duration-300 data-ending-style:opacity-0 data-starting-style:opacity-0',
+        'fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-opacity duration-200 data-ending-style:duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0',
         className,
       )}
       data-slot="sheet-overlay"
@@ -48,7 +48,7 @@ function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Popup
         className={cn(
-          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition-transform duration-300 ease-in-out',
+          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition-transform duration-[240ms] ease-[cubic-bezier(0.23,1,0.32,1)] data-ending-style:duration-150',
           side === 'right' &&
             'inset-y-0 right-0 h-full w-3/4 border data-ending-style:translate-x-full data-starting-style:translate-x-full sm:max-w-sm',
           side === 'left' &&
@@ -64,7 +64,7 @@ function SheetContent({
       >
         {children}
         {showCloseButton ? (
-          <SheetPrimitive.Close className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+          <SheetPrimitive.Close className="absolute top-2.5 right-2.5 grid size-11 place-items-center rounded-full opacity-70 ring-offset-background transition-opacity hover:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
             <CloseIcon aria-hidden="true" className="size-4" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>

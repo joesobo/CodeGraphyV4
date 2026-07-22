@@ -17,7 +17,7 @@ function Card({
     <Component
       className={cn(
         'rounded-md border border-border bg-card text-card-foreground shadow-sm',
-        interactive && 'transition-all duration-200 hover:border-primary/40 hover:shadow-md',
+        interactive && 'transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md',
         className,
       )}
       data-slot="card"

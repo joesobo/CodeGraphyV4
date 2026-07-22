@@ -21,12 +21,12 @@ export interface NavItemLinkProps {
 }
 
 const navRowClassName = cn(
-  'flex min-h-9 w-full min-w-0 flex-row items-center gap-2 rounded-md',
+  'flex min-h-11 w-full min-w-0 flex-row items-center gap-2 rounded-md',
   'cursor-pointer px-2 py-1.5 text-left text-sm font-semibold text-foreground',
   'transition-colors hover:bg-secondary',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
 );
-const compactNavRowClassName = 'min-h-8 py-1';
+const compactNavRowClassName = 'min-h-10 py-1';
 
 /** A navigation link, used by the page sidebar and the mobile menu. */
 export function NavLink({

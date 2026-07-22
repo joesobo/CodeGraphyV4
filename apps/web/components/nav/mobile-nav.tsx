@@ -31,7 +31,7 @@ export function MobileNav(): React.ReactElement {
         render={
           <Button
             aria-label="Open menu"
-            className="size-9 rounded-full p-0 text-white hover:bg-white/8 lg:hidden"
+            className="size-11 rounded-full p-0 text-white hover:bg-white/8 lg:hidden"
             size="sm"
             variant="ghost"
           />
@@ -41,7 +41,7 @@ export function MobileNav(): React.ReactElement {
       </SheetTrigger>
 
       <SheetContent
-        className="w-80 gap-0 border-l-white/10 bg-[#071722] p-0 text-white [--foreground:#fff] [--muted-foreground:rgb(255_255_255_/_0.68)] [--secondary:rgb(255_255_255_/_0.1)] [&_[data-slot=sheet-close]]:text-white"
+        className="w-[min(20rem,100vw)] gap-0 border-l-white/10 bg-[#071722] p-0 text-white [--foreground:#fff] [--muted-foreground:rgb(255_255_255_/_0.76)] [--secondary:rgb(255_255_255_/_0.1)] [&_[data-slot=sheet-close]]:text-white"
         side="right"
       >
         <SheetHeader className="border-b border-white/10">

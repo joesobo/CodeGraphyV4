@@ -9,8 +9,8 @@ export function ThemeToggle(): React.ReactElement {
 
   return (
     <Button
-      aria-label="Toggle theme"
-      className="size-9 rounded-full px-0 text-white/75 hover:bg-white/8 hover:text-white"
+      aria-label="Toggle color theme"
+      className="size-11 rounded-full px-0 text-white/80 hover:bg-white/8 hover:text-white"
       onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
       size="sm"
       variant="ghost"

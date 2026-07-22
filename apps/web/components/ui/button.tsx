@@ -19,8 +19,8 @@ const buttonVariants = cva(
         outline: 'border border-border bg-background/60 text-foreground backdrop-blur-sm hover:border-primary/50 hover:bg-secondary/80',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        sm: 'h-8 px-3',
+        default: 'h-11 px-4 py-2',
+        sm: 'h-10 px-3',
         lg: 'h-12 px-6',
       },
     },

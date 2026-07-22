@@ -30,7 +30,7 @@ export function Link({
   const external = /^[a-z][a-z0-9+.-]*:/i.test(href);
   const opensInNewTab = href.startsWith('http://') || href.startsWith('https://');
   const classNames = cn(
-    variant === 'text' && 'inline-flex items-center gap-1 text-sm font-semibold text-foreground transition-colors hover:text-primary',
+    variant === 'text' && 'inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-foreground transition-colors hover:text-primary',
     className,
   );
 

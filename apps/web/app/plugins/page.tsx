@@ -15,7 +15,7 @@ export default function PluginsPage(): React.ReactElement {
   return (
     <div className="route-surface w-full min-w-0">
       <PluginsHeader />
-      <div className="mx-auto grid w-full max-w-[90rem] gap-24 px-5 py-24 sm:gap-32 sm:px-8 sm:py-32 lg:px-12" id="page-content">
+      <div className="mx-auto grid w-full max-w-[90rem] gap-20 px-5 py-20 sm:gap-24 sm:px-8 sm:py-24 lg:px-12" id="page-content">
         <PluginFeatures />
         <PluginList />
         <PluginInstall />

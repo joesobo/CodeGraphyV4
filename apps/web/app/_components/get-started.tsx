@@ -48,7 +48,7 @@ export function GetStarted(): React.ReactElement {
 
         <ol className="mt-16 grid border-y border-border lg:grid-cols-3">
           {paths.map((path) => (
-            <li className="start-path flex min-h-80 flex-col border-b border-border py-8 last:border-b-0 lg:border-r lg:border-b-0 lg:px-8 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0 sm:py-10" key={path.number}>
+            <li className="start-path flex min-h-72 flex-col border-b border-border py-8 last:border-b-0 lg:border-r lg:border-b-0 lg:px-8 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0 sm:py-10" key={path.number}>
               <p className="font-heading text-6xl font-medium leading-none text-primary/35">{path.number}</p>
               <h3 className="mt-8 text-3xl font-medium leading-tight">{path.title}</h3>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">{path.summary}</p>

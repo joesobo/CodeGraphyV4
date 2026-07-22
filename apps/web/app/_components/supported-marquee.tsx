@@ -16,9 +16,6 @@ interface SupportedMarqueeItem {
 
 type SupportedMarqueeLabelMode = 'icon-only' | 'icon-with-label';
 
-const edgeFadeClassName =
-  'pointer-events-none absolute inset-y-0 z-10 w-12 from-background to-transparent sm:w-28';
-
 const iconOnlyExampleIds: readonly string[] = ['csharp', 'go', 'php', 'c', 'cpp'];
 
 const supportedItems: readonly SupportedMarqueeItem[] = exampleContent.map((example) => ({
@@ -49,9 +46,6 @@ function SupportedMarqueeTrack({
 
   return (
     <div className="relative overflow-hidden py-6">
-      <div className={cn(edgeFadeClassName, 'left-0 bg-linear-to-r')} />
-      <div className={cn(edgeFadeClassName, 'right-0 bg-linear-to-l')} />
-
       <div
         className={cn(
           'flex items-center',
@@ -107,7 +101,7 @@ function SupportedMarqueeLink({
     <Link
       aria-label={`Open ${item.label} example`}
       className={cn(
-        'flex items-center text-foreground transition-opacity hover:opacity-70',
+        'flex min-h-11 min-w-11 items-center text-foreground transition-opacity hover:opacity-70',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         iconOnly ? 'justify-center' : 'gap-3',
       )}

@@ -23,8 +23,8 @@ export function PluginsHeader(): React.ReactElement {
       description="Headless npm packages that teach the Core Package new language, framework, engine, document, and visual semantics. The extension renders the Relationship Graph they help build."
       eyebrow="Extend the graph"
       imageAlt=""
-      imagePosition="62% center"
-      imageSrc="/media/ocean-plugins-hero.jpg"
+      imagePosition="58% center"
+      imageSrc="/media/ocean-plugins-hero-v3.jpg"
       title="Plugins"
     />
   );

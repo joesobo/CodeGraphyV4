@@ -2,7 +2,6 @@ import { CodeBlock } from '@/components/code-block';
 import { Icon } from '@/components/icon';
 import { Link } from '@/components/link';
 import { MediaImage } from '@/components/media-image';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { PluginContent } from '@/content/plugins';
 import { cn } from '@/lib/utils';
@@ -22,7 +21,7 @@ export function PluginCard({
     <Card
       as="article"
       className={cn(
-        'catalog-card relative overflow-hidden rounded-[1.6rem] bg-card/70 transition-[border-color,background-color] duration-200 hover:border-primary/35 hover:bg-card',
+        'catalog-card relative overflow-hidden rounded-[1.6rem] bg-card',
         featured && 'xl:col-span-2',
       )}
       id={plugin.id}
@@ -39,23 +38,13 @@ export function PluginCard({
               <Icon className="size-7" src={plugin.iconUrl} />
             </span>
             <div className="min-w-0">
-              <h3 className="text-2xl font-medium">
-                <Link
-                  className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
-                  href={plugin.sourceHref}
-                  icon="github"
-                >
-                  {plugin.name}
-                </Link>
-              </h3>
+              <h3 className="text-2xl font-medium">{plugin.name}</h3>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <Link className="text-primary" href={plugin.npmHref} variant="text">
                   {plugin.packageName}
                 </Link>
                 {version ? (
-                  <Badge className="font-mono text-[0.7rem]" variant="secondary">
-                    v{version}
-                  </Badge>
+                  <span className="font-mono text-[0.7rem] text-muted-foreground">v{version}</span>
                 ) : null}
                 <Link
                   className="inline-flex items-center gap-1 text-sm font-semibold text-foreground transition-colors hover:text-primary"
@@ -71,20 +60,17 @@ export function PluginCard({
             {plugin.pluginId}
           </p>
           <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{plugin.summary}</p>
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {plugin.supported.map((item) => (
-              <li key={item}>
-                <Badge className="font-mono text-[0.66rem]" variant="secondary">{item}</Badge>
-              </li>
-            ))}
-          </ul>
+          <p className="mt-4 text-xs leading-5 text-muted-foreground">
+            <span className="font-semibold text-foreground">Supports:</span>{' '}
+            {plugin.supported.join(' · ')}
+          </p>
           <CodeBlock className="mt-5 text-xs">{installCommand}</CodeBlock>
         </div>
         {plugin.media ? (
           <MediaImage
             className="mt-5 h-64 rounded-2xl border border-border bg-secondary xl:mt-0 xl:h-full xl:min-h-72"
             fill
-            imageClassName="object-cover object-top"
+            imageClassName="object-contain object-center"
             media={plugin.media}
             sizes="(min-width: 1280px) 40vw, 100vw"
           />

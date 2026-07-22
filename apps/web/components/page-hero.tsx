@@ -15,9 +15,9 @@ interface PageHeroProps {
 }
 
 const heroSizeClassName: Record<NonNullable<PageHeroProps['size']>, string> = {
-  compact: 'min-h-[52svh] py-24 sm:min-h-[56svh] sm:py-28',
-  default: 'min-h-[66svh] py-28 sm:min-h-[72svh] sm:py-32',
-  tall: 'min-h-svh py-28 sm:py-32',
+  compact: 'min-h-[34rem] py-24 sm:min-h-[38rem] sm:py-28',
+  default: 'min-h-[40rem] py-24 sm:min-h-[44rem] sm:py-28',
+  tall: 'min-h-[44rem] py-24 sm:min-h-[48rem] sm:py-28',
 };
 
 export function PageHero({
@@ -50,16 +50,15 @@ export function PageHero({
         style={{ objectPosition: imagePosition }}
       />
       <div className={cn('absolute inset-0', tone === 'minimal' ? 'page-hero-grade-minimal' : 'page-hero-grade')} />
-      <div aria-hidden="true" className="ocean-current absolute inset-0 opacity-70"><span /><span /></div>
-      <div className="relative mx-auto grid w-full max-w-[90rem] gap-12 self-end lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.34fr)] lg:items-end lg:gap-24">
+      <div className="relative mx-auto grid w-full max-w-[90rem] gap-10 self-end lg:grid-cols-[minmax(0,1fr)_minmax(19rem,.38fr)] lg:items-end lg:gap-20">
         <div className="hero-copy">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#61d8ca]">{eyebrow}</p>
-          <h1 className="mt-5 max-w-5xl text-balance text-[clamp(4rem,8vw,8rem)] font-medium leading-[0.84] tracking-[-0.055em]">{title}</h1>
-          <p className="mt-6 max-w-[43rem] text-pretty text-base leading-7 text-white/72 sm:text-lg">{description}</p>
+          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8ce5da]">{eyebrow}</p>
+          <h1 className="mt-4 max-w-5xl text-balance text-[clamp(3.5rem,7.2vw,7.2rem)] font-medium leading-[0.88] tracking-[-0.05em]">{title}</h1>
+          <p className="mt-5 max-w-[43rem] text-pretty text-base leading-7 text-white/94 sm:text-lg">{description}</p>
           {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}
         </div>
         {aside ? (
-          <div className="hero-aside rounded-2xl border border-white/14 bg-black/15 p-5 text-sm leading-6 text-white/68 shadow-2xl backdrop-blur-md sm:p-6">
+          <div className="hero-aside border-t border-white/30 pt-5 text-sm leading-6 text-white/92 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
             {aside}
           </div>
         ) : null}
