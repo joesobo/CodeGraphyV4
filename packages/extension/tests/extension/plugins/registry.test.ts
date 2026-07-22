@@ -85,21 +85,28 @@ describe('ExtensionPluginRegistry', () => {
     expect(() => registry.notifyWebviewReady()).not.toThrow();
   });
 
-  it('continues initialization after one plugin fails and allows that plugin to retry', async () => {
+  it('unloads a failed partial runtime and continues with later plugins', async () => {
     const failure = new Error('initialize failed');
     const failingInitialize = vi.fn(async () => {
       throw failure;
     });
+    const onUnload = vi.fn();
     const laterInitialize = vi.fn(async () => undefined);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const registry = new ExtensionPluginRegistry();
-    registry.register(createPlugin({ id: 'acme.failing', initialize: failingInitialize }));
+    registry.register(createPlugin({
+      id: 'acme.failing',
+      initialize: failingInitialize,
+      onUnload,
+    }));
     registry.register(createPlugin({ id: 'acme.later', initialize: laterInitialize }));
 
     await expect(registry.initializeAll('/workspace')).resolves.toBeUndefined();
     await registry.initializeAll('/workspace');
 
-    expect(failingInitialize).toHaveBeenCalledTimes(2);
+    expect(failingInitialize).toHaveBeenCalledOnce();
+    expect(onUnload).toHaveBeenCalledOnce();
+    expect(registry.get('acme.failing')).toBeUndefined();
     expect(laterInitialize).toHaveBeenCalledOnce();
     expect(errorSpy).toHaveBeenCalledWith(
       '[CodeGraphy] Error initializing Extension plugin acme.failing:',

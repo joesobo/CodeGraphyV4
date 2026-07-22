@@ -92,6 +92,7 @@ export class ExtensionPluginRegistry {
           `[CodeGraphy] Error initializing Extension plugin ${info.plugin.id}:`,
           error,
         );
+        this.unregister(info.plugin.id);
       }
     }
   }
