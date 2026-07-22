@@ -9,7 +9,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { siteNavigation } from '@/content/navigation';
 import { cn, isRouteActive } from '@/lib/utils';
 
-const navbarItemClassName = 'flex min-h-10 items-center rounded-full px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a8c7ff]';
+const navbarItemClassName = 'flex min-h-10 items-center rounded-full px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-[#88b1ff]/18 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#88b1ff]';
 
 export function Navbar(): React.ReactElement {
   const pathname = usePathname();
@@ -32,7 +32,7 @@ export function Navbar(): React.ReactElement {
         className="flex min-h-11 shrink-0 items-center gap-2.5 text-white transition-opacity hover:opacity-80"
         href={siteNavigation.home.href}
       >
-        <span aria-hidden="true" className="codegraphy-symbol text-[1.8rem] text-[#a8c7ff]" />
+        <span aria-hidden="true" className="codegraphy-symbol text-[1.8rem] text-[#88b1ff]" />
         <span className="text-base font-semibold tracking-[-0.02em]">CodeGraphy</span>
       </Link>
 
@@ -43,7 +43,7 @@ export function Navbar(): React.ReactElement {
             <li key={item.href}>
               <Link
                 aria-current={active ? 'page' : undefined}
-                className={cn(navbarItemClassName, active && 'bg-white/10 text-white')}
+                className={cn(navbarItemClassName, active && 'bg-[#88b1ff] text-[#07182d] hover:bg-[#88b1ff] hover:text-[#07182d]')}
                 href={item.href}
               >
                 {item.label}

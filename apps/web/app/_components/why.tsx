@@ -55,7 +55,7 @@ export function Why(): React.ReactElement {
         <div className="mx-auto mt-14 grid max-w-6xl gap-6 border-t border-[#17283b]/12 pt-10 text-left dark:border-white/12 sm:grid-cols-3">
           {reasons.map((reason) => (
             <div key={reason.title}>
-              <span className="flex size-11 items-center justify-center rounded-full bg-[#f2f1eb] text-[#2859b5] dark:bg-white/8 dark:text-[#a8c7ff]">
+              <span className="flex size-11 items-center justify-center rounded-full bg-[#f2f1eb] text-[#2859b5] dark:bg-white/8 dark:text-[#88b1ff]">
                 <reason.icon aria-hidden="true" className="size-5" />
               </span>
               <h3 className="mt-4 text-base font-semibold">{reason.title}</h3>

@@ -51,7 +51,7 @@ function ExampleGroup({
         <h3 className="text-3xl font-medium">{title}</h3>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
-      <div className="grid items-start gap-5 xl:grid-cols-2">
+      <div className="grid items-start gap-5 lg:grid-cols-2 xl:grid-cols-3">
         {examples.map((example) => (
           <ExampleCard example={example} key={example.id} />
         ))}

@@ -54,7 +54,7 @@ export function Footer(): React.ReactElement {
               className="inline-flex min-h-11 items-center gap-3 text-lg font-semibold"
               href={homeHref}
             >
-              <span aria-hidden="true" className="codegraphy-symbol text-[1.7rem] text-[#a8c7ff]" />
+              <span aria-hidden="true" className="codegraphy-symbol text-[1.7rem] text-[#88b1ff]" />
               CodeGraphy
             </Link>
             <p className="mt-3 text-2xl font-medium leading-tight text-white">
@@ -68,7 +68,7 @@ export function Footer(): React.ReactElement {
           <div className="grid grid-cols-2 gap-8 sm:gap-12 lg:min-w-[24rem]">
             {footerColumns.map((column) => (
               <div key={column.title}>
-                <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#a8c7ff]">{column.title}</p>
+                <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#88b1ff]">{column.title}</p>
                 <ul className="mt-2 grid gap-0.5">
                   {column.links.map((link) => (
                     <li key={link.href}>

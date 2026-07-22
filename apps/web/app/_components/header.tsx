@@ -25,7 +25,7 @@ export function Header(): React.ReactElement {
             Local-first relationship graph
           </p>
           <h1 className="mt-5 max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.91] tracking-[-0.045em]">
-            Understand the code <em className="font-normal text-[#c8dcff]">beneath</em> the surface.
+            Understand the code <em className="font-normal text-[#88b1ff]">beneath</em> the surface.
           </h1>
         </div>
 

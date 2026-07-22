@@ -22,7 +22,6 @@ interface PointerPosition {
   active: boolean;
   currentX: number;
   currentY: number;
-  motion: number;
   targetX: number;
   targetY: number;
 }
@@ -67,12 +66,12 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
 
     const layout = createGraphLayoutEngine(graphData.input, {
       centralGravity: 0,
-      chargeDistanceMax: 250,
-      chargeStrength: -175,
+      chargeDistanceMax: 310,
+      chargeStrength: -205,
       collisionPadding: 6,
       initializationSpacing: 14,
-      linkDistance: 36,
-      linkStrength: 0.84,
+      linkDistance: 46,
+      linkStrength: 0.78,
       settleSpeed: 0.5,
       velocityDecay: 0.29,
     });
@@ -80,7 +79,6 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       active: false,
       currentX: 0,
       currentY: 0,
-      motion: 0,
       targetX: 0,
       targetY: 0,
     };
@@ -115,18 +113,9 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       }
 
       const scale = graphScale(canvasSize);
-      const nextTargetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
-      const nextTargetY = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-      if (wasActive) {
-        const distance = Math.hypot(
-          nextTargetX - pointer.targetX,
-          nextTargetY - pointer.targetY,
-        );
-        pointer.motion = Math.min(1, pointer.motion + distance / 72);
-      }
-      pointer.targetX = nextTargetX;
-      pointer.targetY = nextTargetY;
-      layout.reheat(pointer.motion > 0.18 ? 0.42 : 0.32);
+      pointer.targetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
+      pointer.targetY = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
+      layout.reheat(0.36);
     };
     window.addEventListener('pointermove', updatePointer, {
       passive: true,
@@ -255,10 +244,9 @@ function createSeededRandom(seed: number): () => number {
 }
 
 function updatePointerCenter(pointer: PointerPosition): void {
-  const smoothing = pointer.active ? 0.32 : 0.09;
+  const smoothing = pointer.active ? 0.4 : 0.1;
   pointer.currentX += (pointer.targetX - pointer.currentX) * smoothing;
   pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
-  pointer.motion *= pointer.active ? 0.84 : 0.72;
 }
 
 function createPointerGravity(
@@ -267,22 +255,32 @@ function createPointerGravity(
 ): GraphLayoutExternalForce {
   return {
     beforeIntegration: alpha => {
-      const effectiveAlpha = Math.max(alpha, pointer.active ? 0.22 : 0.12);
-      const restingStrength = pointer.active ? 0.03 : 0.009;
-      const centerStrength = (restingStrength - pointer.motion * 0.022) * effectiveAlpha;
-      const expansionStrength = pointer.active
-        ? pointer.motion * 1.15 * effectiveAlpha
-        : 0;
+      let centerX = 0;
+      let centerY = 0;
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
-        const offsetX = layout.x[index] - pointer.currentX;
-        const offsetY = layout.y[index] - pointer.currentY;
-        const distance = Math.max(1, Math.hypot(offsetX, offsetY));
+        centerX += layout.x[index];
+        centerY += layout.y[index];
+      }
 
-        layout.vx[index] -= offsetX * centerStrength;
-        layout.vy[index] -= offsetY * centerStrength;
-        layout.vx[index] += (offsetX / distance) * expansionStrength;
-        layout.vy[index] += (offsetY / distance) * expansionStrength;
+      centerX /= layout.nodeIds.length;
+      centerY /= layout.nodeIds.length;
+
+      const effectiveAlpha = Math.max(alpha, pointer.active ? 0.2 : 0.12);
+      const followStrength = (pointer.active ? 0.055 : 0.025) * effectiveAlpha;
+      const maxImpulse = pointer.active ? 4.8 : 2.8;
+      const impulseX = Math.max(
+        -maxImpulse,
+        Math.min(maxImpulse, (pointer.currentX - centerX) * followStrength),
+      );
+      const impulseY = Math.max(
+        -maxImpulse,
+        Math.min(maxImpulse, (pointer.currentY - centerY) * followStrength),
+      );
+
+      for (let index = 0; index < layout.nodeIds.length; index += 1) {
+        layout.vx[index] += impulseX;
+        layout.vy[index] += impulseY;
       }
     },
   };

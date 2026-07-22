@@ -21,6 +21,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-action-hover: var(--action-hover);
   --color-example-graph-surface: var(--example-graph-surface);
   --color-graph-surface: var(--graph-surface);
 
@@ -64,9 +67,12 @@
   --example-graph-surface: #eef0f4;
   --graph-surface: #eaedf2;
   --depth-surface: #e9edf2;
-  --install: #c8dcff;
-  --install-hover: #b4ccf8;
-  --install-foreground: #17283b;
+  --action: #88b1ff;
+  --action-hover: #74a3f5;
+  --action-foreground: #07182d;
+  --install: var(--action);
+  --install-hover: var(--action-hover);
+  --install-foreground: var(--action-foreground);
   --brand-mark: url("/codegraphy.svg");
   --font-family-sans: var(--font-dm-sans, "DM Sans"), ui-sans-serif, system-ui, sans-serif;
   --font-family-heading: var(--font-newsreader, "Newsreader"), Georgia, serif;
@@ -101,7 +107,7 @@
   --destructive: #ff7d72;
   --border: rgb(218 231 247 / 15%);
   --input: rgb(218 231 247 / 24%);
-  --ring: #a8c7ff;
+  --ring: #88b1ff;
   --example-graph-surface: #0b1b2c;
   --graph-surface: #0b1b2c;
   --depth-surface: #091827;
@@ -408,7 +414,7 @@ button {
 }
 
 .hero-console code span {
-  color: #a8c7ff;
+  color: #88b1ff;
 }
 
 .hero-console-command {
@@ -617,15 +623,13 @@ button {
   justify-self: start;
 }
 
-.depth-media img,
-.catalog-card img {
+.depth-media img {
   outline: 1px solid rgb(0 0 0 / 10%);
   outline-offset: -1px;
   transition: opacity 180ms ease-out;
 }
 
-.dark .depth-media img,
-.dark .catalog-card img {
+.dark .depth-media img {
   outline-color: rgb(255 255 255 / 10%);
 }
 

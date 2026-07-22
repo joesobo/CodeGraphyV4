@@ -92,7 +92,7 @@ function CoreCard(): React.ReactElement {
           <Database aria-hidden="true" className="size-5" />
         </span>
         <div className="min-w-0">
-          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a8c7ff]">
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#88b1ff]">
             Core engine
           </p>
           <h3 className="truncate font-mono text-base font-semibold">@codegraphy-dev/core</h3>

@@ -3,8 +3,8 @@ import type { ExampleContent } from '@/content/examples';
 
 export function ExampleImage({ example }: { example: ExampleContent }): React.ReactElement {
   return (
-    <div className="h-64 w-full shrink-0 bg-example-graph-surface p-4">
-      <div className="relative h-full overflow-hidden rounded-xl bg-example-graph-surface">
+    <div className="h-72 w-full shrink-0 bg-example-graph-surface p-3">
+      <div className="relative h-full overflow-hidden rounded-[1.1rem] bg-example-graph-surface">
         <MediaImage
           className="absolute inset-0"
           fill
