@@ -16,7 +16,7 @@ export function ExampleCard({ example }: { example: ExampleContent }): React.Rea
   return (
     <Card
       as="article"
-      className="catalog-card grid h-full overflow-hidden rounded-[1.6rem] bg-card"
+      className="catalog-card grid overflow-hidden rounded-[1.6rem] bg-card"
       id={example.id}
     >
       <ExampleImage example={example} />
@@ -37,7 +37,7 @@ export function ExampleCard({ example }: { example: ExampleContent }): React.Rea
           <span className="font-semibold text-foreground">Includes:</span>{' '}
           {example.supported.join(' · ')}
         </p>
-        <div className="mt-auto flex flex-wrap items-center gap-4 border-t border-border pt-4">
+        <div className="mt-auto flex flex-wrap items-center gap-4 pt-5">
           {pluginHref ? (
             <Link href={pluginHref} variant="text">
               {example.name} Plugin

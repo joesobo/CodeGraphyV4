@@ -17,17 +17,16 @@ const installPluginCommand: string = [
 
 export function PluginInstall(): React.ReactElement {
   return (
-    <section className="grid gap-12" id="install">
-      <SectionHeader
-        title="Install a Plugin"
-        description="Set the CodeGraphy Workspace, package, and Plugin ID for the Plugin you want, then run the same install flow."
-      />
-      <div className="grid max-w-3xl gap-4 rounded-3xl border border-border bg-card/75 p-6 shadow-sm sm:p-8">
-        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          This example installs the Vue Plugin. Swap the workspace path, package, and Plugin ID for
-          another Plugin; install, register, enable, and Indexing stay in the same order.
-        </p>
-        <CodeBlock className="p-4 text-xs leading-5">
+    <section className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start lg:gap-14" id="install">
+      <div className="lg:sticky lg:top-28">
+        <p className="section-kicker mb-4">Plugin setup</p>
+        <SectionHeader
+          title="Install once. Enable per workspace."
+          description="This Vue example shows the full flow. Change the package and Plugin ID for another official Plugin."
+        />
+      </div>
+      <div className="rounded-3xl bg-card p-4 shadow-sm sm:p-6">
+        <CodeBlock className="border-0 bg-secondary p-4 text-xs leading-5 sm:p-5">
           {installPluginCommand}
         </CodeBlock>
       </div>

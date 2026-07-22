@@ -7,7 +7,7 @@ interface DiveChapter {
   detail: string;
   index: string;
   media: Media;
-  mediaAspect?: 'wide';
+  mediaAspect?: 'square' | 'wide';
   title: string;
 }
 
@@ -18,6 +18,7 @@ const chapters = [
     description:
       'Index files, folders, packages, and symbols into one local Relationship Graph. Start wide, then follow the connections that matter.',
     detail: 'One graph cache · local source · no upload',
+    mediaAspect: 'square',
     media: {
       alt: 'Animation of CodeGraphy switching between workspace graph views',
       src: '/media/features/view-modes-light.gif',
@@ -32,6 +33,7 @@ const chapters = [
     description:
       'Pan, zoom, focus, and expand the graph as a living system. Physics reveals clusters and paths that a folder tree cannot show.',
     detail: 'WebGPU renderer · WebAssembly physics',
+    mediaAspect: 'square',
     media: {
       alt: 'Force-directed CodeGraphy Relationship Graph',
       src: '/media/features/force-graph-light.gif',
@@ -59,6 +61,7 @@ const chapters = [
     description:
       'Plugins add framework, engine, document, and visual semantics through typed contracts while Core keeps one consistent graph model.',
     detail: 'Plugin API v3 · package-owned semantics',
+    mediaAspect: 'square',
     media: {
       alt: 'Plugin-owned node and edge types in CodeGraphy Graph Scope',
       src: '/media/features/plugin-graph-scope-light.gif',
@@ -90,14 +93,18 @@ export function ProductDive(): React.ReactElement {
               <p>{chapter.description}</p>
               <span>{chapter.detail}</span>
             </div>
-            <div className="depth-media-shell">
+            <div className={cn('depth-media-shell', chapter.mediaAspect === 'square' && 'depth-media-shell-square')}>
               <div className="depth-media-toolbar">
                 <span className="depth-signal" />
                 <span>VS Code · CodeGraphy Workspace</span>
                 <span>{chapter.index}</span>
               </div>
               <MediaImage
-                className={cn('depth-media', chapter.mediaAspect === 'wide' && 'depth-media-wide')}
+                className={cn(
+                  'depth-media',
+                  chapter.mediaAspect === 'wide' && 'depth-media-wide',
+                  chapter.mediaAspect === 'square' && 'depth-media-square',
+                )}
                 height={1000}
                 imageClassName="h-full w-full object-contain object-center"
                 media={chapter.media}

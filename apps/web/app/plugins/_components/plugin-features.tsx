@@ -38,16 +38,18 @@ const pluginFeatures: { icon: MaterialSymbolsComponent; title: string; summary: 
 
 export function PluginFeatures(): React.ReactElement {
   return (
-    <section className="grid gap-12" id="features">
+    <section className="grid gap-9" id="features">
       <SectionHeader
         title="More meaning, without a heavier Core."
         description="Plugins enrich the Relationship Graph through a typed, headless contract while the Core Package keeps Indexing, caching, queries, and lifecycle behavior consistent."
       />
-      <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-x-10 gap-y-9 sm:grid-cols-2 xl:grid-cols-3">
         {pluginFeatures.map((capability) => (
-          <article className="border-t border-border pt-5" key={capability.title}>
-            <capability.icon aria-hidden="true" className="size-5 text-primary" />
-            <h3 className="mt-5 text-xl font-medium">{capability.title}</h3>
+          <article key={capability.title}>
+            <span className="grid size-10 place-items-center rounded-xl bg-secondary">
+              <capability.icon aria-hidden="true" className="size-5 text-primary" />
+            </span>
+            <h3 className="mt-4 text-xl font-medium">{capability.title}</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{capability.summary}</p>
           </article>
         ))}

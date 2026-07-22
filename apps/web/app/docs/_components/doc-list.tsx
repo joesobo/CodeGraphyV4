@@ -4,12 +4,12 @@ import { docsGroups } from '@/content/docs';
 
 export function DocList(): React.ReactElement {
   return (
-    <section className="grid gap-16">
+    <section className="grid gap-14">
       <SectionHeader title="Documentation that stays close to the code." description="Start with the product guides, move into the Core CLI or Agent Skill, then go as deep as the Plugin contracts require." />
 
       {docsGroups.map((group, groupIndex) => (
         <section
-          className="grid gap-8 border-t border-border pt-8 lg:grid-cols-[minmax(15rem,.42fr)_minmax(0,1fr)] lg:gap-16"
+          className="grid gap-8 lg:grid-cols-[minmax(15rem,.42fr)_minmax(0,1fr)] lg:gap-16"
           key={group.title}
         >
           <div className="lg:sticky lg:top-28 lg:self-start">
@@ -20,10 +20,10 @@ export function DocList(): React.ReactElement {
             <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{group.summary}</p>
           </div>
 
-          <div className="divide-y divide-border border-y border-border">
+          <div className="grid gap-2">
             {group.links.map((link, linkIndex) => (
               <Link
-                className="group grid gap-3 py-5 transition-colors hover:bg-secondary/35 focus-visible:bg-secondary/35 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:items-start sm:px-4"
+                className="group grid gap-3 rounded-2xl bg-card px-4 py-5 shadow-xs transition-colors hover:bg-secondary/55 focus-visible:bg-secondary/55 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:items-start"
                 href={link.href}
                 id={link.id}
                 key={link.href}

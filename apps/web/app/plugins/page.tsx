@@ -17,10 +17,10 @@ export default function PluginsPage(): React.ReactElement {
   return (
     <div className="route-surface w-full min-w-0">
       <PluginsHeader />
-      <div className="mx-auto w-full max-w-[90rem] px-5 py-20 sm:px-8 sm:py-24 lg:px-12" id="page-content">
+      <div className="mx-auto w-full max-w-[90rem] px-5 py-16 sm:px-8 sm:py-20 lg:px-12" id="page-content">
         <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-10">
           <PageSidebar nav={pluginNavGroups} />
-          <div className="grid min-w-0 gap-20 sm:gap-24">
+          <div className="grid min-w-0 gap-16 sm:gap-20">
             <PluginFeatures />
             <PluginList />
             <PluginInstall />

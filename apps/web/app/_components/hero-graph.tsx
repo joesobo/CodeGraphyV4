@@ -58,15 +58,15 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     if (!context) return;
 
     const layout = createGraphLayoutEngine(graphInput, {
-      centralGravity: 0.025,
-      chargeDistanceMax: 360,
-      chargeStrength: -230,
-      collisionPadding: 7,
+      centralGravity: 0.052,
+      chargeDistanceMax: 340,
+      chargeStrength: -270,
+      collisionPadding: 8,
       initializationSpacing: 18,
-      linkDistance: 52,
-      linkStrength: 0.68,
+      linkDistance: 48,
+      linkStrength: 0.78,
       settleSpeed: 0.5,
-      velocityDecay: 0.3,
+      velocityDecay: 0.32,
     });
     const pointer: PointerPosition = { active: false, x: 0, y: 0 };
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -96,7 +96,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       const scale = graphScale(canvasSize);
       pointer.x = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
       pointer.y = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-      layout.reheat(0.26);
+      layout.reheat(0.32);
     };
     window.addEventListener('pointermove', updatePointer, {
       passive: true,
@@ -139,10 +139,10 @@ function createGraphInput(): GraphLayoutInput {
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
   const clusterCenters: readonly [number, number][] = [
-    [-220, -130],
-    [210, -140],
-    [-210, 145],
-    [220, 135],
+    [-185, -105],
+    [185, -110],
+    [-175, 115],
+    [180, 110],
   ];
 
   for (let cluster = 0; cluster < CLUSTER_COUNT; cluster += 1) {
@@ -152,9 +152,9 @@ function createGraphInput(): GraphLayoutInput {
     for (let localIndex = 0; localIndex < NODES_PER_CLUSTER; localIndex += 1) {
       const index = hubIndex + localIndex;
       const angle = (localIndex / (NODES_PER_CLUSTER - 1)) * Math.PI * 2 + cluster * 0.42;
-      const orbit = localIndex === 0 ? 0 : localIndex % 2 === 0 ? 58 : 86;
+      const orbit = localIndex === 0 ? 0 : localIndex % 2 === 0 ? 52 : 76;
 
-      radii[index] = localIndex === 0 ? 16 : localIndex % 4 === 0 ? 10 : 6.5;
+      radii[index] = localIndex === 0 ? 18 : localIndex % 4 === 0 ? 11 : 7.5;
       chargeStrengthMultipliers[index] = localIndex === 0 ? 1.45 : 0.72;
       initialX[index] = centerX + Math.cos(angle) * orbit;
       initialY[index] = centerY + Math.sin(angle) * orbit;
@@ -167,6 +167,20 @@ function createGraphInput(): GraphLayoutInput {
         edgeTargets.push(index);
       }
     }
+  }
+
+  // A few cross-cluster relationships make this one graph without flattening
+  // the dense local neighborhoods that give each cluster its shape.
+  const clusterBridges: readonly [number, number][] = [
+    [4, 20],
+    [10, 30],
+    [23, 43],
+    [36, 47],
+    [7, 42],
+  ];
+  for (const [source, target] of clusterBridges) {
+    edgeSources.push(source);
+    edgeTargets.push(target);
   }
 
   return {
@@ -196,7 +210,7 @@ function createPointerForce(
         if (distanceSquared >= influenceRadiusSquared || distanceSquared < 0.01) continue;
 
         const distance = Math.sqrt(distanceSquared);
-        const strength = (1 - distance / influenceRadius) * 1.5 * alpha;
+        const strength = (1 - distance / influenceRadius) * 1.8 * alpha;
         layout.vx[index] += (dx / distance) * strength;
         layout.vy[index] += (dy / distance) * strength;
       }
@@ -248,7 +262,7 @@ function drawGraph(
   }
 
   for (let index = 0; index < layout.nodeIds.length; index += 1) {
-    const radius = Math.max(4, layout.radii[index] * 0.68);
+    const radius = Math.max(4.5, layout.radii[index] * 0.76);
     context.beginPath();
     context.arc(layout.x[index], layout.y[index], radius, 0, Math.PI * 2);
     context.fillStyle = index % NODES_PER_CLUSTER === 0

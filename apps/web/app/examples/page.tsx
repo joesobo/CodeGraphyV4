@@ -12,7 +12,7 @@ export default function ExamplesPage(): React.ReactElement {
   return (
     <div className="route-surface w-full min-w-0">
       <ExamplesHeader />
-      <div className="mx-auto w-full max-w-[90rem] px-5 py-20 sm:px-8 sm:py-24 lg:px-12" id="page-content"><ExampleList /></div>
+      <div className="mx-auto w-full max-w-[90rem] px-5 py-16 sm:px-8 sm:py-20 lg:px-12" id="page-content"><ExampleList /></div>
     </div>
   );
 }

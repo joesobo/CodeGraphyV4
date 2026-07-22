@@ -38,10 +38,10 @@ export function MediaImage({ media, ...props }: MediaImageProps): React.ReactEle
 
   return (
     <>
-      <div className="contents dark:hidden">
+      <div className="w-full dark:hidden">
         <SingleMediaImage media={light} {...props} />
       </div>
-      <div className="hidden dark:contents">
+      <div className="hidden w-full dark:block">
         <SingleMediaImage
           media={{ alt: light.alt, src: darkSrc, posterSrc: darkPosterSrc }}
           {...props}
@@ -63,14 +63,12 @@ function SingleMediaImage({
   const descriptionId = useId();
   const [loadedSources, setLoadedSources] = useState<ReadonlySet<string>>(() => new Set());
   const [hovered, setHovered] = useState(false);
-  const [pressed, setPressed] = useState(false);
+  const [playSelection, setPlaySelection] = useState<boolean | null>(null);
   const reduceMotion = usePrefersReducedMotion(animated);
 
-  const playing = animated && (hovered || pressed) && !reduceMotion;
-  // The base image is the poster when one exists; the playing GIF overlays it.
-  const baseSrc = animated && posterSrc ? posterSrc : src;
-  const baseLoaded = loadedSources.has(baseSrc);
-  const overlaying = playing && baseSrc !== src;
+  const playing = animated && (playSelection ?? hovered) && !reduceMotion;
+  const activeSrc = animated && !playing && posterSrc ? posterSrc : src;
+  const activeLoaded = loadedSources.has(activeSrc);
 
   function markSourceLoaded(source: string): void {
     setLoadedSources((current) =>
@@ -78,42 +76,48 @@ function SingleMediaImage({
     );
   }
 
+  const animatedImageProps = {
+    priority: imageProps.priority,
+    sizes: imageProps.sizes,
+  } satisfies Pick<ImageProps, 'priority' | 'sizes'>;
+
   const mediaLayers = (
     <>
-      {baseLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
-      <Image
-        alt={alt}
-        aria-hidden={overlaying ? 'true' : undefined}
-        className={cn(
-          'transition-opacity duration-300',
-          baseLoaded ? 'opacity-100' : 'opacity-0',
-          imageClassName,
-        )}
-        onLoad={() => markSourceLoaded(baseSrc)}
-        src={baseSrc}
-        unoptimized={animated && baseSrc === src}
-        {...imageProps}
-      />
-      {overlaying ? (
+      {activeLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
+      {animated ? (
         <Image
-          alt=""
+          alt={alt}
           className={cn(
-            'transition-opacity duration-150',
-            loadedSources.has(src) ? 'opacity-100' : 'opacity-0',
+            'transition-opacity duration-200',
+            activeLoaded ? 'opacity-100' : 'opacity-0',
             imageClassName,
           )}
-          onLoad={() => markSourceLoaded(src)}
-          src={src}
-          unoptimized
+          fill
+          key={activeSrc}
+          onLoad={() => markSourceLoaded(activeSrc)}
+          src={activeSrc}
+          unoptimized={activeSrc.endsWith('.gif')}
+          {...animatedImageProps}
+        />
+      ) : (
+        <Image
+          alt={alt}
+          className={cn(
+            'transition-opacity duration-200',
+            activeLoaded ? 'opacity-100' : 'opacity-0',
+            imageClassName,
+          )}
+          onLoad={() => markSourceLoaded(activeSrc)}
+          src={activeSrc}
           {...imageProps}
         />
-      ) : null}
+      )}
       {animated && !reduceMotion ? (
         <span
           aria-hidden="true"
-          className="absolute right-3 bottom-3 rounded-full border border-white/18 bg-[#071421]/88 px-3 py-1.5 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white shadow-sm backdrop-blur-sm"
+          className="absolute right-3 bottom-3 grid size-9 place-items-center rounded-full border border-white/24 bg-[#071421]/82 text-xs text-white shadow-sm backdrop-blur-sm"
         >
-          {playing ? 'Playing' : 'Play preview'}
+          {playing ? 'Ⅱ' : '▶'}
         </span>
       ) : null}
     </>
@@ -141,14 +145,14 @@ function SingleMediaImage({
       aria-label={`${playing ? 'Pause' : 'Play'} ${alt}`}
       aria-pressed={playing}
       className={cn(
-        'relative block overflow-hidden border-0 p-0 text-left transition-transform duration-200 active:scale-[0.99]',
+        'relative block w-full overflow-hidden border-0 p-0 text-left transition-transform duration-200 active:scale-[0.99]',
         className,
       )}
       onBlur={() => {
         setHovered(false);
-        setPressed(false);
+        setPlaySelection(null);
       }}
-      onClick={() => setPressed((current) => !current)}
+      onClick={() => setPlaySelection(!playing)}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       type="button"

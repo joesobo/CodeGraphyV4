@@ -11,7 +11,7 @@ const graphQuestions = [
 
 export function Agents(): React.ReactElement {
   return (
-    <section className="agents-scene relative flex items-center overflow-hidden px-5 py-20 sm:px-8 sm:py-24 lg:px-12" id="agents">
+    <section className="agents-scene relative flex items-center overflow-hidden px-5 py-12 sm:px-8 sm:py-16 lg:px-12" id="agents">
       <div className="relative mx-auto grid w-full max-w-[90rem] gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
         <div className="max-w-xl [&_.section-kicker]:text-primary [&_h2]:text-foreground [&_p]:text-muted-foreground">
           <p className="section-kicker mb-4">For agents</p>
@@ -33,26 +33,26 @@ export function Agents(): React.ReactElement {
           </div>
         </div>
 
-        <div className="agent-terminal overflow-hidden rounded-3xl bg-[#0b1a2b] text-white">
-          <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4">
+        <div className="agent-terminal overflow-hidden rounded-3xl bg-card text-card-foreground">
+          <div className="flex items-center gap-2 border-b border-border px-5 py-4">
             <span className="size-2.5 rounded-full bg-[#ff776d]" />
             <span className="size-2.5 rounded-full bg-[#f5c15d]" />
             <span className="size-2.5 rounded-full bg-[#7da8f5]" />
-            <span className="ml-3 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-white/64">codegraphy — zsh</span>
+            <span className="ml-3 font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">codegraphy — zsh</span>
           </div>
           <div className="grid gap-7 p-5 sm:p-7">
             <div>
-              <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#a8c7ff]">Build the local map</p>
-              <CodeBlock className="mt-3 border-white/14 bg-black/30 text-sm leading-6 text-white [&_button]:text-white [&_pre]:break-words [&_pre]:whitespace-pre-wrap [&_pre]:text-white">{`npm install --global @codegraphy-dev/core@latest
+              <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary">Build the local map</p>
+              <CodeBlock className="mt-3 bg-secondary text-sm leading-6 text-foreground [&_pre]:break-words [&_pre]:whitespace-pre-wrap">{`npm install --global @codegraphy-dev/core@latest
 codegraphy index`}</CodeBlock>
             </div>
             <div>
-              <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#a8c7ff]">Ask one bounded question</p>
-              <CodeBlock className="mt-3 border-white/14 bg-black/30 text-sm leading-6 text-white [&_button]:text-white [&_pre]:break-words [&_pre]:whitespace-pre-wrap [&_pre]:text-white">codegraphy dependencies packages/core/src/cli/command.ts</CodeBlock>
+              <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary">Ask one bounded question</p>
+              <CodeBlock className="mt-3 bg-secondary text-sm leading-6 text-foreground [&_pre]:break-words [&_pre]:whitespace-pre-wrap">codegraphy dependencies packages/core/src/cli/command.ts</CodeBlock>
             </div>
             <ul className="agent-questions grid gap-2 sm:grid-cols-3">
               {graphQuestions.map((question) => (
-                <li className="border-l border-white/28 py-1 pl-3 text-xs leading-5 text-white/78" key={question}>
+                <li className="rounded-xl bg-secondary px-3 py-2 text-xs leading-5 text-muted-foreground" key={question}>
                   {question}
                 </li>
               ))}

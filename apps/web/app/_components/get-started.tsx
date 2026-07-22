@@ -35,7 +35,7 @@ const paths = [
 
 export function GetStarted(): React.ReactElement {
   return (
-    <section className="start-scene px-5 py-20 sm:px-8 sm:py-24 lg:px-12" id="get-started">
+    <section className="start-scene px-5 py-16 sm:px-8 sm:py-20 lg:px-12" id="get-started">
       <div className="mx-auto max-w-[90rem]">
         <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
           <div>
@@ -51,9 +51,9 @@ export function GetStarted(): React.ReactElement {
           </div>
         </div>
 
-        <ol className="mt-12 grid border-y border-border lg:grid-cols-3">
+        <ol className="mt-10 grid gap-4 lg:grid-cols-3">
           {paths.map((path) => (
-            <li className="start-path flex min-h-64 flex-col border-b border-border py-8 last:border-b-0 lg:border-r lg:border-b-0 lg:px-8 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0 sm:py-9" key={path.number}>
+            <li className="start-path flex min-h-64 flex-col rounded-3xl bg-card p-6 shadow-xs sm:p-7" key={path.number}>
               <p className="font-heading text-6xl font-medium leading-none text-primary/35">{path.number}</p>
               <h3 className="mt-8 text-3xl font-medium leading-tight">{path.title}</h3>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">{path.summary}</p>

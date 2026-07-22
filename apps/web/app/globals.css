@@ -300,11 +300,18 @@ a {
 }
 
 .page-hero-grade {
-  background: rgb(3 15 35 / 38%);
+  background: rgb(3 15 35 / 52%);
 }
 
 .page-hero-grade-minimal {
-  background: rgb(3 15 35 / 44%);
+  background: rgb(3 15 35 / 56%);
+}
+
+.page-hero-title,
+.page-hero-description,
+.home-hero .hero-copy,
+.home-hero .hero-aside {
+  text-shadow: 0 2px 20px rgb(0 7 18 / 74%), 0 1px 3px rgb(0 7 18 / 88%);
 }
 
 .hero-console {
@@ -329,7 +336,7 @@ a {
 }
 
 .language-marquee-track {
-  animation: supported-marquee-scroll 38s linear infinite;
+  animation: supported-marquee-scroll 48s linear infinite;
 }
 
 .language-marquee:hover .language-marquee-track,
@@ -338,13 +345,13 @@ a {
 }
 
 .language-marquee-item {
-  transition: background-color 180ms ease, color 180ms ease, transform 160ms var(--ease-out);
+  transition: color 180ms ease, transform 180ms var(--ease-out);
 }
 
 .language-marquee-item:hover,
 .language-marquee-item:focus-visible {
-  background: var(--secondary);
   color: var(--primary);
+  transform: translateY(-2px);
 }
 
 .language-marquee-item:active {
@@ -399,13 +406,13 @@ a {
 
 .depth-sequence {
   position: relative;
-  padding: clamp(4rem, 6vw, 6rem) max(1.25rem, calc((100vw - 90rem) / 2 + 3rem));
+  padding: clamp(3.5rem, 5vw, 5rem) max(1.25rem, calc((100vw - 90rem) / 2 + 3rem));
   overflow: clip;
 }
 
 .depth-intro {
   max-width: 63rem;
-  margin-bottom: clamp(2.75rem, 5vw, 4.5rem);
+  margin-bottom: clamp(2rem, 3vw, 3rem);
 }
 
 .depth-intro h2 {
@@ -429,13 +436,16 @@ a {
   display: grid;
 }
 
+.depth-scene:last-child {
+  padding-bottom: 0;
+}
+
 .depth-scene {
   display: grid;
   grid-template-columns: minmax(15rem, 0.4fr) minmax(0, 1fr);
   gap: clamp(2.5rem, 6vw, 7rem);
   align-items: center;
-  padding-block: clamp(2.75rem, 4.5vw, 4.5rem);
-  border-top: 1px solid var(--border);
+  padding-block: clamp(2.25rem, 3.5vw, 3.5rem);
 }
 
 .depth-scene:nth-child(even) {
@@ -483,8 +493,6 @@ a {
 .depth-copy span {
   display: block;
   margin-top: 1.5rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--border);
   color: var(--muted-foreground);
   font-size: 0.62rem;
   line-height: 1.6;
@@ -527,6 +535,19 @@ a {
   aspect-ratio: 20 / 7;
 }
 
+.depth-media-square {
+  aspect-ratio: 1;
+}
+
+.depth-media-shell-square {
+  width: min(100%, 42rem);
+  justify-self: end;
+}
+
+.depth-scene:nth-child(even) .depth-media-shell-square {
+  justify-self: start;
+}
+
 .depth-media img,
 .catalog-card img {
   outline: 1px solid rgb(0 0 0 / 10%);
@@ -540,13 +561,12 @@ a {
 }
 
 .agents-scene {
-  border-block: 1px solid var(--border);
   background: var(--background);
 }
 
 .agent-terminal {
   position: relative;
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 10%), 0 28px 72px rgb(0 0 0 / 28%);
+  box-shadow: var(--elevation-md);
 }
 
 .start-path {
@@ -601,11 +621,17 @@ a {
   .depth-copy {
     max-width: 38rem;
   }
+
+  .depth-media-shell-square,
+  .depth-scene:nth-child(even) .depth-media-shell-square {
+    width: 100%;
+    justify-self: stretch;
+  }
 }
 
 @media (max-width: 640px) {
   .hero-graph {
-    opacity: 0.78;
+    opacity: 0.66;
   }
 
   .hero-console {

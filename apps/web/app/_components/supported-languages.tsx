@@ -11,7 +11,7 @@ export function SupportedLanguages(): React.ReactElement {
   const reduceMotion = usePrefersReducedMotion();
 
   return (
-    <section className="grid min-w-0 w-full gap-9" id="language-coverage">
+    <section className="grid min-w-0 w-full gap-8" id="language-coverage">
       <div className="mx-auto w-full max-w-[90rem] px-5 sm:px-8 lg:px-12">
         <p className="section-kicker mb-4 text-primary">Language coverage</p>
         <SectionHeader
@@ -20,7 +20,7 @@ export function SupportedLanguages(): React.ReactElement {
         />
       </div>
 
-      <div className="language-marquee w-full min-w-0 overflow-hidden border-y border-border bg-card py-4 sm:py-5">
+      <div className="language-marquee w-full min-w-0 overflow-hidden py-2 sm:py-3">
         <div
           className={cn(
             'flex items-center',
@@ -51,20 +51,20 @@ function LanguageSequence({
       aria-hidden={isHidden || undefined}
       aria-label={isHidden ? undefined : 'Supported languages and project types'}
       className={cn(
-        'flex items-center gap-4 pr-4 sm:gap-5 sm:pr-5',
-        reduceMotion && 'flex-wrap justify-center gap-y-3 pr-0 sm:pr-0',
+        'flex items-center gap-10 pr-10 sm:gap-14 sm:pr-14',
+        reduceMotion && 'flex-wrap justify-center gap-y-6 pr-0 sm:pr-0',
       )}
     >
       {items.map((item) => (
         <li className="shrink-0" key={item.id}>
           <Link
             aria-label={`Open ${item.name} example`}
-            className="language-marquee-item flex min-h-12 items-center gap-2.5 border-r border-border px-5 text-foreground focus-visible:relative focus-visible:z-10 sm:min-h-14 sm:px-7"
+            className="language-marquee-item flex min-h-14 items-center gap-3 text-foreground focus-visible:relative focus-visible:z-10"
             href={item.href}
             tabIndex={isHidden ? -1 : undefined}
           >
-            <Icon className="size-5 shrink-0 text-primary sm:size-6" src={item.iconUrl} variant="mono" />
-            <span className="whitespace-nowrap text-base font-semibold tracking-[-0.01em] sm:text-lg">
+            <Icon className="size-7 shrink-0 text-primary sm:size-9" src={item.iconUrl} variant="mono" />
+            <span className="whitespace-nowrap text-lg font-medium tracking-[-0.02em] sm:text-2xl">
               {item.name}
             </span>
           </Link>
