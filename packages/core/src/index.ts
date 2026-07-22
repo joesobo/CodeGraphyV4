@@ -273,7 +273,9 @@ export {
 } from './plugins/packageRuntime';
 export { importCodeGraphyPluginPackageModule } from './plugins/packageLoad';
 export {
+  mergePluginOptions,
   readCodeGraphyCorePluginDescriptorData,
+  readCodeGraphyPluginDescriptorDefaultOptions,
 } from './plugins/packageOptions';
 export type {
   CodeGraphyCorePluginDescriptorData,

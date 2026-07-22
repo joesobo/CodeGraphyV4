@@ -72,6 +72,53 @@ export default function createPlugin() {
   );
 }
 
+export async function createExtensionDataHostPluginPackage(packageRoot: string): Promise<void> {
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-extension-data-host',
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.extension-data-host',
+          host: 'codegraphy.extension',
+          entry: './plugin.js',
+          apiVersion: '^1.0.0',
+          data: {
+            defaultOptions: {
+              mode: 'default',
+              defaultOnly: true,
+            },
+          },
+        }],
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+export default function createPlugin(factoryOptions = {}) {
+  return {
+    id: 'acme.extension-data-host',
+    name: 'Extension Data Host',
+    version: '1.0.0',
+    apiVersion: '^1.0.0',
+    async initialize() {
+      if (!factoryOptions.dataHost) {
+        throw new Error('Expected Extension plugin data host.');
+      }
+      await factoryOptions.dataHost.saveData(factoryOptions.options);
+    }
+  };
+}
+`,
+    'utf-8',
+  );
+}
+
 export async function createIncompatibleExtensionPluginPackageWithRuntimeMarkers(
   packageRoot: string,
 ): Promise<{

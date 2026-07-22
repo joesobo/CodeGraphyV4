@@ -17,6 +17,15 @@ const corePluginDescriptorDataSchema = z.looseObject({
   updateImpact: z.unknown().optional(),
 });
 
+export function readCodeGraphyPluginDescriptorDefaultOptions(
+  record: CodeGraphyInstalledPluginRecord,
+): Record<string, unknown> | undefined {
+  const parsed = corePluginDescriptorDataSchema.safeParse(record.data);
+  return parsed.success && parsed.data.defaultOptions
+    ? { ...parsed.data.defaultOptions }
+    : undefined;
+}
+
 export interface CodeGraphyCorePluginDescriptorData {
   defaultOptions?: Record<string, unknown>;
   updateImpact?: IPluginUpdateImpactPolicy;
@@ -30,10 +39,11 @@ export function readCodeGraphyCorePluginDescriptorData(
   const parsed = corePluginDescriptorDataSchema.safeParse(record.data);
   if (!parsed.success) return undefined;
 
+  const defaultOptions = readCodeGraphyPluginDescriptorDefaultOptions(record);
   const updateImpact = readPluginUpdateImpact(parsed.data.updateImpact);
   return {
-    ...(parsed.data.defaultOptions
-      ? { defaultOptions: { ...parsed.data.defaultOptions } }
+    ...(defaultOptions
+      ? { defaultOptions }
       : {}),
     ...(updateImpact ? { updateImpact } : {}),
   };
@@ -44,7 +54,7 @@ export function mergePluginOptions(
   settings: CodeGraphyWorkspacePluginSettings,
 ): Record<string, unknown> | undefined {
   const merged = {
-    ...readCodeGraphyCorePluginDescriptorData(record)?.defaultOptions,
+    ...readCodeGraphyPluginDescriptorDefaultOptions(record),
     ...settings.options,
   };
 

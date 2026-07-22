@@ -1,6 +1,7 @@
 export type {
   IExtensionPlugin,
   IExtensionPluginFactory,
+  IExtensionPluginFactoryOptions,
   IExtensionPluginWebviewAsset,
   IExtensionPluginWebviewContributions,
 } from './plugin.js';

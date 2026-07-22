@@ -23,4 +23,14 @@ export interface IExtensionPlugin {
   onUnload?(): void;
 }
 
-export type IExtensionPluginFactory = () => IExtensionPlugin | Promise<IExtensionPlugin>;
+export interface IExtensionPluginFactoryOptions {
+  /** Workspace-scoped persistence owned by the descriptor plugin ID. */
+  dataHost?: IPluginDataHost;
+  /** Merged package default options and CodeGraphy Workspace plugin options. */
+  options?: Record<string, unknown>;
+}
+
+export type IExtensionPluginFactory = (
+  options?: IExtensionPluginFactoryOptions,
+) => IExtensionPlugin | Promise<IExtensionPlugin>;
+import type { IPluginDataHost } from '@codegraphy-dev/plugin-api/data';

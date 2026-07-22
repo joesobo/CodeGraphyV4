@@ -19,7 +19,7 @@ import type {
   IExtensionPluginFactory,
 } from '@codegraphy-dev/extension-plugin-api';
 
-const createPlugin: IExtensionPluginFactory = () => ({
+const createPlugin: IExtensionPluginFactory = ({ dataHost, options } = {}) => ({
   id: 'acme.graph-tools',
   name: 'Acme Graph Tools',
   version: '1.0.0',
@@ -31,6 +31,11 @@ const createPlugin: IExtensionPluginFactory = () => ({
 
 export default createPlugin;
 ```
+
+The factory receives merged package defaults and workspace options. It also
+receives a data host for state owned by its plugin ID. For example,
+`dataHost.saveData({ pinned: true })` stores that state under the plugin's entry
+in `.codegraphy/settings.json#pluginData`.
 
 This package is type-only. Use `import type`.
 

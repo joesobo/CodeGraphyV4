@@ -113,7 +113,8 @@ function hasExtensionRegistrationChanged(
   return current.sourcePackage !== desired.options.sourcePackage
     || current.sourcePackageRoot !== desired.options.sourcePackageRoot
     || current.descriptorSignature !== desired.options.descriptorSignature
-    || current.builtIn !== Boolean(desired.options.builtIn);
+    || current.builtIn !== Boolean(desired.options.builtIn)
+    || stableOptionsString(current.options) !== stableOptionsString(desired.options.options);
 }
 
 async function syncExtensionPlugins(

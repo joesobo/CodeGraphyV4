@@ -9,6 +9,7 @@ export interface ExtensionPluginInfo {
   sourcePackage?: string;
   sourcePackageRoot?: string;
   descriptorSignature?: string;
+  options?: Record<string, unknown>;
 }
 
 export interface RegisterExtensionPluginOptions {
@@ -16,6 +17,7 @@ export interface RegisterExtensionPluginOptions {
   sourcePackage?: string;
   sourcePackageRoot?: string;
   descriptorSignature?: string;
+  options?: Record<string, unknown>;
 }
 
 function assertExtensionApiCompatibility(
@@ -54,6 +56,7 @@ export class ExtensionPluginRegistry {
       ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
       ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
       ...(options.descriptorSignature ? { descriptorSignature: options.descriptorSignature } : {}),
+      ...(options.options ? { options: { ...options.options } } : {}),
     });
   }
 

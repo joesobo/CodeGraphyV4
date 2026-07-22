@@ -1,5 +1,7 @@
 import {
   importCodeGraphyPluginPackageModule,
+  createWorkspacePluginDataHost,
+  mergePluginOptions,
   resolveCodeGraphyWorkspacePluginRecordsForHost,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspaceSettings,
@@ -24,6 +26,7 @@ export interface WorkspaceExtensionPluginRegistration {
     sourcePackage: string;
     sourcePackageRoot: string;
     descriptorSignature: string;
+    options?: Record<string, unknown>;
   };
 }
 
@@ -50,12 +53,26 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
 
 async function loadExtensionPlugin(
   record: CodeGraphyInstalledPluginRecord,
-): Promise<{ buildIdentity: string; plugin: IExtensionPlugin }> {
+  settings: CodeGraphyWorkspaceSettings['plugins'][number],
+  workspaceRoot: string,
+): Promise<{
+  buildIdentity: string;
+  options?: Record<string, unknown>;
+  plugin: IExtensionPlugin;
+}> {
   assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
   const { buildIdentity, moduleNamespace } = await importCodeGraphyPluginPackageModule(record);
-  const plugin = await readFactory(moduleNamespace, record.package)();
+  const options = mergePluginOptions(record, settings);
+  const plugin = await readFactory(moduleNamespace, record.package)({
+    dataHost: createWorkspacePluginDataHost(workspaceRoot, record.id),
+    ...(options ? { options } : {}),
+  });
   validatePlugin(plugin, record);
-  return { buildIdentity, plugin };
+  return {
+    buildIdentity,
+    ...(options ? { options } : {}),
+    plugin,
+  };
 }
 
 export async function loadWorkspaceExtensionPluginRegistrations(
@@ -65,6 +82,7 @@ export async function loadWorkspaceExtensionPluginRegistrations(
 ): Promise<WorkspaceExtensionPluginRegistration[]> {
   const warn = dependencies.warn ?? console.warn;
   const disabledPluginIds = new Set(dependencies.disabledPlugins ?? []);
+  const settingsById = new Map(settings.plugins.map(plugin => [plugin.id, plugin] as const));
   const resolved = await resolveCodeGraphyWorkspacePluginRecordsForHost({
     bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
@@ -79,7 +97,15 @@ export async function loadWorkspaceExtensionPluginRegistrations(
     if (disabledPluginIds.has(record.id)) continue;
 
     try {
-      const { buildIdentity, plugin } = await loadExtensionPlugin(record);
+      const pluginSettings = settingsById.get(record.id) ?? {
+        id: record.id,
+        activation: 'inherit' as const,
+      };
+      const { buildIdentity, options, plugin } = await loadExtensionPlugin(
+        record,
+        pluginSettings,
+        workspaceRoot,
+      );
       registrations.push({
         plugin,
         options: {
@@ -91,6 +117,7 @@ export async function loadWorkspaceExtensionPluginRegistrations(
             plugin,
             buildIdentity,
           ),
+          ...(options ? { options } : {}),
         },
       });
     } catch (error) {

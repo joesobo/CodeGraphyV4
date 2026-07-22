@@ -5,6 +5,7 @@ import {
   createPackageFixtureRoot,
   createPluginPackageWithRuntimeMarkers,
   createDataHostPluginPackage,
+  createExtensionDataHostPluginPackage,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -15,6 +16,69 @@ import {
 } from './bootstrapFixture';
 
 describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
+  it('passes merged options and plugin-owned data to Extension plugin factories', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-extension-data-host',
+    );
+
+    await createExtensionDataHostPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-data-host',
+        version: '1.0.0',
+        id: 'acme.extension-data-host',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        data: {
+          defaultOptions: {
+            mode: 'default',
+            defaultOnly: true,
+          },
+        },
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        id: 'acme.extension-data-host',
+        activation: 'inherit',
+        options: { mode: 'strict' },
+      }],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+    const registration = registry.extensionPlugins.register.mock.calls.find(
+      ([plugin]) => plugin.id === 'acme.extension-data-host',
+    );
+    await registration?.[0].initialize?.(workspaceRoot);
+
+    expect(registration?.[1]).toEqual(expect.objectContaining({
+      options: {
+        mode: 'strict',
+        defaultOnly: true,
+      },
+    }));
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).pluginData).toEqual({
+      'acme.extension-data-host': {
+        mode: 'strict',
+        defaultOnly: true,
+      },
+    });
+  });
+
   it('passes workspace plugin data host to package factories in the extension pipeline', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
