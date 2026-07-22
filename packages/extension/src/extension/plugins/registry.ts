@@ -43,6 +43,7 @@ export function assertExtensionPluginDescriptorApiCompatibility(
 export class ExtensionPluginRegistry {
   private readonly plugins = new Map<string, ExtensionPluginInfo>();
   private readonly initializedPlugins = new Set<string>();
+  private webviewReady = false;
 
   register(plugin: IExtensionPlugin, options: RegisterExtensionPluginOptions = {}): void {
     if (this.plugins.has(plugin.id)) {
@@ -78,6 +79,9 @@ export class ExtensionPluginRegistry {
       try {
         await info.plugin.initialize?.(workspaceRoot);
         this.initializedPlugins.add(info.plugin.id);
+        if (this.webviewReady) {
+          this.notifyPluginWebviewReady(info);
+        }
       } catch (error) {
         console.error(
           `[CodeGraphy] Error initializing Extension plugin ${info.plugin.id}:`,
@@ -88,15 +92,9 @@ export class ExtensionPluginRegistry {
   }
 
   notifyWebviewReady(): void {
+    this.webviewReady = true;
     for (const info of this.listActive()) {
-      try {
-        info.plugin.onWebviewReady?.();
-      } catch (error) {
-        console.error(
-          `[CodeGraphy] Error notifying Extension plugin ${info.plugin.id} that the webview is ready:`,
-          error,
-        );
-      }
+      this.notifyPluginWebviewReady(info);
     }
   }
 
@@ -116,6 +114,17 @@ export class ExtensionPluginRegistry {
   disposeAll(): void {
     for (const pluginId of [...this.plugins.keys()]) {
       this.unregister(pluginId);
+    }
+  }
+
+  private notifyPluginWebviewReady(info: ExtensionPluginInfo): void {
+    try {
+      info.plugin.onWebviewReady?.();
+    } catch (error) {
+      console.error(
+        `[CodeGraphy] Error notifying Extension plugin ${info.plugin.id} that the webview is ready:`,
+        error,
+      );
     }
   }
 }

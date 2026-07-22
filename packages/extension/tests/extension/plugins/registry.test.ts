@@ -153,6 +153,27 @@ describe('ExtensionPluginRegistry', () => {
     );
   });
 
+  it('replays webview readiness for a plugin initialized after the webview is ready', async () => {
+    const calls: string[] = [];
+    const registry = new ExtensionPluginRegistry();
+
+    registry.notifyWebviewReady();
+    registry.register(createPlugin({
+      id: 'acme.late',
+      initialize: async () => {
+        calls.push('initialize');
+      },
+      onWebviewReady: () => {
+        calls.push('webview-ready');
+      },
+    }));
+
+    await registry.initializeAll('/workspace');
+    await registry.initializeAll('/workspace');
+
+    expect(calls).toEqual(['initialize', 'webview-ready']);
+  });
+
   it('returns false for unknown plugins and unloads registered plugins', async () => {
     const initialize = vi.fn(async () => undefined);
     const onUnload = vi.fn();
