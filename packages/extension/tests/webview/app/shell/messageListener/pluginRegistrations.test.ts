@@ -11,14 +11,20 @@ function pluginHost(): WebviewPluginHost {
 describe('app/shell/messageListener/pluginRegistrations', () => {
   it('ignores malformed plugin status messages', () => {
     const host = pluginHost();
+    const knownPluginIds = new Set<string>();
 
-    reconcilePluginRegistrations({ type: 'OTHER' }, host);
-    reconcilePluginRegistrations({ type: 'PLUGINS_UPDATED' }, host);
-    reconcilePluginRegistrations({ type: 'PLUGINS_UPDATED', payload: { plugins: 'bad' } }, host);
+    reconcilePluginRegistrations({ type: 'OTHER' }, host, undefined, knownPluginIds);
+    reconcilePluginRegistrations({ type: 'PLUGINS_UPDATED' }, host, undefined, knownPluginIds);
+    reconcilePluginRegistrations(
+      { type: 'PLUGINS_UPDATED', payload: { plugins: 'bad' } },
+      host,
+      undefined,
+      knownPluginIds,
+    );
     reconcilePluginRegistrations({
       type: 'PLUGINS_UPDATED',
       payload: { plugins: [null, 123, { enabled: false }] },
-    }, host);
+    }, host, undefined, knownPluginIds);
 
     expect(host.removePlugin).not.toHaveBeenCalled();
   });
@@ -26,11 +32,12 @@ describe('app/shell/messageListener/pluginRegistrations', () => {
   it('removes disabled plugins and resets their injected assets', () => {
     const host = pluginHost();
     const resetPluginAssets = vi.fn();
+    const knownPluginIds = new Set<string>();
 
     reconcilePluginRegistrations({
       type: 'PLUGINS_UPDATED',
       payload: { plugins: [{ id: 'codegraphy.organize', enabled: false }] },
-    }, host, resetPluginAssets);
+    }, host, resetPluginAssets, knownPluginIds);
 
     expect(host.removePlugin).toHaveBeenCalledWith('codegraphy.organize');
     expect(resetPluginAssets).toHaveBeenCalledWith('codegraphy.organize');
@@ -39,13 +46,14 @@ describe('app/shell/messageListener/pluginRegistrations', () => {
   it('removes an unavailable replacement even when user intent stays enabled', () => {
     const host = pluginHost();
     const resetPluginAssets = vi.fn();
+    const knownPluginIds = new Set<string>();
 
     reconcilePluginRegistrations({
       type: 'PLUGINS_UPDATED',
       payload: {
         plugins: [{ id: 'acme.rebuilt', enabled: true, status: 'unavailable' }],
       },
-    }, host, resetPluginAssets);
+    }, host, resetPluginAssets, knownPluginIds);
 
     expect(host.removePlugin).toHaveBeenCalledWith('acme.rebuilt');
     expect(resetPluginAssets).toHaveBeenCalledWith('acme.rebuilt');
@@ -54,13 +62,14 @@ describe('app/shell/messageListener/pluginRegistrations', () => {
   it('removes a disabled runtime by descriptor id', () => {
     const host = pluginHost();
     const resetPluginAssets = vi.fn();
+    const knownPluginIds = new Set<string>();
 
     reconcilePluginRegistrations({
       type: 'PLUGINS_UPDATED',
       payload: {
         plugins: [{ id: 'runtime.plugin', packageName: '@acme/plugin', enabled: false }],
       },
-    }, host, resetPluginAssets);
+    }, host, resetPluginAssets, knownPluginIds);
 
     expect(host.removePlugin).toHaveBeenCalledWith('runtime.plugin');
     expect(resetPluginAssets).toHaveBeenCalledWith('runtime.plugin');
@@ -69,6 +78,7 @@ describe('app/shell/messageListener/pluginRegistrations', () => {
   it('removes only the disabled descriptor when one package provides multiple plugins', () => {
     const host = pluginHost();
     const resetPluginAssets = vi.fn();
+    const knownPluginIds = new Set<string>();
 
     reconcilePluginRegistrations({
       type: 'PLUGINS_UPDATED',
@@ -78,7 +88,7 @@ describe('app/shell/messageListener/pluginRegistrations', () => {
           { id: 'acme.beta', packageName: '@acme/plugin', enabled: true },
         ],
       },
-    }, host, resetPluginAssets);
+    }, host, resetPluginAssets, knownPluginIds);
     reconcilePluginRegistrations({
       type: 'PLUGINS_UPDATED',
       payload: {
@@ -87,11 +97,31 @@ describe('app/shell/messageListener/pluginRegistrations', () => {
           { id: 'acme.beta', packageName: '@acme/plugin', enabled: true },
         ],
       },
-    }, host, resetPluginAssets);
+    }, host, resetPluginAssets, knownPluginIds);
 
     expect(host.removePlugin).toHaveBeenCalledWith('acme.alpha');
     expect(host.removePlugin).not.toHaveBeenCalledWith('acme.beta');
     expect(resetPluginAssets).toHaveBeenCalledWith('acme.alpha');
     expect(resetPluginAssets).not.toHaveBeenCalledWith('acme.beta');
+  });
+
+  it('removes a runtime when its descriptor disappears from the next status snapshot', () => {
+    const host = pluginHost();
+    const resetPluginAssets = vi.fn();
+    const knownPluginIds = new Set<string>();
+
+    reconcilePluginRegistrations({
+      type: 'PLUGINS_UPDATED',
+      payload: {
+        plugins: [{ id: 'acme.removed', enabled: true, status: 'active' }],
+      },
+    }, host, resetPluginAssets, knownPluginIds);
+    reconcilePluginRegistrations({
+      type: 'PLUGINS_UPDATED',
+      payload: { plugins: [] },
+    }, host, resetPluginAssets, knownPluginIds);
+
+    expect(host.removePlugin).toHaveBeenCalledWith('acme.removed');
+    expect(resetPluginAssets).toHaveBeenCalledWith('acme.removed');
   });
 });

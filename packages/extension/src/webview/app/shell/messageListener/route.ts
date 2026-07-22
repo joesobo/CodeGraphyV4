@@ -20,6 +20,7 @@ export interface RawExtensionMessage {
 
 interface MessageRouteRuntime {
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>;
+  knownPluginIds: Set<string>;
   pluginHost: WebviewPluginHost;
   resetPluginAssets?: ResetPluginAssets;
   updatePluginData: UpdatePluginData;
@@ -55,6 +56,7 @@ export function routeExtensionMessage(
     message,
     runtime.pluginHost,
     runtime.resetPluginAssets,
+    runtime.knownPluginIds,
   );
   graphStore.getState().handleExtensionMessage(message as ExtensionToWebviewMessage);
 }
