@@ -45,10 +45,10 @@ describe('writeGraphDocument', () => {
     const archive = await readTldrawArchive(targetPath);
     expect(archive.records.find(record => record.typeName === 'page')?.meta).toMatchObject({
       codegraphyPhysics: {
-        repelForce: 18,
-        centerForce: 0.15,
+        repelForce: 10,
+        centerForce: 0.1,
         linkDistance: 80,
-        linkForce: 2,
+        linkForce: 1,
       },
     });
   });

@@ -13,14 +13,7 @@ vi.mock('tldraw', () => ({
   useEditor: () => ({
     getCurrentPage: () => ({
       id: 'page:page',
-      meta: {
-        codegraphyPhysics: {
-          repelForce: 18,
-          centerForce: 0.15,
-          linkDistance: 80,
-          linkForce: 2,
-        },
-      },
+      meta: {},
     }),
     updatePage: mocks.updatePage,
   }),
@@ -49,10 +42,19 @@ describe('CodeGraphy tldraw force controls view', () => {
     render(createElement(configuredCanvasUi()));
 
     expect(screen.getAllByRole('slider')).toHaveLength(4);
-    expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Repel Force' }).value).toBe('18');
-    expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Center Force' }).value).toBe('0.15');
+    expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Repel Force' }).value).toBe('10');
+    expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Center Force' }).value).toBe('0.1');
     expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Link Distance' }).value).toBe('80');
-    expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Link Force' }).value).toBe('2');
+    expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Link Force' }).value).toBe('1');
+  });
+
+  it('places the transparent controls below tldraw floating menus', () => {
+    render(createElement(configuredCanvasUi()));
+
+    const panel = screen.getByRole('region', { name: 'CodeGraphy forces' });
+    expect(panel.style.background).toBe('');
+    expect(panel.style.boxShadow).toBe('');
+    expect(panel.style.top).toBe('320px');
   });
 
   it('retains the existing in-front-of-canvas component', () => {
@@ -66,17 +68,17 @@ describe('CodeGraphy tldraw force controls view', () => {
     render(createElement(configuredCanvasUi()));
 
     fireEvent.change(screen.getByRole('slider', { name: 'Repel Force' }), {
-      target: { value: '10' },
+      target: { value: '5' },
     });
 
     expect(mocks.updatePage).toHaveBeenCalledWith({
       id: 'page:page',
       meta: {
         codegraphyPhysics: {
-          repelForce: 10,
-          centerForce: 0.15,
+          repelForce: 5,
+          centerForce: 0.1,
           linkDistance: 80,
-          linkForce: 2,
+          linkForce: 1,
         },
       },
     });

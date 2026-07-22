@@ -8,6 +8,7 @@ export interface ForceSettings {
 }
 
 export type ForceSettingKey = keyof ForceSettings;
+const EXTENSION_DEFAULT_VELOCITY_DECAY: number = 0.4;
 
 export interface ForceControl {
   decimals: number;
@@ -37,10 +38,10 @@ export const FORCE_CONTROLS: readonly ForceControl[] = FORCE_CONTROL_ORDER.map(
 );
 
 export const DEFAULT_FORCE_SETTINGS: Readonly<ForceSettings> = {
-  repelForce: 18,
-  centerForce: 0.15,
+  repelForce: 10,
+  centerForce: 0.1,
   linkDistance: 80,
-  linkForce: 2,
+  linkForce: 1,
 };
 
 export function normalizeForceValue(control: ForceControl, value: unknown): number {
@@ -68,5 +69,6 @@ export function toGraphLayoutConfig(settings: ForceSettings): Partial<GraphLayou
     chargeStrength: -(settings.repelForce / 20) * 500,
     linkDistance: settings.linkDistance,
     linkStrength: settings.linkForce,
+    velocityDecay: EXTENSION_DEFAULT_VELOCITY_DECAY,
   };
 }

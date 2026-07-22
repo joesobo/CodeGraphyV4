@@ -29,11 +29,11 @@ describe('CodeGraphy tldraw document script', () => {
       getCurrentPage: () => ({ meta: {} }),
       getCurrentPageShapes: () => [
         {
-          id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 20, h: 20 },
+          id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
           meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
         },
         {
-          id: 'shape:b', type: 'geo', x: 80, y: 80, props: { w: 20, h: 20 },
+          id: 'shape:b', type: 'geo', x: 80, y: 80, props: { w: 120, h: 120 },
           meta: { codegraphyKind: 'node', codegraphyEntityId: 'b' },
         },
       ],
@@ -54,6 +54,37 @@ describe('CodeGraphy tldraw document script', () => {
     expect(engine.tick).toHaveBeenCalledOnce();
     expect(editor.run).toHaveBeenCalledWith(expect.any(Function), { history: 'ignore' });
     expect(updateShapes).toHaveBeenCalled();
+  });
+
+  it('uses Extension physics defaults independently of the native circle size', async () => {
+    const listeners = new Map<string, (elapsed: number) => void>();
+    const editor = {
+      getCurrentPage: () => ({ meta: {} }),
+      getCurrentPageShapes: () => [{
+        id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
+        meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
+      }],
+      off: vi.fn(),
+      on: vi.fn((event: string, listener: (elapsed: number) => void) => listeners.set(event, listener)),
+      run: vi.fn((operation: () => void) => operation()),
+      store: { listen: vi.fn(() => vi.fn()) },
+      updateShapes: vi.fn(),
+    };
+    const { default: runDocumentScript } = await import('./main');
+
+    await runDocumentScript({ editor, signal: new AbortController().signal });
+    listeners.get('tick')?.(16);
+
+    expect(createGraphLayoutEngine).toHaveBeenCalledWith(
+      expect.objectContaining({ radii: Float32Array.of(20) }),
+      {
+        centralGravity: 0.1,
+        chargeStrength: -250,
+        linkDistance: 80,
+        linkStrength: 1,
+        velocityDecay: 0.4,
+      },
+    );
   });
 
   it('sends changed document force settings to the active graph-renderer engine', async () => {
@@ -92,6 +123,7 @@ describe('CodeGraphy tldraw document script', () => {
       chargeStrength: -250,
       linkDistance: 80,
       linkStrength: 0.5,
+      velocityDecay: 0.4,
     });
   });
 });

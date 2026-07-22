@@ -9,6 +9,7 @@ import {
 } from './forceControls/model';
 
 const PHYSICS_WASM_BASE64 = 'Q09ERUdSQVBIWV9QSFlTSUNTX1dBU00=';
+const DEFAULT_NODE_COLLISION_RADIUS = 20;
 
 interface ScriptShape {
   id: string;
@@ -79,7 +80,7 @@ export default async function runCodeGraphyPhysics({ editor, signal }: MainScrip
       initialY: Float32Array.from(nodeShapes, shape => shape.y + shape.props.h / 2),
       initialVx: new Float32Array(nodeShapes.length),
       initialVy: new Float32Array(nodeShapes.length),
-      radii: Float32Array.from(nodeShapes, shape => Math.max(shape.props.w, shape.props.h) / 2),
+      radii: Float32Array.from(nodeShapes, () => DEFAULT_NODE_COLLISION_RADIUS),
       edgeSources: Uint32Array.from(edgeEndpoints, endpoint => endpoint.source),
       edgeTargets: Uint32Array.from(edgeEndpoints, endpoint => endpoint.target),
     }, toGraphLayoutConfig(forceSettings));

@@ -16,21 +16,22 @@ describe('tldraw force controls', () => {
     ]);
   });
 
-  it('starts with the requested values', () => {
+  it('starts with the Extension defaults', () => {
     expect(DEFAULT_FORCE_SETTINGS).toEqual({
-      repelForce: 18,
-      centerForce: 0.15,
+      repelForce: 10,
+      centerForce: 0.1,
       linkDistance: 80,
-      linkForce: 2,
+      linkForce: 1,
     });
   });
 
-  it('maps the controls to the shared graph-renderer configuration', () => {
+  it('maps the controls to the complete Extension graph-renderer configuration', () => {
     expect(toGraphLayoutConfig(DEFAULT_FORCE_SETTINGS)).toEqual({
-      centralGravity: 0.15,
-      chargeStrength: -450,
+      centralGravity: 0.1,
+      chargeStrength: -250,
       linkDistance: 80,
-      linkStrength: 2,
+      linkStrength: 1,
+      velocityDecay: 0.4,
     });
   });
 
@@ -42,9 +43,9 @@ describe('tldraw force controls', () => {
       linkForce: 'strong',
     })).toEqual({
       repelForce: 20,
-      centerForce: 0.15,
+      centerForce: 0.1,
       linkDistance: 30,
-      linkForce: 2,
+      linkForce: 1,
     });
   });
 });

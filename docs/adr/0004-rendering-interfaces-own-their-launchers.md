@@ -35,6 +35,13 @@ codegraphy-tldraw PATH
     the latest index when it exists. Open the document.
 ```
 
+tldraw offline creates unnamed documents through its own **New file** action.
+Its local API operates on documents that are already open and does not expose
+document creation. Opening a generated `.tldraw` archive also attaches that
+archive's path. The pathless launcher therefore creates a new saved document
+until tldraw offline provides a supported way to create an unnamed document
+from an external launcher.
+
 The interaction model is command-driven: the user runs the command, works in
 the workspace, and runs the command again to see the updated graph. Each run
 without a path opens a fresh canvas from the current index. Each run with a

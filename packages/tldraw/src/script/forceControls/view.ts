@@ -22,16 +22,12 @@ interface ConfigScriptContext {
 }
 
 const panelStyle = {
-  background: '#2f3540',
-  borderRadius: 8,
-  boxShadow: '0 3px 12px rgb(0 0 0 / 24%)',
-  color: '#d7dce2',
+  color: 'var(--color-text-1)',
   fontFamily: 'Inter, system-ui, sans-serif',
-  padding: '12px 14px 14px',
   pointerEvents: 'auto',
   position: 'absolute',
   right: 12,
-  top: 56,
+  top: 320,
   width: 280,
   zIndex: 300,
 } satisfies CSSProperties;
@@ -84,7 +80,7 @@ function ForcePanel(): ReactElement {
     createElement('span', null, control.label),
     createElement('output', {
       htmlFor: `codegraphy-${control.key}`,
-      style: { color: '#929aa5', fontFamily: 'ui-monospace, monospace' },
+      style: { color: 'var(--color-text-3)', fontFamily: 'ui-monospace, monospace' },
     }, value.toFixed(control.decimals))),
     createElement('input', {
       'aria-label': control.label,
