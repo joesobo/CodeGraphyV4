@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { CopyButton } from '@/components/copy-button';
 import { Link } from '@/components/link';
+import { ThemeHeroImage } from '@/components/theme-hero-image';
 import { buttonVariants } from '@/components/ui/button';
 import { examplesHref, githubHref, vscodeExtensionHref } from '@/content/links';
 import { cn } from '@/lib/utils';
@@ -9,13 +9,10 @@ import { HeroGraph } from './hero-graph';
 export function Header(): React.ReactElement {
   return (
     <section className="home-hero relative isolate overflow-hidden bg-[#061722] text-white">
-      <Image
-        alt="Sunlight filtering through the surface of deep blue water"
-        className="hero-image object-cover object-center"
-        fill
-        priority
-        sizes="100vw"
-        src="/media/ocean-home-surface-v4.jpg"
+      <ThemeHeroImage
+        alt="Underwater ocean scene"
+        darkSrc="/media/ocean-home-hero-v3.jpg"
+        lightSrc="/media/ocean-home-surface-v4.jpg"
       />
       <HeroGraph />
 

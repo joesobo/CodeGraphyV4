@@ -10,8 +10,8 @@ import {
 import { useEffect, useRef } from 'react';
 
 const COMMUNITY_COUNT = 5;
-const NODE_COUNT = 72;
-const RANDOM_SEED = 0xc0de_6a7;
+const MAX_NODE_COUNT = 84;
+const MIN_NODE_COUNT = 64;
 
 interface CanvasSize {
   height: number;
@@ -30,8 +30,6 @@ interface HeroGraphData {
   input: GraphLayoutInput;
   nodeGroups: Uint8Array;
 }
-
-const graphData = createGraphData();
 
 export function HeroGraph(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,6 +51,7 @@ export function HeroGraph(): React.ReactElement {
 
 function startHeroGraph(canvas: HTMLCanvasElement): () => void {
   const abortController = new AbortController();
+  const graphData = createGraphData(createRandomSeed());
   let disposed = false;
   let frame = 0;
   let resizeObserver: ResizeObserver | undefined;
@@ -70,8 +69,8 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       chargeStrength: -205,
       collisionPadding: 6,
       initializationSpacing: 14,
-      linkDistance: 46,
-      linkStrength: 0.78,
+      linkDistance: 25,
+      linkStrength: 2,
       settleSpeed: 0.5,
       velocityDecay: 0.29,
     });
@@ -150,14 +149,15 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
   };
 }
 
-function createGraphData(): HeroGraphData {
-  const random = createSeededRandom(RANDOM_SEED);
-  const nodeIds: string[] = Array.from({ length: NODE_COUNT }, (_, index) => `hero-node-${index}`);
-  const radii = new Float32Array(NODE_COUNT);
-  const chargeStrengthMultipliers = new Float32Array(NODE_COUNT);
-  const initialX = new Float32Array(NODE_COUNT);
-  const initialY = new Float32Array(NODE_COUNT);
-  const nodeGroups = new Uint8Array(NODE_COUNT);
+function createGraphData(seed: number): HeroGraphData {
+  const random = createSeededRandom(seed);
+  const nodeCount = MIN_NODE_COUNT + Math.floor(random() * (MAX_NODE_COUNT - MIN_NODE_COUNT + 1));
+  const nodeIds: string[] = Array.from({ length: nodeCount }, (_, index) => `hero-node-${index}`);
+  const radii = new Float32Array(nodeCount);
+  const chargeStrengthMultipliers = new Float32Array(nodeCount);
+  const initialX = new Float32Array(nodeCount);
+  const initialY = new Float32Array(nodeCount);
+  const nodeGroups = new Uint8Array(nodeCount);
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
   const membersByCommunity: number[][] = Array.from(
@@ -165,7 +165,7 @@ function createGraphData(): HeroGraphData {
     (): number[] => [],
   );
 
-  for (let index = 0; index < NODE_COUNT; index += 1) {
+  for (let index = 0; index < nodeCount; index += 1) {
     const group = index < COMMUNITY_COUNT
       ? index
       : Math.floor(random() * COMMUNITY_COUNT);
@@ -230,6 +230,12 @@ function createGraphData(): HeroGraphData {
     },
     nodeGroups,
   };
+}
+
+function createRandomSeed(): number {
+  const values = new Uint32Array(1);
+  window.crypto.getRandomValues(values);
+  return values[0] ?? Date.now();
 }
 
 function createSeededRandom(seed: number): () => number {

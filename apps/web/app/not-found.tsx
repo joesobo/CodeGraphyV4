@@ -22,6 +22,7 @@ export default function NotFound(): React.ReactElement {
         </>
       }
       aside={<><span className="font-mono text-[#88b1ff]">No node at this address.</span><br />The page may have moved, or the path may be incomplete.</>}
+      darkImageSrc="/media/ocean-not-found-hero-v2.jpg"
       description="CodeGraphy could not resolve this route. Return to the home graph or open the docs."
       eyebrow="404 · Off the map"
       imageAlt=""

@@ -1,8 +1,9 @@
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { ThemeHeroImage } from '@/components/theme-hero-image';
 
 interface PageHeroProps {
   description: string;
+  darkImageSrc: string;
   eyebrow: string;
   imageAlt: string;
   imagePosition?: string;
@@ -24,6 +25,7 @@ export function PageHero({
   actions,
   aside,
   description,
+  darkImageSrc,
   eyebrow,
   imageAlt,
   imagePosition = 'center',
@@ -39,15 +41,11 @@ export function PageHero({
         heroSizeClassName[size],
       )}
     >
-      <Image
+      <ThemeHeroImage
         alt={imageAlt}
-        aria-hidden={imageAlt ? undefined : 'true'}
-        className="hero-image object-cover"
-        fill
-        priority
-        sizes="100vw"
-        src={imageSrc}
-        style={{ objectPosition: imagePosition }}
+        darkSrc={darkImageSrc}
+        lightSrc={imageSrc}
+        objectPosition={imagePosition}
       />
       <div className={cn('absolute inset-0', tone === 'minimal' ? 'page-hero-grade-minimal' : 'page-hero-grade')} />
       <div className="relative mx-auto grid w-full max-w-[90rem] gap-10 self-end lg:grid-cols-[minmax(0,1fr)_minmax(19rem,.38fr)] lg:items-end lg:gap-20">

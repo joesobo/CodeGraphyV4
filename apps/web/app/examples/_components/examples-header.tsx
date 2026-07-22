@@ -12,6 +12,7 @@ export function ExamplesHeader(): React.ReactElement {
         </Link>
       }
       aside={<><span className="font-mono text-[#88b1ff]">Real source. Real graphs.</span><br />Each example is intentionally compact enough to understand while still exercising meaningful relationships.</>}
+      darkImageSrc="/media/ocean-examples-hero.jpg"
       description="Small, runnable CodeGraphy Workspaces that make language and Plugin coverage concrete. Open one, run Indexing, and inspect the Nodes, Edges, and symbols it produces."
       eyebrow="See what CodeGraphy sees"
       imageAlt=""
