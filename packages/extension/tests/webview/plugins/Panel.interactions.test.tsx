@@ -46,7 +46,7 @@ describe('PluginsPanel', () => {
     expect(graphStore.getState().pluginStatuses).toEqual([
       expect.objectContaining({
         id: 'codegraphy.typescript',
-        enabled: false,
+        enabled: true,
       }),
     ]);
   });

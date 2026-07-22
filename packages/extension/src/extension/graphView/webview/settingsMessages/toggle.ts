@@ -34,18 +34,20 @@ export async function applySettingsToggleMessage(
         replaySavedPluginData(message.payload.pluginId, handlers);
         handlers.sendPluginWebviewInjections?.();
       }
-      handlers.sendPluginStatuses?.();
       handlers.sendContextMenuItems?.();
       handlers.sendPluginToolbarActions?.();
       handlers.sendGraphViewContributionStatuses?.();
       handlers.sendGraphControls();
       sendFilterPatternsUpdated(state, handlers);
-      await applyPluginToggleGraphWorkPlan(
-        plan.indexing,
-        message.payload.pluginId,
-        message.payload.enabled,
-        handlers,
-      );
+      try {
+        await applyPluginToggleGraphWorkPlan(
+          plan.indexing,
+          message.payload.pluginId,
+          handlers,
+        );
+      } finally {
+        handlers.sendPluginStatuses?.();
+      }
       return true;
     }
 
@@ -57,17 +59,8 @@ export async function applySettingsToggleMessage(
 async function applyPluginToggleGraphWorkPlan(
   plan: ReturnType<typeof createCodeGraphyWorkspacePluginTogglePlan>['indexing'],
   pluginId: string,
-  enabled: boolean,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<void> {
-  if (
-    enabled
-    && plan.kind === 'reprocess-plugin-files'
-    && await (handlers.hydratePluginGraphScope?.([pluginId]) ?? Promise.resolve(false))
-  ) {
-    return;
-  }
-
   await applyPluginGraphWorkPlan(plan, pluginId, {
     analyzeAndSendData: () => handlers.analyzeAndSendData(),
     reprocessPluginFiles: pluginIds => handlers.reprocessPluginFiles(pluginIds),

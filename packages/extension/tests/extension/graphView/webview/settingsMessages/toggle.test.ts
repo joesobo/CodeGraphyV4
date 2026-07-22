@@ -112,7 +112,6 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(handlers.hydratePluginGraphScope).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
@@ -143,7 +142,7 @@ describe('graph view settings toggle message', () => {
     expect(schedulePluginGraphWork).not.toHaveBeenCalled();
   });
 
-  it('hydrates cached plugin evidence before scheduling targeted plugin-file reprocessing', async () => {
+  it('reprocesses plugin files after enable even when cached plugin evidence is available', async () => {
     const state = createState();
     const handlers = createHandlers({
       getInstalledPluginUpdateImpact: vi.fn(() => ({
@@ -162,8 +161,7 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(handlers.hydratePluginGraphScope).toHaveBeenCalledWith(['codegraphy.vue']);
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
@@ -481,7 +479,7 @@ describe('graph view settings toggle message', () => {
       .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
-  it('broadcasts package plugin cleanup before graph projection when a package is toggled off', async () => {
+  it('confirms plugin status after graph projection finishes', async () => {
     const state = createState();
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
     const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
@@ -530,7 +528,7 @@ describe('graph view settings toggle message', () => {
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeGreaterThan(syncWorkspacePlugins.mock.invocationCallOrder[0]);
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+      .toBeGreaterThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 

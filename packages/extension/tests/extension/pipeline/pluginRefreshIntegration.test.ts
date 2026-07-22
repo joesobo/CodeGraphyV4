@@ -1,44 +1,48 @@
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { readCodeGraphyWorkspaceSettings, writeCodeGraphyWorkspaceSettings } from '@codegraphy-dev/core';
+import {
+  readCodeGraphyWorkspaceSettings,
+  writeCodeGraphyWorkspaceSettings,
+} from '@codegraphy-dev/core';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
+import {
+  createPluginIntegrationWorkspace,
+  installPluginIntegrationPackage,
+  type PluginIntegrationWorkspace,
+} from '../pluginIntegration/workspaceFixture';
 
 let workspaceFoldersValue: vscode.WorkspaceFolder[] | undefined;
+let workspaceFixture: PluginIntegrationWorkspace | undefined;
+
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
   configurable: true,
 });
 
-const tempRoots: string[] = [];
-
-afterEach(() => {
-  for (const root of tempRoots) fs.rmSync(root, { recursive: true, force: true });
-  tempRoots.length = 0;
+afterEach(async () => {
+  await workspaceFixture?.cleanup();
+  workspaceFixture = undefined;
+  workspaceFoldersValue = undefined;
   vi.unstubAllEnvs();
 });
 
 describe('WorkspacePipeline plugin refresh integration', { timeout: 30_000 }, () => {
-  it.each([
-    ['svelte', 'codegraphy.svelte', 'packages/plugin-svelte'],
-    ['godot', 'codegraphy.gdscript', 'packages/plugin-godot'],
-  ])('restores %s facts after disable and targeted re-enable', async (example, pluginId, pluginRoot) => {
-    const repoRoot = path.resolve(__dirname, '../../../../..');
-    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), `codegraphy-${example}-refresh-`));
-    tempRoots.push(workspaceRoot);
-    fs.cpSync(path.join(repoRoot, 'examples', `example-${example}`), workspaceRoot, { recursive: true });
+  it('restores package plugin facts after disable and targeted re-enable', async () => {
+    workspaceFixture = await createPluginIntegrationWorkspace();
+    const installedPackage = await installPluginIntegrationPackage(
+      workspaceFixture.workspacePath,
+      workspaceFixture.scratchPath,
+    );
     workspaceFoldersValue = [{
       index: 0,
-      name: example,
-      uri: vscode.Uri.file(workspaceRoot),
+      name: 'workspace',
+      uri: vscode.Uri.file(workspaceFixture.workspacePath),
     }];
-    vi.stubEnv('CODEGRAPHY_BUNDLED_PLUGIN_PACKAGE_ROOTS', path.join(repoRoot, pluginRoot));
+    vi.stubEnv('HOME', installedPackage.homeDir);
 
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
-      extensionUri: vscode.Uri.file(repoRoot),
+      extensionUri: vscode.Uri.file('/test/extension'),
       workspaceState: {
         get: vi.fn(() => undefined),
         update: vi.fn(() => Promise.resolve()),
@@ -46,25 +50,35 @@ describe('WorkspacePipeline plugin refresh integration', { timeout: 30_000 }, ()
     } as unknown as vscode.ExtensionContext);
     await analyzer.initialize();
     const initialGraph = await analyzer.refreshIndex();
-    expect(initialGraph.edges.some(edge => edge.sources.some(source => source.pluginId === pluginId))).toBe(true);
+    expect(hasPluginEdge(initialGraph, installedPackage.pluginId)).toBe(true);
 
-    const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
-    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
-      ...settings,
-      plugins: settings.plugins.map(plugin => (
-        plugin.id === pluginId ? { ...plugin, activation: 'disabled' as const } : plugin
-      )),
-    });
+    setPluginActivation(workspaceFixture.workspacePath, installedPackage.pluginId, 'disabled');
     await analyzer.syncWorkspacePlugins();
-    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
-      ...settings,
-      plugins: settings.plugins.map(plugin => (
-        plugin.id === pluginId ? { ...plugin, activation: 'enabled' as const } : plugin
-      )),
-    });
+    setPluginActivation(workspaceFixture.workspacePath, installedPackage.pluginId, 'enabled');
     await analyzer.syncWorkspacePlugins();
 
-    const refreshedGraph = await analyzer.refreshPluginFiles([pluginId]);
-    expect(refreshedGraph.edges.some(edge => edge.sources.some(source => source.pluginId === pluginId))).toBe(true);
+    const refreshedGraph = await analyzer.refreshPluginFiles([installedPackage.pluginId]);
+    expect(hasPluginEdge(refreshedGraph, installedPackage.pluginId)).toBe(true);
   });
 });
+
+function setPluginActivation(
+  workspaceRoot: string,
+  pluginId: string,
+  activation: 'disabled' | 'enabled',
+): void {
+  const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+  writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+    ...settings,
+    plugins: settings.plugins.map(plugin => (
+      plugin.id === pluginId ? { ...plugin, activation } : plugin
+    )),
+  });
+}
+
+function hasPluginEdge(
+  graph: Awaited<ReturnType<WorkspacePipeline['refreshIndex']>>,
+  pluginId: string,
+): boolean {
+  return graph.edges.some(edge => edge.sources.some(source => source.pluginId === pluginId));
+}

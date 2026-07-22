@@ -1476,19 +1476,30 @@ export async function setPluginSwitch(
   const checked = await pluginSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
   if (enabled && options.forceTransition && checked === 'true') {
     await pluginSwitch.click();
-    await waitForIndexingToFinish(context);
+    await waitForPluginSwitchState(context, normalizedLabel, false);
     await (await findPanelSwitch(frame, normalizedLabel)).click();
-    await waitForIndexingToFinish(context);
+    await waitForPluginSwitchState(context, normalizedLabel, true);
     await closePanelIfOpen(frame);
     return;
   }
 
   if (checked !== expected) {
     await pluginSwitch.click();
+    await waitForPluginSwitchState(context, normalizedLabel, enabled);
   }
 
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
+}
+
+async function waitForPluginSwitchState(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+): Promise<void> {
+  await expect.poll(async () => (
+    await (await findPanelSwitch(requireGraphFrame(context), label)).getAttribute('aria-checked')
+  )).toBe(String(enabled));
 }
 
 function shouldForcePluginToggleTransition(
