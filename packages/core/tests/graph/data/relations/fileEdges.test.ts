@@ -28,13 +28,11 @@ describe('core/graph/data file relationships', () => {
         {
           id: 'src/index.ts',
           label: 'index.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 10,
         },
         {
           id: 'src/utils.ts',
           label: 'utils.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 20,
         },
       ]);

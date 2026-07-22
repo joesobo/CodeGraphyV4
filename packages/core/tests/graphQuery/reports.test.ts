@@ -6,7 +6,6 @@ function node(id: string, nodeType = 'file'): IGraphNode {
   return {
     id,
     label: id.split('/').pop() ?? id,
-    color: '#111111',
     nodeType,
   };
 }

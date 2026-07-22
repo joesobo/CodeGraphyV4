@@ -10,13 +10,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { CORE_GRAPH_NODE_TYPES } from '../../../../graphControls/defaults/definitions';
 import type { GraphEdgeRow, GraphNodeRow, SymbolRow } from '../types';
-import { readOptionalNumber, readOptionalString, readRequiredString } from '../values';
-
-function readBoolean(value: unknown): boolean | undefined {
-  if (value === 1 || value === 1n) return true;
-  if (value === 0 || value === 0n) return false;
-  return undefined;
-}
+import { readOptionalString, readRequiredString } from '../values';
 
 function compactMetadata(entries: Array<[string, string | undefined]>): GraphMetadata | undefined {
   const metadata: GraphMetadata = {};
@@ -89,15 +83,6 @@ export function createSnapshotGraphNode(
     id,
     label,
     nodeType,
-    color: readOptionalString(row.color) ?? '#808080',
-    ...(readOptionalNumber(row.x) !== undefined ? { x: readOptionalNumber(row.x) } : {}),
-    ...(readOptionalNumber(row.y) !== undefined ? { y: readOptionalNumber(row.y) } : {}),
-    ...(readBoolean(row.favorite) !== undefined ? { favorite: readBoolean(row.favorite) } : {}),
-    ...(readOptionalString(row.shape)
-      ? { shape2D: readOptionalString(row.shape) as IGraphNode['shape2D'] }
-      : {}),
-    ...(readOptionalString(row.imageUrl) ? { imageUrl: readOptionalString(row.imageUrl) } : {}),
-    ...(readBoolean(row.isCollapsed) !== undefined ? { isCollapsed: readBoolean(row.isCollapsed) } : {}),
     ...(symbolName && symbolKind && filePath
       ? {
           symbol: {

@@ -56,8 +56,8 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     };
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, initialCache, {
       nodes: [
-        { id: 'src', label: 'src', color: '#808080', nodeType: 'folder' },
-        { id: 'src/stable.ts', label: 'stable.ts', color: '#808080', nodeType: 'file' },
+        { id: 'src', label: 'src', nodeType: 'folder' },
+        { id: 'src/stable.ts', label: 'stable.ts', nodeType: 'file' },
       ],
       edges: [{
         id: 'src->src/stable.ts#nests',

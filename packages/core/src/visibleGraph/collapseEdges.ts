@@ -46,7 +46,6 @@ function mergeProjectedEdge(edges: Map<string, IGraphEdge>, edge: IGraphEdge): v
   }
 
   existing.sources = mergeEdgeSources(existing.sources, edge.sources);
-  existing.color ??= edge.color;
 }
 
 function mergeEdgeSources(

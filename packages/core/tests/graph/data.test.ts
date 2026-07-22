@@ -44,13 +44,11 @@ describe('core/graph/data symbol nodes', () => {
       {
         id: 'src/player.gd',
         label: 'player.gd',
-        color: DEFAULT_NODE_COLOR,
         fileSize: 20,
       },
       {
         id: 'src/player.gd#_ready:method',
         label: '_ready',
-        color: '#8B5CF6',
         fileSize: 20,
         nodeType: 'symbol',
         symbol: {
@@ -161,13 +159,11 @@ describe('core/graph/data symbol nodes', () => {
       {
         id: 'generated/virtual.ts',
         label: 'virtual.ts',
-        color: DEFAULT_NODE_COLOR,
         fileSize: undefined,
       },
       {
         id: 'generated/virtual.ts#virtual:function',
         label: 'virtual',
-        color: '#8B5CF6',
         fileSize: undefined,
         nodeType: 'symbol',
         symbol: {

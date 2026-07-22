@@ -33,7 +33,6 @@ describe('core/graph/data symbol normalization', () => {
       {
         id: 'src/player.gd#score:field:var%20score%3A%20int',
         label: 'score',
-        color: '#14B8A6',
         fileSize: 20,
         nodeType: 'variable',
         symbol: {

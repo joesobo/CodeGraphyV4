@@ -48,7 +48,6 @@ function mergeGraphNode(existing: IGraphNode, incoming: IGraphNode): IGraphNode 
     ...existing,
     ...incoming,
     ...(symbolNode ? {
-      color: symbolNode.color,
       label: symbolNode.label,
       nodeType: symbolNode.nodeType,
       symbol: symbolNode.symbol,
@@ -69,16 +68,10 @@ function buildAnalysisNodes(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
   workspaceRoot: string,
 ): IGraphNode[] {
-  const colorByType = new Map(
-    [...fileAnalysis.values()]
-      .flatMap(analysis => analysis.nodeTypes ?? [])
-      .map(type => [type.id, type.defaultColor]),
-  );
   return [...fileAnalysis.values()].flatMap(analysis => (analysis.nodes ?? []).map(node => ({
     id: normalizeGraphId(node.id, workspaceRoot),
     label: node.label,
     nodeType: node.nodeType,
-    color: colorByType.get(node.nodeType) ?? '#808080',
     metadata: {
       ...node.metadata,
       ...(node.filePath ? { filePath: toRepoRelativeGraphPath(node.filePath, workspaceRoot) } : {}),

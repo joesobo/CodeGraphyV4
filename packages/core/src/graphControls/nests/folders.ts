@@ -42,12 +42,10 @@ export function collectStructuralFolderPaths(
 
 export function createFolderNodes(
   folderPaths: Set<string>,
-  folderNodeColor: string,
-): Array<{ id: string; label: string; color: string; nodeType: 'folder' }> {
+): Array<{ id: string; label: string; nodeType: 'folder' }> {
   return Array.from(folderPaths).map((folderPath) => ({
     id: folderPath,
     label: folderPath.split('/').pop()!,
-    color: folderNodeColor,
     nodeType: 'folder',
   }));
 }

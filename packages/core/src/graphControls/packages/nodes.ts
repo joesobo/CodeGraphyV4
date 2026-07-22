@@ -10,21 +10,16 @@ function getWorkspacePackageLabel(rootPath: string): string {
 
 export function createWorkspacePackageNodes(
   packageRoots: ReadonlySet<string>,
-  packageNodeColor: string,
 ): Array<{
   id: string;
   label: string;
-  color: string;
   nodeType: 'package';
-  shape2D: 'hexagon';
 }> {
   return [...packageRoots]
     .sort((left, right) => left.localeCompare(right))
     .map((rootPath) => ({
       id: getWorkspacePackageNodeId(rootPath),
       label: getWorkspacePackageLabel(rootPath),
-      color: packageNodeColor,
       nodeType: 'package',
-      shape2D: 'hexagon',
     }));
 }

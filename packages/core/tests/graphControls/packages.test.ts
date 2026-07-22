@@ -10,7 +10,6 @@ function fileNode(id: string): IGraphNode {
   return {
     id,
     label: id,
-    color: '#111111',
     nodeType: 'file',
   };
 }
@@ -35,27 +34,21 @@ describe('graphControls/packages', () => {
   });
 
   it('creates deterministic workspace package nodes with readable labels', () => {
-    expect(createWorkspacePackageNodes(new Set(['packages/core', '.', 'packages/plugin-api']), '#abcdef')).toEqual([
+    expect(createWorkspacePackageNodes(new Set(['packages/core', '.', 'packages/plugin-api']))).toEqual([
       {
         id: 'pkg:workspace:.',
         label: 'workspace',
-        color: '#abcdef',
         nodeType: 'package',
-        shape2D: 'hexagon',
       },
       {
         id: 'pkg:workspace:packages/core',
         label: 'core',
-        color: '#abcdef',
         nodeType: 'package',
-        shape2D: 'hexagon',
       },
       {
         id: 'pkg:workspace:packages/plugin-api',
         label: 'plugin-api',
-        color: '#abcdef',
         nodeType: 'package',
-        shape2D: 'hexagon',
       },
     ]);
   });

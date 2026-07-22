@@ -15,7 +15,6 @@ import {
   type EdgeRecord,
   type FileRecord,
   type NodeRecord,
-  type NodeViewRecord,
   type SymbolRecord,
 } from './types';
 
@@ -24,7 +23,6 @@ export type DatabaseRecord = Record<string, SQLiteValue>;
 export interface NormalizedDatabaseRecords {
   files: FileRecord[];
   nodes: NodeRecord[];
-  nodeViews: NodeViewRecord[];
   symbols: SymbolRecord[];
   edges: EdgeRecord[];
 }
@@ -41,10 +39,6 @@ function emptyNullableNodeFields(): NullableNodeFields {
     pluginId: null,
     language: null,
   };
-}
-
-function sqliteBoolean(value: boolean): number {
-  return Number(value);
 }
 
 function metadataString(metadata: GraphMetadata | undefined, key: string): string | null {
@@ -206,19 +200,6 @@ function graphNodeRecord(
     ),
     pluginId: node.symbol?.source ?? metadataPluginId(node.metadata),
     language: node.symbol?.language ?? metadataString(node.metadata, 'language'),
-  };
-}
-
-function graphNodeViewRecord(node: IGraphNode, nodeKey: string): NodeViewRecord {
-  return {
-    nodeKey,
-    color: node.color,
-    x: node.x ?? null,
-    y: node.y ?? null,
-    favorite: node.favorite === undefined ? null : sqliteBoolean(node.favorite),
-    shape: node.shape2D ?? null,
-    imageUrl: node.imageUrl ?? null,
-    isCollapsed: node.isCollapsed === undefined ? null : sqliteBoolean(node.isCollapsed),
   };
 }
 
@@ -389,11 +370,9 @@ export function serializeDatabaseRecords(
   }));
 
   const nodes = new Map<string, NodeRecord>();
-  const nodeViews = new Map<string, NodeViewRecord>();
   for (const node of graphData.nodes) {
     const record = graphNodeRecord(node, knownFilePaths, normalization);
     nodes.set(record.key, record);
-    nodeViews.set(record.key, graphNodeViewRecord(node, record.key));
   }
   for (const [filePath] of sortedFiles) addEndpointNode(nodes, filePath, knownFilePaths);
   for (const [filePath, entry] of sortedFiles) {
@@ -481,7 +460,6 @@ export function serializeDatabaseRecords(
   return {
     files,
     nodes: [...nodes.values()].sort((left, right) => left.key.localeCompare(right.key)),
-    nodeViews: [...nodeViews.values()].sort((left, right) => left.nodeKey.localeCompare(right.nodeKey)),
     symbols: [...symbols.values()].sort((left, right) => left.nodeId.localeCompare(right.nodeId)),
     edges: [...edges.values()].sort((left, right) => left.key.localeCompare(right.key)),
   };

@@ -19,6 +19,6 @@ export function projectWorkspacePackages(
 
   return {
     roots,
-    nodes: createWorkspacePackageNodes(roots, ''),
+    nodes: createWorkspacePackageNodes(roots),
   };
 }

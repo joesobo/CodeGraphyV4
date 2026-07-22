@@ -3,7 +3,6 @@ import type {
   GraphEdgeKind as PluginApiGraphEdgeKind,
   GraphMetadata as PluginApiGraphMetadata,
   GraphMetadataValue as PluginApiGraphMetadataValue,
-  GraphNodeShape2D as PluginApiGraphNodeShape2D,
   IGraphData as PluginApiGraphData,
   IGraphEdge as PluginApiGraphEdge,
   IGraphEdgeSource as PluginApiGraphEdgeSource,
@@ -15,9 +14,41 @@ export type CoreEdgeKind = PluginApiCoreEdgeKind;
 export type GraphEdgeKind = PluginApiGraphEdgeKind;
 export type GraphMetadata = PluginApiGraphMetadata;
 export type GraphMetadataValue = PluginApiGraphMetadataValue;
-export type GraphNodeShape2D = PluginApiGraphNodeShape2D;
-export type IGraphData = PluginApiGraphData;
-export type IGraphEdge = PluginApiGraphEdge;
+export type GraphNodeShape2D =
+  | 'circle'
+  | 'square'
+  | 'rectangle'
+  | 'diamond'
+  | 'triangle'
+  | 'hexagon'
+  | 'star';
+
+export interface IGraphNode extends PluginApiGraphNode {
+  color?: string;
+  x?: number;
+  y?: number;
+  favorite?: boolean;
+  depthLevel?: number;
+  shape2D?: GraphNodeShape2D;
+  shapeSize2D?: { height: number; width: number };
+  cornerRadius2D?: number;
+  collisionRadius2D?: number;
+  chargeStrengthMultiplier2D?: number;
+  fillOpacity2D?: number;
+  pointerArea2D?: { height: number; width: number };
+  imageUrl?: string;
+  isCollapsible?: boolean;
+  isCollapsed?: boolean;
+  collapsedDescendantCount?: number;
+}
+
+export interface IGraphEdge extends PluginApiGraphEdge {
+  color?: string;
+}
+
+export interface IGraphData extends Omit<PluginApiGraphData, 'edges' | 'nodes'> {
+  nodes: IGraphNode[];
+  edges: IGraphEdge[];
+}
 export type IGraphEdgeSource = PluginApiGraphEdgeSource;
-export type IGraphNode = PluginApiGraphNode;
 export type NodeType = PluginApiNodeType;

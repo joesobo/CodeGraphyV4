@@ -11,7 +11,6 @@ function node(id: string, nodeType?: IGraphNode['nodeType'], symbol?: IGraphNode
   return {
     id,
     label: id,
-    color: '#111111',
     ...(nodeType ? { nodeType } : {}),
     ...(symbol ? { symbol } : {}),
   };
@@ -46,7 +45,6 @@ function symbolGraphNode(symbolValue: IGraphNode['symbol']): IGraphNode {
   return {
     id: 'symbol:User',
     label: 'User',
-    color: '#111111',
     nodeType: 'symbol',
     symbol: symbolValue,
   };

@@ -13,7 +13,6 @@ function node(id: string, nodeType?: IGraphNode['nodeType']): IGraphNode {
   return {
     id,
     label: id,
-    color: '#111111',
     ...(nodeType ? { nodeType } : {}),
   };
 }

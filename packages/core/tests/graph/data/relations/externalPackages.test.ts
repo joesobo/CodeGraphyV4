@@ -25,15 +25,12 @@ describe('core/graph/data external package relationships', () => {
         {
           id: 'src/index.ts',
           label: 'index.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 10,
         },
         {
           id: 'pkg:fs',
           label: 'fs',
-          color: '#F59E0B',
           nodeType: 'package',
-          shape2D: 'hexagon',
         },
       ]);
       expect(graph.edges).toEqual([

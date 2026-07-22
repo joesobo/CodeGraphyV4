@@ -51,7 +51,6 @@ export type {
   GraphEdgeKind,
   GraphMetadata,
   GraphMetadataValue,
-  GraphNodeShape2D,
   IGraphNode,
   IGraphEdge,
   IGraphEdgeSource,

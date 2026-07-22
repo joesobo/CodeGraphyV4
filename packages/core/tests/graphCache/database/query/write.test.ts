@@ -22,7 +22,7 @@ describe('graphCache/database/writeStatements', () => {
   });
 
   it('prepares one statement for each canonical table', () => {
-    const statements = [{}, {}, {}, {}, {}, {}];
+    const statements = [{}, {}, {}, {}, {}];
     const prepare = vi.spyOn(cacheConnectionModule, 'prepareStatementSync');
     statements.forEach(statement => prepare.mockReturnValueOnce(statement as never));
 
@@ -30,16 +30,15 @@ describe('graphCache/database/writeStatements', () => {
       connection: {},
       fileStatement: statements[0],
       nodeStatement: statements[1],
-      nodeViewStatement: statements[2],
-      symbolStatement: statements[3],
-      edgeStatement: statements[4],
-      nodeParentStatement: statements[5],
+      symbolStatement: statements[2],
+      edgeStatement: statements[3],
+      nodeParentStatement: statements[4],
     });
-    expect(prepare).toHaveBeenCalledTimes(6);
+    expect(prepare).toHaveBeenCalledTimes(5);
   });
 
   it('prepares one async statement for each canonical table', async () => {
-    const statements = [{}, {}, {}, {}, {}, {}];
+    const statements = [{}, {}, {}, {}, {}];
     const prepare = vi.spyOn(cacheConnectionModule, 'prepareStatementAsync');
     statements.forEach(statement => prepare.mockResolvedValueOnce(statement as never));
 
@@ -47,12 +46,11 @@ describe('graphCache/database/writeStatements', () => {
       connection: {},
       fileStatement: statements[0],
       nodeStatement: statements[1],
-      nodeViewStatement: statements[2],
-      symbolStatement: statements[3],
-      edgeStatement: statements[4],
-      nodeParentStatement: statements[5],
+      symbolStatement: statements[2],
+      edgeStatement: statements[3],
+      nodeParentStatement: statements[4],
     });
-    expect(prepare).toHaveBeenCalledTimes(6);
+    expect(prepare).toHaveBeenCalledTimes(5);
   });
 
   it('stores file state and analysis facts as normalized records', () => {
@@ -67,7 +65,6 @@ describe('graphCache/database/writeStatements', () => {
       connection: {} as never,
       fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
-      nodeViewStatement: { kind: 'node-view' } as never,
       symbolStatement: { kind: 'symbol' } as never,
       edgeStatement: { kind: 'edge' } as never,
       nodeParentStatement: { kind: 'node-parent' } as never,
@@ -117,7 +114,6 @@ describe('graphCache/database/writeStatements', () => {
       connection: {} as never,
       fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
-      nodeViewStatement: { kind: 'node-view' } as never,
       symbolStatement: { kind: 'symbol' } as never,
       edgeStatement: { kind: 'edge' } as never,
       nodeParentStatement: { kind: 'node-parent' } as never,
@@ -125,8 +121,8 @@ describe('graphCache/database/writeStatements', () => {
 
     persistWorkspaceCache(writer, { version: '', files: {} }, {
       nodes: [
-        { id: 'src/app.ts', label: 'app.ts', color: '#fff', nodeType: 'file' },
-        { id: 'src/model.ts', label: 'model.ts', color: '#fff', nodeType: 'file' },
+        { id: 'src/app.ts', label: 'app.ts', nodeType: 'file' },
+        { id: 'src/model.ts', label: 'model.ts', nodeType: 'file' },
       ],
       edges: [{
         id: 'src/app.ts->src/model.ts#import',
@@ -137,7 +133,7 @@ describe('graphCache/database/writeStatements', () => {
       }],
     });
 
-    expect(execute).toHaveBeenCalledTimes(5);
+    expect(execute).toHaveBeenCalledTimes(3);
     expect(execute).toHaveBeenLastCalledWith(
       writer.connection,
       writer.edgeStatement,
@@ -163,7 +159,6 @@ describe('graphCache/database/writeStatements', () => {
       connection: {} as never,
       fileStatement: { kind: 'file' } as never,
       nodeStatement: { kind: 'node' } as never,
-      nodeViewStatement: { kind: 'node-view' } as never,
       symbolStatement: { kind: 'symbol' } as never,
       edgeStatement: { kind: 'edge' } as never,
       nodeParentStatement: { kind: 'node-parent' } as never,

@@ -1,6 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
 import type { VisibleGraphCollapseConfig } from './contracts';
-import { annotateCollapsibleFolders, annotateFolderNode } from './collapseAnnotate';
 import { projectCollapsedEdges } from './collapseEdges';
 import { findVisibleCollapsedAncestor } from './collapsePaths';
 import { FOLDER_NODE_TYPE, getNodeType } from './model';
@@ -19,7 +18,7 @@ export function applyCollapseProjection(
   );
 
   if (collapsedFolderIds.size === 0) {
-    return annotateCollapsibleFolders(graphData, folderIds);
+    return graphData;
   }
 
   const hiddenByNodeId = new Map<string, string>();
@@ -32,8 +31,7 @@ export function applyCollapseProjection(
 
       hiddenByNodeId.set(node.id, ownerId);
       return false;
-    })
-    .map((node) => annotateFolderNode(node, folderIds, graphData.nodes, collapsedFolderIds, hiddenByNodeId));
+    });
 
   return {
     nodes,

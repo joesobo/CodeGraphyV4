@@ -25,7 +25,6 @@ function scopeNode(overrides: Partial<IGraphNode>): IGraphNode {
   return {
     id: 'src/app.ts',
     label: 'src/app.ts',
-    color: '#111111',
     nodeType: 'file',
     ...overrides,
   };

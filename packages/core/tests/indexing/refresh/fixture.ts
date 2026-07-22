@@ -27,7 +27,6 @@ export function createFileAnalysis(filePath: string): IFileAnalysisResult {
 
 export function createGraphNode(id: string) {
   return {
-    color: '#808080',
     id,
     label: id.split('/').at(-1) ?? id,
   };
@@ -37,7 +36,7 @@ export function createSource(
   overrides: Partial<WorkspaceIndexRefreshSource> = {},
 ): WorkspaceIndexRefreshSource {
   const graph: IGraphData = {
-    nodes: [{ color: '#808080', id: 'src/app.ts', label: 'app.ts', nodeType: 'file' }],
+    nodes: [{ id: 'src/app.ts', label: 'app.ts', nodeType: 'file' }],
     edges: [],
   };
 

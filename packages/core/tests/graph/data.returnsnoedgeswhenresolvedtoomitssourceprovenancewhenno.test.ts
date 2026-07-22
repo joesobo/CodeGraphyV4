@@ -102,13 +102,11 @@ describe('core/graph/data', () => {
         {
           id: 'src/app.ts',
           label: 'app.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 10,
         },
         {
           id: 'src/new-folder',
           label: 'new-folder',
-          color: DEFAULT_FOLDER_NODE_COLOR,
           nodeType: 'folder',
         },
       ]);

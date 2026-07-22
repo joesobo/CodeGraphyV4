@@ -5,8 +5,8 @@ describe('graphCache/database/serializer identities', () => {
   it('preserves parallel graph edges with distinct stable keys', () => {
     const records = serializeDatabaseRecords({ version: '1', files: {} }, {
       nodes: [
-        { id: 'src/a.ts', nodeType: 'file', label: 'a.ts', color: '#fff' },
-        { id: 'src/b.ts', nodeType: 'file', label: 'b.ts', color: '#fff' },
+        { id: 'src/a.ts', nodeType: 'file', label: 'a.ts' },
+        { id: 'src/b.ts', nodeType: 'file', label: 'b.ts' },
       ],
       edges: [
         { id: 'call:a-to-b:first', from: 'src/a.ts', to: 'src/b.ts', kind: 'call', sources: [] },
@@ -95,8 +95,8 @@ describe('graphCache/database/serializer identities', () => {
       },
     }, {
       nodes: [
-        { id: 'Assets/Player.prefab', nodeType: 'file', label: 'Player.prefab', color: '#fff' },
-        { id: graphNodeId, nodeType: 'plugin:codegraphy.unity:prefab', label: 'Player', color: '#fff' },
+        { id: 'Assets/Player.prefab', nodeType: 'file', label: 'Player.prefab' },
+        { id: graphNodeId, nodeType: 'plugin:codegraphy.unity:prefab', label: 'Player' },
       ],
       edges: [{
         id: 'Assets/Player.prefab->.unity/prefab:player-guid#contains',
@@ -139,7 +139,6 @@ describe('graphCache/database/serializer identities', () => {
         id: 'Assets/Player.prefab#Player:game-object:GameObject%201',
         nodeType: 'symbol',
         label: 'Player',
-        color: '#fff',
         symbol: {
           id: 'Assets/Player.prefab#Player:game-object:GameObject%201',
           filePath: 'Assets/Player.prefab',

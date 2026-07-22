@@ -63,14 +63,12 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         {
           id: 'src/index.ts',
           label: 'index.ts',
-          color: '#ffffff',
           nodeType: 'file',
           fileSize: 2,
         },
         {
           id: 'src/index.ts:function:main',
           label: 'main',
-          color: '#ffffff',
           nodeType: 'symbol',
           symbol: {
             id: 'src/index.ts:function:main',
@@ -82,7 +80,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         {
           id: 'src/utils.ts',
           label: 'utils.ts',
-          color: '#ffffff',
           nodeType: 'file',
         },
       ],
@@ -111,7 +108,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
           LEFT JOIN File ON File.id = Node.fileId
           LEFT JOIN Node AS Parent ON Parent.id = Node.parentId
           ORDER BY Node.id`),
-        nodeViews: readRowsSync(connection, 'SELECT * FROM NodeView ORDER BY nodeKey'),
         symbols: readRowsSync(connection, `SELECT Symbol.*, Node.key AS nodeKey
           FROM Symbol JOIN Node ON Node.id = Symbol.nodeId ORDER BY Symbol.nodeId`),
         edges: readRowsSync(connection, `SELECT Edge.*, Source.key AS sourceNodeKey,
@@ -126,7 +122,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       { name: 'Edge' },
       { name: 'File' },
       { name: 'Node' },
-      { name: 'NodeView' },
       { name: 'Symbol' },
     ]);
     expect(records.files).toEqual([{
@@ -184,38 +179,6 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         parentKey: null,
         pluginId: null,
         language: null,
-      },
-    ]);
-    expect(records.nodeViews).toEqual([
-      {
-        nodeKey: 'src/index.ts',
-        color: '#ffffff',
-        x: null,
-        y: null,
-        favorite: 0,
-        shape: null,
-        imageUrl: null,
-        isCollapsed: 0,
-      },
-      {
-        nodeKey: 'src/index.ts:function:main',
-        color: '#ffffff',
-        x: null,
-        y: null,
-        favorite: 0,
-        shape: null,
-        imageUrl: null,
-        isCollapsed: 0,
-      },
-      {
-        nodeKey: 'src/utils.ts',
-        color: '#ffffff',
-        x: null,
-        y: null,
-        favorite: 0,
-        shape: null,
-        imageUrl: null,
-        isCollapsed: 0,
       },
     ]);
     expect(records.symbols).toEqual([{

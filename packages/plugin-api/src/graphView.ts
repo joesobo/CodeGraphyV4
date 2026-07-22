@@ -39,6 +39,7 @@ export interface IGraphViewRuntimeNodePositionState {
 }
 
 export interface IGraphViewRuntimeNode extends IGraphNode, IGraphViewRuntimeNodePositionState {
+  color?: string;
   ownerPluginId?: string;
   runtimeNodeType?: string;
 }

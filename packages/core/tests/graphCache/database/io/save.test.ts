@@ -116,7 +116,6 @@ describe('graphCache/database/io/save', () => {
       ['connection', 'DELETE FROM Symbol'],
       ['connection', 'DELETE FROM Node'],
       ['connection', 'DELETE FROM File'],
-      ['connection', 'DELETE FROM NodeView WHERE NOT EXISTS (SELECT 1 FROM Node WHERE Node.key = NodeView.nodeKey)'],
       ['connection', 'COMMIT'],
     ]);
     expect(writeModule.persistWorkspaceCache).toHaveBeenCalledWith(
@@ -200,7 +199,6 @@ describe('graphCache/database/io/save', () => {
       ['connection', 'DELETE FROM Symbol'],
       ['connection', 'DELETE FROM Node'],
       ['connection', 'DELETE FROM File'],
-      ['connection', 'DELETE FROM NodeView WHERE NOT EXISTS (SELECT 1 FROM Node WHERE Node.key = NodeView.nodeKey)'],
       ['connection', 'COMMIT'],
     ]);
     expect(onProgress.mock.calls).toEqual([

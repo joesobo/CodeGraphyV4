@@ -22,7 +22,6 @@ function node(id: string, nodeType: IGraphNode['nodeType'] = 'file'): IGraphNode
   return {
     id,
     label: id,
-    color: '#111111',
     nodeType,
   };
 }
@@ -154,16 +153,12 @@ describe('visibleGraph structural projection', () => {
         {
           id: 'pkg:workspace:.',
           label: 'workspace',
-          color: '',
           nodeType: 'package',
-          shape2D: 'hexagon',
         },
         {
           id: 'pkg:workspace:packages/core',
           label: 'core',
-          color: '',
           nodeType: 'package',
-          shape2D: 'hexagon',
         },
       ],
     });
@@ -236,40 +231,32 @@ describe('visibleGraph structural projection', () => {
         {
           id: 'src',
           label: 'src',
-          color: '',
           nodeType: 'folder',
         },
         {
           id: 'packages',
           label: 'packages',
-          color: '',
           nodeType: 'folder',
         },
         {
           id: 'packages/core',
           label: 'core',
-          color: '',
           nodeType: 'folder',
         },
         {
           id: '(root)',
           label: '(root)',
-          color: '',
           nodeType: 'folder',
         },
         {
           id: 'pkg:workspace:.',
           label: 'workspace',
-          color: '',
           nodeType: 'package',
-          shape2D: 'hexagon',
         },
         {
           id: 'pkg:workspace:packages/core',
           label: 'core',
-          color: '',
           nodeType: 'package',
-          shape2D: 'hexagon',
         },
       ],
       edges: [

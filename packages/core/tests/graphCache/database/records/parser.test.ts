@@ -12,7 +12,6 @@ describe('graphCache/database/parser', () => {
       key: 'a.ts',
       type: 'file',
       label: 'a.ts',
-      color: '#fff',
       get filePath() {
         filePathReads += 1;
         if (filePathReads > 2) throw new Error('node rows were rescanned');
@@ -70,8 +69,8 @@ describe('graphCache/database/parser', () => {
     const hydrated = parseDatabaseRecords(
       [],
       [
-        { id: 1, key: 'a', type: 'file', label: 'a', color: '#fff' },
-        { id: 2, key: 'b', type: 'file', label: 'b', color: '#fff' },
+        { id: 1, key: 'a', type: 'file', label: 'a' },
+        { id: 2, key: 'b', type: 'file', label: 'b' },
       ],
       [],
       [
@@ -101,7 +100,6 @@ describe('graphCache/database/parser', () => {
       nodes: [{
         id: 'external#run:function',
         label: 'run',
-        color: '#fff',
         nodeType: 'symbol',
         symbol: {
           id: 'external#run:function',
@@ -145,8 +143,8 @@ describe('graphCache/database/parser', () => {
       },
     }, {
       nodes: [
-        { id: 'a.ts', label: 'a.ts', color: '#fff', nodeType: 'file' },
-        { id: 'b.ts', label: 'b.ts', color: '#fff', nodeType: 'file' },
+        { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+        { id: 'b.ts', label: 'b.ts', nodeType: 'file' },
       ],
       edges: [{
         id: 'a.ts->b.ts#import',

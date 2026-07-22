@@ -7,7 +7,6 @@ function node(id: string, label = id, symbol?: IGraphNode['symbol']): IGraphNode
   return {
     id,
     label,
-    color: '#111111',
     ...(symbol ? { symbol } : {}),
   };
 }

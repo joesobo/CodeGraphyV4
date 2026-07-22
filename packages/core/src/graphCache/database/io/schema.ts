@@ -3,11 +3,10 @@ import {
   EDGE_COLUMNS,
   FILE_COLUMNS,
   NODE_COLUMNS,
-  NODE_VIEW_COLUMNS,
   SYMBOL_COLUMNS,
 } from '../records/types';
 
-export const GRAPH_CACHE_SCHEMA_VERSION = 9;
+export const GRAPH_CACHE_SCHEMA_VERSION = 10;
 
 function tableColumns(connection: SQLiteConnection, table: string): string[] {
   const rows = connection.pragma(`table_info(${table})`) as Array<{ name?: string }>;
@@ -36,15 +35,14 @@ export function hasCurrentGraphCacheSchema(connection: SQLiteConnection): boolea
   const tableNames = cacheTableNames(connection);
   const cacheTables = [...tableNames].filter(name => name !== 'sqlite_sequence');
 
-  if (cacheTables.length !== 5) return false;
+  if (cacheTables.length !== 4) return false;
   if (!tableNames.has('File') || !tableNames.has('Node')
-    || !tableNames.has('NodeView') || !tableNames.has('Symbol') || !tableNames.has('Edge')) return false;
+    || !tableNames.has('Symbol') || !tableNames.has('Edge')) return false;
 
-  return ['File', 'Node', 'NodeView', 'Symbol', 'Edge']
+  return ['File', 'Node', 'Symbol', 'Edge']
     .every(table => isStrictTable(connection, table))
     && hasExpectedColumns(tableColumns(connection, 'File'), ['id', ...FILE_COLUMNS])
     && hasExpectedColumns(tableColumns(connection, 'Node'), ['id', ...NODE_COLUMNS])
-    && hasExpectedColumns(tableColumns(connection, 'NodeView'), [...NODE_VIEW_COLUMNS])
     && hasExpectedColumns(tableColumns(connection, 'Symbol'), [...SYMBOL_COLUMNS])
     && hasExpectedColumns(tableColumns(connection, 'Edge'), ['id', ...EDGE_COLUMNS]);
 }
@@ -56,9 +54,6 @@ function hasLegacySchema(connection: SQLiteConnection): boolean {
 }
 
 function dropLegacySchema(connection: SQLiteConnection): void {
-  const nodeViewIsReusable = cacheTableNames(connection).has('NodeView')
-    && hasExpectedColumns(tableColumns(connection, 'NodeView'), [...NODE_VIEW_COLUMNS])
-    && isStrictTable(connection, 'NodeView');
   connection.exec(`
     DROP TABLE IF EXISTS Edge;
     DROP TABLE IF EXISTS Symbol;
@@ -69,10 +64,8 @@ function dropLegacySchema(connection: SQLiteConnection): void {
     DROP TABLE IF EXISTS NodeType;
     DROP TABLE IF EXISTS EdgeType;
     DROP TABLE IF EXISTS File;
+    DROP TABLE IF EXISTS NodeView;
   `);
-  if (!nodeViewIsReusable) {
-    connection.exec('DROP TABLE IF EXISTS NodeView');
-  }
 }
 
 export function ensureSchema(connection: SQLiteConnection): void {
@@ -85,7 +78,7 @@ export function ensureSchema(connection: SQLiteConnection): void {
       id INTEGER PRIMARY KEY,
       path TEXT NOT NULL UNIQUE,
       mtime REAL NOT NULL,
-      size INTEGER NOT NULL,
+      size INTEGER NOT NULL CHECK (size >= -1),
       contentHash TEXT
     ) STRICT;
     CREATE TABLE IF NOT EXISTS Node (
@@ -101,16 +94,6 @@ export function ensureSchema(connection: SQLiteConnection): void {
     CREATE INDEX IF NOT EXISTS Node_type_idx ON Node(type);
     CREATE INDEX IF NOT EXISTS Node_fileId_idx ON Node(fileId);
     CREATE INDEX IF NOT EXISTS Node_parentId_idx ON Node(parentId);
-    CREATE TABLE IF NOT EXISTS NodeView (
-      nodeKey TEXT PRIMARY KEY,
-      color TEXT,
-      x REAL,
-      y REAL,
-      favorite INTEGER NOT NULL DEFAULT 0 CHECK (favorite IN (0, 1)),
-      shape TEXT,
-      imageUrl TEXT,
-      isCollapsed INTEGER NOT NULL DEFAULT 0 CHECK (isCollapsed IN (0, 1))
-    ) STRICT;
     CREATE TABLE IF NOT EXISTS Symbol (
       nodeId INTEGER PRIMARY KEY REFERENCES Node(id) ON DELETE CASCADE,
       name TEXT NOT NULL,

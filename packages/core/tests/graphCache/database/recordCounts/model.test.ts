@@ -43,8 +43,8 @@ describe('graph cache database record counts', () => {
       },
     }, {
       nodes: [
-        { id: 'src/app.ts', label: 'app.ts', color: '#000000', nodeType: 'file' },
-        { id: 'src/app.ts#run:function', label: 'run', color: '#000000', nodeType: 'symbol:function' },
+        { id: 'src/app.ts', label: 'app.ts', nodeType: 'file' },
+        { id: 'src/app.ts#run:function', label: 'run', nodeType: 'symbol:function' },
       ],
       edges: [{
         id: 'src/app.ts->src/app.ts#contains',

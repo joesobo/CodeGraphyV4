@@ -24,7 +24,7 @@ describe('cli doctor', () => {
             ok: true,
             state: 'fresh',
             staleReasons: [],
-            schemaVersion: 9,
+            schemaVersion: 10,
             integrityOk: true,
             foreignKeyOk: true,
             indexedAt: expect.any(String),
@@ -59,8 +59,8 @@ describe('cli doctor', () => {
           checks: {
             cache: {
               ok: false,
-              schemaVersion: 9,
-              expectedSchemaVersion: 9,
+              schemaVersion: 10,
+              expectedSchemaVersion: 10,
               schemaCompatible: false,
             },
           },
@@ -111,7 +111,7 @@ describe('cli doctor', () => {
     const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
     const damaged = new Database(databasePath);
     damaged.pragma('ignore_check_constraints = ON');
-    damaged.prepare('UPDATE NodeView SET favorite = 2').run();
+    damaged.prepare('UPDATE File SET size = -2').run();
     damaged.close();
     const stderr = vi.fn();
 

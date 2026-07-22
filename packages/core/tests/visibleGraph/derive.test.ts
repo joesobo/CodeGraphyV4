@@ -6,7 +6,6 @@ function node(id: string, nodeType?: IGraphNode['nodeType']): IGraphNode {
   return {
     id,
     label: id,
-    color: '#111111',
     ...(nodeType ? { nodeType } : {}),
   };
 }
@@ -168,8 +167,6 @@ describe('visibleGraph/derive', () => {
         nodes: [
           {
             id: 'src',
-            isCollapsed: true,
-            collapsedDescendantCount: 3,
           },
         ],
         edges: [],

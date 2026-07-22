@@ -13,7 +13,6 @@ function node(id: string, nodeType: IGraphNode['nodeType'] = 'file'): IGraphNode
   return {
     id,
     label: id,
-    color: '#111111',
     nodeType,
   };
 }
@@ -159,11 +158,8 @@ describe('visibleGraph collapse and filtering', () => {
       'src/domain',
       'src/consumer.ts',
     ]);
-    expect(collapsed.nodes.find((candidate) => candidate.id === 'src/domain')).toMatchObject({
-      isCollapsible: true,
-      isCollapsed: true,
-      collapsedDescendantCount: 2,
-    });
+    expect(collapsed.nodes.find((candidate) => candidate.id === 'src/domain'))
+      .toEqual(node('src/domain', 'folder'));
     expect(collapsed.edges).toEqual([{
       id: 'src/domain->src/consumer.ts#import',
       from: 'src/domain',
@@ -186,7 +182,7 @@ describe('visibleGraph collapse and filtering', () => {
     }]);
   });
 
-  it('marks folders collapsible even when no folder is currently collapsed', () => {
+  it('does not add interface state when no folder is currently collapsed', () => {
     const graphData: IGraphData = {
       nodes: [
         node('(root)', 'folder'),
@@ -197,16 +193,8 @@ describe('visibleGraph collapse and filtering', () => {
     };
 
     expect(applyCollapseProjection(graphData).nodes).toEqual([
-      {
-        ...node('(root)', 'folder'),
-        isCollapsible: true,
-        isCollapsed: false,
-      },
-      {
-        ...node('src', 'folder'),
-        isCollapsible: true,
-        isCollapsed: false,
-      },
+      node('(root)', 'folder'),
+      node('src', 'folder'),
       node('src/app.ts'),
     ]);
   });
@@ -247,7 +235,6 @@ describe('visibleGraph collapse and filtering', () => {
         from: 'src',
         to: 'outside.ts',
         kind: 'import',
-        color: '#ff0000',
         sources: [
           { id: 'source:a', pluginId: 'plugin', sourceId: 'a', label: 'A' },
           { id: 'source:b', pluginId: 'plugin', sourceId: 'b', label: 'B' },

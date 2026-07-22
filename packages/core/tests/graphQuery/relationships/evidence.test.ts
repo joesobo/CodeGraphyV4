@@ -9,7 +9,7 @@ import { createSymbolMap } from '../../../src/graphQuery/relationships/symbols';
 import { edgeKey } from '../../../src/graphQuery/relationships/visibility';
 
 function node(id: string, nodeType = 'file'): IGraphNode {
-  return { id, label: id, color: '#111111', nodeType };
+  return { id, label: id, nodeType };
 }
 
 function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {

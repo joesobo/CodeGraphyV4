@@ -10,14 +10,10 @@ describe('graphCache/database/records/graph/parser', () => {
       key: 'src/app.ts',
       type: 'file',
       label: 'app.ts',
-      color: '#fff',
-      favorite: 1,
     })).toEqual({
       id: 'src/app.ts',
       nodeType: 'file',
       label: 'app.ts',
-      color: '#fff',
-      favorite: true,
     });
   });
 
