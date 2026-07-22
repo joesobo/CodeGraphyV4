@@ -14,6 +14,26 @@ describe('extension/repoSettings persisted interface shape', () => {
         { id: 'future.interface', data: ['unknown', 'shape'] },
       ],
     });
-    expect(normalizePersistedSettingsShape({ interfaces: {} })).toEqual({});
+  });
+
+  it.each([{}, null, 'invalid'])('drops a non-array interfaces value', interfaces => {
+    expect(normalizePersistedSettingsShape({ interfaces })).toEqual({});
+  });
+
+  it('drops invalid envelopes without inspecting valid interface data', () => {
+    expect(normalizePersistedSettingsShape({
+      interfaces: [
+        null,
+        'invalid',
+        { data: {} },
+        { id: 42, data: {} },
+        { id: '', data: {} },
+        { id: '   ', data: {} },
+        { id: 'missing.data' },
+        { id: 'future.interface', data: null },
+      ],
+    })).toEqual({
+      interfaces: [{ id: 'future.interface', data: null }],
+    });
   });
 });
