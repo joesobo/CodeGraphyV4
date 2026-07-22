@@ -85,6 +85,28 @@ describe('ExtensionPluginRegistry', () => {
     expect(() => registry.notifyWebviewReady()).not.toThrow();
   });
 
+  it('continues initialization after one plugin fails and allows that plugin to retry', async () => {
+    const failure = new Error('initialize failed');
+    const failingInitialize = vi.fn(async () => {
+      throw failure;
+    });
+    const laterInitialize = vi.fn(async () => undefined);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const registry = new ExtensionPluginRegistry();
+    registry.register(createPlugin({ id: 'acme.failing', initialize: failingInitialize }));
+    registry.register(createPlugin({ id: 'acme.later', initialize: laterInitialize }));
+
+    await expect(registry.initializeAll('/workspace')).resolves.toBeUndefined();
+    await registry.initializeAll('/workspace');
+
+    expect(failingInitialize).toHaveBeenCalledTimes(2);
+    expect(laterInitialize).toHaveBeenCalledOnce();
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] Error initializing Extension plugin acme.failing:',
+      failure,
+    );
+  });
+
   it('returns false for unknown plugins and unloads registered plugins', async () => {
     const initialize = vi.fn(async () => undefined);
     const onUnload = vi.fn();
@@ -107,6 +129,28 @@ describe('ExtensionPluginRegistry', () => {
     registry.register(createPlugin());
 
     expect(registry.unregister('acme.particles')).toBe(true);
+  });
+
+  it('continues disposal after one plugin unload fails', () => {
+    const failure = new Error('unload failed');
+    const failingUnload = vi.fn(() => {
+      throw failure;
+    });
+    const laterUnload = vi.fn();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const registry = new ExtensionPluginRegistry();
+    registry.register(createPlugin({ id: 'acme.failing', onUnload: failingUnload }));
+    registry.register(createPlugin({ id: 'acme.later', onUnload: laterUnload }));
+
+    expect(() => registry.disposeAll()).not.toThrow();
+
+    expect(failingUnload).toHaveBeenCalledOnce();
+    expect(laterUnload).toHaveBeenCalledOnce();
+    expect(registry.list()).toEqual([]);
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] Error unloading Extension plugin acme.failing:',
+      failure,
+    );
   });
 
   it('rejects a plugin for an incompatible Extension Plugin API', () => {

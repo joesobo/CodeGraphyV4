@@ -65,8 +65,15 @@ export class ExtensionPluginRegistry {
   async initializeAll(workspaceRoot: string): Promise<void> {
     for (const info of this.plugins.values()) {
       if (this.initializedPlugins.has(info.plugin.id)) continue;
-      await info.plugin.initialize?.(workspaceRoot);
-      this.initializedPlugins.add(info.plugin.id);
+      try {
+        await info.plugin.initialize?.(workspaceRoot);
+        this.initializedPlugins.add(info.plugin.id);
+      } catch (error) {
+        console.error(
+          `[CodeGraphy] Error initializing Extension plugin ${info.plugin.id}:`,
+          error,
+        );
+      }
     }
   }
 
@@ -80,7 +87,11 @@ export class ExtensionPluginRegistry {
     const info = this.plugins.get(pluginId);
     if (!info) return false;
 
-    info.plugin.onUnload?.();
+    try {
+      info.plugin.onUnload?.();
+    } catch (error) {
+      console.error(`[CodeGraphy] Error unloading Extension plugin ${pluginId}:`, error);
+    }
     this.initializedPlugins.delete(pluginId);
     return this.plugins.delete(pluginId);
   }
