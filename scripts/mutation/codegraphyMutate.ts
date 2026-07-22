@@ -260,7 +260,11 @@ function fileIncludeParts(relativeSourceFile: string): FileIncludeParts {
 }
 
 function baseTestRoots(packageName: string): string[] {
-  return [`packages/${packageName}/tests`];
+  return [
+    `packages/${packageName}/tests`,
+    `packages/${packageName}/src`,
+    `packages/${packageName}/__tests__`,
+  ];
 }
 
 function sharedDetectorTestIncludes(root: string, directory: string, recursive = false): string[] {
