@@ -105,6 +105,7 @@ export async function indexCodeGraphyWorkspace(
     });
   const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
     pluginSignature,
+    plugins: registry.list().map(info => info.plugin),
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
