@@ -50,7 +50,7 @@ const ROOT_HELP = [
 
 const QUERY_PROJECTION_OPTIONS = [
   '  --filter <glob[,glob...]>      Exclude matching paths for this query (repeatable)',
-  '  --node-type <type[,type...]>   Include only these Node Types (repeatable)',
+  '  --node-type <type[,type...]>   Include Nodes matching these Node Types (repeatable)',
   '  --edge-type <type[,type...]>   Include only these Edge Types (repeatable)',
   '  These one-off options do not change .codegraphy/settings.json.',
 ];
@@ -83,7 +83,7 @@ const COMMAND_HELP: Record<string, string> = {
     '',
     'Effects: Read-only.',
     'Output: JSON checks with recovery actions. Exits nonzero when unhealthy.',
-    'Failure envelope: Adds data with the completed checks beside the standard error field.',
+    'Failure envelope: Includes the completed checks in error.details.',
     'Example: codegraphy doctor',
   ].join('\n'),
   nodes: [

@@ -8,9 +8,9 @@ import type {
   IGraphEdge,
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
-import { CORE_GRAPH_NODE_TYPES } from '../../../graphControls/defaults/definitions';
-import type { GraphEdgeRow, GraphNodeRow, SymbolRow } from './types';
-import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
+import { CORE_GRAPH_NODE_TYPES } from '../../../../graphControls/defaults/definitions';
+import type { GraphEdgeRow, GraphNodeRow, SymbolRow } from '../types';
+import { readOptionalNumber, readOptionalString, readRequiredString } from '../values';
 
 function readBoolean(value: unknown): boolean | undefined {
   if (value === 1 || value === 1n) return true;

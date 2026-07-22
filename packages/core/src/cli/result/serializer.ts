@@ -1,9 +1,17 @@
-import type { CommandExecutionResult } from './command';
-import { parseCliOutput, readCliError } from './outputValue';
-import type { CliCommand } from './parseTypes';
+import type { CommandExecutionResult } from '../command';
+import type { CliCommand } from '../parseTypes';
+import { parseCliOutput, readCliError } from './parser';
 
 function commandName(command: CliCommand): string {
   return command.invokedCommand ?? command.report ?? command.name;
+}
+
+function isDoctorChecksOutput(output: unknown): output is { healthy: boolean; checks: object } {
+  if (typeof output !== 'object' || output === null) return false;
+  const candidate = output as { healthy?: unknown; checks?: unknown };
+  return typeof candidate.healthy === 'boolean'
+    && typeof candidate.checks === 'object'
+    && candidate.checks !== null;
 }
 
 export function formatCliResult(command: CliCommand, result: CommandExecutionResult): string {
@@ -14,15 +22,15 @@ export function formatCliResult(command: CliCommand, result: CommandExecutionRes
   if (result.exitCode === 0) {
     return JSON.stringify({ ok: true, command: commandName(command), data: output });
   }
-  if (command.name === 'doctor' && typeof output === 'object' && output !== null) {
+  if (command.name === 'doctor' && isDoctorChecksOutput(output)) {
     return JSON.stringify({
       ok: false,
       command: commandName(command),
-      data: output,
       error: {
         code: 'workspace_unhealthy',
         message: 'Workspace checks failed.',
         action: 'Review the failed checks and run their suggested actions.',
+        details: output,
       },
     });
   }

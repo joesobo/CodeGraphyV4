@@ -5,7 +5,7 @@ import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { IWorkspaceAnalysisCache } from '../../../src/analysis/cache';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../../src/analysis/cache';
-import { buildCompleteWorkspaceGraphData } from '../../../src/graph/complete';
+import { buildCompleteWorkspaceGraphData } from '../../../src/graph/completion/model';
 import {
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,

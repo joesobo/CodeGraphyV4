@@ -55,7 +55,7 @@ describe('cli/help/command', () => {
 
   it('documents the doctor failure data exception', () => {
     expect(createHelpResult(['doctor']).output).toContain(
-      'Failure envelope: Adds data with the completed checks',
+      'Failure envelope: Includes the completed checks in error.details.',
     );
   });
 

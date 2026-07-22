@@ -1,7 +1,7 @@
 import { runCliCommand, type CommandExecutionResult } from './command';
 import { parseCliCommand } from './parse';
 import type { CliCommand } from './parseTypes';
-import { formatCliResult } from './output';
+import { formatCliResult } from './result/serializer';
 
 export interface RunCliDependencies {
   runCommand(command: CliCommand): Promise<CommandExecutionResult>;

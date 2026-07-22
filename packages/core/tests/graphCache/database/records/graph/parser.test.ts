@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   createSnapshotGraphEdge,
   createSnapshotGraphNode,
-} from '../../../../src/graphCache/database/records/graph';
+} from '../../../../../src/graphCache/database/records/graph/parser';
 
-describe('graphCache/database/graph records', () => {
+describe('graphCache/database/records/graph/parser', () => {
   it('hydrates a graph node from explicit columns', () => {
     expect(createSnapshotGraphNode({
       key: 'src/app.ts',

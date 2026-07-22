@@ -96,12 +96,12 @@ codegraphy -C /path/to/workspace index
 
 ## CLI Reference
 
-All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data commands return a stable JSON envelope on stdout. Failures return the same envelope shape on stderr and use a nonzero exit code. An unhealthy `doctor` result also includes `data` with every completed check, beside the standard `error` field. Help and version output stay plain text.
+All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data commands return `{ "ok": true, "command": "...", "data": ... }` on stdout. Failures return `{ "ok": false, "command": "...", "error": ... }` on stderr and use a nonzero exit code. An unhealthy `doctor` result keeps every completed check in `error.details`. Help and version output stay plain text.
 
 | Command | Result |
 |---|---|
 | `codegraphy status` | Reports fresh, stale, missing, or unusable Graph Cache state. |
-| `codegraphy doctor` | Checks runtime, settings, Graph Cache, and plugin state. |
+| `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
 | `codegraphy index` | Makes the selected workspace Graph Cache current. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
 | `codegraphy search <text>` | Searches Nodes. |

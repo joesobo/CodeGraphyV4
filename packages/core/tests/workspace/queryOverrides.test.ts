@@ -33,4 +33,55 @@ describe('workspace query overrides', () => {
     ]));
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot)).toEqual(settingsBefore);
   });
+
+  it('includes required parent Node Types for a transient child projection', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-child-type-'));
+    await fs.writeFile(path.join(workspaceRoot, 'app.ts'), 'export function app(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const outputs: string[] = [];
+
+    await runCli([
+      '-C', workspaceRoot, 'nodes',
+      '--node-type', 'symbol:function',
+    ], { stdout: output => { outputs.push(output); } });
+
+    const result = JSON.parse(outputs[0]) as {
+      data: { nodes: Array<{ nodeType: string; path?: string }> };
+    };
+    expect(result.data.nodes).toEqual([
+      expect.objectContaining({ nodeType: 'symbol:function', path: 'app.ts#app:function' }),
+    ]);
+  });
+
+  it('matches overlapping and parent Node Types by symbol meaning', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-semantic-type-'));
+    await fs.writeFile(path.join(workspaceRoot, 'main.go'), `package main
+
+const Answer = 42
+
+func Run() {}
+`);
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    async function query(nodeType: string): Promise<Array<{ nodeType: string; path?: string }>> {
+      const outputs: string[] = [];
+      await runCli([
+        '-C', workspaceRoot, 'nodes', '--node-type', nodeType,
+      ], { stdout: output => { outputs.push(output); } });
+      return (JSON.parse(outputs[0]) as {
+        data: { nodes: Array<{ nodeType: string; path?: string }> };
+      }).data.nodes;
+    }
+
+    await expect(query('symbol:callable')).resolves.toEqual([
+      expect.objectContaining({ nodeType: 'symbol:function', path: 'main.go#Run:function' }),
+    ]);
+    await expect(query('symbol')).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'main.go#Run:function' }),
+      expect.objectContaining({ path: 'main.go#Answer:constant' }),
+    ]));
+    await expect(query('variable')).resolves.toEqual([
+      expect.objectContaining({ nodeType: 'symbol:constant', path: 'main.go#Answer:constant' }),
+    ]);
+  });
 });

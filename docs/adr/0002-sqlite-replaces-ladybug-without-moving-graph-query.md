@@ -59,12 +59,12 @@ empty symbol result, so per-collection `*Indexed` flags are unnecessary.
 
 Indexing stores complete nodes, symbols, and edges independently of Filters,
 Graph Scope, and edge visibility. Those settings shape extension display and
-CLI query results without requiring a new index. `contentHash` allows an
-explicit later index to validate file reuse without persisting modification
-times; it is not exposed as a stale row flag. The CLI keeps indexing explicit
-for now. Automatic stale notifications, watchers, and background reindexing are
-separate future work; the extension may continue responding to editor lifecycle
-events through its Core indexing path.
+CLI query results without requiring a new index. `mtime` avoids reading and
+hashing files whose timestamps are unchanged. `contentHash` validates reuse
+when timestamps are ambiguous; it is not exposed as a stale row flag. The CLI
+keeps indexing explicit for now. Automatic stale notifications, watchers, and
+background reindexing are separate future work; the extension may continue
+responding to editor lifecycle events through its Core indexing path.
 
 **Consequences**
 

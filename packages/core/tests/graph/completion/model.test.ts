@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildCompleteWorkspaceGraphData } from '../../src/graph/complete';
+import { buildCompleteWorkspaceGraphData } from '../../../src/graph/completion/model';
 
 describe('complete workspace graph', () => {
   it('keeps file, symbol, and plugin nodes independent of Graph Scope', () => {
