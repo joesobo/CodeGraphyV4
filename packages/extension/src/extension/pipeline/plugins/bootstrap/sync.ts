@@ -86,13 +86,20 @@ async function registerMissingPlugins(
   registry: PluginRegistry,
   registrations: readonly WorkspacePipelinePluginRegistration[],
   workspaceRoot: string | undefined,
+  warn: (message: string) => void,
 ): Promise<void> {
   for (const registration of registrations) {
     if (registry.get(registration.plugin.id)) {
       continue;
     }
 
-    registry.register(registration.plugin, registration.options);
+    try {
+      registry.register(registration.plugin, registration.options);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${registration.plugin.id}' could not be registered: ${message}`);
+      continue;
+    }
     if (workspaceRoot) {
       await registry.initializePlugin(registration.plugin.id, workspaceRoot);
     }
@@ -124,6 +131,7 @@ async function syncExtensionPlugins(
     settingsResult.workspaceRoot,
     dependencies,
   );
+  const warn = dependencies.warn ?? console.warn;
   const desiredById = new Map(desired.map(registration => [registration.plugin.id, registration]));
 
   for (const current of registry.list()) {
@@ -135,7 +143,12 @@ async function syncExtensionPlugins(
 
   for (const registration of desired) {
     if (!registry.get(registration.plugin.id)) {
-      registry.register(registration.plugin, registration.options);
+      try {
+        registry.register(registration.plugin, registration.options);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`CodeGraphy Extension plugin '${registration.plugin.id}' could not be registered: ${message}`);
+      }
     }
   }
   await registry.initializeAll(settingsResult.workspaceRoot);
@@ -150,6 +163,11 @@ export async function syncWorkspacePipelinePlugins(
   const desiredById = mapDesiredPackageRegistrationsById(desiredRegistrations);
 
   unregisterOutdatedPackagePlugins(registry, desiredById);
-  await registerMissingPlugins(registry, desiredRegistrations, settingsResult.workspaceRoot);
+  await registerMissingPlugins(
+    registry,
+    desiredRegistrations,
+    settingsResult.workspaceRoot,
+    dependencies.warn ?? console.warn,
+  );
   await syncExtensionPlugins(registry.extensionPlugins, settingsResult, dependencies);
 }
