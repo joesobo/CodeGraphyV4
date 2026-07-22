@@ -1,6 +1,5 @@
-import * as path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import {
+  importCodeGraphyPluginPackageModule,
   resolveCodeGraphyWorkspacePluginRecords,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspaceSettings,
@@ -49,23 +48,14 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
   }
 }
 
-function createPluginModuleUrl(record: CodeGraphyInstalledPluginRecord): string {
-  const modulePath = path.resolve(record.packageRoot, record.entry);
-  const moduleUrl = pathToFileURL(modulePath);
-  moduleUrl.searchParams.set('codegraphyPluginId', record.id);
-  moduleUrl.searchParams.set('codegraphyPluginApiVersion', record.apiVersion);
-  moduleUrl.searchParams.set('codegraphyPackageVersion', record.version);
-  return moduleUrl.href;
-}
-
 async function loadExtensionPlugin(
   record: CodeGraphyInstalledPluginRecord,
-): Promise<IExtensionPlugin> {
+): Promise<{ buildIdentity: string; plugin: IExtensionPlugin }> {
   assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
-  const moduleNamespace: unknown = await import(createPluginModuleUrl(record));
+  const { buildIdentity, moduleNamespace } = await importCodeGraphyPluginPackageModule(record);
   const plugin = await readFactory(moduleNamespace, record.package)();
   validatePlugin(plugin, record);
-  return plugin;
+  return { buildIdentity, plugin };
 }
 
 export async function loadWorkspaceExtensionPluginRegistrations(
@@ -89,14 +79,18 @@ export async function loadWorkspaceExtensionPluginRegistrations(
     if (record.host !== EXTENSION_PLUGIN_HOST || disabledPluginIds.has(record.id)) continue;
 
     try {
-      const plugin = await loadExtensionPlugin(record);
+      const { buildIdentity, plugin } = await loadExtensionPlugin(record);
       registrations.push({
         plugin,
         options: {
           ...(resolved.bundledPackageRoots.has(record.packageRoot) ? { builtIn: true } : {}),
           sourcePackage: record.package,
           sourcePackageRoot: record.packageRoot,
-          descriptorSignature: createWorkspacePluginRuntimeSignature(record, plugin),
+          descriptorSignature: createWorkspacePluginRuntimeSignature(
+            record,
+            plugin,
+            buildIdentity,
+          ),
         },
       });
     } catch (error) {

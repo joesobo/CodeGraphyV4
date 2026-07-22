@@ -3,6 +3,7 @@ import { loadActivePluginPackage } from './packageActivation';
 import { createPluginActivityState } from './activityState/model';
 import { readPackageManifest } from './installedPluginCache/packageReader';
 export type {
+  LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
   ResolvedCodeGraphyWorkspacePluginRecords,

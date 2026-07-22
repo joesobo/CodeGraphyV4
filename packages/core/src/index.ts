@@ -261,6 +261,7 @@ export type {
 } from './plugins/activityState/model';
 export { createWorkspacePluginDataHost } from './plugins/data/host';
 export type {
+  LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
   ResolvedCodeGraphyWorkspacePluginRecords,
@@ -269,6 +270,7 @@ export {
   loadCodeGraphyWorkspacePluginPackages,
   resolveCodeGraphyWorkspacePluginRecords,
 } from './plugins/packageRuntime';
+export { importCodeGraphyPluginPackageModule } from './plugins/packageLoad';
 export type {
   CodeGraphyPluginPackageDescriptor,
   CodeGraphyPluginPackageManifest,

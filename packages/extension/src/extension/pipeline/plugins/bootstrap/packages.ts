@@ -50,6 +50,7 @@ export async function loadWorkspacePackagePluginRegistrations(
       descriptorSignature: createWorkspacePluginRuntimeSignature(
         loadedPlugin.record,
         loadedPlugin.plugin,
+        loadedPlugin.buildIdentity,
       ),
       ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
       interfaces: readPackageInterfaceData(loadedPlugin.record.packageRoot),

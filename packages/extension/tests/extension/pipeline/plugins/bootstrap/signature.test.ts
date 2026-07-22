@@ -23,6 +23,7 @@ const runtime = {
 const identityChanges: Array<[
   string,
   {
+    buildIdentity?: string;
     record?: Partial<typeof record>;
     runtime?: Partial<typeof runtime>;
   },
@@ -32,14 +33,16 @@ const identityChanges: Array<[
   ['package version', { record: { version: '1.2.4' } }],
   ['runtime version', { runtime: { version: '1.2.4' } }],
   ['runtime API range', { runtime: { apiVersion: '>=4.0.0 <5.0.0' } }],
+  ['build content', { buildIdentity: 'build-v2' }],
 ];
 
 describe('workspace plugin runtime signature', () => {
   it.each(identityChanges)('changes when the %s changes', (_label, change) => {
-    const original = createWorkspacePluginRuntimeSignature(record, runtime);
+    const original = createWorkspacePluginRuntimeSignature(record, runtime, 'build-v1');
     const changed = createWorkspacePluginRuntimeSignature(
       { ...record, ...change.record },
       { ...runtime, ...change.runtime },
+      change.buildIdentity ?? 'build-v1',
     );
 
     expect(changed).not.toBe(original);

@@ -3,11 +3,17 @@ import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 
 export interface LoadedCodeGraphyWorkspacePluginPackage {
+  buildIdentity: string;
   bundled?: boolean;
   plugin: IPlugin;
   packageName: string;
   record: CodeGraphyInstalledPluginRecord;
   options?: Record<string, unknown>;
+}
+
+export interface LoadedCodeGraphyPluginPackageModule {
+  buildIdentity: string;
+  moduleNamespace: unknown;
 }
 
 export interface LoadCodeGraphyWorkspacePluginPackagesOptions {

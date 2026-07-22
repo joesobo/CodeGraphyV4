@@ -10,6 +10,7 @@ interface PluginRuntimeIdentity {
 export function createWorkspacePluginRuntimeSignature(
   record: CodeGraphyInstalledPluginRecord,
   runtime: PluginRuntimeIdentity,
+  buildIdentity: string,
 ): string {
   return JSON.stringify({
     descriptor: {
@@ -30,5 +31,6 @@ export function createWorkspacePluginRuntimeSignature(
       version: runtime.version,
       apiVersion: runtime.apiVersion,
     },
+    buildIdentity,
   });
 }
