@@ -35,6 +35,7 @@ import {
 } from './canvas';
 import { requireValue } from './context';
 import { acceptancePluginPackageRelativePathsForExample } from './plugins';
+import { extensionFavoritesFromSettings } from './settings';
 import type { AcceptanceRuntimeStep, AcceptanceStepImplementation, GraphAcceptanceContext } from './types';
 import {
   copyExampleWorkspace,
@@ -1053,8 +1054,8 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^"(.+)" should be added to the "favorites" array in \.codegraphy\/settings\.json$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as { favorites?: string[] };
-    expect(settings.favorites ?? []).toContain(match[1]);
+    const settings: unknown = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    expect(extensionFavoritesFromSettings(settings)).toContain(match[1]);
   }),
 
   step(/^the (.+) node should be centered in the middle of the graph$/, async (context, _step, match) => {
@@ -1432,8 +1433,8 @@ function readWorkspaceFavorites(context: GraphAcceptanceContext): string[] {
     return [];
   }
 
-  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as { favorites?: string[] };
-  return settings.favorites ?? [];
+  const settings: unknown = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  return extensionFavoritesFromSettings(settings);
 }
 
 function setWorkspaceEdgeVisibility(
