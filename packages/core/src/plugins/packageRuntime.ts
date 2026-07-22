@@ -34,6 +34,9 @@ function preferBundledPluginRecords(
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
   bundledPlugins: readonly CodeGraphyInstalledPluginRecord[],
 ): CodeGraphyInstalledPluginRecord[] {
+  const globalActivationByDescriptor = new Map(
+    installedPlugins.map(plugin => [`${plugin.package}\u0000${plugin.id}`, plugin.globallyEnabled] as const),
+  );
   const bundledPluginIds = new Set(bundledPlugins.map(getInstalledPluginId));
   const bundledPackages = new Set(bundledPlugins.map(plugin => plugin.package));
 
@@ -42,14 +45,32 @@ function preferBundledPluginRecords(
       !bundledPluginIds.has(getInstalledPluginId(plugin))
       && !bundledPackages.has(plugin.package),
     ),
-    ...bundledPlugins,
+    ...bundledPlugins.map(plugin => ({
+      ...plugin,
+      globallyEnabled: globalActivationByDescriptor.get(`${plugin.package}\u0000${plugin.id}`)
+        ?? plugin.globallyEnabled,
+    })),
   ];
+}
+
+export async function resolveCodeGraphyWorkspacePluginRecordsForHost(
+  options: LoadCodeGraphyWorkspacePluginPackagesOptions,
+  host: string,
+): Promise<ResolvedCodeGraphyWorkspacePluginRecords> {
+  const resolved = await resolveCodeGraphyWorkspacePluginRecords(options);
+  return {
+    bundledPackageRoots: resolved.bundledPackageRoots,
+    records: resolved.records.filter(record => record.host === host),
+  };
 }
 
 export async function loadCodeGraphyWorkspacePluginPackages(
   options: LoadCodeGraphyWorkspacePluginPackagesOptions,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage[]> {
-  const { bundledPackageRoots, records } = await resolveCodeGraphyWorkspacePluginRecords(options);
+  const { bundledPackageRoots, records } = await resolveCodeGraphyWorkspacePluginRecordsForHost(
+    options,
+    'core',
+  );
   const warn = options.warn ?? (() => undefined);
   const disabledPluginIds = new Set(options.disabledPlugins ?? []);
   const settingsById = new Map(
@@ -57,7 +78,7 @@ export async function loadCodeGraphyWorkspacePluginPackages(
   );
   const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
 
-  for (const record of records.filter(plugin => plugin.host === 'core')) {
+  for (const record of records) {
     const plugin = await loadActivePluginPackage({
       bundledPackageRoots,
       disabledPluginIds,

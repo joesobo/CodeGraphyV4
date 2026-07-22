@@ -23,26 +23,36 @@ export function runListCommand(
     settings: readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot),
     installedPlugins: registeredPlugins,
   });
-  const enabledPluginIds = [...activity.activePluginIds];
+  const activePluginIds = [...activity.activePluginIds];
+  const enabledPluginIds = [...activity.enabledPluginIds];
   const enabledPluginIdSet = new Set(enabledPluginIds);
+  const unavailablePluginIds = enabledPluginIds.filter(pluginId => !activity.activePluginIds.has(pluginId));
   const disabledPlugins = registeredPlugins.filter(plugin =>
     !enabledPluginIdSet.has(getRegisteredPluginId(plugin))
   );
+  const disabledPluginIds = [...new Set(disabledPlugins.map(getRegisteredPluginId))];
 
   const lines = [
     `CodeGraphy plugins for ${workspaceRoot}`,
     '',
     'Enabled in workspace:',
     ...(
-      enabledPluginIds.length > 0
-        ? enabledPluginIds.map((pluginId, index) => `${index + 1}. ${pluginId}`)
+      activePluginIds.length > 0
+        ? activePluginIds.map((pluginId, index) => `${index + 1}. ${pluginId}`)
+        : ['none']
+    ),
+    '',
+    'Enabled but unavailable:',
+    ...(
+      unavailablePluginIds.length > 0
+        ? unavailablePluginIds.map(pluginId => `- ${pluginId}`)
         : ['none']
     ),
     '',
     'Registered but disabled:',
     ...(
-      disabledPlugins.length > 0
-        ? disabledPlugins.map(plugin => `- ${getRegisteredPluginId(plugin)}`)
+      disabledPluginIds.length > 0
+        ? disabledPluginIds.map(pluginId => `- ${pluginId}`)
         : ['none']
     ),
   ];

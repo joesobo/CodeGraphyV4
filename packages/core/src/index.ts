@@ -269,6 +269,7 @@ export type {
 export {
   loadCodeGraphyWorkspacePluginPackages,
   resolveCodeGraphyWorkspacePluginRecords,
+  resolveCodeGraphyWorkspacePluginRecordsForHost,
 } from './plugins/packageRuntime';
 export { importCodeGraphyPluginPackageModule } from './plugins/packageLoad';
 export {

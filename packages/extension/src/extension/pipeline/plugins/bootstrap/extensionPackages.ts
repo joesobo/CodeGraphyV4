@@ -1,6 +1,6 @@
 import {
   importCodeGraphyPluginPackageModule,
-  resolveCodeGraphyWorkspacePluginRecords,
+  resolveCodeGraphyWorkspacePluginRecordsForHost,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
@@ -65,18 +65,18 @@ export async function loadWorkspaceExtensionPluginRegistrations(
 ): Promise<WorkspaceExtensionPluginRegistration[]> {
   const warn = dependencies.warn ?? console.warn;
   const disabledPluginIds = new Set(dependencies.disabledPlugins ?? []);
-  const resolved = await resolveCodeGraphyWorkspacePluginRecords({
+  const resolved = await resolveCodeGraphyWorkspacePluginRecordsForHost({
     bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
     settings,
     workspaceRoot,
     homeDir: dependencies.userHomeDir,
     warn,
-  });
+  }, EXTENSION_PLUGIN_HOST);
   const registrations: WorkspaceExtensionPluginRegistration[] = [];
 
   for (const record of resolved.records) {
-    if (record.host !== EXTENSION_PLUGIN_HOST || disabledPluginIds.has(record.id)) continue;
+    if (disabledPluginIds.has(record.id)) continue;
 
     try {
       const { buildIdentity, plugin } = await loadExtensionPlugin(record);

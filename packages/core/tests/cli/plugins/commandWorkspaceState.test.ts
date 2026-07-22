@@ -182,4 +182,31 @@ describe('plugins/command workspace state', () => {
     expect(result.output).toContain('Registered but disabled:');
     expect(result.output).not.toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
   });
+
+  it('lists enabled conflicting descriptors as unavailable instead of disabled', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
+    const first = createPluginRecord('@acme/plugin-one', '/global/plugin-one', 'acme.conflict');
+    const second = createPluginRecord('@acme/plugin-two', '/global/plugin-two', 'acme.conflict');
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [first, second],
+    }, { homeDir });
+    await runPluginsCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'acme.conflict',
+      workspacePath: workspaceRoot,
+    }, { homeDir });
+
+    const result = await runPluginsCommand({
+      name: 'plugins',
+      action: 'list',
+      workspacePath: workspaceRoot,
+    }, { homeDir });
+
+    expect(result.output).toContain('Enabled but unavailable:');
+    expect(result.output).toContain('- acme.conflict');
+    expect(result.output).not.toContain('Registered but disabled:\n- acme.conflict');
+  });
 });
