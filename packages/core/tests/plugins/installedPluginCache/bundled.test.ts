@@ -24,6 +24,12 @@ describe('plugins/installedPluginCache/bundled', () => {
       host: 'core',
       entry: './dist/plugin.js',
       apiVersion: '^4.0.0',
+      data: {
+        updateImpact: {
+          toggle: 'reanalyze-plugin-files',
+          defaultSetting: 'reanalyze-plugin-files',
+        },
+      },
       packageRoot: '',
       globallyEnabled: true,
     });
