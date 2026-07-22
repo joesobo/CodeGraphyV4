@@ -459,6 +459,32 @@ describe('usePluginManager', () => {
     expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
   });
 
+  it('removes host registrations before activating a revised runtime', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate(api) {
+        api.registerNodeRenderer('.ts', () => undefined);
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'linked-plugin',
+        revision: 'build-v1',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+      await result.current.injectPluginAssets({
+        pluginId: 'linked-plugin',
+        revision: 'build-v2',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    expect(result.current.pluginHost.getNodeRenderers('.ts')).toHaveLength(1);
+  });
+
   it('warns when a script has no activate export', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { result } = renderHook(() => usePluginManager());

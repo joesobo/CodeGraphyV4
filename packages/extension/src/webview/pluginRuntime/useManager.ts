@@ -64,6 +64,7 @@ export function usePluginManager(): IPluginManager {
     }
 
     function resetPluginAssets(pluginId: string): void {
+      pluginHostRef.current.removePlugin(pluginId);
       pluginApisRef.current.delete(pluginId);
       pluginAssetRevisionsRef.current.delete(pluginId);
       pluginAssetVersionsRef.current.set(

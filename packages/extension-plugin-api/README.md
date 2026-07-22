@@ -53,8 +53,8 @@ const activate: WebviewPluginActivate = api => {
   const contributions = api.registerGraphViewContributions({
     runtimeNodes: [],
   });
-  const overlay = api.registerOverlay('acme-status', ({ ctx }) => {
-    api.helpers.drawBadge(ctx, { text: 'Acme', x: 12, y: 12 });
+  const overlay = api.registerOverlay('acme-status', ({ canvasContext }) => {
+    api.helpers.drawBadge(canvasContext, { text: 'Acme', x: 12, y: 12 });
   });
   const viewport = api.getGraphViewViewportState();
   viewport?.reheatSimulation();
