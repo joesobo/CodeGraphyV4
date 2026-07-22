@@ -11,7 +11,6 @@
     "types": ["node", "vitest/globals"],
     "baseUrl": ".",
     "paths": {
-      "@codegraphy-dev/core": ["../core/src/index.ts"],
       "@codegraphy-dev/graph-renderer": ["../graph-renderer/src/index.ts"]
     }
   },
