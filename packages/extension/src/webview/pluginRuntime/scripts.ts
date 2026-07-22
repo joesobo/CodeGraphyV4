@@ -38,7 +38,9 @@ export async function activatePluginScript(
   try {
     await activationPromise;
   } finally {
-    refs.activatingScriptPromises.current.delete(activationKey);
+    if (refs.activatingScriptPromises.current.get(activationKey) === activationPromise) {
+      refs.activatingScriptPromises.current.delete(activationKey);
+    }
   }
 }
 

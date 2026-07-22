@@ -518,6 +518,61 @@ describe('usePluginManager', () => {
     expect(result.current.pluginHost.getNodeRenderers('.stale')).toEqual([]);
   });
 
+  it('keeps the replacement activation pending when the stale activation finishes', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    let releaseFirst: (() => void) | undefined;
+    let releaseSecond: (() => void) | undefined;
+    let markFirstStarted: (() => void) | undefined;
+    let markSecondStarted: (() => void) | undefined;
+    (globalThis as Record<string, unknown>).__useManagerFirstGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerSecondGate = new Promise<void>((resolve) => {
+      releaseSecond = resolve;
+    });
+    const firstStarted = new Promise<void>((resolve) => {
+      markFirstStarted = resolve;
+    });
+    const secondStarted = new Promise<void>((resolve) => {
+      markSecondStarted = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerFirstStarted = markFirstStarted;
+    (globalThis as Record<string, unknown>).__useManagerSecondStarted = markSecondStarted;
+    const scriptUrl = toDataUrlModule(`
+      export async function activate() {
+        globalThis.__useManagerOverlapCount = (globalThis.__useManagerOverlapCount || 0) + 1;
+        if (globalThis.__useManagerOverlapCount === 1) {
+          globalThis.__useManagerFirstStarted();
+          await globalThis.__useManagerFirstGate;
+          return;
+        }
+        if (globalThis.__useManagerOverlapCount === 2) {
+          globalThis.__useManagerSecondStarted();
+          await globalThis.__useManagerSecondGate;
+        }
+      }
+    `);
+    const injection = {
+      pluginId: 'linked-plugin',
+      scripts: [scriptUrl],
+      styles: [],
+    };
+
+    const firstActivation = result.current.injectPluginAssets(injection);
+    await firstStarted;
+    result.current.resetPluginAssets('linked-plugin');
+    const secondActivation = result.current.injectPluginAssets(injection);
+    await secondStarted;
+    releaseFirst?.();
+    await firstActivation;
+    const thirdActivation = result.current.injectPluginAssets(injection);
+    await Promise.resolve();
+    releaseSecond?.();
+    await Promise.all([secondActivation, thirdActivation]);
+
+    expect((globalThis as Record<string, unknown>).__useManagerOverlapCount).toBe(2);
+  });
+
   it('warns when a script has no activate export', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { result } = renderHook(() => usePluginManager());
