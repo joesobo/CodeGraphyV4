@@ -7,7 +7,13 @@ import './globals.css';
 
 // next/font requires literal loader values; the generated theme CSS consumes these variables.
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' });
-const newsreader = Newsreader({ subsets: ['latin'], variable: '--font-newsreader' });
+const newsreader = Newsreader({
+  axes: ['opsz'],
+  display: 'swap',
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  variable: '--font-newsreader',
+});
 const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-fira-code' });
 
 const title = 'CodeGraphy — Understand the code beneath the surface';

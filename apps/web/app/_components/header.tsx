@@ -17,7 +17,6 @@ export function Header(): React.ReactElement {
         sizes="100vw"
         src="/media/ocean-home-surface-v4.jpg"
       />
-      <div className="home-hero-grade absolute inset-0" />
       <HeroGraph />
 
       <div className="relative z-10 mx-auto grid min-h-[44rem] w-full max-w-[90rem] items-end gap-10 px-5 pt-32 pb-10 sm:min-h-[46rem] sm:px-8 sm:pb-14 lg:min-h-svh lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,.62fr)] lg:gap-16 lg:px-12 lg:pb-16">
@@ -25,7 +24,7 @@ export function Header(): React.ReactElement {
           <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#bad2ff]">
             Local-first relationship graph
           </p>
-          <h1 className="mt-5 max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.88] tracking-[-0.055em]">
+          <h1 className="mt-5 max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.91] tracking-[-0.045em]">
             Understand the code <em className="font-normal text-[#ffb49f]">beneath</em> the surface.
           </h1>
         </div>

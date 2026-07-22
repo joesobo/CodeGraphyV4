@@ -23,7 +23,7 @@ const pluginApiPackageHref = `${npmPackageRootHref}/@codegraphy-dev/plugin-api`;
 export function Build(): React.ReactElement {
   return (
     <section
-      className="overflow-hidden rounded-3xl bg-[#0b1e35] px-6 py-12 text-white sm:px-10 sm:py-14 [&_.section-kicker]:text-[#a8c7ff] [&_h2]:text-white [&_p]:text-white/82"
+      className="overflow-hidden rounded-3xl border border-border bg-secondary px-6 py-12 text-foreground sm:px-10 sm:py-14"
       id="build"
     >
       <div className="grid gap-8 lg:grid-cols-[0.85fr_1fr] lg:items-center">
@@ -42,15 +42,15 @@ export function Build(): React.ReactElement {
           </div>
         </div>
 
-        <ol className="border-y border-white/18">
+        <ol className="border-y border-border">
           {buildSteps.map((step, index) => (
-            <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-4 border-b border-white/18 py-5 last:border-b-0" key={step.title}>
-              <span className="font-mono text-xs font-semibold text-[#a8c7ff]">
+            <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-4 border-b border-border py-5 last:border-b-0" key={step.title}>
+              <span className="font-mono text-xs font-semibold text-primary">
                 {String(index + 1).padStart(2, '0')}
               </span>
               <div className="min-w-0">
-                <h3 className="text-base font-medium text-white">{step.title}</h3>
-                <p className="mt-1 text-sm leading-6 text-white/72">{step.body}</p>
+                <h3 className="text-base font-medium text-foreground">{step.title}</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{step.body}</p>
               </div>
             </li>
           ))}

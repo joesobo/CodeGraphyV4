@@ -12,7 +12,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'hidden w-full shrink-0 overflow-hidden rounded-xl border border-border bg-card/95 shadow-sm backdrop-blur lg:sticky lg:top-[5.75rem] lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col',
+        'hidden w-full shrink-0 overflow-hidden lg:sticky lg:top-[5.75rem] lg:flex lg:max-h-[calc(100vh-7rem)] lg:flex-col',
         className,
       )}
       {...props}
@@ -26,7 +26,7 @@ export function SidebarContent({
 }: HTMLAttributes<HTMLDivElement>): ReactElement {
   return (
     <div
-      className={cn('grid min-h-0 flex-1 content-start gap-1 overflow-y-auto px-3 py-3', className)}
+      className={cn('grid min-h-0 flex-1 content-start gap-1 overflow-y-auto px-2 pb-3 pl-4', className)}
       data-sidebar-content=""
       {...props}
     />

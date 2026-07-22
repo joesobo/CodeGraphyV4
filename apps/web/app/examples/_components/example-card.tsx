@@ -4,32 +4,22 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import type { ExampleContent } from '@/content/examples';
 import { githubTreeHref } from '@/content/links';
 import { pluginContent } from '@/content/plugins';
-import { cn } from '@/lib/utils';
 import { ExampleImage } from './example-image';
 
 const pluginHrefById = new Map<string, string>(
   pluginContent.map((plugin) => [plugin.id, plugin.href]),
 );
 
-export function ExampleCard({
-  example,
-  featured,
-}: {
-  example: ExampleContent;
-  featured: boolean;
-}): React.ReactElement {
+export function ExampleCard({ example }: { example: ExampleContent }): React.ReactElement {
   const pluginHref = example.plugin ? pluginHrefById.get(example.plugin.id) : undefined;
 
   return (
     <Card
       as="article"
-      className={cn(
-        'catalog-card grid overflow-hidden rounded-[1.6rem] bg-card',
-        featured && 'xl:col-span-2 xl:grid-cols-[1.08fr_.92fr]',
-      )}
+      className="catalog-card grid h-full overflow-hidden rounded-[1.6rem] bg-card"
       id={example.id}
     >
-      <ExampleImage example={example} featured={featured} />
+      <ExampleImage example={example} />
       <CardContent className="flex min-h-64 flex-col p-6 sm:p-7">
         <div className="flex flex-wrap items-center gap-3">
           <span className="grid size-11 place-items-center rounded-2xl bg-secondary">

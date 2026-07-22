@@ -9,7 +9,9 @@ import {
 } from '@codegraphy-dev/graph-renderer';
 import { useEffect, useRef } from 'react';
 
-const NODE_COUNT = 46;
+const CLUSTER_COUNT = 4;
+const NODES_PER_CLUSTER = 13;
+const NODE_COUNT = CLUSTER_COUNT * NODES_PER_CLUSTER;
 
 interface CanvasSize {
   height: number;
@@ -30,89 +32,7 @@ export function HeroGraph(): React.ReactElement {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    let disposed = false;
-    let frame = 0;
-    let cleanup = (): void => undefined;
-
-    void prepareGraphPhysics().then(() => {
-      if (disposed) return;
-
-      const context = canvas.getContext('2d');
-      if (!context) return;
-
-      const layout = createGraphLayoutEngine(graphInput, {
-        centralGravity: 0.075,
-        chargeDistanceMax: 520,
-        chargeStrength: -310,
-        collisionPadding: 5,
-        initializationSpacing: 22,
-        linkDistance: 88,
-        linkStrength: 0.42,
-        settleSpeed: 0.5,
-        velocityDecay: 0.34,
-      });
-      const pointer: PointerPosition = { active: false, x: 0, y: 0 };
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      let canvasSize = resizeCanvas(canvas, context);
-      let visible = true;
-
-      const resizeObserver = new ResizeObserver(() => {
-        canvasSize = resizeCanvas(canvas, context);
-        drawGraph(context, layout, canvasSize);
-      });
-      resizeObserver.observe(canvas);
-
-      const visibilityObserver = new IntersectionObserver(([entry]) => {
-        visible = entry?.isIntersecting ?? false;
-      });
-      visibilityObserver.observe(canvas);
-
-      const updatePointer = (event: PointerEvent): void => {
-        if (event.pointerType !== 'mouse') return;
-        const bounds = canvas.getBoundingClientRect();
-        pointer.active = event.clientX >= bounds.left
-          && event.clientX <= bounds.right
-          && event.clientY >= bounds.top
-          && event.clientY <= bounds.bottom;
-        if (!pointer.active) return;
-
-        const scale = graphScale(canvasSize);
-        pointer.x = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
-        pointer.y = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-        layout.reheat(0.18);
-      };
-      window.addEventListener('pointermove', updatePointer, { passive: true });
-
-      if (prefersReducedMotion) {
-        for (let step = 0; step < 220 && !layout.settled; step += 1) layout.tick();
-        drawGraph(context, layout, canvasSize);
-      } else {
-        const animate = (): void => {
-          if (visible) {
-            layout.tick(pointer.active ? createPointerForce(layout, pointer) : undefined);
-            drawGraph(context, layout, canvasSize);
-          }
-          frame = window.requestAnimationFrame(animate);
-        };
-        frame = window.requestAnimationFrame(animate);
-      }
-
-      cleanup = (): void => {
-        window.cancelAnimationFrame(frame);
-        window.removeEventListener('pointermove', updatePointer);
-        resizeObserver.disconnect();
-        visibilityObserver.disconnect();
-      };
-    }).catch(() => {
-      // The photograph remains complete when WebAssembly is unavailable.
-    });
-
-    return () => {
-      disposed = true;
-      window.cancelAnimationFrame(frame);
-      cleanup();
-    };
+    return startHeroGraph(canvas);
   }, []);
 
   return (
@@ -124,23 +44,128 @@ export function HeroGraph(): React.ReactElement {
   );
 }
 
+function startHeroGraph(canvas: HTMLCanvasElement): () => void {
+  const abortController = new AbortController();
+  let disposed = false;
+  let frame = 0;
+  let resizeObserver: ResizeObserver | undefined;
+  let visibilityObserver: IntersectionObserver | undefined;
+
+  void prepareGraphPhysics().then(() => {
+    if (disposed) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    const layout = createGraphLayoutEngine(graphInput, {
+      centralGravity: 0.025,
+      chargeDistanceMax: 360,
+      chargeStrength: -230,
+      collisionPadding: 7,
+      initializationSpacing: 18,
+      linkDistance: 52,
+      linkStrength: 0.68,
+      settleSpeed: 0.5,
+      velocityDecay: 0.3,
+    });
+    const pointer: PointerPosition = { active: false, x: 0, y: 0 };
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let canvasSize = resizeCanvas(canvas, context);
+    let visible = true;
+
+    resizeObserver = new ResizeObserver(() => {
+      canvasSize = resizeCanvas(canvas, context);
+      drawGraph(context, layout, canvasSize);
+    });
+    resizeObserver.observe(canvas);
+
+    visibilityObserver = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+    });
+    visibilityObserver.observe(canvas);
+
+    const updatePointer = (event: PointerEvent): void => {
+      if (event.pointerType !== 'mouse') return;
+      const bounds = canvas.getBoundingClientRect();
+      pointer.active = event.clientX >= bounds.left
+        && event.clientX <= bounds.right
+        && event.clientY >= bounds.top
+        && event.clientY <= bounds.bottom;
+      if (!pointer.active) return;
+
+      const scale = graphScale(canvasSize);
+      pointer.x = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
+      pointer.y = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
+      layout.reheat(0.26);
+    };
+    window.addEventListener('pointermove', updatePointer, {
+      passive: true,
+      signal: abortController.signal,
+    });
+
+    if (prefersReducedMotion) {
+      for (let step = 0; step < 220 && !layout.settled; step += 1) layout.tick();
+      drawGraph(context, layout, canvasSize);
+      return;
+    }
+
+    const animate = (): void => {
+      if (visible) {
+        layout.tick(pointer.active ? createPointerForce(layout, pointer) : undefined);
+        drawGraph(context, layout, canvasSize);
+      }
+      frame = window.requestAnimationFrame(animate);
+    };
+    frame = window.requestAnimationFrame(animate);
+  }).catch(() => {
+    // The photograph remains complete when WebAssembly is unavailable.
+  });
+
+  return () => {
+    disposed = true;
+    abortController.abort();
+    window.cancelAnimationFrame(frame);
+    resizeObserver?.disconnect();
+    visibilityObserver?.disconnect();
+  };
+}
+
 function createGraphInput(): GraphLayoutInput {
   const nodeIds: string[] = Array.from({ length: NODE_COUNT }, (_, index) => `hero-node-${index}`);
   const radii = new Float32Array(NODE_COUNT);
   const chargeStrengthMultipliers = new Float32Array(NODE_COUNT);
+  const initialX = new Float32Array(NODE_COUNT);
+  const initialY = new Float32Array(NODE_COUNT);
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
+  const clusterCenters: readonly [number, number][] = [
+    [-220, -130],
+    [210, -140],
+    [-210, 145],
+    [220, 135],
+  ];
 
-  for (let index = 0; index < NODE_COUNT; index += 1) {
-    radii[index] = index % 13 === 0 ? 12 : index % 5 === 0 ? 7 : 4.5;
-    chargeStrengthMultipliers[index] = index % 13 === 0 ? 1.5 : 0.78;
-    if (index === 0) continue;
+  for (let cluster = 0; cluster < CLUSTER_COUNT; cluster += 1) {
+    const hubIndex = cluster * NODES_PER_CLUSTER;
+    const [centerX, centerY] = clusterCenters[cluster];
 
-    edgeSources.push(Math.floor((index - 1) / 2));
-    edgeTargets.push(index);
-    if (index > 8 && index % 3 === 0) {
-      edgeSources.push(index - 7);
+    for (let localIndex = 0; localIndex < NODES_PER_CLUSTER; localIndex += 1) {
+      const index = hubIndex + localIndex;
+      const angle = (localIndex / (NODES_PER_CLUSTER - 1)) * Math.PI * 2 + cluster * 0.42;
+      const orbit = localIndex === 0 ? 0 : localIndex % 2 === 0 ? 58 : 86;
+
+      radii[index] = localIndex === 0 ? 16 : localIndex % 4 === 0 ? 10 : 6.5;
+      chargeStrengthMultipliers[index] = localIndex === 0 ? 1.45 : 0.72;
+      initialX[index] = centerX + Math.cos(angle) * orbit;
+      initialY[index] = centerY + Math.sin(angle) * orbit;
+
+      if (localIndex === 0) continue;
+      edgeSources.push(hubIndex);
       edgeTargets.push(index);
+      if (localIndex > 1) {
+        edgeSources.push(index - 1);
+        edgeTargets.push(index);
+      }
     }
   }
 
@@ -148,6 +173,8 @@ function createGraphInput(): GraphLayoutInput {
     chargeStrengthMultipliers,
     edgeSources: Uint32Array.from(edgeSources),
     edgeTargets: Uint32Array.from(edgeTargets),
+    initialX,
+    initialY,
     nodeIds,
     radii,
   };
@@ -159,7 +186,7 @@ function createPointerForce(
 ): GraphLayoutExternalForce {
   return {
     beforeIntegration: alpha => {
-      const influenceRadius = 160;
+      const influenceRadius = 190;
       const influenceRadiusSquared = influenceRadius * influenceRadius;
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
@@ -169,7 +196,7 @@ function createPointerForce(
         if (distanceSquared >= influenceRadiusSquared || distanceSquared < 0.01) continue;
 
         const distance = Math.sqrt(distanceSquared);
-        const strength = (1 - distance / influenceRadius) * 1.15 * alpha;
+        const strength = (1 - distance / influenceRadius) * 1.5 * alpha;
         layout.vx[index] += (dx / distance) * strength;
         layout.vy[index] += (dy / distance) * strength;
       }
@@ -221,12 +248,12 @@ function drawGraph(
   }
 
   for (let index = 0; index < layout.nodeIds.length; index += 1) {
-    const radius = Math.max(2.4, layout.radii[index] * 0.42);
+    const radius = Math.max(4, layout.radii[index] * 0.68);
     context.beginPath();
     context.arc(layout.x[index], layout.y[index], radius, 0, Math.PI * 2);
-    context.fillStyle = index % 13 === 0
+    context.fillStyle = index % NODES_PER_CLUSTER === 0
       ? 'rgba(255, 141, 112, 0.88)'
-      : index % 5 === 0
+      : index % 4 === 0
         ? 'rgba(115, 169, 255, 0.8)'
         : 'rgba(225, 239, 255, 0.72)';
     context.fill();

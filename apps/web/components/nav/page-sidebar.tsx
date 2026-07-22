@@ -11,7 +11,10 @@ export function PageSidebar({ nav }: { nav: readonly NavGroup[] }): React.ReactE
   const { activeHref, setActiveFromNavigation } = useScrollSpy(sectionHrefs);
 
   return (
-    <Sidebar aria-label="On this page">
+    <Sidebar aria-label="On this page" className="border-0 border-l border-border bg-transparent shadow-none backdrop-blur-none">
+      <p className="px-4 pt-1 pb-3 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary">
+        On this page
+      </p>
       <SidebarContent>
         <NavGroupView
           activeHref={activeHref}

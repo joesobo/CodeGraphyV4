@@ -134,6 +134,9 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-family-sans);
+  font-kerning: normal;
+  font-synthesis: none;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -155,8 +158,13 @@ h2,
 h3,
 h4 {
   font-family: var(--font-family-heading);
+  font-optical-sizing: auto;
   letter-spacing: -0.025em;
   text-wrap: balance;
+}
+
+.font-heading {
+  font-optical-sizing: auto;
 }
 
 p,
@@ -200,8 +208,9 @@ a {
 
 .site-header {
   border-bottom: 1px solid transparent;
-  background: transparent;
+  background: rgb(7 20 33 / 24%);
   color: #f8fffd;
+  backdrop-filter: blur(8px) saturate(110%);
   transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
@@ -253,7 +262,7 @@ a {
 @keyframes hero-copy-rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -261,14 +270,19 @@ a {
   }
 }
 
+@keyframes supported-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 @keyframes scene-reveal {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(42px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -278,23 +292,19 @@ a {
 
 .hero-copy,
 .hero-aside {
-  animation: hero-copy-rise 560ms var(--ease-out) both;
+  animation: hero-copy-rise 720ms var(--ease-out) both;
 }
 
 .hero-aside {
   animation-delay: 50ms;
 }
 
-.home-hero-grade {
-  background: rgb(3 15 35 / 58%);
-}
-
 .page-hero-grade {
-  background: rgb(3 19 27 / 62%);
+  background: rgb(3 15 35 / 38%);
 }
 
 .page-hero-grade-minimal {
-  background: rgb(3 19 27 / 66%);
+  background: rgb(3 15 35 / 44%);
 }
 
 .hero-console {
@@ -311,11 +321,34 @@ a {
   box-shadow: 0 18px 60px rgb(0 8 16 / 24%);
   color: rgb(246 255 253 / 86%);
   backdrop-filter: blur(16px);
-  animation: hero-copy-rise 560ms 90ms var(--ease-out) both;
+  animation: hero-copy-rise 720ms 100ms var(--ease-out) both;
 }
 
 .hero-graph {
-  opacity: 0.82;
+  opacity: 0.92;
+}
+
+.language-marquee-track {
+  animation: supported-marquee-scroll 38s linear infinite;
+}
+
+.language-marquee:hover .language-marquee-track,
+.language-marquee:focus-within .language-marquee-track {
+  animation-play-state: paused;
+}
+
+.language-marquee-item {
+  transition: background-color 180ms ease, color 180ms ease, transform 160ms var(--ease-out);
+}
+
+.language-marquee-item:hover,
+.language-marquee-item:focus-visible {
+  background: var(--secondary);
+  color: var(--primary);
+}
+
+.language-marquee-item:active {
+  transform: scale(0.97);
 }
 
 .hero-console code {
@@ -507,11 +540,8 @@ a {
 }
 
 .agents-scene {
-  background: #e7ebf2;
-}
-
-.dark .agents-scene {
-  background: #0a192a;
+  border-block: 1px solid var(--border);
+  background: var(--background);
 }
 
 .agent-terminal {
@@ -524,8 +554,7 @@ a {
 }
 
 .closing-cta-image,
-.footer-image,
-.hero-image {
+.footer-image {
   filter: saturate(0.66) hue-rotate(12deg);
 }
 
@@ -534,14 +563,19 @@ a {
   .depth-copy,
   .depth-intro,
   .page-hero .hero-copy,
-  .page-hero .hero-aside {
+  .page-hero .hero-aside,
+  .catalog-card,
+  .start-path,
+  .agents-scene > div,
+  .language-marquee,
+  .closing-cta {
     animation: scene-reveal both;
     animation-timeline: view();
-    animation-range: entry 8% cover 28%;
+    animation-range: entry 5% cover 26%;
   }
 
   .home-hero .hero-copy {
-    animation: hero-copy-rise 560ms var(--ease-out) both;
+    animation: hero-copy-rise 720ms var(--ease-out) both;
   }
 }
 
@@ -571,7 +605,7 @@ a {
 
 @media (max-width: 640px) {
   .hero-graph {
-    opacity: 0.68;
+    opacity: 0.78;
   }
 
   .hero-console {
@@ -627,6 +661,10 @@ a {
   .page-hero .hero-copy,
   .page-hero .hero-aside,
   .catalog-card,
+  .agents-scene > div,
+  .language-marquee,
+  .closing-cta,
+  .start-path,
   #page-content > section > section {
     animation: none !important;
     transform: none !important;

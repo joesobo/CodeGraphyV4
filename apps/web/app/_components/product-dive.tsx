@@ -19,9 +19,11 @@ const chapters = [
       'Index files, folders, packages, and symbols into one local Relationship Graph. Start wide, then follow the connections that matter.',
     detail: 'One graph cache · local source · no upload',
     media: {
-      alt: 'CodeGraphy Relationship Graph showing a connected workspace',
-      src: '/media/header-workspace-graph-light.png',
-      darkSrc: '/media/header-workspace-graph-dark.png',
+      alt: 'Animation of CodeGraphy switching between workspace graph views',
+      src: '/media/features/view-modes-light.gif',
+      posterSrc: '/media/features/posters/view-modes-light.png',
+      darkSrc: '/media/features/view-modes-dark.gif',
+      darkPosterSrc: '/media/features/posters/view-modes-dark.png',
     },
   },
   {
@@ -32,8 +34,10 @@ const chapters = [
     detail: 'WebGPU renderer · WebAssembly physics',
     media: {
       alt: 'Force-directed CodeGraphy Relationship Graph',
-      src: '/media/features/posters/force-graph-light.png',
-      darkSrc: '/media/features/posters/force-graph-dark.png',
+      src: '/media/features/force-graph-light.gif',
+      posterSrc: '/media/features/posters/force-graph-light.png',
+      darkSrc: '/media/features/force-graph-dark.gif',
+      darkPosterSrc: '/media/features/posters/force-graph-dark.png',
     },
   },
   {
@@ -57,8 +61,10 @@ const chapters = [
     detail: 'Plugin API v3 · package-owned semantics',
     media: {
       alt: 'Plugin-owned node and edge types in CodeGraphy Graph Scope',
-      src: '/media/features/posters/plugin-graph-scope-light.png',
-      darkSrc: '/media/features/posters/plugin-graph-scope-dark.png',
+      src: '/media/features/plugin-graph-scope-light.gif',
+      posterSrc: '/media/features/posters/plugin-graph-scope-light.png',
+      darkSrc: '/media/features/plugin-graph-scope-dark.gif',
+      darkPosterSrc: '/media/features/posters/plugin-graph-scope-dark.png',
     },
   },
 ] satisfies readonly DiveChapter[];
