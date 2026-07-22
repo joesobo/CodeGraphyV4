@@ -14,6 +14,7 @@ import {
   type TLPointerEventInfo,
 } from 'tldraw';
 import { afterEach, describe, expect, it } from 'vitest';
+import { createRuntimeEngine } from './engine/model';
 import { startPhysicsRuntime } from './runtime';
 
 const editors: Editor[] = [];
@@ -60,6 +61,61 @@ afterEach(() => {
 });
 
 describe('real tldraw force drag', () => {
+  it('settles mixed-size connected nodes without overlapping their padded collision bounds', async () => {
+    const wasm = await readFile(path.resolve(
+      process.cwd(),
+      '../graph-renderer/src/physics/wasm/generated/physics.wasm',
+    ));
+    await prepareGraphPhysicsFromBytes(wasm);
+    const nodes = [
+      {
+        id: 'shape:small', type: 'geo', x: 0, y: 0, props: { h: 80, w: 80 },
+        meta: { codegraphyEntityId: 'small', codegraphyKind: 'node' as const },
+      },
+      {
+        id: 'shape:medium', type: 'geo', x: 600, y: 0, props: { h: 120, w: 120 },
+        meta: { codegraphyEntityId: 'medium', codegraphyKind: 'node' as const },
+      },
+      {
+        id: 'shape:large', type: 'geo', x: 1_200, y: 0, props: { h: 300, w: 300 },
+        meta: { codegraphyEntityId: 'large', codegraphyKind: 'node' as const },
+      },
+    ];
+    const edges = [
+      {
+        id: 'edge:small-medium', type: 'arrow', x: 0, y: 0, props: {},
+        meta: { codegraphyFrom: 'small', codegraphyKind: 'edge', codegraphyTo: 'medium' },
+      },
+      {
+        id: 'edge:medium-large', type: 'arrow', x: 0, y: 0, props: {},
+        meta: { codegraphyFrom: 'medium', codegraphyKind: 'edge', codegraphyTo: 'large' },
+      },
+    ];
+    const engine = createRuntimeEngine(nodes, edges, {
+      centerForce: 0.1,
+      linkDistance: 80,
+      linkForce: 1,
+      repelForce: 10,
+    });
+    if (!engine) throw new Error('Expected a graph layout engine');
+
+    for (let tick = 0; tick < 3_000 && !engine.settled; tick += 1) engine.tick();
+
+    expect(engine.settled).toBe(true);
+    const paddedRadii = [12, 16, 34];
+    for (let first = 0; first < nodes.length; first += 1) {
+      for (let second = first + 1; second < nodes.length; second += 1) {
+        const distance = Math.hypot(
+          engine.x[first] - engine.x[second],
+          engine.y[first] - engine.y[second],
+        );
+        expect(distance).toBeGreaterThanOrEqual(
+          paddedRadii[first] + paddedRadii[second] - 0.5,
+        );
+      }
+    }
+  });
+
   it('moves a connected node while a settled node follows the pointer', async () => {
     const wasm = await readFile(path.resolve(
       process.cwd(),

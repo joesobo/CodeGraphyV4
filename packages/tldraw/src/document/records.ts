@@ -15,11 +15,11 @@ import {
   type TLTextShape,
 } from '@tldraw/tlschema';
 import { getIndicesAbove, type IndexKey } from '@tldraw/utils';
+import { createNodeDiameterMap, MINIMUM_NODE_DIAMETER } from '../graph/nodeSize/model';
 import { createNodeColorMap } from './nodeColor/model';
 import { createNodeIconMap, type NodeIcon } from './nodeIcon/model';
 
 const PAGE_ID = 'page:page' as TLPageId;
-const NODE_SIZE = 120;
 const LABEL_WIDTH = 180;
 const LABEL_GAP = 8;
 const ICON_SIZE = 56;
@@ -47,18 +47,23 @@ function metadataString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
-function initialNodePosition(index: number, count: number): { x: number; y: number } {
+function initialNodePosition(
+  index: number,
+  count: number,
+  diameter: number,
+): { x: number; y: number } {
   const radius = Math.max(320, Math.sqrt(Math.max(count, 1)) * 90);
   const angle = (index / Math.max(count, 1)) * Math.PI * 2;
   return {
-    x: Math.cos(angle) * radius - NODE_SIZE / 2,
-    y: Math.sin(angle) * radius - NODE_SIZE / 2,
+    x: Math.cos(angle) * radius - diameter / 2,
+    y: Math.sin(angle) * radius - diameter / 2,
   };
 }
 
 function createNodeShape(
   node: IGraphNode,
   color: TLGeoShape['props']['color'],
+  diameter: number,
   index: IndexKey,
   position: { x: number; y: number },
   existing?: TLShape,
@@ -90,8 +95,8 @@ function createNodeShape(
     },
     props: {
       url: '',
-      w: NODE_SIZE,
-      h: NODE_SIZE,
+      w: diameter,
+      h: diameter,
       growY: 0,
       scale: 1,
       size: 'm',
@@ -269,13 +274,18 @@ export function reconcileGraphRecords(
   );
   const colors = createNodeColorMap(graph.nodes);
   const icons = createNodeIconMap(graph.nodes);
-  const nodeShapes = graph.nodes.map((node, nodeIndex) => createNodeShape(
-    node,
-    colors.get(node.id) ?? 'grey',
-    indexes[graph.edges.length + nodeIndex],
-    initialNodePosition(nodeIndex, graph.nodes.length),
-    existingShapes.get(node.id),
-  ));
+  const nodeDiameters = createNodeDiameterMap(graph.nodes, graph.edges);
+  const nodeShapes = graph.nodes.map((node, nodeIndex) => {
+    const diameter = nodeDiameters.get(node.id) ?? MINIMUM_NODE_DIAMETER;
+    return createNodeShape(
+      node,
+      colors.get(node.id) ?? 'grey',
+      diameter,
+      indexes[graph.edges.length + nodeIndex],
+      initialNodePosition(nodeIndex, graph.nodes.length, diameter),
+      existingShapes.get(node.id),
+    );
+  });
   const nodesByEntityId = new Map<string, TLGeoShape>(
     nodeShapes.map(shape => [metadataString(shape.meta.codegraphyEntityId) ?? '', shape]),
   );

@@ -93,8 +93,8 @@ describe('CodeGraphy tldraw document script', () => {
       expect.objectContaining({
         initialX: Float32Array.of(12),
         initialY: Float32Array.of(12),
-        chargeStrengthMultipliers: Float32Array.of(0.5),
-        radii: Float32Array.of(12),
+        chargeStrengthMultipliers: Float32Array.of(0.75),
+        radii: Float32Array.of(16),
       }),
       {
         centralGravity: 0.1,

@@ -12,6 +12,46 @@ const INITIAL_GRAPH = {
 } satisfies IGraphData;
 
 describe('reconcileGraphRecords', () => {
+  it('sizes generated nodes from their unique connection counts within the Extension range', () => {
+    const leaves = Array.from({ length: 35 }, (_, index) => ({
+      id: `src/leaf-${index}.ts`,
+      label: `leaf-${index}.ts`,
+      color: '#111111',
+      nodeType: 'file',
+    }));
+    const graph = {
+      nodes: [
+        { id: 'src/hub.ts', label: 'hub.ts', color: '#222222', nodeType: 'file' },
+        ...leaves,
+      ],
+      edges: leaves.flatMap((leaf, index) => [
+        {
+          id: `hub-${index}`,
+          from: 'src/hub.ts',
+          to: leaf.id,
+          kind: 'import' as const,
+          sources: [],
+        },
+        {
+          id: `hub-${index}-duplicate`,
+          from: 'src/hub.ts',
+          to: leaf.id,
+          kind: 'reference' as const,
+          sources: [],
+        },
+      ]),
+    } satisfies IGraphData;
+
+    const records = reconcileGraphRecords([], graph);
+    const hub = records.find(record => record.meta.codegraphyEntityId === 'src/hub.ts');
+    const leaf = records.find(record => record.meta.codegraphyEntityId === 'src/leaf-0.ts');
+    if (hub?.typeName !== 'shape' || hub.type !== 'geo') throw new Error('Expected hub node');
+    if (leaf?.typeName !== 'shape' || leaf.type !== 'geo') throw new Error('Expected leaf node');
+
+    expect(hub.props).toMatchObject({ h: 180, w: 180 });
+    expect(leaf.props).toMatchObject({ h: 80, w: 80 });
+  });
+
   it('groups file extensions into solid native palette fills', () => {
     const records = reconcileGraphRecords([], {
       nodes: [
@@ -59,7 +99,7 @@ describe('reconcileGraphRecords', () => {
       isLocked: true,
       meta: { codegraphyKind: 'label', codegraphyNodeId: 'src/a.ts' },
       props: { color: 'black', font: 'draw', textAlign: 'middle' },
-      x: node.x - 30,
+      x: node.x + (node.props.w - 180) / 2,
       y: node.y + node.props.h + 8,
     });
     expect(JSON.stringify(label.props.richText)).toContain('a.ts');
@@ -67,8 +107,8 @@ describe('reconcileGraphRecords', () => {
       isLocked: true,
       meta: { codegraphyKind: 'icon', codegraphyNodeId: 'src/a.ts' },
       props: { altText: 'a.ts file icon', h: 56, w: 56 },
-      x: node.x + 32,
-      y: node.y + 32,
+      x: node.x + (node.props.w - 56) / 2,
+      y: node.y + (node.props.h - 56) / 2,
     });
     const iconAsset = records.find(record => record.id === icon.props.assetId);
     expect(iconAsset).toMatchObject({
@@ -121,8 +161,15 @@ describe('reconcileGraphRecords', () => {
       record.typeName === 'shape'
       && record.meta.codegraphyEntityId === 'src/a.ts'
     ));
-    expect(nodeA?.typeName).toBe('shape');
-    const movedNodeA = { ...nodeA, x: 900, y: 700 } as TLRecord;
+    if (nodeA?.typeName !== 'shape' || nodeA.type !== 'geo') {
+      throw new Error('Expected generated file node');
+    }
+    const movedNodeA = {
+      ...nodeA,
+      x: 900,
+      y: 700,
+      props: { ...nodeA.props, h: 240, w: 240 },
+    } satisfies TLRecord;
     const schema = createTLSchema();
     const note = schema.types.shape.create({
       id: createShapeId('user-note'),
@@ -151,7 +198,11 @@ describe('reconcileGraphRecords', () => {
     ));
 
     expect(refreshed).toContainEqual(note);
-    expect(refreshedNodeA).toMatchObject({ x: 900, y: 700 });
+    expect(refreshedNodeA).toMatchObject({
+      x: 900,
+      y: 700,
+      props: { h: 240, w: 240 },
+    });
     const refreshedLabelA = refreshed.find(record => (
       record.meta.codegraphyKind === 'label'
       && record.meta.codegraphyNodeId === 'src/a.ts'

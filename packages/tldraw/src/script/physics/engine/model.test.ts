@@ -9,7 +9,10 @@ const createGraphLayoutEngine = vi.fn((
 
 vi.mock('@codegraphy-dev/graph-renderer', () => ({
   createGraphLayoutEngine,
-  graphNodeSizeChargeMultiplier: (size: number, defaultSize: number) => size / defaultSize,
+  graphNodeSizeChargeMultiplier: (size: number, defaultSize: number) => Math.min(
+    4,
+    Math.max(0.5, size / defaultSize),
+  ),
 }));
 
 describe('tldraw physics engine input', () => {
@@ -24,7 +27,7 @@ describe('tldraw physics engine input', () => {
     expect(createGraphLayoutEngine).not.toHaveBeenCalled();
   });
 
-  it('builds normalized nodes, resized collision radii, and only resolved edge endpoints', async () => {
+  it('builds size-aware nodes and only resolved edge endpoints', async () => {
     const nodes = [
       {
         id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
@@ -49,15 +52,15 @@ describe('tldraw physics engine input', () => {
       nodeIds: ['a', 'b'],
       initialX: Float32Array.of(12, 72),
       initialY: Float32Array.of(12, 30),
-      chargeStrengthMultipliers: Float32Array.of(0.5, 1),
-      radii: Float32Array.of(12, 24),
+      chargeStrengthMultipliers: Float32Array.of(0.75, 1.5),
+      radii: Float32Array.of(16, 28),
       edgeSources: Uint32Array.of(0),
       edgeTargets: Uint32Array.of(1),
     });
     expect(createGraphLayoutEngine.mock.calls[0]?.[1].collisionPadding).toBeUndefined();
   });
 
-  it('keeps connection-based spacing as the minimum for dense nodes', async () => {
+  it('does not retain a hidden connection-based collider after nodes are resized', async () => {
     const nodes = Array.from({ length: 9 }, (_, index) => ({
       id: `shape:${index}`,
       type: 'geo',
@@ -82,7 +85,9 @@ describe('tldraw physics engine input', () => {
 
     const input = createGraphLayoutEngine.mock.calls[0]?.[0];
     if (!input) throw new Error('Expected graph layout input');
-    expect(input.radii).toEqual(Float32Array.of(13, 12, 12, 12, 12, 12, 12, 12, 12));
-    expect(input.chargeStrengthMultipliers?.[0]).toBeCloseTo(9 / 16);
+    expect(input.radii).toEqual(Float32Array.from({ length: 9 }, () => 6));
+    expect(input.chargeStrengthMultipliers).toEqual(
+      Float32Array.from({ length: 9 }, () => 0.5),
+    );
   });
 });
