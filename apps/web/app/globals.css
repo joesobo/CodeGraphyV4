@@ -180,6 +180,11 @@ pre {
 
 a {
   text-decoration: none;
+  text-shadow: none;
+}
+
+button {
+  text-shadow: none;
 }
 
 :where(a, button, input, select, textarea, summary):focus-visible {
@@ -309,8 +314,10 @@ a {
 
 .page-hero-title,
 .page-hero-description,
-.home-hero .hero-copy,
-.home-hero .hero-aside {
+.home-hero .hero-copy > p,
+.home-hero .hero-copy h1,
+.home-hero .hero-aside > p,
+.closing-cta-copy {
   text-shadow: 0 2px 20px rgb(0 7 18 / 74%), 0 1px 3px rgb(0 7 18 / 88%);
 }
 
@@ -569,11 +576,14 @@ a {
   box-shadow: var(--elevation-md);
 }
 
+.closing-cta-kicker {
+  color: rgb(255 255 255 / 90%);
+}
+
 .start-path {
   position: relative;
 }
 
-.closing-cta-image,
 .footer-image {
   filter: saturate(0.66) hue-rotate(12deg);
 }
@@ -631,7 +641,7 @@ a {
 
 @media (max-width: 640px) {
   .hero-graph {
-    opacity: 0.66;
+    opacity: 0.55;
   }
 
   .hero-console {

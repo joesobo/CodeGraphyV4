@@ -64,7 +64,7 @@ export function GetStarted(): React.ReactElement {
           ))}
         </ol>
 
-        <div className="closing-cta relative isolate mt-16 overflow-hidden rounded-[2rem] bg-[#08182b] text-white sm:mt-20" id="install-codegraphy">
+        <div className="closing-cta relative isolate mt-16 overflow-hidden rounded-[2rem] bg-[#176774] text-white sm:mt-20" id="install-codegraphy">
           <Image
             alt="Light filtering through deep blue water"
             className="closing-cta-image object-cover"
@@ -72,20 +72,19 @@ export function GetStarted(): React.ReactElement {
             sizes="(min-width: 1536px) 1440px, 100vw"
             src="/media/ocean-closing-cta-v4.jpg"
           />
-          <div className="absolute inset-0 bg-[#061427]/72" />
           <div className="relative z-10 grid min-h-96 items-end gap-10 p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:p-14">
-            <div className="max-w-3xl">
-              <p className="section-kicker text-[#a8c7ff]">Start with your workspace</p>
+            <div className="closing-cta-copy max-w-3xl">
+              <p className="closing-cta-kicker section-kicker">Start with your workspace</p>
               <h2 className="mt-5 text-5xl font-medium leading-[0.95] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
                 See the relationships your folder tree cannot show.
               </h2>
             </div>
             <div className="grid gap-4 lg:min-w-80">
-              <div className="flex min-h-14 items-center justify-between gap-4 rounded-xl border border-white/18 bg-[#07111f]/82 px-4">
-                <code className="min-w-0 overflow-x-auto text-xs text-white sm:text-sm">
-                  <span className="text-[#ffad98]">$</span> codegraphy index
+              <div className="flex min-h-14 items-center justify-between gap-4 rounded-xl border border-white/48 bg-white/88 px-4 text-[#17283b] shadow-sm backdrop-blur-sm">
+                <code className="min-w-0 overflow-x-auto text-xs sm:text-sm">
+                  <span className="text-[#a84432]">$</span> codegraphy index
                 </code>
-                <CopyButton className="text-white/84 hover:bg-white/10 hover:text-white" text="codegraphy index" />
+                <CopyButton className="text-[#17283b]/76 hover:bg-[#17283b]/8 hover:text-[#17283b]" text="codegraphy index" />
               </div>
               <Link
                 className={cn(buttonVariants({ size: 'lg' }), 'bg-[#ff9d82] text-[#17283b] hover:bg-[#ffb49f]')}

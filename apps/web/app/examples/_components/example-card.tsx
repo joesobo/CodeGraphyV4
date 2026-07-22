@@ -20,7 +20,7 @@ export function ExampleCard({ example }: { example: ExampleContent }): React.Rea
       id={example.id}
     >
       <ExampleImage example={example} />
-      <CardContent className="flex min-h-64 flex-col p-6 sm:p-7">
+      <CardContent className="flex flex-col p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-3">
           <span className="grid size-11 place-items-center rounded-2xl bg-secondary">
             <Icon className="size-6 shrink-0" src={example.iconUrl} />
@@ -37,7 +37,7 @@ export function ExampleCard({ example }: { example: ExampleContent }): React.Rea
           <span className="font-semibold text-foreground">Includes:</span>{' '}
           {example.supported.join(' · ')}
         </p>
-        <div className="mt-auto flex flex-wrap items-center gap-4 pt-5">
+        <div className="mt-4 flex flex-wrap items-center gap-4">
           {pluginHref ? (
             <Link href={pluginHref} variant="text">
               {example.name} Plugin

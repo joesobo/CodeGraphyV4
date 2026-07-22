@@ -67,8 +67,9 @@ function SingleMediaImage({
   const reduceMotion = usePrefersReducedMotion(animated);
 
   const playing = animated && (playSelection ?? hovered) && !reduceMotion;
-  const activeSrc = animated && !playing && posterSrc ? posterSrc : src;
-  const activeLoaded = loadedSources.has(activeSrc);
+  const restingSrc = animated && posterSrc ? posterSrc : src;
+  const restingLoaded = loadedSources.has(restingSrc);
+  const animationLoaded = loadedSources.has(src);
 
   function markSourceLoaded(source: string): void {
     setLoadedSources((current) =>
@@ -83,32 +84,49 @@ function SingleMediaImage({
 
   const mediaLayers = (
     <>
-      {activeLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
+      {restingLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
       {animated ? (
-        <Image
-          alt={alt}
-          className={cn(
-            'transition-opacity duration-200',
-            activeLoaded ? 'opacity-100' : 'opacity-0',
-            imageClassName,
-          )}
-          fill
-          key={activeSrc}
-          onLoad={() => markSourceLoaded(activeSrc)}
-          src={activeSrc}
-          unoptimized={activeSrc.endsWith('.gif')}
-          {...animatedImageProps}
-        />
+        <>
+          <Image
+            alt={alt}
+            className={cn(
+              'transition-opacity duration-200',
+              restingLoaded ? 'opacity-100' : 'opacity-0',
+              imageClassName,
+            )}
+            fill
+            onLoad={() => markSourceLoaded(restingSrc)}
+            src={restingSrc}
+            unoptimized={restingSrc.endsWith('.gif')}
+            {...animatedImageProps}
+          />
+          {posterSrc ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={cn(
+                'transition-opacity duration-200',
+                playing && animationLoaded ? 'opacity-100' : 'opacity-0',
+                imageClassName,
+              )}
+              fill
+              onLoad={() => markSourceLoaded(src)}
+              src={src}
+              unoptimized
+              {...animatedImageProps}
+            />
+          ) : null}
+        </>
       ) : (
         <Image
           alt={alt}
           className={cn(
             'transition-opacity duration-200',
-            activeLoaded ? 'opacity-100' : 'opacity-0',
+            restingLoaded ? 'opacity-100' : 'opacity-0',
             imageClassName,
           )}
-          onLoad={() => markSourceLoaded(activeSrc)}
-          src={activeSrc}
+          onLoad={() => markSourceLoaded(restingSrc)}
+          src={restingSrc}
           {...imageProps}
         />
       )}

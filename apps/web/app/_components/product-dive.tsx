@@ -20,11 +20,11 @@ const chapters = [
     detail: 'One graph cache · local source · no upload',
     mediaAspect: 'square',
     media: {
-      alt: 'Animation of CodeGraphy switching between workspace graph views',
-      src: '/media/features/view-modes-light.gif',
-      posterSrc: '/media/features/posters/view-modes-light.png',
-      darkSrc: '/media/features/view-modes-dark.gif',
-      darkPosterSrc: '/media/features/posters/view-modes-dark.png',
+      alt: 'Force-directed CodeGraphy Relationship Graph settling into workspace clusters',
+      src: '/media/features/force-graph-light.gif',
+      posterSrc: '/media/features/posters/force-graph-light.png',
+      darkSrc: '/media/features/force-graph-dark.gif',
+      darkPosterSrc: '/media/features/posters/force-graph-dark.png',
     },
   },
   {
@@ -35,11 +35,11 @@ const chapters = [
     detail: 'WebGPU renderer · WebAssembly physics',
     mediaAspect: 'square',
     media: {
-      alt: 'Force-directed CodeGraphy Relationship Graph',
-      src: '/media/features/force-graph-light.gif',
-      posterSrc: '/media/features/posters/force-graph-light.png',
-      darkSrc: '/media/features/force-graph-dark.gif',
-      darkPosterSrc: '/media/features/posters/force-graph-dark.png',
+      alt: 'Animation of CodeGraphy changing graph depth and navigating between related nodes',
+      src: '/media/features/view-modes-light.gif',
+      posterSrc: '/media/features/posters/view-modes-light.png',
+      darkSrc: '/media/features/view-modes-dark.gif',
+      darkPosterSrc: '/media/features/posters/view-modes-dark.png',
     },
   },
   {

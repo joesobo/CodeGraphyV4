@@ -9,9 +9,9 @@ import {
 } from '@codegraphy-dev/graph-renderer';
 import { useEffect, useRef } from 'react';
 
-const CLUSTER_COUNT = 4;
-const NODES_PER_CLUSTER = 13;
-const NODE_COUNT = CLUSTER_COUNT * NODES_PER_CLUSTER;
+const COMMUNITY_COUNT = 5;
+const NODE_COUNT = 72;
+const RANDOM_SEED = 0xc0de_6a7;
 
 interface CanvasSize {
   height: number;
@@ -24,7 +24,12 @@ interface PointerPosition {
   y: number;
 }
 
-const graphInput = createGraphInput();
+interface HeroGraphData {
+  input: GraphLayoutInput;
+  nodeGroups: Uint8Array;
+}
+
+const graphData = createGraphData();
 
 export function HeroGraph(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -57,16 +62,16 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    const layout = createGraphLayoutEngine(graphInput, {
-      centralGravity: 0.052,
-      chargeDistanceMax: 340,
-      chargeStrength: -270,
-      collisionPadding: 8,
-      initializationSpacing: 18,
-      linkDistance: 48,
-      linkStrength: 0.78,
+    const layout = createGraphLayoutEngine(graphData.input, {
+      centralGravity: 0.046,
+      chargeDistanceMax: 250,
+      chargeStrength: -175,
+      collisionPadding: 6,
+      initializationSpacing: 14,
+      linkDistance: 36,
+      linkStrength: 0.84,
       settleSpeed: 0.5,
-      velocityDecay: 0.32,
+      velocityDecay: 0.29,
     });
     const pointer: PointerPosition = { active: false, x: 0, y: 0 };
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,7 +80,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
 
     resizeObserver = new ResizeObserver(() => {
       canvasSize = resizeCanvas(canvas, context);
-      drawGraph(context, layout, canvasSize);
+      drawGraph(context, layout, graphData.nodeGroups, canvasSize);
     });
     resizeObserver.observe(canvas);
 
@@ -96,7 +101,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       const scale = graphScale(canvasSize);
       pointer.x = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
       pointer.y = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-      layout.reheat(0.32);
+      layout.reheat(0.24);
     };
     window.addEventListener('pointermove', updatePointer, {
       passive: true,
@@ -105,14 +110,14 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
 
     if (prefersReducedMotion) {
       for (let step = 0; step < 220 && !layout.settled; step += 1) layout.tick();
-      drawGraph(context, layout, canvasSize);
+      drawGraph(context, layout, graphData.nodeGroups, canvasSize);
       return;
     }
 
     const animate = (): void => {
       if (visible) {
         layout.tick(pointer.active ? createPointerForce(layout, pointer) : undefined);
-        drawGraph(context, layout, canvasSize);
+        drawGraph(context, layout, graphData.nodeGroups, canvasSize);
       }
       frame = window.requestAnimationFrame(animate);
     };
@@ -130,67 +135,96 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
   };
 }
 
-function createGraphInput(): GraphLayoutInput {
+function createGraphData(): HeroGraphData {
+  const random = createSeededRandom(RANDOM_SEED);
   const nodeIds: string[] = Array.from({ length: NODE_COUNT }, (_, index) => `hero-node-${index}`);
   const radii = new Float32Array(NODE_COUNT);
   const chargeStrengthMultipliers = new Float32Array(NODE_COUNT);
   const initialX = new Float32Array(NODE_COUNT);
   const initialY = new Float32Array(NODE_COUNT);
+  const nodeGroups = new Uint8Array(NODE_COUNT);
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
-  const clusterCenters: readonly [number, number][] = [
-    [-185, -105],
-    [185, -110],
-    [-175, 115],
-    [180, 110],
-  ];
+  const membersByCommunity: number[][] = Array.from(
+    { length: COMMUNITY_COUNT },
+    (): number[] => [],
+  );
 
-  for (let cluster = 0; cluster < CLUSTER_COUNT; cluster += 1) {
-    const hubIndex = cluster * NODES_PER_CLUSTER;
-    const [centerX, centerY] = clusterCenters[cluster];
+  for (let index = 0; index < NODE_COUNT; index += 1) {
+    const group = index < COMMUNITY_COUNT
+      ? index
+      : Math.floor(random() * COMMUNITY_COUNT);
+    const angle = random() * Math.PI * 2;
+    const distance = Math.sqrt(random()) * 270;
+    const isCommunitySeed = index < COMMUNITY_COUNT;
 
-    for (let localIndex = 0; localIndex < NODES_PER_CLUSTER; localIndex += 1) {
-      const index = hubIndex + localIndex;
-      const angle = (localIndex / (NODES_PER_CLUSTER - 1)) * Math.PI * 2 + cluster * 0.42;
-      const orbit = localIndex === 0 ? 0 : localIndex % 2 === 0 ? 52 : 76;
+    nodeGroups[index] = group;
+    membersByCommunity[group].push(index);
+    radii[index] = isCommunitySeed ? 15 + random() * 3 : 6 + random() * 6;
+    chargeStrengthMultipliers[index] = isCommunitySeed ? 1.28 : 0.68 + random() * 0.42;
+    initialX[index] = Math.cos(angle) * distance;
+    initialY[index] = Math.sin(angle) * distance * 0.72;
+  }
 
-      radii[index] = localIndex === 0 ? 18 : localIndex % 4 === 0 ? 11 : 7.5;
-      chargeStrengthMultipliers[index] = localIndex === 0 ? 1.45 : 0.72;
-      initialX[index] = centerX + Math.cos(angle) * orbit;
-      initialY[index] = centerY + Math.sin(angle) * orbit;
+  // Dense local relationships form communities naturally. Sparse cross-group
+  // relationships keep the result one connected graph.
+  for (const members of membersByCommunity) {
+    for (let memberIndex = 1; memberIndex < members.length; memberIndex += 1) {
+      const source = members[memberIndex];
+      const firstTarget = members[Math.floor(random() * memberIndex)];
+      edgeSources.push(source);
+      edgeTargets.push(firstTarget);
 
-      if (localIndex === 0) continue;
-      edgeSources.push(hubIndex);
-      edgeTargets.push(index);
-      if (localIndex > 1) {
-        edgeSources.push(index - 1);
-        edgeTargets.push(index);
+      if (memberIndex > 2) {
+        const secondTarget = members[Math.floor(random() * memberIndex)];
+        if (secondTarget !== firstTarget) {
+          edgeSources.push(source);
+          edgeTargets.push(secondTarget);
+        }
+      }
+
+      if (memberIndex > 4 && random() < 0.52) {
+        const thirdTarget = members[Math.floor(random() * memberIndex)];
+        if (thirdTarget !== firstTarget) {
+          edgeSources.push(source);
+          edgeTargets.push(thirdTarget);
+        }
       }
     }
   }
 
-  // A few cross-cluster relationships make this one graph without flattening
-  // the dense local neighborhoods that give each cluster its shape.
-  const clusterBridges: readonly [number, number][] = [
-    [4, 20],
-    [10, 30],
-    [23, 43],
-    [36, 47],
-    [7, 42],
-  ];
-  for (const [source, target] of clusterBridges) {
+  for (let group = 0; group < COMMUNITY_COUNT; group += 1) {
+    const nextGroup = (group + 1) % COMMUNITY_COUNT;
+    const sourceMembers = membersByCommunity[group];
+    const targetMembers = membersByCommunity[nextGroup];
+    const source = sourceMembers[Math.floor(random() * sourceMembers.length)];
+    const target = targetMembers[Math.floor(random() * targetMembers.length)];
     edgeSources.push(source);
     edgeTargets.push(target);
   }
 
   return {
-    chargeStrengthMultipliers,
-    edgeSources: Uint32Array.from(edgeSources),
-    edgeTargets: Uint32Array.from(edgeTargets),
-    initialX,
-    initialY,
-    nodeIds,
-    radii,
+    input: {
+      chargeStrengthMultipliers,
+      edgeSources: Uint32Array.from(edgeSources),
+      edgeTargets: Uint32Array.from(edgeTargets),
+      initialX,
+      initialY,
+      nodeIds,
+      radii,
+    },
+    nodeGroups,
+  };
+}
+
+function createSeededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return (): number => {
+    state += 0x6d2b_79f5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
   };
 }
 
@@ -210,7 +244,7 @@ function createPointerForce(
         if (distanceSquared >= influenceRadiusSquared || distanceSquared < 0.01) continue;
 
         const distance = Math.sqrt(distanceSquared);
-        const strength = (1 - distance / influenceRadius) * 1.8 * alpha;
+        const strength = (1 - distance / influenceRadius) * 1.45 * alpha;
         layout.vx[index] += (dx / distance) * strength;
         layout.vy[index] += (dy / distance) * strength;
       }
@@ -239,6 +273,7 @@ function graphScale(size: CanvasSize): number {
 function drawGraph(
   context: CanvasRenderingContext2D,
   layout: GraphLayoutEngine,
+  nodeGroups: Uint8Array,
   size: CanvasSize,
 ): void {
   const scale = graphScale(size);
@@ -255,23 +290,31 @@ function drawGraph(
     context.beginPath();
     context.moveTo(layout.x[source], layout.y[source]);
     context.lineTo(layout.x[target], layout.y[target]);
-    context.strokeStyle = index % 5 === 0
-      ? 'rgba(255, 154, 127, 0.32)'
-      : 'rgba(183, 213, 255, 0.24)';
+    context.strokeStyle = nodeGroups[source] === nodeGroups[target]
+      ? 'rgba(190, 219, 255, 0.27)'
+      : 'rgba(255, 174, 145, 0.18)';
     context.stroke();
   }
 
   for (let index = 0; index < layout.nodeIds.length; index += 1) {
-    const radius = Math.max(4.5, layout.radii[index] * 0.76);
+    const radius = Math.max(4.5, layout.radii[index] * 0.78);
     context.beginPath();
     context.arc(layout.x[index], layout.y[index], radius, 0, Math.PI * 2);
-    context.fillStyle = index % NODES_PER_CLUSTER === 0
-      ? 'rgba(255, 141, 112, 0.88)'
-      : index % 4 === 0
-        ? 'rgba(115, 169, 255, 0.8)'
-        : 'rgba(225, 239, 255, 0.72)';
+    context.fillStyle = nodeFill(nodeGroups[index], radius);
     context.fill();
   }
 
   context.restore();
+}
+
+function nodeFill(group: number, radius: number): string {
+  if (radius > 10) return 'rgba(255, 151, 123, 0.88)';
+  const colors = [
+    'rgba(224, 239, 255, 0.78)',
+    'rgba(126, 176, 255, 0.82)',
+    'rgba(190, 174, 255, 0.78)',
+    'rgba(255, 205, 139, 0.78)',
+    'rgba(162, 208, 240, 0.8)',
+  ] as const;
+  return colors[group % colors.length];
 }
