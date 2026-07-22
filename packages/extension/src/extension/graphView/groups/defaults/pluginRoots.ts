@@ -51,7 +51,7 @@ export function registerPackageGraphViewPluginRoots(
     ? [...analyzer.registry.list(), ...(analyzer.registry.extensionPlugins?.list() ?? [])]
     : [];
   for (const pluginInfo of pluginInfos) {
-    if (!pluginInfo.sourcePackageRoot || pluginExtensionUris.has(pluginInfo.plugin.id)) {
+    if (!pluginInfo.sourcePackageRoot) {
       continue;
     }
 

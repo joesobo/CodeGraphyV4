@@ -130,8 +130,8 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
       payload: {
         pluginId: 'plugin.test',
         revision: 'runtime-v2',
-        scripts: ['plugin.test:dist/plugin.js'],
-        styles: ['plugin.test:dist/plugin.css'],
+        scripts: ['plugin.test:dist/plugin.js?codegraphyPluginRevision=runtime-v2'],
+        styles: ['plugin.test:dist/plugin.css?codegraphyPluginRevision=runtime-v2'],
         assets: [],
       },
     });

@@ -232,4 +232,32 @@ describe('graphView/webview/plugins/contributions', () => {
       assets: [],
     }]);
   });
+
+  it('changes every webview asset URL when a linked runtime revision changes', () => {
+    const plugin = {
+      plugin: {
+        id: 'plugin.rebuilt',
+        webviewContributions: {
+          scripts: ['dist/plugin.js'],
+          styles: ['dist/plugin.css'],
+          assets: [{ id: 'icon', label: 'Icon', path: 'assets/icon.svg' }],
+        },
+      },
+    };
+    const resolveAssetPath = (assetPath: string) => `vscode-webview://plugin/${assetPath}`;
+    const first = collectGraphViewWebviewInjections(
+      [{ ...plugin, descriptorSignature: 'build-v1' }],
+      resolveAssetPath,
+    )[0];
+    const second = collectGraphViewWebviewInjections(
+      [{ ...plugin, descriptorSignature: 'build-v2' }],
+      resolveAssetPath,
+    )[0];
+
+    expect(second.scripts).not.toEqual(first.scripts);
+    expect(second.styles).not.toEqual(first.styles);
+    expect(second.assets.map(asset => asset.url)).not.toEqual(
+      first.assets.map(asset => asset.url),
+    );
+  });
 });

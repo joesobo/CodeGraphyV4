@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import {
   getBuiltInGraphViewPluginDir,
   registerBuiltInGraphViewPluginRoots,
+  registerPackageGraphViewPluginRoots,
 } from '../../../../../src/extension/graphView/groups/defaults/pluginRoots';
 
 describe('graphView/builtInPluginRoots', () => {
@@ -39,5 +40,25 @@ describe('graphView/builtInPluginRoots', () => {
       vscode.Uri.file('/test/extension/packages/plugin-unity'),
     );
     expect(pluginExtensionUris.has('codegraphy.markdown')).toBe(false);
+  });
+
+  it('replaces a linked package root when the same plugin id moves', () => {
+    const pluginExtensionUris = new Map<string, vscode.Uri>([
+      ['acme.view', vscode.Uri.file('/plugins/old')],
+    ]);
+
+    registerPackageGraphViewPluginRoots({
+      registry: {
+        list: () => [],
+        extensionPlugins: {
+          list: () => [{
+            plugin: { id: 'acme.view' },
+            sourcePackageRoot: '/plugins/new',
+          }],
+        },
+      },
+    }, pluginExtensionUris);
+
+    expect(pluginExtensionUris.get('acme.view')).toEqual(vscode.Uri.file('/plugins/new'));
   });
 });

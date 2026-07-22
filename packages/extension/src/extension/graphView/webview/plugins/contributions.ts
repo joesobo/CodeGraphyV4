@@ -82,6 +82,16 @@ export interface IGraphViewInjectionPayload {
   assets: IGraphViewWebviewAsset[];
 }
 
+function addPluginRevision(assetUrl: string, revision: string | undefined): string {
+  if (!revision) return assetUrl;
+
+  const fragmentIndex = assetUrl.indexOf('#');
+  const baseUrl = fragmentIndex >= 0 ? assetUrl.slice(0, fragmentIndex) : assetUrl;
+  const fragment = fragmentIndex >= 0 ? assetUrl.slice(fragmentIndex) : '';
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}codegraphyPluginRevision=${encodeURIComponent(revision)}${fragment}`;
+}
+
 export function collectGraphViewContextMenuItems(
   pluginInfos: readonly IGraphViewPluginInfo[],
   getPluginApi: (pluginId: string) => IPluginApiWithContextMenu | undefined,
@@ -145,16 +155,16 @@ export function collectGraphViewWebviewInjections(
   return pluginInfos.flatMap((pluginInfo) => {
     const contributions = pluginInfo.plugin.webviewContributions;
     if (!contributions && !pluginInfo.descriptorSignature) return [];
+    const resolveVersionedAssetPath = (assetPath: string): string => addPluginRevision(
+      resolveAssetPath(assetPath, pluginInfo.plugin.id),
+      pluginInfo.descriptorSignature,
+    );
 
-    const scripts = (contributions?.scripts ?? []).map((assetPath) =>
-      resolveAssetPath(assetPath, pluginInfo.plugin.id),
-    );
-    const styles = (contributions?.styles ?? []).map((assetPath) =>
-      resolveAssetPath(assetPath, pluginInfo.plugin.id),
-    );
+    const scripts = (contributions?.scripts ?? []).map(resolveVersionedAssetPath);
+    const styles = (contributions?.styles ?? []).map(resolveVersionedAssetPath);
     const assets = (contributions?.assets ?? []).map((asset) => ({
       ...asset,
-      url: resolveAssetPath(asset.path, pluginInfo.plugin.id),
+      url: resolveVersionedAssetPath(asset.path),
     }));
 
     if (
