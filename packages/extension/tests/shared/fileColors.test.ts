@@ -114,9 +114,10 @@ describe('getFileColor', () => {
     expect(getFileColor('.Json')).toBe(FILE_TYPE_COLORS['.json']);
   });
 
-  it('returns DEFAULT_NODE_COLOR for unknown extensions', () => {
-    expect(getFileColor('.unknown')).toBe(DEFAULT_NODE_COLOR);
-    expect(getFileColor('.py')).toBe(DEFAULT_NODE_COLOR);
+  it('groups other extensions into the shared palette', () => {
+    expect(getFileColor('.PY')).toBe(getFileColor('.py'));
+    expect(getFileColor('.py')).not.toBe(DEFAULT_NODE_COLOR);
+    expect(getFileColor('.py')).not.toBe(getFileColor('.rb'));
     expect(getFileColor('')).toBe(DEFAULT_NODE_COLOR);
   });
 });

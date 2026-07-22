@@ -17,8 +17,8 @@ export const FILE_TYPE_COLORS: Readonly<Record<string, string>> = Object.freeze(
 }) satisfies Record<string, string>;
 
 /**
- * Default color for file types not in {@link FILE_TYPE_COLORS}.
- * A neutral soft zinc gray that works on dark backgrounds.
+ * Default color for files without an extension.
+ * Unknown nonempty extensions use a deterministic color from FILE_TYPE_COLORS.
  */
 export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
 

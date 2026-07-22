@@ -11,6 +11,7 @@ import {
   type TLShape,
 } from '@tldraw/tlschema';
 import { getIndicesAbove, type IndexKey } from '@tldraw/utils';
+import { resolveNativeNodeColor } from './nodeColor/model';
 
 const PAGE_ID = 'page:page' as TLPageId;
 const NODE_SIZE = 120;
@@ -48,6 +49,11 @@ function createNodeShape(
   existing?: TLShape,
 ): TLGeoShape {
   const preserved = existing?.type === 'geo' ? existing : undefined;
+  const generatedStyle = {
+    labelColor: 'white',
+    color: resolveNativeNodeColor(node.color),
+    fill: 'solid',
+  } satisfies Partial<TLGeoShape['props']>;
   return {
     id: shapeId('node', node.id),
     typeName: 'shape',
@@ -72,9 +78,7 @@ function createNodeShape(
       h: NODE_SIZE,
       growY: 0,
       scale: 1,
-      labelColor: 'black',
-      color: 'blue',
-      fill: 'semi',
+      ...generatedStyle,
       size: 'm',
       font: 'sans',
       align: 'middle',

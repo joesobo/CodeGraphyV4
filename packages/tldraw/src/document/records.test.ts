@@ -12,6 +12,58 @@ const INITIAL_GRAPH = {
 } satisfies IGraphData;
 
 describe('reconcileGraphRecords', () => {
+  it('uses resolved graph colors as solid native fills', () => {
+    const records = reconcileGraphRecords([], {
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', nodeType: 'file' },
+        { id: 'tests/app.ts', label: 'app.ts', color: '#93C5FD', nodeType: 'file' },
+        { id: 'tools/build.py', label: 'build.py', color: '#FDE68A', nodeType: 'file' },
+      ],
+      edges: [],
+    });
+    const nodeProps: Record<string, object> = {};
+    for (const record of records) {
+      const entityId = record.meta.codegraphyEntityId;
+      if (record.typeName === 'shape'
+        && record.meta.codegraphyKind === 'node'
+        && typeof entityId === 'string') {
+        nodeProps[entityId] = record.props;
+      }
+    }
+
+    expect(nodeProps['src/app.ts']).toMatchObject({ color: 'blue', fill: 'solid' });
+    expect(nodeProps['tests/app.ts']).toMatchObject({ color: 'blue', fill: 'solid' });
+    expect(nodeProps['tools/build.py']).toMatchObject({ color: 'yellow', fill: 'solid' });
+  });
+
+  it('preserves a surviving node style during refresh', () => {
+    const graph = {
+      nodes: [{ id: 'tools/build.py', label: 'build.py', color: '#333333', nodeType: 'file' }],
+      edges: [],
+    } satisfies IGraphData;
+    const initial = reconcileGraphRecords([], graph);
+    const node = initial.find(record => record.meta.codegraphyEntityId === 'tools/build.py');
+    if (node?.typeName !== 'shape' || node.type !== 'geo') {
+      throw new Error('Expected generated file node');
+    }
+    const styledNode = {
+      ...node,
+      props: {
+        ...node.props,
+        color: 'red',
+        fill: 'pattern',
+        labelColor: 'black',
+      },
+    } satisfies TLRecord;
+
+    const refreshed = reconcileGraphRecords([styledNode], graph);
+    const refreshedNode = refreshed.find(record => record.meta.codegraphyEntityId === 'tools/build.py');
+
+    expect(refreshedNode).toMatchObject({
+      props: { color: 'red', fill: 'pattern', labelColor: 'black' },
+    });
+  });
+
   it('preserves user shapes and surviving node positions while replacing stale graph shapes', () => {
     const initial = reconcileGraphRecords([], INITIAL_GRAPH);
     const nodeA = initial.find(record => (

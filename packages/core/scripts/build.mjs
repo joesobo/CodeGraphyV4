@@ -36,4 +36,9 @@ await Promise.all([
     entryPoints: ['src/graphScope/defaults.ts'],
     outfile: 'dist/graphScope/defaults.js',
   }),
+  build({
+    ...sharedOptions,
+    entryPoints: ['src/fileColors.ts'],
+    outfile: 'dist/fileColors.js',
+  }),
 ]);

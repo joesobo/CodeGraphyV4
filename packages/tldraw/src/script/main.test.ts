@@ -56,7 +56,7 @@ describe('CodeGraphy tldraw document script', () => {
     expect(updateShapes).toHaveBeenCalled();
   });
 
-  it('uses Extension physics defaults independently of the native circle size', async () => {
+  it('uses the native circle radius and padding for node collisions', async () => {
     const listeners = new Map<string, (elapsed: number) => void>();
     const editor = {
       getCurrentPage: () => ({ meta: {} }),
@@ -76,10 +76,11 @@ describe('CodeGraphy tldraw document script', () => {
     listeners.get('tick')?.(16);
 
     expect(createGraphLayoutEngine).toHaveBeenCalledWith(
-      expect.objectContaining({ radii: Float32Array.of(20) }),
+      expect.objectContaining({ radii: Float32Array.of(60) }),
       {
         centralGravity: 0.1,
         chargeStrength: -250,
+        collisionPadding: 8,
         linkDistance: 80,
         linkStrength: 1,
         velocityDecay: 0.4,
