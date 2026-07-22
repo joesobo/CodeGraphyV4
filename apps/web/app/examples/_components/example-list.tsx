@@ -12,7 +12,7 @@ export function ExampleList(): React.ReactElement {
         description="Compare the runnable examples side by side, or open one focused workspace when you want a clean demonstration of a language or Plugin."
       />
 
-      <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-10">
         <PageSidebar nav={exampleNavGroups} />
         <div className="grid gap-10">
           <ExampleGroup
@@ -51,9 +51,9 @@ function ExampleGroup({
             <h3 className="text-3xl font-medium">{title}</h3>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
-      <div className="grid gap-4">
-        {examples.map((example) => (
-          <ExampleCard example={example} key={example.id} />
+      <div className="grid gap-5 xl:grid-cols-2">
+        {examples.map((example, index) => (
+          <ExampleCard example={example} featured={index < 2} key={example.id} />
         ))}
       </div>
     </section>

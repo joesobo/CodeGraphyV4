@@ -5,6 +5,7 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import type { ExampleContent } from '@/content/examples';
 import { githubTreeHref } from '@/content/links';
 import { pluginContent } from '@/content/plugins';
+import { cn } from '@/lib/utils';
 import { ExampleImage } from './example-image';
 
 const pluginHrefById = new Map<string, string>(
@@ -13,42 +14,56 @@ const pluginHrefById = new Map<string, string>(
 
 export function ExampleCard({
   example,
+  featured,
 }: {
   example: ExampleContent;
+  featured: boolean;
 }): React.ReactElement {
   const pluginHref = example.plugin ? pluginHrefById.get(example.plugin.id) : undefined;
 
   return (
-    <Card as="article" className="group overflow-hidden rounded-3xl bg-card/75" id={example.id} interactive>
-      <div className="flex flex-col sm:min-h-72 sm:flex-row sm:transition-[min-height] sm:duration-500 sm:ease-in-out sm:group-hover:min-h-[30rem]">
-        <CardContent className="flex flex-1 flex-col p-5">
-          <div className="flex flex-wrap items-center gap-3">
-            <Icon className="size-7 shrink-0" src={example.iconUrl} />
-            <CardTitle className="text-2xl font-medium">{example.name}</CardTitle>
+    <Card
+      as="article"
+      className={cn(
+        'group grid overflow-hidden rounded-[2rem] bg-card/80 transition-[border-color,box-shadow] duration-300 hover:border-primary/35 hover:shadow-[0_18px_50px_rgb(8_74_82_/_0.1)]',
+        featured && 'xl:col-span-2 xl:grid-cols-[1.08fr_.92fr]',
+      )}
+      id={example.id}
+    >
+      <ExampleImage example={example} featured={featured} />
+      <CardContent className="flex min-h-64 flex-col p-6 sm:p-7">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-2xl bg-secondary">
+            <Icon className="size-6 shrink-0" src={example.iconUrl} />
+          </span>
+          <div>
+            <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary">
+              Runnable workspace
+            </p>
+            <CardTitle className="mt-1 text-2xl font-medium">{example.name}</CardTitle>
           </div>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">{example.summary}</p>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {example.supported.map((tag) => (
-              <li key={tag}>
-                <Badge className="font-mono text-[0.7rem] font-medium" variant="secondary">
-                  {tag}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
-            {pluginHref ? (
-              <Link href={pluginHref} variant="text">
-                {example.name} Plugin
-              </Link>
-            ) : null}
-            <Link href={`${githubTreeHref}/${example.workspace}`} icon="github" variant="text">
-              Example
+        </div>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">{example.summary}</p>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {example.supported.map((tag) => (
+            <li key={tag}>
+              <Badge className="font-mono text-[0.7rem] font-medium" variant="secondary">
+                {tag}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-auto flex flex-wrap items-center gap-4 border-t border-border pt-4">
+          {pluginHref ? (
+            <Link href={pluginHref} variant="text">
+              {example.name} Plugin
             </Link>
-          </div>
-        </CardContent>
-        <ExampleImage example={example} />
-      </div>
+          ) : null}
+          <Link href={`${githubTreeHref}/${example.workspace}`} icon="github" variant="text">
+            Open workspace
+          </Link>
+        </div>
+      </CardContent>
     </Card>
   );
 }

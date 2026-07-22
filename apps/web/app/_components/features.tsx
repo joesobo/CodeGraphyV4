@@ -114,15 +114,14 @@ function FeatureCard({ feature }: { feature: Feature }): React.ReactElement {
     <Card
       as="article"
       className={cn(
-        'group flex min-w-0 flex-col overflow-hidden rounded-3xl motion-safe:transition-[translate,border-color,box-shadow] motion-safe:duration-300 motion-safe:ease-out motion-safe:hover:-translate-y-1',
+        'group flex min-w-0 flex-col overflow-hidden rounded-3xl transition-[border-color,box-shadow] duration-300 hover:border-primary/35 hover:shadow-[0_18px_50px_rgb(8_74_82_/_0.12)]',
         feature.layout === 'wide' ? 'md:col-span-2 lg:col-span-6' : 'lg:col-span-3',
       )}
-      interactive
     >
       <FeatureMedia layout={feature.layout} media={feature.media} />
       <CardHeader className="shrink-0">
         <div className="flex items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-110">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
             <feature.icon aria-hidden="true" className="size-4" />
           </span>
           <div className="min-w-0">

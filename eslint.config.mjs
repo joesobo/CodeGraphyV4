@@ -110,6 +110,7 @@ export default defineConfig(
   globalIgnores([
     'dist/**',
     'dist-e2e/**',
+    'apps/web/.next/**',
     'node_modules/**',
     // AssemblyScript uses decorators and numeric types that the TypeScript ESLint parser does not support.
     'packages/graph-renderer/src/physics/wasm/assembly/**',
