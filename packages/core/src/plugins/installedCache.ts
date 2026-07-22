@@ -6,13 +6,17 @@ export type {
   RegisterCodeGraphyInstalledPluginOptions,
 } from './installedPluginCache/contracts';
 export type {
-  CodeGraphyWorkspacePluginIndexingPlan,
-  CodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
-  CodeGraphyWorkspacePluginSettingUpdatePlanOptions,
-  CodeGraphyWorkspacePluginToggleOptions,
-  CodeGraphyWorkspacePluginTogglePlan,
   UpdateCodeGraphyWorkspacePluginSelectionOptions,
 } from './installedPluginCache/workspaceSelection';
+export type {
+  CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginToggleOptions,
+  CodeGraphyWorkspacePluginTogglePlan,
+} from './installedPluginCache/workspaceTogglePlan';
+export type {
+  CodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
+  CodeGraphyWorkspacePluginSettingUpdatePlanOptions,
+} from './installedPluginCache/workspaceSettingPlan';
 export { createBundledMarkdownInstalledPluginRecord } from './installedPluginCache/bundled';
 export { setCodeGraphyInstalledPluginGlobalActivation } from './installedPluginCache/globalActivation';
 export {
@@ -29,10 +33,12 @@ export {
   writeCodeGraphyInstalledPluginCache,
 } from './installedPluginCache/storage';
 export {
-  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
-  createCodeGraphyWorkspacePluginTogglePlan,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   inheritCodeGraphyWorkspacePlugin,
   updateCodeGraphyWorkspacePluginSelection,
 } from './installedPluginCache/workspaceSelection';
+export { createCodeGraphyWorkspacePluginTogglePlan } from './installedPluginCache/workspaceTogglePlan';
+export {
+  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
+} from './installedPluginCache/workspaceSettingPlan';

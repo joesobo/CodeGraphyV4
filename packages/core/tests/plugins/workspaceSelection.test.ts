@@ -1,7 +1,12 @@
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
-  createCodeGraphyWorkspacePluginTogglePlan,
+  disableCodeGraphyWorkspacePlugin,
+  enableCodeGraphyWorkspacePlugin,
+  inheritCodeGraphyWorkspacePlugin,
+  readCodeGraphyWorkspaceSettings,
   updateCodeGraphyWorkspacePluginSelection,
   type CodeGraphyWorkspacePluginSettings,
 } from '../../src';
@@ -86,132 +91,46 @@ describe('plugins/workspaceSelection', () => {
     ]);
   });
 
-  it('plans a workspace analysis refresh when enabling a plugin id', () => {
-    const plan = createCodeGraphyWorkspacePluginTogglePlan([
-      { id: 'codegraphy.markdown', activation: 'enabled' },
-    ], {
-      pluginId: 'codegraphy.godot',
-      enabled: true,
-      defaultOptions: {
-        includeAutoloads: true,
-      },
-    });
-
-    expect(plan).toEqual({
-      plugins: [
-        { id: 'codegraphy.markdown', activation: 'enabled' },
-        {
-          id: 'codegraphy.godot',
-          activation: 'enabled',
-          options: { includeAutoloads: true },
-        },
-      ],
-      indexing: {
-        kind: 'analyze-workspace',
-      },
-    });
+  it('does not add an empty options object', () => {
+    expect(updateCodeGraphyWorkspacePluginSelection([], {
+      pluginId: 'codegraphy.ruby',
+      activation: 'enabled',
+      defaultOptions: {},
+    })).toEqual([{ id: 'codegraphy.ruby', activation: 'enabled' }]);
   });
 
-  it('plans projection-only work when plugin metadata says toggles do not affect indexed evidence', () => {
-    const plan = createCodeGraphyWorkspacePluginTogglePlan([], {
-      pluginId: 'codegraphy.particles',
-      enabled: true,
-      updateImpact: {
-        toggle: 'projection-only',
-      },
-    });
+  it('persists enabled, disabled, and inherited workspace activation', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-selection-'));
+    try {
+      enableCodeGraphyWorkspacePlugin(workspaceRoot, {
+        package: '@codegraphy-dev/plugin-vue',
+        version: '1.2.3',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
+        packageRoot: '/global/@codegraphy-dev/plugin-vue',
+        id: 'codegraphy.vue',
+        globallyEnabled: false,
+      });
+      expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toContainEqual({
+        id: 'codegraphy.vue',
+        activation: 'enabled',
+      });
 
-    expect(plan).toEqual({
-      plugins: [
-        { id: 'codegraphy.particles', activation: 'enabled' },
-      ],
-      indexing: {
-        kind: 'projection-only',
-      },
-    });
+      disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.vue');
+      expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toContainEqual({
+        id: 'codegraphy.vue',
+        activation: 'disabled',
+      });
+
+      inheritCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.vue');
+      expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toContainEqual({
+        id: 'codegraphy.vue',
+        activation: 'inherit',
+      });
+    } finally {
+      await fs.rm(workspaceRoot, { recursive: true, force: true });
+    }
   });
 
-  it('plans targeted plugin-file analysis when plugin metadata says toggles affect plugin evidence', () => {
-    const plan = createCodeGraphyWorkspacePluginTogglePlan([], {
-      pluginId: 'codegraphy.vue',
-      enabled: true,
-      updateImpact: {
-        toggle: 'reanalyze-plugin-files',
-      },
-    });
-
-    expect(plan.indexing).toEqual({
-      kind: 'reprocess-plugin-files',
-      pluginIds: ['codegraphy.vue'],
-    });
-  });
-
-  it('plans plugin setting updates from per-key and default impact metadata', () => {
-    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
-      pluginId: 'codegraphy.particles',
-      settingKeys: ['speed', 'size'],
-      updateImpact: {
-        toggle: 'projection-only',
-        defaultSetting: 'settings-only',
-      },
-    })).toEqual({ kind: 'settings-only' });
-
-    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
-      pluginId: 'codegraphy.vue',
-      settingKeys: ['includeTests'],
-      updateImpact: {
-        toggle: 'reanalyze-plugin-files',
-        defaultSetting: 'settings-only',
-        settings: {
-          includeTests: 'reanalyze-plugin-files',
-        },
-      },
-    })).toEqual({
-      kind: 'reprocess-plugin-files',
-      pluginIds: ['codegraphy.vue'],
-    });
-
-    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
-      pluginId: 'acme.unknown',
-      settingKeys: ['mode'],
-      updateImpact: {
-        toggle: 'projection-only',
-      },
-    })).toEqual({ kind: 'analyze-workspace' });
-  });
-
-  it('plans projection-only work when disabling a plugin id', () => {
-    const plan = createCodeGraphyWorkspacePluginTogglePlan([
-      { id: 'codegraphy.markdown', activation: 'enabled' },
-      { id: 'codegraphy.vue', activation: 'enabled' },
-    ], {
-      pluginId: 'codegraphy.vue',
-      enabled: false,
-    });
-
-    expect(plan).toEqual({
-      plugins: [
-        { id: 'codegraphy.markdown', activation: 'enabled' },
-        { id: 'codegraphy.vue', activation: 'disabled' },
-      ],
-      indexing: {
-        kind: 'projection-only',
-      },
-    });
-  });
-
-  it('keeps enabling plugin evidence conservative until cache hydration or targeted analysis can run', () => {
-    const plan = createCodeGraphyWorkspacePluginTogglePlan([], {
-      pluginId: 'codegraphy.vue',
-      enabled: true,
-      updateImpact: {
-        toggle: 'reanalyze-plugin-files',
-      },
-    });
-
-    expect(plan.indexing).toEqual({
-      kind: 'reprocess-plugin-files',
-      pluginIds: ['codegraphy.vue'],
-    });
-  });
 });
