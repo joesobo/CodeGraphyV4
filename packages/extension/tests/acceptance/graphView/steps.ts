@@ -1461,8 +1461,29 @@ export async function setPluginSwitch(
   enabled: boolean,
   options: { forceTransition?: boolean } = {},
 ): Promise<void> {
-  const frame = requireGraphFrame(context);
   const normalizedLabel = normalizePanelLabel(label);
+  for (let frameAttempt = 0; frameAttempt < 2; frameAttempt += 1) {
+    try {
+      await setPluginSwitchInCurrentFrame(context, normalizedLabel, enabled, options);
+      return;
+    } catch (error) {
+      if (!isFrameDetachedError(error) || frameAttempt === 1) {
+        throw error;
+      }
+
+      await refreshGraphFrameAfterDetach(context);
+      await clickToolbarButton(requireGraphFrame(context), 'Plugins');
+    }
+  }
+}
+
+async function setPluginSwitchInCurrentFrame(
+  context: GraphAcceptanceContext,
+  normalizedLabel: string,
+  enabled: boolean,
+  options: { forceTransition?: boolean },
+): Promise<void> {
+  const frame = requireGraphFrame(context);
   const switchInOpenPanel = await findPanelSwitch(frame, normalizedLabel);
   if (!(await switchInOpenPanel.isVisible().catch(() => false))) {
     await clickToolbarButton(frame, 'Plugins');

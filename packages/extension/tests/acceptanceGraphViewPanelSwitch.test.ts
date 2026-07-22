@@ -1,5 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Frame, Locator } from '@playwright/test';
+
+const vscodeHarness = vi.hoisted(() => ({
+  waitForGraphFrame: vi.fn(),
+}));
+
+vi.mock('./acceptance/graphView/vscode', async importOriginal => ({
+  ...await importOriginal<typeof import('./acceptance/graphView/vscode')>(),
+  waitForGraphFrame: vscodeHarness.waitForGraphFrame,
+}));
 
 vi.mock('@playwright/test', () => {
   const expectLocator = vi.fn((locator: Locator) => ({
@@ -36,6 +45,10 @@ vi.mock('@playwright/test', () => {
 });
 
 describe('acceptance graph view panel switches', () => {
+  beforeEach(() => {
+    vscodeHarness.waitForGraphFrame.mockReset();
+  });
+
   it('requires only structural node type switches during pre-index example setup', async () => {
     const { requiresCoreNodeTypeSwitch } = await import('./acceptance/graphView/steps');
 
@@ -90,6 +103,41 @@ describe('acceptance graph view panel switches', () => {
     await setPluginSwitch({ graphFrame: frame } as never, 'TypeScript/JavaScript', true);
 
     expect(pluginSwitch.click).toHaveBeenCalledOnce();
+  });
+
+  it('reacquires the graph frame when plugin activation reloads the webview', async () => {
+    const { setPluginSwitch } = await import('./acceptance/graphView/steps');
+    let attributeReads = 0;
+    const detachedSwitch = {
+      click: vi.fn(),
+      count: vi.fn(async () => 1),
+      first: vi.fn(function first(this: Locator) {
+        return this;
+      }),
+      getAttribute: vi.fn(async () => {
+        attributeReads += 1;
+        if (attributeReads > 1) {
+          throw new Error('Frame was detached');
+        }
+        return 'false';
+      }),
+      isVisible: vi.fn(async () => true),
+    } as unknown as Locator;
+    const oldFrame = panelFrameForSwitch(detachedSwitch);
+    const enabledSwitch = togglingSwitchLocator({ initiallyChecked: true });
+    const newFrame = panelFrameForSwitch(enabledSwitch);
+    const context = {
+      graphFrame: oldFrame,
+      vscode: { page: {} },
+    };
+    vscodeHarness.waitForGraphFrame.mockResolvedValueOnce(newFrame);
+
+    await setPluginSwitch(context as never, 'TypeScript/JavaScript', true);
+
+    expect(vscodeHarness.waitForGraphFrame).toHaveBeenCalledOnce();
+    expect(context.graphFrame).toBe(newFrame);
+    expect(detachedSwitch.click).toHaveBeenCalledOnce();
+    expect(enabledSwitch.click).not.toHaveBeenCalled();
   });
 
   it('can force an already-enabled plugin switch through an off-on transition', async () => {
@@ -245,6 +293,7 @@ function panelFrameForSwitch(switchInRow: Locator): Frame {
     getByRole: vi.fn((_role: string, options?: { name?: string }) =>
       options?.name === 'Indexing progress' ? hiddenLocator() : locatorWithCount(0)
     ),
+    getByTitle: vi.fn(() => ({ click: vi.fn() })),
     waitForTimeout: vi.fn(),
   } as unknown as Frame;
 }
