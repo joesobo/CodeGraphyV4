@@ -124,7 +124,7 @@ describe('graphView/provider/refresh', () => {
     it('clearCacheAndRefresh clears analyzer cache before re-analysis', async () => {
       const clearCache = vi.fn();
       const source = createSource({
-        _analyzer: { clearCache },
+        _analyzer: { clearCache, hasIndex: vi.fn(() => true) },
       });
       const methods = createGraphViewProviderRefreshMethods(source as never, {
         getShowOrphans: vi.fn(() => true),
