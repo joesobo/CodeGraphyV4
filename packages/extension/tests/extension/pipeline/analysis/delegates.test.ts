@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
+import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import { WorkspacePipeline } from '../../../../src/extension/pipeline/service/lifecycleFacade';
 import * as pluginModule from '../../../../src/extension/pipeline/plugins/queries';
 import * as runModule from '../../../../src/extension/pipeline/analysis/run';
@@ -214,7 +215,7 @@ describe('WorkspacePipeline delegates', () => {
     expect(nextShowOrphans).toBe(false);
   });
 
-  it('delegates plugin status calculation through the current analyzer state', () => {
+  it('calculates plugin status from the current analyzer state', () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext,
     );
@@ -222,28 +223,34 @@ describe('WorkspacePipeline delegates', () => {
       _lastDiscoveredFiles: Array<{ relativePath: string }>;
       _lastFileConnections: Map<string, never[]>;
       _lastWorkspaceRoot: string;
-      _registry: unknown;
+      _registry: PluginRegistry;
     };
     const disabledPlugins = new Set(['plugin.python']);
-    const expectedStatuses = [{ id: 'plugin.typescript', status: 'active' }];
-
     analyzerPrivate._lastDiscoveredFiles = [{ relativePath: 'src/index.ts' }];
     analyzerPrivate._lastFileConnections = new Map([['src/index.ts', []]]);
     analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    analyzerPrivate._registry.register({
+      id: 'plugin.typescript',
+      name: 'TypeScript',
+      version: '1.0.0',
+      apiVersion: '^4.0.0',
+      supportedExtensions: ['.ts'],
+      analyzeFile: vi.fn(),
+    }, {
+      sourcePackage: '@acme/plugin-typescript',
+    });
+    logSpy.mockRestore();
 
-    const statusSpy = vi
-      .spyOn(pluginModule, 'getWorkspacePipelinePluginStatuses')
-      .mockReturnValue(expectedStatuses as never);
-
-    expect(
-      analyzer.getPluginStatuses(disabledPlugins),
-    ).toEqual(expectedStatuses);
-    expect(statusSpy).toHaveBeenCalledWith(expect.objectContaining({
-      disabledPlugins,
-      discoveredFiles: analyzerPrivate._lastDiscoveredFiles,
-      fileConnections: analyzerPrivate._lastFileConnections,
-      registry: analyzerPrivate._registry,
-    }));
+    expect(analyzer.getPluginStatuses(disabledPlugins)).toContainEqual(
+      expect.objectContaining({
+        id: 'plugin.typescript',
+        name: 'TypeScript',
+        packageName: '@acme/plugin-typescript',
+        connectionCount: 0,
+        status: 'installed',
+      }),
+    );
   });
 
   it('delegates plugin name lookup with the live workspace root callback', () => {
