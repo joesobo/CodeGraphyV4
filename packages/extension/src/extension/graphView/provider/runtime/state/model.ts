@@ -113,7 +113,13 @@ export class GraphViewProviderRuntime {
     this._decorationManager = new DecorationManager();
     this._context.subscriptions.push({
       dispose: () => {
-        this._extensionMessageEmitter.dispose();
+        this._analysisController?.abort();
+        this._indexingController?.abort();
+        try {
+          this._analyzer?.dispose();
+        } finally {
+          this._extensionMessageEmitter.dispose();
+        }
       },
     });
 

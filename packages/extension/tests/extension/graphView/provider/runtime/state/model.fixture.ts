@@ -9,6 +9,7 @@ const stateHarness = vi.hoisted(() => {
   return {
     analyzerInstances: [] as Array<{
       context: unknown;
+      dispose: ReturnType<typeof vi.fn>;
       invalidateWorkspaceFiles: ReturnType<typeof vi.fn>;
       warmGraphCache: ReturnType<typeof vi.fn>;
     }>,
@@ -111,12 +112,14 @@ vi.mock('vscode', () => ({
 
 vi.mock('../../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
   WorkspacePipeline: class WorkspacePipeline {
+    dispose = vi.fn();
     invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => [...filePaths]);
     warmGraphCache = vi.fn(async () => undefined);
 
     constructor(context: unknown) {
       stateHarness.analyzerInstances.push({
         context,
+        dispose: this.dispose,
         invalidateWorkspaceFiles: this.invalidateWorkspaceFiles,
         warmGraphCache: this.warmGraphCache,
       });
