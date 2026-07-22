@@ -1,195 +1,47 @@
-# Plugin Lifecycle
+# Plugin lifecycle
 
-CodeGraphy plugins are npm packages loaded by `@codegraphy-dev/core` during explicit workspace indexing. They do not activate as VS Code extensions and do not import `vscode`.
+Installation, activation, and runtime loading are separate.
 
-The core analysis lifecycle is headless. Plugins that also declare webview assets can target the host-agnostic `CodeGraphyWebviewAPI` from `@codegraphy-dev/plugin-api`; the VS Code extension still owns VS Code-specific bridge details internally.
+1. A package is registered in `~/.codegraphy/plugins.json`.
+2. Global and workspace activation values select active descriptors.
+3. Each runtime host imports only its active descriptors.
 
-## One-Time Phases
+An active descriptor stays dormant until its host opens it.
 
-### 1. Registration
+## Core lifecycle
 
-Registration reads global package metadata without importing plugin runtime code. A CodeGraphy plugin package declares package compatibility and defaults in `package.json`:
+Core plugins use `@codegraphy-dev/plugin-api`. Core can call these hooks:
 
-```json
-{
-  "name": "@codegraphy-dev/plugin-vue",
-  "version": "1.2.3",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/plugin.d.ts",
-      "default": "./dist/plugin.js"
-    }
-  },
-  "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "defaultOptions": {
-      "includeTests": true
-    },
-    "disclosures": []
-  }
-}
-```
+- `initialize`
+- `onWorkspaceReady`
+- `onPreAnalyze`
+- `analyzeFile`
+- `onFilesChanged`
+- `onPostAnalyze`
+- `onGraphRebuild`
+- `onUnload`
 
-The same package declares its static Plugin ID and display metadata in `codegraphy.json`:
+These hooks receive headless workspace and semantic graph data. They do not
+receive rendering, webview, or editor state.
 
-```json
-{
-  "$schema": "./codegraphy.schema.json",
-  "id": "acme.plugin",
-  "name": "Acme Plugin",
-  "version": "1.0.0",
-  "apiVersion": "^3.0.0",
-  "supportedExtensions": [".ts"]
-}
-```
+## Extension lifecycle
 
-`codegraphy plugins register <package>` validates both files and records one installed plugin package in the user-level Plugin Registry. Enable its `codegraphy.json#id` in the workspace-local `plugins` array to activate it.
+Extension plugins use `@codegraphy-dev/extension-plugin-api`. The VS Code
+extension can call:
 
-### 2. Runtime Load
+- `initialize`
+- `onWebviewReady`
+- `onUnload`
 
-When a workspace is indexed, core loads enabled plugin packages from their normal npm `exports` entry and validates the runtime plugin object:
+Extension webview scripts can return cleanup work. Cleanup must release timers,
+event listeners, animation loops, and injected styles.
 
-```typescript
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
+## Example
 
-const plugin: IPlugin = {
-  id: 'acme.plugin',
-  name: 'Acme Plugin',
-  version: '1.0.0',
-  apiVersion: '^3.0.0',
-  supportedExtensions: ['.ts'],
-};
-```
+If particles is enabled globally:
 
-Core rejects plugins with incompatible `apiVersion` ranges or a runtime `plugin.id` that does not match `codegraphy.json#id` before analysis runs.
-
-### 3. Initialize
-
-`initialize(workspaceRoot, context?)` runs once for each enabled plugin before file analysis. Use it to prepare parser state, read workspace-local configuration through `context.fileSystem`, or normalize `context.options`.
-
-```typescript
-async initialize(workspaceRoot, context) {
-  const configPath = `${workspaceRoot}/acme.config.json`;
-  const configText = await context?.fileSystem.readTextFile(configPath);
-  this.config = configText ? JSON.parse(configText) : {};
-}
-```
-
-## Recurring Analysis Hooks
-
-### onPreAnalyze(files, workspaceRoot, context?)
-
-Called before a full analysis pass with the discovered file list. Use this for workspace-wide indexes such as Markdown wikilink lookup tables, Godot `class_name` maps, or framework route manifests.
-
-### analyzeFile(filePath, content, workspaceRoot, context?)
-
-Called for each file after core has prepared the file payload. Plugins return `IFileAnalysisResult` with any mix of node type contributions, edge type contributions, extra nodes, symbols, and relationships.
-
-```typescript
-async analyzeFile(filePath, content, workspaceRoot, context) {
-  return {
-    filePath,
-    symbols: [
-      {
-        id: `${filePath}:function:buildInvoice`,
-        name: 'buildInvoice',
-        kind: 'function',
-        filePath,
-      },
-    ],
-    relations: [
-      {
-        kind: 'reference',
-        sourceId: 'reference',
-        fromFilePath: filePath,
-        fromSymbolId: `${filePath}:function:buildInvoice`,
-        toFilePath: '/repo/src/shared/money.ts',
-        toSymbolId: '/repo/src/shared/money.ts:function:formatMoney',
-        specifier: './shared/money',
-      },
-    ],
-  };
-}
-```
-
-Path contract:
-
-- `filePath` and `fromFilePath` are absolute workspace paths.
-- Resolved `toFilePath` values are absolute workspace paths.
-- Unresolved package or runtime targets use `toFilePath: null`.
-- `sourceId` is plugin-local, like `import`, `reference`, `preload`, or `wikilink`; the host qualifies provenance later.
-
-### onFilesChanged(files, workspaceRoot, context?)
-
-CodeGraphy calls this hook before an incremental, save-driven analysis when it has a warm Graph Cache. Return more workspace-relative files when dependents also need analysis. The hook receives all changed workspace files, including configuration files outside the plugin's `supportedExtensions`. Filter inside the hook when needed. `context.workspaceFiles` provides the discovered workspace inventory as paths and extensions without forcing Core to read each file. Use `context.fileSystem.readTextFile(...)` when invalidation needs file contents.
-
-```typescript
-async onFilesChanged(files, workspaceRoot, context) {
-  let needsDependents = false;
-
-  for (const file of files) {
-    needsDependents ||= updateLocalIndex(file.relativePath, file.content);
-  }
-
-  return needsDependents ? ['src/runtime/container.ts'] : [];
-}
-```
-
-If a plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy can fall back to a full re-index for safety.
-
-### onPostAnalyze(graph)
-
-Called after analysis completes and the graph has been projected. Use this for headless bookkeeping that depends on the final graph shape.
-
-### onGraphRebuild(graph)
-
-Called when cached relationship data is projected again without re-running file analysis, such as after Graph Scope settings or plugin toggles change.
-
-### onWorkspaceReady(graph)
-
-Called once the workspace graph is ready. Headless plugins should treat this as a notification hook rather than a UI entry point.
-
-### onUnload()
-
-Called when the plugin is unloaded. Close parser workers, flush plugin-owned caches, and release resources that are not owned by the host.
-
-## Full Lifecycle Example
-
-```typescript
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
-
-export function createMetricsPlugin(): IPlugin {
-  return {
-    id: 'codegraphy-metrics',
-    name: 'Metrics',
-    version: '1.0.0',
-    apiVersion: '^3.0.0',
-    supportedExtensions: ['*'],
-
-    async initialize(workspaceRoot, context) {
-      await warmParserState(workspaceRoot, context?.options);
-    },
-
-    async onFilesChanged(files) {
-      return files.map((file) => file.relativePath);
-    },
-
-    async analyzeFile(filePath) {
-      return {
-        filePath,
-        relations: [],
-      };
-    },
-
-    onPostAnalyze(graph) {
-      rememberLatestMetrics(graph);
-    },
-
-    onUnload() {
-      clearMetricsCache();
-    },
-  };
-}
-```
+- `codegraphy query ...` resolves it as active but does not import it;
+- opening the VS Code extension loads it because its host is
+  `codegraphy.extension`;
+- disabling it in one workspace prevents the Extension host from loading it in
+  that workspace.

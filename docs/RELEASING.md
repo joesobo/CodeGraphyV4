@@ -46,7 +46,7 @@ pnpm run release:publish npm
 pnpm run release:publish vsce
 ```
 
-`extension` is an alias for the Marketplace extension target. Individual package targets use their release IDs, including `core`, `graph-renderer`, `plugin-api`, `plugin-markdown`, `plugin-particles`, `plugin-typescript`, `plugin-godot`, `plugin-unity`, `plugin-vue`, and `plugin-svelte`.
+`extension` is an alias for the Marketplace extension target. Individual package targets use their release IDs, including `core`, `graph-renderer`, `plugin-api`, `extension-plugin-api`, `plugin-markdown`, `plugin-particles`, `plugin-typescript`, `plugin-godot`, `plugin-unity`, `plugin-vue`, and `plugin-svelte`.
 
 Required credentials:
 

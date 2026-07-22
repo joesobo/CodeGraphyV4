@@ -20,8 +20,11 @@ A small hand-written file can override only the values you care about:
   "showOrphans": false,
   "filterPatterns": ["**/generated/**", "**/*.snap"],
   "plugins": [
-    { "id": "codegraphy.markdown", "enabled": true },
-    { "id": "codegraphy.vue", "enabled": true }
+    { "id": "codegraphy.markdown", "activation": "enabled" },
+    { "id": "codegraphy.vue", "activation": "inherit" }
+  ],
+  "interfaces": [
+    { "id": "codegraphy.extension", "data": { "pinnedNodes": [] } }
   ],
   "cssSnippets": {
     ".codegraphy/snippets/team.css": true
@@ -66,6 +69,7 @@ The extension normalizes missing values against current defaults and preserves r
 | `cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
 | `plugins` | object[] | Markdown enabled | Workspace Plugin ID activity and options. |
 | `pluginData` | object | `{}` | Plugin-owned persisted data keyed by Plugin ID. |
+| `interfaces` | object[] | `[]` | Open interface-owned `{ id, data }` entries. |
 
 Edge colors come from Edge Type definitions and Legend layers. There is no current `edgeColors` settings map.
 
@@ -115,8 +119,8 @@ Before Indexing, Node Types show structural File, Folder, and Package controls. 
 
 Legend styling resolves in this order:
 
-1. Core defaults
-2. Plugin defaults
+1. Extension defaults
+2. Extension plugin defaults
 3. Custom Legend Entries
 
 Turning off a Legend Entry disables its styling. It does not hide matching Nodes or Edges. Custom entries can match file paths, symbol names, symbol kinds, plugin kinds, languages, and containing file paths.
@@ -134,15 +138,15 @@ Use Graph Scope for visibility and Themes for styling.
 
 ## Plugins
 
-Installing or registering a package does not enable it in a workspace. The `plugins` array stores explicit Plugin ID activity:
+Installing or registering a package does not run it. The `plugins` array stores workspace activation overrides:
 
 ```json
 {
   "plugins": [
-    { "id": "codegraphy.markdown", "enabled": true },
+    { "id": "codegraphy.markdown", "activation": "enabled" },
     {
       "id": "codegraphy.gdscript",
-      "enabled": true,
+      "activation": "inherit",
       "options": {
         "includeSceneResources": true
       }
@@ -151,9 +155,14 @@ Installing or registering a package does not enable it in a workspace. The `plug
 }
 ```
 
-The Markdown plugin starts enabled in new workspaces. Other registered plugins remain disabled until the UI or CLI enables them. Core merges package `defaultOptions` with workspace `options`, with workspace values winning.
+`inherit` uses the global activation value. `enabled` and `disabled` override it for the current workspace. The Markdown plugin starts enabled in new workspaces. Other registered plugins start disabled. Core merges package defaults with workspace `options`, with workspace values winning.
 
 Plugins store their own state under `pluginData[pluginId]`. Plugin Data does not control plugin enablement.
+
+Interfaces store their own state in the open `interfaces` list. Core preserves
+the interface ID and data without defining its keys. Store durable user intent,
+such as pinned Node positions. Do not store temporary physics positions or
+derived colors unless the interface needs them after restart.
 
 See the [Plugin Guide](./PLUGINS.md) for installation, registration, and package metadata.
 

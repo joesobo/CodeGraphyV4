@@ -1,197 +1,188 @@
 # Plugin Guide
 
-CodeGraphy plugins are headless npm packages loaded by `@codegraphy-dev/core`. They can add analysis, graph types, filters, styling defaults, exports, context actions, toolbar actions, and webview assets without activating as VS Code extensions.
+CodeGraphy has one plugin installation and activation system. Each runtime host
+has a small API for the behavior that it owns.
 
-Start with the API references:
+- [`@codegraphy-dev/plugin-api`](../packages/plugin-api/README.md) extends
+  headless Core analysis.
+- [`@codegraphy-dev/extension-plugin-api`](../packages/extension-plugin-api/README.md)
+  extends the VS Code extension and Graph View.
 
-- [Lifecycle](./plugin-api/LIFECYCLE.md)
-- [Types](./plugin-api/TYPES.md)
-- [Events](./plugin-api/EVENTS.md)
-- [`@codegraphy-dev/plugin-api`](../packages/plugin-api/README.md)
+## The basic model
 
-## Install and Enable
+There are three separate steps:
 
-Plugin installation, registration, and workspace enablement are separate:
+1. **Register a package.** CodeGraphy records its plugin descriptors in
+   `~/.codegraphy/plugins.json`. They start disabled.
+2. **Enable a plugin.** Set it globally, or set a workspace override in
+   `.codegraphy/settings.json`.
+3. **Open a host.** Core or an interface loads only the active plugins for its
+   own host.
+
+An enabled plugin does not always run. For example, the particles plugin can be
+enabled while you use the CLI. A CLI query does not load it because its host is
+`codegraphy.extension`. The VS Code extension loads it when the Extension host
+starts.
+
+## Register and enable
 
 ```bash
 npm install -g @codegraphy-dev/core
 npm install -g @codegraphy-dev/plugin-vue
 codegraphy plugins register @codegraphy-dev/plugin-vue
 codegraphy plugins enable @codegraphy-dev/plugin-vue
-codegraphy index
 ```
 
-The global Plugin Registry lives at `~/.codegraphy/plugins.json`. Workspace activity lives in `<workspace>/.codegraphy/settings.json`.
-
-Commands target the current directory. Put `-C, --workspace <path>` before the command to select another workspace:
+Commands use the current directory as the workspace. Use `-C` to select a
+different workspace:
 
 ```bash
 codegraphy -C /path/to/workspace plugins enable @codegraphy-dev/plugin-vue
-codegraphy -C /path/to/workspace index
 ```
 
-CodeGraphy does not search parent directories for a workspace. Enabling or disabling a plugin changes settings but does not automatically run Indexing. Enable the plugins you need, then run `codegraphy index` once.
+A registered plugin has a global enabled value. A workspace plugin entry can
+use one of these activation values:
 
-Published first-party plugins:
+| Value | Result |
+|---|---|
+| `inherit` | Use the global value. |
+| `enabled` | Enable it in this workspace. |
+| `disabled` | Disable it in this workspace. |
 
-- [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
-- [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
-- [`@codegraphy-dev/plugin-unity`](https://www.npmjs.com/package/@codegraphy-dev/plugin-unity)
-- [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)
-- [`@codegraphy-dev/plugin-particles`](https://www.npmjs.com/package/@codegraphy-dev/plugin-particles)
-- [`@codegraphy-dev/plugin-vue`](https://www.npmjs.com/package/@codegraphy-dev/plugin-vue)
-- [`@codegraphy-dev/plugin-svelte`](https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte)
+An explicit workspace value wins over the global value.
 
-## Package Contract
+## Package contract
 
-A plugin package needs normal npm exports, a `package.json#codegraphy` block, and a static `codegraphy.json` descriptor.
+A package declares one or more plugin descriptors in
+`package.json#codegraphy.plugins`:
 
 ```json
 {
-  "name": "@acme/codegraphy-plugin",
+  "name": "@acme/codegraphy-tools",
   "version": "1.2.3",
   "type": "module",
-  "main": "./dist/plugin.js",
-  "types": "./dist/plugin.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/plugin.d.ts",
-      "default": "./dist/plugin.js"
-    }
-  },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "defaultOptions": {
-      "includeTests": true
-    },
-    "disclosures": []
+    "plugins": [
+      {
+        "id": "acme.typescript-analysis",
+        "name": "Acme TypeScript Analysis",
+        "host": "core",
+        "entry": "./dist/core.js",
+        "apiVersion": "^4.0.0"
+      },
+      {
+        "id": "acme.graph-tools",
+        "name": "Acme Graph Tools",
+        "host": "codegraphy.extension",
+        "entry": "./dist/extension.js",
+        "apiVersion": "^1.0.0"
+      }
+    ]
   }
 }
 ```
 
-Core reads `codegraphy.json` before it imports runtime code:
+The host is an open string. Core understands `core`, and the VS Code extension
+understands `codegraphy.extension`. A future interface can define a different
+host without adding it to a Core enum.
 
-```json
-{
-  "id": "acme.graph-tools",
-  "name": "Acme Graph Tools",
-  "version": "1.2.3",
-  "apiVersion": "^3.0.0",
-  "supportedExtensions": [".ts", ".tsx"],
-  "defaultFilters": [],
-  "updateImpact": {
-    "toggle": "reanalyze-plugin-files",
-    "defaultSetting": "reanalyze-plugin-files"
-  }
-}
-```
+One package can contain descriptors for several hosts. Each descriptor is one
+installed plugin record and has its own stable ID.
 
-`codegraphy.json#id` is the stable Plugin ID used for workspace activity, conflicts, provenance, Plugin Data, and Graph View ownership. The runtime plugin object's `id` must match it. The npm package name identifies an installed package; it does not replace the Plugin ID.
+## Core plugins
 
-Static metadata lets Core list, validate, enable, disable, or reject a package without executing its runtime.
-
-## Runtime Contract
-
-Install the type package:
-
-```bash
-pnpm add -D @codegraphy-dev/plugin-api
-```
-
-Minimal factory:
+Core plugins add semantic information. They can analyze files, add Nodes and
+Relationships, define semantic Node Types and Edge Types, add filters, and keep
+plugin-owned data.
 
 ```ts
 import type { IPluginFactory } from '@codegraphy-dev/plugin-api';
 
 const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
-  id: 'acme.graph-tools',
-  name: 'Acme Graph Tools',
+  id: 'acme.typescript-analysis',
+  name: 'Acme TypeScript Analysis',
   version: '1.2.3',
-  apiVersion: '^3.0.0',
+  apiVersion: '^4.0.0',
   supportedExtensions: ['.ts', '.tsx'],
   async initialize() {
     await dataHost?.saveData({ mode: options?.mode ?? 'default' });
+  },
+  async analyzeFile(filePath) {
+    return { filePath, relations: [] };
   },
 });
 
 export default createPlugin;
 ```
 
-Use `import type` because `@codegraphy-dev/plugin-api` is type-only. Do not import `vscode` from a plugin package.
+Use `import type`. The Core Plugin API is type-only. It does not contain
+rendering, color, webview, editor, toolbar, or Graph View contracts.
 
-Core merges package `defaultOptions` with workspace plugin `options` before it creates the factory. Workspace values win. Hooks receive the same merged values through `context.options`.
+## Extension plugins
 
-Plugin-owned state belongs in `factoryOptions.dataHost` or the webview API's `getPluginData()` and `setPluginData()`. CodeGraphy persists it under `pluginData[pluginId]`. Do not use Plugin Data for enablement.
+Extension plugins add VS Code Extension or Graph View behavior. The particles
+plugin is an Extension plugin.
 
-## Analysis
+```ts
+import type {
+  IExtensionPluginFactory,
+} from '@codegraphy-dev/extension-plugin-api';
 
-Core runs built-in analysis first, then enabled plugins in workspace order. Plugins add evidence rather than suppressing Core output.
+const createPlugin: IExtensionPluginFactory = () => ({
+  id: 'acme.graph-tools',
+  name: 'Acme Graph Tools',
+  version: '1.2.3',
+  apiVersion: '^1.0.0',
+  webviewContributions: {
+    scripts: ['dist/webview.js'],
+  },
+});
 
-Useful hooks include:
+export default createPlugin;
+```
 
-- `initialize(...)`
-- `onPreAnalyze(...)`
-- `analyzeFile(...)`
-- `onFilesChanged(...)`
-- `onPostAnalyze(...)`
-- `onGraphRebuild(...)`
-- `onWorkspaceReady(...)`
-- `onUnload(...)`
+The Extension host imports this runtime. Core only reports that the descriptor
+is installed and active.
 
-Analysis hooks receive a host-backed `context.fileSystem`. Use it for workspace reads instead of raw Node `fs`, which keeps behavior portable and testable.
+Interface-specific static metadata also belongs to the interface. For example,
+the Unity package stores VS Code Extension file colors in
+`codegraphy.extension.json`, not in the Core `codegraphy.json` file.
 
-Per-file results can contribute Nodes, Symbols, Relationships, Node Type Definitions, and Edge Type Definitions. Use `contributeGraphScopeCapabilities({ filePaths })` to declare which types are relevant for the indexed workspace even when the current graph has no matching item.
+## Workspace data
 
-Paths in analysis results are absolute workspace paths. Unresolved external targets use `toFilePath: null`. Keep `sourceId` plugin-local; Core qualifies provenance with the Plugin ID.
+Core plugin data stays under `pluginData[pluginId]`.
 
-Merge rules:
+Interface-owned data uses the open `interfaces` list:
 
-- `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` merge by ID.
-- Relationships merge by relationship identity.
-- Separate call and reference targets remain separate.
+```json
+{
+  "interfaces": [
+    {
+      "id": "codegraphy.extension",
+      "data": {
+        "pinnedNodes": [
+          { "id": "src/app.ts", "x": 120, "y": 80 }
+        ]
+      }
+    }
+  ]
+}
+```
 
-## Graph View Contributions
+Core preserves each `id` and `data` value. It does not define interface IDs or
+data keys.
 
-The public API exposes host-agnostic contracts for:
+Store user intent that must survive a restart. A pinned Node position is a good
+example. Temporary physics positions and derived colors normally should not be
+stored.
 
-- default filters and Legend styling
-- Graph Scope definitions and capabilities
-- toolbar and context-menu actions
-- exporters
-- webview assets and named UI slots
-- plugin-owned Graph View data
-
-The VS Code extension owns editor actions, raw renderer access, and the host bridge. Plugins communicate through the public API.
-
-Webview `activate(api)` functions may return a cleanup function or `Disposable`. Release animation frames, event listeners, timers, and injected styles in that cleanup. CodeGraphy calls it when the plugin disables or resets its webview assets.
-
-## Update Impact
-
-`codegraphy.json#updateImpact` tells Core how much work a toggle or settings change requires:
-
-| Value | Work |
-|---|---|
-| `view-only` | Update plugin UI. |
-| `settings-only` | Persist and broadcast settings. |
-| `projection-only` | Rebuild the Visible Graph from runtime data. |
-| `reanalyze-plugin-files` | Refresh files owned by the plugin. |
-| `requires-full-index` | Run full workspace Indexing. |
-
-Analyzer plugins normally use `reanalyze-plugin-files`. Visual plugins normally use `projection-only` or `settings-only`.
-
-Disabling a plugin unloads its runtime and removes its active contributions. Plugin-owned Graph Cache facts can remain dormant for reuse. Projection and Graph Query exclude those facts until the plugin becomes active again.
-
-## Local Development
-
-Link a package checkout instead of copying private plugin source into this monorepo:
+## Local development
 
 ```bash
-codegraphy plugins link /path/to/acme-graph-tools
-codegraphy -C /path/to/workspace plugins enable acme.graph-tools
+codegraphy plugins link /path/to/acme-codegraphy-tools
+codegraphy -C /path/to/workspace plugins enable acme.typescript-analysis
 codegraphy -C /path/to/workspace index
 ```
 
-When testing through F5, launch the CodeGraphy extension only. Do not add headless plugin packages to `extensionDevelopmentPath`. The extension loads registered packages through Core.
-
-`pnpm run build:devhost` builds the extension and local public plugins, updates the user Plugin Registry, and then launches the normal Extension Development Host path. Workspace enablement remains explicit.
+When you use F5, launch only the CodeGraphy VS Code extension. The extension
+loads active package plugins through the shared registry.
