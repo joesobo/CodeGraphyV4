@@ -82,6 +82,47 @@ describe('reconcileGraphRecords', () => {
     expect(leaf).toMatchObject({ props: { h: 110, w: 110 } });
   });
 
+  it('migrates nodes stuck at the previous scale after generated metadata was added', () => {
+    const leaves = Array.from({ length: 8 }, (_, index) => ({
+      id: `src/previous-leaf-${index}.ts`,
+      label: `previous-leaf-${index}.ts`,
+      color: '#111111',
+      nodeType: 'file',
+    }));
+    const graph = {
+      nodes: [
+        { id: 'src/previous-hub.ts', label: 'previous-hub.ts', color: '#222222', nodeType: 'file' },
+        ...leaves,
+      ],
+      edges: leaves.map((leaf, index) => ({
+        id: `previous-hub-${index}`,
+        from: 'src/previous-hub.ts',
+        to: leaf.id,
+        kind: 'import' as const,
+        sources: [],
+      })),
+    } satisfies IGraphData;
+    const previousRecords = reconcileGraphRecords([], graph).map(record => {
+      if (record.typeName !== 'shape'
+        || record.type !== 'geo'
+        || record.meta.codegraphyKind !== 'node') return record;
+      const previousDiameter = record.meta.codegraphyEntityId === 'src/previous-hub.ts' ? 90 : 80;
+      const previousRecord = {
+        ...record,
+        meta: { ...record.meta },
+        props: { ...record.props, h: previousDiameter, w: previousDiameter },
+      } satisfies TLRecord;
+      return previousRecord;
+    });
+
+    const refreshed = reconcileGraphRecords(previousRecords, graph);
+    const hub = refreshed.find(record => record.meta.codegraphyEntityId === 'src/previous-hub.ts');
+    const leaf = refreshed.find(record => record.meta.codegraphyEntityId === 'src/previous-leaf-0.ts');
+
+    expect(hub).toMatchObject({ props: { h: 165, w: 165 } });
+    expect(leaf).toMatchObject({ props: { h: 110, w: 110 } });
+  });
+
   it('sizes generated nodes from their unique connection counts within the bounded range', () => {
     const leaves = Array.from({ length: 35 }, (_, index) => ({
       id: `src/leaf-${index}.ts`,

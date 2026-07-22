@@ -56,7 +56,8 @@ When a requested path is closed, it reads the document, reconciles the graph,
 writes the updated archive atomically, and opens it. When the exact path is
 already open, the launcher reads tldraw offline's per-launch bearer token and
 uses its loopback HTTP API to reconcile the live editor. It does not rewrite
-an open archive. The tldraw agent skill is not required.
+or reopen an open archive because either action would replace the current
+in-memory canvas state. The tldraw agent skill is not required.
 
 The dependency and responsibility boundaries are:
 
@@ -101,9 +102,9 @@ identifier in shape metadata. New graph entities are added, changed entities
 are updated, and removed entities are deleted. User-created notes, drawings,
 and other shapes remain untouched, and user adjustments to CodeGraphy-owned
 shapes (position, styling) are preserved when the underlying entity still
-exists. Every successful command opens the resulting canvas through the
-operating system's file association; foregrounding an already-open window is
-best effort.
+exists. A successful command opens a closed canvas through the operating
+system's file association. An already-open canvas remains open after its live
+update.
 
 Rendering interfaces are also distinct from plugins:
 

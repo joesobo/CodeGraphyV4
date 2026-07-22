@@ -46,7 +46,7 @@ export async function runTldrawCommand(
   } else {
     const document = await dependencies.writeDocument({ graph, targetPath, workspaceRoot });
     documentPath = document.documentPath;
+    await dependencies.openDocument(documentPath);
   }
-  await dependencies.openDocument(documentPath);
   return { documentPath, workspaceRoot };
 }

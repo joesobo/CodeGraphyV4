@@ -15,7 +15,11 @@ import {
   type TLTextShape,
 } from '@tldraw/tlschema';
 import { getIndicesAbove, type IndexKey } from '@tldraw/utils';
-import { createNodeDiameterMap, MINIMUM_NODE_DIAMETER } from '../graph/nodeSize/model';
+import {
+  createExtensionNodeDiameterMap,
+  createNodeDiameterMap,
+  MINIMUM_NODE_DIAMETER,
+} from '../graph/nodeSize/model';
 import { createNodeColorMap } from './nodeColor/model';
 import { createNodeIconMap, type NodeIcon } from './nodeIcon/model';
 
@@ -52,15 +56,20 @@ function metadataNumber(value: unknown): number | undefined {
   return typeof value === 'number' ? value : undefined;
 }
 
-function shouldApplyGeneratedDiameter(existing: TLGeoShape | undefined): boolean {
+function shouldApplyGeneratedDiameter(
+  existing: TLGeoShape | undefined,
+  extensionDiameter: number,
+): boolean {
   if (!existing) return true;
   const previousGeneratedDiameter = metadataNumber(existing.meta.codegraphyGeneratedDiameter);
-  if (previousGeneratedDiameter !== undefined) {
-    return existing.props.w === previousGeneratedDiameter
-      && existing.props.h === previousGeneratedDiameter;
-  }
-  return existing.props.w === LEGACY_NODE_DIAMETER
+  const isCurrentGeneratedSize = previousGeneratedDiameter !== undefined
+    && existing.props.w === previousGeneratedDiameter
+    && existing.props.h === previousGeneratedDiameter;
+  const isFixedMvpSize = existing.props.w === LEGACY_NODE_DIAMETER
     && existing.props.h === LEGACY_NODE_DIAMETER;
+  const isExtensionGeneratedSize = existing.props.w === extensionDiameter
+    && existing.props.h === extensionDiameter;
+  return isCurrentGeneratedSize || isFixedMvpSize || isExtensionGeneratedSize;
 }
 
 function initialNodePosition(
@@ -80,12 +89,13 @@ function createNodeShape(
   node: IGraphNode,
   color: TLGeoShape['props']['color'],
   diameter: number,
+  extensionDiameter: number,
   index: IndexKey,
   position: { x: number; y: number },
   existing?: TLShape,
 ): TLGeoShape {
   const preserved = existing?.type === 'geo' ? existing : undefined;
-  const applyGeneratedDiameter = shouldApplyGeneratedDiameter(preserved);
+  const applyGeneratedDiameter = shouldApplyGeneratedDiameter(preserved, extensionDiameter);
   const generatedStyle = {
     labelColor: 'black',
     color,
@@ -293,12 +303,14 @@ export function reconcileGraphRecords(
   const colors = createNodeColorMap(graph.nodes);
   const icons = createNodeIconMap(graph.nodes);
   const nodeDiameters = createNodeDiameterMap(graph.nodes, graph.edges);
+  const extensionNodeDiameters = createExtensionNodeDiameterMap(graph.nodes, graph.edges);
   const nodeShapes = graph.nodes.map((node, nodeIndex) => {
     const diameter = nodeDiameters.get(node.id) ?? MINIMUM_NODE_DIAMETER;
     return createNodeShape(
       node,
       colors.get(node.id) ?? 'grey',
       diameter,
+      extensionNodeDiameters.get(node.id) ?? MINIMUM_NODE_DIAMETER,
       indexes[graph.edges.length + nodeIndex],
       initialNodePosition(nodeIndex, graph.nodes.length, diameter),
       existingShapes.get(node.id),

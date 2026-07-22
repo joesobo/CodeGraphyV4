@@ -87,8 +87,6 @@ describe('runTldrawCommand', () => {
       graph: GRAPH,
       workspaceRoot: '/workspace',
     });
-    expect(openDocument).toHaveBeenCalledWith(
-      '/workspace/CodeGraphy.tldraw',
-    );
+    expect(openDocument).not.toHaveBeenCalled();
   });
 });
