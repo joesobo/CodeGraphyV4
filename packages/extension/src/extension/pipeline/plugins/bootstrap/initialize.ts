@@ -9,6 +9,7 @@ import {
   type WorkspacePackagePluginRegistrationDependencies,
 } from './packages';
 import { readWorkspacePipelineSettings } from './settings';
+import { registerWorkspaceExtensionPlugins } from './extensionPackages';
 
 export interface WorkspacePipelineInitializationDependencies
   extends WorkspacePackagePluginRegistrationDependencies {
@@ -27,9 +28,16 @@ export async function initializeWorkspacePipeline(
 
   if (workspaceRoot && settings) {
     await registerWorkspacePackagePlugins(registry, settings, workspaceRoot, dependencies);
+    await registerWorkspaceExtensionPlugins(
+      registry.extensionPlugins,
+      settings,
+      workspaceRoot,
+      dependencies,
+    );
   }
 
   if (workspaceRoot) {
     await registry.initializeAll(workspaceRoot);
+    await registry.extensionPlugins.initializeAll(workspaceRoot);
   }
 }

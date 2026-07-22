@@ -17,6 +17,13 @@ import {
 
 export function createRegistry() {
   return {
+    extensionPlugins: {
+      get: vi.fn(() => undefined),
+      initializeAll: vi.fn(async () => undefined),
+      list: vi.fn(() => []),
+      register: vi.fn(),
+      unregister: vi.fn(() => true),
+    },
     get: vi.fn(() => undefined),
     list: vi.fn(() => []),
     initializeAll: vi.fn(async () => undefined),
@@ -26,6 +33,43 @@ export function createRegistry() {
     setCoreGraphScopeCapabilitiesProvider: vi.fn(),
     unregister: vi.fn(() => true),
   };
+}
+
+export async function createExtensionPluginPackage(packageRoot: string): Promise<void> {
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-extension-particles',
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.particles',
+          name: 'Particles',
+          host: 'codegraphy.extension',
+          entry: './plugin.js',
+          apiVersion: '^1.0.0',
+        }],
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+export default function createPlugin() {
+  return {
+    id: 'acme.particles',
+    name: 'Particles',
+    version: '1.0.0',
+    apiVersion: '^1.0.0',
+    webviewContributions: { scripts: ['./dist/webview.js'] }
+  };
+}
+`,
+    'utf-8',
+  );
 }
 
 export async function createWorkspace(): Promise<string> {
@@ -40,7 +84,7 @@ export async function createPackageFixtureRoot(prefix: string): Promise<string> 
 
 export async function createPluginPackage(
   packageRoot: string,
-  apiVersion = '^3.0.0',
+  apiVersion = '^4.0.0',
 ): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
@@ -51,8 +95,12 @@ export async function createPluginPackage(
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion,
+        plugins: [{
+          id: 'acme.extension-bootstrap',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion,
+        }],
       },
     }, null, 2),
     'utf-8',
@@ -101,8 +149,13 @@ export async function createManifestPluginPackage(
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
+        plugins: [{
+          id: pluginId,
+          name: pluginName,
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2),
     'utf-8',
@@ -113,7 +166,7 @@ export async function createManifestPluginPackage(
       id: pluginId,
       name: pluginName,
       version,
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: ['.txt'],
       fileColors: {
         '*.txt': {
@@ -133,7 +186,7 @@ export default function createPlugin() {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginName)},
     version: ${JSON.stringify(version)},
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.txt'],
     fileColors: {
       '*.txt': {
@@ -166,8 +219,12 @@ export async function createPluginPackageWithRuntimeMarkers(packageRoot: string)
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
+        plugins: [{
+          id: 'acme.extension-bootstrap',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2),
     'utf-8',
@@ -185,7 +242,7 @@ export default function createPlugin() {
     id: 'acme.extension-bootstrap',
     name: 'Extension Bootstrap',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.txt']
   };
 }
@@ -206,11 +263,12 @@ export async function createDataHostPluginPackage(packageRoot: string): Promise<
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-        defaultOptions: {
-          mode: 'default',
-        },
+        plugins: [{
+          id: 'acme.extension-data-host',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2),
     'utf-8',
@@ -220,13 +278,13 @@ export async function createDataHostPluginPackage(packageRoot: string): Promise<
     `
 export default function createPlugin(factoryOptions = {}) {
   const dataHost = factoryOptions.dataHost;
-  const mode = factoryOptions.options?.mode ?? 'missing';
+  const mode = factoryOptions.options?.mode ?? 'default';
 
   return {
     id: 'acme.extension-data-host',
     name: 'Extension Data Host',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: [],
     async initialize() {
       if (!dataHost) {

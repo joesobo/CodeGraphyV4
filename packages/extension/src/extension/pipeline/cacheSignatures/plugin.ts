@@ -14,8 +14,8 @@ interface RuntimePluginInfo {
 
 function readPackagePlugins(
   plugins: readonly RuntimePluginInfo[],
-  installedPlugins: readonly Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'pluginId'>[],
-): Array<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'pluginId'>> {
+  installedPlugins: readonly Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'id'>[],
+): Array<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'id'>> {
   const installedRecordsByPackage = new Map(
     installedPlugins.map(plugin => [plugin.package, plugin] as const),
   );
@@ -26,6 +26,7 @@ function readPackagePlugins(
       return installedRecordsByPackage.get(sourcePackage) ?? {
         package: sourcePackage,
         version: pluginInfo.plugin.version,
+        id: pluginInfo.plugin.id,
       };
     });
 }
@@ -33,7 +34,7 @@ function readPackagePlugins(
 export function createWorkspacePipelinePluginSignature(
   plugins: readonly RuntimePluginInfo[],
   options: {
-    installedPlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'pluginId'>>;
+    installedPlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'id'>>;
     settings?: { plugins?: readonly CodeGraphyWorkspacePluginSettings[] };
   } = {},
 ): string | null {
@@ -41,9 +42,9 @@ export function createWorkspacePipelinePluginSignature(
     plugins,
     options.installedPlugins ?? readCodeGraphyInstalledPluginCache().plugins,
   );
-  const loadedPluginIds = new Set(packagePlugins.map(plugin => plugin.pluginId ?? plugin.package));
+  const loadedPluginIds = new Set(packagePlugins.map(plugin => plugin.id));
   const missingPackagePlugins = (options.settings?.plugins ?? [])
-    .filter(plugin => plugin.enabled && plugin.id !== CODEGRAPHY_MARKDOWN_PLUGIN_ID)
+    .filter(plugin => plugin.activation !== 'disabled' && plugin.id !== CODEGRAPHY_MARKDOWN_PLUGIN_ID)
     .map(plugin => plugin.id)
     .filter(pluginId => !loadedPluginIds.has(pluginId));
 

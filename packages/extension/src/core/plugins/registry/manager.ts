@@ -11,8 +11,11 @@ import { PluginRegistryLifecycle } from './runtime/state/lifecycle';
 import { validateAndCreatePluginInfo, addToRegistry } from './runtime/registration/register';
 import type { ConfigureV2Options } from './runtime/registration/configure';
 import { removeFromRegistry } from './runtime/registration/unregister';
+import { ExtensionPluginRegistry } from '../../../extension/plugins/registry';
 
 export class PluginRegistry extends PluginRegistryLifecycle {
+  readonly extensionPlugins = new ExtensionPluginRegistry();
+
   configureV2(options: ConfigureV2Options): void {
     this._eventBus = options.eventBus;
     this._v2Config = buildV2Config(options, this._v2Config.logFn);
@@ -41,5 +44,15 @@ export class PluginRegistry extends PluginRegistryLifecycle {
 
   unregister(pluginId: string): boolean {
     return removeFromRegistry(pluginId, this._plugins, this._extensionMap, this._initializedPlugins, this._eventBus);
+  }
+
+  override notifyWebviewReady(): void {
+    super.notifyWebviewReady();
+    this.extensionPlugins.notifyWebviewReady();
+  }
+
+  override disposeAll(): void {
+    super.disposeAll();
+    this.extensionPlugins.disposeAll();
   }
 }

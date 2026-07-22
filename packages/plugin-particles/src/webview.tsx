@@ -1,4 +1,4 @@
-import type { CodeGraphyWebviewAPI } from '@codegraphy-dev/plugin-api';
+import type { CodeGraphyWebviewAPI } from '@codegraphy-dev/extension-plugin-api';
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 import { renderParticleCanvas } from './webview/canvas';

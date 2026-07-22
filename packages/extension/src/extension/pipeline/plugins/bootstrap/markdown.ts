@@ -11,7 +11,7 @@ export function getDefaultMarkdownPluginOptions(
   }
 
   for (const plugin of settings.plugins) {
-    if (plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled) {
+    if (plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.activation !== 'disabled') {
       return plugin.options;
     }
   }
@@ -24,5 +24,7 @@ export function shouldRegisterMarkdownPlugin(settings: CodeGraphyWorkspaceSettin
     return true;
   }
 
-  return settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled);
+  return settings.plugins.some(
+    plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.activation !== 'disabled',
+  );
 }

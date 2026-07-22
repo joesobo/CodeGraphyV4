@@ -15,18 +15,7 @@ interface GraphViewPluginRegistry {
     plugin: {
       id: string;
       name?: string;
-            webviewContributions?: {
-              scripts?: string[];
-              styles?: string[];
-              assets?: Array<{
-                id: string;
-                label: string;
-                path: string;
-                kind?: string;
-                metadata?: Record<string, unknown>;
-              }>;
-            };
-          };
+    };
   }>;
   getPluginAPI(pluginId: string):
     | {
@@ -57,6 +46,28 @@ interface GraphViewPluginRegistry {
     | undefined;
 }
 
+interface GraphViewExtensionPluginRegistry {
+  extensionPlugins: {
+    list(): Array<{
+      plugin: {
+        id: string;
+        name?: string;
+        webviewContributions?: {
+          scripts?: string[];
+          styles?: string[];
+          assets?: Array<{
+            id: string;
+            label: string;
+            path: string;
+            kind?: string;
+            metadata?: Record<string, unknown>;
+          }>;
+        };
+      };
+    }>;
+  };
+}
+
 interface GraphViewPluginAnalyzer {
   registry: GraphViewPluginRegistry;
 }
@@ -84,6 +95,13 @@ function listActivePluginInfos(
   disabledPlugins: ReadonlySet<string>,
 ): ReturnType<GraphViewPluginRegistry['list']> {
   return registry.list().filter(info => !disabledPlugins.has(info.plugin.id));
+}
+
+function listActiveExtensionPluginInfos(
+  registry: GraphViewExtensionPluginRegistry,
+  disabledPlugins: ReadonlySet<string>,
+): ReturnType<GraphViewExtensionPluginRegistry['extensionPlugins']['list']> {
+  return registry.extensionPlugins.list().filter(info => !disabledPlugins.has(info.plugin.id));
 }
 
 function collectContributionStatuses(
@@ -198,7 +216,7 @@ export function sendGraphViewPluginToolbarActions(
 }
 
 export function sendGraphViewPluginWebviewInjections(
-  analyzer: Pick<GraphViewPluginAnalyzer, 'registry'> | undefined,
+  analyzer: { registry: GraphViewExtensionPluginRegistry } | undefined,
   resolveAssetPath: (assetPath: string, pluginId?: string) => string,
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_WEBVIEW_INJECT' }>
@@ -208,7 +226,7 @@ export function sendGraphViewPluginWebviewInjections(
   if (!analyzer) return;
 
   const injections = collectGraphViewWebviewInjections(
-    listActivePluginInfos(analyzer.registry, disabledPlugins),
+    listActiveExtensionPluginInfos(analyzer.registry, disabledPlugins),
     resolveAssetPath,
   );
   for (const injection of injections) {

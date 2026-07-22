@@ -95,7 +95,7 @@ describe('pipeline/service plugin statuses', () => {
   });
 
   it('reports registered package plugins as package-backed statuses', () => {
-    writeCodeGraphyInstalledPluginCache({ version: 1, plugins: [] }, { homeDir });
+    writeCodeGraphyInstalledPluginCache({ version: 3, plugins: [] }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       version: 1,
       maxFiles: 1000,
@@ -105,8 +105,8 @@ describe('pipeline/service plugin statuses', () => {
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [
-        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
-        { id: 'codegraphy.typescript', enabled: true },
+        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
+        { id: 'codegraphy.typescript', activation: 'enabled' },
       ],
     });
 
@@ -122,14 +122,14 @@ describe('pipeline/service plugin statuses', () => {
     expect(packageStatuses).toEqual([
       expect.objectContaining({
         id: 'codegraphy.markdown',
-        enabled: true,
+        activation: 'enabled',
         status: 'unavailable',
       }),
       expect.objectContaining({
         id: 'codegraphy.typescript',
         name: 'TypeScript/JavaScript',
         packageName: '@codegraphy-dev/plugin-typescript',
-        enabled: true,
+        activation: 'enabled',
         status: 'installed',
       }),
     ]);

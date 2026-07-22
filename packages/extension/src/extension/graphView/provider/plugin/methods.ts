@@ -10,6 +10,7 @@ import {
 import {
   sendGraphViewContributionStatuses,
   sendGraphViewContextMenuItems,
+  sendGraphViewPluginWebviewInjections,
 } from '../../webview/plugins/contributionDispatch';
 import {
   sendGraphViewDecorations,
@@ -32,6 +33,7 @@ type GraphViewPluginAnalyzerLike =
     Parameters<typeof import('../../webview/plugins/registration/register').registerGraphViewExternalPlugin>[2]['analyzer']
   >
   & NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
+  & NonNullable<Parameters<typeof sendGraphViewPluginWebviewInjections>[0]>
   & NonNullable<Parameters<typeof sendGraphViewContributionStatuses>[0]>
   & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
 

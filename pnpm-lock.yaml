@@ -211,6 +211,9 @@ importers:
       '@codegraphy-dev/core':
         specifier: workspace:*
         version: link:../core
+      '@codegraphy-dev/extension-plugin-api':
+        specifier: workspace:*
+        version: link:../extension-plugin-api
       '@codegraphy-dev/graph-renderer':
         specifier: workspace:*
         version: link:../graph-renderer
@@ -405,6 +408,12 @@ importers:
         specifier: ^6.2.0
         version: 6.4.1(@types/node@20.19.37)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/extension-plugin-api:
+    dependencies:
+      '@codegraphy-dev/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+
   packages/graph-renderer:
     devDependencies:
       '@webgpu/types':
@@ -442,9 +451,9 @@ importers:
 
   packages/plugin-particles:
     dependencies:
-      '@codegraphy-dev/plugin-api':
+      '@codegraphy-dev/extension-plugin-api':
         specifier: workspace:*
-        version: link:../plugin-api
+        version: link:../extension-plugin-api
       esbuild:
         specifier: ^0.25.0
         version: 0.25.12

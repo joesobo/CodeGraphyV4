@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/plugin-api';
+import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/extension-plugin-api';
 import { createParticlesPlugin } from '../src/plugin';
 import { activate } from '../src/webview';
 import { startBackgroundParticleEffect, startCustomParticleEffect } from '../src/effects';

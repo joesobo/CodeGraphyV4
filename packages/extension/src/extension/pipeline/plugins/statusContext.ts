@@ -39,7 +39,7 @@ export function readWorkspacePluginStatusContext(
 
   const workspacePluginIds = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
     .plugins
-    .filter(plugin => plugin.enabled)
+    .filter(plugin => plugin.activation !== 'disabled')
     .map(plugin => plugin.id);
 
   return {

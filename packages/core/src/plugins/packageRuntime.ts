@@ -5,10 +5,12 @@ import { readPackageManifest } from './installedPluginCache/packageReader';
 export type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  ResolvedCodeGraphyWorkspacePluginRecords,
 } from './packageRuntimeContracts';
 import type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  ResolvedCodeGraphyWorkspacePluginRecords,
 } from './packageRuntimeContracts';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '../workspace/settings';
 import type { CodeGraphyInstalledPluginRecord } from './installedCache';
@@ -46,26 +48,15 @@ function preferBundledPluginRecords(
 export async function loadCodeGraphyWorkspacePluginPackages(
   options: LoadCodeGraphyWorkspacePluginPackagesOptions,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage[]> {
+  const { bundledPackageRoots, records } = await resolveCodeGraphyWorkspacePluginRecords(options);
   const warn = options.warn ?? (() => undefined);
   const disabledPluginIds = new Set(options.disabledPlugins ?? []);
-  const installedPlugins = readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }).plugins;
-  const bundledPlugins = await readBundledPluginPackageRecords(options.bundledPackageRoots);
-  const bundledPackageRoots = new Set(bundledPlugins.map(plugin => plugin.packageRoot));
-  const activityState = createPluginActivityState({
-    settings: options.settings,
-    installedPlugins: preferBundledPluginRecords(installedPlugins, bundledPlugins),
-    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
-  });
-  for (const warning of activityState.warnings) {
-    warn(warning);
-  }
-
   const settingsById = new Map(
     options.settings.plugins.map(plugin => [plugin.id, plugin] as const),
   );
   const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
 
-  for (const record of activityState.packagePlugins.filter(plugin => plugin.host === 'core')) {
+  for (const record of records.filter(plugin => plugin.host === 'core')) {
     const plugin = await loadActivePluginPackage({
       bundledPackageRoots,
       disabledPluginIds,
@@ -78,4 +69,26 @@ export async function loadCodeGraphyWorkspacePluginPackages(
   }
 
   return loaded;
+}
+
+export async function resolveCodeGraphyWorkspacePluginRecords(
+  options: LoadCodeGraphyWorkspacePluginPackagesOptions,
+): Promise<ResolvedCodeGraphyWorkspacePluginRecords> {
+  const warn = options.warn ?? (() => undefined);
+  const installedPlugins = readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }).plugins;
+  const bundledPlugins = await readBundledPluginPackageRecords(options.bundledPackageRoots);
+  const bundledPackageRoots = new Set(bundledPlugins.map(plugin => plugin.packageRoot));
+  const activityState = createPluginActivityState({
+    settings: options.settings,
+    installedPlugins: preferBundledPluginRecords(installedPlugins, bundledPlugins),
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
+  for (const warning of activityState.warnings) {
+    warn(warning);
+  }
+
+  return {
+    bundledPackageRoots,
+    records: activityState.packagePlugins,
+  };
 }

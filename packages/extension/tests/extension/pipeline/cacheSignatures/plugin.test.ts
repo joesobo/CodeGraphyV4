@@ -16,12 +16,12 @@ describe('workspace pipeline plugin signature', () => {
       },
     ] as never, {
       installedPlugins: [
-        { package: '@codegraphy-dev/plugin-vue', version: '2.0.4', pluginId: 'codegraphy.vue' },
+        { package: '@codegraphy-dev/plugin-vue', version: '2.0.4', id: 'codegraphy.vue' },
       ],
       settings: {
         plugins: [
-          { id: 'codegraphy.markdown', enabled: true },
-          { id: 'codegraphy.vue', enabled: true },
+          { id: 'codegraphy.markdown', activation: 'enabled' },
+          { id: 'codegraphy.vue', activation: 'enabled' },
         ],
       },
     });
@@ -34,7 +34,7 @@ describe('workspace pipeline plugin signature', () => {
   it('marks enabled workspace plugin packages missing from the runtime', () => {
     expect(createWorkspacePipelinePluginSignature([], {
       installedPlugins: [],
-      settings: { plugins: [{ id: 'codegraphy.vue', enabled: true }] },
+      settings: { plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }] },
     })).toBe('npm:codegraphy.vue@missing');
   });
 });

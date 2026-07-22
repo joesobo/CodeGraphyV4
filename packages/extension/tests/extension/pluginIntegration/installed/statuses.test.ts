@@ -364,10 +364,10 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     writeCodeGraphyWorkspaceSettings(disabledWorkspace.workspacePath, {
       ...readCodeGraphyWorkspaceSettings(disabledWorkspace.workspacePath),
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
         {
           id: disabledPackage.pluginId,
-          enabled: false,
+          activation: 'disabled',
           options: {
             targetFile: 'src/utils.ts',
           },
@@ -405,7 +405,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       expect(plugins).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            enabled: false,
+            activation: 'disabled',
             id: disabledPackage.pluginId,
             packageName: disabledPackage.packageName,
           }),

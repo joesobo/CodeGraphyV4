@@ -1,0 +1,33 @@
+{
+  "name": "@codegraphy-dev/extension-plugin-api",
+  "version": "1.0.0",
+  "description": "Type definitions for plugins hosted by the CodeGraphy VS Code extension",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    },
+    "./webview": {
+      "types": "./src/webview.ts"
+    }
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint src tests vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/plugin-api": "workspace:*"
+  }
+}

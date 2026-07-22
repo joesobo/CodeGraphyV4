@@ -8,6 +8,9 @@ interface PackagePluginRootInfo {
 }
 
 interface PackagePluginRootRegistry {
+  extensionPlugins?: {
+    list(): PackagePluginRootInfo[];
+  };
   list(): PackagePluginRootInfo[];
 }
 
@@ -44,7 +47,10 @@ export function registerPackageGraphViewPluginRoots(
   analyzer: PackagePluginRootAnalyzer | undefined,
   pluginExtensionUris: Map<string, vscode.Uri>,
 ): void {
-  for (const pluginInfo of analyzer?.registry.list() ?? []) {
+  const pluginInfos = analyzer
+    ? [...analyzer.registry.list(), ...(analyzer.registry.extensionPlugins?.list() ?? [])]
+    : [];
+  for (const pluginInfo of pluginInfos) {
     if (!pluginInfo.sourcePackageRoot || pluginExtensionUris.has(pluginInfo.plugin.id)) {
       continue;
     }

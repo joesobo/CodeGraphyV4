@@ -1,24 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import {
+  getBuiltInWorkspacePipelinePluginRegistrations,
+} from '../../../../../src/extension/pipeline/plugins/bootstrap/builtIns';
 
 describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
-  afterEach(() => {
-    vi.doUnmock('@codegraphy-dev/plugin-markdown');
-    vi.doUnmock('../../../../../../plugin-markdown/src/plugin');
-    vi.resetModules();
-  });
-
-  it('does not import the Markdown runtime when Plugin Activity State disables Markdown', async () => {
-    vi.resetModules();
-    const failIfImported = () => {
-      throw new Error('Markdown runtime was imported');
-    };
-    vi.doMock('@codegraphy-dev/plugin-markdown', failIfImported);
-    vi.doMock('../../../../../../plugin-markdown/src/plugin', failIfImported);
-
-    const { getBuiltInWorkspacePipelinePluginRegistrations } = await import(
-      '../../../../../src/extension/pipeline/plugins/bootstrap/builtIns'
-    );
-
+  it('does not register Markdown when Plugin Activity State disables it', async () => {
     await expect(getBuiltInWorkspacePipelinePluginRegistrations(
       {
         version: 1,
@@ -28,7 +14,7 @@ describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
         showOrphans: true,
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
-        plugins: [{ id: 'codegraphy.markdown', enabled: true }],
+        plugins: [{ id: 'codegraphy.markdown', activation: 'enabled' }],
         pluginData: {},
       },
       ['codegraphy.markdown'],

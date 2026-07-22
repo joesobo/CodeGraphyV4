@@ -51,7 +51,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy-dev/plugin-api": "workspace:*",
+    "@codegraphy-dev/extension-plugin-api": "workspace:*",
     "esbuild": "^0.25.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -3,6 +3,7 @@ import {
   createRegistry,
   createWorkspace,
   createPackageFixtureRoot,
+  createExtensionPluginPackage,
   createPluginPackage,
   createManifestPluginPackage,
   readCodeGraphyWorkspaceSettings,
@@ -15,6 +16,52 @@ import {
 } from './bootstrapFixture';
 
 describe('pipeline/plugins/bootstrap packages', () => {
+  it('loads an enabled Extension plugin through the Extension Plugin API only', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-extension-particles',
+    );
+
+    await createExtensionPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-particles',
+        version: '1.0.0',
+        id: 'acme.particles',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    expect(registry.extensionPlugins.register).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'acme.particles' }),
+      expect.objectContaining({
+        sourcePackage: '@acme/codegraphy-extension-particles',
+        sourcePackageRoot: packageRoot,
+      }),
+    );
+    expect(registry.extensionPlugins.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+    expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).not.toContain('acme.particles');
+  });
+
   it('prefers a bundled plugin package over a stale installed package record', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
@@ -45,22 +92,24 @@ describe('pipeline/plugins/bootstrap packages', () => {
       version: '1.0.1',
     });
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: packageName,
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: pluginId,
+        name: 'Bundled',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot: stalePackageRoot,
-        pluginId,
-        pluginName: 'Bundled',
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: pluginId, enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: pluginId, activation: 'enabled' },
       ],
     });
 
@@ -106,27 +155,26 @@ describe('pipeline/plugins/bootstrap packages', () => {
 
     await createPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.extension-bootstrap',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-bootstrap',
-        defaultOptions: {
-          mode: 'strict',
-        },
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'codegraphy.markdown',
-        enabled: true,
+        activation: 'enabled',
       }, {
         id: 'acme.extension-bootstrap',
-        enabled: true,
+        activation: 'enabled',
         options: {
           mode: 'strict',
         },
@@ -166,21 +214,23 @@ describe('pipeline/plugins/bootstrap packages', () => {
 
     await createPluginPackage(packageRoot, '^2.0.0');
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
         apiVersion: '^2.0.0',
-        disclosures: [],
+        id: 'acme.extension-bootstrap',
+        host: 'core',
+        entry: './plugin.js',
         packageRoot,
-        pluginId: 'acme.extension-bootstrap',
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: 'acme.extension-bootstrap', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: 'acme.extension-bootstrap', activation: 'enabled' },
       ],
     });
     registry.register.mockImplementation((plugin) => {
@@ -214,19 +264,21 @@ describe('pipeline/plugins/bootstrap packages', () => {
 
     await createPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.extension-bootstrap',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-bootstrap',
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      plugins: [{ id: 'codegraphy.markdown', enabled: true }],
+      plugins: [{ id: 'codegraphy.markdown', activation: 'enabled' }],
     });
 
     await initializeWorkspacePipeline(registry as never, {

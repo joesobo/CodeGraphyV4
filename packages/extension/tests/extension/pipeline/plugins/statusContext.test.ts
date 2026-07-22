@@ -30,23 +30,27 @@ describe('pipeline/plugins/statusContext', () => {
   it('reads the user installed plugin cache and workspace enabled plugin IDs', () => {
     writeCodeGraphyInstalledPluginCache(
       {
-        version: 1,
+        version: 3,
         plugins: [
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            id: 'codegraphy.vue',
+            host: 'core',
+            entry: './dist/plugin.js',
+            apiVersion: '^4.0.0',
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
-            pluginId: 'codegraphy.vue',
+            globallyEnabled: false,
           },
           {
             package: '@codegraphy-dev/plugin-godot',
             version: '3.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            id: 'codegraphy.godot',
+            host: 'core',
+            entry: './dist/plugin.js',
+            apiVersion: '^4.0.0',
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
-            pluginId: 'codegraphy.godot',
+            globallyEnabled: false,
           },
         ],
       },
@@ -60,7 +64,7 @@ describe('pipeline/plugins/statusContext', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      plugins: [{ id: 'codegraphy.vue', enabled: true }],
+      plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
@@ -77,14 +81,17 @@ describe('pipeline/plugins/statusContext', () => {
   it('uses initial Markdown activity state without materializing workspace settings', () => {
     writeCodeGraphyInstalledPluginCache(
       {
-        version: 1,
+        version: 3,
         plugins: [
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            id: 'codegraphy.vue',
+            host: 'core',
+            entry: './dist/plugin.js',
+            apiVersion: '^4.0.0',
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
+            globallyEnabled: false,
           },
         ],
       },

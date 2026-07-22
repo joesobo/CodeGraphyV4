@@ -63,7 +63,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     cssSnippets: {},
     plugins: [{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'enabled',
     }],
     pluginData: {},
     nodeColors: createDefaultNodeColors(),

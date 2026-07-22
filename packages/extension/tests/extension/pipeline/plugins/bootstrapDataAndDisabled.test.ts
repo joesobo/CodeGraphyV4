@@ -28,24 +28,23 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
 
     await createDataHostPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-data-host',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: ['workspaceWrites'],
+        id: 'acme.extension-data-host',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-data-host',
-        defaultOptions: {
-          mode: 'default',
-        },
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.extension-data-host',
-        enabled: true,
+        activation: 'enabled',
         options: {
         },
       }],
@@ -102,23 +101,24 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
     const { factoryMarkerPath, importMarkerPath } = await createPluginPackageWithRuntimeMarkers(packageRoot);
 
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.extension-bootstrap',
+        name: 'Extension Bootstrap',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-bootstrap',
-        pluginName: 'Extension Bootstrap',
-        supportedExtensions: ['.txt'],
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: 'acme.extension-bootstrap', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: 'acme.extension-bootstrap', activation: 'enabled' },
       ],
     });
 

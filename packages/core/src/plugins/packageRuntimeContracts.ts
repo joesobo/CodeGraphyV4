@@ -19,6 +19,11 @@ export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
   workspaceRoot?: string;
 }
 
+export interface ResolvedCodeGraphyWorkspacePluginRecords {
+  bundledPackageRoots: ReadonlySet<string>;
+  records: readonly CodeGraphyInstalledPluginRecord[];
+}
+
 export interface PackageJsonWithEntrypoint {
   exports?: unknown;
   main?: unknown;

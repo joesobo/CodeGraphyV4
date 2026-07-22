@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  resolveCodeGraphyWorkspacePluginRecords,
   loadCodeGraphyWorkspacePluginPackages,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
@@ -44,11 +45,20 @@ describe('CodeGraphy package runtime', () => {
       }],
     }, { homeDir });
 
-    await expect(loadCodeGraphyWorkspacePluginPackages({
+    const options = {
       settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
       homeDir,
       workspaceRoot,
-    })).resolves.toEqual([]);
+    };
+
+    await expect(resolveCodeGraphyWorkspacePluginRecords(options)).resolves.toEqual({
+      bundledPackageRoots: new Set(),
+      records: [expect.objectContaining({
+        id: 'acme.extension-only',
+        host: 'codegraphy.extension',
+      })],
+    });
+    await expect(loadCodeGraphyWorkspacePluginPackages(options)).resolves.toEqual([]);
     await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
     await expect(fs.access(markers.factoryMarkerPath)).rejects.toThrow();
   });

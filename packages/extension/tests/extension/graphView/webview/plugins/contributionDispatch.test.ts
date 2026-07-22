@@ -61,15 +61,25 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     const resolveAssetPath = vi.fn((assetPath: string, pluginId?: string) => `${pluginId}:${assetPath}`);
     const analyzer = {
       registry: {
+        extensionPlugins: {
+          list: () => [
+            {
+              plugin: {
+                id: 'plugin.test',
+                name: 'Test Plugin',
+                webviewContributions: {
+                  scripts: ['dist/plugin.js'],
+                  styles: ['dist/plugin.css'],
+                },
+              },
+            },
+          ],
+        },
         list: () => [
           {
             plugin: {
               id: 'plugin.test',
               name: 'Test Plugin',
-              webviewContributions: {
-                scripts: ['dist/plugin.js'],
-                styles: ['dist/plugin.css'],
-              },
             },
           },
         ],
@@ -140,6 +150,27 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     }));
     const analyzer = {
       registry: {
+        extensionPlugins: {
+          list: () => [
+            {
+              plugin: {
+                id: 'plugin.disabled',
+                name: 'Disabled Plugin',
+                webviewContributions: {
+                  scripts: ['disabled.js'],
+                  styles: ['disabled.css'],
+                },
+              },
+            },
+            {
+              plugin: {
+                id: 'plugin.enabled',
+                name: 'Enabled Plugin',
+                webviewContributions: { scripts: ['enabled.js'] },
+              },
+            },
+          ],
+        },
         list: () => [
           {
             plugin: {

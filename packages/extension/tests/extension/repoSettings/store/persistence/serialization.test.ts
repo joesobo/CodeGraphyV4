@@ -35,10 +35,10 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
   it('serializes plugin activity intent entries', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.plugins = [
-      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
       {
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         options: { includeTests: true },
       },
     ];
@@ -46,10 +46,10 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
 
     expect(parsed.plugins).toEqual([
-      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
       {
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         options: { includeTests: true },
       },
     ]);

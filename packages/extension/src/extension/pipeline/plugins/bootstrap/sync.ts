@@ -10,6 +10,11 @@ import {
   type WorkspacePipelineSettingsResult,
 } from './settings';
 import type { WorkspacePipelineInitializationDependencies } from './initialize';
+import {
+  loadWorkspaceExtensionPluginRegistrations,
+  type WorkspaceExtensionPluginRegistration,
+} from './extensionPackages';
+import type { ExtensionPluginRegistry } from '../../../plugins/registry';
 
 function stableOptionsString(value: unknown): string {
   if (value === undefined) {
@@ -94,6 +99,47 @@ async function registerMissingPlugins(
   }
 }
 
+function hasExtensionRegistrationChanged(
+  current: ReturnType<ExtensionPluginRegistry['list']>[number],
+  desired: WorkspaceExtensionPluginRegistration,
+): boolean {
+  return current.sourcePackage !== desired.options.sourcePackage
+    || current.sourcePackageRoot !== desired.options.sourcePackageRoot
+    || current.builtIn !== Boolean(desired.options.builtIn);
+}
+
+async function syncExtensionPlugins(
+  registry: ExtensionPluginRegistry,
+  settingsResult: WorkspacePipelineSettingsResult,
+  dependencies: WorkspacePipelineInitializationDependencies,
+): Promise<void> {
+  if (!settingsResult.workspaceRoot || !settingsResult.settings) {
+    for (const info of registry.list()) registry.unregister(info.plugin.id);
+    return;
+  }
+
+  const desired = await loadWorkspaceExtensionPluginRegistrations(
+    settingsResult.settings,
+    settingsResult.workspaceRoot,
+    dependencies,
+  );
+  const desiredById = new Map(desired.map(registration => [registration.plugin.id, registration]));
+
+  for (const current of registry.list()) {
+    const registration = desiredById.get(current.plugin.id);
+    if (!registration || hasExtensionRegistrationChanged(current, registration)) {
+      registry.unregister(current.plugin.id);
+    }
+  }
+
+  for (const registration of desired) {
+    if (!registry.get(registration.plugin.id)) {
+      registry.register(registration.plugin, registration.options);
+    }
+  }
+  await registry.initializeAll(settingsResult.workspaceRoot);
+}
+
 export async function syncWorkspacePipelinePlugins(
   registry: PluginRegistry,
   dependencies: WorkspacePipelineInitializationDependencies,
@@ -104,4 +150,5 @@ export async function syncWorkspacePipelinePlugins(
 
   unregisterOutdatedPackagePlugins(registry, desiredByPackage);
   await registerMissingPlugins(registry, desiredRegistrations, settingsResult.workspaceRoot);
+  await syncExtensionPlugins(registry.extensionPlugins, settingsResult, dependencies);
 }

@@ -1,8 +1,8 @@
 import manifest from '../codegraphy.json';
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import type { IExtensionPlugin } from '@codegraphy-dev/extension-plugin-api';
 import { compileCustomParticleEffects } from './customEffects';
 
-export function createParticlesPlugin() {
+export function createParticlesPlugin(): IExtensionPlugin {
   const webviewContributions = {
     scripts: ['dist/webview.js'],
     assets: [] as Awaited<ReturnType<typeof compileCustomParticleEffects>>,
@@ -13,14 +13,11 @@ export function createParticlesPlugin() {
     name: manifest.name,
     version: manifest.version,
     apiVersion: manifest.apiVersion,
-    supportedExtensions: manifest.supportedExtensions,
-    updateImpact: manifest.updateImpact as IPlugin['updateImpact'],
-    webviewApiVersion: '^1.0.0',
     webviewContributions,
     async initialize(workspaceRoot: string) {
       webviewContributions.assets = await compileCustomParticleEffects(workspaceRoot);
     },
-  };
+  } satisfies IExtensionPlugin;
 }
 
 export default createParticlesPlugin;
