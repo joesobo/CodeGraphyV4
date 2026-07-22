@@ -152,6 +152,15 @@ describe('acceptance graph view panel switches', () => {
     expect(pluginSwitch.click).toHaveBeenCalledTimes(2);
   });
 
+  it('forces the TypeScript node-type scenario through an enable transition', async () => {
+    const { shouldForcePluginToggleTransition } = await import('./acceptance/graphView/steps');
+
+    expect(shouldForcePluginToggleTransition(
+      '/repo/packages/extension/tests/acceptance/specs/graph-scope-node-types-typescript.feature',
+      'TypeScript/JavaScript',
+    )).toBe(true);
+  });
+
   it('finds visible switch rows by their exact data scope label', async () => {
     const { findPanelSwitchIfPresent } = await import('./acceptance/graphView/steps');
     const variableSwitch = locatorWithCount(1);

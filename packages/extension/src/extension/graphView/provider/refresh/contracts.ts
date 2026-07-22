@@ -2,11 +2,16 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { rebuildGraphViewData, smartRebuildGraphView } from '../../view/rebuild';
 import type { AnalysisCacheTier } from '@codegraphy-dev/core';
+import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
 
 export type GraphViewScopedRefreshProgress = { phase: string; current: number; total: number };
 
 export interface GraphViewProviderRefreshAnalyzerLike {
   hasIndex(): boolean;
+  getIndexStatus?(): {
+    freshness: CodeGraphyIndexFreshness;
+    detail: string;
+  };
   rebuildGraph(
     disabledPlugins: Set<string>,
     showOrphans: boolean,

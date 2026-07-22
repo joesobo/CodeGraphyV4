@@ -1523,12 +1523,17 @@ async function waitForPluginSwitchState(
   )).toBe(String(enabled));
 }
 
-function shouldForcePluginToggleTransition(
+export function shouldForcePluginToggleTransition(
   sourcePath: string,
   label: string,
 ): boolean {
-  return path.basename(sourcePath) === 'unity-example.feature'
-    && normalizePanelLabel(label) === 'Unity';
+  const sourceName = path.basename(sourcePath);
+  const normalizedLabel = normalizePanelLabel(label);
+  return (sourceName === 'unity-example.feature' && normalizedLabel === 'Unity')
+    || (
+      sourceName === 'graph-scope-node-types-typescript.feature'
+      && normalizedLabel === 'TypeScript/JavaScript'
+    );
 }
 
 async function showOnlyEdgeType(
