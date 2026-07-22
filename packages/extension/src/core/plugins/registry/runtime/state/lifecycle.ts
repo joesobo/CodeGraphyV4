@@ -14,13 +14,18 @@ import { notifyFilesChanged as lifecycleNotifyFilesChanged } from '../../../life
 import { PluginRegistryCollection } from './collection';
 
 export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
+  abstract unregister(pluginId: string): boolean;
+
   async initializeAll(workspaceRoot: string): Promise<void> {
     this._v2Config.workspaceRoot = workspaceRoot;
-    await lifecycleInitializeAll(
+    const failedPluginIds = await lifecycleInitializeAll(
       this._plugins,
       workspaceRoot,
       this._initializedPlugins,
     );
+    for (const pluginId of failedPluginIds) {
+      this.unregister(pluginId);
+    }
   }
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
@@ -30,7 +35,14 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
       return;
     }
 
-    await lifecycleInitializePlugin(info, workspaceRoot, this._initializedPlugins);
+    const initialized = await lifecycleInitializePlugin(
+      info,
+      workspaceRoot,
+      this._initializedPlugins,
+    );
+    if (!initialized) {
+      this.unregister(pluginId);
+    }
   }
 
   notifyWorkspaceReady(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {

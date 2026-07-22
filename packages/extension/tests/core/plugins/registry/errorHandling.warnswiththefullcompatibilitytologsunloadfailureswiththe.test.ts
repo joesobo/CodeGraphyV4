@@ -80,19 +80,41 @@ describe('PluginRegistry error handling', () => {
 
 
 
-    it('logs initialize failures and retries after clearing failed initialization state', async () => {
+    it('unloads failed plugins and keeps later healthy plugins routable', async () => {
       const registry = createConfiguredRegistry();
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const failure = new Error('Init failed');
       const initialize = vi.fn().mockRejectedValue(failure);
-      const plugin = createPlugin('retry-init', { initialize });
+      const onUnload = vi.fn();
+      const failedPlugin = createPlugin('failed-init', { initialize, onUnload });
+      const healthyPlugin = createPlugin('healthy-init', { initialize: vi.fn() });
+
+      registry.register(failedPlugin);
+      registry.register(healthyPlugin);
+      await registry.initializeAll('/workspace');
+
+      expect(initialize).toHaveBeenCalledOnce();
+      expect(onUnload).toHaveBeenCalledOnce();
+      expect(registry.get('failed-init')).toBeUndefined();
+      expect(registry.getPluginForFile('/workspace/file.test')).toBe(healthyPlugin);
+      expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error initializing plugin failed-init:', failure);
+      errorSpy.mockRestore();
+    });
+
+    it('unloads a plugin when individual initialization fails', async () => {
+      const registry = createConfiguredRegistry();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onUnload = vi.fn();
+      const plugin = createPlugin('failed-individual-init', {
+        initialize: vi.fn().mockRejectedValue(new Error('Init failed')),
+        onUnload,
+      });
 
       registry.register(plugin);
-      await registry.initializeAll('/workspace');
-      await registry.initializeAll('/workspace');
+      await registry.initializePlugin(plugin.id, '/workspace');
 
-      expect(initialize).toHaveBeenCalledTimes(2);
-      expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error initializing plugin retry-init:', failure);
+      expect(onUnload).toHaveBeenCalledOnce();
+      expect(registry.get(plugin.id)).toBeUndefined();
       errorSpy.mockRestore();
     });
 
