@@ -32,7 +32,7 @@ export async function getBuiltInWorkspacePipelinePluginRegistrations(
   ) {
     const markdownOptions = getDefaultMarkdownPluginOptions(settings);
     registrations.push({
-      plugin: await loadBundledMarkdownPlugin() as IPlugin,
+      plugin: await loadBundledMarkdownPlugin(),
       options: {
         builtIn: true,
         sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
