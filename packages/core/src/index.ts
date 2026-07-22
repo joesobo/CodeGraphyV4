@@ -264,10 +264,12 @@ export type {
   LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyWorkspacePluginPackage,
   ResolvedCodeGraphyWorkspacePluginRecords,
 } from './plugins/packageRuntime';
 export {
   loadCodeGraphyWorkspacePluginPackages,
+  prepareCodeGraphyWorkspacePluginPackages,
   resolveCodeGraphyWorkspacePluginRecords,
   resolveCodeGraphyWorkspacePluginRecordsForHost,
 } from './plugins/packageRuntime';

@@ -1,10 +1,11 @@
 import type { IPluginInfo } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import {
-  getBuiltInWorkspacePipelinePluginRegistrations,
+  getBuiltInWorkspacePipelinePluginCandidates,
+  type WorkspacePipelinePluginCandidate,
   type WorkspacePipelinePluginRegistration,
 } from './builtIns';
-import { loadWorkspacePackagePluginRegistrations } from './packages';
+import { prepareWorkspacePackagePluginCandidates } from './packages';
 import {
   readWorkspacePipelineSettings,
   type WorkspacePipelineSettingsResult,
@@ -27,23 +28,23 @@ function stableOptionsString(value: unknown): string {
 
 function hasRegistrationChanged(
   current: IPluginInfo,
-  desired: WorkspacePipelinePluginRegistration,
+  desired: WorkspacePipelinePluginCandidate,
 ): boolean {
-  return current.plugin.id !== desired.plugin.id
+  return current.plugin.id !== desired.id
     || current.builtIn !== Boolean(desired.options.builtIn)
     || current.sourcePackageRoot !== desired.options.sourcePackageRoot
-    || current.descriptorSignature !== desired.options.descriptorSignature
+    || current.sourceSignature !== desired.options.sourceSignature
     || stableOptionsString(current.options) !== stableOptionsString(desired.options.options);
 }
 
-async function collectDesiredRegistrations(
+async function collectDesiredCandidates(
   { settings, workspaceRoot }: WorkspacePipelineSettingsResult,
   dependencies: WorkspacePipelineInitializationDependencies,
-): Promise<WorkspacePipelinePluginRegistration[]> {
-  const desired = await getBuiltInWorkspacePipelinePluginRegistrations(settings, dependencies.disabledPlugins);
+): Promise<WorkspacePipelinePluginCandidate[]> {
+  const desired = await getBuiltInWorkspacePipelinePluginCandidates(settings, dependencies.disabledPlugins);
 
   if (workspaceRoot && settings) {
-    desired.push(...await loadWorkspacePackagePluginRegistrations(
+    desired.push(...await prepareWorkspacePackagePluginCandidates(
       settings,
       workspaceRoot,
       dependencies,
@@ -54,13 +55,13 @@ async function collectDesiredRegistrations(
 }
 
 function mapDesiredPackageRegistrationsById(
-  registrations: readonly WorkspacePipelinePluginRegistration[],
-): Map<string, WorkspacePipelinePluginRegistration> {
-  const desiredById = new Map<string, WorkspacePipelinePluginRegistration>();
+  candidates: readonly WorkspacePipelinePluginCandidate[],
+): Map<string, WorkspacePipelinePluginCandidate> {
+  const desiredById = new Map<string, WorkspacePipelinePluginCandidate>();
 
-  for (const registration of registrations) {
-    if (registration.options.sourcePackage) {
-      desiredById.set(registration.plugin.id, registration);
+  for (const candidate of candidates) {
+    if (candidate.options.sourcePackage) {
+      desiredById.set(candidate.id, candidate);
     }
   }
 
@@ -69,7 +70,7 @@ function mapDesiredPackageRegistrationsById(
 
 function unregisterOutdatedPackagePlugins(
   registry: PluginRegistry,
-  desiredById: ReadonlyMap<string, WorkspacePipelinePluginRegistration>,
+  desiredById: ReadonlyMap<string, WorkspacePipelinePluginCandidate>,
 ): void {
   for (const pluginInfo of registry.list()) {
     if (!pluginInfo.sourcePackage) {
@@ -85,20 +86,22 @@ function unregisterOutdatedPackagePlugins(
 
 async function registerMissingPlugins(
   registry: PluginRegistry,
-  registrations: readonly WorkspacePipelinePluginRegistration[],
+  candidates: readonly WorkspacePipelinePluginCandidate[],
   workspaceRoot: string | undefined,
   warn: (message: string) => void,
 ): Promise<void> {
-  for (const registration of registrations) {
-    if (registry.get(registration.plugin.id)) {
+  for (const candidate of candidates) {
+    if (registry.get(candidate.id)) {
       continue;
     }
 
+    let registration: WorkspacePipelinePluginRegistration;
     try {
+      registration = await candidate.load();
       registry.register(registration.plugin, registration.options);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      warn(`CodeGraphy plugin '${registration.plugin.id}' could not be registered: ${message}`);
+      warn(`CodeGraphy plugin '${candidate.id}' could not be registered: ${message}`);
       continue;
     }
     if (workspaceRoot) {
@@ -171,13 +174,13 @@ export async function syncWorkspacePipelinePlugins(
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<void> {
   const settingsResult = readWorkspacePipelineSettings(() => dependencies.getWorkspaceRoot());
-  const desiredRegistrations = await collectDesiredRegistrations(settingsResult, dependencies);
-  const desiredById = mapDesiredPackageRegistrationsById(desiredRegistrations);
+  const desiredCandidates = await collectDesiredCandidates(settingsResult, dependencies);
+  const desiredById = mapDesiredPackageRegistrationsById(desiredCandidates);
 
   unregisterOutdatedPackagePlugins(registry, desiredById);
   await registerMissingPlugins(
     registry,
-    desiredRegistrations,
+    desiredCandidates,
     settingsResult.workspaceRoot,
     dependencies.warn ?? console.warn,
   );

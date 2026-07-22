@@ -1,16 +1,18 @@
 import { readCodeGraphyInstalledPluginCache } from './installedCache';
-import { loadActivePluginPackage } from './packageActivation';
+import { prepareActivePluginPackage } from './packageActivation';
 import { createPluginActivityState } from './activityState/model';
 import { readPackageManifest } from './installedPluginCache/packageReader';
 export type {
   LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyWorkspacePluginPackage,
   ResolvedCodeGraphyWorkspacePluginRecords,
 } from './packageRuntimeContracts';
 import type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyWorkspacePluginPackage,
   ResolvedCodeGraphyWorkspacePluginRecords,
 } from './packageRuntimeContracts';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '../workspace/settings';
@@ -67,6 +69,25 @@ export async function resolveCodeGraphyWorkspacePluginRecordsForHost(
 export async function loadCodeGraphyWorkspacePluginPackages(
   options: LoadCodeGraphyWorkspacePluginPackagesOptions,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage[]> {
+  const prepared = await prepareCodeGraphyWorkspacePluginPackages(options);
+  const warn = options.warn ?? (() => undefined);
+  const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
+
+  for (const candidate of prepared) {
+    try {
+      loaded.push(await candidate.load());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${candidate.record.id}' could not be loaded: ${message}`);
+    }
+  }
+
+  return loaded;
+}
+
+export async function prepareCodeGraphyWorkspacePluginPackages(
+  options: LoadCodeGraphyWorkspacePluginPackagesOptions,
+): Promise<PreparedCodeGraphyWorkspacePluginPackage[]> {
   const { bundledPackageRoots, records } = await resolveCodeGraphyWorkspacePluginRecordsForHost(
     options,
     'core',
@@ -76,10 +97,10 @@ export async function loadCodeGraphyWorkspacePluginPackages(
   const settingsById = new Map(
     options.settings.plugins.map(plugin => [plugin.id, plugin] as const),
   );
-  const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
+  const prepared: PreparedCodeGraphyWorkspacePluginPackage[] = [];
 
   for (const record of records) {
-    const plugin = await loadActivePluginPackage({
+    const plugin = await prepareActivePluginPackage({
       bundledPackageRoots,
       disabledPluginIds,
       options,
@@ -87,10 +108,10 @@ export async function loadCodeGraphyWorkspacePluginPackages(
       settingsById,
       warn,
     });
-    if (plugin) loaded.push(plugin);
+    if (plugin) prepared.push(plugin);
   }
 
-  return loaded;
+  return prepared;
 }
 
 export async function resolveCodeGraphyWorkspacePluginRecords(

@@ -1,12 +1,18 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
-  loadCodeGraphyWorkspacePluginPackages,
+  prepareCodeGraphyWorkspacePluginPackages,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import type { WorkspacePipelinePluginRegistration } from './builtIns';
-import { createWorkspacePluginRuntimeSignature } from './signature';
+import type {
+  WorkspacePipelinePluginCandidate,
+  WorkspacePipelinePluginRegistration,
+} from './builtIns';
+import {
+  createWorkspacePluginDescriptorSignature,
+  createWorkspacePluginRuntimeSignature,
+} from './signature';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
   bundledPluginPackageRoots?: Iterable<string>;
@@ -31,8 +37,31 @@ export async function loadWorkspacePackagePluginRegistrations(
   workspaceRoot: string,
   dependencies: WorkspacePackagePluginRegistrationDependencies,
 ): Promise<WorkspacePipelinePluginRegistration[]> {
+  const candidates = await prepareWorkspacePackagePluginCandidates(
+    settings,
+    workspaceRoot,
+    dependencies,
+  );
+  const registrations: WorkspacePipelinePluginRegistration[] = [];
   const warn = dependencies.warn ?? console.warn;
-  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+  for (const candidate of candidates) {
+    try {
+      registrations.push(await candidate.load());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${candidate.id}' could not be loaded: ${message}`);
+    }
+  }
+  return registrations;
+}
+
+export async function prepareWorkspacePackagePluginCandidates(
+  settings: CodeGraphyWorkspaceSettings,
+  workspaceRoot: string,
+  dependencies: WorkspacePackagePluginRegistrationDependencies,
+): Promise<WorkspacePipelinePluginCandidate[]> {
+  const warn = dependencies.warn ?? console.warn;
+  const preparedPackages = await prepareCodeGraphyWorkspacePluginPackages({
     bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
     settings,
@@ -41,21 +70,38 @@ export async function loadWorkspacePackagePluginRegistrations(
     warn,
   });
 
-  return loadedPackagePlugins.map(loadedPlugin => ({
-    plugin: loadedPlugin.plugin,
-    options: {
-      ...(loadedPlugin.bundled ? { builtIn: true } : {}),
-      sourcePackage: loadedPlugin.packageName,
-      sourcePackageRoot: loadedPlugin.record.packageRoot,
-      descriptorSignature: createWorkspacePluginRuntimeSignature(
-        loadedPlugin.record,
-        loadedPlugin.plugin,
-        loadedPlugin.buildIdentity,
-      ),
-      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
-      interfaces: readPackageInterfaceData(loadedPlugin.record.packageRoot),
-    },
-  }));
+  return preparedPackages.map(prepared => {
+    const sourceSignature = createWorkspacePluginDescriptorSignature(
+      prepared.record,
+      prepared.buildIdentity,
+    );
+    const candidateOptions: WorkspacePipelinePluginRegistration['options'] = {
+      ...(prepared.bundled ? { builtIn: true } : {}),
+      sourcePackage: prepared.packageName,
+      sourcePackageRoot: prepared.record.packageRoot,
+      sourceSignature,
+      ...(prepared.options ? { options: prepared.options } : {}),
+      interfaces: readPackageInterfaceData(prepared.record.packageRoot),
+    };
+    return {
+      id: prepared.record.id,
+      options: candidateOptions,
+      async load(): Promise<WorkspacePipelinePluginRegistration> {
+        const loaded = await prepared.load();
+        return {
+          plugin: loaded.plugin,
+          options: {
+            ...candidateOptions,
+            descriptorSignature: createWorkspacePluginRuntimeSignature(
+              loaded.record,
+              loaded.plugin,
+              loaded.buildIdentity,
+            ),
+          },
+        };
+      },
+    };
+  });
 }
 
 export async function registerWorkspacePackagePlugins(

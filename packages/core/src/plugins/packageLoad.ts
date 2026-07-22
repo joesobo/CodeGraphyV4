@@ -9,6 +9,7 @@ import { createPackagePluginFactoryInvocation } from './packageOptions';
 import type {
   LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
+  PreparedCodeGraphyWorkspacePluginPackage,
 } from './packageRuntimeContracts';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
 import { assertPluginDescriptorApiCompatibility } from './compatibility';
@@ -179,17 +180,33 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   record: CodeGraphyInstalledPluginRecord,
   workspaceRoot?: string,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+  return (await prepareCodeGraphyWorkspacePluginPackage(settings, record, workspaceRoot)).load();
+}
+
+export async function prepareCodeGraphyWorkspacePluginPackage(
+  settings: CodeGraphyWorkspacePluginSettings,
+  record: CodeGraphyInstalledPluginRecord,
+  workspaceRoot?: string,
+): Promise<PreparedCodeGraphyWorkspacePluginPackage> {
   assertPluginDescriptorApiCompatibility(record.id, record.apiVersion);
   const { buildIdentity, moduleNamespace } = await importCodeGraphyPluginPackageModule(record);
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
-  const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
-  validateRuntimePluginId(plugin.id, record);
 
   return {
     buildIdentity,
-    plugin,
     packageName: record.package,
     record,
     ...(options ? { options } : {}),
+    async load(): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+      const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
+      validateRuntimePluginId(plugin.id, record);
+      return {
+        buildIdentity,
+        plugin,
+        packageName: record.package,
+        record,
+        ...(options ? { options } : {}),
+      };
+    },
   };
 }

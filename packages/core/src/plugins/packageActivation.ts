@@ -1,18 +1,21 @@
-import { loadCodeGraphyWorkspacePluginPackage } from './packageLoad';
+import {
+  prepareCodeGraphyWorkspacePluginPackage,
+} from './packageLoad';
 import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 import type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyWorkspacePluginPackage,
 } from './packageRuntimeContracts';
 
-export async function loadActivePluginPackage(input: {
+export async function prepareActivePluginPackage(input: {
   bundledPackageRoots: ReadonlySet<string>;
   disabledPluginIds: ReadonlySet<string>;
   options: LoadCodeGraphyWorkspacePluginPackagesOptions;
   record: CodeGraphyInstalledPluginRecord;
   settingsById: ReadonlyMap<string, LoadCodeGraphyWorkspacePluginPackagesOptions['settings']['plugins'][number]>;
   warn(message: string): void;
-}): Promise<LoadedCodeGraphyWorkspacePluginPackage | undefined> {
+}): Promise<PreparedCodeGraphyWorkspacePluginPackage | undefined> {
   const pluginId = input.record.id;
   if (input.disabledPluginIds.has(pluginId)) return undefined;
 
@@ -22,14 +25,21 @@ export async function loadActivePluginPackage(input: {
   };
 
   try {
-    const loaded = await loadCodeGraphyWorkspacePluginPackage(
+    const prepared = await prepareCodeGraphyWorkspacePluginPackage(
       pluginSettings,
       input.record,
       input.options.workspaceRoot,
     );
+    const bundled = input.bundledPackageRoots.has(input.record.packageRoot);
     return {
-      ...loaded,
-      ...(input.bundledPackageRoots.has(input.record.packageRoot) ? { bundled: true } : {}),
+      ...prepared,
+      ...(bundled ? { bundled: true } : {}),
+      async load(): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+        return {
+          ...await prepared.load(),
+          ...(bundled ? { bundled: true } : {}),
+        };
+      },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

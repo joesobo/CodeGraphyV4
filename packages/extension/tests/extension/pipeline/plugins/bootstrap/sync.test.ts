@@ -20,6 +20,45 @@ import {
 } from './syncFixture';
 
 describe('pipeline plugin sync identity', () => {
+  it('does not construct another Core runtime during an unchanged sync', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(await createPackageFixtureRoot('codegraphy-core-noop-'), 'package');
+    const factoryMarkerPath = path.join(path.dirname(packageRoot), 'factory-calls.txt');
+    await writeCorePluginRuntime(
+      packageRoot,
+      'plugin.js',
+      'acme.core-linked',
+      '1.0.0',
+      factoryMarkerPath,
+    );
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-core-linked', version: '1.0.0',
+        id: 'acme.core-linked', host: 'core', entry: './plugin.js',
+        apiVersion: '^4.0.0', packageRoot, globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    const registered = new Map<string, RegisteredCorePlugin>();
+    const registry = createCoreRegistry(registered);
+    const dependencies = { getWorkspaceRoot: () => workspaceRoot, userHomeDir: homeDir };
+
+    await syncWorkspacePipelinePlugins(registry as never, dependencies);
+    registry.register.mockClear();
+    registry.unregister.mockClear();
+    await syncWorkspacePipelinePlugins(registry as never, dependencies);
+
+    expect(await fs.readFile(factoryMarkerPath, 'utf8')).toBe('factory\n');
+    expect(registry.register).not.toHaveBeenCalled();
+    expect(registry.unregister).not.toHaveBeenCalled();
+    expect([...registered.keys()]).toEqual(['acme.core-linked']);
+  });
+
   it('does not construct another Extension runtime during an unchanged sync', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));

@@ -11,6 +11,15 @@ export interface LoadedCodeGraphyWorkspacePluginPackage {
   options?: Record<string, unknown>;
 }
 
+export interface PreparedCodeGraphyWorkspacePluginPackage {
+  buildIdentity: string;
+  bundled?: boolean;
+  packageName: string;
+  record: CodeGraphyInstalledPluginRecord;
+  options?: Record<string, unknown>;
+  load(): Promise<LoadedCodeGraphyWorkspacePluginPackage>;
+}
+
 export interface LoadedCodeGraphyPluginPackageModule {
   buildIdentity: string;
   moduleNamespace: unknown;

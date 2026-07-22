@@ -29,6 +29,7 @@ export class PluginRegistry extends PluginRegistryLifecycle {
       sourcePackage?: string;
       sourcePackageRoot?: string;
       descriptorSignature?: string;
+      sourceSignature?: string;
       options?: Record<string, unknown>;
       interfaces?: Array<{ id: string; data: unknown }>;
       deferReadinessReplay?: boolean;

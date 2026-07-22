@@ -8,6 +8,7 @@ export interface RegisteredCorePlugin {
   sourcePackageRoot?: string;
   options?: Record<string, unknown>;
   descriptorSignature?: string;
+  sourceSignature?: string;
 }
 
 export interface RegistrationOptions {
@@ -16,6 +17,7 @@ export interface RegistrationOptions {
   sourcePackageRoot?: string;
   options?: Record<string, unknown>;
   descriptorSignature?: string;
+  sourceSignature?: string;
 }
 
 export interface RegisteredExtensionPlugin {
@@ -31,10 +33,15 @@ export async function writeCorePluginRuntime(
   entry: string,
   pluginId: string,
   version: string,
+  factoryMarkerPath?: string,
 ): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(path.join(packageRoot, entry), `
+${factoryMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
 export default function createPlugin() {
+  ${factoryMarkerPath
+    ? `appendFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory\\n');`
+    : ''}
   return {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginId)},
@@ -89,6 +96,7 @@ export function createCoreRegistry(registeredPlugins: Map<string, RegisteredCore
         sourcePackageRoot: options.sourcePackageRoot,
         options: options.options,
         descriptorSignature: options.descriptorSignature,
+        sourceSignature: options.sourceSignature,
       });
     }),
     unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
