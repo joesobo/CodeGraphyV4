@@ -49,7 +49,7 @@ describe('tldraw physics engine input', () => {
       nodeIds: ['a', 'b'],
       initialX: Float32Array.of(12, 72),
       initialY: Float32Array.of(12, 30),
-      chargeStrengthMultipliers: Float32Array.of(0.5, 0.5),
+      chargeStrengthMultipliers: Float32Array.of(0.5, 1),
       radii: Float32Array.of(12, 24),
       edgeSources: Uint32Array.of(0),
       edgeTargets: Uint32Array.of(1),

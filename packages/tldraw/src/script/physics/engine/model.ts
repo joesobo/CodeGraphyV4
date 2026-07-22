@@ -12,6 +12,7 @@ const MAXIMUM_NODE_SIZE = 30;
 const DEFAULT_NODE_SIZE = 16;
 const CONNECTION_SIZE_SCALE = 3;
 const COLLISION_RADIUS_PADDING = 4;
+const DEFAULT_CANVAS_NODE_DIAMETER = 120;
 
 function resolveEdgeEndpoints(
   edgeShapes: readonly ScriptShape[],
@@ -48,6 +49,12 @@ function nodeCollisionRadius(shape: NodeShape, connectionSize: number): number {
   return Math.max(connectionRadius, resizedRadius);
 }
 
+function nodeChargeSize(shape: NodeShape, connectionSize: number): number {
+  const resizedDiameter = Math.max(shape.props.w, shape.props.h);
+  const resizeScale = Math.max(1, resizedDiameter / DEFAULT_CANVAS_NODE_DIAMETER);
+  return connectionSize * resizeScale;
+}
+
 export function createRuntimeEngine(
   nodeShapes: readonly NodeShape[],
   edgeShapes: readonly ScriptShape[],
@@ -72,8 +79,11 @@ export function createRuntimeEngine(
     initialVx: new Float32Array(nodeShapes.length),
     initialVy: new Float32Array(nodeShapes.length),
     chargeStrengthMultipliers: Float32Array.from(
-      nodeSizes,
-      size => graphNodeSizeChargeMultiplier(size, DEFAULT_NODE_SIZE),
+      nodeShapes,
+      (shape, index) => graphNodeSizeChargeMultiplier(
+        nodeChargeSize(shape, nodeSizes[index]),
+        DEFAULT_NODE_SIZE,
+      ),
     ),
     radii: Float32Array.from(
       nodeShapes,
