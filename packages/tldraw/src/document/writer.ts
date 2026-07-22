@@ -43,14 +43,16 @@ function createBaseRecords(displayName: string): TLRecord[] {
 
 export async function writeGraphDocument(input: WriteGraphDocumentInput): Promise<void> {
   const displayName = path.basename(input.targetPath, path.extname(input.targetPath));
-  const existingRecords = await fileExists(input.targetPath)
-    ? (await readTldrawArchive(input.targetPath)).records
-    : createBaseRecords(displayName);
+  const existingArchive = await fileExists(input.targetPath)
+    ? await readTldrawArchive(input.targetPath)
+    : undefined;
+  const existingRecords = existingArchive?.records ?? createBaseRecords(displayName);
   const records = reconcileGraphRecords(
     existingRecords,
     projectDefaultFileGraph(input.graph),
   );
   await writeTldrawArchive({
+    assetFiles: existingArchive?.assetFiles,
     displayName,
     records,
     scriptFiles: input.scriptFiles,

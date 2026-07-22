@@ -42,6 +42,7 @@ test('published tldraw package contains its launcher, force panel, and embedded 
     );
 
     assert.equal(manifest.bin['codegraphy-tldraw'], './bin/codegraphy-tldraw.js');
+    assert.deepEqual(manifest.os, ['darwin']);
     assert.ok(fs.existsSync(path.join(unpackedPackage, 'dist', 'index.js')));
     assert.ok(documentScript.length > 40_000);
     assert.match(documentScript, /AGFzb/u);

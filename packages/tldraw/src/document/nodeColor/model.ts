@@ -1,4 +1,5 @@
 import type { IGraphNode } from '@codegraphy-dev/core';
+import { FILE_TYPE_COLORS } from '@codegraphy-dev/core/file-colors';
 import type { TLDefaultColorStyle } from '@tldraw/tlschema';
 
 export const NODE_COLOR_TOKENS = [
@@ -14,24 +15,19 @@ export const NODE_COLOR_TOKENS = [
   'grey',
 ] satisfies readonly TLDefaultColorStyle[];
 
-export function nodeExtensionGroup(nodeId: string): string {
-  const normalized = nodeId.replaceAll('\\', '/');
-  const basename = normalized.slice(normalized.lastIndexOf('/') + 1).toLowerCase();
-  const lastDot = basename.lastIndexOf('.');
-  if (lastDot === 0) return basename;
-  if (lastDot < 0) return '[no extension]';
-  return basename.slice(lastDot);
-}
+const CORE_FILE_COLORS: readonly string[] = [...new Set(Object.values(FILE_TYPE_COLORS))];
+const NATIVE_COLOR_BY_CORE_COLOR = new Map<string, TLDefaultColorStyle>(
+  CORE_FILE_COLORS.map((color, index) => [
+    color.toUpperCase(),
+    NODE_COLOR_TOKENS[index % NODE_COLOR_TOKENS.length] ?? 'grey',
+  ]),
+);
 
 export function createNodeColorMap(
   nodes: readonly IGraphNode[],
 ): ReadonlyMap<string, TLDefaultColorStyle> {
-  const groups = [...new Set(nodes.map(node => nodeExtensionGroup(node.id)))].sort();
-  const colorsByGroup = new Map<string, TLDefaultColorStyle>(
-    groups.map((group, index) => [group, NODE_COLOR_TOKENS[index % NODE_COLOR_TOKENS.length]]),
-  );
   return new Map(nodes.map(node => [
     node.id,
-    colorsByGroup.get(nodeExtensionGroup(node.id)) ?? 'grey',
+    NATIVE_COLOR_BY_CORE_COLOR.get(node.color.toUpperCase()) ?? 'grey',
   ]));
 }

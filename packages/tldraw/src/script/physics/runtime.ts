@@ -48,6 +48,7 @@ interface PhysicsRuntime {
   labelShapes: LabelShape[];
   nodeShapes: NodeShape[];
   structureKey: string;
+  writingPhysicsUpdates: boolean;
 }
 
 function rebuildRuntime(runtime: PhysicsRuntime): void {
@@ -93,12 +94,20 @@ function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
     engine,
   );
   runtime.editor.run(
-    () => runtime.editor.updateShapes(updates),
+    () => {
+      runtime.writingPhysicsUpdates = true;
+      try {
+        runtime.editor.updateShapes(updates);
+      } finally {
+        runtime.writingPhysicsUpdates = false;
+      }
+    },
     { history: 'ignore', ignoreShapeLock: true },
   );
 }
 
 function handleStoreChange(runtime: PhysicsRuntime): void {
+  if (runtime.writingPhysicsUpdates) return;
   const nextForceSettings = readForceSettings(
     runtime.editor.getCurrentPage().meta.codegraphyPhysics,
   );
@@ -129,6 +138,7 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
     labelShapes,
     nodeShapes,
     structureKey: graphStructureKey(shapes),
+    writingPhysicsUpdates: false,
   };
 }
 

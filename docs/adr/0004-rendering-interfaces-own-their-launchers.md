@@ -22,6 +22,9 @@ npm install --global @codegraphy-dev/core @codegraphy-dev/tldraw
 codegraphy-tldraw
 ```
 
+The first launcher supports macOS. It uses tldraw offline's macOS application
+data path and the operating system's `open` command.
+
 The launcher accepts an optional `.tldraw` document path:
 
 ```text
@@ -100,11 +103,11 @@ A path-based refresh reindexes through Core and reconciles CodeGraphy-owned
 shapes by stable identity: each CodeGraphy-owned shape stores its graph entity
 identifier in shape metadata. New graph entities are added, changed entities
 are updated, and removed entities are deleted. User-created notes, drawings,
-and other shapes remain untouched, and user adjustments to CodeGraphy-owned
-shapes (position, styling) are preserved when the underlying entity still
-exists. A successful command opens a closed canvas through the operating
-system's file association. An already-open canvas remains open after its live
-update.
+images, media payloads, and other shapes remain untouched, and user adjustments
+to CodeGraphy-owned shapes (position, styling) are preserved when the
+underlying entity still exists. A successful command opens a closed canvas
+through the operating system's file association. An already-open canvas remains
+open after its live update.
 
 Rendering interfaces are also distinct from plugins:
 
@@ -116,6 +119,7 @@ Rendering interfaces are also distinct from plugins:
 
 - Core remains directly usable as a headless library and CLI.
 - Installing the tldraw package adds the `codegraphy-tldraw` launcher.
+- The first launcher release supports macOS.
 - The Extension and tldraw share Core and physics behavior while retaining
   host-specific rendering and document models.
 - Each interface can evolve its own UI and host-specific plugin seam.

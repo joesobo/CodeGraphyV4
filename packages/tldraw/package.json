@@ -10,6 +10,9 @@
   "engines": {
     "node": ">=22.12.0"
   },
+  "os": [
+    "darwin"
+  ],
   "publishConfig": {
     "access": "public"
   },

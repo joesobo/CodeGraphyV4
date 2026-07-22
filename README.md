@@ -5,13 +5,14 @@
 <h1 align="center">CodeGraphy</h1>
 
 <p align="center">
-  An interactive VS Code Relationship Graph for exploring how files and code concepts connect.
+  An interactive Relationship Graph for exploring how files and code concepts connect.
 </p>
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/visual-studio-marketplace/v/codegraphy.codegraphy?label=extension" alt="VS Code Marketplace version" /></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/visual-studio-marketplace/i/codegraphy.codegraphy?label=installs" alt="VS Code Marketplace installs" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/core"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Fcore?label=core%20CLI" alt="Core CLI version" /></a>
+  <a href="https://www.npmjs.com/package/@codegraphy-dev/tldraw"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Ftldraw?label=tldraw" alt="tldraw interface version" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-api"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Fplugin-api?label=plugin%20API" alt="Plugin API version" /></a>
 </p>
 
@@ -27,7 +28,7 @@
   <a href="https://trello.com/b/wG65Lfrb/codegraphy">Roadmap</a>
 </p>
 
-CodeGraphy indexes a folder, projects its files and declarations into Nodes, and renders their imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships as an interactive graph inside VS Code. Search, Graph Scope, and persistent filters narrow the view to the question you are asking. The same Core engine backs the extension, the terminal CLI, and agent queries.
+CodeGraphy indexes a folder, projects its files and declarations into Nodes, and renders their imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships. Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view to the question you are asking. The same Core engine backs both interfaces, the terminal CLI, and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
 
@@ -44,6 +45,7 @@ CodeGraphy indexes a folder, projects its files and declarations into Nodes, and
 | Large-graph renderer | Custom WebGPU drawing with deterministic WebAssembly force and collision physics. |
 | Graph actions | Open, reveal, create, rename, delete, favorite, filter, and export from the graph. |
 | Graph Cache | Workspace-local SQLite storage shared by the extension and CLI. |
+| tldraw interface | A native, editable tldraw canvas with shared force physics and live refresh. |
 | Plugins | Headless npm packages for deeper analysis and Graph View contributions. |
 | Agent access | Bounded JSON queries through the Core CLI and a reusable Agent Skill source. |
 
@@ -94,6 +96,24 @@ Commands target the current directory. Use `-C, --workspace <path>` before the c
 codegraphy -C /path/to/workspace index
 ```
 
+### tldraw Offline
+
+The first tldraw interface supports macOS and requires Node.js 22.12 or newer plus the [tldraw offline desktop app](https://www.tldraw.com/). Install Core and the interface globally, then run the launcher from the workspace to index:
+
+```bash
+npm install -g @codegraphy-dev/core @codegraphy-dev/tldraw
+cd /path/to/workspace
+codegraphy-tldraw
+```
+
+The launcher creates or refreshes `CodeGraphy.tldraw`, opens it in tldraw offline, and runs CodeGraphy's WebAssembly force physics on native tldraw shapes. Pass a relative or absolute `.tldraw` path to use a named canvas:
+
+```bash
+codegraphy-tldraw docs/architecture.tldraw
+```
+
+Run the same command after workspace changes. An open canvas updates in place and keeps user-created notes, drawings, media, node positions, sizes, and styles. See the [`@codegraphy-dev/tldraw` guide](./packages/tldraw/README.md) for controls and document behavior.
+
 ## CLI Reference
 
 | Command | Result |
@@ -127,12 +147,13 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension adapts Core to editor lifecycle and the React Graph View. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Plugins remain headless and communicate through `@codegraphy-dev/plugin-api` contracts.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension adapts Core to editor lifecycle and the React Graph View. The tldraw interface adapts Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Plugins remain headless and communicate through `@codegraphy-dev/plugin-api` contracts.
 
 | Package | Role |
 |---|---|
 | [`@codegraphy-dev/core`](./packages/core/README.md) | Shared indexing, cache, plugin, query, and CLI engine. |
 | [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
+| [`@codegraphy-dev/tldraw`](./packages/tldraw/README.md) | macOS launcher and native tldraw offline canvas integration. |
 | [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | WebGPU graph renderer and WebAssembly physics. |
 | [`@codegraphy-dev/plugin-api`](./packages/plugin-api/README.md) | Public TypeScript contracts for plugins. |
 | `@codegraphy-dev/plugin-*` | Optional language, framework, Unity, and visual plugins. |

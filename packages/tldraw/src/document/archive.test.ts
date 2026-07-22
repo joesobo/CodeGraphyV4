@@ -27,6 +27,7 @@ describe('tldraw archive', () => {
     ] satisfies TLRecord[];
 
     await writeTldrawArchive({
+      assetFiles: { 'user/photo.png': Buffer.from('user image bytes') },
       displayName: 'graph',
       records,
       scriptFiles: { 'main.js': 'export default function main() {}\n' },
@@ -35,6 +36,9 @@ describe('tldraw archive', () => {
 
     const archive = await readTldrawArchive(targetPath);
     expect(archive.records).toEqual(records);
+    expect(archive.assetFiles).toEqual({
+      'user/photo.png': Buffer.from('user image bytes'),
+    });
     expect(archive.scriptFiles).toEqual({
       'main.js': Buffer.from('export default function main() {}\n'),
     });

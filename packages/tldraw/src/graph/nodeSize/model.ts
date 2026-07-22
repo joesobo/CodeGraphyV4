@@ -15,16 +15,6 @@ function connectionRadius(relatedNodeCount: number): number {
   );
 }
 
-function extensionConnectionRadius(relatedNodeCount: number): number {
-  return Math.max(
-    MINIMUM_NODE_RADIUS,
-    Math.min(
-      CONNECTION_SIZE_SCALE * Math.sqrt(relatedNodeCount + 1),
-      MAXIMUM_NODE_RADIUS,
-    ),
-  );
-}
-
 function diameterMap(
   nodes: readonly IGraphNode[],
   edges: readonly Pick<IGraphEdge, 'from' | 'to'>[],
@@ -51,12 +41,4 @@ export function createNodeDiameterMap(
   edges: readonly Pick<IGraphEdge, 'from' | 'to'>[],
 ): ReadonlyMap<string, number> {
   return diameterMap(nodes, edges, connectionRadius);
-}
-
-/** Returns the Extension-equivalent scale used by the first connection-sized tldraw build. */
-export function createExtensionNodeDiameterMap(
-  nodes: readonly IGraphNode[],
-  edges: readonly Pick<IGraphEdge, 'from' | 'to'>[],
-): ReadonlyMap<string, number> {
-  return diameterMap(nodes, edges, extensionConnectionRadius);
 }

@@ -22,16 +22,49 @@ export interface TldrawArchiveMetadata {
 }
 
 export interface TldrawArchive {
+  assetFiles: Record<string, Buffer>;
   metadata: TldrawArchiveMetadata;
   records: TLRecord[];
   scriptFiles: Record<string, Buffer>;
 }
 
 export interface WriteTldrawArchiveInput {
+  assetFiles?: Readonly<Record<string, Buffer>>;
   displayName: string;
   records: readonly TLRecord[];
   scriptFiles: Readonly<Record<string, Buffer | string>>;
   targetPath: string;
+}
+
+function archiveFiles(
+  entries: ReadonlyMap<string, Buffer>,
+  directory: 'assets' | 'script',
+): Record<string, Buffer> {
+  const prefix = `${directory}/`;
+  return Object.fromEntries(
+    [...entries.entries()]
+      .filter(([entryPath]) => entryPath.startsWith(prefix) && entryPath !== prefix)
+      .map(([entryPath, content]) => [entryPath.slice(prefix.length), content]),
+  ) satisfies Record<string, Buffer>;
+}
+
+function isArchiveScriptMetadata(
+  script: TldrawArchiveMetadata['script'] | undefined,
+): script is TldrawArchiveMetadata['script'] {
+  return typeof script?.sha256 === 'string' && typeof script.description === 'string';
+}
+
+function parseArchiveMetadata(bytes: Buffer, archivePath: string): TldrawArchiveMetadata {
+  const metadata = JSON.parse(bytes.toString('utf8')) as Partial<TldrawArchiveMetadata>;
+  if (metadata.formatVersion !== 1 || metadata.createdWith !== '@codegraphy-dev/tldraw') {
+    throw new Error(`Unsupported tldraw document: ${archivePath}`);
+  }
+  if (typeof metadata.displayName !== 'string'
+    || typeof metadata.documentClock !== 'number'
+    || !isArchiveScriptMetadata(metadata.script)) {
+    throw new Error(`Invalid CodeGraphy tldraw metadata: ${archivePath}`);
+  }
+  return metadata as TldrawArchiveMetadata;
 }
 
 function scriptDigest(files: Readonly<Record<string, Buffer>>): string {
@@ -136,6 +169,9 @@ export async function writeTldrawArchive(input: WriteTldrawArchiveInput): Promis
     });
     zip.addEmptyDirectory('assets/', { mtime: ARCHIVE_DATE });
     zip.addEmptyDirectory('script/', { mtime: ARCHIVE_DATE });
+    for (const [filePath, content] of Object.entries(input.assetFiles ?? {})) {
+      zip.addBuffer(content, `assets/${filePath}`, { mtime: ARCHIVE_DATE });
+    }
     for (const [filePath, content] of Object.entries(scriptFiles)) {
       zip.addBuffer(content, `script/${filePath}`, { mtime: ARCHIVE_DATE });
     }
@@ -163,15 +199,11 @@ export async function readTldrawArchive(archivePath: string): Promise<TldrawArch
     const databasePath = path.join(workingDirectory, 'db.sqlite');
     await writeFile(databasePath, databaseBytes);
     const database = await readDocumentDatabase(databasePath);
-    const scriptFiles = Object.fromEntries(
-      [...entries.entries()]
-        .filter(([entryPath]) => entryPath.startsWith('script/') && entryPath !== 'script/')
-        .map(([entryPath, content]) => [entryPath.slice('script/'.length), content]),
-    ) satisfies Record<string, Buffer>;
     return {
-      metadata: JSON.parse(metadataBytes.toString('utf8')) as TldrawArchiveMetadata,
+      assetFiles: archiveFiles(entries, 'assets'),
+      metadata: parseArchiveMetadata(metadataBytes, archivePath),
       records: database.records,
-      scriptFiles,
+      scriptFiles: archiveFiles(entries, 'script'),
     };
   } finally {
     await rm(workingDirectory, { force: true, recursive: true });

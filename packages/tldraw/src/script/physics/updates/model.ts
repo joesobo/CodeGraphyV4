@@ -4,6 +4,11 @@ import type { IconShape, LabelShape, NodeShape, ScriptShape } from '../shape/mod
 
 const LABEL_GAP = 8;
 
+interface NodeLookups {
+  indexes: ReadonlyMap<string, number>;
+  shapes: ReadonlyMap<string, NodeShape>;
+}
+
 function createNodeUpdates(
   nodeShapes: readonly NodeShape[],
   engine: GraphLayoutEngine,
@@ -19,19 +24,13 @@ function createNodeUpdates(
 function appendLabelUpdates(
   updates: Array<Record<string, unknown>>,
   labelShapes: readonly LabelShape[],
-  nodeShapes: readonly NodeShape[],
+  nodes: NodeLookups,
   engine: GraphLayoutEngine,
 ): void {
-  const nodeIndexes = new Map<string, number>(
-    engine.nodeIds.map((entityId, index) => [entityId, index]),
-  );
-  const nodesById = new Map<string, NodeShape>(
-    nodeShapes.map(shape => [shape.meta.codegraphyEntityId, shape]),
-  );
   for (const shape of labelShapes) {
     const nodeId = shape.meta.codegraphyNodeId;
-    const index = nodeIndexes.get(nodeId);
-    const node = nodesById.get(nodeId);
+    const index = nodes.indexes.get(nodeId);
+    const node = nodes.shapes.get(nodeId);
     if (index === undefined || !node) continue;
     updates.push({
       id: shape.id,
@@ -45,19 +44,13 @@ function appendLabelUpdates(
 function appendIconUpdates(
   updates: Array<Record<string, unknown>>,
   iconShapes: readonly IconShape[],
-  nodeShapes: readonly NodeShape[],
+  nodes: NodeLookups,
   engine: GraphLayoutEngine,
 ): void {
-  const nodeIndexes = new Map<string, number>(
-    engine.nodeIds.map((entityId, index) => [entityId, index]),
-  );
-  const nodesById = new Map<string, NodeShape>(
-    nodeShapes.map(shape => [shape.meta.codegraphyEntityId, shape]),
-  );
   for (const shape of iconShapes) {
     const nodeId = shape.meta.codegraphyNodeId;
-    const index = nodeIndexes.get(nodeId);
-    const node = nodesById.get(nodeId);
+    const index = nodes.indexes.get(nodeId);
+    const node = nodes.shapes.get(nodeId);
     if (index === undefined || !node) continue;
     updates.push({
       id: shape.id,
@@ -71,11 +64,9 @@ function appendIconUpdates(
 function appendEdgeUpdates(
   updates: Array<Record<string, unknown>>,
   edgeShapes: readonly ScriptShape[],
+  nodeIndexes: ReadonlyMap<string, number>,
   engine: GraphLayoutEngine,
 ): void {
-  const nodeIndexes = new Map<string, number>(
-    engine.nodeIds.map((entityId, index) => [entityId, index]),
-  );
   for (const shape of edgeShapes) {
     const source = nodeIndexes.get(String(shape.meta.codegraphyFrom));
     const target = nodeIndexes.get(String(shape.meta.codegraphyTo));
@@ -105,8 +96,12 @@ export function createShapeUpdates(
   engine: GraphLayoutEngine,
 ): Array<Record<string, unknown>> {
   const updates = createNodeUpdates(nodeShapes, engine);
-  appendEdgeUpdates(updates, edgeShapes, engine);
-  appendIconUpdates(updates, iconShapes, nodeShapes, engine);
-  appendLabelUpdates(updates, labelShapes, nodeShapes, engine);
+  const nodes = {
+    indexes: new Map(engine.nodeIds.map((entityId, index) => [entityId, index])),
+    shapes: new Map(nodeShapes.map(shape => [shape.meta.codegraphyEntityId, shape])),
+  } satisfies NodeLookups;
+  appendEdgeUpdates(updates, edgeShapes, nodes.indexes, engine);
+  appendIconUpdates(updates, iconShapes, nodes, engine);
+  appendLabelUpdates(updates, labelShapes, nodes, engine);
   return updates;
 }

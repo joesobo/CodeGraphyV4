@@ -16,7 +16,6 @@ import {
 } from '@tldraw/tlschema';
 import { getIndicesAbove, type IndexKey } from '@tldraw/utils';
 import {
-  createExtensionNodeDiameterMap,
   createNodeDiameterMap,
   MINIMUM_NODE_DIAMETER,
 } from '../graph/nodeSize/model';
@@ -24,7 +23,6 @@ import { createNodeColorMap } from './nodeColor/model';
 import { createNodeIconMap, type NodeIcon } from './nodeIcon/model';
 
 const PAGE_ID = 'page:page' as TLPageId;
-const LEGACY_NODE_DIAMETER = 120;
 const LABEL_WIDTH = 180;
 const LABEL_GAP = 8;
 const ICON_SIZE = 56;
@@ -39,7 +37,7 @@ function shapeId(kind: Exclude<GeneratedKind, 'iconAsset'>, entityId: string) {
   return createShapeId(`codegraphy-${kind}-${entityHash(kind, entityId)}`);
 }
 
-function isOwnedRecord(record: TLRecord): boolean {
+export function isCodeGraphyRecord(record: TLRecord): boolean {
   return record.meta.codegraphyKind === 'iconAsset'
     || (record.typeName === 'shape'
       && (record.meta.codegraphyKind === 'node'
@@ -58,18 +56,36 @@ function metadataNumber(value: unknown): number | undefined {
 
 function shouldApplyGeneratedDiameter(
   existing: TLGeoShape | undefined,
-  extensionDiameter: number,
 ): boolean {
   if (!existing) return true;
   const previousGeneratedDiameter = metadataNumber(existing.meta.codegraphyGeneratedDiameter);
-  const isCurrentGeneratedSize = previousGeneratedDiameter !== undefined
+  return previousGeneratedDiameter !== undefined
     && existing.props.w === previousGeneratedDiameter
     && existing.props.h === previousGeneratedDiameter;
-  const isFixedMvpSize = existing.props.w === LEGACY_NODE_DIAMETER
-    && existing.props.h === LEGACY_NODE_DIAMETER;
-  const isExtensionGeneratedSize = existing.props.w === extensionDiameter
-    && existing.props.h === extensionDiameter;
-  return isCurrentGeneratedSize || isFixedMvpSize || isExtensionGeneratedSize;
+}
+
+interface PreservedNodeShape {
+  meta: TLGeoShape['meta'];
+  props: Partial<TLGeoShape['props']>;
+  shape?: TLGeoShape;
+}
+
+function preservedNodeShape(existing: TLShape | undefined): PreservedNodeShape {
+  if (!existing || existing.type !== 'geo') return { meta: {}, props: {} };
+  return { meta: existing.meta, props: existing.props, shape: existing };
+}
+
+function nodeDimensions(
+  preserved: PreservedNodeShape,
+  generatedDiameter: number,
+): { h: number; w: number } {
+  if (shouldApplyGeneratedDiameter(preserved.shape)) {
+    return { h: generatedDiameter, w: generatedDiameter };
+  }
+  return {
+    h: preserved.shape?.props.h ?? generatedDiameter,
+    w: preserved.shape?.props.w ?? generatedDiameter,
+  };
 }
 
 function initialNodePosition(
@@ -89,13 +105,12 @@ function createNodeShape(
   node: IGraphNode,
   color: TLGeoShape['props']['color'],
   diameter: number,
-  extensionDiameter: number,
   index: IndexKey,
   position: { x: number; y: number },
   existing?: TLShape,
 ): TLGeoShape {
-  const preserved = existing?.type === 'geo' ? existing : undefined;
-  const applyGeneratedDiameter = shouldApplyGeneratedDiameter(preserved, extensionDiameter);
+  const preserved = preservedNodeShape(existing);
+  const dimensions = nodeDimensions(preserved, diameter);
   const generatedStyle = {
     labelColor: 'black',
     color,
@@ -104,18 +119,19 @@ function createNodeShape(
     font: 'draw',
   } satisfies Partial<TLGeoShape['props']>;
   return {
+    x: position.x,
+    y: position.y,
+    rotation: 0,
+    isLocked: false,
+    opacity: 1,
+    ...(preserved.shape ?? {}),
     id: shapeId('node', node.id),
     typeName: 'shape',
     type: 'geo',
     parentId: PAGE_ID,
     index,
-    x: preserved?.x ?? position.x,
-    y: preserved?.y ?? position.y,
-    rotation: preserved?.rotation ?? 0,
-    isLocked: preserved?.isLocked ?? false,
-    opacity: preserved?.opacity ?? 1,
     meta: {
-      ...(preserved?.meta ?? {}),
+      ...preserved.meta,
       codegraphyEntityId: node.id,
       codegraphyGeneratedDiameter: diameter,
       codegraphyKind: 'node',
@@ -128,10 +144,9 @@ function createNodeShape(
       size: 'm',
       align: 'middle',
       verticalAlign: 'middle',
-      ...(preserved?.props ?? {}),
-      w: applyGeneratedDiameter ? diameter : preserved?.props.w ?? diameter,
-      h: applyGeneratedDiameter ? diameter : preserved?.props.h ?? diameter,
       ...generatedStyle,
+      ...preserved.props,
+      ...dimensions,
       geo: 'ellipse',
       richText: toRichText(''),
     },
@@ -287,85 +302,143 @@ function createEdgeShape(
   };
 }
 
-export function reconcileGraphRecords(
-  existingRecords: readonly TLRecord[],
+function indexExistingShapes(records: readonly TLRecord[]): ReadonlyMap<string, TLShape> {
+  const shapes = new Map<string, TLShape>();
+  for (const record of records) {
+    if (record.typeName !== 'shape') continue;
+    shapes.set(metadataString(record.meta.codegraphyEntityId) ?? '', record);
+  }
+  return shapes;
+}
+
+function createNodeShapes(
   graph: IGraphData,
-): TLRecord[] {
-  const existingShapes = new Map<string, TLShape>(
-    existingRecords
-      .filter((record): record is TLShape => record.typeName === 'shape')
-      .map(record => [metadataString(record.meta.codegraphyEntityId) ?? '', record]),
-  );
-  const indexes = getIndicesAbove(
-    'a1' as IndexKey,
-    graph.edges.length + graph.nodes.length * 3,
-  );
+  indexes: readonly IndexKey[],
+  existingShapes: ReadonlyMap<string, TLShape>,
+): TLGeoShape[] {
   const colors = createNodeColorMap(graph.nodes);
-  const icons = createNodeIconMap(graph.nodes);
-  const nodeDiameters = createNodeDiameterMap(graph.nodes, graph.edges);
-  const extensionNodeDiameters = createExtensionNodeDiameterMap(graph.nodes, graph.edges);
-  const nodeShapes = graph.nodes.map((node, nodeIndex) => {
-    const diameter = nodeDiameters.get(node.id) ?? MINIMUM_NODE_DIAMETER;
+  const diameters = createNodeDiameterMap(graph.nodes, graph.edges);
+  return graph.nodes.map((node, nodeIndex) => {
+    const diameter = diameters.get(node.id) ?? MINIMUM_NODE_DIAMETER;
     return createNodeShape(
       node,
       colors.get(node.id) ?? 'grey',
       diameter,
-      extensionNodeDiameters.get(node.id) ?? MINIMUM_NODE_DIAMETER,
       indexes[graph.edges.length + nodeIndex],
       initialNodePosition(nodeIndex, graph.nodes.length, diameter),
       existingShapes.get(node.id),
     );
   });
-  const nodesByEntityId = new Map<string, TLGeoShape>(
-    nodeShapes.map(shape => [metadataString(shape.meta.codegraphyEntityId) ?? '', shape]),
-  );
-  const edgeShapes = graph.edges.flatMap((edge, edgeIndex) => {
+}
+
+function indexNodesByEntityId(nodeShapes: readonly TLGeoShape[]): ReadonlyMap<string, TLGeoShape> {
+  return new Map(nodeShapes.map(shape => [
+    metadataString(shape.meta.codegraphyEntityId) ?? '',
+    shape,
+  ]));
+}
+
+function createEdgeShapes(
+  graph: IGraphData,
+  indexes: readonly IndexKey[],
+  nodesByEntityId: ReadonlyMap<string, TLGeoShape>,
+  existingShapes: ReadonlyMap<string, TLShape>,
+): TLArrowShape[] {
+  const shapes: TLArrowShape[] = [];
+  for (const [edgeIndex, edge] of graph.edges.entries()) {
     const from = nodesByEntityId.get(edge.from);
     const to = nodesByEntityId.get(edge.to);
-    if (!from || !to) return [];
-    return [createEdgeShape(
-      edge,
-      indexes[edgeIndex],
-      from,
-      to,
-      existingShapes.get(edge.id),
-    )];
-  });
-  const iconAssetsByName = new Map<string, TLImageAsset>();
-  for (const icon of icons.values()) {
-    if (!iconAssetsByName.has(icon.name)) iconAssetsByName.set(icon.name, createIconAsset(icon));
+    if (!from || !to) continue;
+    shapes.push(createEdgeShape(edge, indexes[edgeIndex], from, to, existingShapes.get(edge.id)));
   }
-  const iconShapes = graph.nodes.flatMap((node, nodeIndex) => {
+  return shapes;
+}
+
+function createIconAssets(icons: ReadonlyMap<string, NodeIcon>): ReadonlyMap<string, TLImageAsset> {
+  const assets = new Map<string, TLImageAsset>();
+  for (const icon of icons.values()) {
+    if (!assets.has(icon.name)) assets.set(icon.name, createIconAsset(icon));
+  }
+  return assets;
+}
+
+function createIconShapes(
+  graph: IGraphData,
+  indexes: readonly IndexKey[],
+  nodeShapes: readonly TLGeoShape[],
+  existingShapes: ReadonlyMap<string, TLShape>,
+  icons: ReadonlyMap<string, NodeIcon>,
+  assets: ReadonlyMap<string, TLImageAsset>,
+): TLImageShape[] {
+  const shapes: TLImageShape[] = [];
+  for (const [nodeIndex, node] of graph.nodes.entries()) {
     const icon = icons.get(node.id);
-    const asset = icon ? iconAssetsByName.get(icon.name) : undefined;
-    if (!icon || !asset) return [];
-    return [createIconShape(
+    const asset = icon ? assets.get(icon.name) : undefined;
+    if (!icon || !asset) continue;
+    shapes.push(createIconShape(
       node,
       icon,
       asset,
       indexes[graph.edges.length + graph.nodes.length + nodeIndex],
       nodeShapes[nodeIndex],
       existingShapes.get(`icon:${node.id}`),
-    )];
-  });
-  const labelShapes = graph.nodes.map((node, nodeIndex) => createLabelShape(
+    ));
+  }
+  return shapes;
+}
+
+function createLabelShapes(
+  graph: IGraphData,
+  indexes: readonly IndexKey[],
+  nodeShapes: readonly TLGeoShape[],
+  existingShapes: ReadonlyMap<string, TLShape>,
+): TLTextShape[] {
+  return graph.nodes.map((node, nodeIndex) => createLabelShape(
     node,
     indexes[graph.edges.length + graph.nodes.length * 2 + nodeIndex],
     nodeShapes[nodeIndex],
     existingShapes.get(`label:${node.id}`),
   ));
-  const userRecords = existingRecords.filter(record => !isOwnedRecord(record));
+}
+
+function validateGeneratedRecords(
+  assets: Iterable<TLImageAsset>,
+  shapes: Iterable<TLShape>,
+): void {
   const schema = createTLSchema();
-  for (const record of iconAssetsByName.values()) schema.types.asset.validate(record);
-  for (const record of [...edgeShapes, ...nodeShapes, ...iconShapes, ...labelShapes]) {
-    schema.types.shape.validate(record);
-  }
+  for (const asset of assets) schema.types.asset.validate(asset);
+  for (const shape of shapes) schema.types.shape.validate(shape);
+}
+
+export function reconcileGraphRecords(
+  existingRecords: readonly TLRecord[],
+  graph: IGraphData,
+): TLRecord[] {
+  const existingShapes = indexExistingShapes(existingRecords);
+  const indexes = getIndicesAbove(
+    'a1' as IndexKey,
+    graph.edges.length + graph.nodes.length * 3,
+  );
+  const icons = createNodeIconMap(graph.nodes);
+  const nodeShapes = createNodeShapes(graph, indexes, existingShapes);
+  const nodesByEntityId = indexNodesByEntityId(nodeShapes);
+  const edgeShapes = createEdgeShapes(graph, indexes, nodesByEntityId, existingShapes);
+  const iconAssetsByName = createIconAssets(icons);
+  const iconShapes = createIconShapes(
+    graph,
+    indexes,
+    nodeShapes,
+    existingShapes,
+    icons,
+    iconAssetsByName,
+  );
+  const labelShapes = createLabelShapes(graph, indexes, nodeShapes, existingShapes);
+  const userRecords = existingRecords.filter(record => !isCodeGraphyRecord(record));
+  const generatedShapes = [...edgeShapes, ...nodeShapes, ...iconShapes, ...labelShapes];
+  validateGeneratedRecords(iconAssetsByName.values(), generatedShapes);
   return [
     ...userRecords,
     ...iconAssetsByName.values(),
-    ...edgeShapes,
-    ...nodeShapes,
-    ...iconShapes,
-    ...labelShapes,
+    ...generatedShapes,
   ];
 }

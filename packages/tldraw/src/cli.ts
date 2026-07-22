@@ -2,11 +2,11 @@ import { spawn } from 'node:child_process';
 import { copyFile, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
-import { indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
+import { indexCodeGraphyWorkspace, type IGraphData } from '@codegraphy-dev/core';
 import type { TLRecord } from '@tldraw/tlschema';
 import { runTldrawCommand, type TldrawCommandDependencies } from './command';
 import { writeGraphDocument } from './document/writer';
-import { reconcileGraphRecords } from './document/records';
+import { isCodeGraphyRecord, reconcileGraphRecords } from './document/records';
 import { resolveDefaultDocumentPath } from './document/path';
 import { projectDefaultFileGraph } from './graph/projection';
 import { TldrawApiClient, type TldrawServerConnection } from './tldraw/api';
@@ -24,9 +24,26 @@ export interface CliDependencies {
   writeOutput(message: string): void;
 }
 
-async function openDocument(documentPath: string): Promise<void> {
+export interface CliPlatform {
+  copyFile(source: URL, destination: string): Promise<void>;
+  createClient(connection: TldrawServerConnection): TldrawApiClient;
+  currentWorkingDirectory(): string;
+  homeDirectory(): string;
+  indexWorkspace(workspaceRoot: string): Promise<{ graph: IGraphData }>;
+  openDocument(documentPath: string): Promise<void>;
+  readBytes(source: URL): Promise<Buffer>;
+  readText(filePath: string): Promise<string>;
+  writeGraphDocument(input: Parameters<typeof writeGraphDocument>[0]): Promise<void>;
+}
+
+type SpawnImplementation = typeof spawn;
+
+export async function openTldrawDocument(
+  documentPath: string,
+  spawnImplementation: SpawnImplementation = spawn,
+): Promise<void> {
   await new Promise<void>((resolve, reject) => {
-    const child = spawn('open', ['-a', 'tldraw offline', '--', documentPath], {
+    const child = spawnImplementation('open', ['-a', 'tldraw offline', '--', documentPath], {
       stdio: 'ignore',
     });
     child.on('error', reject);
@@ -37,64 +54,78 @@ async function openDocument(documentPath: string): Promise<void> {
   });
 }
 
-async function readTldrawClient(): Promise<TldrawApiClient | undefined> {
+async function readTldrawClient(platform: CliPlatform): Promise<TldrawApiClient | undefined> {
   const serverPath = path.join(
-    homedir(),
+    platform.homeDirectory(),
     'Library',
     'Application Support',
     'tldraw',
     'server.json',
   );
   try {
-    const connection = JSON.parse(await readFile(serverPath, 'utf8')) as TldrawServerConnection;
+    const connection = JSON.parse(await platform.readText(serverPath)) as TldrawServerConnection;
     if (!Number.isInteger(connection.port) || typeof connection.token !== 'string') {
       throw new Error(`Invalid tldraw offline server file: ${serverPath}`);
     }
-    return new TldrawApiClient(connection);
+    return platform.createClient(connection);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
     throw error;
   }
 }
 
-function createCommandDependencies(): TldrawCommandDependencies {
+const DEFAULT_PLATFORM: CliPlatform = {
+  copyFile: (source, destination) => copyFile(source, destination),
+  createClient: connection => new TldrawApiClient(connection),
+  currentWorkingDirectory: () => process.cwd(),
+  homeDirectory: homedir,
+  indexWorkspace: workspaceRoot => indexCodeGraphyWorkspace({ workspaceRoot }),
+  openDocument: openTldrawDocument,
+  readBytes: source => readFile(source),
+  readText: filePath => readFile(filePath, 'utf8'),
+  writeGraphDocument,
+};
+
+export function createCommandDependencies(
+  platform: CliPlatform = DEFAULT_PLATFORM,
+): TldrawCommandDependencies {
   let currentClient: TldrawApiClient | undefined;
   return {
     resolveDefaultDocumentPath,
-    cwd: () => process.cwd(),
+    cwd: () => platform.currentWorkingDirectory(),
     findOpenDocument: async documentPath => {
-      currentClient = await readTldrawClient();
-      return currentClient?.findOpenDocument(documentPath);
+      currentClient = await readTldrawClient(platform);
+      if (!currentClient) return undefined;
+      try {
+        return await currentClient.findOpenDocument(documentPath);
+      } catch (error) {
+        if (!(error instanceof TypeError)) throw error;
+        currentClient = undefined;
+        return undefined;
+      }
     },
-    indexWorkspace: async workspaceRoot => indexCodeGraphyWorkspace({ workspaceRoot }),
-    openDocument,
+    indexWorkspace: async workspaceRoot => platform.indexWorkspace(workspaceRoot),
+    openDocument: documentPath => platform.openDocument(documentPath),
     refreshOpenDocument: async ({ documentId, graph }) => {
       if (!currentClient) throw new Error('tldraw offline is not available for live refresh');
       const currentShapes = await currentClient.readShapes(documentId) as TLRecord[];
       const records = reconcileGraphRecords(currentShapes, projectDefaultFileGraph(graph));
-      const ownedRecords = records.filter(record => (
-        record.meta.codegraphyKind === 'iconAsset'
-        || (record.typeName === 'shape'
-        && (record.meta.codegraphyKind === 'node'
-          || record.meta.codegraphyKind === 'edge'
-          || record.meta.codegraphyKind === 'icon'
-          || record.meta.codegraphyKind === 'label'))
-      ));
+      const ownedRecords = records.filter(isCodeGraphyRecord);
       await currentClient.reconcileRecords(documentId, ownedRecords);
       const scriptWorkspace = await currentClient.getScriptWorkspace(documentId);
       await Promise.all([
-        copyFile(new URL('./script/config.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'config.js')),
-        copyFile(new URL('./script/main.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'main.js')),
+        platform.copyFile(new URL('./script/config.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'config.js')),
+        platform.copyFile(new URL('./script/main.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'main.js')),
       ]);
     },
     writeDocument: async ({ graph, targetPath }) => {
       const configPath = new URL('./script/config.js', import.meta.url);
       const scriptPath = new URL('./script/main.js', import.meta.url);
-      await writeGraphDocument({
+      await platform.writeGraphDocument({
         graph,
         scriptFiles: {
-          'config.js': await readFile(configPath),
-          'main.js': await readFile(scriptPath),
+          'config.js': await platform.readBytes(configPath),
+          'main.js': await platform.readBytes(scriptPath),
         },
         targetPath,
       });

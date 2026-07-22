@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { IGraphData } from '@codegraphy-dev/core';
 import { describe, expect, it } from 'vitest';
-import { readTldrawArchive } from './archive';
+import { readTldrawArchive, writeTldrawArchive } from './archive';
 import { writeGraphDocument } from './writer';
 
 describe('writeGraphDocument', () => {
@@ -51,5 +51,29 @@ describe('writeGraphDocument', () => {
         linkForce: 1,
       },
     });
+  });
+
+  it('preserves user asset files when it refreshes a saved document', async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), 'codegraphy-tldraw-writer-'));
+    const targetPath = path.join(directory, 'workspace.tldraw');
+    await writeTldrawArchive({
+      assetFiles: { 'user/photo.png': Buffer.from('user image bytes') },
+      displayName: 'workspace',
+      records: [],
+      scriptFiles: { 'main.js': 'old script' },
+      targetPath,
+    });
+
+    await writeGraphDocument({
+      graph: { nodes: [], edges: [] },
+      scriptFiles: { 'main.js': 'new script' },
+      targetPath,
+    });
+
+    const archive = await readTldrawArchive(targetPath);
+    expect(archive.assetFiles).toEqual({
+      'user/photo.png': Buffer.from('user image bytes'),
+    });
+    expect(archive.scriptFiles['main.js']).toEqual(Buffer.from('new script'));
   });
 });

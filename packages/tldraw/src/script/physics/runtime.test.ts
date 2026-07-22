@@ -44,9 +44,10 @@ function createHarness(options: HarnessOptions = {}) {
   const off = vi.fn();
   const stopStoreListener = vi.fn();
   const updateShapes = vi.fn();
+  const getCurrentPage = vi.fn(() => ({ meta }));
   let storeListener: () => void = () => undefined;
   const editor = {
-    getCurrentPage: () => ({ meta }),
+    getCurrentPage,
     getCurrentPageShapes: () => shapes,
     off,
     on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
@@ -62,6 +63,7 @@ function createHarness(options: HarnessOptions = {}) {
   return {
     editor,
     emit: (event: string, payload?: unknown) => listeners.get(event)?.(payload),
+    getCurrentPage,
     notifyStore: () => storeListener(),
     off,
     setMeta: (nextMeta: Record<string, unknown>) => { meta = nextMeta; },
@@ -178,6 +180,19 @@ describe('tldraw physics runtime', () => {
     engine.settled = true;
     harness.emit('tick', 16);
     expect(engine.tick).toHaveBeenCalledOnce();
+  });
+
+  it('does not inspect the full graph for its own position updates', async () => {
+    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB] });
+    harness.updateShapes.mockImplementation(() => harness.notifyStore());
+    const { startPhysicsRuntime } = await import('./runtime');
+
+    startPhysicsRuntime({ editor: harness.editor, signal: new AbortController().signal });
+    expect(harness.getCurrentPage).toHaveBeenCalledOnce();
+
+    harness.emit('tick', 16);
+
+    expect(harness.getCurrentPage).toHaveBeenCalledOnce();
   });
 
   it('rebuilds physics for graph structure changes but not delayed position updates', async () => {

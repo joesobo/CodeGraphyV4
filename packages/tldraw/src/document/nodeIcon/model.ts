@@ -50,6 +50,30 @@ function extensionCandidates(fileName: string): string[] {
   return candidates.sort((left, right) => right.length - left.length);
 }
 
+function firstMappedValue(
+  candidates: readonly string[],
+  values: Readonly<Record<string, string>> | undefined,
+): string | undefined {
+  if (!values) return undefined;
+  for (const candidate of candidates) {
+    const value = values[candidate];
+    if (value) return value;
+  }
+  return undefined;
+}
+
+function firstLanguageIcon(
+  candidates: readonly string[],
+  manifest: MaterialIconManifest,
+): string | undefined {
+  for (const extension of candidates) {
+    const languageId = LANGUAGE_BY_EXTENSION[extension as keyof typeof LANGUAGE_BY_EXTENSION];
+    const iconName = languageId ? manifest.languageIds?.[languageId] : undefined;
+    if (iconName) return iconName;
+  }
+  return undefined;
+}
+
 function resolveIconName(nodeId: string, manifest: MaterialIconManifest): string | undefined {
   const normalizedId = nodeId.replace(/\\/g, '/');
   const fileName = basename(normalizedId).toLowerCase();
@@ -58,16 +82,9 @@ function resolveIconName(nodeId: string, manifest: MaterialIconManifest): string
   if (exactName) return exactName;
 
   const candidates = extensionCandidates(fileName);
-  for (const extension of candidates) {
-    const iconName = manifest.fileExtensions?.[extension];
-    if (iconName) return iconName;
-  }
-  for (const extension of candidates) {
-    const languageId = LANGUAGE_BY_EXTENSION[extension as keyof typeof LANGUAGE_BY_EXTENSION];
-    const iconName = languageId ? manifest.languageIds?.[languageId] : undefined;
-    if (iconName) return iconName;
-  }
-  return manifest.file;
+  return firstMappedValue(candidates, manifest.fileExtensions)
+    ?? firstLanguageIcon(candidates, manifest)
+    ?? manifest.file;
 }
 
 function whiteSvgDataUrl(svg: string): string {
