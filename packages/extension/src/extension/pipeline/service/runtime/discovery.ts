@@ -30,8 +30,8 @@ export async function discoverWorkspacePipelineFilesWithWarnings(
   dependencies: WorkspacePipelineDiscoveryDependencies<IDiscoveredFile>,
   workspaceRoot: string,
   config: WorkspacePipelineDiscoveryConfig,
-  filterPatterns: string[],
-  pluginFilterPatterns: string[],
+  _filterPatterns: string[],
+  _pluginFilterPatterns: string[],
   signal: AbortSignal | undefined,
   showWarningMessage: (message: string) => void,
 ): Promise<WorkspacePipelineDiscoveryResult<IDiscoveredFile>> {
@@ -39,8 +39,6 @@ export async function discoverWorkspacePipelineFilesWithWarnings(
     dependencies,
     workspaceRoot,
     config,
-    filterPatterns,
-    pluginFilterPatterns,
     signal,
   );
 

@@ -26,6 +26,9 @@ export function paginate<T>(
       limit,
       returned: pagedItems.length,
       total: items.length,
+      nextOffset: pagedItems.length > 0 && offset + pagedItems.length < items.length
+        ? offset + pagedItems.length
+        : null,
     },
   };
 }

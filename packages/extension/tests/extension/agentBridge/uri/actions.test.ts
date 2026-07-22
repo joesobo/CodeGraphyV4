@@ -90,7 +90,7 @@ describe('agentBridge/uri/actions', () => {
     const query = { report: 'nodes' as const, arguments: {} };
     const queryGraph = vi.fn(() => ({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' as const }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
     }));
 
     const result = await dispatchAgentAction(
@@ -109,7 +109,7 @@ describe('agentBridge/uri/actions', () => {
         requestId: 'request-1',
         result: {
           nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-          page: { offset: 0, limit: 500, returned: 1, total: 1 },
+          page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
         },
         status: 'ok',
       },

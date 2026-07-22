@@ -68,6 +68,11 @@ describe('acceptance graph view workspace fixtures', () => {
       event: false,
       contains: false,
     }));
+    expect(sourceSettings.nodeVisibility).toEqual(expect.objectContaining({
+      'plugin:codegraphy.unity:symbol': false,
+      'plugin:codegraphy.unity:symbol:game-object': false,
+      'plugin:codegraphy.unity:symbol:component': false,
+    }));
   });
 
   it('shows Unity using edges in the example default graph state', () => {

@@ -3,6 +3,6 @@ import { readCliVersion } from '../../src/cli/version';
 
 describe('cli/version', () => {
   it('reads the packaged Core version', () => {
-    expect(readCliVersion()).toMatch(/^\d+\.\d+\.\d+(?:[-+].+)?$/);
+    expect(readCliVersion()).toMatch(/^codegraphy \d+\.\d+\.\d+(?:[-+].+)?$/);
   });
 });

@@ -10,8 +10,7 @@ import {
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createWorkspaceAnalysisCacheWriterAsync,
-  persistAnalysisEntryAsync,
-  sortedCacheEntries,
+  persistWorkspaceCacheAsync,
 } from '../query/write';
 import type { WorkspaceAnalysisDatabaseSaveOptions } from './save';
 
@@ -26,8 +25,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
     return;
   }
 
-  const entries = sortedCacheEntries(cache);
-  const total = entries.length;
+  const total = Object.keys(cache.files).length;
   const yieldEvery = options.yieldEvery ?? 100;
   let reportedProgress = 0;
   options.onProgress?.({ current: 0, total });
@@ -38,9 +36,10 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       await runStatementAsync(connection, 'BEGIN TRANSACTION');
       let committed = false;
       try {
-        await runStatementAsync(connection, 'DELETE FROM FileAnalysis');
+        await runStatementAsync(connection, 'DELETE FROM Edge');
         await runStatementAsync(connection, 'DELETE FROM Symbol');
-        await runStatementAsync(connection, 'DELETE FROM Relation');
+        await runStatementAsync(connection, 'DELETE FROM Node');
+        await runStatementAsync(connection, 'DELETE FROM File');
         const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
         let current = 0;
@@ -52,17 +51,30 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
             await waitForImmediate();
           }
         };
-
-        for (const [filePath, entry] of entries) {
-          await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
+        const reportPersistedFile = async (): Promise<void> => {
           current += 1;
-          if (current > reportedProgress) {
+          if (current < total && current > reportedProgress) {
             reportedProgress = current;
             options.onProgress?.({ current, total });
           }
-        }
+        };
+
+        await persistWorkspaceCacheAsync(
+          writer,
+          cache,
+          options.graph,
+          { afterFile: reportPersistedFile, afterStatement: yieldAfterStatement },
+        );
+        await runStatementAsync(
+          connection,
+          'DELETE FROM NodeView WHERE NOT EXISTS (SELECT 1 FROM Node WHERE Node.key = NodeView.nodeKey)',
+        );
         await runStatementAsync(connection, 'COMMIT');
         committed = true;
+        if (total > reportedProgress) {
+          reportedProgress = total;
+          options.onProgress?.({ current: total, total });
+        }
       } catch (error) {
         if (!committed) {
           try {

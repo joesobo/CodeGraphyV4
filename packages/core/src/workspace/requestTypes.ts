@@ -39,6 +39,13 @@ export interface IndexWorkspaceResult {
 export interface WorkspaceGraphQueryInput extends WorkspacePathInput {
   report: GraphQueryReport;
   arguments: Record<string, unknown>;
+  projection?: WorkspaceGraphQueryProjection;
+}
+
+export interface WorkspaceGraphQueryProjection {
+  filterPatterns?: string[];
+  nodeTypes?: string[];
+  edgeTypes?: string[];
 }
 
 export type WorkspaceGraphQueryResult = Record<string, unknown>;

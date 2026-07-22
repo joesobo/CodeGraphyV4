@@ -59,7 +59,7 @@ describe('WorkspacePipeline analysis adapters', () => {
         ['src/index.ts', {
           ...createEmptyAnalysisResult(file.absolutePath),
           cache: {
-            tiers: [BASELINE_ANALYSIS_CACHE_TIER],
+            tiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
           },
         }],
       ]),
@@ -71,7 +71,7 @@ describe('WorkspacePipeline analysis adapters', () => {
       file.absolutePath,
       "import './utils'",
       '/test/workspace',
-      expectWorkspaceAnalysisContext(false),
+      expectWorkspaceAnalysisContext(true),
       { disabledPlugins: new Set() },
     );
     expect(eventBus.emit).toHaveBeenCalledWith('analysis:fileProcessed', {
@@ -81,7 +81,7 @@ describe('WorkspacePipeline analysis adapters', () => {
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis: 0 cache hits, 1 misses');
   });
 
-  it('requests symbol cache enrichment when Symbols are visible', async () => {
+  it('requests symbol cache enrichment regardless of current visibility', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
     );
@@ -165,6 +165,7 @@ describe('WorkspacePipeline analysis adapters', () => {
 
     expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
       BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
       createPluginAnalysisCacheTier('codegraphy.vue'),
     ]);
     expect(analyzePluginFileSpy).toHaveBeenCalledWith(
@@ -172,7 +173,7 @@ describe('WorkspacePipeline analysis adapters', () => {
       'print("hi")',
       '/test/workspace',
       ['codegraphy.vue'],
-      expectWorkspaceAnalysisContext(false),
+      expectWorkspaceAnalysisContext(true),
       { disabledPlugins: new Set() },
     );
     expect(analyzeFileSpy).not.toHaveBeenCalled();

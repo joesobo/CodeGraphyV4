@@ -1,31 +1,36 @@
+import * as path from 'node:path';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import type { FileAnalysisRow } from './contracts';
+import type { FileRow } from './types';
 import { readOptionalNumber, readOptionalString, readRequiredString } from './values';
 
-export function createSnapshotFileEntry(
-  row: FileAnalysisRow,
-):
-  | {
-      filePath: string;
-      mtime: number;
-      size?: number;
-      contentHash?: string;
-      analysis: IFileAnalysisResult;
-    }
-  | undefined {
-  const filePath = readRequiredString(row.filePath);
-  const analysisText = readRequiredString(row.analysis);
+export interface SnapshotFileEntry {
+  filePath: string;
+  mtime: number;
+  size?: number;
+  contentHash?: string;
+  analysis: IFileAnalysisResult;
+}
 
-  if (!filePath || !analysisText) {
-    return undefined;
-  }
+export function createSnapshotFileEntry(
+  row: FileRow,
+  workspaceRoot: string,
+): SnapshotFileEntry | undefined {
+  const filePath = readRequiredString(row.path);
+  if (!filePath) return undefined;
 
   const contentHash = readOptionalString(row.contentHash);
+  const mtime = readOptionalNumber(row.mtime) ?? 0;
+  const size = readOptionalNumber(row.size);
   return {
     filePath,
-    mtime: Number(row.mtime ?? 0),
-    size: readOptionalNumber(row.size),
+    mtime,
+    ...(size !== undefined && size >= 0 ? { size } : {}),
     ...(contentHash ? { contentHash } : {}),
-    analysis: JSON.parse(analysisText) as IFileAnalysisResult,
+    analysis: {
+      filePath: path.resolve(workspaceRoot, filePath),
+      nodes: [],
+      symbols: [],
+      relations: [],
+    },
   };
 }

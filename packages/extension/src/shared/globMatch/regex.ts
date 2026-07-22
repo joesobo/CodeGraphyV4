@@ -4,7 +4,8 @@
  * Rules:
  *  - `**` matches any path segments, including nested `/`
  *  - `*` matches anything except `/`
- *  - regex metacharacters are escaped
+ *  - `[abc]` and `[!abc]` match one character from the (negated) set
+ *  - remaining regex metacharacters are escaped
  *
  * Patterns are matched against the basename or path suffix, so `src/*`
  * works anywhere in the tree while still keeping `*` and `**` semantics.
@@ -33,8 +34,38 @@ export function globToRegex(pattern: string): RegExp {
       continue;
     }
 
+    if (character === '[') {
+      const characterClass = readCharacterClass(pattern, index);
+      if (characterClass) {
+        body += characterClass.body;
+        index += characterClass.length - 1;
+        continue;
+      }
+    }
+
     body += character.replace(/([.+^${}()|[\]\\])/g, '\\$1');
   }
 
   return new RegExp(`(?:^|/)${body}$`);
+}
+
+function readCharacterClass(
+  pattern: string,
+  start: number,
+): { body: string; length: number } | null {
+  const negated = pattern[start + 1] === '!';
+  const contentStart = start + (negated ? 2 : 1);
+  const end = pattern.indexOf(']', contentStart + 1);
+  if (end === -1) {
+    return null;
+  }
+
+  const content = pattern
+    .slice(contentStart, end)
+    .replace(/\\/g, '\\\\')
+    .replace(/\^/g, '\\^');
+  return {
+    body: `[${negated ? '^' : ''}${content}]`,
+    length: end - start + 1,
+  };
 }

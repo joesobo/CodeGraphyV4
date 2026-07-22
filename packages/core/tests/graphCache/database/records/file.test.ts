@@ -2,54 +2,43 @@ import { describe, expect, it } from 'vitest';
 import { createSnapshotFileEntry } from '../../../../src/graphCache/database/records/file';
 
 describe('graphCache/database/fileEntry', () => {
-  it('creates a snapshot entry from valid persisted values', () => {
+  it('creates a snapshot entry from explicit file columns', () => {
     expect(createSnapshotFileEntry({
-      filePath: 'src/app.ts',
-      mtime: 42n,
+      path: 'src/app.ts',
+      mtime: 123.5,
       size: 7,
-      analysis: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
-    })).toEqual({
+    }, '/workspace')).toEqual({
       filePath: 'src/app.ts',
-      mtime: 42,
+      mtime: 123.5,
       size: 7,
       analysis: {
-        filePath: 'src/app.ts',
+        filePath: '/workspace/src/app.ts',
+        nodes: [],
         symbols: [],
         relations: [],
       },
     });
   });
 
-  it('defaults missing mtimes to zero and drops non-numeric sizes', () => {
+  it('creates complete empty analysis collections for an unknown file size', () => {
     expect(createSnapshotFileEntry({
-      filePath: 'src/app.ts',
-      size: '7',
-      analysis: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
-    })).toEqual({
+      path: 'src/app.ts',
+      size: -1,
+    }, '/workspace')).toEqual({
       filePath: 'src/app.ts',
       mtime: 0,
       analysis: {
-        filePath: 'src/app.ts',
+        filePath: '/workspace/src/app.ts',
+        nodes: [],
         symbols: [],
         relations: [],
       },
     });
   });
 
-  it('returns undefined when required persisted values are missing', () => {
+  it('returns undefined when required identity columns are missing', () => {
     expect(createSnapshotFileEntry({
-      analysis: '{"filePath":"src/app.ts","symbols":[],"relations":[]}',
-    })).toBeUndefined();
-
-    expect(createSnapshotFileEntry({
-      filePath: 'src/app.ts',
-    })).toBeUndefined();
-  });
-
-  it('throws when persisted analysis JSON is malformed', () => {
-    expect(() => createSnapshotFileEntry({
-      filePath: 'src/app.ts',
-      analysis: '{',
-    })).toThrow(SyntaxError);
+      size: 1,
+    }, '/workspace')).toBeUndefined();
   });
 });

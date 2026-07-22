@@ -159,6 +159,12 @@ export {
   buildWorkspaceGraphData,
   buildWorkspaceGraphDataFromAnalysis,
 } from './graph/data';
+export {
+  buildCompleteWorkspaceGraphData,
+} from './graph/completion/model';
+export type {
+  CompleteWorkspaceGraphDataOptions,
+} from './graph/completion/model';
 export type {
   IWorkspaceGraphAnalysisDataOptions,
   IWorkspaceGraphDataOptions,

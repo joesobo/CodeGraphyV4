@@ -24,7 +24,6 @@ export function createCachedGraphAnalysisWarmupInput(
   const disabledPluginSnapshot = new Set(options.disabledPlugins);
   const pluginIds = options.getActiveAnalysisPluginIds(disabledPluginSnapshot);
   const cacheTiers = createWorkspacePipelineAnalysisCacheTiers(
-    options.nodeVisibility,
     pluginIds,
   );
 

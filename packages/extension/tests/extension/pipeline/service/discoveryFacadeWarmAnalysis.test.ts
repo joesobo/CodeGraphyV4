@@ -142,7 +142,7 @@ describe('pipeline/service/discoveryFacade warm analysis', () => {
       '/workspace',
       ['plugin.typescript'],
       expect.objectContaining({
-        features: expect.objectContaining({ symbols: false }),
+        features: expect.objectContaining({ symbols: true }),
       }),
       { disabledPlugins: new Set<string>() },
     );

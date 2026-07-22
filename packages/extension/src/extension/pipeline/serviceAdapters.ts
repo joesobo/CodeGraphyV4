@@ -3,6 +3,7 @@ export {
   preAnalyzeWorkspacePipelinePlugins,
 } from './serviceAdapters/analysis';
 export {
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraphData,
   buildWorkspacePipelineGraphDataFromAnalysis,
   type WorkspacePipelineGraphScopeOptions,

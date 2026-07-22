@@ -14,14 +14,5 @@ export function createEffectiveIndexSettings(
     maxFiles: options.maxFiles ?? workspaceSettings.maxFiles,
     include: options.include ?? workspaceSettings.include,
     respectGitignore: options.respectGitignore ?? workspaceSettings.respectGitignore,
-    filterPatterns: options.filterPatterns ?? workspaceSettings.filterPatterns,
   };
-}
-
-export function getDisabledPluginFilterPatterns(settings: CodeGraphyWorkspaceSettings): Set<string> {
-  return new Set(
-    settings.plugins
-      .filter(plugin => plugin.enabled)
-      .flatMap(plugin => plugin.disabledFilterPatterns ?? []),
-  );
 }

@@ -21,6 +21,54 @@ interface ScopeCommandDependencies {
 }
 
 const DEFAULT_DEPENDENCIES: ScopeCommandDependencies = { cwd: () => process.cwd() };
+
+type CoreNodeDefinition = typeof CORE_GRAPH_NODE_TYPES[number];
+
+function hasNodeTypeAncestor(
+  definition: CoreNodeDefinition,
+  ancestorId: string,
+  definitions: ReadonlyMap<string, CoreNodeDefinition>,
+): boolean {
+  let parentId = definition.parentId;
+  while (parentId) {
+    if (parentId === ancestorId) return true;
+    parentId = definitions.get(parentId)?.parentId;
+  }
+  return false;
+}
+
+function isCoveredNodeType(
+  selected: CoreNodeDefinition,
+  candidate: CoreNodeDefinition,
+  definitions: ReadonlyMap<string, CoreNodeDefinition>,
+): boolean {
+  if (candidate.id === selected.id) return false;
+  if (!selected.matchSymbolKinds) {
+    return hasNodeTypeAncestor(candidate, selected.id, definitions);
+  }
+  return Boolean(candidate.matchSymbolKinds?.every(kind => selected.matchSymbolKinds?.includes(kind)));
+}
+
+function createNodeVisibilityUpdates(type: string, enabled: boolean): Record<string, boolean> {
+  const updates: Record<string, boolean> = { [type]: enabled };
+  if (!enabled) return updates;
+
+  const definitions = new Map(CORE_GRAPH_NODE_TYPES.map(definition => [definition.id, definition]));
+  const selected = definitions.get(type);
+  if (selected) {
+    for (const candidate of CORE_GRAPH_NODE_TYPES) {
+      if (isCoveredNodeType(selected, candidate, definitions)) updates[candidate.id] = true;
+    }
+  }
+
+  let parentId = selected?.parentId;
+  while (parentId) {
+    updates[parentId] = true;
+    parentId = definitions.get(parentId)?.parentId;
+  }
+  return updates;
+}
+
 function createScopeOutput(
   settings: ReturnType<typeof readCodeGraphyWorkspaceSettingsOrInitial>,
   workspaceRoot: string,
@@ -94,17 +142,9 @@ export function runScopeCommand(
   const enabled = command.arguments?.enabled;
 
   if ((kind === 'node' || kind === 'edge') && typeof type === 'string' && typeof enabled === 'boolean') {
-    const updates: Record<string, boolean> = { [type]: enabled };
-    if (kind === 'node') {
-      if (enabled) {
-        const definitions = new Map(CORE_GRAPH_NODE_TYPES.map(definition => [definition.id, definition]));
-        let parentId = definitions.get(type)?.parentId;
-        while (parentId) {
-          updates[parentId] = true;
-          parentId = definitions.get(parentId)?.parentId;
-        }
-      }
-    }
+    const updates = kind === 'node'
+      ? createNodeVisibilityUpdates(type, enabled)
+      : { [type]: enabled };
     patchCodeGraphyWorkspaceSettingRecord(
       workspaceRoot,
       kind === 'node' ? 'nodeVisibility' : 'edgeVisibility',

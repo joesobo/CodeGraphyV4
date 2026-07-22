@@ -14,6 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/service/runtime/graph', () => ({
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis: vi.fn(),
   buildWorkspacePipelineGraph: vi.fn(),
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
@@ -157,7 +158,6 @@ describe('extension/pipeline/service/internalBase analysis', () => {
       disabledPlugins,
     );
     expect(createWorkspacePipelineAnalysisCacheTiers).toHaveBeenCalledWith(
-      { file: true, symbol: false },
       ['plugin.a'],
     );
     await expect(

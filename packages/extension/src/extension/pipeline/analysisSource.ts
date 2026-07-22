@@ -43,6 +43,7 @@ export interface WorkspacePipelineSourceOwner {
     disabledPlugins?: Set<string>,
   ): Promise<void>;
   _eventBus?: EventBus;
+  _completeGraphData: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
@@ -116,6 +117,9 @@ export function createWorkspacePipelineAnalysisSource(
   } as WorkspacePipelineAnalysisSource;
 
   Object.defineProperties(source, {
+    _completeGraphData: {
+      get: () => owner._completeGraphData,
+    },
     _eventBus: {
       get: () => owner._eventBus,
     },

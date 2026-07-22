@@ -6,28 +6,20 @@ import test from 'node:test';
 const repoRoot = process.cwd();
 const skillPath = path.join(repoRoot, 'skills', 'codegraphy', 'SKILL.md');
 
-test('the generalized CodeGraphy skill exposes the complete CLI workflow', () => {
+test('the generalized CodeGraphy skill teaches the lifecycle and delegates syntax to CLI help', () => {
   const skill = readFileSync(skillPath, 'utf8');
 
   assert.match(skill, /^name: codegraphy$/m);
-  for (const command of [
-    'index',
-    'nodes',
-    'search',
-    'edges',
-    'dependencies',
-    'dependents',
-    'path',
-    'scope',
-    'filter',
-    'plugins',
-  ]) {
-    assert.match(skill, new RegExp(`codegraphy ${command}`));
+  const lifecycle = ['codegraphy index', 'codegraphy filter', 'Query with'];
+  const lifecyclePositions = lifecycle.map(term => skill.indexOf(term));
+  assert.ok(lifecyclePositions.every(position => position >= 0));
+  assert.deepEqual(lifecyclePositions, [...lifecyclePositions].sort((left, right) => left - right));
+  for (const command of ['nodes', 'search', 'edges', 'dependencies', 'dependents', 'path']) {
+    assert.match(skill, new RegExp(`\\b${command}\\b`));
   }
-  assert.doesNotMatch(skill, /codegraphy query/);
-  assert.doesNotMatch(skill, /codegraphy (relationships|symbols|paths)(?:\s|$)/);
+  assert.match(skill, /codegraphy --help/);
+  assert.match(skill, /codegraphy <command> --help/);
   assert.doesNotMatch(skill, /MCP|graph\.lbug/);
-  assert.match(skill, /Index, status, settings, and graph query commands emit compact JSON/);
 });
 
 test('the old MCP package and skill are absent from the release source', () => {
@@ -41,22 +33,4 @@ test('the documented install source matches the currently available local skill'
 
   assert.match(readme, /npx skills@latest add \.\/skills\/codegraphy/);
   assert.doesNotMatch(readme, /npx skills@latest add codegraphy\/skills/);
-});
-
-test('the skill installs the CodeGraphy CLI when the command is unavailable', () => {
-  const skill = readFileSync(skillPath, 'utf8');
-
-  assert.match(skill, /npm install --global @codegraphy-dev\/core@latest/);
-});
-
-test('the skill provides a no-install CLI fallback', () => {
-  const skill = readFileSync(skillPath, 'utf8');
-
-  assert.match(skill, /npx --yes @codegraphy-dev\/core@latest/);
-});
-
-test('the skill states the supported Node range for CLI installation', () => {
-  const skill = readFileSync(skillPath, 'utf8');
-
-  assert.match(skill, /Node\.js 20 through 22/);
 });

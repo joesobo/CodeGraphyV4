@@ -85,13 +85,13 @@ describe('GraphViewProvider public API', () => {
     const internals = getGraphViewProviderInternals(provider);
     const querySpy = vi.spyOn(internals._queryMethods, 'queryGraph').mockReturnValue({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
     });
     const query = { report: 'nodes' as const, arguments: {} };
 
     expect(provider.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
     });
     expect(querySpy).toHaveBeenCalledWith(query);
   });

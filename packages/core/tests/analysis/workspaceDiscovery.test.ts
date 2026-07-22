@@ -6,7 +6,7 @@ import {
 } from '../../src/analysis/workspaceDiscovery';
 
 describe('pipeline/discovery', () => {
-  it('merges default, plugin, and user filters before discovery', async () => {
+  it('keeps saved graph filters out of file discovery', async () => {
     const discover = vi.fn(async () => ({
       durationMs: 2,
       files: ['src/index.ts'],
@@ -23,8 +23,6 @@ describe('pipeline/discovery', () => {
         maxFiles: 25,
         respectGitignore: false,
       },
-      ['**/*.generated.ts', '**/*.generated.ts'],
-      ['**/*.dist.ts'],
       signal,
     );
 
@@ -35,8 +33,6 @@ describe('pipeline/discovery', () => {
       exclude: [
           ...new Set([
           ...DEFAULT_EXCLUDE,
-          '**/*.dist.ts',
-          '**/*.generated.ts',
         ]),
       ],
       respectGitignore: false,

@@ -67,14 +67,16 @@ function getDefinitionSpecificity(definition: IGraphNodeTypeDefinition): number 
   ].filter(Boolean).length + symbolKindSpecificity;
 }
 
-function hasSymbolMatcher(definition: IGraphNodeTypeDefinition): boolean {
+export function symbolDefinitionHasMatcher(definition: IGraphNodeTypeDefinition): boolean {
   return getDefinitionSpecificity(definition) > 0;
 }
 
 function findMatchingSymbolDefinition(node: IGraphData['nodes'][number]): IGraphNodeTypeDefinition | undefined {
   return CORE_GRAPH_NODE_TYPES
     .filter((definition) =>
-      definition.parentId && hasSymbolMatcher(definition) && symbolMatchesScopedDefinition(node, definition)
+      definition.parentId
+      && symbolDefinitionHasMatcher(definition)
+      && symbolMatchesScopedDefinition(node, definition)
     )
     .sort((left, right) => getDefinitionSpecificity(right) - getDefinitionSpecificity(left))[0];
 }

@@ -1,43 +1,84 @@
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
+import type { IGraphData } from '../../../graph/contracts';
 import {
   executeStatementAsync,
   executeStatementSync,
   prepareStatementAsync,
   prepareStatementSync,
+  readRowsSync,
 } from '../io/connection';
 import type {
   SQLiteConnection,
   SQLiteStatement,
   SQLiteValue,
 } from '../io/connection';
+import {
+  serializeDatabaseRecords,
+  type DatabaseRecord,
+  type NormalizedDatabaseRecords,
+} from '../records/serializer';
+import {
+  EDGE_COLUMNS,
+  FILE_COLUMNS,
+  NODE_COLUMNS,
+  NODE_VIEW_COLUMNS,
+  SYMBOL_COLUMNS,
+  type EdgeRecord,
+  type NodeRecord,
+  type StoredEdgeRecord,
+  type StoredNodeRecord,
+  type StoredSymbolRecord,
+  type SymbolRecord,
+} from '../records/types';
 
-const CREATE_FILE_ANALYSIS_STATEMENT = 'INSERT INTO FileAnalysis(filePath, mtime, size, contentHash, analysis) VALUES (@filePath, @mtime, @size, @contentHash, @analysis)';
-const DELETE_FILE_ANALYSIS_STATEMENT = 'DELETE FROM FileAnalysis WHERE filePath = @filePath';
-const DELETE_SYMBOL_STATEMENT = 'DELETE FROM Symbol WHERE filePath = @filePath';
-const DELETE_RELATION_STATEMENT = 'DELETE FROM Relation WHERE filePath = @filePath';
+function createInsertStatement(table: string, columns: readonly string[]): string {
+  return `INSERT INTO ${table}(${columns.join(', ')}) VALUES (${columns.map(column => `@${column}`).join(', ')})`;
+}
+
+function createUpsertStatement(
+  table: string,
+  columns: readonly string[],
+  conflictColumn: string,
+): string {
+  const updates = columns
+    .filter(column => column !== conflictColumn)
+    .map(column => `${column} = excluded.${column}`)
+    .join(', ');
+  return `${createInsertStatement(table, columns)} ON CONFLICT(${conflictColumn}) DO UPDATE SET ${updates}`;
+}
+
+const CREATE_FILE_STATEMENT = createUpsertStatement('File', FILE_COLUMNS, 'path');
+const CREATE_NODE_STATEMENT = createUpsertStatement('Node', NODE_COLUMNS, 'key');
+const CREATE_NODE_VIEW_STATEMENT = `INSERT INTO NodeView(${NODE_VIEW_COLUMNS.join(', ')}) VALUES (
+    @nodeKey, @color, @x, @y, COALESCE(@favorite, 0), @shape, @imageUrl, COALESCE(@isCollapsed, 0)
+  )
+  ON CONFLICT(nodeKey) DO UPDATE SET
+    color = excluded.color,
+    x = COALESCE(excluded.x, NodeView.x),
+    y = COALESCE(excluded.y, NodeView.y),
+    favorite = COALESCE(@favorite, NodeView.favorite),
+    shape = excluded.shape,
+    imageUrl = excluded.imageUrl,
+    isCollapsed = COALESCE(@isCollapsed, NodeView.isCollapsed)`;
+const CREATE_SYMBOL_STATEMENT = createUpsertStatement('Symbol', SYMBOL_COLUMNS, 'nodeId');
+const CREATE_EDGE_STATEMENT = createUpsertStatement('Edge', EDGE_COLUMNS, 'key');
+const UPDATE_NODE_PARENT_STATEMENT = 'UPDATE Node SET parentId = @parentId WHERE id = @id';
+const DELETE_FILE_NODES_STATEMENT = 'DELETE FROM Node WHERE fileId = (SELECT id FROM File WHERE path = @path)';
+const DELETE_FILE_STATEMENT = 'DELETE FROM File WHERE path = @path';
 
 export interface WorkspaceAnalysisCacheWriter {
   connection: SQLiteConnection;
-  fileAnalysisStatement: SQLiteStatement;
+  fileStatement: SQLiteStatement;
+  nodeStatement: SQLiteStatement;
+  nodeViewStatement: SQLiteStatement;
+  symbolStatement: SQLiteStatement;
+  edgeStatement: SQLiteStatement;
+  nodeParentStatement: SQLiteStatement;
 }
 
 export interface WorkspaceAnalysisCachePatchWriter extends WorkspaceAnalysisCacheWriter {
-  deleteFileAnalysisStatement: SQLiteStatement;
-  deleteSymbolStatement: SQLiteStatement;
-  deleteRelationStatement: SQLiteStatement;
-}
-
-function createFileAnalysisParams(
-  filePath: string,
-  entry: IWorkspaceAnalysisCache['files'][string],
-): Record<string, SQLiteValue> {
-  return {
-    filePath,
-    mtime: entry.mtime ?? 0,
-    size: entry.size ?? 0,
-    contentHash: entry.contentHash ?? null,
-    analysis: JSON.stringify(entry.analysis),
-  };
+  deleteFileNodesStatement: SQLiteStatement;
+  deleteFileStatement: SQLiteStatement;
 }
 
 export function sortedCacheEntries(
@@ -51,7 +92,12 @@ export function createWorkspaceAnalysisCacheWriter(
 ): WorkspaceAnalysisCacheWriter {
   return {
     connection,
-    fileAnalysisStatement: prepareStatementSync(connection, CREATE_FILE_ANALYSIS_STATEMENT),
+    fileStatement: prepareStatementSync(connection, CREATE_FILE_STATEMENT),
+    nodeStatement: prepareStatementSync(connection, CREATE_NODE_STATEMENT),
+    nodeViewStatement: prepareStatementSync(connection, CREATE_NODE_VIEW_STATEMENT),
+    symbolStatement: prepareStatementSync(connection, CREATE_SYMBOL_STATEMENT),
+    edgeStatement: prepareStatementSync(connection, CREATE_EDGE_STATEMENT),
+    nodeParentStatement: prepareStatementSync(connection, UPDATE_NODE_PARENT_STATEMENT),
   };
 }
 
@@ -60,61 +106,307 @@ export function createWorkspaceAnalysisCachePatchWriter(
 ): WorkspaceAnalysisCachePatchWriter {
   return {
     ...createWorkspaceAnalysisCacheWriter(connection),
-    deleteFileAnalysisStatement: prepareStatementSync(connection, DELETE_FILE_ANALYSIS_STATEMENT),
-    deleteSymbolStatement: prepareStatementSync(connection, DELETE_SYMBOL_STATEMENT),
-    deleteRelationStatement: prepareStatementSync(connection, DELETE_RELATION_STATEMENT),
+    deleteFileNodesStatement: prepareStatementSync(connection, DELETE_FILE_NODES_STATEMENT),
+    deleteFileStatement: prepareStatementSync(connection, DELETE_FILE_STATEMENT),
   };
 }
 
 export async function createWorkspaceAnalysisCacheWriterAsync(
   connection: SQLiteConnection,
 ): Promise<WorkspaceAnalysisCacheWriter> {
-  const fileAnalysisStatement = await prepareStatementAsync(connection, CREATE_FILE_ANALYSIS_STATEMENT);
+  const [fileStatement, nodeStatement, nodeViewStatement, symbolStatement, edgeStatement, nodeParentStatement]
+    = await Promise.all([
+    prepareStatementAsync(connection, CREATE_FILE_STATEMENT),
+    prepareStatementAsync(connection, CREATE_NODE_STATEMENT),
+    prepareStatementAsync(connection, CREATE_NODE_VIEW_STATEMENT),
+    prepareStatementAsync(connection, CREATE_SYMBOL_STATEMENT),
+    prepareStatementAsync(connection, CREATE_EDGE_STATEMENT),
+    prepareStatementAsync(connection, UPDATE_NODE_PARENT_STATEMENT),
+  ]);
   return {
     connection,
-    fileAnalysisStatement,
+    fileStatement,
+    nodeStatement,
+    nodeViewStatement,
+    symbolStatement,
+    edgeStatement,
+    nodeParentStatement,
   };
 }
 
-export function persistAnalysisEntry(
+function readIdMap(
+  connection: SQLiteConnection,
+  table: 'File' | 'Node',
+  keyColumn: 'path' | 'key',
+): Map<string, number> {
+  return new Map(readRowsSync(connection, `SELECT id, ${keyColumn} AS key FROM ${table}`).flatMap(row => (
+    typeof row.key === 'string' && (typeof row.id === 'number' || typeof row.id === 'bigint')
+      ? [[row.key, Number(row.id)] as const]
+      : []
+  )));
+}
+
+function readSelectedIdMap(
+  connection: SQLiteConnection,
+  table: 'File' | 'Node',
+  keyColumn: 'path' | 'key',
+  keys: readonly string[],
+): Map<string, number> {
+  const uniqueKeys = [...new Set(keys)];
+  if (uniqueKeys.length === 0) return new Map();
+  const params: Record<string, SQLiteValue> = {};
+  const placeholders = uniqueKeys.map((key, index) => {
+    params[`key${index}`] = key;
+    return `@key${index}`;
+  });
+  const rows = connection.prepare(
+    `SELECT id, ${keyColumn} AS key FROM ${table} WHERE ${keyColumn} IN (${placeholders.join(', ')})`,
+  ).all(params) as Array<{ id?: number | bigint; key?: string }>;
+  return new Map(rows.flatMap(row => (
+    typeof row.key === 'string' && (typeof row.id === 'number' || typeof row.id === 'bigint')
+      ? [[row.key, Number(row.id)] as const]
+      : []
+  )));
+}
+
+function optionalReferenceId(value: SQLiteValue, ids: ReadonlyMap<string, number>): number | null {
+  return value === null ? null : ids.get(String(value)) ?? null;
+}
+
+function requiredReferenceId(
+  value: SQLiteValue,
+  ids: ReadonlyMap<string, number>,
+  relationship: string,
+): number {
+  const id = value === null ? undefined : ids.get(String(value));
+  if (id === undefined) {
+    throw new Error(`Cannot persist ${relationship}: referenced key ${String(value)} does not exist.`);
+  }
+  return id;
+}
+
+function storedNodeRecord(
+  record: NodeRecord,
+  fileIds: ReadonlyMap<string, number>,
+): StoredNodeRecord {
+  return {
+    ...record,
+    fileId: optionalReferenceId(record.fileId, fileIds),
+    parentId: null,
+  };
+}
+
+function storedSymbolRecord(
+  record: SymbolRecord,
+  nodeIds: ReadonlyMap<string, number>,
+): StoredSymbolRecord {
+  return {
+    ...record,
+    nodeId: requiredReferenceId(record.nodeId, nodeIds, 'symbol node'),
+  };
+}
+
+function storedEdgeRecord(
+  record: EdgeRecord,
+  nodeIds: ReadonlyMap<string, number>,
+): StoredEdgeRecord {
+  return {
+    ...record,
+    sourceNodeId: requiredReferenceId(record.sourceNodeId, nodeIds, 'edge source'),
+    targetNodeId: requiredReferenceId(record.targetNodeId, nodeIds, 'edge target'),
+  };
+}
+
+function parentUpdate(
+  record: NodeRecord,
+  nodeIds: ReadonlyMap<string, number>,
+): DatabaseRecord | undefined {
+  if (record.parentId === null) return undefined;
+  const id = requiredReferenceId(record.key, nodeIds, 'node parent owner');
+  const parentId = optionalReferenceId(record.parentId, nodeIds);
+  return parentId === null ? undefined : { id, parentId };
+}
+
+function persistRecords(
   writer: WorkspaceAnalysisCacheWriter,
-  filePath: string,
-  entry: IWorkspaceAnalysisCache['files'][string],
+  records: NormalizedDatabaseRecords,
 ): void {
-  executeStatementSync(writer.connection, writer.fileAnalysisStatement, createFileAnalysisParams(filePath, entry));
+  for (const record of records.files) {
+    executeStatementSync(writer.connection, writer.fileStatement, record);
+  }
+  const fileIds = readIdMap(writer.connection, 'File', 'path');
+  for (const record of records.nodes) {
+    executeStatementSync(writer.connection, writer.nodeStatement, storedNodeRecord(record, fileIds));
+  }
+  const nodeIds = readIdMap(writer.connection, 'Node', 'key');
+  for (const record of records.nodes) {
+    const update = parentUpdate(record, nodeIds);
+    if (update) executeStatementSync(writer.connection, writer.nodeParentStatement, update);
+  }
+  for (const record of records.nodeViews) {
+    executeStatementSync(writer.connection, writer.nodeViewStatement, record);
+  }
+  for (const record of records.symbols) {
+    executeStatementSync(writer.connection, writer.symbolStatement, storedSymbolRecord(record, nodeIds));
+  }
+  for (const record of records.edges) {
+    executeStatementSync(writer.connection, writer.edgeStatement, storedEdgeRecord(record, nodeIds));
+  }
+}
+
+function persistPatchRecords(
+  writer: WorkspaceAnalysisCacheWriter,
+  records: NormalizedDatabaseRecords,
+): void {
+  for (const record of records.files) {
+    executeStatementSync(writer.connection, writer.fileStatement, record);
+  }
+  const affectedFilePaths = new Set(records.files.map(record => record.path));
+  const fileIds = readSelectedIdMap(
+    writer.connection,
+    'File',
+    'path',
+    records.nodes.flatMap(record => typeof record.fileId === 'string' ? [record.fileId] : []),
+  );
+  const existingNodeIds = readSelectedIdMap(
+    writer.connection,
+    'Node',
+    'key',
+    records.nodes.map(record => record.key),
+  );
+  const nodes = records.nodes.filter(record => (
+    (typeof record.fileId === 'string' && affectedFilePaths.has(record.fileId))
+    || !existingNodeIds.has(record.key)
+  ));
+  for (const record of nodes) {
+    executeStatementSync(writer.connection, writer.nodeStatement, storedNodeRecord(record, fileIds));
+  }
+  const nodeKeys = new Set<string>();
+  for (const record of records.nodes) nodeKeys.add(record.key);
+  for (const record of records.nodes) {
+    if (typeof record.parentId === 'string') nodeKeys.add(record.parentId);
+  }
+  for (const record of records.symbols) nodeKeys.add(record.nodeId);
+  for (const record of records.edges) {
+    nodeKeys.add(String(record.sourceNodeId));
+    nodeKeys.add(String(record.targetNodeId));
+  }
+  const nodeIds = readSelectedIdMap(writer.connection, 'Node', 'key', [...nodeKeys]);
+  for (const record of nodes) {
+    const update = parentUpdate(record, nodeIds);
+    if (update) executeStatementSync(writer.connection, writer.nodeParentStatement, update);
+  }
+  const writtenNodeKeys = new Set(nodes.map(record => record.key));
+  for (const record of records.nodeViews) {
+    if (!writtenNodeKeys.has(record.nodeKey)) continue;
+    executeStatementSync(writer.connection, writer.nodeViewStatement, record);
+  }
+  for (const record of records.symbols) {
+    if (!writtenNodeKeys.has(record.nodeId)) continue;
+    executeStatementSync(writer.connection, writer.symbolStatement, storedSymbolRecord(record, nodeIds));
+  }
+  for (const record of records.edges) {
+    executeStatementSync(writer.connection, writer.edgeStatement, storedEdgeRecord(record, nodeIds));
+  }
+}
+
+export function persistWorkspaceCache(
+  writer: WorkspaceAnalysisCacheWriter,
+  cache: IWorkspaceAnalysisCache,
+  graph?: IGraphData,
+): void {
+  persistRecords(writer, serializeDatabaseRecords(cache, graph));
+}
+
+export function persistWorkspaceCachePatch(
+  writer: WorkspaceAnalysisCacheWriter,
+  cache: IWorkspaceAnalysisCache,
+  graph?: IGraphData,
+): void {
+  persistPatchRecords(writer, serializeDatabaseRecords(cache, graph));
 }
 
 export function deleteAnalysisEntry(
   writer: WorkspaceAnalysisCachePatchWriter,
   filePath: string,
 ): void {
-  const params = { filePath };
-  executeStatementSync(writer.connection, writer.deleteFileAnalysisStatement, params);
-  executeStatementSync(writer.connection, writer.deleteSymbolStatement, params);
-  executeStatementSync(writer.connection, writer.deleteRelationStatement, params);
+  executeStatementSync(writer.connection, writer.deleteFileNodesStatement, { path: filePath });
+  executeStatementSync(writer.connection, writer.deleteFileStatement, { path: filePath });
+}
+
+export function deleteAnalysisEntryNodes(
+  writer: WorkspaceAnalysisCachePatchWriter,
+  filePath: string,
+): void {
+  executeStatementSync(writer.connection, writer.deleteFileNodesStatement, { path: filePath });
 }
 
 async function executeStatementAndYield(
   writer: WorkspaceAnalysisCacheWriter,
   preparedStatement: SQLiteStatement,
-  params: Record<string, SQLiteValue>,
+  params: DatabaseRecord,
   afterStatement: () => Promise<void>,
 ): Promise<void> {
   await executeStatementAsync(writer.connection, preparedStatement, params);
   await afterStatement();
 }
 
-export async function persistAnalysisEntryAsync(
+async function persistRecordsAsync(
   writer: WorkspaceAnalysisCacheWriter,
-  filePath: string,
-  entry: IWorkspaceAnalysisCache['files'][string],
-  afterStatement: () => Promise<void>,
+  records: NormalizedDatabaseRecords,
+  callbacks: WorkspaceCacheAsyncCallbacks,
 ): Promise<void> {
-  await executeStatementAndYield(
-    writer,
-    writer.fileAnalysisStatement,
-    createFileAnalysisParams(filePath, entry),
-    afterStatement,
-  );
+  for (const record of records.files) {
+    await executeStatementAndYield(writer, writer.fileStatement, record, callbacks.afterStatement);
+    await callbacks.afterFile();
+  }
+  const fileIds = readIdMap(writer.connection, 'File', 'path');
+  for (const record of records.nodes) {
+    await executeStatementAndYield(
+      writer,
+      writer.nodeStatement,
+      storedNodeRecord(record, fileIds),
+      callbacks.afterStatement,
+    );
+  }
+  for (const record of records.nodeViews) {
+    await executeStatementAndYield(writer, writer.nodeViewStatement, record, callbacks.afterStatement);
+  }
+  const nodeIds = readIdMap(writer.connection, 'Node', 'key');
+  for (const record of records.nodes) {
+    const update = parentUpdate(record, nodeIds);
+    if (update) {
+      await executeStatementAndYield(writer, writer.nodeParentStatement, update, callbacks.afterStatement);
+    }
+  }
+  for (const record of records.symbols) {
+    await executeStatementAndYield(
+      writer,
+      writer.symbolStatement,
+      storedSymbolRecord(record, nodeIds),
+      callbacks.afterStatement,
+    );
+  }
+  for (const record of records.edges) {
+    await executeStatementAndYield(
+      writer,
+      writer.edgeStatement,
+      storedEdgeRecord(record, nodeIds),
+      callbacks.afterStatement,
+    );
+  }
+}
 
+export interface WorkspaceCacheAsyncCallbacks {
+  afterFile: () => Promise<void>;
+  afterStatement: () => Promise<void>;
+}
+
+export async function persistWorkspaceCacheAsync(
+  writer: WorkspaceAnalysisCacheWriter,
+  cache: IWorkspaceAnalysisCache,
+  graph: IGraphData | undefined,
+  callbacks: WorkspaceCacheAsyncCallbacks,
+): Promise<void> {
+  await persistRecordsAsync(writer, serializeDatabaseRecords(cache, graph), callbacks);
 }

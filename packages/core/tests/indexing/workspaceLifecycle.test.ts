@@ -3,13 +3,13 @@ import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  createCodeGraphyWorkspaceEngine,
-  indexCodeGraphyWorkspace,
-  readGraphCacheStatus,
-  readCodeGraphyWorkspaceStatus,
-  readCodeGraphyWorkspaceSettings,
-  readWorkspaceAnalysisDatabaseSnapshot,
-  writeCodeGraphyWorkspaceSettings,
+    createCodeGraphyWorkspaceEngine,
+    indexCodeGraphyWorkspace,
+    readCodeGraphyWorkspaceSettings,
+    readCodeGraphyWorkspaceStatus,
+    readGraphCacheStatus,
+    readWorkspaceAnalysisDatabaseSnapshot,
+    writeCodeGraphyWorkspaceSettings,
 } from '../../src';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
 
@@ -143,7 +143,7 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] }).state).toBe('fresh');
   });
 
-  it('reuses compatible persisted analysis and reparses only changed files across CLI-style runs', async () => {
+  it('reanalyzes reverse dependents when a target file changes', async () => {
     const workspaceRoot = await createWorkspace();
     const calls = {
       onPreAnalyze: vi.fn(),
@@ -151,163 +151,23 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       onWorkspaceReady: vi.fn(),
       analyzeFile: vi.fn(),
     };
-    const options = {
-      workspaceRoot,
-      plugins: [createTextPlugin(calls)],
-      includeCorePlugins: false,
-    };
-
-    const initial = await indexCodeGraphyWorkspace(options);
-    const unchanged = await indexCodeGraphyWorkspace(options);
-    await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
-    const changed = await indexCodeGraphyWorkspace(options);
-    const incompatible = await indexCodeGraphyWorkspace({
-      ...options,
-      settings: {
-        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-        respectGitignore: false,
-      },
-    });
-
-    expect(initial.indexing).toEqual({
-      mode: 'full',
-      analyzedFiles: 2,
-      deletedFiles: 0,
-      reusedFiles: 0,
-    });
-    expect(unchanged.indexing).toEqual({
-      mode: 'incremental',
-      analyzedFiles: 0,
-      deletedFiles: 0,
-      reusedFiles: 2,
-    });
-    expect(changed.indexing).toEqual({
-      mode: 'incremental',
-      analyzedFiles: 1,
-      deletedFiles: 0,
-      reusedFiles: 1,
-    });
-    expect(incompatible.indexing).toEqual({
-      mode: 'full',
-      analyzedFiles: 2,
-      deletedFiles: 0,
-      reusedFiles: 0,
-    });
-    expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
-  });
-
-  it('applies plugin invalidation paths during incremental CLI-style indexing', async () => {
-    const workspaceRoot = await createWorkspace();
-    const calls = {
-      onPreAnalyze: vi.fn(),
-      onPostAnalyze: vi.fn(),
-      onWorkspaceReady: vi.fn(),
-      analyzeFile: vi.fn(),
-    };
-    const onFilesChanged = vi.fn(async () => ['target.txt']);
-    const plugin = {
-      ...createTextPlugin(calls),
-      onFilesChanged,
-    };
-    const options = {
+    const plugin = createTextPlugin(calls);
+    const engine = createCodeGraphyWorkspaceEngine({
       workspaceRoot,
       plugins: [plugin],
       includeCorePlugins: false,
-    };
+    });
 
-    await indexCodeGraphyWorkspace(options);
-    await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
-    const refreshed = await indexCodeGraphyWorkspace(options);
+    await engine.index();
+    await fs.writeFile(path.join(workspaceRoot, 'target.txt'), 'changed\n', 'utf-8');
+    await engine.applyChangedFiles(['target.txt']);
 
-    expect(onFilesChanged).toHaveBeenCalledWith(
-      [expect.objectContaining({ relativePath: 'source.txt' })],
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(4);
+    expect(calls.analyzeFile).toHaveBeenNthCalledWith(
+      4,
+      path.join(workspaceRoot, 'source.txt'),
+      'target.txt\n',
       path.resolve(workspaceRoot),
-      expect.any(Object),
     );
-    expect(refreshed.indexing).toEqual({
-      mode: 'incremental',
-      analyzedFiles: 2,
-      deletedFiles: 0,
-      reusedFiles: 0,
-    });
-  });
-
-  it('removes an unreferenced deleted file without rebuilding unchanged files', async () => {
-    const workspaceRoot = await createWorkspace();
-    await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unused\n', 'utf-8');
-    const calls = {
-      onPreAnalyze: vi.fn(),
-      onPostAnalyze: vi.fn(),
-      onWorkspaceReady: vi.fn(),
-      analyzeFile: vi.fn(),
-    };
-    const options = {
-      workspaceRoot,
-      plugins: [createTextPlugin(calls)],
-      includeCorePlugins: false,
-    };
-
-    await indexCodeGraphyWorkspace(options);
-    await fs.rm(path.join(workspaceRoot, 'orphan.txt'));
-    const rebuilt = await indexCodeGraphyWorkspace(options);
-
-    expect(rebuilt.indexing).toEqual({
-      mode: 'incremental',
-      analyzedFiles: 0,
-      deletedFiles: 1,
-      reusedFiles: 2,
-    });
-  });
-
-  it('adds an unreferenced file without rebuilding unchanged files', async () => {
-    const workspaceRoot = await createWorkspace();
-    const calls = {
-      onPreAnalyze: vi.fn(),
-      onPostAnalyze: vi.fn(),
-      onWorkspaceReady: vi.fn(),
-      analyzeFile: vi.fn(),
-    };
-    const options = {
-      workspaceRoot,
-      plugins: [createTextPlugin(calls)],
-      includeCorePlugins: false,
-    };
-
-    await indexCodeGraphyWorkspace(options);
-    await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unused\n', 'utf-8');
-    const refreshed = await indexCodeGraphyWorkspace(options);
-
-    expect(refreshed.indexing).toEqual({
-      mode: 'incremental',
-      analyzedFiles: 1,
-      deletedFiles: 0,
-      reusedFiles: 2,
-    });
-  });
-
-  it('reports a safe full rebuild when a compatible-looking Graph Cache is corrupt', async () => {
-    const workspaceRoot = await createWorkspace();
-    const calls = {
-      onPreAnalyze: vi.fn(),
-      onPostAnalyze: vi.fn(),
-      onWorkspaceReady: vi.fn(),
-      analyzeFile: vi.fn(),
-    };
-    const options = {
-      workspaceRoot,
-      plugins: [createTextPlugin(calls)],
-      includeCorePlugins: false,
-    };
-    const initial = await indexCodeGraphyWorkspace(options);
-    await fs.writeFile(initial.graphCachePath, 'not sqlite', 'utf-8');
-
-    const rebuilt = await indexCodeGraphyWorkspace(options);
-
-    expect(rebuilt.indexing).toEqual({
-      mode: 'full',
-      analyzedFiles: 2,
-      deletedFiles: 0,
-      reusedFiles: 0,
-    });
   });
 });

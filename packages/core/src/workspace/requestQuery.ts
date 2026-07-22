@@ -56,6 +56,7 @@ export async function requestWorkspaceGraphQuery(
   const { graphData, scope, settings, snapshotFacts } = readWorkspaceQueryGraph(
     workspaceRoot,
     dependencies.readInstalledPluginCache(),
+    input.projection,
   );
   const queryResult = executeGraphQuery({
     graphData,
@@ -68,6 +69,9 @@ export async function requestWorkspaceGraphQuery(
         nodes: scope.nodes,
         edges: scope.edges,
       },
+      ...(input.projection?.nodeTypes
+        ? { projectedNodeTypes: input.projection.nodeTypes }
+        : {}),
       showOrphans: settings.showOrphans,
       ...input.arguments,
     },

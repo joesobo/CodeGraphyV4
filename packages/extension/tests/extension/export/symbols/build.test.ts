@@ -153,6 +153,7 @@ describe('buildSymbolsExportData', () => {
 describe('buildSymbolsExportDataFromSnapshot', () => {
   it('uses the structured snapshot symbol and relation tables when per-file analysis fields are missing', () => {
     const exportData = buildSymbolsExportDataFromSnapshot({
+      graph: { nodes: [], edges: [] },
       files: [
         {
           filePath: 'src/app.ts',
@@ -210,6 +211,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
 
   it('normalizes mixed absolute and relative snapshot paths into per-file counts and export rows', () => {
     const exportData = buildSymbolsExportDataFromSnapshot({
+      graph: { nodes: [], edges: [] },
       files: [
         {
           filePath: 'src/app.ts',
@@ -274,6 +276,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
 
   it('counts both incoming and outgoing relations for each file summary entry', () => {
     const exportData = buildSymbolsExportDataFromSnapshot({
+      graph: { nodes: [], edges: [] },
       files: [
         {
           filePath: 'src/createFolder.ts',
@@ -316,6 +319,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
 
   it('emits a compact json shape without duplicate node data', () => {
     const exportData = buildSymbolsExportDataFromSnapshot({
+      graph: { nodes: [], edges: [] },
       files: [
         {
           filePath: 'src/utils/createFolder.ts',
@@ -400,6 +404,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
 
   it('sorts snapshot relations by normalized file and symbol identity fields', () => {
     const exportData = buildSymbolsExportDataFromSnapshot({
+      graph: { nodes: [], edges: [] },
       files: [
         {
           filePath: 'src/app.ts',

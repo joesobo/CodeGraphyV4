@@ -38,6 +38,7 @@ export interface WorkspacePipelineAnalysisSource {
     disabledPlugins: Set<string>,
   ): IGraphData;
   _eventBus?: WorkspacePipelineEventBus;
+  _completeGraphData?: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
@@ -63,6 +64,7 @@ export interface WorkspacePipelineAnalysisDependencies
   getWorkspaceRoot(): string | undefined;
   logInfo(message: string): void;
   saveCache(
+    graph: IGraphData,
     onProgress?: (progress: { current: number; total: number }) => void,
   ): void | Promise<void>;
   showWarningMessage(message: string): void;
@@ -72,7 +74,7 @@ export interface WorkspacePipelineAnalysisDependencies
 export async function analyzeWorkspaceWithAnalyzer(
   source: WorkspacePipelineAnalysisSource,
   dependencies: WorkspacePipelineAnalysisDependencies,
-  filterPatterns: string[] = [],
+  _filterPatterns: string[] = [],
   disabledPlugins: Set<string> = new Set(),
   signal?: AbortSignal,
 ): Promise<IGraphData> {
@@ -85,8 +87,6 @@ export async function analyzeWorkspaceWithAnalyzer(
   }
 
   const config = dependencies.getConfig();
-  const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns ?? []);
-  const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns ?? []);
   dependencies.sendProgress?.({
     phase: 'Discovering Files',
     current: 0,
@@ -96,9 +96,6 @@ export async function analyzeWorkspaceWithAnalyzer(
     dependencies,
     workspaceRoot,
     config,
-    filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
-    source.getPluginFilterPatterns(disabledPlugins)
-      .filter(pattern => !disabledPluginPatterns.has(pattern)),
     signal,
   );
   dependencies.sendProgress?.({
@@ -176,13 +173,16 @@ export async function analyzeWorkspaceWithAnalyzer(
     current: 0,
     total: 1,
   });
-  await dependencies.saveCache(progress => {
-    dependencies.sendProgress?.({
-      phase: 'Saving Graph Cache',
-      current: progress.current,
-      total: progress.total,
-    });
-  });
+  await dependencies.saveCache(
+    source._completeGraphData ?? graphData,
+    progress => {
+      dependencies.sendProgress?.({
+        phase: 'Saving Graph Cache',
+        current: progress.current,
+        total: progress.total,
+      });
+    },
+  );
   dependencies.sendProgress?.({
     phase: 'Saving Graph Cache',
     current: 1,

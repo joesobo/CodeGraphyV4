@@ -11,6 +11,9 @@ import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parseTypes';
 import { hasSupportedRawPluginIdentity } from '../../workspace/settingsPlugins';
+import { inspectWorkspaceAnalysisDatabase } from '../../graphCache/database/storage';
+import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
+import { createDoctorCacheCheck } from './cacheCheck/model';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -93,6 +96,8 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
   const runtimeOk = runtimeMajor >= 20 && runtimeMajor < 23;
   const settingsCheck = readSettingsCheck(workspaceRoot);
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
+  const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+  const cacheInspection = inspectWorkspaceAnalysisDatabase(workspaceRoot);
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   const activity = createPluginActivityState({
     settings,
@@ -107,12 +112,11 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
       ...(runtimeOk ? {} : { action: 'Use Node.js 20, 21, or 22.' }),
     },
     settings: settingsCheck,
-    cache: {
-      ok: status.state === 'fresh',
-      state: status.state,
-      path: status.graphCachePath,
-      ...(status.state === 'fresh' ? {} : { action: 'Run `codegraphy index`.' }),
-    },
+    cache: createDoctorCacheCheck({
+      status,
+      inspection: cacheInspection,
+      indexedAt: meta.lastIndexedAt,
+    }),
     plugins: {
       ok: activity.warnings.length === 0,
       enabled: [...activity.activePluginIds],
