@@ -121,4 +121,18 @@ describe('graph WASM physics preparation', () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('prepares physics from bytes supplied by an embedding host', async () => {
+    const compiled = new WebAssembly.Module(moduleBytes);
+    const compile = vi.spyOn(WebAssembly, 'compile').mockResolvedValue(compiled);
+    const { prepareGraphPhysicsFromBytes } = await import(
+      '@graph-renderer/physics/wasm/runtime/loader'
+    );
+    const registry = await import('@graph-renderer/physics/wasm/runtime/module');
+
+    await prepareGraphPhysicsFromBytes(moduleBytes);
+
+    expect(compile).toHaveBeenCalledWith(moduleBytes);
+    expect(registry.requireGraphPhysicsModule()).toBe(compiled);
+  });
 });
