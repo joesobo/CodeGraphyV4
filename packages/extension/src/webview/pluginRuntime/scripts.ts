@@ -24,7 +24,7 @@ export async function activatePluginScript(
   const activationPromise = runPluginActivation(
     {
       cleanups: refs.pluginActivationCleanups,
-      getApi: () => getPluginApi(refs, pluginId),
+      getApi: () => getPluginApi(refs, pluginId, activationVersion),
       versions: refs.pluginAssetVersions,
     },
     pluginId,

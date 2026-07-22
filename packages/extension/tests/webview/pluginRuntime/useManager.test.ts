@@ -485,6 +485,39 @@ describe('usePluginManager', () => {
     expect(result.current.pluginHost.getNodeRenderers('.ts')).toHaveLength(1);
   });
 
+  it('blocks stale registrations from an activation that finishes after reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    let releaseActivation: (() => void) | undefined;
+    let markStarted: (() => void) | undefined;
+    (globalThis as Record<string, unknown>).__useManagerActivationGate = new Promise<void>((resolve) => {
+      releaseActivation = resolve;
+    });
+    const activationStarted = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerActivationStarted = markStarted;
+    const scriptUrl = toDataUrlModule(`
+      export async function activate(api) {
+        globalThis.__useManagerActivationStarted();
+        await globalThis.__useManagerActivationGate;
+        api.registerNodeRenderer('.stale', () => undefined);
+      }
+    `);
+
+    const activation = result.current.injectPluginAssets({
+      pluginId: 'linked-plugin',
+      revision: 'build-v1',
+      scripts: [scriptUrl],
+      styles: [],
+    });
+    await activationStarted;
+    result.current.resetPluginAssets('linked-plugin');
+    releaseActivation?.();
+    await activation;
+
+    expect(result.current.pluginHost.getNodeRenderers('.stale')).toEqual([]);
+  });
+
   it('warns when a script has no activate export', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { result } = renderHook(() => usePluginManager());
