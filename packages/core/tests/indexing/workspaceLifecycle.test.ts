@@ -1,4 +1,5 @@
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +12,7 @@ import {
     readWorkspaceAnalysisDatabaseSnapshot,
     writeCodeGraphyWorkspaceSettings,
 } from '../../src';
+import { writeCodeGraphyInstalledPluginCache } from '../../src/plugins/installedCache';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
 
 describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
@@ -109,6 +111,57 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     })).rejects.toThrow('logging failed');
 
     expect(onUnload).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the new cache fresh when an enabled installed plugin fails to initialize', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-failed-plugin-home-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-failed-plugin-'));
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: '@acme/codegraphy-plugin-bad',
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.bad',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
+      },
+    }), 'utf8');
+    await fs.writeFile(path.join(packageRoot, 'plugin.js'), `
+      export default function createPlugin() {
+        return {
+          id: 'acme.bad',
+          name: 'Bad Plugin',
+          version: '1.0.0',
+          apiVersion: '^4.0.0',
+          supportedExtensions: ['.bad'],
+          async initialize() { throw new Error('initialization failed'); }
+        };
+      }
+    `, 'utf8');
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-bad',
+        id: 'acme.bad',
+        version: '1.0.0',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await indexCodeGraphyWorkspace({ workspaceRoot, userHomeDir: homeDir, includeCorePlugins: false });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { userHomeDir: homeDir })).toEqual(
+      expect.objectContaining({ state: 'fresh', staleReasons: [] }),
+    );
   });
 
   it('keeps indexing state in core so changed files update the graph without full indexing', async () => {

@@ -10,7 +10,10 @@ import type { IndexCodeGraphyWorkspaceResult } from './contracts';
 import type { WorkspaceEngineRuntime } from './engineRuntime';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
-import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from '../workspace/statusPlugins';
 import { createWorkspaceIndexPluginSignature } from './metadata';
 
 export function buildWorkspaceEngineGraph(
@@ -71,8 +74,10 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
     });
   persistWorkspaceIndexMetadata({
     pluginSignature,
-    registry: state.registry,
     settings: state.settings,
+    settingsPluginIds: runtime.options.plugins === undefined
+      ? createDefaultStatusCorePluginIds(state.settings, runtime.options.userHomeDir)
+      : new Set(state.registry.list().map(info => info.plugin.id)),
     workspaceRoot,
   });
 }

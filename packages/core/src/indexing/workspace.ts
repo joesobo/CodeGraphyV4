@@ -22,7 +22,10 @@ import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
-import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from '../workspace/statusPlugins';
 import {
   createWorkspaceIndexFileContentReader,
   findAffectedWorkspaceIndexDependents,
@@ -289,8 +292,10 @@ export async function indexCodeGraphyWorkspace(
     'persist-metadata',
     () => persistWorkspaceIndexMetadata({
       pluginSignature,
-      registry,
       settings,
+      settingsPluginIds: options.plugins === undefined
+        ? createDefaultStatusCorePluginIds(settings, options.userHomeDir)
+        : new Set(registry.list().map(info => info.plugin.id)),
       workspaceRoot,
     }),
   );

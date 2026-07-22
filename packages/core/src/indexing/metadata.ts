@@ -46,15 +46,15 @@ export function createWorkspaceIndexPluginSignature(input: {
 
 export function persistWorkspaceIndexMetadata(input: {
   pluginSignature: string | null;
-  registry: CorePluginRegistry;
   settings: CodeGraphyWorkspaceSettings;
+  settingsPluginIds: ReadonlySet<string>;
   workspaceRoot: string;
 }): void {
   persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
     pluginSignature: input.pluginSignature,
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(
       input.settings,
-      new Set(input.registry.list().map(info => info.plugin.id)),
+      input.settingsPluginIds,
     ),
   });
 }
