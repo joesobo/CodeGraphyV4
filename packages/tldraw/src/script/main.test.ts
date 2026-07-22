@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const engine = {
   nodeIds: ['a', 'b'],
+  setConfig: vi.fn(),
   settled: false,
   x: Float32Array.from([10, 90]),
   y: Float32Array.from([20, 100]),
@@ -25,6 +26,7 @@ describe('CodeGraphy tldraw document script', () => {
     const updateShapes = vi.fn();
     const storeListener = vi.fn();
     const editor = {
+      getCurrentPage: () => ({ meta: {} }),
       getCurrentPageShapes: () => [
         {
           id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 20, h: 20 },
@@ -52,5 +54,44 @@ describe('CodeGraphy tldraw document script', () => {
     expect(engine.tick).toHaveBeenCalledOnce();
     expect(editor.run).toHaveBeenCalledWith(expect.any(Function), { history: 'ignore' });
     expect(updateShapes).toHaveBeenCalled();
+  });
+
+  it('sends changed document force settings to the active graph-renderer engine', async () => {
+    const listeners = new Map<string, (elapsed: number) => void>();
+    let storeListener: () => void = () => undefined;
+    let physics = {
+      repelForce: 18,
+      centerForce: 0.15,
+      linkDistance: 80,
+      linkForce: 2,
+    };
+    const editor = {
+      getCurrentPage: () => ({ meta: { codegraphyPhysics: physics } }),
+      getCurrentPageShapes: () => [{
+        id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 20, h: 20 },
+        meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
+      }],
+      off: vi.fn(),
+      on: vi.fn((event: string, listener: (elapsed: number) => void) => listeners.set(event, listener)),
+      run: vi.fn((operation: () => void) => operation()),
+      store: { listen: vi.fn((listener: () => void) => {
+        storeListener = listener;
+        return vi.fn();
+      }) },
+      updateShapes: vi.fn(),
+    };
+    const { default: runDocumentScript } = await import('./main');
+
+    await runDocumentScript({ editor, signal: new AbortController().signal });
+    listeners.get('tick')?.(16);
+    physics = { ...physics, repelForce: 10, linkForce: 0.5 };
+    storeListener();
+
+    expect(engine.setConfig).toHaveBeenLastCalledWith({
+      centralGravity: 0.15,
+      chargeStrength: -250,
+      linkDistance: 80,
+      linkStrength: 0.5,
+    });
   });
 });

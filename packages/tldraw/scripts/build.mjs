@@ -43,4 +43,14 @@ await Promise.all([
     sourcemap: true,
     plugins: [embeddedPhysicsPlugin],
   }),
+  build({
+    entryPoints: ['src/script/forceControls/view.ts'],
+    outfile: 'dist/script/config.js',
+    bundle: true,
+    platform: 'browser',
+    format: 'esm',
+    target: 'es2022',
+    sourcemap: true,
+    external: ['react', 'tldraw'],
+  }),
 ]);

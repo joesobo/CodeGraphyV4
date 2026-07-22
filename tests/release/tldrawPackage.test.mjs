@@ -24,7 +24,7 @@ function packTldraw(destination) {
   return path.join(destination, 'package');
 }
 
-test('published tldraw package contains its launcher and embedded physics script', () => {
+test('published tldraw package contains its launcher, force panel, and embedded physics script', () => {
   const destination = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-tldraw-package-'));
   try {
     const unpackedPackage = packTldraw(destination);
@@ -36,10 +36,16 @@ test('published tldraw package contains its launcher and embedded physics script
       path.join(unpackedPackage, 'dist', 'script', 'main.js'),
       'utf8',
     );
+    const documentConfig = fs.readFileSync(
+      path.join(unpackedPackage, 'dist', 'script', 'config.js'),
+      'utf8',
+    );
 
     assert.equal(manifest.bin['codegraphy-tldraw'], './bin/codegraphy-tldraw.js');
     assert.ok(fs.existsSync(path.join(unpackedPackage, 'dist', 'index.js')));
     assert.ok(documentScript.length > 40_000);
+    assert.match(documentConfig, /CodeGraphy forces/u);
+    assert.match(documentConfig, /Repel Force/u);
     assert.doesNotMatch(documentScript, /Q09ERUdSQVBIWV9QSFlTSUNTX1dBU00=/u);
     assert.equal(fs.existsSync(path.join(unpackedPackage, 'dist', 'core')), false);
   } finally {

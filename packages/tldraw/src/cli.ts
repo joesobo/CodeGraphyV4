@@ -79,10 +79,14 @@ function createCommandDependencies(): TldrawCommandDependencies {
       await currentClient.reconcileShapes(documentId, ownedShapes);
     },
     writeDocument: async ({ graph, targetPath }) => {
+      const configPath = new URL('./script/config.js', import.meta.url);
       const scriptPath = new URL('./script/main.js', import.meta.url);
       await writeGraphDocument({
         graph,
-        scriptFiles: { 'main.js': await readFile(scriptPath) },
+        scriptFiles: {
+          'config.js': await readFile(configPath),
+          'main.js': await readFile(scriptPath),
+        },
         targetPath,
       });
       return { documentPath: targetPath };

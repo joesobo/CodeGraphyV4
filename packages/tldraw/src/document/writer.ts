@@ -10,6 +10,7 @@ import {
 } from '@tldraw/tlschema';
 import type { IndexKey } from '@tldraw/utils';
 import { projectDefaultFileGraph } from '../graph/projection';
+import { DEFAULT_FORCE_SETTINGS } from '../script/forceControls/model';
 import { readTldrawArchive, writeTldrawArchive } from './archive';
 import { reconcileGraphRecords } from './records';
 
@@ -35,7 +36,7 @@ function createBaseRecords(displayName: string): TLRecord[] {
       id: 'page:page' as TLPageId,
       name: 'Page 1',
       index: 'a1' as IndexKey,
-      meta: {},
+      meta: { codegraphyPhysics: DEFAULT_FORCE_SETTINGS },
     }),
   ];
 }

@@ -19,4 +19,6 @@ codegraphy-tldraw architecture.tldraw
 
 Each run indexes the current workspace through `@codegraphy-dev/core`. The document uses native tldraw circles and connectors. Its persistent document script runs the same WebAssembly force physics as the CodeGraphy Extension.
 
+The canvas includes Repel Force, Center Force, Link Distance, and Link Force sliders. They use the same ranges and physics mapping as the Extension. Changes apply to the active graph immediately and remain saved in the tldraw document.
+
 When the requested file is already open, the launcher uses tldraw offline's authenticated local API to update that live canvas. A closed file is reconciled on disk before it opens. CodeGraphy-owned graph shapes use stable identities, so refresh preserves surviving node positions and leaves user-created notes and drawings unchanged.

@@ -3,6 +3,6 @@
 "@codegraphy-dev/graph-renderer": minor
 ---
 
-Add the `codegraphy-tldraw` workspace launcher with native tldraw shapes, persistent shared force physics, saved-document reconciliation, and live refresh for open canvases.
+Add the `codegraphy-tldraw` workspace launcher with native tldraw shapes, persistent shared force physics, live force controls, saved-document reconciliation, and live refresh for open canvases.
 
 Allow rendering interfaces to prepare graph physics from embedded WebAssembly bytes.

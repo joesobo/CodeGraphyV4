@@ -31,4 +31,25 @@ describe('writeGraphDocument', () => {
     ))).toBe(true);
     expect(archive.records.some(record => record.meta.codegraphyEntityId === 'symbol:a')).toBe(false);
   });
+
+  it('stores the initial force settings in a new document', async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), 'codegraphy-tldraw-writer-'));
+    const targetPath = path.join(directory, 'workspace.tldraw');
+
+    await writeGraphDocument({
+      graph: { nodes: [], edges: [] },
+      scriptFiles: { 'main.js': 'export default function main() {}\n' },
+      targetPath,
+    });
+
+    const archive = await readTldrawArchive(targetPath);
+    expect(archive.records.find(record => record.typeName === 'page')?.meta).toMatchObject({
+      codegraphyPhysics: {
+        repelForce: 18,
+        centerForce: 0.15,
+        linkDistance: 80,
+        linkForce: 2,
+      },
+    });
+  });
 });

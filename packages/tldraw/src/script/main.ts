@@ -3,6 +3,10 @@ import {
   prepareGraphPhysicsFromBytes,
   type GraphLayoutEngine,
 } from '@codegraphy-dev/graph-renderer';
+import {
+  readForceSettings,
+  toGraphLayoutConfig,
+} from './forceControls/model';
 
 const PHYSICS_WASM_BASE64 = 'Q09ERUdSQVBIWV9QSFlTSUNTX1dBU00=';
 
@@ -16,6 +20,7 @@ interface ScriptShape {
 }
 
 interface ScriptEditor {
+  getCurrentPage(): { meta: Record<string, unknown> };
   getCurrentPageShapes(): ScriptShape[];
   off(event: 'tick', listener: (elapsed: number) => void): void;
   on(event: 'tick', listener: (elapsed: number) => void): void;
@@ -54,6 +59,7 @@ export default async function runCodeGraphyPhysics({ editor, signal }: MainScrip
   let edgeShapes: ScriptShape[] = [];
   let writing = false;
   let dirty = true;
+  let forceSettings = readForceSettings(editor.getCurrentPage().meta.codegraphyPhysics);
 
   function rebuild(): void {
     const shapes = editor.getCurrentPageShapes();
@@ -76,7 +82,7 @@ export default async function runCodeGraphyPhysics({ editor, signal }: MainScrip
       radii: Float32Array.from(nodeShapes, shape => Math.max(shape.props.w, shape.props.h) / 2),
       edgeSources: Uint32Array.from(edgeEndpoints, endpoint => endpoint.source),
       edgeTargets: Uint32Array.from(edgeEndpoints, endpoint => endpoint.target),
-    });
+    }, toGraphLayoutConfig(forceSettings));
     dirty = false;
   }
 
@@ -121,7 +127,17 @@ export default async function runCodeGraphyPhysics({ editor, signal }: MainScrip
   }
 
   const stopStoreListener = editor.store.listen(() => {
-    if (!writing) dirty = true;
+    if (writing) return;
+    const nextForceSettings = readForceSettings(editor.getCurrentPage().meta.codegraphyPhysics);
+    if (forceSettings.repelForce !== nextForceSettings.repelForce
+      || forceSettings.centerForce !== nextForceSettings.centerForce
+      || forceSettings.linkDistance !== nextForceSettings.linkDistance
+      || forceSettings.linkForce !== nextForceSettings.linkForce) {
+      forceSettings = nextForceSettings;
+      engine?.setConfig(toGraphLayoutConfig(forceSettings));
+      return;
+    }
+    dirty = true;
   });
   editor.on('tick', tick);
   signal.addEventListener('abort', () => {

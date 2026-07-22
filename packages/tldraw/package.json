@@ -36,10 +36,17 @@
     "yazl": "^3.3.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@types/node": "^20.11.0",
     "@types/yauzl": "^2.10.3",
     "@types/yazl": "^3.3.1",
     "esbuild": "^0.25.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tldraw": "^5.2.5",
     "typescript": "^5.3.3",
     "vitest": "^3.0.0"
   }
