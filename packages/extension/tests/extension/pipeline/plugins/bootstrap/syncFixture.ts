@@ -34,10 +34,11 @@ export async function writeCorePluginRuntime(
   pluginId: string,
   version: string,
   factoryMarkerPath?: string,
+  unloadMarkerPath?: string,
 ): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(path.join(packageRoot, entry), `
-${factoryMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
+${factoryMarkerPath || unloadMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
 export default function createPlugin() {
   ${factoryMarkerPath
     ? `appendFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory\\n');`
@@ -47,7 +48,10 @@ export default function createPlugin() {
     name: ${JSON.stringify(pluginId)},
     version: ${JSON.stringify(version)},
     apiVersion: '^4.0.0',
-    supportedExtensions: ['.txt']
+    supportedExtensions: ['.txt']${unloadMarkerPath ? `,
+    onUnload() {
+      appendFileSync(${JSON.stringify(unloadMarkerPath)}, 'unload\\n');
+    }` : ''}
   };
 }
 `, 'utf8');
@@ -58,10 +62,11 @@ export async function writeExtensionPluginRuntime(
   entry: string,
   version: string,
   factoryMarkerPath?: string,
+  unloadMarkerPath?: string,
 ): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(path.join(packageRoot, entry), `
-${factoryMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
+${factoryMarkerPath || unloadMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
 export default function createPlugin() {
   ${factoryMarkerPath
     ? `appendFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory\\n');`
@@ -70,7 +75,10 @@ export default function createPlugin() {
     id: 'acme.extension-linked',
     name: 'Linked Extension Plugin',
     version: ${JSON.stringify(version)},
-    apiVersion: '^1.0.0'
+    apiVersion: '^1.0.0'${unloadMarkerPath ? `,
+    onUnload() {
+      appendFileSync(${JSON.stringify(unloadMarkerPath)}, 'unload\\n');
+    }` : ''}
   };
 }
 `, 'utf8');

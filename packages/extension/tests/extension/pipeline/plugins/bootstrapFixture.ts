@@ -35,7 +35,10 @@ export function createRegistry() {
   };
 }
 
-export async function createExtensionPluginPackage(packageRoot: string): Promise<void> {
+export async function createExtensionPluginPackage(
+  packageRoot: string,
+  unloadMarkerPath?: string,
+): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
     path.join(packageRoot, 'package.json'),
@@ -58,13 +61,17 @@ export async function createExtensionPluginPackage(packageRoot: string): Promise
   await fs.writeFile(
     path.join(packageRoot, 'plugin.js'),
     `
+${unloadMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
 export default function createPlugin() {
   return {
     id: 'acme.particles',
     name: 'Particles',
     version: '1.0.0',
     apiVersion: '^1.0.0',
-    webviewContributions: { scripts: ['./dist/webview.js'] }
+    webviewContributions: { scripts: ['./dist/webview.js'] }${unloadMarkerPath ? `,
+    onUnload() {
+      appendFileSync(${JSON.stringify(unloadMarkerPath)}, 'unload\\n');
+    }` : ''}
   };
 }
 `,
@@ -182,6 +189,7 @@ export async function createPackageFixtureRoot(prefix: string): Promise<string> 
 export async function createPluginPackage(
   packageRoot: string,
   apiVersion = '^4.0.0',
+  unloadMarkerPath?: string,
 ): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
@@ -205,6 +213,7 @@ export async function createPluginPackage(
   await fs.writeFile(
     path.join(packageRoot, 'plugin.js'),
     `
+${unloadMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
 export default function createPlugin() {
   return {
     id: 'acme.extension-bootstrap',
@@ -214,7 +223,10 @@ export default function createPlugin() {
     supportedExtensions: ['.txt'],
     async analyzeFile(filePath) {
       return { filePath, relations: [] };
-    }
+    }${unloadMarkerPath ? `,
+    onUnload() {
+      appendFileSync(${JSON.stringify(unloadMarkerPath)}, 'unload\\n');
+    }` : ''}
   };
 }
 `,

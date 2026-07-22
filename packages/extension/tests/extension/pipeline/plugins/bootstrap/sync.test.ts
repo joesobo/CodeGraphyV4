@@ -20,6 +20,97 @@ import {
 } from './syncFixture';
 
 describe('pipeline plugin sync identity', () => {
+  it('unloads a constructed Core runtime when registration rejects it', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(await createPackageFixtureRoot('codegraphy-core-rejected-'), 'package');
+    const unloadMarkerPath = path.join(path.dirname(packageRoot), 'unload-calls.txt');
+    await writeCorePluginRuntime(
+      packageRoot,
+      'plugin.js',
+      'acme.core-rejected',
+      '1.0.0',
+      undefined,
+      unloadMarkerPath,
+    );
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-core-rejected', version: '1.0.0',
+        id: 'acme.core-rejected', host: 'core', entry: './plugin.js',
+        apiVersion: '^4.0.0', packageRoot, globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    const registered = new Map<string, RegisteredCorePlugin>();
+    const registry = createCoreRegistry(registered);
+    registry.register.mockImplementation(() => {
+      throw new Error('registration rejected');
+    });
+
+    await syncWorkspacePipelinePlugins(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      warn: vi.fn(),
+    });
+
+    expect(await fs.readFile(unloadMarkerPath, 'utf8')).toBe('unload\n');
+  });
+
+  it('unloads a constructed Extension runtime when registration rejects it', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(await createPackageFixtureRoot('codegraphy-extension-rejected-'), 'package');
+    const unloadMarkerPath = path.join(path.dirname(packageRoot), 'unload-calls.txt');
+    await writeExtensionPluginRuntime(
+      packageRoot,
+      'plugin.js',
+      '1.0.0',
+      undefined,
+      unloadMarkerPath,
+    );
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-rejected', version: '1.0.0',
+        id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
+        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    const extensionPlugins = {
+      get: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+      register: vi.fn(() => {
+        throw new Error('registration rejected');
+      }),
+      unregister: vi.fn(),
+      initializeAll: vi.fn(async () => undefined),
+    };
+    const registry = {
+      extensionPlugins,
+      get: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+      register: vi.fn(),
+      unregister: vi.fn(),
+      initializePlugin: vi.fn(async () => undefined),
+    };
+
+    await syncWorkspacePipelinePlugins(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      warn: vi.fn(),
+    });
+
+    expect(await fs.readFile(unloadMarkerPath, 'utf8')).toBe('unload\n');
+  });
+
   it('does not construct another Core runtime during an unchanged sync', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));

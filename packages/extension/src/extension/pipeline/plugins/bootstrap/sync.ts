@@ -17,6 +17,7 @@ import {
   type WorkspaceExtensionPluginRegistration,
 } from './extensionPackages';
 import type { ExtensionPluginRegistry } from '../../../plugins/registry';
+import { disposeRejectedPluginRuntime } from './registrationCleanup';
 
 function stableOptionsString(value: unknown): string {
   if (value === undefined) {
@@ -98,8 +99,15 @@ async function registerMissingPlugins(
     let registration: WorkspacePipelinePluginRegistration;
     try {
       registration = await candidate.load();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${candidate.id}' could not be loaded: ${message}`);
+      continue;
+    }
+    try {
       registry.register(registration.plugin, registration.options);
     } catch (error) {
+      disposeRejectedPluginRuntime(registration.plugin, warn);
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy plugin '${candidate.id}' could not be registered: ${message}`);
       continue;
@@ -161,6 +169,7 @@ async function syncExtensionPlugins(
       try {
         registry.register(registration.plugin, registration.options);
       } catch (error) {
+        disposeRejectedPluginRuntime(registration.plugin, warn);
         const message = error instanceof Error ? error.message : String(error);
         warn(`CodeGraphy Extension plugin '${candidate.id}' could not be registered: ${message}`);
       }

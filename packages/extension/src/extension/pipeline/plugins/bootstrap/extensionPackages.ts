@@ -16,6 +16,7 @@ import {
 } from '../../../plugins/registry';
 import type { WorkspacePackagePluginRegistrationDependencies } from './packages';
 import { createWorkspacePluginDescriptorSignature } from './signature';
+import { disposeRejectedPluginRuntime } from './registrationCleanup';
 
 const EXTENSION_PLUGIN_HOST = 'codegraphy.extension';
 
@@ -174,6 +175,7 @@ export async function registerWorkspaceExtensionPlugins(
     try {
       registry.register(registration.plugin, registration.options);
     } catch (error) {
+      disposeRejectedPluginRuntime(registration.plugin, warn);
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy Extension plugin '${registration.plugin.id}' could not be registered: ${message}`);
     }

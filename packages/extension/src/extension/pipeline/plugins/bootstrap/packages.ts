@@ -13,6 +13,7 @@ import {
   createWorkspacePluginDescriptorSignature,
   createWorkspacePluginRuntimeSignature,
 } from './signature';
+import { disposeRejectedPluginRuntime } from './registrationCleanup';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
   bundledPluginPackageRoots?: Iterable<string>;
@@ -121,6 +122,7 @@ export async function registerWorkspacePackagePlugins(
     try {
       registry.register(registration.plugin, registration.options);
     } catch (error) {
+      disposeRejectedPluginRuntime(registration.plugin, warn);
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy plugin '${registration.plugin.id}' could not be registered: ${message}`);
     }

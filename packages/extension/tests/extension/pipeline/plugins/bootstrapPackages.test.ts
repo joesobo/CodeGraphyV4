@@ -17,6 +17,76 @@ import {
 } from './bootstrapFixture';
 
 describe('pipeline/plugins/bootstrap packages', () => {
+  it('unloads a Core runtime rejected during initial registration', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-core-registration-rejected-'),
+      'package',
+    );
+    const unloadMarkerPath = path.join(path.dirname(packageRoot), 'unload-calls.txt');
+    await createPluginPackage(packageRoot, '^4.0.0', unloadMarkerPath);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap', version: '1.0.0',
+        id: 'acme.extension-bootstrap', host: 'core', entry: './plugin.js',
+        apiVersion: '^4.0.0', packageRoot, globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    registry.register.mockImplementation((plugin: { id: string }) => {
+      if (plugin.id === 'acme.extension-bootstrap') throw new Error('registration rejected');
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      warn: vi.fn(),
+    });
+
+    expect(await fs.readFile(unloadMarkerPath, 'utf8')).toBe('unload\n');
+  });
+
+  it('unloads an Extension runtime rejected during initial registration', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-registration-rejected-'),
+      'package',
+    );
+    const unloadMarkerPath = path.join(path.dirname(packageRoot), 'unload-calls.txt');
+    await createExtensionPluginPackage(packageRoot, unloadMarkerPath);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-particles', version: '1.0.0',
+        id: 'acme.particles', host: 'codegraphy.extension', entry: './plugin.js',
+        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    registry.extensionPlugins.register.mockImplementation(() => {
+      throw new Error('registration rejected');
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      warn: vi.fn(),
+    });
+
+    expect(await fs.readFile(unloadMarkerPath, 'utf8')).toBe('unload\n');
+  });
+
   it('rejects an incompatible Extension descriptor before importing its runtime', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
