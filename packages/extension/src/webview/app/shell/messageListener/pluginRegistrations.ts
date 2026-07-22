@@ -4,7 +4,7 @@ import { toPluginRegistrationCandidate, type PluginRegistrationCandidate } from 
 import { getPluginStatusEntries } from './pluginRegistrations/payload';
 import { removePluginRuntime } from './pluginRegistrations/runtime';
 
-export function removeDisabledPluginRegistrations(
+export function reconcilePluginRegistrations(
   raw: { type?: unknown; payload?: unknown },
   pluginHost: WebviewPluginHost,
   resetPluginAssets?: ResetPluginAssets,
@@ -27,7 +27,7 @@ function applyPluginRegistration(
   pluginHost: WebviewPluginHost,
   resetPluginAssets?: ResetPluginAssets,
 ): void {
-  if (candidate.enabled !== false) {
+  if (candidate.enabled !== false && candidate.status !== 'unavailable') {
     return;
   }
 

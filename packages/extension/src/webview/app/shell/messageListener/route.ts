@@ -10,7 +10,7 @@ import type {
 import { handleCssSnippetsUpdatedMessage } from './cssSnippets';
 import { handlePluginDataUpdatedMessage } from './pluginData';
 import { handlePluginInjectMessage } from './pluginInjection';
-import { removeDisabledPluginRegistrations } from './pluginRegistrations';
+import { reconcilePluginRegistrations } from './pluginRegistrations';
 
 export interface RawExtensionMessage {
   type: string;
@@ -51,7 +51,7 @@ export function routeExtensionMessage(
   runtime: MessageRouteRuntime,
 ): void {
   if (createMessageConsumers(runtime).some(consume => consume(message))) return;
-  removeDisabledPluginRegistrations(
+  reconcilePluginRegistrations(
     message,
     runtime.pluginHost,
     runtime.resetPluginAssets,
