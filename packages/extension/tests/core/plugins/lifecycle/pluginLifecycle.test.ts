@@ -75,7 +75,7 @@ describe('pluginLifecycle', () => {
       const info = { plugin };
       const initialized = new Set<string>();
 
-      await expect(initializePlugin(info, '/ws', initialized)).resolves.toBeUndefined();
+      await expect(initializePlugin(info, '/ws', initialized)).resolves.toBe(true);
       expect(initialized.has(plugin.id)).toBe(true);
     });
   });
