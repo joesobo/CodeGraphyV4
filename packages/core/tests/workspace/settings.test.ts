@@ -252,6 +252,7 @@ describe('CodeGraphy Workspace settings', () => {
       interfaces: [
         { id: ' codegraphy.extension ', data: { pinnedNodes: [{ id: 'src/app.ts', x: 10, y: 20 }] } },
         { id: '' },
+        { id: 'missing.data' },
         { id: 'codegraphy.extension', data: { ignoredDuplicate: true } },
         'invalid',
       ],

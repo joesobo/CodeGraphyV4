@@ -23,7 +23,11 @@ function normalizeInterfaceSettings(value: unknown): CodeGraphyWorkspaceSettings
   const seen = new Set<string>();
   return value.flatMap((entry) => {
     const parsed = unknownRecordSchema.safeParse(entry);
-    if (!parsed.success || typeof parsed.data.id !== 'string') return [];
+    if (
+      !parsed.success
+      || typeof parsed.data.id !== 'string'
+      || !('data' in parsed.data)
+    ) return [];
     const id = parsed.data.id.trim();
     if (!id || seen.has(id)) return [];
     seen.add(id);
