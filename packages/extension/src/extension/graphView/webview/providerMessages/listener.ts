@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
+import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type {
   ExtensionToWebviewMessage,
@@ -95,6 +96,9 @@ export interface GraphViewProviderMessageListenerSource {
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;
+          get?(pluginId: string): {
+            plugin: { updateImpact?: IPluginUpdateImpactPolicy };
+          } | undefined;
           getPluginAPI(
             pluginId: string,
           ):

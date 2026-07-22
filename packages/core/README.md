@@ -66,7 +66,7 @@ Plugin installation, global registration, and workspace enablement are separate:
 - `plugins enable <plugin-id-or-package>` and `plugins disable <plugin-id-or-package>` target the selected workspace. By default this is the process current working directory; use the global `--workspace <path>` option to select another workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - `plugins link <package-root>` records a local package checkout in the user-level Plugin Registry, which is the preferred private-plugin development path.
 - Enabling or disabling a plugin changes workspace settings only; disabling persists `enabled: false` Plugin ID intent and keeps the runtime unloaded until the user enables that Plugin ID again.
-- Indexing imports active npm plugin packages through their package `exports`. It merges manifest `defaultOptions` with workspace-local `options`. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
+- Indexing imports each active Core plugin through its descriptor `entry`. It merges descriptor `data.defaultOptions` with workspace-local `options`. Workspace values win. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
 - Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a plugin-owned persistence host bound to the plugin id returned by the factory.
 
 Plugin npm packages identify themselves with package metadata:
@@ -76,12 +76,21 @@ Plugin npm packages identify themselves with package metadata:
   "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "defaultOptions": {
-      "includeTests": true
-    },
-    "disclosures": []
+    "plugins": [{
+      "id": "codegraphy.vue",
+      "host": "core",
+      "entry": "./dist/plugin.js",
+      "apiVersion": "^4.0.0",
+      "data": {
+        "defaultOptions": {
+          "includeTests": true
+        },
+        "updateImpact": {
+          "toggle": "reanalyze-plugin-files",
+          "defaultSetting": "reanalyze-plugin-files"
+        }
+      }
+    }]
   }
 }
 ```

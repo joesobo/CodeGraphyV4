@@ -13,6 +13,7 @@ const installedPluginRecordSchema = z.looseObject({
   host: nonEmptyStringSchema,
   entry: nonEmptyStringSchema,
   apiVersion: nonEmptyStringSchema,
+  data: z.unknown().optional(),
 });
 
 export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstalledPluginRecord | null {
@@ -29,5 +30,6 @@ export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstal
     host: parsed.data.host,
     entry: parsed.data.entry,
     apiVersion: parsed.data.apiVersion,
+    ...(parsed.data.data !== undefined ? { data: parsed.data.data } : {}),
   };
 }

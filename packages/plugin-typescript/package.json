@@ -55,9 +55,15 @@
     "plugins": [{
       "id": "codegraphy.typescript",
       "name": "TypeScript/JavaScript",
-      "host": "core",
-      "entry": "./dist/plugin.js",
-      "apiVersion": "^4.0.0"
+        "host": "core",
+        "entry": "./dist/plugin.js",
+        "apiVersion": "^4.0.0",
+        "data": {
+          "updateImpact": {
+            "toggle": "reanalyze-plugin-files",
+            "defaultSetting": "reanalyze-plugin-files"
+          }
+        }
     }]
   }
 }

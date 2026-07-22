@@ -10,6 +10,9 @@ export function createBundledMarkdownInstalledPluginRecord(): CodeGraphyInstalle
     host: 'core',
     entry: './dist/plugin.js',
     apiVersion: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.apiVersion,
+    data: {
+      updateImpact: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.updateImpact,
+    },
     packageRoot: '',
     globallyEnabled: true,
   };

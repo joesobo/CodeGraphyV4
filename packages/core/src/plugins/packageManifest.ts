@@ -8,6 +8,7 @@ const pluginDescriptorSchema = z.looseObject({
   host: nonEmptyStringSchema,
   entry: nonEmptyStringSchema,
   apiVersion: nonEmptyStringSchema,
+  data: z.unknown().optional(),
 });
 
 const pluginPackageJsonSchema = z.looseObject({
@@ -24,6 +25,7 @@ export interface CodeGraphyPluginPackageDescriptor {
   host: string;
   entry: string;
   apiVersion: string;
+  data?: unknown;
 }
 
 export interface CodeGraphyPluginPackageManifest {
@@ -50,6 +52,7 @@ export function parseCodeGraphyPluginPackageManifest(
       host: plugin.host,
       entry: plugin.entry,
       apiVersion: plugin.apiVersion,
+      ...(plugin.data !== undefined ? { data: plugin.data } : {}),
     })),
   };
 }

@@ -271,6 +271,12 @@ export {
   resolveCodeGraphyWorkspacePluginRecords,
 } from './plugins/packageRuntime';
 export { importCodeGraphyPluginPackageModule } from './plugins/packageLoad';
+export {
+  readCodeGraphyCorePluginDescriptorData,
+} from './plugins/packageOptions';
+export type {
+  CodeGraphyCorePluginDescriptorData,
+} from './plugins/packageOptions';
 export type {
   CodeGraphyPluginPackageDescriptor,
   CodeGraphyPluginPackageManifest,

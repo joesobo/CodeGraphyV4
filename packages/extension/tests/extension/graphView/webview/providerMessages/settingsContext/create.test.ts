@@ -10,6 +10,44 @@ vi.mock('../../../../../../src/extension/repoSettings/current', () => ({
 }));
 
 describe('graph view provider listener settings context configuration', () => {
+  it('reads update impact from an active Core plugin runtime', () => {
+    const configuration = {
+      get: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
+      update: vi.fn(() => Promise.resolve()),
+    };
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue(configuration as never);
+    const updateImpact = {
+      toggle: 'reanalyze-plugin-files' as const,
+      defaultSetting: 'reanalyze-plugin-files' as const,
+    };
+
+    const context = createGraphViewProviderMessageSettingsContext(
+      {
+        _analyzer: {
+          registry: {
+            get: vi.fn(() => ({ plugin: { updateImpact } })),
+          },
+        },
+        _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
+        _nodeSizeMode: 'connections',
+        _getPhysicsSettings: vi.fn(() => ({})),
+        _sendMessage: vi.fn(),
+        _sendAllSettings: vi.fn(),
+        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+      } as never,
+      {
+        workspace: { workspaceFolders: [], getConfiguration: vi.fn() },
+        getConfigTarget: vi.fn(() => 'workspace'),
+        captureSettingsSnapshot: vi.fn(),
+        createResetSettingsAction: vi.fn(),
+        executeUndoAction: vi.fn(),
+        nodeSizeModeKey: 'nodeSizeMode',
+      } as never,
+    );
+
+    expect(context.getInstalledPluginUpdateImpact?.('codegraphy.vue')).toEqual(updateImpact);
+  });
+
   it('reads config values from the codegraphy settings namespace', () => {
     const configuration = {
       get: vi.fn((key: string, defaultValue: unknown) =>

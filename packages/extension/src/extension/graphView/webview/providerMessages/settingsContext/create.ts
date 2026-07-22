@@ -33,8 +33,10 @@ export function createGraphViewProviderMessageSettingsContext(
     updateConfig: async (key, value) => persistConfig(key, value),
     getInstalledPluginDefaultOptions: (pluginId: string) =>
       readInstalledPluginDefaultOptions(pluginId),
-    getInstalledPluginUpdateImpact: (pluginId: string) =>
-      readInstalledPluginUpdateImpact(pluginId),
+    getInstalledPluginUpdateImpact: (pluginId: string) => (
+      source._analyzer?.registry?.get?.(pluginId)?.plugin.updateImpact
+      ?? readInstalledPluginUpdateImpact(pluginId)
+    ),
     analyzeAndSendData: () => source._analyzeAndSendData(),
     hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
     hydratePluginGraphScope: pluginIds =>

@@ -22,6 +22,7 @@ describe('plugins/installedPluginCache record normalization', () => {
       host: 'acme.webview',
       entry: './dist/webview.js',
       apiVersion: '^27.0.0',
+      data: { toolbarPlacement: 'graph' },
       unknownHostField: { preservedByHost: false },
     })).toEqual({
       package: '@acme/codegraphy-tools',
@@ -33,6 +34,7 @@ describe('plugins/installedPluginCache record normalization', () => {
       host: 'acme.webview',
       entry: './dist/webview.js',
       apiVersion: '^27.0.0',
+      data: { toolbarPlacement: 'graph' },
     });
   });
 

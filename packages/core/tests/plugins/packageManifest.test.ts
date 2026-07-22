@@ -30,6 +30,10 @@ describe('CodeGraphy plugin package manifest', () => {
             host: 'core',
             entry: './dist/core.js',
             apiVersion: '^4.0.0',
+            data: {
+              defaultOptions: { mode: 'strict' },
+              updateImpact: { toggle: 'reanalyze-plugin-files' },
+            },
           },
           {
             id: 'acme.particles',
@@ -37,6 +41,7 @@ describe('CodeGraphy plugin package manifest', () => {
             host: 'codegraphy.extension',
             entry: './dist/extension.js',
             apiVersion: '^1.0.0',
+            data: { toolbarPlacement: 'graph' },
           },
         ],
       },
@@ -50,6 +55,10 @@ describe('CodeGraphy plugin package manifest', () => {
           host: 'core',
           entry: './dist/core.js',
           apiVersion: '^4.0.0',
+          data: {
+            defaultOptions: { mode: 'strict' },
+            updateImpact: { toggle: 'reanalyze-plugin-files' },
+          },
         },
         {
           id: 'acme.particles',
@@ -57,6 +66,7 @@ describe('CodeGraphy plugin package manifest', () => {
           host: 'codegraphy.extension',
           entry: './dist/extension.js',
           apiVersion: '^1.0.0',
+          data: { toolbarPlacement: 'graph' },
         },
       ],
     });

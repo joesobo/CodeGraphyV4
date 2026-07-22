@@ -1,14 +1,52 @@
-import type { IPluginDataHost, IPluginDataSaveOptions, IPluginFactoryOptions } from '@codegraphy-dev/plugin-api';
+import type {
+  IPluginDataHost,
+  IPluginDataSaveOptions,
+  IPluginFactoryOptions,
+  IPluginUpdateImpactPolicy,
+} from '@codegraphy-dev/plugin-api';
+import { z } from 'zod';
 import { createWorkspacePluginDataHost } from './data/host';
 import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 import type { PackagePluginFactoryInvocation } from './packageModule';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
+import { readPluginUpdateImpact } from './updateImpact';
+import { unknownRecordSchema } from '../values';
+
+const corePluginDescriptorDataSchema = z.looseObject({
+  defaultOptions: unknownRecordSchema.optional().catch(undefined),
+  updateImpact: z.unknown().optional(),
+});
+
+export interface CodeGraphyCorePluginDescriptorData {
+  defaultOptions?: Record<string, unknown>;
+  updateImpact?: IPluginUpdateImpactPolicy;
+}
+
+export function readCodeGraphyCorePluginDescriptorData(
+  record: CodeGraphyInstalledPluginRecord,
+): CodeGraphyCorePluginDescriptorData | undefined {
+  if (record.host !== 'core') return undefined;
+
+  const parsed = corePluginDescriptorDataSchema.safeParse(record.data);
+  if (!parsed.success) return undefined;
+
+  const updateImpact = readPluginUpdateImpact(parsed.data.updateImpact);
+  return {
+    ...(parsed.data.defaultOptions
+      ? { defaultOptions: { ...parsed.data.defaultOptions } }
+      : {}),
+    ...(updateImpact ? { updateImpact } : {}),
+  };
+}
 
 export function mergePluginOptions(
-  _record: CodeGraphyInstalledPluginRecord,
+  record: CodeGraphyInstalledPluginRecord,
   settings: CodeGraphyWorkspacePluginSettings,
 ): Record<string, unknown> | undefined {
-  const merged = { ...settings.options };
+  const merged = {
+    ...readCodeGraphyCorePluginDescriptorData(record)?.defaultOptions,
+    ...settings.options,
+  };
 
   return Object.keys(merged).length > 0 ? merged : undefined;
 }

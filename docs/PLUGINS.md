@@ -68,7 +68,16 @@ A package declares one or more plugin descriptors in
         "name": "Acme TypeScript Analysis",
         "host": "core",
         "entry": "./dist/core.js",
-        "apiVersion": "^4.0.0"
+        "apiVersion": "^4.0.0",
+        "data": {
+          "defaultOptions": {
+            "mode": "strict"
+          },
+          "updateImpact": {
+            "toggle": "reanalyze-plugin-files",
+            "defaultSetting": "reanalyze-plugin-files"
+          }
+        }
       },
       {
         "id": "acme.graph-tools",
@@ -88,6 +97,10 @@ host without adding it to a Core enum.
 
 One package can contain descriptors for several hosts. Each descriptor is one
 installed plugin record and has its own stable ID.
+
+The optional `data` value belongs to the descriptor host. Core reads Core
+plugin defaults and update impact from it. Other hosts can define different
+data without adding their keys to Core.
 
 ## Core plugins
 
