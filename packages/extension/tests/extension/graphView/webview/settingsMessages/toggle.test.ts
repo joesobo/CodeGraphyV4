@@ -385,7 +385,7 @@ describe('graph view settings toggle message', () => {
       .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
-  it('sends graph controls after package toggles sync plugin contributions', async () => {
+  it('sends graph controls after package toggle graph work finishes', async () => {
     const state = createState();
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
     const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
@@ -421,7 +421,7 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphControls.mock.invocationCallOrder[0]);
     expect(sendGraphControls.mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+      .toBeGreaterThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
   it('sends fresh filter patterns after package toggles sync plugin filters', async () => {
