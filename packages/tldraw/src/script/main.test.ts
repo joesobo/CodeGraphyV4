@@ -88,6 +88,55 @@ describe('CodeGraphy tldraw document script', () => {
     );
   });
 
+  it('rebuilds physics for graph structure changes but not delayed position updates', async () => {
+    const listeners = new Map<string, (elapsed: number) => void>();
+    let storeListener: (entry: object) => void = () => undefined;
+    const nodeShape = {
+      id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
+      meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
+    };
+    let nodeShapes = [nodeShape];
+    const editor = {
+      getCurrentPage: () => ({ meta: {} }),
+      getCurrentPageShapes: () => nodeShapes,
+      off: vi.fn(),
+      on: vi.fn((event: string, listener: (elapsed: number) => void) => listeners.set(event, listener)),
+      run: vi.fn((operation: () => void) => operation()),
+      store: { listen: vi.fn((listener: (entry: object) => void) => {
+        storeListener = listener;
+        return vi.fn();
+      }) },
+      updateShapes: vi.fn(),
+    };
+    const { default: runDocumentScript } = await import('./main');
+
+    await runDocumentScript({ editor, signal: new AbortController().signal });
+    listeners.get('tick')?.(16);
+    storeListener({
+      changes: {
+        added: {},
+        removed: {},
+        updated: {
+          'shape:a': [nodeShape, { ...nodeShape, x: 10, y: 20 }],
+        },
+      },
+      source: 'user',
+    });
+    listeners.get('tick')?.(16);
+
+    expect(createGraphLayoutEngine).toHaveBeenCalledOnce();
+
+    nodeShapes = [nodeShape, {
+      ...nodeShape,
+      id: 'shape:b',
+      meta: { codegraphyKind: 'node', codegraphyEntityId: 'b' },
+    }];
+    storeListener({ changes: { added: {}, removed: {}, updated: {} }, source: 'user' });
+    listeners.get('tick')?.(16);
+
+    expect(createGraphLayoutEngine).toHaveBeenCalledTimes(2);
+  });
+
   it('sends changed document force settings to the active graph-renderer engine', async () => {
     const listeners = new Map<string, (elapsed: number) => void>();
     let storeListener: () => void = () => undefined;

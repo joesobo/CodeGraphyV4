@@ -53,17 +53,31 @@ function isNodeShape(shape: ScriptShape): shape is NodeShape {
     && typeof shape.props.h === 'number';
 }
 
+function graphStructureKey(shapes: readonly ScriptShape[]): string {
+  const parts: string[] = shapes.flatMap((shape): string[] => {
+    if (isNodeShape(shape)) {
+      return [`node:${shape.meta.codegraphyEntityId}:${shape.props.w}:${shape.props.h}`];
+    }
+    if (shape.type === 'arrow' && shape.meta.codegraphyKind === 'edge') {
+      return [`edge:${shape.id}:${String(shape.meta.codegraphyFrom)}:${String(shape.meta.codegraphyTo)}`];
+    }
+    return [];
+  });
+  return parts.sort().join('|');
+}
+
 export default async function runCodeGraphyPhysics({ editor, signal }: MainScriptContext): Promise<void> {
   await prepareGraphPhysicsFromBytes(decodePhysicsBytes());
   let engine: GraphLayoutEngine | undefined;
   let nodeShapes: NodeShape[] = [];
   let edgeShapes: ScriptShape[] = [];
-  let writing = false;
+  let structureKey = '';
   let dirty = true;
   let forceSettings = readForceSettings(editor.getCurrentPage().meta.codegraphyPhysics);
 
   function rebuild(): void {
     const shapes = editor.getCurrentPageShapes();
+    structureKey = graphStructureKey(shapes);
     nodeShapes = shapes.filter(isNodeShape);
     edgeShapes = shapes.filter(shape => shape.type === 'arrow' && shape.meta.codegraphyKind === 'edge');
     const indexes = new Map<string, number>(
@@ -122,16 +136,10 @@ export default async function runCodeGraphyPhysics({ editor, signal }: MainScrip
         },
       });
     }
-    writing = true;
-    try {
-      editor.run(() => editor.updateShapes(updates), { history: 'ignore' });
-    } finally {
-      writing = false;
-    }
+    editor.run(() => editor.updateShapes(updates), { history: 'ignore' });
   }
 
   const stopStoreListener = editor.store.listen(() => {
-    if (writing) return;
     const nextForceSettings = readForceSettings(editor.getCurrentPage().meta.codegraphyPhysics);
     if (forceSettings.repelForce !== nextForceSettings.repelForce
       || forceSettings.centerForce !== nextForceSettings.centerForce
@@ -139,9 +147,8 @@ export default async function runCodeGraphyPhysics({ editor, signal }: MainScrip
       || forceSettings.linkForce !== nextForceSettings.linkForce) {
       forceSettings = nextForceSettings;
       engine?.setConfig(toGraphLayoutConfig(forceSettings));
-      return;
     }
-    dirty = true;
+    if (graphStructureKey(editor.getCurrentPageShapes()) !== structureKey) dirty = true;
   });
   editor.on('tick', tick);
   signal.addEventListener('abort', () => {

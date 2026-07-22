@@ -44,9 +44,11 @@ test('published tldraw package contains its launcher, force panel, and embedded 
     assert.equal(manifest.bin['codegraphy-tldraw'], './bin/codegraphy-tldraw.js');
     assert.ok(fs.existsSync(path.join(unpackedPackage, 'dist', 'index.js')));
     assert.ok(documentScript.length > 40_000);
+    assert.match(documentScript, /AGFzb/u);
     assert.match(documentConfig, /CodeGraphy forces/u);
     assert.match(documentConfig, /Repel Force/u);
     assert.doesNotMatch(documentScript, /Q09ERUdSQVBIWV9QSFlTSUNTX1dBU00=/u);
+    assert.doesNotMatch(documentScript, /navigator\.gpu|GPUDevice|GPUCanvasContext/u);
     assert.equal(fs.existsSync(path.join(unpackedPackage, 'dist', 'core')), false);
   } finally {
     fs.rmSync(destination, { force: true, recursive: true });

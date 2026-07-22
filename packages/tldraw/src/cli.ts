@@ -7,7 +7,7 @@ import type { TLRecord } from '@tldraw/tlschema';
 import { runTldrawCommand, type TldrawCommandDependencies } from './command';
 import { writeGraphDocument } from './document/writer';
 import { reconcileGraphRecords } from './document/records';
-import { createNewDocumentPath } from './document/path';
+import { resolveDefaultDocumentPath } from './document/path';
 import { projectDefaultFileGraph } from './graph/projection';
 import { TldrawApiClient, type TldrawServerConnection } from './tldraw/api';
 
@@ -15,7 +15,7 @@ const HELP = `Usage: codegraphy-tldraw [PATH]
 
 Index the current workspace and open its file graph in tldraw offline.
 
-PATH  Create or refresh this .tldraw file. Without PATH, save a new document in the workspace.
+PATH  Create or refresh this .tldraw file. Without PATH, create or refresh CodeGraphy.tldraw.
 `;
 
 export interface CliDependencies {
@@ -60,7 +60,7 @@ async function readTldrawClient(): Promise<TldrawApiClient | undefined> {
 function createCommandDependencies(): TldrawCommandDependencies {
   let currentClient: TldrawApiClient | undefined;
   return {
-    createNewDocumentPath,
+    resolveDefaultDocumentPath,
     cwd: () => process.cwd(),
     findOpenDocument: async documentPath => {
       currentClient = await readTldrawClient();

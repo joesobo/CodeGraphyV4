@@ -9,8 +9,8 @@ const GRAPH = {
 } satisfies IGraphData;
 
 function fixture() {
-  const createNewDocumentPath = vi.fn<TldrawCommandDependencies['createNewDocumentPath']>(
-    async () => '/workspace/CodeGraphy.tldraw',
+  const resolveDefaultDocumentPath = vi.fn<TldrawCommandDependencies['resolveDefaultDocumentPath']>(
+    () => '/workspace/CodeGraphy.tldraw',
   );
   const findOpenDocument = vi.fn<TldrawCommandDependencies['findOpenDocument']>(async () => undefined);
   const indexWorkspace = vi.fn<TldrawCommandDependencies['indexWorkspace']>(async () => ({ graph: GRAPH }));
@@ -20,7 +20,7 @@ function fixture() {
     async input => ({ documentPath: input.targetPath }),
   );
   const dependencies: TldrawCommandDependencies = {
-    createNewDocumentPath,
+    resolveDefaultDocumentPath,
     cwd: () => '/workspace',
     findOpenDocument,
     indexWorkspace,
@@ -30,7 +30,7 @@ function fixture() {
   };
   return {
     dependencies,
-    createNewDocumentPath,
+    resolveDefaultDocumentPath,
     findOpenDocument,
     indexWorkspace,
     openDocument,
@@ -58,18 +58,18 @@ describe('runTldrawCommand', () => {
     );
   });
 
-  it('creates a new saved document in the workspace when no path is supplied', async () => {
-    const { dependencies, createNewDocumentPath, writeDocument } = fixture();
+  it('creates or refreshes the default workspace document when no path is supplied', async () => {
+    const { dependencies, resolveDefaultDocumentPath, writeDocument } = fixture();
 
     await runTldrawCommand([], dependencies);
 
-    expect(createNewDocumentPath).toHaveBeenCalledWith('/workspace');
+    expect(resolveDefaultDocumentPath).toHaveBeenCalledWith('/workspace');
     expect(writeDocument).toHaveBeenCalledWith(expect.objectContaining({
       targetPath: '/workspace/CodeGraphy.tldraw',
     }));
   });
 
-  it('refreshes an exact open document in place without rewriting its archive', async () => {
+  it('refreshes the open default document in place without rewriting its archive', async () => {
     const {
       dependencies,
       findOpenDocument,
@@ -79,7 +79,7 @@ describe('runTldrawCommand', () => {
     } = fixture();
     findOpenDocument.mockResolvedValue({ id: 'wd-1' });
 
-    await runTldrawCommand(['graph.tldraw'], dependencies);
+    await runTldrawCommand([], dependencies);
 
     expect(writeDocument).not.toHaveBeenCalled();
     expect(refreshOpenDocument).toHaveBeenCalledWith({
@@ -88,7 +88,7 @@ describe('runTldrawCommand', () => {
       workspaceRoot: '/workspace',
     });
     expect(openDocument).toHaveBeenCalledWith(
-      path.resolve('/workspace', 'graph.tldraw'),
+      '/workspace/CodeGraphy.tldraw',
     );
   });
 });

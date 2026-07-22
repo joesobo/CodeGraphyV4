@@ -9,7 +9,7 @@ npm install --global @codegraphy-dev/core @codegraphy-dev/tldraw
 codegraphy-tldraw
 ```
 
-Without a path, the launcher saves a new `CodeGraphy.tldraw` document in the current workspace and opens it. If that name exists, it uses `CodeGraphy 2.tldraw`, then the next available number.
+Without a path, the launcher creates or refreshes `CodeGraphy.tldraw` in the current workspace and opens it.
 
 Give a path to create or refresh a specific document:
 

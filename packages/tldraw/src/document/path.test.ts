@@ -1,14 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import { createNewDocumentPath } from './path';
+import { describe, expect, it } from 'vitest';
+import { resolveDefaultDocumentPath } from './path';
 
-describe('createNewDocumentPath', () => {
-  it('uses the first available CodeGraphy document name in the workspace', async () => {
-    const exists = vi.fn(async (documentPath: string) => (
-      documentPath.endsWith('/CodeGraphy.tldraw')
-    ));
-
-    await expect(createNewDocumentPath('/workspace', exists)).resolves.toBe(
-      '/workspace/CodeGraphy 2.tldraw',
+describe('resolveDefaultDocumentPath', () => {
+  it('uses the stable CodeGraphy document path in the workspace', () => {
+    expect(resolveDefaultDocumentPath('/workspace')).toBe(
+      '/workspace/CodeGraphy.tldraw',
     );
   });
 });

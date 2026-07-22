@@ -8,7 +8,7 @@ export interface TldrawDocumentWriteInput {
 }
 
 export interface TldrawCommandDependencies {
-  createNewDocumentPath(workspaceRoot: string): Promise<string>;
+  resolveDefaultDocumentPath(workspaceRoot: string): string;
   cwd(): string;
   findOpenDocument(documentPath: string): Promise<{ id: string } | undefined>;
   indexWorkspace(workspaceRoot: string): Promise<{ graph: IGraphData }>;
@@ -33,7 +33,7 @@ export async function runTldrawCommand(
   const workspaceRoot = path.resolve(dependencies.cwd());
   const targetPath = arguments_[0]
     ? path.resolve(workspaceRoot, arguments_[0])
-    : await dependencies.createNewDocumentPath(workspaceRoot);
+    : dependencies.resolveDefaultDocumentPath(workspaceRoot);
   const { graph } = await dependencies.indexWorkspace(workspaceRoot);
   const openDocument = await dependencies.findOpenDocument(targetPath);
   let documentPath = targetPath;

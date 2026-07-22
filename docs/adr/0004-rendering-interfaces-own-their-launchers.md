@@ -26,9 +26,8 @@ The launcher accepts an optional `.tldraw` document path:
 
 ```text
 codegraphy-tldraw
-    Index the workspace through Core, save a new CodeGraphy.tldraw document in
-    the workspace, and open it. Use the next available numbered name when that
-    file already exists.
+    Index the workspace through Core, create or reconcile CodeGraphy.tldraw in
+    the workspace, and open it.
 
 codegraphy-tldraw PATH
     Create PATH from the latest index when it is absent. Reconcile PATH with
@@ -38,15 +37,15 @@ codegraphy-tldraw PATH
 tldraw offline creates unnamed documents through its own **New file** action.
 Its local API operates on documents that are already open and does not expose
 document creation. Opening a generated `.tldraw` archive also attaches that
-archive's path. The pathless launcher therefore creates a new saved document
-until tldraw offline provides a supported way to create an unnamed document
-from an external launcher.
+archive's path. The pathless launcher therefore creates or refreshes the saved
+default document until tldraw offline provides a supported way to create an
+unnamed document from an external launcher.
 
 The interaction model is command-driven: the user runs the command, works in
-the workspace, and runs the command again to see the updated graph. Each run
-without a path opens a fresh canvas from the current index. Each run with a
-path updates that saved canvas. The MVP does not update a canvas without the
-user running the command.
+the workspace, and runs the command again to see the updated graph. A run
+without a path updates the workspace's default `CodeGraphy.tldraw` canvas. A
+run with a path updates that named canvas. The MVP does not update a canvas
+without the user running the command.
 
 The launcher exits after completing the operation. The generated document
 contains the persistent script that continues running the force simulation in
