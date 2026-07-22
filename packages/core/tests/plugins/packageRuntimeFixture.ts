@@ -65,6 +65,8 @@ export async function createPluginPackageWithRuntimeMarkers(
   pluginName = 'Disabled Runtime Plugin',
   version = '1.0.0',
   apiVersion = '^4.0.0',
+  runtimeApiVersion = apiVersion,
+  unloadMarkerPath?: string,
 ): Promise<{
   factoryMarkerPath: string;
   importMarkerPath: string;
@@ -116,8 +118,11 @@ export default function createPlugin() {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginName)},
     version: ${JSON.stringify(version)},
-    apiVersion: ${JSON.stringify(apiVersion)},
-    supportedExtensions: ['.disabled']
+    apiVersion: ${JSON.stringify(runtimeApiVersion)},
+    supportedExtensions: ['.disabled']${unloadMarkerPath ? `,
+    onUnload() {
+      writeFileSync(${JSON.stringify(unloadMarkerPath)}, 'unloaded');
+    }` : ''}
   };
 }
 `,

@@ -1,6 +1,6 @@
 import { CorePluginRegistry } from '../plugins/registry';
 import {
-  loadCodeGraphyWorkspacePluginPackages,
+  prepareCodeGraphyWorkspacePluginPackages,
   type LoadedCodeGraphyWorkspacePluginPackage,
 } from '../plugins/packageRuntime';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
@@ -17,21 +17,46 @@ export async function createWorkspaceIndexRegistry(
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
 }> {
   const registry = new CorePluginRegistry();
+  const warn = options.warn ?? (() => undefined);
   try {
-    const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    const preparedPackagePlugins = await prepareCodeGraphyWorkspacePluginPackages({
       disabledPlugins,
       settings,
       workspaceRoot,
       ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
-      ...(options.warn ? { warn: options.warn } : {}),
+      warn,
     });
+    const loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[] = [];
 
     await registerDefaultIndexPlugins(registry, { ...options, disabledPlugins }, settings);
-    for (const loadedPlugin of loadedPackagePlugins) {
-      registry.register(loadedPlugin.plugin, {
-        sourcePackage: loadedPlugin.packageName,
-        ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
-      });
+    for (const preparedPlugin of preparedPackagePlugins) {
+      let loadedPlugin: LoadedCodeGraphyWorkspacePluginPackage;
+      try {
+        loadedPlugin = await preparedPlugin.load();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`CodeGraphy plugin '${preparedPlugin.record.id}' could not be loaded: ${message}`);
+        continue;
+      }
+
+      try {
+        registry.register(loadedPlugin.plugin, {
+          sourcePackage: loadedPlugin.packageName,
+          ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
+        });
+        loadedPackagePlugins.push(loadedPlugin);
+      } catch (error) {
+        try {
+          loadedPlugin.plugin.onUnload?.();
+        } catch (unloadError) {
+          const message = unloadError instanceof Error ? unloadError.message : String(unloadError);
+          warn(
+            `CodeGraphy plugin '${loadedPlugin.plugin.id}' could not be unloaded after registration failed: ${message}`,
+          );
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`CodeGraphy plugin '${loadedPlugin.plugin.id}' could not be registered: ${message}`);
+      }
     }
 
     registerProvidedPlugins(registry, options.plugins, disabledPlugins);
