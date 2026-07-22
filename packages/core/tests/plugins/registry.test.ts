@@ -188,6 +188,31 @@ describe('CorePluginRegistry', () => {
     expect(secondInitialize).toHaveBeenCalledTimes(1);
   });
 
+  it('does not route plugins whose initialization fails', async () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const healthy = plugin({
+      id: 'healthy',
+      supportedExtensions: ['.good'],
+      initialize: vi.fn(),
+    });
+
+    registry.register(plugin({
+      id: 'broken',
+      supportedExtensions: ['.bad'],
+      initialize: vi.fn(async () => {
+        throw new Error('boom');
+      }),
+    }));
+    registry.register(healthy);
+
+    await registry.initializeAll('/workspace');
+
+    expect(registry.getPluginForFile('src/file.bad')).toBeUndefined();
+    expect(registry.getPluginForFile('src/file.good')).toBe(healthy);
+    consoleError.mockRestore();
+  });
+
   it('lists node and edge type contributions through the registry facade', () => {
     const registry = new CorePluginRegistry();
 

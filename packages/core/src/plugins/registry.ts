@@ -65,7 +65,14 @@ export class CorePluginRegistry {
   }
 
   async initializeAll(workspaceRoot: string): Promise<void> {
-    await initializeAll(this.plugins, workspaceRoot, this.initializedPlugins);
+    const failedPluginIds = await initializeAll(
+      this.plugins,
+      workspaceRoot,
+      this.initializedPlugins,
+    );
+    for (const pluginId of failedPluginIds) {
+      this.removePluginRegistration(pluginId);
+    }
   }
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
@@ -74,7 +81,10 @@ export class CorePluginRegistry {
       return;
     }
 
-    await initializePlugin(info, workspaceRoot, this.initializedPlugins);
+    const initialized = await initializePlugin(info, workspaceRoot, this.initializedPlugins);
+    if (!initialized) {
+      this.removePluginRegistration(pluginId);
+    }
   }
 
   get(pluginId: string): CorePluginInfo | undefined {
@@ -240,5 +250,22 @@ export class CorePluginRegistry {
 
   notifyGraphRebuild(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
     notifyGraphRebuild(this.plugins, graph, disabledPlugins);
+  }
+
+  private removePluginRegistration(pluginId: string): boolean {
+    if (!this.plugins.delete(pluginId)) {
+      return false;
+    }
+
+    this.initializedPlugins.delete(pluginId);
+    for (const [extension, pluginIds] of this.extensionMap) {
+      const remainingPluginIds = pluginIds.filter(id => id !== pluginId);
+      if (remainingPluginIds.length === 0) {
+        this.extensionMap.delete(extension);
+      } else if (remainingPluginIds.length !== pluginIds.length) {
+        this.extensionMap.set(extension, remainingPluginIds);
+      }
+    }
+    return true;
   }
 }

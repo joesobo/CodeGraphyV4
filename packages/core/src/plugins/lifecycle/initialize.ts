@@ -13,11 +13,14 @@ export async function initializeAll(
   plugins: Map<string, ILifecyclePluginInfo>,
   workspaceRoot: string,
   initializedSet: Set<string>,
-): Promise<void> {
-  const promises = Array.from(plugins.values()).map((info) =>
-    initializePlugin(info, workspaceRoot, initializedSet),
+): Promise<string[]> {
+  const results = await Promise.all(
+    Array.from(plugins.values()).map(async (info) => ({
+      pluginId: info.plugin.id,
+      initialized: await initializePlugin(info, workspaceRoot, initializedSet),
+    })),
   );
-  await Promise.all(promises);
+  return results.filter(result => !result.initialized).map(result => result.pluginId);
 }
 
 /**
@@ -27,13 +30,13 @@ export async function initializePlugin(
   info: ILifecyclePluginInfo,
   workspaceRoot: string,
   initializedSet: Set<string>,
-): Promise<void> {
+): Promise<boolean> {
   const pluginId = info.plugin.id;
-  if (initializedSet.has(pluginId)) return;
+  if (initializedSet.has(pluginId)) return true;
   initializedSet.add(pluginId);
 
   if (!info.plugin.initialize) {
-    return;
+    return true;
   }
 
   try {
@@ -41,8 +44,10 @@ export async function initializePlugin(
       workspaceRoot,
       createWorkspacePluginAnalysisContext(workspaceRoot, { pluginOptions: info.options }),
     );
+    return true;
   } catch (error) {
     initializedSet.delete(pluginId);
     console.error(`[CodeGraphy] Error initializing plugin ${pluginId}:`, error);
+    return false;
   }
 }
