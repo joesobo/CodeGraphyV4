@@ -29,6 +29,7 @@ interface PointerPosition {
 interface HeroGraphData {
   input: GraphLayoutInput;
   nodeGroups: Uint8Array;
+  orbitSpeedMultipliers: Float32Array;
 }
 
 export function HeroGraph(): React.ReactElement {
@@ -64,6 +65,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     if (!context) return;
 
     const layout = createGraphLayoutEngine(graphData.input, {
+      alphaDecay: 0.014,
       centralGravity: 0,
       chargeDistanceMax: 310,
       chargeStrength: -205,
@@ -74,6 +76,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       settleSpeed: 0.5,
       velocityDecay: 0.29,
     });
+    layout.setAlphaTarget(0.006);
     const pointer: PointerPosition = {
       active: false,
       currentX: 0,
@@ -82,6 +85,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       targetY: 0,
     };
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const heroForces = createHeroForces(layout, pointer, graphData.orbitSpeedMultipliers);
     let canvasSize = resizeCanvas(canvas, context);
     let visible = true;
 
@@ -130,7 +134,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     const animate = (): void => {
       if (visible) {
         updatePointerCenter(pointer);
-        layout.tick(createPointerGravity(layout, pointer));
+        layout.tick(heroForces);
         drawGraph(context, layout, graphData.nodeGroups, canvasSize);
       }
       frame = window.requestAnimationFrame(animate);
@@ -158,6 +162,7 @@ function createGraphData(seed: number): HeroGraphData {
   const initialX = new Float32Array(nodeCount);
   const initialY = new Float32Array(nodeCount);
   const nodeGroups = new Uint8Array(nodeCount);
+  const orbitSpeedMultipliers = new Float32Array(nodeCount);
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
   const membersByCommunity: number[][] = Array.from(
@@ -170,15 +175,16 @@ function createGraphData(seed: number): HeroGraphData {
       ? index
       : Math.floor(random() * COMMUNITY_COUNT);
     const angle = random() * Math.PI * 2;
-    const distance = Math.sqrt(random()) * 270;
+    const distance = Math.sqrt(random()) * 390;
     const isCommunitySeed = index < COMMUNITY_COUNT;
 
     nodeGroups[index] = group;
+    orbitSpeedMultipliers[index] = 0.92 + random() * 0.16;
     membersByCommunity[group].push(index);
     radii[index] = isCommunitySeed ? 15 + random() * 3 : 6 + random() * 6;
     chargeStrengthMultipliers[index] = isCommunitySeed ? 1.28 : 0.68 + random() * 0.42;
     initialX[index] = Math.cos(angle) * distance;
-    initialY[index] = Math.sin(angle) * distance * 0.72;
+    initialY[index] = Math.sin(angle) * distance * 0.78;
   }
 
   // Dense local relationships form communities naturally. Sparse cross-group
@@ -229,6 +235,7 @@ function createGraphData(seed: number): HeroGraphData {
       radii,
     },
     nodeGroups,
+    orbitSpeedMultipliers,
   };
 }
 
@@ -255,9 +262,10 @@ function updatePointerCenter(pointer: PointerPosition): void {
   pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
 }
 
-function createPointerGravity(
+function createHeroForces(
   layout: GraphLayoutEngine,
   pointer: PointerPosition,
+  orbitSpeedMultipliers: Float32Array,
 ): GraphLayoutExternalForce {
   return {
     beforeIntegration: alpha => {
@@ -283,10 +291,18 @@ function createPointerGravity(
         -maxImpulse,
         Math.min(maxImpulse, (pointer.currentY - centerY) * followStrength),
       );
+      const settleProgress = 1 - Math.min(1, Math.max(0, alpha - 0.006) / 0.3);
+      const orbitAcceleration = 0.00005 * (0.2 + settleProgress * 0.8);
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
         layout.vx[index] += impulseX;
         layout.vy[index] += impulseY;
+
+        const offsetX = layout.x[index] - pointer.currentX;
+        const offsetY = layout.y[index] - pointer.currentY;
+        const orbitSpeed = orbitAcceleration * orbitSpeedMultipliers[index];
+        layout.vx[index] -= offsetY * orbitSpeed;
+        layout.vy[index] += offsetX * orbitSpeed;
       }
     },
   };

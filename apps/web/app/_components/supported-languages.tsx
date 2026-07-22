@@ -20,7 +20,12 @@ export function SupportedLanguages(): React.ReactElement {
         />
       </div>
 
-      <div className="language-marquee w-full min-w-0 overflow-hidden py-2 sm:py-3">
+      <div
+        className={cn(
+          'language-marquee w-full min-w-0 overflow-hidden py-2 sm:py-3',
+          !reduceMotion && 'language-marquee-fade',
+        )}
+      >
         <div
           className={cn(
             'flex items-center',

@@ -11,7 +11,7 @@ export function Header(): React.ReactElement {
     <section className="home-hero relative isolate overflow-hidden bg-[#061722] text-white">
       <ThemeHeroImage
         alt="Underwater ocean scene"
-        darkSrc="/media/ocean-home-hero-v3.jpg"
+        darkSrc="/media/ocean-home-depth-v5.jpg"
         lightSrc="/media/ocean-home-surface-v4.jpg"
       />
       <HeroGraph />

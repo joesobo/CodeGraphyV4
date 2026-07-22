@@ -386,6 +386,23 @@ button {
   animation: supported-marquee-scroll 48s linear infinite;
 }
 
+.language-marquee-fade {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 4rem,
+    black calc(100% - 4rem),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 4rem,
+    black calc(100% - 4rem),
+    transparent
+  );
+}
+
 .language-marquee:hover .language-marquee-track,
 .language-marquee:focus-within .language-marquee-track {
   animation-play-state: paused;
@@ -466,7 +483,7 @@ button {
 
 .depth-intro {
   max-width: 63rem;
-  margin-bottom: clamp(2rem, 3vw, 3rem);
+  margin-bottom: clamp(1.5rem, 2vw, 2rem);
 }
 
 .depth-intro h2 {
@@ -499,7 +516,7 @@ button {
   grid-template-columns: minmax(15rem, 0.4fr) minmax(0, 1fr);
   gap: clamp(2.5rem, 6vw, 7rem);
   align-items: center;
-  padding-block: clamp(2.25rem, 3.5vw, 3.5rem);
+  padding-block: clamp(1.5rem, 2.3vw, 2.4rem);
 }
 
 .depth-scene:nth-child(even) {
@@ -719,8 +736,8 @@ button {
   .depth-scene,
   .depth-scene:nth-child(even) {
     grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-    padding-block: 3rem;
+    gap: 2rem;
+    padding-block: 2rem;
   }
 
   .depth-scene:nth-child(even) .depth-copy {
@@ -739,6 +756,23 @@ button {
 }
 
 @media (max-width: 640px) {
+  .language-marquee-fade {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 3rem,
+      black calc(100% - 3rem),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 3rem,
+      black calc(100% - 3rem),
+      transparent
+    );
+  }
+
   .hero-graph {
     opacity: 0.55;
   }
