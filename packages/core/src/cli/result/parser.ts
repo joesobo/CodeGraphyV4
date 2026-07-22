@@ -1,6 +1,7 @@
 export interface CliError {
   action?: string;
   code: string;
+  details?: unknown;
   message: string;
 }
 

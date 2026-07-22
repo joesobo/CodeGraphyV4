@@ -69,6 +69,9 @@ export async function requestWorkspaceGraphQuery(
         nodes: scope.nodes,
         edges: scope.edges,
       },
+      ...(input.projection?.nodeTypes
+        ? { projectedNodeTypes: input.projection.nodeTypes }
+        : {}),
       showOrphans: settings.showOrphans,
       ...input.arguments,
     },

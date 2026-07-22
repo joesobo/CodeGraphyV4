@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatCliResult } from '../../src/cli/output';
+import { formatCliResult } from '../../../src/cli/result/serializer';
 
-describe('cli/output', () => {
+describe('cli/result/serializer', () => {
   it('keeps successful help and version output as plain text', () => {
     expect(formatCliResult({ name: 'help' }, { exitCode: 0, output: 'usage' })).toBe('usage');
     expect(formatCliResult({ name: 'version' }, { exitCode: 0, output: '3.0.0' })).toBe('3.0.0');
@@ -33,18 +33,32 @@ describe('cli/output', () => {
     )).error).toEqual({ code: 'command_failed', message: 'Command failed.' });
   });
 
-  it('keeps unhealthy doctor checks as failure data', () => {
+  it('keeps unhealthy doctor checks inside the error envelope', () => {
     expect(JSON.parse(formatCliResult(
       { name: 'doctor' },
       { exitCode: 1, output: '{"healthy":false,"checks":{}}' },
     ))).toEqual({
       ok: false,
       command: 'doctor',
-      data: { healthy: false, checks: {} },
       error: {
         code: 'workspace_unhealthy',
         message: 'Workspace checks failed.',
         action: 'Review the failed checks and run their suggested actions.',
+        details: { healthy: false, checks: {} },
+      },
+    });
+  });
+
+  it('preserves doctor argument errors instead of treating them as health results', () => {
+    expect(JSON.parse(formatCliResult(
+      { name: 'doctor' },
+      { exitCode: 2, output: '{"error":"invalid_arguments","message":"Unexpected argument: wat"}' },
+    ))).toEqual({
+      ok: false,
+      command: 'doctor',
+      error: {
+        code: 'invalid_arguments',
+        message: 'Unexpected argument: wat',
       },
     });
   });

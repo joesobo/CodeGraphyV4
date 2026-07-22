@@ -6,10 +6,10 @@ import type {
   IGraphEdgeSource,
   IGraphNode,
 } from '@codegraphy-dev/plugin-api';
-import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
-import { createGraphEdgeId } from './edgeIdentity';
-import { buildWorkspaceGraphDataFromAnalysis, type IWorkspaceGraphAnalysisDataOptions } from './analysisData';
-import { toRepoRelativeGraphPath } from './symbolPaths';
+import { CORE_GRAPH_NODE_TYPES } from '../../graphControls/defaults/definitions';
+import { buildWorkspaceGraphDataFromAnalysis, type IWorkspaceGraphAnalysisDataOptions } from '../analysisData';
+import { createGraphEdgeId } from '../edgeIdentity';
+import { toRepoRelativeGraphPath } from '../symbolPaths';
 
 export type CompleteWorkspaceGraphDataOptions = Omit<IWorkspaceGraphAnalysisDataOptions, 'nodeVisibility'>;
 

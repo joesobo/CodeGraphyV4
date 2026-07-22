@@ -7,7 +7,7 @@ import {
   createSnapshotAnalysisSymbol,
   createSnapshotGraphEdge,
   createSnapshotGraphNode,
-} from './graph';
+} from './graph/parser';
 import { readOptionalString } from './values';
 
 export interface HydratedDatabaseRecords {

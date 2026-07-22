@@ -1,7 +1,7 @@
 import type { IWorkspaceAnalysisCache } from '../analysis/cache';
 import type { IDiscoveryResult } from '../discovery/contracts';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
-import { buildCompleteWorkspaceGraphData } from '../graph/complete';
+import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import type { IGraphData } from '../graph/contracts';
 import { patchWorkspaceAnalysisDatabaseCache, saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';

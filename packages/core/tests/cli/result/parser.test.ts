@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseCliOutput, readCliError } from '../../src/cli/outputValue';
+import { parseCliOutput, readCliError } from '../../../src/cli/result/parser';
 
-describe('cli/outputValue', () => {
+describe('cli/result/parser', () => {
   it('parses JSON and preserves plain text', () => {
     expect(parseCliOutput('{"value":1}')).toEqual({ value: 1 });
     expect(parseCliOutput('plain text')).toBe('plain text');

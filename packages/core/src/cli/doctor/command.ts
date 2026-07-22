@@ -13,7 +13,7 @@ import type { CliCommand } from '../parseTypes';
 import { hasSupportedRawPluginIdentity } from '../../workspace/settingsPlugins';
 import { inspectWorkspaceAnalysisDatabase } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
-import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../analysis/cache';
+import { createDoctorCacheCheck } from './cacheCheck/model';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -112,22 +112,11 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
       ...(runtimeOk ? {} : { action: 'Use Node.js 20, 21, or 22.' }),
     },
     settings: settingsCheck,
-    cache: {
-      ok: status.state === 'fresh' && cacheInspection.ok,
-      state: status.state,
-      path: status.graphCachePath,
-      staleReasons: status.staleReasons,
-      schemaVersion: cacheInspection.schemaVersion,
-      expectedSchemaVersion: cacheInspection.expectedSchemaVersion,
-      schemaCompatible: cacheInspection.schemaCompatible,
-      analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
+    cache: createDoctorCacheCheck({
+      status,
+      inspection: cacheInspection,
       indexedAt: meta.lastIndexedAt,
-      records: cacheInspection.records,
-      ...(cacheInspection.message ? { message: cacheInspection.message } : {}),
-      ...(status.state === 'fresh' && cacheInspection.ok
-        ? {}
-        : { action: 'Run `codegraphy index`.' }),
-    },
+    }),
     plugins: {
       ok: activity.warnings.length === 0,
       enabled: [...activity.activePluginIds],

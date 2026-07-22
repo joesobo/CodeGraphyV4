@@ -5,10 +5,14 @@ import {
 } from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
 import {
-  readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
-  readWorkspaceAnalysisDatabaseRecordCounts as readWorkspaceAnalysisDatabaseRecordCountsImpl,
   inspectWorkspaceAnalysisDatabase as inspectWorkspaceAnalysisDatabaseImpl,
   type WorkspaceAnalysisDatabaseInspection as WorkspaceAnalysisDatabaseInspectionImpl,
+} from './inspection/model';
+import {
+  readWorkspaceAnalysisDatabaseRecordCounts as readWorkspaceAnalysisDatabaseRecordCountsImpl,
+} from './recordCounts/model';
+import {
+  readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
   type WorkspaceAnalysisDatabaseSnapshot as WorkspaceAnalysisDatabaseSnapshotImpl,
 } from './snapshot';
 import {

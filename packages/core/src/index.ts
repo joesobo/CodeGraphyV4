@@ -161,10 +161,10 @@ export {
 } from './graph/data';
 export {
   buildCompleteWorkspaceGraphData,
-} from './graph/complete';
+} from './graph/completion/model';
 export type {
   CompleteWorkspaceGraphDataOptions,
-} from './graph/complete';
+} from './graph/completion/model';
 export type {
   IWorkspaceGraphAnalysisDataOptions,
   IWorkspaceGraphDataOptions,

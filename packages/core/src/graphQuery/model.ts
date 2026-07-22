@@ -26,6 +26,7 @@ export interface GraphQuerySort {
 
 export interface GraphQueryConfig {
   scope?: GraphQueryScope;
+  projectedNodeTypes?: readonly string[];
   filters?: readonly GraphQueryFilter[];
   search?: string;
   sort?: readonly GraphQuerySort[];

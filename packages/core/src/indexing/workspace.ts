@@ -3,7 +3,7 @@ import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
 import { createWorkspaceIndexAnalysisCacheTiers } from '../analysis/fileAnalysis';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
-import { buildCompleteWorkspaceGraphData } from '../graph/complete';
+import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import {
   loadWorkspaceAnalysisDatabaseCache,
   patchWorkspaceAnalysisDatabaseCache,

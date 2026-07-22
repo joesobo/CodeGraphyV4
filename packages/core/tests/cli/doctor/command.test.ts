@@ -25,6 +25,8 @@ describe('cli doctor', () => {
             state: 'fresh',
             staleReasons: [],
             schemaVersion: 9,
+            integrityOk: true,
+            foreignKeyOk: true,
             indexedAt: expect.any(String),
             records: {
               indexedFiles: 2,
@@ -51,14 +53,16 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      data: {
-        healthy: false,
-        checks: {
-          cache: {
-            ok: false,
-            schemaVersion: 9,
-            expectedSchemaVersion: 9,
-            schemaCompatible: false,
+      error: {
+        details: {
+          healthy: false,
+          checks: {
+            cache: {
+              ok: false,
+              schemaVersion: 9,
+              expectedSchemaVersion: 9,
+              schemaCompatible: false,
+            },
           },
         },
       },
@@ -68,6 +72,65 @@ describe('cli doctor', () => {
       .toMatchObject({ count: 0 });
     expect(unchanged.prepare('SELECT count(*) AS count FROM File').get()).toMatchObject({ count: 1 });
     unchanged.close();
+  });
+
+  it('reports foreign-key damage separately from database integrity', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-foreign-key-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), '# Home\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    const damaged = new Database(databasePath);
+    damaged.pragma('foreign_keys = OFF');
+    damaged.prepare(`INSERT INTO Edge(key, sourceNodeId, targetNodeId, type)
+      VALUES ('broken-edge', 999999, 999999, 'import')`).run();
+    damaged.close();
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        details: {
+          checks: {
+            cache: {
+              ok: false,
+              schemaCompatible: true,
+              integrityOk: true,
+              foreignKeyOk: false,
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('reports integrity damage separately from foreign-key health', async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-doctor-integrity-'));
+    await fs.writeFile(path.join(workspace, 'Home.md'), '# Home\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspace);
+    const damaged = new Database(databasePath);
+    damaged.pragma('ignore_check_constraints = ON');
+    damaged.prepare('UPDATE NodeView SET favorite = 2').run();
+    damaged.close();
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        details: {
+          checks: {
+            cache: {
+              ok: false,
+              schemaCompatible: true,
+              integrityOk: false,
+              foreignKeyOk: true,
+            },
+          },
+        },
+      },
+    });
   });
 
   it('reports an unreadable cache without replacing its bytes', async () => {
@@ -81,7 +144,7 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      data: { checks: { cache: { ok: false, schemaCompatible: false } } },
+      error: { details: { checks: { cache: { ok: false, schemaCompatible: false } } } },
     });
     await expect(fs.readFile(databasePath, 'utf8')).resolves.toBe('not sqlite');
   });
@@ -98,17 +161,20 @@ describe('cli doctor', () => {
     expect(result).toMatchObject({
       ok: false,
       command: 'doctor',
-      data: {
-        healthy: false,
-        checks: {
-          runtime: { supported: expect.any(String) },
-          settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
-          cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
-          plugins: { ok: true, warnings: [] },
+      error: {
+        code: 'workspace_unhealthy',
+        details: {
+          healthy: false,
+          checks: {
+            runtime: { supported: expect.any(String) },
+            settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
+            cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
+            plugins: { ok: true, warnings: [] },
+          },
         },
       },
-      error: { code: 'workspace_unhealthy' },
     });
+    expect(result).not.toHaveProperty('data');
   });
 
   it('rejects malformed known settings fields', async () => {
@@ -123,11 +189,13 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      data: {
-        checks: {
-          settings: {
-            ok: false,
-            message: 'filterPatterns must be an array of strings',
+      error: {
+        details: {
+          checks: {
+            settings: {
+              ok: false,
+              message: 'filterPatterns must be an array of strings',
+            },
           },
         },
       },
@@ -146,7 +214,7 @@ describe('cli doctor', () => {
     await expect(runCli(['-C', workspace, 'doctor'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      data: { checks: { settings: { ok: false, message: 'pluginData must be an object' } } },
+      error: { details: { checks: { settings: { ok: false, message: 'pluginData must be an object' } } } },
     });
   });
 
@@ -167,7 +235,7 @@ describe('cli doctor', () => {
     await runCli(['-C', workspace, 'doctor'], { stderr });
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      data: { checks: { settings: { ok: true } } },
+      error: { details: { checks: { settings: { ok: true } } } },
     });
   });
 
@@ -189,7 +257,7 @@ describe('cli doctor', () => {
     await runCli(['-C', workspace, 'doctor'], { stderr });
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      data: { checks: { settings: { ok: false } } },
+      error: { details: { checks: { settings: { ok: false } } } },
     });
   });
 });

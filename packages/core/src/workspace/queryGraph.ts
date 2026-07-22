@@ -6,6 +6,7 @@ import { CODEGRAPHY_MARKDOWN_PLUGIN_ID, readCodeGraphyWorkspaceSettings } from '
 import { normalizeWorkspaceQueryFacts } from './queryFacts';
 import { matchesAnyPattern } from '../discovery/pathMatching';
 import type { IGraphData } from '../graph/contracts';
+import { resolveProjectedGraphNodeTypes } from './graphScopeProjection/model';
 import { resolveSavedGraphScope } from './graphScopeSettings';
 import type { WorkspaceGraphQueryProjection } from './requestTypes';
 
@@ -48,7 +49,7 @@ export function readWorkspaceQueryGraph(
     nodes: projection.nodeTypes
       ? Object.fromEntries([
           ...Object.keys(savedScope.nodes).map(type => [type, false] as const),
-          ...projection.nodeTypes.map(type => [type, true] as const),
+          ...resolveProjectedGraphNodeTypes(projection.nodeTypes).map(type => [type, true] as const),
         ])
       : savedScope.nodes,
     edges: projection.edgeTypes
