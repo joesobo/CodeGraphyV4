@@ -39,6 +39,38 @@ in `.codegraphy/settings.json#pluginData`.
 
 This package is type-only. Use `import type`.
 
+## Graph View webview API
+
+The webview activation function receives the Graph View capabilities that the
+Extension implements:
+
+```ts
+import type {
+  WebviewPluginActivate,
+} from '@codegraphy-dev/extension-plugin-api';
+
+const activate: WebviewPluginActivate = api => {
+  const contributions = api.registerGraphViewContributions({
+    runtimeNodes: [],
+  });
+  const overlay = api.registerOverlay('acme-status', ({ ctx }) => {
+    api.helpers.drawBadge(ctx, { text: 'Acme', x: 12, y: 12 });
+  });
+  const viewport = api.getGraphViewViewportState();
+  viewport?.reheatSimulation();
+
+  return () => {
+    contributions.dispose();
+    overlay.dispose();
+  };
+};
+
+export default activate;
+```
+
+The same API provides node renderers, tooltip providers, viewport updates, and
+slot contributions. Each registration returns a disposable cleanup handle.
+
 ## Package descriptor
 
 The package descriptor uses host `codegraphy.extension`:
