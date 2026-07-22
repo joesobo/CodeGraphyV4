@@ -15,6 +15,7 @@ export interface WorkspacePipelinePluginRegistration {
     sourcePackage?: string;
     sourcePackageRoot?: string;
     options?: Record<string, unknown>;
+    interfaces?: Array<{ id: string; data: unknown }>;
   };
 }
 

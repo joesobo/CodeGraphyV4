@@ -1,8 +1,8 @@
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 
 export type GraphContextTargetKind = 'background' | 'node' | 'edge';
-type GraphViewContextMenuContribution = CoreGraphViewContributionSet['contextMenu'][number]['contribution'];
+type GraphViewContextMenuContribution = ExtensionGraphViewContributionSet['contextMenu'][number]['contribution'];
 
 export type BuiltInContextMenuAction =
   | 'open'
@@ -94,7 +94,7 @@ export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
   favorites: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   nodes?: readonly GraphContextMenuNode[];
   edges?: readonly GraphContextMenuEdge[];
 }

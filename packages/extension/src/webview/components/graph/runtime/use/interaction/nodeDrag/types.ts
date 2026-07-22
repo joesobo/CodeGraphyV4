@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { FGNode } from '../../../../model/build';
 
 export interface NodeDragTranslate {
@@ -22,10 +22,10 @@ export interface ApplyNodeDragOptions {
 
 export interface NodeDragEndOptions {
   graphData: NodeDragGraphData;
-  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
+  graphViewContributions?: Pick<ExtensionGraphViewContributionSet, 'nodeDragEnd'>;
 }
 
 export interface NodeDragPolicyContext {
   graphData?: NodeDragGraphData;
-  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
+  graphViewContributions?: Pick<ExtensionGraphViewContributionSet, 'nodeDragEnd'>;
 }

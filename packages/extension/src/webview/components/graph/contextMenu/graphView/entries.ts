@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { separator } from '../common/entryFactories';
 import type {
   GraphContextMenuEdge,
@@ -13,7 +13,7 @@ import { buildGraphViewContributionEntry } from './contributionEntry';
 type BuildGraphViewContextMenuEntriesOptions = {
   decision: GraphContextMenuDecision;
   edges?: readonly GraphContextMenuEdge[];
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   includeSeparator?: boolean;
   placement?: GraphViewContextMenuPlacement | 'default';
   nodes?: readonly GraphContextMenuNode[];

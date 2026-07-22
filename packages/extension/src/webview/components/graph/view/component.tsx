@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 import {
@@ -37,8 +37,8 @@ interface GraphProps {
 }
 
 function hasGraphViewContributions(
-  contributions: CoreGraphViewContributionSet | undefined,
-): contributions is CoreGraphViewContributionSet {
+  contributions: ExtensionGraphViewContributionSet | undefined,
+): contributions is ExtensionGraphViewContributionSet {
   return !!contributions
     && (
       contributions.runtimeNodes.length > 0

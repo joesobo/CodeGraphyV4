@@ -6,7 +6,6 @@ import type {
 export interface IGraphNodeTypeDefinition {
   id: NodeType;
   label: string;
-  defaultColor: string;
   defaultVisible: boolean;
   description?: IGraphTypeDescription;
   parentId?: NodeType;
@@ -21,7 +20,6 @@ export interface IGraphNodeTypeDefinition {
 export interface IGraphEdgeTypeDefinition {
   id: GraphEdgeKind;
   label: string;
-  defaultColor: string;
   defaultVisible: boolean;
   description?: IGraphTypeDescription;
 }

@@ -77,11 +77,6 @@ describe('createMarkdownPlugin', () => {
       });
     });
 
-    it('exposes file color mappings for md and mdx', () => {
-      const plugin = createMarkdownPlugin();
-
-      expect(plugin.fileColors).toEqual({});
-    });
   });
 
   describe('integration', () => {

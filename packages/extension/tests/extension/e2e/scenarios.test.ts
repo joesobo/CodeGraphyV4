@@ -36,12 +36,12 @@ describe('extension e2e scenarios', () => {
       const pluginCache = JSON.parse(
         fs.readFileSync(path.join(homeDir, '.codegraphy/plugins.json'), 'utf-8'),
       ) as {
-        plugins: Array<{ pluginId: string; package: string; packageRoot: string }>;
+        plugins: Array<{ id: string; package: string; packageRoot: string }>;
       };
       expect(pluginCache.plugins).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            pluginId: 'codegraphy.typescript',
+            id: 'codegraphy.typescript',
             package: '@codegraphy-dev/plugin-typescript',
             packageRoot: path.join(repoRoot, 'packages/plugin-typescript'),
           }),
@@ -50,11 +50,11 @@ describe('extension e2e scenarios', () => {
 
       const workspaceSettings = JSON.parse(
         fs.readFileSync(path.join(workspacePath, '.codegraphy/settings.json'), 'utf-8'),
-      ) as { plugins: Array<{ id: string; enabled: boolean }> };
+      ) as { plugins: Array<{ id: string; activation: string }> };
       expect(workspaceSettings.plugins).toEqual(
         expect.arrayContaining([
-          { id: 'codegraphy.markdown', enabled: true },
-          { id: 'codegraphy.typescript', enabled: true },
+          { id: 'codegraphy.markdown', activation: 'enabled' },
+          { id: 'codegraphy.typescript', activation: 'enabled' },
         ]),
       );
     } finally {

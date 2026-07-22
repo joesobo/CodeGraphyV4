@@ -1,10 +1,6 @@
 import type { DiagnosticEvent } from '../contracts';
 import { formatAnalysisEvent } from './events/analysis';
 import { formatCommandEvent } from './events/command';
-import {
-  formatExtensionLifecycleEvent,
-  formatExtensionWebviewEvent,
-} from './events/extension';
 import { formatGraphQueryEvent } from './events/graphQuery';
 import {
   formatIndexingEvent,
@@ -30,14 +26,6 @@ export function formatKnownEvent(event: DiagnosticEvent): string | undefined {
 
   if (event.area === 'graph-query') {
     return formatGraphQueryEvent(event.event, event.context);
-  }
-
-  if (event.area === 'extension.lifecycle') {
-    return formatExtensionLifecycleEvent(event.event, event.context);
-  }
-
-  if (event.area === 'extension.webview') {
-    return formatExtensionWebviewEvent(event.event, event.context);
   }
 
   return undefined;

@@ -28,7 +28,6 @@ export abstract class PluginRegistryState {
   protected _v2Config: RegistryV2Config = { logFn: DEFAULT_LOG_FN };
   protected _lastWorkspaceReadyGraph?: IGraphData;
   protected _workspaceReadyNotified = false;
-  protected _webviewReadyNotified = false;
   protected _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
   protected _coreGraphScopeCapabilitiesProvider?: CoreGraphScopeCapabilitiesProvider;
 
@@ -37,7 +36,6 @@ export abstract class PluginRegistryState {
       info,
       this._workspaceReadyNotified,
       this._lastWorkspaceReadyGraph,
-      this._webviewReadyNotified,
     );
   }
 }

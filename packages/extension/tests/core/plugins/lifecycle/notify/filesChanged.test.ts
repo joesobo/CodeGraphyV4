@@ -7,7 +7,7 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'test-plugin',
     name: 'Test Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,

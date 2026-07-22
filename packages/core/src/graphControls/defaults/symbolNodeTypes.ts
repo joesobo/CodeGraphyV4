@@ -5,13 +5,11 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol',
     label: 'Symbol',
-    defaultColor: '#7C3AED',
     defaultVisible: false,
   },
   {
     id: 'symbol:function',
     label: 'Function',
-    defaultColor: '#8B5CF6',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['function', 'method'],
@@ -19,7 +17,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:namespace',
     label: 'Namespace',
-    defaultColor: '#64748B',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['namespace'],
@@ -27,7 +24,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:callable',
     label: 'Callable',
-    defaultColor: '#8B5CF6',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['function'],
@@ -35,7 +31,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:method',
     label: 'Method',
-    defaultColor: '#A855F7',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['method'],
@@ -43,7 +38,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:constructor',
     label: 'Constructor',
-    defaultColor: '#C084FC',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['constructor'],
@@ -51,7 +45,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:prototype',
     label: 'Prototype',
-    defaultColor: '#A78BFA',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['prototype'],
@@ -59,7 +52,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:class',
     label: 'Class',
-    defaultColor: '#3B82F6',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['class'],
@@ -67,7 +59,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:mixin',
     label: 'Mixin',
-    defaultColor: '#2563EB',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['mixin'],
@@ -75,7 +66,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:extension',
     label: 'Extension',
-    defaultColor: '#4F46E5',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['extension'],
@@ -83,7 +73,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:interface',
     label: 'Interface',
-    defaultColor: '#06B6D4',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['interface'],
@@ -91,7 +80,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:record',
     label: 'Record',
-    defaultColor: '#6366F1',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['record'],
@@ -99,7 +87,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:delegate',
     label: 'Delegate',
-    defaultColor: '#10B981',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['delegate'],
@@ -107,7 +94,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:property',
     label: 'Property',
-    defaultColor: '#84CC16',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['property'],
@@ -115,7 +101,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:event',
     label: 'Event',
-    defaultColor: '#F97316',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['event'],
@@ -123,7 +108,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:type',
     label: 'Type',
-    defaultColor: '#EC4899',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['type'],
@@ -131,7 +115,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:struct',
     label: 'Struct',
-    defaultColor: '#0EA5E9',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['struct'],
@@ -139,7 +122,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:union',
     label: 'Union',
-    defaultColor: '#14B8A6',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['union'],
@@ -147,7 +129,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:enum',
     label: 'Enum',
-    defaultColor: '#F59E0B',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['enum'],
@@ -155,7 +136,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:typedef',
     label: 'Typedef',
-    defaultColor: '#F472B6',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['typedef'],
@@ -163,7 +143,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:alias',
     label: 'Alias',
-    defaultColor: '#F472B6',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['alias'],
@@ -171,7 +150,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'symbol:template',
     label: 'Template',
-    defaultColor: '#C084FC',
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['template'],
@@ -179,7 +157,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'plugin:codegraphy.gdscript:symbol:scene',
     label: 'Scene',
-    defaultColor: '#478CBF',
     defaultVisible: false,
     parentId: 'symbol',
     pluginName: 'Godot',
@@ -190,7 +167,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'plugin:codegraphy.gdscript:symbol:resource',
     label: 'Resource',
-    defaultColor: '#F59E0B',
     defaultVisible: false,
     parentId: 'symbol',
     pluginName: 'Godot',
@@ -201,7 +177,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'plugin:codegraphy.gdscript:symbol:autoload',
     label: 'Autoload',
-    defaultColor: '#10B981',
     defaultVisible: false,
     parentId: 'symbol',
     pluginName: 'Godot',
@@ -212,7 +187,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'plugin:codegraphy.gdscript:symbol:scene-node',
     label: 'Scene Node',
-    defaultColor: '#A855F7',
     defaultVisible: false,
     parentId: 'symbol',
     pluginName: 'Godot',
@@ -223,7 +197,6 @@ export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
   {
     id: 'plugin:codegraphy.gdscript:symbol:signal',
     label: 'Signal',
-    defaultColor: '#EF4444',
     defaultVisible: false,
     parentId: 'symbol',
     pluginName: 'Godot',

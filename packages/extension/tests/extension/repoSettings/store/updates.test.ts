@@ -31,11 +31,11 @@ describe('extension/repoSettings/store updates', () => {
       changes.push(event.changedKeys);
     });
 
-    await store.updateSilently('plugins', [{ id: 'codegraphy.vue', enabled: true }]);
+    await store.updateSilently('plugins', [{ id: 'codegraphy.vue', activation: 'enabled' }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('plugins', [])).toEqual([{ id: 'codegraphy.vue', enabled: true }]);
-    expect(persisted.plugins).toEqual([{ id: 'codegraphy.vue', enabled: true }]);
+    expect(store.get('plugins', [])).toEqual([{ id: 'codegraphy.vue', activation: 'enabled' }]);
+    expect(persisted.plugins).toEqual([{ id: 'codegraphy.vue', activation: 'enabled' }]);
     expect(changes).toEqual([]);
   });
 

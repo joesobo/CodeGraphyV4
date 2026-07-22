@@ -64,7 +64,7 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.vue', enabled: false },
+      { id: 'codegraphy.vue', activation: 'disabled' },
     ]);
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
@@ -149,10 +149,10 @@ describe('graph view settings toggle message', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
           return [
-            { id: 'codegraphy.markdown', enabled: true },
+            { id: 'codegraphy.markdown', activation: 'enabled' },
             {
               id: 'codegraphy.vue',
-              enabled: true,
+              activation: 'enabled',
               options: { includeTests: true },
             },
           ] as T;
@@ -175,10 +175,10 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
       {
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         options: { includeTests: true },
       },
     ]);
@@ -197,7 +197,7 @@ describe('graph view settings toggle message', () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
-          return [{ id: 'codegraphy.markdown', enabled: true }] as T;
+          return [{ id: 'codegraphy.markdown', activation: 'enabled' }] as T;
         }
         return defaultValue;
       }),
@@ -219,8 +219,8 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.vue', enabled: true },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
+      { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
@@ -264,7 +264,7 @@ describe('graph view settings toggle message', () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
-          return [{ id: 'codegraphy.markdown', enabled: true }] as T;
+          return [{ id: 'codegraphy.markdown', activation: 'enabled' }] as T;
         }
         return defaultValue;
       }),
@@ -293,10 +293,10 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
       {
         id: 'codegraphy.godot',
-        enabled: true,
+        activation: 'enabled',
         options: {
           includeSceneResources: true,
           includeAutoloads: true,

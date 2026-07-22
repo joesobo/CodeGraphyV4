@@ -4,7 +4,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { GraphContextMenuActionInvocation, GraphContextSelection } from '../../../contextMenu/contracts';
 import type { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
@@ -23,7 +23,7 @@ export interface UseGraphInteractionRuntimeOptions {
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: GraphRuntime['renderer']['graphDataRef'];
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   highlightedNeighborsRef: GraphRuntime['highlightedNeighborsRef'];
   highlightedNodeRef: GraphRuntime['highlightedNodeRef'];
   isMacPlatform: boolean;

@@ -86,7 +86,6 @@ export function createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan(
     getPluginSettingImpacts(options.updateImpact, options.settingKeys),
   );
   switch (impact) {
-    case 'view-only':
     case 'settings-only':
       return { kind: 'settings-only' };
     case 'projection-only':
@@ -116,7 +115,6 @@ function createPluginUpdateIndexingPlan(
   impact: IPluginUpdateImpact | undefined,
 ): CodeGraphyWorkspacePluginIndexingPlan {
   switch (impact) {
-    case 'view-only':
     case 'settings-only':
     case 'projection-only':
       return { kind: 'projection-only' };
@@ -155,9 +153,6 @@ function getHighestImpact(impacts: readonly IPluginUpdateImpact[]): IPluginUpdat
   }
   if (impacts.includes('settings-only')) {
     return 'settings-only';
-  }
-  if (impacts.includes('view-only')) {
-    return 'view-only';
   }
   return undefined;
 }

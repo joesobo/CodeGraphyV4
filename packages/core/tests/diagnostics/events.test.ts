@@ -79,7 +79,7 @@ describe('diagnostics/events', () => {
     })).toBe('[CodeGraphy] Cache load failed: area=graph-cache, operationId=index-1');
   });
 
-  it('formats graph query and extension lifecycle events', () => {
+  it('formats analysis and graph query events', () => {
     expect(formatDiagnosticEventLine({
       area: 'extension.analysis', event: 'request-started', context: { requestId: 'request-1', mode: 'full' },
     })).toContain('Starting analysis:');
@@ -92,18 +92,6 @@ describe('diagnostics/events', () => {
     expect(formatDiagnosticEventLine({
       area: 'graph-query', event: 'completed', context: { report: 'nodes', nodeCount: 2, edgeCount: 1 },
     })).toContain('Graph Query complete:');
-    expect(formatDiagnosticEventLine({
-      area: 'extension.lifecycle', event: 'activation-started', context: { workspaceFolders: 1 },
-    })).toContain('Extension activation started:');
-    expect(formatDiagnosticEventLine({
-      area: 'extension.lifecycle', event: 'activation-completed', context: { registeredWebviewProviders: 1 },
-    })).toContain('Extension activation complete:');
-    expect(formatDiagnosticEventLine({
-      area: 'extension.webview', event: 'ready-replayed', context: { hasWorkspace: true },
-    })).toContain('Webview ready replayed:');
-    expect(formatDiagnosticEventLine({
-      area: 'extension.webview', event: 'bootstrap-completed', context: { hasWorkspace: true },
-    })).toContain('Webview bootstrap complete:');
   });
 
   it('normalizes non-JSON primitive context values into readable strings', () => {

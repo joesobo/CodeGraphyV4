@@ -6,6 +6,11 @@ export interface CodeGraphyWorkspacePluginSettings {
   options?: Record<string, unknown>;
 }
 
+export interface CodeGraphyWorkspaceInterfaceSettings {
+  id: string;
+  data: unknown;
+}
+
 export interface CodeGraphyWorkspaceSettings {
   version: 1;
   maxFiles: number;
@@ -17,5 +22,6 @@ export interface CodeGraphyWorkspaceSettings {
   nodeVisibility?: Record<string, boolean>;
   edgeVisibility?: Record<string, boolean>;
   plugins: CodeGraphyWorkspacePluginSettings[];
+  interfaces: CodeGraphyWorkspaceInterfaceSettings[];
   pluginData?: Record<string, unknown>;
 }

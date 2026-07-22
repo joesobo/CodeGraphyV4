@@ -8,9 +8,9 @@ function readJson(path: string): unknown {
 }
 
 describe('Unity plugin configuration', () => {
-  it('uses only file-color fields allowed by the repository schema', () => {
+  it('uses only file-color fields allowed by the Extension schema', () => {
     const testDirectory = dirname(fileURLToPath(import.meta.url));
-    const schema = readJson(resolve(testDirectory, '../../../codegraphy.schema.json')) as {
+    const schema = readJson(resolve(testDirectory, '../../../codegraphy.extension.schema.json')) as {
       properties: {
         fileColors: {
           additionalProperties: {
@@ -19,7 +19,7 @@ describe('Unity plugin configuration', () => {
         };
       };
     };
-    const manifest = readJson(resolve(testDirectory, '../codegraphy.json')) as {
+    const manifest = readJson(resolve(testDirectory, '../codegraphy.extension.json')) as {
       fileColors: Record<string, string | Record<string, unknown>>;
     };
     const allowedFields = new Set(

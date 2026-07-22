@@ -233,6 +233,12 @@ describe('CodeGraphy Workspace settings', () => {
       disabledCustomFilterPatterns: ['generated/**', 'generated/**'],
       nodeVisibility: { file: true, 'symbol:function': false, invalid: 'yes' },
       edgeVisibility: { import: true, call: 'yes' },
+      interfaces: [
+        { id: ' codegraphy.extension ', data: { pinnedNodes: [{ id: 'src/app.ts', x: 10, y: 20 }] } },
+        { id: '' },
+        { id: 'codegraphy.extension', data: { ignoredDuplicate: true } },
+        'invalid',
+      ],
       plugins: [
         {
           package: '  @codegraphy-dev/plugin-vue  ',
@@ -252,6 +258,10 @@ describe('CodeGraphy Workspace settings', () => {
       disabledCustomFilterPatterns: ['generated/**'],
       nodeVisibility: { file: true, 'symbol:function': false },
       edgeVisibility: { import: true },
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { pinnedNodes: [{ id: 'src/app.ts', x: 10, y: 20 }] },
+      }],
       pluginData: {},
       plugins: [{
         id: '@codegraphy-dev/plugin-vue',

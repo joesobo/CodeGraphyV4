@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { buildGraphData } from '../../../../src/webview/components/graph/model/build';
 
-function createEmptyContributions(): CoreGraphViewContributionSet {
+function createEmptyContributions(): ExtensionGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],
@@ -23,7 +23,7 @@ describe('graph/model/runtimeContributions', () => {
       ],
       edges: [],
     };
-    const graphViewContributions: CoreGraphViewContributionSet = {
+    const graphViewContributions: ExtensionGraphViewContributionSet = {
       ...createEmptyContributions(),
       runtimeNodes: [{
         pluginId: 'acme.graph-tools',
@@ -118,7 +118,7 @@ describe('graph/model/runtimeContributions', () => {
         sources: [],
       }],
     };
-    const graphViewContributions: CoreGraphViewContributionSet = {
+    const graphViewContributions: ExtensionGraphViewContributionSet = {
       ...createEmptyContributions(),
       projections: [{
         pluginId: 'acme.graph-tools',
@@ -163,7 +163,7 @@ describe('graph/model/runtimeContributions', () => {
   it('passes the live graph to runtime and projection contributions', () => {
     const createNodes = vi.fn(() => []);
     const project = vi.fn(({ visibleGraph }) => visibleGraph);
-    const graphViewContributions: CoreGraphViewContributionSet = {
+    const graphViewContributions: ExtensionGraphViewContributionSet = {
       ...createEmptyContributions(),
       runtimeNodes: [{
         pluginId: 'acme.graph-tools',

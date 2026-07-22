@@ -58,7 +58,6 @@ export function createMarkdownPlugin(): IPlugin {
     defaultFilters: manifest.defaultFilters,
     updateImpact: manifest.updateImpact as IPlugin['updateImpact'],
     sources: manifest.sources,
-    fileColors: manifest.fileColors,
     contributeGraphScopeCapabilities: () => ({ edgeTypes: ['reference'] }),
 
     async initialize(workspaceRoot: string): Promise<void> {

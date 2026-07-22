@@ -35,8 +35,8 @@ describe('extension/repoSettings persisted plugin shape', () => {
       ],
     })).toEqual({
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: '@codegraphy-dev/plugin-vue', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: '@codegraphy-dev/plugin-vue', activation: 'enabled' },
       ],
     });
   });
@@ -56,11 +56,11 @@ describe('extension/repoSettings persisted plugin shape', () => {
       plugins: [
         {
           id: 'codegraphy.markdown',
-          enabled: true,
+          activation: 'enabled',
           disabledFilterPatterns: ['**/*.md'],
           options: { includeFrontmatter: true },
         },
-        { id: '@codegraphy-dev/plugin-vue', enabled: true },
+        { id: '@codegraphy-dev/plugin-vue', activation: 'enabled' },
       ],
     });
   });

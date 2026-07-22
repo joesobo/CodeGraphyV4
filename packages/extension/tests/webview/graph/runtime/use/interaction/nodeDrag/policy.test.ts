@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionEntry } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionEntry } from '@codegraphy-dev/extension-plugin-api';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphViewNodeDragEndContribution } from '../../../../../../../src/core/plugins/types/contracts';
 import type { FGNode } from '../../../../../../../src/webview/components/graph/model/build';
@@ -13,7 +13,7 @@ function node(overrides: Partial<FGNode> & { id?: string } = {}): FGNode {
 
 function nodeDragEndContribution(
   onNodeDragEnd: IGraphViewNodeDragEndContribution['onNodeDragEnd'],
-): CoreGraphViewContributionEntry<IGraphViewNodeDragEndContribution> {
+): ExtensionGraphViewContributionEntry<IGraphViewNodeDragEndContribution> {
   return {
     pluginId: 'plugin.organize',
     contribution: {

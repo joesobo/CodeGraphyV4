@@ -4,7 +4,7 @@
  */
 
 import { Disposable, toDisposable } from '../disposable';
-import type { EventPayloads, EventName } from '../../../../../plugin-api/src/events';
+import type { EventPayloads, EventName } from '@codegraphy-dev/extension-plugin-api/events';
 import { removeHandler, removeAllHandlersForPlugin } from './handlers';
 import type { EventHandler } from './handlers';
 

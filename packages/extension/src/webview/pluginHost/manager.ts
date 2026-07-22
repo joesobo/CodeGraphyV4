@@ -3,7 +3,7 @@
  * @module webview/pluginHost/manager
  */
 
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type {
   GraphPluginSlot,
   GraphViewViewportState,
@@ -136,7 +136,7 @@ export class WebviewPluginHost {
     });
   }
 
-  getGraphViewContributions(): CoreGraphViewContributionSet {
+  getGraphViewContributions(): ExtensionGraphViewContributionSet {
     return this._graphViewContributions.get();
   }
 

@@ -62,7 +62,6 @@ describe('visibleGraph collapse and filtering', () => {
     expect(symbolMatchesScopedDefinition(symbolNode, {
       id: 'symbol',
       label: 'Symbols',
-      defaultColor: '#ffffff',
       defaultVisible: true,
       matchSymbolKinds: ['class'],
       matchSymbolPluginKind: 'class_declaration',
@@ -74,14 +73,12 @@ describe('visibleGraph collapse and filtering', () => {
     expect(symbolMatchesScopedDefinition(symbolNode, {
       id: 'symbol',
       label: 'Symbols',
-      defaultColor: '#ffffff',
       defaultVisible: true,
       matchSymbolKinds: ['function'],
     })).toBe(false);
     expect(symbolMatchesScopedDefinition(node('src/models/user.ts'), {
       id: 'symbol',
       label: 'Symbols',
-      defaultColor: '#ffffff',
       defaultVisible: true,
     })).toBe(false);
   });

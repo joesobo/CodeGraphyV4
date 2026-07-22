@@ -1,3 +1,5 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import {
   loadCodeGraphyWorkspacePluginPackages,
   type CodeGraphyWorkspaceSettings,
@@ -10,6 +12,17 @@ export interface WorkspacePackagePluginRegistrationDependencies {
   disabledPlugins?: Iterable<string>;
   userHomeDir?: string;
   warn?: (message: string) => void;
+}
+
+function readPackageInterfaceData(packageRoot: string): Array<{ id: string; data: unknown }> {
+  try {
+    const data: unknown = JSON.parse(
+      fs.readFileSync(path.join(packageRoot, 'codegraphy.extension.json'), 'utf8'),
+    );
+    return [{ id: 'codegraphy.extension', data }];
+  } catch {
+    return [];
+  }
 }
 
 export async function loadWorkspacePackagePluginRegistrations(
@@ -33,6 +46,7 @@ export async function loadWorkspacePackagePluginRegistrations(
       sourcePackage: loadedPlugin.packageName,
       sourcePackageRoot: loadedPlugin.record.packageRoot,
       ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
+      interfaces: readPackageInterfaceData(loadedPlugin.record.packageRoot),
     },
   }));
 }

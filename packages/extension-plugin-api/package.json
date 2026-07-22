@@ -12,6 +12,12 @@
     },
     "./webview": {
       "types": "./src/webview.ts"
+    },
+    "./graph-view": {
+      "types": "./src/graphView.ts"
+    },
+    "./events": {
+      "types": "./src/events.ts"
     }
   },
   "files": [

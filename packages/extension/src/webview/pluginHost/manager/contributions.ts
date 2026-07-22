@@ -1,9 +1,9 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphViewContributions } from '../api/contracts/webview';
 
 export type GraphViewContributionsByPlugin = Map<string, Set<IGraphViewContributions>>;
 
-export function createEmptyWebviewGraphViewContributionSet(): CoreGraphViewContributionSet {
+export function createEmptyWebviewGraphViewContributionSet(): ExtensionGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],
@@ -26,7 +26,7 @@ function appendPluginContributions(
 }
 
 function mergePluginContributionSet(
-  merged: CoreGraphViewContributionSet,
+  merged: ExtensionGraphViewContributionSet,
   pluginId: string,
   contributions: IGraphViewContributions,
 ): void {
@@ -41,7 +41,7 @@ function mergePluginContributionSet(
 
 export function mergeGraphViewContributions(
   contributionsByPlugin: GraphViewContributionsByPlugin,
-): CoreGraphViewContributionSet {
+): ExtensionGraphViewContributionSet {
   const merged = createEmptyWebviewGraphViewContributionSet();
   for (const [pluginId, contributionSets] of contributionsByPlugin) {
     for (const contributions of contributionSets) {

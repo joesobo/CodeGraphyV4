@@ -7,7 +7,7 @@ import type { IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts'
 import type {
   IGraphViewContributions,
   IGraphViewNodeDragState,
-} from '../../../../../../plugin-api/src';
+} from '@codegraphy-dev/extension-plugin-api';
 import type { WebviewDisposable } from '../../disposable';
 
 export type { IGraphViewContributions };

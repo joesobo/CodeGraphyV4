@@ -16,6 +16,7 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
     nodeVisibility: {},
     edgeVisibility: {},
     plugins: [],
+    interfaces: [],
     pluginData: {},
   };
 }

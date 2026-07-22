@@ -50,25 +50,6 @@ describe('createUnityPlugin', () => {
       edgeTypes: ['contains', 'reference', 'event'],
     });
     expect(plugin.contributeEdgeTypes?.() ?? []).toEqual([]);
-    expect(plugin.fileColors).toEqual(expect.objectContaining({
-      '*.unity': expect.objectContaining({
-        color: '#F97316',
-        imagePath: 'assets/unity.svg',
-      }),
-      '*.prefab': expect.objectContaining({
-        color: '#8B5CF6',
-        imagePath: 'assets/unity.svg',
-      }),
-      '*.asset': expect.objectContaining({
-        color: '#0EA5E9',
-        shape2D: 'triangle',
-        imagePath: 'assets/unity.svg',
-      }),
-      '*.mat': expect.objectContaining({
-        color: '#14B8A6',
-        imagePath: 'assets/unity.svg',
-      }),
-    }));
   });
 
   it.skipIf(process.env.CODEGRAPHY_MUTATION_RUN === '1')('ships Unity icons as white glyphs', () => {

@@ -55,25 +55,6 @@
       },
       "description": "Connection sources provided by this plugin"
     },
-    "fileColors": {
-      "type": "object",
-      "additionalProperties": {
-        "oneOf": [
-          { "type": "string" },
-          {
-            "type": "object",
-            "required": ["color"],
-            "additionalProperties": false,
-            "properties": {
-              "color": { "type": "string" },
-              "shape2D": { "type": "string", "enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"] },
-              "imagePath": { "type": "string", "description": "Relative path from plugin root to image file" }
-            }
-          }
-        ]
-      },
-      "description": "Mapping of file extensions or filenames to color strings or shape/imagePath objects"
-    },
     "defaultFilters": {
       "type": "array",
       "items": { "type": "string" },
@@ -105,7 +86,6 @@
     "updateImpactLevel": {
       "type": "string",
       "enum": [
-        "view-only",
         "settings-only",
         "projection-only",
         "reanalyze-plugin-files",

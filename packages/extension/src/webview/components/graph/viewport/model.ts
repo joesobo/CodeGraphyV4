@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { GraphViewStoreState } from '../view/store';
 import type {
   GraphContextSelection,
@@ -25,7 +25,7 @@ export interface GraphViewportModelOptions {
     contextSelection: GraphContextSelection;
     graphData: GraphRuntime['renderer']['graphData'];
   };
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;

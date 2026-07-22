@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { removeHandler, removeAllHandlersForPlugin } from '../../../../src/core/plugins/events/handlers';
 import type { EventHandler } from '../../../../src/core/plugins/events/handlers';
-import type { EventName } from '../../../../../plugin-api/src/events';
+import type { EventName } from '@codegraphy-dev/extension-plugin-api/events';
 
 describe('removeHandler', () => {
   it('removes the handler from the event set', () => {

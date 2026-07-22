@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import type { IProjectedConnection } from '../../../../src/analysis/projectedConnection';
-import { DEFAULT_NODE_COLOR } from '../../../../src/fileColors';
 import { buildWorkspaceGraphData } from '../../../../src/graph/data';
 import { createPlugin } from '../fixture';
 

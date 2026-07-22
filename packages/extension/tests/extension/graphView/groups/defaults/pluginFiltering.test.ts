@@ -4,17 +4,22 @@ import * as vscode from 'vscode';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
 describe('graphView/pluginDefaultGroups', () => {
+  type FileColors = Record<
+    string,
+    string | { color: string; shape2D?: NodeShape2D; imagePath?: string }
+  >;
   type PluginInfoLike = {
     builtIn?: boolean;
+    interfaces?: Array<{ id: string; data: { fileColors: FileColors } }>;
     plugin: {
       id: string;
       name: string;
-      fileColors?: Record<
-        string,
-        string | { color: string; shape2D?: NodeShape2D; imagePath?: string }
-      >;
     };
   };
+  const extensionInterfaces = (fileColors: FileColors) => ([{
+    id: 'codegraphy.extension',
+    data: { fileColors },
+  }]);
 
   it('does not add optional metadata keys when a plugin color definition only provides a color', () => {
     const groups = getGraphViewPluginDefaultGroups(
@@ -25,12 +30,8 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.rust',
                 name: 'Rust',
-                fileColors: {
-                  '*.rs': {
-                    color: '#DEA584',
-                  },
-                },
               },
+              interfaces: extensionInterfaces({ '*.rs': { color: '#DEA584' } }),
             },
           ],
         },
@@ -62,22 +63,22 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.typescript',
                 name: 'TypeScript',
-                fileColors: { '*.ts': '#3178C6' },
               },
+              interfaces: extensionInterfaces({ '*.ts': '#3178C6' }),
             },
             {
               plugin: {
                 id: 'codegraphy.typescript',
                 name: 'TypeScript',
-                fileColors: { '*.ts': '#3178C6' },
               },
+              interfaces: extensionInterfaces({ '*.ts': '#3178C6' }),
             },
             {
               plugin: {
                 id: 'codegraphy.vue',
                 name: 'Vue',
-                fileColors: { '*.vue': '#41B883' },
               },
+              interfaces: extensionInterfaces({ '*.vue': '#41B883' }),
             },
           ],
         },
@@ -108,28 +109,24 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.godot',
                 name: 'Godot',
-                fileColors: {
-                  '*.gd': {
-                    color: '#478CBF',
-                  },
-                  '*.godot': {
-                    color: '#6A9FB5',
-                  },
-                },
               },
+              interfaces: extensionInterfaces({
+                '*.gd': { color: '#478CBF' },
+                '*.godot': { color: '#6A9FB5' },
+              }),
             },
             {
               plugin: {
                 id: 'codegraphy.godot',
                 name: 'Godot',
-                fileColors: {
-                  '*.gd': {
-                    color: '#111111',
-                    shape2D: 'hexagon',
-                    imagePath: 'duplicate.svg',
-                  },
-                },
               },
+              interfaces: extensionInterfaces({
+                '*.gd': {
+                  color: '#111111',
+                  shape2D: 'hexagon',
+                  imagePath: 'duplicate.svg',
+                },
+              }),
             },
           ],
         },

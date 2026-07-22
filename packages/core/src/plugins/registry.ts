@@ -13,8 +13,8 @@ import { initializeAll, initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';
 import { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './lifecycle/notify/analysis';
 import {
+  listAccessProviders,
   resolvePluginAccess,
-  type CoreGraphViewContributionSet,
   type CorePluginAccessCheck,
   type CorePluginAccessContext,
 } from './access/checks';
@@ -38,7 +38,6 @@ import {
 } from './routing/router/lookups';
 import { notifyWorkspaceReady } from './workspaceReady';
 import { listGraphScopeCapabilities } from './graphScopeCapabilities';
-import { listAccessProviders, listAvailableGraphViewContributions } from './graphViewContributions';
 
 export { CORE_PLUGIN_API_VERSION };
 
@@ -146,12 +145,6 @@ export class CorePluginRegistry {
     }
 
     return resolvePluginAccess(info.plugin, listAccessProviders(this.plugins), context);
-  }
-
-  async listAvailableGraphViewContributions(
-    context: CorePluginAccessContext = {},
-  ): Promise<CoreGraphViewContributionSet> {
-    return listAvailableGraphViewContributions(this.plugins, context);
   }
 
   async analyzeFile(

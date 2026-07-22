@@ -65,10 +65,10 @@ describe('graph view ready bootstrap payloads', () => {
     expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(readyNotified).toBe(true);
     expect(log.mock.calls.map(call => call[0])).toContain(
-      '[CodeGraphy] Webview ready replayed: hasWorkspace=false, firstAnalysis=false, readyNotified=false, maxFiles=500',
+      '[CodeGraphy] Ready replayed: area=extension.webview, hasWorkspace=false, firstAnalysis=false, readyNotified=false, maxFiles=500',
     );
     expect(log.mock.calls.map(call => call[0])).toContain(
-      '[CodeGraphy] Webview bootstrap complete: hasWorkspace=false, firstAnalysis=false, readyNotified=false',
+      '[CodeGraphy] Bootstrap completed: area=extension.webview, hasWorkspace=false, firstAnalysis=false, readyNotified=false',
     );
     log.mockRestore();
   });

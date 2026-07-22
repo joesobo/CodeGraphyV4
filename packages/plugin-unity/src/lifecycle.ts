@@ -21,7 +21,6 @@ class UnityPlugin implements IPlugin {
   readonly supportedExtensions = manifest.supportedExtensions;
   readonly defaultFilters = manifest.defaultFilters;
   readonly updateImpact = manifest.updateImpact as IPlugin['updateImpact'];
-  readonly fileColors = manifest.fileColors as IPlugin['fileColors'];
   readonly sources = manifest.sources;
 
   private guidToAssetPath = new Map<string, string>();

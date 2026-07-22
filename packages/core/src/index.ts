@@ -120,15 +120,6 @@ export {
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
 } from './discovery/pathMatching';
-export {
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-  DEFAULT_NODE_COLOR,
-  DEFAULT_PACKAGE_NODE_COLOR,
-  FILE_TYPE_COLORS,
-  getFileColor,
-  normalizeHexColor,
-} from './fileColors';
 export type { WorkspaceAnalysisDatabaseSnapshot } from './graphCache/database/storage';
 export {
   clearWorkspaceAnalysisDatabaseCache,
@@ -253,13 +244,11 @@ export type {
   WorkspaceIndexPluginStatusOptions,
 } from './plugins/status';
 export type {
-  CoreGraphViewContributionEntry,
-  CoreGraphViewContributionSet,
   CorePluginAccessCheck,
   CorePluginAccessContext,
 } from './plugins/access/checks';
 export {
-  createEmptyGraphViewContributionSet,
+  listAccessProviders,
   resolvePluginAccess,
 } from './plugins/access/checks';
 export {
@@ -378,6 +367,7 @@ export {
   resolveWorkspaceRoot,
 } from './workspace/paths';
 export type {
+  CodeGraphyWorkspaceInterfaceSettings,
   CodeGraphyWorkspacePluginSettings,
   CodeGraphyWorkspaceSettings,
 } from './workspace/settings';

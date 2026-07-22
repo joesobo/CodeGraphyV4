@@ -14,13 +14,12 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
   onPreAnalyze: ReturnType<typeof vi.fn>;
   onPostAnalyze: ReturnType<typeof vi.fn>;
   onGraphRebuild: ReturnType<typeof vi.fn>;
-  onWebviewReady: ReturnType<typeof vi.fn>;
 } {
   return {
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     onLoad: vi.fn(),
@@ -29,7 +28,6 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     onPreAnalyze: vi.fn(),
     onPostAnalyze: vi.fn(),
     onGraphRebuild: vi.fn(),
-    onWebviewReady: vi.fn(),
     ...overrides,
   } as unknown as IPlugin & {
     onLoad: ReturnType<typeof vi.fn>;
@@ -38,7 +36,6 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     onPreAnalyze: ReturnType<typeof vi.fn>;
     onPostAnalyze: ReturnType<typeof vi.fn>;
     onGraphRebuild: ReturnType<typeof vi.fn>;
-    onWebviewReady: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -78,7 +75,6 @@ describe('PluginRegistry v2', () => {
           await registry.notifyPreAnalyze(files, '/workspace');
           registry.notifyPostAnalyze(graph);
           registry.notifyGraphRebuild(graph);
-          registry.notifyWebviewReady();
 
           expect(plugin.onWorkspaceReady).toHaveBeenCalledWith(graph);
           expect(plugin.onPreAnalyze).toHaveBeenCalledWith(
@@ -88,7 +84,6 @@ describe('PluginRegistry v2', () => {
           );
           expect(plugin.onPostAnalyze).toHaveBeenCalledWith(graph);
           expect(plugin.onGraphRebuild).toHaveBeenCalledWith(graph);
-          expect(plugin.onWebviewReady).toHaveBeenCalledOnce();
         });
 
 
@@ -106,9 +101,6 @@ describe('PluginRegistry v2', () => {
             onGraphRebuild: vi.fn(() => {
               throw new Error('rebuild');
             }),
-            onWebviewReady: vi.fn(() => {
-              throw new Error('webview');
-            }),
           });
 
           registry.register(plugin);
@@ -116,7 +108,6 @@ describe('PluginRegistry v2', () => {
           await expect(registry.notifyPreAnalyze([], '/workspace')).resolves.toBeUndefined();
           expect(() => registry.notifyPostAnalyze({ nodes: [], edges: [] })).not.toThrow();
           expect(() => registry.notifyGraphRebuild({ nodes: [], edges: [] })).not.toThrow();
-          expect(() => registry.notifyWebviewReady()).not.toThrow();
         });
   });
 

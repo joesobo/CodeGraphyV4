@@ -10,7 +10,6 @@ export interface IAnalysisRange {
 export interface IPluginNodeType {
   id: NodeType;
   label: string;
-  defaultColor: string;
   defaultVisible: boolean;
   description?: IPluginGraphTypeDescription;
   parentId?: NodeType;
@@ -19,7 +18,6 @@ export interface IPluginNodeType {
 export interface IPluginEdgeType {
   id: GraphEdgeKind;
   label: string;
-  defaultColor: string;
   defaultVisible: boolean;
   description?: IPluginGraphTypeDescription;
 }

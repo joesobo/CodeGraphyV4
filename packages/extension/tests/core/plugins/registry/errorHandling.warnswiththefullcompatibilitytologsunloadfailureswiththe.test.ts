@@ -11,7 +11,7 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
@@ -33,40 +33,6 @@ function createConfiguredRegistry() {
 }
 
 describe('PluginRegistry error handling', () => {
-
-
-    it('warns with the full compatibility message for incompatible webview contributions', () => {
-      const registry = createConfiguredRegistry();
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const plugin = createPlugin('webview-mismatch', {
-        webviewApiVersion: '^2.0.0',
-        webviewContributions: { scripts: ['dist/webview.js'] },
-      });
-
-      registry.register(plugin);
-
-      expect(warnSpy).toHaveBeenCalledWith(
-        "[CodeGraphy] Plugin 'webview-mismatch' declares incompatible webviewApiVersion '^2.0.0' (host: '1.0.0'). Webview contributions may not behave as expected."
-      );
-      warnSpy.mockRestore();
-    });
-
-
-
-    it('skips the warning for compatible webview contributions', () => {
-      const registry = createConfiguredRegistry();
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const plugin = createPlugin('webview-compatible', {
-        webviewApiVersion: ' 1.0.0 ',
-        webviewContributions: { scripts: ['dist/webview.js'] },
-      });
-
-      registry.register(plugin);
-
-      expect(warnSpy).not.toHaveBeenCalled();
-      warnSpy.mockRestore();
-    });
-
 
 
     it('logs analysis failures with the file path and plugin id', async () => {

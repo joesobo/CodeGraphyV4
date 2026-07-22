@@ -1,9 +1,4 @@
-/**
- * @fileoverview Graph View contribution contracts for CodeGraphy plugins.
- * @module @codegraphy-dev/plugin-api/graphView
- */
-
-import type { CodeGraphyAccessKey } from './access';
+import type { CodeGraphyAccessKey } from '@codegraphy-dev/plugin-api/access';
 import type {
   GraphEdgeKind,
   GraphMetadata,
@@ -11,10 +6,10 @@ import type {
   IGraphEdge,
   IGraphNode,
   NodeType,
-} from './graph';
+} from '@codegraphy-dev/plugin-api/graph';
 
 export type GraphViewAccessRequirement =
-  CodeGraphyAccessKey
+  | CodeGraphyAccessKey
   | readonly CodeGraphyAccessKey[];
 
 export interface IGraphViewContributionBase {
@@ -29,22 +24,20 @@ export interface IGraphViewContributionContext {
   workspaceRoot?: string;
 }
 
-export interface IGraphViewRuntimeNodePositionState {
-  x?: number | undefined;
-  y?: number | undefined;
-  fx?: number | undefined;
-  fy?: number | undefined;
-  vx?: number | undefined;
-  vy?: number | undefined;
-}
-
-export interface IGraphViewRuntimeNode extends IGraphNode, IGraphViewRuntimeNodePositionState {
+export interface IGraphViewRuntimeNode extends IGraphNode {
   color?: string;
+  x?: number;
+  y?: number;
+  fx?: number;
+  fy?: number;
+  vx?: number;
+  vy?: number;
   ownerPluginId?: string;
   runtimeNodeType?: string;
 }
 
 export interface IGraphViewRuntimeEdge extends IGraphEdge {
+  color?: string;
   ownerPluginId?: string;
   runtimeEdgeType?: string;
 }
@@ -123,21 +116,9 @@ export interface IGraphViewUiSlotContribution extends IGraphViewContributionBase
 
 export type GraphViewContextMenuTargetSelector =
   | { kind: 'background' }
-  | {
-    kind: 'node';
-    nodeTypes?: readonly NodeType[];
-    runtimeNodeTypes?: readonly string[];
-  }
-  | {
-    kind: 'edge';
-    edgeKinds?: readonly GraphEdgeKind[];
-    runtimeEdgeTypes?: readonly string[];
-  }
-  | {
-    kind: 'multiSelection';
-    nodeTypes?: readonly NodeType[];
-    runtimeNodeTypes?: readonly string[];
-  }
+  | { kind: 'node'; nodeTypes?: readonly NodeType[]; runtimeNodeTypes?: readonly string[] }
+  | { kind: 'edge'; edgeKinds?: readonly GraphEdgeKind[]; runtimeEdgeTypes?: readonly string[] }
+  | { kind: 'multiSelection'; nodeTypes?: readonly NodeType[]; runtimeNodeTypes?: readonly string[] }
   | { kind: 'runtimeNodeType'; runtimeNodeTypes: readonly string[] }
   | { kind: 'runtimeEdgeType'; runtimeEdgeTypes: readonly string[] };
 
@@ -151,9 +132,7 @@ export interface IGraphViewContextMenuRunContext {
 
 export interface IGraphViewContextMenuContribution extends IGraphViewContributionBase {
   targets: readonly GraphViewContextMenuTargetSelector[];
-  placement?: {
-    menu: 'create';
-  };
+  placement?: { menu: 'create' };
   getLabel?(context: IGraphViewContextMenuRunContext): string;
   isVisible?(context: IGraphViewContextMenuRunContext): boolean;
   run(context: IGraphViewContextMenuRunContext): void | Promise<void>;
@@ -167,4 +146,19 @@ export interface IGraphViewContributions {
   nodeDragEnd?: readonly IGraphViewNodeDragEndContribution[];
   contextMenu?: readonly IGraphViewContextMenuContribution[];
   ui?: readonly IGraphViewUiSlotContribution[];
+}
+
+export interface ExtensionGraphViewContributionEntry<TContribution> {
+  pluginId: string;
+  contribution: TContribution;
+}
+
+export interface ExtensionGraphViewContributionSet {
+  runtimeNodes: ExtensionGraphViewContributionEntry<IGraphViewRuntimeNodeContribution>[];
+  runtimeEdges: ExtensionGraphViewContributionEntry<IGraphViewRuntimeEdgeContribution>[];
+  projections: ExtensionGraphViewContributionEntry<IGraphViewProjectionContribution>[];
+  forces: ExtensionGraphViewContributionEntry<IGraphViewForceAdapterContribution>[];
+  nodeDragEnd: ExtensionGraphViewContributionEntry<IGraphViewNodeDragEndContribution>[];
+  contextMenu: ExtensionGraphViewContributionEntry<IGraphViewContextMenuContribution>[];
+  ui: ExtensionGraphViewContributionEntry<IGraphViewUiSlotContribution>[];
 }

@@ -29,6 +29,7 @@ export class PluginRegistry extends PluginRegistryLifecycle {
       sourcePackage?: string;
       sourcePackageRoot?: string;
       options?: Record<string, unknown>;
+      interfaces?: Array<{ id: string; data: unknown }>;
       deferReadinessReplay?: boolean;
     } = {},
   ): void {
@@ -46,8 +47,7 @@ export class PluginRegistry extends PluginRegistryLifecycle {
     return removeFromRegistry(pluginId, this._plugins, this._extensionMap, this._initializedPlugins, this._eventBus);
   }
 
-  override notifyWebviewReady(): void {
-    super.notifyWebviewReady();
+  notifyWebviewReady(): void {
     this.extensionPlugins.notifyWebviewReady();
   }
 

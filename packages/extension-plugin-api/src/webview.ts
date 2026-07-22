@@ -1,4 +1,4 @@
-import type { Disposable } from '@codegraphy-dev/plugin-api';
+import type { Disposable } from '@codegraphy-dev/plugin-api/disposable';
 
 export type GraphPluginSlot =
   | 'toolbar'

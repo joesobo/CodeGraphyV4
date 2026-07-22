@@ -12,7 +12,6 @@ describe('createSveltePlugin', () => {
       apiVersion: expect.any(String),
       supportedExtensions: ['.svelte'],
       defaultFilters: ['**/.svelte-kit/**'],
-      fileColors: {},
     });
     expect(plugin.contributeNodeTypes).toBeUndefined();
     expect(plugin.contributeEdgeTypes).toBeUndefined();

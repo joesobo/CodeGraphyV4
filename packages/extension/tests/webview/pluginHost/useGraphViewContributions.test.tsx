@@ -1,10 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { WebviewPluginHost } from '../../../src/webview/pluginHost/manager';
 import { useGraphViewContributions } from '../../../src/webview/pluginHost/useGraphViewContributions';
 
-function contributionSnapshot(id: string): CoreGraphViewContributionSet {
+function contributionSnapshot(id: string): ExtensionGraphViewContributionSet {
   return {
     runtimeNodes: [{
       pluginId: 'acme.plugin',

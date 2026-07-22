@@ -2,6 +2,7 @@ import { normalizePersistedFilterPatterns } from './persistedShape/filterPattern
 import { normalizePersistedGraphControls } from './persistedShape/graphControls';
 import { normalizePersistedLegend } from './persistedShape/legendRules';
 import { normalizePersistedPluginData } from './persistedShape/pluginData';
+import { normalizePersistedInterfaces } from './persistedShape/interfaces';
 import { normalizePersistedPlugins } from './persistedShape/plugins';
 import { normalizePersistedCssSnippets } from './persistedShape/cssSnippets';
 import { pickTopLevelSettings } from './persistedShape/topLevel';
@@ -12,6 +13,7 @@ export function normalizePersistedSettingsShape(
   const normalized = pickTopLevelSettings(value);
   normalizePersistedCssSnippets(normalized);
   normalizePersistedPlugins(normalized);
+  normalizePersistedInterfaces(normalized);
   normalizePersistedPluginData(normalized);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);

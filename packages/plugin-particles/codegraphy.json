@@ -1,14 +1,6 @@
 {
-  "$schema": "../../codegraphy.schema.json",
   "id": "codegraphy.particles",
   "name": "Particles",
   "version": "0.1.0",
-  "apiVersion": "^1.0.0",
-  "supportedExtensions": [],
-  "defaultFilters": [],
-  "updateImpact": {
-    "toggle": "projection-only",
-    "defaultSetting": "settings-only"
-  },
-  "fileColors": {}
+  "apiVersion": "^1.0.0"
 }

@@ -126,15 +126,22 @@ describe('pipeline/plugins/bootstrap packages', () => {
       ([plugin]) => plugin.id === pluginId,
     );
 
-    expect(bundledRegistration?.[0].fileColors?.['*.txt']).toEqual(expect.objectContaining({
-      marker: 'fresh-bundled',
-      shape2D: 'triangle',
-      imagePath: 'assets/example.svg',
-    }));
     expect(bundledRegistration?.[1]).toEqual({
       builtIn: true,
       sourcePackage: packageName,
       sourcePackageRoot: bundledPackageRoot,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: {
+          fileColors: {
+            '*.txt': expect.objectContaining({
+              marker: 'fresh-bundled',
+              shape2D: 'triangle',
+              imagePath: 'assets/example.svg',
+            }),
+          },
+        },
+      }],
     });
     expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual([
       'codegraphy.markdown',
@@ -235,7 +242,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
     });
     registry.register.mockImplementation((plugin) => {
       if (plugin.apiVersion === '^2.0.0') {
-        throw new Error("Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '3.0.0'.");
+        throw new Error("Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '4.0.0'.");
       }
     });
 
@@ -245,7 +252,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
     })).resolves.toBeUndefined();
 
     expect(warn).toHaveBeenCalledWith(
-      "CodeGraphy plugin 'acme.extension-bootstrap' could not be registered: Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '3.0.0'.",
+      "CodeGraphy plugin 'acme.extension-bootstrap' could not be registered: Plugin 'acme.extension-bootstrap' targets unsupported CodeGraphy Plugin API '^2.0.0'. Host provides '4.0.0'.",
     );
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
     warn.mockRestore();

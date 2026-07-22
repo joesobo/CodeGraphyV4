@@ -53,8 +53,11 @@ describe('pipeline/service/lifecycleFacade', () => {
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            apiVersion: '^4.0.0',
+            id: 'codegraphy.vue',
+            host: 'core',
+            entry: './dist/plugin.js',
+            globallyEnabled: false,
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],

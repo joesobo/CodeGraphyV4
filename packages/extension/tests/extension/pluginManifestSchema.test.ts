@@ -3,10 +3,10 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-function readPluginManifestSchema() {
+function readPluginManifestSchema(filename = 'codegraphy.schema.json') {
   const testDir = dirname(fileURLToPath(import.meta.url));
   const repoRoot = resolve(testDir, '../../../..');
-  const schemaPath = resolve(repoRoot, 'codegraphy.schema.json');
+  const schemaPath = resolve(repoRoot, filename);
 
   return JSON.parse(readFileSync(schemaPath, 'utf8')) as {
     properties?: Record<string, unknown>;
@@ -22,7 +22,7 @@ describe('plugin manifest schema', () => {
   });
 
   it('uses imagePath for plugin file color asset metadata', () => {
-    const schema = readPluginManifestSchema();
+    const schema = readPluginManifestSchema('codegraphy.extension.schema.json');
     const fileColors = schema.properties?.fileColors as {
       additionalProperties?: {
         oneOf?: Array<{

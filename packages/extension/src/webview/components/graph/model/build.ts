@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { GraphMetadata, IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';
@@ -84,7 +84,7 @@ export type FGLink = Record<string, unknown> & {
 
 export interface BuildGraphDataOptions {
   data: IGraphData;
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   appearance?: GraphAppearance;
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;

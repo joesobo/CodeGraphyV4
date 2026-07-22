@@ -19,7 +19,7 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     onLoad: vi.fn(),
@@ -91,7 +91,7 @@ describe('PluginRegistry v2', () => {
 
         it('rejects a plugin targeting a future core API major', () => {
           const { registry } = createConfiguredRegistry();
-          const plugin = createV2Plugin('future-plugin', { apiVersion: '^4.0.0' });
+          const plugin = createV2Plugin('future-plugin', { apiVersion: '^5.0.0' });
 
           expect(() => registry.register(plugin)).toThrow(/future CodeGraphy Plugin API/);
           expect(registry.size).toBe(0);
@@ -116,25 +116,6 @@ describe('PluginRegistry v2', () => {
           expect(() => registry.register(plugin)).toThrow(/invalid apiVersion/);
           expect(registry.size).toBe(0);
         });
-
-
-
-        it('warns on incompatible webviewApiVersion but still registers', () => {
-          const { registry } = createConfiguredRegistry();
-          const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-          const plugin = createV2Plugin('webview-mismatch', {
-            webviewApiVersion: '^2.0.0',
-            webviewContributions: { scripts: ['dist/webview.js'] },
-          });
-
-          registry.register(plugin);
-
-          expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('incompatible webviewApiVersion'));
-          expect(registry.size).toBe(1);
-          warnSpy.mockRestore();
-        });
-
-
 
         it('replays onWorkspaceReady for plugins registered after readiness', () => {
           const { registry } = createConfiguredRegistry();

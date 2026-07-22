@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   notifyFilesChanged,
 } from '../../../../src/core/plugins/lifecycle/notify/filesChanged';
@@ -7,12 +7,7 @@ import {
   notifyPostAnalyze,
   notifyPreAnalyze,
 } from '../../../../src/core/plugins/lifecycle/notify/analysis';
-import {
-  notifyWebviewReady,
-  notifyWorkspaceReadyForPlugin,
-  notifyWebviewReadyForPlugin,
-  notifyWorkspaceReady,
-} from '../../../../src/core/plugins/lifecycle/notify/readiness';
+import { notifyWorkspaceReadyForPlugin, notifyWorkspaceReady } from '../../../../src/core/plugins/lifecycle/notify/readiness';
 import { initializeAll, initializePlugin } from '../../../../src/core/plugins/lifecycle/initialize';
 import { replayReadinessForPlugin } from '../../../../src/core/plugins/lifecycle/replay';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
@@ -25,7 +20,7 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'test-plugin',
     name: 'Test Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
@@ -201,18 +196,6 @@ describe('pluginLifecycle', () => {
     });
   });
 
-  describe('notifyWebviewReady', () => {
-    it('calls onWebviewReady for each plugin', () => {
-      const onWebviewReady = vi.fn();
-      const plugin = makePlugin({ onWebviewReady });
-      const plugins = makePluginsMap(plugin);
-
-      notifyWebviewReady(plugins);
-
-      expect(onWebviewReady).toHaveBeenCalled();
-    });
-  });
-
   describe('notifyWorkspaceReadyForPlugin', () => {
     it('calls onWorkspaceReady on the plugin', () => {
       const onWorkspaceReady = vi.fn();
@@ -231,62 +214,21 @@ describe('pluginLifecycle', () => {
     });
   });
 
-  describe('notifyWebviewReadyForPlugin', () => {
-    it('calls onWebviewReady on the plugin', () => {
-      const onWebviewReady = vi.fn();
-      const plugin = makePlugin({ onWebviewReady });
-
-      notifyWebviewReadyForPlugin({ plugin });
-
-      expect(onWebviewReady).toHaveBeenCalled();
-    });
-
-    it('handles plugins that throw from onWebviewReady', () => {
-      const onWebviewReady = vi.fn().mockImplementation(() => { throw new Error('crash'); });
-      const plugin = makePlugin({ onWebviewReady });
-
-      expect(() => notifyWebviewReadyForPlugin({ plugin })).not.toThrow();
-    });
-  });
-
   describe('replayReadinessForPlugin', () => {
-    let onWorkspaceReady: ReturnType<typeof vi.fn>;
-    let onWebviewReady: ReturnType<typeof vi.fn>;
-    let info: { plugin: IPlugin };
-
-    beforeEach(() => {
-      onWorkspaceReady = vi.fn();
-      onWebviewReady = vi.fn();
-      const plugin = makePlugin({ onWorkspaceReady, onWebviewReady });
-      info = { plugin };
-    });
-
     it('replays workspace-ready when workspace was previously notified', () => {
-      replayReadinessForPlugin(info, true, emptyGraph, false);
+      const onWorkspaceReady = vi.fn();
+      const info = { plugin: makePlugin({ onWorkspaceReady }) };
+      replayReadinessForPlugin(info, true, emptyGraph);
 
       expect(onWorkspaceReady).toHaveBeenCalledWith(emptyGraph);
-      expect(onWebviewReady).not.toHaveBeenCalled();
-    });
-
-    it('replays webview-ready when webview was previously notified', () => {
-      replayReadinessForPlugin(info, false, undefined, true);
-
-      expect(onWorkspaceReady).not.toHaveBeenCalled();
-      expect(onWebviewReady).toHaveBeenCalled();
     });
 
     it('skips replay when nothing has been notified yet', () => {
-      replayReadinessForPlugin(info, false, undefined, false);
+      const onWorkspaceReady = vi.fn();
+      const info = { plugin: makePlugin({ onWorkspaceReady }) };
+      replayReadinessForPlugin(info, false, undefined);
 
       expect(onWorkspaceReady).not.toHaveBeenCalled();
-      expect(onWebviewReady).not.toHaveBeenCalled();
-    });
-
-    it('replays both when both have been notified', () => {
-      replayReadinessForPlugin(info, true, emptyGraph, true);
-
-      expect(onWorkspaceReady).toHaveBeenCalled();
-      expect(onWebviewReady).toHaveBeenCalled();
     });
   });
 });

@@ -11,9 +11,9 @@ import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportS
 import type { ViewRegistry } from '../../../../views/registry';
 import { CORE_PLUGIN_API_VERSION } from '../../../versioning/apiVersions';
 import { hasScopedApiConfiguration } from '../../../api/instance/runtime/access/configuration';
-import { assertCoreApiCompatibility, warnOnWebviewApiMismatch } from './compatibility';
+import { assertCoreApiCompatibility } from './compatibility';
 import { addPluginToExtensionMap } from '../maps/extensionMap';
-import { createPluginApi, callOnLoad } from './apiSetup';
+import { createPluginApi } from './apiSetup';
 
 export interface RegistryV2Config {
   eventBus?: EventBus;
@@ -38,6 +38,7 @@ export function validateAndCreatePluginInfo(
     sourcePackage?: string;
     sourcePackageRoot?: string;
     options?: Record<string, unknown>;
+    interfaces?: Array<{ id: string; data: unknown }>;
   },
   config: RegistryV2Config,
 ): IPluginInfoV2 {
@@ -49,7 +50,6 @@ export function validateAndCreatePluginInfo(
   }
 
   assertCoreApiCompatibility(plugin.id, apiVersion);
-  warnOnWebviewApiMismatch(plugin);
 
   const info: IPluginInfoV2 = {
     plugin,
@@ -58,6 +58,7 @@ export function validateAndCreatePluginInfo(
     ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
     ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
     ...(options.options ? { options: { ...options.options } } : {}),
+    ...(options.interfaces ? { interfaces: [...options.interfaces] } : {}),
   };
 
   const apiConfiguration = {
@@ -72,7 +73,6 @@ export function validateAndCreatePluginInfo(
   };
   if (hasScopedApiConfiguration(apiConfiguration)) {
     info.api = createPluginApi(plugin.id, apiConfiguration, config.logFn);
-    callOnLoad(plugin, info.api);
   }
 
   return info;

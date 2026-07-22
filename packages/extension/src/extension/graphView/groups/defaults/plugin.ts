@@ -5,10 +5,11 @@ import { getBuiltInGraphViewPluginDir } from './pluginRoots';
 
 interface GraphViewPluginInfoLike {
   builtIn?: boolean;
+  sourcePackageRoot?: string;
+  interfaces?: Array<{ id: string; data: unknown }>;
   plugin: {
     id: string;
     name: string;
-    fileColors?: Record<string, string | IPluginFileColorDefinition>;
   };
 }
 
@@ -18,6 +19,16 @@ interface GraphViewPluginRegistryLike {
 
 interface GraphViewAnalyzerLike {
   registry: GraphViewPluginRegistryLike;
+}
+
+function readPluginFileColors(
+  pluginInfo: GraphViewPluginInfoLike,
+): Record<string, string | IPluginFileColorDefinition> | undefined {
+  const entry = pluginInfo.interfaces?.find(item => item.id === 'codegraphy.extension');
+  if (!entry?.data || typeof entry.data !== 'object' || Array.isArray(entry.data)) return undefined;
+  const fileColors = (entry.data as { fileColors?: unknown }).fileColors;
+  if (!fileColors || typeof fileColors !== 'object' || Array.isArray(fileColors)) return undefined;
+  return fileColors as Record<string, string | IPluginFileColorDefinition>;
 }
 
 function ensurePluginExtensionUri(
@@ -75,7 +86,7 @@ export function getGraphViewPluginDefaultGroups(
   for (const pluginInfo of analyzer.registry.list()) {
     if (disabledPlugins.has(pluginInfo.plugin.id)) continue;
 
-    const fileColors = pluginInfo.plugin.fileColors;
+    const fileColors = readPluginFileColors(pluginInfo);
     if (!fileColors) continue;
 
     ensurePluginExtensionUri(pluginInfo, pluginExtensionUris, extensionUri);

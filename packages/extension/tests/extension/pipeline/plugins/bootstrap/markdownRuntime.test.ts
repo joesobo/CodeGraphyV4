@@ -15,6 +15,7 @@ describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
         plugins: [{ id: 'codegraphy.markdown', activation: 'enabled' }],
+        interfaces: [],
         pluginData: {},
       },
       ['codegraphy.markdown'],

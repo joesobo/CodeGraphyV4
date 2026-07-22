@@ -35,38 +35,4 @@ describe('PluginRegistry access', () => {
       workspaceRoot: '/workspace',
     });
   });
-
-  it('lists only graph view contributions available to the registry access context', async () => {
-    const registry = createConfiguredRegistry();
-    const availableContribution = {
-      id: 'available-section',
-      label: 'Available Section',
-      createNodes: vi.fn(() => []),
-    };
-    const lockedContribution = {
-      id: 'locked-section',
-      label: 'Locked Section',
-      requiresAccess: 'locked',
-      createNodes: vi.fn(() => []),
-    };
-
-    registry.register(createMockPlugin({
-      id: 'organize',
-      accessProvider: {
-        id: 'organize-access',
-        provides: ['pro'],
-        getAccess: vi.fn(async ({ access }) => ({ access, state: 'granted' as const })),
-      },
-      graphView: {
-        runtimeNodes: [availableContribution, lockedContribution],
-      },
-    }));
-
-    await expect(registry.listAvailableGraphViewContributions()).resolves.toEqual(expect.objectContaining({
-      runtimeNodes: [{
-        pluginId: 'organize',
-        contribution: availableContribution,
-      }],
-    }));
-  });
 });

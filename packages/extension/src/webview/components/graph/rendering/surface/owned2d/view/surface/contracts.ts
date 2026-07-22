@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
 import type { DirectionMode, NodeShape2D } from '../../../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../../../model/build';
@@ -35,7 +35,7 @@ export interface Surface2dProps {
   backgroundColor: string;
   directionMode: DirectionMode;
   fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   getBaseLinkColor: (this: void, link: FGLink) => string;
   getBaseLinkOpacity: (this: void, link: FGLink) => number;
   getBaseLinkWidth: (this: void, link: FGLink) => number;

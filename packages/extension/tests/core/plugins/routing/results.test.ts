@@ -30,8 +30,8 @@ describe('routing/results', () => {
     const base = createEmptyFileAnalysisResult('src/app.ts');
     const pluginResult = withPluginProvenance(plugin, {
       filePath: '',
-      edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#38BDF8', defaultVisible: true }],
-      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      edgeTypes: [{ id: 'import', label: 'Import', defaultVisible: true }],
+      nodeTypes: [{ id: 'file', label: 'File', defaultVisible: true }],
       nodes: [{ id: 'src/app.ts', nodeType: 'file', label: 'app.ts' }],
       relations: [{
         kind: 'import',
@@ -53,10 +53,10 @@ describe('routing/results', () => {
 
     expect(merged.filePath).toBe('src/app.ts');
     expect(merged.edgeTypes).toEqual([
-      { id: 'import', label: 'Import', defaultColor: '#38BDF8', defaultVisible: true },
+      { id: 'import', label: 'Import', defaultVisible: true },
     ]);
     expect(merged.nodeTypes).toEqual([
-      { id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true },
+      { id: 'file', label: 'File', defaultVisible: true },
     ]);
     expect(merged.nodes).toEqual([{ id: 'src/app.ts', nodeType: 'file', label: 'app.ts' }]);
     expect(merged.symbols).toEqual([

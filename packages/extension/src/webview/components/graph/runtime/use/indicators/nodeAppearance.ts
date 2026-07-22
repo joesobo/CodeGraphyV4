@@ -3,6 +3,7 @@ import {
 	type MutableRefObject,
 } from 'react';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../../../../shared/fileColors';
 import { ThemeKind, adjustColorForLightTheme } from '../../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appearance/model';
 import type { FGLink, FGNode } from '../../../model/build';
@@ -49,7 +50,8 @@ export function applyNodeAppearance({
 		}
 
 		const depthLevel = dataNode.depthLevel;
-		const nodeColor = isLightTheme ? adjustColorForLightTheme(dataNode.color) : dataNode.color;
+		const sourceColor = dataNode.color ?? DEFAULT_NODE_COLOR;
+		const nodeColor = isLightTheme ? adjustColorForLightTheme(sourceColor) : sourceColor;
 		const displayColor = graphNodeDisplayColor(dataNode, nodeColor, appearance);
 		const isFavorite = favorites.has(graphNode.id);
 		const isFocused = depthLevel === 0;

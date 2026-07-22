@@ -3,7 +3,6 @@
  * @module core/plugins/registry/apiSetup
  */
 
-import type { IPlugin } from '../../../types/contracts';
 import { CodeGraphyAPIImpl } from '../../../api/instance';
 import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../../../api/instance/runtime/access/context';
 import type { EventBus } from '../../../events/bus';
@@ -46,12 +45,3 @@ export function createPluginApi(
 /**
  * Invokes a plugin's onLoad callback safely.
  */
-export function callOnLoad(plugin: IPlugin, api: CodeGraphyAPIImpl): void {
-  if (plugin.onLoad) {
-    try {
-      plugin.onLoad(api);
-    } catch (error) {
-      console.error(`[CodeGraphy] Error in onLoad for plugin ${plugin.id}:`, error);
-    }
-  }
-}

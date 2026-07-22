@@ -15,27 +15,11 @@ import type {
 import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
 import type { IPluginDataHost } from './data';
-import type { Disposable } from './disposable';
 import type {
   GraphEdgeKind,
   IGraphData,
   NodeType,
 } from './graph';
-import type { IGraphViewContributions } from './graphView';
-
-export interface IPluginWebviewContributions {
-  scripts?: string[];
-  styles?: string[];
-  assets?: IPluginWebviewAsset[];
-}
-
-export interface IPluginWebviewAsset {
-  id: string;
-  label: string;
-  path: string;
-  kind?: string;
-  metadata?: Record<string, unknown>;
-}
 
 export interface IPluginGraphScopeCapabilityContext {
   /**
@@ -47,53 +31,6 @@ export interface IPluginGraphScopeCapabilityContext {
 export interface IPluginGraphScopeCapabilities {
   nodeTypes?: readonly NodeType[];
   edgeTypes?: readonly GraphEdgeKind[];
-}
-
-export interface IPluginWebviewMessage {
-  type: string;
-  data: unknown;
-}
-
-export interface IPluginExportRequest {
-  filename: string;
-  content: string | Uint8Array;
-  filters?: Record<string, string[]>;
-  title?: string;
-  successMessage?: string;
-}
-
-export interface IPluginExporter {
-  id: string;
-  label: string;
-  description?: string;
-  group?: string;
-  run(this: void): void | Promise<void>;
-}
-
-export interface IPluginToolbarActionItem {
-  id: string;
-  label: string;
-  description?: string;
-  run(this: void): void | Promise<void>;
-}
-
-export interface IPluginToolbarAction {
-  id: string;
-  label: string;
-  icon?: string;
-  description?: string;
-  items: IPluginToolbarActionItem[];
-}
-
-export interface IPluginHostApi {
-  getGraph(): IGraphData;
-  sendToWebview(message: IPluginWebviewMessage): void;
-  onWebviewMessage(handler: (message: IPluginWebviewMessage) => void): Disposable;
-  registerExporter(exporter: IPluginExporter): Disposable;
-  registerToolbarAction(action: IPluginToolbarAction): Disposable;
-  saveExport(request: IPluginExportRequest): Promise<void>;
-  getWorkspaceRoot(): string;
-  log(level: 'info' | 'warn' | 'error', ...args: unknown[]): void;
 }
 
 /**
@@ -135,14 +72,6 @@ export interface IPluginAnalysisContext {
   options?: Record<string, unknown>;
 }
 
-export interface IPluginFileColorDefinition {
-  /** CSS color resolved in the Graph View theme context. */
-  color: string;
-  shape2D?: 'circle' | 'square' | 'rectangle' | 'diamond' | 'triangle' | 'hexagon' | 'star';
-  /** Relative path from the plugin root to an image asset. */
-  imagePath?: string;
-}
-
 export interface IPluginFactoryOptions {
   /** Workspace-scoped persistence owned by the plugin id returned from the factory. */
   dataHost?: IPluginDataHost;
@@ -153,7 +82,6 @@ export interface IPluginFactoryOptions {
 export type IPluginFactory = (options?: IPluginFactoryOptions) => IPlugin | Promise<IPlugin>;
 
 export type IPluginUpdateImpact =
-  | 'view-only'
   | 'settings-only'
   | 'projection-only'
   | 'reanalyze-plugin-files'
@@ -225,31 +153,11 @@ export interface IPlugin {
   sources?: IConnectionSource[];
 
   /**
-   * Preferred colors for supported file extensions.
-   * These colors override generated colors but can be overridden by user settings.
-   *
-   * Supports three pattern types:
-   * - Extensions: `.ts`, `.md`
-   * - Exact filenames: `project.godot`, `Makefile`
-   * - Glob patterns: `**\/*.test.ts`
-   */
-  fileColors?: Record<string, string | IPluginFileColorDefinition>;
-
-  /**
    * Default filter patterns for this plugin's ecosystem.
    * Merged with user-defined filter patterns at file discovery time —
    * files matching these patterns are excluded from analysis.
    */
   defaultFilters?: string[];
-
-  /** Optional Graph View runtime, UI, menu, projection, and force contributions. */
-  graphView?: IGraphViewContributions;
-
-  /** Optional webview API range this plugin's injected webview assets target. */
-  webviewApiVersion?: string;
-
-  /** Optional webview scripts and styles loaded into CodeGraphy Graph View. */
-  webviewContributions?: IPluginWebviewContributions;
 
   /** Declares how plugin toggles and plugin-owned settings affect graph work. */
   updateImpact?: IPluginUpdateImpactPolicy;
@@ -302,19 +210,6 @@ export interface IPlugin {
    * Use to set up state or resources.
    */
   initialize?(workspaceRoot: string, context?: IPluginAnalysisContext): Promise<void>;
-
-  /**
-   * Called when the host creates this plugin's scoped runtime API.
-   * Use this to bridge package-owned state and commands to injected webview assets.
-   */
-  onLoad?(api: IPluginHostApi): void;
-
-  /**
-   * Called when the Graph View webview has finished its initial ready handshake.
-   * Use this to send plugin-owned state to injected webview assets after the host
-   * is ready to deliver messages.
-   */
-  onWebviewReady?(): void;
 
   // ---------------------------------------------------------------------------
   // Lifecycle hooks

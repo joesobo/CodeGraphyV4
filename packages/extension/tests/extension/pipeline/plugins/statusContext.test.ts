@@ -65,6 +65,7 @@ describe('pipeline/plugins/statusContext', () => {
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],
+      interfaces: [],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
@@ -119,6 +120,7 @@ describe('pipeline/plugins/statusContext', () => {
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [],
+      interfaces: [],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });

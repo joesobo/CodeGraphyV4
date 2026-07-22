@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
+function extensionInterfaces(fileColors: Record<string, unknown>) {
+  return [{ id: 'codegraphy.extension', data: { fileColors } }];
+}
+
 describe('graphView/pluginDefaultGroups', () => {
   it('returns no plugin default groups when the analyzer is unavailable', () => {
     expect(
@@ -26,15 +30,15 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.godot',
                 name: 'Godot',
-                fileColors: {
-                  '*.gd': '#478CBF',
-                  '*.tscn': {
-                    color: '#478CBF',
-                    shape2D: 'hexagon',
-                    imagePath: 'assets/godot.svg',
-                  },
-                },
               },
+              interfaces: extensionInterfaces({
+                '*.gd': '#478CBF',
+                '*.tscn': {
+                  color: '#478CBF',
+                  shape2D: 'hexagon',
+                  imagePath: 'assets/godot.svg',
+                },
+              }),
             },
           ],
         },
@@ -84,8 +88,8 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.typescript',
                 name: 'TypeScript',
-                fileColors: { '*.ts': '#3178C6' },
               },
+              interfaces: extensionInterfaces({ '*.ts': '#3178C6' }),
             },
           ],
         },
@@ -120,14 +124,14 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.unity',
                 name: 'Unity',
-                fileColors: {
-                  '*.unity': {
-                    color: '#F97316',
-                    shape2D: 'hexagon',
-                    imagePath: 'assets/unity.svg',
-                  },
-                },
               },
+              interfaces: extensionInterfaces({
+                '*.unity': {
+                  color: '#F97316',
+                  shape2D: 'hexagon',
+                  imagePath: 'assets/unity.svg',
+                },
+              }),
             },
           ],
         },
@@ -166,8 +170,8 @@ describe('graphView/pluginDefaultGroups', () => {
               plugin: {
                 id: 'codegraphy.unknown',
                 name: 'Unknown',
-                fileColors: { '*.unknown': '#999999' },
               },
+              interfaces: extensionInterfaces({ '*.unknown': '#999999' }),
             },
           ],
         },

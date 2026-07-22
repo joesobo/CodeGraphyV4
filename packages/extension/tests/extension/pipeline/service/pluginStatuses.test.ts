@@ -59,7 +59,7 @@ class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
         id: 'codegraphy.typescript',
         name: 'TypeScript/JavaScript',
         version: '2.1.0',
-        apiVersion: '^3.0.0',
+        apiVersion: '^4.0.0',
         supportedExtensions: ['.ts', '.tsx'],
         analyzeFile: vi.fn(),
       },
@@ -108,6 +108,7 @@ describe('pipeline/service plugin statuses', () => {
         { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
         { id: 'codegraphy.typescript', activation: 'enabled' },
       ],
+      interfaces: [],
     });
 
     const reader = new PluginStatusReader(workspaceRoot);
@@ -122,14 +123,14 @@ describe('pipeline/service plugin statuses', () => {
     expect(packageStatuses).toEqual([
       expect.objectContaining({
         id: 'codegraphy.markdown',
-        activation: 'enabled',
+        enabled: true,
         status: 'unavailable',
       }),
       expect.objectContaining({
         id: 'codegraphy.typescript',
         name: 'TypeScript/JavaScript',
         packageName: '@codegraphy-dev/plugin-typescript',
-        activation: 'enabled',
+        enabled: true,
         status: 'installed',
       }),
     ]);

@@ -10,10 +10,10 @@ import type {
 } from '../../../types/contracts';
 import {
   resolvePluginAccess,
-  type CoreGraphViewContributionSet,
   type CorePluginAccessCheck,
   type CorePluginAccessContext,
 } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import {
   analyzeFile,
   analyzeFileResult,
@@ -56,7 +56,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
 
   async listAvailableGraphViewContributions(
     context: CorePluginAccessContext = {},
-  ): Promise<CoreGraphViewContributionSet> {
+  ): Promise<ExtensionGraphViewContributionSet> {
     return listAvailableGraphViewContributionsForPlugins(this._plugins.values(), context);
   }
 

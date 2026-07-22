@@ -1,15 +1,7 @@
 import type {
   CodeGraphyAccessKey,
-  GraphViewAccessRequirement,
   IAccessProvider,
   IAccessResult,
-  IGraphViewContextMenuContribution,
-  IGraphViewForceAdapterContribution,
-  IGraphViewNodeDragEndContribution,
-  IGraphViewProjectionContribution,
-  IGraphViewRuntimeEdgeContribution,
-  IGraphViewRuntimeNodeContribution,
-  IGraphViewUiSlotContribution,
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 
@@ -24,35 +16,8 @@ export interface CorePluginAccessCheck {
   access: IAccessResult[];
 }
 
-export interface CoreGraphViewContributionEntry<TContribution> {
-  pluginId: string;
-  contribution: TContribution;
-}
-
-export interface CoreGraphViewContributionSet {
-  runtimeNodes: CoreGraphViewContributionEntry<IGraphViewRuntimeNodeContribution>[];
-  runtimeEdges: CoreGraphViewContributionEntry<IGraphViewRuntimeEdgeContribution>[];
-  projections: CoreGraphViewContributionEntry<IGraphViewProjectionContribution>[];
-  forces: CoreGraphViewContributionEntry<IGraphViewForceAdapterContribution>[];
-  nodeDragEnd: CoreGraphViewContributionEntry<IGraphViewNodeDragEndContribution>[];
-  contextMenu: CoreGraphViewContributionEntry<IGraphViewContextMenuContribution>[];
-  ui: CoreGraphViewContributionEntry<IGraphViewUiSlotContribution>[];
-}
-
-export function createEmptyGraphViewContributionSet(): CoreGraphViewContributionSet {
-  return {
-    runtimeNodes: [],
-    runtimeEdges: [],
-    projections: [],
-    forces: [],
-    nodeDragEnd: [],
-    contextMenu: [],
-    ui: [],
-  };
-}
-
 function normalizeAccessRequirement(
-  requirement: GraphViewAccessRequirement | undefined,
+  requirement: CodeGraphyAccessKey | readonly CodeGraphyAccessKey[] | undefined,
 ): CodeGraphyAccessKey[] {
   if (!requirement) {
     return [];
@@ -95,7 +60,7 @@ export async function resolvePluginAccess(
   plugin: IPlugin,
   providers: readonly IAccessProvider[],
   context: CorePluginAccessContext = {},
-  requirement: GraphViewAccessRequirement | undefined = plugin.requiresAccess,
+  requirement: CodeGraphyAccessKey | readonly CodeGraphyAccessKey[] | undefined = plugin.requiresAccess,
 ): Promise<CorePluginAccessCheck> {
   const requiredAccess = normalizeAccessRequirement(requirement);
   if (requiredAccess.length === 0) {
@@ -126,4 +91,12 @@ export async function resolvePluginAccess(
     available: accessResults.every(result => result.state === 'granted'),
     access: accessResults,
   };
+}
+
+export function listAccessProviders<TInfo extends { plugin: IPlugin }>(
+  plugins: ReadonlyMap<string, TInfo>,
+): IAccessProvider[] {
+  return [...plugins.values()]
+    .map(info => info.plugin.accessProvider)
+    .filter((provider): provider is IAccessProvider => provider !== undefined);
 }

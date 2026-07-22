@@ -9,10 +9,7 @@ import {
   notifyPostAnalyze as lifecycleNotifyPostAnalyze,
   notifyPreAnalyze as lifecycleNotifyPreAnalyze,
 } from '../../../lifecycle/notify/analysis';
-import {
-  notifyWebviewReady as lifecycleNotifyWebviewReady,
-  notifyWorkspaceReady as lifecycleNotifyWorkspaceReady,
-} from '../../../lifecycle/notify/readiness';
+import { notifyWorkspaceReady as lifecycleNotifyWorkspaceReady } from '../../../lifecycle/notify/readiness';
 import { notifyFilesChanged as lifecycleNotifyFilesChanged } from '../../../lifecycle/notify/filesChanged';
 import { PluginRegistryCollection } from './collection';
 
@@ -70,8 +67,4 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
     lifecycleNotifyGraphRebuild(this._plugins, graph, disabledPlugins);
   }
 
-  notifyWebviewReady(): void {
-    this._webviewReadyNotified = true;
-    lifecycleNotifyWebviewReady(this._plugins);
-  }
 }

@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphViewContributions } from '../api/contracts/webview';
 import { toWebviewDisposable, type WebviewDisposable } from '../disposable';
 import {
@@ -11,9 +11,9 @@ export type GraphViewContributionListener = () => void;
 export class GraphViewContributionRegistry {
   private readonly _contributions: GraphViewContributionsByPlugin = new Map();
   private readonly _listeners = new Set<GraphViewContributionListener>();
-  private _snapshot: CoreGraphViewContributionSet | undefined;
+  private _snapshot: ExtensionGraphViewContributionSet | undefined;
 
-  get(): CoreGraphViewContributionSet {
+  get(): ExtensionGraphViewContributionSet {
     if (this._snapshot) {
       return this._snapshot;
     }

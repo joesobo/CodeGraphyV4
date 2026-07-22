@@ -16,7 +16,6 @@ describe('complete workspace graph', () => {
           nodeTypes: [{
             id: 'plugin:test:route',
             label: 'Route',
-            defaultColor: '#123456',
             defaultVisible: false,
           }],
           nodes: [{

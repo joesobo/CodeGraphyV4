@@ -1,11 +1,11 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { GraphContextMenuEdge, GraphContextMenuEntry, GraphContextMenuNode, GraphContextSelection } from '../contracts';
 import type { GraphContextMenuDecision } from '../decision/model';
 import type { GraphViewContextMenuPlacement } from './model';
 import { createRunContext } from './runContext';
 import { selectorMatches } from './selectorMatching';
 
-type Entry = CoreGraphViewContributionSet['contextMenu'][number];
+type Entry = ExtensionGraphViewContributionSet['contextMenu'][number];
 interface Options { decision: GraphContextMenuDecision; edges?: readonly GraphContextMenuEdge[]; nodes?: readonly GraphContextMenuNode[]; placement: GraphViewContextMenuPlacement | 'default'; selection: GraphContextSelection }
 
 export function buildGraphViewContributionEntry(entry: Entry, options: Options): GraphContextMenuEntry | null {

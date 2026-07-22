@@ -3,7 +3,7 @@
  * @module core/plugins/events/handlers
  */
 
-import type { EventName } from '../../../../../plugin-api/src/events';
+import type { EventName } from '@codegraphy-dev/extension-plugin-api/events';
 
 /** Handler function for a specific event */
 export type EventHandler = (payload: unknown) => void;

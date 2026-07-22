@@ -24,13 +24,11 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       nodeTypes: [{
         id: 'plugin:test:route',
         label: 'Route',
-        defaultColor: '#123456',
         defaultVisible: true,
       }],
       edgeTypes: [{
         id: 'test:routes-to' as const,
         label: 'Routes to',
-        defaultColor: '#654321',
         defaultVisible: false,
       }],
       nodes: [{

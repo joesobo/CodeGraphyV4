@@ -5,7 +5,7 @@ import {
   mdiPlusBoxOutline,
   mdiShapeSquarePlus,
 } from '@mdi/js';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import {
@@ -17,7 +17,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { postRootFileCreation, postRootFolderCreation } from './rootCreation';
 
-type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
+type GraphViewCreateContribution = ExtensionGraphViewContributionSet['contextMenu'][number];
 type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
 
 
@@ -47,7 +47,7 @@ function createGraphViewCreateContext(): GraphViewCreateContext {
 export function resolveGraphViewCreateContributions({
   graphViewContributions,
 }: {
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
 }): ResolvedGraphViewCreateContribution[] {
   const context = createGraphViewCreateContext();
   return graphViewContributions?.contextMenu
@@ -68,7 +68,7 @@ function runGraphViewCreateContribution(
 export function CreateToolbarAction({
   graphViewContributions,
 }: {
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
 }): React.ReactElement {
   const graphViewCreateContributions = resolveGraphViewCreateContributions({
     graphViewContributions,

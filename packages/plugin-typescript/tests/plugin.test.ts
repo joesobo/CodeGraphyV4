@@ -14,11 +14,10 @@ describe('createTypeScriptPlugin', () => {
     });
   });
 
-  it('keeps TypeScript ecosystem filters while leaving file theming to core Material defaults', () => {
+  it('keeps TypeScript ecosystem filters', () => {
     const plugin = createTypeScriptPlugin();
 
     expect(plugin.defaultFilters).toContain('**/node_modules/**');
-    expect(plugin.fileColors).toEqual({});
   });
 
   it('contributes a default-visible TypeScript Alias Import edge type', () => {
@@ -28,7 +27,6 @@ describe('createTypeScriptPlugin', () => {
       {
         id: 'codegraphy.typescript:alias-import',
         label: 'TypeScript Alias Import',
-        defaultColor: '#38BDF8',
         defaultVisible: true,
         description: {
           description: 'Shows imports resolved through TypeScript path aliases instead of relative paths.',
@@ -47,7 +45,6 @@ describe('createTypeScriptPlugin', () => {
     expect(plugin.sources).toBeUndefined();
     expect(plugin.analyzeFile).toEqual(expect.any(Function));
     expect(plugin.initialize).toBeUndefined();
-    expect(plugin.onLoad).toBeUndefined();
     expect(plugin.onUnload).toBeUndefined();
   });
 });

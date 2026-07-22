@@ -14,8 +14,23 @@ const workspaceSettingsShapeSchema = z.looseObject({
   nodeVisibility: unknownRecordSchema.catch({}),
   edgeVisibility: unknownRecordSchema.catch({}),
   plugins: z.unknown(),
+  interfaces: z.unknown(),
   pluginData: unknownRecordSchema.catch({}),
 });
+
+function normalizeInterfaceSettings(value: unknown): CodeGraphyWorkspaceSettings['interfaces'] {
+  if (!Array.isArray(value)) return [];
+
+  const seen = new Set<string>();
+  return value.flatMap((entry) => {
+    const parsed = unknownRecordSchema.safeParse(entry);
+    if (!parsed.success || typeof parsed.data.id !== 'string') return [];
+    const id = parsed.data.id.trim();
+    if (!id || seen.has(id)) return [];
+    seen.add(id);
+    return [{ id, data: parsed.data.data }];
+  });
+}
 
 export function normalizeCodeGraphyWorkspaceSettings(
   value: unknown,
@@ -41,6 +56,7 @@ export function normalizeCodeGraphyWorkspaceSettings(
     nodeVisibility: booleanEntries(shape.nodeVisibility),
     edgeVisibility: booleanEntries(shape.edgeVisibility),
     plugins: normalizePluginSettings(shape.plugins),
+    interfaces: normalizeInterfaceSettings(shape.interfaces),
     pluginData: { ...shape.pluginData },
   };
 }

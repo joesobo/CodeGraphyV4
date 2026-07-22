@@ -3,7 +3,7 @@ import type { GraphEdgeKind } from '../../../../../shared/graph/contracts';
 export interface GraphNodeTypeLike {
   id: string;
   label: string;
-  defaultColor: string;
+  defaultColor?: string;
   defaultVisible: boolean;
   description?: GraphTypeDescriptionLike;
   parentId?: string;
@@ -12,7 +12,7 @@ export interface GraphNodeTypeLike {
 export interface GraphEdgeTypeLike {
   id: string;
   label: string;
-  defaultColor: string;
+  defaultColor?: string;
   defaultVisible: boolean;
   description?: GraphTypeDescriptionLike;
 }

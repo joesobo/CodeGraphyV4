@@ -1,11 +1,11 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { MAX_GRAPH_COORDINATE, MAX_GRAPH_VELOCITY } from '@codegraphy-dev/graph-renderer';
-import type { IGraphViewForceAdapter } from '@codegraphy-dev/plugin-api';
+import type { IGraphViewForceAdapter } from '@codegraphy-dev/extension-plugin-api';
 import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
 import type { IGraphData } from '../../../../../../../../shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../../model/build';
 
-type ForceContribution = CoreGraphViewContributionSet['forces'][number];
+type ForceContribution = ExtensionGraphViewContributionSet['forces'][number];
 interface InstalledForce {
   adapter: IGraphViewForceAdapter;
   contribution: ForceContribution['contribution'];

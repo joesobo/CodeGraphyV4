@@ -12,7 +12,6 @@ describe('createVuePlugin', () => {
       apiVersion: expect.any(String),
       supportedExtensions: ['.vue'],
       defaultFilters: [],
-      fileColors: {},
     });
     expect(plugin.contributeNodeTypes).toBeUndefined();
     expect(plugin.contributeEdgeTypes).toBeUndefined();

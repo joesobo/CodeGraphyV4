@@ -7,7 +7,7 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
@@ -40,7 +40,7 @@ export interface GraphRuntimeOptions {
   directionMode: DirectionMode;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;

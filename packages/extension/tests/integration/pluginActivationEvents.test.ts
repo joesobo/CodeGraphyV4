@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 interface ExtensionManifest {
   activationEvents?: string[];
   codegraphy?: {
-    type?: string;
+    plugins?: Array<{ host?: string }>;
   };
   contributes?: unknown;
   extensionDependencies?: string[];
@@ -25,7 +25,9 @@ describe('first-party language plugin package manifests', () => {
   it.each(pluginPackages)('%s is a headless CodeGraphy plugin package', (packageName) => {
     const manifest = readManifest(packageName);
 
-    expect(manifest.codegraphy?.type).toBe('plugin');
+    expect(manifest.codegraphy?.plugins).toEqual(
+      expect.arrayContaining([expect.objectContaining({ host: 'core' })]),
+    );
     expect(manifest.extensionDependencies).toBeUndefined();
     expect(manifest.activationEvents).toBeUndefined();
     expect(manifest.contributes).toBeUndefined();

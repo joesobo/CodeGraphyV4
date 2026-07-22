@@ -54,7 +54,6 @@ function scopedDefinition(overrides: Partial<IGraphNodeTypeDefinition> = {}): IG
   return {
     id: 'symbol',
     label: 'Symbol',
-    defaultColor: '#111111',
     defaultVisible: true,
     ...overrides,
   };

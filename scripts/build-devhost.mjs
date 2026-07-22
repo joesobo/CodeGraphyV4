@@ -38,7 +38,8 @@ function packageJsonPath(packageRoot) {
 function isCodeGraphyPluginPackage(packageRoot) {
   try {
     const manifest = JSON.parse(fs.readFileSync(packageJsonPath(packageRoot), 'utf8'));
-    return manifest?.codegraphy?.type === 'plugin';
+    return Array.isArray(manifest?.codegraphy?.plugins)
+      && manifest.codegraphy.plugins.length > 0;
   } catch {
     return false;
   }

@@ -22,8 +22,9 @@ describe('acceptance graph view plugin fixtures', () => {
         expect.objectContaining({
           package: '@codegraphy-dev/plugin-typescript',
           packageRoot: path.join(repoRoot(), 'packages/plugin-typescript'),
-          pluginId: 'codegraphy.typescript',
-          pluginName: 'TypeScript/JavaScript',
+          id: 'codegraphy.typescript',
+          name: 'TypeScript/JavaScript',
+          host: 'core',
           supportedExtensions: expect.arrayContaining(['.ts', '.tsx', '.js', '.jsx']),
         }),
       ]);

@@ -29,7 +29,7 @@ describe('PluginRegistry collection', () => {
     expect(registry.get('typescript')?.plugin).toBe(plugin);
     expect(registry.size).toBe(1);
     expect(registry.getPluginAPI('typescript')).toEqual(
-      expect.objectContaining({ version: '3.0.0' }),
+      expect.objectContaining({ version: '4.0.0' }),
     );
     expect(registry.supportsFile('src/app.ts')).toBe(true);
     expect(registry.supportsFile('src/app.py')).toBe(false);
@@ -72,17 +72,15 @@ describe('PluginRegistry collection', () => {
     expect(registry.size).toBe(0);
   });
 
-  it('replays readiness only for a known deferred plugin', () => {
+  it('replays workspace readiness only for a known deferred plugin', () => {
     const registry = createConfiguredRegistry();
     const readyGraph = { nodes: [{ id: 'graph', label: 'graph', color: '#fff' }], edges: [] };
     const plugin = createMockPlugin({
       id: 'late',
       onWorkspaceReady: vi.fn(),
-      onWebviewReady: vi.fn(),
     });
 
     registry.notifyWorkspaceReady(readyGraph);
-    registry.notifyWebviewReady();
     registry.register(plugin, { deferReadinessReplay: true });
 
     registry.replayReadinessForPlugin('missing');
@@ -90,6 +88,5 @@ describe('PluginRegistry collection', () => {
 
     expect(plugin.onWorkspaceReady).toHaveBeenCalledOnce();
     expect(plugin.onWorkspaceReady).toHaveBeenCalledWith(readyGraph);
-    expect(plugin.onWebviewReady).toHaveBeenCalledOnce();
   });
 });

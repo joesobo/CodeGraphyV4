@@ -248,7 +248,7 @@ describe('graph view settings router', () => {
     );
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.vue', enabled: true },
+      { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();

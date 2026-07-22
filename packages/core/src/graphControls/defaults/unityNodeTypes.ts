@@ -5,7 +5,6 @@ export function createUnityNodeTypes(): IGraphNodeTypeDefinition[] {
     {
       id: 'plugin:codegraphy.unity:symbol',
       label: 'Unity',
-      defaultColor: '#F97316',
       defaultVisible: false,
       pluginName: 'Unity',
       matchSymbolSource: 'codegraphy.unity',
@@ -14,7 +13,6 @@ export function createUnityNodeTypes(): IGraphNodeTypeDefinition[] {
     {
       id: 'plugin:codegraphy.unity:symbol:game-object',
       label: 'GameObject',
-      defaultColor: '#0EA5E9',
       defaultVisible: false,
       parentId: 'plugin:codegraphy.unity:symbol',
       pluginName: 'Unity',
@@ -26,7 +24,6 @@ export function createUnityNodeTypes(): IGraphNodeTypeDefinition[] {
     {
       id: 'plugin:codegraphy.unity:symbol:component',
       label: 'Component',
-      defaultColor: '#22C55E',
       defaultVisible: false,
       parentId: 'plugin:codegraphy.unity:symbol',
       pluginName: 'Unity',

@@ -1,4 +1,5 @@
 import type { IGraphNode } from '../../../../../shared/graph/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../../../shared/fileColors';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import type { GraphAppearance } from '../../appearance/model';
 import { MAX_NODE_SIZE, MIN_NODE_SIZE } from '../sizing/calculations';
@@ -8,7 +9,8 @@ import { DEFAULT_NODE_SIZE, getDepthOpacity, getDepthSizeMultiplier } from './di
 export interface GraphNodeStyle { baseOpacity: number; borderColor: string; borderWidth: number; color: string; isFavorite: boolean; size: number }
 
 export function createGraphNodeStyle(node: IGraphNode, options: { appearance: GraphAppearance; favorites: ReadonlySet<string>; nodeSizes: ReadonlyMap<string, number> }, isLight: boolean): GraphNodeStyle {
-  const displayColor = graphNodeDisplayColor(node, isLight ? adjustColorForLightTheme(node.color) : node.color, options.appearance);
+  const nodeColor = node.color ?? DEFAULT_NODE_COLOR;
+  const displayColor = graphNodeDisplayColor(node, isLight ? adjustColorForLightTheme(nodeColor) : nodeColor, options.appearance);
   const isFavorite = options.favorites.has(node.id);
   const isFocused = node.depthLevel === 0;
   const semanticSize = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);

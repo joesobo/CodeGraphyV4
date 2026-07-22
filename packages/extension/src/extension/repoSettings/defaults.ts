@@ -8,6 +8,7 @@ import {
 } from '../../shared/settings/physics';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  type CodeGraphyWorkspaceInterfaceSettings,
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
 import {
@@ -27,6 +28,7 @@ export interface ICodeGraphyRepoSettings {
   showOrphans: boolean;
   cssSnippets: Record<string, boolean>;
   plugins: CodeGraphyWorkspacePluginSettings[];
+  interfaces: CodeGraphyWorkspaceInterfaceSettings[];
   pluginData: Record<string, unknown>;
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
@@ -65,6 +67,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
       activation: 'enabled',
     }],
+    interfaces: [],
     pluginData: {},
     nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),

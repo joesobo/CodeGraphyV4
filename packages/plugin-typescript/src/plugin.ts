@@ -25,7 +25,6 @@ export function createTypeScriptPlugin(): IPlugin {
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
     updateImpact: manifest.updateImpact as IPlugin['updateImpact'],
-    fileColors: manifest.fileColors,
     contributeEdgeTypes: () => [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE],
     contributeGraphScopeCapabilities: () => ({
       edgeTypes: [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE.id],

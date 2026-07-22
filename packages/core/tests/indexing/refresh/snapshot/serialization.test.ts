@@ -27,13 +27,11 @@ describe('indexing/refresh/snapshot/serialization', () => {
       edgeTypes: [{
         id: 'import',
         label: 'Import',
-        defaultColor: '#ffffff',
         defaultVisible: true,
       }],
       nodeTypes: [{
         id: 'file',
         label: 'File',
-        defaultColor: '#ffffff',
         defaultVisible: true,
       }],
       nodes: [{

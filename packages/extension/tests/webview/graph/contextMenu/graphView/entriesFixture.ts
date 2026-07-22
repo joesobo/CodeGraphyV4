@@ -1,11 +1,11 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { expect } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../../src/webview/components/graph/contextMenu/contracts';
 import type { GraphContextNodeTarget } from '../../../../../src/webview/components/graph/contextMenu/decision/targets';
 
 export function createContributions(
-  contextMenu: CoreGraphViewContributionSet['contextMenu'],
-): CoreGraphViewContributionSet {
+  contextMenu: ExtensionGraphViewContributionSet['contextMenu'],
+): ExtensionGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],

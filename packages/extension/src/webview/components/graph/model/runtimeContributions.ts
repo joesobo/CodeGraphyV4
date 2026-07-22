@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 
 function appendUniqueNodes(
@@ -34,7 +34,7 @@ function appendUniqueEdges(
 
 export function applyGraphViewRuntimeContributions(
   data: IGraphData,
-  contributions: CoreGraphViewContributionSet | undefined,
+  contributions: ExtensionGraphViewContributionSet | undefined,
 ): IGraphData {
   if (!contributions) {
     return data;
@@ -67,7 +67,7 @@ export function applyGraphViewRuntimeContributions(
 
 export function applyGraphViewProjectionContributions(
   data: IGraphData,
-  contributions: CoreGraphViewContributionSet | undefined,
+  contributions: ExtensionGraphViewContributionSet | undefined,
 ): IGraphData {
   if (!contributions) {
     return data;
@@ -76,7 +76,7 @@ export function applyGraphViewProjectionContributions(
   return contributions.projections.reduce<IGraphData>(
     (
       visibleGraph: IGraphData,
-      entry: CoreGraphViewContributionSet['projections'][number],
+      entry: ExtensionGraphViewContributionSet['projections'][number],
     ) => entry.contribution.project({ visibleGraph }),
     data,
   );

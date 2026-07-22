@@ -9,7 +9,6 @@ export type {
   GraphEdgeKind,
   GraphMetadata,
   GraphMetadataValue,
-  GraphNodeShape2D,
   IAccessProvider,
   IAnalysisFile,
   IAnalysisNode,
@@ -22,6 +21,14 @@ export type {
   IGraphEdge,
   IGraphEdgeSource,
   IGraphNode,
+  IPluginAnalysisContext,
+  IPluginAnalysisFileSystem,
+  IPluginEdgeType,
+  IPluginGraphScopeCapabilities,
+  IPluginNodeType,
+  NodeType,
+} from '../../../../../plugin-api/src';
+export type {
   IGraphViewContributions,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
@@ -32,38 +39,29 @@ export type {
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
-  IPluginAnalysisContext,
-  IPluginAnalysisFileSystem,
-  IPluginEdgeType,
-  IPluginFileColorDefinition,
-  IPluginGraphScopeCapabilities,
-  IPluginNodeType,
-  NodeType,
-} from '../../../../../plugin-api/src';
-import type { IPlugin as HeadlessPlugin } from '../../../../../plugin-api/src';
+} from '@codegraphy-dev/extension-plugin-api';
+import type { IPlugin } from '../../../../../plugin-api/src';
 import type { CodeGraphyAPI } from '../api/contracts';
 
 export type { IProjectedConnection } from '@codegraphy-dev/core';
 export type { CodeGraphyAPI };
 
-export interface IPluginWebviewContributions {
-  scripts?: string[];
-  styles?: string[];
+export type GraphNodeShape2D =
+  | 'circle'
+  | 'square'
+  | 'rectangle'
+  | 'diamond'
+  | 'triangle'
+  | 'hexagon'
+  | 'star';
+
+export interface IPluginFileColorDefinition {
+  color: string;
+  shape2D?: GraphNodeShape2D;
+  imagePath?: string;
 }
 
-export interface IPlugin extends HeadlessPlugin {
-  /** Extension-owned API bridge for plugin surfaces that are not part of the headless npm contract. */
-  onLoad?(api: CodeGraphyAPI): void;
-
-  /** Extension-owned webview readiness hook. Language plugins should stay headless. */
-  onWebviewReady?(): void;
-
-  /** Extension-local webview contract version for injected graph-view assets. */
-  webviewApiVersion?: string;
-
-  /** Extension-local webview assets injected into the CodeGraphy graph view. */
-  webviewContributions?: IPluginWebviewContributions;
-}
+export type { IPlugin };
 
 /**
  * Information about a registered plugin.
@@ -81,4 +79,6 @@ export interface IPluginInfo {
   sourcePackageRoot?: string;
   /** Workspace-specific plugin options */
   options?: Record<string, unknown>;
+  /** Host-specific package metadata. Core plugin contracts do not inspect this data. */
+  interfaces?: Array<{ id: string; data: unknown }>;
 }

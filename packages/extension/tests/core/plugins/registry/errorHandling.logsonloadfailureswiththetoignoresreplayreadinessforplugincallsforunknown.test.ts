@@ -10,7 +10,7 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
@@ -34,24 +34,6 @@ function createConfiguredRegistry() {
 describe('PluginRegistry error handling', () => {
 
 
-    it('logs onLoad failures with the plugin id', () => {
-      const registry = createConfiguredRegistry();
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const failure = new Error('onLoad failed');
-      const plugin = createPlugin('load-error', {
-        onLoad: vi.fn(() => {
-          throw failure;
-        }),
-      });
-
-      expect(() => registry.register(plugin)).not.toThrow();
-
-      expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onLoad for plugin load-error:', failure);
-      errorSpy.mockRestore();
-    });
-
-
-
     it('logs each notification hook failure with hook-specific context', async () => {
       const registry = createConfiguredRegistry();
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -59,7 +41,6 @@ describe('PluginRegistry error handling', () => {
       const preAnalyzeFailure = new Error('pre');
       const postAnalyzeFailure = new Error('post');
       const rebuildFailure = new Error('rebuild');
-      const webviewFailure = new Error('webview');
       const plugin = createPlugin('notify-errors', {
         onWorkspaceReady: vi.fn(() => {
           throw workspaceFailure;
@@ -70,9 +51,6 @@ describe('PluginRegistry error handling', () => {
         }),
         onGraphRebuild: vi.fn(() => {
           throw rebuildFailure;
-        }),
-        onWebviewReady: vi.fn(() => {
-          throw webviewFailure;
         }),
       });
 
@@ -89,7 +67,6 @@ describe('PluginRegistry error handling', () => {
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onPreAnalyze for notify-errors:', preAnalyzeFailure);
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onPostAnalyze for notify-errors:', postAnalyzeFailure);
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onGraphRebuild for notify-errors:', rebuildFailure);
-      expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onWebviewReady for notify-errors:', webviewFailure);
       errorSpy.mockRestore();
     });
 

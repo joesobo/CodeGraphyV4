@@ -15,7 +15,7 @@ function createPlugin(overrides: Partial<IPlugin>): IPlugin {
 }
 
 describe('Core plugin Access checks', () => {
-  it('keeps Access Provider plugins available while hiding gated plugin contributions without granted Access', async () => {
+  it('keeps Access Provider plugins available while denying a gated Core plugin', async () => {
     const paidFeatureAccess = 'premium-layout' as CodeGraphyAccessKey;
     const registry = new CorePluginRegistry();
 
@@ -32,28 +32,11 @@ describe('Core plugin Access checks', () => {
           };
         },
       },
-      graphView: {
-        ui: [{
-          id: 'acme.account.toolbar',
-          label: 'Account',
-          slot: 'graph.toolbar',
-          view: { kind: 'command', command: 'acme.account.toggle' },
-        }],
-      },
     }));
 
     registry.register(createPlugin({
       id: 'acme.premium-layout',
       requiresAccess: paidFeatureAccess,
-      graphView: {
-        forces: [{
-          id: 'acme.premium-layout.force',
-          label: 'Premium Layout Force',
-          create() {
-            return { dispose() {} };
-          },
-        }],
-      },
     }));
 
     await expect(registry.getPluginAvailability('acme.account')).resolves.toMatchObject({
@@ -69,16 +52,9 @@ describe('Core plugin Access checks', () => {
         state: 'missing',
       }],
     });
-    await expect(registry.listAvailableGraphViewContributions()).resolves.toMatchObject({
-      ui: [{
-        pluginId: 'acme.account',
-        contribution: { id: 'acme.account.toolbar' },
-      }],
-      forces: [],
-    });
   });
 
-  it('exposes gated plugin contributions when an Access Provider grants Access', async () => {
+  it('exposes a gated Core plugin when an Access Provider grants Access', async () => {
     const paidFeatureAccess = 'premium-layout' as CodeGraphyAccessKey;
     const registry = new CorePluginRegistry();
 
@@ -99,15 +75,6 @@ describe('Core plugin Access checks', () => {
     registry.register(createPlugin({
       id: 'acme.premium-layout',
       requiresAccess: paidFeatureAccess,
-      graphView: {
-        forces: [{
-          id: 'acme.premium-layout.force',
-          label: 'Premium Layout Force',
-          create() {
-            return { dispose() {} };
-          },
-        }],
-      },
     }));
 
     await expect(registry.getPluginAvailability('acme.premium-layout')).resolves.toMatchObject({
@@ -116,12 +83,6 @@ describe('Core plugin Access checks', () => {
       access: [{
         access: paidFeatureAccess,
         state: 'granted',
-      }],
-    });
-    await expect(registry.listAvailableGraphViewContributions()).resolves.toMatchObject({
-      forces: [{
-        pluginId: 'acme.premium-layout',
-        contribution: { id: 'acme.premium-layout.force' },
       }],
     });
   });

@@ -37,6 +37,7 @@
     "assets",
     "dist",
     "codegraphy.json",
+    "codegraphy.extension.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

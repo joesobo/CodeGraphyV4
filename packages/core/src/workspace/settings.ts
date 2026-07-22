@@ -1,5 +1,6 @@
 export type {
   CodeGraphyWorkspacePluginSettings,
+  CodeGraphyWorkspaceInterfaceSettings,
   CodeGraphyWorkspaceSettings,
 } from './settingsContracts';
 export {
