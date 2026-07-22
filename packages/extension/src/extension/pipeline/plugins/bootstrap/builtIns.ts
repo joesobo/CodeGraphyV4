@@ -14,6 +14,7 @@ export interface WorkspacePipelinePluginRegistration {
     builtIn?: boolean;
     sourcePackage?: string;
     sourcePackageRoot?: string;
+    descriptorSignature?: string;
     options?: Record<string, unknown>;
     interfaces?: Array<{ id: string; data: unknown }>;
   };

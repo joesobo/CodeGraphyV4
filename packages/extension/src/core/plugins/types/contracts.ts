@@ -77,6 +77,8 @@ export interface IPluginInfo {
   sourcePackage?: string;
   /** Root directory for package-installed plugin assets */
   sourcePackageRoot?: string;
+  /** Complete descriptor, package, and runtime identity used for reconciliation. */
+  descriptorSignature?: string;
   /** Workspace-specific plugin options */
   options?: Record<string, unknown>;
   /** Host-specific package metadata. Core plugin contracts do not inspect this data. */

@@ -8,12 +8,14 @@ export interface ExtensionPluginInfo {
   builtIn: boolean;
   sourcePackage?: string;
   sourcePackageRoot?: string;
+  descriptorSignature?: string;
 }
 
 export interface RegisterExtensionPluginOptions {
   builtIn?: boolean;
   sourcePackage?: string;
   sourcePackageRoot?: string;
+  descriptorSignature?: string;
 }
 
 function assertExtensionApiCompatibility(
@@ -51,6 +53,7 @@ export class ExtensionPluginRegistry {
       builtIn: Boolean(options.builtIn),
       ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
       ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
+      ...(options.descriptorSignature ? { descriptorSignature: options.descriptorSignature } : {}),
     });
   }
 

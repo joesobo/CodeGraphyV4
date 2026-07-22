@@ -37,6 +37,7 @@ export function validateAndCreatePluginInfo(
     sourceExtension?: string;
     sourcePackage?: string;
     sourcePackageRoot?: string;
+    descriptorSignature?: string;
     options?: Record<string, unknown>;
     interfaces?: Array<{ id: string; data: unknown }>;
   },
@@ -57,6 +58,7 @@ export function validateAndCreatePluginInfo(
     ...(options.sourceExtension ? { sourceExtension: options.sourceExtension } : {}),
     ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
     ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
+    ...(options.descriptorSignature ? { descriptorSignature: options.descriptorSignature } : {}),
     ...(options.options ? { options: { ...options.options } } : {}),
     ...(options.interfaces ? { interfaces: [...options.interfaces] } : {}),
   };

@@ -6,6 +6,7 @@ import {
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { WorkspacePipelinePluginRegistration } from './builtIns';
+import { createWorkspacePluginRuntimeSignature } from './signature';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
   bundledPluginPackageRoots?: Iterable<string>;
@@ -46,6 +47,10 @@ export async function loadWorkspacePackagePluginRegistrations(
       ...(loadedPlugin.bundled ? { builtIn: true } : {}),
       sourcePackage: loadedPlugin.packageName,
       sourcePackageRoot: loadedPlugin.record.packageRoot,
+      descriptorSignature: createWorkspacePluginRuntimeSignature(
+        loadedPlugin.record,
+        loadedPlugin.plugin,
+      ),
       ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
       interfaces: readPackageInterfaceData(loadedPlugin.record.packageRoot),
     },

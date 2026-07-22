@@ -31,6 +31,7 @@ function hasRegistrationChanged(
   return current.plugin.id !== desired.plugin.id
     || current.builtIn !== Boolean(desired.options.builtIn)
     || current.sourcePackageRoot !== desired.options.sourcePackageRoot
+    || current.descriptorSignature !== desired.options.descriptorSignature
     || stableOptionsString(current.options) !== stableOptionsString(desired.options.options);
 }
 
@@ -51,31 +52,30 @@ async function collectDesiredRegistrations(
   return desired;
 }
 
-function mapDesiredPackageRegistrations(
+function mapDesiredPackageRegistrationsById(
   registrations: readonly WorkspacePipelinePluginRegistration[],
 ): Map<string, WorkspacePipelinePluginRegistration> {
-  const desiredByPackage = new Map<string, WorkspacePipelinePluginRegistration>();
+  const desiredById = new Map<string, WorkspacePipelinePluginRegistration>();
 
   for (const registration of registrations) {
-    const packageName = registration.options.sourcePackage;
-    if (packageName) {
-      desiredByPackage.set(packageName, registration);
+    if (registration.options.sourcePackage) {
+      desiredById.set(registration.plugin.id, registration);
     }
   }
 
-  return desiredByPackage;
+  return desiredById;
 }
 
 function unregisterOutdatedPackagePlugins(
   registry: PluginRegistry,
-  desiredByPackage: ReadonlyMap<string, WorkspacePipelinePluginRegistration>,
+  desiredById: ReadonlyMap<string, WorkspacePipelinePluginRegistration>,
 ): void {
   for (const pluginInfo of registry.list()) {
     if (!pluginInfo.sourcePackage) {
       continue;
     }
 
-    const desired = desiredByPackage.get(pluginInfo.sourcePackage);
+    const desired = desiredById.get(pluginInfo.plugin.id);
     if (!desired || hasRegistrationChanged(pluginInfo, desired)) {
       registry.unregister(pluginInfo.plugin.id);
     }
@@ -105,6 +105,7 @@ function hasExtensionRegistrationChanged(
 ): boolean {
   return current.sourcePackage !== desired.options.sourcePackage
     || current.sourcePackageRoot !== desired.options.sourcePackageRoot
+    || current.descriptorSignature !== desired.options.descriptorSignature
     || current.builtIn !== Boolean(desired.options.builtIn);
 }
 
@@ -146,9 +147,9 @@ export async function syncWorkspacePipelinePlugins(
 ): Promise<void> {
   const settingsResult = readWorkspacePipelineSettings(() => dependencies.getWorkspaceRoot());
   const desiredRegistrations = await collectDesiredRegistrations(settingsResult, dependencies);
-  const desiredByPackage = mapDesiredPackageRegistrations(desiredRegistrations);
+  const desiredById = mapDesiredPackageRegistrationsById(desiredRegistrations);
 
-  unregisterOutdatedPackagePlugins(registry, desiredByPackage);
+  unregisterOutdatedPackagePlugins(registry, desiredById);
   await registerMissingPlugins(registry, desiredRegistrations, settingsResult.workspaceRoot);
   await syncExtensionPlugins(registry.extensionPlugins, settingsResult, dependencies);
 }

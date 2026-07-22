@@ -14,6 +14,7 @@ import {
   type ExtensionPluginRegistry,
 } from '../../../plugins/registry';
 import type { WorkspacePackagePluginRegistrationDependencies } from './packages';
+import { createWorkspacePluginRuntimeSignature } from './signature';
 
 const EXTENSION_PLUGIN_HOST = 'codegraphy.extension';
 
@@ -23,6 +24,7 @@ export interface WorkspaceExtensionPluginRegistration {
     builtIn?: boolean;
     sourcePackage: string;
     sourcePackageRoot: string;
+    descriptorSignature: string;
   };
 }
 
@@ -79,12 +81,14 @@ export async function loadWorkspaceExtensionPluginRegistrations(
     if (record.host !== EXTENSION_PLUGIN_HOST || disabledPluginIds.has(record.id)) continue;
 
     try {
+      const plugin = await loadExtensionPlugin(record);
       registrations.push({
-        plugin: await loadExtensionPlugin(record),
+        plugin,
         options: {
           ...(resolved.bundledPackageRoots.has(record.packageRoot) ? { builtIn: true } : {}),
           sourcePackage: record.package,
           sourcePackageRoot: record.packageRoot,
+          descriptorSignature: createWorkspacePluginRuntimeSignature(record, plugin),
         },
       });
     } catch (error) {

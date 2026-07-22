@@ -176,6 +176,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
       builtIn: true,
       sourcePackage: packageName,
       sourcePackageRoot: bundledPackageRoot,
+      descriptorSignature: expect.any(String),
       interfaces: [{
         id: 'codegraphy.extension',
         data: {
