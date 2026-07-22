@@ -1,6 +1,6 @@
 import type { TLDefaultColor, TLTheme } from '@tldraw/tlschema';
 import { describe, expect, it, vi } from 'vitest';
-import { applyCodeGraphyTheme, OBSERVABLE_10 } from './model';
+import { applyCodeGraphyTheme, TABLEAU_10 } from './model';
 
 function color(value: string): TLDefaultColor {
   return {
@@ -39,16 +39,16 @@ function theme(): TLTheme {
 }
 
 describe('CodeGraphy tldraw theme', () => {
-  it('maps Observable 10 onto native tldraw colors in both modes', () => {
+  it('maps Tableau 10 onto native tldraw colors in both modes', () => {
     const current = theme();
     const updateTheme = vi.fn();
 
     applyCodeGraphyTheme({ getCurrentTheme: () => current, updateTheme });
 
     const next = updateTheme.mock.calls[0]?.[0] as TLTheme;
-    expect(next.colors.light.blue.semi).toBe(OBSERVABLE_10[0]);
-    expect(next.colors.light.grey.semi).toBe(OBSERVABLE_10[9]);
-    expect(next.colors.dark.orange.semi).toBe(OBSERVABLE_10[1]);
+    expect(next.colors.light.blue.semi).toBe(TABLEAU_10[0]);
+    expect(next.colors.light.grey.semi).toBe(TABLEAU_10[9]);
+    expect(next.colors.dark.orange.semi).toBe(TABLEAU_10[1]);
     expect(next.colors.light.black).toBe(current.colors.light.black);
     expect(next.colors.dark.black).toBe(current.colors.dark.black);
   });

@@ -31,7 +31,7 @@ describe('reconcileGraphRecords', () => {
       }
     }
 
-    expect(nodeProps['src/app.ts']).toMatchObject({ fill: 'solid' });
+    expect(nodeProps['src/app.ts']).toMatchObject({ dash: 'draw', fill: 'solid', font: 'draw' });
     expect(nodeProps['tests/app.ts']).toMatchObject(nodeProps['src/app.ts']);
     expect(nodeProps['tools/build.py']).not.toMatchObject(nodeProps['src/app.ts']);
   });
@@ -49,7 +49,7 @@ describe('reconcileGraphRecords', () => {
     expect(label).toMatchObject({
       isLocked: true,
       meta: { codegraphyKind: 'label', codegraphyNodeId: 'src/a.ts' },
-      props: { color: 'black', textAlign: 'middle' },
+      props: { color: 'black', font: 'draw', textAlign: 'middle' },
       x: node.x - 30,
       y: node.y + node.props.h + 8,
     });
@@ -58,7 +58,7 @@ describe('reconcileGraphRecords', () => {
     expect(node.index < label.index).toBe(true);
   });
 
-  it('preserves a surviving node style during refresh', () => {
+  it('reapplies the generated visual theme during refresh', () => {
     const graph = {
       nodes: [{ id: 'tools/build.py', label: 'build.py', color: '#333333', nodeType: 'file' }],
       edges: [],
@@ -82,7 +82,13 @@ describe('reconcileGraphRecords', () => {
     const refreshedNode = refreshed.find(record => record.meta.codegraphyEntityId === 'tools/build.py');
 
     expect(refreshedNode).toMatchObject({
-      props: { color: 'red', fill: 'pattern', labelColor: 'black' },
+      props: {
+        color: 'blue',
+        dash: 'draw',
+        fill: 'solid',
+        font: 'draw',
+        labelColor: 'black',
+      },
     });
   });
 

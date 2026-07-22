@@ -58,7 +58,9 @@ function createNodeShape(
   const generatedStyle = {
     labelColor: 'black',
     color,
+    dash: 'draw',
     fill: 'solid',
+    font: 'draw',
   } satisfies Partial<TLGeoShape['props']>;
   return {
     id: shapeId('node', node.id),
@@ -78,18 +80,16 @@ function createNodeShape(
       codegraphyNodeType: node.nodeType ?? 'file',
     },
     props: {
-      dash: 'solid',
       url: '',
       w: NODE_SIZE,
       h: NODE_SIZE,
       growY: 0,
       scale: 1,
-      ...generatedStyle,
       size: 'm',
-      font: 'sans',
       align: 'middle',
       verticalAlign: 'middle',
       ...(preserved?.props ?? {}),
+      ...generatedStyle,
       geo: 'ellipse',
       richText: toRichText(''),
     },
@@ -123,7 +123,7 @@ function createLabelShape(
     props: {
       color: 'black',
       size: 's',
-      font: 'sans',
+      font: 'draw',
       textAlign: 'middle',
       w: LABEL_WIDTH,
       richText: toRichText(node.label),
