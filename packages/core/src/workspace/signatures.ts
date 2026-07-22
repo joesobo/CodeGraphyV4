@@ -38,17 +38,20 @@ export function createCodeGraphyWorkspacePackageAwarePluginSignature(input: {
 
 export function createCodeGraphyWorkspaceSettingsSignature(
   settings: CodeGraphyWorkspaceSettings,
+  analysisPluginIds?: ReadonlySet<string>,
 ): string {
   const stableSettings = {
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     maxFiles: settings.maxFiles,
     include: settings.include,
     respectGitignore: settings.respectGitignore,
-    plugins: settings.plugins.map(plugin => ({
-      id: plugin.id,
-      activation: plugin.activation,
-      options: sortRecord(plugin.options),
-    })),
+    plugins: settings.plugins
+      .filter(plugin => analysisPluginIds?.has(plugin.id) ?? true)
+      .map(plugin => ({
+        id: plugin.id,
+        activation: plugin.activation,
+        options: sortRecord(plugin.options),
+      })),
   };
 
   return createHash('sha1')

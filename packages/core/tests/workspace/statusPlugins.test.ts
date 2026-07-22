@@ -5,7 +5,10 @@ import { describe, expect, it } from 'vitest';
 
 import { writeCodeGraphyInstalledPluginCache } from '../../src/plugins/installedCache';
 import { createInitialCodeGraphyWorkspaceSettings } from '../../src/workspace/settings';
-import { createDefaultStatusPluginSignature } from '../../src/workspace/statusPlugins';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from '../../src/workspace/statusPlugins';
 
 describe('workspace status plugin signature', () => {
   it('includes globally enabled plugins inherited by the workspace', async () => {
@@ -49,5 +52,6 @@ describe('workspace status plugin signature', () => {
     }, { homeDir });
 
     expect(createDefaultStatusPluginSignature(settings, homeDir)).toBe(baseline);
+    expect(createDefaultStatusCorePluginIds(settings, homeDir)).not.toContain('acme.view');
   });
 });

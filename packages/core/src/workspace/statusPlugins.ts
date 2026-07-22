@@ -48,3 +48,26 @@ export function createDefaultStatusPluginSignature(
     missingPackagePlugins,
   });
 }
+
+export function createDefaultStatusCorePluginIds(
+  settings: CodeGraphyWorkspaceSettings,
+  homeDir: string | undefined,
+): ReadonlySet<string> {
+  const installedPlugins = readCodeGraphyInstalledPluginCache({
+    ...(homeDir ? { homeDir } : {}),
+  }).plugins;
+  const activity = createPluginActivityState({
+    settings,
+    installedPlugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
+  const pluginIds = new Set(
+    activity.packagePlugins
+      .filter(plugin => plugin.host === 'core')
+      .map(plugin => plugin.id),
+  );
+  if (activity.activePluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
+    pluginIds.add(CODEGRAPHY_MARKDOWN_PLUGIN_ID);
+  }
+  return pluginIds;
+}

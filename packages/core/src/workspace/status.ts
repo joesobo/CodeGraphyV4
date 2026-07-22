@@ -9,7 +9,10 @@ import {
   createCodeGraphyWorkspaceSettingsSignature,
 } from './signatures';
 import { createCodeGraphyWorkspaceStatusDetail } from './statusDetail';
-import { createDefaultStatusPluginSignature } from './statusPlugins';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from './statusPlugins';
 import {
   collectCodeGraphyWorkspaceStaleReasons,
 } from './statusReasons';
@@ -35,7 +38,12 @@ export function readCodeGraphyWorkspaceStatus(
   const hasGraphCache = (options.exists ?? fs.existsSync)(graphCachePath);
   const meta = readCodeGraphyWorkspaceMeta(resolvedWorkspaceRoot);
   const settings = options.settings ?? readCodeGraphyWorkspaceSettings(resolvedWorkspaceRoot);
-  const settingsSignature = options.settingsSignature ?? createCodeGraphyWorkspaceSettingsSignature(settings);
+  const settingsSignature = options.settingsSignature ?? createCodeGraphyWorkspaceSettingsSignature(
+    settings,
+    options.plugins
+      ? new Set(options.plugins.map(plugin => plugin.id))
+      : createDefaultStatusCorePluginIds(settings, options.userHomeDir),
+  );
   const pluginSignature = options.pluginSignature
     ?? (options.plugins
       ? createCodeGraphyWorkspacePluginSignature(options.plugins)

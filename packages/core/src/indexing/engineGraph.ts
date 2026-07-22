@@ -71,6 +71,7 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
     });
   persistWorkspaceIndexMetadata({
     pluginSignature,
+    registry: state.registry,
     settings: state.settings,
     workspaceRoot,
   });

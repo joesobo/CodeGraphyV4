@@ -288,6 +288,7 @@ export async function indexCodeGraphyWorkspace(
     'persist-metadata',
     () => persistWorkspaceIndexMetadata({
       pluginSignature,
+      registry,
       settings,
       workspaceRoot,
     }),

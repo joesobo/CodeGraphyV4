@@ -192,7 +192,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   }
 
   protected _getSettingsSignature(): string {
-    return createWorkspacePipelineSettingsSignature(this._config);
+    return createWorkspacePipelineSettingsSignature(this._config, this._registry.list());
   }
 
   protected async _getCurrentCommitSha(workspaceRoot: string): Promise<string | null> {

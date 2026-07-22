@@ -19,20 +19,39 @@ function settings(overrides: Record<string, unknown> = {}) {
 describe('workspace pipeline settings signature', () => {
   it('includes workspace plugin settings but excludes query-only Filters', () => {
     const config = { getAll: vi.fn(() => settings()) };
-    const signature = createWorkspacePipelineSettingsSignature(config as never);
+    const corePlugins = [{ plugin: { id: 'codegraphy.vue' } }];
+    const signature = createWorkspacePipelineSettingsSignature(config as never, corePlugins as never);
 
     expect(config.getAll).toHaveBeenCalledOnce();
     expect(signature).toBe(createWorkspacePipelineSettingsSignature({
       getAll: () => settings({ filterPatterns: [] }),
-    } as never));
+    } as never, corePlugins as never));
     expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({
       getAll: () => settings({ plugins: [] }),
-    } as never));
+    } as never, corePlugins as never));
   });
 
   it('normalizes partial settings snapshots before hashing them', () => {
     expect(() => createWorkspacePipelineSettingsSignature({
       getAll: () => ({ showOrphans: true, respectGitignore: true }),
-    } as never)).not.toThrow();
+    } as never, [])).not.toThrow();
+  });
+
+  it('excludes Extension-only plugin intent from the Core cache signature', () => {
+    const corePlugins = [{ plugin: { id: 'codegraphy.vue' } }];
+    const baseline = createWorkspacePipelineSettingsSignature({
+      getAll: () => settings({
+        plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],
+      }),
+    } as never, corePlugins as never);
+
+    expect(createWorkspacePipelineSettingsSignature({
+      getAll: () => settings({
+        plugins: [
+          { id: 'codegraphy.vue', activation: 'enabled' },
+          { id: 'codegraphy.particles', activation: 'enabled' },
+        ],
+      }),
+    } as never, corePlugins as never)).toBe(baseline);
   });
 });
