@@ -60,10 +60,15 @@ async function writeExtensionPluginRuntime(
   packageRoot: string,
   entry: string,
   version: string,
+  factoryMarkerPath?: string,
 ): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(path.join(packageRoot, entry), `
+${factoryMarkerPath ? "import { appendFileSync } from 'node:fs';" : ''}
 export default function createPlugin() {
+  ${factoryMarkerPath
+    ? `appendFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory\\n');`
+    : ''}
   return {
     id: 'acme.extension-linked',
     name: 'Linked Extension Plugin',
@@ -103,6 +108,61 @@ function createCoreRegistry(registeredPlugins: Map<string, RegisteredCorePlugin>
 }
 
 describe('pipeline plugin sync identity', () => {
+  it('does not construct another Extension runtime during an unchanged sync', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(await createPackageFixtureRoot('codegraphy-extension-noop-'), 'package');
+    const factoryMarkerPath = path.join(path.dirname(packageRoot), 'factory-calls.txt');
+    await writeExtensionPluginRuntime(packageRoot, 'plugin.js', '1.0.0', factoryMarkerPath);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-linked', version: '1.0.0',
+        id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
+        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    const registered = new Map<string, RegisteredExtensionPlugin>();
+    const extensionPlugins = {
+      get: vi.fn((pluginId: string) => registered.get(pluginId)),
+      list: vi.fn(() => [...registered.values()]),
+      register: vi.fn((plugin: RegisteredExtensionPlugin['plugin'], options: RegistrationOptions) => {
+        registered.set(plugin.id, {
+          plugin,
+          builtIn: Boolean(options.builtIn),
+          sourcePackage: options.sourcePackage,
+          sourcePackageRoot: options.sourcePackageRoot,
+          descriptorSignature: options.descriptorSignature,
+        });
+      }),
+      unregister: vi.fn((pluginId: string) => registered.delete(pluginId)),
+      initializeAll: vi.fn(async () => undefined),
+    };
+    const registry = {
+      extensionPlugins,
+      get: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+      register: vi.fn(),
+      unregister: vi.fn(),
+      initializePlugin: vi.fn(async () => undefined),
+    };
+    const dependencies = { getWorkspaceRoot: () => workspaceRoot, userHomeDir: homeDir };
+
+    await syncWorkspacePipelinePlugins(registry as never, dependencies);
+    extensionPlugins.register.mockClear();
+    extensionPlugins.unregister.mockClear();
+    await syncWorkspacePipelinePlugins(registry as never, dependencies);
+
+    expect(await fs.readFile(factoryMarkerPath, 'utf8')).toBe('factory\n');
+    expect(extensionPlugins.register).not.toHaveBeenCalled();
+    expect(extensionPlugins.unregister).not.toHaveBeenCalled();
+    expect([...registered.keys()]).toEqual(['acme.extension-linked']);
+  });
+
   it('keeps multiple Core descriptors from one package registered by plugin ID', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));

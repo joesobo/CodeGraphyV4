@@ -15,7 +15,7 @@ import {
   type ExtensionPluginRegistry,
 } from '../../../plugins/registry';
 import type { WorkspacePackagePluginRegistrationDependencies } from './packages';
-import { createWorkspacePluginRuntimeSignature } from './signature';
+import { createWorkspacePluginDescriptorSignature } from './signature';
 
 const EXTENSION_PLUGIN_HOST = 'codegraphy.extension';
 
@@ -28,6 +28,12 @@ export interface WorkspaceExtensionPluginRegistration {
     descriptorSignature: string;
     options?: Record<string, unknown>;
   };
+}
+
+export interface WorkspaceExtensionPluginCandidate {
+  id: string;
+  options: WorkspaceExtensionPluginRegistration['options'];
+  load(): Promise<WorkspaceExtensionPluginRegistration>;
 }
 
 function readFactory(moduleNamespace: unknown, packageName: string): IExtensionPluginFactory {
@@ -51,35 +57,29 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
   }
 }
 
-async function loadExtensionPlugin(
+async function prepareExtensionPlugin(
   record: CodeGraphyInstalledPluginRecord,
   settings: CodeGraphyWorkspaceSettings['plugins'][number],
-  workspaceRoot: string,
 ): Promise<{
   buildIdentity: string;
+  moduleNamespace: unknown;
   options?: Record<string, unknown>;
-  plugin: IExtensionPlugin;
 }> {
   assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
   const { buildIdentity, moduleNamespace } = await importCodeGraphyPluginPackageModule(record);
   const options = mergePluginOptions(record, settings);
-  const plugin = await readFactory(moduleNamespace, record.package)({
-    dataHost: createWorkspacePluginDataHost(workspaceRoot, record.id),
-    ...(options ? { options } : {}),
-  });
-  validatePlugin(plugin, record);
   return {
     buildIdentity,
+    moduleNamespace,
     ...(options ? { options } : {}),
-    plugin,
   };
 }
 
-export async function loadWorkspaceExtensionPluginRegistrations(
+export async function prepareWorkspaceExtensionPluginCandidates(
   settings: CodeGraphyWorkspaceSettings,
   workspaceRoot: string,
   dependencies: WorkspacePackagePluginRegistrationDependencies,
-): Promise<WorkspaceExtensionPluginRegistration[]> {
+): Promise<WorkspaceExtensionPluginCandidate[]> {
   const warn = dependencies.warn ?? console.warn;
   const disabledPluginIds = new Set(dependencies.disabledPlugins ?? []);
   const settingsById = new Map(settings.plugins.map(plugin => [plugin.id, plugin] as const));
@@ -91,7 +91,7 @@ export async function loadWorkspaceExtensionPluginRegistrations(
     homeDir: dependencies.userHomeDir,
     warn,
   }, EXTENSION_PLUGIN_HOST);
-  const registrations: WorkspaceExtensionPluginRegistration[] = [];
+  const candidates: WorkspaceExtensionPluginCandidate[] = [];
 
   for (const record of resolved.records) {
     if (disabledPluginIds.has(record.id)) continue;
@@ -101,23 +101,27 @@ export async function loadWorkspaceExtensionPluginRegistrations(
         id: record.id,
         activation: 'inherit' as const,
       };
-      const { buildIdentity, options, plugin } = await loadExtensionPlugin(
+      const { buildIdentity, moduleNamespace, options } = await prepareExtensionPlugin(
         record,
         pluginSettings,
-        workspaceRoot,
       );
-      registrations.push({
-        plugin,
-        options: {
-          ...(resolved.bundledPackageRoots.has(record.packageRoot) ? { builtIn: true } : {}),
-          sourcePackage: record.package,
-          sourcePackageRoot: record.packageRoot,
-          descriptorSignature: createWorkspacePluginRuntimeSignature(
-            record,
-            plugin,
-            buildIdentity,
-          ),
-          ...(options ? { options } : {}),
+      const registrationOptions: WorkspaceExtensionPluginRegistration['options'] = {
+        ...(resolved.bundledPackageRoots.has(record.packageRoot) ? { builtIn: true } : {}),
+        sourcePackage: record.package,
+        sourcePackageRoot: record.packageRoot,
+        descriptorSignature: createWorkspacePluginDescriptorSignature(record, buildIdentity),
+        ...(options ? { options } : {}),
+      };
+      candidates.push({
+        id: record.id,
+        options: registrationOptions,
+        load: async () => {
+          const plugin = await readFactory(moduleNamespace, record.package)({
+            dataHost: createWorkspacePluginDataHost(workspaceRoot, record.id),
+            ...(options ? { options } : {}),
+          });
+          validatePlugin(plugin, record);
+          return { plugin, options: registrationOptions };
         },
       });
     } catch (error) {
@@ -126,6 +130,30 @@ export async function loadWorkspaceExtensionPluginRegistrations(
     }
   }
 
+  return candidates;
+}
+
+export async function loadWorkspaceExtensionPluginRegistrations(
+  settings: CodeGraphyWorkspaceSettings,
+  workspaceRoot: string,
+  dependencies: WorkspacePackagePluginRegistrationDependencies,
+): Promise<WorkspaceExtensionPluginRegistration[]> {
+  const warn = dependencies.warn ?? console.warn;
+  const candidates = await prepareWorkspaceExtensionPluginCandidates(
+    settings,
+    workspaceRoot,
+    dependencies,
+  );
+  const registrations: WorkspaceExtensionPluginRegistration[] = [];
+
+  for (const candidate of candidates) {
+    try {
+      registrations.push(await candidate.load());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy Extension plugin '${candidate.id}' could not be loaded: ${message}`);
+    }
+  }
   return registrations;
 }
 

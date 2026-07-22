@@ -7,12 +7,11 @@ interface PluginRuntimeIdentity {
   apiVersion: string;
 }
 
-export function createWorkspacePluginRuntimeSignature(
+function createWorkspacePluginPackageIdentity(
   record: CodeGraphyInstalledPluginRecord,
-  runtime: PluginRuntimeIdentity,
   buildIdentity: string,
-): string {
-  return JSON.stringify({
+): Record<string, unknown> {
+  return {
     descriptor: {
       id: record.id,
       name: record.name,
@@ -25,12 +24,29 @@ export function createWorkspacePluginRuntimeSignature(
       root: record.packageRoot,
       version: record.version,
     },
+    buildIdentity,
+  };
+}
+
+export function createWorkspacePluginDescriptorSignature(
+  record: CodeGraphyInstalledPluginRecord,
+  buildIdentity: string,
+): string {
+  return JSON.stringify(createWorkspacePluginPackageIdentity(record, buildIdentity));
+}
+
+export function createWorkspacePluginRuntimeSignature(
+  record: CodeGraphyInstalledPluginRecord,
+  runtime: PluginRuntimeIdentity,
+  buildIdentity: string,
+): string {
+  return JSON.stringify({
+    ...createWorkspacePluginPackageIdentity(record, buildIdentity),
     runtime: {
       id: runtime.id,
       name: runtime.name,
       version: runtime.version,
       apiVersion: runtime.apiVersion,
     },
-    buildIdentity,
   });
 }

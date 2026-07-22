@@ -11,7 +11,8 @@ import {
 } from './settings';
 import type { WorkspacePipelineInitializationDependencies } from './initialize';
 import {
-  loadWorkspaceExtensionPluginRegistrations,
+  prepareWorkspaceExtensionPluginCandidates,
+  type WorkspaceExtensionPluginCandidate,
   type WorkspaceExtensionPluginRegistration,
 } from './extensionPackages';
 import type { ExtensionPluginRegistry } from '../../../plugins/registry';
@@ -108,7 +109,7 @@ async function registerMissingPlugins(
 
 function hasExtensionRegistrationChanged(
   current: ReturnType<ExtensionPluginRegistry['list']>[number],
-  desired: WorkspaceExtensionPluginRegistration,
+  desired: WorkspaceExtensionPluginCandidate,
 ): boolean {
   return current.sourcePackage !== desired.options.sourcePackage
     || current.sourcePackageRoot !== desired.options.sourcePackageRoot
@@ -127,28 +128,38 @@ async function syncExtensionPlugins(
     return;
   }
 
-  const desired = await loadWorkspaceExtensionPluginRegistrations(
+  const desired = await prepareWorkspaceExtensionPluginCandidates(
     settingsResult.settings,
     settingsResult.workspaceRoot,
     dependencies,
   );
   const warn = dependencies.warn ?? console.warn;
-  const desiredById = new Map(desired.map(registration => [registration.plugin.id, registration]));
+  const desiredById: Map<string, WorkspaceExtensionPluginCandidate> = new Map(
+    desired.map(candidate => [candidate.id, candidate]),
+  );
 
   for (const current of registry.list()) {
-    const registration = desiredById.get(current.plugin.id);
-    if (!registration || hasExtensionRegistrationChanged(current, registration)) {
+    const candidate = desiredById.get(current.plugin.id);
+    if (!candidate || hasExtensionRegistrationChanged(current, candidate)) {
       registry.unregister(current.plugin.id);
     }
   }
 
-  for (const registration of desired) {
-    if (!registry.get(registration.plugin.id)) {
+  for (const candidate of desired) {
+    if (!registry.get(candidate.id)) {
+      let registration: WorkspaceExtensionPluginRegistration;
+      try {
+        registration = await candidate.load();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`CodeGraphy Extension plugin '${candidate.id}' could not be loaded: ${message}`);
+        continue;
+      }
       try {
         registry.register(registration.plugin, registration.options);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        warn(`CodeGraphy Extension plugin '${registration.plugin.id}' could not be registered: ${message}`);
+        warn(`CodeGraphy Extension plugin '${candidate.id}' could not be registered: ${message}`);
       }
     }
   }
