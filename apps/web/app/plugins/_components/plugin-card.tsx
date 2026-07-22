@@ -16,12 +16,12 @@ export function PluginCard({
   const installCommand = `npm i -g ${plugin.packageName}`;
 
   return (
-    <Card as="article" id={plugin.id} interactive>
-      <CardContent className="flex h-full flex-col p-5">
-        <div className="flex items-center gap-3">
+    <Card as="article" className="min-w-0" id={plugin.id} interactive>
+      <CardContent className="flex h-full min-w-0 flex-col p-5">
+        <div className="flex min-w-0 items-center gap-3">
           <Icon className="size-8 shrink-0" src={plugin.iconUrl} />
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold">
+            <h3 className="min-w-0 text-lg font-semibold">
               <Link
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
                 href={plugin.sourceHref}
@@ -31,7 +31,11 @@ export function PluginCard({
               </Link>
             </h3>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <Link className="text-primary" href={plugin.npmHref} variant="text">
+              <Link
+                className="min-w-0 [overflow-wrap:anywhere] text-primary"
+                href={plugin.npmHref}
+                variant="text"
+              >
                 {plugin.packageName}
               </Link>
               {version ? (
@@ -52,7 +56,7 @@ export function PluginCard({
         <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{plugin.summary}</p>
         {plugin.media ? (
           <MediaImage
-            className="mt-4 h-44 rounded-lg border border-border bg-secondary transition-[height] duration-500 ease-in-out hover:h-64"
+            className="mt-4 h-44 rounded-lg border border-border bg-secondary"
             fill
             imageClassName="object-cover object-top"
             media={plugin.media}

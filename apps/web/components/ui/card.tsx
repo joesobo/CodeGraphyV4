@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface CardProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'article' | 'aside' | 'div' | 'li' | 'section';
-  /** Site-wide hover treatment for cards that act as links. */
+  /** Stable, site-wide hover treatment for cards with interactive content. */
   interactive?: boolean;
 }
 
@@ -17,7 +17,8 @@ function Card({
     <Component
       className={cn(
         'rounded-md border border-border bg-card text-card-foreground shadow-sm',
-        interactive && 'transition-all duration-200 hover:border-primary/40 hover:shadow-md',
+        interactive &&
+          'transition-[background-color,border-color] duration-200 hover:border-foreground/20 hover:bg-accent/25 focus-within:border-foreground/20 focus-within:bg-accent/25',
         className,
       )}
       data-slot="card"

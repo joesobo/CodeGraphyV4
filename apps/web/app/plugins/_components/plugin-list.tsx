@@ -19,14 +19,14 @@ export async function PluginList(): Promise<React.ReactElement> {
   );
 
   return (
-    <section className="grid gap-6" id="plugin-list">
+    <section className="grid min-w-0 gap-6" id="plugin-list">
       <SectionHeader
         title="Official plugins"
         description="Official Plugins maintained in the CodeGraphy monorepo. Each adds language, framework, or visual coverage to the Relationship Graph — install it, enable it, and run Indexing again."
       />
-      <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <div className="min-w-0 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-6">
         <PageSidebar nav={pluginNavGroups} />
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-2">
           {pluginContent.map((plugin) => (
             <PluginCard key={plugin.id} plugin={plugin} version={versions.get(plugin.packageName)} />
           ))}

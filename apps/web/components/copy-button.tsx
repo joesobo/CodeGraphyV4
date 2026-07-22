@@ -10,17 +10,69 @@ interface CopyButtonProps {
   className?: string;
 }
 
+function copyFromSelection(text: string): boolean {
+  const activeElement = document.activeElement;
+  const textArea = document.createElement('textarea');
+
+  textArea.value = text;
+  textArea.readOnly = true;
+  textArea.style.position = 'fixed';
+  textArea.style.inset = '0 auto auto -9999px';
+  textArea.style.opacity = '0';
+  textArea.style.pointerEvents = 'none';
+
+  document.body.append(textArea);
+  textArea.focus({ preventScroll: true });
+  textArea.select();
+  textArea.setSelectionRange(0, text.length);
+
+  let copied = false;
+
+  try {
+    copied = document.execCommand('copy');
+  } catch {
+    copied = false;
+  } finally {
+    textArea.remove();
+
+    if (activeElement instanceof HTMLElement) {
+      activeElement.focus();
+    }
+  }
+
+  return copied;
+}
+
 export function CopyButton({ text, className }: CopyButtonProps): React.ReactElement {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = (): void => {
-    navigator.clipboard.writeText(text).then(
+    const copiedFromSelection = copyFromSelection(text);
+    const showCopiedState = (): void => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    };
+
+    let clipboardWrite: Promise<void> | undefined;
+
+    try {
+      clipboardWrite = navigator.clipboard?.writeText(text);
+    } catch {
+      clipboardWrite = undefined;
+    }
+
+    if (copiedFromSelection) {
+      showCopiedState();
+    }
+
+    clipboardWrite?.then(
       () => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        if (!copiedFromSelection) {
+          showCopiedState();
+        }
       },
       () => {
-        // Clipboard access can be denied (e.g. unfocused document); keep the button usable.
+        // The synchronous selection copy already had its chance in the click gesture.
       },
     );
   };

@@ -9,7 +9,7 @@ export function ExampleImage({
   const caption = `${example.name} Relationship Graph from ${example.workspace}.`;
 
   return (
-    <figure className="flex h-72 w-full shrink-0 flex-col border-t border-border bg-example-graph-surface sm:h-auto sm:w-[45%] sm:border-t-0 sm:transition-[width] sm:duration-500 sm:ease-in-out sm:group-hover:w-[60%]">
+    <figure className="flex h-72 w-full shrink-0 flex-col border-t border-border bg-example-graph-surface sm:h-auto sm:w-[45%] sm:border-t-0">
       <div className="relative min-h-0 flex-1">
         <MediaImage
           className="absolute inset-0"

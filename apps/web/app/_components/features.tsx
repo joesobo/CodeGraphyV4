@@ -113,7 +113,7 @@ function FeatureCard({ feature }: { feature: Feature }): React.ReactElement {
     <Card
       as="article"
       className={cn(
-        'group flex min-w-0 flex-col overflow-hidden motion-safe:transition-[translate,border-color,box-shadow] motion-safe:duration-300 motion-safe:ease-out motion-safe:hover:-translate-y-1',
+        'flex min-w-0 flex-col overflow-hidden',
         feature.layout === 'wide' ? 'md:col-span-2 lg:col-span-6' : 'lg:col-span-3',
       )}
       interactive
@@ -121,7 +121,7 @@ function FeatureCard({ feature }: { feature: Feature }): React.ReactElement {
       <FeatureMedia layout={feature.layout} media={feature.media} />
       <CardHeader className="shrink-0">
         <div className="flex items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-110">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
             <feature.icon aria-hidden="true" className="size-4" />
           </span>
           <div className="min-w-0">

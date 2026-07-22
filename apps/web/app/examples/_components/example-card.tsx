@@ -19,8 +19,8 @@ export function ExampleCard({
   const pluginHref = example.plugin ? pluginHrefById.get(example.plugin.id) : undefined;
 
   return (
-    <Card as="article" className="group overflow-hidden" id={example.id} interactive>
-      <div className="flex flex-col sm:min-h-72 sm:flex-row sm:transition-[min-height] sm:duration-500 sm:ease-in-out sm:group-hover:min-h-[30rem]">
+    <Card as="article" className="overflow-hidden" id={example.id} interactive>
+      <div className="flex flex-col sm:min-h-72 sm:flex-row">
         <CardContent className="flex flex-1 flex-col p-5">
           <div className="flex flex-wrap items-center gap-3">
             <Icon className="size-7 shrink-0" src={example.iconUrl} />
