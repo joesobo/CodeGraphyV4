@@ -3,15 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
-const PLUGIN_API_RANGE = '^3.0.0';
-const BUNDLED_PLUGINS = [
-  'godot',
-  'markdown',
-  'particles',
-  'svelte',
-  'typescript',
-  'unity',
-  'vue',
+const PLUGIN_HOSTS = [
+  {
+    apiVersion: '^4.0.0',
+    id: 'core',
+    plugins: ['godot', 'markdown', 'svelte', 'typescript', 'unity', 'vue'],
+  },
+  {
+    apiVersion: '^1.0.0',
+    id: 'codegraphy.extension',
+    plugins: ['particles'],
+  },
 ];
 
 function readJson(relativePath) {
@@ -19,13 +21,35 @@ function readJson(relativePath) {
 }
 
 test('bundled plugin manifests declare the current runtime API consistently', () => {
-  for (const plugin of BUNDLED_PLUGINS) {
-    const packageRoot = `packages/plugin-${plugin}`;
-    const manifest = readJson(`${packageRoot}/codegraphy.json`);
-    const packageManifest = readJson(`${packageRoot}/package.json`);
+  for (const host of PLUGIN_HOSTS) {
+    for (const plugin of host.plugins) {
+      const packageRoot = `packages/plugin-${plugin}`;
+      const manifest = readJson(`${packageRoot}/codegraphy.json`);
+      const packageManifest = readJson(`${packageRoot}/package.json`);
+      const packagePlugin = packageManifest.codegraphy?.plugins?.find(
+        candidate => candidate.id === manifest.id,
+      );
 
-    assert.equal(manifest.apiVersion, PLUGIN_API_RANGE, `${plugin} runtime manifest`);
-    assert.equal(packageManifest.codegraphy?.apiVersion, PLUGIN_API_RANGE, `${plugin} package metadata`);
-    assert.equal(packageManifest.codegraphy.apiVersion, manifest.apiVersion, `${plugin} metadata agreement`);
+      assert.equal(
+        manifest.apiVersion,
+        host.apiVersion,
+        `${plugin} ${host.id} runtime manifest`,
+      );
+      assert.equal(
+        packagePlugin?.host,
+        host.id,
+        `${plugin} package host`,
+      );
+      assert.equal(
+        packagePlugin?.apiVersion,
+        host.apiVersion,
+        `${plugin} ${host.id} package metadata`,
+      );
+      assert.equal(
+        packagePlugin.apiVersion,
+        manifest.apiVersion,
+        `${plugin} metadata agreement`,
+      );
+    }
   }
 });

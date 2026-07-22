@@ -13,6 +13,7 @@ on:
           - extension
           - graph-renderer
           - plugin-api
+          - extension-plugin-api
           - plugin-typescript
           - plugin-godot
           - plugin-unity
