@@ -42,6 +42,12 @@ function connectionNodeSizes(
   ));
 }
 
+function nodeCollisionRadius(shape: NodeShape, connectionSize: number): number {
+  const connectionRadius = connectionSize + COLLISION_RADIUS_PADDING;
+  const resizedRadius = toPhysicsCoordinate(Math.max(shape.props.w, shape.props.h)) / 2;
+  return Math.max(connectionRadius, resizedRadius);
+}
+
 export function createRuntimeEngine(
   nodeShapes: readonly NodeShape[],
   edgeShapes: readonly ScriptShape[],
@@ -69,7 +75,10 @@ export function createRuntimeEngine(
       nodeSizes,
       size => graphNodeSizeChargeMultiplier(size, DEFAULT_NODE_SIZE),
     ),
-    radii: Float32Array.from(nodeSizes, size => size + COLLISION_RADIUS_PADDING),
+    radii: Float32Array.from(
+      nodeShapes,
+      (shape, index) => nodeCollisionRadius(shape, nodeSizes[index]),
+    ),
     edgeSources: Uint32Array.from(edgeEndpoints, endpoint => endpoint.source),
     edgeTargets: Uint32Array.from(edgeEndpoints, endpoint => endpoint.target),
   }, toGraphLayoutConfig(forceSettings));

@@ -195,6 +195,11 @@ describe('tldraw physics runtime', () => {
     harness.notifyStore();
     harness.emit('tick', 16);
     expect(createGraphLayoutEngine).toHaveBeenCalledTimes(2);
+
+    harness.setShapes([{ ...nodeA, props: { ...nodeA.props, w: 240 } }, nodeB]);
+    harness.notifyStore();
+    harness.emit('tick', 16);
+    expect(createGraphLayoutEngine).toHaveBeenCalledTimes(3);
   });
 
   it('sends only changed document force settings to the active engine', async () => {
