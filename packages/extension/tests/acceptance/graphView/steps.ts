@@ -1525,7 +1525,9 @@ async function setCoreEdgeTypes(
   enabledForLabel: (label: string) => boolean,
 ): Promise<void> {
   const frame = requireGraphFrame(context);
-  await openGraphScopeSection(context, 'Edge Types');
+  if (!await openGraphScopeSection(context, 'Edge Types')) {
+    return;
+  }
 
   for (const edgeTypeLabel of CORE_EDGE_TYPE_LABELS) {
     await setPanelSwitchIfPresent(context, edgeTypeLabel, enabledForLabel(edgeTypeLabel));
@@ -1620,10 +1622,10 @@ export function requiresCoreNodeTypeSwitch(label: string): boolean {
   return REQUIRED_CORE_NODE_TYPE_LABELS.has(label);
 }
 
-async function openGraphScopeSection(
+export async function openGraphScopeSection(
   context: GraphAcceptanceContext,
   sectionName: 'Edge Types' | 'Node Types',
-): Promise<void> {
+): Promise<boolean> {
   context.activeGraphScopeSection = sectionName;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     await ensureGraphViewVisible(context);
@@ -1634,8 +1636,13 @@ async function openGraphScopeSection(
         await clickToolbarButton(frame, 'Graph Scope');
       }
 
-      await frame.getByRole('button', { name: sectionName }).click();
-      return;
+      const sectionButton = frame.getByRole('button', { name: sectionName });
+      if (await isGraphScopeSectionUnavailable(sectionButton)) {
+        return false;
+      }
+
+      await sectionButton.click();
+      return true;
     } catch (error) {
       if (!isFrameDetachedError(error) || attempt === 1) {
         throw error;
@@ -1644,6 +1651,14 @@ async function openGraphScopeSection(
       await refreshGraphFrameAfterDetach(context);
     }
   }
+
+  return false;
+}
+
+export async function isGraphScopeSectionUnavailable(
+  sectionButton: Locator,
+): Promise<boolean> {
+  return sectionButton.isDisabled().catch(() => false);
 }
 
 export async function setPanelSwitch(

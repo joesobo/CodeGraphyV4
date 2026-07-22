@@ -68,7 +68,11 @@ async function applyPluginToggleGraphWorkPlan(
     return;
   }
 
-  await applyPluginGraphWorkPlan(plan, pluginId, handlers);
+  await applyPluginGraphWorkPlan(plan, pluginId, {
+    analyzeAndSendData: () => handlers.analyzeAndSendData(),
+    reprocessPluginFiles: pluginIds => handlers.reprocessPluginFiles(pluginIds),
+    smartRebuild: id => handlers.smartRebuild(id),
+  });
 }
 
 function replaySavedPluginData(

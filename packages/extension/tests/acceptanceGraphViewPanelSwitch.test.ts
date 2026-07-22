@@ -71,6 +71,17 @@ describe('acceptance graph view panel switches', () => {
     expect(frame.waitForTimeout).not.toHaveBeenCalled();
   });
 
+  it('treats a disabled empty graph scope section as already empty', async () => {
+    const { isGraphScopeSectionUnavailable } = await import('./acceptance/graphView/steps');
+    const sectionButton = {
+      isDisabled: vi.fn(async () => true),
+    } as unknown as Locator;
+
+    await expect(isGraphScopeSectionUnavailable(sectionButton)).resolves.toBe(true);
+
+    expect(sectionButton.isDisabled).toHaveBeenCalledOnce();
+  });
+
   it('does not require plugin switches to remain visible after toggling', async () => {
     const { setPluginSwitch } = await import('./acceptance/graphView/steps');
     const pluginSwitch = switchLocator({ checked: false, visible: true });

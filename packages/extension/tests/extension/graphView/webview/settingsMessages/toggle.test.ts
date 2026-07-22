@@ -118,6 +118,31 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
+  it('waits for targeted plugin-file reprocessing instead of leaving it queued', async () => {
+    const state = createState();
+    const schedulePluginGraphWork = vi.fn();
+    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+      })),
+      schedulePluginGraphWork,
+      reprocessPluginFiles,
+    });
+
+    await expect(applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: { pluginId: 'codegraphy.svelte', enabled: true },
+      },
+      state,
+      handlers,
+    )).resolves.toBe(true);
+
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.svelte']);
+    expect(schedulePluginGraphWork).not.toHaveBeenCalled();
+  });
+
   it('hydrates cached plugin evidence before scheduling targeted plugin-file reprocessing', async () => {
     const state = createState();
     const handlers = createHandlers({
