@@ -82,7 +82,14 @@ export class ExtensionPluginRegistry {
 
   notifyWebviewReady(): void {
     for (const info of this.plugins.values()) {
-      info.plugin.onWebviewReady?.();
+      try {
+        info.plugin.onWebviewReady?.();
+      } catch (error) {
+        console.error(
+          `[CodeGraphy] Error notifying Extension plugin ${info.plugin.id} that the webview is ready:`,
+          error,
+        );
+      }
     }
   }
 

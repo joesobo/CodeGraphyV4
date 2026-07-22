@@ -107,6 +107,27 @@ describe('ExtensionPluginRegistry', () => {
     );
   });
 
+  it('continues notifying webview readiness after one plugin fails', () => {
+    const failure = new Error('webview ready failed');
+    const failingReady = vi.fn(() => {
+      throw failure;
+    });
+    const laterReady = vi.fn();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const registry = new ExtensionPluginRegistry();
+    registry.register(createPlugin({ id: 'acme.failing', onWebviewReady: failingReady }));
+    registry.register(createPlugin({ id: 'acme.later', onWebviewReady: laterReady }));
+
+    expect(() => registry.notifyWebviewReady()).not.toThrow();
+
+    expect(failingReady).toHaveBeenCalledOnce();
+    expect(laterReady).toHaveBeenCalledOnce();
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] Error notifying Extension plugin acme.failing that the webview is ready:',
+      failure,
+    );
+  });
+
   it('returns false for unknown plugins and unloads registered plugins', async () => {
     const initialize = vi.fn(async () => undefined);
     const onUnload = vi.fn();
