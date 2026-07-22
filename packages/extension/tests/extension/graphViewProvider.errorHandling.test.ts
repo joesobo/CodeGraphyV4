@@ -79,7 +79,10 @@ describe('GraphViewProvider error handling', () => {
       _analyzer: {
         analyze: () => Promise<IGraphData>;
         registry: {
-          extensionPlugins: { list(): unknown[] };
+          extensionPlugins: {
+            list(): unknown[];
+            listActive(): unknown[];
+          };
           list(): unknown[];
           notifyPostAnalyze(graph: IGraphData): void;
         };
@@ -87,7 +90,10 @@ describe('GraphViewProvider error handling', () => {
     })._analyzer = {
       analyze: vi.fn().mockRejectedValueOnce(new Error('analysis failed')),
       registry: {
-        extensionPlugins: { list: () => [] },
+        extensionPlugins: {
+          list: () => [],
+          listActive: () => [],
+        },
         list: () => [],
         notifyPostAnalyze: () => {},
       },

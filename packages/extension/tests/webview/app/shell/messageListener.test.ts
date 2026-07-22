@@ -200,7 +200,7 @@ describe('app message listener', () => {
     expect(handleExtensionMessage).toHaveBeenCalledWith(message);
   });
 
-  it('removes a package plugin by its last runtime plugin id when package status becomes unavailable', () => {
+  it('removes the unavailable status descriptor without inferring package-owned plugin ids', () => {
     const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
     const resetPluginAssets = vi.fn();
     const pluginHost = {
@@ -234,8 +234,10 @@ describe('app message listener', () => {
       },
     } as MessageEvent<unknown>);
 
-    expect(pluginHost.removePlugin).toHaveBeenCalledWith('acme.graph-tools');
-    expect(resetPluginAssets).toHaveBeenCalledWith('acme.graph-tools');
+    expect(pluginHost.removePlugin).toHaveBeenCalledWith('@acme/graph-tools');
+    expect(pluginHost.removePlugin).not.toHaveBeenCalledWith('acme.graph-tools');
+    expect(resetPluginAssets).toHaveBeenCalledWith('@acme/graph-tools');
+    expect(resetPluginAssets).not.toHaveBeenCalledWith('acme.graph-tools');
   });
 
   it('forwards non-plugin messages to the graph store handler', () => {
