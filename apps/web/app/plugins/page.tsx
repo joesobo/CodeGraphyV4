@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 
 export default function PluginsPage(): React.ReactElement {
   return (
-    <div className="w-full min-w-0">
+    <div className="route-surface w-full min-w-0">
       <PluginsHeader />
-      <div className="mx-auto grid w-full max-w-[90rem] gap-24 px-5 py-24 sm:gap-32 sm:px-8 sm:py-32 lg:px-12">
+      <div className="mx-auto grid w-full max-w-[90rem] gap-24 px-5 py-24 sm:gap-32 sm:px-8 sm:py-32 lg:px-12" id="page-content">
         <PluginFeatures />
         <PluginList />
         <PluginInstall />

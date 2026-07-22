@@ -11,7 +11,7 @@ const graphQuestions = [
 
 export function Agents(): React.ReactElement {
   return (
-    <section className="relative overflow-hidden bg-[#061722] px-5 py-24 text-white sm:px-8 sm:py-32 lg:px-12">
+    <section className="agents-scene relative flex min-h-[88svh] items-center overflow-hidden bg-[#061722] px-5 py-24 text-white sm:px-8 sm:py-32 lg:px-12">
       <div aria-hidden="true" className="ocean-grid absolute inset-0 opacity-45" />
       <div className="relative mx-auto grid w-full max-w-[90rem] gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
         <div className="max-w-xl [&_.section-kicker]:text-[#61d8ca] [&_h2]:text-white [&_p]:text-white/60">
@@ -33,7 +33,7 @@ export function Agents(): React.ReactElement {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-white/12 bg-[#0a202d]/90 shadow-2xl backdrop-blur-sm">
+        <div className="agent-terminal overflow-hidden rounded-3xl border border-white/12 bg-[#0a202d]/90 shadow-2xl backdrop-blur-sm">
           <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4">
             <span className="size-2.5 rounded-full bg-[#ff776d]" />
             <span className="size-2.5 rounded-full bg-[#f5c15d]" />
@@ -50,7 +50,7 @@ codegraphy index`}</CodeBlock>
               <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#61d8ca]">Ask one bounded question</p>
               <CodeBlock className="mt-3 border-white/10 bg-black/22 text-xs leading-6 text-white/78">codegraphy dependencies packages/core/src/cli/command.ts</CodeBlock>
             </div>
-            <ul className="grid gap-2 sm:grid-cols-3">
+            <ul className="agent-questions grid gap-2 sm:grid-cols-3">
               {graphQuestions.map((question) => (
                 <li className="rounded-2xl border border-white/8 bg-white/5 p-3 text-xs leading-5 text-white/55" key={question}>
                   {question}

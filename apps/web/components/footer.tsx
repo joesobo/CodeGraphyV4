@@ -84,6 +84,7 @@ export function Footer(): React.ReactElement {
           <p>© {year} Joe Soboleski</p>
           <p className="font-mono uppercase tracking-widest">MIT licensed</p>
         </div>
+        <p aria-hidden="true" className="footer-wordmark">CodeGraphy</p>
       </div>
     </footer>
   );

@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default function ExamplesPage(): React.ReactElement {
   return (
-    <div className="w-full min-w-0">
+    <div className="route-surface w-full min-w-0">
       <ExamplesHeader />
-      <div className="mx-auto w-full max-w-[90rem] px-5 py-24 sm:px-8 sm:py-32 lg:px-12"><ExampleList /></div>
+      <div className="mx-auto w-full max-w-[90rem] px-5 py-24 sm:px-8 sm:py-32 lg:px-12" id="page-content"><ExampleList /></div>
     </div>
   );
 }

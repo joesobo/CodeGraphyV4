@@ -15,7 +15,7 @@ export function ExamplesHeader(): React.ReactElement {
       description="Small, runnable CodeGraphy Workspaces that make language and Plugin coverage concrete. Open one, run Indexing, and inspect the Nodes, Edges, and symbols it produces."
       eyebrow="See what CodeGraphy sees"
       imageAlt=""
-      imagePosition="72% center"
+      imagePosition="54% center"
       imageSrc="/media/ocean-examples-hero.jpg"
       title="Examples"
     />

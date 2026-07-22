@@ -48,8 +48,8 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <div className="min-h-screen overflow-x-clip">
-            <header className="site-header sticky top-0 z-50 w-full">
+          <div className="min-h-dvh overflow-x-clip">
+            <header className="site-header fixed top-0 z-50 w-full">
               <div className="mx-auto w-full max-w-[90rem] px-5 py-3 sm:px-8 lg:px-12">
                 <Navbar />
               </div>

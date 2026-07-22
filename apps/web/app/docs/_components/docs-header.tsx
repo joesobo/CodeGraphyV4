@@ -29,7 +29,7 @@ export function DocsHeader(): React.ReactElement {
       description="Source-backed guides for the extension, Core CLI, interactions, settings, built-in Plugins, and the Plugin API. Every topic leads to maintained Markdown in the repository."
       eyebrow="Documentation"
       imageAlt=""
-      imagePosition="66% center"
+      imagePosition="58% center"
       imageSrc="/media/ocean-docs-hero.jpg"
       size="compact"
       title="Docs"

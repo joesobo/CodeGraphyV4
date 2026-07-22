@@ -33,7 +33,7 @@ const paths = [
 
 export function GetStarted(): React.ReactElement {
   return (
-    <section className="px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
+    <section className="start-scene px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
       <div className="mx-auto max-w-[90rem]">
         <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
           <SectionHeader
@@ -46,13 +46,13 @@ export function GetStarted(): React.ReactElement {
           </div>
         </div>
 
-        <ol className="mt-14 grid overflow-hidden rounded-3xl border border-border bg-card/60 lg:grid-cols-3">
+        <ol className="mt-16 grid border-y border-border lg:grid-cols-3">
           {paths.map((path) => (
-            <li className="flex min-h-72 flex-col border-b border-border p-6 last:border-b-0 lg:border-r lg:border-b-0 lg:last:border-r-0 sm:p-8" key={path.number}>
-              <p className="font-mono text-xs font-semibold tracking-[0.18em] text-primary">{path.number}</p>
+            <li className="start-path flex min-h-80 flex-col border-b border-border py-8 last:border-b-0 lg:border-r lg:border-b-0 lg:px-8 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0 sm:py-10" key={path.number}>
+              <p className="font-heading text-6xl font-medium leading-none text-primary/35">{path.number}</p>
               <h3 className="mt-8 text-3xl font-medium leading-tight">{path.title}</h3>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">{path.summary}</p>
-              <Link className={cn('mt-auto justify-start px-0 pt-8 text-primary hover:bg-transparent', buttonVariants({ variant: 'ghost' }))} href={path.href} icon={path.icon}>
+              <Link className={cn('mt-auto justify-start px-0 pt-8 text-primary hover:bg-transparent active:scale-100', buttonVariants({ variant: 'ghost' }))} href={path.href} icon={path.icon}>
                 {path.label} <span aria-hidden="true">↗</span>
               </Link>
             </li>

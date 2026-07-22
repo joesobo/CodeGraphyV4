@@ -16,10 +16,11 @@ export default function NotFound(): React.ReactElement {
       description="CodeGraphy could not resolve this route. Return to the home graph or open the docs."
       eyebrow="404 · Off the map"
       imageAlt=""
-      imagePosition="62% center"
-      imageSrc="/media/ocean-not-found-hero.jpg"
+      imagePosition="43% center"
+      imageSrc="/media/ocean-not-found-hero-v2.jpg"
       size="tall"
       title="Nothing surfaced here."
+      tone="minimal"
     />
   );
 }

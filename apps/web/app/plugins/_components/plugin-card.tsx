@@ -22,7 +22,7 @@ export function PluginCard({
     <Card
       as="article"
       className={cn(
-        'relative overflow-hidden rounded-[2rem] bg-card/80 transition-[border-color,box-shadow] duration-300 hover:border-primary/35 hover:shadow-[0_18px_50px_rgb(8_74_82_/_0.1)]',
+        'catalog-card relative overflow-hidden rounded-[1.6rem] bg-card/70 transition-[border-color,background-color] duration-200 hover:border-primary/35 hover:bg-card',
         featured && 'xl:col-span-2',
       )}
       id={plugin.id}
@@ -67,6 +67,9 @@ export function PluginCard({
               </div>
             </div>
           </div>
+          <p className="mt-5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
+            {plugin.pluginId}
+          </p>
           <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">{plugin.summary}</p>
           <ul className="mt-4 flex flex-wrap gap-2">
             {plugin.supported.map((item) => (
