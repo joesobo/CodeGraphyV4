@@ -82,8 +82,8 @@ export function GetStarted(): React.ReactElement {
             </div>
             <div className="grid gap-4 lg:min-w-80">
               <div className="closing-cta-command flex min-h-14 items-center justify-between gap-4 rounded-xl px-4">
-                <code className="min-w-0 overflow-x-auto text-xs font-semibold text-[#0a1d31] sm:text-sm">
-                  <span className="text-[#2859b5]">$</span> codegraphy index
+                <code className="closing-cta-command-code min-w-0 overflow-x-auto text-xs font-semibold sm:text-sm">
+                  <span>$</span> codegraphy index
                 </code>
                 <CopyButton className="closing-cta-copy-button" text="codegraphy index" />
               </div>

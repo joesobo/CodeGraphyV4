@@ -73,6 +73,15 @@
   --install: var(--action);
   --install-hover: var(--action-hover);
   --install-foreground: var(--action-foreground);
+  --closing-command-background: rgb(248 251 255 / 94%);
+  --closing-command-border: rgb(255 255 255 / 78%);
+  --closing-command-foreground: #0a1d31;
+  --closing-command-accent: #2859b5;
+  --closing-copy-background: rgb(23 40 59 / 8%);
+  --closing-copy-background-hover: rgb(23 40 59 / 14%);
+  --closing-copy-border: rgb(23 40 59 / 18%);
+  --closing-copy-foreground: #17283b;
+  --closing-copy-foreground-hover: #07182d;
   --brand-mark: url("/codegraphy.svg");
   --font-family-sans: var(--font-dm-sans, "DM Sans"), ui-sans-serif, system-ui, sans-serif;
   --font-family-heading: var(--font-newsreader, "Newsreader"), Georgia, serif;
@@ -111,6 +120,15 @@
   --example-graph-surface: #0b1b2c;
   --graph-surface: #0b1b2c;
   --depth-surface: #091827;
+  --closing-command-background: rgb(7 20 33 / 92%);
+  --closing-command-border: rgb(147 186 255 / 34%);
+  --closing-command-foreground: #edf3fa;
+  --closing-command-accent: #93baff;
+  --closing-copy-background: rgb(147 186 255 / 12%);
+  --closing-copy-background-hover: rgb(147 186 255 / 20%);
+  --closing-copy-border: rgb(147 186 255 / 24%);
+  --closing-copy-foreground: #d8e7ff;
+  --closing-copy-foreground-hover: #ffffff;
   --elevation-2xs: 0 0 0 1px rgb(255 255 255 / 7%);
   --elevation-xs: 0 0 0 1px rgb(255 255 255 / 8%);
   --elevation-sm: 0 0 0 1px rgb(255 255 255 / 8%), 0 8px 24px rgb(0 0 0 / 20%);
@@ -668,21 +686,29 @@ button {
 }
 
 .closing-cta-command {
-  border: 1px solid rgb(255 255 255 / 78%);
-  background: rgb(248 251 255 / 94%);
+  border: 1px solid var(--closing-command-border);
+  background: var(--closing-command-background);
   box-shadow: 0 12px 34px rgb(0 12 24 / 22%);
   backdrop-filter: blur(10px);
 }
 
+.closing-cta-command-code {
+  color: var(--closing-command-foreground);
+}
+
+.closing-cta-command-code span {
+  color: var(--closing-command-accent);
+}
+
 .closing-cta-copy-button {
-  border: 1px solid rgb(23 40 59 / 18%);
-  background: rgb(23 40 59 / 8%);
-  color: #17283b;
+  border: 1px solid var(--closing-copy-border);
+  background: var(--closing-copy-background);
+  color: var(--closing-copy-foreground);
 }
 
 .closing-cta-copy-button:hover {
-  background: rgb(23 40 59 / 14%);
-  color: #07182d;
+  background: var(--closing-copy-background-hover);
+  color: var(--closing-copy-foreground-hover);
 }
 
 .start-path {

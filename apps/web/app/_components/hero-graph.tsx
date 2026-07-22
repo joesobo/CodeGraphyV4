@@ -67,11 +67,11 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     const layout = createGraphLayoutEngine(graphData.input, {
       alphaDecay: 0.014,
       centralGravity: 0,
-      chargeDistanceMax: 310,
-      chargeStrength: -205,
-      collisionPadding: 6,
+      chargeDistanceMax: 230,
+      chargeStrength: -150,
+      collisionPadding: 4,
       initializationSpacing: 14,
-      linkDistance: 25,
+      linkDistance: 22,
       linkStrength: 2,
       settleSpeed: 0.5,
       velocityDecay: 0.29,
@@ -103,7 +103,6 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     const updatePointer = (event: PointerEvent): void => {
       if (event.pointerType !== 'mouse') return;
       const bounds = canvas.getBoundingClientRect();
-      const wasActive = pointer.active;
       pointer.active = event.clientX >= bounds.left
         && event.clientX <= bounds.right
         && event.clientY >= bounds.top
@@ -111,14 +110,12 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       if (!pointer.active) {
         pointer.targetX = 0;
         pointer.targetY = 0;
-        if (wasActive) layout.reheat(0.2);
         return;
       }
 
       const scale = graphScale(canvasSize);
       pointer.targetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
       pointer.targetY = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-      layout.reheat(0.36);
     };
     window.addEventListener('pointermove', updatePointer, {
       passive: true,
@@ -175,7 +172,7 @@ function createGraphData(seed: number): HeroGraphData {
       ? index
       : Math.floor(random() * COMMUNITY_COUNT);
     const angle = random() * Math.PI * 2;
-    const distance = Math.sqrt(random()) * 390;
+    const distance = Math.sqrt(random()) * 300;
     const isCommunitySeed = index < COMMUNITY_COUNT;
 
     nodeGroups[index] = group;
@@ -257,7 +254,7 @@ function createSeededRandom(seed: number): () => number {
 }
 
 function updatePointerCenter(pointer: PointerPosition): void {
-  const smoothing = pointer.active ? 0.4 : 0.1;
+  const smoothing = pointer.active ? 0.18 : 0.08;
   pointer.currentX += (pointer.targetX - pointer.currentX) * smoothing;
   pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
 }
@@ -280,9 +277,9 @@ function createHeroForces(
       centerX /= layout.nodeIds.length;
       centerY /= layout.nodeIds.length;
 
-      const effectiveAlpha = Math.max(alpha, pointer.active ? 0.2 : 0.12);
-      const followStrength = (pointer.active ? 0.055 : 0.025) * effectiveAlpha;
-      const maxImpulse = pointer.active ? 4.8 : 2.8;
+      const effectiveAlpha = Math.max(alpha, pointer.active ? 0.16 : 0.1);
+      const followStrength = (pointer.active ? 0.04 : 0.022) * effectiveAlpha;
+      const maxImpulse = pointer.active ? 2.4 : 2.2;
       const impulseX = Math.max(
         -maxImpulse,
         Math.min(maxImpulse, (pointer.currentX - centerX) * followStrength),
@@ -292,11 +289,17 @@ function createHeroForces(
         Math.min(maxImpulse, (pointer.currentY - centerY) * followStrength),
       );
       const settleProgress = 1 - Math.min(1, Math.max(0, alpha - 0.006) / 0.3);
+      const clusterGravity = 0.00016 * (0.35 + settleProgress * 0.65);
       const orbitAcceleration = 0.00005 * (0.2 + settleProgress * 0.8);
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
         layout.vx[index] += impulseX;
         layout.vy[index] += impulseY;
+
+        const clusterOffsetX = layout.x[index] - centerX;
+        const clusterOffsetY = layout.y[index] - centerY;
+        layout.vx[index] -= clusterOffsetX * clusterGravity;
+        layout.vy[index] -= clusterOffsetY * clusterGravity;
 
         const offsetX = layout.x[index] - pointer.currentX;
         const offsetY = layout.y[index] - pointer.currentY;
