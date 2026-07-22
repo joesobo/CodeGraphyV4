@@ -1,6 +1,6 @@
 import type { GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 import { toPhysicsCoordinate } from '../scale/model';
-import { isNodeShape, type ScriptShape } from '../shape/model';
+import { isNodeShape, type NodeShape, type ScriptShape } from '../shape/model';
 import {
   beginDragSession,
   clearDragSession,
@@ -19,7 +19,15 @@ export interface DragHost {
   drag: DragState;
   getCurrentShapes(): ScriptShape[];
   getEngine(): GraphLayoutEngine | undefined;
+  getSelectedShapes(): ScriptShape[];
   prepareEngine(): void;
+}
+
+function selectedNode(host: DragHost): NodeShape | undefined {
+  const selectedShapes = host.getSelectedShapes();
+  return selectedShapes.length === 1 && isNodeShape(selectedShapes[0])
+    ? selectedShapes[0]
+    : undefined;
 }
 
 function beginEngineDrag(state: DragState, draggedNode: DraggedNode): void {
@@ -53,8 +61,9 @@ function endPointerDrag(host: DragHost): void {
 
 export function handlePointerEvent(host: DragHost, event: ScriptPointerEvent): void {
   if (event.type !== 'pointer') return;
-  if (event.name === 'pointer_down' && event.shape && isNodeShape(event.shape)) {
-    beginDragSession(host.drag, event.shape);
+  if (event.name === 'pointer_down') {
+    const node = event.shape && isNodeShape(event.shape) ? event.shape : selectedNode(host);
+    if (node) beginDragSession(host.drag, node);
   }
   if (event.name === 'pointer_move') synchronizeDraggedNode(host);
   if (event.name === 'pointer_up') endPointerDrag(host);

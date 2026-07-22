@@ -22,12 +22,12 @@ interface ConfigScriptContext {
 }
 
 const panelStyle = {
-  color: 'var(--color-text-1)',
+  color: 'var(--tl-color-text-1)',
   fontFamily: 'Inter, system-ui, sans-serif',
+  left: 12,
   pointerEvents: 'auto',
   position: 'absolute',
-  right: 12,
-  top: 320,
+  top: 104,
   width: 280,
   zIndex: 300,
 } satisfies CSSProperties;
@@ -80,7 +80,7 @@ function ForcePanel(): ReactElement {
     createElement('span', null, control.label),
     createElement('output', {
       htmlFor: `codegraphy-${control.key}`,
-      style: { color: 'var(--color-text-3)', fontFamily: 'ui-monospace, monospace' },
+      style: { color: 'var(--tl-color-text-3)', fontFamily: 'ui-monospace, monospace' },
     }, value.toFixed(control.decimals))),
     createElement('input', {
       'aria-label': control.label,
@@ -90,8 +90,8 @@ function ForcePanel(): ReactElement {
       onChange: (event: ChangeEvent<HTMLInputElement>) => updateSetting(control, event),
       step: control.step,
       style: {
-        accentColor: '#2e9b45',
-        background: `linear-gradient(to right, #2e9b45 0%, #2e9b45 ${percent}%, #46534c ${percent}%, #46534c 100%)`,
+        accentColor: 'var(--tl-color-selected)',
+        background: `linear-gradient(to right, var(--tl-color-selected) 0%, var(--tl-color-selected) ${percent}%, var(--tl-color-low) ${percent}%, var(--tl-color-low) 100%)`,
         cursor: 'pointer',
         height: 5,
         margin: 0,

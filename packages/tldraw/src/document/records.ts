@@ -9,24 +9,29 @@ import {
   type TLPageId,
   type TLRecord,
   type TLShape,
+  type TLTextShape,
 } from '@tldraw/tlschema';
 import { getIndicesAbove, type IndexKey } from '@tldraw/utils';
-import { resolveNativeNodeColor } from './nodeColor/model';
+import { createNodeColorMap } from './nodeColor/model';
 
 const PAGE_ID = 'page:page' as TLPageId;
 const NODE_SIZE = 120;
+const LABEL_WIDTH = 180;
+const LABEL_GAP = 8;
 
-function entityHash(kind: 'edge' | 'node', entityId: string): string {
+function entityHash(kind: 'edge' | 'label' | 'node', entityId: string): string {
   return createHash('sha256').update(`${kind}\0${entityId}`).digest('hex').slice(0, 24);
 }
 
-function shapeId(kind: 'edge' | 'node', entityId: string) {
+function shapeId(kind: 'edge' | 'label' | 'node', entityId: string) {
   return createShapeId(`codegraphy-${kind}-${entityHash(kind, entityId)}`);
 }
 
 function isOwnedRecord(record: TLRecord): boolean {
   return record.typeName === 'shape'
-    && (record.meta.codegraphyKind === 'node' || record.meta.codegraphyKind === 'edge');
+    && (record.meta.codegraphyKind === 'node'
+      || record.meta.codegraphyKind === 'edge'
+      || record.meta.codegraphyKind === 'label');
 }
 
 function metadataString(value: unknown): string | undefined {
@@ -44,14 +49,15 @@ function initialNodePosition(index: number, count: number): { x: number; y: numb
 
 function createNodeShape(
   node: IGraphNode,
+  color: TLGeoShape['props']['color'],
   index: IndexKey,
   position: { x: number; y: number },
   existing?: TLShape,
 ): TLGeoShape {
   const preserved = existing?.type === 'geo' ? existing : undefined;
   const generatedStyle = {
-    labelColor: 'white',
-    color: resolveNativeNodeColor(node.color),
+    labelColor: 'black',
+    color,
     fill: 'solid',
   } satisfies Partial<TLGeoShape['props']>;
   return {
@@ -85,7 +91,44 @@ function createNodeShape(
       verticalAlign: 'middle',
       ...(preserved?.props ?? {}),
       geo: 'ellipse',
+      richText: toRichText(''),
+    },
+  };
+}
+
+function createLabelShape(
+  node: IGraphNode,
+  index: IndexKey,
+  owner: TLGeoShape,
+  existing?: TLShape,
+): TLTextShape {
+  const preserved = existing?.type === 'text' ? existing : undefined;
+  return {
+    id: shapeId('label', node.id),
+    typeName: 'shape',
+    type: 'text',
+    parentId: PAGE_ID,
+    index,
+    x: owner.x + (owner.props.w - LABEL_WIDTH) / 2,
+    y: owner.y + owner.props.h + LABEL_GAP,
+    rotation: 0,
+    isLocked: true,
+    opacity: preserved?.opacity ?? 1,
+    meta: {
+      ...(preserved?.meta ?? {}),
+      codegraphyEntityId: `label:${node.id}`,
+      codegraphyKind: 'label',
+      codegraphyNodeId: node.id,
+    },
+    props: {
+      color: 'black',
+      size: 's',
+      font: 'sans',
+      textAlign: 'middle',
+      w: LABEL_WIDTH,
       richText: toRichText(node.label),
+      scale: 1,
+      autoSize: false,
     },
   };
 }
@@ -151,10 +194,15 @@ export function reconcileGraphRecords(
       .filter((record): record is TLShape => record.typeName === 'shape')
       .map(record => [metadataString(record.meta.codegraphyEntityId) ?? '', record]),
   );
-  const indexes = getIndicesAbove('a1' as IndexKey, graph.nodes.length + graph.edges.length);
+  const indexes = getIndicesAbove(
+    'a1' as IndexKey,
+    graph.edges.length + graph.nodes.length * 2,
+  );
+  const colors = createNodeColorMap(graph.nodes);
   const nodeShapes = graph.nodes.map((node, nodeIndex) => createNodeShape(
     node,
-    indexes[nodeIndex],
+    colors.get(node.id) ?? 'grey',
+    indexes[graph.edges.length + nodeIndex],
     initialNodePosition(nodeIndex, graph.nodes.length),
     existingShapes.get(node.id),
   ));
@@ -167,16 +215,22 @@ export function reconcileGraphRecords(
     if (!from || !to) return [];
     return [createEdgeShape(
       edge,
-      indexes[graph.nodes.length + edgeIndex],
+      indexes[edgeIndex],
       from,
       to,
       existingShapes.get(edge.id),
     )];
   });
+  const labelShapes = graph.nodes.map((node, nodeIndex) => createLabelShape(
+    node,
+    indexes[graph.edges.length + graph.nodes.length + nodeIndex],
+    nodeShapes[nodeIndex],
+    existingShapes.get(`label:${node.id}`),
+  ));
   const userRecords = existingRecords.filter(record => !isOwnedRecord(record));
   const schema = createTLSchema();
-  for (const record of [...nodeShapes, ...edgeShapes]) {
+  for (const record of [...edgeShapes, ...nodeShapes, ...labelShapes]) {
     schema.types.shape.validate(record);
   }
-  return [...userRecords, ...edgeShapes, ...nodeShapes];
+  return [...userRecords, ...edgeShapes, ...nodeShapes, ...labelShapes];
 }

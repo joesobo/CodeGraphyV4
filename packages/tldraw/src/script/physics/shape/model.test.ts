@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isEdgeShape, isNodeShape, type ScriptShape } from './model';
+import { isEdgeShape, isLabelShape, isNodeShape, type ScriptShape } from './model';
 
 const NODE = {
   id: 'shape:a',
@@ -26,5 +26,18 @@ describe('physics shape model', () => {
     expect(isEdgeShape(edge)).toBe(true);
     expect(isEdgeShape({ ...edge, type: 'geo' })).toBe(false);
     expect(isEdgeShape({ ...edge, meta: { codegraphyKind: 'node' } })).toBe(false);
+  });
+
+  it('accepts generated text labels with a node owner', () => {
+    const label = {
+      ...NODE,
+      type: 'text',
+      props: { w: 180 },
+      meta: { codegraphyKind: 'label', codegraphyNodeId: 'a' },
+    };
+
+    expect(isLabelShape(label)).toBe(true);
+    expect(isLabelShape({ ...label, meta: { codegraphyKind: 'label' } })).toBe(false);
+    expect(isLabelShape({ ...label, type: 'geo' })).toBe(false);
   });
 });

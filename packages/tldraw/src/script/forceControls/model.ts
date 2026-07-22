@@ -22,7 +22,7 @@ export interface ForceControl {
 const FORCE_CONTROLS_BY_KEY = {
   repelForce: { key: 'repelForce', label: 'Repel Force', minimum: 0, maximum: 20, step: 1, decimals: 0 },
   centerForce: { key: 'centerForce', label: 'Center Force', minimum: 0, maximum: 1, step: 0.01, decimals: 2 },
-  linkDistance: { key: 'linkDistance', label: 'Link Distance', minimum: 30, maximum: 500, step: 10, decimals: 0 },
+  linkDistance: { key: 'linkDistance', label: 'Link Distance', minimum: 5, maximum: 100, step: 5, decimals: 0 },
   linkForce: { key: 'linkForce', label: 'Link Force', minimum: 0, maximum: 2, step: 0.01, decimals: 2 },
 } satisfies Record<ForceSettingKey, ForceControl>;
 

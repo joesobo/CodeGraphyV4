@@ -27,7 +27,9 @@ const desiredIds = new Set(desired.map(shape => shape.id));
 const current = editor.getCurrentPageShapes();
 const currentIds = new Set(current.map(shape => shape.id));
 const staleIds = current
-  .filter(shape => (shape.meta?.codegraphyKind === 'node' || shape.meta?.codegraphyKind === 'edge') && !desiredIds.has(shape.id))
+  .filter(shape => (shape.meta?.codegraphyKind === 'node'
+    || shape.meta?.codegraphyKind === 'edge'
+    || shape.meta?.codegraphyKind === 'label') && !desiredIds.has(shape.id))
   .map(shape => shape.id);
 const updates = desired.filter(shape => currentIds.has(shape.id));
 const creates = desired.filter(shape => !currentIds.has(shape.id));
@@ -35,7 +37,7 @@ editor.run(() => {
   if (staleIds.length > 0) editor.deleteShapes(staleIds);
   if (updates.length > 0) editor.updateShapes(updates);
   if (creates.length > 0) editor.createShapes(creates);
-}, { history: 'ignore' });
+}, { history: 'ignore', ignoreShapeLock: true });
 return { created: creates.length, deleted: staleIds.length, updated: updates.length };
 `;
 }
@@ -86,7 +88,7 @@ export class TldrawApiClient {
 
   async reconcileShapes(documentId: string, records: readonly object[]): Promise<void> {
     await this.request(
-      `/api/doc/${encodeURIComponent(documentId)}/exec`,
+      `/api/doc/${documentId}/exec`,
       reconciliationCode(records),
     );
   }

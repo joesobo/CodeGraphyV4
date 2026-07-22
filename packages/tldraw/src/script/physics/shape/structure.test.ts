@@ -12,9 +12,13 @@ describe('physics graph structure key', () => {
       meta: { codegraphyKind: 'edge', codegraphyFrom: 'a', codegraphyTo: 'b' },
     };
     const note = { id: 'shape:note', type: 'note', x: 0, y: 0, props: {}, meta: {} };
+    const label = {
+      id: 'shape:label', type: 'text', x: 0, y: 0, props: { w: 180 },
+      meta: { codegraphyKind: 'label', codegraphyNodeId: 'a' },
+    };
 
-    expect(graphStructureKey([note, edge, node])).toBe(
-      'edge:shape:edge:a:b|node:a:120:80',
+    expect(graphStructureKey([note, edge, label, node])).toBe(
+      'edge:shape:edge:a:b|label:shape:label:a:180|node:a:120:80',
     );
     expect(graphStructureKey([node, edge])).toBe(graphStructureKey([edge, node]));
     expect(graphStructureKey([note])).toBe('');

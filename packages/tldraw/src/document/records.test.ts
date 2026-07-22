@@ -12,7 +12,7 @@ const INITIAL_GRAPH = {
 } satisfies IGraphData;
 
 describe('reconcileGraphRecords', () => {
-  it('uses resolved graph colors as solid native fills', () => {
+  it('groups file extensions into solid native palette fills', () => {
     const records = reconcileGraphRecords([], {
       nodes: [
         { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', nodeType: 'file' },
@@ -31,9 +31,31 @@ describe('reconcileGraphRecords', () => {
       }
     }
 
-    expect(nodeProps['src/app.ts']).toMatchObject({ color: 'blue', fill: 'solid' });
-    expect(nodeProps['tests/app.ts']).toMatchObject({ color: 'blue', fill: 'solid' });
-    expect(nodeProps['tools/build.py']).toMatchObject({ color: 'yellow', fill: 'solid' });
+    expect(nodeProps['src/app.ts']).toMatchObject({ fill: 'solid' });
+    expect(nodeProps['tests/app.ts']).toMatchObject(nodeProps['src/app.ts']);
+    expect(nodeProps['tools/build.py']).not.toMatchObject(nodeProps['src/app.ts']);
+  });
+
+  it('places black labels below nodes and stacks graph shapes above edges', () => {
+    const records = reconcileGraphRecords([], INITIAL_GRAPH);
+    const node = records.find(record => record.meta.codegraphyEntityId === 'src/a.ts');
+    const label = records.find(record => record.meta.codegraphyNodeId === 'src/a.ts');
+    const edge = records.find(record => record.meta.codegraphyKind === 'edge');
+    if (node?.typeName !== 'shape' || node.type !== 'geo') throw new Error('Expected node');
+    if (label?.typeName !== 'shape' || label.type !== 'text') throw new Error('Expected label');
+    if (edge?.typeName !== 'shape') throw new Error('Expected edge');
+
+    expect(node.props.richText).toEqual(toRichText(''));
+    expect(label).toMatchObject({
+      isLocked: true,
+      meta: { codegraphyKind: 'label', codegraphyNodeId: 'src/a.ts' },
+      props: { color: 'black', textAlign: 'middle' },
+      x: node.x - 30,
+      y: node.y + node.props.h + 8,
+    });
+    expect(JSON.stringify(label.props.richText)).toContain('a.ts');
+    expect(edge.index < node.index).toBe(true);
+    expect(node.index < label.index).toBe(true);
   });
 
   it('preserves a surviving node style during refresh', () => {
@@ -101,7 +123,8 @@ describe('reconcileGraphRecords', () => {
 
     expect(refreshed).toContainEqual(note);
     expect(refreshedNodeA).toMatchObject({ x: 900, y: 700 });
-    expect(JSON.stringify(refreshedNodeA)).toContain('renamed.ts');
+    const refreshedLabelA = refreshed.find(record => record.meta.codegraphyNodeId === 'src/a.ts');
+    expect(JSON.stringify(refreshedLabelA)).toContain('renamed.ts');
     expect(refreshed.some(record => record.meta.codegraphyEntityId === 'src/b.ts')).toBe(false);
     expect(refreshed.some(record => record.meta.codegraphyEntityId === 'src/c.ts')).toBe(true);
     expect(refreshed.some(record => record.meta.codegraphyEntityId === 'a-imports-c')).toBe(true);

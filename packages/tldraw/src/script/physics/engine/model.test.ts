@@ -1,9 +1,16 @@
+import type { GraphLayoutConfig, GraphLayoutInput } from '@codegraphy-dev/graph-renderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const engine = { nodeIds: ['a', 'b'] };
-const createGraphLayoutEngine = vi.fn(() => engine);
+const createGraphLayoutEngine = vi.fn((
+  _input: GraphLayoutInput,
+  _config: Partial<GraphLayoutConfig>,
+) => engine);
 
-vi.mock('@codegraphy-dev/graph-renderer', () => ({ createGraphLayoutEngine }));
+vi.mock('@codegraphy-dev/graph-renderer', () => ({
+  createGraphLayoutEngine,
+  graphNodeSizeChargeMultiplier: (size: number, defaultSize: number) => size / defaultSize,
+}));
 
 describe('tldraw physics engine input', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -38,13 +45,15 @@ describe('tldraw physics engine input', () => {
     expect(createRuntimeEngine(nodes, edges, {
       repelForce: 10, centerForce: 0.1, linkDistance: 80, linkForce: 1,
     })).toBe(engine);
-    expect(createGraphLayoutEngine).toHaveBeenCalledWith(expect.objectContaining({
+    expect(createGraphLayoutEngine.mock.calls[0]?.[0]).toMatchObject({
       nodeIds: ['a', 'b'],
-      initialX: Float32Array.of(20, 100),
-      initialY: Float32Array.of(20, 50),
-      radii: Float32Array.of(20, 20),
+      initialX: Float32Array.of(12, 60),
+      initialY: Float32Array.of(12, 30),
+      chargeStrengthMultipliers: Float32Array.of(0.5, 0.5),
+      radii: Float32Array.of(12, 12),
       edgeSources: Uint32Array.of(1),
       edgeTargets: Uint32Array.of(0),
-    }), expect.objectContaining({ centralGravity: 0.1, collisionPadding: 8 / 3 }));
+    });
+    expect(createGraphLayoutEngine.mock.calls[0]?.[1].collisionPadding).toBeUndefined();
   });
 });

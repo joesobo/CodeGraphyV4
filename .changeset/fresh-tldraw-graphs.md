@@ -4,7 +4,7 @@
 "@codegraphy-dev/core": minor
 ---
 
-Add the `codegraphy-tldraw` workspace launcher with native tldraw shapes, Core-resolved file-extension colors, collision spacing, persistent shared force physics, and live force controls that use the Extension defaults, ranges, velocity decay, and force mapping. Physics-driven shape updates no longer restart the simulation, so collision handling can settle. A pathless rerun refreshes the workspace's stable `CodeGraphy.tldraw`; saved-document reconciliation and live refresh keep open canvases current.
+Add the `codegraphy-tldraw` workspace launcher with native tldraw shapes, deterministic Observable 10 file-extension colors, black labels below each node, collision spacing, persistent shared force physics, and live force controls that use the Extension defaults, velocity decay, and force mapping. The force controls use tldraw theme colors and a 5–100 link-distance range. Physics-driven shape updates no longer restart the simulation, so collision handling can settle. A pathless rerun refreshes the workspace's stable `CodeGraphy.tldraw`; saved-document reconciliation and live refresh keep open canvases current.
 
 Normalize tldraw canvas geometry to the Extension's physics scale. Dragged nodes now pin and reheat the shared simulation while they follow the pointer, move connected neighbors through link forces, and release back into the layout when the drag ends.
 

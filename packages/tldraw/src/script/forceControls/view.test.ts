@@ -48,13 +48,27 @@ describe('CodeGraphy tldraw force controls view', () => {
     expect(screen.getByRole<HTMLInputElement>('slider', { name: 'Link Force' }).value).toBe('1');
   });
 
-  it('places the transparent controls below tldraw floating menus', () => {
+  it('places transparent controls on the left using tldraw theme colors', () => {
     render(createElement(configuredCanvasUi()));
 
     const panel = screen.getByRole('region', { name: 'CodeGraphy forces' });
     expect(panel.style.background).toBe('');
     expect(panel.style.boxShadow).toBe('');
-    expect(panel.style.top).toBe('320px');
+    expect(panel.style.left).toBe('12px');
+    expect(panel.style.right).toBe('');
+    expect(panel.style.top).toBe('104px');
+    expect(panel.style.color).toBe('var(--tl-color-text-1)');
+    expect(screen.getByRole('slider', { name: 'Repel Force' }).style.accentColor)
+      .toBe('var(--tl-color-selected)');
+  });
+
+  it('uses the compact link distance range', () => {
+    render(createElement(configuredCanvasUi()));
+
+    const linkDistance = screen.getByRole<HTMLInputElement>('slider', { name: 'Link Distance' });
+    expect(linkDistance.min).toBe('5');
+    expect(linkDistance.max).toBe('100');
+    expect(linkDistance.step).toBe('5');
   });
 
   it('retains the existing in-front-of-canvas component', () => {

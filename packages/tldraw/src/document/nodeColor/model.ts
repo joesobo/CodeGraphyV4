@@ -1,20 +1,37 @@
+import type { IGraphNode } from '@codegraphy-dev/core';
 import type { TLDefaultColorStyle } from '@tldraw/tlschema';
 
-const NATIVE_COLORS_BY_GRAPH_COLOR: Readonly<Record<string, TLDefaultColorStyle>> = {
-  '#67E8F9': 'light-blue',
-  '#86EFAC': 'light-green',
-  '#93C5FD': 'blue',
-  '#A1A1AA': 'grey',
-  '#C4B5FD': 'light-violet',
-  '#CBD5E1': 'grey',
-  '#E879F9': 'violet',
-  '#F59E0B': 'orange',
-  '#F9A8D4': 'light-red',
-  '#FCA5A5': 'red',
-  '#FDBA74': 'orange',
-  '#FDE68A': 'yellow',
-};
+export const NODE_COLOR_TOKENS = [
+  'blue',
+  'orange',
+  'red',
+  'green',
+  'light-green',
+  'light-red',
+  'violet',
+  'light-blue',
+  'yellow',
+  'grey',
+] satisfies readonly TLDefaultColorStyle[];
 
-export function resolveNativeNodeColor(graphColor: string): TLDefaultColorStyle {
-  return NATIVE_COLORS_BY_GRAPH_COLOR[graphColor.toUpperCase()] ?? 'grey';
+export function nodeExtensionGroup(nodeId: string): string {
+  const normalized = nodeId.replaceAll('\\', '/');
+  const basename = normalized.slice(normalized.lastIndexOf('/') + 1).toLowerCase();
+  const lastDot = basename.lastIndexOf('.');
+  if (lastDot === 0) return basename;
+  if (lastDot < 0) return '[no extension]';
+  return basename.slice(lastDot);
+}
+
+export function createNodeColorMap(
+  nodes: readonly IGraphNode[],
+): ReadonlyMap<string, TLDefaultColorStyle> {
+  const groups = [...new Set(nodes.map(node => nodeExtensionGroup(node.id)))].sort();
+  const colorsByGroup = new Map<string, TLDefaultColorStyle>(
+    groups.map((group, index) => [group, NODE_COLOR_TOKENS[index % NODE_COLOR_TOKENS.length]]),
+  );
+  return new Map(nodes.map(node => [
+    node.id,
+    colorsByGroup.get(nodeExtensionGroup(node.id)) ?? 'grey',
+  ]));
 }

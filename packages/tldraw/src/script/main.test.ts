@@ -18,6 +18,7 @@ const createGraphLayoutEngine = vi.fn(() => engine);
 
 vi.mock('@codegraphy-dev/graph-renderer', () => ({
   createGraphLayoutEngine,
+  graphNodeSizeChargeMultiplier: (size: number, defaultSize: number) => size / defaultSize,
   prepareGraphPhysicsFromBytes,
 }));
 
@@ -59,10 +60,13 @@ describe('CodeGraphy tldraw document script', () => {
     expect(String.fromCharCode(...Array.from(preparedBytes ?? []))).toBe('CODEGRAPHY_PHYSICS_WASM');
     expect(createGraphLayoutEngine).toHaveBeenCalledOnce();
     expect(engine.tick).toHaveBeenCalledOnce();
-    expect(editor.run).toHaveBeenCalledWith(expect.any(Function), { history: 'ignore' });
+    expect(editor.run).toHaveBeenCalledWith(expect.any(Function), {
+      history: 'ignore',
+      ignoreShapeLock: true,
+    });
     expect(updateShapes).toHaveBeenCalledWith(expect.arrayContaining([
-      expect.objectContaining({ id: 'shape:a', x: -30, y: 0 }),
-      expect.objectContaining({ id: 'shape:b', x: 210, y: 240 }),
+      expect.objectContaining({ id: 'shape:a', x: -10, y: 40 }),
+      expect.objectContaining({ id: 'shape:b', x: 390, y: 440 }),
     ]));
   });
 
@@ -87,14 +91,14 @@ describe('CodeGraphy tldraw document script', () => {
 
     expect(createGraphLayoutEngine).toHaveBeenCalledWith(
       expect.objectContaining({
-        initialX: Float32Array.of(20),
-        initialY: Float32Array.of(20),
-        radii: Float32Array.of(20),
+        initialX: Float32Array.of(12),
+        initialY: Float32Array.of(12),
+        chargeStrengthMultipliers: Float32Array.of(0.5),
+        radii: Float32Array.of(12),
       }),
       {
         centralGravity: 0.1,
         chargeStrength: -250,
-        collisionPadding: 8 / 3,
         linkDistance: 80,
         linkStrength: 1,
         velocityDecay: 0.4,
@@ -232,7 +236,7 @@ describe('CodeGraphy tldraw document script', () => {
 
     expect(engine.pin).toHaveBeenCalledWith(0);
     expect(engine.setAlphaTarget).toHaveBeenCalledWith(0.3);
-    expect(engine.setNodePosition).toHaveBeenLastCalledWith(0, 100, 60);
+    expect(engine.setNodePosition).toHaveBeenLastCalledWith(0, 60, 36);
 
     listeners.get('event')?.({ type: 'pointer', name: 'pointer_up', target: 'selection' });
 

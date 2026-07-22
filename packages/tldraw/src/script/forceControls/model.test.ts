@@ -11,7 +11,7 @@ describe('tldraw force controls', () => {
     expect(FORCE_CONTROLS).toEqual([
       { key: 'repelForce', label: 'Repel Force', minimum: 0, maximum: 20, step: 1, decimals: 0 },
       { key: 'centerForce', label: 'Center Force', minimum: 0, maximum: 1, step: 0.01, decimals: 2 },
-      { key: 'linkDistance', label: 'Link Distance', minimum: 30, maximum: 500, step: 10, decimals: 0 },
+      { key: 'linkDistance', label: 'Link Distance', minimum: 5, maximum: 100, step: 5, decimals: 0 },
       { key: 'linkForce', label: 'Link Force', minimum: 0, maximum: 2, step: 0.01, decimals: 2 },
     ]);
   });
@@ -44,7 +44,7 @@ describe('tldraw force controls', () => {
     })).toEqual({
       repelForce: 20,
       centerForce: 0.1,
-      linkDistance: 30,
+      linkDistance: 20,
       linkForce: 1,
     });
   });

@@ -6,7 +6,7 @@ describe('TldrawApiClient', () => {
     const fetch = vi.fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(new Response(JSON.stringify({
         success: true,
-        result: [{ id: 'wd-1', filePath: '/workspace/graph.tldraw', name: 'graph.tldraw' }],
+        result: [{ id: 'tldr:file:abc', filePath: '/workspace/graph.tldraw', name: 'graph.tldraw' }],
       }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, result: { updated: 1 } }), {
         status: 200,
@@ -14,9 +14,9 @@ describe('TldrawApiClient', () => {
     const client = new TldrawApiClient({ port: 7236, token: 'secret' }, fetch);
 
     await expect(client.findOpenDocument('/workspace/graph.tldraw')).resolves.toMatchObject({
-      id: 'wd-1',
+      id: 'tldr:file:abc',
     });
-    await client.reconcileShapes('wd-1', [{
+    await client.reconcileShapes('tldr:file:abc', [{
       id: 'shape:a',
       typeName: 'shape',
       type: 'geo',
@@ -36,8 +36,12 @@ describe('TldrawApiClient', () => {
     expect(firstHeaders.get('Authorization')).toBe('Bearer secret');
     expect(fetch).toHaveBeenNthCalledWith(
       2,
-      'http://127.0.0.1:7236/api/doc/wd-1/exec',
+      'http://127.0.0.1:7236/api/doc/tldr:file:abc/exec',
       expect.objectContaining({ method: 'POST' }),
     );
+    const rawReconciliationBody = fetch.mock.calls[1]?.[1]?.body;
+    if (typeof rawReconciliationBody !== 'string') throw new Error('Expected JSON request body');
+    const reconciliationBody = JSON.parse(rawReconciliationBody) as { code: string };
+    expect(reconciliationBody.code).toContain("{ history: 'ignore', ignoreShapeLock: true }");
   });
 });

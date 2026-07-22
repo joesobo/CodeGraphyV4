@@ -1,10 +1,17 @@
 import {
   createGraphLayoutEngine,
+  graphNodeSizeChargeMultiplier,
   type GraphLayoutEngine,
 } from '@codegraphy-dev/graph-renderer';
 import { toGraphLayoutConfig, type ForceSettings } from '../../forceControls/model';
-import { NODE_COLLISION_PADDING, toPhysicsCoordinate } from '../scale/model';
+import { toPhysicsCoordinate } from '../scale/model';
 import type { NodeShape, ScriptShape } from '../shape/model';
+
+const MINIMUM_NODE_SIZE = 8;
+const MAXIMUM_NODE_SIZE = 30;
+const DEFAULT_NODE_SIZE = 16;
+const CONNECTION_SIZE_SCALE = 3;
+const COLLISION_RADIUS_PADDING = 4;
 
 function resolveEdgeEndpoints(
   edgeShapes: readonly ScriptShape[],
@@ -17,6 +24,24 @@ function resolveEdgeEndpoints(
   });
 }
 
+function connectionNodeSizes(
+  nodeCount: number,
+  edgeEndpoints: readonly { source: number; target: number }[],
+): Float32Array {
+  const relatedIndexes: Array<Set<number>> = Array.from(
+    { length: nodeCount },
+    () => new Set<number>(),
+  );
+  for (const endpoint of edgeEndpoints) {
+    relatedIndexes[endpoint.source]?.add(endpoint.target);
+    relatedIndexes[endpoint.target]?.add(endpoint.source);
+  }
+  return Float32Array.from(relatedIndexes, related => Math.max(
+    MINIMUM_NODE_SIZE,
+    Math.min(CONNECTION_SIZE_SCALE * Math.sqrt(related.size + 1), MAXIMUM_NODE_SIZE),
+  ));
+}
+
 export function createRuntimeEngine(
   nodeShapes: readonly NodeShape[],
   edgeShapes: readonly ScriptShape[],
@@ -27,6 +52,7 @@ export function createRuntimeEngine(
     nodeShapes.map((shape, index) => [shape.meta.codegraphyEntityId, index]),
   );
   const edgeEndpoints = resolveEdgeEndpoints(edgeShapes, indexes);
+  const nodeSizes = connectionNodeSizes(nodeShapes.length, edgeEndpoints);
   return createGraphLayoutEngine({
     nodeIds: nodeShapes.map(shape => shape.meta.codegraphyEntityId),
     initialX: Float32Array.from(
@@ -39,14 +65,12 @@ export function createRuntimeEngine(
     ),
     initialVx: new Float32Array(nodeShapes.length),
     initialVy: new Float32Array(nodeShapes.length),
-    radii: Float32Array.from(
-      nodeShapes,
-      shape => toPhysicsCoordinate(Math.max(shape.props.w, shape.props.h) / 2),
+    chargeStrengthMultipliers: Float32Array.from(
+      nodeSizes,
+      size => graphNodeSizeChargeMultiplier(size, DEFAULT_NODE_SIZE),
     ),
+    radii: Float32Array.from(nodeSizes, size => size + COLLISION_RADIUS_PADDING),
     edgeSources: Uint32Array.from(edgeEndpoints, endpoint => endpoint.source),
     edgeTargets: Uint32Array.from(edgeEndpoints, endpoint => endpoint.target),
-  }, {
-    ...toGraphLayoutConfig(forceSettings),
-    collisionPadding: NODE_COLLISION_PADDING,
-  });
+  }, toGraphLayoutConfig(forceSettings));
 }

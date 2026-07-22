@@ -18,19 +18,30 @@ describe('tldraw physics shape updates', () => {
       { id: 'edge:ab', type: 'arrow', x: 0, y: 0, props: { dash: 'solid' }, meta: { codegraphyFrom: 'a', codegraphyTo: 'b' } },
       { id: 'edge:missing', type: 'arrow', x: 0, y: 0, props: {}, meta: { codegraphyFrom: 'a', codegraphyTo: 'missing' } },
     ];
+    const labels = [
+      {
+        id: 'label:a', type: 'text', x: 0, y: 0, props: { w: 180 },
+        meta: { codegraphyKind: 'label' as const, codegraphyNodeId: 'a' },
+      },
+      {
+        id: 'label:missing', type: 'text', x: 0, y: 0, props: { w: 180 },
+        meta: { codegraphyKind: 'label' as const, codegraphyNodeId: 'missing' },
+      },
+    ];
     const engine = {
       nodeIds: ['a', 'b'],
       x: Float32Array.of(10, 90),
       y: Float32Array.of(20, 100),
     } as unknown as GraphLayoutEngine;
 
-    expect(createShapeUpdates(nodes, edges, engine)).toEqual([
-      { id: 'shape:a', type: 'geo', x: -30, y: 0 },
-      { id: 'shape:b', type: 'geo', x: 210, y: 240 },
+    expect(createShapeUpdates(nodes, edges, labels, engine)).toEqual([
+      { id: 'shape:a', type: 'geo', x: -10, y: 40 },
+      { id: 'shape:b', type: 'geo', x: 390, y: 440 },
       {
-        id: 'edge:ab', type: 'arrow', x: 30, y: 60,
-        props: { dash: 'solid', start: { x: 0, y: 0 }, end: { x: 240, y: 240 } },
+        id: 'edge:ab', type: 'arrow', x: 50, y: 100,
+        props: { dash: 'solid', start: { x: 0, y: 0 }, end: { x: 400, y: 400 } },
       },
+      { id: 'label:a', type: 'text', x: -40, y: 168 },
     ]);
   });
 });

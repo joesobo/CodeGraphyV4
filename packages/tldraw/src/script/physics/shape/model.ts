@@ -12,6 +12,11 @@ export interface NodeShape extends ScriptShape {
   props: Record<string, unknown> & { h: number; w: number };
 }
 
+export interface LabelShape extends ScriptShape {
+  meta: Record<string, unknown> & { codegraphyKind: 'label'; codegraphyNodeId: string };
+  props: Record<string, unknown> & { w: number };
+}
+
 export function isNodeShape(shape: ScriptShape): shape is NodeShape {
   return shape.type === 'geo'
     && shape.meta.codegraphyKind === 'node'
@@ -22,4 +27,11 @@ export function isNodeShape(shape: ScriptShape): shape is NodeShape {
 
 export function isEdgeShape(shape: ScriptShape): boolean {
   return shape.type === 'arrow' && shape.meta.codegraphyKind === 'edge';
+}
+
+export function isLabelShape(shape: ScriptShape): shape is LabelShape {
+  return shape.type === 'text'
+    && shape.meta.codegraphyKind === 'label'
+    && typeof shape.meta.codegraphyNodeId === 'string'
+    && typeof shape.props.w === 'number';
 }

@@ -15,7 +15,7 @@ const engine = {
   setNodePosition,
 } as unknown as GraphLayoutEngine;
 
-function createHost() {
+function createHost(options: { selected?: boolean } = {}) {
   let node = {
     id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
     meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
@@ -25,6 +25,7 @@ function createHost() {
     drag: {},
     getCurrentShapes: () => [node],
     getEngine: () => engine,
+    getSelectedShapes: () => options.selected ? [node] : [],
     prepareEngine,
   };
   return { host, moveNode: (x: number, y: number) => { node = { ...node, x, y }; }, prepareEngine };
@@ -59,13 +60,25 @@ describe('tldraw physics drag runtime', () => {
     expect(prepareEngine).toHaveBeenCalledTimes(2);
     expect(pin).toHaveBeenCalledOnce();
     expect(setAlphaTarget).toHaveBeenCalledWith(0.3);
-    expect(setNodePosition).toHaveBeenNthCalledWith(1, 0, 100, 60);
-    expect(setNodePosition).toHaveBeenNthCalledWith(2, 0, 120, 80);
+    expect(setNodePosition).toHaveBeenNthCalledWith(1, 0, 60, 36);
+    expect(setNodePosition).toHaveBeenNthCalledWith(2, 0, 72, 48);
 
     handlePointerEvent(host, { type: 'pointer', name: 'pointer_up' });
 
     expect(release).toHaveBeenCalledWith(0);
     expect(setAlphaTarget).toHaveBeenLastCalledWith(0);
     expect(host.drag).toEqual({ entityId: undefined, nodeIndex: undefined, startPosition: undefined });
+  });
+
+  it('starts physics when tldraw drags an existing single-node selection', () => {
+    const { host, moveNode } = createHost({ selected: true });
+
+    handlePointerEvent(host, { type: 'pointer', name: 'pointer_down' });
+    moveNode(240, 120);
+    handlePointerEvent(host, { type: 'pointer', name: 'pointer_move' });
+
+    expect(pin).toHaveBeenCalledWith(0);
+    expect(setAlphaTarget).toHaveBeenCalledWith(0.3);
+    expect(setNodePosition).toHaveBeenCalledWith(0, 60, 36);
   });
 });

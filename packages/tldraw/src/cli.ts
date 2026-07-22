@@ -74,7 +74,9 @@ function createCommandDependencies(): TldrawCommandDependencies {
       const records = reconcileGraphRecords(currentShapes, projectDefaultFileGraph(graph));
       const ownedShapes = records.filter(record => (
         record.typeName === 'shape'
-        && (record.meta.codegraphyKind === 'node' || record.meta.codegraphyKind === 'edge')
+        && (record.meta.codegraphyKind === 'node'
+          || record.meta.codegraphyKind === 'edge'
+          || record.meta.codegraphyKind === 'label')
       ));
       await currentClient.reconcileShapes(documentId, ownedShapes);
     },

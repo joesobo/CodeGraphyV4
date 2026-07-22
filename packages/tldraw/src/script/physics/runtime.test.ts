@@ -1,4 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+// @vitest-environment jsdom
+
+import {
+  createShapeId,
+  createTLStore,
+  defaultBindingUtils,
+  defaultShapeTools,
+  defaultShapeUtils,
+  defaultTools,
+  Editor,
+} from 'tldraw';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScriptShape } from './shape/model';
 
 const engine = {
@@ -16,7 +27,10 @@ const engine = {
 };
 const createGraphLayoutEngine = vi.fn(() => engine);
 
-vi.mock('@codegraphy-dev/graph-renderer', () => ({ createGraphLayoutEngine }));
+vi.mock('@codegraphy-dev/graph-renderer', () => ({
+  createGraphLayoutEngine,
+  graphNodeSizeChargeMultiplier: (size: number, defaultSize: number) => size / defaultSize,
+}));
 
 interface HarnessOptions {
   meta?: Record<string, unknown>;
@@ -69,18 +83,77 @@ const edgeAB = {
   id: 'shape:edge', type: 'arrow', x: 0, y: 0, props: {},
   meta: { codegraphyKind: 'edge', codegraphyFrom: 'a', codegraphyTo: 'b' },
 } satisfies ScriptShape;
+const labelA = {
+  id: 'shape:label-a', type: 'text', x: 0, y: 0, props: { w: 180 },
+  meta: { codegraphyKind: 'label', codegraphyNodeId: 'a' },
+} satisfies ScriptShape;
 const userNote = {
   id: 'shape:note', type: 'note', x: 0, y: 0, props: {}, meta: {},
 } satisfies ScriptShape;
 
 describe('tldraw physics runtime', () => {
+  const realEditors: Editor[] = [];
+
   beforeEach(() => {
     vi.clearAllMocks();
     engine.settled = false;
   });
 
+  afterEach(() => {
+    for (const editor of realEditors) editor.dispose();
+    realEditors.length = 0;
+  });
+
+  it('receives a real tldraw translation as a physics drag', async () => {
+    const shapeUtils = [...defaultShapeUtils];
+    const bindingUtils = [...defaultBindingUtils];
+    const editor = new Editor({
+      bindingUtils,
+      getContainer: () => document.body,
+      initialState: 'select',
+      shapeUtils,
+      store: createTLStore({ bindingUtils, shapeUtils }),
+      tools: [...defaultTools, ...defaultShapeTools],
+    });
+    realEditors.push(editor);
+    const nodeId = createShapeId('codegraphy-node-a');
+    editor.createShape({
+      id: nodeId,
+      meta: { codegraphyEntityId: 'a', codegraphyKind: 'node' },
+      props: { geo: 'ellipse', h: 120, w: 120 },
+      type: 'geo',
+      x: 0,
+      y: 0,
+    });
+    const { startPhysicsRuntime } = await import('./runtime');
+    startPhysicsRuntime({
+      editor: editor as unknown as Parameters<typeof startPhysicsRuntime>[0]['editor'],
+      signal: new AbortController().signal,
+    });
+    const node = editor.getShape(nodeId);
+    if (!node) throw new Error('Expected real tldraw node');
+    const event = {
+      accelKey: false,
+      altKey: false,
+      button: 0,
+      ctrlKey: false,
+      isPen: false,
+      metaKey: false,
+      pointerId: 1,
+      shiftKey: false,
+      type: 'pointer' as const,
+    };
+
+    editor.dispatch({ ...event, name: 'pointer_down', point: { x: 60, y: 60 }, shape: node, target: 'shape' });
+    editor.dispatch({ ...event, name: 'pointer_move', point: { x: 300, y: 180 }, target: 'canvas' });
+    editor.emit('tick', 16);
+
+    expect(engine.pin).toHaveBeenCalledWith(0);
+    expect(engine.setNodePosition).toHaveBeenCalled();
+  });
+
   it('ticks shared physics and writes native shape movement outside undo history', async () => {
-    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB, userNote] });
+    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB, labelA, userNote] });
     const { startPhysicsRuntime } = await import('./runtime');
 
     startPhysicsRuntime({ editor: harness.editor, signal: new AbortController().signal });
@@ -92,10 +165,14 @@ describe('tldraw physics runtime', () => {
       expect.any(Object),
     );
     expect(engine.tick).toHaveBeenCalledOnce();
-    expect(harness.editor.run).toHaveBeenCalledWith(expect.any(Function), { history: 'ignore' });
+    expect(harness.editor.run).toHaveBeenCalledWith(expect.any(Function), {
+      history: 'ignore',
+      ignoreShapeLock: true,
+    });
     expect(harness.updateShapes).toHaveBeenCalledWith(expect.arrayContaining([
-      expect.objectContaining({ id: 'shape:a', x: -30, y: 0 }),
-      expect.objectContaining({ id: 'shape:b', x: 210, y: 240 }),
+      expect.objectContaining({ id: 'shape:a', x: -10, y: 40 }),
+      expect.objectContaining({ id: 'shape:b', x: 390, y: 440 }),
+      expect.objectContaining({ id: 'shape:label-a', x: -40, y: 168 }),
     ]));
 
     engine.settled = true;
@@ -162,12 +239,12 @@ describe('tldraw physics runtime', () => {
     expect(createGraphLayoutEngine).toHaveBeenCalledTimes(2);
     expect(engine.pin).toHaveBeenCalledWith(1);
     expect(engine.setAlphaTarget).toHaveBeenCalledWith(0.3);
-    expect(engine.setNodePosition).toHaveBeenLastCalledWith(1, 100, 60);
+    expect(engine.setNodePosition).toHaveBeenLastCalledWith(1, 60, 36);
 
     draggedNode = { ...draggedNode, x: 300, y: 180 };
     harness.setShapes([nodeA, draggedNode]);
     harness.emit('tick', 16);
-    expect(engine.setNodePosition).toHaveBeenLastCalledWith(1, 120, 80);
+    expect(engine.setNodePosition).toHaveBeenLastCalledWith(1, 72, 48);
 
     harness.emit('event', { type: 'pointer', name: 'pointer_up' });
     expect(engine.release).toHaveBeenCalledWith(1);
