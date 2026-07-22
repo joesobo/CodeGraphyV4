@@ -125,6 +125,7 @@ export type ExtensionToWebviewMessage =
     type: 'PLUGIN_WEBVIEW_INJECT';
     payload: {
       pluginId: string;
+      revision?: string;
       scripts: string[];
       styles: string[];
       assets?: Array<{

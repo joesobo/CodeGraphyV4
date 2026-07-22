@@ -8,6 +8,7 @@ import { looseStringArraySchema } from '../../shared/values';
 
 export interface PluginInjectPayload {
   pluginId: string;
+  revision?: string;
   scripts: string[];
   styles: string[];
   assets?: PluginWebviewAsset[];
@@ -43,6 +44,7 @@ const pluginWebviewAssetsSchema = z
 
 const pluginInjectPayloadSchema = z.looseObject({
   pluginId: z.string(),
+  revision: z.string().optional().catch(undefined),
   scripts: looseStringArraySchema,
   styles: looseStringArraySchema,
   assets: pluginWebviewAssetsSchema,

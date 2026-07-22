@@ -22,6 +22,7 @@ export interface PluginManagerRefs {
   pluginActivationCleanups: MutableRefObject<Map<string, Set<{ dispose(): void }>>>;
   pluginApis: MutableRefObject<Map<string, CodeGraphyWebviewAPI>>;
   pluginAssetVersions: MutableRefObject<Map<string, number>>;
+  pluginAssetRevisions: MutableRefObject<Map<string, string>>;
   pluginStyles: MutableRefObject<Map<string, Set<string>>>;
   pluginData: MutableRefObject<Map<string, unknown>>;
   pluginHost: MutableRefObject<WebviewPluginHost>;

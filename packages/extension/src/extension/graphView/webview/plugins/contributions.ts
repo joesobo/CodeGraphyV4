@@ -66,6 +66,7 @@ export interface IGraphViewWebviewAsset {
 }
 
 interface IGraphViewPluginInfo {
+  descriptorSignature?: string;
   plugin: {
     id: string;
     name?: string;
@@ -75,6 +76,7 @@ interface IGraphViewPluginInfo {
 
 export interface IGraphViewInjectionPayload {
   pluginId: string;
+  revision?: string;
   scripts: string[];
   styles: string[];
   assets: IGraphViewWebviewAsset[];
@@ -142,23 +144,29 @@ export function collectGraphViewWebviewInjections(
 ): IGraphViewInjectionPayload[] {
   return pluginInfos.flatMap((pluginInfo) => {
     const contributions = pluginInfo.plugin.webviewContributions;
-    if (!contributions) return [];
+    if (!contributions && !pluginInfo.descriptorSignature) return [];
 
-    const scripts = (contributions.scripts ?? []).map((assetPath) =>
+    const scripts = (contributions?.scripts ?? []).map((assetPath) =>
       resolveAssetPath(assetPath, pluginInfo.plugin.id),
     );
-    const styles = (contributions.styles ?? []).map((assetPath) =>
+    const styles = (contributions?.styles ?? []).map((assetPath) =>
       resolveAssetPath(assetPath, pluginInfo.plugin.id),
     );
-    const assets = (contributions.assets ?? []).map((asset) => ({
+    const assets = (contributions?.assets ?? []).map((asset) => ({
       ...asset,
       url: resolveAssetPath(asset.path, pluginInfo.plugin.id),
     }));
 
-    if (scripts.length === 0 && styles.length === 0 && assets.length === 0) return [];
+    if (
+      !pluginInfo.descriptorSignature
+      && scripts.length === 0
+      && styles.length === 0
+      && assets.length === 0
+    ) return [];
 
     return [{
       pluginId: pluginInfo.plugin.id,
+      ...(pluginInfo.descriptorSignature ? { revision: pluginInfo.descriptorSignature } : {}),
       scripts,
       styles,
       assets,

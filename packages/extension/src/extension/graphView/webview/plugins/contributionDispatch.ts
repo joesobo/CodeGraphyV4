@@ -49,6 +49,7 @@ interface GraphViewPluginRegistry {
 interface GraphViewExtensionPluginRegistry {
   extensionPlugins: {
     listActive(): Array<{
+      descriptorSignature?: string;
       plugin: {
         id: string;
         name?: string;

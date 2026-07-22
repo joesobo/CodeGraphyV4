@@ -219,4 +219,17 @@ describe('graphView/webview/plugins/contributions', () => {
       },
     ]);
   });
+
+  it('sends an empty replacement when a revised plugin removes its webview assets', () => {
+    expect(collectGraphViewWebviewInjections(
+      [{ descriptorSignature: 'build-v2', plugin: { id: 'plugin.rebuilt' } }],
+      assetPath => assetPath,
+    )).toEqual([{
+      pluginId: 'plugin.rebuilt',
+      revision: 'build-v2',
+      scripts: [],
+      styles: [],
+      assets: [],
+    }]);
+  });
 });

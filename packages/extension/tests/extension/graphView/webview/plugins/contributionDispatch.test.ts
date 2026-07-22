@@ -64,6 +64,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
         extensionPlugins: {
           listActive: () => [
             {
+              descriptorSignature: 'runtime-v2',
               plugin: {
                 id: 'plugin.test',
                 name: 'Test Plugin',
@@ -128,6 +129,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
         pluginId: 'plugin.test',
+        revision: 'runtime-v2',
         scripts: ['plugin.test:dist/plugin.js'],
         styles: ['plugin.test:dist/plugin.css'],
         assets: [],

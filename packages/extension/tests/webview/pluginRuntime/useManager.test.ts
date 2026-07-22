@@ -429,6 +429,36 @@ describe('usePluginManager', () => {
     expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
   });
 
+  it('replaces an active plugin when its runtime revision changes', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate() {
+        globalThis.__useManagerActivationCount = (globalThis.__useManagerActivationCount || 0) + 1;
+        return () => {
+          globalThis.__useManagerCleanupCount = (globalThis.__useManagerCleanupCount || 0) + 1;
+        };
+      }
+    `);
+    const firstInjection = {
+      pluginId: 'linked-plugin',
+      revision: 'build-v1',
+      scripts: [scriptUrl],
+      styles: [],
+    };
+    const replacementInjection = {
+      ...firstInjection,
+      revision: 'build-v2',
+    };
+
+    await act(async () => {
+      await result.current.injectPluginAssets(firstInjection);
+      await result.current.injectPluginAssets(replacementInjection);
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(2);
+    expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
+  });
+
   it('warns when a script has no activate export', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { result } = renderHook(() => usePluginManager());

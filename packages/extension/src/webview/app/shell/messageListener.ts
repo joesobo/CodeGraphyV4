@@ -12,6 +12,7 @@ import {
 
 export interface InjectAssetsParams {
   pluginId: string;
+  revision?: string;
   scripts: string[];
   styles: string[];
   assets?: Array<{

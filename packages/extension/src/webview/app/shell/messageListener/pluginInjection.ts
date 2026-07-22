@@ -16,6 +16,7 @@ export function handlePluginInjectMessage(
     store.beginPluginAssetLoad();
     void injectPluginAssets({
       pluginId: payload.pluginId,
+      ...(payload.revision ? { revision: payload.revision } : {}),
       scripts: payload.scripts,
       styles: payload.styles,
       assets: payload.assets,

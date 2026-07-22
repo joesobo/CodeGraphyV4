@@ -21,6 +21,7 @@ export function usePluginManager(): IPluginManager {
   const activatingScriptPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
   const pluginActivationCleanupsRef = useRef<Map<string, Set<{ dispose(): void }>>>(new Map());
   const pluginAssetVersionsRef = useRef<Map<string, number>>(new Map());
+  const pluginAssetRevisionsRef = useRef<Map<string, string>>(new Map());
   const pluginStylesRef = useRef<Map<string, Set<string>>>(new Map());
   const pluginDataRef = useRef<Map<string, unknown>>(new Map());
 
@@ -32,12 +33,20 @@ export function usePluginManager(): IPluginManager {
       pluginActivationCleanups: pluginActivationCleanupsRef,
       pluginApis: pluginApisRef,
       pluginAssetVersions: pluginAssetVersionsRef,
+      pluginAssetRevisions: pluginAssetRevisionsRef,
       pluginStyles: pluginStylesRef,
       pluginData: pluginDataRef,
       pluginHost: pluginHostRef,
     };
 
     async function injectPluginAssets(payload: PluginInjectPayload): Promise<void> {
+      const currentRevision = pluginAssetRevisionsRef.current.get(payload.pluginId);
+      if (payload.revision && currentRevision && payload.revision !== currentRevision) {
+        resetPluginAssets(payload.pluginId);
+      }
+      if (payload.revision) {
+        pluginAssetRevisionsRef.current.set(payload.pluginId, payload.revision);
+      }
       for (const style of payload.styles) injectPluginStyle(refs, payload.pluginId, style);
       for (const script of payload.scripts) {
         try {
@@ -56,6 +65,7 @@ export function usePluginManager(): IPluginManager {
 
     function resetPluginAssets(pluginId: string): void {
       pluginApisRef.current.delete(pluginId);
+      pluginAssetRevisionsRef.current.delete(pluginId);
       pluginAssetVersionsRef.current.set(
         pluginId,
         (pluginAssetVersionsRef.current.get(pluginId) ?? 0) + 1,
