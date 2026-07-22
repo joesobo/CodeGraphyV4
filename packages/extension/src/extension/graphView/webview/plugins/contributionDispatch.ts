@@ -48,7 +48,7 @@ interface GraphViewPluginRegistry {
 
 interface GraphViewExtensionPluginRegistry {
   extensionPlugins: {
-    list(): Array<{
+    listActive(): Array<{
       plugin: {
         id: string;
         name?: string;
@@ -100,8 +100,8 @@ function listActivePluginInfos(
 function listActiveExtensionPluginInfos(
   registry: GraphViewExtensionPluginRegistry,
   disabledPlugins: ReadonlySet<string>,
-): ReturnType<GraphViewExtensionPluginRegistry['extensionPlugins']['list']> {
-  return registry.extensionPlugins.list().filter(info => !disabledPlugins.has(info.plugin.id));
+): ReturnType<GraphViewExtensionPluginRegistry['extensionPlugins']['listActive']> {
+  return registry.extensionPlugins.listActive().filter(info => !disabledPlugins.has(info.plugin.id));
 }
 
 function collectContributionStatuses(

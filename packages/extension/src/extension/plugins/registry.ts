@@ -65,6 +65,10 @@ export class ExtensionPluginRegistry {
     return [...this.plugins.values()];
   }
 
+  listActive(): ExtensionPluginInfo[] {
+    return this.list().filter(info => this.initializedPlugins.has(info.plugin.id));
+  }
+
   async initializeAll(workspaceRoot: string): Promise<void> {
     for (const info of this.plugins.values()) {
       if (this.initializedPlugins.has(info.plugin.id)) continue;
@@ -81,7 +85,7 @@ export class ExtensionPluginRegistry {
   }
 
   notifyWebviewReady(): void {
-    for (const info of this.plugins.values()) {
+    for (const info of this.listActive()) {
       try {
         info.plugin.onWebviewReady?.();
       } catch (error) {

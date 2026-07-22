@@ -20,7 +20,6 @@ export interface RawExtensionMessage {
 
 interface MessageRouteRuntime {
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>;
-  packagePluginIdsByPackageName: Map<string, string>;
   pluginHost: WebviewPluginHost;
   resetPluginAssets?: ResetPluginAssets;
   updatePluginData: UpdatePluginData;
@@ -55,7 +54,6 @@ export function routeExtensionMessage(
   removeDisabledPluginRegistrations(
     message,
     runtime.pluginHost,
-    runtime.packagePluginIdsByPackageName,
     runtime.resetPluginAssets,
   );
   graphStore.getState().handleExtensionMessage(message as ExtensionToWebviewMessage);

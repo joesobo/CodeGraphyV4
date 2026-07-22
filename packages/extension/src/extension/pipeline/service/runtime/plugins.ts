@@ -27,7 +27,7 @@ export function getWorkspacePipelineStatusList(
 ): IPluginStatus[] {
   const extensionPluginInfos: WorkspaceIndexPluginStatusOptions['pluginInfos'] = registry
     .extensionPlugins
-    .list()
+    .listActive()
     .map(info => ({
       builtIn: info.builtIn,
       plugin: {

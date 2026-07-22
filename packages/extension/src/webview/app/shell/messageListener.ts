@@ -44,14 +44,11 @@ export function createMessageHandler(
   resetPluginAssets?: ResetPluginAssets,
   updatePluginData: UpdatePluginData = () => undefined,
 ): (event: MessageEvent<unknown>) => void {
-  const packagePluginIdsByPackageName = new Map<string, string>();
-
   return (event: MessageEvent<unknown>) => {
     const message = parseExtensionMessage(event.data);
     if (!message) return;
     routeExtensionMessage(message, {
       injectPluginAssets,
-      packagePluginIdsByPackageName,
       pluginHost,
       resetPluginAssets,
       updatePluginData,

@@ -71,19 +71,21 @@ class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
     logSpy.mockRestore();
   }
 
-  registerExtensionPackagePlugin(): void {
+  async registerExtensionPackagePlugin(initialize?: () => Promise<void>): Promise<void> {
     this._registry.extensionPlugins.register(
       {
         id: 'acme.particles',
         name: 'Particles',
         version: '1.0.0',
         apiVersion: '^1.0.0',
+        ...(initialize ? { initialize } : {}),
       },
       {
         sourcePackage: '@acme/plugin-particles',
         sourcePackageRoot: '/global/node_modules/@acme/plugin-particles',
       },
     );
+    await this._registry.extensionPlugins.initializeAll(this.workspaceRoot);
   }
 
   protected override _getWorkspaceRoot(): string | undefined {
@@ -151,7 +153,7 @@ describe('pipeline/service plugin statuses', () => {
     ]);
   });
 
-  it('reports a loaded Extension plugin as active', () => {
+  it('reports a loaded Extension plugin as active', async () => {
     writeCodeGraphyInstalledPluginCache({
       version: 3,
       plugins: [{
@@ -178,7 +180,7 @@ describe('pipeline/service plugin statuses', () => {
     });
 
     const reader = new PluginStatusReader(workspaceRoot);
-    reader.registerExtensionPackagePlugin();
+    await reader.registerExtensionPackagePlugin();
 
     expect(reader.getPluginStatuses(new Set())).toContainEqual(
       expect.objectContaining({
@@ -187,5 +189,46 @@ describe('pipeline/service plugin statuses', () => {
         status: 'active',
       }),
     );
+  });
+
+  it('does not report a failed Extension plugin runtime as active', async () => {
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/plugin-particles',
+        version: '1.0.0',
+        id: 'acme.particles',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        packageRoot: '/global/node_modules/@acme/plugin-particles',
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      version: 1,
+      maxFiles: 1000,
+      include: ['**/*'],
+      respectGitignore: true,
+      showOrphans: true,
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      plugins: [{ id: 'acme.particles', activation: 'inherit' }],
+      interfaces: [],
+    });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const reader = new PluginStatusReader(workspaceRoot);
+    await reader.registerExtensionPackagePlugin(async () => {
+      throw new Error('initialize failed');
+    });
+
+    expect(reader.getPluginStatuses(new Set())).toContainEqual(
+      expect.objectContaining({
+        id: 'acme.particles',
+        enabled: true,
+        status: 'unavailable',
+      }),
+    );
+    errorSpy.mockRestore();
   });
 });

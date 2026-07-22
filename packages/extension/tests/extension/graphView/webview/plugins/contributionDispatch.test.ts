@@ -62,7 +62,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     const analyzer = {
       registry: {
         extensionPlugins: {
-          list: () => [
+          listActive: () => [
             {
               plugin: {
                 id: 'plugin.test',
@@ -135,6 +135,49 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     });
   });
 
+  it('injects webview code only for successfully initialized Extension plugins', () => {
+    const sendMessage = vi.fn();
+    const analyzer = {
+      registry: {
+        extensionPlugins: {
+          list: () => [
+            {
+              plugin: {
+                id: 'plugin.failed',
+                webviewContributions: { scripts: ['failed.js'] },
+              },
+            },
+            {
+              plugin: {
+                id: 'plugin.active',
+                webviewContributions: { scripts: ['active.js'] },
+              },
+            },
+          ],
+          listActive: () => [
+            {
+              plugin: {
+                id: 'plugin.active',
+                webviewContributions: { scripts: ['active.js'] },
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    sendGraphViewPluginWebviewInjections(
+      analyzer,
+      assetPath => `asset://${assetPath}`,
+      sendMessage,
+    );
+
+    expect(sendMessage).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({ pluginId: 'plugin.active' }),
+    }));
+  });
+
   it('excludes disabled plugins from graph view dispatches', async () => {
     const sendMessage = vi.fn();
     const resolveAssetPath = vi.fn((assetPath: string, pluginId?: string) => `${pluginId}:${assetPath}`);
@@ -151,7 +194,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     const analyzer = {
       registry: {
         extensionPlugins: {
-          list: () => [
+          listActive: () => [
             {
               plugin: {
                 id: 'plugin.disabled',

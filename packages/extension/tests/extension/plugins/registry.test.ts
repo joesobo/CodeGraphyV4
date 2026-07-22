@@ -107,7 +107,30 @@ describe('ExtensionPluginRegistry', () => {
     );
   });
 
-  it('continues notifying webview readiness after one plugin fails', () => {
+  it('activates only plugins whose initialization succeeds', async () => {
+    const failedReady = vi.fn();
+    const activeReady = vi.fn();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const registry = new ExtensionPluginRegistry();
+    registry.register(createPlugin({
+      id: 'acme.failed',
+      initialize: async () => {
+        throw new Error('initialize failed');
+      },
+      onWebviewReady: failedReady,
+    }));
+    registry.register(createPlugin({ id: 'acme.active', onWebviewReady: activeReady }));
+
+    await registry.initializeAll('/workspace');
+    registry.notifyWebviewReady();
+
+    expect(registry.listActive().map(info => info.plugin.id)).toEqual(['acme.active']);
+    expect(failedReady).not.toHaveBeenCalled();
+    expect(activeReady).toHaveBeenCalledOnce();
+    errorSpy.mockRestore();
+  });
+
+  it('continues notifying webview readiness after one plugin fails', async () => {
     const failure = new Error('webview ready failed');
     const failingReady = vi.fn(() => {
       throw failure;
@@ -117,6 +140,8 @@ describe('ExtensionPluginRegistry', () => {
     const registry = new ExtensionPluginRegistry();
     registry.register(createPlugin({ id: 'acme.failing', onWebviewReady: failingReady }));
     registry.register(createPlugin({ id: 'acme.later', onWebviewReady: laterReady }));
+
+    await registry.initializeAll('/workspace');
 
     expect(() => registry.notifyWebviewReady()).not.toThrow();
 
