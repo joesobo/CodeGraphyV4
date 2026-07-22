@@ -17,6 +17,11 @@ export interface LabelShape extends ScriptShape {
   props: Record<string, unknown> & { w: number };
 }
 
+export interface IconShape extends ScriptShape {
+  meta: Record<string, unknown> & { codegraphyKind: 'icon'; codegraphyNodeId: string };
+  props: Record<string, unknown> & { h: number; w: number };
+}
+
 export function isNodeShape(shape: ScriptShape): shape is NodeShape {
   return shape.type === 'geo'
     && shape.meta.codegraphyKind === 'node'
@@ -34,4 +39,12 @@ export function isLabelShape(shape: ScriptShape): shape is LabelShape {
     && shape.meta.codegraphyKind === 'label'
     && typeof shape.meta.codegraphyNodeId === 'string'
     && typeof shape.props.w === 'number';
+}
+
+export function isIconShape(shape: ScriptShape): shape is IconShape {
+  return shape.type === 'image'
+    && shape.meta.codegraphyKind === 'icon'
+    && typeof shape.meta.codegraphyNodeId === 'string'
+    && typeof shape.props.w === 'number'
+    && typeof shape.props.h === 'number';
 }

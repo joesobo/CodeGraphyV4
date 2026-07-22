@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isEdgeShape, isLabelShape, isNodeShape, type ScriptShape } from './model';
+import { isEdgeShape, isIconShape, isLabelShape, isNodeShape, type ScriptShape } from './model';
 
 const NODE = {
   id: 'shape:a',
@@ -39,5 +39,18 @@ describe('physics shape model', () => {
     expect(isLabelShape(label)).toBe(true);
     expect(isLabelShape({ ...label, meta: { codegraphyKind: 'label' } })).toBe(false);
     expect(isLabelShape({ ...label, type: 'geo' })).toBe(false);
+  });
+
+  it('accepts generated image icons with a node owner', () => {
+    const icon = {
+      ...NODE,
+      type: 'image',
+      props: { w: 56, h: 56 },
+      meta: { codegraphyKind: 'icon', codegraphyNodeId: 'a' },
+    };
+
+    expect(isIconShape(icon)).toBe(true);
+    expect(isIconShape({ ...icon, meta: { codegraphyKind: 'icon' } })).toBe(false);
+    expect(isIconShape({ ...icon, type: 'geo' })).toBe(false);
   });
 });

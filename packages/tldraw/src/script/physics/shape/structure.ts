@@ -1,4 +1,4 @@
-import { isEdgeShape, isLabelShape, isNodeShape, type ScriptShape } from './model';
+import { isEdgeShape, isIconShape, isLabelShape, isNodeShape, type ScriptShape } from './model';
 
 function structurePart(shape: ScriptShape): string | undefined {
   if (isNodeShape(shape)) {
@@ -9,6 +9,9 @@ function structurePart(shape: ScriptShape): string | undefined {
   }
   if (isLabelShape(shape)) {
     return `label:${shape.id}:${shape.meta.codegraphyNodeId}:${shape.props.w}`;
+  }
+  if (isIconShape(shape)) {
+    return `icon:${shape.id}:${shape.meta.codegraphyNodeId}:${shape.props.w}:${shape.props.h}`;
   }
   return undefined;
 }

@@ -1,6 +1,6 @@
 import type { GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 import { toCanvasCoordinate } from '../scale/model';
-import type { LabelShape, NodeShape, ScriptShape } from '../shape/model';
+import type { IconShape, LabelShape, NodeShape, ScriptShape } from '../shape/model';
 
 const LABEL_GAP = 8;
 
@@ -42,6 +42,32 @@ function appendLabelUpdates(
   }
 }
 
+function appendIconUpdates(
+  updates: Array<Record<string, unknown>>,
+  iconShapes: readonly IconShape[],
+  nodeShapes: readonly NodeShape[],
+  engine: GraphLayoutEngine,
+): void {
+  const nodeIndexes = new Map<string, number>(
+    engine.nodeIds.map((entityId, index) => [entityId, index]),
+  );
+  const nodesById = new Map<string, NodeShape>(
+    nodeShapes.map(shape => [shape.meta.codegraphyEntityId, shape]),
+  );
+  for (const shape of iconShapes) {
+    const nodeId = shape.meta.codegraphyNodeId;
+    const index = nodeIndexes.get(nodeId);
+    const node = nodesById.get(nodeId);
+    if (index === undefined || !node) continue;
+    updates.push({
+      id: shape.id,
+      type: shape.type,
+      x: toCanvasCoordinate(engine.x[index]) - shape.props.w / 2,
+      y: toCanvasCoordinate(engine.y[index]) - shape.props.h / 2,
+    });
+  }
+}
+
 function appendEdgeUpdates(
   updates: Array<Record<string, unknown>>,
   edgeShapes: readonly ScriptShape[],
@@ -74,11 +100,13 @@ function appendEdgeUpdates(
 export function createShapeUpdates(
   nodeShapes: readonly NodeShape[],
   edgeShapes: readonly ScriptShape[],
+  iconShapes: readonly IconShape[],
   labelShapes: readonly LabelShape[],
   engine: GraphLayoutEngine,
 ): Array<Record<string, unknown>> {
   const updates = createNodeUpdates(nodeShapes, engine);
   appendEdgeUpdates(updates, edgeShapes, engine);
+  appendIconUpdates(updates, iconShapes, nodeShapes, engine);
   appendLabelUpdates(updates, labelShapes, nodeShapes, engine);
   return updates;
 }

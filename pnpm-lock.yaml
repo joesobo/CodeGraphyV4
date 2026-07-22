@@ -524,6 +524,9 @@ importers:
       libsql:
         specifier: 0.5.29
         version: 0.5.29
+      material-icon-theme:
+        specifier: 5.33.1
+        version: 5.33.1
       yauzl:
         specifier: ^3.2.0
         version: 3.4.0

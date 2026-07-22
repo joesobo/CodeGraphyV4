@@ -10,13 +10,19 @@ describe('TldrawApiClient', () => {
       }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ success: true, result: { updated: 1 } }), {
         status: 200,
+      }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        result: { scriptDir: '/tmp/tldraw/script' },
+      }), {
+        status: 200,
       }));
     const client = new TldrawApiClient({ port: 7236, token: 'secret' }, fetch);
 
     await expect(client.findOpenDocument('/workspace/graph.tldraw')).resolves.toMatchObject({
       id: 'tldr:file:abc',
     });
-    await client.reconcileShapes('tldr:file:abc', [{
+    await client.reconcileRecords('tldr:file:abc', [{
       id: 'shape:a',
       typeName: 'shape',
       type: 'geo',
@@ -29,7 +35,16 @@ describe('TldrawApiClient', () => {
       opacity: 1,
       props: {},
       meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
+    }, {
+      id: 'asset:typescript',
+      typeName: 'asset',
+      type: 'image',
+      props: { src: 'data:image/svg+xml;base64,abc' },
+      meta: { codegraphyKind: 'iconAsset' },
     }]);
+    await expect(client.getScriptWorkspace('tldr:file:abc')).resolves.toEqual({
+      scriptDir: '/tmp/tldraw/script',
+    });
 
     expect(fetch.mock.calls[0]?.[0]).toBe('http://127.0.0.1:7236/api/search');
     const firstHeaders = new Headers(fetch.mock.calls[0]?.[1]?.headers);
@@ -43,5 +58,12 @@ describe('TldrawApiClient', () => {
     if (typeof rawReconciliationBody !== 'string') throw new Error('Expected JSON request body');
     const reconciliationBody = JSON.parse(rawReconciliationBody) as { code: string };
     expect(reconciliationBody.code).toContain("{ history: 'ignore', ignoreShapeLock: true }");
+    expect(reconciliationBody.code).toContain('editor.createAssets');
+    expect(reconciliationBody.code).toContain("codegraphyKind === 'icon'");
+    expect(fetch).toHaveBeenNthCalledWith(
+      3,
+      'http://127.0.0.1:7236/api/doc/tldr:file:abc/script-workspace',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 });

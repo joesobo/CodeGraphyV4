@@ -36,12 +36,21 @@ describe('reconcileGraphRecords', () => {
     expect(nodeProps['tools/build.py']).not.toMatchObject(nodeProps['src/app.ts']);
   });
 
-  it('places black labels below nodes and stacks graph shapes above edges', () => {
+  it('centers locked icons in nodes and stacks edges, nodes, icons, then labels', () => {
     const records = reconcileGraphRecords([], INITIAL_GRAPH);
     const node = records.find(record => record.meta.codegraphyEntityId === 'src/a.ts');
-    const label = records.find(record => record.meta.codegraphyNodeId === 'src/a.ts');
+    const icon = records.find(record => (
+      record.typeName === 'shape'
+      && record.meta.codegraphyKind === 'icon'
+      && record.meta.codegraphyNodeId === 'src/a.ts'
+    ));
+    const label = records.find(record => (
+      record.meta.codegraphyKind === 'label'
+      && record.meta.codegraphyNodeId === 'src/a.ts'
+    ));
     const edge = records.find(record => record.meta.codegraphyKind === 'edge');
     if (node?.typeName !== 'shape' || node.type !== 'geo') throw new Error('Expected node');
+    if (icon?.typeName !== 'shape' || icon.type !== 'image') throw new Error('Expected icon');
     if (label?.typeName !== 'shape' || label.type !== 'text') throw new Error('Expected label');
     if (edge?.typeName !== 'shape') throw new Error('Expected edge');
 
@@ -54,8 +63,22 @@ describe('reconcileGraphRecords', () => {
       y: node.y + node.props.h + 8,
     });
     expect(JSON.stringify(label.props.richText)).toContain('a.ts');
+    expect(icon).toMatchObject({
+      isLocked: true,
+      meta: { codegraphyKind: 'icon', codegraphyNodeId: 'src/a.ts' },
+      props: { altText: 'a.ts file icon', h: 56, w: 56 },
+      x: node.x + 32,
+      y: node.y + 32,
+    });
+    const iconAsset = records.find(record => record.id === icon.props.assetId);
+    expect(iconAsset).toMatchObject({
+      typeName: 'asset',
+      type: 'image',
+      meta: { codegraphyKind: 'iconAsset' },
+    });
     expect(edge.index < node.index).toBe(true);
-    expect(node.index < label.index).toBe(true);
+    expect(node.index < icon.index).toBe(true);
+    expect(icon.index < label.index).toBe(true);
   });
 
   it('reapplies the generated visual theme during refresh', () => {
@@ -129,7 +152,10 @@ describe('reconcileGraphRecords', () => {
 
     expect(refreshed).toContainEqual(note);
     expect(refreshedNodeA).toMatchObject({ x: 900, y: 700 });
-    const refreshedLabelA = refreshed.find(record => record.meta.codegraphyNodeId === 'src/a.ts');
+    const refreshedLabelA = refreshed.find(record => (
+      record.meta.codegraphyKind === 'label'
+      && record.meta.codegraphyNodeId === 'src/a.ts'
+    ));
     expect(JSON.stringify(refreshedLabelA)).toContain('renamed.ts');
     expect(refreshed.some(record => record.meta.codegraphyEntityId === 'src/b.ts')).toBe(false);
     expect(refreshed.some(record => record.meta.codegraphyEntityId === 'src/c.ts')).toBe(true);

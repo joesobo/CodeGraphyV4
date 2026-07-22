@@ -28,19 +28,30 @@ describe('tldraw physics shape updates', () => {
         meta: { codegraphyKind: 'label' as const, codegraphyNodeId: 'missing' },
       },
     ];
+    const icons = [
+      {
+        id: 'icon:a', type: 'image', x: 0, y: 0, props: { w: 56, h: 56 },
+        meta: { codegraphyKind: 'icon' as const, codegraphyNodeId: 'a' },
+      },
+      {
+        id: 'icon:missing', type: 'image', x: 0, y: 0, props: { w: 56, h: 56 },
+        meta: { codegraphyKind: 'icon' as const, codegraphyNodeId: 'missing' },
+      },
+    ];
     const engine = {
       nodeIds: ['a', 'b'],
       x: Float32Array.of(10, 90),
       y: Float32Array.of(20, 100),
     } as unknown as GraphLayoutEngine;
 
-    expect(createShapeUpdates(nodes, edges, labels, engine)).toEqual([
+    expect(createShapeUpdates(nodes, edges, icons, labels, engine)).toEqual([
       { id: 'shape:a', type: 'geo', x: -10, y: 40 },
       { id: 'shape:b', type: 'geo', x: 390, y: 440 },
       {
         id: 'edge:ab', type: 'arrow', x: 50, y: 100,
         props: { dash: 'solid', start: { x: 0, y: 0 }, end: { x: 400, y: 400 } },
       },
+      { id: 'icon:a', type: 'image', x: 22, y: 72 },
       { id: 'label:a', type: 'text', x: -40, y: 168 },
     ]);
   });

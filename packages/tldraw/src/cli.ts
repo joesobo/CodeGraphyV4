@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { copyFile, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
@@ -72,13 +72,20 @@ function createCommandDependencies(): TldrawCommandDependencies {
       if (!currentClient) throw new Error('tldraw offline is not available for live refresh');
       const currentShapes = await currentClient.readShapes(documentId) as TLRecord[];
       const records = reconcileGraphRecords(currentShapes, projectDefaultFileGraph(graph));
-      const ownedShapes = records.filter(record => (
-        record.typeName === 'shape'
+      const ownedRecords = records.filter(record => (
+        record.meta.codegraphyKind === 'iconAsset'
+        || (record.typeName === 'shape'
         && (record.meta.codegraphyKind === 'node'
           || record.meta.codegraphyKind === 'edge'
-          || record.meta.codegraphyKind === 'label')
+          || record.meta.codegraphyKind === 'icon'
+          || record.meta.codegraphyKind === 'label'))
       ));
-      await currentClient.reconcileShapes(documentId, ownedShapes);
+      await currentClient.reconcileRecords(documentId, ownedRecords);
+      const scriptWorkspace = await currentClient.getScriptWorkspace(documentId);
+      await Promise.all([
+        copyFile(new URL('./script/config.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'config.js')),
+        copyFile(new URL('./script/main.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'main.js')),
+      ]);
     },
     writeDocument: async ({ graph, targetPath }) => {
       const configPath = new URL('./script/config.js', import.meta.url);

@@ -17,7 +17,7 @@ Give a path to create or refresh a specific document:
 codegraphy-tldraw architecture.tldraw
 ```
 
-Each run indexes the current workspace through `@codegraphy-dev/core`. The document uses native tldraw circles and connectors. File Nodes use Core's file-extension colors translated into solid native tldraw colors. The persistent document script runs the same WebAssembly force physics as the CodeGraphy Extension and uses each circle's rendered size for collision spacing.
+Each run indexes the current workspace through `@codegraphy-dev/core`. The document uses native tldraw circles and connectors. File nodes use a cool categorical theme and the same white Material Icon Theme file icons as the Extension. The icons are embedded in the document for offline use. The persistent document script runs the same WebAssembly force physics as the CodeGraphy Extension and uses each circle's rendered size for collision spacing.
 
 The canvas includes Repel Force, Center Force, Link Distance, and Link Force sliders. Repel Force starts at `10`, Center Force at `0.10`, Link Distance at `80`, and Link Force at `1.00`. The controls use the same ranges and force mapping as the Extension, and velocity decay remains `0.4`. Changes apply to the active graph immediately and remain saved in the tldraw document.
 

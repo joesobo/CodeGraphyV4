@@ -1,11 +1,14 @@
 import { createHash } from 'node:crypto';
 import type { IGraphData, IGraphEdge, IGraphNode } from '@codegraphy-dev/core';
 import {
+  AssetRecordType,
   createShapeId,
   createTLSchema,
   toRichText,
   type TLArrowShape,
   type TLGeoShape,
+  type TLImageAsset,
+  type TLImageShape,
   type TLPageId,
   type TLRecord,
   type TLShape,
@@ -13,25 +16,31 @@ import {
 } from '@tldraw/tlschema';
 import { getIndicesAbove, type IndexKey } from '@tldraw/utils';
 import { createNodeColorMap } from './nodeColor/model';
+import { createNodeIconMap, type NodeIcon } from './nodeIcon/model';
 
 const PAGE_ID = 'page:page' as TLPageId;
 const NODE_SIZE = 120;
 const LABEL_WIDTH = 180;
 const LABEL_GAP = 8;
+const ICON_SIZE = 56;
 
-function entityHash(kind: 'edge' | 'label' | 'node', entityId: string): string {
+type GeneratedKind = 'edge' | 'icon' | 'iconAsset' | 'label' | 'node';
+
+function entityHash(kind: GeneratedKind, entityId: string): string {
   return createHash('sha256').update(`${kind}\0${entityId}`).digest('hex').slice(0, 24);
 }
 
-function shapeId(kind: 'edge' | 'label' | 'node', entityId: string) {
+function shapeId(kind: Exclude<GeneratedKind, 'iconAsset'>, entityId: string) {
   return createShapeId(`codegraphy-${kind}-${entityHash(kind, entityId)}`);
 }
 
 function isOwnedRecord(record: TLRecord): boolean {
-  return record.typeName === 'shape'
-    && (record.meta.codegraphyKind === 'node'
+  return record.meta.codegraphyKind === 'iconAsset'
+    || (record.typeName === 'shape'
+      && (record.meta.codegraphyKind === 'node'
       || record.meta.codegraphyKind === 'edge'
-      || record.meta.codegraphyKind === 'label');
+      || record.meta.codegraphyKind === 'icon'
+      || record.meta.codegraphyKind === 'label'));
 }
 
 function metadataString(value: unknown): string | undefined {
@@ -133,6 +142,66 @@ function createLabelShape(
   };
 }
 
+function createIconAsset(icon: NodeIcon): TLImageAsset {
+  return AssetRecordType.create({
+    id: AssetRecordType.createId(`codegraphy-icon-${entityHash('iconAsset', icon.name)}`),
+    type: 'image',
+    meta: {
+      codegraphyIconName: icon.name,
+      codegraphyKind: 'iconAsset',
+    },
+    props: {
+      w: ICON_SIZE,
+      h: ICON_SIZE,
+      name: `${icon.name}.svg`,
+      isAnimated: false,
+      mimeType: 'image/svg+xml',
+      src: icon.src,
+    },
+  }) as TLImageAsset;
+}
+
+function createIconShape(
+  node: IGraphNode,
+  icon: NodeIcon,
+  asset: TLImageAsset,
+  index: IndexKey,
+  owner: TLGeoShape,
+  existing?: TLShape,
+): TLImageShape {
+  const preserved = existing?.type === 'image' ? existing : undefined;
+  return {
+    id: shapeId('icon', node.id),
+    typeName: 'shape',
+    type: 'image',
+    parentId: PAGE_ID,
+    index,
+    x: owner.x + (owner.props.w - ICON_SIZE) / 2,
+    y: owner.y + (owner.props.h - ICON_SIZE) / 2,
+    rotation: 0,
+    isLocked: true,
+    opacity: preserved?.opacity ?? 1,
+    meta: {
+      ...(preserved?.meta ?? {}),
+      codegraphyEntityId: `icon:${node.id}`,
+      codegraphyIconName: icon.name,
+      codegraphyKind: 'icon',
+      codegraphyNodeId: node.id,
+    },
+    props: {
+      w: ICON_SIZE,
+      h: ICON_SIZE,
+      playing: false,
+      url: '',
+      assetId: asset.id,
+      crop: null,
+      flipX: false,
+      flipY: false,
+      altText: `${node.label} file icon`,
+    },
+  };
+}
+
 function createEdgeShape(
   edge: IGraphEdge,
   index: IndexKey,
@@ -196,9 +265,10 @@ export function reconcileGraphRecords(
   );
   const indexes = getIndicesAbove(
     'a1' as IndexKey,
-    graph.edges.length + graph.nodes.length * 2,
+    graph.edges.length + graph.nodes.length * 3,
   );
   const colors = createNodeColorMap(graph.nodes);
+  const icons = createNodeIconMap(graph.nodes);
   const nodeShapes = graph.nodes.map((node, nodeIndex) => createNodeShape(
     node,
     colors.get(node.id) ?? 'grey',
@@ -221,16 +291,41 @@ export function reconcileGraphRecords(
       existingShapes.get(edge.id),
     )];
   });
+  const iconAssetsByName = new Map<string, TLImageAsset>();
+  for (const icon of icons.values()) {
+    if (!iconAssetsByName.has(icon.name)) iconAssetsByName.set(icon.name, createIconAsset(icon));
+  }
+  const iconShapes = graph.nodes.flatMap((node, nodeIndex) => {
+    const icon = icons.get(node.id);
+    const asset = icon ? iconAssetsByName.get(icon.name) : undefined;
+    if (!icon || !asset) return [];
+    return [createIconShape(
+      node,
+      icon,
+      asset,
+      indexes[graph.edges.length + graph.nodes.length + nodeIndex],
+      nodeShapes[nodeIndex],
+      existingShapes.get(`icon:${node.id}`),
+    )];
+  });
   const labelShapes = graph.nodes.map((node, nodeIndex) => createLabelShape(
     node,
-    indexes[graph.edges.length + graph.nodes.length + nodeIndex],
+    indexes[graph.edges.length + graph.nodes.length * 2 + nodeIndex],
     nodeShapes[nodeIndex],
     existingShapes.get(`label:${node.id}`),
   ));
   const userRecords = existingRecords.filter(record => !isOwnedRecord(record));
   const schema = createTLSchema();
-  for (const record of [...edgeShapes, ...nodeShapes, ...labelShapes]) {
+  for (const record of iconAssetsByName.values()) schema.types.asset.validate(record);
+  for (const record of [...edgeShapes, ...nodeShapes, ...iconShapes, ...labelShapes]) {
     schema.types.shape.validate(record);
   }
-  return [...userRecords, ...edgeShapes, ...nodeShapes, ...labelShapes];
+  return [
+    ...userRecords,
+    ...iconAssetsByName.values(),
+    ...edgeShapes,
+    ...nodeShapes,
+    ...iconShapes,
+    ...labelShapes,
+  ];
 }

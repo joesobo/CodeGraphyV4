@@ -11,6 +11,10 @@ export interface TldrawOpenDocument {
   name: string;
 }
 
+export interface TldrawScriptWorkspace {
+  scriptDir: string;
+}
+
 interface TldrawApiResponse<T> {
   success: boolean;
   result?: T;
@@ -23,22 +27,40 @@ function reconciliationCode(records: readonly object[]): string {
   const serializedRecords = JSON.stringify(records);
   return `
 const desired = ${serializedRecords};
-const desiredIds = new Set(desired.map(shape => shape.id));
+const desiredShapes = desired.filter(record => record.typeName === 'shape');
+const desiredAssets = desired.filter(record => record.typeName === 'asset');
+const desiredShapeIds = new Set(desiredShapes.map(shape => shape.id));
+const desiredAssetIds = new Set(desiredAssets.map(asset => asset.id));
 const current = editor.getCurrentPageShapes();
 const currentIds = new Set(current.map(shape => shape.id));
 const staleIds = current
   .filter(shape => (shape.meta?.codegraphyKind === 'node'
     || shape.meta?.codegraphyKind === 'edge'
-    || shape.meta?.codegraphyKind === 'label') && !desiredIds.has(shape.id))
+    || shape.meta?.codegraphyKind === 'icon'
+    || shape.meta?.codegraphyKind === 'label') && !desiredShapeIds.has(shape.id))
   .map(shape => shape.id);
-const updates = desired.filter(shape => currentIds.has(shape.id));
-const creates = desired.filter(shape => !currentIds.has(shape.id));
+const currentAssets = editor.getAssets();
+const currentAssetIds = new Set(currentAssets.map(asset => asset.id));
+const staleAssetIds = currentAssets
+  .filter(asset => asset.meta?.codegraphyKind === 'iconAsset' && !desiredAssetIds.has(asset.id))
+  .map(asset => asset.id);
+const updates = desiredShapes.filter(shape => currentIds.has(shape.id));
+const creates = desiredShapes.filter(shape => !currentIds.has(shape.id));
+const assetUpdates = desiredAssets.filter(asset => currentAssetIds.has(asset.id));
+const assetCreates = desiredAssets.filter(asset => !currentAssetIds.has(asset.id));
 editor.run(() => {
   if (staleIds.length > 0) editor.deleteShapes(staleIds);
+  if (staleAssetIds.length > 0) editor.deleteAssets(staleAssetIds);
+  if (assetUpdates.length > 0) editor.updateAssets(assetUpdates);
+  if (assetCreates.length > 0) editor.createAssets(assetCreates);
   if (updates.length > 0) editor.updateShapes(updates);
   if (creates.length > 0) editor.createShapes(creates);
 }, { history: 'ignore', ignoreShapeLock: true });
-return { created: creates.length, deleted: staleIds.length, updated: updates.length };
+return {
+  created: creates.length + assetCreates.length,
+  deleted: staleIds.length + staleAssetIds.length,
+  updated: updates.length + assetUpdates.length,
+};
 `;
 }
 
@@ -86,10 +108,25 @@ export class TldrawApiClient {
     return result.shapes ?? [];
   }
 
-  async reconcileShapes(documentId: string, records: readonly object[]): Promise<void> {
+  async reconcileRecords(documentId: string, records: readonly object[]): Promise<void> {
     await this.request(
       `/api/doc/${documentId}/exec`,
       reconciliationCode(records),
     );
+  }
+
+  async getScriptWorkspace(documentId: string): Promise<TldrawScriptWorkspace> {
+    const response = await this.fetchImplementation(
+      `http://127.0.0.1:${this.connection.port}/api/doc/${documentId}/script-workspace`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${this.connection.token}` },
+      },
+    );
+    const payload = await response.json() as TldrawApiResponse<TldrawScriptWorkspace>;
+    if (!response.ok || !payload.success) {
+      throw new Error(payload.error ?? `tldraw offline API request failed (${response.status})`);
+    }
+    return payload.result as TldrawScriptWorkspace;
   }
 }

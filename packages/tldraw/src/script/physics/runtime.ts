@@ -6,8 +6,10 @@ import { createRuntimeEngine } from './engine/model';
 import { forceSettingsChanged } from './force/model';
 import {
   isEdgeShape,
+  isIconShape,
   isLabelShape,
   isNodeShape,
+  type IconShape,
   type LabelShape,
   type NodeShape,
   type ScriptShape,
@@ -42,6 +44,7 @@ interface PhysicsRuntime {
   editor: ScriptEditor;
   engine?: GraphLayoutEngine;
   forceSettings: ForceSettings;
+  iconShapes: IconShape[];
   labelShapes: LabelShape[];
   nodeShapes: NodeShape[];
   structureKey: string;
@@ -52,6 +55,7 @@ function rebuildRuntime(runtime: PhysicsRuntime): void {
   runtime.structureKey = graphStructureKey(shapes);
   runtime.nodeShapes = shapes.filter(isNodeShape);
   runtime.edgeShapes = shapes.filter(isEdgeShape);
+  runtime.iconShapes = shapes.filter(isIconShape);
   runtime.labelShapes = shapes.filter(isLabelShape);
   runtime.engine = createRuntimeEngine(
     runtime.nodeShapes,
@@ -84,6 +88,7 @@ function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
   const updates = createShapeUpdates(
     runtime.nodeShapes,
     runtime.edgeShapes,
+    runtime.iconShapes,
     runtime.labelShapes,
     engine,
   );
@@ -111,6 +116,7 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
   const shapes = editor.getCurrentPageShapes();
   const nodeShapes = shapes.filter(isNodeShape);
   const edgeShapes = shapes.filter(isEdgeShape);
+  const iconShapes = shapes.filter(isIconShape);
   const labelShapes = shapes.filter(isLabelShape);
   return {
     dirty: false,
@@ -119,6 +125,7 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
     editor,
     engine: createRuntimeEngine(nodeShapes, edgeShapes, forceSettings),
     forceSettings,
+    iconShapes,
     labelShapes,
     nodeShapes,
     structureKey: graphStructureKey(shapes),
