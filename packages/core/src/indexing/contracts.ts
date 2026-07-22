@@ -21,7 +21,6 @@ export interface IndexCodeGraphyWorkspaceOptions {
   settings?: CodeGraphyWorkspaceSettings;
   includeCorePlugins?: boolean;
   include?: string[];
-  filterPatterns?: string[];
   disabledPlugins?: Iterable<string>;
   maxFiles?: number;
   respectGitignore?: boolean;
@@ -43,4 +42,10 @@ export interface IndexCodeGraphyWorkspaceResult {
   gitIgnoredPaths?: string[];
   limitReached: boolean;
   totalFound: number;
+  indexing: {
+    mode: 'full' | 'incremental';
+    analyzedFiles: number;
+    deletedFiles: number;
+    reusedFiles: number;
+  };
 }

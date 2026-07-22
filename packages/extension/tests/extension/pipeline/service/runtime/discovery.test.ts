@@ -68,8 +68,6 @@ describe('pipeline/service/discovery', () => {
       { discover: expect.any(Function) },
       '/workspace',
       { maxFiles: 200 },
-      ['**/*.ts'],
-      ['plugin-filter'],
       undefined,
     );
     expect(formatWorkspacePipelineLimitReachedMessage).toHaveBeenCalledWith(250, 200);

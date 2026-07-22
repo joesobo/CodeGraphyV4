@@ -4,12 +4,22 @@ import * as vscode from 'vscode';
 import type { MaterialThemeCacheEntry, MaterialIconManifest } from './model';
 import { createMaterialExtensionMatcher } from './extensionMatch';
 import { createMaterialPathRuleMatcher } from './pathMatch';
+import { materialIconManifestSchema } from './schema';
 
 const materialThemeCache = new Map<string, MaterialThemeCacheEntry | null>();
 const materialIconThemePackageName = 'material-icon-theme';
 
 export function clearMaterialThemeCache(): void {
   materialThemeCache.clear();
+}
+
+function readMaterialIconManifest(manifestPath: string): MaterialIconManifest | null {
+  try {
+    const parsed = materialIconManifestSchema.safeParse(JSON.parse(fs.readFileSync(manifestPath, 'utf8')));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
 }
 
 export function resolveMaterialThemeRoot(extensionUri: vscode.Uri): string | undefined {
@@ -28,20 +38,35 @@ export function loadMaterialTheme(extensionUri: vscode.Uri): MaterialThemeCacheE
     return cached;
   }
 
+  const theme = loadUncachedMaterialTheme(extensionUri);
+  materialThemeCache.set(cacheKey, theme);
+  return theme;
+}
+
+function loadUncachedMaterialTheme(extensionUri: vscode.Uri): MaterialThemeCacheEntry | null {
   const packageRoot = resolveMaterialThemeRoot(extensionUri);
   if (!packageRoot) {
-    materialThemeCache.set(cacheKey, null);
     return null;
   }
 
   const manifestPath = path.join(packageRoot, 'dist', 'material-icons.json');
   if (!fs.existsSync(manifestPath)) {
-    materialThemeCache.set(cacheKey, null);
     return null;
   }
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as MaterialIconManifest;
-  const theme = {
+  const manifest = readMaterialIconManifest(manifestPath);
+  if (!manifest) {
+    return null;
+  }
+
+  return createMaterialTheme(manifest, manifestPath);
+}
+
+function createMaterialTheme(
+  manifest: MaterialIconManifest,
+  manifestPath: string,
+): MaterialThemeCacheEntry {
+  return {
     extensionMatcher: manifest.fileExtensions
       ? createMaterialExtensionMatcher(manifest.fileExtensions)
       : undefined,
@@ -59,8 +84,5 @@ export function loadMaterialTheme(extensionUri: vscode.Uri): MaterialThemeCacheE
         ? createMaterialPathRuleMatcher(manifest.folderNamesExpanded)
         : undefined,
     },
-  } satisfies MaterialThemeCacheEntry;
-
-  materialThemeCache.set(cacheKey, theme);
-  return theme;
+  };
 }

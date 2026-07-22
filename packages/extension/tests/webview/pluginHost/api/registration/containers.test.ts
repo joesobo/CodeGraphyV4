@@ -43,7 +43,7 @@ describe('pluginHost/api/registration/containers', () => {
     const host = document.createElement('div');
 
     attachSlotHost('toolbar', host, slotContainers as never, slotHosts as never);
-    getOrCreateSlotContainer('plugin-a', 'timeline-panel', slotContainers as never, slotHosts as never);
+    getOrCreateSlotContainer('plugin-a', 'graph-overlay', slotContainers as never, slotHosts as never);
 
     expect(first).toBe(second);
     expect(host.contains(first)).toBe(true);
@@ -72,5 +72,38 @@ describe('pluginHost/api/registration/containers', () => {
 
     expect(host.contains(container)).toBe(true);
     expect(host.style.display).toBe('');
+  });
+
+  it('attaches only contributions that target the new slot host', () => {
+    const host = document.createElement('div');
+    const toolbarContribution = document.createElement('div');
+    const overlayContribution = document.createElement('div');
+    toolbarContribution.style.display = 'none';
+    overlayContribution.style.display = 'none';
+    const slotContributions = new Map([
+      ['plugin-a', new Set([
+        {
+          pluginId: 'plugin-a',
+          id: 'toolbar-action',
+          order: 1,
+          slot: 'toolbar' as const,
+          container: toolbarContribution,
+        },
+        {
+          pluginId: 'plugin-a',
+          id: 'overlay-action',
+          order: 2,
+          slot: 'graph-overlay' as const,
+          container: overlayContribution,
+        },
+      ])],
+    ]);
+
+    attachSlotHost('toolbar', host, new Map(), new Map(), slotContributions);
+
+    expect(host.contains(toolbarContribution)).toBe(true);
+    expect(toolbarContribution.style.display).toBe('');
+    expect(host.contains(overlayContribution)).toBe(false);
+    expect(overlayContribution.style.display).toBe('none');
   });
 });

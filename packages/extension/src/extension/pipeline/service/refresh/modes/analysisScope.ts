@@ -41,7 +41,6 @@ export async function refreshAnalysisScopeForFacade(
     disabledPlugins: input.disabledPlugins,
     discoveredFiles: discoveryResult.files,
     lastFileAnalysis: facade._lastFileAnalysis,
-    nodeVisibility: facade._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
   })) {
     return rebuildAnalysisScopeFromCurrentAnalysis(facade, {
       disabledPlugins: input.disabledPlugins,

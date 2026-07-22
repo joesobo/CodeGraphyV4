@@ -3,74 +3,15 @@ import {
   BASELINE_ANALYSIS_CACHE_TIER,
   SYMBOLS_ANALYSIS_CACHE_TIER,
   createWorkspaceIndexAnalysisCacheTiers,
+  hasRequiredAnalysisCacheTiers,
   isAnalysisCacheTier,
   projectAnalysisForCacheTiers,
   sortAnalysisCacheTiers,
 } from '../../../src/analysis/fileAnalysis/cacheTiers';
 
 describe('analysis/fileAnalysis/cacheTiers', () => {
-  it('keeps symbol enrichment inactive when the Symbol root scope is disabled for symbol-only children', () => {
-    expect(createWorkspaceIndexAnalysisCacheTiers({
-      symbol: false,
-      'symbol:function': true,
-    })).toEqual({
-      active: [BASELINE_ANALYSIS_CACHE_TIER],
-      completed: [BASELINE_ANALYSIS_CACHE_TIER],
-      required: [BASELINE_ANALYSIS_CACHE_TIER],
-    });
-  });
-
-  it('keeps symbol enrichment inactive when only parent scopes are enabled', () => {
-    expect(createWorkspaceIndexAnalysisCacheTiers({
-      symbol: true,
-      variable: true,
-    })).toEqual({
-      active: [BASELINE_ANALYSIS_CACHE_TIER],
-      completed: [BASELINE_ANALYSIS_CACHE_TIER],
-      required: [BASELINE_ANALYSIS_CACHE_TIER],
-    });
-  });
-
-  it('keeps symbol enrichment inactive when a leaf child is enabled under a disabled parent scope', () => {
-    expect(createWorkspaceIndexAnalysisCacheTiers({
-      symbol: false,
-      variable: true,
-      'symbol:global': true,
-    })).toEqual({
-      active: [BASELINE_ANALYSIS_CACHE_TIER],
-      completed: [BASELINE_ANALYSIS_CACHE_TIER],
-      required: [BASELINE_ANALYSIS_CACHE_TIER],
-    });
-  });
-
-  it('requires symbol enrichment when an enabled leaf child has enabled parent scopes', () => {
-    expect(createWorkspaceIndexAnalysisCacheTiers({
-      symbol: true,
-      variable: true,
-      'symbol:global': true,
-    })).toEqual({
-      active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
-      completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
-      required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
-    });
-  });
-
-  it('requires symbol enrichment when the Symbol root scope is enabled', () => {
-    expect(createWorkspaceIndexAnalysisCacheTiers({
-      symbol: true,
-      'symbol:function': true,
-    })).toEqual({
-      active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
-      completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
-      required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
-    });
-  });
-
-  it('requires symbol enrichment when a Unity symbol row is enabled', () => {
-    expect(createWorkspaceIndexAnalysisCacheTiers({
-      'plugin:codegraphy.unity:symbol': true,
-      'plugin:codegraphy.unity:symbol:game-object': true,
-    })).toEqual({
+  it('indexes symbol enrichment independently of Graph Scope', () => {
+    expect(createWorkspaceIndexAnalysisCacheTiers()).toEqual({
       active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
       completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
       required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
@@ -91,6 +32,38 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
       'plugin:codegraphy.unity',
       'plugin:codegraphy.vue',
     ]);
+  });
+
+  it('infers legacy symbol cache coverage from symbol facts', () => {
+    expect(hasRequiredAnalysisCacheTiers({
+      filePath: '/workspace/src/app.ts',
+      relations: [{
+        kind: 'call',
+        sourceId: 'test',
+        fromFilePath: '/workspace/src/app.ts',
+        fromSymbolId: 'src/app.ts:function:run',
+      }],
+    }, [SYMBOLS_ANALYSIS_CACHE_TIER])).toBe(true);
+    expect(hasRequiredAnalysisCacheTiers({
+      filePath: '/workspace/src/app.ts',
+      symbols: [],
+    }, [SYMBOLS_ANALYSIS_CACHE_TIER])).toBe(true);
+  });
+
+  it('distinguishes explicit, plugin, baseline, and missing cache tiers', () => {
+    expect(hasRequiredAnalysisCacheTiers({
+      filePath: '/workspace/src/app.ts',
+      cache: { tiers: [BASELINE_ANALYSIS_CACHE_TIER, 'plugin:vue'] },
+    } as never, ['plugin:vue'])).toBe(true);
+    expect(hasRequiredAnalysisCacheTiers({
+      filePath: '/workspace/src/app.ts',
+      symbols: [{
+        id: 'component', filePath: '/workspace/src/app.ts', kind: 'component', name: 'App',
+        metadata: { pluginId: 'vue' },
+      }],
+    }, ['plugin:vue'])).toBe(true);
+    expect(hasRequiredAnalysisCacheTiers({ filePath: '/workspace/src/app.ts' }, [BASELINE_ANALYSIS_CACHE_TIER])).toBe(true);
+    expect(hasRequiredAnalysisCacheTiers({ filePath: '/workspace/src/app.ts' }, ['plugin:vue'])).toBe(false);
   });
 
   it('does not downgrade same-file symbol containment into a file self-edge', () => {

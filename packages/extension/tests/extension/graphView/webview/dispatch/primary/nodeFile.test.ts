@@ -10,9 +10,6 @@ function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},
 ): GraphViewPrimaryMessageContext {
   const context = {
-    getTimelineActive: vi.fn(() => false),
-    getCurrentCommitSha: vi.fn(() => undefined),
-    getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
@@ -21,7 +18,6 @@ function createContext(
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     openInEditor: vi.fn(),
     revealInExplorer: vi.fn(() => Promise.resolve()),
@@ -42,11 +38,7 @@ function createContext(
     showInformationMessage: vi.fn(),
     changeView: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
-    indexRepository: vi.fn(() => Promise.resolve()),
-    jumpToCommit: vi.fn(() => Promise.resolve()),
-    resetTimeline: vi.fn(() => Promise.resolve()),
     sendPhysicsSettings: vi.fn(),
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
@@ -75,20 +67,12 @@ function createContext(
 }
 
 describe('createGraphViewPrimaryNodeFileHandlers', () => {
-  it('reads timeline values and preserves file action handlers', () => {
-    const context = createContext({
-      getTimelineActive: vi.fn(() => true),
-      getCurrentCommitSha: vi.fn(() => 'abc123'),
-    });
-
+  it('preserves file action handlers', () => {
+    const context = createContext();
     const handlers = createGraphViewPrimaryNodeFileHandlers(context);
 
-    expect(handlers.timelineActive).toBe(true);
-    expect(handlers.canMutateGraphRevision).toBe(true);
-    expect(handlers.currentCommitSha).toBe('abc123');
     expect(handlers.openSelectedNode).toBe(context.openSelectedNode);
     expect(handlers.setFocusedFile).toBe(context.setFocusedFile);
-    expect(handlers.previewFileAtCommit).toBe(context.previewFileAtCommit);
     expect(handlers.getFileInfo).toBe(context.getFileInfo);
     expect(handlers.createFolder).toBe(context.createFolder);
     expect(handlers.indexGraph).toBeDefined();

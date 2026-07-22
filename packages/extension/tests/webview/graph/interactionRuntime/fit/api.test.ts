@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
-import {
-  get2dFitTransform,
-  getFitViewPadding,
-  getMeasuredSize,
-} from '../../../../../src/webview/components/graph/interactionRuntime/fit/api/controls';
+import { getMeasuredSize } from '../../../../../src/webview/components/graph/interactionRuntime/fit/measurement';
+import { getFitViewPadding } from '../../../../../src/webview/components/graph/interactionRuntime/fit/padding';
+import { get2dFitTransform } from '../../../../../src/webview/components/graph/interactionRuntime/fit/transform';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
   return {

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Remove focus rings from graph container and vis-network canvas */
+/* Remove focus rings from the graph container and canvas */
 .graph-container,
 .graph-container *,
 .graph-container canvas {
@@ -79,8 +79,6 @@
     --cg-graph-link-muted: var(--vscode-disabledForeground, GrayText);
     --cg-graph-node-selection-border: rgba(255, 255, 255, 0.78);
     --cg-graph-marquee-background: color-mix(in srgb, var(--cg-primary) 14%, transparent);
-    --cg-graph-mesh-dimmed: var(--vscode-disabledForeground, GrayText);
-    --cg-graph-mesh-selected: var(--vscode-foreground, CanvasText);
     --cg-menu-background: var(--vscode-menu-background, var(--cg-popover));
     --cg-menu-foreground: var(--vscode-menu-foreground, var(--cg-popover-foreground));
     --cg-menu-border: var(--vscode-menu-border, var(--cg-border));
@@ -122,22 +120,6 @@ body {
   font-size: var(--vscode-font-size, 13px);
   margin: 0;
   padding: 0;
-}
-
-body[data-codegraphy-view='timeline'] {
-  display: flex;
-  height: 100vh;
-  min-height: 0;
-  overflow: hidden;
-}
-
-body[data-codegraphy-view='timeline'] #root {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  width: 100%;
 }
 
 @layer utilities {

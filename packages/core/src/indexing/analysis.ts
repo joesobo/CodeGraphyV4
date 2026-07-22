@@ -7,6 +7,8 @@ import type { CorePluginRegistry } from '../plugins/registry';
 import { preAnalyzeCoreTreeSitterFiles } from '../treeSitter/core';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { getFileStat } from './fileStat';
+import type { WorkspaceIndexFileContentReader } from './workspace/changes';
+import { createWorkspaceIndexAnalysisCacheTiers } from '../analysis/fileAnalysis';
 
 function createCachedWorkspaceFileContentReader(
   discovery: FileDiscovery,
@@ -25,6 +27,33 @@ function createCachedWorkspaceFileContentReader(
   };
 }
 
+function pluginPreAnalyzesFile(
+  registry: CorePluginRegistry,
+  relativePath: string,
+): boolean {
+  const lowercasePath = relativePath.toLowerCase();
+  return registry.list().some(({ plugin }) => (
+    plugin.onPreAnalyze !== undefined
+    && (
+      plugin.supportedExtensions.includes('*')
+      || plugin.supportedExtensions.some(extension => lowercasePath.endsWith(extension.toLowerCase()))
+    )
+  ));
+}
+
+function selectWorkspaceIndexPreAnalysisFiles(
+  input: {
+    options: Pick<IndexCodeGraphyWorkspaceOptions, 'includeCorePlugins'>;
+    registry: CorePluginRegistry;
+  },
+  files: IDiscoveryResult['files'],
+): IDiscoveryResult['files'] {
+  return files.filter(file => (
+    (input.options.includeCorePlugins !== false && file.extension === '.cs')
+    || pluginPreAnalyzesFile(input.registry, file.relativePath)
+  ));
+}
+
 export async function analyzeWorkspaceIndexFiles(input: {
   cache: IWorkspaceAnalysisCache;
   discovery: FileDiscovery;
@@ -32,9 +61,16 @@ export async function analyzeWorkspaceIndexFiles(input: {
   disabledPlugins: Set<string>;
   options: IndexCodeGraphyWorkspaceOptions;
   registry: CorePluginRegistry;
+  readContent?: WorkspaceIndexFileContentReader;
   workspaceRoot: string;
 }) {
-  const readContent = createCachedWorkspaceFileContentReader(input.discovery);
+  const readContent = input.readContent ?? createCachedWorkspaceFileContentReader(input.discovery);
+  const activePluginIds = input.registry.list()
+    .map(({ plugin }) => plugin.id)
+    .filter(pluginId => !input.disabledPlugins.has(pluginId));
+  const cacheTiers = createWorkspaceIndexAnalysisCacheTiers(
+    activePluginIds,
+  );
 
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
@@ -49,6 +85,7 @@ export async function analyzeWorkspaceIndexFiles(input: {
         relations: [],
       })),
     cache: input.cache,
+    cacheTiers,
     files: input.discoveryResult.files,
     getFileStat,
     logInfo: input.options.logInfo ?? (() => undefined),
@@ -59,7 +96,7 @@ export async function analyzeWorkspaceIndexFiles(input: {
     }),
     preAnalyzeFiles: (files, rootPath, signal) =>
       preAnalyzeWorkspacePipelineFiles(
-        files,
+        selectWorkspaceIndexPreAnalysisFiles(input, files),
         rootPath,
         {
           notifyPreAnalyze: async (preAnalyzeFiles, preAnalyzeRootPath) => {

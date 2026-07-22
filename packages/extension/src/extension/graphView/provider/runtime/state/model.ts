@@ -9,8 +9,7 @@ import { DecorationManager } from '../../../../../core/plugins/decoration/manage
 import { EventBus } from '../../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
-import { GitHistoryAnalyzer } from '../../../../gitHistory/analyzer';
+import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import { WorkspacePipeline } from '../../../../pipeline/service/lifecycleFacade';
 import {
   createGraphViewProviderMethodContainers,
@@ -49,7 +48,6 @@ import {
 
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
-  protected _timelineView?: vscode.WebviewView;
   protected _panels!: vscode.WebviewPanel[];
   protected _graphData!: IGraphData;
   protected _analyzer?: WorkspacePipeline;
@@ -60,7 +58,6 @@ export class GraphViewProviderRuntime {
   protected _changedFilePaths!: string[];
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode!: boolean;
-  protected _dagMode!: DagMode;
   protected _nodeSizeMode!: NodeSizeMode;
   protected _rawGraphData!: IGraphData;
   protected _viewContext!: IViewContext;
@@ -68,9 +65,6 @@ export class GraphViewProviderRuntime {
   protected _userGroups!: IGroup[];
   protected _filterPatterns!: string[];
   protected _disabledPlugins!: Set<string>;
-  protected _gitAnalyzer?: GitHistoryAnalyzer;
-  protected _currentCommitSha?: string;
-  protected _timelineActive!: boolean;
   protected _eventBus: EventBus;
   protected _decorationManager: DecorationManager;
   protected _firstAnalysis!: boolean;
@@ -94,7 +88,6 @@ export class GraphViewProviderRuntime {
   declare protected readonly _queryMethods: GraphViewProviderMethodContainers['query'];
   declare protected readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   declare protected readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
-  declare protected readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];
   declare protected readonly _viewContextMethods: GraphViewProviderMethodContainers['viewContext'];
   declare protected readonly _viewSelectionMethods: GraphViewProviderMethodContainers['viewSelection'];
   declare protected readonly _webviewMethods: GraphViewProviderMethodContainers['webview'];
@@ -228,7 +221,6 @@ export class GraphViewProviderRuntime {
     );
 
     this._depthMode = restoredState.depthMode;
-    this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
   }
 

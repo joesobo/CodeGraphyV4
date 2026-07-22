@@ -15,10 +15,10 @@ import {
 const mockState = vi.hoisted(() => ({
   databaseCache: {
     clearWorkspaceAnalysisDatabaseCache: vi.fn(),
-    getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.lbug`),
+    getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.sqlite`),
     loadWorkspaceAnalysisDatabaseCache: vi.fn(() => ({ files: {}, version: '2.0.0' })),
     loadWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => ({ files: {}, version: '2.0.0' })),
-    readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], symbols: [], relations: [] })),
+    readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], graph: { nodes: [], edges: [] }, symbols: [], relations: [] })),
     saveWorkspaceAnalysisDatabaseCache: vi.fn(),
     saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
   },
@@ -103,6 +103,7 @@ describe('extension/pluginIntegration/typescript', () => {
     });
     mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot.mockReturnValue({
       files: [],
+      graph: { nodes: [], edges: [] },
       symbols: [],
       relations: [],
     });

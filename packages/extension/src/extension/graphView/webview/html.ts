@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
 const NONCE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-export type CodeGraphyWebviewKind = 'graph' | 'timeline';
 export type CodeGraphyWebviewThemeKind = 'light' | 'dark' | 'high-contrast';
 
 export function createGraphViewNonce(random: () => number = Math.random): string {
@@ -16,7 +15,6 @@ export function createGraphViewHtml(
   extensionUri: vscode.Uri,
   webview: Pick<vscode.Webview, 'asWebviewUri' | 'cspSource'>,
   nonce: string,
-  viewKind: CodeGraphyWebviewKind,
   initialTheme: CodeGraphyWebviewThemeKind = 'dark',
   enableGraphDebug = false,
 ): string {
@@ -32,11 +30,11 @@ export function createGraphViewHtml(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}'; connect-src ${webview.cspSource}; img-src ${webview.cspSource} data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}' 'wasm-unsafe-eval'; worker-src ${webview.cspSource} blob:; connect-src ${webview.cspSource}; img-src ${webview.cspSource} data:;">
   <link href="${styleUri.toString()}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>
-<body data-codegraphy-view="${viewKind}" data-codegraphy-theme="${initialTheme}"${enableGraphDebug ? ' data-codegraphy-debug="true"' : ''}>
+<body data-codegraphy-theme="${initialTheme}"${enableGraphDebug ? ' data-codegraphy-debug="true"' : ''}>
   <div id="root"></div>
   <script type="module" nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

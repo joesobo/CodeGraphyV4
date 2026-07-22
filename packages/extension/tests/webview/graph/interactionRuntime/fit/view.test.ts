@@ -29,7 +29,6 @@ describe('graph/interactionRuntime/fitView', () => {
     expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(50, 50, 300);
     expect(zoom).toHaveBeenNthCalledWith(1, expect.closeTo(0.8461538461538461, 5), 300);
     expect(dependencies.fg2dRef.current?.zoomToFit).not.toHaveBeenCalled();
-    expect(dependencies.fg3dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
   it('falls back to zoom-to-fit when 2d bounds cannot be measured', () => {
@@ -37,16 +36,6 @@ describe('graph/interactionRuntime/fitView', () => {
     fitGraphView(dependencies);
 
     expect(dependencies.fg2dRef.current?.zoomToFit).toHaveBeenCalledWith(300, expect.any(Number));
-  });
-
-  it('fits the 3d graph view', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-    });
-
-    fitGraphView(dependencies);
-
-    expect(dependencies.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 20);
   });
 
   it('pads 2d fit view by the largest rendered node size when available', () => {
@@ -123,12 +112,4 @@ describe('graph/interactionRuntime/fitView', () => {
     expect(() => fitGraphView(dependencies)).not.toThrow();
   });
 
-  it('tolerates a missing 3d graph ref when fitting the view', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-      fg3dRef: { current: undefined },
-    });
-
-    expect(() => fitGraphView(dependencies)).not.toThrow();
-  });
 });

@@ -7,7 +7,6 @@ describe('graph/debugOptions', () => {
       renderer: {
         containerRef: { current: null },
         fg2dRef: { current: undefined },
-        fg3dRef: { current: undefined },
         graphDataRef: { current: { nodes: [] } },
       },
     };
@@ -23,7 +22,6 @@ describe('graph/debugOptions', () => {
 
     expect(
       buildGraphDebugOptions({
-        graphMode: '3d',
         graphState: graphState as never,
         interactions: interactions as never,
         win,
@@ -32,9 +30,7 @@ describe('graph/debugOptions', () => {
       containerRef: graphState.renderer.containerRef,
       fitView,
       fg2dRef: graphState.renderer.fg2dRef,
-      fg3dRef: graphState.renderer.fg3dRef,
       graphDataRef: graphState.renderer.graphDataRef,
-      graphMode: '3d',
       openNodeContextMenu,
       win,
     });

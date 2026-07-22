@@ -57,4 +57,41 @@ describe('core/graph/symbolRelations', () => {
     ]);
     expect(edges.map((edge) => edge.sources[0]?.variant)).toEqual(['soft', 'hard']);
   });
+
+  it('falls back to known files when symbol endpoints are not materialized', () => {
+    const edges = createSymbolRelationEdges(
+      new Map([
+        ['src/source.cs', {
+          filePath: '/workspace/src/source.cs',
+          symbols: [],
+          relations: [
+            {
+              kind: 'type',
+              sourceId: 'core:treesitter:type',
+              fromFilePath: '/workspace/src/source.cs',
+              fromSymbolId: '/workspace/src/source.cs:method:Dispatch',
+              toFilePath: '/workspace/src/target.cs',
+              toSymbolId: '/workspace/src/target.cs:record:DispatchResult',
+            },
+            {
+              kind: 'type',
+              sourceId: 'core:treesitter:type',
+              fromFilePath: '/workspace/src/source.cs',
+              fromSymbolId: '/workspace/src/source.cs:method:Missing',
+              toSymbolId: '/workspace/src/missing.cs:record:Missing',
+            },
+          ],
+        }],
+      ]),
+      '/workspace',
+    );
+
+    expect(edges).toEqual([
+      expect.objectContaining({
+        id: 'src/source.cs->src/target.cs#type',
+        from: 'src/source.cs',
+        to: 'src/target.cs',
+      }),
+    ]);
+  });
 });

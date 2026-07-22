@@ -4,7 +4,7 @@ import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
 import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
-import { LoadingState, EmptyState } from './states';
+import { EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
 import { GraphIndexStatus } from '../../components/graphIndexStatus/view';
 import { RulePrompt, type RulePromptState } from '../rulePrompt/view';
@@ -21,8 +21,14 @@ import { useFilterPopoverState } from './filterPopover';
 import { useVisibleGraphStateResponse } from './visibleGraphResponse';
 import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
+import { renderGraphStartupState, useGraphPhysicsPreparation } from './physicsPreparation';
 
-export default function App(): React.ReactElement {
+export interface AppShellProps {
+  graphPhysicsPreparation?: Promise<void>;
+}
+
+export default function App({ graphPhysicsPreparation }: AppShellProps): React.ReactElement {
+  const graphPhysics = useGraphPhysicsPreparation(graphPhysicsPreparation);
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
   const {
     graphData,
@@ -37,7 +43,6 @@ export default function App(): React.ReactElement {
     disabledCustomFilterPatterns,
     disabledPluginFilterPatterns,
     showOrphans,
-    timelineActive,
     activePanel,
     depthMode,
     nodeColors,
@@ -60,6 +65,7 @@ export default function App(): React.ReactElement {
     setDisabledPluginFilterPatterns,
   } = useAppActions();
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
+  const showMinimap = useGraphStore((state) => state.showMinimap);
   const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
   const {
     filterPopoverOpen,
@@ -133,10 +139,11 @@ export default function App(): React.ReactElement {
   const displayGraphData = coloredData || visibleGraphInput;
   useVisibleGraphStateResponse(displayGraphData);
 
-  if (isLoading) return <LoadingState />;
+  const startupState = renderGraphStartupState(graphPhysics, isLoading);
+  if (startupState) return startupState;
 
   if (!graphData) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)} />;
+    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} />;
   }
 
   const loadedDisplayGraphData = displayGraphData ?? graphData;
@@ -193,7 +200,6 @@ export default function App(): React.ReactElement {
           coloredData={coloredData}
           showOrphans={effectiveShowOrphans}
           depthMode={depthMode}
-          timelineActive={timelineActive}
           theme={theme}
           nodeDecorations={nodeDecorations}
           edgeDecorations={graphEdgeDecorations}
@@ -209,7 +215,11 @@ export default function App(): React.ReactElement {
           pluginHost={pluginHost}
           onClosePanel={closeActivePanel}
         />
-        <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
+        <GraphIndexStatus
+          isIndexing={graphIsIndexing}
+          progress={graphIndexProgress}
+          showMinimap={showMinimap}
+        />
         <RulePrompt
           state={rulePrompt}
           onClose={closeRulePrompt}

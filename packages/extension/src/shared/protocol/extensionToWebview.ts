@@ -8,13 +8,11 @@ import type { IPluginStatus } from '../plugins/status';
 import type { IGraphControlsSnapshot } from '../graphControls/contracts';
 import type {
   BidirectionalEdgeMode,
-  DagMode,
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
-import type { ITimelineData } from '../timeline/contracts';
 
 export interface IPluginFilterPatternGroup {
   pluginId: string;
@@ -41,7 +39,6 @@ export interface IGraphViewContributionStatus {
 export interface IGraphNodeMetricsUpdate {
   id: IGraphNode['id'];
   fileSize: IGraphNode['fileSize'];
-  churn: IGraphNode['churn'];
 }
 
 export type ExtensionToWebviewMessage =
@@ -66,7 +63,11 @@ export type ExtensionToWebviewMessage =
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | {
       type: 'SETTINGS_UPDATED';
-      payload: { bidirectionalEdges: BidirectionalEdgeMode; showOrphans: boolean };
+      payload: {
+        bidirectionalEdges: BidirectionalEdgeMode;
+        showMinimap: boolean;
+        showOrphans: boolean;
+      };
     }
   | { type: 'REQUEST_EXPORT_PNG' }
   | { type: 'REQUEST_EXPORT_SVG' }
@@ -101,16 +102,11 @@ export type ExtensionToWebviewMessage =
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
+  | { type: 'SHOW_FPS_UPDATED'; payload: { showFps: boolean } }
   | { type: 'VERBOSE_DIAGNOSTICS_UPDATED'; payload: { verboseDiagnostics: boolean } }
   | { type: 'CSS_SNIPPETS_UPDATED'; payload: { snippets: Record<string, boolean>; stylesheets: string[] } }
   | { type: 'PLUGIN_DATA_UPDATED'; payload: { pluginId: string; data: unknown } }
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
-  | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
-  | { type: 'TIMELINE_DATA'; payload: ITimelineData }
-  | { type: 'COMMIT_GRAPH_DATA'; payload: { sha: string; graphData: IGraphData } }
-  | { type: 'PLAYBACK_SPEED_UPDATED'; payload: { speed: number } }
-  | { type: 'CACHE_INVALIDATED' }
-  | { type: 'PLAYBACK_ENDED' }
   | { type: 'GET_NODE_BOUNDS' }
   | { type: 'GET_GRAPH_RUNTIME_STATE' }
   | { type: 'GET_VISIBLE_GRAPH_STATE' }
@@ -141,8 +137,5 @@ export type ExtensionToWebviewMessage =
       }>;
     };
   }
-  | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
   | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
-  | { type: 'TOGGLE_DEPTH_MODE' }
-  | { type: 'CYCLE_LAYOUT' }
-  | { type: 'TOGGLE_DIMENSION' };
+  | { type: 'TOGGLE_DEPTH_MODE' };

@@ -33,6 +33,7 @@ function createSource() {
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _eventBus: { emit },
+    _completeGraphData: undefined as IGraphData | undefined,
     _lastDiscoveredDirectories: [] as string[],
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
     _lastFileAnalysis: new Map(),
@@ -85,7 +86,7 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.saveCache).not.toHaveBeenCalled();
   });
 
-  it('uses only default and plugin filters when user filters are omitted', async () => {
+  it('uses only index-membership exclusions during discovery', async () => {
     const source = createSource();
     const dependencies = createDependencies();
 
@@ -95,7 +96,7 @@ describe('pipeline/analysis/analyze', () => {
       rootPath: '/workspace',
       maxFiles: 25,
       include: ['**/*'],
-      exclude: [...DEFAULT_EXCLUDE, '**/*.generated.ts'],
+      exclude: [...DEFAULT_EXCLUDE],
       respectGitignore: true,
       signal: undefined,
     });
@@ -114,6 +115,13 @@ describe('pipeline/analysis/analyze', () => {
     const graphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
+    };
+    const completeGraphData: IGraphData = {
+      nodes: [
+        ...graphData.nodes,
+        { id: 'src/index.ts#main', label: 'main', color: '#93C5FD', nodeType: 'symbol' },
+      ],
+      edges: graphData.edges,
     };
 
     dependencies.discover.mockResolvedValue({
@@ -143,6 +151,7 @@ describe('pipeline/analysis/analyze', () => {
       },
     );
     source._buildGraphDataFromAnalysis.mockReturnValue(graphData);
+    source._completeGraphData = completeGraphData;
 
     await expect(
       analyzeWorkspaceWithAnalyzer(
@@ -175,7 +184,7 @@ describe('pipeline/analysis/analyze', () => {
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
-    expect(dependencies.saveCache).toHaveBeenCalledWith(expect.any(Function));
+    expect(dependencies.saveCache).toHaveBeenCalledWith(completeGraphData, expect.any(Function));
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Discovered 1 files in 4ms');
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Graph built: 1 nodes, 1 edges');
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(1, {

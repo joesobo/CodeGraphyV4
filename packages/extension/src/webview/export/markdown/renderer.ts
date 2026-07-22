@@ -4,7 +4,7 @@ import {
 } from './edge/entries';
 import { appendLegendLines } from './legendEntries';
 import { appendNodeLines } from './nodeEntries';
-import { appendSection, appendTimelineSummary } from './summary';
+import { appendSection } from './summary';
 
 export function renderMarkdownExport(data: ExportData): string {
   const lines: string[] = [
@@ -13,7 +13,6 @@ export function renderMarkdownExport(data: ExportData): string {
     `> ${data.summary.totalNodes} nodes, ${data.summary.totalEdges} edges`,
   ];
 
-  appendTimelineSummary(lines, data);
   appendSection(lines, '## Legend');
   appendLegendLines(lines, data);
   appendSection(lines, '## Nodes');

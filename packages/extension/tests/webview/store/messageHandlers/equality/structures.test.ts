@@ -23,4 +23,9 @@ describe('webview/store/messageHandlers/equality/structures', () => {
     expect(arePlainObjectValuesEqual({ value: 1 }, ['value', 1])).toBe(false);
     expect(arePlainObjectValuesEqual({ value: 1 }, { value: 2 })).toBe(false);
   });
+
+  it('treats explicit undefined object keys as part of webview message state', () => {
+    expect(arePlainObjectValuesEqual({}, { extra: undefined })).toBe(false);
+    expect(arePlainObjectValuesEqual({ leftKey: undefined }, { rightKey: undefined })).toBe(true);
+  });
 });

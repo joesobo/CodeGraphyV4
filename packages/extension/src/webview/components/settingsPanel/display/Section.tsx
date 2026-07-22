@@ -11,6 +11,7 @@ import { Switch } from '../../ui/switch';
 import { useDisplayStore } from './use/store';
 import { useParticleSettings } from './use/particles';
 import { getDisplayViewState } from './state/selectors';
+import { MinimapToggle } from './MinimapToggle';
 
 export function DisplaySection(): React.ReactElement {
   const {
@@ -19,31 +20,29 @@ export function DisplaySection(): React.ReactElement {
     depthMode,
     directionMode,
     graphHasIndex,
-    graphMode,
     maxDepthLimit,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
     setDepthMode,
     setDirectionMode,
-    setGraphMode,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
+    setShowMinimap,
     setShowOrphans,
     showLabels,
+    showMinimap,
     showOrphans,
   } = useDisplayStore();
   const {
     bidirectionalOptions,
     directionOptions,
     displayParticleSpeed,
-    graphModeOptions,
     showParticleControls,
   } = getDisplayViewState({
     bidirectionalMode,
     directionMode,
-    graphMode,
     particleSpeed,
   });
   const {
@@ -66,10 +65,6 @@ export function DisplaySection(): React.ReactElement {
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
   };
 
-  const onGraphModeChange = (mode: '2d' | '3d') => {
-    setGraphMode(mode);
-  };
-
   const onDepthModeChange = (checked: boolean) => {
     setDepthMode(checked);
     postMessage({ type: 'UPDATE_DEPTH_MODE', payload: { depthMode: checked } });
@@ -85,6 +80,11 @@ export function DisplaySection(): React.ReactElement {
     postMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: checked } });
   };
 
+  const onShowMinimapChange = (checked: boolean) => {
+    setShowMinimap(checked);
+    postMessage({ type: 'UPDATE_SHOW_MINIMAP', payload: { showMinimap: checked } });
+  };
+
   return (
     <section className="mb-2 space-y-3" data-codegraphy-section="settings-display">
       <div
@@ -92,14 +92,6 @@ export function DisplaySection(): React.ReactElement {
         data-testid="display-mode-controls"
         className="space-y-2"
       >
-        <div data-codegraphy-row="display-renderer" data-testid="display-renderer-row">
-          <ModeButtons
-            label="Renderer"
-            onSelect={onGraphModeChange}
-            options={graphModeOptions}
-          />
-        </div>
-
         <div data-codegraphy-row="display-direction" data-testid="display-direction-row">
           <ModeButtons
             label="Direction"
@@ -168,6 +160,7 @@ export function DisplaySection(): React.ReactElement {
       )}
 
       <LabelsToggle checked={showLabels} onCheckedChange={onShowLabelsChange} />
+      <MinimapToggle checked={showMinimap} onCheckedChange={onShowMinimapChange} />
     </section>
   );
 }

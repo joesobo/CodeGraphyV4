@@ -24,6 +24,14 @@ out/
 reports/
 .stryker-tmp/
 .pnpm-store/
+
+.claude/
+
+/docs/plans/
+/docs/handoff/
+/docs/archive/
+/docs/superpowers/
+
 .codegraphy/*
 !.codegraphy/settings.json
 !.codegraphy/particles/

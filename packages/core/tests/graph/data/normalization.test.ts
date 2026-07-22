@@ -24,7 +24,6 @@ describe('core/graph/data symbol normalization', () => {
         }],
       ]),
       showOrphans: true,
-      churnCounts: {},
       nodeVisibility: VARIABLE_NODE_VISIBILITY,
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.godot'),
@@ -36,7 +35,6 @@ describe('core/graph/data symbol normalization', () => {
         label: 'score',
         color: '#14B8A6',
         fileSize: 20,
-        churn: 0,
         nodeType: 'variable',
         symbol: {
           id: 'src/player.gd#score:field:var%20score%3A%20int',

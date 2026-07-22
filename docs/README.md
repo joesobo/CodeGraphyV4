@@ -1,42 +1,39 @@
-# Docs
+# Documentation
 
-Use the root [README](../README.md) for the release overview, marketplace links, package map, and the V2 to V4 migration story.
-Published packages support Node 20 and newer. The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
+Start with the root [README](../README.md) for installation, the product overview, CLI access, and the package map.
 
-The rest of the docs are split by purpose:
+## Product Reference
 
-- `docs/COMMANDS.md`, `docs/INTERACTIONS.md`, `docs/KEYBINDINGS.md`, `docs/MCP.md`, `docs/PHILOSOPHY.md`, `docs/SETTINGS.md`, `docs/TIMELINE.md` - product and user-facing docs
-- `docs/plans/` - active task plans and working notes
-- `docs/plugin-api/` - plugin contract, lifecycle, and type reference
-- `docs/quality/` - quality-tooling docs and commands
-- `packages/mcp/README.md` - MCP package install, commands, prompts, and saved-view query notes
-- `skills/codegraphy-mcp/SKILL.md` - reusable agent skill for using CodeGraphy first on repo-structure and impact questions
-- `packages/plugin-*/README.md` and `packages/plugin-api/README.md` - release-facing package readmes for npm plugin packages and the Plugin API
-- `packages/extension/docs/` - current extension-package architecture, messages, lifecycle, and testing notes
-- `docs/archive/` - historical plans, specs, and superseded guides
+| Document | Covers |
+|---|---|
+| [Settings](./SETTINGS.md) | `.codegraphy/settings.json`, Graph Scope, Display, Forces, Performance, CSS Snippets, and workspace state. |
+| [Interactions](./INTERACTIONS.md) | Node, Graph Stage, minimap, context menu, tool rail, panel, and export behavior. |
+| [Commands](./COMMANDS.md) | VS Code Command Palette commands and IDs. |
+| [Keyboard Shortcuts](./KEYBINDINGS.md) | Default shortcuts and `when` contexts. |
+| [Verbose Diagnostics](./DIAGNOSTICS.md) | Extension and CLI support logging. |
+| [Plugin Guide](./PLUGINS.md) | Plugin packaging, registration, enablement, analysis, and Graph View contributions. |
+| [Philosophy](./PHILOSOPHY.md) | The product idea and design principles. |
 
-If a doc describes old refactor intent instead of current behavior, it belongs in `docs/archive/`.
+The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language. The ADRs under [`docs/adr/`](./adr/) record durable technical decisions.
 
-## Public Package Guide
+## Developer Reference
 
-| Package | Path | Where To Start | Role |
-|---|---|---|
-| `@codegraphy-dev/core` | `packages/core` | [root README](../README.md) and [core package README](../packages/core/README.md) | shared engine package for Indexing, Graph Cache access, and Graph Query execution |
-| CodeGraphy VS Code extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, VS Code lifecycle integration, commands, webviews, context menus, and editor integration |
-| `@codegraphy-dev/mcp` | `packages/mcp` | [MCP setup](./MCP.md) and [package README](../packages/mcp/README.md) | Optional agent-agnostic local MCP server backed by core |
-| `@codegraphy-dev/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
-| language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional headless npm plugins for language- and framework-specific graph enrichment on top of core analysis |
-| quality tools | external `@poleski/quality-tools` package | [quality docs](./quality/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
+| Area | Where to start |
+|---|---|
+| Core engine and CLI | [`packages/core/README.md`](../packages/core/README.md) |
+| VS Code extension | [`packages/extension/docs/README.md`](../packages/extension/docs/README.md) |
+| Graph renderer | [`packages/graph-renderer/README.md`](../packages/graph-renderer/README.md) |
+| Plugin API | [`packages/plugin-api/README.md`](../packages/plugin-api/README.md) and [`docs/plugin-api/`](./plugin-api/) |
+| Language and feature plugins | `packages/plugin-*/README.md` |
+| Example workspaces | [`examples/README.md`](../examples/README.md) |
+| Quality tools | [`docs/quality/README.md`](./quality/README.md) |
+| Releases | [`docs/RELEASING.md`](./RELEASING.md) |
+| Contribution workflow | [`CONTRIBUTING.md`](../CONTRIBUTING.md) |
 
-`@codegraphy-dev/core`, the VS Code extension, and `@codegraphy-dev/mcp` all read and write the same workspace-local Graph Cache. MCP can index/query a CodeGraphy Workspace without opening or focusing VS Code.
+## Documentation Policy
 
-## Internal Package Orientation
-
-The monorepo package boundary is the main way to navigate the project:
-
-- `packages/core` owns Indexing, File Discovery, Tree-sitter Analysis, plugin analysis, Graph Cache storage, and Graph Query execution.
-- `packages/extension` owns the VS Code host, React webview, editor lifecycle, commands, webviews, and visualization adapters over `@codegraphy-dev/core`.
-- `packages/mcp` owns agent access and forwards path-first Indexing and Graph Query requests to `@codegraphy-dev/core`.
-- `packages/plugin-api` owns the public TypeScript contracts for plugins.
-- `packages/plugin-*` packages are optional headless npm language plugins.
-- `@poleski/quality-tools` owns the reusable checks that keep modules deep, package boundaries visible, and high-risk code covered.
+- Describe current behavior in the closest product, package, or developer reference.
+- Record a durable technical decision as an ADR.
+- Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan documents.
+- Use package changelogs for shipped release history. Do not keep a second documentation archive.
+- Remove superseded guidance instead of labeling it historical and leaving it in the main navigation.

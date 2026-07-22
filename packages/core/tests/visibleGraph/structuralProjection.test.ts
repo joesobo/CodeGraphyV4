@@ -157,7 +157,6 @@ describe('visibleGraph structural projection', () => {
           color: '',
           nodeType: 'package',
           shape2D: 'hexagon',
-          shape3D: 'cube',
         },
         {
           id: 'pkg:workspace:packages/core',
@@ -165,7 +164,6 @@ describe('visibleGraph structural projection', () => {
           color: '',
           nodeType: 'package',
           shape2D: 'hexagon',
-          shape3D: 'cube',
         },
       ],
     });
@@ -265,7 +263,6 @@ describe('visibleGraph structural projection', () => {
           color: '',
           nodeType: 'package',
           shape2D: 'hexagon',
-          shape3D: 'cube',
         },
         {
           id: 'pkg:workspace:packages/core',
@@ -273,7 +270,6 @@ describe('visibleGraph structural projection', () => {
           color: '',
           nodeType: 'package',
           shape2D: 'hexagon',
-          shape3D: 'cube',
         },
       ],
       edges: [

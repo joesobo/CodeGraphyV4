@@ -339,13 +339,12 @@ export function requiresSymbolAnalysisCacheTier(
 }
 
 export function createWorkspaceIndexAnalysisCacheTiers(
-  nodeVisibility: Readonly<Record<string, boolean>>,
   pluginIds: readonly string[] = [],
 ): AnalysisCacheTierOptions {
-  const activeTiers: AnalysisCacheTier[] = [BASELINE_ANALYSIS_CACHE_TIER];
-  if (requiresSymbolAnalysisCacheTier(nodeVisibility)) {
-    activeTiers.push(SYMBOLS_ANALYSIS_CACHE_TIER);
-  }
+  const activeTiers: AnalysisCacheTier[] = [
+    BASELINE_ANALYSIS_CACHE_TIER,
+    SYMBOLS_ANALYSIS_CACHE_TIER,
+  ];
   activeTiers.push(...pluginIds.map(createPluginAnalysisCacheTier));
 
   return {

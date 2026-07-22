@@ -4,7 +4,6 @@ import type { GraphViewProviderSidebarViewSource } from './sidebarViews';
 import {
   assignResolvedWebviewView,
   clearResolvedWebviewView,
-  getWebviewKind,
   maybeFlushPendingWorkspaceRefresh,
 } from './resolve/views';
 
@@ -22,34 +21,24 @@ export function resolveGraphViewProviderWebviewView(
   >,
   webviewView: vscode.WebviewView,
 ): void {
-  const viewKind = getWebviewKind(webviewView);
-  assignResolvedWebviewView(
-    source,
-    webviewView,
-    viewKind,
-    dependencies.getWorkspaceTitle?.(),
-  );
+  assignResolvedWebviewView(source, webviewView, dependencies.getWorkspaceTitle?.());
 
   webviewView.onDidDispose(() => {
-    clearResolvedWebviewView(source, webviewView, viewKind);
+    clearResolvedWebviewView(source, webviewView);
   });
 
   webviewView.onDidChangeVisibility(() => {
-    maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
+    maybeFlushPendingWorkspaceRefresh(source, webviewView);
   });
 
   dependencies.resolveWebviewView(webviewView, {
     getLocalResourceRoots: () => source._getLocalResourceRoots(),
     setWebviewMessageListener: (nextWebview: vscode.Webview) =>
-      dependencies.setWebviewMessageListener(nextWebview as never, source as never, viewKind),
+      dependencies.setWebviewMessageListener(nextWebview as never, source as never),
     getHtml: (nextWebview: vscode.Webview) =>
-      dependencies.createHtml(
-        source._extensionUri,
-        nextWebview,
-        viewKind,
-      ),
+      dependencies.createHtml(source._extensionUri, nextWebview),
     executeCommand: (command: string, key: string, value: boolean) =>
       dependencies.executeCommand(command, key, value),
   } as never);
-  maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
+  maybeFlushPendingWorkspaceRefresh(source, webviewView);
 }

@@ -1,28 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { EdgeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
-import type { DirectionMode } from '../../../../../src/shared/settings/modes';
-import type { ThemeKind } from '../../../../../src/webview/theme/useTheme';
 import type { FGLink } from '../../../../../src/webview/components/graph/model/build';
 import {
-  getGraphArrowRelPos,
+  getGraphLinkOpacity,
   getGraphLinkParticles,
   getGraphLinkWidth,
-  getLinkCanvasObjectMode,
 } from '../../../../../src/webview/components/graph/rendering/link/metrics';
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
-  directionMode: DirectionMode;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   highlightedNodeId: string | null;
-  theme: ThemeKind;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
-    directionModeRef: { current: overrides.directionMode ?? 'arrows' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
-    themeRef: { current: overrides.theme ?? 'dark' },
   };
 }
 
@@ -80,8 +71,29 @@ describe('graph/rendering/link/metrics', () => {
     expect(count).toBe(0);
   });
 
-  it('returns an arrow relative position of 1 so arrows end at the node border', () => {
-    expect(getGraphArrowRelPos()).toBe(1);
+  it('dims ordinary edges while preserving decoration and highlight emphasis', () => {
+    const decoratedOpacity = getGraphLinkOpacity(
+      createDependencies({
+        edgeDecorations: {
+          'src/app.ts->src/utils.ts': { opacity: 0.6 },
+        },
+      }),
+      createLink(),
+    );
+    const ordinaryOpacity = getGraphLinkOpacity(createDependencies(), createLink());
+    const connectedOpacity = getGraphLinkOpacity(
+      createDependencies({ highlightedNodeId: 'src/app.ts' }),
+      createLink(),
+    );
+    const unrelatedOpacity = getGraphLinkOpacity(
+      createDependencies({ highlightedNodeId: 'src/other.ts' }),
+      createLink(),
+    );
+
+    expect(decoratedOpacity).toBe(0.6);
+    expect(ordinaryOpacity).toBe(0.3);
+    expect(connectedOpacity).toBe(0.9);
+    expect(unrelatedOpacity).toBe(0.12);
   });
 
   it('uses edge decoration widths before falling back to highlight-based widths', () => {
@@ -138,10 +150,10 @@ describe('graph/rendering/link/metrics', () => {
     expect(width).toBe(2);
   });
 
-  it('uses the bidirectional default width when nothing is highlighted', () => {
+  it('uses a hairline width for ordinary bidirectional edges', () => {
     const width = getGraphLinkWidth(createDependencies(), createLink({ bidirectional: true }));
 
-    expect(width).toBe(2);
+    expect(width).toBe(1);
   });
 
   it('uses the thin default width when a highlighted node is unrelated to the link', () => {
@@ -154,13 +166,5 @@ describe('graph/rendering/link/metrics', () => {
     );
 
     expect(width).toBe(1);
-  });
-
-  it('uses replace mode only for bidirectional links in arrows mode', () => {
-    const replaceMode = getLinkCanvasObjectMode('arrows', createLink());
-    const afterMode = getLinkCanvasObjectMode('particles', createLink());
-
-    expect(replaceMode).toBe('replace');
-    expect(afterMode).toBe('after');
   });
 });

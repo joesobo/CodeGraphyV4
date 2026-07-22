@@ -5,17 +5,13 @@ import {
   ContextMenuTrigger,
 } from '../../ui/context/menu';
 import { NodeTooltip } from '../../nodeTooltip/view';
-import type { FGLink, FGNode } from '../model/build';
 import { GraphAccessibilityOverlay } from './accessibilityLayer/overlay';
 import {
   createMenuEntriesSignature,
   ViewportContextMenuItems,
 } from './contextMenu/view';
+import type { GraphAccessibilityItems } from './accessibility';
 import type { ViewportProps } from './contracts';
-import {
-  resolveViewportAccessibilityItems,
-  resolveViewportHandlers,
-} from './handlers';
 import { ViewportMarqueeSelectionOverlay } from './overlays/marquee';
 import {
   ViewportPluginBackground,
@@ -24,43 +20,36 @@ import {
 } from './overlays/plugins';
 import { MemoizedViewportSurface } from './surface/view';
 import { createNodeTooltipProps } from './tooltip/props';
+import { GRAPH_STAGE_INSET } from './layout';
 
 export type { ViewportProps } from './contracts';
 
+const EMPTY_ACCESSIBILITY_ITEMS: GraphAccessibilityItems = { nodes: [], edges: [] };
+const ignoreGraphInteraction = () => undefined;
+
 export function Viewport({
-  accessibilityItems,
+  accessibilityItems = EMPTY_ACCESSIBILITY_ITEMS,
   canvasBackgroundColor,
   containerBackgroundColor,
-  borderColor,
   containerRef,
   directionMode,
-  graphMode,
   handleContextMenu,
   handleMenuAction,
   handleMouseDownCapture,
   handleMouseLeave,
   handleMouseMoveCapture,
   handleMouseUpCapture,
-  handleEdgeContextMenu,
-  handleNodeClick,
-  handleNodeContextMenu,
-  handleNodeHover,
+  handleEdgeContextMenu = ignoreGraphInteraction,
+  handleNodeClick = ignoreGraphInteraction,
+  handleNodeContextMenu = ignoreGraphInteraction,
+  handleNodeHover = ignoreGraphInteraction,
   marqueeSelection,
   menuEntries,
   surface2dProps,
-  surface3dProps,
   tooltipData,
-  onSurface3dError,
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
-  const resolvedAccessibilityItems = resolveViewportAccessibilityItems(accessibilityItems);
-  const resolvedHandlers = resolveViewportHandlers({
-    handleEdgeContextMenu,
-    handleNodeClick,
-    handleNodeContextMenu,
-    handleNodeHover,
-  });
 
   return (
     <ContextMenu>
@@ -73,8 +62,12 @@ export function Viewport({
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
-          className="graph-container absolute inset-2 overflow-hidden rounded-md outline-none focus:outline-none"
-          style={{ backgroundColor: containerBackgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
+          className="graph-container absolute overflow-hidden rounded-md outline-none focus:outline-none"
+          style={{
+            backgroundColor: containerBackgroundColor,
+            cursor: 'default',
+            inset: GRAPH_STAGE_INSET,
+          }}
           aria-label="Graph Stage"
           tabIndex={0}
         >
@@ -82,22 +75,19 @@ export function Viewport({
           <MemoizedViewportSurface
             canvasBackgroundColor={canvasBackgroundColor}
             directionMode={directionMode}
-            graphMode={graphMode}
-            onSurface3dError={onSurface3dError}
             surface2dProps={surface2dProps}
-            surface3dProps={surface3dProps}
           />
           <ViewportPluginWorldOverlay pluginHost={pluginHost} />
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
           <GraphAccessibilityOverlay
-            accessibilityItems={resolvedAccessibilityItems}
-            graphLinks={surface2dProps.sharedProps.graphData.links as FGLink[]}
-            graphNodes={surface2dProps.sharedProps.graphData.nodes as FGNode[]}
-            onEdgeContextMenu={resolvedHandlers.handleEdgeContextMenu}
-            onNodeClick={resolvedHandlers.handleNodeClick}
-            onNodeContextMenu={resolvedHandlers.handleNodeContextMenu}
-            onNodeHover={resolvedHandlers.handleNodeHover}
+            accessibilityItems={accessibilityItems}
+            graphLinks={surface2dProps.sharedProps.graphData.links}
+            graphNodes={surface2dProps.sharedProps.graphData.nodes}
+            onEdgeContextMenu={handleEdgeContextMenu}
+            onNodeClick={handleNodeClick}
+            onNodeContextMenu={handleNodeContextMenu}
+            onNodeHover={handleNodeHover}
           />
         </div>
       </ContextMenuTrigger>

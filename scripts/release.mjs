@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -83,6 +83,9 @@ function collectWorkspacePackages(baseDir) {
       }
 
       const packageJsonPath = path.join(workspaceDir, entry.name, 'package.json');
+      if (!existsSync(packageJsonPath)) {
+        continue;
+      }
       const manifest = readJson(packageJsonPath);
 
       packages.push({
@@ -153,6 +156,20 @@ function toWorkspaceReleaseTarget(workspacePackage) {
     hasBuildScript: Boolean(manifest.scripts?.build),
     access: manifest.publishConfig?.access ?? 'public',
   };
+}
+
+export function assertReleaseVersionsPrepared(baseDir = repoRoot) {
+  const changesetDirectory = path.join(baseDir, '.changeset');
+  if (!existsSync(changesetDirectory)) return;
+
+  const pendingChangesets = readdirSync(changesetDirectory)
+    .filter(name => name.endsWith('.md') && name !== 'README.md')
+    .sort();
+  if (pendingChangesets.length === 0) return;
+
+  throw new Error(
+    `Release versions are not prepared; run 'pnpm exec changeset version' and commit the result before publishing. Pending changesets: ${pendingChangesets.join(', ')}`,
+  );
 }
 
 export function collectReleaseTargets(baseDir = repoRoot) {
@@ -282,6 +299,7 @@ export function runRelease(mode, requestedTarget, baseDir = repoRoot, runCommand
     process.exit(1);
   }
 
+  assertReleaseVersionsPrepared(baseDir);
   const targets = resolveReleaseTargets(requestedTarget, baseDir);
 
   if (targets.length === 0) {

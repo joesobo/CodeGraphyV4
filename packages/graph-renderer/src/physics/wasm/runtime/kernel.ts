@@ -1,0 +1,144 @@
+import type { GraphLayoutConfig, GraphLayoutState } from '../../contracts';
+import {
+  instantiateGraphPhysics,
+  type GraphPhysicsExports,
+} from '../abi/contracts';
+import { assertGraphCollisionCellSize } from '../abi/configuration';
+import { GraphPhysicsStorage } from '../abi/storage';
+
+const INITIAL_BARNES_HUT_CELLS_PER_NODE = 8;
+
+export interface GraphBarnesHutDiagnostics {
+  cellCount: number;
+  rootBounds: { minimumX: number; minimumY: number; size: number } | undefined;
+  rootCharge: number;
+  rootChargeX: number;
+  rootChargeY: number;
+  visibleNodeCount: number;
+}
+
+export class GraphWasmPhysicsKernel {
+  private storage!: GraphPhysicsStorage;
+  private exports!: GraphPhysicsExports;
+  private currentConfig!: GraphLayoutConfig;
+  private currentCollisionCellSize = 1;
+  private correctionCount = 0;
+
+  constructor(
+    state: GraphLayoutState,
+    config: GraphLayoutConfig,
+    collisionCellSize: number,
+    randomState = 1,
+  ) {
+    const cellCapacity = Math.max(
+      256,
+      state.x.length * INITIAL_BARNES_HUT_CELLS_PER_NODE + 64,
+    );
+    this.initialize(
+      state,
+      config,
+      collisionCellSize,
+      cellCapacity,
+      randomState,
+    );
+  }
+
+  get state(): GraphLayoutState { return this.storage.state; }
+  get collisionCorrectionCount(): number { return this.correctionCount; }
+  get memoryBytes(): number { return this.storage.memory.buffer.byteLength; }
+  get randomState(): number { return this.exports.barnesHutRandomState(); }
+
+  configure(
+    config: GraphLayoutConfig,
+    collisionCellSize: number,
+  ): void {
+    assertGraphCollisionCellSize(collisionCellSize);
+    this.currentConfig = config;
+    this.currentCollisionCellSize = collisionCellSize;
+    this.exports.configure(
+      config.centralGravity,
+      config.chargeDistanceMax,
+      config.chargeDistanceMin,
+      config.chargeStrength,
+      config.chargeTheta,
+      config.collisionPadding,
+      config.collisionStrength,
+      config.initializationSpacing,
+      config.linkDistance,
+      config.linkStrength,
+      config.velocityDecay,
+      collisionCellSize,
+    );
+  }
+
+  applyForces(alpha: number): void {
+    while (!this.exports.applyForces(alpha)) {
+      if (!this.exports.barnesHutOverflowed()) {
+        throw new Error('Graph WASM physics could not apply graph forces');
+      }
+      this.growBarnesHutCapacity();
+    }
+  }
+
+  integrate(collisionIterations: number): number {
+    const maximumVelocity = this.exports.integrate(collisionIterations);
+    if (!Number.isFinite(maximumVelocity)) {
+      throw new Error('Graph WASM physics returned a non-finite velocity');
+    }
+    this.correctionCount = this.storage.result[0];
+    return maximumVelocity;
+  }
+
+  step(alpha: number, collisionIterations: number): number {
+    this.applyForces(alpha);
+    return this.integrate(collisionIterations);
+  }
+
+  rebuildBarnesHutDiagnostics(chargeStrength: number): GraphBarnesHutDiagnostics {
+    if (!this.exports.rebuildRepulsionDiagnostics(chargeStrength)) {
+      this.growBarnesHutCapacity();
+      return this.rebuildBarnesHutDiagnostics(chargeStrength);
+    }
+    const root = this.exports.barnesHutRoot();
+    return {
+      cellCount: this.exports.barnesHutCellCount(),
+      rootBounds: root < 0
+        ? undefined
+        : {
+            minimumX: this.exports.barnesHutMinimumX(),
+            minimumY: this.exports.barnesHutMinimumY(),
+            size: this.exports.barnesHutSize(),
+          },
+      rootCharge: this.exports.barnesHutRootCharge(),
+      rootChargeX: this.exports.barnesHutRootChargeX(),
+      rootChargeY: this.exports.barnesHutRootChargeY(),
+      visibleNodeCount: this.exports.barnesHutVisibleNodeCount(),
+    };
+  }
+
+  private initialize(
+    source: GraphLayoutState,
+    config: GraphLayoutConfig,
+    collisionCellSize: number,
+    cellCapacity: number,
+    randomState: number,
+  ): void {
+    this.storage = new GraphPhysicsStorage(source, cellCapacity);
+    this.exports = instantiateGraphPhysics(this.storage.memory);
+    this.storage.initialize(this.exports);
+    this.exports.restoreBarnesHutRandomState(randomState);
+    this.configure(config, collisionCellSize);
+  }
+
+  private growBarnesHutCapacity(): void {
+    const source = this.storage.state;
+    const randomState = this.exports.barnesHutRandomState();
+    this.initialize(
+      source,
+      this.currentConfig,
+      this.currentCollisionCellSize,
+      this.storage.layout.cellCapacity * 2,
+      randomState,
+    );
+  }
+}

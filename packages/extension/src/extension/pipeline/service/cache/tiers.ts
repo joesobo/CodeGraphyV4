@@ -5,10 +5,9 @@ import {
 } from '@codegraphy-dev/core';
 
 export function createWorkspacePipelineAnalysisCacheTiers(
-  nodeVisibility: Readonly<Record<string, boolean>>,
   pluginIds: readonly string[] = [],
 ): AnalysisCacheTierOptions {
-  return createWorkspaceIndexAnalysisCacheTiers(nodeVisibility, pluginIds);
+  return createWorkspaceIndexAnalysisCacheTiers(pluginIds);
 }
 
 export function requiresSymbolAnalysisCacheTier(

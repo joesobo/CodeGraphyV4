@@ -10,7 +10,7 @@ function makePlugin(id: string, extensions: string[]): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: extensions,
     analyzeFile: vi.fn(async (filePath: string) => ({
       filePath,
@@ -112,7 +112,7 @@ describe('plugin routing', () => {
             'src/app.ts',
             'content',
             '/ws',
-            expect.objectContaining({ mode: 'workspace' }),
+            expect.objectContaining({ fileSystem: expect.any(Object) }),
           );
           expect(result).toEqual([{
             kind: 'reference',

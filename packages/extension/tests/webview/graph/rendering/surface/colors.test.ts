@@ -6,7 +6,6 @@ describe('webview/graph/theme', () => {
     expect(getGraphSurfaceColors()).toEqual({
       canvasBackgroundColor: 'transparent',
       containerBackgroundColor: 'Canvas',
-      borderColor: 'GrayText',
     });
   });
 
@@ -17,16 +16,12 @@ describe('webview/graph/theme', () => {
       labelMutedForeground: 'LabelMutedForeground',
       linkHighlight: 'LinkHighlight',
       linkMuted: 'LinkMuted',
-      meshDimmed: 'MeshDimmed',
-      meshSelected: 'MeshSelected',
       nodeSelectionBorder: 'NodeSelectionBorder',
       stageBackground: 'EditorSurface',
-      stageBorder: 'PanelBorder',
       transparent: 'transparent',
     })).toEqual({
       canvasBackgroundColor: 'transparent',
       containerBackgroundColor: 'EditorSurface',
-      borderColor: 'PanelBorder',
     });
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-unity",
-  "version": "0.2.1",
+  "version": "0.2.5",
   "description": "CodeGraphy Unity plugin",
   "license": "MIT",
   "type": "module",
@@ -52,7 +52,7 @@
   },
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "disclosures": []
   }
 }

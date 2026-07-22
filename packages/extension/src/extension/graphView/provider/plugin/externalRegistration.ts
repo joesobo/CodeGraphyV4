@@ -58,7 +58,6 @@ export function createGraphViewProviderExternalPluginRegistration(
         sendPluginToolbarActions: () => broadcasts._sendPluginToolbarActions(),
         sendGraphViewContributionStatuses: () => broadcasts._sendGraphViewContributionStatuses(),
         sendPluginWebviewInjections: () => broadcasts._sendPluginWebviewInjections(),
-        invalidateTimelineCache: () => source._invalidateTimelineCache(),
         reprocessPluginFiles: async (pluginIds) => {
           if (source.refreshPluginFiles) {
             await source.refreshPluginFiles(pluginIds);

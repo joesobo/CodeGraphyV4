@@ -5,7 +5,6 @@ describe('graph/messages/effects/routing', () => {
   it('fits the view for FIT_VIEW messages', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'FIT_VIEW' },
-      graphMode: '3d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'fitView' }]);
@@ -14,28 +13,24 @@ describe('graph/messages/effects/routing', () => {
   it('zooms in any graph mode for zoom messages', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'ZOOM_IN' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'zoom', factor: 1.2 }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'ZOOM_OUT' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'ZOOM_IN' },
-      graphMode: '3d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'zoom', factor: 1.2 }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'ZOOM_OUT' },
-      graphMode: '3d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
@@ -53,7 +48,6 @@ describe('graph/messages/effects/routing', () => {
           outgoingCount: 3,
         },
       },
-      graphMode: '2d',
       tooltipPath: 'src/app.ts',
       graphNodes: [],
     })).toEqual([
@@ -92,7 +86,6 @@ describe('graph/messages/effects/routing', () => {
           outgoingCount: 3,
         },
       },
-      graphMode: '2d',
       tooltipPath: 'src/utils.ts',
       graphNodes: [],
     })).toEqual([
@@ -112,7 +105,6 @@ describe('graph/messages/effects/routing', () => {
   it('responds with node bounds for GET_NODE_BOUNDS messages', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'GET_NODE_BOUNDS' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [
         { id: 'src/app.ts', size: 12, x: 10, y: 20 },
@@ -137,7 +129,6 @@ describe('graph/messages/effects/routing', () => {
   it('responds with the graph runtime state for GET_GRAPH_RUNTIME_STATE messages', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'GET_GRAPH_RUNTIME_STATE' },
-      graphMode: '3d',
       tooltipPath: null,
       graphLinks: [
         { id: 'src/app.ts->src/utils.ts#import', source: 'src/app.ts', target: 'src/utils.ts' },
@@ -152,7 +143,6 @@ describe('graph/messages/effects/routing', () => {
         message: {
           type: 'GRAPH_RUNTIME_STATE_RESPONSE',
           payload: {
-            graphMode: '3d',
             edgeCount: 1,
             edgeIds: ['src/app.ts->src/utils.ts#import'],
             nodeCount: 2,
@@ -165,42 +155,36 @@ describe('graph/messages/effects/routing', () => {
   it('maps export requests to export effects', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_EXPORT_PNG' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'exportPng' }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_EXPORT_SVG' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'exportSvg' }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_EXPORT_JPEG' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'exportJpeg' }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_EXPORT_JSON' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'exportJson' }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_EXPORT_MD' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'exportMarkdown' }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_OPEN_IN_EDITOR' },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'openInEditor' }]);
@@ -209,14 +193,12 @@ describe('graph/messages/effects/routing', () => {
   it('ignores messages with no Graph-side effect', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'FAVORITES_UPDATED', payload: { favorites: [] } },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } },
-      graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([]);

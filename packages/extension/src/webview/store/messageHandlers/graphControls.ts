@@ -52,6 +52,7 @@ export function handleSettingsUpdated(
 ): PartialState {
   return {
     bidirectionalMode: message.payload.bidirectionalEdges,
+    showMinimap: message.payload.showMinimap,
     showOrphans: message.payload.showOrphans,
   };
 }
@@ -101,6 +102,12 @@ export function handleMaxFilesUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'MAX_FILES_UPDATED' }>,
 ): PartialState {
   return { maxFiles: message.payload.maxFiles };
+}
+
+export function handleShowFpsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'SHOW_FPS_UPDATED' }>,
+): PartialState {
+  return { showFps: message.payload.showFps };
 }
 
 export function handleVerboseDiagnosticsUpdated(

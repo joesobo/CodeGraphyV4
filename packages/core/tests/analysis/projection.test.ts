@@ -64,6 +64,64 @@ describe('analysis/projection', () => {
     })).toEqual([]);
   });
 
+  it('preserves same-file symbol calls but omits symbol containment connections', () => {
+    expect(projectProjectedConnectionsFromFileAnalysis({
+      filePath: '/workspace/src/app.py',
+      symbols: [],
+      relations: [
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter:call',
+          fromFilePath: '/workspace/src/app.py',
+          fromSymbolId: '/workspace/src/app.py:function:main',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:helper',
+        },
+        {
+          kind: 'call',
+          sourceId: 'plugin:file-call',
+          fromFilePath: '/workspace/src/app.py',
+          toFilePath: '/workspace/src/app.py',
+        },
+        {
+          kind: 'contains',
+          sourceId: 'core:treesitter:contains',
+          fromFilePath: '/workspace/src/app.py',
+          fromSymbolId: '/workspace/src/app.py:class:App',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:main',
+        },
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter:binding-call',
+          fromFilePath: '/workspace/src/app.py',
+          fromSymbolId: '/workspace/src/app.py:function:main',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:bound',
+          metadata: { bindingKind: 'named' },
+        },
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter:file-to-symbol-call',
+          fromFilePath: '/workspace/src/app.py',
+          toFilePath: '/workspace/src/app.py',
+          toSymbolId: '/workspace/src/app.py:function:main',
+        },
+      ],
+    })).toEqual([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        resolvedPath: '/workspace/src/app.py',
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'plugin:file-call',
+        resolvedPath: '/workspace/src/app.py',
+      }),
+    ]);
+  });
+
   it('projects a file analysis map entry by entry', () => {
     const firstAnalysis: IFileAnalysisResult = {
       filePath: '/workspace/src/app.ts',

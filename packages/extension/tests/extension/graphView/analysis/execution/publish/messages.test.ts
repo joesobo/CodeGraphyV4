@@ -147,7 +147,7 @@ describe('extension/graphView/analysis/execution/publish/messages', () => {
   it('sends metric patches instead of full graph data when the plan enables patches', () => {
     const sendGraphNodeMetricsUpdated = vi.fn();
     const handlers = createHandlers({ sendGraphNodeMetricsUpdated });
-    const metricOnlyUpdate = [{ id: 'src/a.ts', fileSize: 15, churn: 2 }];
+    const metricOnlyUpdate = [{ id: 'src/a.ts', fileSize: 15 }];
 
     publishGraphDataMessage(
       handlers,
@@ -178,7 +178,7 @@ describe('extension/graphView/analysis/execution/publish/messages', () => {
     const sendGraphNodeMetricsUpdated = vi.fn();
     const handlers = createHandlers({ sendGraphNodeMetricsUpdated });
     const graphData = createGraph();
-    const metricOnlyUpdate = [{ id: 'src/a.ts', fileSize: 15, churn: 2 }];
+    const metricOnlyUpdate = [{ id: 'src/a.ts', fileSize: 15 }];
 
     publishGraphDataMessage(
       handlers,
@@ -195,7 +195,7 @@ describe('extension/graphView/analysis/execution/publish/messages', () => {
       createHandlers(),
       createGraph(),
       createPlan({
-        metricOnlyUpdate: [{ id: 'src/a.ts', fileSize: 15, churn: 2 }],
+        metricOnlyUpdate: [{ id: 'src/a.ts', fileSize: 15 }],
         shouldSendMetricPatch: true,
       }),
     )).not.toThrow();

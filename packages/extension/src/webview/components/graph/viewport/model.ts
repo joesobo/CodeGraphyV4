@@ -6,24 +6,17 @@ import type {
   GraphContextMenuEntry,
 } from '../contextMenu/contracts';
 import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
-import { getGraphContextMutationAvailability } from '../contextMenu/mutationAvailability';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { GraphRuntime } from '../runtime/use/state';
 import { buildSharedGraphProps } from '../rendering/surface/sharedProps';
-import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
-import { handleGraphSurface3dError } from '../rendering/surface/error';
 import { getGraphSurfaceColors } from '../rendering/surface/colors';
-import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
-import { postMessage } from '../../../vscodeApi';
 
 export interface GraphViewportModel {
   canvasBackgroundColor: string;
   containerBackgroundColor: string;
-  borderColor: string;
   menuEntries: GraphContextMenuEntry[];
-  onSurface3dError(this: void, error: Error): void;
   sharedProps: ReturnType<typeof buildSharedGraphProps>;
 }
 
@@ -36,20 +29,8 @@ export interface GraphViewportModelOptions {
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;
-  theme?: ThemeKind;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
-  viewState: Pick<
-    GraphViewStoreState,
-    | 'currentCommitSha'
-    | 'dagMode'
-    | 'favorites'
-    | 'graphMode'
-    | 'physicsSettings'
-    | 'pluginContextMenuItems'
-    | 'setGraphMode'
-    | 'timelineActive'
-    | 'timelineCommits'
-  >;
+  viewState: Pick<GraphViewStoreState, 'favorites' | 'pluginContextMenuItems'>;
 }
 
 export function useGraphViewportModel({
@@ -62,31 +43,30 @@ export function useGraphViewportModel({
   viewState,
 }: GraphViewportModelOptions): GraphViewportModel {
   const sharedProps = useMemo(
-    () => buildSharedGraphProps(buildGraphSharedPropsOptions({
-      containerSize: viewportRuntime.containerSize,
-      dagMode: viewState.dagMode,
-      damping: viewState.physicsSettings.damping,
+    () => buildSharedGraphProps({
       graphData: graphState.graphData,
-      handleEngineStop,
-      interactions,
-      timelineActive: viewState.timelineActive,
-    })),
+      onBackgroundClick: interactions.interactionHandlers.handleBackgroundClick,
+      onBackgroundRightClick: interactions.handleBackgroundRightClick,
+      onEngineStop: handleEngineStop,
+      onLinkClick: interactions.interactionHandlers.handleLinkClick,
+      onLinkRightClick: interactions.handleLinkRightClick,
+      onNodeClick: interactions.interactionHandlers.handleNodeClick,
+      onNodeDrag: interactions.handleNodeDrag,
+      onNodeDragEnd: interactions.handleNodeDragEnd,
+      onNodeHover: interactions.handleNodeHover,
+      onNodeRightClick: interactions.handleNodeRightClick,
+      width: viewportRuntime.containerSize.width,
+    }),
     [
       graphState.graphData,
       handleEngineStop,
       interactions,
-      viewportRuntime.containerSize,
-      viewState.dagMode,
-      viewState.physicsSettings.damping,
-      viewState.timelineActive,
+      viewportRuntime.containerSize.width,
     ],
   );
 
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
-    graphMode: viewState.graphMode,
-    timelineActive: viewState.timelineActive,
-    mutationAvailability: getGraphContextMutationAvailability(viewState),
     favorites: viewState.favorites,
     pluginItems: viewState.pluginContextMenuItems,
     graphViewContributions,
@@ -94,21 +74,12 @@ export function useGraphViewportModel({
     edges: graphState.graphData.links,
   });
 
-  const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);
-  const onSurface3dError = (error: Error): void => {
-    handleGraphSurface3dError({
-      error,
-      postGraphMessage: postMessage,
-      setGraphMode: viewState.setGraphMode,
-    });
-  };
+  const { canvasBackgroundColor, containerBackgroundColor } = getGraphSurfaceColors(appearance);
 
   return {
     canvasBackgroundColor,
     containerBackgroundColor,
-    borderColor,
     menuEntries,
-    onSurface3dError,
     sharedProps,
   };
 }

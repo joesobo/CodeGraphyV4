@@ -1,12 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
-import {
-  createGraphViewForceAdapterState,
-  syncGraphViewForceAdapters,
-} from '../../../../../src/webview/components/graph/runtime/physics/pluginForces';
+import { createOwnedGraphPluginForces } from '../../../../../src/webview/components/graph/rendering/surface/owned2d/plugin/forces/model';
 
-function createEmptyContributions(): CoreGraphViewContributionSet {
+function emptyContributions(): CoreGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],
@@ -18,38 +15,9 @@ function createEmptyContributions(): CoreGraphViewContributionSet {
   };
 }
 
-function createFakePhysicsGraph() {
-  const forces = new Map<string, unknown>([
-    ['charge', { base: 'charge' }],
-    ['link', { base: 'link' }],
-  ]);
-
-  return {
-    forces,
-    reheats: 0,
-    d3Force(name: string, force?: unknown) {
-      if (arguments.length === 1) {
-        return forces.get(name);
-      }
-
-      if (force === null) {
-        forces.delete(name);
-        return undefined;
-      }
-
-      forces.set(name, force);
-      return force;
-    },
-    d3ReheatSimulation() {
-      this.reheats += 1;
-    },
-  };
-}
-
-describe('Graph View plugin force adapters', () => {
-  it('installs additive namespaced forces and disposes them without touching base graph forces', () => {
-    const graph = createFakePhysicsGraph();
-    const state = createGraphViewForceAdapterState();
+describe('owned Graph View plugin force adapters', () => {
+  it('ticks namespaced plugin forces and disposes them without replacing owned base physics', () => {
+    const forces = createOwnedGraphPluginForces();
     const runtimeNode = {
       id: 'runtime:frontend',
       label: 'Runtime Frontend',
@@ -57,83 +25,170 @@ describe('Graph View plugin force adapters', () => {
       size: 16,
       x: 0,
     } as FGNode;
-    const graphData = {
-      nodes: [runtimeNode],
-      links: [] as FGLink[],
-    };
-    let disposeCount = 0;
+    const graphData = { nodes: [runtimeNode], links: [] as FGLink[] };
+    const initialize = vi.fn();
+    const dispose = vi.fn();
     const contributions: CoreGraphViewContributionSet = {
-      ...createEmptyContributions(),
+      ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',
         contribution: {
           id: 'acme.graph-tools.runtime-force',
           label: 'Runtime Force',
-          create({ nodes }) {
-            return {
-              tick(alpha = 1) {
-                const node = nodes.find(candidate => candidate.id === 'runtime:frontend');
-                if (node) {
-                  node.x = (node.x ?? 0) + alpha;
-                }
-              },
-              dispose() {
-                disposeCount += 1;
-              },
-            };
-          },
+          create: () => ({
+            initialize,
+            tick(alpha = 1) {
+              runtimeNode.x = (runtimeNode.x ?? 0) + alpha;
+            },
+            dispose,
+          }),
         },
       }],
     };
 
-    syncGraphViewForceAdapters(graph, state, contributions, graphData);
-
-    const namespace = 'plugin:acme.graph-tools:acme.graph-tools.runtime-force';
-    const installedForce = graph.d3Force(namespace) as (alpha: number) => void;
-    installedForce(2);
-
+    expect(forces.sync(contributions, graphData)).toBe(true);
+    expect(initialize).toHaveBeenCalledWith(graphData.nodes);
+    expect(forces.active()).toBe(true);
+    forces.tick(2);
     expect(runtimeNode.x).toBe(2);
-    expect(graph.d3Force('charge')).toEqual({ base: 'charge' });
-    expect(graph.d3Force('link')).toEqual({ base: 'link' });
 
-    syncGraphViewForceAdapters(graph, state, createEmptyContributions(), graphData);
-
-    expect(disposeCount).toBe(1);
-    expect(graph.d3Force(namespace)).toBeUndefined();
-    expect(graph.d3Force('charge')).toEqual({ base: 'charge' });
-    expect(graph.d3Force('link')).toEqual({ base: 'link' });
+    expect(forces.sync(contributions, graphData)).toBe(false);
+    expect(dispose).not.toHaveBeenCalled();
+    expect(forces.sync(emptyContributions(), graphData)).toBe(true);
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(forces.active()).toBe(false);
   });
 
-  it('passes graph mode and timeline state to force contributions', () => {
-    const graph = createFakePhysicsGraph();
-    const state = createGraphViewForceAdapterState();
-    const contexts: Array<{ graphMode: '2d' | '3d' | undefined; timelineActive: boolean | undefined }> = [];
+  it('recreates adapters when physics settings change and disposes all adapters on teardown', () => {
+    const forces = createOwnedGraphPluginForces();
+    const graphData = { nodes: [] as FGNode[], links: [] as FGLink[] };
+    const dispose = vi.fn();
+    const create = vi.fn(() => ({ dispose }));
     const contributions: CoreGraphViewContributionSet = {
-      ...createEmptyContributions(),
+      ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',
-        contribution: {
-          id: 'acme.graph-tools.runtime-force',
-          label: 'Runtime Force',
-          create(context) {
-            contexts.push({
-              graphMode: context.graphMode,
-              timelineActive: context.timelineActive,
-            });
-            return { dispose() {} };
-          },
-        },
+        contribution: { id: 'force', label: 'Force', create },
       }],
     };
 
-    syncGraphViewForceAdapters(
-      graph,
-      state,
-      contributions,
-      { nodes: [], links: [] },
-      { graphMode: '3d', timelineActive: true },
-    );
+    const initialPhysicsSettings = {
+      repelForce: 10,
+      linkDistance: 80,
+      linkForce: 0.15,
+      damping: 0.7,
+      centerForce: 0.1,
+    };
+    forces.sync(contributions, graphData, initialPhysicsSettings);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      physicsSettings: initialPhysicsSettings,
+    }));
 
-    expect(contexts).toEqual([{ graphMode: '3d', timelineActive: true }]);
+    forces.sync(contributions, graphData, {
+      repelForce: 20,
+      linkDistance: 80,
+      linkForce: 0.15,
+      damping: 0.7,
+      centerForce: 0.1,
+    });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(dispose).toHaveBeenCalledOnce();
+    forces.dispose();
+    expect(dispose).toHaveBeenCalledTimes(2);
   });
+
+  it('recreates adapters when only graph links change', () => {
+    const forces = createOwnedGraphPluginForces();
+    const nodes = [{ id: 'a' }, { id: 'b' }] as FGNode[];
+    const create = vi.fn(() => ({ dispose: vi.fn() }));
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: { id: 'force', label: 'Force', create },
+      }],
+    };
+
+    forces.sync(contributions, { nodes, links: [] });
+    const links = [{
+      id: 'a-b',
+      from: 'a',
+      to: 'b',
+      source: nodes[0],
+      target: nodes[1],
+    }] as FGLink[];
+    expect(forces.sync(contributions, { nodes, links })).toBe(true);
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(create).toHaveBeenLastCalledWith(expect.objectContaining({
+      edges: [expect.objectContaining({ id: 'a-b', from: 'a', to: 'b' })],
+    }));
+  });
+
+  it('keeps the current adapter active when its replacement cannot be created', () => {
+    const forces = createOwnedGraphPluginForces();
+    const nodes = [{ id: 'a' }] as FGNode[];
+    const tick = vi.fn();
+    const dispose = vi.fn();
+    const create = vi.fn()
+      .mockReturnValueOnce({ dispose, tick })
+      .mockImplementationOnce(() => { throw new Error('create failed'); });
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: { id: 'force', label: 'Force', create },
+      }],
+    };
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    forces.sync(contributions, { nodes, links: [] });
+    expect(forces.sync(contributions, { nodes: [...nodes], links: [] })).toBe(false);
+    forces.tick();
+
+    expect(tick).toHaveBeenCalledOnce();
+    expect(dispose).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('plugin:acme.graph-tools:force'),
+      expect.any(Error),
+    );
+  });
+
+  it('rolls back a replacement that mutates nodes and fails initialization', () => {
+    const forces = createOwnedGraphPluginForces();
+    const nodes = [{ id: 'a', x: 1, y: 2, vx: 3, vy: 4 }] as FGNode[];
+    const currentTick = vi.fn();
+    const currentDispose = vi.fn();
+    const failedDispose = vi.fn();
+    const create = vi.fn()
+      .mockReturnValueOnce({ dispose: currentDispose, tick: currentTick })
+      .mockReturnValueOnce({
+        dispose: failedDispose,
+        initialize: () => {
+          nodes[0].x = 99;
+          nodes[0].vx = Number.MAX_VALUE;
+          nodes[0].fx = Number.POSITIVE_INFINITY;
+          throw new Error('initialize failed');
+        },
+      });
+    const contributions: CoreGraphViewContributionSet = {
+      ...emptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: { id: 'force', label: 'Force', create },
+      }],
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    forces.sync(contributions, { nodes, links: [] });
+    expect(forces.sync(contributions, { nodes: [...nodes], links: [] })).toBe(false);
+    forces.tick();
+
+    expect(failedDispose).toHaveBeenCalledOnce();
+    expect(currentDispose).not.toHaveBeenCalled();
+    expect(currentTick).toHaveBeenCalledOnce();
+    expect(nodes[0]).toMatchObject({ x: 1, y: 2, vx: 3, vy: 4, fx: undefined });
+  });
+
 });

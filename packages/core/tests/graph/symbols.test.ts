@@ -51,6 +51,14 @@ describe('core/graph/symbols', () => {
             fromFilePath: '/workspace/src/app.ts',
             fromSymbolId: 'app:run',
             specifier: 'run',
+            toFilePath: '/workspace/src/dep.ts',
+            toSymbolId: 'dep:helper',
+          },
+          {
+            kind: 'call',
+            sourceId: 'local-call',
+            fromFilePath: '/workspace/src/app.ts',
+            fromSymbolId: 'app:run',
             toFilePath: '/workspace/src/app.ts',
             toSymbolId: 'app:helper',
           },
@@ -64,11 +72,12 @@ describe('core/graph/symbols', () => {
     })).toEqual(new Map([
       ['src/app.ts', [
         expect.objectContaining({ kind: 'import', specifier: './dep' }),
+        expect.objectContaining({ kind: 'call', sourceId: 'local-call' }),
       ]],
       ['src/empty.ts', []],
     ]));
     expect(projectFileAnalysisConnections(fileAnalysis, '/workspace').get('src/app.ts'))
-      ?.toHaveLength(2);
+      ?.toHaveLength(3);
   });
 
   it('projects single namespaces and ignores files without symbols', () => {
@@ -222,5 +231,47 @@ describe('core/graph/symbols', () => {
         `include/shared${extension}#${extension}:namespace`,
       ]);
     }
+  });
+
+  it('merges duplicate symbol relation edges and preserves their sources', () => {
+    const targetPath = '/workspace/src/target.ts';
+    const targetSymbol = graphSymbol(targetPath, 'type', 'User');
+    const duplicateRelation = {
+      kind: 'reference' as const,
+      fromFilePath: '/workspace/src/app.ts',
+      toFilePath: targetPath,
+      toSymbolId: targetSymbol.id,
+    };
+    const result = buildSymbolNodesAndEdges(new Map([
+      ['/workspace/src/app.ts', analysis({
+        relations: [
+          {
+            ...duplicateRelation,
+            pluginId: 'plugin.first',
+            sourceId: 'first',
+          },
+          {
+            ...duplicateRelation,
+            pluginId: 'plugin.second',
+            sourceId: 'second',
+          },
+        ],
+      })],
+      [targetPath, analysis({
+        filePath: targetPath,
+        symbols: [targetSymbol],
+      })],
+    ]), '/workspace');
+
+    expect(result.edges.filter(edge => edge.kind === 'reference')).toEqual([
+      expect.objectContaining({
+        from: 'src/app.ts',
+        to: 'src/target.ts#User:type',
+        sources: [
+          expect.objectContaining({ id: 'plugin.first:first' }),
+          expect.objectContaining({ id: 'plugin.second:second' }),
+        ],
+      }),
+    ]);
   });
 });

@@ -33,8 +33,10 @@ function createSnapshot(
     particleSize: 4,
     pluginData: {},
     showLabels: true,
-    nodeSizeMode: 'uniform',
+    showMinimap: true,
+    nodeSizeMode: 'connections',
     maxFiles: 500,
+    showFps: false,
     verboseDiagnostics: false,
     ...overrides,
   };
@@ -116,9 +118,10 @@ describe('graphView/settings/sync', () => {
       },
     });
 
-    expect(order.slice(-4)).toEqual([
+    expect(order.slice(-5)).toEqual([
       'FILTER_PATTERNS_UPDATED',
       'MAX_FILES_UPDATED',
+      'SHOW_FPS_UPDATED',
       'VERBOSE_DIAGNOSTICS_UPDATED',
       'NODE_SIZE_MODE_UPDATED',
     ]);

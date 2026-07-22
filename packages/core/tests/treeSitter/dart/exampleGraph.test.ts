@@ -39,7 +39,6 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart example graph', () => 
         workspaceRoot,
         fileAnalysis,
         cacheFiles: {},
-        churnCounts: {},
         disabledPlugins: new Set(),
         getPluginForFile: () => undefined,
         showOrphans: true,

@@ -6,22 +6,29 @@ import {
 } from '../../../../../src/extension/repoSettings/store/model/plainObject';
 describe('extension/repoSettings/store/model/plainObject', () => {
   it('deep clones nested objects and arrays without preserving references', () => {
-    const original = {
+    const original: {
+      legend: Array<{ color: string; id: string; pattern: string }>;
+      optional?: string;
+      physics: { damping: number; linkDistance: number };
+    } = {
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],
-      timeline: { maxCommits: 500, playbackSpeed: 1 },
+      optional: undefined,
+      physics: { damping: 0.7, linkDistance: 80 },
     };
 
     const cloned = deepClone(original);
     cloned.legend[0].color = '#abcdef';
-    cloned.timeline.playbackSpeed = 2;
+    cloned.physics.damping = 0.5;
 
     expect(cloned).toEqual({
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#abcdef' }],
-      timeline: { maxCommits: 500, playbackSpeed: 2 },
+      optional: undefined,
+      physics: { damping: 0.5, linkDistance: 80 },
     });
     expect(original).toEqual({
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],
-      timeline: { maxCommits: 500, playbackSpeed: 1 },
+      optional: undefined,
+      physics: { damping: 0.7, linkDistance: 80 },
     });
   });
 
@@ -38,25 +45,25 @@ describe('extension/repoSettings/store/model/plainObject', () => {
       {
         legend: [{ id: 'default', pattern: 'src/**', color: '#123456' }],
         nodeColors: { file: '#111111', folder: '#222222' },
-        timeline: { maxCommits: 500, playbackSpeed: 1 },
+        physics: { damping: 0.7, linkDistance: 80 },
       },
       {
         legend: [{ id: 'override', pattern: 'tests/**', color: '#abcdef' }],
         nodeColors: { folder: '#654321' },
-        timeline: { playbackSpeed: 2 },
+        physics: { damping: 0.5 },
       },
     );
 
     expect(merged).toEqual({
       legend: [{ id: 'override', pattern: 'tests/**', color: '#abcdef' }],
       nodeColors: { file: '#111111', folder: '#654321' },
-      timeline: { maxCommits: 500, playbackSpeed: 2 },
+      physics: { damping: 0.5, linkDistance: 80 },
     });
   });
 
   it('returns the override when either side is not a plain object', () => {
-    expect(deepMerge({ timeline: { playbackSpeed: 1 } }, null)).toEqual({ timeline: { playbackSpeed: 1 } });
-    expect(deepMerge({ timeline: { playbackSpeed: 1 } }, ['override'])).toEqual(['override']);
-    expect(deepMerge('base', { playbackSpeed: 2 })).toEqual({ playbackSpeed: 2 });
+    expect(deepMerge({ physics: { damping: 0.7 } }, null)).toEqual({ physics: { damping: 0.7 } });
+    expect(deepMerge({ physics: { damping: 0.7 } }, ['override'])).toEqual(['override']);
+    expect(deepMerge('base', { damping: 0.5 })).toEqual({ damping: 0.5 });
   });
 });

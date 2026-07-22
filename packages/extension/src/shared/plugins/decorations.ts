@@ -1,3 +1,4 @@
+/** Decoration colors accept browser CSS colors and fall back to the underlying graph color when unresolved. */
 export interface NodeDecorationPayload {
   badge?: {
     text: string;
@@ -28,6 +29,7 @@ export interface NodeDecorationPayload {
   group?: string;
 }
 
+/** Decoration colors accept browser CSS colors and fall back to the underlying graph color when unresolved. */
 export interface EdgeDecorationPayload {
   color?: string;
   width?: number;

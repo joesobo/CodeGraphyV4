@@ -1,3 +1,8 @@
+import { isPackageNodeId } from '../../model/node/identity';
+import { resolveGraphContextNodeKind, resolveGraphContextNodeSource } from './targetClassification';
+
+export { isPackageNodeId } from '../../model/node/identity';
+
 export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'symbol';
 
 export interface GraphContextNodeTarget {
@@ -25,30 +30,6 @@ export interface GraphContextNodeSource {
     name: string;
     filePath: string;
   };
-}
-
-export function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
-}
-
-function resolveGraphContextNodeSource(
-  nodeId: string,
-  source: GraphContextNodeSource | string | undefined,
-  symbol?: GraphContextNodeSource['symbol'],
-  isCollapsed?: boolean,
-): GraphContextNodeSource | undefined {
-  return typeof source === 'string'
-    ? { id: nodeId, isCollapsed, nodeType: source, symbol }
-    : source;
-}
-
-function resolveGraphContextNodeKind(
-  nodeType: string,
-  symbol?: GraphContextNodeSource['symbol'],
-): GraphContextNodeKind {
-  return symbol || nodeType === 'symbol' || nodeType === 'variable'
-    ? 'symbol'
-    : resolveNodeKind(nodeType);
 }
 
 export function classifyGraphContextNodeTarget(
@@ -85,12 +66,4 @@ export function classifyGraphContextNodeTargets(
 
 function createNodeSourceMap(nodes: readonly GraphContextNodeSource[]): Map<string, GraphContextNodeSource> {
   return new Map(nodes.map(node => [node.id, node]));
-}
-
-function resolveNodeKind(nodeType: string): GraphContextNodeKind {
-  if (nodeType === 'file' || nodeType === 'folder' || nodeType === 'package') {
-    return nodeType;
-  }
-
-  return 'plugin';
 }

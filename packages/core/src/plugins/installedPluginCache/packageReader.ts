@@ -3,7 +3,8 @@ import * as path from 'node:path';
 import { parseCodeGraphyPluginPackageManifest } from '../packageManifest';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
 import { readPluginUpdateImpact } from '../updateImpact';
-import { isRecord } from './values';
+import { z } from 'zod';
+import { looseStringArraySchema } from '../../values';
 
 type PluginPackageDisplayFields = Pick<
   CodeGraphyInstalledPluginRecord,
@@ -14,48 +15,34 @@ interface PluginPackageStaticDescriptor extends PluginPackageDisplayFields {
   pluginId: string;
 }
 
-function readString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-function readSupportedExtensions(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((extension): extension is string => typeof extension === 'string' && extension.length > 0)
-    : [];
-}
-
-function buildPluginPackageDisplayFields(
-  descriptor: Record<string, unknown>,
-): PluginPackageStaticDescriptor | null {
-  const pluginId = readString(descriptor.id);
-  if (!pluginId) {
-    return null;
-  }
-
-  const pluginName = readString(descriptor.name);
-  const supportedExtensions = readSupportedExtensions(descriptor.supportedExtensions);
-  const updateImpact = readPluginUpdateImpact(descriptor.updateImpact);
-
-  return {
-    pluginId,
-    ...(pluginName ? { pluginName } : {}),
-    ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
-    ...(updateImpact ? { updateImpact } : {}),
-  };
-}
+const packageDescriptorSchema = z.looseObject({
+  id: z.string().min(1),
+  name: z.string().min(1).optional().catch(undefined),
+  supportedExtensions: looseStringArraySchema
+    .transform(entries => entries.filter(entry => entry.length > 0)),
+  updateImpact: z.unknown(),
+});
 
 async function readPluginPackageDisplayFields(
   packageRoot: string,
 ): Promise<PluginPackageStaticDescriptor | null> {
   try {
-    const descriptor = JSON.parse(
+    const descriptor = packageDescriptorSchema.safeParse(JSON.parse(
       await fsPromises.readFile(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
-    ) as unknown;
-    if (!isRecord(descriptor)) {
+    ));
+    if (!descriptor.success) {
       return null;
     }
 
-    return buildPluginPackageDisplayFields(descriptor);
+    const { id: pluginId, name: pluginName, supportedExtensions } = descriptor.data;
+    const updateImpact = readPluginUpdateImpact(descriptor.data.updateImpact);
+
+    return {
+      pluginId,
+      ...(pluginName ? { pluginName } : {}),
+      ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+      ...(updateImpact ? { updateImpact } : {}),
+    };
   } catch {
     return null;
   }

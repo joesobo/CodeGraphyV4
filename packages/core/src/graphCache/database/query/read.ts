@@ -1,8 +1,27 @@
-export const FILE_ANALYSIS_ROWS_QUERY =
-  'MATCH (entry:FileAnalysis) RETURN entry.filePath AS filePath, entry.mtime AS mtime, entry.size AS size, entry.analysis AS analysis ORDER BY entry.filePath';
+export const FILE_ROWS_QUERY = 'SELECT * FROM File ORDER BY path';
 
-export const SYMBOL_ROWS_QUERY =
-  'MATCH (entry:Symbol) RETURN entry.symbolId AS symbolId, entry.filePath AS filePath, entry.name AS name, entry.kind AS kind, entry.signature AS signature, entry.rangeJson AS rangeJson, entry.metadataJson AS metadataJson ORDER BY entry.filePath, entry.symbolId';
+export const NODE_ROWS_QUERY = `SELECT Node.*, File.path AS filePath, Parent.key AS parentKey,
+  NodeView.color, NodeView.x, NodeView.y, NodeView.favorite, NodeView.shape,
+  NodeView.imageUrl, NodeView.isCollapsed
+  FROM Node
+  LEFT JOIN File ON File.id = Node.fileId
+  LEFT JOIN Node AS Parent ON Parent.id = Node.parentId
+  LEFT JOIN NodeView ON NodeView.nodeKey = Node.key
+  ORDER BY Node.key`;
 
-export const RELATION_ROWS_QUERY =
-  'MATCH (entry:Relation) RETURN entry.relationId AS relationId, entry.filePath AS filePath, entry.kind AS kind, entry.pluginId AS pluginId, entry.sourceId AS sourceId, entry.fromFilePath AS fromFilePath, entry.toFilePath AS toFilePath, entry.fromNodeId AS fromNodeId, entry.toNodeId AS toNodeId, entry.fromSymbolId AS fromSymbolId, entry.toSymbolId AS toSymbolId, entry.specifier AS specifier, entry.relationType AS relationType, entry.variant AS variant, entry.resolvedPath AS resolvedPath, entry.metadataJson AS metadataJson ORDER BY entry.filePath, entry.relationId';
+export const SYMBOL_ROWS_QUERY = `SELECT Symbol.*, Node.key AS nodeKey, File.path AS ownerFilePath
+  FROM Symbol
+  JOIN Node ON Node.id = Symbol.nodeId
+  LEFT JOIN File ON File.id = Node.fileId
+  ORDER BY Node.key`;
+
+export const EDGE_ROWS_QUERY = `SELECT Edge.*, Source.key AS sourceNodeKey,
+  Source.type AS sourceNodeType, SourceFile.path AS sourceFilePath,
+  Target.key AS targetNodeKey, Target.type AS targetNodeType,
+  TargetFile.path AS targetFilePath
+  FROM Edge
+  JOIN Node AS Source ON Source.id = Edge.sourceNodeId
+  JOIN Node AS Target ON Target.id = Edge.targetNodeId
+  LEFT JOIN File AS SourceFile ON SourceFile.id = Source.fileId
+  LEFT JOIN File AS TargetFile ON TargetFile.id = Target.fileId
+  ORDER BY Edge.key`;

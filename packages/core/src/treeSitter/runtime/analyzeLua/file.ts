@@ -5,7 +5,7 @@ import type {
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
-import { addCallRelation, normalizeAnalysisResult } from '../analyze/results';
+import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
 import { handleLuaFunctionCall } from './imports';
 import {
@@ -16,6 +16,7 @@ import {
   shouldIncludeTreeSitterSymbols,
   type TreeSitterAnalysisOptions,
 } from '../options';
+import { getLuaRequireLocalName, handleLuaRequiredModuleCall } from './calls';
 
 function visitLuaNode(
   node: Parser.SyntaxNode,
@@ -26,20 +27,13 @@ function visitLuaNode(
   requiredModulesByLocalName: Map<string, IAnalysisRelation>,
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
-  if (node.type === 'function_call' && handleLuaFunctionCall(node, filePath, workspaceRoot, relations)) {
-    const localName = getLuaRequireLocalName(node);
-    const relation = relations.at(-1);
-    if (localName && relation?.kind === 'import') {
-      requiredModulesByLocalName.set(localName, relation);
-    }
-    return { skipChildren: true };
+  const importAction = visitLuaImport(node, filePath, workspaceRoot, relations, requiredModulesByLocalName);
+  if (importAction) {
+    return importAction;
   }
 
   if (node.type === 'variable_declaration') {
-    if (!symbolsEnabled) {
-      return;
-    }
-    handleLuaVariableDeclaration(node, filePath, symbols);
+    if (symbolsEnabled) handleLuaVariableDeclaration(node, filePath, symbols);
     return;
   }
 
@@ -50,6 +44,22 @@ function visitLuaNode(
   }
 
   return;
+}
+
+function visitLuaImport(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  requiredModulesByLocalName: Map<string, IAnalysisRelation>,
+): TreeWalkAction<SymbolWalkState> | undefined {
+  if (node.type !== 'function_call' || !handleLuaFunctionCall(node, filePath, workspaceRoot, relations)) {
+    return undefined;
+  }
+  const localName = getLuaRequireLocalName(node);
+  const relation = relations.at(-1);
+  if (localName && relation?.kind === 'import') requiredModulesByLocalName.set(localName, relation);
+  return { skipChildren: true };
 }
 
 export function analyzeLuaFile(
@@ -78,51 +88,4 @@ export function analyzeLuaFile(
     return action;
   });
   return normalizeAnalysisResult(filePath, symbols, relations);
-}
-
-function getLuaRequireLocalName(node: Parser.SyntaxNode): string | null {
-  const assignment = node.parent?.parent;
-  if (assignment?.type !== 'assignment_statement') {
-    return null;
-  }
-
-  return assignment
-    .descendantsOfType('variable_list')[0]
-    ?.descendantsOfType('identifier')[0]
-    ?.text ?? null;
-}
-
-function handleLuaRequiredModuleCall(
-  node: Parser.SyntaxNode,
-  filePath: string,
-  relations: IAnalysisRelation[],
-  requiredModulesByLocalName: ReadonlyMap<string, IAnalysisRelation>,
-  currentSymbolId?: string,
-): void {
-  const callee = node.childForFieldName('name') ?? node.namedChildren[0];
-  if (callee?.type !== 'dot_index_expression') {
-    return;
-  }
-
-  const localName = callee.namedChildren[0]?.text;
-  if (!localName) {
-    return;
-  }
-
-  const importRelation = requiredModulesByLocalName.get(localName);
-  if (!importRelation?.resolvedPath || !importRelation.specifier) {
-    return;
-  }
-
-  addCallRelation(
-    relations,
-    filePath,
-    {
-      importedName: importRelation.specifier,
-      localName,
-      resolvedPath: importRelation.resolvedPath,
-      specifier: importRelation.specifier,
-    },
-    currentSymbolId,
-  );
 }

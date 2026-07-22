@@ -3,6 +3,10 @@ export type { CommandExecutionResult } from './cli/command';
 export { runCliCommand } from './cli/command';
 export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
 export { parseCliCommand } from './cli/parse';
+export {
+  CORE_GRAPH_EDGE_DEFAULT_VISIBILITY,
+  CORE_GRAPH_EDGE_TYPES,
+} from './graphScope/defaults';
 export type {
   DiagnosticContextValue,
   DiagnosticEvent,
@@ -16,7 +20,6 @@ export {
 } from './diagnostics/events';
 export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';
-export { runSetupCommand } from './cli/setup/command';
 export { runStatusCommand } from './cli/status/command';
 export {
   createWorkspaceIndexEngineState,
@@ -144,7 +147,6 @@ export type {
   GraphMetadata,
   GraphMetadataValue,
   GraphNodeShape2D,
-  GraphNodeShape3D,
   IGraphData,
   IGraphEdge,
   IGraphEdgeSource,
@@ -157,6 +159,12 @@ export {
   buildWorkspaceGraphData,
   buildWorkspaceGraphDataFromAnalysis,
 } from './graph/data';
+export {
+  buildCompleteWorkspaceGraphData,
+} from './graph/completion/model';
+export type {
+  CompleteWorkspaceGraphDataOptions,
+} from './graph/completion/model';
 export type {
   IWorkspaceGraphAnalysisDataOptions,
   IWorkspaceGraphDataOptions,

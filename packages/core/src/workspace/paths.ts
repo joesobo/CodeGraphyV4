@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 
 const CODEGRAPHY_DIRECTORY_NAME = '.codegraphy';
-const GRAPH_CACHE_FILE_NAME = 'graph.lbug';
+const GRAPH_CACHE_FILE_NAME = 'graph.sqlite';
 const WORKSPACE_SETTINGS_FILE_NAME = 'settings.json';
 const WORKSPACE_META_FILE_NAME = 'meta.json';
 

@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 describe('extension/graphViewProvider', () => {
-  it('exposes the graph and timeline view types', () => {
+  it('exposes the graph view type', () => {
     expect(GraphViewProvider.viewType).toBe('codegraphy.graphView');
-    expect(GraphViewProvider.timelineViewType).toBe('codegraphy.timelineView');
   });
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { OWNED_GRAPH_MINIMAP_RESERVED_LEFT } from '../graph/rendering/surface/owned2d/minimap/layout';
 
 export interface GraphIndexStatusProgress {
   phase: string;
@@ -9,11 +10,13 @@ export interface GraphIndexStatusProgress {
 interface GraphIndexStatusProps {
   isIndexing: boolean;
   progress: GraphIndexStatusProgress | null;
+  showMinimap: boolean;
 }
 
 export function GraphIndexStatus({
   isIndexing,
   progress,
+  showMinimap,
 }: GraphIndexStatusProps): React.ReactElement | null {
   if (!isIndexing || !progress) {
     return null;
@@ -25,9 +28,10 @@ export function GraphIndexStatus({
 
   return (
     <div
-      className="pointer-events-none absolute left-2 right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm"
+      className={`pointer-events-none absolute ${showMinimap ? '' : 'left-2'} right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm`}
       data-codegraphy-state="graph-indexing"
       data-testid="graph-index-status"
+      style={showMinimap ? { left: OWNED_GRAPH_MINIMAP_RESERVED_LEFT } : undefined}
     >
       <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
         <span>{progress.phase}</span>

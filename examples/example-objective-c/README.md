@@ -1,6 +1,6 @@
 # Objective-C UIKit Example
 
-Small Objective-C workspace for checking CodeGraphy's Core Objective-C coverage with a realistic app shape: an app delegate owns a dashboard controller, the controller loads users from a session store, and a card view renders the selected user.
+This small Objective-C workspace tests CodeGraphy's Core Objective-C coverage. An app delegate owns a dashboard controller. The controller loads users from a session store, and a card view renders the selected user.
 
 Open `examples/example-objective-c` in CodeGraphy and look for:
 

@@ -106,4 +106,4 @@ Expected behavior:
 
 - File nodes show the task dispatch app structure.
 - Symbol nodes expose C# types and members that explain why files connect.
-- Variable nodes expose fields, parameters, constants, and locals when those C# capabilities are enabled.
+- Enable the C# Variable capabilities to show fields, parameters, constants, and local variables.

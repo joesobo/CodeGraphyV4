@@ -1,9 +1,13 @@
-import type { IWorkspaceAnalysisCache } from '../../cache';
-import { clearWorkspacePipelineCache } from '../../analysis/state';
 import {
+  createEmptyWorkspaceAnalysisCache,
+  type IWorkspaceAnalysisCache,
+} from '../../cache';
+import {
+  clearWorkspaceAnalysisDatabaseCacheQueued,
   patchWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../database/cache/storage';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 
 export interface WorkspacePipelineCachePatch {
   deleteFilePaths: readonly string[];
@@ -14,19 +18,28 @@ export function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,
   logInfo: (message: string) => void,
 ): IWorkspaceAnalysisCache {
-  return clearWorkspacePipelineCache(workspaceRoot, logInfo);
+  const cache = createEmptyWorkspaceAnalysisCache();
+  if (workspaceRoot) {
+    void clearWorkspaceAnalysisDatabaseCacheQueued(workspaceRoot)
+      .catch((error: unknown) => {
+        console.warn('[CodeGraphy] Failed to clear repo-local analysis cache.', error);
+      });
+  }
+  logInfo('[CodeGraphy] Cache cleared');
+  return cache;
 }
 
 export function persistWorkspacePipelineCache(
   workspaceRoot: string | undefined,
   cache: IWorkspaceAnalysisCache,
+  graph: IGraphData,
   warn: (message: string, error: unknown) => void,
 ): void {
   if (!workspaceRoot) {
     return;
   }
 
-  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache)
+  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, { graph })
     .catch((error: unknown) => {
       warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
     });
@@ -50,12 +63,11 @@ export function patchWorkspacePipelineCache(
     }
   }
 
-  try {
-    patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
-      deleteFilePaths: patch.deleteFilePaths,
-      upsertFiles,
+  void patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+    deleteFilePaths: patch.deleteFilePaths,
+    upsertFiles,
+  })
+    .catch((error: unknown) => {
+      warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);
     });
-  } catch (error) {
-    warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);
-  }
 }

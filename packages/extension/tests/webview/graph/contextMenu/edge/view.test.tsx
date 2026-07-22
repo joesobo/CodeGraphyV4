@@ -4,8 +4,7 @@ import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
-import ForceGraph2D from 'react-force-graph-2d';
-import ForceGraph3D from 'react-force-graph-3d';
+import OwnedGraphSurface from '../../../../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 
@@ -17,12 +16,6 @@ function getGraphContainer(container: HTMLElement): HTMLElement {
   const graphContainer = container.querySelector('[tabindex="0"]');
   expect(graphContainer).toBeTruthy();
   return graphContainer as HTMLElement;
-}
-
-async function waitForThreeDimensionalSurface(): Promise<void> {
-  await waitFor(() => {
-    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
-  });
 }
 
 const menuData: IGraphData = {
@@ -42,24 +35,18 @@ const edge = {
 describe('Graph context menu (edge)', () => {
   beforeEach(() => {
     clearSentMessages();
-    ForceGraph2D.clearAllHandlers();
-    ForceGraph3D.clearAllHandlers();
+    OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      graphMode: '2d',
-      timelineActive: false,
       pluginContextMenuItems: [],
     });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    ForceGraph2D.clearMockPositions();
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        graphMode: '2d',
-        timelineActive: false,
         pluginContextMenuItems: [],
       });
     });
@@ -69,27 +56,7 @@ describe('Graph context menu (edge)', () => {
     render(<Graph data={menuData} />);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Open Source')).toBeInTheDocument();
-    });
-    expect(screen.getByText('Open Target')).toBeInTheDocument();
-    expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
-    expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
-    expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
-  });
-
-  it('opens edge menu in 3d from onLinkRightClick alone', async () => {
-    await act(async () => {
-      graphStore.setState({ graphMode: '3d' });
-    });
-    render(<Graph data={menuData} />);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
     });
 
     await waitFor(() => {
@@ -107,32 +74,7 @@ describe('Graph context menu (edge)', () => {
       render(<Graph data={menuData} />);
 
       await act(async () => {
-        ForceGraph2D.simulateLinkClick(edge, { button: 0, ctrlKey: true, clientX: 210, clientY: 180 });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Open Source')).toBeInTheDocument();
-      });
-      expect(screen.getByText('Open Target')).toBeInTheDocument();
-      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
-      expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
-      expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
-    } finally {
-      platformSpy.mockRestore();
-    }
-  });
-
-  it('shows edge menu items from mac ctrl+click in 3d (same as right-click)', async () => {
-    const platformSpy = mockMacPlatform();
-    try {
-      await act(async () => {
-        graphStore.setState({ graphMode: '3d' });
-      });
-      render(<Graph data={menuData} />);
-      await waitForThreeDimensionalSurface();
-
-      await act(async () => {
-        ForceGraph3D.simulateLinkClick(edge, { button: 0, ctrlKey: true, clientX: 215, clientY: 185 });
+        OwnedGraphSurface.simulateLinkClick(edge, { button: 0, ctrlKey: true, clientX: 210, clientY: 180 });
       });
 
       await waitFor(() => {
@@ -152,7 +94,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
     });
 
@@ -167,31 +109,13 @@ describe('Graph context menu (edge)', () => {
     expect(screen.queryByText('New File')).not.toBeInTheDocument();
   });
 
-  it('keeps edge actions available in timeline mode', async () => {
-    graphStore.setState({ timelineActive: true });
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
-      fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Open Source')).toBeInTheDocument();
-    });
-    expect(screen.getByText('Open Target')).toBeInTheDocument();
-    expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
-    expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
-    expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
-  });
 
   it('sends OPEN_FILE source path when clicking Open Source', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -214,7 +138,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -237,7 +161,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -260,7 +184,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -283,7 +207,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
     });
 
@@ -314,7 +238,7 @@ describe('Graph context menu (edge)', () => {
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
+      OwnedGraphSurface.simulateLinkRightClick(edge);
       fireEvent.contextMenu(graphContainer, { clientX: 220, clientY: 210 });
     });
 
@@ -336,25 +260,4 @@ describe('Graph context menu (edge)', () => {
     });
   });
 
-  it('keeps plugin edge items visible in timeline mode', async () => {
-    const pluginItem: IPluginContextMenuItem = {
-      label: 'Edge Timeline Action',
-      when: 'edge',
-      pluginId: 'acme.plugin',
-      index: 3,
-    };
-    graphStore.setState({ timelineActive: true, pluginContextMenuItems: [pluginItem] });
-
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await act(async () => {
-      ForceGraph2D.simulateLinkRightClick(edge);
-      fireEvent.contextMenu(graphContainer, { clientX: 210, clientY: 180 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Edge Timeline Action')).toBeInTheDocument();
-    });
-  });
 });

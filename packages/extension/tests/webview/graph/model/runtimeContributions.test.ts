@@ -72,11 +72,10 @@ describe('graph/model/runtimeContributions', () => {
     const graphData = buildGraphData({
       data,
       graphViewContributions,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: false,
     });
 
     expect(graphData.nodes.find(node => node.id === 'runtime:frontend')).toMatchObject({
@@ -145,11 +144,10 @@ describe('graph/model/runtimeContributions', () => {
     const graphData = buildGraphData({
       data,
       graphViewContributions,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: false,
     });
 
     expect(graphData.nodes).toEqual([
@@ -162,7 +160,7 @@ describe('graph/model/runtimeContributions', () => {
     expect(graphData.links).toEqual([]);
   });
 
-  it('passes live graph mode and timeline state to runtime and projection contributions', () => {
+  it('passes the live graph to runtime and projection contributions', () => {
     const createNodes = vi.fn(() => []);
     const project = vi.fn(({ visibleGraph }) => visibleGraph);
     const graphViewContributions: CoreGraphViewContributionSet = {
@@ -188,21 +186,17 @@ describe('graph/model/runtimeContributions', () => {
     buildGraphData({
       data: { nodes: [], edges: [] },
       graphViewContributions,
-      nodeSizeMode: 'uniform',
+      nodeSizeMode: 'connections',
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      graphMode: '3d',
-      timelineActive: true,
     });
 
-    expect(createNodes).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
-      timelineActive: true,
-    }));
-    expect(project).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
-      timelineActive: true,
-    }));
+    expect(createNodes).toHaveBeenCalledWith({
+      visibleGraph: { nodes: [], edges: [] },
+    });
+    expect(project).toHaveBeenCalledWith({
+      visibleGraph: { nodes: [], edges: [] },
+    });
   });
 });

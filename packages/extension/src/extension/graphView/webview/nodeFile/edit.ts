@@ -1,8 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 
 export interface GraphViewNodeFileEditHandlers {
-  timelineActive: boolean;
-  canMutateGraphRevision: boolean;
   deleteFiles(paths: string[]): Promise<void>;
   renameFile(filePath: string): Promise<void>;
   createFile(directory: string): Promise<string | void>;
@@ -11,24 +9,10 @@ export interface GraphViewNodeFileEditHandlers {
   addToExclude(patterns: string[]): Promise<void>;
 }
 
-function isTimelineBoundEditMessage(message: WebviewToExtensionMessage): boolean {
-  return (
-    message.type === 'DELETE_FILES'
-    || message.type === 'RENAME_FILE'
-    || message.type === 'CREATE_FILE'
-    || message.type === 'CREATE_FOLDER'
-    || message.type === 'ADD_TO_EXCLUDE'
-  );
-}
-
-function applyTimelineBoundEditMessage(
+function applyEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): boolean | Promise<boolean> {
-  if (handlers.timelineActive && !handlers.canMutateGraphRevision) {
-    return isTimelineBoundEditMessage(message);
-  }
-
   switch (message.type) {
     case 'DELETE_FILES':
       void handlers.deleteFiles(message.payload.paths);
@@ -60,7 +44,7 @@ export async function applyNodeFileEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): Promise<boolean> {
-  if (await applyTimelineBoundEditMessage(message, handlers)) {
+  if (await applyEditMessage(message, handlers)) {
     return true;
   }
 

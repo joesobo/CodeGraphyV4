@@ -20,10 +20,9 @@ import type { UseGraphInteractionRuntimeResult } from '../interaction';
 export interface UseGraphEventEffectsOptions {
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
-  directionColorRef: GraphRuntime['directionColorRef'];
   directionModeRef: GraphRuntime['directionModeRef'];
+  graphAppearanceRef: GraphRuntime['graphAppearanceRef'];
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
-  graphMode: '2d' | '3d';
   interactionHandlers: UseGraphInteractionRuntimeResult['interactionHandlers'];
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   selectedNodes: string[];
@@ -36,10 +35,9 @@ export interface UseGraphEventEffectsOptions {
 export function useGraphEventEffects({
   containerRef,
   dataRef,
-  directionColorRef,
   directionModeRef,
+  graphAppearanceRef,
   graphDataRef,
-  graphMode,
   interactionHandlers,
   fileInfoCacheRef,
   selectedNodes,
@@ -59,7 +57,7 @@ export function useGraphEventEffects({
       exportPng: () => exportAsPng(containerRef.current),
       exportSvg: () => exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
         directionMode: directionModeRef.current,
-        directionColor: directionColorRef.current,
+        directionColor: graphAppearanceRef.current.linkHighlight,
         showLabels: showLabelsRef.current,
         theme: themeRef.current,
       }),
@@ -70,9 +68,9 @@ export function useGraphEventEffects({
   }, [
     containerRef,
     dataRef,
-    directionColorRef,
     directionModeRef,
     fileInfoCacheRef,
+    graphAppearanceRef,
     graphDataRef,
     interactionHandlers,
     setTooltipData,
@@ -83,18 +81,16 @@ export function useGraphEventEffects({
   useEffect(() => {
     const handleMessage = createGraphMessageListener({
       applyEffects: applyWebviewMessageEffects,
-      graphMode,
       tooltipPath,
       getGraphLinks: () => graphDataRef.current.links,
       getGraphNodes: () => graphDataRef.current.nodes,
     });
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [applyWebviewMessageEffects, graphDataRef, graphMode, tooltipPath]);
+  }, [applyWebviewMessageEffects, graphDataRef, tooltipPath]);
 
   useEffect(() => {
     const handleKeyDown = createGraphKeyboardListener({
-      graphMode,
       selectedNodeIds: selectedNodes,
       getAllNodeIds: () => graphDataRef.current.nodes.map(node => node.id),
       fitView: () => interactionHandlers.fitView(),
@@ -109,5 +105,5 @@ export function useGraphEventEffects({
     });
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [graphDataRef, graphMode, interactionHandlers, selectedNodes]);
+  }, [graphDataRef, interactionHandlers, selectedNodes]);
 }

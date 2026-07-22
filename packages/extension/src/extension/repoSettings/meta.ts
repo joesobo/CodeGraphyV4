@@ -1,5 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { z } from 'zod';
+import { looseStringArraySchema } from '../../shared/values';
 
 export interface ICodeGraphyRepoMeta {
   version: 1;
@@ -11,6 +13,24 @@ export interface ICodeGraphyRepoMeta {
 }
 
 const META_FILE_NAME = 'meta.json';
+
+const optionalNullableStringSchema = z.union([z.string(), z.null()]).optional().catch(undefined);
+
+const codeGraphyRepoMetaSchema = z.looseObject({
+  lastIndexedAt: optionalNullableStringSchema,
+  lastIndexedCommit: optionalNullableStringSchema,
+  pendingChangedFiles: looseStringArraySchema,
+  pluginSignature: optionalNullableStringSchema,
+  settingsSignature: optionalNullableStringSchema,
+}).transform((meta): ICodeGraphyRepoMeta => ({
+  ...createDefaultCodeGraphyRepoMeta(),
+  ...(meta.lastIndexedAt !== undefined ? { lastIndexedAt: meta.lastIndexedAt } : {}),
+  ...(meta.lastIndexedCommit !== undefined ? { lastIndexedCommit: meta.lastIndexedCommit } : {}),
+  ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
+  ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
+  pendingChangedFiles: meta.pendingChangedFiles,
+  version: 1,
+}));
 
 export function createDefaultCodeGraphyRepoMeta(): ICodeGraphyRepoMeta {
   return {
@@ -31,11 +51,8 @@ export function readCodeGraphyRepoMeta(workspaceRoot: string): ICodeGraphyRepoMe
   const metaPath = getCodeGraphyRepoMetaPath(workspaceRoot);
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(metaPath, 'utf8')) as Partial<ICodeGraphyRepoMeta>;
-    return {
-      ...createDefaultCodeGraphyRepoMeta(),
-      ...parsed,
-    };
+    const parsed = codeGraphyRepoMetaSchema.safeParse(JSON.parse(fs.readFileSync(metaPath, 'utf8')));
+    return parsed.success ? parsed.data : createDefaultCodeGraphyRepoMeta();
   } catch {
     return createDefaultCodeGraphyRepoMeta();
   }

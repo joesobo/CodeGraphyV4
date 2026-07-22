@@ -1,8 +1,22 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import { createUnityPlugin } from '../src/lifecycle';
 
 const playerControllerGuid = '11111111111111111111111111111111';
+
+function resolveAssetPath(fileName: string): string {
+  const candidates = [
+    join(process.cwd(), 'assets', fileName),
+    join(process.cwd(), 'packages', 'plugin-unity', 'assets', fileName),
+  ];
+  const assetPath = candidates.find(candidate => existsSync(candidate));
+  if (!assetPath) {
+    throw new Error(`Unable to find Unity test asset '${fileName}'.`);
+  }
+  return assetPath;
+}
 
 describe('createUnityPlugin', () => {
   it('exposes Unity manifest metadata and Graph Scope capabilities', () => {
@@ -39,17 +53,32 @@ describe('createUnityPlugin', () => {
     expect(plugin.fileColors).toEqual(expect.objectContaining({
       '*.unity': expect.objectContaining({
         color: '#F97316',
-        imagePath: 'assets/scene.svg',
+        imagePath: 'assets/unity.svg',
       }),
       '*.prefab': expect.objectContaining({
         color: '#8B5CF6',
-        imagePath: 'assets/prefab.svg',
+        imagePath: 'assets/unity.svg',
+      }),
+      '*.asset': expect.objectContaining({
+        color: '#0EA5E9',
+        shape2D: 'triangle',
+        imagePath: 'assets/unity.svg',
       }),
       '*.mat': expect.objectContaining({
         color: '#14B8A6',
-        imagePath: 'assets/material.svg',
+        imagePath: 'assets/unity.svg',
       }),
     }));
+  });
+
+  it.skipIf(process.env.CODEGRAPHY_MUTATION_RUN === '1')('ships Unity icons as white glyphs', () => {
+    const unityIcon = readFileSync(resolveAssetPath('unity.svg'), 'utf8');
+    const packageIcon = readFileSync(resolveAssetPath('icon.svg'), 'utf8');
+
+    expect(unityIcon).toContain('fill="#fff"');
+    expect(packageIcon).toContain('fill="#fff"');
+    expect(unityIcon).not.toContain('#42a5f5');
+    expect(packageIcon).not.toContain('#42a5f5');
   });
 
   it('uses .meta GUIDs to name MonoBehaviour components after their scripts', async () => {

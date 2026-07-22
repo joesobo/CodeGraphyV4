@@ -12,8 +12,10 @@ import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repo
 describe('extension/repoSettings/defaults', () => {
   it('builds the full repo settings defaults', () => {
     expect(createDefaultCodeGraphyRepoSettings()).toEqual({
-      version: 1,
+      version: 2,
       maxFiles: DEFAULT_MAX_FILES,
+      showFps: false,
+      showMinimap: true,
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,
@@ -39,19 +41,13 @@ describe('extension/repoSettings/defaults', () => {
       particleSize: 4,
       depthMode: false,
       depthLimit: 1,
-      dagMode: null,
       nodeSizeMode: 'connections',
       physics: {
         repelForce: 10,
         linkDistance: 80,
-        linkForce: 0.15,
-        damping: 0.7,
+        linkForce: 1,
+        damping: 0.4,
         centerForce: 0.1,
-        chargeRange: 200,
-      },
-      timeline: {
-        maxCommits: 500,
-        playbackSpeed: 1,
       },
     });
   });
@@ -73,6 +69,5 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.legend).not.toBe(first.legend);
     expect(second.filterPatterns).not.toBe(first.filterPatterns);
     expect(second.physics).not.toBe(first.physics);
-    expect(second.timeline).not.toBe(first.timeline);
   });
 });

@@ -1,28 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { EdgeDecorationPayload } from '../../../../../../src/shared/plugins/decorations';
-import type { DirectionMode } from '../../../../../../src/shared/settings/modes';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import type { FGLink } from '../../../../../../src/webview/components/graph/model/build';
 import {
+  getBaseGraphLinkColor,
   getGraphLinkColor
 } from '../../../../../../src/webview/components/graph/rendering/link/colors/model';
-import type { ThemeKind } from '../../../../../../src/webview/theme/useTheme';
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
-  directionMode: DirectionMode;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   highlightedNodeId: string | null;
   linkHighlight: string;
   linkMuted: string;
-  theme: ThemeKind;
+  resolvedColors: Record<string, string>;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
-    directionModeRef: { current: overrides.directionMode ?? 'arrows' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
-    themeRef: { current: overrides.theme ?? 'dark' },
     graphAppearanceRef: {
       current: {
         ...DEFAULT_GRAPH_APPEARANCE,
@@ -30,6 +24,11 @@ function createDependencies(overrides: Partial<{
         linkMuted: overrides.linkMuted ?? '#2d3748',
       },
     },
+    resolveColor: (color: string | undefined, fallback: string) => color === undefined
+      ? fallback
+      : overrides.resolvedColors?.[color] ?? (
+        color === 'not-a-color' || color.startsWith('var(--missing') ? fallback : color
+      ),
   };
 }
 
@@ -47,6 +46,20 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
 
 describe('graph/rendering/link/colors', () => {
 
+    it('keeps the base color when search and plugin decoration styles are active', () => {
+      const color = getBaseGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: '#f97316' },
+          },
+          highlightedNodeId: 'src/app.ts',
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
+
+      expect(color).toBe('#3b82f6');
+    });
+
     it('prefers edge decoration color over the link base color', () => {
       const color = getGraphLinkColor(
         createDependencies({
@@ -61,6 +74,33 @@ describe('graph/rendering/link/colors', () => {
     });
 
 
+
+    it('resolves plugin CSS colors before sending them to WebGPU', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: 'var(--plugin-edge)' },
+          },
+          resolvedColors: { 'var(--plugin-edge)': 'rgb(249, 115, 22)' },
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
+
+      expect(color).toBe('rgb(249, 115, 22)');
+    });
+
+    it('falls back to the link color when a plugin decoration color is invalid', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: 'not-a-color' },
+          },
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
+
+      expect(color).toBe('#3b82f6');
+    });
 
     it('uses the link base color when nothing is highlighted', () => {
       const color = getGraphLinkColor(
@@ -125,10 +165,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('uses the default muted link color when the highlighted node is unrelated', () => {
       const color = getGraphLinkColor(
-        createDependencies({
-          highlightedNodeId: 'src/other.ts',
-          theme: 'dark',
-        }),
+        createDependencies({ highlightedNodeId: 'src/other.ts' }),
         createLink(),
       );
 

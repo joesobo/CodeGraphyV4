@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 
 interface GraphDebugSnapshot {
+  cameraCenterX: number | null;
+  cameraCenterY: number | null;
   containerHeight: number;
   containerWidth: number;
-  graphMode: '2d' | '3d';
   nodes: Array<{
     id: string;
     screenX: number;
@@ -13,25 +14,12 @@ interface GraphDebugSnapshot {
   zoom: number | null;
 }
 
-async function disableWebgl(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const originalGetContext = HTMLCanvasElement.prototype.getContext;
-
-    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-      configurable: true,
-      value(this: HTMLCanvasElement, contextId: string, options?: unknown) {
-        if (
-          contextId === 'webgl'
-          || contextId === 'webgl2'
-          || contextId === 'experimental-webgl'
-        ) {
-          return null;
-        }
-
-        return originalGetContext.call(this, contextId, options as never);
-      },
-    });
-  });
+interface MinimapCameraState {
+  boxCenterX: number;
+  boxCenterY: number;
+  boxHeight: number;
+  boxWidth: number;
+  snapshot: GraphDebugSnapshot;
 }
 
 async function waitForGraphDebugBridge(page: Page): Promise<void> {
@@ -68,75 +56,12 @@ async function refitGraphForVisualAssertion(page: Page, padding = 176): Promise<
 async function openDisplaySettings(page: Page): Promise<void> {
   await page.getByTitle('Settings').click();
   await page.getByRole('button', { name: 'Display' }).click();
-  await expect(page.getByRole('button', { name: '2D' })).toBeVisible();
   await expect(page.getByRole('switch', { name: 'Depth Mode' })).toBeVisible();
 }
 
 async function toggleDepthModeFromSettings(page: Page): Promise<void> {
   await openDisplaySettings(page);
   await page.getByRole('switch', { name: 'Depth Mode' }).click();
-}
-
-async function selectRendererFromSettings(page: Page, renderer: '2D' | '3D'): Promise<void> {
-  await openDisplaySettings(page);
-  await page.getByRole('button', { name: renderer }).click();
-}
-
-async function countVisibleWebglSamples(page: Page): Promise<number> {
-  return page.evaluate(async () => {
-    const canvas = document.querySelector('.graph-container canvas');
-    if (!(canvas instanceof HTMLCanvasElement)) {
-      return 0;
-    }
-
-    return new Promise<number>((resolve) => {
-      requestAnimationFrame(() => {
-        const width = canvas.width;
-        const height = canvas.height;
-        if (width === 0 || height === 0) {
-          resolve(0);
-          return;
-        }
-
-        const snapshotCanvas = document.createElement('canvas');
-        snapshotCanvas.width = width;
-        snapshotCanvas.height = height;
-
-        const context = snapshotCanvas.getContext('2d');
-        if (!context) {
-          resolve(0);
-          return;
-        }
-
-        context.drawImage(canvas, 0, 0, width, height);
-
-        const samplePoints = [
-          [0.25, 0.25],
-          [0.5, 0.25],
-          [0.75, 0.25],
-          [0.25, 0.5],
-          [0.5, 0.5],
-          [0.75, 0.5],
-          [0.25, 0.75],
-          [0.5, 0.75],
-          [0.75, 0.75],
-        ];
-
-        let visibleSamples = 0;
-        for (const [xRatio, yRatio] of samplePoints) {
-          const x = Math.min(width - 1, Math.max(0, Math.floor(width * xRatio)));
-          const y = Math.min(height - 1, Math.max(0, Math.floor(height * yRatio)));
-          const [red, green, blue, alpha] = context.getImageData(x, y, 1, 1).data;
-          const isBackground = alpha === 255 && red === 24 && green === 24 && blue === 27;
-          if (!isBackground) {
-            visibleSamples += 1;
-          }
-        }
-
-        resolve(visibleSamples);
-      });
-    });
-  });
 }
 
 function expectNodesToFit(snapshot: GraphDebugSnapshot): void {
@@ -154,7 +79,123 @@ function expectNodesToFit(snapshot: GraphDebugSnapshot): void {
   }
 }
 
+async function readMinimapCameraState(page: Page): Promise<MinimapCameraState> {
+  const viewportBox = page.getByTestId('graph-minimap-viewport');
+  await expect.poll(async () => viewportBox.evaluate(element => {
+    const height = Number(element.getAttribute('height'));
+    const width = Number(element.getAttribute('width'));
+    return Number.isFinite(height) && height > 0 && Number.isFinite(width) && width > 0;
+  })).toBe(true);
+  const box = await viewportBox.evaluate(element => ({
+    height: Number(element.getAttribute('height')),
+    width: Number(element.getAttribute('width')),
+    x: Number(element.getAttribute('x')),
+    y: Number(element.getAttribute('y')),
+  }));
+  return {
+    boxCenterX: box.x + box.width / 2,
+    boxCenterY: box.y + box.height / 2,
+    boxHeight: box.height,
+    boxWidth: box.width,
+    snapshot: await getGraphDebugSnapshot(page),
+  };
+}
+
+function expectViewportBoxMatchesCamera(before: MinimapCameraState, after: MinimapCameraState): void {
+  expect(before.snapshot.cameraCenterX).not.toBeNull();
+  expect(before.snapshot.cameraCenterY).not.toBeNull();
+  expect(after.snapshot.cameraCenterX).not.toBeNull();
+  expect(after.snapshot.cameraCenterY).not.toBeNull();
+  const cameraDeltaX = (after.snapshot.cameraCenterX ?? 0) - (before.snapshot.cameraCenterX ?? 0);
+  const cameraDeltaY = (after.snapshot.cameraCenterY ?? 0) - (before.snapshot.cameraCenterY ?? 0);
+  const boxDeltaX = after.boxCenterX - before.boxCenterX;
+  const boxDeltaY = after.boxCenterY - before.boxCenterY;
+
+  expect(cameraDeltaX * boxDeltaX).toBeGreaterThan(0);
+  expect(cameraDeltaY * boxDeltaY).toBeGreaterThan(0);
+}
+
+function expectViewportBoxAspect(state: MinimapCameraState): void {
+  expect(state.boxWidth / state.boxHeight).toBeCloseTo(
+    state.snapshot.containerWidth / state.snapshot.containerHeight,
+    3,
+  );
+}
+
+async function centerAndZoomGraph(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const debugBridge = window.__CODEGRAPHY_GRAPH_DEBUG__;
+    if (!debugBridge?.centerNode('src/index.ts', 50)) {
+      throw new Error('Expected debug bridge to center the graph');
+    }
+  });
+  await expect.poll(async () => (await getGraphDebugSnapshot(page)).zoom).toBe(50);
+  await page.evaluate(() => new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+  await expect.poll(async () => Number(
+    await page.getByTestId('graph-minimap-viewport').getAttribute('width'),
+  )).toBeLessThan(100);
+}
+
+async function dragMinimapCamera(page: Page, deltaX: number, deltaY: number): Promise<void> {
+  const minimap = page.getByTestId('graph-minimap');
+  const bounds = await minimap.boundingBox();
+  if (!bounds) throw new Error('Expected visible minimap bounds');
+  const startX = bounds.x + bounds.width / 2;
+  const startY = bounds.y + bounds.height / 2;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + deltaX, startY + deltaY, { steps: 4 });
+  await page.mouse.up();
+  await page.evaluate(() => new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
+}
+
 test.describe('webview depth view', () => {
+  test('keeps the minimap viewport aligned with camera pan, resize, and graph changes', async ({
+    page,
+  }) => {
+    await page.goto('/depth-view');
+    await waitForGraphDebugBridge(page);
+    await expect(page.getByTestId('graph-minimap')).toBeVisible();
+    await centerAndZoomGraph(page);
+
+    const initial = await readMinimapCameraState(page);
+    expectViewportBoxAspect(initial);
+    await dragMinimapCamera(page, 20, 24);
+    const panned = await readMinimapCameraState(page);
+    expectViewportBoxMatchesCamera(initial, panned);
+
+    await page.setViewportSize({ width: 900, height: 650 });
+    await centerAndZoomGraph(page);
+    const resized = await readMinimapCameraState(page);
+    expectViewportBoxAspect(resized);
+
+    const slider = page.getByTestId('depth-view-slider').getByRole('slider');
+    await slider.focus();
+    await slider.press('ArrowRight');
+    await expect(page.getByTestId('depth-harness-node-count')).toHaveText('4');
+    await centerAndZoomGraph(page);
+    const changed = await readMinimapCameraState(page);
+    await dragMinimapCamera(page, -18, 22);
+    const changedAndPanned = await readMinimapCameraState(page);
+    expectViewportBoxAspect(changed);
+    expectViewportBoxMatchesCamera(changed, changedAndPanned);
+
+    const minimap = page.getByTestId('graph-minimap');
+    await minimap.focus();
+    await minimap.press('ArrowDown');
+    await page.evaluate(() => new Promise<void>(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    const keyboardPanned = await readMinimapCameraState(page);
+    expect(keyboardPanned.snapshot.cameraCenterY)
+      .toBeGreaterThan(changedAndPanned.snapshot.cameraCenterY ?? Number.NEGATIVE_INFINITY);
+    expect(keyboardPanned.boxCenterY).toBeGreaterThan(changedAndPanned.boxCenterY);
+  });
+
   test('renders the local depth graph and updates rendered bounds as depth changes', async ({
     page,
   }) => {
@@ -198,104 +239,4 @@ test.describe('webview depth view', () => {
     expectNodesToFit(await refitGraphForVisualAssertion(page));
   });
 
-  test('falls back to 2d when 3d mode cannot create a WebGL context', async ({ page }) => {
-    await disableWebgl(page);
-    await page.goto('/depth-view');
-
-    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-
-    await selectRendererFromSettings(page, '3D');
-
-    await expect.poll(async () => page.locator('.graph-container canvas').count()).toBeGreaterThan(0);
-    await expect.poll(async () => {
-      const snapshot = await getGraphDebugSnapshot(page);
-      return snapshot.graphMode;
-    }).toBe('2d');
-  });
-
-  test('keeps the app alive when 3d mode falls back to 2d', async ({ page }) => {
-    await disableWebgl(page);
-    const pageErrors: string[] = [];
-    const consoleErrors: string[] = [];
-
-    page.on('pageerror', error => {
-      pageErrors.push(error.message);
-    });
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        consoleErrors.push(message.text());
-      }
-    });
-
-    await page.goto('/depth-view');
-    await waitForGraphDebugBridge(page);
-
-    await selectRendererFromSettings(page, '3D');
-
-    await expect.poll(async () => {
-      const snapshot = await getGraphDebugSnapshot(page);
-      return snapshot.graphMode;
-    }).toBe('2d');
-
-    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-
-    expect(pageErrors).toEqual([]);
-    expect(consoleErrors).not.toContain(
-      expect.stringContaining('Cannot read properties of undefined (reading \'tick\')'),
-    );
-  });
-
-  test('renders a working 3d graph without falling back or throwing runtime errors', async ({ page }) => {
-    const pageErrors: string[] = [];
-    const consoleErrors: string[] = [];
-
-    page.on('pageerror', error => {
-      pageErrors.push(error.message);
-    });
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        consoleErrors.push(message.text());
-      }
-    });
-
-    await page.goto('/depth-view');
-    await waitForGraphDebugBridge(page);
-
-    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-    await selectRendererFromSettings(page, '3D');
-
-    await expect.poll(async () => countVisibleWebglSamples(page)).toBeGreaterThan(0);
-
-    expect(pageErrors).toEqual([]);
-    expect(consoleErrors).not.toContain(
-      expect.stringContaining('Cannot read properties of undefined (reading \'tick\')'),
-    );
-  });
-
-  test('recovers 3d rendering after the graph container briefly reports zero size during toggle', async ({
-    page,
-  }) => {
-    await page.goto('/depth-view');
-    await waitForGraphDebugBridge(page);
-
-    await page.locator('.graph-container').evaluate((container: HTMLElement) => {
-      container.dataset.originalWidth = container.style.width;
-      container.dataset.originalHeight = container.style.height;
-      container.style.width = '0px';
-      container.style.height = '0px';
-    });
-
-    await selectRendererFromSettings(page, '3D');
-    await page.waitForFunction(() => {
-      const container = document.querySelector('.graph-container');
-      return container instanceof HTMLElement && container.clientWidth === 0 && container.clientHeight === 0;
-    });
-
-    await page.locator('.graph-container').evaluate((container: HTMLElement) => {
-      container.style.width = container.dataset.originalWidth ?? '';
-      container.style.height = container.dataset.originalHeight ?? '';
-    });
-
-    await expect.poll(async () => countVisibleWebglSamples(page)).toBeGreaterThan(0);
-  });
 });

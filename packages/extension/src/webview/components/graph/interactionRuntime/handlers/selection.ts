@@ -32,10 +32,6 @@ export function collectHighlightedNeighborIds(
   return neighbors;
 }
 
-export function incrementHighlightVersion(previous: number): number {
-  return previous + 1;
-}
-
 export function createSelectionHandlers(
   dependencies: GraphInteractionHandlersDependencies,
 ): SelectionHandlers {
@@ -56,9 +52,6 @@ export function createSelectionHandlers(
       );
     }
 
-    if (dependencies.graphMode === '3d') {
-      dependencies.setHighlightVersion(incrementHighlightVersion);
-    }
   };
 
   const selectOnlyNode = (nodeId: string): void => {

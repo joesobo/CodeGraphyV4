@@ -9,7 +9,6 @@ describe('display viewState', () => {
       getDisplayViewState({
         bidirectionalMode: 'combined',
         directionMode: 'particles',
-        graphMode: '3d',
         particleSpeed: 0.0015,
       }),
     ).toMatchObject({

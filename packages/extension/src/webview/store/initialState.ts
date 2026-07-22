@@ -1,7 +1,7 @@
 import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
-import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
+import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
@@ -24,10 +24,9 @@ export const INITIAL_STATE: GraphStateFields = {
   directionColor: DEFAULT_DIRECTION_COLOR,
   particleSpeed: 0.005,
   particleSize: 4,
-  physicsPaused: false,
   showLabels: true,
+  showMinimap: DEFAULT_SHOW_MINIMAP,
   cssSnippets: {},
-  graphMode: '2d' as const,
   graphViewportScale: null,
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,
@@ -42,7 +41,6 @@ export const INITIAL_STATE: GraphStateFields = {
   pluginFilterGroups: [],
   disabledCustomFilterPatterns: [],
   disabledPluginFilterPatterns: [],
-  dagMode: null,
   pluginStatuses: [],
   graphNodeTypes: [],
   graphEdgeTypes: [],
@@ -58,13 +56,7 @@ export const INITIAL_STATE: GraphStateFields = {
   expandedGroupId: null,
   activePanel: 'none' as const,
   maxFiles: DEFAULT_MAX_FILES,
+  showFps: false,
   verboseDiagnostics: false,
   activeFilePath: null,
-  timelineActive: false,
-  timelineCommits: [],
-  currentCommitSha: null,
-  isIndexing: false,
-  indexProgress: null,
-  isPlaying: false,
-  playbackSpeed: 1.0,
 };

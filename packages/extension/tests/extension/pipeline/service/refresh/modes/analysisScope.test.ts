@@ -153,13 +153,11 @@ describe('extension/pipeline/service/refresh/modes/analysisScope', () => {
     expect(facade.getPluginFilterPatterns).toHaveBeenCalledWith(disabledPlugins);
     expect(facade._lastGitIgnoredPaths).toEqual(['ignored.ts']);
     expect(facade._getActiveAnalysisPluginIds).toHaveBeenCalledWith(undefined, disabledPlugins);
-    expect(facade._config.get).toHaveBeenCalledWith('nodeVisibility', {});
     expect(canReuseCurrentAnalysisForScope).toHaveBeenCalledWith({
       activePluginIds: ['plugin.a'],
       disabledPlugins,
       discoveredFiles: files,
       lastFileAnalysis: facade._lastFileAnalysis,
-      nodeVisibility: { file: true },
     });
     expect(rebuildAnalysisScopeFromCurrentAnalysis).toHaveBeenCalledWith(facade, {
       disabledPlugins,
@@ -191,7 +189,6 @@ describe('extension/pipeline/service/refresh/modes/analysisScope', () => {
     ).resolves.toBe(graph);
 
     expect(facade._lastGitIgnoredPaths).toEqual([]);
-    expect(facade._config.get).toHaveBeenCalledWith('nodeVisibility', {});
     expect(rebuildAnalysisScopeFromCurrentAnalysis).toHaveBeenCalledWith(facade, expect.objectContaining({
       discoveredDirectories: [],
       discoveredFiles: files,

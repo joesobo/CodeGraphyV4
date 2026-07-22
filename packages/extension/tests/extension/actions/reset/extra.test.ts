@@ -70,7 +70,9 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
+    showMinimap: true,
     maxFiles: 500,
+    showFps: false,
     verboseDiagnostics: false,
     nodeSizeMode: 'connections',
   };
@@ -98,6 +100,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
+      showFps: false,
       verboseDiagnostics: false,
       nodeSizeMode: 'file-size',
     };

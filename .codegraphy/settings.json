@@ -1,7 +1,7 @@
 {
   "version": 2,
   "maxFiles": 3000,
-  "showFps": true,
+  "showFps": false,
   "showMinimap": true,
   "verboseDiagnostics": false,
   "include": [
@@ -25,7 +25,7 @@
     },
     {
       "id": "codegraphy.particles",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "codegraphy.unity",
@@ -50,8 +50,8 @@
   ],
   "pluginData": {
     "codegraphy.particles": {
-      "enabled": true,
-      "preset": "rain"
+      "enabled": false,
+      "preset": "none"
     }
   },
   "nodeColors": {
@@ -146,17 +146,17 @@
     "include": true,
     "import": true,
     "using": true,
-    "type": true,
-    "reference": true,
-    "call": false,
-    "type-import": true,
-    "inherit": true,
-    "implements": true,
-    "event": true,
-    "load": true,
     "nests": true,
+    "call": false,
     "contains": false,
+    "event": true,
+    "implements": true,
+    "inherit": true,
+    "load": true,
     "overrides": true,
+    "reference": true,
+    "type": true,
+    "type-import": true,
     "codegraphy.gdscript:signal-connection": true,
     "test": true,
     "reexport": true,
@@ -225,14 +225,6 @@
       "pattern": "packages/extension/**",
       "displayLabel": "Extension / Tests + Fixtures",
       "color": "#BFDBFE",
-      "target": "node",
-      "shape2D": "circle",
-      "shape3D": "sphere"
-    },
-    {
-      "pattern": "packages/mcp/**",
-      "displayLabel": "MCP / CLI + Query Server",
-      "color": "#C4B5FD",
       "target": "node",
       "shape2D": "circle",
       "shape3D": "sphere"
@@ -355,7 +347,6 @@
   "filterPatterns": [
     "**/tests/**",
     ".stryker-tmp/**",
-    ".husky/**",
     "**/.vscode-test/**",
     "**/.vscode/settings.json",
     "**/*.vsix",
@@ -372,7 +363,9 @@
     "packages/extension/tests/playwright-vscode/generated-ir/**",
     ".superpowers/**",
     "reports/**",
-    ".pnpm-store/**"
+    ".pnpm-store/**",
+    "docs/**",
+    ".claude/**"
   ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
@@ -387,8 +380,8 @@
   "physics": {
     "repelForce": 17,
     "linkDistance": 70,
-    "linkForce": 2,
+    "linkForce": 1,
     "damping": 0.4,
-    "centerForce": 0.15
+    "centerForce": 0.17
   }
 }

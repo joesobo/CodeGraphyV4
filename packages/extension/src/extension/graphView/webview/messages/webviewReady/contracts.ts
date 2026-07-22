@@ -1,13 +1,12 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../../../shared/protocol/extensionToWebview';
-import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 
 export interface GraphViewReadyState {
   maxFiles: number;
+  showFps?: boolean;
   verboseDiagnostics: boolean;
-  playbackSpeed: number;
   depthMode?: boolean;
-  dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
   focusedFile: string | undefined;
   hasWorkspace: boolean;
@@ -31,7 +30,6 @@ export interface GraphViewReadyHandlers {
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: { type: string; payload?: unknown }): void;
-  sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginStatuses?(): void;

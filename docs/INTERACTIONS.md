@@ -1,143 +1,92 @@
 # Graph Interactions
 
-![Search filtering](./media/readme/search-filter-panel.png)
+## Nodes and Graph Stage
 
-## Nodes
+| Input | Result |
+|---|---|
+| Click a Node | Select and focus it. A File Node also opens in VS Code preview. |
+| Double-click a File Node | Open it as a persistent editor tab. |
+| `Cmd+Click` on macOS or `Ctrl+Click` on Windows/Linux | Add or remove a Node from the selection. |
+| Drag a Node | Reposition it for the current graph session. |
+| Hover a Node | Show path, size, modified time, Relationships, and contributing plugin details. |
+| Left-drag the Graph Stage | Box-select Nodes. |
+| `Shift` + left-drag | Add boxed Nodes to the current selection. |
+| Right-drag | Pan without opening the context menu. |
+| Scroll | Zoom around the pointer. |
+| Right-click and release | Open the context menu for the background, Node, selected group, or Edge. |
+| `Ctrl+Click` on macOS | Open the context menu when a right-click is unavailable. |
 
-| Action | Effect |
-|--------|--------|
-| Click | Select and focus the node; File Nodes also open the file in temporary preview |
-| Double-click | Select and focus the node; File Nodes also open the file as a persistent editor tab |
-| Right-click | Set Context Selection if needed and open the context menu without previewing or opening a file |
-| `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
-| Drag | Reposition the node for the current graph session |
-| Hover | Show tooltip with file details |
-| Hover cursor | Pointer cursor |
-| `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
+Fit to Screen animates graph center and zoom. Pointer input interrupts a running camera animation so panning and wheel zoom stay responsive.
 
-File and Folder Nodes that Git reports as ignored remain visible in the graph with muted styling, similar to VS Code Explorer. Tracked files and mixed folders are not dimmed just because their path matches text in `.gitignore`; the graph follows Git ignored state rather than raw ignore patterns.
+Git-ignored File and Folder Nodes remain visible with muted styling. CodeGraphy uses Git's ignored state rather than dimming every path that happens to match text in `.gitignore`.
 
-## Canvas
+## Minimap
 
-| Action | Effect |
-|--------|--------|
-| Left-drag | Box select multiple nodes |
-| Shift + left-drag | Add boxed nodes to the current selection |
-| Right-drag | Pan the view |
-| Scroll | Zoom in/out |
-| Hover cursor | Default cursor |
-| Right-click | Open background context menu |
+Enable **Show Minimap** under Settings > Display to show a 160 by 160 minimap at the lower left. It renders the current Visible Graph and marks the viewport.
 
-## Context menu
+| Input | Result |
+|---|---|
+| Click or drag in the minimap | Center and pan the main graph. |
+| Drag the viewport marker | Move the current viewport without changing its grab offset. |
+| Arrow keys while the minimap has focus | Pan by ten percent of the viewport. |
+| `Shift` + arrow key | Pan five times farther. |
+| `Escape` during a pointer drag | Cancel the active minimap drag. |
 
-Right-click background, nodes, multi-node selections, or edges to access context-specific actions:
+The minimap consumes wheel and context-menu input so those events do not leak into the main Graph Stage.
 
-| Action | Description | Undoable |
-|--------|-------------|----------|
-| Open File | Open in editor | - |
-| Reveal in Explorer | Show in VS Code file explorer | - |
-| Copy Path | Copy relative path to clipboard | - |
-| Delete | Move file(s) to trash | Yes |
-| Rename | Rename file via inline prompt | Yes |
-| Create File | Create a new file in the same directory | Yes |
-| Create Folder | Create a new folder in the selected Folder Node or workspace root | Yes |
-| Toggle Favorite | Mark or unmark with yellow outline | Yes |
-| Add to Filter | Hide from graph via filter pattern | Yes |
-| Copy Source/Target/Both Paths (edge) | Copy connected file paths from an edge | - |
+## Context Menu
 
-Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo.
+The menu opens on pointer release, which lets a held right button become a pan gesture. Available actions depend on the captured Context Selection.
 
-See the fresh root README gallery for current graph UI screenshots.
+| Action | Result | Undoable |
+|---|---|---|
+| Open File | Open a File Node in the editor. | No |
+| Reveal in Explorer | Reveal a file or folder in VS Code Explorer. | No |
+| Copy Path | Copy a workspace-relative path. | No |
+| Rename | Rename the selected file. | Yes |
+| Delete | Move selected files to trash after confirmation. | Yes |
+| Create File / Create Folder | Create inside a Folder Node or the workspace root. | Yes |
+| Toggle Favorite | Add or remove persistent favorite emphasis. | Yes |
+| Add to Filter | Add a persistent exclusion pattern. | Yes |
+| Copy Edge Paths | Copy the source, target, or both paths from an Edge. | No |
 
-Historical implementation notes for the first context menu pass live in [archived context menu notes](./archive/context-menu.md).
+Use `Cmd+Z` or `Ctrl+Z` to undo and `Cmd+Shift+Z` or `Ctrl+Shift+Z` to redo. A multi-node selection only shows actions that support the complete selection.
 
-## Tooltips
+## Graph Tool Rail
 
-Hover any node to see:
+The left rail groups lifecycle, graph tools, plugin actions, and system panels.
 
-- File path relative to workspace
-- File size
-- Last modified (relative timestamp like "2h ago")
-- Incoming relationships
-- Outgoing relationships
-- Visit count
-- Handling plugin
+| Control | Result |
+|---|---|
+| Index / Refresh | Shows **Index Workspace** when the Graph Cache is missing, **Reindex Workspace** when stale, and **Refresh** when a cache exists. |
+| Node Size | Chooses Connections or File Size. |
+| New | Creates a file, folder, or plugin-provided background item. |
+| Plugin actions | Runs active plugin toolbar contributions. |
+| Graph Scope | Opens one panel with Node Types and Edge Types tabs. |
+| Themes | Opens Legend, CSS Snippet, and plugin-provided theme controls. |
+| Plugins | Opens workspace plugin enablement and ordering. |
+| Settings | Opens Display, Forces, Performance, and Export sections. |
 
-## Toolbar
+Only one right-side panel is open at a time. Compact popovers such as Node Size stay attached to their rail button.
 
-The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in one column, and opening a control button reveals its panel on the right side of the graph.
+## Settings and Graph Scope
 
-**Toolbar Settings Controls:**
+Settings contains four collapsed sections:
 
-| Control | Description |
-|---------|-------------|
-| Depth Mode toggle | Turns focused depth behavior on or off. |
-| Depth slider | Adjusts depth limit (1-5). Only visible when Depth Mode is active. |
-| DAG mode buttons | Switch layout: Default (free-form), Radial Out, Top Down, Left to Right. |
-| 2D/3D toggle | Switch between 2D canvas and 3D WebGL rendering. |
-| Node size buttons | Switch node sizing: Connections, File Size, Churn, or Uniform. |
-| Nodes | Opens Graph Scope settings for core and plugin-added Node Types. |
-| Edges | Opens Graph Scope settings for Edge Types and shows current edge colors. |
-| Index Workspace / Re-index Workspace | Before indexing: runs Indexing and saves the Graph Cache. After indexing: rebuilds graph data and then refreshes layout. |
-| Refresh Graph | Reruns the force graph physics/layout without rebuilding graph data. |
-| Export | Dropdown for Graph Export as PNG, SVG, JPEG, JSON, or Markdown, plus Index Export symbol JSON. |
-| Themes | Opens Legend Entry editing, Legend Layer priority controls, and CSS Snippet toggles. |
-| Plugins | Opens the plugins panel. |
-| Settings | Opens the settings panel. |
+- **Display**: direction, bidirectional Edges, Depth Mode and limit, Show Orphans, particle direction controls, labels, and minimap.
+- **Forces**: repel, center, link distance, link force, and damping controls for WebAssembly physics.
+- **Performance**: Max Files, Verbose Diagnostics, and Show FPS.
+- **Export**: image, graph data, symbol data, and plugin export actions.
 
-Toolbar and panel state are driven by workspace-local settings in `.codegraphy/settings.json`.
+Graph Scope owns visibility by Node Type and Edge Type. Themes owns graph styling. Disabling a Legend Entry changes styling only; it does not remove matching graph items.
 
-## Panels
-
-Panels open on the right side of the graph. Only one panel is open at a time.
-
-### Settings (gear icon)
-
-Physics and general graph behavior. See [Settings](./SETTINGS.md) for details.
-
-### Nodes (shape icon)
-
-Choose Graph Scope for Node Types such as files, folders, packages, and plugin-added Node Types. Each row shows the current color for that Node Type. Hover a row to see a brief description and, when available, a compact example.
-
-### Edges (line icon)
-
-Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, and plugin-added Edge Types. Each row shows the current color for that Edge Type. Hover a row to see what the relationship means and, when available, a source-style example.
-
-### Themes (paint icon)
-
-Manage visual styling. The **Legends** section controls glob-based Legend styling: Legend Entries are grouped as `Custom`, `Plugins`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items. The **CSS Snippets** section lists configured `cssSnippets` paths from `.codegraphy/settings.json` and toggles them on or off.
-
-### Plugins (puzzle icon)
-
-Toggle whole plugins on or off and drag them to change processing priority. Plugins are processed bottom-to-top, so entries nearer the top win merge conflicts. Built-in plugins show up here too. See [Plugins](./PLUGINS.md) for plugin development.
-
-![Plugins panel](./media/readme/plugins-panel.png)
-
-### Index / Re-index / Refresh (autorenew icon)
-
-Before the workspace has an index, use **Index Workspace** to run Indexing. After the workspace is indexed, **Re-index Workspace** rebuilds graph data and then refreshes layout. **Refresh Graph** only reruns the force graph simulation without reprocessing source data.
-
-## Timeline
-
-The timeline bar appears below the graph after indexing. See [Timeline](./TIMELINE.md) for full details.
-
-| Action | Effect |
-|--------|--------|
-| Click track | Jump to that point in time |
-| Drag track | Scrub through time |
-| Play/Pause | Toggle automatic playback |
-| Current | Jump to latest commit |
-| Click node | Select and focus the node; File Nodes open a temporary preview at the selected commit |
-| Double-click node | Select and focus the node; File Nodes open the file at the selected commit as a persistent editor tab |
-
-During timeline mode, destructive context menu actions (Delete, Rename, Create File, Create Folder, Add to Filter) are hidden.
+See [Settings](./SETTINGS.md) for persisted keys and defaults.
 
 ## Export
 
-Export from the graph toolbar export menu:
+Settings > Export provides:
 
-- **PNG** for a rasterized snapshot at the current zoom and pan
-- **SVG** for a scalable vector preserving graph structure
-- **JSON** for the current Visible Graph with explicit `legend`, `nodes`, and `edges`
-- **Markdown** for a readable Visible Graph snapshot with legend, nodes, and edges
-- **Symbols JSON** for indexed symbol and relationship data built from the cached analysis store
+- PNG, SVG, and JPEG image exports
+- JSON and Markdown exports of the current Visible Graph
+- Symbols JSON from indexed analysis
+- export actions contributed by enabled plugins

@@ -68,11 +68,11 @@ describe('graph effects keyboard', () => {
     const handlers = createHandlers();
     const effect: GraphKeyboardEffect = {
       kind: 'dispatchStoreMessage',
-      message: { type: 'CYCLE_LAYOUT' },
+      message: { type: 'TOGGLE_DEPTH_MODE' },
     };
 
     applyKeyboardEffects([effect], handlers);
 
-    expect(handlers.dispatchStoreMessage).toHaveBeenCalledWith({ type: 'CYCLE_LAYOUT' });
+    expect(handlers.dispatchStoreMessage).toHaveBeenCalledWith({ type: 'TOGGLE_DEPTH_MODE' });
   });
 });

@@ -13,7 +13,7 @@ import { getConnectionTargetId } from './edgeTargets';
 import {
   createCachedConnectionTargetResolver,
   type ConnectionTargetResolver,
-} from './edgeTargetCache.js';
+} from './edgeTargetCache';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;

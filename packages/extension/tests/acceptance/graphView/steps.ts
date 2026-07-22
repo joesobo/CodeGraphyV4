@@ -251,7 +251,7 @@ async function countVisibleEdgesBetween(
 
 function graphCachePath(context: GraphAcceptanceContext): string {
   const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-  return path.join(workspacePath, '.codegraphy', 'graph.lbug');
+  return path.join(workspacePath, '.codegraphy', 'graph.sqlite');
 }
 
 function expectWorkspaceHasNoGraphCache(context: GraphAcceptanceContext): void {
@@ -686,7 +686,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the (.+) node is visibly outlined in orange$/, async (context, _step, match) => {
-    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]), 'orange');
   }),
 
   step(/^the (.+) node is no longer outlined$/, async (context, _step, match) => {
@@ -778,7 +778,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I open the Graph Scope$/, async (context) => {
-    await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
+    await openGraphScopeSection(context, 'Node Types');
   }),
 
   step(/^I see two buttons for switching views between node type and edge type toggles$/, async (context) => {

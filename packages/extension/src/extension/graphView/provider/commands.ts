@@ -7,8 +7,6 @@ interface GraphViewProviderCommandMessage {
     | 'ZOOM_IN'
     | 'ZOOM_OUT'
     | 'TOGGLE_DEPTH_MODE'
-    | 'CYCLE_LAYOUT'
-    | 'TOGGLE_DIMENSION'
     | 'REQUEST_EXPORT_PNG'
     | 'REQUEST_EXPORT_SVG'
     | 'REQUEST_EXPORT_JPEG'
@@ -29,9 +27,7 @@ export interface GraphViewProviderCommandMethods {
       | 'FIT_VIEW'
       | 'ZOOM_IN'
       | 'ZOOM_OUT'
-      | 'TOGGLE_DEPTH_MODE'
-      | 'CYCLE_LAYOUT'
-      | 'TOGGLE_DIMENSION',
+      | 'TOGGLE_DEPTH_MODE',
   ): void;
   emitEvent<E extends EventName>(event: E, payload: EventPayloads[E]): void;
   undo(): Promise<string | undefined>;

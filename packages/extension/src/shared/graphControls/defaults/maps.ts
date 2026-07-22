@@ -1,3 +1,4 @@
+import { CORE_GRAPH_EDGE_DEFAULT_VISIBILITY } from '@codegraphy-dev/core/graph-scope';
 import { CORE_GRAPH_EDGE_TYPES, CORE_GRAPH_NODE_TYPES } from './definitions';
 
 function mapDefaults<TValue>(
@@ -18,7 +19,7 @@ export function createDefaultNodeColors(): Record<string, string> {
 }
 
 export function createDefaultEdgeVisibility(): Record<string, boolean> {
-  return mapDefaults<boolean>(CORE_GRAPH_EDGE_TYPES, 'defaultVisible');
+  return { ...CORE_GRAPH_EDGE_DEFAULT_VISIBILITY };
 }
 
 export function createDefaultEdgeColors(): Record<string, string> {

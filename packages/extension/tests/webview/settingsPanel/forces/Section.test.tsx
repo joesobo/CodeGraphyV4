@@ -7,12 +7,14 @@ import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
   Slider: ({
     'data-testid': testId,
+    max,
     step,
     value,
     onValueChange,
     onValueCommit,
   }: {
     'data-testid'?: string;
+    max?: number;
     step?: number;
     value?: number[];
     onValueChange?: (values: number[]) => void;
@@ -22,7 +24,11 @@ vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
     const nextValue = Number((currentValue + (step ?? 1)).toFixed(2));
     return (
       <div>
-        <button data-testid={`${testId}-change`} onClick={() => onValueChange?.([nextValue])} />
+        <button
+          data-testid={`${testId}-change`}
+          data-maximum={max}
+          onClick={() => onValueChange?.([nextValue])}
+        />
         <button data-testid={`${testId}-commit`} onClick={() => onValueCommit?.([nextValue])} />
       </div>
     );
@@ -67,6 +73,7 @@ describe('ForcesSection', () => {
     expect(screen.getByText('Center Force')).toBeInTheDocument();
     expect(screen.getByText('Link Distance')).toBeInTheDocument();
     expect(screen.getByText('Link Force')).toBeInTheDocument();
+    expect(screen.getByTestId('link-force-slider-change')).toHaveAttribute('data-maximum', '2');
   });
 
   it('persists repel force updates after debounce', () => {

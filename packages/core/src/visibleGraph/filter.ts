@@ -6,7 +6,7 @@ import {
   edgeMatchesPattern,
   getDirectEdgePatternMatchers,
   nodeMatchesPattern,
-} from './filterPatterns.js';
+} from './filterPatterns';
 
 export function applyFilterPatterns(
   graphData: IGraphData,

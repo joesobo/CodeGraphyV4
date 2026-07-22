@@ -85,9 +85,9 @@
     "symbol:parameter": false,
     "symbol:local": false,
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false,
-    "plugin:codegraphy.unity:symbol": true,
-    "plugin:codegraphy.unity:symbol:game-object": true,
-    "plugin:codegraphy.unity:symbol:component": true
+    "plugin:codegraphy.unity:symbol": false,
+    "plugin:codegraphy.unity:symbol:game-object": false,
+    "plugin:codegraphy.unity:symbol:component": false
   },
   "edgeVisibility": {
     "include": true,

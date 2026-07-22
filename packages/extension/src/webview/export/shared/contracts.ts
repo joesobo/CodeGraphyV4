@@ -1,15 +1,9 @@
-export interface ExportBuildContext {
-  timelineActive?: boolean;
-  currentCommitSha?: string | null;
-}
-
 export interface ExportLegendRule {
   id: string;
   pattern: string;
   color: string;
   target: 'node' | 'edge' | 'both';
   shape2D?: string;
-  shape3D?: string;
   imagePath?: string;
   imageUrl?: string;
   disabled?: boolean;
@@ -34,7 +28,6 @@ export interface ExportNodeEntry {
     pluginKind?: string;
   };
   fileSize?: number;
-  churn?: number;
   x?: number;
   y?: number;
 }
@@ -65,10 +58,6 @@ export interface ExportData {
   exportedAt: string;
   scope: {
     graph: 'current-view';
-    timeline: {
-      active: boolean;
-      commitSha: string | null;
-    };
   };
   summary: {
     totalNodes: number;

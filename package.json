@@ -31,8 +31,7 @@
 		"check:vsix-activation": "node scripts/smoke-installed-vsix.mjs",
 		"publish:vsce": "node scripts/release-core.mjs publish",
 		"release:publish": "node scripts/release.mjs publish",
-		"typecheck": "turbo run typecheck",
-		"prepare": "husky"
+		"typecheck": "turbo run typecheck"
 	},
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive dependency graph inside VS Code",
@@ -58,6 +57,10 @@
 	"files": [
 		"dist/**",
 		"assets/**",
+		"packages/plugin-unity/assets/**",
+		"packages/plugin-unity/codegraphy.json",
+		"packages/plugin-unity/dist/**",
+		"packages/plugin-unity/package.json",
 		"docs/**",
 		"README.md",
 		"CONTRIBUTING.md",
@@ -136,14 +139,6 @@
 			{
 				"command": "codegraphy.toggleDepthMode",
 				"title": "CodeGraphy: Toggle Depth Mode"
-			},
-			{
-				"command": "codegraphy.cycleLayout",
-				"title": "CodeGraphy: Cycle Layout"
-			},
-			{
-				"command": "codegraphy.toggleDimension",
-				"title": "CodeGraphy: Toggle 2D/3D"
 			}
 		],
 		"keybindings": [
@@ -188,16 +183,6 @@
 				"command": "codegraphy.toggleDepthMode",
 				"key": "v",
 				"when": "codegraphy.graphFocused"
-			},
-			{
-				"command": "codegraphy.cycleLayout",
-				"key": "l",
-				"when": "codegraphy.graphFocused"
-			},
-			{
-				"command": "codegraphy.toggleDimension",
-				"key": "t",
-				"when": "codegraphy.graphFocused"
 			}
 		],
 		"viewsContainers": {
@@ -216,13 +201,6 @@
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg"
-				},
-				{
-					"type": "webview",
-					"id": "codegraphy.timelineView",
-					"name": "Timeline",
-					"icon": "assets/icon.svg",
-					"visibility": "collapsed"
 				}
 			]
 		}
@@ -246,7 +224,6 @@
 		"eslint-plugin-react-hooks": "^5.0.0",
 		"glob": "^13.0.6",
 		"globals": "^15.0.0",
-		"husky": "^9.0.0",
 		"lint-staged": "^15.0.0",
 		"tsx": "^4.21.0",
 		"turbo": "^2.10.2",

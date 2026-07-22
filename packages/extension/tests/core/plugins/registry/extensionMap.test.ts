@@ -7,7 +7,7 @@ function createPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'test-plugin',
     name: 'Test Plugin',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
     analyzeFile: async filePath => ({ filePath, relations: [] }),
     ...overrides,

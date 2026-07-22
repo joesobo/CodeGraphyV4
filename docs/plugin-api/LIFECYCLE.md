@@ -23,7 +23,7 @@ Registration reads global package metadata without importing plugin runtime code
   },
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
+    "apiVersion": "^3.0.0",
     "defaultOptions": {
       "includeTests": true
     },
@@ -40,12 +40,12 @@ The same package declares its static Plugin ID and display metadata in `codegrap
   "id": "acme.plugin",
   "name": "Acme Plugin",
   "version": "1.0.0",
-  "apiVersion": "^2.0.0",
+  "apiVersion": "^3.0.0",
   "supportedExtensions": [".ts"]
 }
 ```
 
-`codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating both files. A plugin becomes active only when its `codegraphy.json#id` is enabled in the workspace-local `plugins` array.
+`codegraphy plugins register <package>` validates both files and records one installed plugin package in the user-level Plugin Registry. Enable its `codegraphy.json#id` in the workspace-local `plugins` array to activate it.
 
 ### 2. Runtime Load
 
@@ -58,7 +58,7 @@ const plugin: IPlugin = {
   id: 'acme.plugin',
   name: 'Acme Plugin',
   version: '1.0.0',
-  apiVersion: '^2.0.0',
+  apiVersion: '^3.0.0',
   supportedExtensions: ['.ts'],
 };
 ```
@@ -82,8 +82,6 @@ async initialize(workspaceRoot, context) {
 ### onPreAnalyze(files, workspaceRoot, context?)
 
 Called before a full analysis pass with the discovered file list. Use this for workspace-wide indexes such as Markdown wikilink lookup tables, Godot `class_name` maps, or framework route manifests.
-
-`context.mode === 'timeline'` means the file-system adapter reads a historical commit snapshot instead of the live workspace.
 
 ### analyzeFile(filePath, content, workspaceRoot, context?)
 
@@ -125,7 +123,7 @@ Path contract:
 
 ### onFilesChanged(files, workspaceRoot, context?)
 
-Called before an incremental save-driven re-analysis when CodeGraphy already has a warm Graph Cache. Return additional workspace-relative files when dependents also need analysis.
+CodeGraphy calls this hook before an incremental, save-driven analysis when it has a warm Graph Cache. Return more workspace-relative files when dependents also need analysis. The hook receives all changed workspace files, including configuration files outside the plugin's `supportedExtensions`. Filter inside the hook when needed. `context.workspaceFiles` provides the discovered workspace inventory as paths and extensions without forcing Core to read each file. Use `context.fileSystem.readTextFile(...)` when invalidation needs file contents.
 
 ```typescript
 async onFilesChanged(files, workspaceRoot, context) {
@@ -167,7 +165,7 @@ export function createMetricsPlugin(): IPlugin {
     id: 'codegraphy-metrics',
     name: 'Metrics',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['*'],
 
     async initialize(workspaceRoot, context) {

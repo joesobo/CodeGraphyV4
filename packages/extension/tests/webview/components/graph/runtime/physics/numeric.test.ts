@@ -3,6 +3,8 @@ import {
   clamp,
   getFiniteVelocity,
   isFiniteNumber,
+  isFinitePair,
+  isFinitePositiveNumber,
   resolveNodeCoordinate,
 } from '../../../../../../src/webview/components/graph/runtime/physics/numeric';
 
@@ -12,6 +14,21 @@ describe('webview/components/graph/runtime/physics/numeric', () => {
     expect(isFiniteNumber(Number.POSITIVE_INFINITY)).toBe(false);
     expect(isFiniteNumber(Number.NaN)).toBe(false);
     expect(isFiniteNumber('4')).toBe(false);
+  });
+
+  it('accepts only positive finite numbers', () => {
+    expect(isFinitePositiveNumber(4)).toBe(true);
+    expect(isFinitePositiveNumber(0)).toBe(false);
+    expect(isFinitePositiveNumber(-1)).toBe(false);
+    expect(isFinitePositiveNumber(Number.NaN)).toBe(false);
+    expect(isFinitePositiveNumber('4')).toBe(false);
+  });
+
+  it('accepts only finite two-number pairs', () => {
+    expect(isFinitePair([0, 1])).toBe(true);
+    expect(isFinitePair([0, Number.NaN])).toBe(false);
+    expect(isFinitePair([0, 1, 2])).toBe(false);
+    expect(isFinitePair('pair')).toBe(false);
   });
 
   it('clamps values into the provided bounds', () => {

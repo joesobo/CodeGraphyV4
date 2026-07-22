@@ -33,8 +33,10 @@ function createSnapshot(
     particleSize: 4,
     pluginData: {},
     showLabels: true,
-    nodeSizeMode: 'uniform',
+    showMinimap: true,
+    nodeSizeMode: 'connections',
     maxFiles: 500,
+    showFps: false,
     verboseDiagnostics: false,
     ...overrides,
   };

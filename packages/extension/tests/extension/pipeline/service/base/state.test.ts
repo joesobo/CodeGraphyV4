@@ -5,6 +5,7 @@ import {
   BASELINE_ANALYSIS_CACHE_TIER,
   FileDiscovery,
   SYMBOLS_ANALYSIS_CACHE_TIER,
+  WORKSPACE_ANALYSIS_CACHE_VERSION,
   type AnalysisCacheTier,
 } from '@codegraphy-dev/core';
 import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
@@ -78,9 +79,10 @@ describe('extension/pipeline/service/stateBase', () => {
       files: [],
       symbols: [],
       relations: [],
+      graph: { nodes: [], edges: [] },
     });
     expect(state._cache).toEqual({
-      version: '2.1.0',
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {},
     });
 
@@ -94,6 +96,7 @@ describe('extension/pipeline/service/stateBase', () => {
       files: [{ path: 'src/app.ts' }],
       symbols: [{ id: 'symbol-1' }],
       relations: [{ kind: 'import' }],
+      graph: { nodes: [{ id: 'src/app.ts' }], edges: [] },
     });
 
     const state = new TestWorkspacePipelineState(createContext(), '/workspace');
@@ -102,6 +105,7 @@ describe('extension/pipeline/service/stateBase', () => {
       files: [{ path: 'src/app.ts' }],
       symbols: [{ id: 'symbol-1' }],
       relations: [{ kind: 'import' }],
+      graph: { nodes: [{ id: 'src/app.ts' }], edges: [] },
     });
     expect(stateBaseHarness.readWorkspaceAnalysisDatabaseSnapshot).toHaveBeenCalledWith('/workspace');
   });

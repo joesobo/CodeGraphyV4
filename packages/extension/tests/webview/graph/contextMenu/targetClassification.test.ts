@@ -1,10 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import {
-  classifyPluginTarget,
-  classifyTarget,
-} from '../../../../src/webview/components/graph/contextMenu/targetClassification';
+import { describe, expect, it } from 'vitest';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
 import type { GraphContextMenuDecision } from '../../../../src/webview/components/graph/contextMenu/decision/model';
+import { classifyPluginTarget } from '../../../../src/webview/components/graph/contextMenu/targetClassification';
 
 const pluginItems: IPluginContextMenuItem[] = [
   { label: 'Node Action', when: 'node', pluginId: 'acme', index: 0 },
@@ -13,55 +10,39 @@ const pluginItems: IPluginContextMenuItem[] = [
 ];
 
 describe('graph/contextMenu/targetClassification', () => {
-  it('classifies a single node selection correctly', () => {
-    const result = classifyTarget(
-      { kind: 'node', targets: ['src/app.ts'] },
-      pluginItems
-    );
+  it('classifies a single node decision correctly', () => {
+    const result = classifyPluginTarget({
+      kind: 'singleFileNode',
+      target: { id: 'src/app.ts', nodeKind: 'file', nodeType: 'file' },
+    }, pluginItems);
 
-    expect(result).not.toBeNull();
-    expect(result?.targetId).toBe('src/app.ts');
-    expect(result?.targetType).toBe('node');
-    expect(result?.eligibleItems.map(item => item.label)).toEqual(['Node Action', 'Both Action']);
+    expect(result).toEqual({
+      targetId: 'src/app.ts',
+      targetType: 'node',
+      eligibleItems: [pluginItems[0], pluginItems[2]],
+    });
   });
 
-  it('classifies an edge selection correctly', () => {
-    const result = classifyTarget(
-      { kind: 'edge', targets: [], edgeId: 'src/a.ts->src/b.ts' },
-      pluginItems
-    );
+  it('classifies an edge decision correctly', () => {
+    const result = classifyPluginTarget({
+      kind: 'edge',
+      targets: [],
+      edgeId: 'src/a.ts->src/b.ts',
+    }, pluginItems);
 
-    expect(result).not.toBeNull();
-    expect(result?.targetId).toBe('src/a.ts->src/b.ts');
-    expect(result?.targetType).toBe('edge');
-    expect(result?.eligibleItems.map(item => item.label)).toEqual(['Edge Action', 'Both Action']);
+    expect(result).toEqual({
+      targetId: 'src/a.ts->src/b.ts',
+      targetType: 'edge',
+      eligibleItems: [pluginItems[1], pluginItems[2]],
+    });
   });
 
-  it('returns null for a multi-node selection', () => {
-    const result = classifyTarget(
-      { kind: 'node', targets: ['src/a.ts', 'src/b.ts'] },
-      pluginItems
-    );
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null for a background selection', () => {
-    const result = classifyTarget(
-      { kind: 'background', targets: [] },
-      pluginItems
-    );
-
-    expect(result).toBeNull();
-  });
-
-  it('returns null for an edge selection without an edgeId', () => {
-    const result = classifyTarget(
-      { kind: 'edge', targets: [] },
-      pluginItems
-    );
-
-    expect(result).toBeNull();
+  it.each<GraphContextMenuDecision>([
+    { kind: 'background' },
+    { kind: 'multiFileNodes', targets: [] },
+    { kind: 'edge', targets: [] },
+  ])('returns null for an ineligible $kind decision', decision => {
+    expect(classifyPluginTarget(decision, pluginItems)).toBeNull();
   });
 
   it('only classifies edge ids from edge decisions', () => {
@@ -70,21 +51,19 @@ describe('graph/contextMenu/targetClassification', () => {
       edgeId: 'src/a.ts->src/b.ts',
     } as unknown as GraphContextMenuDecision;
 
-    const result = classifyPluginTarget(malformedBackgroundDecision, pluginItems);
-
-    expect(result).toBeNull();
+    expect(classifyPluginTarget(malformedBackgroundDecision, pluginItems)).toBeNull();
   });
 
-  it('returns an empty eligibleItems array when no plugin items match the target type', () => {
-    const result = classifyTarget(
-      { kind: 'node', targets: ['src/app.ts'] },
-      [{ label: 'Edge Only', when: 'edge', pluginId: 'acme', index: 0 }]
-    );
+  it('returns an empty item list when no plugin item matches the target type', () => {
+    const result = classifyPluginTarget({
+      kind: 'singleFileNode',
+      target: { id: 'src/app.ts', nodeKind: 'file', nodeType: 'file' },
+    }, [{ label: 'Edge Only', when: 'edge', pluginId: 'acme', index: 0 }]);
 
-    expect(result?.eligibleItems).toHaveLength(0);
+    expect(result?.eligibleItems).toEqual([]);
   });
 
-  it('classifies single node decisions as plugin node targets', () => {
+  it('classifies every supported single-node decision as a plugin node target', () => {
     const result = classifyPluginTarget({
       kind: 'singleFolderNode',
       target: { id: 'src', nodeKind: 'folder', nodeType: 'folder' },

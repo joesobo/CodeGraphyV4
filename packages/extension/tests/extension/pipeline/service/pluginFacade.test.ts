@@ -56,6 +56,9 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
 
   constructor() {
     super({
+      extensionUri: {
+        fsPath: '/extension',
+      },
       subscriptions: [],
       workspaceState: {
         get: vi.fn(),
@@ -123,7 +126,11 @@ describe('extension/pipeline/service/pluginFacade', () => {
 
     await facade.initialize();
 
-    expect(initializeWorkspacePipelinePlugins).toHaveBeenCalledWith(facade._registry, expect.any(Function));
+    expect(initializeWorkspacePipelinePlugins).toHaveBeenCalledWith(
+      facade._registry,
+      expect.any(Function),
+      '/extension',
+    );
     expect(vi.mocked(initializeWorkspacePipelinePlugins).mock.calls[0][1]()).toBe('/workspace');
     expect(log).toHaveBeenCalledWith('[CodeGraphy] WorkspacePipeline initialized');
 
@@ -135,7 +142,11 @@ describe('extension/pipeline/service/pluginFacade', () => {
       facade._registry,
       expect.any(Function),
     );
-    expect(initializeWorkspacePipelinePlugins).toHaveBeenCalledWith(facade._registry, expect.any(Function));
+    expect(initializeWorkspacePipelinePlugins).toHaveBeenCalledWith(
+      facade._registry,
+      expect.any(Function),
+      '/extension',
+    );
   });
 
   it('syncs workspace plugins with the current workspace-root callback', async () => {
@@ -147,6 +158,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
       expect.any(Promise),
       facade._registry,
       expect.any(Function),
+      '/extension',
     );
     expect(facade.getWorkspaceRoot).toHaveBeenCalledOnce();
   });

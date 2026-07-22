@@ -47,6 +47,6 @@ The whole-view loading state is only for the first render. After that:
 - **Graph Cache Sync** may show graph-local progress.
 - **Live Updates** may show graph-local progress.
 - **Re-index Workspace** may show graph-local progress.
-- The current **Visible Graph**, tool rail, search, panels, and plugin list should remain usable unless a specific command is disabled while work is active.
+- Keep the current **Visible Graph**, tool rail, search, panels, and plugin list usable. Disable a specific command only while its work is active.
 
-This keeps a refresh-window or plugin-toggle flow smooth: users see the cached graph immediately, CodeGraphy catches it up in the background, and the graph payload is replaced when the new data is ready.
+During a refresh or plugin toggle, users can continue to use the cached graph while CodeGraphy updates it in the background. CodeGraphy replaces the graph payload when the new data is ready.

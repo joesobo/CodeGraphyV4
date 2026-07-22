@@ -1,6 +1,8 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
+import { graphDetailOpacity } from '@codegraphy-dev/graph-renderer';
 import type { FGNode } from '../../model/build';
+import type { NodeLabelSpriteProvider } from './labelSprite';
 
 export interface RenderNodeLabelOptions {
   appearance?: Pick<GraphAppearance, 'labelForeground' | 'labelMutedForeground'>;
@@ -10,6 +12,9 @@ export interface RenderNodeLabelOptions {
   isHighlighted: boolean;
   node: FGNode;
   opacity: number;
+  resolveColor?(this: void, value: string | undefined, fallback: string): string;
+  spriteCache: NodeLabelSpriteProvider;
+  visualScale?: number;
 }
 
 export function renderNodeLabel({
@@ -20,21 +25,33 @@ export function renderNodeLabel({
   isHighlighted,
   node,
   opacity,
+  resolveColor = (value, fallback) => value ?? fallback,
+  spriteCache,
+  visualScale = 1,
 }: RenderNodeLabelOptions): void {
-  const labelPx = 12 / globalScale;
-  const labelOpacity = Math.min(1, Math.max(0, (globalScale - 0.35) / 1.2));
-  if (labelOpacity <= 0.01) {
-    return;
-  }
-
-  ctx.font = `${labelPx}px Sans-Serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
+  const labelOpacity = graphDetailOpacity(globalScale);
+  if (labelOpacity === 0) return;
+  const nodeHalfHeight = (node.shapeSize2D?.height
+    ? node.shapeSize2D.height / 2
+    : node.size) * visualScale;
 
   const baseColor = isHighlighted
     ? appearance.labelForeground
     : appearance.labelMutedForeground;
+  const color = resolveColor(decoration?.label?.color, baseColor);
+  const sprite = spriteCache.get(
+    decoration?.label?.text ?? node.label,
+    color,
+    window.devicePixelRatio || 1,
+  );
+  const width = sprite.cssWidth / globalScale;
+  const height = sprite.cssHeight / globalScale;
   ctx.globalAlpha = opacity * labelOpacity;
-  ctx.fillStyle = decoration?.label?.color ?? baseColor;
-  ctx.fillText(decoration?.label?.text ?? node.label, node.x!, node.y! + node.size + 2 / globalScale);
+  ctx.drawImage(
+    sprite.image,
+    node.x! - width / 2,
+    node.y! + nodeHalfHeight + 2 / globalScale,
+    width,
+    height,
+  );
 }

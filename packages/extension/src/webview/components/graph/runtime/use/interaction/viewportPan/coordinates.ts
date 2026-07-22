@@ -1,6 +1,6 @@
 import type { MarqueePoint } from '../../../../marqueeSelection/model';
 import type { GraphRuntime } from '../../state';
-import { isFiniteNumber } from '../positions';
+import { isFiniteNumber } from '../../../physics/numeric';
 import type { ViewportPanDragState } from './state';
 
 export function readViewportPanCenter(

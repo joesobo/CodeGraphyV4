@@ -5,7 +5,6 @@ export type {
   GraphMetadata,
   GraphMetadataValue,
   GraphNodeShape2D,
-  GraphNodeShape3D,
   IGraphData,
   IGraphEdge,
   IGraphEdgeSource,

@@ -6,35 +6,58 @@ import {
 } from '../../../analysis/cache';
 import {
   projectAnalysisForCacheTiers,
+  markAnalysisCacheTiers,
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
   type AnalysisCacheTier,
 } from '../../../analysis/fileAnalysis/cacheTiers';
 import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
-import { createSnapshotFileEntry } from '../records/file';
-import { FILE_ANALYSIS_ROWS_QUERY } from '../query/read';
+import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from '../records/types';
+import { parseDatabaseRecords } from '../records/parser';
+import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY, SYMBOL_ROWS_QUERY } from '../query/read';
 
 export interface WorkspaceAnalysisDatabaseLoadOptions {
   activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
 }
 
-function addSnapshotEntryToCache(
-  cache: IWorkspaceAnalysisCache,
-  row: Parameters<typeof createSnapshotFileEntry>[0],
+function createCache(
+  fileRows: readonly FileRow[],
+  nodeRows: readonly GraphNodeRow[],
+  symbolRows: readonly SymbolRow[],
+  edgeRows: readonly GraphEdgeRow[],
   options: WorkspaceAnalysisDatabaseLoadOptions,
-): void {
-  const entry = createSnapshotFileEntry(row);
-  if (!entry) {
-    return;
-  }
-
-  cache.files[entry.filePath] = {
-    mtime: entry.mtime,
-    size: entry.size,
-    analysis: projectAnalysisForCacheTiers(
+  workspaceRoot: string,
+): IWorkspaceAnalysisCache {
+  const hydrated = parseDatabaseRecords(fileRows, nodeRows, symbolRows, edgeRows, workspaceRoot);
+  const cache: IWorkspaceAnalysisCache = {
+    version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+    files: {},
+  };
+  for (const entry of hydrated.files) {
+    const projectedAnalysis = projectAnalysisForCacheTiers(
       entry.analysis,
       options.activeAnalysisCacheTiers,
-    ),
-  };
+    );
+    const completedTiers = options.activeAnalysisCacheTiers ?? [
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ];
+    const analysis = markAnalysisCacheTiers(projectedAnalysis, completedTiers);
+    cache.files[entry.filePath] = {
+      mtime: entry.mtime,
+      ...(entry.size !== undefined ? { size: entry.size } : {}),
+      ...(entry.contentHash ? { contentHash: entry.contentHash } : {}),
+      analysis,
+    };
+  }
+  return cache;
+}
+
+function recoverUnreadableDatabase(databasePath: string, error: unknown): IWorkspaceAnalysisCache {
+  console.warn('[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.', error);
+  clearDatabaseArtifacts(databasePath);
+  return createEmptyWorkspaceAnalysisCache();
 }
 
 export function loadWorkspaceAnalysisDatabaseCache(
@@ -42,30 +65,18 @@ export function loadWorkspaceAnalysisDatabaseCache(
   options: WorkspaceAnalysisDatabaseLoadOptions = {},
 ): IWorkspaceAnalysisCache {
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(databasePath)) {
-    return createEmptyWorkspaceAnalysisCache();
-  }
-
+  if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return withConnection(databasePath, (connection) => {
-      const rows = readRowsSync(connection, FILE_ANALYSIS_ROWS_QUERY);
-      const cache = createEmptyWorkspaceAnalysisCache();
-
-      for (const row of rows) {
-        try {
-          addSnapshotEntryToCache(cache, row, options);
-        } catch (error) {
-          console.warn('[CodeGraphy] Skipping unreadable persisted analysis row.', error);
-        }
-      }
-
-      cache.version = WORKSPACE_ANALYSIS_CACHE_VERSION;
-      return cache;
-    });
+    return withConnection(databasePath, connection => createCache(
+      readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
+      readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
+      readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
+      readRowsSync(connection, EDGE_ROWS_QUERY) as GraphEdgeRow[],
+      options,
+      workspaceRoot,
+    ));
   } catch (error) {
-    console.warn('[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.', error);
-    clearDatabaseArtifacts(databasePath);
-    return createEmptyWorkspaceAnalysisCache();
+    return recoverUnreadableDatabase(databasePath, error);
   }
 }
 
@@ -74,29 +85,27 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
   options: WorkspaceAnalysisDatabaseLoadOptions = {},
 ): Promise<IWorkspaceAnalysisCache> {
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(databasePath)) {
-    return createEmptyWorkspaceAnalysisCache();
-  }
-
+  if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return await withConnectionAsync(databasePath, async (connection) => {
-      const rows = await readRowsAsync(connection, FILE_ANALYSIS_ROWS_QUERY);
-      const cache = createEmptyWorkspaceAnalysisCache();
-
-      for (const row of rows) {
-        try {
-          addSnapshotEntryToCache(cache, row, options);
-        } catch (error) {
-          console.warn('[CodeGraphy] Skipping unreadable persisted analysis row.', error);
-        }
-      }
-
-      cache.version = WORKSPACE_ANALYSIS_CACHE_VERSION;
-      return cache;
+    return await withConnectionAsync(databasePath, async connection => {
+      const [fileRows, nodeRows, symbolRows, edgeRows] = await Promise.all([
+        readRowsAsync(connection, FILE_ROWS_QUERY),
+        readRowsAsync(connection, NODE_ROWS_QUERY),
+        readRowsAsync(connection, SYMBOL_ROWS_QUERY),
+        readRowsAsync(connection, EDGE_ROWS_QUERY),
+      ]);
+      return createCache(
+        fileRows as FileRow[],
+        nodeRows as GraphNodeRow[],
+        symbolRows as SymbolRow[],
+        edgeRows as GraphEdgeRow[],
+        options,
+        workspaceRoot,
+      );
     });
   } catch (error) {
-    console.warn('[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.', error);
-    clearDatabaseArtifacts(databasePath);
-    return createEmptyWorkspaceAnalysisCache();
+    return recoverUnreadableDatabase(databasePath, error);
   }
 }
+
+export { WORKSPACE_ANALYSIS_CACHE_VERSION };

@@ -3,34 +3,13 @@ import * as vscode from 'vscode';
 import { getGraphViewProviderSidebarViews } from '../../../../../src/extension/graphView/provider/webview/sidebarViews';
 
 describe('graphView/provider/webview/sidebarViews', () => {
-  it('returns graph and timeline views in order', () => {
+  it('returns the graph sidebar view when resolved', () => {
     const graphView = { id: 'graph-view' } as unknown as vscode.WebviewView;
-    const timelineView = { id: 'timeline-view' } as unknown as vscode.WebviewView;
 
-    expect(
-      getGraphViewProviderSidebarViews({
-        _view: graphView,
-        _timelineView: timelineView,
-      }),
-    ).toEqual([graphView, timelineView]);
+    expect(getGraphViewProviderSidebarViews({ _view: graphView })).toEqual([graphView]);
   });
 
-  it('drops missing views', () => {
-    const timelineView = { id: 'timeline-view' } as unknown as vscode.WebviewView;
-    const graphView = { id: 'graph-view' } as unknown as vscode.WebviewView;
-
-    expect(
-      getGraphViewProviderSidebarViews({
-        _view: undefined,
-        _timelineView: timelineView,
-      }),
-    ).toEqual([timelineView]);
-    expect(
-      getGraphViewProviderSidebarViews({
-        _view: graphView,
-        _timelineView: undefined,
-      }),
-    ).toEqual([graphView]);
-    expect(getGraphViewProviderSidebarViews({ _view: undefined, _timelineView: undefined })).toEqual([]);
+  it('returns no sidebar views before the graph resolves', () => {
+    expect(getGraphViewProviderSidebarViews({ _view: undefined })).toEqual([]);
   });
 });

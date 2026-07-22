@@ -4,7 +4,6 @@ import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { initializeGraphViewProviderServices, restoreGraphViewProviderState } from './wiring/bootstrap';
 import type { GraphViewProviderMethodContainers } from './wiring/methodContainers';
 
-export const DAG_MODE_KEY = 'dagMode';
 export const NODE_SIZE_MODE_KEY = 'nodeSizeMode';
 export const DEPTH_MODE_KEY = 'depthMode';
 
@@ -51,7 +50,6 @@ export function restoreGraphViewProviderRuntimeState(
 ) {
   return restoreGraphViewProviderState({
     configuration: getCodeGraphyConfiguration(),
-    dagModeKey: DAG_MODE_KEY,
     nodeSizeModeKey: NODE_SIZE_MODE_KEY,
     depthModeKey: DEPTH_MODE_KEY,
     fallbackNodeSizeMode,

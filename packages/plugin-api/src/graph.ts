@@ -16,14 +16,6 @@ export type GraphNodeShape2D =
   | 'hexagon'
   | 'star';
 
-export type GraphNodeShape3D =
-  | 'sphere'
-  | 'cube'
-  | 'octahedron'
-  | 'cone'
-  | 'dodecahedron'
-  | 'icosahedron';
-
 export type CoreEdgeKind =
   | 'nests'
   | 'include'
@@ -85,8 +77,10 @@ export interface IGraphNode {
   label: string;
 
   /**
-   * Fill color for the node (hex string).
-   * @example '#67E8F9'
+   * CSS fill color for the node. Hex, named, HSL, percentage RGB, `currentColor`,
+   * and resolvable custom properties such as `var(--plugin-node)` are accepted.
+   * Invalid or unresolved values fall back to CodeGraphy's normal node color.
+   * @example 'hsl(187 86% 69%)'
    */
   color: string;
 
@@ -107,9 +101,6 @@ export interface IGraphNode {
 
   /** File size in bytes. Used for 'file-size' node sizing mode. */
   fileSize?: number;
-
-  /** Number of Git history touches used for 'churn' node sizing mode. */
-  churn?: number;
 
   /**
    * Distance from the focused node when depth mode is active.
@@ -152,9 +143,6 @@ export interface IGraphNode {
     height: number;
     width: number;
   };
-
-  /** Optional 3D shape override for the node. */
-  shape3D?: GraphNodeShape3D;
 
   /** Optional image override for the node. */
   imageUrl?: string;
@@ -228,7 +216,10 @@ export interface IGraphEdge {
   /** Semantic meaning of the connection. */
   kind: GraphEdgeKind;
 
-  /** Optional color override resolved by graph controls and legends. */
+  /**
+   * Optional CSS color override resolved in the Graph View theme context.
+   * Invalid or unresolved values fall back to the normal edge color.
+   */
   color?: string;
 
   /** All contributing plugin sources merged into this edge. */

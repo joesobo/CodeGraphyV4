@@ -17,7 +17,7 @@ describe('CodeGraphy workspace paths', () => {
       path.join(resolvedWorkspaceRoot, '.codegraphy'),
     );
     expect(getGraphCachePath(workspaceRoot)).toBe(
-      path.join(resolvedWorkspaceRoot, '.codegraphy', 'graph.lbug'),
+      path.join(resolvedWorkspaceRoot, '.codegraphy', 'graph.sqlite'),
     );
     expect(getWorkspaceSettingsPath(workspaceRoot)).toBe(
       path.join(resolvedWorkspaceRoot, '.codegraphy', 'settings.json'),

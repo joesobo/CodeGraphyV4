@@ -9,6 +9,7 @@ import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
 } from '../runtime/graph';
@@ -19,11 +20,11 @@ import {
 } from '../cache/paths';
 import { createWorkspacePipelineAnalysisCacheTiers } from '../cache/tiers';
 import {
-  createWorkspacePipelinePluginSignature,
-  createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
-} from '../cache/signatures';
+} from '../../cacheSignatures/commit';
+import { createWorkspacePipelinePluginSignature } from '../../cacheSignatures/plugin';
+import { createWorkspacePipelineSettingsSignature } from '../../cacheSignatures/settings';
 import {
   patchWorkspacePipelineCache,
   persistWorkspacePipelineCache,
@@ -34,8 +35,11 @@ import {
   preAnalyzeWorkspacePipelinePlugins,
 } from '../runtime/analysis';
 import { WorkspacePipelineStateBase } from './state';
+import { listActiveAnalysisPluginIds } from '../../pluginAnalysis/selection';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
+  protected _completeGraphData: IGraphData = { nodes: [], edges: [] };
+
   protected async _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
@@ -77,7 +81,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     );
 
     const analysisCacheTiers = createWorkspacePipelineAnalysisCacheTiers(
-      this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
       analysisPluginIds,
     );
 
@@ -117,13 +120,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     pluginIds: readonly string[] | undefined,
     disabledPlugins: ReadonlySet<string>,
   ): string[] {
-    const candidateIds = pluginIds ?? this._registry.list()
-      .map(({ plugin }) => plugin.id)
-      .filter((pluginId): pluginId is string =>
-        typeof pluginId === 'string' && pluginId.length > 0,
-      );
-
-    return candidateIds.filter(pluginId => !disabledPlugins.has(pluginId));
+    return listActiveAnalysisPluginIds(this._registry, pluginIds, disabledPlugins);
   }
 
   protected _buildGraphData(
@@ -134,7 +131,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   ): IGraphData {
     const graphData = buildWorkspacePipelineGraph(
       this._cache,
-      this._context,
       this._registry,
       fileConnections,
       workspaceRoot,
@@ -143,6 +139,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       this._lastDiscoveredDirectories,
       this._lastGitIgnoredPaths,
     );
+    this._completeGraphData = graphData;
     this._lastGraphData = graphData;
     return graphData;
   }
@@ -153,10 +150,19 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
+    const completeGraphData = buildWorkspacePipelineCompleteGraphDataFromAnalysis(
+      this._cache,
+      this._registry,
+      fileAnalysis,
+      workspaceRoot,
+      showOrphans,
+      disabledPlugins,
+      this._lastDiscoveredDirectories,
+      this._lastGitIgnoredPaths,
+    );
     const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
     const graphData = buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
-      this._context,
       this._registry,
       fileAnalysis,
       workspaceRoot,
@@ -166,6 +172,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       { nodeVisibility },
       this._lastGitIgnoredPaths,
     );
+    this._completeGraphData = completeGraphData;
     this._lastGraphData = graphData;
     return graphData;
   }
@@ -229,6 +236,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     persistWorkspacePipelineCache(
       this._getWorkspaceRoot(),
       this._cache,
+      this._completeGraphData,
       (message: string, error: unknown) => {
         console.warn(message, error);
       },

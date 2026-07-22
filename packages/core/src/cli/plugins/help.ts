@@ -9,18 +9,17 @@ export function createHelpResult(): CommandExecutionResult {
       'Commands:',
       '  codegraphy plugins register <package>',
       '  codegraphy plugins link <package-root>',
-      '  codegraphy plugins list [workspace]',
-      '  codegraphy plugins enable <plugin-id-or-package> [workspace]',
-      '  codegraphy plugins disable <plugin-id-or-package> [workspace]',
+      '  codegraphy plugins list',
+      '  codegraphy plugins enable <plugin-id-or-package>',
+      '  codegraphy plugins disable <plugin-id-or-package>',
     ].join('\n'),
   };
 }
 
 export function createMissingPackageResult(action: 'disable' | 'enable' | 'register'): CommandExecutionResult {
-  const workspaceSuffix = action === 'register' ? '' : ' [workspace]';
   const targetName = action === 'register' ? '<package>' : '<plugin-id-or-package>';
   return {
     exitCode: 1,
-    output: `Usage: codegraphy plugins ${action} ${targetName}${workspaceSuffix}`,
+    output: `Usage: codegraphy plugins ${action} ${targetName}`,
   };
 }

@@ -19,7 +19,7 @@ describe('plugins/installedPluginCache/bundled', () => {
     expect(createBundledMarkdownInstalledPluginRecord()).toEqual({
       package: '@codegraphy-dev/plugin-markdown',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       pluginId: 'codegraphy.markdown',
       pluginName: 'Markdown',
       supportedExtensions: ['*'],

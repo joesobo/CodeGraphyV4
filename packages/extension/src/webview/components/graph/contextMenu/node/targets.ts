@@ -9,11 +9,8 @@ export function buildOpenBlockLabel(targets: readonly string[]): string {
   return targets.length > 1 ? `Open ${targets.length} Files` : 'Open File';
 }
 
-export function shouldShowRevealInExplorer(
-  targets: readonly string[],
-  timelineActive: boolean,
-): boolean {
-  return targets.length === 1 && !timelineActive;
+export function shouldShowRevealInExplorer(targets: readonly string[]): boolean {
+  return targets.length === 1;
 }
 
 export function buildCopyRelativeLabel(targets: readonly string[]): string {

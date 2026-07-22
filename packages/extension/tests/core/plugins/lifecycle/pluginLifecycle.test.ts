@@ -25,7 +25,7 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'test-plugin',
     name: 'Test Plugin',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
@@ -48,7 +48,7 @@ describe('pluginLifecycle', () => {
 
       expect(initialize).toHaveBeenCalledWith(
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
       expect(initialized.has(plugin.id)).toBe(true);
     });
@@ -101,11 +101,11 @@ describe('pluginLifecycle', () => {
 
       expect(initA).toHaveBeenCalledWith(
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
       expect(initB).toHaveBeenCalledWith(
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
     });
   });
@@ -141,7 +141,7 @@ describe('pluginLifecycle', () => {
       expect(onPreAnalyze).toHaveBeenCalledWith(
         files,
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
     });
   });
@@ -160,7 +160,7 @@ describe('pluginLifecycle', () => {
       expect(onFilesChanged).toHaveBeenCalledWith(
         files,
         '/ws',
-        expect.objectContaining({ mode: 'workspace' }),
+        expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
     });
 

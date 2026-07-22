@@ -10,8 +10,6 @@ function makeProvider() {
     refreshGroupSettings: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     emitEvent: vi.fn(),
-    invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
-    sendPlaybackSpeed: vi.fn(),
   };
 }
 
@@ -181,37 +179,6 @@ describe('configListener', () => {
     expect(provider.refreshSettings).not.toHaveBeenCalled();
   });
 
-  it('invalidates timeline cache when filterPatterns change', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.filterPatterns',
-    });
-
-    expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
-  });
-
-  it('sends playback speed when timeline.playbackSpeed changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.timeline.playbackSpeed',
-    });
-
-    expect(provider.sendPlaybackSpeed).toHaveBeenCalledOnce();
-  });
 
   it('adds a subscription to the context', () => {
     const context = makeContext();

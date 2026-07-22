@@ -5,6 +5,13 @@ import {
 } from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
 import {
+  inspectWorkspaceAnalysisDatabase as inspectWorkspaceAnalysisDatabaseImpl,
+  type WorkspaceAnalysisDatabaseInspection as WorkspaceAnalysisDatabaseInspectionImpl,
+} from './inspection/model';
+import {
+  readWorkspaceAnalysisDatabaseRecordCounts as readWorkspaceAnalysisDatabaseRecordCountsImpl,
+} from './recordCounts/model';
+import {
   readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
   type WorkspaceAnalysisDatabaseSnapshot as WorkspaceAnalysisDatabaseSnapshotImpl,
 } from './snapshot';
@@ -18,12 +25,23 @@ import {
 } from './io/save';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
+export type WorkspaceAnalysisDatabaseInspection = WorkspaceAnalysisDatabaseInspectionImpl;
 export type { WorkspaceAnalysisDatabaseLoadOptions };
 
 export function getWorkspaceAnalysisDatabasePath(
   workspaceRoot: string,
 ): string {
   return getWorkspaceAnalysisDatabasePathImpl(workspaceRoot);
+}
+
+export function readWorkspaceAnalysisDatabaseRecordCounts(workspaceRoot: string) {
+  return readWorkspaceAnalysisDatabaseRecordCountsImpl(workspaceRoot);
+}
+
+export function inspectWorkspaceAnalysisDatabase(
+  workspaceRoot: string,
+): WorkspaceAnalysisDatabaseInspection {
+  return inspectWorkspaceAnalysisDatabaseImpl(workspaceRoot);
 }
 
 export function loadWorkspaceAnalysisDatabaseCache(
@@ -55,8 +73,9 @@ export function clearWorkspaceAnalysisDatabaseCache(
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
+  graph?: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[2],
 ): void {
-  saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache);
+  saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache, graph);
 }
 
 export function patchWorkspaceAnalysisDatabaseCache(

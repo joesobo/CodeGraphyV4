@@ -1,10 +1,13 @@
 import type { RefObject } from 'react';
 import type { GraphDebugControls, GraphDebugSnapshot } from './contracts/protocol';
+import { buildDebugNodeSnapshot } from './snapshotNode';
 
 export interface DebugNode {
   baseOpacity?: number;
+  collisionRadius2D?: number;
   color?: string;
   id: string;
+  imageUrl?: string;
   shapeSize2D?: {
     height: number;
     width: number;
@@ -12,7 +15,6 @@ export interface DebugNode {
   size: number;
   x?: number;
   y?: number;
-  z?: number;
 }
 
 function getContainerSize(containerRef: RefObject<HTMLElement | null>): {
@@ -27,43 +29,44 @@ function getContainerSize(containerRef: RefObject<HTMLElement | null>): {
   };
 }
 
-function buildDebugNodeSnapshot(
-  node: DebugNode,
-  graph: GraphDebugControls | undefined,
-): GraphDebugSnapshot['nodes'][number] {
-  const x = node.x ?? 0;
-  const y = node.y ?? 0;
-  const z = typeof node.z === 'number' ? node.z : 0;
-  const screen = graph?.graph2ScreenCoords?.(x, y, z) ?? { x, y };
-
+function inferCameraCenter(
+  nodes: GraphDebugSnapshot['nodes'],
+  containerWidth: number,
+  containerHeight: number,
+  zoom: number | null,
+): { cameraCenterX: number | null; cameraCenterY: number | null } {
+  const node = nodes.find(candidate => candidate.positionFinite);
+  if (!node || zoom === null || !Number.isFinite(zoom) || zoom === 0) {
+    return { cameraCenterX: null, cameraCenterY: null };
+  }
   return {
-    ...(typeof node.baseOpacity === 'number' ? { baseOpacity: node.baseOpacity } : {}),
-    ...(typeof node.color === 'string' ? { color: node.color } : {}),
-    id: node.id,
-    screenX: screen.x,
-    ...(node.shapeSize2D ? { shapeSize2D: node.shapeSize2D } : {}),
-    screenY: screen.y,
-    size: node.size,
-    x,
-    y,
+    cameraCenterX: node.x - (node.screenX - containerWidth / 2) / zoom,
+    cameraCenterY: node.y - (node.screenY - containerHeight / 2) / zoom,
   };
 }
 
 export function buildGraphDebugSnapshot({
   containerRef,
   graph,
-  graphMode,
   nodes,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   graph: GraphDebugControls | undefined;
-  graphMode: '2d' | '3d';
   nodes: DebugNode[];
 }): GraphDebugSnapshot {
+  const container = getContainerSize(containerRef);
+  const nodeSnapshots = nodes.map((node) => buildDebugNodeSnapshot(node, graph));
+  const zoom = graph?.zoom?.() ?? null;
   return {
-    ...getContainerSize(containerRef),
-    graphMode,
-    nodes: nodes.map((node) => buildDebugNodeSnapshot(node, graph)),
-    zoom: graphMode === '2d' ? (graph?.zoom?.() ?? null) : null,
+    ...inferCameraCenter(
+      nodeSnapshots,
+      container.containerWidth,
+      container.containerHeight,
+      zoom,
+    ),
+    ...container,
+    fps: graph?.getFps?.() ?? null,
+    nodes: nodeSnapshots,
+    zoom,
   };
 }

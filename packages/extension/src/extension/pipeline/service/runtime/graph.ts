@@ -1,17 +1,38 @@
-import type * as vscode from 'vscode';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import {
+  buildWorkspacePipelineCompleteGraphDataFromAnalysis as buildCompleteGraphData,
   buildWorkspacePipelineGraphData,
   buildWorkspacePipelineGraphDataFromAnalysis,
   type WorkspacePipelineGraphScopeOptions,
 } from '../../serviceAdapters';
 
+export function buildWorkspacePipelineCompleteGraphDataFromAnalysis(
+  cache: IWorkspaceAnalysisCache,
+  registry: PluginRegistry,
+  fileAnalysis: Map<string, IFileAnalysisResult>,
+  workspaceRoot: string,
+  showOrphans: boolean,
+  disabledPlugins: Set<string>,
+  directoryPaths: readonly string[] = [],
+  gitIgnoredPaths: readonly string[] = [],
+): IGraphData {
+  return buildCompleteGraphData(
+    cache,
+    registry,
+    fileAnalysis,
+    workspaceRoot,
+    showOrphans,
+    disabledPlugins,
+    directoryPaths,
+    gitIgnoredPaths,
+  );
+}
+
 export function buildWorkspacePipelineGraph(
   cache: IWorkspaceAnalysisCache,
-  context: vscode.ExtensionContext,
   registry: PluginRegistry,
   fileConnections: Map<string, IProjectedConnection[]>,
   workspaceRoot: string,
@@ -22,7 +43,6 @@ export function buildWorkspacePipelineGraph(
 ): IGraphData {
   return buildWorkspacePipelineGraphData(
     cache,
-    context,
     registry,
     fileConnections,
     workspaceRoot,
@@ -35,7 +55,6 @@ export function buildWorkspacePipelineGraph(
 
 export function buildWorkspacePipelineGraphFromAnalysis(
   cache: IWorkspaceAnalysisCache,
-  context: vscode.ExtensionContext,
   registry: PluginRegistry,
   fileAnalysis: Map<string, IFileAnalysisResult>,
   workspaceRoot: string,
@@ -47,7 +66,6 @@ export function buildWorkspacePipelineGraphFromAnalysis(
 ): IGraphData {
   return buildWorkspacePipelineGraphDataFromAnalysis(
     cache,
-    context,
     registry,
     fileAnalysis,
     workspaceRoot,

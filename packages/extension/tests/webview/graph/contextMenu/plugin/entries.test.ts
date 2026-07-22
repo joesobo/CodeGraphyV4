@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
-import {
-  buildPluginEntries,
-  buildPluginEntriesForDecision,
-} from '../../../../../src/webview/components/graph/contextMenu/plugin/entries';
+import { buildPluginEntriesForDecision } from '../../../../../src/webview/components/graph/contextMenu/plugin/entries';
 
 const groupedItems: IPluginContextMenuItem[] = [
   { label: 'First A', when: 'node', pluginId: 'acme', index: 0, group: 'A' },
@@ -15,10 +12,7 @@ const groupedItems: IPluginContextMenuItem[] = [
 
 describe('graph/contextMenu/plugin/entries', () => {
   it('builds no plugin entries for background or unmatched plugin targets', () => {
-    expect(buildPluginEntries(
-      { kind: 'background', targets: [] },
-      groupedItems,
-    )).toEqual([]);
+    expect(buildPluginEntriesForDecision({ kind: 'background' }, groupedItems)).toEqual([]);
 
     expect(buildPluginEntriesForDecision({
       kind: 'edge',
@@ -29,7 +23,7 @@ describe('graph/contextMenu/plugin/entries', () => {
     ])).toEqual([]);
   });
 
-  it('builds plugin entries with stable separators and action ids', () => {
+  it('builds node entries with stable separators, ids, and actions', () => {
     const entries = buildPluginEntriesForDecision({
       kind: 'singleFileNode',
       target: { id: 'src/app.ts', nodeKind: 'file', nodeType: 'file' },
@@ -54,14 +48,15 @@ describe('graph/contextMenu/plugin/entries', () => {
     ]);
   });
 
-  it('classifies selections before building plugin entries', () => {
-    const entries = buildPluginEntries(
-      { kind: 'edge', targets: ['src/a.ts', 'src/b.ts'], edgeId: 'edge-1' },
-      [
-        { label: 'Both', when: 'both', pluginId: 'acme', index: 1 },
-        { label: 'Edge Only', when: 'edge', pluginId: 'acme', index: 2 },
-      ],
-    );
+  it('builds edge entries for edge and universal plugin items', () => {
+    const entries = buildPluginEntriesForDecision({
+      kind: 'edge',
+      targets: ['src/a.ts', 'src/b.ts'],
+      edgeId: 'edge-1',
+    }, [
+      { label: 'Both', when: 'both', pluginId: 'acme', index: 1 },
+      { label: 'Edge Only', when: 'edge', pluginId: 'acme', index: 2 },
+    ]);
 
     expect(entries.map(entry => entry.id)).toEqual([
       'plugins-separator',

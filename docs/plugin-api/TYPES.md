@@ -39,19 +39,19 @@ The public package is host-agnostic. VS Code-specific bridge types, decorations,
 Defined in `plugin.ts`.
 
 Key points:
-- `apiVersion: string` is required (for example `'^2.0.0'`).
+
+- Every plugin must define `apiVersion: string` (for example `'^3.0.0'`).
 - `sources?: IConnectionSource[]` declares the plugin's Relationship Source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, defaults, and optional user-facing descriptions for Graph Scope.
-- `contributeGraphScopeCapabilities(context)` lets plugins declare core or plugin-owned Node Types and Edge Types that are relevant when the plugin is enabled and applies to the indexed workspace, even if the current graph has no matching nodes or relationships yet. Use `context.filePaths` when one plugin supports several languages or file families with different capabilities.
+- `contributeGraphScopeCapabilities(context)` lets an active plugin declare relevant Core or plugin-owned Node Types and Edge Types for the indexed workspace. The current graph does not need matching Nodes or Relationships. Use `context.filePaths` when one plugin supports languages or file families with different capabilities.
 - Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- `IPluginAnalysisContext.workspaceFiles` provides workspace paths and extensions for cross-file invalidation without reading file contents.
 
 ### `IPluginAnalysisContext`
 
-- `mode: 'workspace' | 'timeline'`
-- `commitSha?: string` is present during timeline replay
 - `fileSystem` is a host-backed adapter with:
   - `exists(filePath)`
   - `isFile(filePath)`
@@ -59,7 +59,7 @@ Key points:
   - `listDirectory(filePath)`
   - `readTextFile(filePath)`
 
-Use this instead of raw Node `fs` when your plugin needs sibling files, config files, or repo-local state. During timeline indexing the adapter reads the selected commit, not `HEAD`.
+Use this instead of raw Node `fs` when your plugin needs sibling files, config files, or repo-local state.
 
 ### Merge Rules
 
@@ -147,14 +147,14 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 - plugin host access to the current graph snapshot through `IPluginHostApi.getGraph()`, so host actions such as exporters can read the rendered Relationship Graph when they run
 - runtime Graph View nodes and edges
 - graph projections that run after the free Visible Graph exists
-- additive D3 force adapters
+- additive graph force adapters
 - node drag-end policies for plugin-owned fixed-position behavior
 - context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
 - named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldBackground`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
 
-The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw force-graph instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
+The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw graph-renderer instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
 
-Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and MCP consume the same core analysis path without installing VS Code or webview dependencies.
+Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and VS Code extension consume the same Core analysis path without making plugins depend on VS Code or webview code.
 
 ## Data Types
 
@@ -170,7 +170,7 @@ Headless plugins should express analysis through `IPlugin` hooks and `IFileAnaly
 ### Relationship Provenance (`connection.ts`)
 
 - `IConnectionSource`
-- `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
+- `IPluginFileColorDefinition` with `color`, optional `shape2D`, and optional `imagePath`
 
 `connection.ts` is now only about source metadata: the relationship families a plugin declares in `sources` so the host can preserve Relationship Source provenance in graph edges, inspectors, and exports.
 
@@ -181,7 +181,7 @@ The public plugin API no longer exposes the old `IConnection` / `IConnectionDete
 - plugin output: `sourceId: 'wikilink'`
 - merged graph provenance later: `id: 'codegraphy.markdown:wikilink'`
 
-If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph/timeline pipeline. They are not part of the public plugin API.
+If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph pipeline. They are not part of the public plugin API.
 
 ### Graph (`graph.ts`)
 
@@ -223,7 +223,7 @@ Plugin id implies storage ownership. Hosts persist plugin data under the plugin 
 
 Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
 
-Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
 
 ### Webview (`webview.ts`)
 
@@ -233,13 +233,13 @@ Graph View contributions run from a live host context. `visibleGraph` is the cur
 - `WebviewPluginActivate`
 - `WebviewPluginActivationCleanup`
 
-Webview assets are package-owned scripts/styles declared through `IPlugin.webviewContributions`. They can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })`, exchange plugin-scoped messages, read and write plugin-owned webview state through `getPluginData()` and `setPluginData(data)`, and return cleanup work that the host runs when the plugin is disabled or reset.
+Plugins declare package-owned webview scripts and styles through `IPlugin.webviewContributions`. These assets can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })` and exchange plugin-scoped messages. They can also read and write plugin-owned state through `getPluginData()` and `setPluginData(data)`. The host runs returned cleanup work when it disables or resets the plugin.
 
-Runtime node contributions may supply D3 coordinate state (`x`/`y`/`z`), fixed coordinate state (`fx`/`fy`/`fz`), and velocity state (`vx`/`vy`/`vz`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
+Runtime node contributions may supply coordinates (`x` and `y`), fixed coordinates (`fx` and `fy`), and velocity (`vx` and `vy`) when a plugin owns its node layout. Core treats these fields as graph physics state. A plugin can fix a runtime Node, release it, or return it to graph physics without a separate layout channel.
 
-Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy`/`fz` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
+Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 
-Context menu contributions render in the normal graph context menu by default. Contributions that set `placement: { menu: 'create' }` join the graph background create actions instead, so the same action appears beside `New File...` and `New Folder...` in the background context menu and in the toolbar `New...` popup while the plugin is enabled.
+By default, the host renders context menu contributions in the graph context menu. Set `placement: { menu: 'create' }` to add an action to the graph background creation commands. While the plugin is active, the action then appears beside `New File...` and `New Folder...` in the background context menu and the toolbar `New...` popup.
 
 ## Theme-Style Plugins
 
@@ -248,7 +248,7 @@ The current public API already supports a file-theme style plugin through `fileC
 - extension matches like `.ts`
 - exact file names like `package.json`
 - glob patterns like `**/*.stories.tsx`
-- optional `shape2D`, `shape3D`, and `imagePath`
+- optional `shape2D` and `imagePath`
 
 Those plugin defaults sit above core defaults and below custom Legend Entries, so a user can treat them like an installable theme layer for File Nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom entries still win last.
 

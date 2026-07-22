@@ -14,6 +14,7 @@ import {
   handleDepthLimitUpdated,
   handleDepthLimitRangeUpdated,
   handleDirectionSettingsUpdated,
+  handleShowFpsUpdated,
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
   handleVerboseDiagnosticsUpdated,
@@ -21,28 +22,15 @@ import {
   handleAppBootstrapComplete,
 } from './messageHandlers/graph';
 import {
-  handleIndexProgress,
-  handleTimelineData,
-  handleCommitGraphData,
-  handlePlaybackSpeedUpdated,
-  handleCacheInvalidated,
-  handlePlaybackEnded,
-} from './messageHandlers/timeline';
-import {
   handlePluginsUpdated,
   handleDecorationsUpdated,
   handleContextMenuItems,
   handlePluginExportersUpdated,
   handlePluginToolbarActionsUpdated,
   handleGraphViewContributionsUpdated,
-  handleDagModeUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
-import {
-  handleToggleDepthMode,
-  handleCycleLayout,
-  handleToggleDimension,
-} from './messageHandlers/toolbar';
+import { handleToggleDepthMode } from './messageHandlers/toolbar';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 
 export const MESSAGE_HANDLERS: Record<
@@ -105,22 +93,14 @@ export const MESSAGE_HANDLERS: Record<
     handlePluginsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>),
   MAX_FILES_UPDATED: (msg) =>
     handleMaxFilesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'MAX_FILES_UPDATED' }>),
+  SHOW_FPS_UPDATED: (msg) =>
+    handleShowFpsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SHOW_FPS_UPDATED' }>),
   VERBOSE_DIAGNOSTICS_UPDATED: (msg) =>
     handleVerboseDiagnosticsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'VERBOSE_DIAGNOSTICS_UPDATED' }>
     ),
   ACTIVE_FILE_UPDATED: (msg) =>
     handleActiveFileUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'ACTIVE_FILE_UPDATED' }>),
-  INDEX_PROGRESS: (msg) =>
-    handleIndexProgress(msg as Extract<ExtensionToWebviewMessage, { type: 'INDEX_PROGRESS' }>),
-  TIMELINE_DATA: (msg) =>
-    handleTimelineData(msg as Extract<ExtensionToWebviewMessage, { type: 'TIMELINE_DATA' }>),
-  COMMIT_GRAPH_DATA: (msg) =>
-    handleCommitGraphData(msg as Extract<ExtensionToWebviewMessage, { type: 'COMMIT_GRAPH_DATA' }>),
-  PLAYBACK_SPEED_UPDATED: (msg) =>
-    handlePlaybackSpeedUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLAYBACK_SPEED_UPDATED' }>),
-  CACHE_INVALIDATED: () => handleCacheInvalidated(),
-  PLAYBACK_ENDED: () => handlePlaybackEnded(),
   DECORATIONS_UPDATED: (msg, ctx) =>
     handleDecorationsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>,
@@ -135,11 +115,7 @@ export const MESSAGE_HANDLERS: Record<
   GRAPH_VIEW_CONTRIBUTIONS_UPDATED: (msg) =>
     handleGraphViewContributionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>),
   PLUGIN_WEBVIEW_INJECT: () => undefined,
-  DAG_MODE_UPDATED: (msg) =>
-    handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),
   NODE_SIZE_MODE_UPDATED: (msg) =>
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),
   TOGGLE_DEPTH_MODE: handleToggleDepthMode,
-  CYCLE_LAYOUT: handleCycleLayout,
-  TOGGLE_DIMENSION: handleToggleDimension,
 };

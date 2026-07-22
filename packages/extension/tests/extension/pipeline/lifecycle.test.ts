@@ -318,8 +318,11 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
           mtime: 42,
           size: 10,
           analysis: {
-            filePath: '/workspace/src/index.ts',
+            filePath: path.join(workspaceRoot, 'src/index.ts'),
+            nodes: [],
+            symbols: [],
             relations: [],
+            cache: { tiers: ['baseline', 'symbols'] },
           },
         },
       },
@@ -405,7 +408,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
 
     analyzer.clearCache();
 
-    expect(fs.existsSync(path.join(workspaceRoot, '.codegraphy', 'graph.lbug'))).toBe(true);
+    expect(fs.existsSync(path.join(workspaceRoot, '.codegraphy', 'graph.sqlite'))).toBe(true);
     expect(
       (analyzer as unknown as {
         _cache: {
@@ -680,8 +683,13 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     await vi.waitFor(() => {
       expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/keep.ts']).toEqual({
         mtime: 10,
-        size: 0,
-        analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+        analysis: {
+          filePath: path.join(workspaceRoot, 'src/keep.ts'),
+          nodes: [],
+          symbols: [],
+          relations: [],
+          cache: { tiers: ['baseline', 'symbols'] },
+        },
       });
     });
   });

@@ -1,41 +1,37 @@
 # Example Workspaces
 
-Small repo fixtures for manual testing, screenshots, and extension-host e2e work. Each folder is a tiny recognizable project for its language, with just enough source and project metadata to make its CodeGraphy relationships obvious.
+These small repository fixtures support manual tests, screenshots, and extension-host end-to-end tests. Each folder contains a recognizable project with enough source and metadata to show its CodeGraphy Relationships.
 
-The nested `example-typescript/tsconfig.json` demonstrates TypeScript plugin
-alias edges whether you open the full `examples/` workspace or the focused
-`example-typescript/` workspace. The `example-javascript/jsconfig.json`
-keeps JavaScript project metadata visible without asserting TypeScript-only
-alias behavior.
+The nested `example-typescript/tsconfig.json` demonstrates TypeScript plugin alias edges whether you open the full `examples/` workspace or the focused `example-typescript/` workspace. The `example-javascript/jsconfig.json` keeps JavaScript project metadata visible without asserting TypeScript-only alias behavior.
 
-- `example-typescript` — runnable TypeScript palette generator used by extension e2e
-- `example-javascript` — small JavaScript workspace mirroring the TypeScript graph story
-- `example-vue` — Vue 3 SFC workspace used to inspect baseline `.vue` graph support
-- `example-godot` — Godot/GDScript workspace used by plugin e2e
-- `example-unity` — Unity project-file workspace for scene, prefab, GameObject, Component, and ScriptableObject asset reference support
-- `example-python` — Python import-resolution workspace
-- `example-csharp` — C# task dispatch workspace with type/member/variable coverage
-- `example-markdown` — Markdown/wikilink workspace, including links inside non-markdown files
-- `example-rust` — Rust module/use example with strong core Tree-sitter coverage
-- `example-java` — Java import/inheritance example
-- `example-go` — Go package/import example
-- `example-c` — C tiny logger with include/call edges and C-native symbol nodes
-- `example-cpp` — C++ task queue runner with namespace, alias, template, variable, include, call, inheritance, and override coverage
-- `example-objective-c` — Objective-C dashboard/controller/store/view example
-- `example-kotlin` — Kotlin import/inheritance example
-- `example-scala` — Scala app/service/repository/view import and inheritance example
-- `example-php` — PHP namespace/use/inheritance example
-- `example-ruby` — Ruby require/inheritance example
-- `example-pascal` — Pascal runner/repository/service/view unit uses and inheritance example
-- `example-haskell` — Haskell module import example
-- `example-lua` — Lua require example
-- `example-swift` — Swift Package module import example
-- `example-dart` — Dart relative/package import example
-- `example-svelte` — Svelte component, type import, and lazy module import example
-- `.codegraphy/snippets` — copyable CodeGraphy CSS Snippet examples for styling the extension UI
-- `.codegraphy/particles` — custom particle effect examples for the Particles plugin
+- `example-typescript`: runnable TypeScript palette generator used by extension end-to-end tests
+- `example-javascript`: small JavaScript workspace that mirrors the TypeScript graph example
+- `example-vue`: Vue 3 single-file component workspace for baseline `.vue` graph support
+- `example-godot`: Godot and GDScript workspace used by plugin end-to-end tests
+- `example-unity`: Unity workspace for scene, prefab, GameObject, Component, and ScriptableObject asset references
+- `example-python`: Python import-resolution workspace
+- `example-csharp`: C# task dispatch workspace with type, member, and variable coverage
+- `example-markdown`: Markdown and wikilink workspace, including links inside other file types
+- `example-rust`: Rust module and use example with Core Tree-sitter coverage
+- `example-java`: Java import and inheritance example
+- `example-go`: Go package and import example
+- `example-c`: C logger with include and call Edges plus C-native Symbol Nodes
+- `example-cpp`: C++ task queue with namespace, alias, template, variable, include, call, inheritance, and override coverage
+- `example-objective-c`: Objective-C dashboard, controller, store, and view example
+- `example-kotlin`: Kotlin import and inheritance example
+- `example-scala`: Scala app, service, repository, and view example
+- `example-php`: PHP namespace, use, and inheritance example
+- `example-ruby`: Ruby require and inheritance example
+- `example-pascal`: Pascal runner, repository, service, view, unit-use, and inheritance example
+- `example-haskell`: Haskell module import example
+- `example-lua`: Lua require example
+- `example-swift`: Swift Package module import example
+- `example-dart`: Dart relative and package import example
+- `example-svelte`: Svelte component, type import, and lazy module import example
+- `.codegraphy/snippets`: CodeGraphy CSS Snippet examples for the extension UI
+- `.codegraphy/particles`: custom particle effect examples for the Particles plugin
 
-These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbol and Variable let you zoom into the declarations that explain why files are connected.
+The small size keeps each Relationship Graph predictable. File Nodes show the broad structure. Symbol and Variable Nodes reveal the declarations behind each connection.
 
 ## CSS Snippet Examples
 
@@ -55,10 +51,10 @@ Snippet paths are relative to the CodeGraphy Workspace and must stay inside it. 
 
 The demo snippets currently include:
 
-- `base-grid.css` — a static black and grey grid background
-- `forest.css` — static forest palette that themes graph UI panels, inputs, menus, and labels
-- `ocean.css` — static ocean palette that themes graph UI panels, inputs, menus, and labels
-- `ocean-image.css` — faded local ocean image behind the graph stage
+- `base-grid.css`: static black and grey grid background
+- `forest.css`: static forest palette for graph UI panels, inputs, menus, and labels
+- `ocean.css`: static ocean palette for graph UI panels, inputs, menus, and labels
+- `ocean-image.css`: faded local ocean image behind the Graph Stage
 
 ## Symbol Node Stories
 

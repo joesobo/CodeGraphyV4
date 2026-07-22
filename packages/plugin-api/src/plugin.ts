@@ -1,7 +1,7 @@
 /**
  * @fileoverview The IPlugin interface — the canonical plugin contract.
  *
- * Plugin API v2 is required. Every plugin must declare `apiVersion`
+ * Plugin API v3 is required. Every plugin must declare `apiVersion`
  * and is validated by the host at registration time.
  *
  * @module @codegraphy-dev/plugin-api/plugin
@@ -19,7 +19,6 @@ import type { Disposable } from './disposable';
 import type {
   GraphEdgeKind,
   GraphNodeShape2D,
-  GraphNodeShape3D,
   IGraphData,
   NodeType,
 } from './graph';
@@ -118,10 +117,19 @@ export interface IPluginAnalysisFileSystem {
   readTextFile(filePath: string): Promise<string | null>;
 }
 
+export interface IPluginWorkspaceFile {
+  /** Absolute path to the discovered workspace file. */
+  absolutePath: string;
+  /** Path relative to the workspace root. */
+  relativePath: string;
+  /** Lowercase file extension, including the leading dot when present. */
+  extension: string;
+}
+
 export interface IPluginAnalysisContext {
-  mode: 'workspace' | 'timeline';
-  commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
+  /** Lightweight discovered workspace inventory for cross-file invalidation. */
+  workspaceFiles?: readonly IPluginWorkspaceFile[];
   features?: {
     symbols?: boolean;
   };
@@ -129,9 +137,9 @@ export interface IPluginAnalysisContext {
 }
 
 export interface IPluginFileColorDefinition {
+  /** CSS color resolved in the Graph View theme context. */
   color: string;
   shape2D?: GraphNodeShape2D;
-  shape3D?: GraphNodeShape3D;
   /** Relative path from the plugin root to an image asset. */
   imagePath?: string;
 }
@@ -178,7 +186,7 @@ export interface IPluginUpdateImpactPolicy {
  *   id: 'myplugin.coverage',
  *   name: 'Coverage Overlay',
  *   version: '0.1.0',
- *   apiVersion: '^2.0.0',
+ *   apiVersion: '^3.0.0',
  *   supportedExtensions: [],
  *   async analyzeFile(filePath) {
  *     return { filePath, relations: [] };
@@ -329,7 +337,9 @@ export interface IPlugin {
   ): Promise<void>;
 
   /**
-   * Called before an incremental save-driven re-analysis.
+   * Called before an incremental save-driven re-analysis. Receives all changed
+   * workspace files, including configuration files outside supportedExtensions,
+   * so plugins can invalidate cross-file state.
    * Plugins can update internal indexes from the changed files and optionally
    * request additional workspace-relative files to re-analyze.
    *

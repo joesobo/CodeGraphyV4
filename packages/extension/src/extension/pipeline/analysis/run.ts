@@ -39,11 +39,12 @@ export function runWorkspacePipelineAnalysis(
       logInfo: message => {
         console.log(message);
       },
-      saveCache: async onProgress => {
+      saveCache: async (graph, onProgress) => {
         const workspaceRoot = getWorkspaceRoot();
         if (workspaceRoot) {
           try {
             await saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, {
+              graph,
               onProgress,
             });
           } catch (error) {

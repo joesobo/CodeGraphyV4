@@ -24,7 +24,7 @@ describe('plugin API contracts', () => {
       id: 'acme.routes',
       name: 'Acme Routes',
       version: '0.1.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.route'],
       contributeEdgeTypes: () => [{
         id: 'acme.routes:route',
@@ -51,7 +51,7 @@ describe('plugin API contracts', () => {
       id: 'acme.account',
       name: 'Acme Account',
       version: '0.1.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: [],
       accessProvider: {
         id: 'acme.account.access',
@@ -150,7 +150,7 @@ describe('plugin API contracts', () => {
       id: 'acme.graph-tools',
       name: 'Acme Graph Tools',
       version: '0.1.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['*'],
       requiresAccess: premiumAccess,
       graphView: {
@@ -183,7 +183,7 @@ describe('plugin API contracts', () => {
       id: 'acme.graph-tools',
       name: 'Acme Graph Tools',
       version: '0.1.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: [],
       async initialize() {
         await options?.dataHost?.saveData({ runtimeNodes: [] });
@@ -202,7 +202,7 @@ describe('plugin API contracts', () => {
       id: 'acme.graph-tools',
       name: 'Acme Graph Tools',
       version: '0.1.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: [],
       webviewApiVersion: '^1.0.0',
       webviewContributions: {

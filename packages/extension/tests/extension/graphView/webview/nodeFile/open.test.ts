@@ -8,13 +8,10 @@ function createHandlers(
   overrides: Partial<GraphViewNodeFileOpenHandlers> = {},
 ): GraphViewNodeFileOpenHandlers {
   return {
-    timelineActive: false,
-    currentCommitSha: undefined,
     canOpenPath: vi.fn(() => true),
     setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
@@ -59,27 +56,8 @@ describe('graph view node/file open message', () => {
     expect(handlers.activateNode).not.toHaveBeenCalled();
   });
 
-  it('previews the current commit when timeline mode is active', async () => {
-    const handlers = createHandlers({
-      timelineActive: true,
-      currentCommitSha: 'abc123',
-    });
-
-    await applyNodeFileOpenMessage(
-      { type: 'OPEN_FILE', payload: { path: 'src/app.ts' } },
-      handlers,
-    );
-
-    expect(handlers.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
-    expect(handlers.previewFileAtCommit).toHaveBeenCalledWith('abc123', 'src/app.ts');
-    expect(handlers.openFile).not.toHaveBeenCalled();
-  });
-
-  it('opens files directly when commit preview is unavailable', async () => {
-    const handlers = createHandlers({
-      timelineActive: true,
-      currentCommitSha: undefined,
-    });
+  it('opens files directly', async () => {
+    const handlers = createHandlers();
 
     await applyNodeFileOpenMessage(
       { type: 'OPEN_FILE', payload: { path: 'src/app.ts' } },
@@ -88,7 +66,6 @@ describe('graph view node/file open message', () => {
 
     expect(handlers.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.openFile).toHaveBeenCalledWith('src/app.ts');
-    expect(handlers.previewFileAtCommit).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages', async () => {
@@ -136,7 +113,6 @@ describe('graph view node/file open message', () => {
     );
 
     expect(handlers.openFile).not.toHaveBeenCalled();
-    expect(handlers.previewFileAtCommit).not.toHaveBeenCalled();
     expect(handlers.setFocusedFile).toHaveBeenCalledWith(undefined);
   });
 });

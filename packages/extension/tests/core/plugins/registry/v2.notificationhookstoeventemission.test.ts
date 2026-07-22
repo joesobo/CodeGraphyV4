@@ -20,7 +20,7 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     onLoad: vi.fn(),
@@ -84,7 +84,7 @@ describe('PluginRegistry v2', () => {
           expect(plugin.onPreAnalyze).toHaveBeenCalledWith(
             files,
             '/workspace',
-            expect.objectContaining({ mode: 'workspace' }),
+            expect.objectContaining({ fileSystem: expect.any(Object) }),
           );
           expect(plugin.onPostAnalyze).toHaveBeenCalledWith(graph);
           expect(plugin.onGraphRebuild).toHaveBeenCalledWith(graph);

@@ -52,7 +52,6 @@ export type {
   GraphMetadata,
   GraphMetadataValue,
   GraphNodeShape2D,
-  GraphNodeShape3D,
   IGraphNode,
   IGraphEdge,
   IGraphEdgeSource,
@@ -132,11 +131,6 @@ export type {
   PluginDisabledPayload,
   PluginSourceToggledPayload,
   PluginMessagePayload,
-  // Timeline
-  TimelineCommitSelectedPayload,
-  TimelinePlaybackStartedPayload,
-  TimelinePlaybackStoppedPayload,
-  TimelineRangeChangedPayload,
 } from './events';
 
 // Plugin interface
@@ -159,6 +153,7 @@ export type {
   IAnalysisFile,
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,
+  IPluginWorkspaceFile,
   IPluginFileColorDefinition,
 } from './plugin';
 

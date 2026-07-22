@@ -23,7 +23,7 @@ describe('cli/plugins/enable', () => {
 
     expect(runEnableCommand({ name: 'plugins', action: 'enable' }, deps)).toEqual({
       exitCode: 1,
-      output: 'Usage: codegraphy plugins enable <plugin-id-or-package> [workspace]',
+      output: 'Usage: codegraphy plugins enable <plugin-id-or-package>',
     });
     expect(deps.readInstalledPluginCache).not.toHaveBeenCalled();
   });
@@ -45,7 +45,7 @@ describe('cli/plugins/enable', () => {
       package: '@codegraphy-dev/plugin-vue',
       pluginId: 'codegraphy.vue',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       disclosures: [],
       packageRoot: '/global/plugin-vue',
     };
@@ -61,7 +61,7 @@ describe('cli/plugins/enable', () => {
       readInstalledPluginCache: () => ({ version: 1, plugins: [plugin] }),
     }))).toEqual({
       exitCode: 0,
-      output: 'Enabled codegraphy.vue for /workspace/repo. Run `codegraphy index /workspace/repo` to refresh the Graph Cache.',
+      output: 'Enabled codegraphy.vue for /workspace/repo. Run `codegraphy -C "/workspace/repo" index` to refresh the Graph Cache.',
     });
     expect(enableWorkspacePlugin).toHaveBeenCalledWith('/workspace/repo', plugin);
   });

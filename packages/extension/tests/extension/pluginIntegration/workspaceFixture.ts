@@ -77,7 +77,7 @@ export async function installPluginIntegrationPackage(
       exports: './plugin.js',
       codegraphy: {
         type: 'plugin',
-        apiVersion: '^2.0.0',
+        apiVersion: '^3.0.0',
       },
     }, null, 2),
     'utf-8',
@@ -94,7 +94,7 @@ export default function createPlugin() {
     id: '${pluginId}',
     name: 'Integration Package Plugin',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
     ${options.webviewContributions ? `
     webviewApiVersion: '^1.0.0',
@@ -174,7 +174,7 @@ export default function createPlugin() {
     plugins: [{
       package: packageName,
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       disclosures: [],
       packageRoot,
       pluginId,

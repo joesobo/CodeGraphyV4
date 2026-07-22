@@ -3,11 +3,6 @@ export interface GraphLastClickState {
   time: number;
 }
 
-export interface GraphInteractionPoint {
-  x: number;
-  y: number;
-}
-
 export type GraphInteractionEffect =
   | { kind: 'openNodeContextMenu'; nodeId: string }
   | { kind: 'openBackgroundContextMenu' }

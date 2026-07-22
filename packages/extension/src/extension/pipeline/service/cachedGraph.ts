@@ -40,7 +40,6 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     const workspaceRoot = this._getWorkspaceRoot();
     await this._hydrateCacheFromGraphCache({
       activeAnalysisCacheTiers: getCachedGraphRuntimeCacheTiers(
-        this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
         this._getActiveAnalysisPluginIds(undefined, disabledPlugins),
         options.requiredAnalysisCacheTiers,
       ),
@@ -117,7 +116,6 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       files,
       getActiveAnalysisPluginIds: disabledPluginSnapshot =>
         this._getActiveAnalysisPluginIds(undefined, disabledPluginSnapshot),
-      nodeVisibility: this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
       registry: this._registry,
       signal,
       workspaceRoot,
@@ -137,7 +135,6 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
 }
 
 function getCachedGraphRuntimeCacheTiers(
-  nodeVisibility: Record<string, boolean>,
   activePluginIds: readonly string[],
   requiredAnalysisCacheTiers: readonly AnalysisCacheTier[] | undefined,
 ): readonly AnalysisCacheTier[] {
@@ -145,10 +142,8 @@ function getCachedGraphRuntimeCacheTiers(
     return requiredAnalysisCacheTiers;
   }
 
-  return createWorkspaceIndexAnalysisCacheTiers(
-    nodeVisibility,
-    activePluginIds,
-  ).active ?? [BASELINE_ANALYSIS_CACHE_TIER];
+  return createWorkspaceIndexAnalysisCacheTiers(activePluginIds).active
+    ?? [BASELINE_ANALYSIS_CACHE_TIER];
 }
 
 function canReplayCachedGraphAnalysis(

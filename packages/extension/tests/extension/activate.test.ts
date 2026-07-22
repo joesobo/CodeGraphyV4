@@ -71,12 +71,12 @@ describe('activate', () => {
     const query = { report: 'nodes' as const, arguments: {} };
     const queryGraphSpy = vi.spyOn(provider, 'queryGraph').mockReturnValue({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
     });
 
     expect(api.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
     });
     expect(queryGraphSpy).toHaveBeenCalledWith(query);
   });
@@ -116,7 +116,7 @@ describe('activate', () => {
       .filter(line => typeof line === 'string' && line.startsWith('[CodeGraphy] Extension activation'));
     expect(diagnosticLines).toEqual([
       '[CodeGraphy] Extension activation started: workspaceFolders=0',
-      '[CodeGraphy] Extension activation complete: registeredWebviewProviders=2',
+      '[CodeGraphy] Extension activation complete: registeredWebviewProviders=1',
     ]);
 
     log.mockRestore();

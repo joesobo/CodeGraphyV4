@@ -4,7 +4,7 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
@@ -14,9 +14,6 @@ import { dispatchGraphViewPrimaryRouteMessage } from './routed';
 import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
 export interface GraphViewPrimaryMessageContext {
-  getTimelineActive(): boolean;
-  getCurrentCommitSha(): string | undefined;
-  getCanMutateGraphRevision(): boolean;
   getUserGroups(): IGroup[];
   getFilterPatterns(): string[];
   getGraphData(): IGraphData;
@@ -31,7 +28,6 @@ export interface GraphViewPrimaryMessageContext {
   activateNode(nodeId: string): Promise<void>;
   canOpenPath(filePath: string): boolean;
   setFocusedFile(filePath: string | undefined): void;
-  previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
   openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
@@ -60,11 +56,7 @@ export interface GraphViewPrimaryMessageContext {
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   getDepthMode(): boolean;
-  updateDagMode(dagMode: DagMode): Promise<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
-  indexRepository(): Promise<void>;
-  jumpToCommit(sha: string): Promise<void>;
-  resetTimeline(): Promise<void>;
   sendPhysicsSettings(): void;
   updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;

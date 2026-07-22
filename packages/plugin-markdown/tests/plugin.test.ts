@@ -51,7 +51,7 @@ describe('createMarkdownPlugin', () => {
     it('exposes the apiVersion from codegraphy.json', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.apiVersion).toBe('^2.0.0');
+      expect(plugin.apiVersion).toBe('^3.0.0');
     });
 
     it('supports wildcard file scanning', () => {
@@ -142,6 +142,19 @@ describe('createMarkdownPlugin', () => {
         fromFilePath: path.join(workspaceA, 'src', 'component.ts'),
         resolvedPath: target.absolutePath,
       });
+    });
+
+    it('ignores binary file content that happens to contain wikilink bytes', async () => {
+      const plugin = createMarkdownPlugin();
+
+      await plugin.initialize?.(workspaceA);
+      const analysis = await plugin.analyzeFile(
+        path.join(workspaceA, 'image.png'),
+        '\u0089PNG\r\n\u001a\n\u0000[[binary-garbage]]',
+        workspaceA,
+      );
+
+      expect(analysis.relations).toEqual([]);
     });
 
     it('updates the workspace root when onPreAnalyze is called with a new root', async () => {

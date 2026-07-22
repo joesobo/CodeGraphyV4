@@ -42,28 +42,13 @@ Pass `--verbose` to any `codegraphy` command:
 
 ```bash
 codegraphy --verbose status
-codegraphy --verbose index /absolute/path/to/workspace
+codegraphy --verbose -C /absolute/path/to/workspace index
 ```
 
-Verbose CLI diagnostics are written outside normal JSON stdout so command output remains parseable.
+Verbose CLI diagnostics go to stderr so JSON stdout remains parseable.
 
 Example diagnostic line:
 
 ```text
 [CodeGraphy] Starting command: status, workspace=/absolute/path/to/workspace
 ```
-
-## MCP
-
-Every CodeGraphy MCP tool accepts `verboseDiagnostics`.
-
-Example:
-
-```json
-{
-  "path": "/absolute/path/to/workspace",
-  "verboseDiagnostics": true
-}
-```
-
-When enabled, the tool result includes a `diagnostics` array with factual Core Package events such as workspace status reads, indexing phases, Graph Cache state, Graph Query execution, counts, and durations. Default MCP responses are unchanged when `verboseDiagnostics` is omitted or false.

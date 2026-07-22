@@ -48,6 +48,12 @@ describe('webview/graphControls/filtering nodes', () => {
     expect(isNodeVisible(node('route', 'plugin-route'), {})).toBe(true);
   });
 
+  it('hides plugin-scoped node types unless explicitly enabled', () => {
+    const unityNode = node('scene', 'plugin:codegraphy.unity:symbol:game-object');
+    expect(isNodeVisible(unityNode, {})).toBe(false);
+    expect(isNodeVisible(unityNode, { 'plugin:codegraphy.unity:symbol:game-object': true })).toBe(true);
+  });
+
   it('resolves missing node types to file without mutating the source nodes', () => {
     const resolved = withResolvedNodeTypes(nodes);
 

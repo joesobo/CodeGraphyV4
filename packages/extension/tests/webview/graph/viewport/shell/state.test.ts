@@ -10,7 +10,6 @@ describe('graph/viewport/shell/state', () => {
 			customRuntimeState: { owner: 'plugin-a' },
 			fx: 'bad',
 			fy: 24,
-			fz: Number.POSITIVE_INFINITY,
 			id: 'src/app.ts',
 			isDragging: 'true',
 			isPinned: false,
@@ -19,14 +18,12 @@ describe('graph/viewport/shell/state', () => {
 			vy: 2,
 			x: 42,
 			y: undefined,
-			z: -4,
 		} as never]);
 
 		expect(nodes).toEqual([expect.objectContaining({
 			customRuntimeState: { owner: 'plugin-a' },
 			fx: undefined,
 			fy: 24,
-			fz: undefined,
 			id: 'src/app.ts',
 			isDragging: undefined,
 			isPinned: false,
@@ -35,7 +32,6 @@ describe('graph/viewport/shell/state', () => {
 			vy: 2,
 			x: 42,
 			y: undefined,
-			z: -4,
 		})]);
 	});
 
@@ -45,9 +41,7 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1.5,
 			graph: undefined,
-			graphMode: '2d',
 			nodes: graphNodes as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 4, y: 8 });
@@ -59,9 +53,7 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1.5,
 			graph: {},
-			graphMode: '2d',
 			nodes: [{ id: 'src/app.ts' }] as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 4, y: 8 });
@@ -77,20 +69,17 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1,
 			graph: {
-				d3ReheatSimulation: reheatSimulation,
+				reheatSimulation,
 				graph2ScreenCoords: (x: number, y: number) => ({ x: x + 10, y: y + 20 }),
 				resumeAnimation,
 				screen2GraphCoords: (x: number, y: number) => ({ x: x - 10, y: y - 20 }),
 				zoom: () => 2,
 			},
-			graphMode: '2d',
 			nodes: [{ id: 'src/app.ts' }] as never,
-			timelineActive: false,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 14, y: 28 });
 		expect(viewportState.screenToGraph(14, 28)).toEqual({ x: 4, y: 8 });
-		expect(viewportState.timelineActive).toBe(false);
 		expect(viewportState.zoom).toBe(2);
 
 		viewportState.resumeAnimation();
@@ -99,14 +88,26 @@ describe('graph/viewport/shell/state', () => {
 		expect(reheatSimulation).toHaveBeenCalledOnce();
 	});
 
-	it('mutates the matching live graph node for plugin viewport updates', () => {
+	it('delegates plugin node updates to the owned graph state owner', () => {
+		const updateNode = vi.fn(() => true);
+		const graphNodes = [{ id: 'src/app.ts', x: 1 }];
+		const viewportState = createGraphViewViewportState({
+			globalScale: 1,
+			graph: { updateNode },
+			nodes: graphNodes as never,
+		});
+
+		expect(viewportState.updateNode('src/app.ts', { x: 10, vx: 2 })).toBe(true);
+		expect(updateNode).toHaveBeenCalledWith('src/app.ts', { x: 10, vx: 2 });
+		expect(graphNodes[0].x).toBe(1);
+	});
+
+	it('mutates the matching live graph node when owned controls are unavailable', () => {
 		const graphNodes = [{ id: 'src/app.ts', x: 1 }];
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1,
 			graph: undefined,
-			graphMode: '2d',
 			nodes: graphNodes as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.updateNode('src/app.ts', { fx: 10, fy: 20 })).toBe(true);

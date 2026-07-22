@@ -6,7 +6,6 @@ import {
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
-  createPatternMessageEffects,
   createRefreshEffects,
 } from '../../../../src/webview/components/graph/contextActions/messages';
 import {
@@ -51,9 +50,6 @@ describe('graph/contextActions/builders', () => {
   it('builds list, prompt, and refresh effects', () => {
     expect(createPathListMessageEffects('DELETE_FILES', ['a.ts'])).toEqual([
       { kind: 'postMessage', message: { type: 'DELETE_FILES', payload: { paths: ['a.ts'] } } },
-    ]);
-    expect(createPatternMessageEffects(['src/**'])).toEqual([
-      { kind: 'postMessage', message: { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['src/**'] } } },
     ]);
     expect(createPatternPromptEffects(['src/**'])).toEqual([
       { kind: 'promptFilterPattern', patterns: ['src/**'] },

@@ -1,6 +1,6 @@
 # Organize
 
-`organize` analyzes directory structure, file naming, and sibling cohesion to surface navigation and discoverability issues. It is a read-only tool — it reports problems but does not move files.
+`organize` analyzes directory structure, file names, and sibling cohesion for navigation and discovery problems. It reports problems without moving files.
 
 ## Quick start
 
@@ -11,13 +11,11 @@ pnpm run organize -- packages/extension/src/webview/
 pnpm run organize -- some/arbitrary/dir/
 ```
 
-The root command dogfoods the external `@poleski/quality-tools` analyzer and
-checks the current repo-wide report against the tracked baseline in
-`docs/quality/baselines/organize-repo.json`. It prints only new or worsened root
-findings so historical advisory output stays written down without drowning out
-new organization debt. Pass a package, directory, file target, `--json`,
-`--verbose`, `--compare`, or `--write-baseline` when you want the raw analyzer
-report instead of the root baseline check.
+The root command runs the external `@poleski/quality-tools` analyzer directly. No repository baseline suppresses existing findings: the command always reports the current directory structure so organization debt stays visible and can be fixed instead of accepted.
+
+The repository-wide report is advisory. `quality-tools organize` exits successfully after producing a report, even when it contains `WARNING` or `SPLIT` verdicts, and deep package paths are measured relative to the repository root. Do not interpret exit code `0` as a clean organization gate.
+
+Use strict scoped review for changed modules. Run the analyzer from the nearest stable package or feature boundary and inspect each changed directory in the report. Finish when those directories are `STABLE` and add no low-information names, barrel files, redundant paths, or unresolved cohesion clusters. This approach checks organization introduced by the change without hiding older repository findings in a tracked baseline.
 
 ## What it measures
 
@@ -40,14 +38,12 @@ Path segments from the target root.
 - 5+: DEEP
 
 ### Path redundancy
-Measures how much of a filename repeats information already in the folder path. Score 0–1.
-Example: `scrap/scrapTypes.ts` scores 0.5 because "scrap" appears in both folder and filename.
+Measures how much of a filename repeats information already in the folder path. Score 0–1. Example: `scrap/scrapTypes.ts` scores 0.5 because "scrap" appears in both folder and filename.
 
 ### Low-information names
 Files whose names carry near-zero navigability signal. Configurable banned and discouraged lists.
 
-Banned (hard stop): utils, helpers, misc, common, shared, _shared, lib, index
-Discouraged (warning): types, constants, config, base, core
+Banned (hard stop): utils, helpers, misc, common, shared, _shared, lib, index Discouraged (warning): types, constants, config, base, core
 
 ### Barrel file detection
 Flags files where ≥80% of statements are re-exports.
@@ -69,15 +65,16 @@ All thresholds are configurable in quality.config.json under the organize key.
 
 ## The analyze-fix-rerun cycle
 
-1. Run `pnpm run organize -- target/`
-2. Read the report — focus on SPLIT and WARNING directories
-3. Restructure: create subfolders for cohesion clusters, rename redundant files, remove barrel files
-4. Run the same target again to verify improvements
-5. Run `pnpm run organize -- .` when you want the repo-wide baseline check
+1. Choose the nearest package or feature seam that contains the changed directories.
+2. Run `pnpm run organize -- target/ --verbose` so `STABLE` directories remain visible.
+3. Read the report for each changed directory; do not rely only on the process exit code.
+4. Restructure changed `SPLIT`/`WARNING` directories, extract real sibling clusters, rename redundant or low-information files, and remove barrel files.
+5. Run the same scoped command again and require the changed directories to be `STABLE`.
+6. Run `pnpm run organize -- .` as an advisory final scan of the complete repository.
 
-When an intentional cleanup improves the repo-wide baseline, regenerate the
-tracked root baseline after the cleanup:
+For example, after changing pipeline feature modules, analyze the pipeline seam rather than measuring those modules from the repository root:
 
 ```bash
-pnpm --silent exec quality-tools organize . --json > docs/quality/baselines/organize-repo.json
+pnpm run organize -- packages/extension/src/extension/pipeline --verbose
+pnpm run organize -- packages/extension/tests/extension/pipeline --verbose
 ```

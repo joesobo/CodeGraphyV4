@@ -23,11 +23,9 @@ describe('graph/messages/effects/runtime', () => {
     expect(getExportEffects('REQUEST_OPEN_IN_EDITOR')).toEqual([{ kind: 'openInEditor' }]);
   });
 
-  it('creates zoom effects for graph view zoom in every graph mode', () => {
-    expect(getZoomEffects('2d', 'ZOOM_IN')).toEqual([{ kind: 'zoom', factor: 1.2 }]);
-    expect(getZoomEffects('2d', 'ZOOM_OUT')).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
-    expect(getZoomEffects('3d', 'ZOOM_IN')).toEqual([{ kind: 'zoom', factor: 1.2 }]);
-    expect(getZoomEffects('3d', 'ZOOM_OUT')).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
+  it('creates graph zoom effects', () => {
+    expect(getZoomEffects('ZOOM_IN')).toEqual([{ kind: 'zoom', factor: 1.2 }]);
+    expect(getZoomEffects('ZOOM_OUT')).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
   });
 
   it('creates node bounds effects with zero defaults for missing coordinates', () => {
@@ -51,7 +49,7 @@ describe('graph/messages/effects/runtime', () => {
   });
 
   it('creates graph runtime state effects', () => {
-    expect(getGraphRuntimeStateEffects('3d', [
+    expect(getGraphRuntimeStateEffects([
       { id: 'src/app.ts', size: 12, x: 10, y: 20 },
       { id: 'src/utils.ts', size: 8 },
     ], [
@@ -62,7 +60,6 @@ describe('graph/messages/effects/runtime', () => {
         message: {
           type: 'GRAPH_RUNTIME_STATE_RESPONSE',
           payload: {
-            graphMode: '3d',
             edgeCount: 1,
             edgeIds: ['src/app.ts->src/utils.ts#import'],
             nodeCount: 2,

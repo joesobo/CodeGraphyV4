@@ -9,7 +9,7 @@ describe('plugins/contributions', () => {
       id: 'first',
       name: 'First',
       version: '1.0.0',
-      apiVersion: '2',
+      apiVersion: '3',
       supportedExtensions: ['.ts'],
       contributeNodeTypes: () => [
         { id: 'custom', label: 'First Custom', defaultColor: '#111111', defaultVisible: true },
@@ -19,7 +19,7 @@ describe('plugins/contributions', () => {
       id: 'second',
       name: 'Second',
       version: '1.0.0',
-      apiVersion: '2',
+      apiVersion: '3',
       supportedExtensions: ['.md'],
       contributeNodeTypes: () => [
         { id: 'custom', label: 'Second Custom', defaultColor: '#222222', defaultVisible: true },

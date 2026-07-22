@@ -53,7 +53,6 @@ describe('webview/components/legends/ruleControls', () => {
       color: '#123456',
       target: 'node',
       shape2D: 'hexagon',
-      shape3D: 'dodecahedron',
     });
   });
 
@@ -68,7 +67,6 @@ describe('webview/components/legends/ruleControls', () => {
           isPluginDefault: true,
           imageUrl: 'webview://typescript.svg',
           shape2D: 'hexagon',
-          shape3D: 'dodecahedron',
         }}
         index={0}
         onChange={vi.fn()}
@@ -79,6 +77,28 @@ describe('webview/components/legends/ruleControls', () => {
     expect(screen.getByTitle('*.ts shape: hexagon')).toBeInTheDocument();
     expect(screen.queryByTitle('Upload legend icon')).toBeNull();
     expect(screen.queryByTitle('Choose legend shape')).toBeNull();
+  });
+
+  it('replaces unavailable plugin default icon previews with an intentional fallback', () => {
+    render(
+      <RuleVisualControls
+        rule={{
+          id: 'legend:default',
+          pattern: '*.unity',
+          color: '#f97316',
+          target: 'node',
+          isPluginDefault: true,
+          imageUrl: 'webview://missing-unity-scene.svg',
+        }}
+        index={0}
+        onChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.error(screen.getByAltText('*.unity icon'));
+
+    expect(screen.queryByAltText('*.unity icon')).toBeNull();
+    expect(screen.getByTitle('*.unity icon unavailable')).toBeInTheDocument();
   });
 
   it('renders no icon preview for plugin defaults without an icon', () => {

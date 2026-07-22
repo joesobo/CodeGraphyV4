@@ -1,5 +1,5 @@
-import type { IGraphData } from '../graph/contracts.js';
-import { createGlobMatcher } from '../globMatch.js';
+import type { IGraphData } from '../graph/contracts';
+import { createGlobMatcher } from '../globMatch';
 
 type GlobMatcher = ReturnType<typeof createGlobMatcher>;
 

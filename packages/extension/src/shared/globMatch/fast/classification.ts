@@ -6,6 +6,10 @@ import {
 } from './patternParts';
 
 export function classifyFastGlobPattern(pattern: string): FastGlobPattern | undefined {
+  if (pattern.includes('[')) {
+    return undefined;
+  }
+
   const recursivePattern = removeRecursivePrefix(pattern);
 
   if (!recursivePattern.includes('*')) {

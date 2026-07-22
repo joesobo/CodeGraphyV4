@@ -1,30 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../../../src/shared/fileColors';
 import type { EdgeDecorationPayload } from '../../../../../../src/shared/plugins/decorations';
-import type { DirectionMode } from '../../../../../../src/shared/settings/modes';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import type { FGLink } from '../../../../../../src/webview/components/graph/model/build';
 import {
   getGraphDirectionalColor,
   getGraphLinkColor,
 } from '../../../../../../src/webview/components/graph/rendering/link/colors/model';
-import type { ThemeKind } from '../../../../../../src/webview/theme/useTheme';
 
 function createDependencies(overrides: Partial<{
-  directionColor: string;
-  directionMode: DirectionMode;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   highlightedNodeId: string | null;
   linkHighlight: string;
   linkMuted: string;
-  theme: ThemeKind;
 }> = {}) {
   return {
-    directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
-    directionModeRef: { current: overrides.directionMode ?? 'arrows' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
-    themeRef: { current: overrides.theme ?? 'dark' },
     graphAppearanceRef: {
       current: {
         ...DEFAULT_GRAPH_APPEARANCE,
@@ -32,6 +24,9 @@ function createDependencies(overrides: Partial<{
         linkMuted: overrides.linkMuted ?? '#2d3748',
       },
     },
+    resolveColor: (color: string | undefined, fallback: string) => (
+      color === 'not-a-hex-color' ? fallback : color ?? fallback
+    ),
   };
 }
 
@@ -50,12 +45,9 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
 describe('graph/rendering/link/colors', () => {
 
 
-    it('uses the muted link color independent of the detected theme kind', () => {
+    it('uses the configured muted link color', () => {
       const color = getGraphLinkColor(
-        createDependencies({
-          highlightedNodeId: 'src/other.ts',
-          theme: 'high-contrast',
-        }),
+        createDependencies({ highlightedNodeId: 'src/other.ts' }),
         createLink(),
       );
 
@@ -74,7 +66,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('keeps valid direction colors unchanged', () => {
       const color = getGraphDirectionalColor(
-        createDependencies({ directionColor: '#f97316' }),
+        createDependencies({ linkHighlight: '#f97316' }),
       );
 
       expect(color).toBe('#f97316');
@@ -84,7 +76,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('keeps resolved theme rgb direction colors', () => {
       const color = getGraphDirectionalColor(
-        createDependencies({ directionColor: 'rgb(172, 157, 87)' }),
+        createDependencies({ linkHighlight: 'rgb(172, 157, 87)' }),
       );
 
       expect(color).toBe('rgb(172, 157, 87)');
@@ -94,7 +86,7 @@ describe('graph/rendering/link/colors', () => {
 
     it('normalizes invalid direction colors back to the default direction color', () => {
       const color = getGraphDirectionalColor(
-        createDependencies({ directionColor: 'not-a-hex-color' }),
+        createDependencies({ linkHighlight: 'not-a-hex-color' }),
       );
 
       expect(color).toBe(DEFAULT_DIRECTION_COLOR);

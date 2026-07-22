@@ -1,11 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 
 const graphStateHarness = vi.hoisted(() => ({
-  as2DExtMethods: vi.fn(),
   buildGraphData: vi.fn(),
 }));
 
@@ -13,14 +12,7 @@ vi.mock('../../../../../src/webview/components/graph/model/build', () => ({
   buildGraphData: graphStateHarness.buildGraphData,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/support/contracts/forceGraph', () => ({
-  as2DExtMethods: graphStateHarness.as2DExtMethods,
-}));
-
 import {
-  applyTimelineAlpha,
-  createEmptyRuntimeGraphData,
-  incrementImageCacheVersion,
   useGraphRuntime,
   type GraphRuntimeOptions,
 } from '../../../../../src/webview/components/graph/runtime/use/state';
@@ -80,60 +72,21 @@ function createOptions(
   return {
     bidirectionalMode: 'combined',
     data: createData('alpha'),
-    directionColor: '#334155',
     directionMode: 'arrows',
     edgeDecorations: undefined,
     favorites: new Set<string>(['src/alpha.ts']),
     nodeDecorations: undefined,
-    nodeSizeMode: 'uniform',
+    nodeSizeMode: 'connections',
     showLabels: true,
     theme: 'dark',
-    timelineActive: false,
     ...overrides,
   };
 }
 
 describe('graph/runtime/useGraphRuntime', () => {
-  let frameCallbacks: FrameRequestCallback[];
-
   beforeEach(() => {
-    frameCallbacks = [];
-    graphStateHarness.as2DExtMethods.mockReset();
     graphStateHarness.buildGraphData.mockReset();
     graphStateHarness.buildGraphData.mockReturnValue(createBuiltGraph('alpha', 10));
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      frameCallbacks.push(callback);
-      return frameCallbacks.length;
-    }));
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('creates empty runtime graph data for the initial previous-node snapshot', () => {
-    expect(createEmptyRuntimeGraphData()).toEqual({
-      links: [],
-      nodes: [],
-    });
-  });
-
-  it('increments the image cache version by one per update', () => {
-    expect(incrementImageCacheVersion(0)).toBe(1);
-    expect(incrementImageCacheVersion(1)).toBe(2);
-  });
-
-  it('applies timeline alpha only when the graph exposes a d3Alpha function', () => {
-    const graph = { d3Alpha: vi.fn() };
-
-    expect(() => {
-      applyTimelineAlpha(undefined);
-      applyTimelineAlpha({});
-      applyTimelineAlpha(graph, 0.1);
-    }).not.toThrow();
-
-    expect(graph.d3Alpha).toHaveBeenCalledTimes(1);
-    expect(graph.d3Alpha).toHaveBeenCalledWith(0.1);
   });
 
   it('initializes refs and state from their expected defaults', () => {
@@ -144,10 +97,8 @@ describe('graph/runtime/useGraphRuntime', () => {
     }));
     expect(result.current.renderer.containerRef.current).toBeNull();
     expect(result.current.renderer.fg2dRef.current).toBeUndefined();
-    expect(result.current.renderer.fg3dRef.current).toBeUndefined();
     expect(result.current.graphCursorRef.current).toBe('default');
     expect(result.current.renderer.graphDataRef.current).toBe(result.current.renderer.graphData);
-    expect(result.current.renderCaches.imageCacheVersion).toBe(0);
     expect(result.current.highlightedNeighborsRef.current).toEqual(new Set());
     expect(result.current.selection.selectedNodeIds).toEqual([]);
     expect(result.current.selection.selectedNodeIdsRef.current).toEqual(new Set());
@@ -179,7 +130,6 @@ describe('graph/runtime/useGraphRuntime', () => {
       previousNodes: firstGraph.nodes,
     }));
     expect(result.current.renderer.graphData).toBe(secondGraph);
-    expect(result.current.favoritesRef.current).toBe(nextFavorites);
   });
 
   it('updates mutable refs across rerender without rebuilding graph data for non-memo inputs', () => {
@@ -198,28 +148,48 @@ describe('graph/runtime/useGraphRuntime', () => {
 
     rerender(createOptions({
       data: initialOptions.data,
-      directionColor: '#f59e0b',
       directionMode: 'particles',
       edgeDecorations: nextEdgeDecorations,
       favorites: initialOptions.favorites,
       nodeDecorations: nextNodeDecorations,
-      nodeSizeMode: 'file-size',
       showLabels: false,
       theme: 'light',
-      timelineActive: false,
     }));
 
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
     expect(result.current.renderer.graphData).toBe(firstGraphData);
     expect(result.current.themeRef.current).toBe('light');
     expect(result.current.directionModeRef.current).toBe('particles');
-    expect(result.current.directionColorRef.current).toBe('#f59e0b');
-    expect(result.current.favoritesRef.current).toBe(initialOptions.favorites);
-    expect(result.current.nodeSizeModeRef.current).toBe('file-size');
     expect(result.current.showLabelsRef.current).toBe(false);
     expect(result.current.nodeDecorationsRef.current).toBe(nextNodeDecorations);
     expect(result.current.edgeDecorationsRef.current).toBe(nextEdgeDecorations);
-    expect(result.current.timelineActiveRef.current).toBe(false);
+  });
+
+  it('rebuilds graph data when node sizing changes and preserves positions', () => {
+    const firstGraph = createBuiltGraph('alpha', 10);
+    const secondGraph = createBuiltGraph('alpha', 30);
+    const initialOptions = createOptions({ nodeSizeMode: 'connections' });
+    graphStateHarness.buildGraphData
+      .mockReturnValueOnce(firstGraph)
+      .mockReturnValueOnce(secondGraph);
+
+    const { result, rerender } = renderHook(
+      (options: GraphRuntimeOptions) => useGraphRuntime(options),
+      { initialProps: initialOptions },
+    );
+
+    rerender(createOptions({
+      data: initialOptions.data,
+      favorites: initialOptions.favorites,
+      nodeSizeMode: 'file-size',
+    }));
+
+    expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(2);
+    expect(graphStateHarness.buildGraphData).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      nodeSizeMode: 'file-size',
+      previousNodes: firstGraph.nodes,
+    }));
+    expect(result.current.renderer.graphData).toBe(secondGraph);
   });
 
   it('rebuilds graph data when the memo inputs change and passes forward previous nodes', () => {
@@ -278,76 +248,18 @@ describe('graph/runtime/useGraphRuntime', () => {
     expect(result.current.selection.selectedNodeIdsRef.current).toEqual(new Set());
   });
 
-  it('does not schedule a timeline alpha bump when the timeline is inactive', () => {
-    const graph = { d3Alpha: vi.fn() };
-    graphStateHarness.as2DExtMethods.mockReturnValue(graph);
-
-    renderHook(() => useGraphRuntime(createOptions({ timelineActive: false })));
-
-    expect(graphStateHarness.as2DExtMethods).not.toHaveBeenCalled();
-    expect(requestAnimationFrame).not.toHaveBeenCalled();
-    expect(graph.d3Alpha).not.toHaveBeenCalled();
-  });
-
-  it('does not schedule a timeline alpha bump when the 2D graph api is unavailable', () => {
-    graphStateHarness.as2DExtMethods.mockReturnValue(undefined);
-
-    renderHook(() => useGraphRuntime(createOptions({ timelineActive: true })));
-
-    expect(graphStateHarness.as2DExtMethods).toHaveBeenCalledTimes(1);
-    expect(requestAnimationFrame).not.toHaveBeenCalled();
-  });
-
-  it('keeps the data effect safe when the graph api has no d3Alpha function', () => {
-    graphStateHarness.as2DExtMethods.mockReturnValue({});
-
-    renderHook(() => useGraphRuntime(createOptions({ timelineActive: true })));
-
-    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
-    expect(() => {
-      act(() => {
-        frameCallbacks[0](16);
-      });
-    }).not.toThrow();
-  });
-
-  it('schedules a low alpha bump when the timeline is active and reruns it when graph data changes', () => {
-    const graph = { d3Alpha: vi.fn() };
-    const firstData = createData('alpha');
-    const secondData = createData('beta');
-    graphStateHarness.as2DExtMethods.mockReturnValue(graph);
-
-    const { rerender } = renderHook(
-      (options: GraphRuntimeOptions) => useGraphRuntime(options),
-      { initialProps: createOptions({ data: firstData, timelineActive: true }) },
-    );
-
-    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
-    act(() => {
-      frameCallbacks[0](16);
-    });
-    expect(graph.d3Alpha).toHaveBeenCalledWith(0.05);
-
-    rerender(createOptions({ data: secondData, timelineActive: true }));
-
-    expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(2);
-    expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
-    act(() => {
-      frameCallbacks[1](32);
-    });
-    expect(graph.d3Alpha).toHaveBeenCalledTimes(2);
-  });
-
   it('triggerImageRerender causes a rerender without rebuilding graph data', () => {
     const options = createOptions();
     const { result } = renderHook(() => useGraphRuntime(options));
+    const firstRuntime = result.current;
     const firstGraphData = result.current.renderer.graphData;
 
     act(() => {
       result.current.renderCaches.invalidateImages();
     });
 
-    expect(result.current.renderCaches.imageCacheVersion).toBe(1);
+    const secondRuntime = result.current;
+    expect(secondRuntime).not.toBe(firstRuntime);
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
     expect(result.current.renderer.graphData).toBe(firstGraphData);
 
@@ -355,7 +267,7 @@ describe('graph/runtime/useGraphRuntime', () => {
       result.current.renderCaches.invalidateImages();
     });
 
-    expect(result.current.renderCaches.imageCacheVersion).toBe(2);
+    expect(result.current).not.toBe(secondRuntime);
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
     expect(result.current.renderer.graphData).toBe(firstGraphData);
   });

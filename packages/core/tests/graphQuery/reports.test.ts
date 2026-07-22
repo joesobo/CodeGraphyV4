@@ -49,6 +49,7 @@ describe('core/graphQuery reports', () => {
         limit: 2,
         returned: 2,
         total: 3,
+        nextOffset: 2,
       },
     });
   });
@@ -95,6 +96,7 @@ describe('core/graphQuery reports', () => {
       limit: 500,
       returned: 1,
       total: 1,
+      nextOffset: null,
     });
   });
 
@@ -114,6 +116,20 @@ describe('core/graphQuery reports', () => {
         edgeTypes: ['type-import'],
       },
     ]);
+  });
+
+  it('applies direct connection arguments before grouping edge reports', () => {
+    const result = listGraphEdges(graphData, {
+      from: 'packages/app/src/a.ts',
+      to: 'packages/app/src/b.ts',
+      edgeType: 'type-import',
+    });
+
+    expect(result.edges).toEqual([{
+      from: 'packages/app/src/a.ts',
+      to: 'packages/app/src/b.ts',
+      edgeTypes: ['type-import'],
+    }]);
   });
 
   it('filters nodes by report fields before orphan handling', () => {

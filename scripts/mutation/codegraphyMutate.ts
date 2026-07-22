@@ -2,7 +2,6 @@ import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { hydrateMutationSeed } from './seedCache';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPO_ROOT = resolve(SCRIPT_DIR, '../..');
@@ -46,7 +45,6 @@ interface MutationProcessOptions {
 }
 
 interface CodeGraphyMutationDependencies {
-  hydrateMutationSeed: typeof hydrateMutationSeed;
   repoRoot: string;
   resolveQualityTarget: (repoRoot: string, input?: string) => QualityTarget;
   runQualityToolsMutate: (args: string[], options: MutationProcessOptions) => Promise<void>;
@@ -496,7 +494,6 @@ function runQualityToolsMutate(args: string[], options: MutationProcessOptions):
 }
 
 const DEFAULT_DEPENDENCIES: CodeGraphyMutationDependencies = {
-  hydrateMutationSeed,
   repoRoot: DEFAULT_REPO_ROOT,
   resolveQualityTarget: resolveCodeGraphyQualityTarget,
   runQualityToolsMutate,
@@ -507,12 +504,6 @@ export async function runCodeGraphyMutationCli(
   dependencies: CodeGraphyMutationDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<void> {
   const preparedRun = prepareCodeGraphyMutationRun(rawArgs, dependencies);
-  if (preparedRun.target?.packageName) {
-    dependencies.hydrateMutationSeed({
-      packageName: preparedRun.target.packageName,
-      repoRoot: dependencies.repoRoot,
-    });
-  }
 
   await dependencies.runQualityToolsMutate(
     applyForceFromEnvironment(preparedRun.forwardedArgs),

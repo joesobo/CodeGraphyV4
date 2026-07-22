@@ -25,7 +25,6 @@ function createEvent(
 function createMarqueeRuntime(options: {
   containerRect?: Partial<DOMRect>;
   graph?: { graph2ScreenCoords?: (x: number, y: number) => { x: number; y: number } } | null;
-  graphMode?: '2d' | '3d';
   hoveredNode?: FGNode | null;
   selectedNodeIds?: string[];
 } = {}) {
@@ -59,7 +58,6 @@ function createMarqueeRuntime(options: {
     containerRef: { current: container } as never,
     fg2dRef: { current: graph } as never,
     graphDataRef: { current: { links: [], nodes } } as never,
-    graphMode: options.graphMode ?? '2d',
     hoveredNodeRef: { current: options.hoveredNode ?? null },
     interactionHandlers: {
       setHighlight,
@@ -132,25 +130,20 @@ describe('graph/runtime/use/interaction marquee', () => {
 
 
 
-    it('does not start marquee selection on hovered nodes or outside 2d mode', () => {
+    it('does not start marquee selection on hovered nodes or non-left input', () => {
       const hovered = createMarqueeRuntime({ hoveredNode: { id: 'inside' } as FGNode });
-      const in3d = createMarqueeRuntime({ graphMode: '3d' });
       const rightButton = createMarqueeRuntime();
 
       act(() => {
         hovered.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
         hovered.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
-        in3d.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-        in3d.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
         rightButton.result.current.handleMouseDownCapture(createEvent(2, 10, 10) as never);
         rightButton.result.current.handleMouseMoveCapture(createEvent(2, 20, 20) as never);
       });
 
       expect(hovered.result.current.marqueeSelection).toBeNull();
-      expect(in3d.result.current.marqueeSelection).toBeNull();
       expect(rightButton.result.current.marqueeSelection).toBeNull();
       expect(hovered.setSelection).not.toHaveBeenCalled();
-      expect(in3d.setSelection).not.toHaveBeenCalled();
       expect(rightButton.setSelection).not.toHaveBeenCalled();
     });
 

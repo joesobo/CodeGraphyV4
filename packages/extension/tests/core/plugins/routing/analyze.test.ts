@@ -29,7 +29,7 @@ function makePlugin(id: string, extensions: string[], result: object): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: extensions,
     analyzeFile: vi.fn().mockResolvedValue(result),
   } as IPlugin;
@@ -43,7 +43,6 @@ describe('routing/analyze', () => {
     });
     const { pluginsMap, extensionMap } = buildMaps([active]);
     const context = {
-      mode: 'workspace',
       fileSystem: {
         exists: vi.fn(),
         isDirectory: vi.fn(),
@@ -141,7 +140,7 @@ describe('routing/analyze', () => {
       id: 'passive',
       name: 'passive',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.ts'],
     } as IPlugin;
     const { pluginsMap, extensionMap } = buildMaps([passive]);
@@ -187,7 +186,7 @@ describe('routing/analyze', () => {
       id: 'failing',
       name: 'failing',
       version: '1.0.0',
-      apiVersion: '^2.0.0',
+      apiVersion: '^3.0.0',
       supportedExtensions: ['.ts'],
       analyzeFile: vi.fn().mockRejectedValue(new Error('boom')),
     } as IPlugin;

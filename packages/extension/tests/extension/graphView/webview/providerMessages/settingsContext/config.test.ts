@@ -33,7 +33,9 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'particleSize',
       'particleSpeed',
       'plugins',
+      'showFps',
       'showLabels',
+      'showMinimap',
     ]);
   });
 
@@ -42,7 +44,6 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
     vi.mocked(getCodeGraphyConfiguration).mockReturnValue(config as never);
 
     const persistence = createSettingsConfigPersistence({
-      dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     });
 
@@ -56,20 +57,16 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
     expect(config.update).not.toHaveBeenCalled();
   });
 
-  it('persists dag and node-size mode keys silently even though they are not part of the shared key set', async () => {
+  it('persists the node-size mode key silently even though it is not part of the shared key set', async () => {
     const config = { update: vi.fn() };
     vi.mocked(getCodeGraphyConfiguration).mockReturnValue(config as never);
     const persistence = createSettingsConfigPersistence({
-      dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     });
 
-    await persistence.persistConfig('dagMode', true);
     await persistence.persistConfig('nodeSizeMode', 'connections');
 
-    expect(updateCodeGraphyConfigurationSilently).toHaveBeenNthCalledWith(1, 'dagMode', true);
-    expect(updateCodeGraphyConfigurationSilently).toHaveBeenNthCalledWith(
-      2,
+    expect(updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith(
       'nodeSizeMode',
       'connections',
     );
@@ -80,7 +77,6 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
     const config = { update: vi.fn().mockResolvedValue(undefined) };
     vi.mocked(getCodeGraphyConfiguration).mockReturnValue(config as never);
     const persistence = createSettingsConfigPersistence({
-      dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     });
 

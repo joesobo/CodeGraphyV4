@@ -47,8 +47,8 @@ describe('extension/graphView/analysis/execution/publish/equality/data', () => {
   it('treats matching graphs as equal while ignoring node metrics', () => {
     expect(
       areGraphDataEqualIgnoringNodeMetrics(
-        createGraph({ nodes: [createNode({ churn: 1, fileSize: 10 })] }),
-        createGraph({ nodes: [createNode({ churn: 9, fileSize: 90 })] }),
+        createGraph({ nodes: [createNode({ fileSize: 10 })] }),
+        createGraph({ nodes: [createNode({ fileSize: 90 })] }),
       ),
     ).toBe(true);
   });

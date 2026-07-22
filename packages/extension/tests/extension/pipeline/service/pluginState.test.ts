@@ -64,9 +64,9 @@ describe('extension/pipeline/service/pluginState', () => {
 
     await initializeWorkspacePipelinePlugins(registry, getWorkspaceRoot);
 
-    expect(initializeWorkspacePipeline).toHaveBeenCalledWith(registry, {
+    expect(initializeWorkspacePipeline).toHaveBeenCalledWith(registry, expect.objectContaining({
       getWorkspaceRoot,
-    });
+    }));
     expect(vi.mocked(initializeWorkspacePipeline).mock.calls[0][1].getWorkspaceRoot()).toBe('/workspace');
   });
 
@@ -130,9 +130,9 @@ describe('extension/pipeline/service/pluginState', () => {
     await sync;
     await nextQueue;
 
-    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledWith(registry, {
+    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledWith(registry, expect.objectContaining({
       getWorkspaceRoot,
-    });
+    }));
   });
 
   it('keeps the sync queue usable when a sync fails', async () => {

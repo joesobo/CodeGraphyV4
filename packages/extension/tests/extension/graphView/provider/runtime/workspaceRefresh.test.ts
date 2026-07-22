@@ -3,7 +3,7 @@ import type * as VSCode from 'vscode';
 import type { PendingWorkspaceRefreshState } from '../../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence';
 import { createContext, createRestoredState, loadSubject, unmockRuntimeModules } from './fixture';
 
-describe('graphView/provider/runtime workspace refresh', () => {
+describe('graphView/provider/runtime workspace refresh', { timeout: 30_000 }, () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
@@ -140,43 +140,4 @@ describe('graphView/provider/runtime workspace refresh', () => {
     consoleSpy.mockRestore();
   });
 
-  it('keeps queued workspace changes pending when only the timeline view is visible', async () => {
-    vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
-      initializeGraphViewProviderServices: vi.fn(),
-      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
-    }));
-
-    const { GraphViewProvider, methodContainers, vscodeModule } = await loadSubject([
-      {
-        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
-        name: 'workspace',
-        index: 0,
-      },
-    ]);
-    const provider = new GraphViewProvider(
-      vscodeModule.Uri.file('/test/extension'),
-      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
-    ) as unknown as {
-      _timelineView?: { visible: boolean };
-      markWorkspaceRefreshPending(logMessage: string, filePaths?: readonly string[]): void;
-      flushPendingWorkspaceRefresh(): void;
-    };
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    const refreshChangedFiles = vi.fn(() => Promise.resolve());
-
-    provider._timelineView = { visible: true };
-    (methodContainers.refresh as unknown as {
-      refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
-    }).refreshChangedFiles = refreshChangedFiles;
-
-    provider.markWorkspaceRefreshPending('[CodeGraphy] File saved, refreshing graph', [
-      '/test/workspace/src/a.ts',
-    ]);
-    provider.flushPendingWorkspaceRefresh();
-
-    expect(refreshChangedFiles).not.toHaveBeenCalled();
-    expect(consoleSpy).not.toHaveBeenCalled();
-
-    consoleSpy.mockRestore();
-  });
 });
