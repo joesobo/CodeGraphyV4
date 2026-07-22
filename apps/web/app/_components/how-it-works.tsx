@@ -86,13 +86,13 @@ function Stage({
 
 function CoreCard(): React.ReactElement {
   return (
-    <div className="rounded-3xl bg-[#082d3a] p-6 text-white shadow-xl">
+    <div className="rounded-3xl bg-[#0b1e35] p-6 text-white shadow-xl">
       <div className="flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
           <Database aria-hidden="true" className="size-5" />
         </span>
         <div className="min-w-0">
-          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#61d8ca]">
+          <p className="font-mono text-xs font-semibold uppercase tracking-widest text-[#a8c7ff]">
             Core engine
           </p>
           <h3 className="truncate font-mono text-base font-semibold">@codegraphy-dev/core</h3>

@@ -23,7 +23,7 @@ const pluginApiPackageHref = `${npmPackageRootHref}/@codegraphy-dev/plugin-api`;
 export function Build(): React.ReactElement {
   return (
     <section
-      className="overflow-hidden rounded-3xl bg-[#082d3a] px-6 py-12 text-white sm:px-10 sm:py-14 [&_.section-kicker]:text-[#79e0d4] [&_h2]:text-white [&_p]:text-white/78"
+      className="overflow-hidden rounded-3xl bg-[#0b1e35] px-6 py-12 text-white sm:px-10 sm:py-14 [&_.section-kicker]:text-[#a8c7ff] [&_h2]:text-white [&_p]:text-white/82"
       id="build"
     >
       <div className="grid gap-8 lg:grid-cols-[0.85fr_1fr] lg:items-center">
@@ -45,7 +45,7 @@ export function Build(): React.ReactElement {
         <ol className="border-y border-white/18">
           {buildSteps.map((step, index) => (
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-4 border-b border-white/18 py-5 last:border-b-0" key={step.title}>
-              <span className="font-mono text-xs font-semibold text-[#79e0d4]">
+              <span className="font-mono text-xs font-semibold text-[#a8c7ff]">
                 {String(index + 1).padStart(2, '0')}
               </span>
               <div className="min-w-0">

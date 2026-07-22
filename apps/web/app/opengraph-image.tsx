@@ -13,7 +13,7 @@ export default async function OpenGraphImage(): Promise<ImageResponse> {
     readFile(new URL('../public/codegraphy.svg', import.meta.url), 'utf8'),
     readFile(new URL('../public/fonts/FiraCode-Regular.ttf', import.meta.url)),
     readFile(new URL('../public/fonts/FiraCode-Bold.ttf', import.meta.url)),
-    readFile(new URL('../public/media/ocean-home-hero-v3.jpg', import.meta.url)),
+    readFile(new URL('../public/media/ocean-home-surface-v4.jpg', import.meta.url)),
   ]);
   const brandMarkSrc = `data:image/svg+xml;base64,${Buffer.from(brandMarkSvg).toString('base64')}`;
   const oceanSrc = `data:image/jpeg;base64,${oceanImage.toString('base64')}`;
@@ -29,7 +29,7 @@ export default async function OpenGraphImage(): Promise<ImageResponse> {
             <div style={{ display: 'flex', fontSize: 30, fontWeight: 700 }}>CodeGraphy</div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ color: '#61d8ca', display: 'flex', fontSize: 17, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>Relationship Graph</div>
+            <div style={{ color: '#a8c7ff', display: 'flex', fontSize: 17, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>Relationship Graph</div>
             <div style={{ display: 'flex', fontSize: 68, fontWeight: 700, letterSpacing: -0.5, lineHeight: 0.98 }}>Understand the code beneath the surface.</div>
             <div style={{ color: 'rgba(255,255,255,.78)', display: 'flex', fontSize: 22, lineHeight: 1.45 }}>Local-first Indexing for developers, the VS Code extension, the Core CLI, and shell-capable agents.</div>
           </div>

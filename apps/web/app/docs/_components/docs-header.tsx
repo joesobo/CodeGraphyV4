@@ -25,7 +25,7 @@ export function DocsHeader(): React.ReactElement {
           ))}
         </>
       }
-      aside={<><span className="font-mono text-[#61d8ca]">One source of truth.</span><br />The site points to the same docs the project maintains alongside its code.</>}
+      aside={<><span className="font-mono text-[#a8c7ff]">One source of truth.</span><br />The site points to the same docs the project maintains alongside its code.</>}
       description="Source-backed guides for the extension, Core CLI, interactions, settings, built-in Plugins, and the Plugin API. Every topic leads to maintained Markdown in the repository."
       eyebrow="Documentation"
       imageAlt=""

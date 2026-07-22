@@ -52,7 +52,7 @@ export function PageHero({
       <div className={cn('absolute inset-0', tone === 'minimal' ? 'page-hero-grade-minimal' : 'page-hero-grade')} />
       <div className="relative mx-auto grid w-full max-w-[90rem] gap-10 self-end lg:grid-cols-[minmax(0,1fr)_minmax(19rem,.38fr)] lg:items-end lg:gap-20">
         <div className="hero-copy">
-          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8ce5da]">{eyebrow}</p>
+          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#bad2ff]">{eyebrow}</p>
           <h1 className="mt-4 max-w-5xl text-balance text-[clamp(3.5rem,7.2vw,7.2rem)] font-medium leading-[0.88] tracking-[-0.05em]">{title}</h1>
           <p className="mt-5 max-w-[43rem] text-pretty text-base leading-7 text-white/94 sm:text-lg">{description}</p>
           {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}

@@ -4,27 +4,29 @@ import { Link } from '@/components/link';
 import { buttonVariants } from '@/components/ui/button';
 import { examplesHref, githubHref, vscodeExtensionHref } from '@/content/links';
 import { cn } from '@/lib/utils';
+import { HeroGraph } from './hero-graph';
 
 export function Header(): React.ReactElement {
   return (
     <section className="home-hero relative isolate overflow-hidden bg-[#061722] text-white">
       <Image
-        alt="A large school of fish forming an organic network in deep blue water"
-        className="hero-image object-cover object-[58%_center]"
+        alt="Sunlight filtering through the surface of deep blue water"
+        className="hero-image object-cover object-center"
         fill
         priority
         sizes="100vw"
-        src="/media/ocean-home-hero-v3.jpg"
+        src="/media/ocean-home-surface-v4.jpg"
       />
       <div className="home-hero-grade absolute inset-0" />
+      <HeroGraph />
 
-      <div className="relative mx-auto grid min-h-[44rem] w-full max-w-[90rem] items-end gap-10 px-5 pt-32 pb-10 sm:min-h-[46rem] sm:px-8 sm:pb-14 lg:min-h-svh lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,.62fr)] lg:gap-16 lg:px-12 lg:pb-16">
+      <div className="relative z-10 mx-auto grid min-h-[44rem] w-full max-w-[90rem] items-end gap-10 px-5 pt-32 pb-10 sm:min-h-[46rem] sm:px-8 sm:pb-14 lg:min-h-svh lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,.62fr)] lg:gap-16 lg:px-12 lg:pb-16">
         <div className="hero-copy max-w-5xl">
-          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#8ce5da]">
+          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#bad2ff]">
             Local-first relationship graph
           </p>
           <h1 className="mt-5 max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.88] tracking-[-0.055em]">
-            Understand the code <em className="font-normal text-[#9de9df]">beneath</em> the surface.
+            Understand the code <em className="font-normal text-[#ffb49f]">beneath</em> the surface.
           </h1>
         </div>
 
@@ -35,7 +37,7 @@ export function Header(): React.ReactElement {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              className={cn(buttonVariants({ size: 'lg' }), 'bg-[#61d8ca] text-[#05252a] hover:bg-[#91ebe1]')}
+              className={cn(buttonVariants({ size: 'lg' }), 'bg-[#ff9d82] text-[#17283b] hover:bg-[#ffb49f]')}
               href={vscodeExtensionHref}
               icon="vscode"
             >

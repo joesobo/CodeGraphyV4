@@ -19,7 +19,7 @@ export function PluginsHeader(): React.ReactElement {
           </Link>
         </>
       }
-      aside={<><span className="font-mono text-[#61d8ca]">Plugin API v3</span><br />Typed contracts, validated metadata, workspace-local enablement, and Core-owned lifecycle hooks.</>}
+      aside={<><span className="font-mono text-[#a8c7ff]">Plugin API v3</span><br />Typed contracts, validated metadata, workspace-local enablement, and Core-owned lifecycle hooks.</>}
       description="Headless npm packages that teach the Core Package new language, framework, engine, document, and visual semantics. The extension renders the Relationship Graph they help build."
       eyebrow="Extend the graph"
       imageAlt=""

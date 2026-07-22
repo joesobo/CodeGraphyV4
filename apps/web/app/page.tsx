@@ -2,7 +2,7 @@ import { Agents } from './_components/agents';
 import { GetStarted } from './_components/get-started';
 import { Header } from './_components/header';
 import { ProductDive } from './_components/product-dive';
-import { SupportedMarquee } from './_components/supported-marquee';
+import { SupportedLanguages } from './_components/supported-languages';
 
 export default function HomePage(): React.ReactElement {
   return (
@@ -10,7 +10,7 @@ export default function HomePage(): React.ReactElement {
       <Header />
       <ProductDive />
       <Agents />
-      <div className="py-20 sm:py-24"><SupportedMarquee /></div>
+      <div className="py-16 sm:py-20"><SupportedLanguages /></div>
       <GetStarted />
     </div>
   );

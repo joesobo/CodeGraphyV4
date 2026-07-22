@@ -1,11 +1,13 @@
 import type { Media } from '@/components/media-image';
 import { MediaImage } from '@/components/media-image';
+import { cn } from '@/lib/utils';
 
 interface DiveChapter {
   description: string;
   detail: string;
   index: string;
   media: Media;
+  mediaAspect?: 'wide';
   title: string;
 }
 
@@ -40,6 +42,7 @@ const chapters = [
     description:
       'Search, filter, and set Graph Scope without losing the surrounding system. Keep the context you need and quiet the rest.',
     detail: 'Search · filters · persistent scope',
+    mediaAspect: 'wide',
     media: {
       alt: 'CodeGraphy search and filter controls',
       src: '/media/features/search-filter-panel-light.png',
@@ -74,7 +77,7 @@ export function ProductDive(): React.ReactElement {
 
       <div className="depth-chapters">
         {chapters.map((chapter) => (
-          <article className="depth-scene" key={chapter.index}>
+          <article className="depth-scene" id={`depth-${chapter.index}`} key={chapter.index}>
             <div className="depth-copy">
               <p className="depth-index">{chapter.index} / 04</p>
               <h3>{chapter.title}</h3>
@@ -84,11 +87,11 @@ export function ProductDive(): React.ReactElement {
             <div className="depth-media-shell">
               <div className="depth-media-toolbar">
                 <span className="depth-signal" />
-                <span>CodeGraphy Workspace</span>
+                <span>VS Code · CodeGraphy Workspace</span>
                 <span>{chapter.index}</span>
               </div>
               <MediaImage
-                className="depth-media"
+                className={cn('depth-media', chapter.mediaAspect === 'wide' && 'depth-media-wide')}
                 height={1000}
                 imageClassName="h-full w-full object-contain object-center"
                 media={chapter.media}

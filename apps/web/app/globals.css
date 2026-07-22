@@ -43,26 +43,26 @@
 }
 
 :root {
-  --background: #f4f7f6;
-  --foreground: #102d33;
+  --background: #f6f5f1;
+  --foreground: #17283b;
   --card: #ffffff;
-  --card-foreground: #102d33;
+  --card-foreground: #17283b;
   --popover: #ffffff;
-  --popover-foreground: #102d33;
-  --primary: #006d70;
+  --popover-foreground: #17283b;
+  --primary: #2859b5;
   --primary-foreground: #ffffff;
-  --secondary: #e3edeb;
-  --secondary-foreground: #173b40;
-  --muted: #e9efed;
-  --muted-foreground: #50666a;
-  --accent: #d7ebe7;
-  --accent-foreground: #174b4c;
+  --secondary: #e7ebf2;
+  --secondary-foreground: #24384f;
+  --muted: #eceef2;
+  --muted-foreground: #526276;
+  --accent: #fbe6df;
+  --accent-foreground: #7b3428;
   --destructive: #a82a22;
-  --border: rgb(16 45 51 / 16%);
-  --input: rgb(16 45 51 / 24%);
-  --ring: #007d7f;
-  --example-graph-surface: #edf2f0;
-  --graph-surface: #e9efed;
+  --border: rgb(23 40 59 / 16%);
+  --input: rgb(23 40 59 / 24%);
+  --ring: #4778d4;
+  --example-graph-surface: #eef0f4;
+  --graph-surface: #eaedf2;
   --brand-mark: url("/codegraphy.svg");
   --font-family-sans: var(--font-dm-sans, "DM Sans"), ui-sans-serif, system-ui, sans-serif;
   --font-family-heading: var(--font-newsreader, "Newsreader"), Georgia, serif;
@@ -80,26 +80,26 @@
 }
 
 .dark {
-  --background: #07181d;
-  --foreground: #edf7f4;
-  --card: #0d242a;
-  --card-foreground: #edf7f4;
-  --popover: #0d242a;
-  --popover-foreground: #edf7f4;
-  --primary: #6ed9cd;
-  --primary-foreground: #05272a;
-  --secondary: #153239;
-  --secondary-foreground: #e2f2ef;
-  --muted: #102a31;
-  --muted-foreground: #a4bab7;
-  --accent: #183a3e;
-  --accent-foreground: #e1f5f0;
+  --background: #071421;
+  --foreground: #edf3fa;
+  --card: #0d1e30;
+  --card-foreground: #edf3fa;
+  --popover: #0d1e30;
+  --popover-foreground: #edf3fa;
+  --primary: #93baff;
+  --primary-foreground: #07182d;
+  --secondary: #14283d;
+  --secondary-foreground: #e4edf8;
+  --muted: #102238;
+  --muted-foreground: #a8b7ca;
+  --accent: #3a2732;
+  --accent-foreground: #ffd9cf;
   --destructive: #ff7d72;
-  --border: rgb(218 244 239 / 15%);
-  --input: rgb(218 244 239 / 24%);
-  --ring: #79e0d4;
-  --example-graph-surface: #0c2026;
-  --graph-surface: #0c2026;
+  --border: rgb(218 231 247 / 15%);
+  --input: rgb(218 231 247 / 24%);
+  --ring: #a8c7ff;
+  --example-graph-surface: #0b1b2c;
+  --graph-surface: #0b1b2c;
   --elevation-2xs: 0 0 0 1px rgb(255 255 255 / 7%);
   --elevation-xs: 0 0 0 1px rgb(255 255 255 / 8%);
   --elevation-sm: 0 0 0 1px rgb(255 255 255 / 8%), 0 8px 24px rgb(0 0 0 / 20%);
@@ -140,7 +140,7 @@ body {
 }
 
 body::selection {
-  background: rgb(0 109 112 / 24%);
+  background: rgb(71 120 212 / 28%);
 }
 
 button,
@@ -206,8 +206,8 @@ a {
 }
 
 .site-header:has(.navbar.is-scrolled) {
-  border-bottom-color: rgb(224 249 244 / 12%);
-  background: rgb(7 24 29 / 82%);
+  border-bottom-color: rgb(224 235 249 / 12%);
+  background: rgb(7 20 33 / 84%);
   box-shadow: 0 10px 36px rgb(0 10 16 / 12%);
   backdrop-filter: blur(18px) saturate(115%);
 }
@@ -261,11 +261,6 @@ a {
   }
 }
 
-@keyframes supported-marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
 @keyframes scene-reveal {
   from {
     opacity: 0;
@@ -291,7 +286,7 @@ a {
 }
 
 .home-hero-grade {
-  background: rgb(3 19 27 / 58%);
+  background: rgb(3 15 35 / 58%);
 }
 
 .page-hero-grade {
@@ -319,6 +314,10 @@ a {
   animation: hero-copy-rise 560ms 90ms var(--ease-out) both;
 }
 
+.hero-graph {
+  opacity: 0.82;
+}
+
 .hero-console code {
   min-width: 0;
   overflow-x: auto;
@@ -328,7 +327,7 @@ a {
 }
 
 .hero-console code span {
-  color: #78e0d4;
+  color: #ffad98;
 }
 
 .hero-console-actions {
@@ -367,13 +366,13 @@ a {
 
 .depth-sequence {
   position: relative;
-  padding: clamp(5rem, 8vw, 8rem) max(1.25rem, calc((100vw - 90rem) / 2 + 3rem));
+  padding: clamp(4rem, 6vw, 6rem) max(1.25rem, calc((100vw - 90rem) / 2 + 3rem));
   overflow: clip;
 }
 
 .depth-intro {
   max-width: 63rem;
-  margin-bottom: clamp(3.5rem, 7vw, 6rem);
+  margin-bottom: clamp(2.75rem, 5vw, 4.5rem);
 }
 
 .depth-intro h2 {
@@ -402,7 +401,7 @@ a {
   grid-template-columns: minmax(15rem, 0.4fr) minmax(0, 1fr);
   gap: clamp(2.5rem, 6vw, 7rem);
   align-items: center;
-  padding-block: clamp(4rem, 7vw, 6.5rem);
+  padding-block: clamp(2.75rem, 4.5vw, 4.5rem);
   border-top: 1px solid var(--border);
 }
 
@@ -491,6 +490,10 @@ a {
   background: var(--graph-surface);
 }
 
+.depth-media-wide {
+  aspect-ratio: 20 / 7;
+}
+
 .depth-media img,
 .catalog-card img {
   outline: 1px solid rgb(0 0 0 / 10%);
@@ -504,7 +507,11 @@ a {
 }
 
 .agents-scene {
-  background: #082129;
+  background: #e7ebf2;
+}
+
+.dark .agents-scene {
+  background: #0a192a;
 }
 
 .agent-terminal {
@@ -516,17 +523,10 @@ a {
   position: relative;
 }
 
-.footer-wordmark {
-  margin-top: 3.5rem;
-  overflow: hidden;
-  color: rgb(237 247 245 / 8%);
-  font-family: var(--font-family-heading);
-  font-size: clamp(3.2rem, 14vw, 13rem);
-  font-weight: 500;
-  line-height: 0.72;
-  letter-spacing: -0.07em;
-  text-align: center;
-  white-space: nowrap;
+.closing-cta-image,
+.footer-image,
+.hero-image {
+  filter: saturate(0.66) hue-rotate(12deg);
 }
 
 @supports (animation-timeline: view()) {
@@ -557,7 +557,7 @@ a {
   .depth-scene:nth-child(even) {
     grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
-    padding-block: 4rem;
+    padding-block: 3rem;
   }
 
   .depth-scene:nth-child(even) .depth-copy {
@@ -570,6 +570,10 @@ a {
 }
 
 @media (max-width: 640px) {
+  .hero-graph {
+    opacity: 0.68;
+  }
+
   .hero-console {
     align-items: stretch;
     flex-direction: column;
@@ -597,12 +601,18 @@ a {
     border-radius: 1.1rem;
   }
 
-  .footer-wordmark {
-    text-align: left;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
   html {
     scroll-behavior: auto;
   }
@@ -634,7 +644,7 @@ a {
 @media (prefers-reduced-transparency: reduce) {
   .site-header:has(.navbar.is-scrolled),
   .hero-console {
-    background: #07181d;
+    background: #071421;
     backdrop-filter: none;
   }
 }
