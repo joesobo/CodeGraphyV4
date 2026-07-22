@@ -14,7 +14,7 @@ A small hand-written file can override only the values you care about:
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "maxFiles": 2000,
   "showMinimap": true,
   "showOrphans": false,
@@ -24,7 +24,14 @@ A small hand-written file can override only the values you care about:
     { "id": "codegraphy.vue", "activation": "inherit" }
   ],
   "interfaces": [
-    { "id": "codegraphy.extension", "data": { "pinnedNodes": [] } }
+    {
+      "id": "codegraphy.extension",
+      "data": {
+        "favorites": [],
+        "directionMode": "arrows",
+        "pinnedNodes": []
+      }
+    }
   ],
   "cssSnippets": {
     ".codegraphy/snippets/team.css": true
@@ -38,7 +45,7 @@ The extension normalizes missing values against current defaults and preserves r
 
 | Key | Type | Default | Purpose |
 |---|---|---|---|
-| `version` | number | `2` | Persisted extension settings schema. |
+| `version` | number | `3` | Persisted extension settings schema. |
 | `maxFiles` | number | `1000` | Maximum files discovered during Indexing. |
 | `include` | string[] | `["**/*"]` | Workspace-relative discovery globs. |
 | `respectGitignore` | boolean | `true` | Exclude paths Git reports as ignored. |
@@ -46,30 +53,30 @@ The extension normalizes missing values against current defaults and preserves r
 | `disabledCustomFilterPatterns` | string[] | `[]` | Custom filter patterns retained in a disabled state. |
 | `disabledPluginFilterPatterns` | string[] | `[]` | Disabled source-owned plugin filter patterns. |
 | `showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
-| `showLabels` | boolean | `true` | Draw Node labels. |
+| `interfaces[].data.showLabels` | boolean | `true` | Draw Node labels. |
 | `showMinimap` | boolean | `true` | Show the interactive graph minimap. |
 | `showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |
 | `verboseDiagnostics` | boolean | `false` | Emit extension support diagnostics. |
 | `nodeVisibility` | object | generated | Graph Scope intent by Node Type ID. |
 | `edgeVisibility` | object | generated | Graph Scope intent by Edge Type ID. |
-| `nodeColors` | object | generated | Node Type colors. |
-| `legend` | object[] | `[]` | Custom Legend Entries. |
-| `legendVisibility` | object | `{}` | Enabled state for source-owned Legend entries and groups. |
-| `legendOrder` | string[] | `[]` | Custom Legend priority order. |
-| `favorites` | string[] | `[]` | Favorite Node paths. |
-| `bidirectionalEdges` | string | `"separate"` | Draw mutual Edges separately or combined. |
-| `directionMode` | string | `"arrows"` | Use arrows, particles, or no direction indicator. |
-| `directionColor` | string | `"#475569"` | Direction indicator color. |
-| `particleSpeed` | number | `0.005` | Direction-particle speed. |
-| `particleSize` | number | `4` | Direction-particle size in pixels. |
-| `depthMode` | boolean | `false` | Focus around the selected Node by Edge depth. |
-| `depthLimit` | number | `1` | Depth Mode hop limit, clamped from 1 to 10 and to reachable graph depth. |
-| `nodeSizeMode` | string | `"connections"` | Size Nodes by Connections or File Size. |
-| `physics` | object | see below | WebAssembly force settings. |
+| `interfaces[].data.nodeColors` | object | generated | Extension Node Type colors. |
+| `interfaces[].data.legend` | object[] | `[]` | Custom Legend Entries. |
+| `interfaces[].data.legendVisibility` | object | `{}` | Enabled state for source-owned Legend entries and groups. |
+| `interfaces[].data.legendOrder` | string[] | `[]` | Custom Legend priority order. |
+| `interfaces[].data.favorites` | string[] | `[]` | Extension favorite Node paths. |
+| `interfaces[].data.bidirectionalEdges` | string | `"separate"` | Draw mutual Edges separately or combined. |
+| `interfaces[].data.directionMode` | string | `"arrows"` | Use arrows, particles, or no direction indicator. |
+| `interfaces[].data.directionColor` | string | `"#475569"` | Direction indicator color. |
+| `interfaces[].data.particleSpeed` | number | `0.005` | Direction-particle speed. |
+| `interfaces[].data.particleSize` | number | `4` | Direction-particle size in pixels. |
+| `interfaces[].data.depthMode` | boolean | `false` | Focus around the selected Node by Edge depth. |
+| `interfaces[].data.depthLimit` | number | `1` | Depth Mode hop limit, clamped from 1 to 10 and to reachable graph depth. |
+| `interfaces[].data.nodeSizeMode` | string | `"connections"` | Size Nodes by Connections or File Size. |
+| `interfaces[].data.physics` | object | see below | WebAssembly force settings. |
 | `cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
 | `plugins` | object[] | Markdown enabled | Workspace Plugin ID activity and options. |
 | `pluginData` | object | `{}` | Plugin-owned persisted data keyed by Plugin ID. |
-| `interfaces` | object[] | `[]` | Open interface-owned `{ id, data }` entries. |
+| `interfaces` | object[] | Extension defaults | Open interface-owned `{ id, data }` entries. |
 
 Edge colors come from Edge Type definitions and Legend layers. There is no current `edgeColors` settings map.
 
@@ -77,13 +84,18 @@ Edge colors come from Edge Type definitions and Legend layers. There is no curre
 
 ```json
 {
-  "physics": {
-    "repelForce": 10,
-    "linkDistance": 80,
-    "linkForce": 1,
-    "damping": 0.4,
-    "centerForce": 0.1
-  }
+  "interfaces": [{
+    "id": "codegraphy.extension",
+    "data": {
+      "physics": {
+        "repelForce": 10,
+        "linkDistance": 80,
+        "linkForce": 1,
+        "damping": 0.4,
+        "centerForce": 0.1
+      }
+    }
+  }]
 }
 ```
 
@@ -159,10 +171,11 @@ Installing or registering a package does not run it. The `plugins` array stores 
 
 Plugins store their own state under `pluginData[pluginId]`. Plugin Data does not control plugin enablement.
 
-Interfaces store their own state in the open `interfaces` list. Core preserves
-the interface ID and data without defining its keys. Store durable user intent,
-such as pinned Node positions. Do not store temporary physics positions or
-derived colors unless the interface needs them after restart.
+Interfaces store their own state in the open `interfaces` list. The VS Code
+Extension stores its display, theme, favorite, depth, size, and physics choices
+in the `codegraphy.extension` entry. Core preserves the interface ID and data
+without defining its keys. Store durable user intent, such as pinned Node
+positions. Do not store temporary physics positions.
 
 See the [Plugin Guide](./PLUGINS.md) for installation, registration, and package metadata.
 

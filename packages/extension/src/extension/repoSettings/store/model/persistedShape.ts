@@ -2,10 +2,16 @@ import { normalizePersistedFilterPatterns } from './persistedShape/filterPattern
 import { normalizePersistedGraphControls } from './persistedShape/graphControls';
 import { normalizePersistedLegend } from './persistedShape/legendRules';
 import { normalizePersistedPluginData } from './persistedShape/pluginData';
-import { normalizePersistedInterfaces } from './persistedShape/interfaces';
+import {
+  mergeExtensionInterfaceDataIntoSettings,
+  normalizePersistedInterfaces,
+} from './persistedShape/interfaces';
 import { normalizePersistedPlugins } from './persistedShape/plugins';
 import { normalizePersistedCssSnippets } from './persistedShape/cssSnippets';
-import { pickTopLevelSettings } from './persistedShape/topLevel';
+import {
+  normalizePersistedPhysics,
+  pickTopLevelSettings,
+} from './persistedShape/topLevel';
 
 export function normalizePersistedSettingsShape(
   value: unknown,
@@ -14,9 +20,11 @@ export function normalizePersistedSettingsShape(
   normalizePersistedCssSnippets(normalized);
   normalizePersistedPlugins(normalized);
   normalizePersistedInterfaces(normalized);
+  mergeExtensionInterfaceDataIntoSettings(normalized);
   normalizePersistedPluginData(normalized);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
   normalizePersistedGraphControls(normalized);
+  normalizePersistedPhysics(normalized);
   return normalized;
 }

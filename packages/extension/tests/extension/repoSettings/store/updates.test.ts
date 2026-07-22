@@ -2,7 +2,12 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CodeGraphyRepoSettingsStore } from '../../../../src/extension/repoSettings/store';
-import { createSettingsWithOverrides, createTempWorkspace, readJson } from './fixture';
+import {
+  createSettingsWithOverrides,
+  createTempWorkspace,
+  readExtensionInterfaceData,
+  readJson,
+} from './fixture';
 
 describe('extension/repoSettings/store updates', () => {
   it('updates nested settings keys and persists the result', async () => {
@@ -12,8 +17,9 @@ describe('extension/repoSettings/store updates', () => {
     await store.update('physics.linkDistance', 450);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    const extensionData = readExtensionInterfaceData(persisted);
     expect(store.get('physics.linkDistance', 0)).toBe(450);
-    expect(persisted.physics).toEqual({
+    expect(extensionData.physics).toEqual({
       repelForce: 10,
       linkDistance: 450,
       linkForce: 1,
@@ -85,8 +91,9 @@ describe('extension/repoSettings/store updates', () => {
     await store.update('legend', nextLegend);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    const extensionData = readExtensionInterfaceData(persisted);
     expect(store.get('legend', [])).toEqual(nextLegend);
-    expect(persisted.legend).toEqual([{ pattern: 'tests/**', color: '#00ff00' }]);
+    expect(extensionData.legend).toEqual([{ pattern: 'tests/**', color: '#00ff00' }]);
   });
 
 

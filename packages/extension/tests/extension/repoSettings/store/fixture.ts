@@ -22,6 +22,13 @@ export function readJson<T>(filePath: string): T {
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
 }
 
+export function readExtensionInterfaceData(
+  settings: Record<string, unknown>,
+): Record<string, unknown> {
+  const interfaces = settings.interfaces as Array<{ id: string; data: Record<string, unknown> }>;
+  return interfaces.find(entry => entry.id === 'codegraphy.extension')?.data ?? {};
+}
+
 export function createSettingsWithOverrides(
   overrides: Partial<ReturnType<typeof createDefaultCodeGraphyRepoSettings>>,
 ): ReturnType<typeof createDefaultCodeGraphyRepoSettings> {

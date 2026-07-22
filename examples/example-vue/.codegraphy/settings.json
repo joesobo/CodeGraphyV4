@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 3,
   "maxFiles": 1000,
   "verboseDiagnostics": false,
   "include": [
@@ -10,33 +10,18 @@
   "plugins": [
     {
       "id": "codegraphy.markdown",
-      "enabled": true
+      "activation": "enabled"
     },
     {
       "id": "codegraphy.typescript",
-      "enabled": true
+      "activation": "enabled"
     },
     {
       "id": "codegraphy.vue",
-      "enabled": true
+      "activation": "enabled"
     }
   ],
   "pluginData": {},
-  "nodeColors": {
-    "file": "#A1A1AA",
-    "folder": "#A1A1AA",
-    "package": "#F59E0B",
-    "symbol": "#7C3AED",
-    "symbol:function": "#8B5CF6",
-    "symbol:class": "#3B82F6",
-    "symbol:interface": "#06B6D4",
-    "symbol:type": "#EC4899",
-    "symbol:struct": "#0EA5E9",
-    "symbol:enum": "#F59E0B",
-    "variable": "#14B8A6",
-    "symbol:constant": "#22C55E",
-    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
-  },
   "nodeVisibility": {
     "file": true,
     "folder": false,
@@ -64,32 +49,53 @@
     "overrides": false,
     "codegraphy.typescript:alias-import": false
   },
-  "favorites": [
-    "src/App.vue"
-  ],
-  "bidirectionalEdges": "separate",
-  "legend": [],
-  "legendVisibility": {},
-  "legendOrder": [],
   "filterPatterns": [
     "src/vue.d.ts"
   ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
-  "showLabels": true,
-  "directionMode": "arrows",
-  "directionColor": "#475569",
-  "particleSpeed": 0.005,
-  "particleSize": 4,
-  "depthMode": false,
-  "depthLimit": 1,
-  "nodeSizeMode": "connections",
-  "physics": {
-    "repelForce": 19,
-    "linkDistance": 100,
-    "linkForce": 0.57,
-    "damping": 0.7,
-    "centerForce": 0.26,
-    "chargeRange": 200
-  }
+  "interfaces": [
+    {
+      "id": "codegraphy.extension",
+      "data": {
+        "nodeColors": {
+          "file": "#A1A1AA",
+          "folder": "#A1A1AA",
+          "package": "#F59E0B",
+          "symbol": "#7C3AED",
+          "symbol:function": "#8B5CF6",
+          "symbol:class": "#3B82F6",
+          "symbol:interface": "#06B6D4",
+          "symbol:type": "#EC4899",
+          "symbol:struct": "#0EA5E9",
+          "symbol:enum": "#F59E0B",
+          "variable": "#14B8A6",
+          "symbol:constant": "#22C55E",
+          "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
+        },
+        "favorites": [
+          "src/App.vue"
+        ],
+        "bidirectionalEdges": "separate",
+        "legend": [],
+        "legendVisibility": {},
+        "legendOrder": [],
+        "showLabels": true,
+        "directionMode": "arrows",
+        "directionColor": "#475569",
+        "particleSpeed": 0.005,
+        "particleSize": 4,
+        "depthMode": false,
+        "depthLimit": 1,
+        "nodeSizeMode": "connections",
+        "physics": {
+          "repelForce": 19,
+          "linkDistance": 100,
+          "linkForce": 0.57,
+          "damping": 0.7,
+          "centerForce": 0.26
+        }
+      }
+    }
+  ]
 }

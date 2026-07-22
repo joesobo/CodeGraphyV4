@@ -10,6 +10,12 @@ type LegacySettingsShape = ReturnType<typeof createDefaultCodeGraphyRepoSettings
   legacyPlugins?: string[];
 };
 
+function getExtensionData(serialized: string): Record<string, unknown> {
+  const parsed = JSON.parse(serialized) as Record<string, unknown>;
+  const interfaces = parsed.interfaces as Array<{ id: string; data: Record<string, unknown> }>;
+  return interfaces.find(entry => entry.id === 'codegraphy.extension')?.data ?? {};
+}
+
 describe('extension/repoSettings/store/persistence/serialization', () => {
   it('drops fields that are not part of the repo settings schema', () => {
     const settings: LegacySettingsShape = createDefaultCodeGraphyRepoSettings();
@@ -55,17 +61,51 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     ]);
   });
 
+  it('stores Extension rendering intent in the open interface entry', () => {
+    const settings = createDefaultCodeGraphyRepoSettings();
+    settings.interfaces = [{
+      id: 'codegraphy.extension',
+      data: {
+        pinnedNodes: [{ nodeId: 'src/app.ts', x: 10, y: 20 }],
+      },
+    }];
+    settings.nodeColors = { file: '#123456' };
+    settings.favorites = ['src/app.ts'];
+    settings.directionMode = 'particles';
+    settings.depthLimit = 4;
+    settings.nodeSizeMode = 'file-size';
+    settings.physics = { ...settings.physics, damping: 0.2 };
+
+    const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
+    const interfaces = parsed.interfaces as Array<{ id: string; data: Record<string, unknown> }>;
+    const extensionData = interfaces.find(entry => entry.id === 'codegraphy.extension')?.data;
+
+    expect(extensionData).toMatchObject({
+      pinnedNodes: [{ nodeId: 'src/app.ts', x: 10, y: 20 }],
+      nodeColors: { file: '#123456' },
+      favorites: ['src/app.ts'],
+      directionMode: 'particles',
+      depthLimit: 4,
+      nodeSizeMode: 'file-size',
+      physics: { damping: 0.2 },
+    });
+    expect(parsed).not.toHaveProperty('nodeColors');
+    expect(parsed).not.toHaveProperty('favorites');
+    expect(parsed).not.toHaveProperty('directionMode');
+    expect(parsed).not.toHaveProperty('depthLimit');
+    expect(parsed).not.toHaveProperty('nodeSizeMode');
+    expect(parsed).not.toHaveProperty('physics');
+  });
+
   it('keeps malformed values for known settings so validation remains explicit', () => {
     const settings = createDefaultCodeGraphyRepoSettings() as Omit<LegacySettingsShape, 'nodeColors'> & {
       nodeColors: unknown;
     };
     settings.nodeColors = 'invalid';
 
-    const parsed = JSON.parse(
-      serializeSettings(settings as ReturnType<typeof createDefaultCodeGraphyRepoSettings>),
-    ) as Record<string, unknown>;
-
-    expect(parsed.nodeColors).toBe('invalid');
+    expect(getExtensionData(serializeSettings(
+      settings as ReturnType<typeof createDefaultCodeGraphyRepoSettings>,
+    )).nodeColors).toBe('invalid');
   });
 
   it('omits stale symbol theme keys from serialized settings', () => {
@@ -88,12 +128,14 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     };
 
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, Record<string, unknown>>;
+    const extensionData = getExtensionData(serializeSettings(settings));
+    const nodeColors = extensionData.nodeColors as Record<string, string>;
 
-    expect(parsed.nodeColors.symbol).toBe('#8B5CF6');
-    expect(parsed.nodeColors['symbol:function']).toBe('#8B5CF6');
-    expect(parsed.nodeColors['symbol:method']).toBe('#A855F7');
-    expect(parsed.nodeColors['symbol:namespace']).toBe('#64748B');
-    expect(parsed.nodeColors['symbol:variable']).toBeUndefined();
+    expect(nodeColors.symbol).toBe('#8B5CF6');
+    expect(nodeColors['symbol:function']).toBe('#8B5CF6');
+    expect(nodeColors['symbol:method']).toBe('#A855F7');
+    expect(nodeColors['symbol:namespace']).toBe('#64748B');
+    expect(nodeColors['symbol:variable']).toBeUndefined();
     expect(parsed.nodeColorEnabled).toBeUndefined();
     expect(parsed.nodeVisibility.symbol).toBe(true);
     expect(parsed.nodeVisibility['symbol:function']).toBe(true);
@@ -116,9 +158,9 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
       },
     ];
 
-    const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
+    const extensionData = getExtensionData(serializeSettings(settings));
 
-    expect(parsed.legend).toEqual([
+    expect(extensionData.legend).toEqual([
       { pattern: 'src/**', color: '#123456', target: 'node' },
     ]);
   });

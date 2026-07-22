@@ -9,6 +9,7 @@ import { normalizePersistedSettingsShape } from '../model/persistedShape';
 import { deepClone, deepMerge } from '../model/plainObject';
 import { serializeSettings } from './serialization';
 import { setNestedValue } from '../model/nestedValues';
+import { moveExtensionSettingsIntoInterface } from '../model/persistedShape/interfaces';
 
 interface SettingsState {
   serializedSettings: string;
@@ -23,7 +24,8 @@ export function createUpdatedSettings(
 ): ICodeGraphyRepoSettings {
   const nextSettings = deepClone(settings) as unknown as Record<string, unknown>;
   setNestedValue(nextSettings, key, value);
-  return deepMerge(defaults, normalizePersistedSettingsShape(nextSettings));
+  const synchronized = moveExtensionSettingsIntoInterface(nextSettings);
+  return deepMerge(defaults, normalizePersistedSettingsShape(synchronized));
 }
 
 function createSettingsState(settings: ICodeGraphyRepoSettings): SettingsState {

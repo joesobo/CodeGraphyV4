@@ -7,34 +7,20 @@ import {
   createDefaultNodeColors,
   createDefaultNodeVisibility,
 } from '../../../src/shared/graphControls/defaults/maps';
-import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repoSettings/defaults';
+import {
+  createDefaultCodeGraphyRepoSettings,
+  type ICodeGraphyExtensionInterfaceSettings,
+} from '../../../src/extension/repoSettings/defaults';
 
 describe('extension/repoSettings/defaults', () => {
   it('builds the full repo settings defaults', () => {
-    expect(createDefaultCodeGraphyRepoSettings()).toEqual({
-      version: 2,
-      maxFiles: DEFAULT_MAX_FILES,
-      showFps: false,
-      showMinimap: true,
-      verboseDiagnostics: false,
-      include: ['**/*'],
-      respectGitignore: true,
-      showOrphans: true,
-      cssSnippets: {},
-      plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' }],
-      interfaces: [],
-      pluginData: {},
+    const extensionData = {
       nodeColors: createDefaultNodeColors(),
-      nodeVisibility: createDefaultNodeVisibility(),
-      edgeVisibility: createDefaultEdgeVisibility(),
       favorites: [],
       bidirectionalEdges: 'separate',
       legend: [],
       legendVisibility: {},
       legendOrder: [],
-      filterPatterns: [],
-      disabledCustomFilterPatterns: [],
-      disabledPluginFilterPatterns: [],
       showLabels: true,
       directionMode: 'arrows',
       directionColor: DEFAULT_DIRECTION_COLOR,
@@ -50,6 +36,27 @@ describe('extension/repoSettings/defaults', () => {
         damping: 0.4,
         centerForce: 0.1,
       },
+    } satisfies ICodeGraphyExtensionInterfaceSettings;
+
+    expect(createDefaultCodeGraphyRepoSettings()).toEqual({
+      version: 3,
+      maxFiles: DEFAULT_MAX_FILES,
+      showFps: false,
+      showMinimap: true,
+      verboseDiagnostics: false,
+      include: ['**/*'],
+      respectGitignore: true,
+      showOrphans: true,
+      cssSnippets: {},
+      plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' }],
+      interfaces: [{ id: 'codegraphy.extension', data: extensionData }],
+      pluginData: {},
+      nodeVisibility: createDefaultNodeVisibility(),
+      edgeVisibility: createDefaultEdgeVisibility(),
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
+      ...extensionData,
     });
   });
 
@@ -62,6 +69,9 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.include).not.toBe(first.include);
     expect(second.plugins).not.toBe(first.plugins);
     expect(second.plugins[0]).not.toBe(first.plugins[0]);
+    expect(second.interfaces).not.toBe(first.interfaces);
+    expect(second.interfaces[0]).not.toBe(first.interfaces[0]);
+    expect(second.interfaces[0]?.data).not.toBe(first.interfaces[0]?.data);
     expect(second.pluginData).not.toBe(first.pluginData);
     expect(second.cssSnippets).not.toBe(first.cssSnippets);
     expect(second.nodeColors).not.toBe(first.nodeColors);

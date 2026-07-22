@@ -3,7 +3,12 @@ import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { createDefaultCodeGraphyRepoSettings } from '../../../../src/extension/repoSettings/defaults';
 import { CodeGraphyRepoSettingsStore } from '../../../../src/extension/repoSettings/store';
-import { createSettingsWithOverrides, createTempWorkspace, readJson } from './fixture';
+import { serializeSettings } from '../../../../src/extension/repoSettings/store/persistence/serialization';
+import {
+  createTempWorkspace,
+  readExtensionInterfaceData,
+  readJson,
+} from './fixture';
 
 describe('extension/repoSettings/store initialization and normalization', () => {
   it('creates .codegraphy/settings.json from defaults instead of seeding legacy configuration', () => {
@@ -19,7 +24,7 @@ describe('extension/repoSettings/store initialization and normalization', () => 
     expect(store.settingsPath).toBe(settingsPath);
     expect(store.get('showOrphans', true)).toBe(true);
     expect(persisted.showOrphans).toBe(true);
-    expect(persisted.legend).toEqual([]);
+    expect(readExtensionInterfaceData(persisted).legend).toEqual([]);
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
@@ -42,7 +47,7 @@ describe('extension/repoSettings/store initialization and normalization', () => 
     fs.writeFileSync(
       settingsPath,
       JSON.stringify({
-        ...createSettingsWithOverrides({}),
+        version: 2,
         legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#112233' }],
         nodeColors: { file: '#999999', folder: '#445566' },
       }, null, 2),
@@ -68,7 +73,7 @@ describe('extension/repoSettings/store initialization and normalization', () => 
     fs.writeFileSync(
       settingsPath,
       JSON.stringify({
-        ...createSettingsWithOverrides({}),
+        version: 2,
         filterPatterns: ['**/*.png'],
         exclude: ['**/*.tmp', '**/*.png'],
         edgeColors: { import: '#123456' },
@@ -92,7 +97,7 @@ describe('extension/repoSettings/store initialization and normalization', () => 
     fs.writeFileSync(
       settingsPath,
       JSON.stringify({
-        ...createSettingsWithOverrides({}),
+        version: 2,
         legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#112233' }],
         nodeColors: { folder: '#445566', file: '#999999' },
         filterPatterns: ['**/*.png'],
@@ -104,15 +109,16 @@ describe('extension/repoSettings/store initialization and normalization', () => 
 
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    const extensionData = readExtensionInterfaceData(persisted);
 
     expect(store.get('legend', [])).toEqual([
       { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
     ]);
     expect(store.get('folderNodeColor', '')).toBe('');
-    expect(persisted.legend).toEqual([
+    expect(extensionData.legend).toEqual([
       { pattern: 'src/**', color: '#112233' },
     ]);
-    expect(persisted.nodeColors).toEqual(expect.objectContaining({
+    expect(extensionData.nodeColors).toEqual(expect.objectContaining({
       folder: '#445566',
       file: '#999999',
     }));
@@ -132,9 +138,9 @@ describe('extension/repoSettings/store initialization and normalization', () => 
 
     expect(store.get('legend', [])).toEqual([]);
     expect(store.get('filterPatterns', [])).toEqual([]);
-    expect(readJson<Record<string, unknown>>(store.settingsPath)).toEqual(
-      createDefaultCodeGraphyRepoSettings(),
-    );
+    expect(readJson<Record<string, unknown>>(store.settingsPath)).toEqual(JSON.parse(
+      serializeSettings(createDefaultCodeGraphyRepoSettings()),
+    ));
   });
 
 });

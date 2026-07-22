@@ -17,30 +17,15 @@ import {
   createDefaultNodeVisibility,
 } from '../../shared/graphControls/defaults/maps';
 
-export interface ICodeGraphyRepoSettings {
-  version: 2;
-  maxFiles: number;
-  showFps: boolean;
-  showMinimap: boolean;
-  verboseDiagnostics: boolean;
-  include: string[];
-  respectGitignore: boolean;
-  showOrphans: boolean;
-  cssSnippets: Record<string, boolean>;
-  plugins: CodeGraphyWorkspacePluginSettings[];
-  interfaces: CodeGraphyWorkspaceInterfaceSettings[];
-  pluginData: Record<string, unknown>;
+export const CODEGRAPHY_EXTENSION_INTERFACE_ID = 'codegraphy.extension';
+
+export interface ICodeGraphyExtensionInterfaceSettings {
   nodeColors: Record<string, string>;
-  nodeVisibility: Record<string, boolean>;
-  edgeVisibility: Record<string, boolean>;
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
   legendVisibility: Record<string, boolean>;
   legendOrder: string[];
-  filterPatterns: string[];
-  disabledCustomFilterPatterns: string[];
-  disabledPluginFilterPatterns: string[];
   showLabels: boolean;
   directionMode: 'arrows' | 'particles' | 'none';
   directionColor: string;
@@ -52,9 +37,69 @@ export interface ICodeGraphyRepoSettings {
   physics: IPhysicsSettings;
 }
 
-export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
+export const CODEGRAPHY_EXTENSION_INTERFACE_SETTING_KEYS = [
+  'nodeColors',
+  'favorites',
+  'bidirectionalEdges',
+  'legend',
+  'legendVisibility',
+  'legendOrder',
+  'showLabels',
+  'directionMode',
+  'directionColor',
+  'particleSpeed',
+  'particleSize',
+  'depthMode',
+  'depthLimit',
+  'nodeSizeMode',
+  'physics',
+] satisfies readonly (keyof ICodeGraphyExtensionInterfaceSettings)[];
+
+export interface ICodeGraphyRepoSettings extends ICodeGraphyExtensionInterfaceSettings {
+  version: 3;
+  maxFiles: number;
+  showFps: boolean;
+  showMinimap: boolean;
+  verboseDiagnostics: boolean;
+  include: string[];
+  respectGitignore: boolean;
+  showOrphans: boolean;
+  cssSnippets: Record<string, boolean>;
+  plugins: CodeGraphyWorkspacePluginSettings[];
+  interfaces: CodeGraphyWorkspaceInterfaceSettings[];
+  pluginData: Record<string, unknown>;
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
+}
+
+function createDefaultExtensionInterfaceSettings(): ICodeGraphyExtensionInterfaceSettings {
   return {
-    version: 2,
+    nodeColors: createDefaultNodeColors(),
+    favorites: [],
+    bidirectionalEdges: 'separate',
+    legend: [],
+    legendVisibility: {},
+    legendOrder: [],
+    showLabels: true,
+    directionMode: 'arrows',
+    directionColor: DEFAULT_DIRECTION_COLOR,
+    particleSpeed: 0.005,
+    particleSize: 4,
+    depthMode: false,
+    depthLimit: 1,
+    nodeSizeMode: 'connections',
+    physics: { ...DEFAULT_PHYSICS_SETTINGS },
+  };
+}
+
+export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
+  const extensionSettings = createDefaultExtensionInterfaceSettings();
+
+  return {
+    version: 3,
     maxFiles: DEFAULT_MAX_FILES,
     showFps: false,
     showMinimap: DEFAULT_SHOW_MINIMAP,
@@ -67,27 +112,16 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
       activation: 'enabled',
     }],
-    interfaces: [],
+    interfaces: [{
+      id: CODEGRAPHY_EXTENSION_INTERFACE_ID,
+      data: createDefaultExtensionInterfaceSettings(),
+    }],
     pluginData: {},
-    nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),
-    favorites: [],
-    bidirectionalEdges: 'separate',
-    legend: [],
-    legendVisibility: {},
-    legendOrder: [],
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
-    showLabels: true,
-    directionMode: 'arrows',
-    directionColor: DEFAULT_DIRECTION_COLOR,
-    particleSpeed: 0.005,
-    particleSize: 4,
-    depthMode: false,
-    depthLimit: 1,
-    nodeSizeMode: 'connections',
-    physics: { ...DEFAULT_PHYSICS_SETTINGS },
+    ...extensionSettings,
   };
 }
