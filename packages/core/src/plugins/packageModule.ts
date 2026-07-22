@@ -2,7 +2,6 @@ import type { IPlugin, IPluginFactoryOptions } from '@codegraphy-dev/plugin-api'
 
 export interface PackagePluginFactoryInvocation {
   options?: IPluginFactoryOptions;
-  bindPluginId?(pluginId: string): void;
 }
 
 type UnknownPluginFactory = (options?: IPluginFactoryOptions) => unknown;
@@ -41,8 +40,6 @@ export async function createPluginFromModule(
   if (!isPlugin(plugin)) {
     throw new Error(`CodeGraphy plugin package '${packageName}' did not export a plugin factory or plugin object.`);
   }
-
-  invocation.bindPluginId?.(plugin.id);
 
   return plugin;
 }

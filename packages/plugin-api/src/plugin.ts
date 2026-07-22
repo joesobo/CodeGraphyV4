@@ -73,7 +73,7 @@ export interface IPluginAnalysisContext {
 }
 
 export interface IPluginFactoryOptions {
-  /** Workspace-scoped persistence owned by the plugin id returned from the factory. */
+  /** Workspace-scoped persistence owned by the plugin descriptor ID. */
   dataHost?: IPluginDataHost;
   /** Merged package default options and CodeGraphy Workspace plugin options. */
   options?: Record<string, unknown>;

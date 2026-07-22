@@ -67,7 +67,7 @@ Plugin installation, global registration, and workspace enablement are separate:
 - `plugins link <package-root>` records a local package checkout in the user-level Plugin Registry, which is the preferred private-plugin development path.
 - Enabling or disabling a plugin changes workspace settings only; disabling persists `enabled: false` Plugin ID intent and keeps the runtime unloaded until the user enables that Plugin ID again.
 - Indexing imports each active Core plugin through its descriptor `entry`. It merges descriptor `data.defaultOptions` with workspace-local `options`. Workspace values win. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
-- Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a plugin-owned persistence host bound to the plugin id returned by the factory.
+- Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a persistence host bound to the plugin descriptor ID before the factory runs.
 
 Plugin npm packages identify themselves with package metadata:
 

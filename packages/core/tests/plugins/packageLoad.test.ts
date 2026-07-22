@@ -1,15 +1,64 @@
 import { describe, expect, it } from 'vitest';
 import {
+  readCodeGraphyWorkspaceSettings,
   type CodeGraphyInstalledPluginRecord,
+  writeCodeGraphyWorkspaceSettings,
 } from '../../src';
 import { loadCodeGraphyWorkspacePluginPackage } from '../../src/plugins/packageLoad';
 import {
   createPackageFixtureRoot,
+  createWorkspace,
   fs,
   path,
 } from './packageRuntimeFixture';
 
 describe('CodeGraphy package loading', () => {
+  it('makes descriptor-owned saved data available during factory execution', async () => {
+    const workspaceRoot = await createWorkspace();
+    const packageRoot = await createPackageFixtureRoot('codegraphy-package-factory-data-');
+    const record = {
+      package: '@acme/codegraphy-plugin-factory-data',
+      version: '1.0.0',
+      id: 'acme.factory-data',
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
+      packageRoot,
+      globallyEnabled: true,
+    } satisfies CodeGraphyInstalledPluginRecord;
+    await fs.writeFile(
+      path.join(packageRoot, 'package.json'),
+      JSON.stringify({ name: record.package, version: record.version, type: 'module' }),
+      'utf8',
+    );
+    await fs.writeFile(path.join(packageRoot, 'plugin.js'), `
+export default function createPlugin(factoryOptions) {
+  const saved = factoryOptions.dataHost.loadData({ mode: 'fallback' });
+  return {
+    id: 'acme.factory-data',
+    name: 'Factory Data Plugin',
+    version: saved.mode,
+    apiVersion: '^4.0.0',
+    supportedExtensions: []
+  };
+}
+`, 'utf8');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      pluginData: {
+        'acme.factory-data': { mode: 'saved' },
+      },
+    });
+
+    const loaded = await loadCodeGraphyWorkspacePluginPackage(
+      { id: record.id, activation: 'enabled' },
+      record,
+      workspaceRoot,
+    );
+
+    expect(loaded.plugin.version).toBe('saved');
+  });
+
   it.each([
     {
       runtimeId: 'acme.other',
