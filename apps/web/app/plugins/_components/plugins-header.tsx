@@ -1,0 +1,23 @@
+import { Link } from '@/components/link';
+import { PageHero } from '@/components/page-hero';
+import { buttonVariants } from '@/components/ui/button';
+import { docsHref, githubHref } from '@/content/links';
+
+export function PluginsHeader(): React.ReactElement {
+  return (
+    <PageHero
+        eyebrow="Extend the graph"
+        title="Plugins"
+        description="Headless npm packages that teach the Core Package new language, framework, engine, document, and visual semantics. The extension renders the Relationship Graph they help build."
+        aside={<><span className="font-mono text-[#61d8ca]">Plugin API v3</span><br />Typed contracts, validated metadata, workspace-local enablement, and Core-owned lifecycle hooks.</>}
+        actions={<>
+        <Link className={buttonVariants()} href={githubHref} icon="github">
+          Source
+        </Link>
+        <Link className={`${buttonVariants({ variant: 'outline' })} border-white/20 bg-white/5 text-white hover:bg-white/10`} href={`${docsHref}#plugin-api`}>
+          Plugin API
+        </Link>
+        </>}
+      />
+  );
+}
