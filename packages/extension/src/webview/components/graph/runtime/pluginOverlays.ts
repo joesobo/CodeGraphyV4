@@ -4,7 +4,7 @@ import type { WebviewPluginHost } from '../../../pluginHost/manager';
 export const PLUGIN_OVERLAY_RENDERER_ERROR = '[CodeGraphy] Plugin overlay renderer error:';
 
 export interface PluginOverlayRenderContext {
-	ctx: CanvasRenderingContext2D;
+	canvasContext: CanvasRenderingContext2D;
 	globalScale: number;
 	height: number;
 	width: number;
@@ -31,7 +31,7 @@ export function renderPluginOverlayRegistrations(options: {
 		overlays,
 	} = options;
 	const renderContext: PluginOverlayRenderContext = {
-		ctx,
+		canvasContext: ctx,
 		width: ctx.canvas.width,
 		height: ctx.canvas.height,
 		globalScale,

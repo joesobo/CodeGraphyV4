@@ -1,10 +1,13 @@
 import { describe, expectTypeOf, it } from 'vitest';
 import type {
+  BadgeOptions,
   CodeGraphyWebviewAPI,
   GraphViewViewportState,
   IGraphViewContributions,
+  LabelOptions,
   NodeRenderFn,
   OverlayRenderFn,
+  RingOptions,
   TooltipProviderFn,
 } from '../src/index';
 
@@ -25,5 +28,12 @@ describe('CodeGraphyWebviewAPI', () => {
     expectTypeOf<CodeGraphyWebviewAPI['helpers']>().toHaveProperty('drawBadge');
     expectTypeOf<CodeGraphyWebviewAPI['helpers']>().toHaveProperty('drawProgressRing');
     expectTypeOf<CodeGraphyWebviewAPI['helpers']>().toHaveProperty('drawLabel');
+    expectTypeOf<CodeGraphyWebviewAPI['helpers']['drawBadge']>()
+      .parameter(1).toEqualTypeOf<BadgeOptions>();
+    expectTypeOf<CodeGraphyWebviewAPI['helpers']['drawProgressRing']>()
+      .parameter(1).toEqualTypeOf<RingOptions>();
+    expectTypeOf<CodeGraphyWebviewAPI['helpers']['drawLabel']>()
+      .parameter(1).toEqualTypeOf<LabelOptions>();
+    expectTypeOf<Parameters<NodeRenderFn>[0]>().toHaveProperty('canvasContext');
   });
 });

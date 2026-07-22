@@ -14,7 +14,7 @@ import type {
   WebviewDisposable,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
-import type { BadgeOpts, RingOpts, LabelOpts } from './api/contracts/webview';
+import type { BadgeOptions, RingOptions, LabelOptions } from './api/contracts/webview';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
@@ -22,9 +22,9 @@ type GraphInteractionMessage = {
 };
 
 type DrawingHelpers = {
-  drawBadge: (ctx: CanvasRenderingContext2D, opts: BadgeOpts) => void;
-  drawProgressRing: (ctx: CanvasRenderingContext2D, opts: RingOpts) => void;
-  drawLabel: (ctx: CanvasRenderingContext2D, opts: LabelOpts) => void;
+  drawBadge: (canvasContext: CanvasRenderingContext2D, options: BadgeOptions) => void;
+  drawProgressRing: (canvasContext: CanvasRenderingContext2D, options: RingOptions) => void;
+  drawLabel: (canvasContext: CanvasRenderingContext2D, options: LabelOptions) => void;
 };
 
 /**
@@ -73,9 +73,9 @@ export function createPluginWebviewApi(
     registerGraphViewContributions: (contributions: IGraphViewContributions) =>
       registerGraphViewContributions(pluginId, contributions),
     helpers: {
-      drawBadge: (ctx: CanvasRenderingContext2D, opts: BadgeOpts) => drawingHelpers.drawBadge(ctx, opts),
-      drawProgressRing: (ctx: CanvasRenderingContext2D, opts: RingOpts) => drawingHelpers.drawProgressRing(ctx, opts),
-      drawLabel: (ctx: CanvasRenderingContext2D, opts: LabelOpts) => drawingHelpers.drawLabel(ctx, opts),
+      drawBadge: (canvasContext, options) => drawingHelpers.drawBadge(canvasContext, options),
+      drawProgressRing: (canvasContext, options) => drawingHelpers.drawProgressRing(canvasContext, options),
+      drawLabel: (canvasContext, options) => drawingHelpers.drawLabel(canvasContext, options),
     },
     sendMessage: (msg: { type: string; data: unknown }) => {
       postMessage({

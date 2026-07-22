@@ -5,7 +5,7 @@
  */
 
 import { resolveCssColor } from '../../cssColors/resolver';
-import type { BadgeOpts, RingOpts, LabelOpts } from './contracts/webview';
+import type { BadgeOptions, RingOptions, LabelOptions } from './contracts/webview';
 
 function graphColorContext(ctx: CanvasRenderingContext2D): Element | null {
   return ctx.canvas?.parentElement ?? null;
@@ -14,7 +14,7 @@ function graphColorContext(ctx: CanvasRenderingContext2D): Element | null {
 /**
  * Draws a pill-shaped badge with centered text.
  */
-export function drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void {
+export function drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOptions): void {
   const fontSize = opts.fontSize ?? 8;
   ctx.font = `bold ${fontSize}px sans-serif`;
   const metrics = ctx.measureText(opts.text);
@@ -36,7 +36,7 @@ export function drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void 
 /**
  * Draws an arc representing progress (0–1).
  */
-export function drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void {
+export function drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOptions): void {
   const width = opts.width ?? 2;
   const progress = opts.progress ?? 1;
 
@@ -50,7 +50,7 @@ export function drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts):
 /**
  * Draws a text label centered on (x, y).
  */
-export function drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void {
+export function drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOptions): void {
   const fontSize = opts.fontSize ?? 10;
   ctx.font = `${fontSize}px sans-serif`;
   ctx.fillStyle = resolveCssColor(opts.color, '#FFFFFF', graphColorContext(ctx));

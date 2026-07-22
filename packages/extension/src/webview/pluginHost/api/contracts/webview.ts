@@ -4,14 +4,14 @@
  */
 
 export type {
-  BadgeOpts,
+  BadgeOptions,
   CodeGraphyWebviewAPI,
   GraphPluginSlot,
   GraphViewPoint2D,
   GraphViewViewportNode,
   GraphViewViewportNodeUpdate,
   GraphViewViewportState,
-  LabelOpts,
+  LabelOptions,
   NodeRenderContext,
   NodeRenderFn,
   OverlayRenderContext,
@@ -19,7 +19,7 @@ export type {
   PluginSlotContribution,
   PluginSlotRenderCleanup,
   PluginSlotRenderContext,
-  RingOpts,
+  RingOptions,
   TooltipAction,
   TooltipContent,
   TooltipContext,

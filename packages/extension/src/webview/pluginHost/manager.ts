@@ -12,9 +12,9 @@ import type {
   TooltipProviderFn,
   TooltipContent,
   TooltipContext,
-  BadgeOpts,
-  RingOpts,
-  LabelOpts,
+  BadgeOptions,
+  RingOptions,
+  LabelOptions,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
 import { toWebviewDisposable, type WebviewDisposable } from './disposable';
@@ -168,7 +168,7 @@ export class WebviewPluginHost {
     removeGraphViewViewportStateListenersForPlugin(this._graphViewViewportStateListeners, pluginId);
   }
 
-  static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void { drawBadge(ctx, opts); }
-  static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void { drawProgressRing(ctx, opts); }
-  static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void { drawLabel(ctx, opts); }
+  static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOptions): void { drawBadge(ctx, opts); }
+  static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOptions): void { drawProgressRing(ctx, opts); }
+  static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOptions): void { drawLabel(ctx, opts); }
 }

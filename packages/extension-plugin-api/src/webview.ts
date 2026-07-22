@@ -68,7 +68,7 @@ export type GraphViewWebviewEdge = IGraphViewRuntimeEdge;
 
 export interface NodeRenderContext {
   node: GraphViewWebviewNode;
-  ctx: CanvasRenderingContext2D;
+  canvasContext: CanvasRenderingContext2D;
   globalScale: number;
   decoration?: unknown;
 }
@@ -76,7 +76,7 @@ export interface NodeRenderContext {
 export type NodeRenderFn = (context: NodeRenderContext) => void;
 
 export interface OverlayRenderContext {
-  ctx: CanvasRenderingContext2D;
+  canvasContext: CanvasRenderingContext2D;
   width: number;
   height: number;
   globalScale: number;
@@ -126,7 +126,7 @@ export interface TooltipContent {
 
 export type TooltipProviderFn = (context: TooltipContext) => TooltipContent | null;
 
-export interface BadgeOpts {
+export interface BadgeOptions {
   text: string;
   x: number;
   y: number;
@@ -135,7 +135,7 @@ export interface BadgeOpts {
   fontSize?: number;
 }
 
-export interface RingOpts {
+export interface RingOptions {
   x: number;
   y: number;
   radius: number;
@@ -144,7 +144,7 @@ export interface RingOpts {
   progress?: number;
 }
 
-export interface LabelOpts {
+export interface LabelOptions {
   text: string;
   x: number;
   y: number;
@@ -162,14 +162,14 @@ export interface CodeGraphyWebviewAPI {
   setPluginData(data: unknown): void;
   getGraphViewViewportState(): GraphViewViewportState | null;
   onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): Disposable;
-  registerNodeRenderer(type: string, fn: NodeRenderFn): Disposable;
-  registerOverlay(id: string, fn: OverlayRenderFn): Disposable;
-  registerTooltipProvider(fn: TooltipProviderFn): Disposable;
+  registerNodeRenderer(type: string, renderer: NodeRenderFn): Disposable;
+  registerOverlay(id: string, renderer: OverlayRenderFn): Disposable;
+  registerTooltipProvider(provider: TooltipProviderFn): Disposable;
   registerGraphViewContributions(contributions: IGraphViewContributions): Disposable;
   helpers: {
-    drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void;
-    drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void;
-    drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void;
+    drawBadge(canvasContext: CanvasRenderingContext2D, options: BadgeOptions): void;
+    drawProgressRing(canvasContext: CanvasRenderingContext2D, options: RingOptions): void;
+    drawLabel(canvasContext: CanvasRenderingContext2D, options: LabelOptions): void;
   };
   sendMessage(message: { type: string; data: unknown }): void;
   postHostMessage(message: unknown): void;

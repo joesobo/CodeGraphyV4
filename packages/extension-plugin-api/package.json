@@ -2,6 +2,23 @@
   "name": "@codegraphy-dev/extension-plugin-api",
   "version": "1.0.0",
   "description": "Type definitions for plugins hosted by the CodeGraphy VS Code extension",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/extension-plugin-api",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "keywords": [
+    "codegraphy",
+    "codegraphy-plugin",
+    "extension-plugin-api",
+    "types"
+  ],
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

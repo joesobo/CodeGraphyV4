@@ -7,7 +7,7 @@ export type {
 } from './plugin.js';
 
 export type {
-  BadgeOpts,
+  BadgeOptions,
   CodeGraphyWebviewAPI,
   GraphNodeShape2D,
   GraphPluginSlot,
@@ -17,7 +17,7 @@ export type {
   GraphViewViewportState,
   GraphViewWebviewEdge,
   GraphViewWebviewNode,
-  LabelOpts,
+  LabelOptions,
   NodeRenderContext,
   NodeRenderFn,
   OverlayRenderContext,
@@ -25,7 +25,7 @@ export type {
   PluginSlotContribution,
   PluginSlotRenderCleanup,
   PluginSlotRenderContext,
-  RingOpts,
+  RingOptions,
   TooltipAction,
   TooltipContent,
   TooltipContext,

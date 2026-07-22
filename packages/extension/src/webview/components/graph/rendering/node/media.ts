@@ -52,7 +52,7 @@ export function renderNodePluginOverlay(
     try {
       renderer({
         node,
-        ctx,
+        canvasContext: ctx,
         globalScale,
         decoration,
       });

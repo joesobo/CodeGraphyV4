@@ -69,3 +69,27 @@ test('bundled plugin runtime versions match their package versions', () => {
     }
   }
 });
+
+test('public plugin API packages include publish and support metadata', () => {
+  for (const packageName of ['plugin-api', 'extension-plugin-api']) {
+    const packageManifest = readJson(`packages/${packageName}/package.json`);
+
+    assert.equal(packageManifest.engines?.node, '>=20', `${packageName} Node.js engine`);
+    assert.equal(
+      packageManifest.repository?.url,
+      'https://github.com/joesobo/CodeGraphyV4.git',
+      `${packageName} repository`,
+    );
+    assert.equal(
+      packageManifest.homepage,
+      `https://github.com/joesobo/CodeGraphyV4/tree/main/packages/${packageName}`,
+      `${packageName} homepage`,
+    );
+    assert.equal(
+      packageManifest.bugs?.url,
+      'https://github.com/joesobo/CodeGraphyV4/issues',
+      `${packageName} issue tracker`,
+    );
+    assert.ok(packageManifest.keywords?.includes('codegraphy'), `${packageName} keywords`);
+  }
+});
