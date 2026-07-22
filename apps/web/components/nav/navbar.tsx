@@ -66,7 +66,7 @@ export function Navbar(): React.ReactElement {
           {siteNavigation.github.label}
         </Link>
         <Link
-          className={cn(buttonVariants({ size: 'sm' }), 'hidden bg-[#ff9d82] px-4 text-[#17283b] hover:bg-[#ffb49f] sm:inline-flex')}
+          className={cn(buttonVariants({ size: 'sm' }), 'install-cta hidden px-4 sm:inline-flex')}
           href={siteNavigation.install.href}
           icon="vscode"
         >

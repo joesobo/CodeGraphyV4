@@ -20,8 +20,10 @@ interface CanvasSize {
 
 interface PointerPosition {
   active: boolean;
-  x: number;
-  y: number;
+  currentX: number;
+  currentY: number;
+  targetX: number;
+  targetY: number;
 }
 
 interface HeroGraphData {
@@ -63,7 +65,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     if (!context) return;
 
     const layout = createGraphLayoutEngine(graphData.input, {
-      centralGravity: 0.046,
+      centralGravity: 0.004,
       chargeDistanceMax: 250,
       chargeStrength: -175,
       collisionPadding: 6,
@@ -73,7 +75,13 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       settleSpeed: 0.5,
       velocityDecay: 0.29,
     });
-    const pointer: PointerPosition = { active: false, x: 0, y: 0 };
+    const pointer: PointerPosition = {
+      active: false,
+      currentX: 0,
+      currentY: 0,
+      targetX: 0,
+      targetY: 0,
+    };
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let canvasSize = resizeCanvas(canvas, context);
     let visible = true;
@@ -92,16 +100,22 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     const updatePointer = (event: PointerEvent): void => {
       if (event.pointerType !== 'mouse') return;
       const bounds = canvas.getBoundingClientRect();
+      const wasActive = pointer.active;
       pointer.active = event.clientX >= bounds.left
         && event.clientX <= bounds.right
         && event.clientY >= bounds.top
         && event.clientY <= bounds.bottom;
-      if (!pointer.active) return;
+      if (!pointer.active) {
+        pointer.targetX = 0;
+        pointer.targetY = 0;
+        if (wasActive) layout.reheat(0.2);
+        return;
+      }
 
       const scale = graphScale(canvasSize);
-      pointer.x = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
-      pointer.y = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
-      layout.reheat(0.24);
+      pointer.targetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
+      pointer.targetY = (event.clientY - bounds.top - canvasSize.height / 2) / scale;
+      layout.reheat(0.3);
     };
     window.addEventListener('pointermove', updatePointer, {
       passive: true,
@@ -116,7 +130,8 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
 
     const animate = (): void => {
       if (visible) {
-        layout.tick(pointer.active ? createPointerForce(layout, pointer) : undefined);
+        updatePointerCenter(pointer);
+        layout.tick(createPointerGravity(layout, pointer));
         drawGraph(context, layout, graphData.nodeGroups, canvasSize);
       }
       frame = window.requestAnimationFrame(animate);
@@ -228,25 +243,23 @@ function createSeededRandom(seed: number): () => number {
   };
 }
 
-function createPointerForce(
+function updatePointerCenter(pointer: PointerPosition): void {
+  const smoothing = pointer.active ? 0.14 : 0.06;
+  pointer.currentX += (pointer.targetX - pointer.currentX) * smoothing;
+  pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
+}
+
+function createPointerGravity(
   layout: GraphLayoutEngine,
   pointer: PointerPosition,
 ): GraphLayoutExternalForce {
   return {
     beforeIntegration: alpha => {
-      const influenceRadius = 190;
-      const influenceRadiusSquared = influenceRadius * influenceRadius;
+      const strength = (pointer.active ? 0.007 : 0.0045) * Math.max(alpha, 0.14);
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
-        const dx = layout.x[index] - pointer.x;
-        const dy = layout.y[index] - pointer.y;
-        const distanceSquared = dx * dx + dy * dy;
-        if (distanceSquared >= influenceRadiusSquared || distanceSquared < 0.01) continue;
-
-        const distance = Math.sqrt(distanceSquared);
-        const strength = (1 - distance / influenceRadius) * 1.45 * alpha;
-        layout.vx[index] += (dx / distance) * strength;
-        layout.vy[index] += (dy / distance) * strength;
+        layout.vx[index] += (pointer.currentX - layout.x[index]) * strength;
+        layout.vy[index] += (pointer.currentY - layout.y[index]) * strength;
       }
     },
   };
@@ -291,8 +304,8 @@ function drawGraph(
     context.moveTo(layout.x[source], layout.y[source]);
     context.lineTo(layout.x[target], layout.y[target]);
     context.strokeStyle = nodeGroups[source] === nodeGroups[target]
-      ? 'rgba(190, 219, 255, 0.27)'
-      : 'rgba(255, 174, 145, 0.18)';
+      ? 'rgba(190, 222, 255, 0.32)'
+      : 'rgba(147, 195, 236, 0.22)';
     context.stroke();
   }
 
@@ -302,19 +315,34 @@ function drawGraph(
     context.arc(layout.x[index], layout.y[index], radius, 0, Math.PI * 2);
     context.fillStyle = nodeFill(nodeGroups[index], radius);
     context.fill();
+    context.lineWidth = 0.9 / scale;
+    context.strokeStyle = 'rgba(224, 244, 255, 0.7)';
+    context.stroke();
+
+    const highlightRadius = Math.max(1.1, radius * 0.18);
+    context.beginPath();
+    context.arc(
+      layout.x[index] - radius * 0.28,
+      layout.y[index] - radius * 0.3,
+      highlightRadius,
+      0,
+      Math.PI * 2,
+    );
+    context.fillStyle = 'rgba(255, 255, 255, 0.72)';
+    context.fill();
   }
 
   context.restore();
 }
 
 function nodeFill(group: number, radius: number): string {
-  if (radius > 10) return 'rgba(255, 151, 123, 0.88)';
+  if (radius > 10) return 'rgba(184, 224, 255, 0.84)';
   const colors = [
-    'rgba(224, 239, 255, 0.78)',
-    'rgba(126, 176, 255, 0.82)',
-    'rgba(190, 174, 255, 0.78)',
-    'rgba(255, 205, 139, 0.78)',
-    'rgba(162, 208, 240, 0.8)',
+    'rgba(213, 237, 255, 0.76)',
+    'rgba(123, 184, 235, 0.82)',
+    'rgba(164, 211, 247, 0.8)',
+    'rgba(103, 170, 224, 0.82)',
+    'rgba(150, 207, 235, 0.8)',
   ] as const;
   return colors[group % colors.length];
 }

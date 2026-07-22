@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 import { ExampleList } from './_components/example-list';
 import { ExamplesHeader } from './_components/examples-header';
 
+const description = 'Runnable example CodeGraphy Workspaces showing exactly what CodeGraphy reads in each language and Plugin.';
+
 export const metadata: Metadata = {
   title: 'Examples',
-  description:
-    'Runnable example CodeGraphy Workspaces showing exactly what CodeGraphy reads in each language and Plugin.',
+  description,
+  alternates: { canonical: '/examples' },
+  openGraph: { description, title: 'Examples · CodeGraphy', url: '/examples' },
+  twitter: { card: 'summary_large_image', description, title: 'Examples · CodeGraphy' },
 };
 
 export default function ExamplesPage(): React.ReactElement {

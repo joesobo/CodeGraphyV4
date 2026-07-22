@@ -1,7 +1,16 @@
+import type { Metadata } from 'next';
 import { Link } from '@/components/link';
 import { PageHero } from '@/components/page-hero';
 import { buttonVariants } from '@/components/ui/button';
 import { docsHref, homeHref } from '@/content/links';
+
+export const metadata: Metadata = {
+  title: 'Page not found',
+  robots: {
+    follow: false,
+    index: false,
+  },
+};
 
 export default function NotFound(): React.ReactElement {
   return (

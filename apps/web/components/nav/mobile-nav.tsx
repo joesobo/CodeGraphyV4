@@ -78,7 +78,7 @@ export function MobileNav(): React.ReactElement {
             {siteNavigation.github.label}
           </Link>
           <Link
-            className={cn(buttonVariants(), 'w-full')}
+            className={cn(buttonVariants(), 'install-cta w-full')}
             href={siteNavigation.install.href}
             icon="vscode"
             onClick={closeMenu}

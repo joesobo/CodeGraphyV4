@@ -2,9 +2,14 @@ import type { Metadata } from 'next';
 import { DocList } from './_components/doc-list';
 import { DocsHeader } from './_components/docs-header';
 
+const description = 'Source-backed CodeGraphy documentation for the VS Code extension, Core CLI, interactions, settings, Plugins, and the Plugin API.';
+
 export const metadata: Metadata = {
   title: 'Docs',
-  description: 'Source-backed CodeGraphy documentation for the VS Code extension, Core CLI, interactions, settings, Plugins, and the Plugin API.',
+  description,
+  alternates: { canonical: '/docs' },
+  openGraph: { description, title: 'Docs · CodeGraphy', url: '/docs' },
+  twitter: { card: 'summary_large_image', description, title: 'Docs · CodeGraphy' },
 };
 
 export default function DocsPage(): React.ReactElement {

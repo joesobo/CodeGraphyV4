@@ -7,7 +7,6 @@ export const githubHref = 'https://github.com/joesobo/CodeGraphyV4';
 export const githubBlobHref = `${githubHref}/blob/main`;
 export const githubTreeHref = `${githubHref}/tree/main`;
 
-export const changelogHref = `${githubBlobHref}/packages/extension/CHANGELOG.md`;
 export const marketplaceHref = 'https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy';
 export const vscodeExtensionHref = 'vscode:extension/codegraphy.codegraphy';
 

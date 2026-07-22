@@ -25,18 +25,18 @@ export function Header(): React.ReactElement {
             Local-first relationship graph
           </p>
           <h1 className="mt-5 max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.91] tracking-[-0.045em]">
-            Understand the code <em className="font-normal text-[#ffb49f]">beneath</em> the surface.
+            Understand the code <em className="font-normal text-[#c8dcff]">beneath</em> the surface.
           </h1>
         </div>
 
-        <div className="hero-aside max-w-xl lg:justify-self-end">
+        <div className="hero-aside w-full max-w-xl lg:justify-self-end">
           <p className="max-w-[36rem] text-pretty text-base leading-7 text-white/94 sm:text-lg sm:leading-8">
             CodeGraphy turns files, symbols, packages, and their relationships into one interactive
             Relationship Graph, so you can see how a workspace actually fits together.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              className={cn(buttonVariants({ size: 'lg' }), 'bg-[#ff9d82] text-[#17283b] hover:bg-[#ffb49f]')}
+              className={cn(buttonVariants({ size: 'lg' }), 'install-cta')}
               href={vscodeExtensionHref}
               icon="vscode"
             >
@@ -51,11 +51,11 @@ export function Header(): React.ReactElement {
             </Link>
           </div>
           <div className="hero-console mt-8" aria-label="CodeGraphy command preview">
-            <code><span>$</span> codegraphy index</code>
-            <div className="hero-console-actions">
+            <div className="hero-console-command">
+              <code><span>$</span> codegraphy index</code>
               <CopyButton className="text-white/80 hover:bg-white/8 hover:text-white" text="codegraphy index" />
-              <Link href={examplesHref}>View examples <span aria-hidden="true">↗</span></Link>
             </div>
+            <Link href={examplesHref}>View examples <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
       </div>

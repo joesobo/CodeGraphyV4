@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import { Link, type LinkIcon } from '@/components/link';
 import {
-  changelogHref,
   docsHref,
   examplesHref,
   githubHref,
@@ -26,7 +25,6 @@ const footerColumns: readonly {
   {
     title: 'Project',
     links: [
-      { href: changelogHref, label: 'Changelog' },
       { href: marketplaceHref, label: 'Marketplace' },
       { href: githubHref, icon: 'github', label: 'GitHub' },
       { href: vscodeExtensionHref, icon: 'vscode', label: 'VS Code' },
@@ -47,7 +45,7 @@ export function Footer(): React.ReactElement {
         sizes="100vw"
         src="/media/ocean-footer-depth-v4.jpg"
       />
-      <div className="absolute inset-0 bg-[#061321]/84" />
+      <div className="absolute inset-0 bg-[#061321]/64" />
       <div className="relative z-10 mx-auto max-w-[90rem] py-10 sm:py-12">
         <div className="flex flex-col gap-9 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-md">

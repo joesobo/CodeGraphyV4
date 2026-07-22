@@ -7,10 +7,14 @@ import { PluginInstall } from './_components/plugin-install';
 import { PluginList } from './_components/plugin-list';
 import { PluginsHeader } from './_components/plugins-header';
 
+const description = 'Official CodeGraphy Plugins — npm packages that teach the Core Package new languages, frameworks, and Relationship Graph effects.';
+
 export const metadata: Metadata = {
   title: 'Plugins',
-  description:
-    'Official CodeGraphy Plugins — npm packages that teach the Core Package new languages, frameworks, and Relationship Graph effects.',
+  description,
+  alternates: { canonical: '/plugins' },
+  openGraph: { description, title: 'Plugins · CodeGraphy', url: '/plugins' },
+  twitter: { card: 'summary_large_image', description, title: 'Plugins · CodeGraphy' },
 };
 
 export default function PluginsPage(): React.ReactElement {

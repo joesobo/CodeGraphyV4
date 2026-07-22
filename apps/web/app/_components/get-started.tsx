@@ -46,7 +46,7 @@ export function GetStarted(): React.ReactElement {
             />
           </div>
           <div className="flex flex-wrap gap-3 lg:justify-end">
-            <Link className={buttonVariants({ size: 'lg' })} href={vscodeExtensionHref} icon="vscode">Install in VS Code</Link>
+            <Link className={cn(buttonVariants({ size: 'lg' }), 'install-cta')} href={vscodeExtensionHref} icon="vscode">Install in VS Code</Link>
             <Link className={buttonVariants({ size: 'lg', variant: 'outline' })} href={marketplaceHref}>Marketplace</Link>
           </div>
         </div>
@@ -72,6 +72,7 @@ export function GetStarted(): React.ReactElement {
             sizes="(min-width: 1536px) 1440px, 100vw"
             src="/media/ocean-closing-cta-v4.jpg"
           />
+          <div aria-hidden="true" className="closing-cta-depth absolute inset-0" />
           <div className="relative z-10 grid min-h-96 items-end gap-10 p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:p-14">
             <div className="closing-cta-copy max-w-3xl">
               <p className="closing-cta-kicker section-kicker">Start with your workspace</p>
@@ -80,14 +81,14 @@ export function GetStarted(): React.ReactElement {
               </h2>
             </div>
             <div className="grid gap-4 lg:min-w-80">
-              <div className="flex min-h-14 items-center justify-between gap-4 rounded-xl border border-white/48 bg-white/88 px-4 text-[#17283b] shadow-sm backdrop-blur-sm">
-                <code className="min-w-0 overflow-x-auto text-xs sm:text-sm">
-                  <span className="text-[#a84432]">$</span> codegraphy index
+              <div className="closing-cta-command flex min-h-14 items-center justify-between gap-4 rounded-xl px-4">
+                <code className="min-w-0 overflow-x-auto text-xs font-semibold text-[#0a1d31] sm:text-sm">
+                  <span className="text-[#2859b5]">$</span> codegraphy index
                 </code>
-                <CopyButton className="text-[#17283b]/76 hover:bg-[#17283b]/8 hover:text-[#17283b]" text="codegraphy index" />
+                <CopyButton className="closing-cta-copy-button" text="codegraphy index" />
               </div>
               <Link
-                className={cn(buttonVariants({ size: 'lg' }), 'bg-[#ff9d82] text-[#17283b] hover:bg-[#ffb49f]')}
+                className={cn(buttonVariants({ size: 'lg' }), 'install-cta')}
                 href={vscodeExtensionHref}
                 icon="vscode"
               >

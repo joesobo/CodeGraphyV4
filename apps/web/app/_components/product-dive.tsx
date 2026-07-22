@@ -1,5 +1,7 @@
 import type { Media } from '@/components/media-image';
+import { Link } from '@/components/link';
 import { MediaImage } from '@/components/media-image';
+import { pluginsHref } from '@/content/links';
 import { cn } from '@/lib/utils';
 
 interface DiveChapter {
@@ -8,10 +10,11 @@ interface DiveChapter {
   index: string;
   media: Media;
   mediaAspect?: 'square' | 'wide';
+  supportingAction?: { href: string; label: string };
   title: string;
 }
 
-const chapters = [
+const chapters: readonly DiveChapter[] = [
   {
     index: '01',
     title: 'Map the whole workspace.',
@@ -69,6 +72,10 @@ const chapters = [
       darkSrc: '/media/features/plugin-graph-scope-dark.gif',
       darkPosterSrc: '/media/features/posters/plugin-graph-scope-dark.png',
     },
+    supportingAction: {
+      href: `${pluginsHref}#build`,
+      label: 'Explore the Plugin API',
+    },
   },
 ] satisfies readonly DiveChapter[];
 
@@ -91,7 +98,12 @@ export function ProductDive(): React.ReactElement {
               <p className="depth-index">{chapter.index} / 04</p>
               <h3>{chapter.title}</h3>
               <p>{chapter.description}</p>
-              <span>{chapter.detail}</span>
+              <span className="depth-detail">{chapter.detail}</span>
+              {chapter.supportingAction ? (
+                <Link className="depth-action" href={chapter.supportingAction.href}>
+                  {chapter.supportingAction.label} <span aria-hidden="true">↗</span>
+                </Link>
+              ) : null}
             </div>
             <div className={cn('depth-media-shell', chapter.mediaAspect === 'square' && 'depth-media-shell-square')}>
               <div className="depth-media-toolbar">

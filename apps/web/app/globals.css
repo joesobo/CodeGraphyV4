@@ -55,14 +55,18 @@
   --secondary-foreground: #24384f;
   --muted: #eceef2;
   --muted-foreground: #526276;
-  --accent: #fbe6df;
-  --accent-foreground: #7b3428;
+  --accent: #e6edf8;
+  --accent-foreground: #233f6e;
   --destructive: #a82a22;
   --border: rgb(23 40 59 / 16%);
   --input: rgb(23 40 59 / 24%);
   --ring: #4778d4;
   --example-graph-surface: #eef0f4;
   --graph-surface: #eaedf2;
+  --depth-surface: #e9edf2;
+  --install: #ff9d82;
+  --install-hover: #ffb49f;
+  --install-foreground: #17283b;
   --brand-mark: url("/codegraphy.svg");
   --font-family-sans: var(--font-dm-sans, "DM Sans"), ui-sans-serif, system-ui, sans-serif;
   --font-family-heading: var(--font-newsreader, "Newsreader"), Georgia, serif;
@@ -92,14 +96,15 @@
   --secondary-foreground: #e4edf8;
   --muted: #102238;
   --muted-foreground: #a8b7ca;
-  --accent: #3a2732;
-  --accent-foreground: #ffd9cf;
+  --accent: #142b48;
+  --accent-foreground: #d8e7ff;
   --destructive: #ff7d72;
   --border: rgb(218 231 247 / 15%);
   --input: rgb(218 231 247 / 24%);
   --ring: #a8c7ff;
   --example-graph-surface: #0b1b2c;
   --graph-surface: #0b1b2c;
+  --depth-surface: #091827;
   --elevation-2xs: 0 0 0 1px rgb(255 255 255 / 7%);
   --elevation-xs: 0 0 0 1px rgb(255 255 255 / 8%);
   --elevation-sm: 0 0 0 1px rgb(255 255 255 / 8%), 0 8px 24px rgb(0 0 0 / 20%);
@@ -236,6 +241,22 @@ button {
   text-transform: uppercase;
 }
 
+.install-cta {
+  border-color: transparent;
+  background: var(--install);
+  box-shadow: 0 8px 24px rgb(4 24 40 / 16%);
+  color: var(--install-foreground);
+}
+
+.install-cta:hover {
+  background: var(--install-hover);
+  color: var(--install-foreground);
+}
+
+.install-cta:active {
+  transform: scale(0.97);
+}
+
 .codegraphy-symbol {
   display: inline-block;
   width: 1em;
@@ -304,6 +325,20 @@ button {
   animation-delay: 50ms;
 }
 
+.home-hero .hero-aside,
+.page-hero .hero-aside {
+  padding: clamp(1.1rem, 2vw, 1.4rem);
+  border: 1px solid rgb(232 245 255 / 16%);
+  border-radius: 1.25rem;
+  background: rgb(3 20 31 / 52%);
+  box-shadow: 0 18px 52px rgb(0 9 18 / 18%);
+  backdrop-filter: blur(7px) saturate(105%);
+}
+
+.home-hero .hero-aside {
+  container-type: inline-size;
+}
+
 .page-hero-grade {
   background: rgb(3 15 35 / 52%);
 }
@@ -322,13 +357,12 @@ button {
 }
 
 .hero-console {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   width: min(100%, 46rem);
   min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 0.9rem 0.85rem 1.1rem;
+  align-items: stretch;
+  overflow: hidden;
   border: 1px solid rgb(237 255 251 / 16%);
   border-radius: 1rem;
   background: rgb(5 22 29 / 82%);
@@ -374,37 +408,44 @@ button {
 }
 
 .hero-console code span {
-  color: #ffad98;
+  color: #a8c7ff;
 }
 
-.hero-console-actions {
+.hero-console-command {
   display: flex;
-  flex-shrink: 0;
+  min-width: 0;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.45rem 0.35rem 1rem;
 }
 
-.hero-console a {
+.hero-console > a {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
   min-height: 2.75rem;
   padding-inline: 0.8rem;
+  border-left: 1px solid rgb(255 255 255 / 12%);
   color: #d9f4f0;
   font-size: 0.78rem;
   font-weight: 700;
   transition: color 160ms ease, background-color 160ms ease, transform 140ms var(--ease-out);
 }
 
-.hero-console a:active {
+.hero-console > a:active {
   transform: scale(0.96);
 }
 
 .route-surface,
-.depth-sequence,
-.start-scene {
+.depth-sequence {
   background: var(--background);
+}
+
+.start-scene {
+  background: var(--depth-surface);
 }
 
 .catalog-card {
@@ -468,7 +509,7 @@ button {
 }
 
 .depth-index,
-.depth-copy span,
+.depth-detail,
 .depth-media-toolbar {
   font-family: var(--font-family-mono);
   letter-spacing: 0.12em;
@@ -497,12 +538,33 @@ button {
   line-height: 1.7;
 }
 
-.depth-copy span {
+.depth-detail {
   display: block;
   margin-top: 1.5rem;
   color: var(--muted-foreground);
   font-size: 0.62rem;
   line-height: 1.6;
+}
+
+.depth-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  margin-top: 1.15rem;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: color 180ms ease, transform 180ms var(--ease-out);
+}
+
+.depth-action:hover {
+  color: var(--foreground);
+  transform: translateX(3px);
+}
+
+.depth-action:active {
+  transform: translateX(1px) scale(0.98);
 }
 
 .depth-media-shell {
@@ -580,12 +642,34 @@ button {
   color: rgb(255 255 255 / 90%);
 }
 
+.closing-cta-depth {
+  background: rgb(2 18 31 / 44%);
+}
+
+.closing-cta-command {
+  border: 1px solid rgb(255 255 255 / 78%);
+  background: rgb(248 251 255 / 94%);
+  box-shadow: 0 12px 34px rgb(0 12 24 / 22%);
+  backdrop-filter: blur(10px);
+}
+
+.closing-cta-copy-button {
+  border: 1px solid rgb(23 40 59 / 18%);
+  background: rgb(23 40 59 / 8%);
+  color: #17283b;
+}
+
+.closing-cta-copy-button:hover {
+  background: rgb(23 40 59 / 14%);
+  color: #07182d;
+}
+
 .start-path {
   position: relative;
 }
 
 .footer-image {
-  filter: saturate(0.66) hue-rotate(12deg);
+  filter: saturate(0.82) hue-rotate(8deg);
 }
 
 @supports (animation-timeline: view()) {
@@ -610,9 +694,20 @@ button {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .hero-console a:hover {
+  .hero-console > a:hover {
     background: rgb(255 255 255 / 8%);
     color: #ffffff;
+  }
+}
+
+@container (max-width: 25rem) {
+  .hero-console {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-console > a {
+    border-top: 1px solid rgb(255 255 255 / 12%);
+    border-left: 0;
   }
 }
 
@@ -645,18 +740,17 @@ button {
   }
 
   .hero-console {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 0.9rem;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .hero-console a {
+  .hero-console > a {
     justify-content: center;
+    border-left: 0;
     border-top: 1px solid rgb(255 255 255 / 12%);
   }
 
-  .hero-console-actions {
-    justify-content: space-between;
+  .hero-console-command {
+    padding-left: 0.9rem;
   }
 
   .depth-intro h2 {
@@ -717,7 +811,9 @@ button {
 
 @media (prefers-reduced-transparency: reduce) {
   .site-header:has(.navbar.is-scrolled),
-  .hero-console {
+  .hero-console,
+  .home-hero .hero-aside,
+  .page-hero .hero-aside {
     background: #071421;
     backdrop-filter: none;
   }

@@ -3,6 +3,7 @@ import { DM_Sans, Fira_Code, Newsreader } from 'next/font/google';
 import { Footer } from '@/components/footer';
 import { Navbar } from '@/components/nav/navbar';
 import { ThemeProvider } from '@/components/theme-provider';
+import { siteDescription, siteName, siteOrigin } from '@/content/site';
 import './globals.css';
 
 // next/font requires literal loader values; the generated theme CSS consumes these variables.
@@ -17,25 +18,36 @@ const newsreader = Newsreader({
 const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-fira-code' });
 
 const title = 'CodeGraphy — Understand the code beneath the surface';
-const description =
-  'A local-first Relationship Graph for exploring files, symbols, packages, and the relationships between them — in VS Code or from the command line.';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://codegraphy.dev'),
+  metadataBase: new URL(siteOrigin),
+  applicationName: siteName,
   title: {
     default: title,
     template: '%s · CodeGraphy',
   },
-  description,
+  description: siteDescription,
+  alternates: {
+    canonical: '/',
+  },
+  category: 'developer tools',
+  creator: 'Joe Soboleski',
   openGraph: {
-    description,
-    siteName: 'CodeGraphy',
+    description: siteDescription,
+    locale: 'en_US',
+    siteName,
     title,
     type: 'website',
+    url: '/',
+  },
+  publisher: 'Joe Soboleski',
+  robots: {
+    follow: true,
+    index: true,
   },
   twitter: {
     card: 'summary_large_image',
-    description,
+    description: siteDescription,
     title,
   },
 };
