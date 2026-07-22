@@ -11,7 +11,7 @@ export function plugin(
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '3',
+    apiVersion: '4',
     supportedExtensions: extensions,
     analyzeFile,
   };

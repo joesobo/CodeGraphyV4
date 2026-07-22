@@ -2,7 +2,7 @@ import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
-import { findRegisteredPlugin, getRegisteredPluginId } from './installed';
+import { findRegisteredPlugins } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runDisableCommand(
@@ -13,30 +13,35 @@ export function runDisableCommand(
     return createMissingPackageResult('disable');
   }
 
-  const plugin = findRegisteredPlugin(
+  const plugins = findRegisteredPlugins(
     dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
     command.packageName,
   );
-  const pluginId = plugin ? getRegisteredPluginId(plugin) : command.packageName;
+  const pluginIds = plugins.length > 0 ? plugins.map(plugin => plugin.id) : [command.packageName];
+  const pluginLabel = pluginIds.join(', ');
   if (command.pluginScope === 'global') {
-    if (!plugin) {
+    if (plugins.length === 0) {
       return {
         exitCode: 1,
         output: `Plugin '${command.packageName}' is not in ~/.codegraphy/plugins.json.`,
       };
     }
-    dependencies.setGlobalPluginActivation(pluginId, false, {
-      ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
-    });
+    for (const pluginId of pluginIds) {
+      dependencies.setGlobalPluginActivation(pluginId, false, {
+        ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
+      });
+    }
     return {
       exitCode: 0,
-      output: `Disabled ${pluginId} globally.`,
+      output: `Disabled ${pluginLabel} globally.`,
     };
   }
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
-  dependencies.disableWorkspacePlugin(workspaceRoot, pluginId);
+  for (const pluginId of pluginIds) {
+    dependencies.disableWorkspacePlugin(workspaceRoot, pluginId);
+  }
   return {
     exitCode: 0,
-    output: `Disabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
+    output: `Disabled ${pluginLabel} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
   };
 }

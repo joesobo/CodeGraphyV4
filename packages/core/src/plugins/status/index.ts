@@ -139,17 +139,16 @@ export function buildUnregisteredInstalledWorkspaceIndexPluginStatus(
   plugin: CodeGraphyInstalledPluginRecord,
   workspaceEnabledPluginIds?: ReadonlySet<string>,
 ): WorkspaceIndexPluginStatus {
-  const id = plugin.pluginId ?? plugin.package;
+  const id = plugin.id;
   const enabled = workspaceEnabledPluginIds?.has(id) ?? false;
-  const name = plugin.pluginName ?? plugin.package;
-  const supportedExtensions = plugin.supportedExtensions ?? [];
+  const name = plugin.name ?? plugin.package;
 
   return {
     id,
     packageName: plugin.package,
     name,
     version: plugin.version,
-    supportedExtensions,
+    supportedExtensions: [],
     status: enabled ? 'unavailable' : 'installed',
     enabled,
     connectionCount: 0,

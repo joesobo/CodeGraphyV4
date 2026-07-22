@@ -41,7 +41,7 @@ function applyPluginClassification(
 }
 
 function getInstalledPluginId(plugin: CodeGraphyInstalledPluginRecord): string {
-  return plugin.pluginId ?? plugin.package;
+  return plugin.id;
 }
 
 function groupInstalledPluginsById(

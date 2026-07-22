@@ -23,11 +23,12 @@ export async function createPackageBackedPluginPackage(
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-        defaultOptions: {
-          targetFile: 'target.txt',
-        },
+        plugins: [{
+          id: 'acme.options',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2),
     'utf-8',
@@ -42,7 +43,7 @@ export default function createPlugin() {
     id: 'acme.options',
     name: 'Options Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.txt'],
     sources: [{
       id: 'configured-target',
@@ -92,7 +93,7 @@ export function createTextPlugin(calls: {
     id: 'codegraphy.test-text',
     name: 'Test Text',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.txt'],
     sources: [{
       id: 'line-reference',

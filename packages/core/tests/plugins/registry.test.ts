@@ -8,7 +8,7 @@ function plugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'codegraphy.test',
     name: 'Test',
     version: '1.0.0',
-    apiVersion: '3',
+    apiVersion: '4',
     supportedExtensions: ['.test'],
     ...overrides,
   };

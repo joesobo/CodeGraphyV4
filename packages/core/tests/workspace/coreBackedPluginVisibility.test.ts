@@ -19,7 +19,7 @@ describe('core-backed CodeGraphy Workspace plugin visibility', () => {
       id: pluginId,
       name: 'Example Query Plugin',
       version: '1.0.0',
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: ['.plug'],
       async analyzeFile(filePath) {
         if (filePath !== entryPath) {
@@ -108,7 +108,7 @@ describe('core-backed CodeGraphy Workspace plugin visibility', () => {
       id: pluginId,
       name: 'Absent Query Plugin',
       version: '1.0.0',
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: ['.plug'],
       async analyzeFile(filePath) {
         if (filePath !== entryPath) {

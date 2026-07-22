@@ -22,11 +22,12 @@ export async function createPluginPackage(packageRoot: string): Promise<void> {
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-        defaultOptions: {
-          marker: 'from-default-options',
-        },
+        plugins: [{
+          id: 'acme.data-host',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2)}\n`,
     'utf-8',
@@ -42,7 +43,7 @@ export default function createPlugin(factoryOptions = {}) {
     id: 'acme.data-host',
     name: 'Data Host Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: [],
     async initialize() {
       if (!dataHost) {
@@ -79,8 +80,13 @@ export async function createPluginPackageWithRuntimeMarkers(
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
+        plugins: [{
+          id: pluginId,
+          name: pluginName,
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2)}\n`,
     'utf-8',
@@ -91,7 +97,7 @@ export async function createPluginPackageWithRuntimeMarkers(
       id: pluginId,
       name: pluginName,
       version,
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: ['.disabled'],
     }, null, 2)}\n`,
     'utf-8',
@@ -109,7 +115,7 @@ export default function createPlugin() {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginName)},
     version: ${JSON.stringify(version)},
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.disabled']
   };
 }

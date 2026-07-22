@@ -19,15 +19,11 @@ describe('plugins/installedPluginCache/bundled', () => {
     expect(createBundledMarkdownInstalledPluginRecord()).toEqual({
       package: '@codegraphy-dev/plugin-markdown',
       version: '1.0.0',
-      apiVersion: '^3.0.0',
-      pluginId: 'codegraphy.markdown',
-      pluginName: 'Markdown',
-      supportedExtensions: ['*'],
-      updateImpact: {
-        toggle: 'reanalyze-plugin-files',
-        defaultSetting: 'reanalyze-plugin-files',
-      },
-      disclosures: [],
+      id: 'codegraphy.markdown',
+      name: 'Markdown',
+      host: 'core',
+      entry: './dist/plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '',
       globallyEnabled: true,
     });

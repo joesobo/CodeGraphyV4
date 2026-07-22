@@ -52,8 +52,12 @@
     "typescript": "^5.3.3"
   },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "disclosures": []
+    "plugins": [{
+      "id": "codegraphy.typescript",
+      "name": "TypeScript/JavaScript",
+      "host": "core",
+      "entry": "./dist/plugin.js",
+      "apiVersion": "^4.0.0"
+    }]
   }
 }

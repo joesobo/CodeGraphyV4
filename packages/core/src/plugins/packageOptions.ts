@@ -5,13 +5,10 @@ import type { PackagePluginFactoryInvocation } from './packageModule';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
 
 export function mergePluginOptions(
-  record: CodeGraphyInstalledPluginRecord,
+  _record: CodeGraphyInstalledPluginRecord,
   settings: CodeGraphyWorkspacePluginSettings,
 ): Record<string, unknown> | undefined {
-  const merged = {
-    ...record.defaultOptions,
-    ...settings.options,
-  };
+  const merged = { ...settings.options };
 
   return Object.keys(merged).length > 0 ? merged : undefined;
 }

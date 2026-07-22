@@ -9,7 +9,7 @@ function dependencies(overrides: Partial<PluginsCommandDependencies> = {}): Plug
     enableWorkspacePlugin: vi.fn(),
     inheritWorkspacePlugin: vi.fn(),
     linkInstalledPluginPackage: vi.fn(),
-    readInstalledPluginCache: () => ({ version: 2, plugins: [] }),
+    readInstalledPluginCache: () => ({ version: 3, plugins: [] }),
     registerInstalledPlugin: vi.fn(),
     resolveGlobalPackageRoots: () => [],
     setGlobalPluginActivation: vi.fn(),
@@ -45,11 +45,13 @@ describe('cli/plugins/enable', () => {
     const enableWorkspacePlugin = vi.fn();
     const plugin = {
       package: '@codegraphy-dev/plugin-vue',
-      pluginId: 'codegraphy.vue',
+      id: 'codegraphy.vue',
       version: '1.0.0',
-      apiVersion: '^3.0.0',
-      disclosures: [],
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '/global/plugin-vue',
+      globallyEnabled: false,
     };
 
     expect(runEnableCommand({
@@ -60,7 +62,7 @@ describe('cli/plugins/enable', () => {
     }, dependencies({
       cwd: () => '/workspace/current',
       enableWorkspacePlugin,
-      readInstalledPluginCache: () => ({ version: 2, plugins: [plugin] }),
+      readInstalledPluginCache: () => ({ version: 3, plugins: [plugin] }),
     }))).toEqual({
       exitCode: 0,
       output: 'Enabled codegraphy.vue for /workspace/repo. Run `codegraphy -C "/workspace/repo" index` to refresh the Graph Cache.',
@@ -68,14 +70,54 @@ describe('cli/plugins/enable', () => {
     expect(enableWorkspacePlugin).toHaveBeenCalledWith('/workspace/repo', plugin);
   });
 
+  it('enables every plugin descriptor when the selector is a package name', () => {
+    const enableWorkspacePlugin = vi.fn();
+    const records = [
+      {
+        package: '@acme/codegraphy-tools',
+        id: 'acme.core',
+        version: '1.0.0',
+        host: 'core',
+        entry: './core.js',
+        apiVersion: '^4.0.0',
+        packageRoot: '/global/codegraphy-tools',
+        globallyEnabled: false,
+      },
+      {
+        package: '@acme/codegraphy-tools',
+        id: 'acme.ui',
+        version: '1.0.0',
+        host: 'acme.ui',
+        entry: './ui.js',
+        apiVersion: '^1.0.0',
+        packageRoot: '/global/codegraphy-tools',
+        globallyEnabled: false,
+      },
+    ];
+
+    expect(runEnableCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '@acme/codegraphy-tools',
+    }, dependencies({
+      enableWorkspacePlugin,
+      readInstalledPluginCache: () => ({ version: 3, plugins: records }),
+    }))).toMatchObject({ exitCode: 0 });
+    expect(enableWorkspacePlugin.mock.calls).toEqual([
+      ['/workspace/current', records[0]],
+      ['/workspace/current', records[1]],
+    ]);
+  });
+
   it('enables a registered plugin globally without resolving a workspace', () => {
     const setGlobalPluginActivation = vi.fn();
     const plugin = {
       package: '@codegraphy-dev/plugin-particles',
-      pluginId: 'codegraphy.particles',
+      id: 'codegraphy.particles',
       version: '1.0.0',
-      apiVersion: '^3.0.0',
-      disclosures: [],
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '/global/plugin-particles',
       globallyEnabled: false,
     };
@@ -89,7 +131,7 @@ describe('cli/plugins/enable', () => {
       cwd: () => {
         throw new Error('workspace resolution must stay dormant');
       },
-      readInstalledPluginCache: () => ({ version: 2, plugins: [plugin] }),
+      readInstalledPluginCache: () => ({ version: 3, plugins: [plugin] }),
       setGlobalPluginActivation,
     }))).toEqual({
       exitCode: 0,

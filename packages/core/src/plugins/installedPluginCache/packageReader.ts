@@ -2,67 +2,32 @@ import * as fsPromises from 'node:fs/promises';
 import * as path from 'node:path';
 import { parseCodeGraphyPluginPackageManifest } from '../packageManifest';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
-import { readPluginUpdateImpact } from '../updateImpact';
-import { z } from 'zod';
-import { looseStringArraySchema } from '../../values';
 
-type PluginPackageDisplayFields = Pick<
-  CodeGraphyInstalledPluginRecord,
-  'pluginId' | 'pluginName' | 'supportedExtensions' | 'updateImpact'
->;
-
-interface PluginPackageStaticDescriptor extends PluginPackageDisplayFields {
-  pluginId: string;
-}
-
-const packageDescriptorSchema = z.looseObject({
-  id: z.string().min(1),
-  name: z.string().min(1).optional().catch(undefined),
-  supportedExtensions: looseStringArraySchema
-    .transform(entries => entries.filter(entry => entry.length > 0)),
-  updateImpact: z.unknown(),
-});
-
-async function readPluginPackageDisplayFields(
+function createInstalledRecords(
   packageRoot: string,
-): Promise<PluginPackageStaticDescriptor | null> {
-  try {
-    const descriptor = packageDescriptorSchema.safeParse(JSON.parse(
-      await fsPromises.readFile(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
-    ));
-    if (!descriptor.success) {
-      return null;
-    }
-
-    const { id: pluginId, name: pluginName, supportedExtensions } = descriptor.data;
-    const updateImpact = readPluginUpdateImpact(descriptor.data.updateImpact);
-
-    return {
-      pluginId,
-      ...(pluginName ? { pluginName } : {}),
-      ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
-      ...(updateImpact ? { updateImpact } : {}),
-    };
-  } catch {
-    return null;
-  }
+  manifest: NonNullable<ReturnType<typeof parseCodeGraphyPluginPackageManifest>>,
+): CodeGraphyInstalledPluginRecord[] {
+  return manifest.plugins.map(plugin => ({
+    package: manifest.package,
+    version: manifest.version,
+    packageRoot,
+    globallyEnabled: false,
+    ...plugin,
+  }));
 }
 
-function createMissingStaticPluginIdError(packageName: string): Error {
-  return new Error(`Package '${packageName}' is missing codegraphy.json with a static plugin id.`);
+async function readPackageJson(packageRoot: string): Promise<unknown> {
+  return JSON.parse(
+    await fsPromises.readFile(path.join(packageRoot, 'package.json'), 'utf-8'),
+  ) as unknown;
 }
 
-export async function readPackageManifest(packageRoot: string): Promise<CodeGraphyInstalledPluginRecord | null> {
+export async function readPackageManifest(
+  packageRoot: string,
+): Promise<CodeGraphyInstalledPluginRecord[] | null> {
   try {
-    const packageJson = JSON.parse(
-      await fsPromises.readFile(path.join(packageRoot, 'package.json'), 'utf-8'),
-    ) as unknown;
-    const manifest = parseCodeGraphyPluginPackageManifest(packageJson);
-    const descriptor = manifest ? await readPluginPackageDisplayFields(packageRoot) : null;
-    return manifest
-      && descriptor
-      ? { ...manifest, ...descriptor, packageRoot, globallyEnabled: false }
-      : null;
+    const manifest = parseCodeGraphyPluginPackageManifest(await readPackageJson(packageRoot));
+    return manifest ? createInstalledRecords(packageRoot, manifest) : null;
   } catch {
     return null;
   }
@@ -71,16 +36,14 @@ export async function readPackageManifest(packageRoot: string): Promise<CodeGrap
 export async function readRequiredPackageManifest(
   packageName: string,
   packageRoot: string,
-): Promise<CodeGraphyInstalledPluginRecord> {
+): Promise<CodeGraphyInstalledPluginRecord[]> {
   let packageJson: unknown;
   try {
-    packageJson = JSON.parse(
-      await fsPromises.readFile(path.join(packageRoot, 'package.json'), 'utf-8'),
-    ) as unknown;
+    packageJson = await readPackageJson(packageRoot);
   } catch {
     throw new Error(
-      `CodeGraphy plugin package '${packageName}' was not found in global npm package roots. ` +
-      `Run \`npm i -g ${packageName}\` first.`,
+      `CodeGraphy plugin package '${packageName}' was not found in global npm package roots. `
+      + `Run \`npm i -g ${packageName}\` first.`,
     );
   }
 
@@ -88,17 +51,11 @@ export async function readRequiredPackageManifest(
   if (!manifest) {
     throw new Error(`Package '${packageName}' is not a CodeGraphy plugin.`);
   }
-
   if (manifest.package !== packageName) {
     throw new Error(
-      `Package '${packageName}' resolved to CodeGraphy plugin '${manifest.package}'.`,
+      `Package '${packageName}' resolved to CodeGraphy plugin package '${manifest.package}'.`,
     );
   }
 
-  const descriptor = await readPluginPackageDisplayFields(packageRoot);
-  if (!descriptor) {
-    throw createMissingStaticPluginIdError(packageName);
-  }
-
-  return { ...manifest, ...descriptor, packageRoot, globallyEnabled: false };
+  return createInstalledRecords(packageRoot, manifest);
 }

@@ -46,15 +46,17 @@ describe('CodeGraphy package runtime', () => {
       '1.0.1',
     );
     writeCodeGraphyInstalledPluginCache({
-      version: 2,
+      version: 3,
       plugins: [{
         package: packageName,
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot: stalePackageRoot,
-        pluginId,
-        pluginName: 'Stale Runtime Plugin',
+        id: pluginId,
+        name: 'Stale Runtime Plugin',
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
@@ -97,14 +99,16 @@ describe('CodeGraphy package runtime', () => {
     const warn = vi.fn();
 
     writeCodeGraphyInstalledPluginCache({
-      version: 2,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-id-mismatch',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.static-id',
+        id: 'acme.static-id',
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
@@ -124,7 +128,7 @@ describe('CodeGraphy package runtime', () => {
 
     expect(loadedPlugins).toEqual([]);
     expect(warn).toHaveBeenCalledWith(
-      "CodeGraphy plugin 'acme.static-id' could not be loaded: Package '@acme/codegraphy-plugin-id-mismatch' exported plugin id 'acme.runtime-id', but codegraphy.json declares 'acme.static-id'.",
+      "CodeGraphy plugin 'acme.static-id' could not be loaded: Package '@acme/codegraphy-plugin-id-mismatch' exported plugin id 'acme.runtime-id', but its package manifest declares 'acme.static-id'.",
     );
   });
 });

@@ -13,7 +13,7 @@ export async function loadActivePluginPackage(input: {
   settingsById: ReadonlyMap<string, LoadCodeGraphyWorkspacePluginPackagesOptions['settings']['plugins'][number]>;
   warn(message: string): void;
 }): Promise<LoadedCodeGraphyWorkspacePluginPackage | undefined> {
-  const pluginId = input.record.pluginId ?? input.record.package;
+  const pluginId = input.record.id;
   if (input.disabledPluginIds.has(pluginId)) return undefined;
 
   const pluginSettings = input.settingsById.get(pluginId) ?? {

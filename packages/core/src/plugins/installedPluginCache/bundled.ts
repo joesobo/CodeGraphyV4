@@ -5,12 +5,11 @@ export function createBundledMarkdownInstalledPluginRecord(): CodeGraphyInstalle
   return {
     package: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.packageName,
     version: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.version,
+    id: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.id,
+    name: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.name,
+    host: 'core',
+    entry: './dist/plugin.js',
     apiVersion: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.apiVersion,
-    pluginId: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.id,
-    pluginName: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.name,
-    supportedExtensions: [...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.supportedExtensions],
-    updateImpact: { ...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.updateImpact },
-    disclosures: [...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.disclosures],
     packageRoot: '',
     globallyEnabled: true,
   };

@@ -57,7 +57,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
           id: 'acme.configured',
           name: 'Configured Plugin',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
+          apiVersion: '^4.0.0',
           supportedExtensions: ['.txt'],
           sources: [{
             id: 'configured-target',
@@ -127,17 +127,16 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
 
     await createPackageBackedPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 2,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-options',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.options',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.options',
-        defaultOptions: {
-          targetFile: 'target.txt',
-        },
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {

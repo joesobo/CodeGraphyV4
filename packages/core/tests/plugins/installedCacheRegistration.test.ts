@@ -11,39 +11,31 @@ import {
 import { createPackage } from './installedCacheFixture';
 
 describe('CodeGraphy installed plugin registration', () => {
-  it('registers an explicitly named globally installed plugin package to the user-level registry', async () => {
+  it('registers every descriptor from one globally installed package as disabled', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     await createPackage(globalRoot, 'private-plugin', {
       version: '4.5.6',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-        disclosures: ['externalProcesses'],
+        plugins: [
+          { id: 'private.core', host: 'core', entry: './core.js', apiVersion: '^4.0.0' },
+          { id: 'private.ui', host: 'acme.ui', entry: './ui.js', apiVersion: '^2.0.0' },
+        ],
       },
-    }, {
-      id: 'private-plugin',
     });
 
-    const record = await registerCodeGraphyInstalledPlugin({
+    const records = await registerCodeGraphyInstalledPlugin({
       homeDir,
       packageName: 'private-plugin',
       globalPackageRoots: [globalRoot],
     });
 
-    expect(record).toEqual({
-      package: 'private-plugin',
-      version: '4.5.6',
-      apiVersion: '^3.0.0',
-      pluginId: 'private-plugin',
-      disclosures: ['externalProcesses'],
-      packageRoot: path.join(globalRoot, 'private-plugin'),
-      globallyEnabled: false,
-    });
-    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
+    expect(records.map(record => record.id)).toEqual(['private.core', 'private.ui']);
+    expect(records.every(record => !record.globallyEnabled)).toBe(true);
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual(records);
   });
 
-  it('links a private local plugin package root into the user-level cache', async () => {
+  it('links a private local plugin package root into the user registry', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-private-package-'));
     await fs.writeFile(
@@ -52,36 +44,28 @@ describe('CodeGraphy installed plugin registration', () => {
         name: '@acme/codegraphy-private-plugin',
         version: '0.1.0',
         codegraphy: {
-          type: 'plugin',
-          apiVersion: '^3.0.0',
-          disclosures: ['workspaceWrites'],
+          plugins: [{
+            id: 'acme.private',
+            name: 'Acme Private',
+            host: 'codegraphy.extension',
+            entry: './dist/plugin.js',
+            apiVersion: '^1.0.0',
+          }],
         },
       }, null, 2)}\n`,
       'utf-8',
     );
-    await fs.writeFile(
-      path.join(packageRoot, 'codegraphy.json'),
-      `${JSON.stringify({
-        id: 'acme.private',
-        name: 'Acme Private',
-        supportedExtensions: ['.acme'],
-      }, null, 2)}\n`,
-      'utf-8',
-    );
 
-    const record = await linkCodeGraphyInstalledPluginPackage({
-      homeDir,
-      packageRoot,
-    });
+    const [record] = await linkCodeGraphyInstalledPluginPackage({ homeDir, packageRoot });
 
     expect(record).toEqual({
       package: '@acme/codegraphy-private-plugin',
       version: '0.1.0',
-      apiVersion: '^3.0.0',
-      pluginId: 'acme.private',
-      pluginName: 'Acme Private',
-      supportedExtensions: ['.acme'],
-      disclosures: ['workspaceWrites'],
+      id: 'acme.private',
+      name: 'Acme Private',
+      host: 'codegraphy.extension',
+      entry: './dist/plugin.js',
+      apiVersion: '^1.0.0',
       packageRoot,
       globallyEnabled: false,
     });

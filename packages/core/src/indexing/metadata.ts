@@ -27,7 +27,7 @@ export function createWorkspaceIndexPluginSignature(input: {
     ...runtimePlugins.map(plugin => plugin.id),
     ...input.loadedPackagePlugins.flatMap(loadedPlugin => [
       loadedPlugin.record.package,
-      loadedPlugin.record.pluginId,
+      loadedPlugin.record.id,
     ].filter((value): value is string => Boolean(value))),
   ]);
   const missingPackagePlugins = input.includeMissingConfiguredPlugins === false

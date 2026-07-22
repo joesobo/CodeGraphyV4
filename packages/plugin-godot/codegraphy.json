@@ -3,7 +3,7 @@
   "id": "codegraphy.gdscript",
   "name": "GDScript (Godot)",
   "version": "1.0.0",
-  "apiVersion": "^3.0.0",
+  "apiVersion": "^4.0.0",
   "supportedExtensions": [
     ".gd",
     ".godot",

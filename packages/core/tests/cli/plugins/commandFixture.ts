@@ -31,11 +31,12 @@ export function createPluginRecord(
 ): CodeGraphyInstalledPluginRecord {
   return {
     package: packageName,
-    pluginId,
+    id: pluginId,
     version: '1.2.3',
-    apiVersion: '^3.0.0',
-    disclosures: [],
-    defaultOptions: { includeTests: true },
+    host: 'core',
+    entry: './plugin.js',
+    apiVersion: '^4.0.0',
     packageRoot,
+    globallyEnabled: false,
   };
 }

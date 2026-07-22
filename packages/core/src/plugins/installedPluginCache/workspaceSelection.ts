@@ -167,37 +167,11 @@ export function enableCodeGraphyWorkspacePlugin(
   plugin: CodeGraphyInstalledPluginRecord,
 ): void {
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
-  const pluginId = plugin.pluginId ?? plugin.package;
-  const existingIndex = settings.plugins.findIndex(entry => entry.id === pluginId);
-  const entry = {
-    id: pluginId,
-    activation: 'enabled' as const,
-    ...(plugin.defaultOptions ? { options: { ...plugin.defaultOptions } } : {}),
-  };
-
-  const plugins = [...settings.plugins];
-  if (existingIndex >= 0) {
-    const mergedOptions = {
-      ...plugin.defaultOptions,
-      ...plugins[existingIndex]?.options,
-    };
-    plugins[existingIndex] = {
-      ...plugins[existingIndex],
-      id: pluginId,
-      activation: 'enabled',
-      ...(Object.keys(mergedOptions).length > 0 ? { options: mergedOptions } : {}),
-    };
-  } else {
-    plugins.push(entry);
-  }
-
   writeCodeGraphyWorkspaceSettings(workspaceRoot, {
     ...settings,
-    plugins: updateCodeGraphyWorkspacePluginSelection(plugins, {
-      pluginId,
+    plugins: updateCodeGraphyWorkspacePluginSelection(settings.plugins, {
+      pluginId: plugin.id,
       activation: 'enabled',
-      defaultOptions: plugin.defaultOptions,
-      updateImpact: plugin.updateImpact,
     }),
   });
 }

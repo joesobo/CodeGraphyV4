@@ -14,17 +14,17 @@ import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '../workspace/settings';
 import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 
 function getInstalledPluginId(record: CodeGraphyInstalledPluginRecord): string {
-  return record.pluginId ?? record.package;
+  return record.id;
 }
 
 async function readBundledPluginPackageRecords(
   packageRoots: Iterable<string> = [],
 ): Promise<CodeGraphyInstalledPluginRecord[]> {
-  const records = await Promise.all(
+  const recordGroups = await Promise.all(
     [...packageRoots].map(packageRoot => readPackageManifest(packageRoot)),
   );
 
-  return records.filter((record): record is CodeGraphyInstalledPluginRecord => record !== null);
+  return recordGroups.flatMap(records => records ?? []);
 }
 
 function preferBundledPluginRecords(
@@ -65,7 +65,7 @@ export async function loadCodeGraphyWorkspacePluginPackages(
   );
   const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
 
-  for (const record of activityState.packagePlugins) {
+  for (const record of activityState.packagePlugins.filter(plugin => plugin.host === 'core')) {
     const plugin = await loadActivePluginPackage({
       bundledPackageRoots,
       disabledPluginIds,

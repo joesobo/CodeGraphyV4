@@ -22,9 +22,9 @@ export interface PluginsCommandDependencies {
   inheritWorkspacePlugin(workspaceRoot: string, pluginId: string): void;
   linkInstalledPluginPackage(
     options: LinkCodeGraphyInstalledPluginPackageOptions,
-  ): Promise<CodeGraphyInstalledPluginRecord>;
+  ): Promise<CodeGraphyInstalledPluginRecord[]>;
   readInstalledPluginCache(options?: CodeGraphyUserStateOptions): CodeGraphyInstalledPluginCache;
-  registerInstalledPlugin(options: RegisterCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord>;
+  registerInstalledPlugin(options: RegisterCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord[]>;
   resolveGlobalPackageRoots(): string[];
   setGlobalPluginActivation(
     pluginId: string,

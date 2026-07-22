@@ -15,13 +15,14 @@ describe('cli/plugins/disable', () => {
       inheritWorkspacePlugin: vi.fn(),
       linkInstalledPluginPackage: vi.fn(),
       readInstalledPluginCache: () => ({
-        version: 2,
+        version: 3,
         plugins: [{
           package: '@codegraphy-dev/plugin-particles',
-          pluginId: 'codegraphy.particles',
+          id: 'codegraphy.particles',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
-          disclosures: [],
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           packageRoot: '/global/plugin-particles',
           globallyEnabled: true,
         }],

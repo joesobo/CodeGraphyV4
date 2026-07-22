@@ -11,13 +11,14 @@ describe('workspace status plugin signature', () => {
   it('includes globally enabled plugins inherited by the workspace', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-status-home-'));
     writeCodeGraphyInstalledPluginCache({
-      version: 2,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-example',
-        pluginId: 'acme.example',
+        id: 'acme.example',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot: '/global/codegraphy-plugin-example',
         globallyEnabled: true,
       }],

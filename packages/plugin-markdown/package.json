@@ -35,8 +35,12 @@
     "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "disclosures": []
+    "plugins": [{
+      "id": "codegraphy.markdown",
+      "name": "Markdown",
+      "host": "core",
+      "entry": "./dist/plugin.js",
+      "apiVersion": "^4.0.0"
+    }]
   }
 }

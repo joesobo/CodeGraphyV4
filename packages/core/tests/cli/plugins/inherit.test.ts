@@ -9,6 +9,7 @@ describe('cli/plugins/inherit', () => {
     const dependencies = {
       cwd: () => '/workspace/current',
       inheritWorkspacePlugin,
+      readInstalledPluginCache: () => ({ version: 3, plugins: [] }),
     } as unknown as PluginsCommandDependencies;
 
     expect(runInheritCommand({

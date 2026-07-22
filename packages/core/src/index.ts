@@ -278,9 +278,10 @@ export type {
 } from './plugins/packageRuntime';
 export { loadCodeGraphyWorkspacePluginPackages } from './plugins/packageRuntime';
 export type {
-  CodeGraphyPluginDisclosure,
+  CodeGraphyPluginPackageDescriptor,
   CodeGraphyPluginPackageManifest,
 } from './plugins/packageManifest';
+export type { CodeGraphyPluginDisclosure } from './plugins/disclosures';
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
   CodeGraphyWorkspacePluginIndexingPlan,

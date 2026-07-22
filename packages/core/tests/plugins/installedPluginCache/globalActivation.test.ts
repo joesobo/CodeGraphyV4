@@ -13,24 +13,26 @@ describe('plugins/installedPluginCache global activation', () => {
   it('changes the global default for one installed plugin without loading it', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     writeCodeGraphyInstalledPluginCache({
-      version: 2,
+      version: 3,
       plugins: [
         {
           package: '@codegraphy-dev/plugin-vue',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
-          disclosures: [],
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           packageRoot: '/global/plugin-vue',
-          pluginId: 'codegraphy.vue',
+          id: 'codegraphy.vue',
           globallyEnabled: false,
         },
         {
           package: '@codegraphy-dev/plugin-particles',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
-          disclosures: [],
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           packageRoot: '/global/plugin-particles',
-          pluginId: 'codegraphy.particles',
+          id: 'codegraphy.particles',
           globallyEnabled: false,
         },
       ],
@@ -39,8 +41,8 @@ describe('plugins/installedPluginCache global activation', () => {
     setCodeGraphyInstalledPluginGlobalActivation('codegraphy.particles', true, { homeDir });
 
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([
-      expect.objectContaining({ pluginId: 'codegraphy.vue', globallyEnabled: false }),
-      expect.objectContaining({ pluginId: 'codegraphy.particles', globallyEnabled: true }),
+      expect.objectContaining({ id: 'codegraphy.vue', globallyEnabled: false }),
+      expect.objectContaining({ id: 'codegraphy.particles', globallyEnabled: true }),
     ]);
   });
 });

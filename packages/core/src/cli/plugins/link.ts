@@ -13,13 +13,13 @@ export async function runLinkCommand(
     };
   }
 
-  const record = await dependencies.linkInstalledPluginPackage({
+  const records = await dependencies.linkInstalledPluginPackage({
     homeDir: dependencies.homeDir,
     packageRoot: command.packageRoot,
   });
 
   return {
     exitCode: 0,
-    output: `Linked ${record.package} from ${command.packageRoot} into ~/.codegraphy/plugins.json.`,
+    output: `Linked ${records.length} plugin${records.length === 1 ? '' : 's'} from ${command.packageRoot} into ~/.codegraphy/plugins.json.`,
   };
 }

@@ -2,6 +2,7 @@ import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
+import { findRegisteredPlugins } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runInheritCommand(
@@ -13,9 +14,16 @@ export function runInheritCommand(
   }
 
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
-  dependencies.inheritWorkspacePlugin(workspaceRoot, command.packageName);
+  const plugins = findRegisteredPlugins(
+    dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
+    command.packageName,
+  );
+  const pluginIds = plugins.length > 0 ? plugins.map(plugin => plugin.id) : [command.packageName];
+  for (const pluginId of pluginIds) {
+    dependencies.inheritWorkspacePlugin(workspaceRoot, pluginId);
+  }
   return {
     exitCode: 0,
-    output: `${command.packageName} now uses the global default for ${workspaceRoot}.`,
+    output: `${pluginIds.join(', ')} now uses the global default for ${workspaceRoot}.`,
   };
 }

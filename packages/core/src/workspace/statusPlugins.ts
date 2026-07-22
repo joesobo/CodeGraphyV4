@@ -30,7 +30,7 @@ export function createDefaultStatusPluginSignature(
   const installedPlugins = readCodeGraphyInstalledPluginCache({
     ...(homeDir ? { homeDir } : {}),
   }).plugins;
-  const installedPluginIds = new Set(installedPlugins.map(plugin => plugin.pluginId ?? plugin.package));
+  const installedPluginIds = new Set(installedPlugins.map(plugin => plugin.id));
   const activity = createPluginActivityState({
     settings,
     installedPlugins,

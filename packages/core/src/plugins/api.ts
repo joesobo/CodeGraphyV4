@@ -1,1 +1,1 @@
-export const CORE_PLUGIN_API_VERSION = '3.0.0';
+export const CORE_PLUGIN_API_VERSION = '4.0.0';

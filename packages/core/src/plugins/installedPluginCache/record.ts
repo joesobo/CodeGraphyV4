@@ -1,58 +1,33 @@
 import { z } from 'zod';
-import { readDisclosures } from '../disclosures';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
-import { readPluginUpdateImpact } from '../updateImpact';
-import { looseStringArraySchema, unknownRecordSchema } from '../../values';
 
-const nonEmptyStringSchema = z.string().min(1);
+const nonEmptyStringSchema = z.string().trim().min(1);
 
-const installedPluginRecordShapeSchema = z.looseObject({
+const installedPluginRecordSchema = z.looseObject({
   package: nonEmptyStringSchema,
   version: nonEmptyStringSchema,
-  apiVersion: nonEmptyStringSchema,
   packageRoot: nonEmptyStringSchema,
-  globallyEnabled: z.boolean().optional().catch(undefined),
-  disclosures: z.unknown(),
-  defaultOptions: unknownRecordSchema.optional().catch(undefined),
-  pluginId: nonEmptyStringSchema.optional().catch(undefined),
-  pluginName: nonEmptyStringSchema.optional().catch(undefined),
-  updateImpact: z.unknown(),
-  supportedExtensions: looseStringArraySchema
-    .transform(entries => entries.filter(entry => entry.length > 0)),
+  globallyEnabled: z.boolean().catch(false),
+  id: nonEmptyStringSchema,
+  name: nonEmptyStringSchema.optional().catch(undefined),
+  host: nonEmptyStringSchema,
+  entry: nonEmptyStringSchema,
+  apiVersion: nonEmptyStringSchema,
 });
 
 export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstalledPluginRecord | null {
-  const parsed = installedPluginRecordShapeSchema.safeParse(value);
-  if (!parsed.success) {
-    return null;
-  }
+  const parsed = installedPluginRecordSchema.safeParse(value);
+  if (!parsed.success) return null;
 
-  const shape = parsed.data;
-  const record: CodeGraphyInstalledPluginRecord = {
-    package: shape.package,
-    version: shape.version,
-    apiVersion: shape.apiVersion,
-    disclosures: readDisclosures(shape.disclosures),
-    packageRoot: shape.packageRoot,
-    globallyEnabled: shape.globallyEnabled ?? false,
+  return {
+    package: parsed.data.package,
+    version: parsed.data.version,
+    packageRoot: parsed.data.packageRoot,
+    globallyEnabled: parsed.data.globallyEnabled,
+    id: parsed.data.id,
+    ...(parsed.data.name ? { name: parsed.data.name } : {}),
+    host: parsed.data.host,
+    entry: parsed.data.entry,
+    apiVersion: parsed.data.apiVersion,
   };
-
-  if (shape.defaultOptions) {
-    record.defaultOptions = { ...shape.defaultOptions };
-  }
-  if (shape.pluginId) {
-    record.pluginId = shape.pluginId;
-  }
-  if (shape.pluginName) {
-    record.pluginName = shape.pluginName;
-  }
-  const updateImpact = readPluginUpdateImpact(shape.updateImpact);
-  if (updateImpact) {
-    record.updateImpact = updateImpact;
-  }
-  if (shape.supportedExtensions.length > 0) {
-    record.supportedExtensions = shape.supportedExtensions;
-  }
-
-  return record;
 }

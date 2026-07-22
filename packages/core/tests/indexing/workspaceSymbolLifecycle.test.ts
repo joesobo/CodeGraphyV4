@@ -14,7 +14,7 @@ function createSymbolPlugin(analyzeFile: ReturnType<typeof vi.fn>): IPlugin {
     id: 'codegraphy.test-symbol-refresh',
     name: 'Test Symbol Refresh',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     async onFilesChanged() {
       return [];

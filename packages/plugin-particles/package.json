@@ -62,7 +62,12 @@
     "@types/react-dom": "^18.2.18"
   },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0"
+    "plugins": [{
+      "id": "codegraphy.particles",
+      "name": "Particles",
+      "host": "codegraphy.extension",
+      "entry": "./dist/plugin.js",
+      "apiVersion": "^1.0.0"
+    }]
   }
 }

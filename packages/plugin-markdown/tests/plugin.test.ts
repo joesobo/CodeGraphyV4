@@ -51,7 +51,7 @@ describe('createMarkdownPlugin', () => {
     it('exposes the apiVersion from codegraphy.json', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.apiVersion).toBe('^3.0.0');
+      expect(plugin.apiVersion).toBe('^4.0.0');
     });
 
     it('supports wildcard file scanning', () => {
