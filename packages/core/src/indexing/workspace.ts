@@ -11,6 +11,7 @@ import {
 } from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { createWorkspacePluginAnalysisContext } from '../plugins/context/workspace';
+import type { CorePluginRegistry } from '../plugins/registry';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { readCodeGraphyWorkspaceStatus } from '../workspace/status';
 import { analyzeWorkspaceIndexFiles } from './analysis';
@@ -59,23 +60,34 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(settings, options.disabledPlugins);
-  const { registry, loadedPackagePlugins } = await timeIndexPhase(
-    options,
-    'load-plugins',
-    () => createWorkspaceIndexRegistry(
+  let loadedRegistry: CorePluginRegistry | undefined;
+  let registryResult: Awaited<ReturnType<typeof createWorkspaceIndexRegistry>>;
+  try {
+    registryResult = await timeIndexPhase(
       options,
-      settings,
-      workspaceRoot,
-      disabledPlugins,
-    ),
-    result => ({
-      loadedPackagePlugins: result.loadedPackagePlugins.length,
-      registeredPlugins: result.registry.list().length,
-    }),
-  );
+      'load-plugins',
+      async () => {
+        const result = await createWorkspaceIndexRegistry(
+          options,
+          settings,
+          workspaceRoot,
+          disabledPlugins,
+        );
+        loadedRegistry = result.registry;
+        return result;
+      },
+      result => ({
+        loadedPackagePlugins: result.loadedPackagePlugins.length,
+        registeredPlugins: result.registry.list().length,
+      }),
+    );
+  } catch (error) {
+    loadedRegistry?.disposeAll();
+    throw error;
+  }
+  const { registry, loadedPackagePlugins } = registryResult;
 
   try {
-
   await timeIndexPhase(
     options,
     'initialize-plugins',

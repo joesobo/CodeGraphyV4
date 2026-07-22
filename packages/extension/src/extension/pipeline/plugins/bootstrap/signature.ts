@@ -7,10 +7,26 @@ interface PluginRuntimeIdentity {
   apiVersion: string;
 }
 
+interface WorkspacePluginPackageIdentity {
+  descriptor: {
+    apiVersion: string;
+    entry: string;
+    host: string;
+    id: string;
+    name?: string;
+  };
+  package: {
+    name: string;
+    root: string;
+    version: string;
+  };
+  buildIdentity: string;
+}
+
 function createWorkspacePluginPackageIdentity(
   record: CodeGraphyInstalledPluginRecord,
   buildIdentity: string,
-): Record<string, unknown> {
+): WorkspacePluginPackageIdentity {
   return {
     descriptor: {
       id: record.id,

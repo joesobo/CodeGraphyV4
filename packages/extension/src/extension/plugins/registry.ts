@@ -43,6 +43,7 @@ export function assertExtensionPluginDescriptorApiCompatibility(
 export class ExtensionPluginRegistry {
   private readonly plugins = new Map<string, ExtensionPluginInfo>();
   private readonly initializedPlugins = new Set<string>();
+  private readonly webviewReadyPlugins = new Set<string>();
   private webviewReady = false;
 
   register(plugin: IExtensionPlugin, options: RegisterExtensionPluginOptions = {}): void {
@@ -108,6 +109,7 @@ export class ExtensionPluginRegistry {
       console.error(`[CodeGraphy] Error unloading Extension plugin ${pluginId}:`, error);
     }
     this.initializedPlugins.delete(pluginId);
+    this.webviewReadyPlugins.delete(pluginId);
     return this.plugins.delete(pluginId);
   }
 
@@ -118,6 +120,10 @@ export class ExtensionPluginRegistry {
   }
 
   private notifyPluginWebviewReady(info: ExtensionPluginInfo): void {
+    if (this.webviewReadyPlugins.has(info.plugin.id)) {
+      return;
+    }
+    this.webviewReadyPlugins.add(info.plugin.id);
     try {
       info.plugin.onWebviewReady?.();
     } catch (error) {

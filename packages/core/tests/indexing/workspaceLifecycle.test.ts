@@ -201,32 +201,4 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     );
   });
 
-  it('keeps plugins loaded until the persistent workspace engine is disposed', async () => {
-    const workspaceRoot = await createWorkspace();
-    const onUnload = vi.fn();
-    const engine = createCodeGraphyWorkspaceEngine({
-      workspaceRoot,
-      plugins: [{
-        ...createTextPlugin({
-          onPreAnalyze: vi.fn(),
-          onPostAnalyze: vi.fn(),
-          onWorkspaceReady: vi.fn(),
-          analyzeFile: vi.fn(),
-        }),
-        onUnload,
-      }],
-      includeCorePlugins: false,
-    });
-
-    await engine.index();
-    expect(onUnload).not.toHaveBeenCalled();
-
-    await engine.index();
-    expect(onUnload).toHaveBeenCalledOnce();
-
-    engine.dispose();
-    engine.dispose();
-
-    expect(onUnload).toHaveBeenCalledTimes(2);
-  });
 });

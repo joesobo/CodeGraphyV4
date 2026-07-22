@@ -3,14 +3,14 @@ import {
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
 } from '@codegraphy-dev/core';
-import { loadWorkspaceExtensionPluginRegistrations } from '../../../../src/extension/pipeline/plugins/bootstrap/extensionPackages';
+import { loadWorkspaceExtensionPluginRegistrations } from '../../../../../src/extension/pipeline/plugins/bootstrap/extensionPackages';
 import {
   createPackageFixtureRoot,
   createWorkspace,
   fs,
   os,
   path,
-} from './bootstrapFixture';
+} from '../bootstrapFixture';
 
 describe('pipeline/plugins linked package reloads', () => {
   it('loads a rebuilt Extension plugin when only a transitive module changes', async () => {

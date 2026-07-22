@@ -17,22 +17,27 @@ export async function createWorkspaceIndexRegistry(
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
 }> {
   const registry = new CorePluginRegistry();
-  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
-    disabledPlugins,
-    settings,
-    workspaceRoot,
-    ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
-    ...(options.warn ? { warn: options.warn } : {}),
-  });
-
-  await registerDefaultIndexPlugins(registry, { ...options, disabledPlugins }, settings);
-  for (const loadedPlugin of loadedPackagePlugins) {
-    registry.register(loadedPlugin.plugin, {
-      sourcePackage: loadedPlugin.packageName,
-      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
+  try {
+    const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+      disabledPlugins,
+      settings,
+      workspaceRoot,
+      ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
+      ...(options.warn ? { warn: options.warn } : {}),
     });
-  }
 
-  registerProvidedPlugins(registry, options.plugins, disabledPlugins);
-  return { registry, loadedPackagePlugins };
+    await registerDefaultIndexPlugins(registry, { ...options, disabledPlugins }, settings);
+    for (const loadedPlugin of loadedPackagePlugins) {
+      registry.register(loadedPlugin.plugin, {
+        sourcePackage: loadedPlugin.packageName,
+        ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
+      });
+    }
+
+    registerProvidedPlugins(registry, options.plugins, disabledPlugins);
+    return { registry, loadedPackagePlugins };
+  } catch (error) {
+    registry.disposeAll();
+    throw error;
+  }
 }

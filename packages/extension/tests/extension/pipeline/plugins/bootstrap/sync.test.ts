@@ -9,7 +9,7 @@ import {
   fs,
   os,
   path,
-} from './bootstrapFixture';
+} from '../bootstrapFixture';
 
 interface RegisteredCorePlugin {
   plugin: { id: string; version: string };

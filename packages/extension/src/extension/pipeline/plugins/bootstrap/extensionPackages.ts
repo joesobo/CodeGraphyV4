@@ -57,7 +57,7 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
   }
 }
 
-async function prepareExtensionPlugin(
+async function loadExtensionPluginModule(
   record: CodeGraphyInstalledPluginRecord,
   settings: CodeGraphyWorkspaceSettings['plugins'][number],
 ): Promise<{
@@ -101,7 +101,7 @@ export async function prepareWorkspaceExtensionPluginCandidates(
         id: record.id,
         activation: 'inherit' as const,
       };
-      const { buildIdentity, moduleNamespace, options } = await prepareExtensionPlugin(
+      const { buildIdentity, moduleNamespace, options } = await loadExtensionPluginModule(
         record,
         pluginSettings,
       );

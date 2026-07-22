@@ -174,6 +174,25 @@ describe('ExtensionPluginRegistry', () => {
     expect(calls).toEqual(['initialize', 'webview-ready']);
   });
 
+  it('notifies each plugin instance once when readiness is reported more than once', async () => {
+    const firstReady = vi.fn();
+    const replacementReady = vi.fn();
+    const registry = new ExtensionPluginRegistry();
+
+    registry.register(createPlugin({ id: 'acme.repeated', onWebviewReady: firstReady }));
+    await registry.initializeAll('/workspace');
+    registry.notifyWebviewReady();
+    registry.notifyWebviewReady();
+
+    expect(firstReady).toHaveBeenCalledOnce();
+
+    registry.unregister('acme.repeated');
+    registry.register(createPlugin({ id: 'acme.repeated', onWebviewReady: replacementReady }));
+    await registry.initializeAll('/workspace');
+
+    expect(replacementReady).toHaveBeenCalledOnce();
+  });
+
   it('returns false for unknown plugins and unloads registered plugins', async () => {
     const initialize = vi.fn(async () => undefined);
     const onUnload = vi.fn();
