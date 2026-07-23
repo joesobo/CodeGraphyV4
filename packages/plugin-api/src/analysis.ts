@@ -13,7 +13,7 @@ export interface IPluginNodeType {
   defaultVisible: boolean;
   description?: IPluginGraphTypeDescription;
   parentId?: NodeType;
-  matchSymbolKinds?: readonly string[];
+  matchSymbolKinds?: string[];
   matchSymbolPluginKind?: string;
   matchSymbolSource?: string;
   matchSymbolLanguage?: string;

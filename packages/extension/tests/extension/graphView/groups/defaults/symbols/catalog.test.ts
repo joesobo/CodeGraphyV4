@@ -5,7 +5,6 @@ import { CALLABLE_SYMBOL_GROUPS } from '../../../../../../src/extension/graphVie
 import { TYPE_LIKE_SYMBOL_GROUPS } from '../../../../../../src/extension/graphView/groups/defaults/symbols/core/typeLike';
 import { VARIABLE_SYMBOL_GROUPS } from '../../../../../../src/extension/graphView/groups/defaults/symbols/core/variables';
 import { createMaterialSymbolIconDataUrl } from '../../../../../../src/extension/graphView/groups/defaults/symbols/icons';
-import { PLUGIN_SYMBOL_GROUPS } from '../../../../../../src/extension/graphView/groups/defaults/symbols/plugins';
 
 describe('graphView/default symbol group catalog', () => {
   it('defines the core symbol groups in display order', () => {
@@ -180,116 +179,6 @@ describe('graphView/default symbol group catalog', () => {
       ...CALLABLE_SYMBOL_GROUPS,
       ...TYPE_LIKE_SYMBOL_GROUPS,
       ...VARIABLE_SYMBOL_GROUPS,
-    ]);
-  });
-
-  it('defines plugin-specific symbol groups with plugin ownership metadata', () => {
-    expect(PLUGIN_SYMBOL_GROUPS.map(withoutImageUrl)).toEqual([
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
-        displayLabel: 'class_name',
-        color: '#478CBF',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'class',
-        matchSymbolPluginKind: 'godot-class-name',
-        matchSymbolSource: 'codegraphy.gdscript',
-        matchSymbolLanguage: 'gdscript',
-        matchSymbolFilePath: '**/*.gd',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:scene',
-        displayLabel: 'Scene',
-        color: '#478CBF',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'scene',
-        matchSymbolPluginKind: 'scene',
-        matchSymbolSource: 'codegraphy.gdscript',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:resource',
-        displayLabel: 'Resource',
-        color: '#F59E0B',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'resource',
-        matchSymbolPluginKind: 'resource',
-        matchSymbolSource: 'codegraphy.gdscript',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:autoload',
-        displayLabel: 'Autoload',
-        color: '#10B981',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'autoload',
-        matchSymbolPluginKind: 'autoload',
-        matchSymbolSource: 'codegraphy.gdscript',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:scene-node',
-        displayLabel: 'Scene Node',
-        color: '#A855F7',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'scene-node',
-        matchSymbolPluginKind: 'scene-node',
-        matchSymbolSource: 'codegraphy.gdscript',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:signal',
-        displayLabel: 'Signal',
-        color: '#EF4444',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'signal',
-        matchSymbolPluginKind: 'signal',
-        matchSymbolSource: 'codegraphy.gdscript',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:exported-property',
-        displayLabel: 'Exported Property',
-        color: '#2DD4BF',
-        matchNodeType: 'variable',
-        matchSymbolKind: 'variable',
-        matchSymbolPluginKind: 'exported-property',
-        matchSymbolSource: 'codegraphy.gdscript',
-        matchSymbolLanguage: 'gdscript',
-        matchSymbolFilePath: '**/*.gd',
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      },
-      {
-        id: 'plugin:codegraphy.unity:symbol:game-object',
-        displayLabel: 'GameObject',
-        color: '#0EA5E9',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'game-object',
-        matchSymbolPluginKind: 'game-object',
-        matchSymbolSource: 'codegraphy.unity',
-        matchSymbolLanguage: 'unity',
-        pluginId: 'codegraphy.unity',
-        pluginName: 'Unity',
-      },
-      {
-        id: 'plugin:codegraphy.unity:symbol:component',
-        displayLabel: 'Component',
-        color: '#22C55E',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'component',
-        matchSymbolPluginKind: 'component',
-        matchSymbolSource: 'codegraphy.unity',
-        matchSymbolLanguage: 'unity',
-        pluginId: 'codegraphy.unity',
-        pluginName: 'Unity',
-      },
     ]);
   });
 

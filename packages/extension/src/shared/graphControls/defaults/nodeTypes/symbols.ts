@@ -4,8 +4,6 @@ import { createSymbolCallableNodeTypes } from './symbols/callables';
 import { createSymbolCompositionNodeTypes } from './symbols/composition';
 import { createSymbolDataNodeTypes } from './symbols/data';
 import { createSymbolEventNodeTypes } from './symbols/events';
-import { createGodotAssetNodeTypes } from './symbols/godotAssets';
-import { createGodotMemberNodeTypes } from './symbols/godotMembers';
 import { createSymbolMemberNodeTypes } from './symbols/members';
 import { createSymbolRootNodeType } from './symbols/root';
 import { createSymbolScopeNodeTypes } from './symbols/scopes';
@@ -44,7 +42,5 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
     aliases.typedefNodeType,
     aliases.aliasNodeType,
     composition.templateNodeType,
-    ...createGodotAssetNodeTypes(),
-    ...createGodotMemberNodeTypes(),
   ];
 }

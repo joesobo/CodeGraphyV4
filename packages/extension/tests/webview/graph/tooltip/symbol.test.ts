@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readTooltipSymbol } from '../../../../src/webview/components/graph/tooltip/symbol';
 
 describe('graph/tooltip/symbol', () => {
-  it('returns symbol display metadata with known plugin source labels', () => {
+  it('does not infer interface labels from Core symbol sources', () => {
     expect(readTooltipSymbol('src/app.ts#ready:function', {
       nodes: [
         {
@@ -22,7 +22,6 @@ describe('graph/tooltip/symbol', () => {
       name: 'ready',
       kind: 'function',
       filePath: 'src/app.ts',
-      plugin: 'GDScript (Godot)',
     });
   });
 

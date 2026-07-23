@@ -164,7 +164,6 @@ describe('tooltipModel', () => {
         name: 'boot',
         kind: 'function',
         filePath: 'src/app.ts',
-        plugin: 'GDScript (Godot)',
       },
     }));
     expect(result.shouldRequestFileInfo).toBe(false);

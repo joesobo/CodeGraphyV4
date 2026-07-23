@@ -1,7 +1,6 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
 import { createStructuralGraphNodeTypes } from './nodeTypes/structural';
 import { createSymbolGraphNodeTypes } from './nodeTypes/symbols';
-import { createUnityGraphNodeTypes } from './nodeTypes/unity';
 import { createVariableGraphNodeTypes } from './nodeTypes/variables';
 
 export function createCoreGraphNodeTypes(): IGraphNodeTypeDefinition[] {
@@ -9,7 +8,6 @@ export function createCoreGraphNodeTypes(): IGraphNodeTypeDefinition[] {
     ...createStructuralGraphNodeTypes(),
     ...createSymbolGraphNodeTypes(),
     ...createVariableGraphNodeTypes(),
-    ...createUnityGraphNodeTypes(),
   ];
 }
 
