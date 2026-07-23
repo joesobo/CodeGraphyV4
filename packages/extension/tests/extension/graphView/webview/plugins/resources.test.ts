@@ -57,6 +57,27 @@ describe('graphView/webview/plugins/resources', () => {
     expect(panel.webview.options).toBe(panelOptions);
   });
 
+  it('does not narrow resource roots on a live webview', () => {
+    const roots: vscode.Uri[] = [
+      vscode.Uri.file('/test/extension'),
+      vscode.Uri.file('/test/plugin'),
+      vscode.Uri.file('/test/workspace'),
+    ];
+    const viewOptions = {
+      enableScripts: true,
+      localResourceRoots: roots,
+    };
+    const view = { webview: { options: viewOptions } };
+
+    refreshGraphViewResourceRoots(
+      view as unknown as vscode.WebviewView,
+      [],
+      [roots[0]!, roots[2]!],
+    );
+
+    expect(view.webview.options).toBe(viewOptions);
+  });
+
   it('rewrites webview options when local resource roots change', () => {
     const viewOptions = {
       enableScripts: true,
