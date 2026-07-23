@@ -15,7 +15,8 @@
     "./testing": {
       "types": "./tests/api.ts",
       "default": "./tests/api.ts"
-    }
+    },
+    "./physics.wasm": "./src/physics/wasm/generated/physics.wasm"
   },
   "repository": {
     "type": "git",
@@ -46,7 +47,8 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      }
+      },
+      "./physics.wasm": "./dist/generated/physics.wasm"
     }
   },
   "files": [

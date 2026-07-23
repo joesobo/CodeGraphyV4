@@ -21,6 +21,7 @@ packages/extension/tests/playwright-vscode/generated-ir/
 reports/
 .stryker-tmp/
 .pnpm-store/
+/examples/CodeGraphy.tldraw
 
 .claude/
 
