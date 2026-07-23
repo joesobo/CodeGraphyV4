@@ -12,6 +12,7 @@ import {
   type ForceControl,
   type ForceSettings,
 } from './model';
+import { NodeInspectorPanel } from '../nodeInspector/view';
 
 interface DocumentConfig {
   components: TLComponents;
@@ -109,6 +110,7 @@ export default function createCodeGraphyConfig({ config }: ConfigScriptContext):
     return createElement(Fragment, null,
       ExistingCanvasUi ? createElement(ExistingCanvasUi) : null,
       createElement(ForcePanel),
+      createElement(NodeInspectorPanel),
     );
   }
   return {

@@ -159,6 +159,20 @@ The canvas includes these controls:
 
 Changes apply to the active graph and remain saved in the document.
 
+## Inspect a node
+
+Double-click a generated node or its file icon. CodeGraphy opens one inspector
+on the right side of the canvas with:
+
+- the file name and workspace-relative path
+- the file type
+- total, incoming, and outgoing connection counts
+- each incoming and outgoing relationship
+
+Double-click another node to update the same inspector. Click an empty part of
+the canvas to close it. The inspector is a temporary canvas control, so it does
+not add a shape to the saved document.
+
 ## Troubleshooting
 
 ### Every node looks the same size

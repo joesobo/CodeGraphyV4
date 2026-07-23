@@ -9,16 +9,23 @@ const mocks = vi.hoisted(() => ({
   updatePage: vi.fn(),
 }));
 
-vi.mock('tldraw', () => ({
-  useEditor: () => ({
+vi.mock('tldraw', () => {
+  const editor = {
+    getEditingShape: () => undefined,
     getCurrentPage: () => ({
       id: 'page:page',
       meta: {},
     }),
+    getCurrentPageShapes: () => [],
+    getOnlySelectedShape: () => null,
+    setEditingShape: () => undefined,
     updatePage: mocks.updatePage,
-  }),
-  useValue: (_name: string, read: () => unknown) => read(),
-}));
+  };
+  return {
+    useEditor: () => editor,
+    useValue: (_name: string, read: () => unknown) => read(),
+  };
+});
 
 import createCodeGraphyConfig from '../../../src/documentRuntime/forceControls/view';
 
