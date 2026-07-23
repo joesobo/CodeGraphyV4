@@ -199,4 +199,152 @@ describe('graph/model/runtimeContributions', () => {
       visibleGraph: { nodes: [], edges: [] },
     });
   });
+
+  it('continues creating runtime nodes when an earlier plugin contribution throws', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const graphViewContributions: ExtensionGraphViewContributionSet = {
+      ...createEmptyContributions(),
+      runtimeNodes: [
+        {
+          pluginId: 'broken.plugin',
+          contribution: {
+            id: 'broken-nodes',
+            label: 'Broken nodes',
+            createNodes() {
+              throw new Error('node creation failed');
+            },
+          },
+        },
+        {
+          pluginId: 'healthy.plugin',
+          contribution: {
+            id: 'healthy-nodes',
+            label: 'Healthy nodes',
+            createNodes: () => [{
+              id: 'runtime:healthy',
+              label: 'Healthy',
+              color: '#84cc16',
+            }],
+          },
+        },
+      ],
+    };
+
+    const graphData = buildGraphData({
+      data: { nodes: [], edges: [] },
+      graphViewContributions,
+      nodeSizeMode: 'connections',
+      theme: 'dark',
+      favorites: new Set(),
+      bidirectionalMode: 'separate',
+    });
+
+    expect(graphData.nodes.map(node => node.id)).toEqual(['runtime:healthy']);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Runtime node contribution 'broken-nodes' from plugin 'broken.plugin' failed"),
+      expect.any(Error),
+    );
+  });
+
+  it('continues creating runtime edges when an earlier plugin contribution throws', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const graphViewContributions: ExtensionGraphViewContributionSet = {
+      ...createEmptyContributions(),
+      runtimeEdges: [
+        {
+          pluginId: 'broken.plugin',
+          contribution: {
+            id: 'broken-edges',
+            label: 'Broken edges',
+            createEdges() {
+              throw new Error('edge creation failed');
+            },
+          },
+        },
+        {
+          pluginId: 'healthy.plugin',
+          contribution: {
+            id: 'healthy-edges',
+            label: 'Healthy edges',
+            createEdges: () => [{
+              id: 'src/a.ts->src/b.ts#runtime',
+              from: 'src/a.ts',
+              to: 'src/b.ts',
+              kind: 'runtime',
+              sources: [],
+            }],
+          },
+        },
+      ],
+    };
+
+    const graphData = buildGraphData({
+      data: {
+        nodes: [
+          { id: 'src/a.ts', label: 'a.ts', color: '#60a5fa' },
+          { id: 'src/b.ts', label: 'b.ts', color: '#60a5fa' },
+        ],
+        edges: [],
+      },
+      graphViewContributions,
+      nodeSizeMode: 'connections',
+      theme: 'dark',
+      favorites: new Set(),
+      bidirectionalMode: 'separate',
+    });
+
+    expect(graphData.links.map(link => link.id)).toEqual(['src/a.ts->src/b.ts#runtime']);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Runtime edge contribution 'broken-edges' from plugin 'broken.plugin' failed"),
+      expect.any(Error),
+    );
+  });
+
+  it('continues projecting the graph when an earlier plugin contribution throws', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const healthyProjection = vi.fn(({ visibleGraph }: { visibleGraph: IGraphData }) => visibleGraph);
+    const graphViewContributions: ExtensionGraphViewContributionSet = {
+      ...createEmptyContributions(),
+      projections: [
+        {
+          pluginId: 'broken.plugin',
+          contribution: {
+            id: 'broken-projection',
+            label: 'Broken projection',
+            project() {
+              throw new Error('projection failed');
+            },
+          },
+        },
+        {
+          pluginId: 'healthy.plugin',
+          contribution: {
+            id: 'healthy-projection',
+            label: 'Healthy projection',
+            project: healthyProjection,
+          },
+        },
+      ],
+    };
+    const data: IGraphData = {
+      nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#60a5fa' }],
+      edges: [],
+    };
+
+    const graphData = buildGraphData({
+      data,
+      graphViewContributions,
+      nodeSizeMode: 'connections',
+      theme: 'dark',
+      favorites: new Set(),
+      bidirectionalMode: 'separate',
+    });
+
+    expect(graphData.nodes.map(node => node.id)).toEqual(['src/a.ts']);
+    expect(healthyProjection).toHaveBeenCalledWith({ visibleGraph: data });
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Projection contribution 'broken-projection' from plugin 'broken.plugin' failed"),
+      expect.any(Error),
+    );
+  });
 });
