@@ -26,7 +26,7 @@ export function replayWebviewReadyHydrationSettings(
   handlers: GraphViewReadyHandlers,
 ): void {
   replayWebviewReadySettingsMessages(state, handlers, {
-    includeFilterPatterns: false,
+    includeFilterPatterns: true,
     includePluginBootstrap: false,
   });
 }

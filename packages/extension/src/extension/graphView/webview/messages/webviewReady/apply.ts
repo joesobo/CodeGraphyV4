@@ -3,10 +3,6 @@ import type {
   GraphViewReadyState,
 } from './contracts';
 import { emitWebviewBootstrapCompleted } from './diagnostics';
-import { areWebviewReadyFilterPatternsEqual } from './filterPatternEquality';
-import {
-  createWebviewReadyFilterPatternsPayload,
-} from './filterPatterns';
 import {
   replayWebviewReadyHydrationSettings,
   replayWebviewReadySettings,
@@ -18,15 +14,7 @@ export async function applyWebviewReady(
 ): Promise<boolean> {
   replayWebviewReadySettings(state, handlers);
 
-  const initialFilterPatterns = createWebviewReadyFilterPatternsPayload(handlers);
   await handlers.loadAndSendData();
-  const loadedFilterPatterns = createWebviewReadyFilterPatternsPayload(handlers);
-  if (!areWebviewReadyFilterPatternsEqual(initialFilterPatterns, loadedFilterPatterns)) {
-    handlers.sendMessage({
-      type: 'FILTER_PATTERNS_UPDATED',
-      payload: loadedFilterPatterns,
-    });
-  }
   handlers.sendPluginStatuses?.();
   if (shouldReplayHydrationSettingsAfterLoad(state)) {
     replayWebviewReadyHydrationSettings(state, handlers);

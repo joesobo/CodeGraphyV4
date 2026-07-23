@@ -3,7 +3,7 @@ import { applyWebviewReady } from '../../../../../../src/extension/graphView/web
 import { createHandlers } from './fixture';
 
 describe('graph view ready filter replay', () => {
-  it('does not replay unchanged filter patterns after graph loading', async () => {
+  it('replays filter patterns after graph loading so the active webview receives them', async () => {
     const events: string[] = [];
     const handlers = createHandlers();
     handlers.sendMessage.mockImplementation((message: { type: string }) => {
@@ -28,13 +28,13 @@ describe('graph view ready filter replay', () => {
       handlers
     );
 
-    expect(events).toEqual(['filters', 'graph']);
+    expect(events).toEqual(['filters', 'graph', 'filters']);
     expect(handlers.sendMessage.mock.calls.filter(([message]) =>
       (message as { type?: string }).type === 'FILTER_PATTERNS_UPDATED'
-    )).toHaveLength(1);
+    )).toHaveLength(2);
   });
 
-  it('does not replay unchanged plugin filter groups after graph loading', async () => {
+  it('replays unchanged plugin filter groups after graph loading', async () => {
     const handlers = createHandlers();
     handlers.getPluginFilterPatterns.mockReturnValue(['**/*.meta']);
     handlers.getPluginFilterGroups = vi.fn(() => [
@@ -56,7 +56,7 @@ describe('graph view ready filter replay', () => {
 
     expect(handlers.sendMessage.mock.calls.filter(([message]) =>
       (message as { type?: string }).type === 'FILTER_PATTERNS_UPDATED'
-    )).toHaveLength(1);
+    )).toHaveLength(2);
   });
 
   it('replays plugin filters that become available while loading graph data', async () => {
