@@ -1,5 +1,5 @@
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import type { IGraphData } from '../../../graph/contracts';
+import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
   executeStatementAsync,
   executeStatementSync,
@@ -291,16 +291,18 @@ export function persistWorkspaceCache(
   writer: WorkspaceAnalysisCacheWriter,
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
+  nodeTypes?: readonly IPluginNodeType[],
 ): void {
-  persistRecords(writer, serializeDatabaseRecords(cache, graph));
+  persistRecords(writer, serializeDatabaseRecords(cache, graph, nodeTypes));
 }
 
 export function persistWorkspaceCachePatch(
   writer: WorkspaceAnalysisCacheWriter,
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
+  nodeTypes?: readonly IPluginNodeType[],
 ): void {
-  persistPatchRecords(writer, serializeDatabaseRecords(cache, graph));
+  persistPatchRecords(writer, serializeDatabaseRecords(cache, graph, nodeTypes));
 }
 
 export function deleteAnalysisEntry(
@@ -381,6 +383,7 @@ export async function persistWorkspaceCacheAsync(
   cache: IWorkspaceAnalysisCache,
   graph: IGraphData | undefined,
   callbacks: WorkspaceCacheAsyncCallbacks,
+  nodeTypes?: readonly IPluginNodeType[],
 ): Promise<void> {
-  await persistRecordsAsync(writer, serializeDatabaseRecords(cache, graph), callbacks);
+  await persistRecordsAsync(writer, serializeDatabaseRecords(cache, graph, nodeTypes), callbacks);
 }

@@ -134,6 +134,7 @@ describe('extension/pipeline/service/internalBase persistence', () => {
       source._cache,
       completeGraphData,
       expect.any(Function),
+      [],
     );
     const warn = vi.mocked(persistWorkspacePipelineCache).mock.calls[0][3];
     warn('cache warning', new Error('boom'));

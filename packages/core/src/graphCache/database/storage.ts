@@ -74,8 +74,9 @@ export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
   graph?: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[2],
+  nodeTypes?: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[3],
 ): void {
-  saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache, graph);
+  saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache, graph, nodeTypes);
 }
 
 export function patchWorkspaceAnalysisDatabaseCache(

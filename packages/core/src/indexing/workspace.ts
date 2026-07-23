@@ -279,7 +279,12 @@ export async function indexCodeGraphyWorkspace(
     'save-graph-cache',
     () => {
       if (indexingMode === 'full') {
-        saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, completeGraph);
+        saveWorkspaceAnalysisDatabaseCache(
+          workspaceRoot,
+          cache,
+          completeGraph,
+          registry.listNodeTypes(disabledPlugins),
+        );
         return;
       }
 
@@ -292,6 +297,7 @@ export async function indexCodeGraphyWorkspace(
         deleteFilePaths: deletedFilePaths,
         upsertFiles,
         graph: completeGraph,
+        nodeTypes: registry.listNodeTypes(disabledPlugins),
       });
     },
     () => ({

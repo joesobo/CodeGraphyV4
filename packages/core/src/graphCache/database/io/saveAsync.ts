@@ -59,12 +59,21 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
           }
         };
 
-        await persistWorkspaceCacheAsync(
-          writer,
-          cache,
-          options.graph,
-          { afterFile: reportPersistedFile, afterStatement: yieldAfterStatement },
-        );
+        const callbacks = {
+          afterFile: reportPersistedFile,
+          afterStatement: yieldAfterStatement,
+        };
+        if (options.nodeTypes) {
+          await persistWorkspaceCacheAsync(
+            writer,
+            cache,
+            options.graph,
+            callbacks,
+            options.nodeTypes,
+          );
+        } else {
+          await persistWorkspaceCacheAsync(writer, cache, options.graph, callbacks);
+        }
         await runStatementAsync(connection, 'COMMIT');
         committed = true;
         if (total > reportedProgress) {

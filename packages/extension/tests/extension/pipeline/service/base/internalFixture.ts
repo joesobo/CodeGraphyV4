@@ -62,6 +62,7 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
 
   _registry = {
     list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
+    listNodeTypes: vi.fn(() => []),
   } as unknown as WorkspacePluginRegistry;
 
   _discovery = {

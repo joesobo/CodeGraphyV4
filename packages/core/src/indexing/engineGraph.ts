@@ -104,10 +104,14 @@ function buildCompleteEngineGraph(runtime: WorkspaceEngineRuntime): IGraphData {
 }
 
 export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
+  const disabledPlugins = runtime.state.settings
+    ? createDisabledPluginSet(runtime.state.settings)
+    : new Set<string>();
   saveWorkspaceAnalysisDatabaseCache(
     runtime.workspaceRoot,
     runtime.state.cache,
     buildCompleteEngineGraph(runtime),
+    runtime.state.registry?.listNodeTypes(disabledPlugins),
   );
   persistMetadata(runtime);
 }
@@ -125,6 +129,11 @@ export function patchWorkspaceEngineCache(
     deleteFilePaths: [],
     upsertFiles,
     graph: buildCompleteEngineGraph(runtime),
+    nodeTypes: runtime.state.registry?.listNodeTypes(
+      runtime.state.settings
+        ? createDisabledPluginSet(runtime.state.settings)
+        : new Set<string>(),
+    ),
   });
   persistMetadata(runtime);
 }
