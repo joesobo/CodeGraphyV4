@@ -1,13 +1,6 @@
 import type { GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 import { toPhysicsCoordinate } from '../scale/model';
-import { shapePageBounds, type ShapeGeometryHost } from '../shape/geometry';
-import {
-  isIconShape,
-  isLabelShape,
-  isNodeShape,
-  type NodeShape,
-  type ScriptShape,
-} from '../shape/model';
+import { isNodeShape, type NodeShape, type ScriptShape } from '../shape/model';
 import {
   beginDragSession,
   clearDragSession,
@@ -22,7 +15,7 @@ export interface ScriptPointerEvent {
   type: string;
 }
 
-export interface DragHost extends ShapeGeometryHost {
+export interface DragHost {
   drag: DragState;
   getCurrentShapes(): ScriptShape[];
   getEngine(): GraphLayoutEngine | undefined;
@@ -37,16 +30,6 @@ function selectedNode(host: DragHost): NodeShape | undefined {
     : undefined;
 }
 
-function pointerNode(host: DragHost, shape: ScriptShape | undefined): NodeShape | undefined {
-  if (!shape) return selectedNode(host);
-  if (isNodeShape(shape)) return shape;
-  if (!isIconShape(shape) && !isLabelShape(shape)) return selectedNode(host);
-  return host.getCurrentShapes().find(
-    (candidate): candidate is NodeShape => isNodeShape(candidate)
-      && candidate.meta.codegraphyEntityId === shape.meta.codegraphyNodeId,
-  );
-}
-
 function beginEngineDrag(state: DragState, draggedNode: DraggedNode): void {
   if (state.nodeIndex !== undefined) return;
   state.nodeIndex = draggedNode.index;
@@ -58,11 +41,10 @@ export function synchronizeDraggedNode(host: DragHost): void {
   const draggedNode = resolveDraggedNode(host);
   if (!draggedNode || nodeHasNotMoved(host.drag, draggedNode.shape)) return;
   beginEngineDrag(host.drag, draggedNode);
-  const bounds = shapePageBounds(draggedNode.shape, host);
   draggedNode.engine.setNodePosition(
     draggedNode.index,
-    toPhysicsCoordinate(bounds.x + bounds.w / 2),
-    toPhysicsCoordinate(bounds.y + bounds.h / 2),
+    toPhysicsCoordinate(draggedNode.shape.x + draggedNode.shape.props.w / 2),
+    toPhysicsCoordinate(draggedNode.shape.y + draggedNode.shape.props.h / 2),
   );
 }
 
@@ -80,7 +62,7 @@ function endPointerDrag(host: DragHost): void {
 export function handlePointerEvent(host: DragHost, event: ScriptPointerEvent): void {
   if (event.type !== 'pointer') return;
   if (event.name === 'pointer_down') {
-    const node = pointerNode(host, event.shape);
+    const node = event.shape && isNodeShape(event.shape) ? event.shape : selectedNode(host);
     if (node) beginDragSession(host.drag, node);
   }
   if (event.name === 'pointer_move') synchronizeDraggedNode(host);

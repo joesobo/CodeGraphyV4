@@ -1,16 +1,10 @@
 export interface ScriptShape {
   id: string;
-  parentId?: string;
-  rotation?: number;
   type: string;
   x: number;
   y: number;
   props: Record<string, unknown>;
   meta: Record<string, unknown>;
-}
-
-export interface FrameShape extends ScriptShape {
-  props: Record<string, unknown> & { h: number; w: number };
 }
 
 export interface NodeShape extends ScriptShape {
@@ -32,12 +26,6 @@ export function isNodeShape(shape: ScriptShape): shape is NodeShape {
   return shape.type === 'geo'
     && shape.meta.codegraphyKind === 'node'
     && typeof shape.meta.codegraphyEntityId === 'string'
-    && typeof shape.props.w === 'number'
-    && typeof shape.props.h === 'number';
-}
-
-export function isFrameShape(shape: ScriptShape): shape is FrameShape {
-  return shape.type === 'frame'
     && typeof shape.props.w === 'number'
     && typeof shape.props.h === 'number';
 }

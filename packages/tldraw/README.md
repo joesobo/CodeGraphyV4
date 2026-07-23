@@ -87,7 +87,6 @@ CodeGraphy updates the saved document and opens it. Refresh preserves:
 
 - user-created notes, drawings, images, and other media
 - surviving nodes' positions, manual sizes, and styles
-- native frames and the generated nodes grouped inside them
 - saved force-control values
 
 The launcher exits after each run. It does not start a daemon or filesystem
@@ -159,20 +158,6 @@ The canvas includes these controls:
 | Link Force | `1.00` | `0–2` |
 
 Changes apply to the active graph and remain saved in the document.
-
-## Group nodes with native frames
-
-Use tldraw's **Frame** tool (`F`) to draw a frame around generated nodes.
-tldraw captures each node, icon, and label as native frame children. The frame
-then becomes a soft local gravity center for those nodes.
-
-The grouped nodes keep their normal link, repel, collision, resize, and drag
-physics. Move or resize the frame to move the local gravity center; the nodes
-settle again inside the updated frame. Nodes outside frames continue to use the
-canvas center.
-
-Run the same `codegraphy-tldraw` command after workspace changes. Refresh keeps
-the frame and the surviving generated nodes inside it.
 
 ## Inspect a node
 

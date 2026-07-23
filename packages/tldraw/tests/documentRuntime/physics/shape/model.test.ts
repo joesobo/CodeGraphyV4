@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   isEdgeShape,
-  isFrameShape,
   isIconShape,
   isLabelShape,
   isNodeShape,
@@ -25,14 +24,6 @@ describe('physics shape model', () => {
     expect(isNodeShape({ ...NODE, meta: { ...NODE.meta, codegraphyEntityId: 1 } })).toBe(false);
     expect(isNodeShape({ ...NODE, props: { ...NODE.props, w: '120' } })).toBe(false);
     expect(isNodeShape({ ...NODE, props: { ...NODE.props, h: '120' } })).toBe(false);
-  });
-
-  it('accepts native frames with numeric dimensions', () => {
-    const frame = { ...NODE, type: 'frame', meta: {} };
-
-    expect(isFrameShape(frame)).toBe(true);
-    expect(isFrameShape({ ...frame, props: { ...frame.props, w: '120' } })).toBe(false);
-    expect(isFrameShape({ ...frame, type: 'geo' })).toBe(false);
   });
 
   it('accepts only CodeGraphy arrow edges', () => {

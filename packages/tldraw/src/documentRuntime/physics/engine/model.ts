@@ -5,7 +5,6 @@ import {
 } from '@codegraphy-dev/graph-renderer';
 import { toGraphLayoutConfig, type ForceSettings } from '../../forceControls/model';
 import { toPhysicsCoordinate } from '../scale/model';
-import { shapePageBounds, type ShapeGeometryHost } from '../shape/geometry';
 import type { NodeShape, ScriptShape } from '../shape/model';
 
 const DEFAULT_NODE_SIZE = 16;
@@ -34,7 +33,6 @@ export function createRuntimeEngine(
   nodeShapes: readonly NodeShape[],
   edgeShapes: readonly ScriptShape[],
   forceSettings: ForceSettings,
-  geometryHost?: ShapeGeometryHost,
 ): GraphLayoutEngine | undefined {
   if (nodeShapes.length === 0) return undefined;
   const indexes = new Map<string, number>(
@@ -45,17 +43,11 @@ export function createRuntimeEngine(
     nodeIds: nodeShapes.map(shape => shape.meta.codegraphyEntityId),
     initialX: Float32Array.from(
       nodeShapes,
-      shape => {
-        const bounds = shapePageBounds(shape, geometryHost);
-        return toPhysicsCoordinate(bounds.x + bounds.w / 2);
-      },
+      shape => toPhysicsCoordinate(shape.x + shape.props.w / 2),
     ),
     initialY: Float32Array.from(
       nodeShapes,
-      shape => {
-        const bounds = shapePageBounds(shape, geometryHost);
-        return toPhysicsCoordinate(bounds.y + bounds.h / 2);
-      },
+      shape => toPhysicsCoordinate(shape.y + shape.props.h / 2),
     ),
     initialVx: new Float32Array(nodeShapes.length),
     initialVy: new Float32Array(nodeShapes.length),
