@@ -14,6 +14,47 @@ import {
 } from '../plugins/packageRuntimeFixture';
 
 describe('createWorkspaceIndexRegistry', () => {
+  it('continues registering provided plugins after one registration fails', async () => {
+    const workspaceRoot = await createWorkspace();
+    const warn = vi.fn();
+    const broken = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.broken',
+      apiVersion: '^99.0.0',
+      onUnload: vi.fn(),
+    };
+    const healthy = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.healthy',
+    };
+
+    const result = await createWorkspaceIndexRegistry(
+      {
+        workspaceRoot,
+        plugins: [broken, healthy],
+        includeCorePlugins: false,
+        warn,
+      },
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+      workspaceRoot,
+    );
+
+    expect(result.registry.list().map(({ plugin }) => plugin.id)).toEqual(['acme.healthy']);
+    expect(broken.onUnload).toHaveBeenCalledOnce();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("plugin 'acme.broken'"));
+    result.registry.disposeAll();
+  });
+
   it('disposes a rejected package runtime and continues with later packages', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-index-registry-home-'));
@@ -66,9 +107,10 @@ describe('createWorkspaceIndexRegistry', () => {
     result.registry.disposeAll();
   });
 
-  it('unloads plugins registered before construction fails', async () => {
+  it('does not unload an active runtime when the same provided instance is repeated', async () => {
     const workspaceRoot = await createWorkspace();
     const onUnload = vi.fn();
+    const warn = vi.fn();
     const plugin = {
       ...createTextPlugin({
         onPreAnalyze: vi.fn(),
@@ -82,14 +124,21 @@ describe('createWorkspaceIndexRegistry', () => {
       workspaceRoot,
       plugins: [plugin, plugin],
       includeCorePlugins: false,
+      warn,
     };
 
-    await expect(createWorkspaceIndexRegistry(
+    const result = await createWorkspaceIndexRegistry(
       options,
       readCodeGraphyWorkspaceSettings(workspaceRoot),
       workspaceRoot,
-    )).rejects.toThrow(`Plugin with ID '${plugin.id}' is already registered`);
+    );
 
+    expect(result.registry.list().map(info => info.plugin.id)).toEqual([plugin.id]);
+    expect(onUnload).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(
+      `provided plugin '${plugin.id}' could not be registered`,
+    ));
+    result.registry.disposeAll();
     expect(onUnload).toHaveBeenCalledOnce();
   });
 });

@@ -70,6 +70,7 @@ export function registerProvidedPlugins(
   registry: CorePluginRegistry,
   plugins: readonly IndexCodeGraphyWorkspacePlugin[] | undefined,
   disabledPluginsInput: Iterable<string> = [],
+  warn: (message: string) => void = () => undefined,
 ): void {
   const disabledPlugins = new Set(disabledPluginsInput);
   for (const pluginInput of plugins ?? []) {
@@ -78,10 +79,27 @@ export function registerProvidedPlugins(
       continue;
     }
 
-    registry.register(entry.plugin, {
-      ...(entry.builtIn !== undefined ? { builtIn: entry.builtIn } : {}),
-      ...(entry.sourcePackage ? { sourcePackage: entry.sourcePackage } : {}),
-      ...(entry.options ? { options: entry.options } : {}),
-    });
+    try {
+      registry.register(entry.plugin, {
+        ...(entry.builtIn !== undefined ? { builtIn: entry.builtIn } : {}),
+        ...(entry.sourcePackage ? { sourcePackage: entry.sourcePackage } : {}),
+        ...(entry.options ? { options: entry.options } : {}),
+      });
+    } catch (error) {
+      if (registry.get(entry.plugin.id)?.plugin !== entry.plugin) {
+        try {
+          entry.plugin.onUnload?.();
+        } catch (unloadError) {
+          const message = unloadError instanceof Error
+            ? unloadError.message
+            : String(unloadError);
+          warn(
+            `CodeGraphy provided plugin '${entry.plugin.id}' could not be unloaded after registration failed: ${message}`,
+          );
+        }
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy provided plugin '${entry.plugin.id}' could not be registered: ${message}`);
+    }
   }
 }

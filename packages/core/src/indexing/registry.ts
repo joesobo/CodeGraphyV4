@@ -59,7 +59,7 @@ export async function createWorkspaceIndexRegistry(
       }
     }
 
-    registerProvidedPlugins(registry, options.plugins, disabledPlugins);
+    registerProvidedPlugins(registry, options.plugins, disabledPlugins, warn);
     return { registry, loadedPackagePlugins };
   } catch (error) {
     registry.disposeAll();
