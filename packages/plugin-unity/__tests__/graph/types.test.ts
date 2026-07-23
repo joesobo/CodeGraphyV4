@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createUnityNodeTypes } from '../src/graphTypes';
+import { createUnityNodeTypes } from '../../src/graph/types';
 
 describe('Unity graph type contributions', () => {
-  it('describes Unity analysis output without interface rendering fields', () => {
+  it('declares the Unity semantic Node Type IDs', () => {
     const nodeTypes = createUnityNodeTypes();
 
     expect(nodeTypes.map(({ id }) => id)).toEqual([
@@ -10,7 +10,10 @@ describe('Unity graph type contributions', () => {
       'plugin:codegraphy.unity:symbol:game-object',
       'plugin:codegraphy.unity:symbol:component',
     ]);
-    expect(nodeTypes).not.toEqual(expect.arrayContaining([
+  });
+
+  it('does not declare interface rendering fields', () => {
+    expect(createUnityNodeTypes()).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ defaultColor: expect.anything() }),
     ]));
   });

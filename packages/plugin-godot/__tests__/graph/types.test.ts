@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createGodotEdgeTypes, createGodotNodeTypes } from '../src/graphTypes';
+import { createGodotEdgeTypes, createGodotNodeTypes } from '../../src/graph/types';
 
 describe('Godot graph type contributions', () => {
-  it('describes Godot analysis output without interface rendering fields', () => {
+  it('declares the Godot semantic Node Type IDs', () => {
     const nodeTypes = createGodotNodeTypes();
 
     expect(nodeTypes.map(({ id }) => id)).toEqual([
@@ -14,9 +14,15 @@ describe('Godot graph type contributions', () => {
       'plugin:codegraphy.gdscript:symbol:signal',
       'plugin:codegraphy.gdscript:symbol:exported-property',
     ]);
-    expect(nodeTypes).not.toEqual(expect.arrayContaining([
+  });
+
+  it('does not declare interface rendering fields', () => {
+    expect(createGodotNodeTypes()).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ defaultColor: expect.anything() }),
     ]));
+  });
+
+  it('declares the Godot semantic Edge Type IDs', () => {
     expect(createGodotEdgeTypes().map(({ id }) => id)).toEqual([
       'codegraphy.gdscript:signal-connection',
     ]);

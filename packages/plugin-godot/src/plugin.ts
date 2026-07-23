@@ -11,7 +11,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { collectGodotProjectRoots } from './projectRoot';
-import { createGodotEdgeTypes, createGodotNodeTypes } from './graphTypes';
+import { createGodotEdgeTypes, createGodotNodeTypes } from './graph/types';
 import { manifest } from './metadata';
 import { buildAnalysisContext } from './plugin/context';
 import {

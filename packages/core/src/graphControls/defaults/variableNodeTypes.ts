@@ -50,30 +50,6 @@ export function createCoreVariableNodeTypes(): IGraphNodeTypeDefinition[] {
     parentId: 'variable',
     matchSymbolKinds: ['local'],
   },
-  {
-    id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
-    label: 'Godot class_name',
-    defaultVisible: false,
-    parentId: 'variable',
-    pluginName: 'Godot',
-    matchSymbolKinds: ['class'],
-    matchSymbolPluginKind: 'godot-class-name',
-    matchSymbolSource: 'codegraphy.gdscript',
-    matchSymbolLanguage: 'gdscript',
-    matchSymbolFilePath: '**/*.gd',
-  },
-  {
-    id: 'plugin:codegraphy.gdscript:symbol:exported-property',
-    label: 'Exported Property',
-    defaultVisible: false,
-    parentId: 'variable',
-    pluginName: 'Godot',
-    matchSymbolKinds: ['variable'],
-    matchSymbolPluginKind: 'exported-property',
-    matchSymbolSource: 'codegraphy.gdscript',
-    matchSymbolLanguage: 'gdscript',
-    matchSymbolFilePath: '**/*.gd',
-  },
   ];
 }
 

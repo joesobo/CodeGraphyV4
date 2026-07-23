@@ -44,7 +44,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts src/extension.ts --bundle --platform=node --format=esm --target=node20 --sourcemap --outdir=dist",
     "test": "vitest run",
-    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" \"__tests__/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
