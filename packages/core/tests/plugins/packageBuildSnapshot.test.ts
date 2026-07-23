@@ -64,6 +64,54 @@ describe('CodeGraphy package build snapshots', () => {
     expect(secondRuntime.default).toBe('v2');
   });
 
+  it('preserves and refreshes dependencies of a linked dependency', async () => {
+    const packageRoot = await createPackageFixtureRoot('codegraphy-transitive-package-');
+    const dependencyRoot = await createPackageFixtureRoot('codegraphy-transitive-runtime-');
+    const nestedDependencyRoot = await createPackageFixtureRoot('codegraphy-nested-runtime-');
+    await fs.mkdir(path.join(packageRoot, 'node_modules', '@acme'), { recursive: true });
+    await fs.mkdir(path.join(dependencyRoot, 'node_modules', '@acme'), { recursive: true });
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({ type: 'module' }), 'utf8');
+    await fs.writeFile(
+      path.join(packageRoot, 'plugin.js'),
+      "export { marker as default } from '@acme/transitive-runtime';",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(dependencyRoot, 'package.json'),
+      JSON.stringify({ name: '@acme/transitive-runtime', type: 'module', exports: './index.js' }),
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(dependencyRoot, 'index.js'),
+      "export { marker } from '@acme/nested-runtime';",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(nestedDependencyRoot, 'package.json'),
+      JSON.stringify({ name: '@acme/nested-runtime', type: 'module', exports: './index.js' }),
+      'utf8',
+    );
+    await fs.writeFile(path.join(nestedDependencyRoot, 'index.js'), "export const marker = 'v1';", 'utf8');
+    await fs.symlink(
+      dependencyRoot,
+      path.join(packageRoot, 'node_modules', '@acme', 'transitive-runtime'),
+    );
+    await fs.symlink(
+      nestedDependencyRoot,
+      path.join(dependencyRoot, 'node_modules', '@acme', 'nested-runtime'),
+    );
+
+    const first = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+    const firstRuntime = await import(pathToFileURL(path.join(first.snapshotPackageRoot, 'plugin.js')).href);
+    await fs.writeFile(path.join(nestedDependencyRoot, 'index.js'), "export const marker = 'v2';", 'utf8');
+    const second = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+    const secondRuntime = await import(pathToFileURL(path.join(second.snapshotPackageRoot, 'plugin.js')).href);
+
+    expect(second.buildIdentity).not.toBe(first.buildIdentity);
+    expect(firstRuntime.default).toBe('v1');
+    expect(secondRuntime.default).toBe('v2');
+  });
+
   it('does not evict a snapshot held by another CodeGraphy process', async () => {
     const packageRoot = await createPackageFixtureRoot('codegraphy-process-snapshot-');
     await fs.writeFile(path.join(packageRoot, 'package.json'), '{}', 'utf8');

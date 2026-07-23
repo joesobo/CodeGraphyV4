@@ -48,13 +48,25 @@ async function hashPackageBuildDirectory(
 async function createPackageBuildIdentity(packageRoot: string): Promise<string> {
   const hash = createHash('sha256');
   await hashPackageBuildDirectory(hash, packageRoot, packageRoot);
-  const linkedDependencies = await findLinkedPackageDependencies(packageRoot);
+  await hashLinkedPackageDependencies(hash, packageRoot, new Set<string>());
+  return hash.digest('hex');
+}
+
+async function hashLinkedPackageDependencies(
+  hash: ReturnType<typeof createHash>,
+  packageRoot: string,
+  visitedPackageRoots: Set<string>,
+): Promise<void> {
+  const resolvedPackageRoot = await fs.realpath(packageRoot);
+  if (visitedPackageRoots.has(resolvedPackageRoot)) return;
+  visitedPackageRoots.add(resolvedPackageRoot);
+  const linkedDependencies = await findLinkedPackageDependencies(resolvedPackageRoot);
   for (const dependency of linkedDependencies) {
     hash.update(`node_modules/${dependency.relativePath}`);
     hash.update('\0');
     await hashPackageBuildDirectory(hash, dependency.targetPath, dependency.targetPath);
+    await hashLinkedPackageDependencies(hash, dependency.targetPath, visitedPackageRoots);
   }
-  return hash.digest('hex');
 }
 
 function shouldCopyPackageBuildEntry(packageRoot: string, sourcePath: string): boolean {
@@ -129,6 +141,7 @@ async function materializeLocalNodeModules(
   sourceRoot: string,
   destinationRoot: string,
   linkedDependencies: ReadonlyMap<string, string>,
+  visitedPackageRoots: ReadonlySet<string>,
   directoryPath: string = sourceRoot,
 ): Promise<void> {
   await fs.mkdir(destinationRoot, { recursive: true });
@@ -140,6 +153,7 @@ async function materializeLocalNodeModules(
       entry,
       linkedDependencies,
       sourceRoot,
+      visitedPackageRoots,
     });
   }
 }
@@ -150,6 +164,7 @@ async function materializeNodeModuleEntry(options: {
   entry: Dirent;
   linkedDependencies: ReadonlyMap<string, string>;
   sourceRoot: string;
+  visitedPackageRoots: ReadonlySet<string>;
 }): Promise<void> {
   const sourcePath = path.join(options.directoryPath, options.entry.name);
   const relativePath = path.relative(options.sourceRoot, sourcePath);
@@ -159,6 +174,7 @@ async function materializeNodeModuleEntry(options: {
       options.sourceRoot,
       destinationPath,
       options.linkedDependencies,
+      options.visitedPackageRoots,
       sourcePath,
     );
     return;
@@ -166,16 +182,66 @@ async function materializeNodeModuleEntry(options: {
 
   const linkedTarget = options.linkedDependencies.get(relativePath);
   if (linkedTarget) {
-    await fs.cp(linkedTarget, destinationPath, {
-      recursive: true,
-      filter: copiedPath => shouldCopyPackageBuildEntry(linkedTarget, copiedPath),
-    });
+    await materializeLinkedPackageDependency(
+      linkedTarget,
+      destinationPath,
+      options.visitedPackageRoots,
+    );
     return;
   }
 
   const targetPath = options.entry.isSymbolicLink() ? await fs.realpath(sourcePath) : sourcePath;
   const targetStats = await fs.stat(targetPath);
   await fs.symlink(targetPath, destinationPath, targetStats.isDirectory() ? 'junction' : 'file');
+}
+
+async function materializeLinkedPackageDependency(
+  sourcePackageRoot: string,
+  destinationPackageRoot: string,
+  visitedPackageRoots: ReadonlySet<string>,
+): Promise<void> {
+  const resolvedPackageRoot = await fs.realpath(sourcePackageRoot);
+  if (visitedPackageRoots.has(resolvedPackageRoot)) {
+    await fs.symlink(resolvedPackageRoot, destinationPackageRoot, 'junction');
+    return;
+  }
+  const nextVisitedPackageRoots = new Set(visitedPackageRoots).add(resolvedPackageRoot);
+  await fs.cp(resolvedPackageRoot, destinationPackageRoot, {
+    recursive: true,
+    filter: copiedPath => shouldCopyPackageBuildEntry(resolvedPackageRoot, copiedPath),
+  });
+  await materializePackageNodeModules(
+    resolvedPackageRoot,
+    destinationPackageRoot,
+    nextVisitedPackageRoots,
+  );
+}
+
+async function materializePackageNodeModules(
+  sourcePackageRoot: string,
+  destinationPackageRoot: string,
+  visitedPackageRoots: ReadonlySet<string>,
+): Promise<void> {
+  const nodeModulesPath = await findPackageNodeModules(sourcePackageRoot);
+  if (!nodeModulesPath) return;
+
+  const destinationNodeModulesPath = path.join(destinationPackageRoot, 'node_modules');
+  const localNodeModulesPath = path.join(sourcePackageRoot, 'node_modules');
+  if (path.resolve(nodeModulesPath) !== path.resolve(localNodeModulesPath)) {
+    await fs.symlink(nodeModulesPath, destinationNodeModulesPath, 'junction');
+    return;
+  }
+
+  const linkedDependencies = await findLinkedPackageDependencies(sourcePackageRoot);
+  await materializeLocalNodeModules(
+    nodeModulesPath,
+    destinationNodeModulesPath,
+    new Map(linkedDependencies.map(dependency => [
+      dependency.relativePath,
+      dependency.targetPath,
+    ])),
+    visitedPackageRoots,
+  );
 }
 
 function isProcessAlive(processId: number): boolean {
@@ -236,23 +302,11 @@ async function createPackageBuildSnapshot(
         recursive: true,
         filter: sourcePath => shouldCopyPackageBuildEntry(packageRoot, sourcePath),
       });
-      const nodeModulesPath = await findPackageNodeModules(packageRoot);
-      if (nodeModulesPath) {
-        const localNodeModulesPath = path.join(packageRoot, 'node_modules');
-        if (path.resolve(nodeModulesPath) === path.resolve(localNodeModulesPath)) {
-          const linkedDependencies = await findLinkedPackageDependencies(packageRoot);
-          await materializeLocalNodeModules(
-            nodeModulesPath,
-            path.join(stagingPackageRoot, 'node_modules'),
-            new Map(linkedDependencies.map(dependency => [
-              dependency.relativePath,
-              dependency.targetPath,
-            ])),
-          );
-        } else {
-          await fs.symlink(nodeModulesPath, path.join(stagingPackageRoot, 'node_modules'), 'junction');
-        }
-      }
+      await materializePackageNodeModules(
+        packageRoot,
+        stagingPackageRoot,
+        new Set([await fs.realpath(packageRoot)]),
+      );
       await fs.rename(stagingRoot, buildRoot);
     } catch (error) {
       await fs.rm(stagingRoot, { recursive: true, force: true });
