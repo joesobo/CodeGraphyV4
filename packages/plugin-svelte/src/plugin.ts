@@ -10,7 +10,7 @@ export function createSveltePlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    updateImpact: manifest.updateImpact as IPlugin['updateImpact'],
+    updateImpact: manifest.updateImpact,
     contributeGraphScopeCapabilities: () => ({
       edgeTypes: ['import', 'type-import', 'call'],
     }),

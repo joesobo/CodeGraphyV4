@@ -281,7 +281,7 @@ function acceptancePluginIdForPackage(pluginPackage: string): string {
 
   try {
     const manifest = readAcceptancePluginDescriptor(relativePath);
-    return typeof manifest.id === 'string' && manifest.id.trim().length > 0
+    return typeof manifest?.id === 'string' && manifest.id.trim().length > 0
       ? manifest.id.trim()
       : pluginPackage;
   } catch {
@@ -307,7 +307,7 @@ function acceptancePluginPackageForId(pluginId: string): string | undefined {
     const relativePath = path.posix.join('packages', entry.name);
     try {
       const manifest = readAcceptancePluginDescriptor(relativePath);
-      if (manifest.id !== pluginId) {
+      if (manifest?.id !== pluginId) {
         continue;
       }
 

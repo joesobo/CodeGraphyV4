@@ -61,7 +61,7 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly apiVersion = manifest.apiVersion;
   readonly supportedExtensions = manifest.supportedExtensions;
   readonly defaultFilters = manifest.defaultFilters;
-  readonly updateImpact = manifest.updateImpact as IGDScriptAnalyzeFilePlugin['updateImpact'];
+  readonly updateImpact = manifest.updateImpact;
   readonly sources = manifest.sources;
 
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
