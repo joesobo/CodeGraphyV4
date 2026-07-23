@@ -1,12 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
-import type { IPluginFileColorDefinition } from '@codegraphy-dev/extension-plugin-api';
+import type {
+  GraphNodeShape2D,
+  IExtensionPluginLegendEntry,
+} from '@codegraphy-dev/extension-plugin-api';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
 function extensionData(
-  fileColors: Record<string, string | IPluginFileColorDefinition>,
+  pluginId: string,
+  fileColors: Record<
+    string,
+    string | { color: string; shape2D?: GraphNodeShape2D; imagePath?: string }
+  >,
 ) {
-  return { fileColors };
+  return {
+    legendEntries: Object.entries(fileColors).map(([pattern, value]) => ({
+      id: `plugin:${pluginId}:${pattern}`,
+      label: pattern,
+      pattern,
+      color: typeof value === 'string' ? value : value.color,
+      ...(typeof value === 'object' && value.shape2D ? { shape2D: value.shape2D } : {}),
+      ...(typeof value === 'object' && value.imagePath ? { imagePath: value.imagePath } : {}),
+    })) satisfies IExtensionPluginLegendEntry[],
+  };
 }
 
 describe('graphView/pluginDefaultGroups', () => {
@@ -35,7 +51,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.godot',
                   name: 'Godot',
                 },
-                data: extensionData({
+                data: extensionData('codegraphy.godot', {
                   '*.gd': '#478CBF',
                   '*.tscn': {
                     color: '#478CBF',
@@ -57,6 +73,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.godot:*.gd',
         pattern: '*.gd',
+        displayLabel: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
@@ -65,6 +82,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.godot:*.tscn',
         pattern: '*.tscn',
+        displayLabel: '*.tscn',
         color: '#478CBF',
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
@@ -93,7 +111,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.typescript',
                   name: 'TypeScript',
                 },
-                data: extensionData({ '*.ts': '#3178C6' }),
+                data: extensionData('codegraphy.typescript', { '*.ts': '#3178C6' }),
               },
             ],
           },
@@ -108,6 +126,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.typescript:*.ts',
         pattern: '*.ts',
+        displayLabel: '*.ts',
         color: '#3178C6',
         isPluginDefault: true,
         pluginId: 'codegraphy.typescript',
@@ -131,7 +150,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.unity.extension',
                   name: 'Unity Graph View',
                 },
-                data: extensionData({
+                data: extensionData('codegraphy.unity.extension', {
                   '*.unity': {
                     color: '#F97316',
                     shape2D: 'hexagon',
@@ -152,6 +171,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.unity.extension:*.unity',
         pattern: '*.unity',
+        displayLabel: '*.unity',
         color: '#F97316',
         isPluginDefault: true,
         pluginId: 'codegraphy.unity.extension',
@@ -179,7 +199,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.unknown',
                   name: 'Unknown',
                 },
-                data: extensionData({ '*.unknown': '#999999' }),
+                data: extensionData('codegraphy.unknown', { '*.unknown': '#999999' }),
               },
             ],
           },
@@ -194,6 +214,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.unknown:*.unknown',
         pattern: '*.unknown',
+        displayLabel: '*.unknown',
         color: '#999999',
         isPluginDefault: true,
         pluginId: 'codegraphy.unknown',

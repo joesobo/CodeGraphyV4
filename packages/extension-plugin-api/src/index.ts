@@ -8,7 +8,8 @@ export type {
 
 export type {
   IExtensionPluginDescriptorData,
-  IPluginFileColorDefinition,
+  IExtensionPluginLegendEntry,
+  IExtensionPluginLegendMatch,
 } from './metadata.js';
 
 export type {

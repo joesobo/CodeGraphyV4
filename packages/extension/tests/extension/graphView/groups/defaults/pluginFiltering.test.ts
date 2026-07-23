@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { NodeShape2D } from '@/shared/settings/modes';
+import type { IExtensionPluginLegendEntry } from '@codegraphy-dev/extension-plugin-api';
 import * as vscode from 'vscode';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
@@ -10,13 +11,78 @@ describe('graphView/pluginDefaultGroups', () => {
   >;
   type PluginInfoLike = {
     builtIn?: boolean;
-    data?: { fileColors: FileColors };
+    data?: { legendEntries: readonly IExtensionPluginLegendEntry[] };
     plugin: {
       id: string;
       name: string;
     };
   };
-  const extensionData = (fileColors: FileColors) => ({ fileColors });
+  const extensionData = (pluginId: string, fileColors: FileColors) => ({
+    legendEntries: Object.entries(fileColors).map(([pattern, value]) => ({
+      id: `plugin:${pluginId}:${pattern}`,
+      label: pattern,
+      pattern,
+      color: typeof value === 'string' ? value : value.color,
+      ...(typeof value === 'object' && value.shape2D ? { shape2D: value.shape2D } : {}),
+      ...(typeof value === 'object' && value.imagePath ? { imagePath: value.imagePath } : {}),
+    })) satisfies IExtensionPluginLegendEntry[],
+  });
+
+  it('maps Extension plugin Legend Entries into Graph View defaults', () => {
+    const groups = getGraphViewPluginDefaultGroups(
+      {
+        registry: {
+          extensionPlugins: {
+            list: () => [
+              {
+                plugin: {
+                  id: 'codegraphy.godot.extension',
+                  name: 'Godot Graph View',
+                },
+                data: {
+                  legendEntries: [
+                    {
+                      id: 'plugin:codegraphy.gdscript:symbol:signal',
+                      label: 'Signal',
+                      pattern: '**',
+                      color: '#EF4444',
+                      match: {
+                        nodeType: 'symbol',
+                        symbolKinds: ['signal'],
+                        symbolPluginKind: 'signal',
+                        symbolSource: 'codegraphy.gdscript',
+                      },
+                      imagePath: 'assets/godot.svg',
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+      new Set<string>(),
+      new Map<string, vscode.Uri>(),
+      vscode.Uri.file('/test/extension'),
+    );
+
+    expect(groups).toEqual([
+      {
+        id: 'plugin:codegraphy.gdscript:symbol:signal',
+        pattern: '**',
+        displayLabel: 'Signal',
+        color: '#EF4444',
+        matchNodeType: 'symbol',
+        matchSymbolKinds: ['signal'],
+        matchSymbolPluginKind: 'signal',
+        matchSymbolSource: 'codegraphy.gdscript',
+        imagePath: 'assets/godot.svg',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.godot.extension',
+        pluginName: 'Godot Graph View',
+      },
+    ]);
+  });
 
   it('does not add optional metadata keys when a plugin color definition only provides a color', () => {
     const groups = getGraphViewPluginDefaultGroups(
@@ -29,7 +95,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.rust',
                   name: 'Rust',
                 },
-                data: extensionData({ '*.rs': { color: '#DEA584' } }),
+                data: extensionData('codegraphy.rust', { '*.rs': { color: '#DEA584' } }),
               },
             ],
           },
@@ -44,6 +110,7 @@ describe('graphView/pluginDefaultGroups', () => {
     expect(groups[0]).toEqual({
       id: 'plugin:codegraphy.rust:*.rs',
       pattern: '*.rs',
+      displayLabel: '*.rs',
       color: '#DEA584',
       isPluginDefault: true,
       pluginId: 'codegraphy.rust',
@@ -64,21 +131,21 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.typescript',
                   name: 'TypeScript',
                 },
-                data: extensionData({ '*.ts': '#3178C6' }),
+                data: extensionData('codegraphy.typescript', { '*.ts': '#3178C6' }),
               },
               {
                 plugin: {
                   id: 'codegraphy.typescript',
                   name: 'TypeScript',
                 },
-                data: extensionData({ '*.ts': '#3178C6' }),
+                data: extensionData('codegraphy.typescript', { '*.ts': '#3178C6' }),
               },
               {
                 plugin: {
                   id: 'codegraphy.vue',
                   name: 'Vue',
                 },
-                data: extensionData({ '*.vue': '#41B883' }),
+                data: extensionData('codegraphy.vue', { '*.vue': '#41B883' }),
               },
             ],
           },
@@ -93,6 +160,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.vue:*.vue',
         pattern: '*.vue',
+        displayLabel: '*.vue',
         color: '#41B883',
         isPluginDefault: true,
         pluginId: 'codegraphy.vue',
@@ -112,7 +180,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.godot',
                   name: 'Godot',
                 },
-                data: extensionData({
+                data: extensionData('codegraphy.godot', {
                   '*.gd': { color: '#478CBF' },
                   '*.godot': { color: '#6A9FB5' },
                 }),
@@ -122,7 +190,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   id: 'codegraphy.godot',
                   name: 'Godot',
                 },
-                data: extensionData({
+                data: extensionData('codegraphy.godot', {
                   '*.gd': {
                     color: '#111111',
                     shape2D: 'hexagon',
@@ -143,6 +211,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.godot:*.gd',
         pattern: '*.gd',
+        displayLabel: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
@@ -151,6 +220,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.godot:*.godot',
         pattern: '*.godot',
+        displayLabel: '*.godot',
         color: '#6A9FB5',
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
@@ -168,16 +238,22 @@ describe('graphView/pluginDefaultGroups', () => {
               {
                 plugin: { id: 'acme.broken', name: 'Broken' },
                 data: {
-                  fileColors: {
-                    '*.null': null,
-                    '*.missing-color': { shape2D: 'circle' },
-                    '*.bad-shape': { color: '#111111', shape2D: 'octagon' },
-                  },
+                  legendEntries: [
+                    null,
+                    { id: 'missing-color', label: 'Missing', pattern: '*.missing-color' },
+                    {
+                      id: 'bad-shape',
+                      label: 'Bad shape',
+                      pattern: '*.bad-shape',
+                      color: '#111111',
+                      shape2D: 'octagon',
+                    },
+                  ],
                 },
               },
               {
                 plugin: { id: 'acme.healthy', name: 'Healthy' },
-                data: extensionData({ '*.healthy': '#22C55E' }),
+                data: extensionData('acme.healthy', { '*.healthy': '#22C55E' }),
               },
             ],
           },
@@ -191,6 +267,7 @@ describe('graphView/pluginDefaultGroups', () => {
     expect(groups).toEqual([{
       id: 'plugin:acme.healthy:*.healthy',
       pattern: '*.healthy',
+      displayLabel: '*.healthy',
       color: '#22C55E',
       isPluginDefault: true,
       pluginId: 'acme.healthy',
