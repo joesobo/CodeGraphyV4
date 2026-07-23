@@ -60,23 +60,19 @@ export interface IGraphNode {
    */
   id: string;
 
-  /**
-   * Display label shown on the graph.
-   * Typically the filename without path.
-   * @example 'Button.tsx'
-   */
+  /** Human-readable node label. @example 'Button.tsx' */
   label: string;
 
-  /** File size in bytes. Used for 'file-size' node sizing mode. */
+  /** File size in bytes when known. */
   fileSize?: number;
 
-  /** Semantic node category used by the graph UI. */
+  /** Semantic node category. */
   nodeType?: NodeType;
 
   /** Symbol metadata when this node represents a code symbol. */
   symbol?: IGraphNodeSymbolMetadata;
 
-  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  /** Optional scalar plugin metadata for queries and exports. */
   metadata?: GraphMetadata;
 
 }
@@ -97,13 +93,13 @@ export interface IGraphEdgeSource {
   /** Plugin-local source identifier used for provenance, exports, and diagnostics. */
   sourceId: string;
 
-  /** Human-readable label shown in inspectors, menus, and exports. */
+  /** Human-readable source label. */
   label: string;
 
   /** Optional relation variant when sourceId alone is not unique enough. */
   variant?: string;
 
-  /** Optional display/query metadata. Must stay scalar-only. */
+  /** Optional scalar source metadata. */
   metadata?: GraphMetadata;
 }
 
@@ -137,7 +133,7 @@ export interface IGraphEdge {
   /** All contributing plugin sources merged into this edge. */
   sources: IGraphEdgeSource[];
 
-  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  /** Optional scalar plugin metadata for queries and exports. */
   metadata?: GraphMetadata;
 }
 

@@ -91,7 +91,7 @@ export interface IPluginUpdateImpactPolicy {
   /**
    * Impact of enabling or disabling the plugin.
    *
-   * Plugins that only contribute UI/runtime projection should use
+   * Plugins whose toggles do not change indexed evidence should use
    * `projection-only`. Plugins that emit per-file indexed evidence should use
    * `reanalyze-plugin-files` unless a toggle truly invalidates the whole index.
    */
@@ -125,7 +125,7 @@ export interface IPlugin {
   /** Unique identifier for the plugin (e.g., 'codegraphy.typescript'). */
   id: string;
 
-  /** Human-readable name for display. */
+  /** Human-readable plugin name. */
   name: string;
 
   /** Semantic version string. */
@@ -178,24 +178,19 @@ export interface IPlugin {
     context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult>;
 
-  /**
-   * Optional node-type contributions shown in graph controls and legends.
-   */
+  /** Optional semantic node types that the plugin can emit. */
   contributeNodeTypes?(): IPluginNodeType[];
 
-  /**
-   * Optional edge-type contributions shown in graph controls and legends.
-   */
+  /** Optional semantic edge types that the plugin can emit. */
   contributeEdgeTypes?(): IPluginEdgeType[];
 
   /**
    * Optional Graph Scope capabilities this plugin can make relevant when it is
    * applicable to the indexed workspace.
    *
-   * These declarations are independent from emitted graph output, so graph
-   * controls can show relevant toggles even before the current graph contains
-   * matching nodes or edges. Plugins may declare core and plugin-owned node
-   * types and edge kinds.
+   * These declarations are independent from emitted graph output. Plugins may
+   * declare core and plugin-owned node types and edge kinds before the current
+   * graph contains matching nodes or edges.
    */
   contributeGraphScopeCapabilities?(
     context?: IPluginGraphScopeCapabilityContext,
