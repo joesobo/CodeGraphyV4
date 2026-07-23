@@ -1,31 +1,67 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { prepareCodeGraphyPackageBuildSnapshot } from '../../src/plugins/packageBuildSnapshot';
 import {
   createPackageFixtureRoot,
   fs,
+  os,
   path,
 } from './packageRuntimeFixture';
 
 describe('CodeGraphy package build snapshots', () => {
-  it('keeps the current build and bounds retained snapshots', async () => {
+  it('does not evict snapshots that the current process can still use', async () => {
     const packageRoot = await createPackageFixtureRoot('codegraphy-build-snapshot-');
     await fs.writeFile(path.join(packageRoot, 'package.json'), '{}', 'utf8');
-    let currentSnapshotRoot = '';
+    const snapshotRoots: string[] = [];
 
     for (const version of ['one', 'two', 'three']) {
       await fs.writeFile(path.join(packageRoot, 'plugin.js'), `export default '${version}';`, 'utf8');
       const snapshot = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
-      currentSnapshotRoot = snapshot.snapshotPackageRoot;
+      snapshotRoots.push(snapshot.snapshotPackageRoot);
     }
 
-    await expect(fs.access(currentSnapshotRoot)).resolves.toBeUndefined();
+    await Promise.all(snapshotRoots.map(async snapshotRoot => {
+      await expect(fs.access(snapshotRoot)).resolves.toBeUndefined();
+    }));
     const retainedBuilds = (await fs.readdir(
-      path.dirname(path.dirname(currentSnapshotRoot)),
+      path.dirname(path.dirname(snapshotRoots.at(-1)!)),
       { withFileTypes: true },
     )).filter(entry => entry.isDirectory() && !entry.name.startsWith('.'));
-    expect(retainedBuilds).toHaveLength(2);
+    expect(retainedBuilds).toHaveLength(3);
+  });
+
+  it('refreshes a linked dependency when its package version stays unchanged', async () => {
+    const packageRoot = await createPackageFixtureRoot('codegraphy-linked-dependency-');
+    const dependencyRoot = await createPackageFixtureRoot('codegraphy-linked-runtime-');
+    await fs.mkdir(path.join(packageRoot, 'node_modules', '@acme'), { recursive: true });
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({ type: 'module' }), 'utf8');
+    await fs.writeFile(
+      path.join(packageRoot, 'plugin.js'),
+      "export { marker as default } from '@acme/linked-runtime';",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(dependencyRoot, 'package.json'),
+      JSON.stringify({ name: '@acme/linked-runtime', type: 'module', exports: './index.js' }),
+      'utf8',
+    );
+    await fs.writeFile(path.join(dependencyRoot, 'index.js'), "export const marker = 'v1';", 'utf8');
+    await fs.symlink(
+      dependencyRoot,
+      path.join(packageRoot, 'node_modules', '@acme', 'linked-runtime'),
+    );
+
+    const first = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+    const firstRuntime = await import(pathToFileURL(path.join(first.snapshotPackageRoot, 'plugin.js')).href);
+    await fs.writeFile(path.join(dependencyRoot, 'index.js'), "export const marker = 'v2';", 'utf8');
+    const second = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+    const secondRuntime = await import(pathToFileURL(path.join(second.snapshotPackageRoot, 'plugin.js')).href);
+
+    expect(second.buildIdentity).not.toBe(first.buildIdentity);
+    expect(firstRuntime.default).toBe('v1');
+    expect(secondRuntime.default).toBe('v2');
   });
 
   it('does not evict a snapshot held by another CodeGraphy process', async () => {
@@ -41,6 +77,7 @@ describe('CodeGraphy package build snapshots', () => {
         import { prepareCodeGraphyPackageBuildSnapshot } from ${JSON.stringify(sourceUrl)};
         const snapshot = await prepareCodeGraphyPackageBuildSnapshot(${JSON.stringify(packageRoot)});
         console.log(snapshot.snapshotPackageRoot);
+        process.stdin.resume();
         await new Promise(resolve => process.stdin.once('end', resolve));
       `,
     ], {
@@ -62,5 +99,21 @@ describe('CodeGraphy package build snapshots', () => {
       child.stdin.end();
       await childExit;
     }
+  });
+
+  it('removes snapshots left by a process that is no longer running', async () => {
+    const deadProcessRoot = path.join(
+      os.tmpdir(),
+      'codegraphy-plugin-modules',
+      '2147483647',
+    );
+    const packageRoot = await createPackageFixtureRoot('codegraphy-dead-process-snapshot-');
+    await fs.mkdir(deadProcessRoot, { recursive: true });
+    await fs.writeFile(path.join(deadProcessRoot, 'stale.txt'), 'stale', 'utf8');
+    await fs.writeFile(path.join(packageRoot, 'package.json'), '{}', 'utf8');
+
+    await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+
+    await expect(fs.access(deadProcessRoot)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });
