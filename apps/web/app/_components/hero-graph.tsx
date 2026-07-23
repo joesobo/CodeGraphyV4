@@ -4,14 +4,21 @@ import {
   createGraphLayoutEngine,
   prepareGraphPhysics,
   type GraphLayoutEngine,
-  type GraphLayoutExternalForce,
-  type GraphLayoutInput,
 } from '@codegraphy-dev/graph-renderer';
 import { useEffect, useRef } from 'react';
+import {
+  containGraphWithinCanvas,
+  createHeroForces,
+  graphScale,
+  updatePointerPosition,
+} from './hero-graph/forces';
+import { createGraphData } from './hero-graph/model';
+import type {
+  CanvasSize,
+  HeroGraphData,
+  PointerPosition,
+} from './hero-graph/types';
 
-const COMMUNITY_COUNT = 6;
-const MAX_NODE_COUNT = 104;
-const MIN_NODE_COUNT = 78;
 const NODE_COLORS = [
   [238, 248, 255],
   [169, 214, 249],
@@ -20,27 +27,6 @@ const NODE_COLORS = [
   [198, 229, 252],
   [151, 204, 245],
 ] satisfies [number, number, number][];
-
-interface CanvasSize {
-  height: number;
-  width: number;
-}
-
-interface PointerPosition {
-  active: boolean;
-  currentX: number;
-  currentY: number;
-  targetX: number;
-  targetY: number;
-}
-
-interface HeroGraphData {
-  input: GraphLayoutInput;
-  nodeGroups: Uint8Array;
-  nodeHoverScales: Float32Array;
-  nodeOpacities: Float32Array;
-  orbitSpeedMultipliers: Float32Array;
-}
 
 export function HeroGraph(): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,7 +48,7 @@ export function HeroGraph(): React.ReactElement {
 
 function startHeroGraph(canvas: HTMLCanvasElement): () => void {
   const abortController = new AbortController();
-  const graphData = createGraphData(createRandomSeed());
+  const graphData = createGraphData();
   let disposed = false;
   let frame = 0;
   let resizeObserver: ResizeObserver | undefined;
@@ -162,252 +148,6 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
   };
 }
 
-function createGraphData(seed: number): HeroGraphData {
-  const random = createSeededRandom(seed);
-  const nodeCount = MIN_NODE_COUNT + Math.floor(random() * (MAX_NODE_COUNT - MIN_NODE_COUNT + 1));
-  const nodeIds: string[] = Array.from({ length: nodeCount }, (_, index) => `hero-node-${index}`);
-  const radii = new Float32Array(nodeCount);
-  const chargeStrengthMultipliers = new Float32Array(nodeCount);
-  const initialX = new Float32Array(nodeCount);
-  const initialY = new Float32Array(nodeCount);
-  const nodeGroups = new Uint8Array(nodeCount);
-  const nodeHoverScales = new Float32Array(nodeCount);
-  const nodeOpacities = new Float32Array(nodeCount);
-  const orbitSpeedMultipliers = new Float32Array(nodeCount);
-  const edgeSources: number[] = [];
-  const edgeTargets: number[] = [];
-  const membersByCommunity: number[][] = Array.from(
-    { length: COMMUNITY_COUNT },
-    (): number[] => [],
-  );
-
-  for (let index = 0; index < nodeCount; index += 1) {
-    const group = index < COMMUNITY_COUNT
-      ? index
-      : Math.floor(random() * COMMUNITY_COUNT);
-    const angle = random() * Math.PI * 2;
-    const distance = Math.sqrt(random()) * 300;
-    const isCommunitySeed = index < COMMUNITY_COUNT;
-
-    nodeGroups[index] = group;
-    nodeHoverScales[index] = 1;
-    nodeOpacities[index] = 0.25 + random() * 0.25;
-    orbitSpeedMultipliers[index] = 0.7 + random() * 0.65;
-    membersByCommunity[group].push(index);
-    radii[index] = isCommunitySeed ? 15 + random() * 3 : 6 + random() * 6;
-    chargeStrengthMultipliers[index] = isCommunitySeed ? 1.28 : 0.68 + random() * 0.42;
-    initialX[index] = Math.cos(angle) * distance * 1.3;
-    initialY[index] = Math.sin(angle) * distance * 0.68;
-  }
-
-  // Dense local relationships form communities naturally. Sparse cross-group
-  // relationships keep the result one connected graph.
-  for (const members of membersByCommunity) {
-    for (let memberIndex = 1; memberIndex < members.length; memberIndex += 1) {
-      const source = members[memberIndex];
-      const firstTarget = members[Math.floor(random() * memberIndex)];
-      edgeSources.push(source);
-      edgeTargets.push(firstTarget);
-
-      if (memberIndex > 2) {
-        const secondTarget = members[Math.floor(random() * memberIndex)];
-        if (secondTarget !== firstTarget) {
-          edgeSources.push(source);
-          edgeTargets.push(secondTarget);
-        }
-      }
-
-      if (memberIndex > 4 && random() < 0.68) {
-        const thirdTarget = members[Math.floor(random() * memberIndex)];
-        if (thirdTarget !== firstTarget) {
-          edgeSources.push(source);
-          edgeTargets.push(thirdTarget);
-        }
-      }
-
-      if (memberIndex > 7 && random() < 0.28) {
-        const fourthTarget = members[Math.floor(random() * memberIndex)];
-        if (fourthTarget !== firstTarget) {
-          edgeSources.push(source);
-          edgeTargets.push(fourthTarget);
-        }
-      }
-    }
-  }
-
-  const communityOrder: number[] = Array.from(
-    { length: COMMUNITY_COUNT },
-    (_, index): number => index,
-  );
-  for (let index = communityOrder.length - 1; index > 0; index -= 1) {
-    const targetIndex = Math.floor(random() * (index + 1));
-    [communityOrder[index], communityOrder[targetIndex]] = [
-      communityOrder[targetIndex],
-      communityOrder[index],
-    ];
-  }
-
-  // A randomized spanning tree keeps all communities connected without arranging
-  // them as a cycle. Extra cross-links make the silhouette less predictable.
-  for (let index = 1; index < communityOrder.length; index += 1) {
-    const sourceGroup = communityOrder[index];
-    const targetGroup = communityOrder[Math.floor(random() * index)];
-    const sourceMembers = membersByCommunity[sourceGroup];
-    const targetMembers = membersByCommunity[targetGroup];
-    const source = sourceMembers[Math.floor(random() * sourceMembers.length)];
-    const target = targetMembers[Math.floor(random() * targetMembers.length)];
-    edgeSources.push(source);
-    edgeTargets.push(target);
-  }
-
-  for (let index = 0; index < COMMUNITY_COUNT * 2; index += 1) {
-    const sourceGroup = Math.floor(random() * COMMUNITY_COUNT);
-    const targetGroup = (sourceGroup + 1 + Math.floor(random() * (COMMUNITY_COUNT - 1)))
-      % COMMUNITY_COUNT;
-    const sourceMembers = membersByCommunity[sourceGroup];
-    const targetMembers = membersByCommunity[targetGroup];
-    edgeSources.push(sourceMembers[Math.floor(random() * sourceMembers.length)]);
-    edgeTargets.push(targetMembers[Math.floor(random() * targetMembers.length)]);
-  }
-
-  return {
-    input: {
-      chargeStrengthMultipliers,
-      edgeSources: Uint32Array.from(edgeSources),
-      edgeTargets: Uint32Array.from(edgeTargets),
-      initialX,
-      initialY,
-      nodeIds,
-      radii,
-    },
-    nodeGroups,
-    nodeHoverScales,
-    nodeOpacities,
-    orbitSpeedMultipliers,
-  };
-}
-
-function createRandomSeed(): number {
-  const values = new Uint32Array(1);
-  window.crypto.getRandomValues(values);
-  return values[0] ?? Date.now();
-}
-
-function createSeededRandom(seed: number): () => number {
-  let state = seed >>> 0;
-  return (): number => {
-    state += 0x6d2b_79f5;
-    let value = state;
-    value = Math.imul(value ^ (value >>> 15), value | 1);
-    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-    return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
-  };
-}
-
-function updatePointerPosition(pointer: PointerPosition): void {
-  const smoothing = pointer.active ? 0.14 : 0.06;
-  pointer.currentX += (pointer.targetX - pointer.currentX) * smoothing;
-  pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
-}
-
-function createHeroForces(
-  layout: GraphLayoutEngine,
-  orbitSpeedMultipliers: Float32Array,
-  getCanvasSize: () => CanvasSize,
-): GraphLayoutExternalForce {
-  let ambientPhase = 0;
-
-  return {
-    beforeIntegration: alpha => {
-      ambientPhase += 0.006;
-      let centerX = 0;
-      let centerY = 0;
-
-      for (let index = 0; index < layout.nodeIds.length; index += 1) {
-        centerX += layout.x[index];
-        centerY += layout.y[index];
-      }
-
-      centerX /= layout.nodeIds.length;
-      centerY /= layout.nodeIds.length;
-
-      const settleProgress = 1 - Math.min(1, Math.max(0, alpha - 0.014) / 0.3);
-      const anchorAcceleration = 0.0016 * (0.4 + settleProgress * 0.6);
-      const clusterGravity = 0.0002 * (0.35 + settleProgress * 0.65);
-      const orbitAcceleration = 0.000095 * (0.2 + settleProgress * 0.8);
-      const driftAcceleration = 0.012 * (0.25 + settleProgress * 0.75);
-
-      for (let index = 0; index < layout.nodeIds.length; index += 1) {
-        layout.vx[index] -= centerX * anchorAcceleration;
-        layout.vy[index] -= centerY * anchorAcceleration;
-
-        const clusterOffsetX = layout.x[index] - centerX;
-        const clusterOffsetY = layout.y[index] - centerY;
-        layout.vx[index] -= clusterOffsetX * clusterGravity * 0.42;
-        layout.vy[index] -= clusterOffsetY * clusterGravity;
-
-        const offsetX = layout.x[index] - centerX;
-        const offsetY = layout.y[index] - centerY;
-        const orbitSpeed = orbitAcceleration * orbitSpeedMultipliers[index];
-        layout.vx[index] -= offsetY * orbitSpeed;
-        layout.vy[index] += offsetX * orbitSpeed;
-
-        const driftPhase = ambientPhase * (0.75 + Math.abs(orbitSpeedMultipliers[index]) * 0.3)
-          + index * 2.399;
-        layout.vx[index] += Math.cos(driftPhase) * driftAcceleration;
-        layout.vy[index] += Math.sin(driftPhase * 0.86) * driftAcceleration;
-      }
-    },
-    afterIntegration: () => ({
-      positionChanged: containGraphWithinCanvas(layout, getCanvasSize()),
-    }),
-  };
-}
-
-function containGraphWithinCanvas(
-  layout: GraphLayoutEngine,
-  size: CanvasSize,
-): boolean {
-  const scale = graphScale(size);
-  const halfWidth = size.width / (scale * 2);
-  const halfHeight = size.height / (scale * 2);
-  let positionChanged = false;
-
-  for (let index = 0; index < layout.nodeIds.length; index += 1) {
-    const renderedRadius = (
-      Math.max(4.5, layout.radii[index] * 0.78) * 1.22 + 2
-    ) / scale;
-    const boundedHalfWidth = Math.max(renderedRadius, halfWidth);
-    const boundedHalfHeight = Math.max(renderedRadius, halfHeight);
-    const minX = -boundedHalfWidth + renderedRadius;
-    const maxX = boundedHalfWidth - renderedRadius;
-    const minY = -boundedHalfHeight + renderedRadius;
-    const maxY = boundedHalfHeight - renderedRadius;
-
-    if (layout.x[index] < minX) {
-      layout.x[index] = minX;
-      layout.vx[index] = Math.abs(layout.vx[index]) * 0.58;
-      positionChanged = true;
-    } else if (layout.x[index] > maxX) {
-      layout.x[index] = maxX;
-      layout.vx[index] = -Math.abs(layout.vx[index]) * 0.58;
-      positionChanged = true;
-    }
-
-    if (layout.y[index] < minY) {
-      layout.y[index] = minY;
-      layout.vy[index] = Math.abs(layout.vy[index]) * 0.58;
-      positionChanged = true;
-    } else if (layout.y[index] > maxY) {
-      layout.y[index] = maxY;
-      layout.vy[index] = -Math.abs(layout.vy[index]) * 0.58;
-      positionChanged = true;
-    }
-  }
-
-  return positionChanged;
-}
-
 function resizeCanvas(
   canvas: HTMLCanvasElement,
   context: CanvasRenderingContext2D,
@@ -420,10 +160,6 @@ function resizeCanvas(
   canvas.height = Math.round(height * pixelRatio);
   context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   return { height, width };
-}
-
-function graphScale(size: CanvasSize): number {
-  return Math.max(0.78, Math.min(size.width / 720, size.height / 540));
 }
 
 function drawGraph(

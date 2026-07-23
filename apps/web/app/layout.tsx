@@ -3,7 +3,7 @@ import { DM_Sans, Fira_Code, Newsreader } from 'next/font/google';
 import { Footer } from '@/components/footer';
 import { Navbar } from '@/components/nav/navbar';
 import { ThemeProvider } from '@/components/theme-provider';
-import { siteDescription, siteName, siteOrigin } from '@/content/site';
+import { siteDescription, siteName, siteUrl } from '@/content/site';
 import './globals.css';
 
 // next/font requires literal loader values; the generated theme CSS consumes these variables.
@@ -20,7 +20,7 @@ const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-fira-code' })
 const title = 'CodeGraphy | Understand the code beneath the surface';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteOrigin),
+  metadataBase: siteUrl,
   applicationName: siteName,
   title: {
     default: title,
