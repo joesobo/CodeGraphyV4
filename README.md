@@ -109,7 +109,7 @@ cd /path/to/workspace
 codegraphy-tldraw
 ```
 
-The launcher creates or refreshes `CodeGraphy.tldraw`, opens it in tldraw offline, and runs CodeGraphy's WebAssembly force physics on native tldraw shapes. Search file paths from the top of the canvas, or double-click a node to inspect its relationships. Pass a relative or absolute `.tldraw` path to use a named canvas:
+The launcher creates or refreshes `CodeGraphy.tldraw`, opens it in tldraw offline, and runs CodeGraphy's WebAssembly force physics on native tldraw shapes. Search file paths from the top of the canvas, double-click a node to inspect its relationships, or draw native frames that act as local gravity groups. Pass a relative or absolute `.tldraw` path to use a named canvas:
 
 ```bash
 codegraphy-tldraw docs/architecture.tldraw

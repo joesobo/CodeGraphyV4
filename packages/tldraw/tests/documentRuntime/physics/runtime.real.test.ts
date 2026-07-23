@@ -63,6 +63,134 @@ afterEach(() => {
 });
 
 describe('real tldraw force drag', () => {
+  it('keeps a running node near its page position when a native frame captures it', () => {
+    const editor = createRealEditor();
+    const frameId = createShapeId('capture-frame');
+    const nodeId = createShapeId('codegraphy-node-captured');
+    editor.updatePage({
+      id: editor.getCurrentPageId(),
+      meta: {
+        codegraphyPhysics: {
+          centerForce: 0.1,
+          linkDistance: 80,
+          linkForce: 0,
+          repelForce: 0,
+        },
+      },
+    });
+    editor.createShape({
+      id: nodeId,
+      meta: { codegraphyEntityId: 'captured', codegraphyKind: 'node' },
+      props: { geo: 'ellipse', h: 120, w: 120 },
+      type: 'geo',
+      x: 500,
+      y: 300,
+    });
+    startPhysicsRuntime({
+      editor: editor as unknown as Parameters<typeof startPhysicsRuntime>[0]['editor'],
+      signal: new AbortController().signal,
+    });
+    editor.createShape({
+      id: frameId,
+      props: { h: 400, name: 'Capture', w: 600 },
+      type: 'frame',
+      x: 400,
+      y: 200,
+    });
+    const beforeCapture = editor.getShapePageBounds(nodeId);
+    if (!beforeCapture) throw new Error('Expected node before capture');
+    editor.reparentShapes([nodeId], frameId);
+
+    for (let tick = 0; tick < 200; tick += 1) editor.emit('tick', 16);
+
+    const afterNode = editor.getShape(nodeId);
+    const afterCapture = editor.getShapePageBounds(nodeId);
+    if (!afterNode || !afterCapture) throw new Error('Expected node after capture');
+    expect(afterNode.parentId).toBe(frameId);
+    expect(Math.hypot(
+      afterCapture.center.x - beforeCapture.center.x,
+      afterCapture.center.y - beforeCapture.center.y,
+    )).toBeLessThan(400);
+  });
+
+  it('pulls a frame-contained node toward its native frame center', () => {
+    const editor = createRealEditor();
+    const frameId = createShapeId('architecture-frame');
+    const nodeId = createShapeId('codegraphy-node-framed');
+    editor.updatePage({
+      id: editor.getCurrentPageId(),
+      meta: {
+        codegraphyPhysics: {
+          centerForce: 0,
+          linkDistance: 80,
+          linkForce: 0,
+          repelForce: 0,
+        },
+      },
+    });
+    editor.createShapes([
+      {
+        id: frameId,
+        props: { h: 400, name: 'Architecture', w: 600 },
+        type: 'frame',
+        x: 400,
+        y: 200,
+      },
+      {
+        id: nodeId,
+        meta: { codegraphyEntityId: 'framed', codegraphyKind: 'node' },
+        parentId: frameId,
+        props: { geo: 'ellipse', h: 120, w: 120 },
+        type: 'geo',
+        x: 0,
+        y: 0,
+      },
+    ]);
+    const frameBounds = editor.getShapePageBounds(frameId);
+    const beforeBounds = editor.getShapePageBounds(nodeId);
+    if (!frameBounds || !beforeBounds) throw new Error('Expected frame and node bounds');
+    const frameCenter = frameBounds.center;
+    const beforeDistance = Math.hypot(
+      beforeBounds.center.x - frameCenter.x,
+      beforeBounds.center.y - frameCenter.y,
+    );
+
+    startPhysicsRuntime({
+      editor: editor as unknown as Parameters<typeof startPhysicsRuntime>[0]['editor'],
+      signal: new AbortController().signal,
+    });
+    for (let tick = 0; tick < 200; tick += 1) editor.emit('tick', 16);
+
+    const afterNode = editor.getShape(nodeId);
+    const afterBounds = editor.getShapePageBounds(nodeId);
+    if (!afterNode || !afterBounds) throw new Error('Expected framed node after physics');
+    const afterDistance = Math.hypot(
+      afterBounds.center.x - frameCenter.x,
+      afterBounds.center.y - frameCenter.y,
+    );
+    expect(afterNode.parentId).toBe(frameId);
+    expect(afterDistance).toBeLessThan(beforeDistance);
+
+    editor.updateShape({ id: frameId, type: 'frame', props: { w: 1_000 } });
+    const resizedFrameBounds = editor.getShapePageBounds(frameId);
+    const beforeResizeNodeBounds = editor.getShapePageBounds(nodeId);
+    if (!resizedFrameBounds || !beforeResizeNodeBounds) {
+      throw new Error('Expected resized frame and node bounds');
+    }
+    const beforeResizeDistance = Math.hypot(
+      beforeResizeNodeBounds.center.x - resizedFrameBounds.center.x,
+      beforeResizeNodeBounds.center.y - resizedFrameBounds.center.y,
+    );
+    for (let tick = 0; tick < 200; tick += 1) editor.emit('tick', 16);
+    const afterResizeNodeBounds = editor.getShapePageBounds(nodeId);
+    if (!afterResizeNodeBounds) throw new Error('Expected node after frame resize');
+    const afterResizeDistance = Math.hypot(
+      afterResizeNodeBounds.center.x - resizedFrameBounds.center.x,
+      afterResizeNodeBounds.center.y - resizedFrameBounds.center.y,
+    );
+    expect(afterResizeDistance).toBeLessThan(beforeResizeDistance);
+  });
+
   it('settles mixed-size connected nodes without overlapping their padded collision bounds', async () => {
     const nodes = [
       {

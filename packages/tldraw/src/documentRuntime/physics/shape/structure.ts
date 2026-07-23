@@ -1,8 +1,18 @@
-import { isEdgeShape, isIconShape, isLabelShape, isNodeShape, type ScriptShape } from './model';
+import {
+  isEdgeShape,
+  isFrameShape,
+  isIconShape,
+  isLabelShape,
+  isNodeShape,
+  type ScriptShape,
+} from './model';
 
 function structurePart(shape: ScriptShape): string | undefined {
   if (isNodeShape(shape)) {
-    return `node:${shape.meta.codegraphyEntityId}:${shape.props.w}:${shape.props.h}`;
+    return `node:${shape.meta.codegraphyEntityId}:${shape.parentId ?? ''}:${shape.props.w}:${shape.props.h}`;
+  }
+  if (isFrameShape(shape)) {
+    return `frame:${shape.id}:${shape.parentId ?? ''}:${shape.x}:${shape.y}:${shape.rotation ?? 0}:${shape.props.w}:${shape.props.h}`;
   }
   if (isEdgeShape(shape)) {
     return `edge:${shape.id}:${String(shape.meta.codegraphyFrom)}:${String(shape.meta.codegraphyTo)}`;

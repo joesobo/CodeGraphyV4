@@ -6,6 +6,76 @@ import {
 } from '../../../../src/documentRuntime/physics/updates/model';
 
 describe('tldraw physics shape updates', () => {
+  it('moves node companions into the same native frame coordinate space', () => {
+    const node = {
+      id: 'shape:a',
+      parentId: 'shape:frame',
+      type: 'geo',
+      x: 0,
+      y: 0,
+      props: { h: 120, w: 120 },
+      meta: { codegraphyKind: 'node' as const, codegraphyEntityId: 'a' },
+    };
+    const icon = {
+      id: 'icon:a',
+      parentId: 'page:page',
+      type: 'image',
+      x: 0,
+      y: 0,
+      props: { h: 56, w: 56 },
+      meta: { codegraphyKind: 'icon' as const, codegraphyNodeId: 'a' },
+    };
+    const label = {
+      id: 'label:a',
+      parentId: 'page:page',
+      type: 'text',
+      x: 0,
+      y: 0,
+      props: { w: 180 },
+      meta: { codegraphyKind: 'label' as const, codegraphyNodeId: 'a' },
+    };
+    const engine = {
+      nodeIds: ['a'],
+      x: Float32Array.of(100),
+      y: Float32Array.of(80),
+    } as unknown as GraphLayoutEngine;
+    const geometryHost = {
+      getPointInParentSpace: (
+        shape: typeof node | typeof icon | typeof label,
+        point: { x: number; y: number },
+      ) => shape.parentId === 'shape:frame'
+        ? { x: point.x - 400, y: point.y - 200 }
+        : point,
+      getShapePageBounds: () => ({ h: 120, w: 120, x: 400, y: 200 }),
+    };
+    const model = createShapeUpdateModel(
+      [node],
+      [],
+      [icon],
+      [label],
+      engine,
+      geometryHost,
+    );
+
+    expect(createShapeUpdates(model, engine)).toEqual([
+      { id: 'shape:a', type: 'geo', x: 40, y: 140 },
+      {
+        id: 'icon:a',
+        parentId: 'shape:frame',
+        type: 'image',
+        x: 72,
+        y: 172,
+      },
+      {
+        id: 'label:a',
+        parentId: 'shape:frame',
+        type: 'text',
+        x: 10,
+        y: 268,
+      },
+    ]);
+  });
+
   it('projects normalized node positions and resolved edge geometry onto native shapes', () => {
     const nodes = [
       {

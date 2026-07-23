@@ -18,7 +18,7 @@ const engine = {
   setNodePosition,
 } as unknown as GraphLayoutEngine;
 
-function createHost(options: { selected?: boolean } = {}) {
+function createHost(options: { pageOffset?: { x: number; y: number }; selected?: boolean } = {}) {
   let node = {
     id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
     meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
@@ -28,6 +28,14 @@ function createHost(options: { selected?: boolean } = {}) {
     drag: {},
     getCurrentShapes: () => [node],
     getEngine: () => engine,
+    getShapePageBounds: options.pageOffset
+      ? shape => ({
+        h: Number(shape.props.h),
+        w: Number(shape.props.w),
+        x: shape.x + (options.pageOffset?.x ?? 0),
+        y: shape.y + (options.pageOffset?.y ?? 0),
+      })
+      : undefined,
     getSelectedShapes: () => options.selected ? [node] : [],
     prepareEngine,
   };
@@ -83,5 +91,35 @@ describe('tldraw physics drag runtime', () => {
     expect(pin).toHaveBeenCalledWith(0);
     expect(setAlphaTarget).toHaveBeenCalledWith(0.3);
     expect(setNodePosition).toHaveBeenCalledWith(0, 60, 36);
+  });
+
+  it('starts the node drag when its locked icon receives the pointer down event', () => {
+    const { host, moveNode } = createHost();
+    const icon = {
+      id: 'shape:icon',
+      type: 'image',
+      x: 32,
+      y: 32,
+      props: { h: 56, w: 56 },
+      meta: { codegraphyKind: 'icon', codegraphyNodeId: 'a' },
+    };
+
+    handlePointerEvent(host, { type: 'pointer', name: 'pointer_down', shape: icon });
+    moveNode(240, 120);
+    handlePointerEvent(host, { type: 'pointer', name: 'pointer_move' });
+
+    expect(pin).toHaveBeenCalledWith(0);
+    expect(setNodePosition).toHaveBeenCalledWith(0, 60, 36);
+  });
+
+  it('sends a framed node page position to physics while it is dragged', () => {
+    const { host, moveNode } = createHost({ pageOffset: { x: 400, y: 200 } });
+    const node = host.getCurrentShapes()[0];
+
+    handlePointerEvent(host, { type: 'pointer', name: 'pointer_down', shape: node });
+    moveNode(40, 20);
+    handlePointerEvent(host, { type: 'pointer', name: 'pointer_move' });
+
+    expect(setNodePosition).toHaveBeenCalledWith(0, 100, 56);
   });
 });

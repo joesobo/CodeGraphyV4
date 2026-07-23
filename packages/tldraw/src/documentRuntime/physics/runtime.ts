@@ -1,9 +1,13 @@
-import type { GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
+import type {
+  GraphLayoutEngine,
+  GraphLayoutExternalForce,
+} from '@codegraphy-dev/graph-renderer';
 import type { TLTheme } from '@tldraw/tlschema';
 import { readForceSettings, toGraphLayoutConfig, type ForceSettings } from '../forceControls/model';
 import { handlePointerEvent, synchronizeDraggedNode, type DragHost, type ScriptPointerEvent } from './drag/runtime';
 import { createRuntimeEngine } from './engine/model';
 import { forceSettingsChanged } from './force/model';
+import { createFrameGravityForce } from './frameGravity/model';
 import {
   createSearchProjection,
   graphSearchEventName,
@@ -20,6 +24,7 @@ import {
   type NodeShape,
   type ScriptShape,
 } from './shape/model';
+import { shapePageBounds, type ShapeGeometryHost } from './shape/geometry';
 import { graphStructureKey } from './shape/structure';
 import {
   createShapeUpdateModel,
@@ -27,7 +32,7 @@ import {
   type ShapeUpdateModel,
 } from './updates/model';
 
-export interface ScriptEditor {
+export interface ScriptEditor extends ShapeGeometryHost {
   getCurrentPage(): { meta: Record<string, unknown> };
   getCurrentPageShapes(): ScriptShape[];
   getCurrentTheme?(): TLTheme;
@@ -63,6 +68,7 @@ interface PhysicsRuntime {
   editor: ScriptEditor;
   engine?: GraphLayoutEngine;
   forceSettings: ForceSettings;
+  frameGravity?: GraphLayoutExternalForce;
   fitSearchWhenSettled: boolean;
   iconShapes: IconShape[];
   labelShapes: LabelShape[];
@@ -85,8 +91,17 @@ function rebuildRuntime(runtime: PhysicsRuntime): void {
     runtime.nodeShapes,
     runtime.edgeShapes,
     runtime.forceSettings,
+    runtime.editor,
   );
   runtime.engine = engine;
+  runtime.frameGravity = engine
+    ? createFrameGravityForce(
+      visibleShapes,
+      engine,
+      runtime.forceSettings.centerForce,
+      runtime.editor,
+    )
+    : undefined;
   runtime.shapeUpdates = engine
     ? createShapeUpdateModel(
       runtime.nodeShapes,
@@ -94,6 +109,7 @@ function rebuildRuntime(runtime: PhysicsRuntime): void {
       runtime.iconShapes,
       runtime.labelShapes,
       engine,
+      runtime.editor,
     )
     : undefined;
   runtime.dirty = false;
@@ -115,10 +131,11 @@ function fitSettledSearch(runtime: PhysicsRuntime): void {
   let maximumX = Number.NEGATIVE_INFINITY;
   let maximumY = Number.NEGATIVE_INFINITY;
   for (const shape of nodeShapes) {
-    minimumX = Math.min(minimumX, shape.x);
-    minimumY = Math.min(minimumY, shape.y);
-    maximumX = Math.max(maximumX, shape.x + shape.props.w);
-    maximumY = Math.max(maximumY, shape.y + shape.props.h);
+    const bounds = shapePageBounds(shape, runtime.editor);
+    minimumX = Math.min(minimumX, bounds.x);
+    minimumY = Math.min(minimumY, bounds.y);
+    maximumX = Math.max(maximumX, bounds.x + bounds.w);
+    maximumY = Math.max(maximumY, bounds.y + bounds.h);
   }
   runtime.editor.zoomToBounds?.({
     h: maximumY - minimumY,
@@ -138,6 +155,7 @@ function createDragHost(runtime: PhysicsRuntime): DragHost {
     drag: runtime.drag,
     getCurrentShapes: () => runtime.editor.getCurrentPageShapes(),
     getEngine: () => runtime.engine,
+    getShapePageBounds: shape => runtime.editor.getShapePageBounds?.(shape),
     getSelectedShapes: () => runtime.editor.getSelectedShapes?.() ?? [],
     prepareEngine: () => prepareRuntimeEngine(runtime),
   };
@@ -153,7 +171,7 @@ function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
     fitSettledSearch(runtime);
     return;
   }
-  engine.tick();
+  engine.tick(runtime.frameGravity);
   const updates = createShapeUpdates(shapeUpdates, engine);
   if (updates.length === 0) return;
   runtime.editor.run(
@@ -176,7 +194,19 @@ function handleStoreChange(runtime: PhysicsRuntime): void {
   );
   if (forceSettingsChanged(runtime.forceSettings, nextForceSettings)) {
     runtime.forceSettings = nextForceSettings;
-    runtime.engine?.setConfig(toGraphLayoutConfig(nextForceSettings));
+    const engine = runtime.engine;
+    engine?.setConfig(toGraphLayoutConfig(nextForceSettings));
+    runtime.frameGravity = engine
+      ? createFrameGravityForce(
+        createSearchProjection(
+          runtime.editor.getCurrentPageShapes(),
+          runtime.searchQuery,
+        ).visibleShapes,
+        engine,
+        nextForceSettings.centerForce,
+        runtime.editor,
+      )
+      : undefined;
   }
   if (graphStructureKey(runtime.editor.getCurrentPageShapes()) !== runtime.structureKey) {
     runtime.dirty = true;
@@ -190,7 +220,7 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
   const edgeShapes = shapes.filter(isEdgeShape);
   const iconShapes = shapes.filter(isIconShape);
   const labelShapes = shapes.filter(isLabelShape);
-  const engine = createRuntimeEngine(nodeShapes, edgeShapes, forceSettings);
+  const engine = createRuntimeEngine(nodeShapes, edgeShapes, forceSettings, editor);
   return {
     dirty: false,
     drag: {},
@@ -199,12 +229,15 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
     engine,
     fitSearchWhenSettled: false,
     forceSettings,
+    frameGravity: engine
+      ? createFrameGravityForce(shapes, engine, forceSettings.centerForce, editor)
+      : undefined,
     iconShapes,
     labelShapes,
     nodeShapes,
     searchQuery: '',
     shapeUpdates: engine
-      ? createShapeUpdateModel(nodeShapes, edgeShapes, iconShapes, labelShapes, engine)
+      ? createShapeUpdateModel(nodeShapes, edgeShapes, iconShapes, labelShapes, engine, editor)
       : undefined,
     structureKey: graphStructureKey(shapes),
     writingPhysicsUpdates: false,
