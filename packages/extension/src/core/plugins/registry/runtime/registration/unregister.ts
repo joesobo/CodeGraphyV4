@@ -13,14 +13,14 @@ export function removeFromRegistry(
   pluginId: string,
   plugins: Map<string, IPluginInfoV2>,
   extensionMap: Map<string, string[]>,
-  initializedPlugins: Set<string>,
+  initializedPlugins: Set<IPluginInfoV2>,
 ): boolean {
   const info = plugins.get(pluginId);
   if (!info) return false;
 
   removePluginFromExtensionMap(pluginId, info.plugin, extensionMap);
   plugins.delete(pluginId);
-  initializedPlugins.delete(pluginId);
+  initializedPlugins.delete(info);
   if (shouldLogPluginLifecycle(info)) {
     console.log(`[CodeGraphy] Unregistered plugin: ${pluginId}`);
   }

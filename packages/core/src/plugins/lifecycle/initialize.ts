@@ -12,7 +12,7 @@ import { createWorkspacePluginAnalysisContext } from '../context/workspace';
 export async function initializeAll(
   plugins: Map<string, ILifecyclePluginInfo>,
   workspaceRoot: string,
-  initializedSet: Set<string>,
+  initializedSet: Set<ILifecyclePluginInfo>,
 ): Promise<string[]> {
   const results = await Promise.all(
     Array.from(plugins.values()).map(async (info) => ({
@@ -29,11 +29,11 @@ export async function initializeAll(
 export async function initializePlugin(
   info: ILifecyclePluginInfo,
   workspaceRoot: string,
-  initializedSet: Set<string>,
+  initializedSet: Set<ILifecyclePluginInfo>,
 ): Promise<boolean> {
   const pluginId = info.plugin.id;
-  if (initializedSet.has(pluginId)) return true;
-  initializedSet.add(pluginId);
+  if (initializedSet.has(info)) return true;
+  initializedSet.add(info);
 
   if (!info.plugin.initialize) {
     return true;
@@ -46,7 +46,7 @@ export async function initializePlugin(
     );
     return true;
   } catch (error) {
-    initializedSet.delete(pluginId);
+    initializedSet.delete(info);
     console.error(`[CodeGraphy] Error initializing plugin ${pluginId}:`, error);
     return false;
   }

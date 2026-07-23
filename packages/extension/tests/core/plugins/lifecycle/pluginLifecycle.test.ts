@@ -37,7 +37,7 @@ describe('pluginLifecycle', () => {
       const initialize = vi.fn().mockResolvedValue(undefined);
       const plugin = makePlugin({ initialize });
       const info = { plugin };
-      const initialized = new Set<string>();
+      const initialized = new Set<typeof info>();
 
       await initializePlugin(info, '/ws', initialized);
 
@@ -45,14 +45,14 @@ describe('pluginLifecycle', () => {
         '/ws',
         expect.objectContaining({ fileSystem: expect.any(Object) }),
       );
-      expect(initialized.has(plugin.id)).toBe(true);
+      expect(initialized.has(info)).toBe(true);
     });
 
     it('does not call initialize a second time', async () => {
       const initialize = vi.fn().mockResolvedValue(undefined);
       const plugin = makePlugin({ initialize });
       const info = { plugin };
-      const initialized = new Set<string>([plugin.id]);
+      const initialized = new Set<typeof info>([info]);
 
       await initializePlugin(info, '/ws', initialized);
 
@@ -63,20 +63,20 @@ describe('pluginLifecycle', () => {
       const initialize = vi.fn().mockRejectedValue(new Error('boom'));
       const plugin = makePlugin({ initialize });
       const info = { plugin };
-      const initialized = new Set<string>();
+      const initialized = new Set<typeof info>();
 
       await initializePlugin(info, '/ws', initialized);
 
-      expect(initialized.has(plugin.id)).toBe(false);
+      expect(initialized.has(info)).toBe(false);
     });
 
     it('skips plugins without an initialize method', async () => {
       const plugin = makePlugin();
       const info = { plugin };
-      const initialized = new Set<string>();
+      const initialized = new Set<typeof info>();
 
       await expect(initializePlugin(info, '/ws', initialized)).resolves.toBe(true);
-      expect(initialized.has(plugin.id)).toBe(true);
+      expect(initialized.has(info)).toBe(true);
     });
   });
 
@@ -90,7 +90,7 @@ describe('pluginLifecycle', () => {
         ['plugin-a', { plugin: pluginA }],
         ['plugin-b', { plugin: pluginB }],
       ]);
-      const initialized = new Set<string>();
+      const initialized = new Set<{ plugin: IPlugin }>();
 
       await initializeAll(plugins, '/ws', initialized);
 

@@ -17,7 +17,7 @@ export type IPluginInfoV2 = IPluginInfo;
 export abstract class PluginRegistryState {
   protected readonly _plugins = new Map<string, IPluginInfoV2>();
   protected readonly _extensionMap = new Map<string, string[]>();
-  protected readonly _initializedPlugins = new Set<string>();
+  protected readonly _initializedPlugins = new Set<IPluginInfoV2>();
   protected readonly _initializingPlugins = new Map<IPluginInfoV2, Promise<boolean>>();
   private readonly _pendingPluginUnloads = new Set<() => void>();
   private _activePluginOperations = 0;

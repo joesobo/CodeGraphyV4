@@ -213,6 +213,35 @@ describe('CorePluginRegistry', () => {
     consoleError.mockRestore();
   });
 
+  it('keeps replacement initialization state when the old runtime fails later', async () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let rejectOldInitialization!: (error: Error) => void;
+    const oldInitialization = new Promise<void>((_resolve, reject) => {
+      rejectOldInitialization = reject;
+    });
+    const replacementInitialize = vi.fn();
+
+    registry.register(plugin({
+      id: 'replaceable',
+      initialize: () => oldInitialization,
+    }));
+    const initializingOldRuntime = registry.initializePlugin('replaceable', '/workspace');
+    registry.unregister('replaceable');
+    registry.register(plugin({
+      id: 'replaceable',
+      initialize: replacementInitialize,
+    }));
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    rejectOldInitialization(new Error('old runtime failed'));
+    await initializingOldRuntime;
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    expect(replacementInitialize).toHaveBeenCalledOnce();
+    consoleError.mockRestore();
+  });
+
   it('unloads registered plugins without letting one failure block later cleanup', () => {
     const registry = new CorePluginRegistry();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});

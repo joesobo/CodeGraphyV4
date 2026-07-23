@@ -74,6 +74,35 @@ describe('PluginRegistry unregister', () => {
     expect(registry.get(plugin.id)).toBeUndefined();
   });
 
+  it('keeps replacement initialization state when the old runtime fails later', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let rejectOldInitialization!: (error: Error) => void;
+    const oldInitialization = new Promise<void>((_resolve, reject) => {
+      rejectOldInitialization = reject;
+    });
+    const registry = createConfiguredRegistry();
+    const replacementInitialize = vi.fn();
+
+    registry.register(createMockPlugin({
+      id: 'replaceable',
+      initialize: () => oldInitialization,
+    }));
+    const initializingOldRuntime = registry.initializePlugin('replaceable', '/workspace');
+    registry.unregister('replaceable');
+    registry.register(createMockPlugin({
+      id: 'replaceable',
+      initialize: replacementInitialize,
+    }));
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    rejectOldInitialization(new Error('old runtime failed'));
+    await initializingOldRuntime;
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    expect(replacementInitialize).toHaveBeenCalledOnce();
+    consoleError.mockRestore();
+  });
+
   it('waits for an active analysis callback before unloading its plugin', async () => {
     let markAnalysisStarted!: () => void;
     let finishAnalysis!: () => void;

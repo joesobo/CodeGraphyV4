@@ -57,7 +57,7 @@ type AnalyzeFile = {
 export class CorePluginRegistry {
   private readonly plugins = new Map<string, CorePluginInfo>();
   private readonly extensionMap = new Map<string, string[]>();
-  private readonly initializedPlugins = new Set<string>();
+  private readonly initializedPlugins = new Set<CorePluginInfo>();
   private readonly initializingPlugins = new Map<CorePluginInfo, Promise<boolean>>();
   private readonly pendingUnloads = new Set<CorePluginInfo>();
   private activePluginOperations = 0;
@@ -291,11 +291,13 @@ export class CorePluginRegistry {
   }
 
   private removePluginRegistration(pluginId: string): boolean {
-    if (!this.plugins.delete(pluginId)) {
+    const info = this.plugins.get(pluginId);
+    if (!info) {
       return false;
     }
 
-    this.initializedPlugins.delete(pluginId);
+    this.plugins.delete(pluginId);
+    this.initializedPlugins.delete(info);
     for (const [extension, pluginIds] of this.extensionMap) {
       const remainingPluginIds = pluginIds.filter(id => id !== pluginId);
       if (remainingPluginIds.length === 0) {
