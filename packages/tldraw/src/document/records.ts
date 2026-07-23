@@ -250,6 +250,25 @@ function createIconShape(
   };
 }
 
+interface EdgeStyle {
+  dash: TLArrowShape['props']['dash'];
+  font: TLArrowShape['props']['font'];
+}
+
+function edgeStyle(existing: TLArrowShape | undefined): EdgeStyle {
+  if (!existing) return { dash: 'draw', font: 'draw' };
+  const generatedDash = metadataString(existing.meta.codegraphyGeneratedDash);
+  const generatedFont = metadataString(existing.meta.codegraphyGeneratedFont);
+  return {
+    dash: generatedDash === undefined
+      ? existing.props.dash === 'solid' ? 'draw' : existing.props.dash
+      : existing.props.dash === generatedDash ? 'draw' : existing.props.dash,
+    font: generatedFont === undefined
+      ? existing.props.font === 'sans' ? 'draw' : existing.props.font
+      : existing.props.font === generatedFont ? 'draw' : existing.props.font,
+  };
+}
+
 function createEdgeShape(
   edge: IGraphEdge,
   index: IndexKey,
@@ -258,6 +277,7 @@ function createEdgeShape(
   existing?: TLShape,
 ): TLArrowShape {
   const preserved = existing?.type === 'arrow' ? existing : undefined;
+  const style = edgeStyle(preserved);
   const fromCenter = { x: from.x + from.props.w / 2, y: from.y + from.props.h / 2 };
   const toCenter = { x: to.x + to.props.w / 2, y: to.y + to.props.h / 2 };
   return {
@@ -275,6 +295,8 @@ function createEdgeShape(
       ...(preserved?.meta ?? {}),
       codegraphyEntityId: edge.id,
       codegraphyFrom: edge.from,
+      codegraphyGeneratedDash: 'draw',
+      codegraphyGeneratedFont: 'draw',
       codegraphyKind: 'edge',
       codegraphyRelationshipKind: edge.kind,
       codegraphyTo: edge.to,
@@ -285,17 +307,17 @@ function createEdgeShape(
       labelColor: 'black',
       color: 'grey',
       fill: 'none',
-      dash: 'draw',
       size: 's',
       arrowheadStart: 'none',
       arrowheadEnd: 'arrow',
-      font: 'draw',
       bend: 0,
       richText: toRichText(''),
       labelPosition: 0.5,
       scale: 1,
       elbowMidPoint: 0.5,
       ...(preserved?.props ?? {}),
+      dash: style.dash,
+      font: style.font,
       start: { x: 0, y: 0 },
       end: { x: toCenter.x - fromCenter.x, y: toCenter.y - fromCenter.y },
     },

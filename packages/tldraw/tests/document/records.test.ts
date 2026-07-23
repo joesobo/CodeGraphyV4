@@ -187,6 +187,59 @@ describe('reconcileGraphRecords', () => {
     });
   });
 
+  it('migrates legacy generated connector styles to Draw during refresh', () => {
+    const initial = reconcileGraphRecords([], INITIAL_GRAPH);
+    const edge = initial.find(record => record.meta.codegraphyKind === 'edge');
+    if (edge?.typeName !== 'shape' || edge.type !== 'arrow') {
+      throw new Error('Expected generated connector');
+    }
+    const legacyEdge = {
+      ...edge,
+      meta: Object.fromEntries(
+        Object.entries(edge.meta).filter(([key]) => (
+          key !== 'codegraphyGeneratedDash' && key !== 'codegraphyGeneratedFont'
+        )),
+      ),
+      props: {
+        ...edge.props,
+        dash: 'solid',
+        font: 'sans',
+      },
+    } satisfies TLRecord;
+    const existing = initial.map(record => record.id === edge.id ? legacyEdge : record);
+
+    const refreshed = reconcileGraphRecords(existing, INITIAL_GRAPH);
+    const refreshedEdge = refreshed.find(record => record.meta.codegraphyKind === 'edge');
+
+    expect(refreshedEdge).toMatchObject({
+      props: { dash: 'draw', font: 'draw' },
+    });
+  });
+
+  it('preserves manual connector styles during refresh', () => {
+    const initial = reconcileGraphRecords([], INITIAL_GRAPH);
+    const edge = initial.find(record => record.meta.codegraphyKind === 'edge');
+    if (edge?.typeName !== 'shape' || edge.type !== 'arrow') {
+      throw new Error('Expected generated connector');
+    }
+    const styledEdge = {
+      ...edge,
+      props: {
+        ...edge.props,
+        dash: 'dashed',
+        font: 'mono',
+      },
+    } satisfies TLRecord;
+    const existing = initial.map(record => record.id === edge.id ? styledEdge : record);
+
+    const refreshed = reconcileGraphRecords(existing, INITIAL_GRAPH);
+    const refreshedEdge = refreshed.find(record => record.meta.codegraphyKind === 'edge');
+
+    expect(refreshedEdge).toMatchObject({
+      props: { dash: 'dashed', font: 'mono' },
+    });
+  });
+
   it('preserves user shapes and surviving node positions while replacing stale graph shapes', () => {
     const initial = reconcileGraphRecords([], INITIAL_GRAPH);
     const nodeA = initial.find(record => (
