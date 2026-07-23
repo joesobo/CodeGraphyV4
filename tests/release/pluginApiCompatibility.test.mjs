@@ -70,6 +70,24 @@ test('bundled plugin runtime versions match their package versions', () => {
   }
 });
 
+test('bundled plugin builds include runtime dependencies in their artifacts', () => {
+  for (const host of PLUGIN_HOSTS) {
+    for (const plugin of host.plugins) {
+      const packageManifest = readJson(`packages/plugin-${plugin}/package.json`);
+
+      assert.match(
+        packageManifest.scripts?.build ?? '',
+        /build-workspace-package\.mjs [^&]+ --bundle-dependencies(?:\s|$)/,
+        `${plugin} runtime build must bundle dependencies for isolated VSIX loading`,
+      );
+      if (plugin === 'particles') {
+        assert.match(packageManifest.scripts.build, /--external esbuild/);
+        assert.match(packageManifest.scripts.build, /--vendor-package esbuild/);
+      }
+    }
+  }
+});
+
 test('public plugin API packages include publish and support metadata', () => {
   for (const packageName of ['plugin-api', 'extension-plugin-api']) {
     const packageManifest = readJson(`packages/${packageName}/package.json`);

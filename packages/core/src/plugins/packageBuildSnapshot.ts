@@ -27,7 +27,11 @@ async function hashPackageBuildDirectory(
   entries.sort((left, right) => left.name.localeCompare(right.name));
 
   for (const entry of entries) {
-    if (entry.isDirectory() && ignoredPackageBuildDirectories.has(entry.name)) continue;
+    if (
+      directoryPath === packageRoot
+      && entry.isDirectory()
+      && ignoredPackageBuildDirectories.has(entry.name)
+    ) continue;
 
     const entryPath = path.join(directoryPath, entry.name);
     const relativePath = path.relative(packageRoot, entryPath);
@@ -71,9 +75,8 @@ async function hashLinkedPackageDependencies(
 
 function shouldCopyPackageBuildEntry(packageRoot: string, sourcePath: string): boolean {
   const relativePath = path.relative(packageRoot, sourcePath);
-  return !relativePath.split(path.sep).some(segment => (
-    ignoredPackageBuildDirectories.has(segment)
-  ));
+  const topLevelEntry = relativePath.split(path.sep)[0];
+  return !ignoredPackageBuildDirectories.has(topLevelEntry);
 }
 
 async function isDirectory(directoryPath: string): Promise<boolean> {

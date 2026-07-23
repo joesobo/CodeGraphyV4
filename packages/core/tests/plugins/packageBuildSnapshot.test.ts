@@ -112,6 +112,38 @@ describe('CodeGraphy package build snapshots', () => {
     expect(secondRuntime.default).toBe('v2');
   });
 
+  it('preserves vendored runtime packages nested inside a distributable build', async () => {
+    const packageRoot = await createPackageFixtureRoot('codegraphy-vendored-runtime-');
+    const runtimePath = path.join(packageRoot, 'dist', 'node_modules', 'runtime', 'index.js');
+    await fs.mkdir(path.dirname(runtimePath), { recursive: true });
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({ type: 'module' }), 'utf8');
+    await fs.writeFile(
+      path.join(packageRoot, 'dist', 'plugin.js'),
+      "export { marker as default } from 'runtime';",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(packageRoot, 'dist', 'node_modules', 'runtime', 'package.json'),
+      JSON.stringify({ name: 'runtime', type: 'module', exports: './index.js' }),
+      'utf8',
+    );
+    await fs.writeFile(runtimePath, "export const marker = 'v1';", 'utf8');
+
+    const first = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+    const firstRuntime = await import(pathToFileURL(
+      path.join(first.snapshotPackageRoot, 'dist', 'plugin.js'),
+    ).href);
+    await fs.writeFile(runtimePath, "export const marker = 'v2';", 'utf8');
+    const second = await prepareCodeGraphyPackageBuildSnapshot(packageRoot);
+    const secondRuntime = await import(pathToFileURL(
+      path.join(second.snapshotPackageRoot, 'dist', 'plugin.js'),
+    ).href);
+
+    expect(second.buildIdentity).not.toBe(first.buildIdentity);
+    expect(firstRuntime.default).toBe('v1');
+    expect(secondRuntime.default).toBe('v2');
+  });
+
   it('does not evict a snapshot held by another CodeGraphy process', async () => {
     const packageRoot = await createPackageFixtureRoot('codegraphy-process-snapshot-');
     await fs.writeFile(path.join(packageRoot, 'package.json'), '{}', 'utf8');
