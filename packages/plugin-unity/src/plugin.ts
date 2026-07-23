@@ -6,6 +6,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { analyzeUnitySerializedFile } from './analysis';
 import { buildUnityGuidMap, buildUnityGuidMapFromWorkspace, registerUnityGuid } from './guidMap';
+import { createUnityNodeTypes } from './graphTypes';
 import { manifest } from './metadata';
 
 const UNITY_GRAPH_SCOPE_NODE_TYPES = [
@@ -24,6 +25,10 @@ class UnityPlugin implements IPlugin {
   readonly sources = manifest.sources;
 
   private guidToAssetPath = new Map<string, string>();
+
+  contributeNodeTypes() {
+    return createUnityNodeTypes();
+  }
 
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
     return {

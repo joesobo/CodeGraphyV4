@@ -13,6 +13,11 @@ export interface IPluginNodeType {
   defaultVisible: boolean;
   description?: IPluginGraphTypeDescription;
   parentId?: NodeType;
+  matchSymbolKinds?: readonly string[];
+  matchSymbolPluginKind?: string;
+  matchSymbolSource?: string;
+  matchSymbolLanguage?: string;
+  matchSymbolFilePath?: string;
 }
 
 export interface IPluginEdgeType {

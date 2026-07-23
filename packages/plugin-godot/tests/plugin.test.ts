@@ -46,6 +46,27 @@ describe('createGDScriptPlugin lifecycle', () => {
           'codegraphy.gdscript:signal-connection',
         ],
       });
+      expect(plugin.contributeNodeTypes?.()).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          id: 'plugin:codegraphy.gdscript:symbol:signal',
+          label: 'Signal',
+          matchSymbolKinds: ['signal'],
+          matchSymbolPluginKind: 'signal',
+          matchSymbolSource: 'codegraphy.gdscript',
+        }),
+        expect.objectContaining({
+          id: 'plugin:codegraphy.gdscript:symbol:exported-property',
+          parentId: 'variable',
+          matchSymbolKinds: ['variable'],
+          matchSymbolPluginKind: 'exported-property',
+        }),
+      ]));
+      expect(plugin.contributeEdgeTypes?.()).toEqual([
+        expect.objectContaining({
+          id: 'codegraphy.gdscript:signal-connection',
+          label: 'Signal Connections',
+        }),
+      ]);
     });
 
 

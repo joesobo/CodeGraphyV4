@@ -8,6 +8,7 @@ import type {
   IPluginDataHost,
   IPluginFactory,
   IPluginFactoryOptions,
+  IPluginNodeType,
 } from '../src';
 
 describe('plugin API contracts', () => {
@@ -67,6 +68,23 @@ describe('plugin API contracts', () => {
     expectTypeOf<IPlugin>().not.toHaveProperty('webviewContributions');
     expectTypeOf<IPlugin>().not.toHaveProperty('onLoad');
     expectTypeOf<IPlugin>().not.toHaveProperty('onWebviewReady');
+  });
+
+  it('lets Core plugins describe how their semantic node types match analysis output', () => {
+    const nodeType = {
+      id: 'plugin:acme.engine:symbol:scene',
+      label: 'Scene',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['scene'],
+      matchSymbolPluginKind: 'scene',
+      matchSymbolSource: 'acme.engine',
+      matchSymbolLanguage: 'engine',
+      matchSymbolFilePath: '**/*.scene',
+    } satisfies IPluginNodeType;
+
+    expectTypeOf(nodeType.matchSymbolKinds).toEqualTypeOf<string[]>();
+    expectTypeOf(nodeType.matchSymbolSource).toEqualTypeOf<string>();
   });
 
   it('exposes Obsidian-style plugin-owned data persistence', async () => {

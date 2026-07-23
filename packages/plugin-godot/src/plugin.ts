@@ -11,6 +11,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { collectGodotProjectRoots } from './projectRoot';
+import { createGodotEdgeTypes, createGodotNodeTypes } from './graphTypes';
 import { manifest } from './metadata';
 import { buildAnalysisContext } from './plugin/context';
 import {
@@ -63,6 +64,14 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly defaultFilters = manifest.defaultFilters;
   readonly updateImpact = manifest.updateImpact;
   readonly sources = manifest.sources;
+
+  contributeNodeTypes() {
+    return createGodotNodeTypes();
+  }
+
+  contributeEdgeTypes() {
+    return createGodotEdgeTypes();
+  }
 
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
     const pluginSymbolNodeType = (pluginKind: string) =>

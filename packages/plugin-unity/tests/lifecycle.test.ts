@@ -49,6 +49,23 @@ describe('createUnityPlugin', () => {
       ],
       edgeTypes: ['contains', 'reference', 'event'],
     });
+    expect(plugin.contributeNodeTypes?.()).toEqual([
+      expect.objectContaining({
+        id: 'plugin:codegraphy.unity:symbol',
+        label: 'Unity',
+        matchSymbolSource: 'codegraphy.unity',
+      }),
+      expect.objectContaining({
+        id: 'plugin:codegraphy.unity:symbol:game-object',
+        parentId: 'plugin:codegraphy.unity:symbol',
+        matchSymbolPluginKind: 'game-object',
+      }),
+      expect.objectContaining({
+        id: 'plugin:codegraphy.unity:symbol:component',
+        parentId: 'plugin:codegraphy.unity:symbol',
+        matchSymbolPluginKind: 'component',
+      }),
+    ]);
     expect(plugin.contributeEdgeTypes?.() ?? []).toEqual([]);
   });
 
