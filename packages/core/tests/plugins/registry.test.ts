@@ -243,6 +243,39 @@ describe('CorePluginRegistry', () => {
     consoleError.mockRestore();
   });
 
+  it('waits for an active analysis callback before unloading its plugin', async () => {
+    let markAnalysisStarted!: () => void;
+    let finishAnalysis!: () => void;
+    const analysisStarted = new Promise<void>(resolve => {
+      markAnalysisStarted = resolve;
+    });
+    const analysisGate = new Promise<void>(resolve => {
+      finishAnalysis = resolve;
+    });
+    const onUnload = vi.fn();
+    const registry = new CorePluginRegistry();
+    registry.register(plugin({
+      async analyzeFile(filePath) {
+        markAnalysisStarted();
+        await analysisGate;
+        return { filePath, relations: [] };
+      },
+      onUnload,
+    }));
+
+    const analysis = registry.analyzeFileResult('src/app.test', '', '/workspace');
+    await analysisStarted;
+    registry.unregister('codegraphy.test');
+
+    expect(registry.get('codegraphy.test')).toBeUndefined();
+    expect(onUnload).not.toHaveBeenCalled();
+
+    finishAnalysis();
+    await analysis;
+
+    expect(onUnload).toHaveBeenCalledOnce();
+  });
+
   it('lists node and edge type contributions through the registry facade', () => {
     const registry = new CorePluginRegistry();
 

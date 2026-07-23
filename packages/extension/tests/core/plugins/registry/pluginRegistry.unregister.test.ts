@@ -74,6 +74,40 @@ describe('PluginRegistry unregister', () => {
     expect(registry.get(plugin.id)).toBeUndefined();
   });
 
+  it('waits for an active analysis callback before unloading its plugin', async () => {
+    let markAnalysisStarted!: () => void;
+    let finishAnalysis!: () => void;
+    const analysisStarted = new Promise<void>(resolve => {
+      markAnalysisStarted = resolve;
+    });
+    const analysisGate = new Promise<void>(resolve => {
+      finishAnalysis = resolve;
+    });
+    const onUnload = vi.fn();
+    const registry = createConfiguredRegistry();
+    const plugin = createMockPlugin({
+      async analyzeFile(filePath) {
+        markAnalysisStarted();
+        await analysisGate;
+        return { filePath, relations: [] };
+      },
+      onUnload,
+    });
+    registry.register(plugin);
+
+    const analysis = registry.analyzeFileResult('src/app.test', '', '/workspace');
+    await analysisStarted;
+    registry.unregister(plugin.id);
+
+    expect(registry.get(plugin.id)).toBeUndefined();
+    expect(onUnload).not.toHaveBeenCalled();
+
+    finishAnalysis();
+    await analysis;
+
+    expect(onUnload).toHaveBeenCalledOnce();
+  });
+
   it('removes plugin from extension map', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin({ supportedExtensions: ['.ts'] });

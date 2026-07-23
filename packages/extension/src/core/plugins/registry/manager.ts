@@ -10,7 +10,7 @@ import { buildV2Config } from './runtime/registration/configure';
 import { PluginRegistryLifecycle } from './runtime/state/lifecycle';
 import { validateAndCreatePluginInfo, addToRegistry } from './runtime/registration/register';
 import type { ConfigureV2Options } from './runtime/registration/configure';
-import { removeFromRegistry } from './runtime/registration/unregister';
+import { removeFromRegistry, unloadPlugin } from './runtime/registration/unregister';
 import { ExtensionPluginRegistry } from '../../../extension/plugins/registry';
 
 export class PluginRegistry extends PluginRegistryLifecycle {
@@ -46,14 +46,20 @@ export class PluginRegistry extends PluginRegistryLifecycle {
   }
 
   unregister(pluginId: string): boolean {
-    return removeFromRegistry(
+    const info = this._plugins.get(pluginId);
+    if (!info) return false;
+    const initialization = this._initializingPlugins.get(info);
+    const removed = removeFromRegistry(
       pluginId,
       this._plugins,
       this._extensionMap,
       this._initializedPlugins,
-      this._initializingPlugins,
       this._eventBus,
     );
+    if (removed) {
+      this._queuePluginUnload(() => unloadPlugin(info), initialization);
+    }
+    return removed;
   }
 
   notifyWebviewReady(): void {

@@ -25,6 +25,8 @@ export abstract class PluginRegistryState {
   protected readonly _extensionMap = new Map<string, string[]>();
   protected readonly _initializedPlugins = new Set<string>();
   protected readonly _initializingPlugins = new Map<IPluginInfoV2, Promise<boolean>>();
+  private readonly _pendingPluginUnloads = new Set<() => void>();
+  private _activePluginOperations = 0;
   protected _eventBus?: EventBus;
   protected _v2Config: RegistryV2Config = { logFn: DEFAULT_LOG_FN };
   protected _lastWorkspaceReadyGraph?: IGraphData;
@@ -38,5 +40,54 @@ export abstract class PluginRegistryState {
       this._workspaceReadyNotified,
       this._lastWorkspaceReadyGraph,
     );
+  }
+
+  protected async _runPluginOperation<TResult>(operation: () => Promise<TResult>): Promise<TResult> {
+    this._activePluginOperations += 1;
+    try {
+      return await operation();
+    } finally {
+      this._releasePluginOperation();
+    }
+  }
+
+  protected _runPluginOperationSync<TResult>(operation: () => TResult): TResult {
+    this._activePluginOperations += 1;
+    try {
+      return operation();
+    } finally {
+      this._releasePluginOperation();
+    }
+  }
+
+  protected _queuePluginUnload(
+    unload: () => void,
+    initialization: Promise<boolean> | undefined,
+  ): void {
+    if (initialization) {
+      void initialization.then(
+        () => this._queueSettledPluginUnload(unload),
+        () => this._queueSettledPluginUnload(unload),
+      );
+      return;
+    }
+    this._queueSettledPluginUnload(unload);
+  }
+
+  private _releasePluginOperation(): void {
+    this._activePluginOperations -= 1;
+    if (this._activePluginOperations !== 0) {
+      return;
+    }
+    for (const unload of this._pendingPluginUnloads) unload();
+    this._pendingPluginUnloads.clear();
+  }
+
+  private _queueSettledPluginUnload(unload: () => void): void {
+    if (this._activePluginOperations > 0) {
+      this._pendingPluginUnloads.add(unload);
+      return;
+    }
+    unload();
   }
 }

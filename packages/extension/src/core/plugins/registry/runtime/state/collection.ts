@@ -47,17 +47,19 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       return undefined;
     }
 
-    return resolvePluginAccess(
+    return this._runPluginOperation(() => resolvePluginAccess(
       info.plugin,
       listPluginAccessProviders(this._plugins.values()),
       context,
-    );
+    ));
   }
 
   async listAvailableGraphViewContributions(
     context: CorePluginAccessContext = {},
   ): Promise<ExtensionGraphViewContributionSet> {
-    return listAvailableGraphViewContributionsForPlugins(this._plugins.values(), context);
+    return this._runPluginOperation(() => (
+      listAvailableGraphViewContributionsForPlugins(this._plugins.values(), context)
+    ));
   }
 
   getPluginForFile(filePath: string): IPlugin | undefined {
@@ -75,7 +77,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analysisContext?: IPluginAnalysisContext,
     options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
-    return analyzeFile(
+    return this._runPluginOperation(() => analyzeFile(
       filePath,
       content,
       workspaceRoot,
@@ -84,7 +86,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._coreAnalyzeFileResult,
       analysisContext,
       options,
-    );
+    ));
   }
 
   async analyzeFileResult(
@@ -94,7 +96,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analysisContext?: IPluginAnalysisContext,
     options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
-    return analyzeFileResult(
+    return this._runPluginOperation(() => analyzeFileResult(
       filePath,
       content,
       workspaceRoot,
@@ -103,7 +105,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._coreAnalyzeFileResult,
       analysisContext,
       options,
-    );
+    ));
   }
 
   async analyzeFileResultForPlugins(
@@ -114,7 +116,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analysisContext?: IPluginAnalysisContext,
     options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
-    return analyzeFileResult(
+    return this._runPluginOperation(() => analyzeFileResult(
       filePath,
       content,
       workspaceRoot,
@@ -126,7 +128,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
         ...options,
         pluginIds: new Set(pluginIds),
       },
-    );
+    ));
   }
 
   list(): IPluginInfo[] {
@@ -134,34 +136,34 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
   }
 
   listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
-    return listPluginContributions(
+    return this._runPluginOperationSync(() => listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeNodeTypes?.() ?? [],
       (definition) => definition.id,
       disabledPlugins,
-    );
+    ));
   }
 
   listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
-    return listPluginContributions(
+    return this._runPluginOperationSync(() => listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeEdgeTypes?.() ?? [],
       (definition) => definition.id,
       disabledPlugins,
-    );
+    ));
   }
 
   listGraphScopeCapabilities(
     filePaths: readonly string[] = [],
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Required<IPluginGraphScopeCapabilities> {
-    return collectGraphScopeCapabilities(
+    return this._runPluginOperationSync(() => collectGraphScopeCapabilities(
       filePaths,
       disabledPlugins,
       this._plugins,
       this._extensionMap,
       this._coreGraphScopeCapabilitiesProvider,
-    );
+    ));
   }
 
   get size(): number {
@@ -204,7 +206,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       return;
     }
 
-    this._replayReadinessForPlugin(info);
+    this._runPluginOperationSync(() => this._replayReadinessForPlugin(info));
   }
 
   abstract unregister(pluginId: string): boolean;

@@ -15,7 +15,6 @@ export function removeFromRegistry(
   plugins: Map<string, IPluginInfoV2>,
   extensionMap: Map<string, string[]>,
   initializedPlugins: Set<string>,
-  initializingPlugins: ReadonlyMap<IPluginInfoV2, Promise<boolean>>,
   eventBus?: EventBus,
 ): boolean {
   const info = plugins.get(pluginId);
@@ -28,16 +27,10 @@ export function removeFromRegistry(
   if (shouldLogPluginLifecycle(info)) {
     console.log(`[CodeGraphy] Unregistered plugin: ${pluginId}`);
   }
-  const initialization = initializingPlugins.get(info);
-  if (initialization) {
-    void initialization.then(() => unloadPlugin(info));
-  } else {
-    unloadPlugin(info);
-  }
   return true;
 }
 
-function unloadPlugin(info: IPluginInfoV2): void {
+export function unloadPlugin(info: IPluginInfoV2): void {
   try {
     info.plugin.onUnload?.();
   } catch (error) {

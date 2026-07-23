@@ -49,7 +49,9 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
   notifyWorkspaceReady(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
     this._workspaceReadyNotified = true;
     this._lastWorkspaceReadyGraph = graph;
-    lifecycleNotifyWorkspaceReady(this._plugins, graph, disabledPlugins);
+    this._runPluginOperationSync(() => (
+      lifecycleNotifyWorkspaceReady(this._plugins, graph, disabledPlugins)
+    ));
   }
 
   async notifyPreAnalyze(
@@ -58,7 +60,9 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
     analysisContext?: IPluginAnalysisContext,
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<void> {
-    await lifecycleNotifyPreAnalyze(this._plugins, files, workspaceRoot, analysisContext, disabledPlugins);
+    await this._runPluginOperation(() => (
+      lifecycleNotifyPreAnalyze(this._plugins, files, workspaceRoot, analysisContext, disabledPlugins)
+    ));
   }
 
   async notifyFilesChanged(
@@ -67,17 +71,23 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
     analysisContext?: IPluginAnalysisContext,
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<{ additionalFilePaths: string[]; requiresFullRefresh: boolean }> {
-    return lifecycleNotifyFilesChanged(this._plugins, files, workspaceRoot, analysisContext, disabledPlugins);
+    return this._runPluginOperation(() => (
+      lifecycleNotifyFilesChanged(this._plugins, files, workspaceRoot, analysisContext, disabledPlugins)
+    ));
   }
 
   notifyPostAnalyze(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
     this._lastWorkspaceReadyGraph = graph;
-    lifecycleNotifyPostAnalyze(this._plugins, graph, disabledPlugins);
+    this._runPluginOperationSync(() => (
+      lifecycleNotifyPostAnalyze(this._plugins, graph, disabledPlugins)
+    ));
   }
 
   notifyGraphRebuild(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
     this._lastWorkspaceReadyGraph = graph;
-    lifecycleNotifyGraphRebuild(this._plugins, graph, disabledPlugins);
+    this._runPluginOperationSync(() => (
+      lifecycleNotifyGraphRebuild(this._plugins, graph, disabledPlugins)
+    ));
   }
 
 }
