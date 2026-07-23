@@ -42,6 +42,25 @@
     }
   },
   "types": "src/index.ts",
+  "typesVersions": {
+    "*": {
+      "access": [
+        "src/access.ts"
+      ],
+      "data": [
+        "src/data.ts"
+      ],
+      "disposable": [
+        "src/disposable.ts"
+      ],
+      "graph": [
+        "src/graph.ts"
+      ],
+      "plugin": [
+        "src/plugin.ts"
+      ]
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
