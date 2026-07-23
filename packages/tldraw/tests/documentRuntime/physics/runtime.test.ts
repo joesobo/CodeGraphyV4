@@ -44,15 +44,19 @@ function createHarness(options: HarnessOptions = {}) {
   const off = vi.fn();
   const stopStoreListener = vi.fn();
   const updateShapes = vi.fn();
+  const selectNone = vi.fn();
+  const getSelectedShapes = vi.fn((): ScriptShape[] => []);
   const zoomToBounds = vi.fn();
   const getCurrentPage = vi.fn(() => ({ meta }));
   let storeListener: () => void = () => undefined;
   const editor = {
     getCurrentPage,
     getCurrentPageShapes: () => shapes,
+    getSelectedShapes,
     off,
     on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
     run: vi.fn((operation: () => void) => operation()),
+    selectNone,
     store: {
       listen: vi.fn((listener: () => void) => {
         storeListener = listener;
@@ -66,8 +70,10 @@ function createHarness(options: HarnessOptions = {}) {
     editor,
     emit: (event: string, payload?: unknown) => listeners.get(event)?.(payload),
     getCurrentPage,
+    getSelectedShapes,
     notifyStore: () => storeListener(),
     off,
+    selectNone,
     setMeta: (nextMeta: Record<string, unknown>) => { meta = nextMeta; },
     setShapes: (nextShapes: ScriptShape[]) => { shapes = nextShapes; },
     stopStoreListener,
@@ -272,6 +278,54 @@ describe('tldraw physics runtime', () => {
         targetZoom: 1,
       },
     );
+  });
+
+  it('clears a selected node when graph search hides it', async () => {
+    const searchEvents = new EventTarget();
+    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB] });
+    harness.getSelectedShapes.mockReturnValue([nodeB]);
+    const { graphSearchEventName } = await import(
+      '../../../src/documentRuntime/search/model'
+    );
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({
+      editor: harness.editor,
+      searchEvents,
+      signal: new AbortController().signal,
+    });
+    searchEvents.dispatchEvent(new CustomEvent(graphSearchEventName, {
+      detail: { query: 'a' },
+    }));
+
+    expect(harness.selectNone).toHaveBeenCalledOnce();
+  });
+
+  it('clears a hidden search result selected through tldraw model hit testing', async () => {
+    const searchEvents = new EventTarget();
+    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB] });
+    const { graphSearchEventName } = await import(
+      '../../../src/documentRuntime/search/model'
+    );
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({
+      editor: harness.editor,
+      searchEvents,
+      signal: new AbortController().signal,
+    });
+    searchEvents.dispatchEvent(new CustomEvent(graphSearchEventName, {
+      detail: { query: 'a' },
+    }));
+    harness.getSelectedShapes.mockReturnValue([nodeB]);
+    harness.emit('event', {
+      name: 'pointer_down',
+      shape: nodeB,
+      type: 'pointer',
+    });
+
+    expect(harness.selectNone).toHaveBeenCalledOnce();
+    expect(engine.pin).not.toHaveBeenCalled();
   });
 
   it('sends only changed document force settings to the active engine', async () => {

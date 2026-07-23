@@ -37,6 +37,7 @@ export interface ScriptEditor {
   on(event: 'event', listener: (event: ScriptPointerEvent) => void): void;
   on(event: 'tick', listener: (elapsed: number) => void): void;
   run(operation: () => void, options: { history: 'ignore'; ignoreShapeLock: true }): void;
+  selectNone?(): unknown;
   store: { listen(listener: () => void): () => void };
   updateTheme?(theme: TLTheme): unknown;
   updateShapes(updates: Array<Record<string, unknown>>): void;
@@ -64,6 +65,7 @@ interface PhysicsRuntime {
   engine?: GraphLayoutEngine;
   forceSettings: ForceSettings;
   fitSearchWhenSettled: boolean;
+  hiddenShapeIds: ReadonlySet<string>;
   iconShapes: IconShape[];
   labelShapes: LabelShape[];
   nodeShapes: NodeShape[];
@@ -75,7 +77,9 @@ interface PhysicsRuntime {
 
 function rebuildRuntime(runtime: PhysicsRuntime): void {
   const shapes = runtime.editor.getCurrentPageShapes();
-  const visibleShapes = createSearchProjection(shapes, runtime.searchQuery).visibleShapes;
+  const projection = createSearchProjection(shapes, runtime.searchQuery);
+  const visibleShapes = projection.visibleShapes;
+  runtime.hiddenShapeIds = projection.hiddenShapeIds;
   runtime.structureKey = graphStructureKey(shapes);
   runtime.nodeShapes = visibleShapes.filter(isNodeShape);
   runtime.edgeShapes = visibleShapes.filter(isEdgeShape);
@@ -138,9 +142,20 @@ function createDragHost(runtime: PhysicsRuntime): DragHost {
     drag: runtime.drag,
     getCurrentShapes: () => runtime.editor.getCurrentPageShapes(),
     getEngine: () => runtime.engine,
-    getSelectedShapes: () => runtime.editor.getSelectedShapes?.() ?? [],
+    getSelectedShapes: () => (runtime.editor.getSelectedShapes?.() ?? [])
+      .filter(shape => !runtime.hiddenShapeIds.has(shape.id)),
     prepareEngine: () => prepareRuntimeEngine(runtime),
   };
+}
+
+function clearHiddenSelection(runtime: PhysicsRuntime, eventShape?: ScriptShape): boolean {
+  const selectedHiddenShape = (runtime.editor.getSelectedShapes?.() ?? [])
+    .some(shape => runtime.hiddenShapeIds.has(shape.id));
+  if (!selectedHiddenShape && (!eventShape || !runtime.hiddenShapeIds.has(eventShape.id))) {
+    return false;
+  }
+  runtime.editor.selectNone?.();
+  return true;
 }
 
 function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
@@ -171,6 +186,7 @@ function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
 
 function handleStoreChange(runtime: PhysicsRuntime): void {
   if (runtime.writingPhysicsUpdates) return;
+  clearHiddenSelection(runtime);
   const nextForceSettings = readForceSettings(
     runtime.editor.getCurrentPage().meta.codegraphyPhysics,
   );
@@ -186,10 +202,11 @@ function handleStoreChange(runtime: PhysicsRuntime): void {
 function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
   const forceSettings = readForceSettings(editor.getCurrentPage().meta.codegraphyPhysics);
   const shapes = editor.getCurrentPageShapes();
-  const nodeShapes = shapes.filter(isNodeShape);
-  const edgeShapes = shapes.filter(isEdgeShape);
-  const iconShapes = shapes.filter(isIconShape);
-  const labelShapes = shapes.filter(isLabelShape);
+  const projection = createSearchProjection(shapes, '');
+  const nodeShapes = projection.visibleShapes.filter(isNodeShape);
+  const edgeShapes = projection.visibleShapes.filter(isEdgeShape);
+  const iconShapes = projection.visibleShapes.filter(isIconShape);
+  const labelShapes = projection.visibleShapes.filter(isLabelShape);
   const engine = createRuntimeEngine(nodeShapes, edgeShapes, forceSettings);
   return {
     dirty: false,
@@ -199,6 +216,7 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
     engine,
     fitSearchWhenSettled: false,
     forceSettings,
+    hiddenShapeIds: projection.hiddenShapeIds,
     iconShapes,
     labelShapes,
     nodeShapes,
@@ -218,7 +236,10 @@ export function startPhysicsRuntime({
 }: PhysicsScriptContext): void {
   const runtime = createPhysicsRuntime(editor);
   const dragHost = createDragHost(runtime);
-  const handleEvent = (event: ScriptPointerEvent): void => handlePointerEvent(dragHost, event);
+  const handleEvent = (event: ScriptPointerEvent): void => {
+    if (event.name === 'pointer_down' && clearHiddenSelection(runtime, event.shape)) return;
+    handlePointerEvent(dragHost, event);
+  };
   const handleTick = (): void => tickRuntime(runtime, dragHost);
   const handleSearch = (event: Event): void => {
     const detail = (event as CustomEvent<GraphSearchEventDetail>).detail;
@@ -226,6 +247,11 @@ export function startPhysicsRuntime({
     const nextQuery = normalizeGraphSearchQuery(detail.query);
     if (nextQuery === runtime.searchQuery) return;
     runtime.searchQuery = nextQuery;
+    runtime.hiddenShapeIds = createSearchProjection(
+      runtime.editor.getCurrentPageShapes(),
+      nextQuery,
+    ).hiddenShapeIds;
+    clearHiddenSelection(runtime);
     runtime.fitSearchWhenSettled = true;
     runtime.dirty = true;
   };

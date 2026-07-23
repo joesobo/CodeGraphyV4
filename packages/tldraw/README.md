@@ -179,7 +179,7 @@ Use the search bar at the top of the canvas to find files by their
 workspace-relative path. Search is case-insensitive and updates while you type.
 The canvas shows matching nodes, their icons and labels, and edges between
 matching nodes. The filtered nodes continue to use force physics, and the camera
-fits the results when their layout settles.
+fits the results when their layout settles. Hidden results cannot be selected.
 
 Use `*` as a wildcard. For example, `*.ts` shows TypeScript files, and `*`
 shows the complete graph.
