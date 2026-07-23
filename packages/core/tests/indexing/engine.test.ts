@@ -63,7 +63,12 @@ describe('createCodeGraphyWorkspaceEngine', () => {
     const initializationGate = new Promise<void>((resolve) => {
       finishInitialization = resolve;
     });
-    const onUnload = vi.fn();
+    const lifecycleCalls: string[] = [];
+    let resourceActive = false;
+    const onUnload = vi.fn(() => {
+      lifecycleCalls.push('unload');
+      resourceActive = false;
+    });
     const engine = createCodeGraphyWorkspaceEngine({
       workspaceRoot,
       plugins: [{
@@ -74,8 +79,11 @@ describe('createCodeGraphyWorkspaceEngine', () => {
           analyzeFile: vi.fn(),
         }),
         async initialize() {
+          lifecycleCalls.push('initialize-start');
           markInitializationStarted();
           await initializationGate;
+          lifecycleCalls.push('initialize-finish');
+          resourceActive = true;
         },
         onUnload,
       }],
@@ -89,5 +97,7 @@ describe('createCodeGraphyWorkspaceEngine', () => {
 
     await expect(indexing).rejects.toThrow('CodeGraphy Workspace Engine is disposed.');
     expect(onUnload).toHaveBeenCalledOnce();
+    expect(resourceActive).toBe(false);
+    expect(lifecycleCalls).toEqual(['initialize-start', 'initialize-finish', 'unload']);
   });
 });

@@ -246,6 +246,44 @@ describe('ExtensionPluginRegistry', () => {
     );
   });
 
+  it('unloads a plugin after pending initialization settles', async () => {
+    let markInitializationStarted!: () => void;
+    let finishInitialization!: () => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((resolve) => {
+      finishInitialization = resolve;
+    });
+    const lifecycleCalls: string[] = [];
+    let resourceActive = false;
+    const registry = new ExtensionPluginRegistry();
+    registry.register(createPlugin({
+      async initialize() {
+        lifecycleCalls.push('initialize-start');
+        markInitializationStarted();
+        await initializationGate;
+        lifecycleCalls.push('initialize-finish');
+        resourceActive = true;
+      },
+      onUnload() {
+        lifecycleCalls.push('unload');
+        resourceActive = false;
+      },
+    }));
+
+    const initialization = registry.initializeAll('/workspace');
+    await initializationStarted;
+    registry.disposeAll();
+    finishInitialization();
+    await initialization;
+
+    expect(resourceActive).toBe(false);
+    expect(lifecycleCalls).toEqual(['initialize-start', 'initialize-finish', 'unload']);
+    expect(registry.list()).toEqual([]);
+    expect(registry.listActive()).toEqual([]);
+  });
+
   it('rejects a plugin for an incompatible Extension Plugin API', () => {
     const registry = new ExtensionPluginRegistry();
 

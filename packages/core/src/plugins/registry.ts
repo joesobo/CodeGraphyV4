@@ -9,7 +9,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { CORE_PLUGIN_API_VERSION } from './api';
-import { initializeAll, initializePlugin } from './lifecycle/initialize';
+import { initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';
 import { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './lifecycle/notify/analysis';
 import {
@@ -58,6 +58,7 @@ export class CorePluginRegistry {
   private readonly plugins = new Map<string, CorePluginInfo>();
   private readonly extensionMap = new Map<string, string[]>();
   private readonly initializedPlugins = new Set<string>();
+  private readonly initializingPlugins = new Map<CorePluginInfo, Promise<boolean>>();
   private coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
 
   register(plugin: IPlugin, options: RegisterPluginOptions = {}): void {
@@ -65,14 +66,9 @@ export class CorePluginRegistry {
   }
 
   async initializeAll(workspaceRoot: string): Promise<void> {
-    const failedPluginIds = await initializeAll(
-      this.plugins,
-      workspaceRoot,
-      this.initializedPlugins,
+    await Promise.all(
+      [...this.plugins.keys()].map(pluginId => this.initializePlugin(pluginId, workspaceRoot)),
     );
-    for (const pluginId of failedPluginIds) {
-      this.unregister(pluginId);
-    }
   }
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
@@ -81,8 +77,17 @@ export class CorePluginRegistry {
       return;
     }
 
-    const initialized = await initializePlugin(info, workspaceRoot, this.initializedPlugins);
-    if (!initialized) {
+    let initialization = this.initializingPlugins.get(info);
+    if (!initialization) {
+      initialization = initializePlugin(info, workspaceRoot, this.initializedPlugins);
+      this.initializingPlugins.set(info, initialization);
+    }
+
+    const initialized = await initialization;
+    if (this.initializingPlugins.get(info) === initialization) {
+      this.initializingPlugins.delete(info);
+    }
+    if (!initialized && this.plugins.get(pluginId) === info) {
       this.unregister(pluginId);
     }
   }
@@ -117,12 +122,14 @@ export class CorePluginRegistry {
       return false;
     }
 
-    try {
-      info.plugin.onUnload?.();
-    } catch (error) {
-      console.error(`[CodeGraphy] Error unloading plugin ${pluginId}:`, error);
+    this.removePluginRegistration(pluginId);
+    const initialization = this.initializingPlugins.get(info);
+    if (initialization) {
+      void initialization.then(() => this.unloadPlugin(info));
+    } else {
+      this.unloadPlugin(info);
     }
-    return this.removePluginRegistration(pluginId);
+    return true;
   }
 
   disposeAll(): void {
@@ -287,5 +294,13 @@ export class CorePluginRegistry {
       }
     }
     return true;
+  }
+
+  private unloadPlugin(info: CorePluginInfo): void {
+    try {
+      info.plugin.onUnload?.();
+    } catch (error) {
+      console.error(`[CodeGraphy] Error unloading plugin ${info.plugin.id}:`, error);
+    }
   }
 }

@@ -47,6 +47,7 @@ export function assertExtensionPluginApiCompatibility(plugin: IExtensionPlugin):
 export class ExtensionPluginRegistry {
   private readonly plugins = new Map<string, ExtensionPluginInfo>();
   private readonly initializedPlugins = new Set<string>();
+  private readonly initializingPlugins = new Map<ExtensionPluginInfo, Promise<void>>();
   private readonly webviewReadyPlugins = new Set<string>();
   private webviewReady = false;
 
@@ -79,10 +80,21 @@ export class ExtensionPluginRegistry {
   }
 
   async initializeAll(workspaceRoot: string): Promise<void> {
-    for (const info of this.plugins.values()) {
+    for (const info of [...this.plugins.values()]) {
       if (this.initializedPlugins.has(info.plugin.id)) continue;
       try {
-        await info.plugin.initialize?.(workspaceRoot);
+        let initialization = this.initializingPlugins.get(info);
+        if (!initialization) {
+          initialization = Promise.resolve().then(() => info.plugin.initialize?.(workspaceRoot));
+          this.initializingPlugins.set(info, initialization);
+        }
+        await initialization;
+        if (this.initializingPlugins.get(info) === initialization) {
+          this.initializingPlugins.delete(info);
+        }
+        if (this.plugins.get(info.plugin.id) !== info) {
+          continue;
+        }
         this.initializedPlugins.add(info.plugin.id);
         if (this.webviewReady) {
           this.notifyPluginWebviewReady(info);
@@ -92,7 +104,10 @@ export class ExtensionPluginRegistry {
           `[CodeGraphy] Error initializing Extension plugin ${info.plugin.id}:`,
           error,
         );
-        this.unregister(info.plugin.id);
+        this.initializingPlugins.delete(info);
+        if (this.plugins.get(info.plugin.id) === info) {
+          this.unregister(info.plugin.id);
+        }
       }
     }
   }
@@ -108,14 +123,19 @@ export class ExtensionPluginRegistry {
     const info = this.plugins.get(pluginId);
     if (!info) return false;
 
-    try {
-      info.plugin.onUnload?.();
-    } catch (error) {
-      console.error(`[CodeGraphy] Error unloading Extension plugin ${pluginId}:`, error);
-    }
     this.initializedPlugins.delete(pluginId);
     this.webviewReadyPlugins.delete(pluginId);
-    return this.plugins.delete(pluginId);
+    this.plugins.delete(pluginId);
+    const initialization = this.initializingPlugins.get(info);
+    if (initialization) {
+      void initialization.then(
+        () => this.unloadPlugin(info),
+        () => this.unloadPlugin(info),
+      );
+    } else {
+      this.unloadPlugin(info);
+    }
+    return true;
   }
 
   disposeAll(): void {
@@ -136,6 +156,14 @@ export class ExtensionPluginRegistry {
         `[CodeGraphy] Error notifying Extension plugin ${info.plugin.id} that the webview is ready:`,
         error,
       );
+    }
+  }
+
+  private unloadPlugin(info: ExtensionPluginInfo): void {
+    try {
+      info.plugin.onUnload?.();
+    } catch (error) {
+      console.error(`[CodeGraphy] Error unloading Extension plugin ${info.plugin.id}:`, error);
     }
   }
 }
