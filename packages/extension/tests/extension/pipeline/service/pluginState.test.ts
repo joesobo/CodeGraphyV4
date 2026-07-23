@@ -78,6 +78,7 @@ describe('extension/pipeline/service/pluginState', () => {
       existingWork.promise,
       registry,
       initialize,
+      () => true,
     );
 
     await Promise.resolve();
@@ -104,6 +105,7 @@ describe('extension/pipeline/service/pluginState', () => {
       Promise.resolve(),
       registry,
       initialize,
+      () => true,
     );
 
     await expect(reload).rejects.toThrow('reload failed');
@@ -121,6 +123,7 @@ describe('extension/pipeline/service/pluginState', () => {
       existingWork.promise,
       registry,
       getWorkspaceRoot,
+      () => true,
     );
 
     await Promise.resolve();
@@ -142,10 +145,34 @@ describe('extension/pipeline/service/pluginState', () => {
       Promise.resolve(),
       registry,
       () => '/workspace',
+      () => true,
     );
 
     await expect(sync).rejects.toThrow('sync failed');
     await expect(nextQueue).resolves.toBeUndefined();
+  });
+
+  it('disposes registrations when sync finishes after the host becomes inactive', async () => {
+    const syncGate = createDeferred();
+    const syncStarted = createDeferred();
+    let hostActive = true;
+    vi.mocked(syncWorkspacePipelinePlugins).mockImplementationOnce(async () => {
+      syncStarted.resolve();
+      await syncGate.promise;
+    });
+
+    const { sync } = queueWorkspacePipelinePluginSync(
+      Promise.resolve(),
+      registry,
+      () => '/workspace',
+      () => hostActive,
+    );
+    await syncStarted.promise;
+    hostActive = false;
+    syncGate.resolve();
+    await sync;
+
+    expect(registry.disposeAll).toHaveBeenCalledOnce();
   });
 
   it('delegates plugin filter patterns and groups to bootstrap helpers', () => {

@@ -14,36 +14,52 @@ import {
 
 export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
+  private _workspacePluginHostActive = true;
 
   async initialize(): Promise<void> {
+    if (!this._workspacePluginHostActive) return;
     await initializeWorkspacePipelinePlugins(
       this._registry,
       () => this._getWorkspaceRoot(),
       this._context.extensionUri.fsPath,
     );
 
+    if (!this._workspacePluginHostActive) {
+      this._registry.disposeAll();
+      return;
+    }
+
     console.log('[CodeGraphy] WorkspacePipeline initialized');
   }
 
   async reloadWorkspacePlugins(): Promise<void> {
+    if (!this._workspacePluginHostActive) return;
     const { reload, nextQueue } = queueWorkspacePipelinePluginReload(
       this._workspacePluginReloadQueue,
       this._registry,
       () => this.initialize(),
+      () => this._workspacePluginHostActive,
     );
     this._workspacePluginReloadQueue = nextQueue;
     return reload;
   }
 
   async syncWorkspacePlugins(): Promise<void> {
+    if (!this._workspacePluginHostActive) return;
     const { sync, nextQueue } = queueWorkspacePipelinePluginSync(
       this._workspacePluginReloadQueue,
       this._registry,
       () => this._getWorkspaceRoot(),
+      () => this._workspacePluginHostActive,
       this._context.extensionUri.fsPath,
     );
     this._workspacePluginReloadQueue = nextQueue;
     return sync;
+  }
+
+  protected _disposeWorkspacePluginHost(): void {
+    this._workspacePluginHostActive = false;
+    this._registry.disposeAll();
   }
 
   getPluginFilterPatterns(

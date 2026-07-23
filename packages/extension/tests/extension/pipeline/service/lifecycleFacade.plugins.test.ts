@@ -99,4 +99,30 @@ describe('pipeline/service/lifecycleFacade', () => {
 
     expect(lifecycleState(facade)._registry.disposeAll).toHaveBeenCalledOnce();
   });
+
+  it('disposes plugins registered by a reload that finishes after host disposal', async () => {
+    let markInitializationStarted!: () => void;
+    let finishInitialization!: () => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((resolve) => {
+      finishInitialization = resolve;
+    });
+    class DeferredReloadFacade extends TestLifecycleFacade {
+      override async initialize(): Promise<void> {
+        markInitializationStarted();
+        await initializationGate;
+      }
+    }
+    const facade = new DeferredReloadFacade();
+
+    const reload = facade.reloadWorkspacePlugins();
+    await initializationStarted;
+    facade.dispose();
+    finishInitialization();
+    await reload;
+
+    expect(lifecycleState(facade)._registry.disposeAll).toHaveBeenCalledTimes(3);
+  });
 });

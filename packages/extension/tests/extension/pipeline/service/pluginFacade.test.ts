@@ -141,6 +141,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
       expect.any(Promise),
       facade._registry,
       expect.any(Function),
+      expect.any(Function),
     );
     expect(initializeWorkspacePipelinePlugins).toHaveBeenCalledWith(
       facade._registry,
@@ -157,6 +158,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     expect(queueWorkspacePipelinePluginSync).toHaveBeenCalledWith(
       expect.any(Promise),
       facade._registry,
+      expect.any(Function),
       expect.any(Function),
       '/extension',
     );

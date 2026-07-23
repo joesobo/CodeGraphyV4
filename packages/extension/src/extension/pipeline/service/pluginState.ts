@@ -31,10 +31,17 @@ export function queueWorkspacePipelinePluginReload(
   queue: Promise<void>,
   registry: WorkspacePipelinePluginRegistry,
   initialize: () => Promise<void>,
+  isHostActive: () => boolean,
 ): { nextQueue: Promise<void>; reload: Promise<void> } {
   const reload = queue.then(async () => {
+    if (!isHostActive()) return;
     registry.disposeAll();
-    await initialize();
+    if (!isHostActive()) return;
+    try {
+      await initialize();
+    } finally {
+      if (!isHostActive()) registry.disposeAll();
+    }
   });
 
   return {
@@ -47,13 +54,19 @@ export function queueWorkspacePipelinePluginSync(
   queue: Promise<void>,
   registry: WorkspacePipelinePluginRegistry,
   getWorkspaceRoot: () => string | undefined,
+  isHostActive: () => boolean,
   extensionRoot?: string,
 ): { nextQueue: Promise<void>; sync: Promise<void> } {
   const sync = queue.then(async () => {
-    await syncWorkspacePipelinePlugins(registry, {
-      bundledPluginPackageRoots: await readBundledWorkspacePluginPackageRoots(extensionRoot),
-      getWorkspaceRoot,
-    });
+    if (!isHostActive()) return;
+    try {
+      await syncWorkspacePipelinePlugins(registry, {
+        bundledPluginPackageRoots: await readBundledWorkspacePluginPackageRoots(extensionRoot),
+        getWorkspaceRoot,
+      });
+    } finally {
+      if (!isHostActive()) registry.disposeAll();
+    }
   });
 
   return {

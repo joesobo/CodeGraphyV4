@@ -118,7 +118,7 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
   }
 
   dispose(): void {
-    this._registry.disposeAll();
+    this._disposeWorkspacePluginHost();
   }
 }
 
