@@ -40,8 +40,11 @@ function createPluginToggleIndexingPlan(
   enabled: boolean,
   impact: IPluginUpdateImpact | undefined,
 ): CodeGraphyWorkspacePluginIndexingPlan {
-  if (!enabled || impact === 'settings-only' || impact === 'projection-only') {
+  if (impact === 'settings-only' || impact === 'projection-only') {
     return { kind: 'projection-only' };
+  }
+  if (!enabled) {
+    return { kind: 'analyze-workspace' };
   }
   if (impact === 'reanalyze-plugin-files') {
     return { kind: 'reprocess-plugin-files', pluginIds: [pluginId] };

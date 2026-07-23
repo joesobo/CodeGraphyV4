@@ -45,16 +45,26 @@ describe('plugins/workspaceTogglePlan', () => {
     }).indexing).toEqual({ kind: 'analyze-workspace' });
   });
 
-  it('disables a plugin with projection-only work regardless of its enable impact', () => {
+  it('analyzes the workspace when disabling a plugin that owns indexed evidence', () => {
     expect(createCodeGraphyWorkspacePluginTogglePlan([
       { id: 'codegraphy.vue', activation: 'enabled' },
     ], {
       pluginId: 'codegraphy.vue',
       enabled: false,
-      updateImpact: { toggle: 'requires-full-index' },
+      updateImpact: { toggle: 'reanalyze-plugin-files' },
     })).toEqual({
       plugins: [{ id: 'codegraphy.vue', activation: 'disabled' }],
-      indexing: { kind: 'projection-only' },
+      indexing: { kind: 'analyze-workspace' },
     });
+  });
+
+  it('disables an interface-only plugin with projection-only work', () => {
+    expect(createCodeGraphyWorkspacePluginTogglePlan([
+      { id: 'codegraphy.particles', activation: 'enabled' },
+    ], {
+      pluginId: 'codegraphy.particles',
+      enabled: false,
+      updateImpact: { toggle: 'projection-only' },
+    }).indexing).toEqual({ kind: 'projection-only' });
   });
 });

@@ -46,7 +46,7 @@ function createHandlers(
 }
 
 describe('graph view settings toggle message', () => {
-  it('handles plugin-id-only toggles as workspace plugin activity changes', async () => {
+  it('uses a safe workspace analysis when disabling a plugin without impact metadata', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -63,8 +63,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.vue', activation: 'disabled' },
     ]);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -179,6 +179,9 @@ describe('graph view settings toggle message', () => {
         }
         return defaultValue;
       }),
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+      })),
     });
 
     const handled = await applySettingsToggleMessage(
@@ -205,8 +208,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -249,7 +252,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('projects the graph when disabling a package-backed plugin', async () => {
+  it('reanalyzes the workspace when disabling a package-backed Core plugin', async () => {
     const state = createState();
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
@@ -259,6 +262,9 @@ describe('graph view settings toggle message', () => {
         }
         return defaultValue;
       }),
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+      })),
       analyzeAndSendData,
     });
 
@@ -275,8 +281,8 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.unity');
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('keeps package defaults out of workspace settings when enabling a package-backed plugin', async () => {
@@ -338,6 +344,9 @@ describe('graph view settings toggle message', () => {
       }),
       reloadWorkspacePlugins,
       syncWorkspacePlugins,
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'projection-only' as const,
+      })),
     });
 
     const handled = await applySettingsToggleMessage(
@@ -376,6 +385,9 @@ describe('graph view settings toggle message', () => {
       reloadWorkspacePlugins,
       syncWorkspacePlugins,
       sendGraphControls,
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'projection-only' as const,
+      })),
     });
 
     const handled = await applySettingsToggleMessage(
@@ -424,6 +436,9 @@ describe('graph view settings toggle message', () => {
       syncWorkspacePlugins,
       getPluginFilterPatterns: vi.fn(() => ['**/*.meta', 'ProjectSettings/**']),
       getPluginFilterGroups: vi.fn(() => pluginFilterGroups),
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+      })),
     });
 
     const handled = await applySettingsToggleMessage(
@@ -452,7 +467,7 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0]);
     expect(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.analyzeAndSendData).mock.invocationCallOrder[0]);
   });
 
   it('confirms plugin status after graph projection finishes', async () => {
@@ -475,6 +490,9 @@ describe('graph view settings toggle message', () => {
       syncWorkspacePlugins,
       sendPluginStatuses,
       sendPluginWebviewInjections,
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'projection-only' as const,
+      })),
     });
 
     const handled = await applySettingsToggleMessage(
