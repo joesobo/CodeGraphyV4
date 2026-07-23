@@ -26,22 +26,6 @@ await build({
   bundle: true,
   format: 'esm',
   platform: 'node',
-  plugins: [{
-    name: 'optional-packages',
-    setup(buildContext) {
-      buildContext.onResolve({ filter: /^[^./]/ }, async (args) => {
-        if (args.pluginData?.resolvingOptionalPackage) return undefined;
-        const result = await buildContext.resolve(args.path, {
-          importer: args.importer,
-          kind: args.kind,
-          namespace: args.namespace,
-          pluginData: { resolvingOptionalPackage: true },
-          resolveDir: args.resolveDir,
-        });
-        return result.errors.length === 0 ? result : { external: true };
-      });
-    },
-  }],
   sourcemap: true,
   target: 'node20',
 });

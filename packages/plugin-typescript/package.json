@@ -41,7 +41,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node20 --sourcemap --outfile=dist/plugin.js",
+    "build": "node build.mjs",
     "test": "vitest run",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
