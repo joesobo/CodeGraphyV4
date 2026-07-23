@@ -20,7 +20,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.unmock('tree-sitter-java');
     vi.unmock('tree-sitter-javascript');
     vi.unmock('@tree-sitter-grammars/tree-sitter-kotlin');
-    vi.unmock('@tree-sitter-grammars/tree-sitter-lua');
+    vi.unmock('@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js');
     vi.unmock('tree-sitter-objc');
     vi.unmock('tree-sitter-php');
     vi.unmock('tree-sitter-python');
@@ -63,7 +63,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.doMock('tree-sitter-java', () => ({ default: java }));
     vi.doMock('tree-sitter-javascript', () => ({ default: javaScript }));
     vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: kotlin }));
-    vi.doMock('@tree-sitter-grammars/tree-sitter-lua', () => ({ default: lua }));
+    vi.doMock('@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js', () => ({
+      default: lua,
+    }));
     vi.doMock('tree-sitter-objc', () => ({ default: objectiveC }));
     vi.doMock('tree-sitter-php', () => ({ default: { php } }));
     vi.doMock('tree-sitter-python', () => ({ default: python }));

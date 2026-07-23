@@ -17,7 +17,9 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
   vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
   vi.doMock('tree-sitter-javascript', () => ({ default: { id: 'javascript' } }));
   vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: { id: 'kotlin' } }));
-  vi.doMock('@tree-sitter-grammars/tree-sitter-lua', () => ({ default: { id: 'lua' } }));
+  vi.doMock('@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js', () => ({
+    default: { id: 'lua' },
+  }));
   vi.doMock('tree-sitter-php', () => ({
     default: {
       php: { id: 'php' },
@@ -54,7 +56,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doUnmock('tree-sitter-java');
     vi.doUnmock('tree-sitter-javascript');
     vi.doUnmock('@tree-sitter-grammars/tree-sitter-kotlin');
-    vi.doUnmock('@tree-sitter-grammars/tree-sitter-lua');
+    vi.doUnmock('@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js');
     vi.doUnmock('tree-sitter-php');
     vi.doUnmock('tree-sitter-python');
     vi.doUnmock('tree-sitter-ruby');
@@ -80,7 +82,9 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
       default: {},
     }));
     vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: {} }));
-    vi.doMock('@tree-sitter-grammars/tree-sitter-lua', () => ({ default: {} }));
+    vi.doMock('@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js', () => ({
+      default: {},
+    }));
     vi.doMock('tree-sitter-php', () => ({
       default: {
         php: {},
