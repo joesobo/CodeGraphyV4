@@ -520,16 +520,67 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(sendPluginStatuses).toHaveBeenCalledTimes(2);
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginToolbarActions).toHaveBeenCalledOnce();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
-    expect(sendPluginStatuses.mock.invocationCallOrder[0])
+    expect(sendPluginStatuses.mock.invocationCallOrder[1])
       .toBeGreaterThan(syncWorkspacePlugins.mock.invocationCallOrder[0]);
-    expect(sendPluginStatuses.mock.invocationCallOrder[0])
+    expect(sendPluginStatuses.mock.invocationCallOrder[1])
       .toBeGreaterThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('deactivates a disabled plugin in the webview before graph projection finishes', async () => {
+    const state = createState();
+    let finishProjection!: () => void;
+    let markProjectionStarted!: () => void;
+    const projectionStarted = new Promise<void>((resolve) => {
+      markProjectionStarted = resolve;
+    });
+    const projectionGate = new Promise<void>((resolve) => {
+      finishProjection = resolve;
+    });
+    const sendPluginStatuses = vi.fn();
+    const smartRebuild = vi.fn(async () => {
+      markProjectionStarted();
+      await projectionGate;
+    });
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ id: 'codegraphy.particles', activation: 'enabled' }] as T;
+        }
+        return defaultValue;
+      }),
+      getInstalledPluginUpdateImpact: vi.fn((): { toggle: 'projection-only' } => ({
+        toggle: 'projection-only',
+      })),
+      sendPluginStatuses,
+      smartRebuild,
+    });
+
+    const toggle = applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          enabled: false,
+        },
+      },
+      state,
+      handlers,
+    );
+    await projectionStarted;
+
+    expect(sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(sendPluginStatuses.mock.invocationCallOrder[0])
+      .toBeLessThan(smartRebuild.mock.invocationCallOrder[0] as number);
+
+    finishProjection();
+    await toggle;
+    expect(sendPluginStatuses).toHaveBeenCalledTimes(2);
   });
 
   it('sends plugin webview injections before workspace analysis after package toggles', async () => {

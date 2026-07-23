@@ -37,6 +37,9 @@ export async function applySettingsToggleMessage(
       handlers.sendContextMenuItems?.();
       handlers.sendPluginToolbarActions?.();
       handlers.sendGraphViewContributionStatuses?.();
+      if (!message.payload.enabled) {
+        handlers.sendPluginStatuses?.();
+      }
       sendFilterPatternsUpdated(state, handlers);
       try {
         await applyPluginToggleGraphWorkPlan(
