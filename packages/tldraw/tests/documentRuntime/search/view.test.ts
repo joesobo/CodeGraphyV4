@@ -98,8 +98,17 @@ describe('CodeGraphy tldraw graph search view', () => {
     render(createElement(GraphSearchPanel));
 
     const searchPanel = screen.getByRole('search', { name: 'CodeGraphy graph search' });
+    const searchIcon = screen.getByTestId('codegraphy-search-icon');
+    const iconContainer = searchIcon.parentElement;
     expect(searchPanel.style.position).toBe('absolute');
     expect(searchPanel.style.top).toBe('12px');
     expect(searchPanel.style.right).toBe('176px');
+    expect(searchIcon.tagName).toBe('svg');
+    expect(iconContainer?.style).toMatchObject({
+      display: 'grid',
+      height: '40px',
+      placeItems: 'center',
+      width: '40px',
+    });
   });
 });

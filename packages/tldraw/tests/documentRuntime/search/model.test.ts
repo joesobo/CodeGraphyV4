@@ -21,6 +21,14 @@ const themeNode = {
   props: { h: 120, w: 120 },
   meta: { codegraphyEntityId: 'src/theme.css', codegraphyKind: 'node' },
 } satisfies ScriptShape;
+const mainNode = {
+  id: 'shape:main',
+  type: 'geo',
+  x: 0,
+  y: 0,
+  props: { h: 120, w: 120 },
+  meta: { codegraphyEntityId: 'src/main.ts', codegraphyKind: 'node' },
+} satisfies ScriptShape;
 const appIcon = {
   id: 'shape:app-icon',
   type: 'image',
@@ -84,6 +92,20 @@ describe('CodeGraphy tldraw graph search model', () => {
 
     expect(projection.visibleShapes).toEqual(shapes);
     expect(projection.hiddenShapeIds.size).toBe(0);
+  });
+
+  it('matches file paths with asterisks as case-insensitive wildcards', () => {
+    const shapes = [appNode, themeNode, mainNode, appIcon, appLabel, edge, userNote];
+
+    const typeScriptProjection = createSearchProjection(shapes, '*.TS');
+    const allProjection = createSearchProjection(shapes, '*');
+
+    expect(typeScriptProjection.visibleShapes.map(shape => shape.id)).toEqual([
+      'shape:main',
+      'shape:user-note',
+    ]);
+    expect(allProjection.visibleShapes).toEqual(shapes);
+    expect(allProjection.hiddenShapeIds.size).toBe(0);
   });
 
   it('uses a stable event name across the canvas UI and physics bundles', () => {

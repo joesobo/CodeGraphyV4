@@ -22,16 +22,29 @@ export function normalizeGraphSearchQuery(query: string): string {
   return query.trim().toLocaleLowerCase();
 }
 
+function createSearchMatcher(query: string): (value: string) => boolean {
+  if (!query.includes('*')) {
+    return value => value.toLocaleLowerCase().includes(query);
+  }
+  const expression = query
+    .split('*')
+    .map(part => part.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&'))
+    .join('.*');
+  const wildcardPattern = new RegExp(`^${expression}$`, 'u');
+  return value => wildcardPattern.test(value.toLocaleLowerCase());
+}
+
 function visibleNodeIds(
   shapes: readonly SearchableShape[],
   query: string,
 ): ReadonlySet<string> {
+  const matchesSearchQuery = createSearchMatcher(query);
   return new Set(
     shapes
       .filter(shape => shape.meta.codegraphyKind === 'node')
       .map(shape => metadataString(shape.meta.codegraphyEntityId))
       .filter((entityId): entityId is string => (
-        entityId !== undefined && entityId.toLocaleLowerCase().includes(query)
+        entityId !== undefined && matchesSearchQuery(entityId)
       )),
   );
 }

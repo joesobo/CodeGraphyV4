@@ -181,6 +181,9 @@ The canvas shows matching nodes, their icons and labels, and edges between
 matching nodes. The filtered nodes continue to use force physics, and the camera
 fits the results when their layout settles.
 
+Use `*` as a wildcard. For example, `*.ts` shows TypeScript files, and `*`
+shows the complete graph.
+
 Clear the search to restore the complete graph. Search is temporary and does
 not change the saved `.tldraw` document.
 

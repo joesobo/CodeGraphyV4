@@ -145,6 +145,9 @@ describe('reconcileGraphRecords', () => {
       type: 'image',
       meta: { codegraphyKind: 'iconAsset' },
     });
+    expect(edge).toMatchObject({
+      props: { dash: 'draw', font: 'draw' },
+    });
     expect(edge.index < node.index).toBe(true);
     expect(node.index < icon.index).toBe(true);
     expect(icon.index < label.index).toBe(true);
