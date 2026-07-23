@@ -28,6 +28,12 @@ export interface LoadedCodeGraphyPluginPackageModule {
   packageSnapshotRoot: string;
 }
 
+export interface PreparedCodeGraphyPluginPackageModule {
+  buildIdentity: string;
+  packageSnapshotRoot: string;
+  load(): Promise<LoadedCodeGraphyPluginPackageModule>;
+}
+
 export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
   bundledPackageRoots?: Iterable<string>;
   disabledPlugins?: Iterable<string>;

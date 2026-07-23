@@ -6,6 +6,7 @@ export type {
   LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyPluginPackageModule,
   PreparedCodeGraphyWorkspacePluginPackage,
   ResolvedCodeGraphyWorkspacePluginRecords,
 } from './packageRuntimeContracts';

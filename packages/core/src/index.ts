@@ -264,6 +264,7 @@ export type {
   LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyPluginPackageModule,
   PreparedCodeGraphyWorkspacePluginPackage,
   ResolvedCodeGraphyWorkspacePluginRecords,
 } from './plugins/packageRuntime';
@@ -273,7 +274,10 @@ export {
   resolveCodeGraphyWorkspacePluginRecords,
   resolveCodeGraphyWorkspacePluginRecordsForHost,
 } from './plugins/packageRuntime';
-export { importCodeGraphyPluginPackageModule } from './plugins/packageLoad';
+export {
+  importCodeGraphyPluginPackageModule,
+  prepareCodeGraphyPluginPackageModule,
+} from './plugins/packageLoad';
 export {
   mergePluginOptions,
   readCodeGraphyCorePluginDescriptorData,

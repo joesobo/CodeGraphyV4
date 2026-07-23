@@ -1,5 +1,5 @@
 import {
-  importCodeGraphyPluginPackageModule,
+  prepareCodeGraphyPluginPackageModule,
   createWorkspacePluginDataHost,
   mergePluginOptions,
   resolveCodeGraphyWorkspacePluginRecordsForHost,
@@ -64,21 +64,17 @@ async function loadExtensionPluginModule(
   settings: CodeGraphyWorkspaceSettings['plugins'][number],
 ): Promise<{
   buildIdentity: string;
-  moduleNamespace: unknown;
+  loadModule: () => Promise<unknown>;
   options?: Record<string, unknown>;
   packageSnapshotRoot: string;
 }> {
   assertExtensionPluginDescriptorApiCompatibility(record.id, record.apiVersion);
-  const {
-    buildIdentity,
-    moduleNamespace,
-    packageSnapshotRoot,
-  } = await importCodeGraphyPluginPackageModule(record);
+  const preparedModule = await prepareCodeGraphyPluginPackageModule(record);
   const options = mergePluginOptions(record, settings);
   return {
-    buildIdentity,
-    moduleNamespace,
-    packageSnapshotRoot,
+    buildIdentity: preparedModule.buildIdentity,
+    loadModule: async () => (await preparedModule.load()).moduleNamespace,
+    packageSnapshotRoot: preparedModule.packageSnapshotRoot,
     ...(options ? { options } : {}),
   };
 }
@@ -111,7 +107,7 @@ export async function prepareWorkspaceExtensionPluginCandidates(
       };
       const {
         buildIdentity,
-        moduleNamespace,
+        loadModule,
         options,
         packageSnapshotRoot,
       } = await loadExtensionPluginModule(
@@ -129,6 +125,7 @@ export async function prepareWorkspaceExtensionPluginCandidates(
         id: record.id,
         options: registrationOptions,
         load: async () => {
+          const moduleNamespace = await loadModule();
           const plugin = await readFactory(moduleNamespace, record.package)({
             dataHost: createWorkspacePluginDataHost(workspaceRoot, record.id),
             ...(options ? { options } : {}),
