@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
+import { WorkspacePluginRegistry } from '../../../../src/extension/pipeline/plugins/registry';
 import {
   createPackageFixtureRoot,
   createWorkspace,
@@ -102,7 +102,7 @@ describe('pipeline plugin sync failure isolation', () => {
     const broken = await createRuntimeFixture('core', 'acme.broken-core', '^99.0.0');
     const healthy = await createRuntimeFixture('core', 'acme.healthy-core', '^4.0.0');
     await enableFixtures(workspaceRoot, homeDir, [broken, healthy]);
-    const registry = new PluginRegistry();
+    const registry = new WorkspacePluginRegistry();
 
     await expect(syncWorkspacePipelinePlugins(registry, {
       getWorkspaceRoot: () => workspaceRoot,
@@ -128,7 +128,7 @@ describe('pipeline plugin sync failure isolation', () => {
       '^1.0.0',
     );
     await enableFixtures(workspaceRoot, homeDir, [broken, healthy]);
-    const registry = new PluginRegistry();
+    const registry = new WorkspacePluginRegistry();
 
     await expect(syncWorkspacePipelinePlugins(registry, {
       getWorkspaceRoot: () => workspaceRoot,

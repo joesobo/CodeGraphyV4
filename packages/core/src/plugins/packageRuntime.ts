@@ -33,7 +33,7 @@ async function readBundledPluginPackageRecords(
   return recordGroups.flatMap(records => records ?? []);
 }
 
-function preferBundledPluginRecords(
+export function preferBundledCodeGraphyPluginRecords(
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
   bundledPlugins: readonly CodeGraphyInstalledPluginRecord[],
 ): CodeGraphyInstalledPluginRecord[] {
@@ -124,7 +124,7 @@ export async function resolveCodeGraphyWorkspacePluginRecords(
   const bundledPackageRoots = new Set(bundledPlugins.map(plugin => plugin.packageRoot));
   const activityState = createPluginActivityState({
     settings: options.settings,
-    installedPlugins: preferBundledPluginRecords(installedPlugins, bundledPlugins),
+    installedPlugins: preferBundledCodeGraphyPluginRecords(installedPlugins, bundledPlugins),
     builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
   });
   for (const warning of activityState.warnings) {

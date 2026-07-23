@@ -1,4 +1,7 @@
-import type { IExtensionPlugin } from '@codegraphy-dev/extension-plugin-api';
+import type {
+  IExtensionPlugin,
+  IExtensionPluginDescriptorData,
+} from '@codegraphy-dev/extension-plugin-api';
 import { satisfiesSemverRange } from '../../core/plugins/versioning/apiVersions';
 
 export const EXTENSION_PLUGIN_API_VERSION = '1.0.0';
@@ -10,6 +13,7 @@ export interface ExtensionPluginInfo {
   sourcePackageRoot?: string;
   descriptorSignature?: string;
   options?: Record<string, unknown>;
+  data?: IExtensionPluginDescriptorData;
 }
 
 export interface RegisterExtensionPluginOptions {
@@ -18,6 +22,7 @@ export interface RegisterExtensionPluginOptions {
   sourcePackageRoot?: string;
   descriptorSignature?: string;
   options?: Record<string, unknown>;
+  data?: IExtensionPluginDescriptorData;
 }
 
 function assertExtensionApiCompatibility(
@@ -64,6 +69,7 @@ export class ExtensionPluginRegistry {
       ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
       ...(options.descriptorSignature ? { descriptorSignature: options.descriptorSignature } : {}),
       ...(options.options ? { options: { ...options.options } } : {}),
+      ...(options.data ? { data: { ...options.data } } : {}),
     });
   }
 

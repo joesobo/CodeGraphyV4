@@ -270,6 +270,7 @@ export type {
 } from './plugins/packageRuntime';
 export {
   loadCodeGraphyWorkspacePluginPackages,
+  preferBundledCodeGraphyPluginRecords,
   prepareCodeGraphyWorkspacePluginPackages,
   resolveCodeGraphyWorkspacePluginRecords,
   resolveCodeGraphyWorkspacePluginRecordsForHost,

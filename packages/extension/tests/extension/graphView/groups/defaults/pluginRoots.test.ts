@@ -10,6 +10,7 @@ describe('graphView/builtInPluginRoots', () => {
   it('resolves built-in plugin directories by plugin id', () => {
     expect(getBuiltInGraphViewPluginDir('codegraphy.godot')).toBe('plugin-godot');
     expect(getBuiltInGraphViewPluginDir('codegraphy.unity')).toBe('plugin-unity');
+    expect(getBuiltInGraphViewPluginDir('codegraphy.unity.extension')).toBe('plugin-unity');
     expect(getBuiltInGraphViewPluginDir('codegraphy.markdown')).toBeUndefined();
     expect(getBuiltInGraphViewPluginDir('codegraphy.unknown')).toBeUndefined();
   });
@@ -23,6 +24,7 @@ describe('graphView/builtInPluginRoots', () => {
     expect([...pluginExtensionUris.entries()]).toEqual([
       ['codegraphy.godot', vscode.Uri.file('/test/extension/packages/plugin-godot')],
       ['codegraphy.unity', vscode.Uri.file('/test/extension/packages/plugin-unity')],
+      ['codegraphy.unity.extension', vscode.Uri.file('/test/extension/packages/plugin-unity')],
     ]);
   });
 

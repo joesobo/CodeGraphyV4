@@ -6,10 +6,9 @@ import {
   syncWorkspacePipelinePlugins,
 } from '../plugins/bootstrap';
 import { readBundledWorkspacePluginPackageRoots } from '../plugins/bootstrap/bundledPackages';
+import type { WorkspacePluginRegistry } from '../plugins/registry';
 
-type WorkspacePipelinePluginRegistry = Parameters<typeof initializeWorkspacePipeline>[0] & {
-  disposeAll(): void;
-};
+type WorkspacePipelinePluginRegistry = WorkspacePluginRegistry;
 
 interface WorkspacePipelinePluginFilterConfig {
   disabledCustomFilterPatterns: readonly string[];

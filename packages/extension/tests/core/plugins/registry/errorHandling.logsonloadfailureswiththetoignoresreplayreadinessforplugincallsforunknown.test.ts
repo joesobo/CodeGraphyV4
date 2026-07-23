@@ -61,7 +61,6 @@ describe('PluginRegistry error handling', () => {
       ], '/workspace');
       registry.notifyPostAnalyze({ nodes: [], edges: [] });
       registry.notifyGraphRebuild({ nodes: [], edges: [] });
-      registry.notifyWebviewReady();
 
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onWorkspaceReady for notify-errors:', workspaceFailure);
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onPreAnalyze for notify-errors:', preAnalyzeFailure);
@@ -82,7 +81,6 @@ describe('PluginRegistry error handling', () => {
       await registry.notifyPreAnalyze([], '/workspace');
       registry.notifyPostAnalyze({ nodes: [], edges: [] });
       registry.notifyGraphRebuild({ nodes: [], edges: [] });
-      registry.notifyWebviewReady();
 
       expect(errorSpy).not.toHaveBeenCalled();
       errorSpy.mockRestore();

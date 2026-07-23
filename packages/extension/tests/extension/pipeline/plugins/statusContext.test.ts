@@ -109,6 +109,51 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.particles')).toBe(false);
   });
 
+  it('prefers a bundled plugin when an installed package claims the same plugin id', () => {
+    const bundledPackageRoot = path.join(tempRoot, 'extension', 'packages', 'plugin-bundled');
+    fs.mkdirSync(bundledPackageRoot, { recursive: true });
+    fs.writeFileSync(path.join(bundledPackageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-bundled',
+      version: '1.0.0',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.shared-id',
+          name: 'Bundled',
+          host: 'codegraphy.extension',
+          entry: './dist/plugin.js',
+          apiVersion: '^1.0.0',
+        }],
+      },
+    }));
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/plugin-conflict',
+        version: '1.0.0',
+        id: 'codegraphy.shared-id',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        packageRoot: '/global/node_modules/@acme/plugin-conflict',
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, {
+      homeDir,
+      bundledPackageRoots: [bundledPackageRoot],
+    });
+
+    expect(statusContext.installedPlugins.filter(
+      plugin => plugin.id === 'codegraphy.shared-id',
+    )).toEqual([
+      expect.objectContaining({
+        package: '@codegraphy-dev/plugin-bundled',
+        packageRoot: bundledPackageRoot,
+      }),
+    ]);
+  });
+
   it('uses initial Markdown activity state without materializing workspace settings', () => {
     writeCodeGraphyInstalledPluginCache(
       {

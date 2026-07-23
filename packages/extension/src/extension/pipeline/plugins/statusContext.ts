@@ -4,6 +4,7 @@ import {
   createPluginActivityState,
   createBundledMarkdownInstalledPluginRecord,
   createInitialCodeGraphyWorkspaceSettings,
+  preferBundledCodeGraphyPluginRecords,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettingsOrInitial,
   type CodeGraphyInstalledPluginRecord,
@@ -33,31 +34,11 @@ function withBundledMarkdownPluginRecord(
   ];
 }
 
-function preferBundledPluginRecords(
-  installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
-  bundledPlugins: readonly CodeGraphyInstalledPluginRecord[],
-): CodeGraphyInstalledPluginRecord[] {
-  const activationByDescriptor = new Map(installedPlugins.map(plugin => [
-    `${plugin.package}\u0000${plugin.id}`,
-    plugin.globallyEnabled,
-  ] as const));
-  const bundledPackages = new Set(bundledPlugins.map(plugin => plugin.package));
-
-  return [
-    ...installedPlugins.filter(plugin => !bundledPackages.has(plugin.package)),
-    ...bundledPlugins.map(plugin => ({
-      ...plugin,
-      globallyEnabled: activationByDescriptor.get(`${plugin.package}\u0000${plugin.id}`)
-        ?? plugin.globallyEnabled,
-    })),
-  ];
-}
-
 export function readWorkspacePluginStatusContext(
   workspaceRoot: string | undefined,
   options: WorkspacePluginStatusContextOptions = {},
 ): WorkspacePluginStatusContext {
-  const installedPlugins = preferBundledPluginRecords(
+  const installedPlugins = preferBundledCodeGraphyPluginRecords(
     withBundledMarkdownPluginRecord(
       readCodeGraphyInstalledPluginCache(options).plugins,
     ),

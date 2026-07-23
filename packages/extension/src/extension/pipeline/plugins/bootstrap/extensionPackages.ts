@@ -8,6 +8,7 @@ import {
 } from '@codegraphy-dev/core';
 import type {
   IExtensionPlugin,
+  IExtensionPluginDescriptorData,
   IExtensionPluginFactory,
 } from '@codegraphy-dev/extension-plugin-api';
 import {
@@ -29,6 +30,7 @@ export interface WorkspaceExtensionPluginRegistration {
     sourcePackageRoot: string;
     descriptorSignature: string;
     options?: Record<string, unknown>;
+    data?: IExtensionPluginDescriptorData;
   };
 }
 
@@ -57,6 +59,11 @@ function validatePlugin(plugin: IExtensionPlugin, record: CodeGraphyInstalledPlu
       + `but its package manifest declares '${record.id}'.`,
     );
   }
+}
+
+function readExtensionDescriptorData(data: unknown): IExtensionPluginDescriptorData | undefined {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return undefined;
+  return data as IExtensionPluginDescriptorData;
 }
 
 async function loadExtensionPluginModule(
@@ -114,12 +121,14 @@ export async function prepareWorkspaceExtensionPluginCandidates(
         record,
         pluginSettings,
       );
+      const descriptorData = readExtensionDescriptorData(record.data);
       const registrationOptions: WorkspaceExtensionPluginRegistration['options'] = {
         ...(resolved.bundledPackageRoots.has(record.packageRoot) ? { builtIn: true } : {}),
         sourcePackage: record.package,
         sourcePackageRoot: packageSnapshotRoot,
         descriptorSignature: createWorkspacePluginDescriptorSignature(record, buildIdentity),
         ...(options ? { options } : {}),
+        ...(descriptorData ? { data: descriptorData } : {}),
       };
       candidates.push({
         id: record.id,

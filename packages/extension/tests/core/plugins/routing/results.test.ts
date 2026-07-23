@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IPlugin } from '../../../../../plugin-api/src';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { getRelationKey } from '@codegraphy-dev/core';
 import {
   createEmptyFileAnalysisResult,

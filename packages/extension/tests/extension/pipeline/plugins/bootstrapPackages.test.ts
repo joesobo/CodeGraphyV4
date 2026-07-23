@@ -250,18 +250,6 @@ describe('pipeline/plugins/bootstrap packages', () => {
       sourcePackageRoot: expect.any(String),
       descriptorSignature: expect.any(String),
       sourceSignature: expect.any(String),
-      interfaces: [{
-        id: 'codegraphy.extension',
-        data: {
-          fileColors: {
-            '*.txt': expect.objectContaining({
-              marker: 'fresh-bundled',
-              shape2D: 'triangle',
-              imagePath: 'assets/example.svg',
-            }),
-          },
-        },
-      }],
     });
     expect(bundledRegistration?.[1].sourcePackageRoot).not.toBe(bundledPackageRoot);
     expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual([
@@ -270,7 +258,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
     ]);
   });
 
-  it('keeps interface metadata owned by each descriptor in a multi-plugin package', async () => {
+  it('does not transport interface metadata through Core registrations', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
@@ -351,12 +339,8 @@ describe('pipeline/plugins/bootstrap packages', () => {
     expect([...registrationsById.keys()]).toEqual(
       expect.arrayContaining(['acme.first', 'acme.second']),
     );
-    expect(registrationsById.get('acme.first')?.interfaces).toEqual(
-      descriptorData('first').interfaces,
-    );
-    expect(registrationsById.get('acme.second')?.interfaces).toEqual(
-      descriptorData('second').interfaces,
-    );
+    expect(registrationsById.get('acme.first')).not.toHaveProperty('interfaces');
+    expect(registrationsById.get('acme.second')).not.toHaveProperty('interfaces');
   });
 
   it('registers enabled npm plugin packages for the current CodeGraphy Workspace', async () => {

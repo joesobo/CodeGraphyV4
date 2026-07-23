@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
+import type { IPluginFileColorDefinition } from '@codegraphy-dev/extension-plugin-api';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
-function extensionInterfaces(fileColors: Record<string, unknown>) {
-  return [{ id: 'codegraphy.extension', data: { fileColors } }];
+function extensionData(
+  fileColors: Record<string, string | IPluginFileColorDefinition>,
+) {
+  return { fileColors };
 }
 
 describe('graphView/pluginDefaultGroups', () => {
@@ -24,23 +27,25 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.godot',
-                name: 'Godot',
-              },
-              interfaces: extensionInterfaces({
-                '*.gd': '#478CBF',
-                '*.tscn': {
-                  color: '#478CBF',
-                  shape2D: 'hexagon',
-                  imagePath: 'assets/godot.svg',
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.godot',
+                  name: 'Godot',
                 },
-              }),
-            },
-          ],
+                data: extensionData({
+                  '*.gd': '#478CBF',
+                  '*.tscn': {
+                    color: '#478CBF',
+                    shape2D: 'hexagon',
+                    imagePath: 'assets/godot.svg',
+                  },
+                }),
+              },
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -82,16 +87,18 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.typescript',
-                name: 'TypeScript',
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.typescript',
+                  name: 'TypeScript',
+                },
+                data: extensionData({ '*.ts': '#3178C6' }),
               },
-              interfaces: extensionInterfaces({ '*.ts': '#3178C6' }),
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -118,22 +125,24 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.unity',
-                name: 'Unity',
-              },
-              interfaces: extensionInterfaces({
-                '*.unity': {
-                  color: '#F97316',
-                  shape2D: 'hexagon',
-                  imagePath: 'assets/unity.svg',
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.unity.extension',
+                  name: 'Unity Graph View',
                 },
-              }),
-            },
-          ],
+                data: extensionData({
+                  '*.unity': {
+                    color: '#F97316',
+                    shape2D: 'hexagon',
+                    imagePath: 'assets/unity.svg',
+                  },
+                }),
+              },
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -143,17 +152,17 @@ describe('graphView/pluginDefaultGroups', () => {
 
     expect(groups).toEqual([
       {
-        id: 'plugin:codegraphy.unity:*.unity',
+        id: 'plugin:codegraphy.unity.extension:*.unity',
         pattern: '*.unity',
         color: '#F97316',
         isPluginDefault: true,
-        pluginId: 'codegraphy.unity',
-        pluginName: 'Unity',
+        pluginId: 'codegraphy.unity.extension',
+        pluginName: 'Unity Graph View',
         shape2D: 'hexagon',
         imagePath: 'assets/unity.svg',
       },
     ]);
-    expect(pluginExtensionUris.get('codegraphy.unity')?.fsPath).toBe(
+    expect(pluginExtensionUris.get('codegraphy.unity.extension')?.fsPath).toBe(
       '/test/extension/packages/plugin-unity',
     );
   });
@@ -164,16 +173,18 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.unknown',
-                name: 'Unknown',
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.unknown',
+                  name: 'Unknown',
+                },
+                data: extensionData({ '*.unknown': '#999999' }),
               },
-              interfaces: extensionInterfaces({ '*.unknown': '#999999' }),
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../../../plugin-api/src';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import {
   createEmptyFileAnalysisResult,
   mergeById,

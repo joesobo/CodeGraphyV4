@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { WorkspacePipelineDiscoveryFacade } from '../../../../src/extension/pipeline/service/discoveryFacade';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import type { FileDiscovery } from '@codegraphy-dev/core';
-import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline/plugins/registry';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import {
@@ -64,7 +64,7 @@ export class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
     id: 'registry',
     list: vi.fn(() => []),
     disposeAll: vi.fn(),
-  } as unknown as PluginRegistry;
+  } as unknown as WorkspacePluginRegistry;
 
   public override get _cache(): IWorkspaceAnalysisCache {
     return super._cache;
@@ -129,4 +129,4 @@ export {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
 };
-export type { FileDiscovery, PluginRegistry };
+export type { FileDiscovery, WorkspacePluginRegistry as PluginRegistry };

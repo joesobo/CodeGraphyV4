@@ -1,12 +1,15 @@
 import * as vscode from 'vscode';
+import type {
+  IExtensionPluginDescriptorData,
+  IPluginFileColorDefinition,
+} from '@codegraphy-dev/extension-plugin-api';
 import type { IGroup } from '../../../../shared/settings/groups';
-import type { IPluginFileColorDefinition } from '../../../../core/plugins/types/contracts';
 import { getBuiltInGraphViewPluginDir } from './pluginRoots';
 
 interface GraphViewPluginInfoLike {
   builtIn?: boolean;
   sourcePackageRoot?: string;
-  interfaces?: Array<{ id: string; data: unknown }>;
+  data?: IExtensionPluginDescriptorData;
   plugin: {
     id: string;
     name: string;
@@ -14,7 +17,9 @@ interface GraphViewPluginInfoLike {
 }
 
 interface GraphViewPluginRegistryLike {
-  list(): GraphViewPluginInfoLike[];
+  extensionPlugins: {
+    list(): GraphViewPluginInfoLike[];
+  };
 }
 
 interface GraphViewAnalyzerLike {
@@ -24,9 +29,7 @@ interface GraphViewAnalyzerLike {
 function readPluginFileColors(
   pluginInfo: GraphViewPluginInfoLike,
 ): Record<string, string | IPluginFileColorDefinition> | undefined {
-  const entry = pluginInfo.interfaces?.find(item => item.id === 'codegraphy.extension');
-  if (!entry?.data || typeof entry.data !== 'object' || Array.isArray(entry.data)) return undefined;
-  const fileColors = (entry.data as { fileColors?: unknown }).fileColors;
+  const fileColors = pluginInfo.data?.fileColors;
   if (!fileColors || typeof fileColors !== 'object' || Array.isArray(fileColors)) return undefined;
   return fileColors as Record<string, string | IPluginFileColorDefinition>;
 }
@@ -78,12 +81,12 @@ export function getGraphViewPluginDefaultGroups(
   pluginExtensionUris: Map<string, vscode.Uri>,
   extensionUri: vscode.Uri,
 ): IGroup[] {
-  if (!analyzer?.registry?.list) return [];
+  if (!analyzer?.registry?.extensionPlugins?.list) return [];
 
   const result: IGroup[] = [];
   const addedIds = new Set<string>();
 
-  for (const pluginInfo of analyzer.registry.list()) {
+  for (const pluginInfo of analyzer.registry.extensionPlugins.list()) {
     if (disabledPlugins.has(pluginInfo.plugin.id)) continue;
 
     const fileColors = readPluginFileColors(pluginInfo);

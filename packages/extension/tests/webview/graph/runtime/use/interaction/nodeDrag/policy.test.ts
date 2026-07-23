@@ -1,6 +1,8 @@
-import type { ExtensionGraphViewContributionEntry } from '@codegraphy-dev/extension-plugin-api';
+import type {
+  ExtensionGraphViewContributionEntry,
+  IGraphViewNodeDragEndContribution,
+} from '@codegraphy-dev/extension-plugin-api';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphViewNodeDragEndContribution } from '../../../../../../../src/core/plugins/types/contracts';
 import type { FGNode } from '../../../../../../../src/webview/components/graph/model/build';
 import {
   releaseNodeDrag,

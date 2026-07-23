@@ -20,19 +20,6 @@ export interface WorkspacePackagePluginRegistrationDependencies {
   warn?: (message: string) => void;
 }
 
-function readDescriptorInterfaceData(data: unknown): Array<{ id: string; data: unknown }> {
-  if (!data || typeof data !== 'object' || !('interfaces' in data)) return [];
-  const interfaces = (data as { interfaces?: unknown }).interfaces;
-  if (!Array.isArray(interfaces)) return [];
-
-  const interfaceEntries: unknown[] = interfaces;
-  return interfaceEntries.filter((entry): entry is { id: string; data: unknown } => {
-    if (!entry || typeof entry !== 'object') return false;
-    const candidate = entry as Record<string, unknown>;
-    return 'data' in candidate && candidate.id === 'codegraphy.extension';
-  });
-}
-
 export async function loadWorkspacePackagePluginRegistrations(
   settings: CodeGraphyWorkspaceSettings,
   workspaceRoot: string,
@@ -82,7 +69,6 @@ export async function prepareWorkspacePackagePluginCandidates(
       sourcePackageRoot: prepared.packageSnapshotRoot,
       sourceSignature,
       ...(prepared.options ? { options: prepared.options } : {}),
-      interfaces: readDescriptorInterfaceData(prepared.record.data),
     };
     return {
       id: prepared.record.id,

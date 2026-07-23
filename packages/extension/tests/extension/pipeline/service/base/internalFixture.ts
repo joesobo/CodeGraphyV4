@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { WorkspacePipelineInternalBase } from '../../../../../src/extension/pipeline/service/base/internal';
 import type { Configuration } from '../../../../../src/extension/config/reader';
 import type { FileDiscovery } from '@codegraphy-dev/core';
-import type { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../../src/extension/pipeline/plugins/registry';
 import type { IWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
 import { readWorkspacePipelineFileStat } from '../../../../../src/extension/pipeline/serviceAdapters';
 import {
@@ -62,7 +62,7 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
 
   _registry = {
     list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
-  } as unknown as PluginRegistry;
+  } as unknown as WorkspacePluginRegistry;
 
   _discovery = {
     readContent: vi.fn(async file => `contents:${file.absolutePath}`),

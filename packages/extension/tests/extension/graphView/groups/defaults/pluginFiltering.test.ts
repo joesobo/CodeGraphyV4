@@ -10,30 +10,29 @@ describe('graphView/pluginDefaultGroups', () => {
   >;
   type PluginInfoLike = {
     builtIn?: boolean;
-    interfaces?: Array<{ id: string; data: { fileColors: FileColors } }>;
+    data?: { fileColors: FileColors };
     plugin: {
       id: string;
       name: string;
     };
   };
-  const extensionInterfaces = (fileColors: FileColors) => ([{
-    id: 'codegraphy.extension',
-    data: { fileColors },
-  }]);
+  const extensionData = (fileColors: FileColors) => ({ fileColors });
 
   it('does not add optional metadata keys when a plugin color definition only provides a color', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              plugin: {
-                id: 'codegraphy.rust',
-                name: 'Rust',
+          extensionPlugins: {
+            list: () => [
+              {
+                plugin: {
+                  id: 'codegraphy.rust',
+                  name: 'Rust',
+                },
+                data: extensionData({ '*.rs': { color: '#DEA584' } }),
               },
-              interfaces: extensionInterfaces({ '*.rs': { color: '#DEA584' } }),
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -58,29 +57,31 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: (): PluginInfoLike[] => [
-            {
-              plugin: {
-                id: 'codegraphy.typescript',
-                name: 'TypeScript',
+          extensionPlugins: {
+            list: (): PluginInfoLike[] => [
+              {
+                plugin: {
+                  id: 'codegraphy.typescript',
+                  name: 'TypeScript',
+                },
+                data: extensionData({ '*.ts': '#3178C6' }),
               },
-              interfaces: extensionInterfaces({ '*.ts': '#3178C6' }),
-            },
-            {
-              plugin: {
-                id: 'codegraphy.typescript',
-                name: 'TypeScript',
+              {
+                plugin: {
+                  id: 'codegraphy.typescript',
+                  name: 'TypeScript',
+                },
+                data: extensionData({ '*.ts': '#3178C6' }),
               },
-              interfaces: extensionInterfaces({ '*.ts': '#3178C6' }),
-            },
-            {
-              plugin: {
-                id: 'codegraphy.vue',
-                name: 'Vue',
+              {
+                plugin: {
+                  id: 'codegraphy.vue',
+                  name: 'Vue',
+                },
+                data: extensionData({ '*.vue': '#41B883' }),
               },
-              interfaces: extensionInterfaces({ '*.vue': '#41B883' }),
-            },
-          ],
+            ],
+          },
         },
       },
       new Set(['codegraphy.typescript']),
@@ -104,31 +105,33 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: (): PluginInfoLike[] => [
-            {
-              plugin: {
-                id: 'codegraphy.godot',
-                name: 'Godot',
-              },
-              interfaces: extensionInterfaces({
-                '*.gd': { color: '#478CBF' },
-                '*.godot': { color: '#6A9FB5' },
-              }),
-            },
-            {
-              plugin: {
-                id: 'codegraphy.godot',
-                name: 'Godot',
-              },
-              interfaces: extensionInterfaces({
-                '*.gd': {
-                  color: '#111111',
-                  shape2D: 'hexagon',
-                  imagePath: 'duplicate.svg',
+          extensionPlugins: {
+            list: (): PluginInfoLike[] => [
+              {
+                plugin: {
+                  id: 'codegraphy.godot',
+                  name: 'Godot',
                 },
-              }),
-            },
-          ],
+                data: extensionData({
+                  '*.gd': { color: '#478CBF' },
+                  '*.godot': { color: '#6A9FB5' },
+                }),
+              },
+              {
+                plugin: {
+                  id: 'codegraphy.godot',
+                  name: 'Godot',
+                },
+                data: extensionData({
+                  '*.gd': {
+                    color: '#111111',
+                    shape2D: 'hexagon',
+                    imagePath: 'duplicate.svg',
+                  },
+                }),
+              },
+            ],
+          },
         },
       },
       new Set<string>(),

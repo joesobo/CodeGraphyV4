@@ -27,39 +27,12 @@ export type {
   IPluginGraphScopeCapabilities,
   IPluginNodeType,
   NodeType,
-} from '../../../../../plugin-api/src';
-export type {
-  IGraphViewContributions,
-  IGraphViewContextMenuContribution,
-  IGraphViewForceAdapterContribution,
-  IGraphViewNodeDragEndContribution,
-  IGraphViewNodeDragState,
-  IGraphViewPhysicsSettings,
-  IGraphViewProjectionContribution,
-  IGraphViewRuntimeEdgeContribution,
-  IGraphViewRuntimeNodeContribution,
-  IGraphViewUiSlotContribution,
-} from '@codegraphy-dev/extension-plugin-api';
-import type { IPlugin } from '../../../../../plugin-api/src';
+} from '@codegraphy-dev/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { CodeGraphyAPI } from '../api/contracts';
 
 export type { IProjectedConnection } from '@codegraphy-dev/core';
 export type { CodeGraphyAPI };
-
-export type GraphNodeShape2D =
-  | 'circle'
-  | 'square'
-  | 'rectangle'
-  | 'diamond'
-  | 'triangle'
-  | 'hexagon'
-  | 'star';
-
-export interface IPluginFileColorDefinition {
-  color: string;
-  shape2D?: GraphNodeShape2D;
-  imagePath?: string;
-}
 
 export type { IPlugin };
 
@@ -83,6 +56,4 @@ export interface IPluginInfo {
   sourceSignature?: string;
   /** Workspace-specific plugin options */
   options?: Record<string, unknown>;
-  /** Host-specific package metadata. Core plugin contracts do not inspect this data. */
-  interfaces?: Array<{ id: string; data: unknown }>;
 }

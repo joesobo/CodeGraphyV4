@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphViewRuntimeNodeContribution } from '../../../../src/core/plugins/types/contracts';
+import type { IGraphViewRuntimeNodeContribution } from '@codegraphy-dev/extension-plugin-api';
 import { GraphViewContributionRegistry } from '../../../../src/webview/pluginHost/manager/contributionRegistry';
 
 function runtimeNodeContribution(id: string): IGraphViewRuntimeNodeContribution {

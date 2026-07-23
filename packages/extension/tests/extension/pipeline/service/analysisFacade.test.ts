@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileDiscovery } from '@codegraphy-dev/core';
-import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline/plugins/registry';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
 import { WorkspacePipelineAnalysisFacade } from '../../../../src/extension/pipeline/service/analysisFacade';
@@ -55,7 +55,7 @@ class TestAnalysisFacade extends WorkspacePipelineAnalysisFacade {
   _discovery = { kind: 'discovery' } as unknown as FileDiscovery;
   _registry = {
     list: vi.fn(() => []),
-  } as unknown as PluginRegistry;
+  } as unknown as WorkspacePluginRegistry;
 
   public override get _cache(): IWorkspaceAnalysisCache {
     return super._cache;

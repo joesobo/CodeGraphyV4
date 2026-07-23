@@ -8,7 +8,7 @@ import type {
   IGraphEdgeSource as PluginApiGraphEdgeSource,
   IGraphNode as PluginApiGraphNode,
   NodeType as PluginApiNodeType,
-} from '../../../../plugin-api/src/graph';
+} from '@codegraphy-dev/plugin-api/graph';
 
 export type CoreEdgeKind = PluginApiCoreEdgeKind;
 export type GraphEdgeKind = PluginApiGraphEdgeKind;

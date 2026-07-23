@@ -13,6 +13,57 @@ import {
 } from '../bootstrapFixture';
 
 describe('pipeline/plugins linked package reloads', () => {
+  it('keeps Extension descriptor metadata with its Extension registration', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = await createPackageFixtureRoot('codegraphy-extension-metadata-');
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: '@acme/codegraphy-extension-metadata',
+      version: '1.0.0',
+      type: 'module',
+    }), 'utf8');
+    await fs.writeFile(path.join(packageRoot, 'plugin.js'), `
+export default function createPlugin() {
+  return {
+    id: 'acme.extension-metadata',
+    name: 'Extension Metadata',
+    version: '1.0.0',
+    apiVersion: '^1.0.0'
+  };
+}
+`, 'utf8');
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-metadata',
+        version: '1.0.0',
+        id: 'acme.extension-metadata',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        packageRoot,
+        globallyEnabled: true,
+        data: {
+          fileColors: {
+            '*.acme': { color: '#0EA5E9', shape2D: 'hexagon' },
+          },
+        },
+      }],
+    }, { homeDir });
+
+    const [registration] = await loadWorkspaceExtensionPluginRegistrations(
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+      workspaceRoot,
+      { userHomeDir: homeDir },
+    );
+
+    expect(registration?.options.data).toEqual({
+      fileColors: {
+        '*.acme': { color: '#0EA5E9', shape2D: 'hexagon' },
+      },
+    });
+  });
+
   it('disposes an Extension runtime rejected by runtime API validation', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));

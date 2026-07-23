@@ -11,11 +11,8 @@ import { PluginRegistryLifecycle } from './runtime/state/lifecycle';
 import { validateAndCreatePluginInfo, addToRegistry } from './runtime/registration/register';
 import type { ConfigureV2Options } from './runtime/registration/configure';
 import { removeFromRegistry, unloadPlugin } from './runtime/registration/unregister';
-import { ExtensionPluginRegistry } from '../../../extension/plugins/registry';
 
 export class PluginRegistry extends PluginRegistryLifecycle {
-  readonly extensionPlugins = new ExtensionPluginRegistry();
-
   configureV2(options: ConfigureV2Options): void {
     this._eventBus = options.eventBus;
     this._v2Config = buildV2Config(options, this._v2Config.logFn);
@@ -31,7 +28,6 @@ export class PluginRegistry extends PluginRegistryLifecycle {
       descriptorSignature?: string;
       sourceSignature?: string;
       options?: Record<string, unknown>;
-      interfaces?: Array<{ id: string; data: unknown }>;
       deferReadinessReplay?: boolean;
     } = {},
   ): void {
@@ -62,12 +58,4 @@ export class PluginRegistry extends PluginRegistryLifecycle {
     return removed;
   }
 
-  notifyWebviewReady(): void {
-    this.extensionPlugins.notifyWebviewReady();
-  }
-
-  override disposeAll(): void {
-    super.disposeAll();
-    this.extensionPlugins.disposeAll();
-  }
 }

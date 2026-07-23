@@ -1,6 +1,7 @@
 import type * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../plugins/registry';
 import {
   buildWorkspaceIndexPluginStatuses,
   type CodeGraphyInstalledPluginRecord,
@@ -19,7 +20,7 @@ export interface WorkspacePipelineStatusListOptions {
 }
 
 export function getWorkspacePipelineStatusList(
-  registry: PluginRegistry,
+  registry: WorkspacePluginRegistry,
   disabledPlugins: Set<string>,
   discoveredFiles: IDiscoveredFile[],
   fileConnections: Map<string, IProjectedConnection[]>,

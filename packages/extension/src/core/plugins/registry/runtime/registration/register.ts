@@ -40,7 +40,6 @@ export function validateAndCreatePluginInfo(
     descriptorSignature?: string;
     sourceSignature?: string;
     options?: Record<string, unknown>;
-    interfaces?: Array<{ id: string; data: unknown }>;
   },
   config: RegistryV2Config,
 ): IPluginInfoV2 {
@@ -62,7 +61,6 @@ export function validateAndCreatePluginInfo(
     ...(options.descriptorSignature ? { descriptorSignature: options.descriptorSignature } : {}),
     ...(options.sourceSignature ? { sourceSignature: options.sourceSignature } : {}),
     ...(options.options ? { options: { ...options.options } } : {}),
-    ...(options.interfaces ? { interfaces: [...options.interfaces] } : {}),
   };
 
   const apiConfiguration = {

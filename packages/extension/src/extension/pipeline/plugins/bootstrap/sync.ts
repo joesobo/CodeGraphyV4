@@ -1,5 +1,6 @@
 import type { IPluginInfo } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../registry';
 import {
   getBuiltInWorkspacePipelinePluginCandidates,
   type WorkspacePipelinePluginCandidate,
@@ -183,7 +184,7 @@ async function syncExtensionPlugins(
 }
 
 export async function syncWorkspacePipelinePlugins(
-  registry: PluginRegistry,
+  registry: WorkspacePluginRegistry,
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<void> {
   const settingsResult = readWorkspacePipelineSettings(() => dependencies.getWorkspaceRoot());

@@ -1,7 +1,7 @@
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import { vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline/plugins/registry';
 import type {
   IFileAnalysisResult,
   IProjectedConnection,
@@ -49,7 +49,7 @@ export class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
   _registry = {
     list: vi.fn(() => []),
     disposeAll: vi.fn(),
-  } as unknown as PluginRegistry;
+  } as unknown as WorkspacePluginRegistry;
 
   public override get _cache(): IWorkspaceAnalysisCache {
     return super._cache;
