@@ -108,6 +108,7 @@ export function createCoreRegistry(registeredPlugins: Map<string, RegisteredCore
       });
     }),
     unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
+    initializeAll: vi.fn(async () => undefined),
     initializePlugin: vi.fn(async () => undefined),
   };
   return registry;

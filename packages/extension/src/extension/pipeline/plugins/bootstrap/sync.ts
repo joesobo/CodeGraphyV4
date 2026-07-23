@@ -93,7 +93,6 @@ function unregisterOutdatedPackagePlugins(
 async function registerMissingPlugins(
   registry: PluginRegistry,
   candidates: readonly WorkspacePipelinePluginCandidate[],
-  workspaceRoot: string | undefined,
   warn: (message: string) => void,
 ): Promise<void> {
   for (const candidate of candidates) {
@@ -116,9 +115,6 @@ async function registerMissingPlugins(
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy plugin '${candidate.id}' could not be registered: ${message}`);
       continue;
-    }
-    if (workspaceRoot) {
-      await registry.initializePlugin(registration.plugin.id, workspaceRoot);
     }
   }
 }
@@ -195,8 +191,10 @@ export async function syncWorkspacePipelinePlugins(
   await registerMissingPlugins(
     registry,
     desiredCandidates,
-    settingsResult.workspaceRoot,
     dependencies.warn ?? console.warn,
   );
+  if (settingsResult.workspaceRoot) {
+    await registry.initializeAll(settingsResult.workspaceRoot);
+  }
   await syncExtensionPlugins(registry.extensionPlugins, settingsResult, dependencies);
 }

@@ -145,6 +145,7 @@ describe('pipeline plugin sync lifecycle order', () => {
       list: vi.fn(() => []),
       register: vi.fn(),
       unregister: vi.fn(),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
     const dependencies = { getWorkspaceRoot: () => workspaceRoot, userHomeDir: homeDir };

@@ -99,6 +99,7 @@ describe('pipeline plugin sync identity', () => {
       list: vi.fn(() => []),
       register: vi.fn(),
       unregister: vi.fn(),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
 
@@ -190,6 +191,7 @@ describe('pipeline plugin sync identity', () => {
       list: vi.fn(() => []),
       register: vi.fn(),
       unregister: vi.fn(),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
     const dependencies = { getWorkspaceRoot: () => workspaceRoot, userHomeDir: homeDir };
@@ -238,6 +240,7 @@ describe('pipeline plugin sync identity', () => {
     await syncWorkspacePipelinePlugins(registry as never, dependencies);
     registry.register.mockClear();
     registry.unregister.mockClear();
+    registry.initializeAll.mockClear();
     registry.initializePlugin.mockClear();
     await syncWorkspacePipelinePlugins(registry as never, dependencies);
 
@@ -248,6 +251,7 @@ describe('pipeline plugin sync identity', () => {
     ]);
     expect(registry.unregister).not.toHaveBeenCalled();
     expect(registry.register).not.toHaveBeenCalled();
+    expect(registry.initializeAll).toHaveBeenCalledExactlyOnceWith(workspaceRoot);
     expect(registry.initializePlugin).not.toHaveBeenCalled();
   });
 
@@ -277,6 +281,7 @@ describe('pipeline plugin sync identity', () => {
     await syncWorkspacePipelinePlugins(registry as never, dependencies);
     registry.register.mockClear();
     registry.unregister.mockClear();
+    registry.initializeAll.mockClear();
     registry.initializePlugin.mockClear();
     await writeCorePluginRuntime(packageRoot, 'plugin.js', 'acme.linked', '2.0.0');
     writeInstalledRecord('2.0.0');
@@ -287,7 +292,8 @@ describe('pipeline plugin sync identity', () => {
       expect.objectContaining({ id: 'acme.linked', version: '2.0.0' }),
       expect.objectContaining({ descriptorSignature: expect.any(String) }),
     );
-    expect(registry.initializePlugin).toHaveBeenCalledExactlyOnceWith('acme.linked', workspaceRoot);
+    expect(registry.initializeAll).toHaveBeenCalledExactlyOnceWith(workspaceRoot);
+    expect(registry.initializePlugin).not.toHaveBeenCalled();
   });
 
   it('replaces an initialized Extension runtime when its descriptor identity changes', async () => {
@@ -332,6 +338,7 @@ describe('pipeline plugin sync identity', () => {
       list: vi.fn(() => []),
       register: vi.fn(),
       unregister: vi.fn(),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
     const dependencies = { getWorkspaceRoot: () => workspaceRoot, userHomeDir: homeDir };

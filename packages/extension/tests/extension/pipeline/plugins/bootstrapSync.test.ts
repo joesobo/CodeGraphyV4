@@ -62,6 +62,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
       list: vi.fn(() => []),
       register: vi.fn(),
       unregister: vi.fn(),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
 
@@ -117,6 +118,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
       list: vi.fn(() => [...registeredPlugins.values()]),
       register: vi.fn(),
       unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
 
@@ -128,6 +130,42 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
     expect(registry.unregister).toHaveBeenCalledWith('codegraphy.markdown');
     expect(registry.register).not.toHaveBeenCalled();
     expect(registry.initializePlugin).not.toHaveBeenCalled();
+  });
+
+  it('initializes existing Core plugins when a workspace opens after startup', async () => {
+    const workspaceRoot = await createWorkspace();
+    const registeredPlugins = new Map<string, {
+      plugin: { id: string };
+      builtIn: boolean;
+      sourcePackage?: string;
+      sourcePackageRoot?: string;
+      options?: Record<string, unknown>;
+    }>([
+      [
+        'codegraphy.markdown',
+        {
+          plugin: { id: 'codegraphy.markdown' },
+          builtIn: true,
+          sourcePackage: '@codegraphy-dev/plugin-markdown',
+        },
+      ],
+    ]);
+    const registry = {
+      extensionPlugins: createEmptyExtensionRegistry(),
+      get: vi.fn((pluginId: string) => registeredPlugins.get(pluginId)),
+      list: vi.fn(() => [...registeredPlugins.values()]),
+      register: vi.fn(),
+      unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
+      initializeAll: vi.fn(async () => undefined),
+      initializePlugin: vi.fn(async () => undefined),
+    };
+
+    await syncWorkspacePipelinePlugins(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+    });
+
+    expect(registry.register).not.toHaveBeenCalled();
+    expect(registry.initializeAll).toHaveBeenCalledExactlyOnceWith(workspaceRoot);
   });
 
   it('syncs newly enabled package plugins without re-registering existing plugins', async () => {
@@ -191,6 +229,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
         });
       }),
       unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
+      initializeAll: vi.fn(async () => undefined),
       initializePlugin: vi.fn(async () => undefined),
     };
 
@@ -207,10 +246,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
         sourcePackage: '@acme/codegraphy-plugin-extension-bootstrap',
       }),
     );
-    expect(registry.initializePlugin).toHaveBeenCalledWith(
-      'acme.extension-bootstrap',
-      workspaceRoot,
-    );
-    expect(registry.initializePlugin).toHaveBeenCalledTimes(1);
+    expect(registry.initializeAll).toHaveBeenCalledExactlyOnceWith(workspaceRoot);
+    expect(registry.initializePlugin).not.toHaveBeenCalled();
   });
 });
