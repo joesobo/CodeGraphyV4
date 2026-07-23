@@ -186,6 +186,42 @@ describe('pipeline/plugins/statusContext', () => {
     expect([...statusContext.workspaceEnabledPluginIds ?? []]).not.toContain('acme.global-off');
   });
 
+  it('reports global activation when no workspace is open', () => {
+    writeCodeGraphyInstalledPluginCache(
+      {
+        version: 3,
+        plugins: [
+          {
+            package: '@acme/global-on',
+            version: '1.0.0',
+            id: 'acme.global-on',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-on',
+            globallyEnabled: true,
+          },
+          {
+            package: '@acme/global-off',
+            version: '1.0.0',
+            id: 'acme.global-off',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-off',
+            globallyEnabled: false,
+          },
+        ],
+      },
+      { homeDir },
+    );
+
+    const statusContext = readWorkspacePluginStatusContext(undefined, { homeDir });
+
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).toContain('acme.global-on');
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).not.toContain('acme.global-off');
+  });
+
   it('uses the bundled Markdown global default when workspace settings omit it', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       version: 1,

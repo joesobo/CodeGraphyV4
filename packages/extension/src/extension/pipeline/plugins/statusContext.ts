@@ -3,6 +3,7 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createPluginActivityState,
   createBundledMarkdownInstalledPluginRecord,
+  createInitialCodeGraphyWorkspaceSettings,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettingsOrInitial,
   type CodeGraphyInstalledPluginRecord,
@@ -63,11 +64,9 @@ export function readWorkspacePluginStatusContext(
     readWorkspacePluginPackageRecords(options.bundledPackageRoots ?? []),
   );
 
-  if (!workspaceRoot) {
-    return { installedPlugins };
-  }
-
-  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  const settings = workspaceRoot
+    ? readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
+    : createInitialCodeGraphyWorkspaceSettings();
   const activity = createPluginActivityState({
     settings,
     installedPlugins,
