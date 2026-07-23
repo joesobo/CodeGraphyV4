@@ -1,5 +1,5 @@
 import type { IFileAnalysisResult, IPlugin } from '@codegraphy-dev/plugin-api';
-import manifest from '../codegraphy.json';
+import { manifest } from './metadata';
 import { analyzeVueSfc } from './analysis';
 
 export function createVuePlugin(): IPlugin {

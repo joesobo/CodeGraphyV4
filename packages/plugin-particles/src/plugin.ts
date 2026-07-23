@@ -1,6 +1,6 @@
-import manifest from '../codegraphy.json';
 import type { IExtensionPlugin } from '@codegraphy-dev/extension-plugin-api';
 import { compileCustomParticleEffects } from './customEffects';
+import { manifest } from './metadata';
 
 export function createParticlesPlugin(): IExtensionPlugin {
   const webviewContributions = {

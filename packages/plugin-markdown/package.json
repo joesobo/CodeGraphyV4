@@ -20,13 +20,12 @@
   },
   "files": [
     "dist",
-    "codegraphy.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js --bundle-dependencies",
+    "build": "node ../../scripts/build-plugin-package.mjs",
     "lint": "eslint src",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -35,9 +34,10 @@
     "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
-    "plugins": [{
-      "id": "codegraphy.markdown",
-      "name": "Markdown",
+    "plugins": [
+      {
+        "id": "codegraphy.markdown",
+        "name": "Markdown",
         "host": "core",
         "entry": "./dist/plugin.js",
         "apiVersion": "^4.0.0",
@@ -45,8 +45,20 @@
           "updateImpact": {
             "toggle": "reanalyze-plugin-files",
             "defaultSetting": "reanalyze-plugin-files"
-          }
+          },
+          "supportedExtensions": [
+            "*"
+          ],
+          "defaultFilters": [],
+          "sources": [
+            {
+              "id": "wikilink",
+              "name": "Wikilinks",
+              "description": "[[Note Name]], ![[embed]]"
+            }
+          ]
         }
-    }]
+      }
+    ]
   }
 }

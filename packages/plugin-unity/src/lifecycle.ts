@@ -6,7 +6,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { analyzeUnitySerializedFile } from './analysis';
 import { buildUnityGuidMap, buildUnityGuidMapFromWorkspace, registerUnityGuid } from './guidMap';
-import manifest from '../codegraphy.json';
+import { manifest } from './metadata';
 
 const UNITY_GRAPH_SCOPE_NODE_TYPES = [
   'plugin:codegraphy.unity:symbol:game-object',

@@ -36,13 +36,12 @@
   "files": [
     "assets",
     "dist",
-    "codegraphy.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/lifecycle.ts dist/plugin.js --bundle-dependencies",
+    "build": "node ../../scripts/build-plugin-package.mjs",
     "test": "vitest run",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -51,9 +50,10 @@
     "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
-    "plugins": [{
-      "id": "codegraphy.unity",
-      "name": "Unity",
+    "plugins": [
+      {
+        "id": "codegraphy.unity",
+        "name": "Unity",
         "host": "core",
         "entry": "./dist/plugin.js",
         "apiVersion": "^4.0.0",
@@ -62,20 +62,129 @@
             "toggle": "reanalyze-plugin-files",
             "defaultSetting": "reanalyze-plugin-files"
           },
-          "interfaces": [{
-            "id": "codegraphy.extension",
-            "data": {
-              "fileColors": {
-                "*.unity": { "color": "#F97316", "shape2D": "hexagon", "imagePath": "assets/unity.svg" },
-                "*.prefab": { "color": "#8B5CF6", "shape2D": "hexagon", "imagePath": "assets/unity.svg" },
-                "*.asset": { "color": "#0EA5E9", "shape2D": "triangle", "imagePath": "assets/unity.svg" },
-                "*.mat": { "color": "#14B8A6", "shape2D": "circle", "imagePath": "assets/unity.svg" },
-                "*.asmdef": { "color": "#64748B", "shape2D": "square", "imagePath": "assets/unity.svg" },
-                "*.inputactions": { "color": "#F59E0B", "shape2D": "diamond", "imagePath": "assets/unity.svg" }
+          "interfaces": [
+            {
+              "id": "codegraphy.extension",
+              "data": {
+                "fileColors": {
+                  "*.unity": {
+                    "color": "#F97316",
+                    "shape2D": "hexagon",
+                    "imagePath": "assets/unity.svg"
+                  },
+                  "*.prefab": {
+                    "color": "#8B5CF6",
+                    "shape2D": "hexagon",
+                    "imagePath": "assets/unity.svg"
+                  },
+                  "*.asset": {
+                    "color": "#0EA5E9",
+                    "shape2D": "triangle",
+                    "imagePath": "assets/unity.svg"
+                  },
+                  "*.mat": {
+                    "color": "#14B8A6",
+                    "shape2D": "circle",
+                    "imagePath": "assets/unity.svg"
+                  },
+                  "*.asmdef": {
+                    "color": "#64748B",
+                    "shape2D": "square",
+                    "imagePath": "assets/unity.svg"
+                  },
+                  "*.inputactions": {
+                    "color": "#F59E0B",
+                    "shape2D": "diamond",
+                    "imagePath": "assets/unity.svg"
+                  }
+                }
               }
             }
-          }]
+          ],
+          "supportedExtensions": [
+            ".unity",
+            ".prefab",
+            ".asset",
+            ".mat",
+            ".meta",
+            ".asmdef",
+            ".inputactions"
+          ],
+          "defaultFilters": [
+            "**/[Ll]ibrary/**",
+            "**/[Tt]emp/**",
+            "**/[Oo]bj/**",
+            "**/[Bb]uild/**",
+            "**/[Bb]uilds/**",
+            "**/[Ll]ogs/**",
+            "**/[Pp]roject[Ss]ettings/**",
+            "**/[Uu]ser[Ss]ettings/**",
+            "**/[Mm]emory[Cc]aptures/**",
+            "**/.vs/**",
+            "**/.gradle/**",
+            "**/.idea/**",
+            "**/Assets/Packages/**",
+            "**/Assets/Plugins/Editor/JetBrains/**",
+            "**/ExportedObj/**",
+            "**/.consulo/**",
+            "**/*.meta",
+            "**/*.csproj",
+            "**/*.unityproj",
+            "**/*.sln",
+            "**/*.slnx",
+            "**/*.suo",
+            "**/*.user",
+            "**/*.userprefs",
+            "**/*.pidb",
+            "**/*.booproj",
+            "**/*.tmp",
+            "**/*.pdb",
+            "**/*.mdb",
+            "**/*.pidb.meta",
+            "**/*.pdb.meta",
+            "**/*.mdb.meta",
+            "**/*.opendb",
+            "**/*.VC.db",
+            "**/sysinfo.txt",
+            "**/crashlytics-build.properties",
+            "**/Assets/AddressableAssetsData/**/*.bin*",
+            "**/Assets/StreamingAssets/aa.meta",
+            "**/Assets/StreamingAssets/aa/**"
+          ],
+          "sources": [
+            {
+              "id": "unity-yaml",
+              "name": "Unity YAML",
+              "description": "Unity scene, prefab, and asset declarations in serialized YAML"
+            },
+            {
+              "id": "unity-containment",
+              "name": "Unity Containment",
+              "description": "Scene, prefab, GameObject, and Component ownership declared by Unity YAML file IDs"
+            },
+            {
+              "id": "script-guid",
+              "name": "Script GUID",
+              "description": "MonoBehaviour script references resolved through Unity .meta GUIDs"
+            },
+            {
+              "id": "prefab-guid",
+              "name": "Prefab GUID",
+              "description": "Prefab instance references resolved through Unity .meta GUIDs"
+            },
+            {
+              "id": "serialized-guid",
+              "name": "Serialized GUID",
+              "description": "Serialized Unity asset fields resolved through Unity .meta GUIDs"
+            },
+            {
+              "id": "unity-event",
+              "name": "Unity Event",
+              "description": "Serialized Unity persistent calls from scene and prefab components to C# methods"
+            }
+          ]
         }
-    }]
+      }
+    ]
   }
 }

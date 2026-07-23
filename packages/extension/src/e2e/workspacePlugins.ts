@@ -59,14 +59,11 @@ function readTrimmedOptionalString(value: unknown): string | undefined {
 }
 
 function readScenarioPackageDescriptor(
-  packageRoot: string,
+  data: unknown,
 ): Pick<E2EInstalledPluginRecord, 'supportedExtensions'> & { defaultOptions?: Record<string, unknown> } {
-  const descriptorPath = path.join(packageRoot, 'codegraphy.json');
-  const descriptor = unknownRecordSchema.safeParse(
-    JSON.parse(fs.readFileSync(descriptorPath, 'utf-8')),
-  );
+  const descriptor = unknownRecordSchema.safeParse(data);
   if (!descriptor.success) {
-    throw new Error(`E2E scenario package has invalid codegraphy.json: ${packageRoot}`);
+    return {};
   }
 
   const supportedExtensions = looseStringArraySchema.parse(descriptor.data.supportedExtensions);
@@ -86,14 +83,13 @@ function readScenarioPackageRecords(packageRoot: string): E2EInstalledPluginReco
     throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
   }
 
-  const metadata = readScenarioPackageDescriptor(packageRoot);
   return manifest.plugins.map((descriptor): E2EInstalledPluginRecord => ({
       package: manifest.package,
       version: manifest.version,
       packageRoot,
       globallyEnabled: false,
       ...descriptor,
-      ...metadata,
+      ...readScenarioPackageDescriptor(descriptor.data),
     }));
 }
 

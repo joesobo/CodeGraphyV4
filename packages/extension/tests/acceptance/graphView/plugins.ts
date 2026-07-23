@@ -10,10 +10,6 @@ import {
   unknownRecordSchema,
 } from '../../../src/shared/values';
 
-interface CodeGraphyPluginDescriptor {
-  supportedExtensions?: unknown;
-}
-
 interface AcceptanceInstalledPluginRecord extends CodeGraphyInstalledPluginRecord {
   defaultOptions?: Record<string, unknown>;
   supportedExtensions?: string[];
@@ -59,37 +55,27 @@ function readAcceptanceInstalledPluginRecords(packageRoot: string): AcceptanceIn
   const manifest = parseCodeGraphyPluginPackageManifest(
     JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')),
   );
-  const displayFields = readAcceptancePluginDisplayFields(packageRoot);
-
   if (!manifest) {
     throw new Error(`Acceptance plugin package is not a CodeGraphy plugin: ${packageRoot}`);
   }
 
-  const metadata = JSON.parse(
-    fs.readFileSync(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
-  ) as Record<string, unknown>;
-  const defaultOptions = unknownRecordSchema.safeParse(metadata.defaultOptions);
+  return manifest.plugins.map((descriptor: CodeGraphyPluginPackageDescriptor) => {
+    const metadata = unknownRecordSchema.safeParse(descriptor.data);
+    const defaultOptions = unknownRecordSchema.safeParse(
+      metadata.success ? metadata.data.defaultOptions : undefined,
+    );
+    const supportedExtensions = looseStringArraySchema.parse(
+      metadata.success ? metadata.data.supportedExtensions : undefined,
+    );
 
-  return manifest.plugins.map((descriptor: CodeGraphyPluginPackageDescriptor) => ({
-    package: manifest.package,
-    version: manifest.version,
-    packageRoot,
-    globallyEnabled: false,
-    ...descriptor,
-    ...displayFields,
-    ...(defaultOptions.success ? { defaultOptions: { ...defaultOptions.data } } : {}),
-  }));
-}
-
-function readAcceptancePluginDisplayFields(
-  packageRoot: string,
-): Pick<AcceptanceInstalledPluginRecord, 'supportedExtensions'> {
-  const descriptorPath = path.join(packageRoot, 'codegraphy.json');
-  const descriptor = JSON.parse(
-    fs.readFileSync(descriptorPath, 'utf-8'),
-  ) as CodeGraphyPluginDescriptor;
-  const supportedExtensions = looseStringArraySchema.parse(descriptor.supportedExtensions);
-  return {
-    ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
-  };
+    return {
+      package: manifest.package,
+      version: manifest.version,
+      packageRoot,
+      globallyEnabled: false,
+      ...descriptor,
+      ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+      ...(defaultOptions.success ? { defaultOptions: { ...defaultOptions.data } } : {}),
+    };
+  });
 }

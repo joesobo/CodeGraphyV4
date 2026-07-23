@@ -35,13 +35,12 @@
   },
   "files": [
     "dist",
-    "codegraphy.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js --bundle-dependencies",
+    "build": "node ../../scripts/build-plugin-package.mjs",
     "test": "vitest run",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -52,9 +51,10 @@
     "typescript": "^5.3.3"
   },
   "codegraphy": {
-    "plugins": [{
-      "id": "codegraphy.vue",
-      "name": "Vue",
+    "plugins": [
+      {
+        "id": "codegraphy.vue",
+        "name": "Vue",
         "host": "core",
         "entry": "./dist/plugin.js",
         "apiVersion": "^4.0.0",
@@ -62,8 +62,13 @@
           "updateImpact": {
             "toggle": "reanalyze-plugin-files",
             "defaultSetting": "reanalyze-plugin-files"
-          }
+          },
+          "supportedExtensions": [
+            ".vue"
+          ],
+          "defaultFilters": []
         }
-    }]
+      }
+    ]
   }
 }

@@ -17,7 +17,7 @@ test('core extension release includes built-in Unity plugin icon assets', () => 
   );
 });
 
-test('core extension release includes every bundled plugin runtime and manifest', () => {
+test('core extension release includes every bundled plugin runtime and package descriptor', () => {
   const rootManifest = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
   );
@@ -35,10 +35,6 @@ test('core extension release includes every bundled plugin runtime and manifest'
     assert.ok(
       entries.includes(`packages/plugin-${plugin}/package.json`),
       `${plugin} package manifest must be staged so the host-neutral loader can discover it.`,
-    );
-    assert.ok(
-      entries.includes(`packages/plugin-${plugin}/codegraphy.json`),
-      `${plugin} runtime manifest must be staged with the bundled plugin.`,
     );
     assert.ok(
       entries.includes(`packages/plugin-${plugin}/dist`),

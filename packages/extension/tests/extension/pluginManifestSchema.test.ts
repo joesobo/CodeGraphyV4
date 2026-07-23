@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-function readPluginManifestSchema(filename = 'codegraphy.schema.json') {
+function readPluginManifestSchema(filename: string) {
   const testDir = dirname(fileURLToPath(import.meta.url));
   const repoRoot = resolve(testDir, '../../../..');
   const schemaPath = resolve(repoRoot, filename);
@@ -14,13 +14,6 @@ function readPluginManifestSchema(filename = 'codegraphy.schema.json') {
 }
 
 describe('plugin manifest schema', () => {
-  it('defines plugin sources instead of legacy rules', () => {
-    const schema = readPluginManifestSchema();
-
-    expect(schema.properties).toHaveProperty('sources');
-    expect(schema.properties).not.toHaveProperty('rules');
-  });
-
   it('uses imagePath for plugin file color asset metadata', () => {
     const schema = readPluginManifestSchema('codegraphy.extension.schema.json');
     const fileColors = schema.properties?.fileColors as {

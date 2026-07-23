@@ -285,17 +285,6 @@ export async function createManifestPluginPackage(
     'utf-8',
   );
   await fs.writeFile(
-    path.join(packageRoot, 'codegraphy.json'),
-    JSON.stringify({
-      id: pluginId,
-      name: pluginName,
-      version,
-      apiVersion: '^4.0.0',
-      supportedExtensions: ['.txt'],
-    }, null, 2),
-    'utf-8',
-  );
-  await fs.writeFile(
     path.join(packageRoot, 'plugin.js'),
     `
 export default function createPlugin() {

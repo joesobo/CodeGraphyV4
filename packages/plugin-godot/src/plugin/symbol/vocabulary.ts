@@ -1,4 +1,4 @@
-import manifest from '../../../codegraphy.json';
+import { manifest } from '../../metadata';
 
 export const GODOT_SYMBOL_SOURCE = manifest.id;
 export const GODOT_SCRIPT_LANGUAGE = 'gdscript';

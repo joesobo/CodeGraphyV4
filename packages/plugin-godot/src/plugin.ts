@@ -1,6 +1,6 @@
 /**
  * @fileoverview GDScript (Godot) plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from codegraphy.json and delegates
+ * Thin orchestrator that loads package metadata and delegates
  * detection to individual source modules in sources/.
  * @module plugins/godot
  */
@@ -11,7 +11,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { collectGodotProjectRoots } from './projectRoot';
-import manifest from '../codegraphy.json';
+import { manifest } from './metadata';
 import { buildAnalysisContext } from './plugin/context';
 import {
   readChangedAnalysisTargets,

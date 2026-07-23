@@ -95,17 +95,6 @@ export async function createPluginPackageWithRuntimeMarkers(
     'utf-8',
   );
   await fs.writeFile(
-    path.join(packageRoot, 'codegraphy.json'),
-    `${JSON.stringify({
-      id: pluginId,
-      name: pluginName,
-      version,
-      apiVersion,
-      supportedExtensions: ['.disabled'],
-    }, null, 2)}\n`,
-    'utf-8',
-  );
-  await fs.writeFile(
     path.join(packageRoot, 'plugin.js'),
     `
 import { writeFileSync } from 'node:fs';

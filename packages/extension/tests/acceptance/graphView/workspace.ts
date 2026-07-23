@@ -260,12 +260,12 @@ function readAcceptancePluginFilterPatterns(pluginPackages: readonly string[]): 
     }
 
     try {
-      const manifest = JSON.parse(
-        fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
-      ) as { defaultFilters?: unknown };
+      const manifest = readAcceptancePluginDescriptor(relativePath);
+      const metadata = unknownRecordSchema.safeParse(manifest?.data);
+      const defaultFilters = metadata.success ? metadata.data.defaultFilters : undefined;
 
-      return Array.isArray(manifest.defaultFilters)
-        ? manifest.defaultFilters.filter((pattern): pattern is string => typeof pattern === 'string')
+      return Array.isArray(defaultFilters)
+        ? defaultFilters.filter((pattern): pattern is string => typeof pattern === 'string')
         : [];
     } catch {
       return [];
@@ -280,9 +280,7 @@ function acceptancePluginIdForPackage(pluginPackage: string): string {
   }
 
   try {
-    const manifest = JSON.parse(
-      fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
-    ) as { id?: unknown };
+    const manifest = readAcceptancePluginDescriptor(relativePath);
     return typeof manifest.id === 'string' && manifest.id.trim().length > 0
       ? manifest.id.trim()
       : pluginPackage;
@@ -308,9 +306,7 @@ function acceptancePluginPackageForId(pluginId: string): string | undefined {
 
     const relativePath = path.posix.join('packages', entry.name);
     try {
-      const manifest = JSON.parse(
-        fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
-      ) as { id?: unknown };
+      const manifest = readAcceptancePluginDescriptor(relativePath);
       if (manifest.id !== pluginId) {
         continue;
       }
@@ -325,6 +321,19 @@ function acceptancePluginPackageForId(pluginId: string): string | undefined {
   }
 
   return undefined;
+}
+
+function readAcceptancePluginDescriptor(
+  relativePath: string,
+): { id?: unknown; data?: unknown } | undefined {
+  const packageJson = JSON.parse(
+    fs.readFileSync(path.join(repoRoot(), relativePath, 'package.json'), 'utf8'),
+  ) as {
+    codegraphy?: {
+      plugins?: Array<{ id?: unknown; data?: unknown }>;
+    };
+  };
+  return packageJson.codegraphy?.plugins?.[0];
 }
 
 function acceptancePluginPackageRelativePathForPackage(pluginPackage: string): string | undefined {

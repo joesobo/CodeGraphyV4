@@ -1,5 +1,5 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
-import manifest from '../codegraphy.json';
+import { manifest } from './metadata';
 import {
   analyzeTypeScriptAliasImports,
   clearTypeScriptAliasConfigCache,

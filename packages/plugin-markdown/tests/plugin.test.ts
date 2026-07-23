@@ -30,25 +30,25 @@ async function analyzeRelations(
 
 describe('createMarkdownPlugin', () => {
   describe('manifest fields', () => {
-    it('exposes the plugin id from codegraphy.json', () => {
+    it('exposes the plugin id from package metadata', () => {
       const plugin = createMarkdownPlugin();
 
       expect(plugin.id).toBe('codegraphy.markdown');
     });
 
-    it('exposes the plugin name from codegraphy.json', () => {
+    it('exposes the plugin name from package metadata', () => {
       const plugin = createMarkdownPlugin();
 
       expect(plugin.name).toBe('Markdown');
     });
 
-    it('exposes the plugin version from codegraphy.json', () => {
+    it('exposes the plugin version from package metadata', () => {
       const plugin = createMarkdownPlugin();
 
       expect(plugin.version).toBe('1.1.10');
     });
 
-    it('exposes the apiVersion from codegraphy.json', () => {
+    it('exposes the apiVersion from package metadata', () => {
       const plugin = createMarkdownPlugin();
 
       expect(plugin.apiVersion).toBe('^4.0.0');

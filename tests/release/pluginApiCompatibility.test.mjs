@@ -20,21 +20,12 @@ function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(process.cwd(), relativePath), 'utf8'));
 }
 
-test('bundled plugin manifests declare the current runtime API consistently', () => {
+test('bundled plugin descriptors declare the current host API consistently', () => {
   for (const host of PLUGIN_HOSTS) {
     for (const plugin of host.plugins) {
       const packageRoot = `packages/plugin-${plugin}`;
-      const manifest = readJson(`${packageRoot}/codegraphy.json`);
       const packageManifest = readJson(`${packageRoot}/package.json`);
-      const packagePlugin = packageManifest.codegraphy?.plugins?.find(
-        candidate => candidate.id === manifest.id,
-      );
-
-      assert.equal(
-        manifest.apiVersion,
-        host.apiVersion,
-        `${plugin} ${host.id} runtime manifest`,
-      );
+      const [packagePlugin] = packageManifest.codegraphy?.plugins ?? [];
       assert.equal(
         packagePlugin?.host,
         host.id,
@@ -45,27 +36,17 @@ test('bundled plugin manifests declare the current runtime API consistently', ()
         host.apiVersion,
         `${plugin} ${host.id} package metadata`,
       );
-      assert.equal(
-        packagePlugin.apiVersion,
-        manifest.apiVersion,
-        `${plugin} metadata agreement`,
-      );
     }
   }
 });
 
-test('bundled plugin runtime versions match their package versions', () => {
+test('bundled plugin descriptors have stable IDs', () => {
   for (const host of PLUGIN_HOSTS) {
     for (const plugin of host.plugins) {
       const packageRoot = `packages/plugin-${plugin}`;
-      const manifest = readJson(`${packageRoot}/codegraphy.json`);
       const packageManifest = readJson(`${packageRoot}/package.json`);
 
-      assert.equal(
-        manifest.version,
-        packageManifest.version,
-        `${plugin} runtime and package versions`,
-      );
+      assert.match(packageManifest.codegraphy.plugins[0].id, /^codegraphy\./);
     }
   }
 });
@@ -77,12 +58,14 @@ test('bundled plugin builds include runtime dependencies in their artifacts', ()
 
       assert.match(
         packageManifest.scripts?.build ?? '',
-        /build-workspace-package\.mjs [^&]+ --bundle-dependencies(?:\s|$)/,
-        `${plugin} runtime build must bundle dependencies for isolated VSIX loading`,
+        /^node \.\.\/\.\.\/scripts\/build-plugin-package\.mjs$/,
+        `${plugin} must use the shared isolated plugin build`,
       );
       if (plugin === 'particles') {
-        assert.match(packageManifest.scripts.build, /--external esbuild/);
-        assert.match(packageManifest.scripts.build, /--vendor-package esbuild/);
+        assert.deepEqual(packageManifest.codegraphyBuild, {
+          external: ['esbuild'],
+          vendor: ['esbuild'],
+        });
       }
     }
   }
