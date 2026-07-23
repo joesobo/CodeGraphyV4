@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import packageManifest from '../package.json';
 import { createMarkdownPlugin } from '../src/plugin';
 
 const repoRoot = path.resolve(__dirname, '../../..');
@@ -45,7 +46,7 @@ describe('createMarkdownPlugin', () => {
     it('exposes the plugin version from package metadata', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.version).toBe('1.1.10');
+      expect(plugin.version).toBe(packageManifest.version);
     });
 
     it('exposes the apiVersion from package metadata', () => {
