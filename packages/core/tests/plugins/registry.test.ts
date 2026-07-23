@@ -305,4 +305,32 @@ describe('CorePluginRegistry', () => {
       filePaths: ['src/app.ts'],
     });
   });
+
+  it('keeps collecting graph scope capabilities after one plugin throws', () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    registry.register(plugin({
+      id: 'broken',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: () => {
+        throw new Error('broken capabilities');
+      },
+    }));
+    registry.register(plugin({
+      id: 'healthy',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function'],
+        edgeTypes: ['call'],
+      }),
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts'])).toEqual({
+      nodeTypes: ['symbol:function'],
+      edgeTypes: ['call'],
+    });
+    expect(consoleError).toHaveBeenCalledOnce();
+    consoleError.mockRestore();
+  });
 });

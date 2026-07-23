@@ -36,10 +36,17 @@ function collectDeclaredCapabilities(
   const nodeTypes = new Set<string>();
   const edgeTypes = new Set<GraphEdgeKind>();
   for (const [pluginId, filePaths] of filePathsByPluginId) {
-    const capabilities = plugins.get(pluginId)?.plugin
-      .contributeGraphScopeCapabilities?.({ filePaths });
-    for (const nodeType of capabilities?.nodeTypes ?? []) nodeTypes.add(nodeType);
-    for (const edgeType of capabilities?.edgeTypes ?? []) edgeTypes.add(edgeType);
+    try {
+      const capabilities = plugins.get(pluginId)?.plugin
+        .contributeGraphScopeCapabilities?.({ filePaths });
+      for (const nodeType of capabilities?.nodeTypes ?? []) nodeTypes.add(nodeType);
+      for (const edgeType of capabilities?.edgeTypes ?? []) edgeTypes.add(edgeType);
+    } catch (error) {
+      console.error(
+        `[CodeGraphy] Error collecting graph scope capabilities from ${pluginId}:`,
+        error,
+      );
+    }
   }
   return { nodeTypes: [...nodeTypes], edgeTypes: [...edgeTypes] };
 }

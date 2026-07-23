@@ -13,8 +13,15 @@ export function listPluginContributions<TDefinition>(
       continue;
     }
 
-    for (const definition of getDefinitions(info.plugin)) {
-      definitions.set(getId(definition), definition);
+    try {
+      for (const definition of getDefinitions(info.plugin)) {
+        definitions.set(getId(definition), definition);
+      }
+    } catch (error) {
+      console.error(
+        `[CodeGraphy] Error collecting contributions from ${info.plugin.id}:`,
+        error,
+      );
     }
   }
   return [...definitions.values()];
