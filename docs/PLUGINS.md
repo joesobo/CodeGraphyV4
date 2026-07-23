@@ -101,9 +101,9 @@ installed plugin record and has its own stable ID.
 `package.json#codegraphy.plugins` is the only plugin manifest. Do not repeat
 the descriptor in `codegraphy.json`.
 
-The optional `data` value belongs to the descriptor. Core reads only its own
-plugin defaults and update impact. An interface can read its matching entry in
-the open `interfaces` list without adding interface keys to Core.
+The optional `data` value belongs to the descriptor and its host. Core reads
+only Core plugin defaults and update impact. An interface reads only the data
+on descriptors for its own host.
 
 ## Core plugins
 
@@ -160,24 +160,33 @@ export default createPlugin;
 The Extension host imports this runtime. Core only reports that the descriptor
 is installed and active.
 
-Interface-specific static metadata also belongs to the interface. For example,
-the Unity descriptor stores VS Code Extension file colors in its opaque `data`
-envelope. Each descriptor owns its metadata, so two plugins in one package can
-use different colors:
+Interface-specific static metadata also belongs to the interface descriptor.
+For example, a Unity package can contain one runtime for analysis and a second
+runtime for Graph View colors:
 
 ```json
-{
-  "id": "acme.unity",
-  "host": "core",
-  "entry": "./dist/plugin.js",
-  "apiVersion": "^4.0.0",
-  "data": {
-    "interfaces": [{
-      "id": "codegraphy.extension",
-      "data": { "fileColors": { "*.unity": "#F97316" } }
-    }]
+[
+  {
+    "id": "acme.unity",
+    "host": "core",
+    "entry": "./dist/plugin.js",
+    "apiVersion": "^4.0.0"
+  },
+  {
+    "id": "acme.unity.graph-view",
+    "host": "codegraphy.extension",
+    "entry": "./dist/extension.js",
+    "apiVersion": "^1.0.0",
+    "data": {
+      "fileColors": {
+        "*.unity": {
+          "color": "#F97316",
+          "shape2D": "hexagon"
+        }
+      }
+    }
   }
-}
+]
 ```
 
 ## Workspace data
@@ -211,19 +220,24 @@ stored.
 ## Local development
 
 CodeGraphy does not require a specific bundler. Build each descriptor `entry`
-as an ECMAScript module and emit the public type declarations for your package.
-The built-in workspace packages use one repository script:
+as an ECMAScript module. Emit declarations if your package exports public
+TypeScript types.
+
+Keep one package-owned `build` command. A small Core plugin can use:
 
 ```json
 {
   "scripts": {
-    "build": "node ../../scripts/build-plugin-package.mjs"
+    "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/plugin.js"
   }
 }
 ```
 
-That command is a repository convenience, not part of the public plugin
-contract. External plugins can use `tsc`, esbuild, Vite, or another tool.
+Use a package-local build file only when that plugin has extra outputs or
+dependency rules. For example, a plugin with a webview can build its host
+runtime and browser bundle from one local `build.mjs`. CodeGraphy does not
+require named `build:types` or `build:runtime` scripts, root build helpers, or
+extra build fields in `package.json`.
 
 ```bash
 codegraphy plugins link /path/to/acme-codegraphy-tools

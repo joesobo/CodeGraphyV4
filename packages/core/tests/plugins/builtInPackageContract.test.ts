@@ -20,14 +20,8 @@ const repositoryRoot = resolve(
 );
 
 describe('built-in plugin package contract', () => {
-  it('runs the TypeScript compiler without a platform-specific package-manager process', () => {
-    const buildScript = readFileSync(
-      resolve(repositoryRoot, 'scripts/build-plugin-package.mjs'),
-      'utf8',
-    );
-
-    expect(buildScript).toContain("resolve('typescript/bin/tsc')");
-    expect(buildScript).not.toContain("'pnpm.cmd'");
+  it('keeps plugin builds inside their owning packages', () => {
+    expect(existsSync(resolve(repositoryRoot, 'scripts/build-plugin-package.mjs'))).toBe(false);
   });
 
   it.each(PACKAGE_NAMES)('%s uses package.json as its only plugin manifest', (packageName) => {
@@ -43,18 +37,20 @@ describe('built-in plugin package contract', () => {
         }>;
       };
       files?: string[];
+      codegraphyBuild?: unknown;
     };
 
     expect(existsSync(resolve(packageRoot, 'codegraphy.json'))).toBe(false);
     expect(manifest.files ?? []).not.toContain('codegraphy.json');
-    expect(manifest.codegraphy?.plugins).toHaveLength(1);
+    expect(manifest.codegraphy?.plugins).toHaveLength(packageName === 'plugin-unity' ? 2 : 1);
+    expect(manifest.codegraphyBuild).toBeUndefined();
     if (packageName !== 'plugin-particles') {
       expect(manifest.codegraphy?.plugins?.[0]?.data?.supportedExtensions)
         .toEqual(expect.any(Array));
     }
   });
 
-  it.each(PACKAGE_NAMES)('%s uses the shared plugin build command', (packageName) => {
+  it.each(PACKAGE_NAMES)('%s owns one self-contained build command', (packageName) => {
     const packageRoot = resolve(repositoryRoot, 'packages', packageName);
     const manifest = JSON.parse(
       readFileSync(resolve(packageRoot, 'package.json'), 'utf8'),
@@ -62,8 +58,33 @@ describe('built-in plugin package contract', () => {
       scripts?: Record<string, string>;
     };
 
-    expect(manifest.scripts?.build).toBe(
-      'node ../../scripts/build-plugin-package.mjs',
-    );
+    expect(manifest.scripts?.build).toEqual(expect.any(String));
+    expect(manifest.scripts?.build).not.toContain('../../scripts');
+    expect(manifest.scripts).not.toHaveProperty('build:types');
+    expect(manifest.scripts).not.toHaveProperty('build:runtime');
+  });
+
+  it('declares Unity Core analysis and Extension styling as separate plugins', () => {
+    const packageManifest = JSON.parse(
+      readFileSync(resolve(repositoryRoot, 'packages/plugin-unity/package.json'), 'utf8'),
+    ) as {
+      codegraphy: {
+        plugins: Array<{
+          data?: Record<string, unknown>;
+          host: string;
+        }>;
+      };
+    };
+
+    expect(packageManifest.codegraphy.plugins.map(plugin => plugin.host)).toEqual([
+      'core',
+      'codegraphy.extension',
+    ]);
+    expect(packageManifest.codegraphy.plugins[0]?.data).not.toHaveProperty('interfaces');
+    expect(packageManifest.codegraphy.plugins[1]?.data).toHaveProperty('fileColors');
+  });
+
+  it('does not keep a detached Extension metadata schema', () => {
+    expect(existsSync(resolve(repositoryRoot, 'codegraphy.extension.schema.json'))).toBe(false);
   });
 });

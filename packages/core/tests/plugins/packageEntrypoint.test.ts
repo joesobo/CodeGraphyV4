@@ -1,37 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { getEntrypointFromExports } from '../../src/plugins/packageExportEntrypoint';
 import { createPluginFromModule } from '../../src/plugins/packageModule';
 import { satisfiesSemverRange } from '../../src/plugins/semverRange';
 
 describe('plugins/package entrypoint and runtime values', () => {
-  it('resolves package entrypoints from string, root export, and condition maps', () => {
-    expect(getEntrypointFromExports('./dist/plugin.js')).toBe('./dist/plugin.js');
-    expect(getEntrypointFromExports({ '.': './dist/root.js' })).toBe('./dist/root.js');
-    expect(getEntrypointFromExports({
-      '.': {
-        types: './dist/index.d.ts',
-        import: './dist/index.js',
-      },
-    })).toBe('./dist/index.js');
-    expect(getEntrypointFromExports({
-      '.': {
-        default: './dist/default.js',
-      },
-    })).toBe('./dist/default.js');
-    expect(getEntrypointFromExports({
-      '.': {
-        node: './dist/node.js',
-      },
-    })).toBe('./dist/node.js');
-    expect(getEntrypointFromExports({
-      require: './dist/index.cjs',
-    })).toBe('./dist/index.cjs');
-    expect(getEntrypointFromExports(null)).toBeUndefined();
-    expect(getEntrypointFromExports([])).toBeUndefined();
-    expect(getEntrypointFromExports({ '.': 42 })).toBeUndefined();
-    expect(getEntrypointFromExports({ '.': { types: './dist/index.d.ts' } })).toBeUndefined();
-  });
-
   it('creates each runtime from the package default factory', async () => {
     await expect(createPluginFromModule({
       default: () => ({

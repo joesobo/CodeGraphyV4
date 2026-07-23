@@ -280,6 +280,9 @@ importers:
       detect-libc:
         specifier: 2.0.2
         version: 2.0.2
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
       graphology:
         specifier: ^0.26.0
         version: 0.26.0(graphology-types@0.24.8)
@@ -442,12 +445,26 @@ importers:
       '@lezer/lr':
         specifier: ^1.4.10
         version: 1.4.10
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-markdown:
     dependencies:
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-particles:
     dependencies:
@@ -485,6 +502,10 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
 
   packages/plugin-typescript:
     dependencies:
@@ -494,12 +515,26 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
 
   packages/plugin-unity:
     dependencies:
+      '@codegraphy-dev/extension-plugin-api':
+        specifier: workspace:*
+        version: link:../extension-plugin-api
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-vue:
     dependencies:
@@ -512,6 +547,10 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
 
 packages:
 

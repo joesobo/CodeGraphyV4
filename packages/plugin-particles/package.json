@@ -44,7 +44,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/build-plugin-package.mjs",
+    "build": "node build.mjs",
     "test": "vitest run",
     "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -69,14 +69,6 @@
         "entry": "./dist/plugin.js",
         "apiVersion": "^1.0.0"
       }
-    ]
-  },
-  "codegraphyBuild": {
-    "external": [
-      "esbuild"
-    ],
-    "vendor": [
-      "esbuild"
     ]
   }
 }

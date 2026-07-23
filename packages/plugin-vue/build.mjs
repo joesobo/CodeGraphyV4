@@ -1,0 +1,40 @@
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { build } from 'esbuild';
+
+const require = createRequire(import.meta.url);
+
+execFileSync(
+  process.execPath,
+  [require.resolve('typescript/bin/tsc'), '-p', 'tsconfig.build.json'],
+  { stdio: 'inherit' },
+);
+
+await build({
+  entryPoints: ['src/plugin.ts'],
+  outfile: 'dist/plugin.js',
+  banner: {
+    js: 'import { createRequire } from "node:module"; const require = createRequire(import.meta.url);',
+  },
+  bundle: true,
+  format: 'esm',
+  platform: 'node',
+  plugins: [{
+    name: 'optional-packages',
+    setup(buildContext) {
+      buildContext.onResolve({ filter: /^[^./]/ }, async (args) => {
+        if (args.pluginData?.resolvingOptionalPackage) return undefined;
+        const result = await buildContext.resolve(args.path, {
+          importer: args.importer,
+          kind: args.kind,
+          namespace: args.namespace,
+          pluginData: { resolvingOptionalPackage: true },
+          resolveDir: args.resolveDir,
+        });
+        return result.errors.length === 0 ? result : { external: true };
+      });
+    },
+  }],
+  sourcemap: true,
+  target: 'node20',
+});

@@ -95,6 +95,7 @@ describe('runtime package build support', () => {
         'libsql',
         '@neon-rs/load',
         'detect-libc',
+        'esbuild',
         expect.stringMatching(/^@libsql\//),
         'material-icon-theme',
         'tree-sitter',

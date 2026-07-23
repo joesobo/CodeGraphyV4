@@ -7,6 +7,11 @@ export type {
 } from './plugin.js';
 
 export type {
+  IExtensionPluginDescriptorData,
+  IPluginFileColorDefinition,
+} from './metadata.js';
+
+export type {
   BadgeOptions,
   CodeGraphyWebviewAPI,
   GraphNodeShape2D,

@@ -40,7 +40,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/build-plugin-package.mjs",
+    "build": "node build.mjs",
     "test": "vitest run",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -49,6 +49,9 @@
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@vue/compiler-sfc": "^3.5.35",
     "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   },
   "codegraphy": {
     "plugins": [

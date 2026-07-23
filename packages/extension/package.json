@@ -54,6 +54,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "detect-libc": "2.0.2",
+    "esbuild": "^0.25.0",
     "graphology": "^0.26.0",
     "ignore": "^7.0.5",
     "libsql": "0.5.29",

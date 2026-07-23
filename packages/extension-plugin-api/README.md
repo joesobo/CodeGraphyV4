@@ -140,5 +140,33 @@ plugin stays dormant during a CLI query.
 The descriptor in `package.json` is the only plugin manifest. Do not add a
 second `codegraphy.json` file.
 
+The optional descriptor `data` value supports Graph View file colors:
+
+```json
+{
+  "id": "acme.graph-tools",
+  "host": "codegraphy.extension",
+  "entry": "./dist/plugin.js",
+  "apiVersion": "^1.0.0",
+  "data": {
+    "fileColors": {
+      "*.acme": {
+        "color": "#0EA5E9",
+        "shape2D": "hexagon",
+        "imagePath": "assets/acme.svg"
+      }
+    }
+  }
+}
+```
+
+Use `IExtensionPluginDescriptorData` when you create or validate this value.
+Core does not read or transport it through the Core plugin registry. The
+Extension host reads it directly from the Extension descriptor.
+
+The current static metadata contract does not define Core analysis settings,
+arbitrary VS Code contributions, commands, editor menus, or workspace state.
+Use the runtime and webview APIs described above for supported behavior.
+
 See the [Plugin Guide](../../docs/PLUGINS.md) for the shared installation and
 activation model.

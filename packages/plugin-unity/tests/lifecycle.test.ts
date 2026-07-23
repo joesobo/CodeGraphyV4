@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
-import { createUnityPlugin } from '../src/lifecycle';
+import { createUnityPlugin } from '../src/plugin';
 
 const playerControllerGuid = '11111111111111111111111111111111';
 

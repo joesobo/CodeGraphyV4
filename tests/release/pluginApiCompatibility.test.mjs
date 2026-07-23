@@ -12,7 +12,7 @@ const PLUGIN_HOSTS = [
   {
     apiVersion: '^1.0.0',
     id: 'codegraphy.extension',
-    plugins: ['particles'],
+    plugins: ['particles', 'unity'],
   },
 ];
 
@@ -25,7 +25,8 @@ test('bundled plugin descriptors declare the current host API consistently', () 
     for (const plugin of host.plugins) {
       const packageRoot = `packages/plugin-${plugin}`;
       const packageManifest = readJson(`${packageRoot}/package.json`);
-      const [packagePlugin] = packageManifest.codegraphy?.plugins ?? [];
+      const packagePlugin = packageManifest.codegraphy?.plugins
+        .find(descriptor => descriptor.host === host.id);
       assert.equal(
         packagePlugin?.host,
         host.id,
@@ -41,33 +42,24 @@ test('bundled plugin descriptors declare the current host API consistently', () 
 });
 
 test('bundled plugin descriptors have stable IDs', () => {
-  for (const host of PLUGIN_HOSTS) {
-    for (const plugin of host.plugins) {
-      const packageRoot = `packages/plugin-${plugin}`;
-      const packageManifest = readJson(`${packageRoot}/package.json`);
-
-      assert.match(packageManifest.codegraphy.plugins[0].id, /^codegraphy\./);
+  for (const plugin of new Set(PLUGIN_HOSTS.flatMap(host => host.plugins))) {
+    const packageManifest = readJson(`packages/plugin-${plugin}/package.json`);
+    for (const descriptor of packageManifest.codegraphy.plugins) {
+      assert.match(descriptor.id, /^codegraphy\./);
     }
   }
 });
 
-test('bundled plugin builds include runtime dependencies in their artifacts', () => {
-  for (const host of PLUGIN_HOSTS) {
-    for (const plugin of host.plugins) {
-      const packageManifest = readJson(`packages/plugin-${plugin}/package.json`);
-
-      assert.match(
-        packageManifest.scripts?.build ?? '',
-        /^node \.\.\/\.\.\/scripts\/build-plugin-package\.mjs$/,
-        `${plugin} must use the shared isolated plugin build`,
-      );
-      if (plugin === 'particles') {
-        assert.deepEqual(packageManifest.codegraphyBuild, {
-          external: ['esbuild'],
-          vendor: ['esbuild'],
-        });
-      }
-    }
+test('bundled plugin packages own their builds', () => {
+  for (const plugin of new Set(PLUGIN_HOSTS.flatMap(host => host.plugins))) {
+    const packageManifest = readJson(`packages/plugin-${plugin}/package.json`);
+    assert.ok(packageManifest.scripts?.build, `${plugin} build command`);
+    assert.doesNotMatch(
+      packageManifest.scripts.build,
+      /\.\.\/\.\.\/scripts/,
+      `${plugin} must not depend on repository-private build scripts`,
+    );
+    assert.equal(packageManifest.codegraphyBuild, undefined);
   }
 });
 

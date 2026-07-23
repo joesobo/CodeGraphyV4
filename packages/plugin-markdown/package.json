@@ -25,13 +25,17 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/build-plugin-package.mjs",
+    "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node20 --sourcemap --outfile=dist/plugin.js",
     "lint": "eslint src",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@codegraphy-dev/plugin-api": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3"
   },
   "codegraphy": {
     "plugins": [
