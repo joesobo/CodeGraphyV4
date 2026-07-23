@@ -2,7 +2,7 @@
 
 import Image, { type ImageProps } from 'next/image';
 import { useTheme } from 'next-themes';
-import { useId, useRef, useState, useSyncExternalStore } from 'react';
+import { useId, useState, useSyncExternalStore } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
@@ -51,7 +51,6 @@ export function MediaImage({
   const [playSelection, setPlaySelection] = useState<boolean | null>(null);
   const [loadedImages, setLoadedImages] = useState<ReadonlySet<string>>(() => new Set());
   const [loadedAnimations, setLoadedAnimations] = useState<ReadonlySet<string>>(() => new Set());
-  const loadingAnimations = useRef<Set<string>>(new Set());
   const reduceMotion = usePrefersReducedMotion(animated);
 
   const restingSrc = animated && activeMedia.posterSrc
@@ -62,26 +61,14 @@ export function MediaImage({
   const playing = wantsToPlay && animationLoaded;
   const restingLoaded = loadedImages.has(restingSrc);
 
-  function requestAnimation(): void {
-    if (!animated || reduceMotion || animationLoaded) return;
-    if (loadingAnimations.current.has(activeMedia.src)) return;
-
-    loadingAnimations.current.add(activeMedia.src);
-    const image = new window.Image();
-    image.onload = (): void => {
-      loadingAnimations.current.delete(activeMedia.src);
-      setLoadedAnimations((current) =>
-        current.has(activeMedia.src) ? current : new Set(current).add(activeMedia.src),
-      );
-    };
-    image.onerror = (): void => {
-      loadingAnimations.current.delete(activeMedia.src);
-    };
-    image.src = activeMedia.src;
-  }
-
   function markImageLoaded(source: string): void {
     setLoadedImages((current) =>
+      current.has(source) ? current : new Set(current).add(source),
+    );
+  }
+
+  function markAnimationLoaded(source: string): void {
+    setLoadedAnimations((current) =>
       current.has(source) ? current : new Set(current).add(source),
     );
   }
@@ -103,11 +90,15 @@ export function MediaImage({
         unoptimized={restingSrc.endsWith('.gif')}
         {...imageProps}
       />
-      {playing ? (
+      {wantsToPlay ? (
         <Image
           alt=""
           aria-hidden="true"
-          className={cn('animate-media-reveal', imageClassName)}
+          className={cn(
+            animationLoaded ? 'animate-media-reveal opacity-100' : 'opacity-0',
+            imageClassName,
+          )}
+          onLoad={() => markAnimationLoaded(activeMedia.src)}
           src={activeMedia.src}
           unoptimized
           {...imageProps}
@@ -159,14 +150,9 @@ export function MediaImage({
         setHovered(false);
         setPlaySelection(null);
       }}
-      onClick={() => {
-        if (!wantsToPlay) requestAnimation();
-        setPlaySelection(!wantsToPlay);
-      }}
-      onFocus={requestAnimation}
+      onClick={() => setPlaySelection(!wantsToPlay)}
       onPointerEnter={() => {
         setHovered(true);
-        requestAnimation();
       }}
       onPointerLeave={() => setHovered(false)}
       type="button"
