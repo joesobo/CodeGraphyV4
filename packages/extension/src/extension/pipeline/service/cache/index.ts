@@ -4,6 +4,7 @@ import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSe
 import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 
 interface WorkspacePipelineSignatureDependencies {
+  getPluginBuildSignature(): string | null;
   getPluginSignature(): string | null;
   getSettingsSignature(): string;
 }
@@ -41,6 +42,7 @@ export async function persistWorkspacePipelineIndexMetadata(
   try {
     const currentCommitSha = await dependencies.getCurrentCommitSha?.();
     (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
+      pluginBuildSignature: dependencies.getPluginBuildSignature(),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
     });

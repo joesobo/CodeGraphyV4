@@ -403,6 +403,7 @@ export {
   writeCodeGraphyWorkspaceMeta,
 } from './workspace/meta';
 export {
+  createCodeGraphyWorkspacePluginBuildSignature,
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,

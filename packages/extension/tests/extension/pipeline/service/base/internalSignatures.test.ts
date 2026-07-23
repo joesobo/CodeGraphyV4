@@ -36,6 +36,7 @@ vi.mock('../../../../../src/extension/pipeline/cacheSignatures/commit', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/cacheSignatures/plugin', () => ({
+  createWorkspacePipelinePluginBuildSignature: vi.fn(),
   createWorkspacePipelinePluginSignature: vi.fn(),
 }));
 
@@ -69,6 +70,7 @@ vi.mock('vscode', () => ({
 
 import {
   TestInternalBase,
+  createWorkspacePipelinePluginBuildSignature,
   createWorkspacePipelinePluginSignature,
   readWorkspacePipelineCurrentCommitSha,
   createWorkspacePipelineSettingsSignature,
@@ -82,6 +84,10 @@ describe('extension/pipeline/service/internalBase signatures', () => {
   it('builds plugin and settings signatures through the shared helpers', () => {
     const source = new TestInternalBase();
 
+    expect(source.getPluginBuildSignature()).toBe('plugin-build-signature');
+    expect(createWorkspacePipelinePluginBuildSignature).toHaveBeenCalledWith(
+      source._registry.list(),
+    );
     expect(source.getPluginSignature()).toBe('plugin-signature');
     expect(createWorkspacePipelinePluginSignature).toHaveBeenCalledWith(
       source._registry.list(),

@@ -22,6 +22,18 @@ export function createCodeGraphyWorkspacePluginSignature(
     .join('|');
 }
 
+export function createCodeGraphyWorkspacePluginBuildSignature(
+  plugins: ReadonlyArray<{ id: string; signature: string }>,
+): string | null {
+  if (plugins.length === 0) {
+    return null;
+  }
+
+  return createHash('sha1')
+    .update(JSON.stringify(plugins))
+    .digest('hex');
+}
+
 export function createCodeGraphyWorkspacePackageAwarePluginSignature(input: {
   runtimePlugins: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
   packagePlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'id' | 'package' | 'version'>>;

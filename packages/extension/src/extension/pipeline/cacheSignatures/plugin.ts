@@ -1,6 +1,7 @@
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
+  createCodeGraphyWorkspacePluginBuildSignature,
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspacePluginSettings,
@@ -10,6 +11,19 @@ interface RuntimePluginInfo {
   plugin: { id: string; version: string };
   builtIn?: boolean;
   sourcePackage?: string;
+  descriptorSignature?: string;
+}
+
+export function createWorkspacePipelinePluginBuildSignature(
+  plugins: readonly RuntimePluginInfo[],
+): string | null {
+  return createCodeGraphyWorkspacePluginBuildSignature(
+    plugins.flatMap(pluginInfo => (
+      !pluginInfo.builtIn && pluginInfo.sourcePackage && pluginInfo.descriptorSignature
+        ? [{ id: pluginInfo.plugin.id, signature: pluginInfo.descriptorSignature }]
+        : []
+    )),
+  );
 }
 
 function readPackagePlugins(

@@ -23,7 +23,10 @@ import {
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../cacheSignatures/commit';
-import { createWorkspacePipelinePluginSignature } from '../../cacheSignatures/plugin';
+import {
+  createWorkspacePipelinePluginBuildSignature,
+  createWorkspacePipelinePluginSignature,
+} from '../../cacheSignatures/plugin';
 import { createWorkspacePipelineSettingsSignature } from '../../cacheSignatures/settings';
 import {
   patchWorkspacePipelineCache,
@@ -191,6 +194,10 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     });
   }
 
+  protected _getPluginBuildSignature(): string | null {
+    return createWorkspacePipelinePluginBuildSignature(this._registry.list());
+  }
+
   protected _getSettingsSignature(): string {
     return createWorkspacePipelineSettingsSignature(this._config, this._registry.list());
   }
@@ -225,6 +232,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       getCurrentCommitSha: () =>
         workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
       getPluginSignature: () => this._getPluginSignature(),
+      getPluginBuildSignature: () => this._getPluginBuildSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
       warn: (message: string, error: unknown) => {
         console.warn(message, error);

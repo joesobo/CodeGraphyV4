@@ -99,6 +99,31 @@ describe('CodeGraphy Workspace status', () => {
     });
   });
 
+  it('compares a host-provided plugin build signature only when the host supplies one', async () => {
+    const workspaceRoot = await createWorkspace();
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...meta,
+      pluginBuildSignature: 'build-a',
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+    }).state).toBe('fresh');
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+      pluginBuildSignature: 'build-b',
+    })).toMatchObject({
+      state: 'stale',
+      staleReasons: ['plugin-signature-changed'],
+    });
+  });
+
   it('does not mark the Graph Cache stale for generated pending refresh paths', async () => {
     const workspaceRoot = await createWorkspace();
     await indexCodeGraphyWorkspace({

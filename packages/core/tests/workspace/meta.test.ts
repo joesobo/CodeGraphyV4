@@ -34,6 +34,7 @@ describe('workspace/meta', () => {
       version: 1 as const,
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
       pluginSignature: 'codegraphy.markdown@1.0.0',
+      pluginBuildSignature: 'plugin-build-sha',
       settingsSignature: 'settings-sha',
       analysisVersion: null,
       pendingChangedFiles: ['src/index.ts'],

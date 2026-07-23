@@ -24,6 +24,7 @@ describe('pipeline/service/cache/index', () => {
     version: 1,
     lastIndexedAt: '2026-01-01T00:00:00.000Z',
     lastIndexedCommit: 'abc123',
+    pluginBuildSignature: null,
     pluginSignature: 'plugin-signature',
     settingsSignature: 'settings-signature',
     pendingChangedFiles: [],
@@ -117,6 +118,7 @@ describe('pipeline/service/cache/index', () => {
     const warn = vi.fn();
     const persistIndexMetadata = vi.fn();
     const dependencies = {
+      getPluginBuildSignature: vi.fn(() => 'next-plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
       persistIndexMetadata,
@@ -126,6 +128,7 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      pluginBuildSignature: 'next-plugin-build-signature',
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
     });
@@ -137,6 +140,7 @@ describe('pipeline/service/cache/index', () => {
     const persistIndexMetadata = vi.fn();
     const dependencies = {
       getCurrentCommitSha: vi.fn(() => 'def456'),
+      getPluginBuildSignature: vi.fn(() => 'next-plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
       persistIndexMetadata,
@@ -146,6 +150,7 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      pluginBuildSignature: 'next-plugin-build-signature',
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
     });
@@ -163,6 +168,7 @@ describe('pipeline/service/cache/index', () => {
     }));
     const persistIndexMetadata = vi.fn();
     const dependencies = {
+      getPluginBuildSignature: vi.fn(() => 'plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'plugin-signature'),
       getSettingsSignature: vi.fn(() => 'settings-signature'),
       persistIndexMetadata,
@@ -172,6 +178,7 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      pluginBuildSignature: 'plugin-build-signature',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
     });
@@ -184,6 +191,7 @@ describe('pipeline/service/cache/index', () => {
       throw error;
     });
     const dependencies = {
+      getPluginBuildSignature: vi.fn(() => 'next-plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
       persistIndexMetadata,

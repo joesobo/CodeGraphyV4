@@ -1,7 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { createWorkspacePipelinePluginSignature } from '../../../../src/extension/pipeline/cacheSignatures/plugin';
+import {
+  createWorkspacePipelinePluginBuildSignature,
+  createWorkspacePipelinePluginSignature,
+} from '../../../../src/extension/pipeline/cacheSignatures/plugin';
 
 describe('workspace pipeline plugin signature', () => {
+  it('changes when a loaded package build changes without a package version change', () => {
+    const plugin = {
+      builtIn: false,
+      sourcePackage: '@acme/codegraphy-tools',
+      descriptorSignature: 'build-v1',
+      plugin: { id: 'acme.core', version: '1.0.0' },
+    };
+
+    const first = createWorkspacePipelinePluginBuildSignature([plugin]);
+    expect(first).not.toBeNull();
+    expect(createWorkspacePipelinePluginBuildSignature([
+      { ...plugin, descriptorSignature: 'build-v2' },
+    ])).not.toBe(first);
+    expect(createWorkspacePipelinePluginBuildSignature([
+      { ...plugin, builtIn: true },
+    ])).toBeNull();
+  });
+
   it('fingerprints built-in runtimes and npm plugins with installed package versions', () => {
     const signature = createWorkspacePipelinePluginSignature([
       {

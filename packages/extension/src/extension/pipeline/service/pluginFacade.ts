@@ -94,6 +94,7 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
   getIndexStatus(): { freshness: 'fresh' | 'stale' | 'missing'; detail: string } {
     return getWorkspacePipelineIndexStatus({
       hasIndex: () => this.hasIndex(),
+      pluginBuildSignature: this._getPluginBuildSignature(),
       pluginSignature: this._getPluginSignature(),
       settingsSignature: this._getSettingsSignature(),
       workspaceRoot: this._getWorkspaceRoot(),

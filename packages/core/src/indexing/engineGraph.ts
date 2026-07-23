@@ -8,13 +8,16 @@ import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { getGraphCachePath } from '../workspace/paths';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
 import type { WorkspaceEngineRuntime } from './engineRuntime';
-import { persistWorkspaceIndexMetadata } from './metadata';
+import {
+  createWorkspaceIndexPluginBuildSignature,
+  createWorkspaceIndexPluginSignature,
+  persistWorkspaceIndexMetadata,
+} from './metadata';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
 import {
   createDefaultStatusCorePluginIds,
   createDefaultStatusPluginSignature,
 } from '../workspace/statusPlugins';
-import { createWorkspaceIndexPluginSignature } from './metadata';
 
 export function buildWorkspaceEngineGraph(
   runtime: WorkspaceEngineRuntime,
@@ -74,6 +77,7 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
       includeMissingConfiguredPlugins: false,
     });
   persistWorkspaceIndexMetadata({
+    pluginBuildSignature: createWorkspaceIndexPluginBuildSignature(state.loadedPackagePlugins),
     pluginSignature,
     failedPluginIds: state.failedPluginIds,
     settings: state.settings,

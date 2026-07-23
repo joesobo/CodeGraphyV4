@@ -9,6 +9,7 @@ const indexedMeta: ICodeGraphyRepoMeta = {
   version: 1,
   lastIndexedAt: '2026-04-27T12:00:00.000Z',
   lastIndexedCommit: 'abc123',
+  pluginBuildSignature: 'plugin-build',
   pluginSignature: 'plugins',
   settingsSignature: 'settings',
   pendingChangedFiles: [],

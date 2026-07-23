@@ -4,6 +4,7 @@ import type { CorePluginRegistry } from '../plugins/registry';
 import { persistCodeGraphyWorkspaceIndexMetadata } from '../workspace/meta';
 import {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
+  createCodeGraphyWorkspacePluginBuildSignature,
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from '../workspace/signatures';
@@ -55,8 +56,37 @@ export function createWorkspaceIndexPluginSignature(input: {
   );
 }
 
+export function createWorkspaceIndexPluginBuildSignature(
+  loadedPackagePlugins: readonly LoadedCodeGraphyWorkspacePluginPackage[],
+): string | null {
+  return createCodeGraphyWorkspacePluginBuildSignature(
+    loadedPackagePlugins.map(loadedPlugin => ({
+      id: loadedPlugin.plugin.id,
+      signature: JSON.stringify({
+        buildIdentity: loadedPlugin.buildIdentity,
+        descriptor: {
+          apiVersion: loadedPlugin.record.apiVersion,
+          entry: loadedPlugin.record.entry,
+          host: loadedPlugin.record.host,
+          id: loadedPlugin.record.id,
+        },
+        package: {
+          name: loadedPlugin.record.package,
+          version: loadedPlugin.record.version,
+        },
+        runtime: {
+          apiVersion: loadedPlugin.plugin.apiVersion,
+          id: loadedPlugin.plugin.id,
+          version: loadedPlugin.plugin.version,
+        },
+      }),
+    })),
+  );
+}
+
 export function persistWorkspaceIndexMetadata(input: {
   pluginSignature: string | null;
+  pluginBuildSignature: string | null;
   failedPluginIds: ReadonlySet<string>;
   settings: CodeGraphyWorkspaceSettings;
   settingsPluginIds: ReadonlySet<string>;
@@ -64,6 +94,7 @@ export function persistWorkspaceIndexMetadata(input: {
 }): void {
   persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
     pluginSignature: input.pluginSignature,
+    pluginBuildSignature: input.pluginBuildSignature,
     failedPluginIds: [...input.failedPluginIds].sort((left, right) => left.localeCompare(right)),
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(
       input.settings,

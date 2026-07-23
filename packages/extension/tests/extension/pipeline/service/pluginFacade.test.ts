@@ -86,6 +86,10 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
     return 'plugin-signature';
   }
 
+  protected override _getPluginBuildSignature(): string | null {
+    return 'plugin-build-signature';
+  }
+
   protected override _getSettingsSignature(): string {
     return 'settings-signature';
   }
@@ -233,6 +237,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     });
 
     const statusInput = vi.mocked(getWorkspacePipelineIndexStatus).mock.calls[0][0];
+    expect(statusInput.pluginBuildSignature).toBe('plugin-build-signature');
     expect(statusInput.pluginSignature).toBe('plugin-signature');
     expect(statusInput.settingsSignature).toBe('settings-signature');
     expect(statusInput.workspaceRoot).toBe('/workspace');

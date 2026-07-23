@@ -36,6 +36,7 @@ vi.mock('../../../../../src/extension/pipeline/cacheSignatures/commit', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/cacheSignatures/plugin', () => ({
+  createWorkspacePipelinePluginBuildSignature: vi.fn(),
   createWorkspacePipelinePluginSignature: vi.fn(),
 }));
 

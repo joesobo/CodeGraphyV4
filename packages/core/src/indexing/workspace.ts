@@ -18,7 +18,11 @@ import { readCodeGraphyWorkspaceMeta } from '../workspace/meta';
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
-import { createWorkspaceIndexPluginSignature, persistWorkspaceIndexMetadata } from './metadata';
+import {
+  createWorkspaceIndexPluginBuildSignature,
+  createWorkspaceIndexPluginSignature,
+  persistWorkspaceIndexMetadata,
+} from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
@@ -113,7 +117,9 @@ export async function indexCodeGraphyWorkspace(
       settings,
       includeMissingConfiguredPlugins: false,
     });
+  const pluginBuildSignature = createWorkspaceIndexPluginBuildSignature(loadedPackagePlugins);
   const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
+    pluginBuildSignature,
     pluginSignature,
     plugins: registry.list().map(info => info.plugin),
     settings,
@@ -302,6 +308,7 @@ export async function indexCodeGraphyWorkspace(
     options,
     'persist-metadata',
     () => persistWorkspaceIndexMetadata({
+      pluginBuildSignature,
       pluginSignature,
       failedPluginIds,
       settings,

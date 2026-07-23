@@ -36,6 +36,7 @@ vi.mock('../../../../../src/extension/pipeline/cacheSignatures/commit', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/cacheSignatures/plugin', () => ({
+  createWorkspacePipelinePluginBuildSignature: vi.fn(),
   createWorkspacePipelinePluginSignature: vi.fn(),
 }));
 
@@ -85,6 +86,9 @@ describe('extension/pipeline/service/internalBase persistence', () => {
     const getPluginSignature = vi
       .spyOn(source as unknown as { _getPluginSignature: () => string | null }, '_getPluginSignature')
       .mockReturnValue('plugin-signature');
+    const getPluginBuildSignature = vi
+      .spyOn(source as unknown as { _getPluginBuildSignature: () => string | null }, '_getPluginBuildSignature')
+      .mockReturnValue('plugin-build-signature');
     const getSettingsSignature = vi
       .spyOn(source as unknown as { _getSettingsSignature: () => string }, '_getSettingsSignature')
       .mockReturnValue('settings-signature');
@@ -97,6 +101,8 @@ describe('extension/pipeline/service/internalBase persistence', () => {
       expect.any(Object),
     );
     const dependencies = vi.mocked(persistWorkspacePipelineIndexMetadata).mock.calls[0][1];
+    expect(dependencies.getPluginBuildSignature()).toBe('plugin-build-signature');
+    expect(getPluginBuildSignature).toHaveBeenCalledOnce();
     expect(dependencies.getPluginSignature()).toBe('plugin-signature');
     expect(getPluginSignature).toHaveBeenCalledOnce();
     expect(dependencies.getSettingsSignature()).toBe('settings-signature');

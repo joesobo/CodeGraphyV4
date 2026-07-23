@@ -22,6 +22,7 @@ export interface CodeGraphyWorkspaceStatus {
 export interface ReadCodeGraphyWorkspaceStatusOptions {
   plugins?: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
   pluginSignature?: string | null;
+  pluginBuildSignature?: string | null;
   settings?: CodeGraphyWorkspaceSettings;
   settingsSignature?: string;
   exists?: (filePath: string) => boolean;

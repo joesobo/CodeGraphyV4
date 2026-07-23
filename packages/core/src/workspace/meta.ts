@@ -9,6 +9,7 @@ export interface CodeGraphyWorkspaceMeta {
   version: 1;
   lastIndexedAt: string | null;
   pluginSignature: string | null;
+  pluginBuildSignature: string | null;
   settingsSignature: string | null;
   analysisVersion: string | null;
   pendingChangedFiles: string[];
@@ -23,12 +24,14 @@ const codeGraphyWorkspaceMetaSchema = z.looseObject({
   pendingChangedFiles: looseStringArraySchema,
   failedPluginIds: looseStringArraySchema,
   pluginSignature: optionalNullableStringSchema,
+  pluginBuildSignature: optionalNullableStringSchema,
   settingsSignature: optionalNullableStringSchema,
 }).transform((meta): CodeGraphyWorkspaceMeta => ({
   ...createDefaultCodeGraphyWorkspaceMeta(),
   ...(meta.analysisVersion !== undefined ? { analysisVersion: meta.analysisVersion } : {}),
   ...(meta.lastIndexedAt !== undefined ? { lastIndexedAt: meta.lastIndexedAt } : {}),
   ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
+  ...(meta.pluginBuildSignature !== undefined ? { pluginBuildSignature: meta.pluginBuildSignature } : {}),
   ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
   pendingChangedFiles: meta.pendingChangedFiles,
   failedPluginIds: meta.failedPluginIds,
@@ -40,6 +43,7 @@ export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta 
     version: 1,
     lastIndexedAt: null,
     pluginSignature: null,
+    pluginBuildSignature: null,
     settingsSignature: null,
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     pendingChangedFiles: [],
@@ -71,6 +75,7 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
   workspaceRoot: string,
   metadata: {
     pluginSignature: string | null;
+    pluginBuildSignature?: string | null;
     settingsSignature: string;
     failedPluginIds?: readonly string[];
   },
@@ -80,6 +85,9 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
     ...previous,
     lastIndexedAt: new Date().toISOString(),
     pluginSignature: metadata.pluginSignature,
+    pluginBuildSignature: metadata.pluginBuildSignature === undefined
+      ? previous.pluginBuildSignature
+      : metadata.pluginBuildSignature,
     settingsSignature: metadata.settingsSignature,
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     pendingChangedFiles: [],

@@ -25,6 +25,7 @@ describe('extension/pipeline/service/indexStatus', () => {
 
     expect(getWorkspacePipelineIndexStatus({
       hasIndex,
+      pluginBuildSignature: 'plugin-build',
       pluginSignature: 'plugins',
       settingsSignature: 'settings',
       workspaceRoot: undefined,
@@ -38,6 +39,7 @@ describe('extension/pipeline/service/indexStatus', () => {
 
     expect(getWorkspacePipelineIndexStatus({
       hasIndex,
+      pluginBuildSignature: 'plugin-build',
       pluginSignature: 'plugins',
       settingsSignature: 'settings',
       workspaceRoot: '/workspace',
@@ -55,6 +57,7 @@ describe('extension/pipeline/service/indexStatus', () => {
 
     expect(getWorkspacePipelineIndexStatus({
       hasIndex,
+      pluginBuildSignature: 'plugin-build',
       pluginSignature: null,
       settingsSignature: 'settings',
       workspaceRoot: '/workspace',
@@ -64,6 +67,7 @@ describe('extension/pipeline/service/indexStatus', () => {
     });
     expect(hasIndex).toHaveBeenCalledOnce();
     expect(readCodeGraphyWorkspaceStatus).toHaveBeenCalledWith('/workspace', {
+      pluginBuildSignature: 'plugin-build',
       pluginSignature: null,
       settingsSignature: 'settings',
     });

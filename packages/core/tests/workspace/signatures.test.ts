@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
+  createCodeGraphyWorkspacePluginBuildSignature,
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from '../../src/workspace/signatures';
@@ -38,6 +39,23 @@ describe('workspace/signatures', () => {
     })).toBe(
       'npm:acme.core:@acme/codegraphy-tools@1.0.0|npm:acme.view:@acme/codegraphy-tools@1.0.0',
     );
+  });
+
+  it('fingerprints loaded plugin builds independently from package versions', () => {
+    expect(createCodeGraphyWorkspacePluginBuildSignature([])).toBeNull();
+    const first = createCodeGraphyWorkspacePluginBuildSignature([
+      { id: 'acme.core', signature: 'build-a' },
+      { id: 'acme.view', signature: 'build-b' },
+    ]);
+
+    expect(first).toBe(createCodeGraphyWorkspacePluginBuildSignature([
+      { id: 'acme.core', signature: 'build-a' },
+      { id: 'acme.view', signature: 'build-b' },
+    ]));
+    expect(first).not.toBe(createCodeGraphyWorkspacePluginBuildSignature([
+      { id: 'acme.core', signature: 'rebuilt-a' },
+      { id: 'acme.view', signature: 'build-b' },
+    ]));
   });
 
   it('keeps settings signatures stable for reordered option keys', () => {

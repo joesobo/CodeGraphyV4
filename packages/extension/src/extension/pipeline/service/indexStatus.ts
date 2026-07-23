@@ -2,6 +2,7 @@ import { readCodeGraphyWorkspaceStatus } from '@codegraphy-dev/core';
 
 export interface WorkspacePipelineIndexStatusInput {
   hasIndex(): boolean;
+  pluginBuildSignature: string | null;
   pluginSignature: string | null;
   settingsSignature: string;
   workspaceRoot: string | undefined;
@@ -25,6 +26,7 @@ export function getWorkspacePipelineIndexStatus(
   }
 
   const status = readCodeGraphyWorkspaceStatus(input.workspaceRoot, {
+    pluginBuildSignature: input.pluginBuildSignature,
     pluginSignature: input.pluginSignature,
     settingsSignature: input.settingsSignature,
   });
