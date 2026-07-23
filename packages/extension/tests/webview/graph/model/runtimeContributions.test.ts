@@ -270,7 +270,7 @@ describe('graph/model/runtimeContributions', () => {
               id: 'src/a.ts->src/b.ts#runtime',
               from: 'src/a.ts',
               to: 'src/b.ts',
-              kind: 'runtime',
+              kind: 'healthy.plugin:runtime',
               sources: [],
             }],
           },
