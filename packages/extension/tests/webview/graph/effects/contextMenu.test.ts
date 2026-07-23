@@ -69,4 +69,61 @@ describe('graph effects context menu', () => {
       payload: { paths: ['src/app.ts'] },
     });
   });
+
+  it('continues applying context effects when a graph view plugin action throws', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const handlers = createHandlers();
+    const context = {
+      target: { kind: 'background' as const },
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
+    };
+
+    expect(() => applyContextEffects([
+      {
+        kind: 'runGraphViewContextMenuContribution',
+        pluginId: 'broken.plugin',
+        contributionId: 'broken-action',
+        context,
+        run() {
+          throw new Error('run failed');
+        },
+      },
+      { kind: 'focusNode', nodeId: 'src/app.ts' },
+    ], handlers)).not.toThrow();
+
+    await vi.waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Context menu contribution 'broken-action' from plugin 'broken.plugin' failed"),
+        expect.any(Error),
+      );
+    });
+    expect(handlers.focusNode).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('reports rejected graph view plugin actions', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const handlers = createHandlers();
+
+    applyContextEffects([{
+      kind: 'runGraphViewContextMenuContribution',
+      pluginId: 'broken.plugin',
+      contributionId: 'rejected-action',
+      context: {
+        target: { kind: 'background' },
+        selectedNodeIds: [],
+        selectedEdgeIds: [],
+      },
+      async run() {
+        throw new Error('action rejected');
+      },
+    }], handlers);
+
+    await vi.waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Context menu contribution 'rejected-action' from plugin 'broken.plugin' failed"),
+        expect.any(Error),
+      );
+    });
+  });
 });

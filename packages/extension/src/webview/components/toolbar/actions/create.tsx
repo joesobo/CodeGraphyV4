@@ -50,19 +50,40 @@ export function resolveGraphViewCreateContributions({
   graphViewContributions?: ExtensionGraphViewContributionSet;
 }): ResolvedGraphViewCreateContribution[] {
   const context = createGraphViewCreateContext();
-  return graphViewContributions?.contextMenu
-    .filter(entry => isGraphViewCreateContribution(entry, context))
-    .map(entry => ({
-      context,
-      entry,
-      label: entry.contribution.getLabel?.(context) ?? entry.contribution.label,
-    })) ?? [];
+  const resolved: ResolvedGraphViewCreateContribution[] = [];
+  for (const entry of graphViewContributions?.contextMenu ?? []) {
+    try {
+      if (!isGraphViewCreateContribution(entry, context)) continue;
+      resolved.push({
+        context,
+        entry,
+        label: entry.contribution.getLabel?.(context) ?? entry.contribution.label,
+      });
+    } catch (error) {
+      console.error(
+        `[CodeGraphy] Create contribution '${entry.contribution.id}' from plugin '${entry.pluginId}' failed:`,
+        error,
+      );
+    }
+  }
+  return resolved;
 }
 
 function runGraphViewCreateContribution(
   contribution: ResolvedGraphViewCreateContribution,
 ): void {
-  void contribution.entry.contribution.run(contribution.context);
+  const { entry, context } = contribution;
+  const report = (error: unknown): void => {
+    console.error(
+      `[CodeGraphy] Create contribution '${entry.contribution.id}' from plugin '${entry.pluginId}' failed:`,
+      error,
+    );
+  };
+  try {
+    void Promise.resolve(entry.contribution.run(context)).catch(report);
+  } catch (error) {
+    report(error);
+  }
 }
 
 export function CreateToolbarAction({

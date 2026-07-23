@@ -85,6 +85,55 @@ describe('Graph View context menu contribution actions', () => {
     expect(itemLabels(multiSelectionEntries)).not.toContain('Release Position');
   });
 
+  it('keeps later context menu contributions when plugin label or visibility callbacks throw', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const graphViewContributions = createContributions([
+      {
+        pluginId: 'broken.visibility',
+        contribution: {
+          id: 'broken-visibility',
+          label: 'Broken visibility',
+          targets: [{ kind: 'background' }],
+          isVisible() {
+            throw new Error('visibility failed');
+          },
+          run: vi.fn(),
+        },
+      },
+      {
+        pluginId: 'broken.label',
+        contribution: {
+          id: 'broken-label',
+          label: 'Broken label',
+          targets: [{ kind: 'background' }],
+          getLabel() {
+            throw new Error('label failed');
+          },
+          run: vi.fn(),
+        },
+      },
+      {
+        pluginId: 'healthy.plugin',
+        contribution: {
+          id: 'healthy-action',
+          label: 'Healthy action',
+          targets: [{ kind: 'background' }],
+          run: vi.fn(),
+        },
+      },
+    ]);
+
+    const entries = buildGraphContextMenuEntries({
+      selection: { kind: 'background', targets: [] },
+      favorites: new Set(),
+      pluginItems: [],
+      graphViewContributions,
+    });
+
+    expect(itemLabels(entries)).toContain('Healthy action');
+    expect(errorSpy).toHaveBeenCalledTimes(2);
+  });
+
   it('passes background graph positions to graph view plugin menu actions', () => {
     const run = vi.fn();
     const graphViewContributions = createContributions([{

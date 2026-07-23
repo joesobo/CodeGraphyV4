@@ -49,7 +49,17 @@ const EFFECT_APPLIERS: GraphContextEffectAppliers = {
     handlers.postMessage(effect.message);
   },
   runGraphViewContextMenuContribution: (effect) => {
-    void effect.run(effect.context);
+    const report = (error: unknown): void => {
+      console.error(
+        `[CodeGraphy] Context menu contribution '${effect.contributionId}' from plugin '${effect.pluginId}' failed:`,
+        error,
+      );
+    };
+    try {
+      void Promise.resolve(effect.run(effect.context)).catch(report);
+    } catch (error) {
+      report(error);
+    }
   },
 };
 

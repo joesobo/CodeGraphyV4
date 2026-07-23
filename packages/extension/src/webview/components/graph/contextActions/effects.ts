@@ -13,6 +13,8 @@ export type GraphContextEffect =
   | { kind: 'postMessage'; message: WebviewToExtensionMessage }
   | {
       kind: 'runGraphViewContextMenuContribution';
+      pluginId: string;
+      contributionId: string;
       run: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>['run'];
       context: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>['context'];
     };
@@ -35,6 +37,8 @@ export function getGraphContextActionEffects(
   if (action.kind === 'graphViewPlugin') {
     return [{
       kind: 'runGraphViewContextMenuContribution',
+      pluginId: action.pluginId,
+      contributionId: action.contributionId,
       run: action.run,
       context: action.context,
     }];
