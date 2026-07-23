@@ -264,6 +264,21 @@ export async function createManifestPluginPackage(
           host: 'core',
           entry: './plugin.js',
           apiVersion: '^4.0.0',
+          data: {
+            interfaces: [{
+              id: 'codegraphy.extension',
+              data: {
+                fileColors: {
+                  '*.txt': {
+                    color: '#0EA5E9',
+                    shape2D: 'triangle',
+                    imagePath: 'assets/example.svg',
+                    marker: input.marker,
+                  },
+                },
+              },
+            }],
+          },
         }],
       },
     }, null, 2),
@@ -277,20 +292,6 @@ export async function createManifestPluginPackage(
       version,
       apiVersion: '^4.0.0',
       supportedExtensions: ['.txt'],
-    }, null, 2),
-    'utf-8',
-  );
-  await fs.writeFile(
-    path.join(packageRoot, 'codegraphy.extension.json'),
-    JSON.stringify({
-      fileColors: {
-        '*.txt': {
-          color: '#0EA5E9',
-          shape2D: 'triangle',
-          imagePath: 'assets/example.svg',
-          marker: input.marker,
-        },
-      },
     }, null, 2),
     'utf-8',
   );

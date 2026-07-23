@@ -19,9 +19,21 @@ describe('Unity plugin configuration', () => {
         };
       };
     };
-    const manifest = readJson(resolve(testDirectory, '../codegraphy.extension.json')) as {
-      fileColors: Record<string, string | Record<string, unknown>>;
+    const packageManifest = readJson(resolve(testDirectory, '../package.json')) as {
+      codegraphy: {
+        plugins: Array<{
+          data: {
+            interfaces: Array<{
+              id: string;
+              data: { fileColors: Record<string, string | Record<string, unknown>> };
+            }>;
+          };
+        }>;
+      };
     };
+    const extensionData = packageManifest.codegraphy.plugins[0]?.data.interfaces
+      .find(entry => entry.id === 'codegraphy.extension')?.data;
+    expect(extensionData).toBeDefined();
     const allowedFields = new Set(
       Object.keys(
         schema.properties.fileColors.additionalProperties.oneOf
@@ -29,7 +41,7 @@ describe('Unity plugin configuration', () => {
       ),
     );
 
-    const unexpectedFields = Object.entries(manifest.fileColors).flatMap(([pattern, value]) =>
+    const unexpectedFields = Object.entries(extensionData?.fileColors ?? {}).flatMap(([pattern, value]) =>
       typeof value === 'string'
         ? []
         : Object.keys(value)

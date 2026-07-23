@@ -270,6 +270,95 @@ describe('pipeline/plugins/bootstrap packages', () => {
     ]);
   });
 
+  it('keeps interface metadata owned by each descriptor in a multi-plugin package', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = await createPackageFixtureRoot('codegraphy-multi-interface-');
+    const packageName = '@acme/codegraphy-plugin-multi-interface';
+    const descriptorData = (marker: string) => ({
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { fileColors: { '*.txt': { color: '#0EA5E9', marker } } },
+      }],
+    });
+    const descriptors: Array<{
+      id: string;
+      entry: string;
+      data: ReturnType<typeof descriptorData>;
+    }> = [
+      { id: 'acme.first', entry: './first.js', data: descriptorData('first') },
+      { id: 'acme.second', entry: './second.js', data: descriptorData('second') },
+    ];
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: packageName,
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: descriptors.map(descriptor => ({
+          ...descriptor,
+          host: 'core',
+          apiVersion: '^4.0.0',
+        })),
+      },
+    }), 'utf8');
+    for (const descriptor of descriptors) {
+      await fs.writeFile(path.join(packageRoot, descriptor.entry), `
+        export default function createPlugin() {
+          return {
+            id: ${JSON.stringify(descriptor.id)},
+            name: ${JSON.stringify(descriptor.id)},
+            version: '1.0.0',
+            apiVersion: '^4.0.0',
+            supportedExtensions: ['.txt']
+          };
+        }
+      `, 'utf8');
+    }
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: descriptors.map(descriptor => ({
+        package: packageName,
+        version: '1.0.0',
+        id: descriptor.id,
+        host: 'core',
+        entry: descriptor.entry,
+        apiVersion: '^4.0.0',
+        data: descriptor.data,
+        packageRoot,
+        globallyEnabled: true,
+      })),
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: descriptors.map(descriptor => ({
+        id: descriptor.id,
+        activation: 'enabled' as const,
+      })),
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      warn: message => {
+        throw new Error(message);
+      },
+    });
+
+    const registrationsById = new Map(
+      registry.register.mock.calls.map(([plugin, options]) => [plugin.id, options]),
+    );
+    expect([...registrationsById.keys()]).toEqual(
+      expect.arrayContaining(['acme.first', 'acme.second']),
+    );
+    expect(registrationsById.get('acme.first')?.interfaces).toEqual(
+      descriptorData('first').interfaces,
+    );
+    expect(registrationsById.get('acme.second')?.interfaces).toEqual(
+      descriptorData('second').interfaces,
+    );
+  });
+
   it('registers enabled npm plugin packages for the current CodeGraphy Workspace', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();

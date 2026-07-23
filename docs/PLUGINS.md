@@ -98,9 +98,9 @@ host without adding it to a Core enum.
 One package can contain descriptors for several hosts. Each descriptor is one
 installed plugin record and has its own stable ID.
 
-The optional `data` value belongs to the descriptor host. Core reads Core
-plugin defaults and update impact from it. Other hosts can define different
-data without adding their keys to Core.
+The optional `data` value belongs to the descriptor. Core reads only its own
+plugin defaults and update impact. An interface can read its matching entry in
+the open `interfaces` list without adding interface keys to Core.
 
 ## Core plugins
 
@@ -158,8 +158,24 @@ The Extension host imports this runtime. Core only reports that the descriptor
 is installed and active.
 
 Interface-specific static metadata also belongs to the interface. For example,
-the Unity package stores VS Code Extension file colors in
-`codegraphy.extension.json`, not in the Core `codegraphy.json` file.
+the Unity descriptor stores VS Code Extension file colors in its opaque `data`
+envelope. Each descriptor owns its metadata, so two plugins in one package can
+use different colors:
+
+```json
+{
+  "id": "acme.unity",
+  "host": "core",
+  "entry": "./dist/plugin.js",
+  "apiVersion": "^4.0.0",
+  "data": {
+    "interfaces": [{
+      "id": "codegraphy.extension",
+      "data": { "fileColors": { "*.unity": "#F97316" } }
+    }]
+  }
+}
+```
 
 ## Workspace data
 

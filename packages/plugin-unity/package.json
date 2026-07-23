@@ -37,7 +37,6 @@
     "assets",
     "dist",
     "codegraphy.json",
-    "codegraphy.extension.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -62,7 +61,20 @@
           "updateImpact": {
             "toggle": "reanalyze-plugin-files",
             "defaultSetting": "reanalyze-plugin-files"
-          }
+          },
+          "interfaces": [{
+            "id": "codegraphy.extension",
+            "data": {
+              "fileColors": {
+                "*.unity": { "color": "#F97316", "shape2D": "hexagon", "imagePath": "assets/unity.svg" },
+                "*.prefab": { "color": "#8B5CF6", "shape2D": "hexagon", "imagePath": "assets/unity.svg" },
+                "*.asset": { "color": "#0EA5E9", "shape2D": "triangle", "imagePath": "assets/unity.svg" },
+                "*.mat": { "color": "#14B8A6", "shape2D": "circle", "imagePath": "assets/unity.svg" },
+                "*.asmdef": { "color": "#64748B", "shape2D": "square", "imagePath": "assets/unity.svg" },
+                "*.inputactions": { "color": "#F59E0B", "shape2D": "diamond", "imagePath": "assets/unity.svg" }
+              }
+            }
+          }]
         }
     }]
   }
