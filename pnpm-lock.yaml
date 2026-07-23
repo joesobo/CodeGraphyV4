@@ -439,6 +439,9 @@ importers:
 
   packages/plugin-godot:
     dependencies:
+      '@codegraphy-dev/extension-plugin-api':
+        specifier: workspace:*
+        version: link:../extension-plugin-api
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
