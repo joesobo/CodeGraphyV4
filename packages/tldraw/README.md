@@ -52,7 +52,7 @@ nodes use an 80-unit diameter. Connected nodes grow on a bounded square-root
 scale from 110 to 300 units, so ordinary nodes and hubs remain visibly
 different without allowing one hub to dominate the canvas.
 
-The persistent document script runs WebAssembly force physics from
+The persistent document runtime runs WebAssembly force physics from
 `@codegraphy-dev/graph-renderer`. It derives collision spacing and repel
 strength from each circle's visible size. Resizing a node updates both values
 and restarts the layout around the new size.

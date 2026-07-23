@@ -23,31 +23,35 @@ const placeholder = 'Q09ERUdSQVBIWV9QSFlTSUNTX1dBU00=';
 const embeddedPhysicsPlugin: Plugin = {
   name: 'embedded-codegraphy-physics',
   setup(buildContext): void {
-    buildContext.onLoad({ filter: /src\/script\/main\.ts$/ }, async ({ path }) => ({
-      contents: (await readFile(path, 'utf8')).replace(
-        placeholder,
-        physicsBytes.toString('base64'),
-      ),
-      loader: 'ts',
-    }));
+    buildContext.onLoad(
+      { filter: /src\/documentRuntime\/main\.ts$/ },
+      async ({ path }) => ({
+        contents: (await readFile(path, 'utf8')).replace(
+          placeholder,
+          physicsBytes.toString('base64'),
+        ),
+        loader: 'ts',
+      }),
+    );
   },
 };
 
 await rm(new URL('../dist', import.meta.url), { force: true, recursive: true });
 await Promise.all([
   build({
-    entryPoints: ['src/cli.ts'],
-    outfile: 'dist/index.js',
+    entryPoints: ['src/main.ts'],
+    outfile: 'dist/codegraphy-tldraw.js',
     bundle: true,
     platform: 'node',
     format: 'esm',
     target: 'node20',
     sourcemap: true,
     external,
+    banner: { js: '#!/usr/bin/env node' },
   }),
   build({
-    entryPoints: ['src/script/main.ts'],
-    outfile: 'dist/script/main.js',
+    entryPoints: ['src/documentRuntime/main.ts'],
+    outfile: 'dist/documentRuntime/main.js',
     bundle: true,
     platform: 'browser',
     format: 'esm',
@@ -56,8 +60,8 @@ await Promise.all([
     plugins: [embeddedPhysicsPlugin],
   }),
   build({
-    entryPoints: ['src/script/forceControls/view.ts'],
-    outfile: 'dist/script/config.js',
+    entryPoints: ['src/documentRuntime/forceControls/view.ts'],
+    outfile: 'dist/documentRuntime/config.js',
     bundle: true,
     platform: 'browser',
     format: 'esm',

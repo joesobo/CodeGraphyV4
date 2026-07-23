@@ -114,13 +114,19 @@ export function createCommandDependencies(
       await currentClient.reconcileRecords(documentId, ownedRecords);
       const scriptWorkspace = await currentClient.getScriptWorkspace(documentId);
       await Promise.all([
-        platform.copyFile(new URL('./script/config.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'config.js')),
-        platform.copyFile(new URL('./script/main.js', import.meta.url), path.join(scriptWorkspace.scriptDir, 'main.js')),
+        platform.copyFile(
+          new URL('./documentRuntime/config.js', import.meta.url),
+          path.join(scriptWorkspace.scriptDir, 'config.js'),
+        ),
+        platform.copyFile(
+          new URL('./documentRuntime/main.js', import.meta.url),
+          path.join(scriptWorkspace.scriptDir, 'main.js'),
+        ),
       ]);
     },
     writeDocument: async ({ graph, targetPath }) => {
-      const configPath = new URL('./script/config.js', import.meta.url);
-      const scriptPath = new URL('./script/main.js', import.meta.url);
+      const configPath = new URL('./documentRuntime/config.js', import.meta.url);
+      const scriptPath = new URL('./documentRuntime/main.js', import.meta.url);
       await platform.writeGraphDocument({
         graph,
         scriptFiles: {

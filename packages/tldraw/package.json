@@ -21,7 +21,7 @@
     "visualization"
   ],
   "bin": {
-    "codegraphy-tldraw": "./bin/codegraphy-tldraw.js"
+    "codegraphy-tldraw": "./dist/codegraphy-tldraw.js"
   },
   "engines": {
     "node": ">=20 <23"
@@ -33,7 +33,6 @@
     "access": "public"
   },
   "files": [
-    "bin",
     "dist",
     "README.md",
     "CHANGELOG.md",
@@ -41,7 +40,7 @@
   ],
   "scripts": {
     "build": "tsx ./scripts/build.ts",
-    "lint": "eslint src scripts bin vitest.config.ts",
+    "lint": "eslint src tests scripts vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

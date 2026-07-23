@@ -10,7 +10,7 @@ import {
 } from '@tldraw/tlschema';
 import type { IndexKey } from '@tldraw/utils';
 import { projectDefaultFileGraph } from '../graph/projection';
-import { DEFAULT_FORCE_SETTINGS } from '../script/forceControls/model';
+import { DEFAULT_FORCE_SETTINGS } from '../documentRuntime/forceControls/model';
 import { readTldrawArchive, writeTldrawArchive } from './archive';
 import { reconcileGraphRecords } from './records';
 
