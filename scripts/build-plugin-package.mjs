@@ -1,8 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { build } from 'esbuild';
 
+const require = createRequire(import.meta.url);
 const packageRoot = process.cwd();
 const packageJson = JSON.parse(readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
 const rootExport = packageJson.exports?.['.'];
@@ -14,8 +16,13 @@ if (!declarationPath || !runtimePath) {
 }
 
 execFileSync(
-  process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
-  ['exec', 'tsc', '-p', 'tsconfig.build.json', '--emitDeclarationOnly'],
+  process.execPath,
+  [
+    require.resolve('typescript/bin/tsc'),
+    '-p',
+    'tsconfig.build.json',
+    '--emitDeclarationOnly',
+  ],
   { stdio: 'inherit' },
 );
 

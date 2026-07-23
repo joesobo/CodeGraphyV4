@@ -20,6 +20,16 @@ const repositoryRoot = resolve(
 );
 
 describe('built-in plugin package contract', () => {
+  it('runs the TypeScript compiler without a platform-specific package-manager process', () => {
+    const buildScript = readFileSync(
+      resolve(repositoryRoot, 'scripts/build-plugin-package.mjs'),
+      'utf8',
+    );
+
+    expect(buildScript).toContain("resolve('typescript/bin/tsc')");
+    expect(buildScript).not.toContain("'pnpm.cmd'");
+  });
+
   it.each(PACKAGE_NAMES)('%s uses package.json as its only plugin manifest', (packageName) => {
     const packageRoot = resolve(repositoryRoot, 'packages', packageName);
     const manifest = JSON.parse(
