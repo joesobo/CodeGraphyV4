@@ -16,7 +16,11 @@ function replaceInstalledPackageRecords(
   records: readonly CodeGraphyInstalledPluginRecord[],
 ): CodeGraphyInstalledPluginCache {
   const packageName = records[0]?.package;
-  const activationById = new Map(cache.plugins.map(plugin => [plugin.id, plugin.globallyEnabled]));
+  const activationById = new Map(
+    cache.plugins
+      .filter(plugin => plugin.package === packageName)
+      .map(plugin => [plugin.id, plugin.globallyEnabled]),
+  );
   const retained = packageName
     ? cache.plugins.filter(plugin => plugin.package !== packageName)
     : cache.plugins;

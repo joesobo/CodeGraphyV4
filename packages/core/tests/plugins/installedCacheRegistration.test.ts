@@ -7,6 +7,7 @@ import {
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
+  setCodeGraphyInstalledPluginGlobalActivation,
 } from '../../src';
 import { createPackage } from './installedCacheFixture';
 
@@ -70,5 +71,48 @@ describe('CodeGraphy installed plugin registration', () => {
       globallyEnabled: false,
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
+  });
+
+  it('does not inherit global activation from a different package with the same plugin id', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
+    const descriptor = {
+      version: '1.0.0',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.shared',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
+      },
+    };
+    await createPackage(globalRoot, '@acme/first', descriptor);
+    await createPackage(globalRoot, '@acme/second', descriptor);
+
+    const [first] = await registerCodeGraphyInstalledPlugin({
+      homeDir,
+      packageName: '@acme/first',
+      globalPackageRoots: [globalRoot],
+    });
+    setCodeGraphyInstalledPluginGlobalActivation(first, true, { homeDir });
+    await registerCodeGraphyInstalledPlugin({
+      homeDir,
+      packageName: '@acme/second',
+      globalPackageRoots: [globalRoot],
+    });
+
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([
+      expect.objectContaining({
+        package: '@acme/first',
+        id: 'acme.shared',
+        globallyEnabled: true,
+      }),
+      expect.objectContaining({
+        package: '@acme/second',
+        id: 'acme.shared',
+        globallyEnabled: false,
+      }),
+    ]);
   });
 });
