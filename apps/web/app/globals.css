@@ -299,6 +299,31 @@ button {
   }
 }
 
+@keyframes media-reveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-media-reveal {
+  animation: media-reveal 200ms var(--ease-out) both;
+}
+
+.theme-hero-image {
+  background-image: var(--theme-image-light);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.dark .theme-hero-image {
+  background-image: var(--theme-image-dark);
+}
+
 @keyframes hero-copy-rise {
   from {
     opacity: 0;

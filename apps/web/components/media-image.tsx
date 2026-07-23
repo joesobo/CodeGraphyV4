@@ -1,18 +1,19 @@
 'use client';
 
 import Image, { type ImageProps } from 'next/image';
-import { useId, useState } from 'react';
+import { useTheme } from 'next-themes';
+import { useId, useRef, useState, useSyncExternalStore } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 
-/** An image or animation shown on the site, rendered by MediaImage. */
+/** An image or animation shown on the site. */
 export interface Media {
   alt: string;
   src: string;
-  /** Still frame shown at rest for animated media (GIFs play on hover or selection). */
+  /** Still frame shown until an animated source is requested. */
   posterSrc?: string;
-  /** Dark-theme variant; when set, MediaImage renders both and the theme picks one. */
+  /** Dark-theme variants. Only the active theme is requested. */
   darkSrc?: string;
   darkPosterSrc?: string;
 }
@@ -24,121 +25,105 @@ interface MediaImageProps
   imageClassName?: string;
 }
 
-/**
- * next/image with a loading skeleton. Animated media (GIFs) shows its poster
- * at rest and plays while hovered or selected. When `media.darkSrc` is set,
- * the light and dark variants are both rendered and toggled by theme.
- */
-export function MediaImage({ media, ...props }: MediaImageProps): React.ReactElement {
-  const { darkSrc, darkPosterSrc, ...light } = media;
-
-  if (!darkSrc) {
-    return <SingleMediaImage media={light} {...props} />;
-  }
-
-  return (
-    <>
-      <div className="w-full dark:hidden">
-        <SingleMediaImage media={light} {...props} />
-      </div>
-      <div className="hidden w-full dark:block">
-        <SingleMediaImage
-          media={{ alt: light.alt, src: darkSrc, posterSrc: darkPosterSrc }}
-          {...props}
-        />
-      </div>
-    </>
-  );
+interface ActiveMedia {
+  alt: string;
+  posterSrc?: string;
+  src: string;
 }
 
-function SingleMediaImage({
+/**
+ * Renders only the active theme's media. Animated sources begin loading on
+ * first hover, focus, or selection. The poster stays visible until the GIF is
+ * ready, then the two layers crossfade without changing layout.
+ */
+export function MediaImage({
   className,
   imageClassName,
   media,
   ...imageProps
 }: MediaImageProps): React.ReactElement {
-  const { alt, src, posterSrc } = media;
-  const animated = src.endsWith('.gif');
-
+  const { resolvedTheme } = useTheme();
+  const mounted = useMounted();
+  const activeMedia = selectActiveMedia(media, mounted && resolvedTheme === 'dark');
+  const animated = activeMedia.src.endsWith('.gif');
   const descriptionId = useId();
-  const [loadedSources, setLoadedSources] = useState<ReadonlySet<string>>(() => new Set());
   const [hovered, setHovered] = useState(false);
   const [playSelection, setPlaySelection] = useState<boolean | null>(null);
+  const [loadedImages, setLoadedImages] = useState<ReadonlySet<string>>(() => new Set());
+  const [loadedAnimations, setLoadedAnimations] = useState<ReadonlySet<string>>(() => new Set());
+  const loadingAnimations = useRef<Set<string>>(new Set());
   const reduceMotion = usePrefersReducedMotion(animated);
 
-  const playing = animated && (playSelection ?? hovered) && !reduceMotion;
-  const restingSrc = animated && posterSrc ? posterSrc : src;
-  const restingLoaded = loadedSources.has(restingSrc);
-  const animationLoaded = loadedSources.has(src);
+  const restingSrc = animated && activeMedia.posterSrc
+    ? activeMedia.posterSrc
+    : activeMedia.src;
+  const wantsToPlay = animated && (playSelection ?? hovered) && !reduceMotion;
+  const animationLoaded = loadedAnimations.has(activeMedia.src);
+  const playing = wantsToPlay && animationLoaded;
+  const restingLoaded = loadedImages.has(restingSrc);
 
-  function markSourceLoaded(source: string): void {
-    setLoadedSources((current) =>
+  function requestAnimation(): void {
+    if (!animated || reduceMotion || animationLoaded) return;
+    if (loadingAnimations.current.has(activeMedia.src)) return;
+
+    loadingAnimations.current.add(activeMedia.src);
+    const image = new window.Image();
+    image.onload = (): void => {
+      loadingAnimations.current.delete(activeMedia.src);
+      setLoadedAnimations((current) =>
+        current.has(activeMedia.src) ? current : new Set(current).add(activeMedia.src),
+      );
+    };
+    image.onerror = (): void => {
+      loadingAnimations.current.delete(activeMedia.src);
+    };
+    image.src = activeMedia.src;
+  }
+
+  function markImageLoaded(source: string): void {
+    setLoadedImages((current) =>
       current.has(source) ? current : new Set(current).add(source),
     );
   }
 
-  const animatedImageProps = {
-    priority: imageProps.priority,
-    sizes: imageProps.sizes,
-  } satisfies Pick<ImageProps, 'priority' | 'sizes'>;
-
-  const mediaLayers = (
+  const mediaLayers = mounted ? (
     <>
-      {restingLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
-      {animated ? (
-        <>
-          <Image
-            alt={alt}
-            className={cn(
-              'transition-opacity duration-200',
-              restingLoaded ? 'opacity-100' : 'opacity-0',
-              imageClassName,
-            )}
-            fill
-            onLoad={() => markSourceLoaded(restingSrc)}
-            src={restingSrc}
-            unoptimized={restingSrc.endsWith('.gif')}
-            {...animatedImageProps}
-          />
-          {posterSrc && (playing || animationLoaded) ? (
-            <Image
-              alt=""
-              aria-hidden="true"
-              className={cn(
-                'transition-opacity duration-200',
-                playing && animationLoaded ? 'opacity-100' : 'opacity-0',
-                imageClassName,
-              )}
-              fill
-              onLoad={() => markSourceLoaded(src)}
-              src={src}
-              unoptimized
-              {...animatedImageProps}
-            />
-          ) : null}
-        </>
-      ) : (
+      {restingLoaded ? null : (
+        <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />
+      )}
+      <Image
+        alt={activeMedia.alt}
+        className={cn(
+          'transition-opacity duration-200',
+          restingLoaded && !playing ? 'opacity-100' : 'opacity-0',
+          imageClassName,
+        )}
+        onLoad={() => markImageLoaded(restingSrc)}
+        src={restingSrc}
+        unoptimized={restingSrc.endsWith('.gif')}
+        {...imageProps}
+      />
+      {playing ? (
         <Image
-          alt={alt}
-          className={cn(
-            'transition-opacity duration-200',
-            restingLoaded ? 'opacity-100' : 'opacity-0',
-            imageClassName,
-          )}
-          onLoad={() => markSourceLoaded(restingSrc)}
-          src={restingSrc}
+          alt=""
+          aria-hidden="true"
+          className={cn('animate-media-reveal', imageClassName)}
+          src={activeMedia.src}
+          unoptimized
           {...imageProps}
         />
-      )}
+      ) : null}
       {animated && !reduceMotion ? (
         <span
           aria-hidden="true"
           className="absolute right-3 bottom-3 grid size-9 place-items-center rounded-full border border-white/24 bg-[#071421]/82 text-xs text-white shadow-sm backdrop-blur-sm"
         >
-          {playing ? 'Ⅱ' : '▶'}
+          {wantsToPlay && !animationLoaded ? '…' : playing ? 'Ⅱ' : '▶'}
         </span>
       ) : null}
     </>
+  ) : (
+    <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />
   );
 
   if (!animated || reduceMotion) {
@@ -149,7 +134,7 @@ function SingleMediaImage({
       >
         {animated ? (
           <span className="sr-only" id={descriptionId}>
-            {alt}. Animation is paused because reduced motion is enabled.
+            {activeMedia.alt}. Animation is paused because reduced motion is enabled.
           </span>
         ) : null}
         {mediaLayers}
@@ -160,8 +145,12 @@ function SingleMediaImage({
   return (
     <button
       aria-describedby={descriptionId}
-      aria-label={`${playing ? 'Pause' : 'Play'} ${alt}`}
-      aria-pressed={playing}
+      aria-label={
+        wantsToPlay && !animationLoaded
+          ? `Loading ${activeMedia.alt}`
+          : `${playing ? 'Pause' : 'Play'} ${activeMedia.alt}`
+      }
+      aria-pressed={wantsToPlay}
       className={cn(
         'relative block w-full overflow-hidden border-0 p-0 text-left transition-transform duration-200 active:scale-[0.99]',
         className,
@@ -170,15 +159,46 @@ function SingleMediaImage({
         setHovered(false);
         setPlaySelection(null);
       }}
-      onClick={() => setPlaySelection(!playing)}
-      onPointerEnter={() => setHovered(true)}
+      onClick={() => {
+        if (!wantsToPlay) requestAnimation();
+        setPlaySelection(!wantsToPlay);
+      }}
+      onFocus={requestAnimation}
+      onPointerEnter={() => {
+        setHovered(true);
+        requestAnimation();
+      }}
       onPointerLeave={() => setHovered(false)}
       type="button"
     >
       <span className="sr-only" id={descriptionId}>
-        Hover or select to play. Select again to pause.
+        Hover or select to load and play. Select again to pause.
       </span>
       {mediaLayers}
     </button>
   );
 }
+
+function selectActiveMedia(media: Media, dark: boolean): ActiveMedia {
+  if (dark && media.darkSrc) {
+    return {
+      alt: media.alt,
+      posterSrc: media.darkPosterSrc,
+      src: media.darkSrc,
+    };
+  }
+
+  return {
+    alt: media.alt,
+    posterSrc: media.posterSrc,
+    src: media.src,
+  };
+}
+
+function useMounted(): boolean {
+  return useSyncExternalStore(emptySubscribe, getMountedSnapshot, getServerSnapshot);
+}
+
+const emptySubscribe = (): (() => void) => () => {};
+const getMountedSnapshot = (): boolean => true;
+const getServerSnapshot = (): boolean => false;

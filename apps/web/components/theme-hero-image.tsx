@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import type { CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ThemeHeroImageProps {
@@ -14,31 +14,19 @@ export function ThemeHeroImage({
   lightSrc,
   objectPosition = 'center',
 }: ThemeHeroImageProps): React.ReactElement {
-  const imageClassName = cn(
-    'object-cover transition-opacity duration-300 ease-out motion-reduce:transition-none',
-  );
+  const style = {
+    '--theme-image-dark': `url("${darkSrc}")`,
+    '--theme-image-light': `url("${lightSrc}")`,
+    backgroundPosition: objectPosition,
+  } as CSSProperties;
 
   return (
-    <div className="hero-image absolute inset-0">
-      <Image
-        alt={alt}
-        className={cn(imageClassName, 'opacity-100 dark:opacity-0')}
-        fill
-        priority
-        sizes="100vw"
-        src={lightSrc}
-        style={{ objectPosition }}
-      />
-      <Image
-        alt=""
-        aria-hidden="true"
-        className={cn(imageClassName, 'opacity-0 dark:opacity-100')}
-        fill
-        priority
-        sizes="100vw"
-        src={darkSrc}
-        style={{ objectPosition }}
-      />
-    </div>
+    <div
+      aria-hidden={alt ? undefined : 'true'}
+      aria-label={alt || undefined}
+      className={cn('hero-image theme-hero-image absolute inset-0')}
+      role={alt ? 'img' : undefined}
+      style={style}
+    />
   );
 }
