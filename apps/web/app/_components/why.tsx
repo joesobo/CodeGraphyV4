@@ -35,8 +35,7 @@ export function Why(): React.ReactElement {
     <section className="w-full bg-[#e7ebf2] px-5 py-24 text-[#17283b] dark:bg-[#0a192a] dark:text-white sm:px-8 sm:py-32 lg:px-12">
       <div className="mx-auto max-w-[90rem]">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="section-kicker">Why a graph</p>
-          <h2 className="mt-4 text-4xl font-medium leading-[1.02] sm:text-6xl">
+          <h2 className="text-4xl font-medium leading-[1.02] sm:text-6xl">
             Code was never a list of folders.
           </h2>
           <p className="mt-7 text-base leading-7 text-[#526276] dark:text-white/72 sm:text-lg">

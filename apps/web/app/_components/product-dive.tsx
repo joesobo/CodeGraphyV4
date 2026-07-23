@@ -83,11 +83,10 @@ export function ProductDive(): React.ReactElement {
   return (
     <section className="depth-sequence" id="product-dive">
       <header className="depth-intro">
-        <p className="section-kicker">One graph · four depths</p>
         <h2>From the whole system to one exact relationship.</h2>
         <p>
-          CodeGraphy keeps the map visible while you change the question. Each layer uses the same
-          Core-owned graph, whether you explore in VS Code or query from the terminal.
+          Across four depths, CodeGraphy keeps the map visible while you change the question. Each
+          layer uses the same Core-owned graph, whether you explore in VS Code or query from the terminal.
         </p>
       </header>
 
@@ -95,7 +94,7 @@ export function ProductDive(): React.ReactElement {
         {chapters.map((chapter) => (
           <article className="depth-scene" id={`depth-${chapter.index}`} key={chapter.index}>
             <div className="depth-copy">
-              <p className="depth-index">{chapter.index} / 04</p>
+              <span aria-hidden="true" className="depth-index">{chapter.index}</span>
               <h3>{chapter.title}</h3>
               <p>{chapter.description}</p>
               <span className="depth-detail">{chapter.detail}</span>

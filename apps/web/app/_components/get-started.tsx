@@ -39,7 +39,6 @@ export function GetStarted(): React.ReactElement {
       <div className="mx-auto max-w-[90rem]">
         <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
           <div>
-            <p className="section-kicker mb-4 text-primary">Get started</p>
             <SectionHeader
               title="Start at the surface. Go as deep as you need."
               description="The extension is the fastest way in. The CLI and Plugin API are there when your workflow needs more."
@@ -75,8 +74,7 @@ export function GetStarted(): React.ReactElement {
           <div aria-hidden="true" className="closing-cta-depth absolute inset-0" />
           <div className="relative z-10 grid min-h-96 items-end gap-10 p-7 sm:p-10 lg:grid-cols-[1fr_auto] lg:p-14">
             <div className="closing-cta-copy max-w-3xl">
-              <p className="closing-cta-kicker section-kicker">Start with your workspace</p>
-              <h2 className="mt-5 text-5xl font-medium leading-[0.95] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
+              <h2 className="text-5xl font-medium leading-[0.95] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
                 See the relationships your folder tree cannot show.
               </h2>
             </div>

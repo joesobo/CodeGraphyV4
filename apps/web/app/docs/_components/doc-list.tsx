@@ -12,12 +12,14 @@ export function DocList(): React.ReactElement {
           className="grid gap-8 lg:grid-cols-[minmax(15rem,.42fr)_minmax(0,1fr)] lg:gap-16"
           key={group.title}
         >
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <p className="font-mono text-xs font-semibold tracking-[0.18em] text-primary">
+          <div className="flex gap-4 lg:sticky lg:top-28 lg:self-start">
+            <span aria-hidden="true" className="font-heading text-5xl font-medium leading-none text-primary/30">
               {String(groupIndex + 1).padStart(2, '0')}
-            </p>
-            <h3 className="mt-3 text-3xl font-medium">{group.title}</h3>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{group.summary}</p>
+            </span>
+            <div>
+              <h3 className="text-3xl font-medium">{group.title}</h3>
+              <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{group.summary}</p>
+            </div>
           </div>
 
           <div className="grid gap-2">

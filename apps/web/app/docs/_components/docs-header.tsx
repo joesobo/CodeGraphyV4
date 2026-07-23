@@ -25,10 +25,9 @@ export function DocsHeader(): React.ReactElement {
           ))}
         </>
       }
-      aside={<><span className="font-mono text-[#88b1ff]">One source of truth.</span><br />The site points to the same docs the project maintains alongside its code.</>}
+      aside="The site points to the same documentation the project maintains alongside its code."
       darkImageSrc="/media/ocean-docs-hero.jpg"
       description="Source-backed guides for the extension, Core CLI, interactions, settings, built-in Plugins, and the Plugin API. Every topic leads to maintained Markdown in the repository."
-      eyebrow="Documentation"
       imageAlt=""
       imagePosition="50% center"
       imageSrc="/media/ocean-docs-hero-v3.jpg"

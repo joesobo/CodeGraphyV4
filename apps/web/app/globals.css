@@ -255,16 +255,6 @@ button {
   backdrop-filter: blur(18px) saturate(115%);
 }
 
-.section-kicker {
-  color: var(--primary);
-  font-family: var(--font-family-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
 .install-cta {
   border-color: transparent;
   background: var(--install);
@@ -506,7 +496,6 @@ button {
 
 .depth-intro h2 {
   max-width: 58rem;
-  margin-top: 1rem;
   font-size: clamp(3rem, 5.8vw, 6.4rem);
   font-weight: 500;
   line-height: 0.94;
@@ -546,10 +535,12 @@ button {
 }
 
 .depth-copy {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  column-gap: 1rem;
   max-width: 29rem;
 }
 
-.depth-index,
 .depth-detail,
 .depth-media-toolbar {
   font-family: var(--font-family-mono);
@@ -558,21 +549,26 @@ button {
 }
 
 .depth-index {
-  color: var(--primary);
-  font-size: 0.68rem;
-  font-weight: 700;
+  grid-row: 1 / span 5;
+  color: color-mix(in srgb, var(--primary) 34%, transparent);
+  font-family: var(--font-family-heading);
+  font-size: 2.35rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
 
 .depth-copy h3 {
-  margin-top: 1.6rem;
+  grid-column: 2;
   font-size: clamp(2.6rem, 4vw, 5rem);
   font-weight: 500;
   line-height: 0.98;
   letter-spacing: -0.04em;
 }
 
-.depth-copy > p:nth-of-type(2) {
+.depth-copy > p {
+  grid-column: 2;
   margin-top: 1.4rem;
   color: var(--muted-foreground);
   font-size: 1rem;
@@ -581,6 +577,7 @@ button {
 
 .depth-detail {
   display: block;
+  grid-column: 2;
   margin-top: 1.5rem;
   color: var(--muted-foreground);
   font-size: 0.62rem;
@@ -589,6 +586,8 @@ button {
 
 .depth-action {
   display: inline-flex;
+  grid-column: 2;
+  justify-self: start;
   align-items: center;
   gap: 0.4rem;
   min-height: 2.75rem;
@@ -675,10 +674,6 @@ button {
 .agent-terminal {
   position: relative;
   box-shadow: var(--elevation-md);
-}
-
-.closing-cta-kicker {
-  color: rgb(255 255 255 / 90%);
 }
 
 .closing-cta-depth {

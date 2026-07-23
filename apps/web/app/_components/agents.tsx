@@ -7,8 +7,7 @@ export function Agents(): React.ReactElement {
   return (
     <section className="agents-scene relative flex items-center overflow-hidden px-5 py-12 sm:px-8 sm:py-16 lg:px-12" id="agents">
       <div className="relative mx-auto grid w-full max-w-[90rem] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
-        <div className="max-w-xl [&_.section-kicker]:text-primary [&_h2]:text-foreground [&_p]:text-muted-foreground">
-          <p className="section-kicker mb-4">For agents</p>
+        <div className="max-w-xl [&_h2]:text-foreground [&_p]:text-muted-foreground">
           <SectionHeader
             title="Give your agent a map before it starts walking."
             description="The CodeGraphy Agent Skill teaches shell-capable coding agents to index first, ask bounded Graph Query questions, and open source only when the graph says it matters."

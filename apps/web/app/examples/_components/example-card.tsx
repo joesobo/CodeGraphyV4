@@ -26,10 +26,7 @@ export function ExampleCard({ example }: { example: ExampleContent }): React.Rea
             <Icon className="size-6 shrink-0" src={example.iconUrl} />
           </span>
           <div>
-            <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-primary">
-              Runnable workspace
-            </p>
-            <CardTitle className="mt-1 text-2xl font-medium">{example.name}</CardTitle>
+            <CardTitle className="text-2xl font-medium">{example.name}</CardTitle>
           </div>
         </div>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">{example.summary}</p>

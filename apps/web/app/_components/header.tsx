@@ -18,18 +18,15 @@ export function Header(): React.ReactElement {
 
       <div className="relative z-10 mx-auto grid min-h-[44rem] w-full max-w-[90rem] items-end gap-10 px-5 pt-32 pb-10 sm:min-h-[46rem] sm:px-8 sm:pb-14 lg:min-h-svh lg:grid-cols-[minmax(0,1.2fr)_minmax(22rem,.62fr)] lg:gap-16 lg:px-12 lg:pb-16">
         <div className="hero-copy max-w-5xl">
-          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#bad2ff]">
-            Local-first relationship graph
-          </p>
-          <h1 className="mt-5 max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.91] tracking-[-0.045em]">
+          <h1 className="max-w-5xl text-balance text-[clamp(3.65rem,7vw,7.6rem)] font-medium leading-[0.91] tracking-[-0.045em]">
             Understand the code <em className="font-normal text-[#88b1ff]">beneath</em> the surface.
           </h1>
         </div>
 
         <div className="hero-aside w-full max-w-xl lg:justify-self-end">
           <p className="max-w-[36rem] text-pretty text-base leading-7 text-white/94 sm:text-lg sm:leading-8">
-            CodeGraphy turns files, symbols, packages, and their relationships into one interactive
-            Relationship Graph, so you can see how a workspace actually fits together.
+            CodeGraphy is a local-first, interactive Relationship Graph for files, symbols,
+            packages, and their connections, so you can see how a workspace actually fits together.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link

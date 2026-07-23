@@ -11,10 +11,9 @@ export function ExamplesHeader(): React.ReactElement {
           Browse example workspaces
         </Link>
       }
-      aside={<><span className="font-mono text-[#88b1ff]">Real source. Real graphs.</span><br />Each example is intentionally compact enough to understand while still exercising meaningful relationships.</>}
+      aside="Each example uses real source and remains compact enough to understand while still exercising meaningful relationships."
       darkImageSrc="/media/ocean-examples-hero.jpg"
       description="Small, runnable CodeGraphy Workspaces that make language and Plugin coverage concrete. Open one, run Indexing, and inspect the Nodes, Edges, and symbols it produces."
-      eyebrow="See what CodeGraphy sees"
       imageAlt=""
       imagePosition="50% 56%"
       imageSrc="/media/ocean-examples-hero-v3.jpg"

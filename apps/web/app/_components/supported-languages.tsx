@@ -13,7 +13,6 @@ export function SupportedLanguages(): React.ReactElement {
   return (
     <section className="grid min-w-0 w-full gap-8" id="language-coverage">
       <div className="mx-auto w-full max-w-[90rem] px-5 sm:px-8 lg:px-12">
-        <p className="section-kicker mb-4 text-primary">Language coverage</p>
         <SectionHeader
           title="A wide surface area, one consistent graph."
           description="Core ships broad baseline language coverage. Plugins add deeper, ecosystem-specific meaning where syntax alone is not enough."

@@ -19,10 +19,9 @@ export function PluginsHeader(): React.ReactElement {
           </Link>
         </>
       }
-      aside={<><span className="font-mono text-[#88b1ff]">Plugin API v3</span><br />Typed contracts, validated metadata, workspace-local enablement, and Core-owned lifecycle hooks.</>}
+      aside="Plugin API v3 provides typed contracts, validated metadata, workspace-local enablement, and Core-owned lifecycle hooks."
       darkImageSrc="/media/ocean-plugins-hero.jpg"
       description="Headless npm packages that teach the Core Package new language, framework, engine, document, and visual semantics. The extension renders the Relationship Graph they help build."
-      eyebrow="Extend the graph"
       imageAlt=""
       imagePosition="58% center"
       imageSrc="/media/ocean-plugins-hero-v3.jpg"

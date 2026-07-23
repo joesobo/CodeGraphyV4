@@ -19,7 +19,6 @@ export function PluginInstall(): React.ReactElement {
   return (
     <section className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start lg:gap-14" id="install">
       <div className="lg:sticky lg:top-28">
-        <p className="section-kicker mb-4">Plugin setup</p>
         <SectionHeader
           title="Install once. Enable per workspace."
           description="This Vue example shows the full flow. Change the package and Plugin ID for another official Plugin."

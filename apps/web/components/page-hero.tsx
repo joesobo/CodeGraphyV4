@@ -4,7 +4,6 @@ import { ThemeHeroImage } from '@/components/theme-hero-image';
 interface PageHeroProps {
   description: string;
   darkImageSrc: string;
-  eyebrow: string;
   imageAlt: string;
   imagePosition?: string;
   imageSrc: string;
@@ -26,7 +25,6 @@ export function PageHero({
   aside,
   description,
   darkImageSrc,
-  eyebrow,
   imageAlt,
   imagePosition = 'center',
   imageSrc,
@@ -50,8 +48,7 @@ export function PageHero({
       <div className={cn('absolute inset-0', tone === 'minimal' ? 'page-hero-grade-minimal' : 'page-hero-grade')} />
       <div className="relative mx-auto grid w-full max-w-[90rem] gap-10 self-end lg:grid-cols-[minmax(0,1fr)_minmax(19rem,.38fr)] lg:items-end lg:gap-20">
         <div className="hero-copy">
-          <p className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#bad2ff]">{eyebrow}</p>
-          <h1 className="page-hero-title mt-4 max-w-5xl text-balance text-[clamp(3.5rem,7.2vw,7.2rem)] font-medium leading-[0.91] tracking-[-0.045em]">{title}</h1>
+          <h1 className="page-hero-title max-w-5xl text-balance text-[clamp(3.5rem,7.2vw,7.2rem)] font-medium leading-[0.91] tracking-[-0.045em]">{title}</h1>
           <p className="page-hero-description mt-5 max-w-[43rem] text-pretty text-base leading-7 text-white sm:text-lg">{description}</p>
           {actions ? <div className="mt-8 flex flex-wrap gap-3">{actions}</div> : null}
         </div>
