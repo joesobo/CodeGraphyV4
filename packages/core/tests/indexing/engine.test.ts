@@ -100,4 +100,49 @@ describe('createCodeGraphyWorkspaceEngine', () => {
     expect(resourceActive).toBe(false);
     expect(lifecycleCalls).toEqual(['initialize-start', 'initialize-finish', 'unload']);
   });
+
+  it('waits for active analysis before unloading plugin resources', async () => {
+    const workspaceRoot = await createWorkspace();
+    let markAnalysisStarted!: () => void;
+    let finishAnalysis!: () => void;
+    const analysisStarted = new Promise<void>((resolve) => {
+      markAnalysisStarted = resolve;
+    });
+    const analysisGate = new Promise<void>((resolve) => {
+      finishAnalysis = resolve;
+    });
+    let resourceActive = false;
+    const onUnload = vi.fn(() => {
+      resourceActive = false;
+    });
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        async analyzeFile(filePath: string) {
+          markAnalysisStarted();
+          await analysisGate;
+          resourceActive = true;
+          return { filePath, relations: [] };
+        },
+        onUnload,
+      }],
+      includeCorePlugins: false,
+    });
+
+    const indexing = engine.index();
+    await analysisStarted;
+    engine.dispose();
+
+    expect(onUnload).not.toHaveBeenCalled();
+    finishAnalysis();
+    await expect(indexing).rejects.toThrow('CodeGraphy Workspace Engine is disposed.');
+    expect(onUnload).toHaveBeenCalledOnce();
+    expect(resourceActive).toBe(false);
+  });
 });
