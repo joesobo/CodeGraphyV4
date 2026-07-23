@@ -48,7 +48,7 @@ The extension normalizes missing values against current defaults and preserves r
 | `version` | number | `4` | Persisted extension settings schema. |
 | `maxFiles` | number | `1000` | Maximum files discovered during Indexing. |
 | `include` | string[] | `["**/*"]` | Workspace-relative discovery globs. |
-| `respectGitignore` | boolean | `true` | Exclude paths Git reports as ignored. |
+| `respectGitignore` | boolean | `true` | Detect paths Git reports as ignored so interfaces can dim them. |
 | `filterPatterns` | string[] | `[]` | Enabled custom exclusion patterns. |
 | `disabledCustomFilterPatterns` | string[] | `[]` | Custom filter patterns retained in a disabled state. |
 | `disabledPluginFilterPatterns` | string[] | `[]` | Disabled source-owned plugin filter patterns. |
@@ -119,7 +119,7 @@ The Settings > Forces controls apply these values to the live WebAssembly layout
 }
 ```
 
-Core also excludes common generated directories and artifacts such as `node_modules`, `dist`, `build`, `.git`, coverage output, minified JavaScript, and bundles. When `respectGitignore` is true, Git-ignored paths do not enter File Discovery.
+Core also excludes common generated directories and artifacts such as `node_modules`, `dist`, `build`, `.git`, `.worktrees`, `.claude/worktrees`, coverage output, minified JavaScript, and bundles. When `respectGitignore` is true, Git-ignored paths remain indexed and are annotated so interfaces can dim them.
 
 CodeGraphy normalizes an empty `include` to `["**/*"]` and removes duplicate filters.
 

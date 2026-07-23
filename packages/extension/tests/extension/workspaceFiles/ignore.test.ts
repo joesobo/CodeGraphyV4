@@ -33,6 +33,7 @@ describe('extension/workspaceFiles/ignore', () => {
     '/workspace/.turbo/cache/abc-meta.json',
     '/workspace/packages/plugin-typescript/.turbo',
     '/workspace/.worktrees/speed-up-codegraphy/packages/extension/src/extension.ts',
+    '/workspace/.claude/worktrees/generated/packages/extension/src/extension.ts',
     '/workspace/coverage/report.json',
     '/workspace/assets/app.min.js',
     '/workspace/assets/app.bundle.js',

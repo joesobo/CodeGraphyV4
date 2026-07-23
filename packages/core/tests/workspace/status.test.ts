@@ -137,6 +137,7 @@ describe('CodeGraphy Workspace status', () => {
       pendingChangedFiles: [
         path.join(workspaceRoot, 'packages/plugin-typescript/.turbo'),
         path.join(workspaceRoot, '.worktrees/speed-up-codegraphy/packages/core/src/index.ts'),
+        path.join(workspaceRoot, '.claude/worktrees/generated/packages/core/src/index.ts'),
       ],
     });
 

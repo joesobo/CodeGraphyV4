@@ -9,6 +9,8 @@ export const DEFAULT_EXCLUDE = [
   '**/.turbo/**',
   '**/.worktrees',
   '**/.worktrees/**',
+  '**/.claude/worktrees',
+  '**/.claude/worktrees/**',
   '**/coverage/**',
   '**/.DS_Store',
   '**/*.min.js',
