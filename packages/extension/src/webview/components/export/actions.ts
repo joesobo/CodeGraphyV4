@@ -49,13 +49,3 @@ export function buildGraphItems(): ExportActionItem[] {
     },
   ];
 }
-
-export function runPluginExport(pluginId: string, index: number): void {
-  postMessage({
-    type: 'RUN_PLUGIN_EXPORT',
-    payload: {
-      pluginId,
-      index,
-    },
-  });
-}

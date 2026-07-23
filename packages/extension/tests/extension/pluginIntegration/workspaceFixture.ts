@@ -76,8 +76,12 @@ export async function installPluginIntegrationPackage(
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
+        plugins: [{
+          id: pluginId,
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2),
     'utf-8',
@@ -94,7 +98,7 @@ export default function createPlugin() {
     id: '${pluginId}',
     name: 'Integration Package Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     ${options.webviewContributions ? `
     webviewApiVersion: '^1.0.0',
@@ -170,27 +174,26 @@ export default function createPlugin() {
   }
 
   writeCodeGraphyInstalledPluginCache({
-    version: 1,
+    version: 3,
     plugins: [{
       package: packageName,
       version: '1.0.0',
-      apiVersion: '^3.0.0',
-      disclosures: [],
+      id: pluginId,
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot,
-      pluginId,
-      defaultOptions: {
-        targetFile: 'src/utils.ts',
-      },
+      globallyEnabled: false,
     }],
   }, { homeDir });
   writeCodeGraphyWorkspaceSettings(workspacePath, {
     ...readCodeGraphyWorkspaceSettings(workspacePath),
     plugins: [{
       id: 'codegraphy.markdown',
-      enabled: true,
+      activation: 'enabled',
     }, {
       id: pluginId,
-      enabled: true,
+      activation: 'enabled',
       options: {
         targetFile: 'src/utils.ts',
       },

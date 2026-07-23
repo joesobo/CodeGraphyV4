@@ -1,7 +1,6 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
-import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import {
   buildWorkspaceGraphData
 } from '../../src/graph/data';
@@ -11,7 +10,7 @@ function createPlugin(id: string): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     sources: [
       { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
@@ -102,13 +101,11 @@ describe('core/graph/data', () => {
         {
           id: 'src/app.ts',
           label: 'app.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 10,
         },
         {
           id: 'src/new-folder',
           label: 'new-folder',
-          color: DEFAULT_FOLDER_NODE_COLOR,
           nodeType: 'folder',
         },
       ]);

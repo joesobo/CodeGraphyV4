@@ -9,30 +9,30 @@ import {
 } from '../../workspace/settings';
 
 export function getRegisteredPluginId(plugin: CodeGraphyInstalledPluginRecord): string {
-  if (plugin.pluginId) {
-    return plugin.pluginId;
-  }
-
-  return plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME
-    ? CODEGRAPHY_MARKDOWN_PLUGIN_ID
-    : plugin.package;
+  return plugin.id;
 }
 
 export function findRegisteredPlugin(
   cache: CodeGraphyInstalledPluginCache,
   pluginIdOrPackageName: string,
 ): CodeGraphyInstalledPluginRecord | undefined {
+  return findRegisteredPlugins(cache, pluginIdOrPackageName)[0];
+}
+
+export function findRegisteredPlugins(
+  cache: CodeGraphyInstalledPluginCache,
+  pluginIdOrPackageName: string,
+): CodeGraphyInstalledPluginRecord[] {
   if (
     pluginIdOrPackageName === CODEGRAPHY_MARKDOWN_PLUGIN_ID
     || pluginIdOrPackageName === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME
   ) {
-    return createBundledMarkdownInstalledPluginRecord();
+    return [createBundledMarkdownInstalledPluginRecord()];
   }
 
-  return cache.plugins.find(plugin =>
-    plugin.package === pluginIdOrPackageName
-    || getRegisteredPluginId(plugin) === pluginIdOrPackageName
-  );
+  const exactPlugins = cache.plugins.filter(plugin => plugin.id === pluginIdOrPackageName);
+  if (exactPlugins.length > 0) return exactPlugins;
+  return cache.plugins.filter(plugin => plugin.package === pluginIdOrPackageName);
 }
 
 export function listRegisteredPluginsWithBundledMarkdown(

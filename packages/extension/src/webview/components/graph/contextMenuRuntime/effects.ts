@@ -123,28 +123,12 @@ function isGraphViewNodeActionValid(
     && action.context.selectedEdgeIds.length === 0;
 }
 
-function isPluginActionValid(
-  action: Extract<GraphContextMenuAction, { kind: 'plugin' }>,
-  context: GraphContextActionContext,
-): boolean {
-  if (action.targetType === 'node') {
-    return context.selectionKind === 'node' && context.targetIds.includes(action.targetId);
-  }
-
-  return context.selectionKind === 'edge'
-    && (action.targetId === context.edgeId || context.targetIds.includes(action.targetId));
-}
-
 function isMenuActionValid(
   action: GraphContextMenuAction,
   context: GraphContextActionContext,
 ): boolean {
   if (action.kind === 'builtin') {
     return isBuiltInActionValid(action.action, context);
-  }
-
-  if (action.kind === 'plugin') {
-    return isPluginActionValid(action, context);
   }
 
   return isGraphViewPluginActionValid(action, context);

@@ -10,12 +10,15 @@ import { createWorkspaceIndexEngineState, type WorkspaceIndexEngineState } from 
 export interface WorkspaceEngineState extends WorkspaceIndexEngineState {
   discoveryResult?: IDiscoveryResult;
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
+  registeredPluginIds: Set<string>;
+  failedPluginIds: Set<string>;
   registry?: CorePluginRegistry;
   settings?: CodeGraphyWorkspaceSettings;
 }
 
 export interface WorkspaceEngineRuntime {
   discovery: FileDiscovery;
+  disposed: boolean;
   options: IndexCodeGraphyWorkspaceOptions;
   state: WorkspaceEngineState;
   workspaceRoot: string;
@@ -26,13 +29,22 @@ export function createWorkspaceEngineRuntime(
 ): WorkspaceEngineRuntime {
   return {
     discovery: new FileDiscovery(),
+    disposed: false,
     options,
     state: {
       ...createWorkspaceIndexEngineState(),
       loadedPackagePlugins: [],
+      registeredPluginIds: new Set<string>(),
+      failedPluginIds: new Set<string>(),
     },
     workspaceRoot: resolveWorkspaceRoot(options.workspaceRoot),
   };
+}
+
+export function assertWorkspaceEngineActive(runtime: WorkspaceEngineRuntime): void {
+  if (runtime.disposed) {
+    throw new Error('CodeGraphy Workspace Engine is disposed.');
+  }
 }
 
 export function hasWorkspaceEngineIndexState(state: WorkspaceEngineState): boolean {

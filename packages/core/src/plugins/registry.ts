@@ -9,12 +9,12 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { CORE_PLUGIN_API_VERSION } from './api';
-import { initializeAll, initializePlugin } from './lifecycle/initialize';
+import { initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';
 import { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './lifecycle/notify/analysis';
 import {
+  listAccessProviders,
   resolvePluginAccess,
-  type CoreGraphViewContributionSet,
   type CorePluginAccessCheck,
   type CorePluginAccessContext,
 } from './access/checks';
@@ -38,7 +38,6 @@ import {
 } from './routing/router/lookups';
 import { notifyWorkspaceReady } from './workspaceReady';
 import { listGraphScopeCapabilities } from './graphScopeCapabilities';
-import { listAccessProviders, listAvailableGraphViewContributions } from './graphViewContributions';
 
 export { CORE_PLUGIN_API_VERSION };
 
@@ -58,7 +57,10 @@ type AnalyzeFile = {
 export class CorePluginRegistry {
   private readonly plugins = new Map<string, CorePluginInfo>();
   private readonly extensionMap = new Map<string, string[]>();
-  private readonly initializedPlugins = new Set<string>();
+  private readonly initializedPlugins = new Set<CorePluginInfo>();
+  private readonly initializingPlugins = new Map<CorePluginInfo, Promise<boolean>>();
+  private readonly pendingUnloads = new Set<CorePluginInfo>();
+  private activePluginOperations = 0;
   private coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
 
   register(plugin: IPlugin, options: RegisterPluginOptions = {}): void {
@@ -66,7 +68,9 @@ export class CorePluginRegistry {
   }
 
   async initializeAll(workspaceRoot: string): Promise<void> {
-    await initializeAll(this.plugins, workspaceRoot, this.initializedPlugins);
+    await Promise.all(
+      [...this.plugins.keys()].map(pluginId => this.initializePlugin(pluginId, workspaceRoot)),
+    );
   }
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
@@ -75,7 +79,19 @@ export class CorePluginRegistry {
       return;
     }
 
-    await initializePlugin(info, workspaceRoot, this.initializedPlugins);
+    let initialization = this.initializingPlugins.get(info);
+    if (!initialization) {
+      initialization = initializePlugin(info, workspaceRoot, this.initializedPlugins);
+      this.initializingPlugins.set(info, initialization);
+    }
+
+    const initialized = await initialization;
+    if (this.initializingPlugins.get(info) === initialization) {
+      this.initializingPlugins.delete(info);
+    }
+    if (!initialized && this.plugins.get(pluginId) === info) {
+      this.unregister(pluginId);
+    }
   }
 
   get(pluginId: string): CorePluginInfo | undefined {
@@ -102,34 +118,59 @@ export class CorePluginRegistry {
     return [...this.plugins.values()];
   }
 
+  unregister(pluginId: string): boolean {
+    const info = this.plugins.get(pluginId);
+    if (!info) {
+      return false;
+    }
+
+    this.removePluginRegistration(pluginId);
+    const initialization = this.initializingPlugins.get(info);
+    if (initialization) {
+      void initialization.then(
+        () => this.queuePluginUnload(info),
+        () => this.queuePluginUnload(info),
+      );
+    } else {
+      this.queuePluginUnload(info);
+    }
+    return true;
+  }
+
+  disposeAll(): void {
+    for (const pluginId of [...this.plugins.keys()]) {
+      this.unregister(pluginId);
+    }
+  }
+
   listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
-    return listPluginContributions(
+    return this.runPluginOperationSync(() => listPluginContributions(
       this.plugins,
       plugin => plugin.contributeNodeTypes?.() ?? [],
       definition => definition.id,
       disabledPlugins,
-    );
+    ));
   }
 
   listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
-    return listPluginContributions(
+    return this.runPluginOperationSync(() => listPluginContributions(
       this.plugins,
       plugin => plugin.contributeEdgeTypes?.() ?? [],
       definition => definition.id,
       disabledPlugins,
-    );
+    ));
   }
 
   listGraphScopeCapabilities(
     filePaths: readonly string[] = [],
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Required<IPluginGraphScopeCapabilities> {
-    return listGraphScopeCapabilities({
+    return this.runPluginOperationSync(() => listGraphScopeCapabilities({
       disabledPlugins,
       extensionMap: this.extensionMap,
       filePaths,
       plugins: this.plugins,
-    });
+    }));
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
@@ -145,13 +186,9 @@ export class CorePluginRegistry {
       return undefined;
     }
 
-    return resolvePluginAccess(info.plugin, listAccessProviders(this.plugins), context);
-  }
-
-  async listAvailableGraphViewContributions(
-    context: CorePluginAccessContext = {},
-  ): Promise<CoreGraphViewContributionSet> {
-    return listAvailableGraphViewContributions(this.plugins, context);
+    return this.runPluginOperation(() => (
+      resolvePluginAccess(info.plugin, listAccessProviders(this.plugins), context)
+    ));
   }
 
   async analyzeFile(
@@ -161,7 +198,7 @@ export class CorePluginRegistry {
     analysisContext?: IPluginAnalysisContext,
     options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
-    return analyzeFile(
+    return this.runPluginOperation(() => analyzeFile(
       filePath,
       content,
       workspaceRoot,
@@ -170,7 +207,7 @@ export class CorePluginRegistry {
       this.coreAnalyzeFileResult,
       analysisContext,
       options,
-    );
+    ));
   }
 
   async analyzeFileResult(
@@ -180,7 +217,7 @@ export class CorePluginRegistry {
     analysisContext?: IPluginAnalysisContext,
     options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
-    return analyzeFileResult(
+    return this.runPluginOperation(() => analyzeFileResult(
       filePath,
       content,
       workspaceRoot,
@@ -189,7 +226,7 @@ export class CorePluginRegistry {
       this.coreAnalyzeFileResult,
       analysisContext,
       options,
-    );
+    ));
   }
 
   async analyzeFileResultForPlugins(
@@ -200,7 +237,7 @@ export class CorePluginRegistry {
     analysisContext?: IPluginAnalysisContext,
     options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
-    return analyzeFileResult(
+    return this.runPluginOperation(() => analyzeFileResult(
       filePath,
       content,
       workspaceRoot,
@@ -212,7 +249,7 @@ export class CorePluginRegistry {
         ...options,
         pluginIds: new Set(pluginIds),
       },
-    );
+    ));
   }
 
   setCoreAnalyzeFileResult(analyzeFileResultProvider: CoreFileAnalysisResultProvider | undefined): void {
@@ -225,7 +262,9 @@ export class CorePluginRegistry {
     analysisContext?: IPluginAnalysisContext,
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<void> {
-    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
+    await this.runPluginOperation(() => (
+      notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins)
+    ));
   }
 
   async notifyFilesChanged(
@@ -234,18 +273,85 @@ export class CorePluginRegistry {
     analysisContext?: IPluginAnalysisContext,
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<IPluginFilesChangedResult> {
-    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
+    return this.runPluginOperation(() => (
+      notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins)
+    ));
   }
 
   notifyPostAnalyze(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
-    notifyPostAnalyze(this.plugins, graph, disabledPlugins);
+    this.runPluginOperationSync(() => notifyPostAnalyze(this.plugins, graph, disabledPlugins));
   }
 
   notifyWorkspaceReady(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
-    notifyWorkspaceReady(this.plugins, graph, disabledPlugins);
+    this.runPluginOperationSync(() => notifyWorkspaceReady(this.plugins, graph, disabledPlugins));
   }
 
   notifyGraphRebuild(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
-    notifyGraphRebuild(this.plugins, graph, disabledPlugins);
+    this.runPluginOperationSync(() => notifyGraphRebuild(this.plugins, graph, disabledPlugins));
+  }
+
+  private removePluginRegistration(pluginId: string): boolean {
+    const info = this.plugins.get(pluginId);
+    if (!info) {
+      return false;
+    }
+
+    this.plugins.delete(pluginId);
+    this.initializedPlugins.delete(info);
+    for (const [extension, pluginIds] of this.extensionMap) {
+      const remainingPluginIds = pluginIds.filter(id => id !== pluginId);
+      if (remainingPluginIds.length === 0) {
+        this.extensionMap.delete(extension);
+      } else if (remainingPluginIds.length !== pluginIds.length) {
+        this.extensionMap.set(extension, remainingPluginIds);
+      }
+    }
+    return true;
+  }
+
+  private unloadPlugin(info: CorePluginInfo): void {
+    try {
+      info.plugin.onUnload?.();
+    } catch (error) {
+      console.error(`[CodeGraphy] Error unloading plugin ${info.plugin.id}:`, error);
+    }
+  }
+
+  private async runPluginOperation<TResult>(operation: () => Promise<TResult>): Promise<TResult> {
+    this.activePluginOperations += 1;
+    try {
+      return await operation();
+    } finally {
+      this.releasePluginOperation();
+    }
+  }
+
+  private runPluginOperationSync<TResult>(operation: () => TResult): TResult {
+    this.activePluginOperations += 1;
+    try {
+      return operation();
+    } finally {
+      this.releasePluginOperation();
+    }
+  }
+
+  private releasePluginOperation(): void {
+    this.activePluginOperations -= 1;
+    if (this.activePluginOperations !== 0) {
+      return;
+    }
+
+    for (const info of this.pendingUnloads) {
+      this.unloadPlugin(info);
+    }
+    this.pendingUnloads.clear();
+  }
+
+  private queuePluginUnload(info: CorePluginInfo): void {
+    if (this.activePluginOperations > 0) {
+      this.pendingUnloads.add(info);
+      return;
+    }
+    this.unloadPlugin(info);
   }
 }

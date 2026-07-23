@@ -42,10 +42,16 @@ function hasSymbolMatcher(definition: IGraphNodeTypeDefinition): boolean {
 
 export function getScopedSymbolDefinitions(
 	scope: VisibleGraphScopeConfig,
+	nodeTypes: readonly IGraphNodeTypeDefinition[] = [
+		...new Map(
+			[...CORE_GRAPH_NODE_TYPES, ...(scope.nodeTypes ?? [])]
+				.map(definition => [definition.id, definition]),
+		).values(),
+	],
 ): ScopedSymbolDefinition[] {
 	const nodeVisibility = new Map(scope.nodes.map((item) => [item.type, item.enabled]));
 
-	return CORE_GRAPH_NODE_TYPES
+	return nodeTypes
 		.filter((definition) => definition.parentId && hasSymbolMatcher(definition) && nodeVisibility.has(definition.id))
 		.map((definition) => ({
 			definition,

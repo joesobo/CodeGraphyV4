@@ -1,4 +1,5 @@
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +12,7 @@ import {
     readWorkspaceAnalysisDatabaseSnapshot,
     writeCodeGraphyWorkspaceSettings,
 } from '../../src';
+import { writeCodeGraphyInstalledPluginCache } from '../../src/plugins/installedCache';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
 
 describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
@@ -22,10 +24,11 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       onWorkspaceReady: vi.fn(),
       analyzeFile: vi.fn(),
     };
+    const onUnload = vi.fn();
 
     const result = await indexCodeGraphyWorkspace({
       workspaceRoot,
-      plugins: [createTextPlugin(calls)],
+      plugins: [{ ...createTextPlugin(calls), onUnload }],
       includeCorePlugins: false,
     });
 
@@ -50,6 +53,7 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     expect(calls.analyzeFile).toHaveBeenCalledTimes(2);
     expect(calls.onPostAnalyze).toHaveBeenCalledWith(result.graph);
     expect(calls.onWorkspaceReady).toHaveBeenCalledWith(result.graph);
+    expect(onUnload).toHaveBeenCalledOnce();
     expect(readGraphCacheStatus(workspaceRoot).state).toBe('available');
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual(
       expect.arrayContaining(['source.txt', 'target.txt']),
@@ -61,7 +65,10 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unlinked\n', 'utf-8');
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      showOrphans: false,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { showOrphans: false },
+      }],
     });
 
     const result = await indexCodeGraphyWorkspace({
@@ -79,6 +86,138 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       expect.arrayContaining(['source.txt', 'target.txt', 'orphan.txt']),
     );
     expect(result.graph.nodes.map(node => node.id)).not.toContain('.codegraphy');
+  });
+
+  it('unloads one-shot plugins when indexing fails', async () => {
+    const workspaceRoot = await createWorkspace();
+    const onUnload = vi.fn();
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      onUnload,
+    };
+
+    await expect(indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+      logInfo: () => {
+        throw new Error('logging failed');
+      },
+    })).rejects.toThrow('logging failed');
+
+    expect(onUnload).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the new cache fresh when an enabled installed plugin fails to initialize', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-failed-plugin-home-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-failed-plugin-'));
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: '@acme/codegraphy-plugin-bad',
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.bad',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
+      },
+    }), 'utf8');
+    await fs.writeFile(path.join(packageRoot, 'plugin.js'), `
+      export default function createPlugin() {
+        return {
+          id: 'acme.bad',
+          name: 'Bad Plugin',
+          version: '1.0.0',
+          apiVersion: '^4.0.0',
+          supportedExtensions: ['.bad'],
+          async initialize() { throw new Error('initialization failed'); }
+        };
+      }
+    `, 'utf8');
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-bad',
+        id: 'acme.bad',
+        version: '1.0.0',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await indexCodeGraphyWorkspace({ workspaceRoot, userHomeDir: homeDir, includeCorePlugins: false });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { userHomeDir: homeDir })).toEqual(
+      expect.objectContaining({ state: 'fresh', staleReasons: [] }),
+    );
+  });
+
+  it('keeps the new cache fresh when an explicit runtime plugin fails to initialize', async () => {
+    const workspaceRoot = await createWorkspace();
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.explicit-failure',
+      async initialize() {
+        throw new Error('initialization failed');
+      },
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] })).toEqual(
+      expect.objectContaining({ state: 'fresh', staleReasons: [] }),
+    );
+  });
+
+  it('keeps the persistent engine cache fresh when an explicit plugin fails to initialize', async () => {
+    const workspaceRoot = await createWorkspace();
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.engine-failure',
+      async initialize() {
+        throw new Error('initialization failed');
+      },
+    };
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await engine.index();
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] })).toEqual(
+      expect.objectContaining({ state: 'fresh', staleReasons: [] }),
+    );
+    engine.dispose();
   });
 
   it('keeps indexing state in core so changed files update the graph without full indexing', async () => {
@@ -170,4 +309,5 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       path.resolve(workspaceRoot),
     );
   });
+
 });

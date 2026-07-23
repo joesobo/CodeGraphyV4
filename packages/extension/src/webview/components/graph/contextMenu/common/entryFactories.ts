@@ -29,25 +29,3 @@ export function builtInItem(
     shortcut: options?.shortcut,
   };
 }
-
-export function pluginItem(
-  id: string,
-  label: string,
-  pluginId: string,
-  index: number,
-  targetId: string,
-  targetType: 'node' | 'edge'
-): GraphContextMenuEntry {
-  return {
-    kind: 'item',
-    id,
-    label,
-    action: {
-      kind: 'plugin',
-      pluginId,
-      index,
-      targetId,
-      targetType,
-    },
-  };
-}

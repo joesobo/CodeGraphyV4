@@ -4,10 +4,12 @@ import type { CorePluginRegistry } from '../plugins/registry';
 import { persistCodeGraphyWorkspaceIndexMetadata } from '../workspace/meta';
 import {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
+  createCodeGraphyWorkspacePluginBuildSignature,
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from '../workspace/signatures';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
+import type { IndexCodeGraphyWorkspacePlugin } from './contracts';
 
 function runtimeSignaturePlugins(registry: CorePluginRegistry): IPlugin[] {
   return registry
@@ -17,40 +19,71 @@ function runtimeSignaturePlugins(registry: CorePluginRegistry): IPlugin[] {
 }
 
 export function createWorkspaceIndexPluginSignature(input: {
+  explicitPlugins?: readonly IndexCodeGraphyWorkspacePlugin[];
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
   registry: CorePluginRegistry;
-  settings: CodeGraphyWorkspaceSettings;
-  includeMissingConfiguredPlugins?: boolean;
 }): string | null {
-  const runtimePlugins = runtimeSignaturePlugins(input.registry);
-  const representedPluginIds = new Set([
-    ...runtimePlugins.map(plugin => plugin.id),
-    ...input.loadedPackagePlugins.flatMap(loadedPlugin => [
-      loadedPlugin.record.package,
-      loadedPlugin.record.pluginId,
-    ].filter((value): value is string => Boolean(value))),
-  ]);
-  const missingPackagePlugins = input.includeMissingConfiguredPlugins === false
-    ? []
-    : input.settings.plugins
-      .filter(plugin => plugin.enabled && !representedPluginIds.has(plugin.id))
-      .map(plugin => plugin.id);
+  const explicitRuntimePlugins = (input.explicitPlugins ?? []).map(plugin => (
+    'plugin' in plugin ? plugin.plugin : plugin
+  ));
+  const runtimePluginsById = new Map(
+    runtimeSignaturePlugins(input.registry).map(plugin => [plugin.id, plugin]),
+  );
+  for (const plugin of explicitRuntimePlugins) {
+    runtimePluginsById.set(plugin.id, plugin);
+  }
+  const runtimePlugins = [...runtimePluginsById.values()];
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
     runtimePlugins,
     packagePlugins: input.loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
-    missingPackagePlugins,
   }) ?? createCodeGraphyWorkspacePluginSignature(
     input.registry.list().map(info => info.plugin),
   );
 }
 
+export function createWorkspaceIndexPluginBuildSignature(
+  loadedPackagePlugins: readonly LoadedCodeGraphyWorkspacePluginPackage[],
+): string | null {
+  return createCodeGraphyWorkspacePluginBuildSignature(
+    loadedPackagePlugins.map(loadedPlugin => ({
+      id: loadedPlugin.plugin.id,
+      signature: JSON.stringify({
+        buildIdentity: loadedPlugin.buildIdentity,
+        descriptor: {
+          apiVersion: loadedPlugin.record.apiVersion,
+          entry: loadedPlugin.record.entry,
+          host: loadedPlugin.record.host,
+          id: loadedPlugin.record.id,
+        },
+        package: {
+          name: loadedPlugin.record.package,
+          version: loadedPlugin.record.version,
+        },
+        runtime: {
+          apiVersion: loadedPlugin.plugin.apiVersion,
+          id: loadedPlugin.plugin.id,
+          version: loadedPlugin.plugin.version,
+        },
+      }),
+    })),
+  );
+}
+
 export function persistWorkspaceIndexMetadata(input: {
   pluginSignature: string | null;
+  pluginBuildSignature: string | null;
+  failedPluginIds: ReadonlySet<string>;
   settings: CodeGraphyWorkspaceSettings;
+  settingsPluginIds: ReadonlySet<string>;
   workspaceRoot: string;
 }): void {
   persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
     pluginSignature: input.pluginSignature,
-    settingsSignature: createCodeGraphyWorkspaceSettingsSignature(input.settings),
+    pluginBuildSignature: input.pluginBuildSignature,
+    failedPluginIds: [...input.failedPluginIds].sort((left, right) => left.localeCompare(right)),
+    settingsSignature: createCodeGraphyWorkspaceSettingsSignature(
+      input.settings,
+      input.settingsPluginIds,
+    ),
   });
 }

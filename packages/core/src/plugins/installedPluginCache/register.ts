@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import type {
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
@@ -11,58 +12,69 @@ import {
   writeCodeGraphyInstalledPluginCache,
 } from './storage';
 
-function upsertInstalledPluginRecord(
+function replaceInstalledPackageRecords(
   cache: CodeGraphyInstalledPluginCache,
-  record: CodeGraphyInstalledPluginRecord,
+  records: readonly CodeGraphyInstalledPluginRecord[],
 ): CodeGraphyInstalledPluginCache {
-  const recordByPackage = new Map(
-    cache.plugins.map(plugin => [plugin.package, plugin] as const),
+  const packageName = records[0]?.package;
+  const activationById = new Map(
+    cache.plugins
+      .filter(plugin => plugin.package === packageName)
+      .map(plugin => [plugin.id, plugin.globallyEnabled]),
   );
-  recordByPackage.set(record.package, record);
-
+  const retained = packageName
+    ? cache.plugins.filter(plugin => plugin.package !== packageName)
+    : cache.plugins;
   return {
-    version: 1,
-    plugins: [...recordByPackage.values()]
-      .sort((left, right) => left.package.localeCompare(right.package)),
+    version: 3,
+    plugins: [
+      ...retained,
+      ...records.map(record => ({
+        ...record,
+        globallyEnabled: activationById.get(record.id) ?? false,
+      })),
+    ].sort((left, right) => left.id.localeCompare(right.id)),
   };
+}
+
+function storeRecords(
+  records: readonly CodeGraphyInstalledPluginRecord[],
+  homeDir: string | undefined,
+): void {
+  writeCodeGraphyInstalledPluginCache(
+    replaceInstalledPackageRecords(readCodeGraphyInstalledPluginCache({ homeDir }), records),
+    { homeDir },
+  );
 }
 
 export async function registerCodeGraphyInstalledPlugin(
   options: RegisterCodeGraphyInstalledPluginOptions,
-): Promise<CodeGraphyInstalledPluginRecord> {
+): Promise<CodeGraphyInstalledPluginRecord[]> {
   let lastError: Error | undefined;
-
   for (const globalPackageRoot of options.globalPackageRoots) {
     const packageRoot = getGlobalPackageRootPackagePath(globalPackageRoot, options.packageName);
     try {
-      const record = await readRequiredPackageManifest(options.packageName, packageRoot);
-      writeCodeGraphyInstalledPluginCache(
-        upsertInstalledPluginRecord(readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }), record),
-        { homeDir: options.homeDir },
-      );
-      return record;
+      const records = await readRequiredPackageManifest(options.packageName, packageRoot);
+      storeRecords(records, options.homeDir);
+      return records;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
   }
-
   throw lastError ?? new Error(
-    `CodeGraphy plugin package '${options.packageName}' was not found in global npm package roots. ` +
-    `Run \`npm i -g ${options.packageName}\` first.`,
+    `CodeGraphy plugin package '${options.packageName}' was not found in global npm package roots. `
+    + `Run \`npm i -g ${options.packageName}\` first.`,
   );
 }
 
 export async function linkCodeGraphyInstalledPluginPackage(
   options: LinkCodeGraphyInstalledPluginPackageOptions,
-): Promise<CodeGraphyInstalledPluginRecord> {
-  const record = await readPackageManifest(options.packageRoot);
-  if (!record) {
-    throw new Error(`Package at '${options.packageRoot}' is not a CodeGraphy plugin.`);
+): Promise<CodeGraphyInstalledPluginRecord[]> {
+  const packageRoot = path.resolve(options.packageRoot);
+  const records = await readPackageManifest(packageRoot);
+  if (!records) {
+    throw new Error(`Package at '${packageRoot}' is not a CodeGraphy plugin.`);
   }
-
-  writeCodeGraphyInstalledPluginCache(
-    upsertInstalledPluginRecord(readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }), record),
-    { homeDir: options.homeDir },
-  );
-  return record;
+  storeRecords(records, options.homeDir);
+  return records;
 }

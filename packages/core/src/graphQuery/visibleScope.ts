@@ -8,7 +8,10 @@ import type { GraphQueryConfig, GraphQueryScope } from './model';
 import { resolveGraphQueryNodeTypes } from './nodeTypeProjection/model';
 import { nodeMatchesProjectedNodeTypes } from './nodeTypeProjection/matching/model';
 
-export function toVisibleScope(scope: GraphQueryScope | undefined): VisibleGraphScopeConfig | undefined {
+export function toVisibleScope(
+  scope: GraphQueryScope | undefined,
+  nodeTypes: GraphQueryConfig['nodeTypeDefinitions'] = [],
+): VisibleGraphScopeConfig | undefined {
   if (!scope) {
     return undefined;
   }
@@ -16,6 +19,7 @@ export function toVisibleScope(scope: GraphQueryScope | undefined): VisibleGraph
   return {
     nodes: Object.entries(scope.nodes ?? {}).map(([type, enabled]) => ({ type, enabled })),
     edges: Object.entries(scope.edges ?? {}).map(([type, enabled]) => ({ type, enabled })),
+    nodeTypes,
   };
 }
 
@@ -38,7 +42,11 @@ export function applyExplicitScope(
   const enabledEdgeTypes = getEnabledScopeTypes(config.scope?.edges, []);
   const hasExplicitEdgeScope = Object.keys(config.scope?.edges ?? {}).length > 0;
   const nodes = graphData.nodes.filter((node) => config.projectedNodeTypes
-    ? nodeMatchesProjectedNodeTypes(node, config.projectedNodeTypes)
+    ? nodeMatchesProjectedNodeTypes(
+        node,
+        config.projectedNodeTypes,
+        config.nodeTypeDefinitions,
+      )
     : enabledNodeTypes.has(getNodeType(node)));
   const scopedEdges = hasExplicitEdgeScope
     ? graphData.edges.filter((edge) => enabledEdgeTypes.has(edge.kind))

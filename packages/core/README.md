@@ -40,10 +40,10 @@ Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` 
 - Graph Projection: build file, package, folder, and symbol Relationship Graph nodes and edges from analysis results.
 - Plugin manifests: read `package.json#codegraphy` metadata without importing plugin runtime code.
 - Plugin Registry: register, read, and write the user-level `~/.codegraphy/plugins.json` registry.
-- Workspace plugin activity: enable or disable Plugin IDs by writing explicit `enabled: true` or `enabled: false` entries in the workspace-local `plugins` array.
+- Workspace plugin activity: inherit, enable, or disable Plugin IDs through each workspace-local plugin entry's `activation` value. Inherited entries use the global plugin default.
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
-- Graph Cache storage: load, save, clear, and inspect normalized File, Node, NodeView, Symbol, and Edge rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
+- Graph Cache storage: load, save, clear, and inspect normalized File, Node, Symbol, and Edge rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
 - Graph Query: search scoped Nodes, list scoped Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
 
 The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
@@ -60,14 +60,13 @@ Plugin installation, global registration, and workspace enablement are separate:
 - Terminal plugin management starts with `npm install -g @codegraphy-dev/core`.
 - Registered plugins live in the user-level Plugin Registry at `~/.codegraphy/plugins.json`.
 - Workspace plugin activity lives in a CodeGraphy Workspace settings file at `<workspace-root>/.codegraphy/settings.json`.
-- New workspaces materialize `codegraphy.markdown` as the first `enabled: true` plugin during first Indexing.
-- The enabled plugin order is the order of `enabled: true` entries in the workspace `plugins` array.
+- New workspaces materialize `codegraphy.markdown` with `activation: "inherit"` during first Indexing. Its bundled global default enables it.
 - `plugins register <package>` records one globally installed package in the user-level Plugin Registry after validating its CodeGraphy plugin metadata.
-- `plugins enable <plugin-id-or-package>` and `plugins disable <plugin-id-or-package>` target the selected workspace. By default this is the process current working directory; use the global `--workspace <path>` option to select another workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
+- `plugins enable <plugin-id-or-package>` and `plugins disable <plugin-id-or-package>` target the selected workspace. Add `--global` to change the global default. Use `plugins inherit <plugin-id-or-package>` to remove a workspace override. By default the selected workspace is the process current working directory; use the global `--workspace <path>` option to select another workspace. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - `plugins link <package-root>` records a local package checkout in the user-level Plugin Registry, which is the preferred private-plugin development path.
-- Enabling or disabling a plugin changes workspace settings only; disabling persists `enabled: false` Plugin ID intent and keeps the runtime unloaded until the user enables that Plugin ID again.
-- Indexing imports active npm plugin packages through their package `exports`. It merges manifest `defaultOptions` with workspace-local `options`. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
-- Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a plugin-owned persistence host bound to the plugin id returned by the factory.
+- A workspace enable or disable command persists `activation: "enabled"` or `activation: "disabled"` for that Plugin ID. An inherited entry follows the global default.
+- Indexing imports each active Core plugin through its descriptor `entry`. It merges descriptor `data.defaultOptions` with workspace-local `options`. Workspace values win. Package factories receive the result as `factoryOptions.options`; lifecycle and analysis hooks receive it as `context.options`.
+- Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a persistence host bound to the plugin descriptor ID before the factory runs.
 
 Plugin npm packages identify themselves with package metadata:
 
@@ -76,12 +75,21 @@ Plugin npm packages identify themselves with package metadata:
   "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "defaultOptions": {
-      "includeTests": true
-    },
-    "disclosures": []
+    "plugins": [{
+      "id": "codegraphy.vue",
+      "host": "core",
+      "entry": "./dist/plugin.js",
+      "apiVersion": "^4.0.0",
+      "data": {
+        "defaultOptions": {
+          "includeTests": true
+        },
+        "updateImpact": {
+          "toggle": "reanalyze-plugin-files",
+          "defaultSetting": "reanalyze-plugin-files"
+        }
+      }
+    }]
   }
 }
 ```

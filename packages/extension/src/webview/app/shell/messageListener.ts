@@ -12,6 +12,7 @@ import {
 
 export interface InjectAssetsParams {
   pluginId: string;
+  revision?: string;
   scripts: string[];
   styles: string[];
   assets?: Array<{
@@ -44,14 +45,13 @@ export function createMessageHandler(
   resetPluginAssets?: ResetPluginAssets,
   updatePluginData: UpdatePluginData = () => undefined,
 ): (event: MessageEvent<unknown>) => void {
-  const packagePluginIdsByPackageName = new Map<string, string>();
-
+  const knownPluginIds = new Set<string>();
   return (event: MessageEvent<unknown>) => {
     const message = parseExtensionMessage(event.data);
     if (!message) return;
     routeExtensionMessage(message, {
       injectPluginAssets,
-      packagePluginIdsByPackageName,
+      knownPluginIds,
       pluginHost,
       resetPluginAssets,
       updatePluginData,

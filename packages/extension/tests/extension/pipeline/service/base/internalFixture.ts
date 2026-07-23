@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { WorkspacePipelineInternalBase } from '../../../../../src/extension/pipeline/service/base/internal';
 import type { Configuration } from '../../../../../src/extension/config/reader';
 import type { FileDiscovery } from '@codegraphy-dev/core';
-import type { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../../src/extension/pipeline/plugins/registry';
 import type { IWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
 import { readWorkspacePipelineFileStat } from '../../../../../src/extension/pipeline/serviceAdapters';
 import {
@@ -25,7 +25,10 @@ import {
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../../../../src/extension/pipeline/cacheSignatures/commit';
-import { createWorkspacePipelinePluginSignature } from '../../../../../src/extension/pipeline/cacheSignatures/plugin';
+import {
+  createWorkspacePipelinePluginBuildSignature,
+  createWorkspacePipelinePluginSignature,
+} from '../../../../../src/extension/pipeline/cacheSignatures/plugin';
 import { createWorkspacePipelineSettingsSignature } from '../../../../../src/extension/pipeline/cacheSignatures/settings';
 import { createWorkspacePipelineAnalysisCacheTiers } from '../../../../../src/extension/pipeline/service/cache/tiers';
 import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
@@ -59,7 +62,8 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
 
   _registry = {
     list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
-  } as unknown as PluginRegistry;
+    listNodeTypes: vi.fn(() => []),
+  } as unknown as WorkspacePluginRegistry;
 
   _discovery = {
     readContent: vi.fn(async file => `contents:${file.absolutePath}`),
@@ -134,6 +138,10 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
     return this._getPluginSignature();
   }
 
+  public getPluginBuildSignature(): string | null {
+    return this._getPluginBuildSignature();
+  }
+
   public getSettingsSignature(): string {
     return this._getSettingsSignature();
   }
@@ -172,6 +180,7 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
 
 export function setUpInternalBase(): void {
     vi.clearAllMocks();
+    vi.mocked(createWorkspacePipelinePluginBuildSignature).mockReturnValue('plugin-build-signature');
     vi.mocked(createWorkspacePipelinePluginSignature).mockReturnValue('plugin-signature');
     vi.mocked(createWorkspacePipelineSettingsSignature).mockReturnValue('settings-signature');
     vi.mocked(createWorkspacePipelineAnalysisCacheTiers).mockReturnValue({
@@ -226,6 +235,7 @@ export {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
   createWorkspacePipelinePluginSignature,
+  createWorkspacePipelinePluginBuildSignature,
   readWorkspacePipelineCurrentCommitSha,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitShaSync,

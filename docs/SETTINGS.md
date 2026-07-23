@@ -14,18 +14,28 @@ A small hand-written file can override only the values you care about:
 
 ```json
 {
-  "version": 2,
+  "version": 4,
   "maxFiles": 2000,
-  "showMinimap": true,
-  "showOrphans": false,
   "filterPatterns": ["**/generated/**", "**/*.snap"],
   "plugins": [
-    { "id": "codegraphy.markdown", "enabled": true },
-    { "id": "codegraphy.vue", "enabled": true }
+    { "id": "codegraphy.markdown", "activation": "enabled" },
+    { "id": "codegraphy.vue", "activation": "inherit" }
   ],
-  "cssSnippets": {
-    ".codegraphy/snippets/team.css": true
-  }
+  "interfaces": [
+    {
+      "id": "codegraphy.extension",
+      "data": {
+        "showOrphans": false,
+        "favorites": [],
+        "directionMode": "arrows",
+        "pinnedNodes": [],
+        "showMinimap": true,
+        "cssSnippets": {
+          ".codegraphy/snippets/team.css": true
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -35,37 +45,38 @@ The extension normalizes missing values against current defaults and preserves r
 
 | Key | Type | Default | Purpose |
 |---|---|---|---|
-| `version` | number | `2` | Persisted extension settings schema. |
+| `version` | number | `4` | Persisted extension settings schema. |
 | `maxFiles` | number | `1000` | Maximum files discovered during Indexing. |
 | `include` | string[] | `["**/*"]` | Workspace-relative discovery globs. |
 | `respectGitignore` | boolean | `true` | Exclude paths Git reports as ignored. |
 | `filterPatterns` | string[] | `[]` | Enabled custom exclusion patterns. |
 | `disabledCustomFilterPatterns` | string[] | `[]` | Custom filter patterns retained in a disabled state. |
 | `disabledPluginFilterPatterns` | string[] | `[]` | Disabled source-owned plugin filter patterns. |
-| `showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
-| `showLabels` | boolean | `true` | Draw Node labels. |
-| `showMinimap` | boolean | `true` | Show the interactive graph minimap. |
-| `showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |
+| `interfaces[].data.showOrphans` | boolean | `true` | Keep Nodes with no remaining Edges in the Visible Graph. |
+| `interfaces[].data.showLabels` | boolean | `true` | Draw Node labels. |
+| `interfaces[].data.showMinimap` | boolean | `true` | Show the interactive graph minimap. |
+| `interfaces[].data.showFps` | boolean | `false` | Show rendered FPS and simulation/render CPU time. |
 | `verboseDiagnostics` | boolean | `false` | Emit extension support diagnostics. |
 | `nodeVisibility` | object | generated | Graph Scope intent by Node Type ID. |
 | `edgeVisibility` | object | generated | Graph Scope intent by Edge Type ID. |
-| `nodeColors` | object | generated | Node Type colors. |
-| `legend` | object[] | `[]` | Custom Legend Entries. |
-| `legendVisibility` | object | `{}` | Enabled state for source-owned Legend entries and groups. |
-| `legendOrder` | string[] | `[]` | Custom Legend priority order. |
-| `favorites` | string[] | `[]` | Favorite Node paths. |
-| `bidirectionalEdges` | string | `"separate"` | Draw mutual Edges separately or combined. |
-| `directionMode` | string | `"arrows"` | Use arrows, particles, or no direction indicator. |
-| `directionColor` | string | `"#475569"` | Direction indicator color. |
-| `particleSpeed` | number | `0.005` | Direction-particle speed. |
-| `particleSize` | number | `4` | Direction-particle size in pixels. |
-| `depthMode` | boolean | `false` | Focus around the selected Node by Edge depth. |
-| `depthLimit` | number | `1` | Depth Mode hop limit, clamped from 1 to 10 and to reachable graph depth. |
-| `nodeSizeMode` | string | `"connections"` | Size Nodes by Connections or File Size. |
-| `physics` | object | see below | WebAssembly force settings. |
-| `cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
+| `interfaces[].data.nodeColors` | object | generated | Extension Node Type colors. |
+| `interfaces[].data.legend` | object[] | `[]` | Custom Legend Entries. |
+| `interfaces[].data.legendVisibility` | object | `{}` | Enabled state for source-owned Legend entries and groups. |
+| `interfaces[].data.legendOrder` | string[] | `[]` | Custom Legend priority order. |
+| `interfaces[].data.favorites` | string[] | `[]` | Extension favorite Node paths. |
+| `interfaces[].data.bidirectionalEdges` | string | `"separate"` | Draw mutual Edges separately or combined. |
+| `interfaces[].data.directionMode` | string | `"arrows"` | Use arrows, particles, or no direction indicator. |
+| `interfaces[].data.directionColor` | string | `"#475569"` | Direction indicator color. |
+| `interfaces[].data.particleSpeed` | number | `0.005` | Direction-particle speed. |
+| `interfaces[].data.particleSize` | number | `4` | Direction-particle size in pixels. |
+| `interfaces[].data.depthMode` | boolean | `false` | Focus around the selected Node by Edge depth. |
+| `interfaces[].data.depthLimit` | number | `1` | Depth Mode hop limit, clamped from 1 to 10 and to reachable graph depth. |
+| `interfaces[].data.nodeSizeMode` | string | `"connections"` | Size Nodes by Connections or File Size. |
+| `interfaces[].data.physics` | object | see below | WebAssembly force settings. |
+| `interfaces[].data.cssSnippets` | object | `{}` | Workspace-relative CSS paths mapped to enabled booleans. |
 | `plugins` | object[] | Markdown enabled | Workspace Plugin ID activity and options. |
 | `pluginData` | object | `{}` | Plugin-owned persisted data keyed by Plugin ID. |
+| `interfaces` | object[] | Extension defaults | Open interface-owned `{ id, data }` entries. |
 
 Edge colors come from Edge Type definitions and Legend layers. There is no current `edgeColors` settings map.
 
@@ -73,13 +84,18 @@ Edge colors come from Edge Type definitions and Legend layers. There is no curre
 
 ```json
 {
-  "physics": {
-    "repelForce": 10,
-    "linkDistance": 80,
-    "linkForce": 1,
-    "damping": 0.4,
-    "centerForce": 0.1
-  }
+  "interfaces": [{
+    "id": "codegraphy.extension",
+    "data": {
+      "physics": {
+        "repelForce": 10,
+        "linkDistance": 80,
+        "linkForce": 1,
+        "damping": 0.4,
+        "centerForce": 0.1
+      }
+    }
+  }]
 }
 ```
 
@@ -115,8 +131,8 @@ Before Indexing, Node Types show structural File, Folder, and Package controls. 
 
 Legend styling resolves in this order:
 
-1. Core defaults
-2. Plugin defaults
+1. Extension defaults
+2. Extension plugin defaults
 3. Custom Legend Entries
 
 Turning off a Legend Entry disables its styling. It does not hide matching Nodes or Edges. Custom entries can match file paths, symbol names, symbol kinds, plugin kinds, languages, and containing file paths.
@@ -134,15 +150,15 @@ Use Graph Scope for visibility and Themes for styling.
 
 ## Plugins
 
-Installing or registering a package does not enable it in a workspace. The `plugins` array stores explicit Plugin ID activity:
+Installing or registering a package does not run it. The `plugins` array stores workspace activation overrides:
 
 ```json
 {
   "plugins": [
-    { "id": "codegraphy.markdown", "enabled": true },
+    { "id": "codegraphy.markdown", "activation": "enabled" },
     {
       "id": "codegraphy.gdscript",
-      "enabled": true,
+      "activation": "inherit",
       "options": {
         "includeSceneResources": true
       }
@@ -151,9 +167,15 @@ Installing or registering a package does not enable it in a workspace. The `plug
 }
 ```
 
-The Markdown plugin starts enabled in new workspaces. Other registered plugins remain disabled until the UI or CLI enables them. Core merges package `defaultOptions` with workspace `options`, with workspace values winning.
+`inherit` uses the global activation value. `enabled` and `disabled` override it for the current workspace. The Markdown plugin starts enabled in new workspaces. Other registered plugins start disabled. Core merges package defaults with workspace `options`, with workspace values winning.
 
 Plugins store their own state under `pluginData[pluginId]`. Plugin Data does not control plugin enablement.
+
+Interfaces store their own state in the open `interfaces` list. The VS Code
+Extension stores its display, theme, favorite, depth, size, and physics choices
+in the `codegraphy.extension` entry. Core preserves the interface ID and data
+without defining its keys. Store durable user intent, such as pinned Node
+positions. Do not store temporary physics positions.
 
 See the [Plugin Guide](./PLUGINS.md) for installation, registration, and package metadata.
 
@@ -163,10 +185,15 @@ CSS Snippets style stable CodeGraphy webview surfaces without rebuilding a VS Co
 
 ```json
 {
-  "cssSnippets": {
-    ".codegraphy/snippets/team.css": true,
-    ".codegraphy/snippets/experiment.css": false
-  }
+  "interfaces": [{
+    "id": "codegraphy.extension",
+    "data": {
+      "cssSnippets": {
+        ".codegraphy/snippets/team.css": true,
+        ".codegraphy/snippets/experiment.css": false
+      }
+    }
+  }]
 }
 ```
 

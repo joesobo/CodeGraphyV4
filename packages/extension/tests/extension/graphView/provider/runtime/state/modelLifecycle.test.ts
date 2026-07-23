@@ -85,7 +85,7 @@ describe('graphView/provider/runtime/state/model', () => {
     expect(stateHarness.invalidatePluginFiles).toHaveBeenCalledWith(expect.anything(), ['plugin.markdown']);
   });
 
-  it('forwards extension messages and disposes the emitter from the registered subscription', () => {
+  it('disposes the pipeline and emitter from the registered host subscription', () => {
     const context = createContext();
     const runtime = new TestRuntimeState(
       vscode.Uri.file('/extension'),
@@ -99,6 +99,7 @@ describe('graphView/provider/runtime/state/model', () => {
       type: 'EXTENSION_MESSAGE',
     });
     expect(stateHarness.extensionMessageEmitter.dispose).toHaveBeenCalledOnce();
+    expect(stateHarness.analyzerInstances[0]?.dispose).toHaveBeenCalledOnce();
   });
 
   it('tracks installed plugin activation promises', () => {

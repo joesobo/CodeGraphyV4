@@ -3,18 +3,35 @@ import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { discoverWorkspaceIndexFiles } from './discovery';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
-import type { WorkspaceEngineRuntime } from './engineRuntime';
+import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 
 export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime): Promise<void> {
   const { options, state, workspaceRoot } = runtime;
+  const previousRegistry = state.registry;
   state.cache = createEmptyWorkspaceAnalysisCache();
   state.settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(state.settings, options.disabledPlugins);
   const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot, disabledPlugins);
-  state.registry = registryResult.registry;
+  const registry = registryResult.registry;
+  previousRegistry?.disposeAll();
+  if (runtime.disposed) {
+    registry.disposeAll();
+    assertWorkspaceEngineActive(runtime);
+  }
+  state.registry = registry;
   state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
+  state.registeredPluginIds = new Set(registry.list().map(info => info.plugin.id));
   state.workspaceRoot = workspaceRoot;
-  await state.registry.initializeAll(workspaceRoot);
+  await registry.initializeAll(workspaceRoot);
+  if (runtime.disposed) {
+    registry.disposeAll();
+    if (state.registry === registry) state.registry = undefined;
+    assertWorkspaceEngineActive(runtime);
+  }
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  state.failedPluginIds = new Set(
+    [...state.registeredPluginIds].filter(pluginId => !activePluginIds.has(pluginId)),
+  );
 }
 
 export async function discoverWorkspaceEngineFiles(

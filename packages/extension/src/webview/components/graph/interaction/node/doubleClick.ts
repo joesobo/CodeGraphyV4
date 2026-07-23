@@ -14,29 +14,11 @@ export interface GraphNodeDoubleClickOptions {
   now: number;
 }
 
-function toPoint(x: number, y: number) {
-  return { x, y };
-}
-
-function createNodeDoubleClickInteractionEffect(
-  options: GraphNodeDoubleClickOptions,
-): GraphNodeClickCommand['effects'][number] {
-  return {
-    kind: 'sendInteraction',
-    event: 'graph:nodeDoubleClick',
-    payload: {
-      node: { id: options.nodeId, label: options.label },
-      event: toPoint(options.clientX, options.clientY),
-    },
-  };
-}
-
 function getRuntimeNodeDoubleClickEffects(
   options: GraphNodeDoubleClickOptions,
 ): GraphNodeClickCommand['effects'] {
   return [
     { kind: 'selectOnlyNode', nodeId: options.nodeId },
-    createNodeDoubleClickInteractionEffect(options),
   ];
 }
 
@@ -66,7 +48,6 @@ export function getNodeDoubleClickCommand(
       { kind: 'selectOnlyNode', nodeId: options.nodeId },
       { kind: 'openNode', nodeId: options.nodeId },
       { kind: 'focusNode', nodeId: options.nodeId },
-      createNodeDoubleClickInteractionEffect(options),
     ],
   };
 }

@@ -45,6 +45,7 @@ export function useGraphInteractionRuntime({
   lastClickRef,
   lastContainerContextMenuEventRef,
   lastGraphContextEventRef,
+  legends,
   openFilterPatternPrompt,
   openLegendRulePrompt,
   pluginHost,
@@ -116,6 +117,7 @@ export function useGraphInteractionRuntime({
     fg2dRef: refs.fg2dRef,
     fileInfoCacheRef,
     interactionHandlers,
+    legends,
     pluginHost,
     postMessage,
   });

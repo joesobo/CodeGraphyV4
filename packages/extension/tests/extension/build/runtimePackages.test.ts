@@ -95,6 +95,7 @@ describe('runtime package build support', () => {
         'libsql',
         '@neon-rs/load',
         'detect-libc',
+        'esbuild',
         expect.stringMatching(/^@libsql\//),
         'material-icon-theme',
         'tree-sitter',
@@ -151,6 +152,7 @@ describe('runtime package build support', () => {
     };
 
     expect(manifest.dependencies?.['@codegraphy-dev/core']).toBe('workspace:*');
+    expect(manifest.dependencies?.['@codegraphy-dev/extension-plugin-api']).toBe('workspace:*');
     expect(manifest.extensionDependencies ?? []).not.toContain('@codegraphy-dev/core');
   });
 });

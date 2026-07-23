@@ -57,6 +57,27 @@ describe('graphView/webview/plugins/resources', () => {
     expect(panel.webview.options).toBe(panelOptions);
   });
 
+  it('does not narrow resource roots on a live webview', () => {
+    const roots: vscode.Uri[] = [
+      vscode.Uri.file('/test/extension'),
+      vscode.Uri.file('/test/plugin'),
+      vscode.Uri.file('/test/workspace'),
+    ];
+    const viewOptions = {
+      enableScripts: true,
+      localResourceRoots: roots,
+    };
+    const view = { webview: { options: viewOptions } };
+
+    refreshGraphViewResourceRoots(
+      view as unknown as vscode.WebviewView,
+      [],
+      [roots[0]!, roots[2]!],
+    );
+
+    expect(view.webview.options).toBe(viewOptions);
+  });
+
   it('rewrites webview options when local resource roots change', () => {
     const viewOptions = {
       enableScripts: true,
@@ -78,6 +99,48 @@ describe('graphView/webview/plugins/resources', () => {
     expect(view.webview.options).toEqual({
       enableScripts: true,
       localResourceRoots: nextRoots,
+    });
+  });
+
+  it('keeps old roots when it adds a replacement root to a live webview', () => {
+    const extensionRoot = vscode.Uri.file('/test/extension');
+    const oldPluginRoot = vscode.Uri.file('/test/old-plugin');
+    const newPluginRoot = vscode.Uri.file('/test/new-plugin');
+    const view = {
+      webview: {
+        options: {
+          enableScripts: true,
+          localResourceRoots: [extensionRoot, oldPluginRoot],
+        },
+      },
+    };
+
+    refreshGraphViewResourceRoots(
+      view as unknown as vscode.WebviewView,
+      [],
+      [extensionRoot, newPluginRoot],
+    );
+
+    expect(view.webview.options.localResourceRoots).toEqual([
+      extensionRoot,
+      oldPluginRoot,
+      newPluginRoot,
+    ]);
+  });
+
+  it('refreshes panels without a sidebar view', () => {
+    const roots: vscode.Uri[] = [vscode.Uri.file('/test/extension')];
+    const panel = { webview: { options: { enableScripts: true } } };
+
+    refreshGraphViewResourceRoots(
+      undefined,
+      [panel as unknown as vscode.WebviewPanel],
+      roots,
+    );
+
+    expect(panel.webview.options).toEqual({
+      enableScripts: true,
+      localResourceRoots: roots,
     });
   });
 

@@ -36,6 +36,107 @@ describe('PluginRegistry unregister', () => {
     expect(onUnload).toHaveBeenCalled();
   });
 
+  it('calls onUnload after pending initialization settles', async () => {
+    let markInitializationStarted!: () => void;
+    let finishInitialization!: () => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((resolve) => {
+      finishInitialization = resolve;
+    });
+    const lifecycleCalls: string[] = [];
+    let resourceActive = false;
+    const registry = createConfiguredRegistry();
+    const plugin = createMockPlugin({
+      async initialize() {
+        lifecycleCalls.push('initialize-start');
+        markInitializationStarted();
+        await initializationGate;
+        lifecycleCalls.push('initialize-finish');
+        resourceActive = true;
+      },
+      onUnload() {
+        lifecycleCalls.push('unload');
+        resourceActive = false;
+      },
+    });
+    registry.register(plugin);
+
+    const initialization = registry.initializePlugin(plugin.id, '/workspace');
+    await initializationStarted;
+    registry.unregister(plugin.id);
+    finishInitialization();
+    await initialization;
+
+    expect(resourceActive).toBe(false);
+    expect(lifecycleCalls).toEqual(['initialize-start', 'initialize-finish', 'unload']);
+    expect(registry.get(plugin.id)).toBeUndefined();
+  });
+
+  it('keeps replacement initialization state when the old runtime fails later', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let rejectOldInitialization!: (error: Error) => void;
+    const oldInitialization = new Promise<void>((_resolve, reject) => {
+      rejectOldInitialization = reject;
+    });
+    const registry = createConfiguredRegistry();
+    const replacementInitialize = vi.fn();
+
+    registry.register(createMockPlugin({
+      id: 'replaceable',
+      initialize: () => oldInitialization,
+    }));
+    const initializingOldRuntime = registry.initializePlugin('replaceable', '/workspace');
+    registry.unregister('replaceable');
+    registry.register(createMockPlugin({
+      id: 'replaceable',
+      initialize: replacementInitialize,
+    }));
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    rejectOldInitialization(new Error('old runtime failed'));
+    await initializingOldRuntime;
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    expect(replacementInitialize).toHaveBeenCalledOnce();
+    consoleError.mockRestore();
+  });
+
+  it('waits for an active analysis callback before unloading its plugin', async () => {
+    let markAnalysisStarted!: () => void;
+    let finishAnalysis!: () => void;
+    const analysisStarted = new Promise<void>(resolve => {
+      markAnalysisStarted = resolve;
+    });
+    const analysisGate = new Promise<void>(resolve => {
+      finishAnalysis = resolve;
+    });
+    const onUnload = vi.fn();
+    const registry = createConfiguredRegistry();
+    const plugin = createMockPlugin({
+      async analyzeFile(filePath) {
+        markAnalysisStarted();
+        await analysisGate;
+        return { filePath, relations: [] };
+      },
+      onUnload,
+    });
+    registry.register(plugin);
+
+    const analysis = registry.analyzeFileResult('src/app.test', '', '/workspace');
+    await analysisStarted;
+    registry.unregister(plugin.id);
+
+    expect(registry.get(plugin.id)).toBeUndefined();
+    expect(onUnload).not.toHaveBeenCalled();
+
+    finishAnalysis();
+    await analysis;
+
+    expect(onUnload).toHaveBeenCalledOnce();
+  });
+
   it('removes plugin from extension map', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin({ supportedExtensions: ['.ts'] });

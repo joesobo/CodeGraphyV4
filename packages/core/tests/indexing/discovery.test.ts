@@ -28,7 +28,7 @@ describe('indexing/discovery', () => {
         filterPatterns: ['**/generated/**', '**/dist/**'],
         plugins: [{
           id: 'codegraphy.test',
-          enabled: true,
+          activation: 'enabled',
           disabledFilterPatterns: ['**/ignored/**'],
         }],
       },

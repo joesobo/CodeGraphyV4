@@ -15,7 +15,6 @@ describe('graph/interaction surface click', () => {
     expect(getBackgroundClickCommand({ ctrlKey: false, isMacPlatform: false })).toEqual([
       { kind: 'clearSelection' },
       { kind: 'clearFocusedFile' },
-      { kind: 'sendInteraction', event: 'graph:backgroundClick', payload: {} },
     ]);
   });
 
@@ -23,7 +22,6 @@ describe('graph/interaction surface click', () => {
     expect(getBackgroundClickCommand({ ctrlKey: true, isMacPlatform: false })).toEqual([
       { kind: 'clearSelection' },
       { kind: 'clearFocusedFile' },
-      { kind: 'sendInteraction', event: 'graph:backgroundClick', payload: {} },
     ]);
   });
 

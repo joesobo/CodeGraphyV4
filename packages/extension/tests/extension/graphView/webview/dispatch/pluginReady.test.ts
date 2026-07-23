@@ -31,10 +31,7 @@ function createContext(
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
     sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
     sendPluginStatuses: vi.fn(),
-    sendPluginToolbarActions: vi.fn(),
-    sendGraphViewContributionStatuses: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
@@ -60,9 +57,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(context.sendDecorations).toHaveBeenCalledOnce();
-    expect(context.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(context.sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(context.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(context.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(context.sendActiveFile).toHaveBeenCalledOnce();
     expect(context.notifyWebviewReady).toHaveBeenCalledOnce();
@@ -125,7 +120,6 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
   it('uses the current depth mode and calls optional plugin exporters when available', async () => {
     const context = createContext({
       getDepthMode: vi.fn(() => true),
-      sendPluginExporters: vi.fn(),
     });
 
     await expect(
@@ -136,15 +130,11 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       type: 'DEPTH_MODE_UPDATED',
       payload: { depthMode: true },
     });
-    expect(context.sendPluginExporters).toHaveBeenCalledOnce();
-    expect(context.sendPluginToolbarActions).toHaveBeenCalledOnce();
   });
 
   it('falls back to depth mode false and skips missing optional plugin senders', async () => {
     const context = createContext();
     delete context.getDepthMode;
-    delete context.sendPluginExporters;
-    delete context.sendPluginToolbarActions;
 
     await expect(
       dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),

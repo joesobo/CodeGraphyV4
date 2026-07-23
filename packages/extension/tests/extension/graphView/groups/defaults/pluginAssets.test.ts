@@ -1,6 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
+import type {
+  GraphNodeShape2D,
+  IExtensionPluginLegendEntry,
+} from '@codegraphy-dev/extension-plugin-api';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
+
+function extensionData(
+  pluginId: string,
+  fileColors: Record<
+    string,
+    string | { color: string; shape2D?: GraphNodeShape2D; imagePath?: string }
+  >,
+) {
+  return {
+    legendEntries: Object.entries(fileColors).map(([pattern, value]) => ({
+      id: `plugin:${pluginId}:${pattern}`,
+      label: pattern,
+      pattern,
+      color: typeof value === 'string' ? value : value.color,
+      ...(typeof value === 'object' && value.shape2D ? { shape2D: value.shape2D } : {}),
+      ...(typeof value === 'object' && value.imagePath ? { imagePath: value.imagePath } : {}),
+    })) satisfies IExtensionPluginLegendEntry[],
+  };
+}
 
 describe('graphView/pluginDefaultGroups', () => {
   it('returns no plugin default groups when the analyzer is unavailable', () => {
@@ -14,29 +37,31 @@ describe('graphView/pluginDefaultGroups', () => {
     ).toEqual([]);
   });
 
-  it('builds plugin default groups and registers known built-in asset roots', () => {
+  it('does not register a Core plugin ID as an Extension asset root', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>();
 
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.godot',
-                name: 'Godot',
-                fileColors: {
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.godot',
+                  name: 'Godot',
+                },
+                data: extensionData('codegraphy.godot', {
                   '*.gd': '#478CBF',
                   '*.tscn': {
                     color: '#478CBF',
                     shape2D: 'hexagon',
                     imagePath: 'assets/godot.svg',
                   },
-                },
+                }),
               },
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -48,6 +73,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.godot:*.gd',
         pattern: '*.gd',
+        displayLabel: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
@@ -56,6 +82,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.godot:*.tscn',
         pattern: '*.tscn',
+        displayLabel: '*.tscn',
         color: '#478CBF',
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
@@ -64,9 +91,7 @@ describe('graphView/pluginDefaultGroups', () => {
         imagePath: 'assets/godot.svg',
       },
     ]);
-    expect(pluginExtensionUris.get('codegraphy.godot')?.fsPath).toBe(
-      '/test/extension/packages/plugin-godot',
-    );
+    expect(pluginExtensionUris.has('codegraphy.godot')).toBe(false);
   });
 
   it('reuses an existing built-in plugin root registration', () => {
@@ -78,16 +103,18 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.typescript',
-                name: 'TypeScript',
-                fileColors: { '*.ts': '#3178C6' },
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.typescript',
+                  name: 'TypeScript',
+                },
+                data: extensionData('codegraphy.typescript', { '*.ts': '#3178C6' }),
               },
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -99,6 +126,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.typescript:*.ts',
         pattern: '*.ts',
+        displayLabel: '*.ts',
         color: '#3178C6',
         isPluginDefault: true,
         pluginId: 'codegraphy.typescript',
@@ -114,22 +142,24 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.unity',
-                name: 'Unity',
-                fileColors: {
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.unity.extension',
+                  name: 'Unity Graph View',
+                },
+                data: extensionData('codegraphy.unity.extension', {
                   '*.unity': {
                     color: '#F97316',
                     shape2D: 'hexagon',
                     imagePath: 'assets/unity.svg',
                   },
-                },
+                }),
               },
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -139,17 +169,18 @@ describe('graphView/pluginDefaultGroups', () => {
 
     expect(groups).toEqual([
       {
-        id: 'plugin:codegraphy.unity:*.unity',
+        id: 'plugin:codegraphy.unity.extension:*.unity',
         pattern: '*.unity',
+        displayLabel: '*.unity',
         color: '#F97316',
         isPluginDefault: true,
-        pluginId: 'codegraphy.unity',
-        pluginName: 'Unity',
+        pluginId: 'codegraphy.unity.extension',
+        pluginName: 'Unity Graph View',
         shape2D: 'hexagon',
         imagePath: 'assets/unity.svg',
       },
     ]);
-    expect(pluginExtensionUris.get('codegraphy.unity')?.fsPath).toBe(
+    expect(pluginExtensionUris.get('codegraphy.unity.extension')?.fsPath).toBe(
       '/test/extension/packages/plugin-unity',
     );
   });
@@ -160,16 +191,18 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
-            {
-              builtIn: true,
-              plugin: {
-                id: 'codegraphy.unknown',
-                name: 'Unknown',
-                fileColors: { '*.unknown': '#999999' },
+          extensionPlugins: {
+            list: () => [
+              {
+                builtIn: true,
+                plugin: {
+                  id: 'codegraphy.unknown',
+                  name: 'Unknown',
+                },
+                data: extensionData('codegraphy.unknown', { '*.unknown': '#999999' }),
               },
-            },
-          ],
+            ],
+          },
         },
       },
       new Set<string>(),
@@ -181,6 +214,7 @@ describe('graphView/pluginDefaultGroups', () => {
       {
         id: 'plugin:codegraphy.unknown:*.unknown',
         pattern: '*.unknown',
+        displayLabel: '*.unknown',
         color: '#999999',
         isPluginDefault: true,
         pluginId: 'codegraphy.unknown',

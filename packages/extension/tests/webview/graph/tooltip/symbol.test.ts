@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { readTooltipSymbol } from '../../../../src/webview/components/graph/tooltip/symbol';
 
 describe('graph/tooltip/symbol', () => {
-  it('returns symbol display metadata with known plugin source labels', () => {
+  it('reads plugin attribution from an active Extension legend rule', () => {
     expect(readTooltipSymbol('src/app.ts#ready:function', {
       nodes: [
         {
           id: 'src/app.ts#ready:function',
           label: 'ready',
           color: '#8B5CF6',
+          nodeType: 'symbol',
           symbol: {
             id: 'src/app.ts#ready:function',
             filePath: 'src/app.ts',
@@ -18,11 +19,20 @@ describe('graph/tooltip/symbol', () => {
           },
         },
       ],
-    })).toEqual({
+    }, [{
+      id: 'plugin:codegraphy.gdscript:symbol:function',
+      pattern: '**',
+      color: '#478CBF',
+      matchNodeType: 'symbol',
+      matchSymbolSource: 'codegraphy.gdscript',
+      pluginId: 'codegraphy.godot.extension',
+      pluginName: 'Godot Graph View',
+      isPluginDefault: true,
+    }])).toEqual({
       name: 'ready',
       kind: 'function',
       filePath: 'src/app.ts',
-      plugin: 'GDScript (Godot)',
+      plugin: 'Godot Graph View',
     });
   });
 

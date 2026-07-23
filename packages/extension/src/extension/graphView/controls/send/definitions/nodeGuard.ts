@@ -13,7 +13,7 @@ export function isGraphNodeTypeLike(definition: unknown): definition is GraphNod
 }
 
 function hasRequiredNodeTypeFields(record: Record<string, unknown>): boolean {
-  return [record.id, record.label, record.defaultColor].every(value => typeof value === 'string')
+  return [record.id, record.label].every(value => typeof value === 'string')
     && typeof record.defaultVisible === 'boolean';
 }
 

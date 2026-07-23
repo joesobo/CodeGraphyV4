@@ -4,8 +4,6 @@ import { createGraphEdgeId } from './edgeIdentity';
 import { createSymbolDetails } from './symbolDetails';
 import { normalizeSymbolKind, toRepoRelativeGraphPath } from './symbolPaths';
 
-const SYMBOL_NODE_COLOR = '#8B5CF6';
-const VARIABLE_NODE_COLOR = '#14B8A6';
 const GIT_IGNORED_REASON = 'Git ignored';
 const VARIABLE_SYMBOL_KINDS = new Set(['constant', 'field', 'global', 'local', 'parameter', 'variable']);
 
@@ -22,7 +20,6 @@ export function createSymbolNode(
   return {
     id,
     label: symbol.name,
-    color: nodeType === 'variable' ? VARIABLE_NODE_COLOR : SYMBOL_NODE_COLOR,
     nodeType,
     fileSize: containingFile.fileSize,
     ...createGitIgnoredMetadata(containingFile.gitIgnored),

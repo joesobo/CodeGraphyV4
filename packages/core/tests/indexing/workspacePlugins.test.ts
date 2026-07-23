@@ -57,7 +57,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
           id: 'acme.configured',
           name: 'Configured Plugin',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
+          apiVersion: '^4.0.0',
           supportedExtensions: ['.txt'],
           sources: [{
             id: 'configured-target',
@@ -104,7 +104,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'inherit',
     }]);
     expect(result.graph.edges).toContainEqual(
       expect.objectContaining({
@@ -127,24 +127,23 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
 
     await createPackageBackedPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-options',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.options',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.options',
-        defaultOptions: {
-          targetFile: 'target.txt',
-        },
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.options',
-        enabled: true,
+        activation: 'enabled',
         options: {
           targetFile: 'target.txt',
         },
@@ -179,6 +178,90 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
     });
   });
 
+  it('reanalyzes unchanged workspace files after a same-version linked plugin rebuild', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-core-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-linked-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-rebuild',
+    );
+    await fs.mkdir(packageRoot, { recursive: true });
+    await fs.writeFile(path.join(workspaceRoot, 'replacement.txt'), 'replacement\n', 'utf8');
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: '@acme/codegraphy-plugin-rebuild',
+      version: '1.0.0',
+      type: 'module',
+      codegraphy: {
+        plugins: [{
+          id: 'acme.rebuild',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
+      },
+    }), 'utf8');
+    const writeRuntime = async (targetFile: string): Promise<void> => {
+      await fs.writeFile(path.join(packageRoot, 'plugin.js'), `
+import path from 'node:path';
+export default function createPlugin() {
+  return {
+    id: 'acme.rebuild',
+    name: 'Rebuilt Plugin',
+    version: '1.0.0',
+    apiVersion: '^4.0.0',
+    supportedExtensions: ['.txt'],
+    sources: [{ id: 'target', name: 'Target', description: 'Rebuild target.' }],
+    async analyzeFile(filePath, _content, rootPath) {
+      if (!filePath.endsWith('source.txt')) return { filePath, relations: [] };
+      const targetPath = path.join(rootPath, ${JSON.stringify(targetFile)});
+      return {
+        filePath,
+        relations: [{
+          kind: 'reference', sourceId: 'target', fromFilePath: filePath,
+          toFilePath: targetPath, resolvedPath: targetPath
+        }]
+      };
+    }
+  };
+}
+`, 'utf8');
+    };
+    await writeRuntime('target.txt');
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-rebuild',
+        version: '1.0.0',
+        id: 'acme.rebuild',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+
+    const first = await indexCodeGraphyWorkspace({ workspaceRoot, userHomeDir: homeDir });
+    await writeRuntime('replacement.txt');
+    const second = await indexCodeGraphyWorkspace({ workspaceRoot, userHomeDir: homeDir });
+
+    expect(first.graph.edges).toContainEqual(expect.objectContaining({
+      from: 'source.txt',
+      to: 'target.txt',
+    }));
+    expect(second.graph.edges).toContainEqual(expect.objectContaining({
+      from: 'source.txt',
+      to: 'replacement.txt',
+    }));
+    expect(second.graph.edges).not.toContainEqual(expect.objectContaining({
+      from: 'source.txt',
+      to: 'target.txt',
+    }));
+    expect(second.indexing.mode).toBe('full');
+  });
+
   it('honors disabled filter patterns from enabled workspace plugin entries', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.writeFile(path.join(workspaceRoot, 'ignored.txt'), 'target.txt\n', 'utf-8');
@@ -201,7 +284,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
         plugins: [{
           id: 'codegraphy.test-text',
-          enabled: true,
+          activation: 'enabled',
           disabledFilterPatterns: ['**/ignored.txt'],
         }],
       },
@@ -232,7 +315,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
         plugins: [{
           id: 'codegraphy.test-text',
-          enabled: false,
+          activation: 'disabled',
         }],
       },
     });

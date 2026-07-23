@@ -68,7 +68,6 @@ export function createContext(
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),

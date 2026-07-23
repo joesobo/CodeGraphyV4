@@ -23,7 +23,11 @@ export function mergeNodeTypes(
 
   for (const definition of pluginNodeTypes) {
     if (availableNodeTypes.has(definition.id)) {
-      definitions.set(definition.id, definition);
+      definitions.set(definition.id, {
+        ...definition,
+        id: definition.id as IGraphNodeTypeDefinition['id'],
+        defaultColor: configuredNodeColors[definition.id] ?? '#94A3B8',
+      });
     }
   }
 

@@ -24,7 +24,7 @@ export async function activatePluginScript(
   const activationPromise = runPluginActivation(
     {
       cleanups: refs.pluginActivationCleanups,
-      getApi: () => getPluginApi(refs, pluginId),
+      getApi: () => getPluginApi(refs, pluginId, activationVersion),
       versions: refs.pluginAssetVersions,
     },
     pluginId,
@@ -38,7 +38,9 @@ export async function activatePluginScript(
   try {
     await activationPromise;
   } finally {
-    refs.activatingScriptPromises.current.delete(activationKey);
+    if (refs.activatingScriptPromises.current.get(activationKey) === activationPromise) {
+      refs.activatingScriptPromises.current.delete(activationKey);
+    }
   }
 }
 
@@ -47,7 +49,13 @@ export function resetPluginScriptState(
   pluginId: string,
 ): void {
   const cleanups = refs.pluginActivationCleanups.current.get(pluginId);
-  for (const cleanup of cleanups ?? []) cleanup.dispose();
+  for (const cleanup of cleanups ?? []) {
+    try {
+      cleanup.dispose();
+    } catch (error) {
+      console.error(`[CodeGraphy] Failed to clean up webview plugin '${pluginId}':`, error);
+    }
+  }
   refs.pluginActivationCleanups.current.delete(pluginId);
   const activationPrefix = `${pluginId}::`;
   for (const key of refs.activatedScriptKeys.current) {

@@ -22,9 +22,20 @@ describe('cli/parsePlugins', () => {
       action: 'enable',
       packageName: '@codegraphy-dev/plugin-vue',
     });
+    expect(parsePluginsCommand(['enable', '--global', 'codegraphy.particles'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'codegraphy.particles',
+      pluginScope: 'global',
+    });
     expect(parsePluginsCommand(['list'])).toEqual({
       name: 'plugins',
       action: 'list',
+    });
+    expect(parsePluginsCommand(['inherit', 'codegraphy.particles'])).toEqual({
+      name: 'plugins',
+      action: 'inherit',
+      packageName: 'codegraphy.particles',
     });
   });
 

@@ -1,20 +1,11 @@
 /**
- * @fileoverview Graph data types for CodeGraphy visualization.
+ * @fileoverview Semantic graph data types for CodeGraphy Core.
  * @module @codegraphy-dev/plugin-api/graph
  */
 
 export type CoreNodeType = 'file' | 'folder' | 'package' | 'symbol' | 'variable';
 
 export type NodeType = CoreNodeType | (string & {});
-
-export type GraphNodeShape2D =
-  | 'circle'
-  | 'square'
-  | 'rectangle'
-  | 'diamond'
-  | 'triangle'
-  | 'hexagon'
-  | 'star';
 
 export type CoreEdgeKind =
   | 'nests'
@@ -69,98 +60,21 @@ export interface IGraphNode {
    */
   id: string;
 
-  /**
-   * Display label shown on the graph.
-   * Typically the filename without path.
-   * @example 'Button.tsx'
-   */
+  /** Human-readable node label. @example 'Button.tsx' */
   label: string;
 
-  /**
-   * CSS fill color for the node. Hex, named, HSL, percentage RGB, `currentColor`,
-   * and resolvable custom properties such as `var(--plugin-node)` are accepted.
-   * Invalid or unresolved values fall back to CodeGraphy's normal node color.
-   * @example 'hsl(187 86% 69%)'
-   */
-  color: string;
-
-  /**
-   * Persisted X position from previous session.
-   * If undefined, physics will determine initial position.
-   */
-  x?: number;
-
-  /**
-   * Persisted Y position from previous session.
-   * If undefined, physics will determine initial position.
-   */
-  y?: number;
-
-  /** Whether this node is marked as a favorite. */
-  favorite?: boolean;
-
-  /** File size in bytes. Used for 'file-size' node sizing mode. */
+  /** File size in bytes when known. */
   fileSize?: number;
 
-  /**
-   * Distance from the focused node when depth mode is active.
-   * 0 = the focused node, 1 = direct neighbors, 2 = two hops away, etc.
-   */
-  depthLevel?: number;
-
-  /** Semantic node category used by the graph UI. */
+  /** Semantic node category. */
   nodeType?: NodeType;
-
-  /** Optional 2D shape override for the node. */
-  shape2D?: GraphNodeShape2D;
-
-  /** Optional 2D visual size override. Width and height are graph-space units centered on the node. */
-  shapeSize2D?: {
-    height: number;
-    width: number;
-  };
-
-  /** Optional 2D corner radius for rectangle nodes, in graph-space units. */
-  cornerRadius2D?: number;
-
-  /**
-   * Optional 2D collision radius override for physics. This is useful when a plugin renders
-   * a custom shape but owns its own collision or containment behavior.
-   */
-  collisionRadius2D?: number;
-
-  /**
-   * Optional multiplier for the 2D charge force. Use 0 when a plugin owns local physics for
-   * a runtime node or projected member node.
-   */
-  chargeStrengthMultiplier2D?: number;
-
-  /** Optional 2D fill opacity override for custom visual nodes. */
-  fillOpacity2D?: number;
-
-  /** Optional 2D pointer hit area override. Width and height are graph-space units centered on the node. */
-  pointerArea2D?: {
-    height: number;
-    width: number;
-  };
-
-  /** Optional image override for the node. */
-  imageUrl?: string;
 
   /** Symbol metadata when this node represents a code symbol. */
   symbol?: IGraphNodeSymbolMetadata;
 
-  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  /** Optional scalar plugin metadata for queries and exports. */
   metadata?: GraphMetadata;
 
-  /** Whether this folder-like node can collapse descendant nodes in the graph view. */
-  isCollapsible?: boolean;
-
-  /** Whether this folder-like node currently represents hidden descendant nodes. */
-  isCollapsed?: boolean;
-
-  /** Number of currently hidden descendant nodes represented by this collapsed node. */
-  collapsedDescendantCount?: number;
 }
 
 /**
@@ -179,13 +93,13 @@ export interface IGraphEdgeSource {
   /** Plugin-local source identifier used for provenance, exports, and diagnostics. */
   sourceId: string;
 
-  /** Human-readable label shown in inspectors, menus, and exports. */
+  /** Human-readable source label. */
   label: string;
 
   /** Optional relation variant when sourceId alone is not unique enough. */
   variant?: string;
 
-  /** Optional display/query metadata. Must stay scalar-only. */
+  /** Optional scalar source metadata. */
   metadata?: GraphMetadata;
 }
 
@@ -216,16 +130,10 @@ export interface IGraphEdge {
   /** Semantic meaning of the connection. */
   kind: GraphEdgeKind;
 
-  /**
-   * Optional CSS color override resolved in the Graph View theme context.
-   * Invalid or unresolved values fall back to the normal edge color.
-   */
-  color?: string;
-
   /** All contributing plugin sources merged into this edge. */
   sources: IGraphEdgeSource[];
 
-  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  /** Optional scalar plugin metadata for queries and exports. */
   metadata?: GraphMetadata;
 }
 

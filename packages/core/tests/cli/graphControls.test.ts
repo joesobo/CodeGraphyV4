@@ -10,7 +10,7 @@ async function createWorkspace(): Promise<string> {
   await fs.writeFile(path.join(workspace, '.codegraphy/settings.json'), JSON.stringify({
     version: 1,
     extensionPanelPlacement: 'right',
-    plugins: [{ id: 'codegraphy.future', enabled: false, futurePluginSetting: { mode: 'fast' } }],
+    plugins: [{ id: 'codegraphy.future', activation: 'disabled', futurePluginSetting: { mode: 'fast' } }],
     nodeVisibility: { file: true },
     edgeVisibility: { import: true },
     filterPatterns: ['**/dist/**'],
@@ -43,7 +43,7 @@ describe('cli graph controls', () => {
       edgeVisibility: { import: true, call: false },
       plugins: [{
         id: 'codegraphy.future',
-        enabled: false,
+        activation: 'disabled',
         futurePluginSetting: { mode: 'fast' },
       }],
     });

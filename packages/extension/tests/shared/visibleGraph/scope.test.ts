@@ -4,6 +4,7 @@ import {
 	getDefinitionSymbolKinds,
 	getScopedSymbolDefinitions,
 } from '../../../src/shared/visibleGraph/scope/definitions';
+import { ENGINE_PLUGIN_NODE_TYPES } from './scope/enginePluginNodeTypes';
 import { edge, ids, node, symbolNode } from './scope/fixture';
 
 describe('shared/visibleGraph/scope', () => {
@@ -135,6 +136,7 @@ describe('shared/visibleGraph/scope', () => {
 				{ type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: false },
 			],
 			edges: [],
+			nodeTypes: ENGINE_PLUGIN_NODE_TYPES,
 		}).map((entry) => ({
 			id: entry.definition.id,
 			enabled: entry.enabled,
@@ -164,6 +166,7 @@ describe('shared/visibleGraph/scope', () => {
 				{ type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
 			],
 			edges: [],
+			nodeTypes: ENGINE_PLUGIN_NODE_TYPES,
 		});
 
 		expect(scopedDefinitions[0]?.symbolFilePathMatches?.('scripts/player.gd')).toBe(true);

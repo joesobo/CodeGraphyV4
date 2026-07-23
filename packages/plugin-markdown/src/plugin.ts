@@ -1,6 +1,6 @@
 /**
  * @fileoverview Markdown plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from codegraphy.json and delegates
+ * Thin orchestrator that loads package metadata and delegates
  * detection to individual source modules in sources/.
  * @module plugins/markdown
  */
@@ -10,7 +10,7 @@ import type {
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import { PathResolver } from './PathResolver';
-import manifest from '../codegraphy.json';
+import { manifest } from './metadata';
 
 // Source detect functions
 import { detect as detectWikilink } from './sources/wikilink';
@@ -56,9 +56,8 @@ export function createMarkdownPlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    updateImpact: manifest.updateImpact as IPlugin['updateImpact'],
+    updateImpact: manifest.updateImpact,
     sources: manifest.sources,
-    fileColors: manifest.fileColors,
     contributeGraphScopeCapabilities: () => ({ edgeTypes: ['reference'] }),
 
     async initialize(workspaceRoot: string): Promise<void> {

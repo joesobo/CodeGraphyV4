@@ -1,123 +1,104 @@
-import * as fs from 'node:fs';
+import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { writeCodeGraphyInstalledPluginCache } from '@codegraphy-dev/core';
+import { describe, expect, it } from 'vitest';
+import {
+  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
+  createCodeGraphyWorkspacePluginTogglePlan,
+  writeCodeGraphyInstalledPluginCache,
+  type CodeGraphyInstalledPluginRecord,
+} from '@codegraphy-dev/core';
 import {
   readInstalledPluginDefaultOptions,
   readInstalledPluginUpdateImpact,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/defaultOptions';
 
-describe('graph view settings plugin default options', () => {
-  let homeDir: string;
-
-  beforeEach(() => {
-    homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-plugin-defaults-'));
-  });
-
-  afterEach(() => {
-    fs.rmSync(homeDir, { recursive: true, force: true });
-  });
-
-  it('reads plugin default options from the installed plugin cache by Plugin ID', () => {
-    writeCodeGraphyInstalledPluginCache(
-      {
-        version: 1,
-        plugins: [
-          {
-            package: '@codegraphy-dev/plugin-godot',
-            pluginId: 'codegraphy.godot',
-            version: '2.1.2',
-            apiVersion: '^3.0.0',
-            disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
-            defaultOptions: {
-              includeSceneResources: true,
-              includeAutoloads: true,
-            },
+describe('graph view settings plugin defaults', () => {
+  it('reads metadata from an inactive plugin bundled with the Extension', async () => {
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-bundled-defaults-'));
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-vue',
+      version: '0.3.6',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.vue',
+          host: 'core',
+          entry: './dist/plugin.js',
+          apiVersion: '^4.0.0',
+          data: {
+            defaultOptions: { mode: 'strict' },
+            updateImpact: { toggle: 'reanalyze-plugin-files' },
           },
-        ],
+        }],
       },
-      { homeDir },
-    );
+    }));
 
-    expect(readInstalledPluginDefaultOptions('codegraphy.godot', { homeDir })).toEqual({
-      includeSceneResources: true,
-      includeAutoloads: true,
+    expect(readInstalledPluginDefaultOptions('codegraphy.vue', {
+      bundledPackageRoots: [packageRoot],
+    })).toEqual({ mode: 'strict' });
+    expect(readInstalledPluginUpdateImpact('codegraphy.vue', {
+      bundledPackageRoots: [packageRoot],
+    })).toEqual({ toggle: 'reanalyze-plugin-files' });
+  });
+
+  it('reads per-descriptor Core metadata and skips Core work for Extension plugins', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-plugin-settings-'));
+    const records = [{
+      package: '@acme/codegraphy-tools',
+      version: '1.0.0',
+      packageRoot: '/plugins/acme-tools',
+      globallyEnabled: false,
+      id: 'codegraphy.vue',
+      host: 'core',
+      entry: './vue.js',
+      apiVersion: '^4.0.0',
+      data: {
+        defaultOptions: { mode: 'strict' },
+        updateImpact: {
+          toggle: 'reanalyze-plugin-files',
+          defaultSetting: 'reanalyze-plugin-files',
+        },
+      },
+    }, {
+      package: '@acme/codegraphy-tools',
+      version: '1.0.0',
+      packageRoot: '/plugins/acme-tools',
+      globallyEnabled: false,
+      id: 'codegraphy.particles',
+      host: 'codegraphy.extension',
+      entry: './particles.js',
+      apiVersion: '^1.0.0',
+      data: { defaultOptions: { density: 0.5 } },
+    }] satisfies CodeGraphyInstalledPluginRecord[];
+    writeCodeGraphyInstalledPluginCache({ version: 3, plugins: records }, { homeDir });
+
+    const vueImpact = readInstalledPluginUpdateImpact('codegraphy.vue', { homeDir });
+    const particleImpact = readInstalledPluginUpdateImpact('codegraphy.particles', { homeDir });
+
+    expect(readInstalledPluginDefaultOptions('codegraphy.vue', { homeDir })).toEqual({
+      mode: 'strict',
     });
-  });
-
-  it('falls back to package name for legacy installed plugin records', () => {
-    writeCodeGraphyInstalledPluginCache(
-      {
-        version: 1,
-        plugins: [
-          {
-            package: '@codegraphy-dev/plugin-godot',
-            version: '2.1.2',
-            apiVersion: '^3.0.0',
-            disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
-            defaultOptions: {
-              includeSceneResources: true,
-            },
-          },
-        ],
-      },
-      { homeDir },
-    );
-
-    expect(readInstalledPluginDefaultOptions('@codegraphy-dev/plugin-godot', { homeDir })).toEqual({
-      includeSceneResources: true,
+    expect(readInstalledPluginDefaultOptions('codegraphy.particles', { homeDir })).toBeUndefined();
+    expect(createCodeGraphyWorkspacePluginTogglePlan([], {
+      pluginId: 'codegraphy.vue',
+      enabled: true,
+      updateImpact: vueImpact,
+    }).indexing).toEqual({
+      kind: 'reprocess-plugin-files',
+      pluginIds: ['codegraphy.vue'],
     });
-  });
-
-  it('returns undefined when the installed plugin has no default options', () => {
-    writeCodeGraphyInstalledPluginCache(
-      {
-        version: 1,
-        plugins: [
-          {
-            package: '@codegraphy-dev/plugin-vue',
-            pluginId: 'codegraphy.vue',
-            version: '2.0.4',
-            apiVersion: '^3.0.0',
-            disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
-          },
-        ],
-      },
-      { homeDir },
-    );
-
-    expect(readInstalledPluginDefaultOptions('codegraphy.vue', { homeDir })).toBeUndefined();
-  });
-
-  it('reads plugin update impact metadata from the installed plugin cache', () => {
-    writeCodeGraphyInstalledPluginCache(
-      {
-        version: 1,
-        plugins: [
-          {
-            package: '@codegraphy-dev/plugin-particles',
-            pluginId: 'codegraphy.particles',
-            version: '0.2.1',
-            apiVersion: '^3.0.0',
-            disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-particles',
-            updateImpact: {
-              toggle: 'projection-only',
-              defaultSetting: 'settings-only',
-            },
-          },
-        ],
-      },
-      { homeDir },
-    );
-
-    expect(readInstalledPluginUpdateImpact('codegraphy.particles', { homeDir })).toEqual({
-      toggle: 'projection-only',
-      defaultSetting: 'settings-only',
+    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
+      pluginId: 'codegraphy.vue',
+      settingKeys: ['mode'],
+      updateImpact: vueImpact,
+    })).toEqual({
+      kind: 'reprocess-plugin-files',
+      pluginIds: ['codegraphy.vue'],
     });
+    expect(createCodeGraphyWorkspacePluginTogglePlan([], {
+      pluginId: 'codegraphy.particles',
+      enabled: true,
+      updateImpact: particleImpact,
+    }).indexing).toEqual({ kind: 'projection-only' });
   });
 });

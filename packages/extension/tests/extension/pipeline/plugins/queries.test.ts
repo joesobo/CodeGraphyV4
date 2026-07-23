@@ -14,7 +14,7 @@ describe('pipeline/plugins/queries', () => {
           id: 'plugin.typescript',
           name: 'TypeScript',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
+          apiVersion: '^4.0.0',
           supportedExtensions: ['.ts'],
           sources: [],
         },

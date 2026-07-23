@@ -25,11 +25,11 @@ function createSource() {
       fileConnections: new Map(),
     })),
     _buildGraphDataFromAnalysis: vi.fn<() => IGraphData>(() => ({
-      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      nodes: [{ id: 'src/index.ts', label: 'index.ts' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _buildGraphData: vi.fn<() => IGraphData>(() => ({
-      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      nodes: [{ id: 'src/index.ts', label: 'index.ts' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _eventBus: { emit },
@@ -113,13 +113,13 @@ describe('pipeline/analysis/analyze', () => {
     ]);
     const fileConnections = new Map<string, IProjectedConnection[]>([['src/index.ts', []]]);
     const graphData: IGraphData = {
-      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      nodes: [{ id: 'src/index.ts', label: 'index.ts' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     };
     const completeGraphData: IGraphData = {
       nodes: [
         ...graphData.nodes,
-        { id: 'src/index.ts#main', label: 'main', color: '#93C5FD', nodeType: 'symbol' },
+        { id: 'src/index.ts#main', label: 'main', nodeType: 'symbol' },
       ],
       edges: graphData.edges,
     };
@@ -323,7 +323,7 @@ describe('pipeline/analysis/analyze', () => {
     await expect(
       analyzeWorkspaceWithAnalyzer(source as never, dependencies as never),
     ).resolves.toEqual({
-      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      nodes: [{ id: 'src/index.ts', label: 'index.ts' }],
       edges: [
         {
           id: 'src/index.ts->src/utils.ts#import',

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
 import { applyGraphScope } from '../../src/visibleGraph/scope';
+import { UNITY_NODE_TYPES } from '../fixtures/enginePluginNodeTypes';
 
 function node(id: string, nodeType?: IGraphNode['nodeType'], symbol?: IGraphNode['symbol']): IGraphNode {
   return {
     id,
     label: id,
-    color: '#111111',
     ...(nodeType ? { nodeType } : {}),
     ...(symbol ? { symbol } : {}),
   };
@@ -120,6 +120,7 @@ describe('visibleGraph/scope', () => {
         { type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
       ],
       edges: [{ type: 'contains', enabled: true }],
+      nodeTypes: UNITY_NODE_TYPES,
     });
 
     expect(result.edges.map((item) => item.id)).toEqual([

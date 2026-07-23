@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import {
   getGraphViewLocalResourceRoots,
+  getGraphViewUriKey,
   resolveGraphViewAssetPath,
 } from '../../resources';
 
@@ -35,31 +36,49 @@ export function getGraphViewWebviewResourceRoots(
 }
 
 function getResourceRootKey(uri: vscode.Uri): string {
-  return uri.toString();
+  return getGraphViewUriKey(uri);
 }
 
-function areLocalResourceRootsEqual(
+function hasNewLocalResourceRoots(
   current: readonly vscode.Uri[] | undefined,
   next: readonly vscode.Uri[],
 ): boolean {
-  return Boolean(
-    current
-    && current.length === next.length
-    && current.every((uri, index) => getResourceRootKey(uri) === getResourceRootKey(next[index])),
-  );
+  const currentKeys = new Set((current ?? []).map(getResourceRootKey));
+  return next.some(uri => !currentKeys.has(getResourceRootKey(uri)));
+}
+
+function mergeLiveWebviewResourceRoots(
+  current: readonly vscode.Uri[] | undefined,
+  next: readonly vscode.Uri[],
+): vscode.Uri[] {
+  // Narrowing these options recreates live webview content. Keep roots
+  // monotonic for one webview lifetime; new webviews receive the clean set.
+  const rootsByKey = new Map<string, vscode.Uri>();
+  for (const uri of current ?? []) {
+    rootsByKey.set(getResourceRootKey(uri), uri);
+  }
+  for (const uri of next) {
+    rootsByKey.set(getResourceRootKey(uri), uri);
+  }
+  return [...rootsByKey.values()];
 }
 
 function refreshWebviewResourceRoots(
   webview: vscode.Webview,
   localResourceRoots: readonly vscode.Uri[],
 ): void {
-  if (areLocalResourceRootsEqual(webview.options.localResourceRoots, localResourceRoots)) {
+  if (!hasNewLocalResourceRoots(webview.options.localResourceRoots, localResourceRoots)) {
     return;
   }
 
+  const mergedRoots = mergeLiveWebviewResourceRoots(
+    webview.options.localResourceRoots,
+    localResourceRoots,
+  );
+
   webview.options = {
     ...webview.options,
-    localResourceRoots,
+    localResourceRoots: mergedRoots,
   };
 }
 

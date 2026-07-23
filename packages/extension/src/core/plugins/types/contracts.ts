@@ -9,7 +9,6 @@ export type {
   GraphEdgeKind,
   GraphMetadata,
   GraphMetadataValue,
-  GraphNodeShape2D,
   IAccessProvider,
   IAnalysisFile,
   IAnalysisNode,
@@ -22,48 +21,18 @@ export type {
   IGraphEdge,
   IGraphEdgeSource,
   IGraphNode,
-  IGraphViewContributions,
-  IGraphViewContextMenuContribution,
-  IGraphViewForceAdapterContribution,
-  IGraphViewNodeDragEndContribution,
-  IGraphViewNodeDragState,
-  IGraphViewPhysicsSettings,
-  IGraphViewProjectionContribution,
-  IGraphViewRuntimeEdgeContribution,
-  IGraphViewRuntimeNodeContribution,
-  IGraphViewUiSlotContribution,
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,
   IPluginEdgeType,
-  IPluginFileColorDefinition,
   IPluginGraphScopeCapabilities,
   IPluginNodeType,
   NodeType,
-} from '../../../../../plugin-api/src';
-import type { IPlugin as HeadlessPlugin } from '../../../../../plugin-api/src';
-import type { CodeGraphyAPI } from '../api/contracts';
+} from '@codegraphy-dev/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 
 export type { IProjectedConnection } from '@codegraphy-dev/core';
-export type { CodeGraphyAPI };
 
-export interface IPluginWebviewContributions {
-  scripts?: string[];
-  styles?: string[];
-}
-
-export interface IPlugin extends HeadlessPlugin {
-  /** Extension-owned API bridge for plugin surfaces that are not part of the headless npm contract. */
-  onLoad?(api: CodeGraphyAPI): void;
-
-  /** Extension-owned webview readiness hook. Language plugins should stay headless. */
-  onWebviewReady?(): void;
-
-  /** Extension-local webview contract version for injected graph-view assets. */
-  webviewApiVersion?: string;
-
-  /** Extension-local webview assets injected into the CodeGraphy graph view. */
-  webviewContributions?: IPluginWebviewContributions;
-}
+export type { IPlugin };
 
 /**
  * Information about a registered plugin.
@@ -79,6 +48,10 @@ export interface IPluginInfo {
   sourcePackage?: string;
   /** Root directory for package-installed plugin assets */
   sourcePackageRoot?: string;
+  /** Complete descriptor, package, and runtime identity used for reconciliation. */
+  descriptorSignature?: string;
+  /** Static descriptor, package, and build identity available before runtime creation. */
+  sourceSignature?: string;
   /** Workspace-specific plugin options */
   options?: Record<string, unknown>;
 }

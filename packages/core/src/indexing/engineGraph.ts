@@ -8,10 +8,16 @@ import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { getGraphCachePath } from '../workspace/paths';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
 import type { WorkspaceEngineRuntime } from './engineRuntime';
-import { persistWorkspaceIndexMetadata } from './metadata';
+import {
+  createWorkspaceIndexPluginBuildSignature,
+  createWorkspaceIndexPluginSignature,
+  persistWorkspaceIndexMetadata,
+} from './metadata';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
-import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
-import { createWorkspaceIndexPluginSignature } from './metadata';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from '../workspace/statusPlugins';
 
 export function buildWorkspaceEngineGraph(
   runtime: WorkspaceEngineRuntime,
@@ -64,14 +70,18 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
   const pluginSignature = runtime.options.plugins === undefined
     ? createDefaultStatusPluginSignature(state.settings, runtime.options.userHomeDir)
     : createWorkspaceIndexPluginSignature({
+      explicitPlugins: runtime.options.plugins,
       loadedPackagePlugins: state.loadedPackagePlugins,
       registry: state.registry,
-      settings: state.settings,
-      includeMissingConfiguredPlugins: false,
     });
   persistWorkspaceIndexMetadata({
+    pluginBuildSignature: createWorkspaceIndexPluginBuildSignature(state.loadedPackagePlugins),
     pluginSignature,
+    failedPluginIds: state.failedPluginIds,
     settings: state.settings,
+    settingsPluginIds: runtime.options.plugins === undefined
+      ? createDefaultStatusCorePluginIds(state.settings, runtime.options.userHomeDir)
+      : state.registeredPluginIds,
     workspaceRoot,
   });
 }
@@ -94,10 +104,14 @@ function buildCompleteEngineGraph(runtime: WorkspaceEngineRuntime): IGraphData {
 }
 
 export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
+  const disabledPlugins = runtime.state.settings
+    ? createDisabledPluginSet(runtime.state.settings)
+    : new Set<string>();
   saveWorkspaceAnalysisDatabaseCache(
     runtime.workspaceRoot,
     runtime.state.cache,
     buildCompleteEngineGraph(runtime),
+    runtime.state.registry?.listNodeTypes(disabledPlugins),
   );
   persistMetadata(runtime);
 }
@@ -115,6 +129,11 @@ export function patchWorkspaceEngineCache(
     deleteFilePaths: [],
     upsertFiles,
     graph: buildCompleteEngineGraph(runtime),
+    nodeTypes: runtime.state.registry?.listNodeTypes(
+      runtime.state.settings
+        ? createDisabledPluginSet(runtime.state.settings)
+        : new Set<string>(),
+    ),
   });
   persistMetadata(runtime);
 }

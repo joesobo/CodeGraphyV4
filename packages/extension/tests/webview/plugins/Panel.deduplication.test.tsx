@@ -11,7 +11,7 @@ import { renderPanel, resetPanelState } from './panelFixture';
 describe('PluginsPanel', () => {
   beforeEach(resetPanelState);
 
-  it('deduplicates stale package status rows in favor of the latest package row', () => {
+  it('keeps independent plugin IDs from one package as separate rows', () => {
     renderPanel([
       {
         id: 'acme.old-tools',
@@ -36,11 +36,11 @@ describe('PluginsPanel', () => {
     ]);
 
     expect(screen.getByText('Tools')).toBeInTheDocument();
-    expect(screen.queryByText('Old Tools')).not.toBeInTheDocument();
-    expect(screen.queryAllByRole('switch')).toHaveLength(1);
+    expect(screen.getByText('Old Tools')).toBeInTheDocument();
+    expect(screen.queryAllByRole('switch')).toHaveLength(2);
   });
 
-  it('keeps an active package row when a later duplicate package row is only installed', () => {
+  it('keeps an active plugin row when a later duplicate ID is only installed', () => {
     renderPanel([
       {
         id: 'acme.tools',
@@ -53,7 +53,7 @@ describe('PluginsPanel', () => {
         connectionCount: 0,
       },
       {
-        id: 'acme.tools-package',
+        id: 'acme.tools',
         name: '@acme/plugin-tools',
         version: '0.1.0',
         packageName: '@acme/plugin-tools',

@@ -86,32 +86,4 @@ describe('graph view ready loading sequence', () => {
     ]);
   });
 
-  it('does not block bootstrap on first workspace-ready plugin notifications', async () => {
-    const events: string[] = [];
-    const handlers = createHandlers();
-    handlers.sendGraphViewContributionStatuses.mockImplementation(() => {
-      events.push('contributions');
-    });
-    handlers.sendMessage.mockImplementation((message: { type: string }) => {
-      if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
-        events.push('bootstrap');
-      }
-    });
-
-    await applyWebviewReady(
-      {
-        maxFiles: 500,
-        verboseDiagnostics: false,
-        nodeSizeMode: 'connections',
-        focusedFile: undefined,
-        hasWorkspace: true,
-        firstAnalysis: true,
-        readyNotified: false,
-      },
-      handlers
-    );
-
-    expect(handlers.waitForFirstWorkspaceReady).not.toHaveBeenCalled();
-    expect(events).toEqual(['contributions', 'bootstrap']);
-  });
 });

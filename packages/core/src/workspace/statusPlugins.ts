@@ -1,4 +1,5 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import { createPluginActivityState } from '../plugins/activityState/model';
 import { readCodeGraphyInstalledPluginCache } from '../plugins/installedCache';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_METADATA } from '../plugins/markdown/metadata';
 import {
@@ -10,10 +11,10 @@ import {
 } from './settings';
 
 function createDefaultStatusRuntimePlugins(
-  settings: CodeGraphyWorkspaceSettings,
+  activePluginIds: ReadonlySet<string>,
 ): Array<Pick<IPlugin, 'id' | 'version'>> {
   const plugins: Array<Pick<IPlugin, 'id' | 'version'>> = [];
-  if (settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)) {
+  if (activePluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
     plugins.push({
       id: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.id,
       version: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.version,
@@ -26,25 +27,40 @@ export function createDefaultStatusPluginSignature(
   settings: CodeGraphyWorkspaceSettings,
   homeDir: string | undefined,
 ): string | null {
-  const installedRecordsByPackage = new Map(
-    readCodeGraphyInstalledPluginCache({
-      ...(homeDir ? { homeDir } : {}),
-    })
-      .plugins
-      .map(plugin => [plugin.pluginId ?? plugin.package, plugin] as const),
-  );
-  const enabledPackagePlugins = settings.plugins
-    .filter(plugin => plugin.enabled && plugin.id !== CODEGRAPHY_MARKDOWN_PLUGIN_ID);
-  const packagePlugins = enabledPackagePlugins
-    .map(plugin => installedRecordsByPackage.get(plugin.id))
-    .filter((plugin): plugin is NonNullable<typeof plugin> => plugin !== undefined);
-  const missingPackagePlugins = enabledPackagePlugins
-    .filter(plugin => !installedRecordsByPackage.has(plugin.id))
-    .map(plugin => plugin.id);
+  const installedPlugins = readCodeGraphyInstalledPluginCache({
+    ...(homeDir ? { homeDir } : {}),
+  }).plugins;
+  const activity = createPluginActivityState({
+    settings,
+    installedPlugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
 
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
-    runtimePlugins: createDefaultStatusRuntimePlugins(settings),
-    packagePlugins,
-    missingPackagePlugins,
+    runtimePlugins: createDefaultStatusRuntimePlugins(activity.activePluginIds),
+    packagePlugins: activity.packagePlugins.filter(plugin => plugin.host === 'core'),
   });
+}
+
+export function createDefaultStatusCorePluginIds(
+  settings: CodeGraphyWorkspaceSettings,
+  homeDir: string | undefined,
+): ReadonlySet<string> {
+  const installedPlugins = readCodeGraphyInstalledPluginCache({
+    ...(homeDir ? { homeDir } : {}),
+  }).plugins;
+  const activity = createPluginActivityState({
+    settings,
+    installedPlugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
+  const pluginIds = new Set(
+    activity.packagePlugins
+      .filter(plugin => plugin.host === 'core')
+      .map(plugin => plugin.id),
+  );
+  if (activity.activePluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
+    pluginIds.add(CODEGRAPHY_MARKDOWN_PLUGIN_ID);
+  }
+  return pluginIds;
 }

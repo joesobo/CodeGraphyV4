@@ -2,7 +2,7 @@ import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
-import { findRegisteredPlugin, getRegisteredPluginId } from './installed';
+import { findRegisteredPlugins } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runEnableCommand(
@@ -13,11 +13,11 @@ export function runEnableCommand(
     return createMissingPackageResult('enable');
   }
 
-  const plugin = findRegisteredPlugin(
+  const plugins = findRegisteredPlugins(
     dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
     command.packageName,
   );
-  if (!plugin) {
+  if (plugins.length === 0) {
     return {
       exitCode: 1,
       output: [
@@ -27,11 +27,26 @@ export function runEnableCommand(
     };
   }
 
+  const pluginIds = [...new Set(plugins.map(plugin => plugin.id))];
+  const pluginLabel = pluginIds.join(', ');
+  if (command.pluginScope === 'global') {
+    for (const plugin of plugins) {
+      dependencies.setGlobalPluginActivation(plugin, true, {
+        ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
+      });
+    }
+    return {
+      exitCode: 0,
+      output: `Enabled ${pluginLabel} globally.`,
+    };
+  }
+
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
-  dependencies.enableWorkspacePlugin(workspaceRoot, plugin);
-  const pluginId = getRegisteredPluginId(plugin);
+  for (const plugin of plugins) {
+    dependencies.enableWorkspacePlugin(workspaceRoot, plugin);
+  }
   return {
     exitCode: 0,
-    output: `Enabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
+    output: `Enabled ${pluginLabel} for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
   };
 }

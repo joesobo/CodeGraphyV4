@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
-import { createUnityPlugin } from '../src/lifecycle';
+import { createUnityPlugin } from '../src/plugin';
 
 const playerControllerGuid = '11111111111111111111111111111111';
 
@@ -49,26 +49,24 @@ describe('createUnityPlugin', () => {
       ],
       edgeTypes: ['contains', 'reference', 'event'],
     });
+    expect(plugin.contributeNodeTypes?.()).toEqual([
+      expect.objectContaining({
+        id: 'plugin:codegraphy.unity:symbol',
+        label: 'Unity',
+        matchSymbolSource: 'codegraphy.unity',
+      }),
+      expect.objectContaining({
+        id: 'plugin:codegraphy.unity:symbol:game-object',
+        parentId: 'plugin:codegraphy.unity:symbol',
+        matchSymbolPluginKind: 'game-object',
+      }),
+      expect.objectContaining({
+        id: 'plugin:codegraphy.unity:symbol:component',
+        parentId: 'plugin:codegraphy.unity:symbol',
+        matchSymbolPluginKind: 'component',
+      }),
+    ]);
     expect(plugin.contributeEdgeTypes?.() ?? []).toEqual([]);
-    expect(plugin.fileColors).toEqual(expect.objectContaining({
-      '*.unity': expect.objectContaining({
-        color: '#F97316',
-        imagePath: 'assets/unity.svg',
-      }),
-      '*.prefab': expect.objectContaining({
-        color: '#8B5CF6',
-        imagePath: 'assets/unity.svg',
-      }),
-      '*.asset': expect.objectContaining({
-        color: '#0EA5E9',
-        shape2D: 'triangle',
-        imagePath: 'assets/unity.svg',
-      }),
-      '*.mat': expect.objectContaining({
-        color: '#14B8A6',
-        imagePath: 'assets/unity.svg',
-      }),
-    }));
   });
 
   it.skipIf(process.env.CODEGRAPHY_MUTATION_RUN === '1')('ships Unity icons as white glyphs', () => {

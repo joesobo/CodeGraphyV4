@@ -33,7 +33,6 @@ describe('graphView/provider/plugin/resources', () => {
       resolvePluginAssetPath: vi.fn(() => 'asset://icon.svg'),
       getWebviewResourceRoots: vi.fn(() => []),
       refreshWebviewResourceRoots: vi.fn(),
-      normalizeExtensionUri: vi.fn(),
       getDefaultLegendVisibility: vi.fn(() => defaultLegendVisibility),
       getLegendOrder: vi.fn(() => legendOrder),
       getWorkspaceFolders: vi.fn(() => []),
@@ -78,7 +77,6 @@ describe('graphView/provider/plugin/resources', () => {
       resolvePluginAssetPath,
       getWebviewResourceRoots,
       refreshWebviewResourceRoots,
-      normalizeExtensionUri: vi.fn(uri => (typeof uri === 'string' ? vscode.Uri.file(uri) : uri)),
       getDefaultLegendVisibility: vi.fn(() => ({})),
       getLegendOrder: vi.fn(() => []),
       getWorkspaceFolders: vi.fn(() => [{ uri: vscode.Uri.file('/workspace') }] as never),
@@ -125,7 +123,6 @@ describe('graphView/provider/plugin/resources', () => {
       resolvePluginAssetPath: vi.fn(() => ''),
       getWebviewResourceRoots: vi.fn(() => []),
       refreshWebviewResourceRoots: vi.fn(),
-      normalizeExtensionUri: vi.fn(),
       getDefaultLegendVisibility: vi.fn(() => ({})),
       getLegendOrder: vi.fn(() => []),
       getWorkspaceFolders: vi.fn(() => []),
@@ -133,36 +130,6 @@ describe('graphView/provider/plugin/resources', () => {
 
     expect(methods._getBuiltInDefaultGroups()).toEqual(builtInGroups);
     expect(methods._getPluginDefaultGroups()).toEqual(pluginGroups);
-  });
-
-  it('passes undefined external uris through normalization unchanged', () => {
-    const normalizeExtensionUri = vi.fn(uri => uri);
-    const methods = createGraphViewProviderPluginResourceMethods({
-      _extensionUri: vscode.Uri.file('/extension'),
-      _pluginExtensionUris: new Map<string, vscode.Uri>(),
-      _analyzer: undefined,
-      _disabledPlugins: new Set<string>(),
-      _graphData: { nodes: [], edges: [] },
-      _userGroups: [],
-      _groups: [],
-      _panels: [],
-    } as never, {
-      registerBuiltInPluginRoots: vi.fn(),
-      registerPackagePluginRoots: vi.fn(),
-      getPluginDefaultGroups: vi.fn(() => []),
-      getBuiltInDefaultGroups: vi.fn(() => []),
-      buildMergedGroups: vi.fn(() => []),
-      resolvePluginAssetPath: vi.fn(() => ''),
-      getWebviewResourceRoots: vi.fn(() => []),
-      refreshWebviewResourceRoots: vi.fn(),
-      normalizeExtensionUri,
-      getDefaultLegendVisibility: vi.fn(() => ({})),
-      getLegendOrder: vi.fn(() => []),
-      getWorkspaceFolders: vi.fn(() => []),
-    });
-
-    expect(methods._normalizeExternalExtensionUri(undefined)).toBeUndefined();
-    expect(normalizeExtensionUri).toHaveBeenCalledWith(undefined);
   });
 
   it('refreshes graph and panel resource roots exactly once', () => {
@@ -187,7 +154,6 @@ describe('graphView/provider/plugin/resources', () => {
       resolvePluginAssetPath: vi.fn(() => ''),
       getWebviewResourceRoots: vi.fn(() => [vscode.Uri.file('/workspace')]),
       refreshWebviewResourceRoots,
-      normalizeExtensionUri: vi.fn(),
       getDefaultLegendVisibility: vi.fn(() => ({})),
       getLegendOrder: vi.fn(() => []),
       getWorkspaceFolders: vi.fn(() => []),
@@ -203,41 +169,7 @@ describe('graphView/provider/plugin/resources', () => {
     );
   });
 
-  it('normalizes external extension uris with the shared graph-view helper', () => {
-    const normalizeExtensionUri = vi.fn(uri =>
-      typeof uri === 'string' ? vscode.Uri.file(uri) : uri,
-    );
-    const methods = createGraphViewProviderPluginResourceMethods({
-      _extensionUri: vscode.Uri.file('/extension'),
-      _pluginExtensionUris: new Map<string, vscode.Uri>(),
-      _analyzer: undefined,
-      _disabledPlugins: new Set<string>(),
-      _graphData: { nodes: [], edges: [] },
-      _userGroups: [],
-      _hiddenPluginGroupIds: new Set<string>(),
-      _groups: [],
-      _view: undefined,
-      _panels: [],
-    } as never, {
-      registerBuiltInPluginRoots: vi.fn(),
-      registerPackagePluginRoots: vi.fn(),
-      getPluginDefaultGroups: vi.fn(() => []),
-      getBuiltInDefaultGroups: vi.fn(() => []),
-      buildMergedGroups: vi.fn(() => []),
-      resolvePluginAssetPath: vi.fn(() => ''),
-      getWebviewResourceRoots: vi.fn(() => []),
-      refreshWebviewResourceRoots: vi.fn(),
-      normalizeExtensionUri,
-      getDefaultLegendVisibility: vi.fn(() => ({})),
-      getLegendOrder: vi.fn(() => []),
-      getWorkspaceFolders: vi.fn(() => []),
-    });
-
-    expect(methods._normalizeExternalExtensionUri('/plugin')).toEqual(vscode.Uri.file('/plugin'));
-    expect(normalizeExtensionUri).toHaveBeenCalledWith('/plugin');
-  });
-
-  it('uses the default dependency set for workspace resource roots and uri normalization', () => {
+  it('uses the default dependency set for workspace resource roots', () => {
     const workspace = vscode.workspace as { workspaceFolders?: readonly vscode.WorkspaceFolder[] };
     const originalWorkspaceFolders = workspace.workspaceFolders;
     workspace.workspaceFolders = [{ uri: vscode.Uri.file('/workspace') }] as vscode.WorkspaceFolder[];
@@ -259,7 +191,6 @@ describe('graphView/provider/plugin/resources', () => {
       };
       const methods = createGraphViewProviderPluginResourceMethods(source as never);
 
-      expect(methods._normalizeExternalExtensionUri('/plugin')).toEqual(vscode.Uri.file('/plugin'));
       expect(methods._getLocalResourceRoots()).toEqual([
         vscode.Uri.file('/extension'),
         vscode.Uri.file('/plugin-root'),

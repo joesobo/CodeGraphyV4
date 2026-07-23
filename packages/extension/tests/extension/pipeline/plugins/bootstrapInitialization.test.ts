@@ -50,27 +50,29 @@ describe('pipeline/plugins/bootstrap initialization', () => {
 
     await createPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.extension-bootstrap',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-bootstrap',
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.extension-bootstrap',
-        enabled: true,
+        activation: 'enabled',
         options: {
           includeFrontmatter: false,
         },
       }, {
         id: 'codegraphy.markdown',
-        enabled: true,
+        activation: 'enabled',
         options: {
           includeFrontmatter: true,
         },

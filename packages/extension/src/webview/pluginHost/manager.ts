@@ -3,7 +3,7 @@
  * @module webview/pluginHost/manager
  */
 
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type {
   GraphPluginSlot,
   GraphViewViewportState,
@@ -12,9 +12,9 @@ import type {
   TooltipProviderFn,
   TooltipContent,
   TooltipContext,
-  BadgeOpts,
-  RingOpts,
-  LabelOpts,
+  BadgeOptions,
+  RingOptions,
+  LabelOptions,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
 import { toWebviewDisposable, type WebviewDisposable } from './disposable';
@@ -52,11 +52,6 @@ import {
   type GraphViewViewportStateListenerEntry,
 } from './manager/viewportState';
 
-type GraphInteractionMessage = {
-  type: 'GRAPH_INTERACTION';
-  payload: { event: string; data: unknown };
-};
-
 export class WebviewPluginHost {
   private readonly _nodeRenderers: NodeRendererRegistry = new Map();
   private readonly _overlays: OverlayRegistry = new Map();
@@ -72,13 +67,12 @@ export class WebviewPluginHost {
 
   createAPI(
     pluginId: string,
-    postMessage: (msg: GraphInteractionMessage) => void,
     postHostMessage: (msg: unknown) => void = () => undefined,
     getHostState: () => Record<string, unknown> = () => ({}),
     getPluginData: (pluginId: string) => unknown = () => undefined,
   ): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
-      pluginId, postMessage,
+      pluginId,
       postHostMessage,
       getHostState,
       getPluginData,
@@ -130,13 +124,13 @@ export class WebviewPluginHost {
   ): WebviewDisposable {
     const entry = createGraphViewViewportStateListenerEntry(listener, pluginId);
     this._graphViewViewportStateListeners.add(entry);
-    listener(this._graphViewViewportState);
+    notifyGraphViewViewportStateListeners(new Set([entry]), this._graphViewViewportState);
     return toWebviewDisposable(() => {
       this._graphViewViewportStateListeners.delete(entry);
     });
   }
 
-  getGraphViewContributions(): CoreGraphViewContributionSet {
+  getGraphViewContributions(): ExtensionGraphViewContributionSet {
     return this._graphViewContributions.get();
   }
 
@@ -168,7 +162,7 @@ export class WebviewPluginHost {
     removeGraphViewViewportStateListenersForPlugin(this._graphViewViewportStateListeners, pluginId);
   }
 
-  static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void { drawBadge(ctx, opts); }
-  static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void { drawProgressRing(ctx, opts); }
-  static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void { drawLabel(ctx, opts); }
+  static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOptions): void { drawBadge(ctx, opts); }
+  static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOptions): void { drawProgressRing(ctx, opts); }
+  static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOptions): void { drawLabel(ctx, opts); }
 }

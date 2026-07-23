@@ -11,6 +11,9 @@ describe('cli/help/command', () => {
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
     expect(result.output).toContain('codegraphy scope node <type> <on|off>');
+    expect(result.output).toContain(
+      'codegraphy plugins                       Register Plugins and change global or workspace activity',
+    );
     expect(result.output).toContain('-C, --workspace <path>');
     expect(result.output).not.toContain('relationships');
     expect(result.output).not.toContain('symbols');
@@ -74,9 +77,21 @@ describe('cli/help/command', () => {
     expect(pluginHelp).toContain('Run `codegraphy index` to include its facts.');
   });
 
-  it('reports workspace-free plugin usage', () => {
+  it('documents global and inherited plugin activation', () => {
     expect(createHelpResult(['plugins', 'enable']).output).toContain(
-      'Usage: codegraphy plugins enable <plugin-id-or-package>',
+      'Usage: codegraphy plugins enable [--global] <plugin-id-or-package>',
+    );
+    expect(createHelpResult(['plugins', 'enable']).output).toContain(
+      'Effects: Writes .codegraphy/settings.json or ~/.codegraphy/plugins.json.',
+    );
+    expect(createHelpResult(['plugins', 'disable']).output).toContain(
+      'Usage: codegraphy plugins disable [--global] <plugin-id-or-package>',
+    );
+    expect(createHelpResult(['plugins', 'inherit']).output).toContain(
+      'Use the global Plugin activation value in this workspace.',
+    );
+    expect(createHelpResult(['plugins']).output).toContain(
+      'codegraphy plugins inherit <plugin-id-or-package>',
     );
   });
 });

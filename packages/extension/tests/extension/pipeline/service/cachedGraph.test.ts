@@ -9,7 +9,7 @@ import {
   type FileDiscovery,
   type IDiscoveredFile,
 } from '@codegraphy-dev/core';
-import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline/plugins/registry';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import { WorkspacePipelineCachedGraphFacade } from '../../../../src/extension/pipeline/service/cachedGraph';
 import { createCachedWorkspaceDiscoveryState } from '../../../../src/extension/pipeline/service/cache/cachedDiscovery';
@@ -102,7 +102,7 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   _discovery = { kind: 'discovery' } as unknown as FileDiscovery;
   _registry = {
     list: vi.fn(() => []),
-  } as unknown as PluginRegistry;
+  } as unknown as WorkspacePluginRegistry;
 
   protected override _getWorkspaceRoot(): string | undefined {
     return this.getWorkspaceRoot();

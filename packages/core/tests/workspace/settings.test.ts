@@ -29,7 +29,7 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(settings.plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'inherit',
     }]);
     expect(JSON.parse(
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
@@ -41,7 +41,7 @@ describe('CodeGraphy Workspace settings', () => {
     )).toMatchObject({
       plugins: [{
         id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        enabled: true,
+        activation: 'inherit',
       }],
     });
   });
@@ -65,7 +65,7 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
+      activation: 'inherit',
     }]);
     await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });
@@ -96,11 +96,36 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: 50,
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: false,
+        activation: 'disabled',
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],
     });
+  });
+
+  it('keeps only the last settings entry for each plugin id', () => {
+    expect(normalizeCodeGraphyWorkspaceSettings({
+      plugins: [
+        {
+          id: 'codegraphy.vue',
+          activation: 'disabled',
+          options: { mode: 'old' },
+        },
+        { id: 'codegraphy.svelte', activation: 'enabled' },
+        {
+          id: 'codegraphy.vue',
+          activation: 'enabled',
+          options: { mode: 'current' },
+        },
+      ],
+    }).plugins).toEqual([
+      { id: 'codegraphy.svelte', activation: 'enabled' },
+      {
+        id: 'codegraphy.vue',
+        activation: 'enabled',
+        options: { mode: 'current' },
+      },
+    ]);
   });
 
   it('writes plugin array order into the settings signature', async () => {
@@ -110,8 +135,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: 'codegraphy.vue', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: 'codegraphy.vue', activation: 'enabled' },
       ],
     });
 
@@ -121,8 +146,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { id: 'codegraphy.vue', enabled: true },
-        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'codegraphy.vue', activation: 'enabled' },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
       ],
     });
 
@@ -184,12 +209,44 @@ describe('CodeGraphy Workspace settings', () => {
     ]));
   });
 
+  it('keeps unknown fields from the effective duplicate plugin entry', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
+    await fs.writeFile(getWorkspaceSettingsPath(workspaceRoot), JSON.stringify({
+      plugins: [
+        {
+          id: 'codegraphy.vue',
+          activation: 'disabled',
+          oldOnlyField: true,
+        },
+        {
+          id: 'codegraphy.vue',
+          activation: 'enabled',
+          currentOnlyField: true,
+        },
+      ],
+    }));
+
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+
+    expect(JSON.parse(
+      await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
+    ).plugins).toEqual([{
+      id: 'codegraphy.vue',
+      activation: 'enabled',
+      currentOnlyField: true,
+    }]);
+  });
+
   it('drops representable raw plugins that the caller explicitly removes', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
     await fs.writeFile(getWorkspaceSettingsPath(workspaceRoot), JSON.stringify({
       plugins: [
-        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
         { id: 'future.plugin', futureOnlyShape: true },
         3,
       ],
@@ -209,6 +266,22 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(normalizeCodeGraphyWorkspaceSettings(null)).toEqual(defaults);
     expect(normalizeCodeGraphyWorkspaceSettings([])).toEqual(defaults);
+  });
+
+  it('preserves Extension show-orphans intent only inside the open interface envelope', () => {
+    const normalized = normalizeCodeGraphyWorkspaceSettings({
+      showOrphans: false,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { showOrphans: false },
+      }],
+    });
+
+    expect(normalized).not.toHaveProperty('showOrphans');
+    expect(normalized.interfaces).toEqual([{
+      id: 'codegraphy.extension',
+      data: { showOrphans: false },
+    }]);
   });
 
   it('falls back to defaults for invalid scalar settings', () => {
@@ -233,6 +306,13 @@ describe('CodeGraphy Workspace settings', () => {
       disabledCustomFilterPatterns: ['generated/**', 'generated/**'],
       nodeVisibility: { file: true, 'symbol:function': false, invalid: 'yes' },
       edgeVisibility: { import: true, call: 'yes' },
+      interfaces: [
+        { id: ' codegraphy.extension ', data: { pinnedNodes: [{ id: 'src/app.ts', x: 10, y: 20 }] } },
+        { id: '' },
+        { id: 'missing.data' },
+        { id: 'codegraphy.extension', data: { ignoredDuplicate: true } },
+        'invalid',
+      ],
       plugins: [
         {
           package: '  @codegraphy-dev/plugin-vue  ',
@@ -247,15 +327,18 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: 25,
       include: ['src/**/*.ts', 'packages/**/*.ts'],
       respectGitignore: false,
-      showOrphans: false,
       filterPatterns: ['dist/**'],
       disabledCustomFilterPatterns: ['generated/**'],
       nodeVisibility: { file: true, 'symbol:function': false },
       edgeVisibility: { import: true },
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { pinnedNodes: [{ id: 'src/app.ts', x: 10, y: 20 }] },
+      }],
       pluginData: {},
       plugins: [{
         id: '@codegraphy-dev/plugin-vue',
-        enabled: true,
+        activation: 'enabled',
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],

@@ -45,6 +45,7 @@ export function runWorkspacePipelineAnalysis(
           try {
             await saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, {
               graph,
+              nodeTypes: source._listPluginNodeTypes?.(disabledPlugins),
               onProgress,
             });
           } catch (error) {

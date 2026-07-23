@@ -5,12 +5,11 @@ import { createRelationshipSymbols } from '../../../src/graphQuery/symbols/relat
 
 const graphData: IGraphData = {
   nodes: [
-    { id: 'src/source.ts', label: 'source.ts', color: '#111111', nodeType: 'file' },
-    { id: 'src/target.ts', label: 'target.ts', color: '#111111', nodeType: 'file' },
+    { id: 'src/source.ts', label: 'source.ts', nodeType: 'file' },
+    { id: 'src/target.ts', label: 'target.ts', nodeType: 'file' },
     {
       id: 'src/target.ts#Target:type',
       label: 'Target',
-      color: '#111111',
       nodeType: 'symbol',
       symbol: {
         id: 'src/target.ts#Target:type',

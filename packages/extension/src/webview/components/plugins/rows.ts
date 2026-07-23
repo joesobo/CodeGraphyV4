@@ -1,7 +1,7 @@
 import type { IPluginStatus } from '../../../shared/plugins/status';
 
 function rowKey(plugin: IPluginStatus): string {
-  return plugin.packageName ?? plugin.id;
+  return plugin.id;
 }
 
 function rowPriority(plugin: IPluginStatus): number {

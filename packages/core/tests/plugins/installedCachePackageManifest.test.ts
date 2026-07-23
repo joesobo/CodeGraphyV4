@@ -10,102 +10,95 @@ import {
 import { createPackage } from './installedCacheFixture';
 
 describe('CodeGraphy installed plugin package manifests', () => {
-  it('reads optional package manifests and returns null for missing or non-plugin packages', async () => {
+  it('reads every plugin descriptor without interpreting its host', async () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
-    await createPackage(packageRoot, '@codegraphy-dev/plugin-vue', {
+    await createPackage(packageRoot, '@acme/codegraphy-tools', {
       version: '1.2.3',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-      },
-    }, {
-      id: 'codegraphy.vue',
-      name: 'Vue',
-      supportedExtensions: ['.vue'],
-      updateImpact: {
-        toggle: 'reanalyze-plugin-files',
+        plugins: [
+          {
+            id: 'acme.analysis',
+            name: 'Acme Analysis',
+            host: 'core',
+            entry: './dist/core.js',
+            apiVersion: '^4.0.0',
+          },
+          {
+            id: 'acme.interface',
+            host: 'acme.webview',
+            entry: './dist/webview.js',
+            apiVersion: '^27.0.0',
+          },
+        ],
       },
     });
-    await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
-      version: '1.0.0',
-    });
-    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-vue');
-    const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
+    const pluginRoot = path.join(packageRoot, '@acme', 'codegraphy-tools');
 
-    await expect(readPackageManifest(pluginRoot)).resolves.toEqual({
-      package: '@codegraphy-dev/plugin-vue',
-      version: '1.2.3',
-      apiVersion: '^3.0.0',
-      pluginId: 'codegraphy.vue',
-      pluginName: 'Vue',
-      supportedExtensions: ['.vue'],
-      updateImpact: {
-        toggle: 'reanalyze-plugin-files',
+    await expect(readPackageManifest(pluginRoot)).resolves.toEqual([
+      {
+        package: '@acme/codegraphy-tools',
+        version: '1.2.3',
+        packageRoot: pluginRoot,
+        globallyEnabled: false,
+        id: 'acme.analysis',
+        name: 'Acme Analysis',
+        host: 'core',
+        entry: './dist/core.js',
+        apiVersion: '^4.0.0',
       },
-      disclosures: [],
-      packageRoot: pluginRoot,
-    });
-    await expect(readPackageManifest(nonPluginRoot)).resolves.toBeNull();
+      {
+        package: '@acme/codegraphy-tools',
+        version: '1.2.3',
+        packageRoot: pluginRoot,
+        globallyEnabled: false,
+        id: 'acme.interface',
+        host: 'acme.webview',
+        entry: './dist/webview.js',
+        apiVersion: '^27.0.0',
+      },
+    ]);
     await expect(readPackageManifest(path.join(pluginRoot, 'missing'))).resolves.toBeNull();
   });
 
-  it('requires plugin packages to declare a static plugin id in codegraphy.json', async () => {
+  it('returns null for packages without valid plugin descriptors', async () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
-    await createPackage(packageRoot, '@codegraphy-dev/plugin-missing-id', {
-      version: '1.2.3',
+    await createPackage(packageRoot, '@acme/not-a-plugin', { version: '1.0.0' });
+    await createPackage(packageRoot, '@acme/duplicate-plugin', {
+      version: '1.0.0',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
+        plugins: [
+          { id: 'acme.same', host: 'core', entry: './one.js', apiVersion: '^4.0.0' },
+          { id: 'acme.same', host: 'other', entry: './two.js', apiVersion: '^1.0.0' },
+        ],
       },
     });
-    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-missing-id');
 
-    await expect(readPackageManifest(pluginRoot)).resolves.toBeNull();
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-missing-id', pluginRoot))
-      .rejects.toThrow("Package '@codegraphy-dev/plugin-missing-id' is missing codegraphy.json with a static plugin id.");
+    await expect(readPackageManifest(path.join(packageRoot, '@acme', 'not-a-plugin')))
+      .resolves.toBeNull();
+    await expect(readPackageManifest(path.join(packageRoot, '@acme', 'duplicate-plugin')))
+      .resolves.toBeNull();
   });
 
-  it('requires a matching CodeGraphy plugin package manifest', async () => {
+  it('requires the resolved package name to match', async () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
-    await createPackage(packageRoot, '@codegraphy-dev/plugin-vue', {
+    await createPackage(packageRoot, '@acme/codegraphy-ruby', {
       version: '1.2.3',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-        disclosures: ['network'],
+        plugins: [{
+          id: 'acme.ruby',
+          host: 'core',
+          entry: './dist/plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
-    }, {
-      id: 'codegraphy.vue',
     });
-    await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
-      version: '1.0.0',
-    });
-    await createPackage(packageRoot, '@codegraphy-dev/plugin-ruby', {
-      version: '1.2.3',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-      },
-    }, {
-      id: 'codegraphy.ruby',
-    });
-    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-vue');
-    const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
-    const mismatchedRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-ruby');
+    const pluginRoot = path.join(packageRoot, '@acme', 'codegraphy-ruby');
 
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', pluginRoot)).resolves.toEqual({
-      package: '@codegraphy-dev/plugin-vue',
-      version: '1.2.3',
-      apiVersion: '^3.0.0',
-      pluginId: 'codegraphy.vue',
-      disclosures: ['network'],
-      packageRoot: pluginRoot,
-    });
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', path.join(pluginRoot, 'missing')))
-      .rejects.toThrow('Run `npm i -g @codegraphy-dev/plugin-vue` first.');
-    await expect(readRequiredPackageManifest('@codegraphy-dev/not-a-plugin', nonPluginRoot))
-      .rejects.toThrow("Package '@codegraphy-dev/not-a-plugin' is not a CodeGraphy plugin.");
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', mismatchedRoot))
-      .rejects.toThrow("Package '@codegraphy-dev/plugin-vue' resolved to CodeGraphy plugin '@codegraphy-dev/plugin-ruby'.");
+    await expect(readRequiredPackageManifest('@acme/codegraphy-ruby', pluginRoot))
+      .resolves.toHaveLength(1);
+    await expect(readRequiredPackageManifest('@acme/codegraphy-ruby', path.join(pluginRoot, 'missing')))
+      .rejects.toThrow('Run `npm i -g @acme/codegraphy-ruby` first.');
+    await expect(readRequiredPackageManifest('@acme/not-ruby', pluginRoot))
+      .rejects.toThrow("Package '@acme/not-ruby' resolved to CodeGraphy plugin package '@acme/codegraphy-ruby'.");
   });
 });

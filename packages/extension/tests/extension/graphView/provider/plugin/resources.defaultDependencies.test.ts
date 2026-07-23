@@ -12,7 +12,6 @@ const {
   resolvePluginAssetPath,
   getWebviewResourceRoots,
   refreshWebviewResourceRoots,
-  normalizeExtensionUri,
 } = vi.hoisted(() => ({
   getConfigValue: vi.fn(),
   registerBuiltInPluginRoots: vi.fn(),
@@ -23,9 +22,6 @@ const {
   resolvePluginAssetPath: vi.fn(() => ''),
   getWebviewResourceRoots: vi.fn(() => [] as vscode.Uri[]),
   refreshWebviewResourceRoots: vi.fn(),
-  normalizeExtensionUri: vi.fn((uri: vscode.Uri | string | undefined) => (
-    typeof uri === 'string' ? vscode.Uri.file(uri) : uri
-  )),
 }));
 
 vi.mock('../../../../../src/extension/repoSettings/current', () => ({
@@ -55,10 +51,6 @@ vi.mock('../../../../../src/extension/graphView/webview/plugins/resources', () =
   getGraphViewWebviewResourceRoots: getWebviewResourceRoots,
   refreshGraphViewResourceRoots: refreshWebviewResourceRoots,
   resolveGraphViewPluginAssetPath: resolvePluginAssetPath,
-}));
-
-vi.mock('../../../../../src/extension/graphView/resources', () => ({
-  normalizeGraphViewExtensionUri: normalizeExtensionUri,
 }));
 
 import { createGraphViewProviderPluginResourceMethods } from '../../../../../src/extension/graphView/provider/plugin/resources';

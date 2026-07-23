@@ -25,7 +25,13 @@ export function normalizePersistedPlugins(normalized: Record<string, unknown>): 
     return;
   }
 
-  normalized.plugins = plugins;
+  const pluginsById = new Map<string, Record<string, unknown>>();
+  for (const plugin of plugins) {
+    const pluginId = String(plugin.id);
+    pluginsById.delete(pluginId);
+    pluginsById.set(pluginId, plugin);
+  }
+  normalized.plugins = [...pluginsById.values()];
 }
 
 function normalizePersistedPlugin(plugin: unknown): Record<string, unknown> | null {
@@ -34,14 +40,14 @@ function normalizePersistedPlugin(plugin: unknown): Record<string, unknown> | nu
   }
 
   const id = readPluginId(plugin);
-  const enabled = readPluginEnabled(plugin);
-  if (id.length === 0 || enabled === null) {
+  const activation = readPluginActivation(plugin);
+  if (id.length === 0 || activation === null) {
     return null;
   }
 
   const normalizedPlugin: Record<string, unknown> = {
     id,
-    enabled,
+    activation,
   };
   const disabledFilterPatterns = looseStringArraySchema.parse(plugin.disabledFilterPatterns);
   if (disabledFilterPatterns.length > 0) {
@@ -69,10 +75,20 @@ function readPluginId(plugin: Record<string, unknown>): string {
     : packageName;
 }
 
-function readPluginEnabled(plugin: Record<string, unknown>): boolean | null {
-  if (typeof plugin.enabled === 'boolean') {
-    return plugin.enabled;
+function readPluginActivation(
+  plugin: Record<string, unknown>,
+): 'inherit' | 'enabled' | 'disabled' | null {
+  if (
+    plugin.activation === 'inherit'
+    || plugin.activation === 'enabled'
+    || plugin.activation === 'disabled'
+  ) {
+    return plugin.activation;
   }
 
-  return readString(plugin.package).length > 0 ? true : null;
+  if (typeof plugin.enabled === 'boolean') {
+    return plugin.enabled ? 'enabled' : 'disabled';
+  }
+
+  return readString(plugin.package).length > 0 ? 'enabled' : null;
 }

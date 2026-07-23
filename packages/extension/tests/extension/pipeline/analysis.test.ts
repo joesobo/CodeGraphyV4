@@ -313,8 +313,8 @@ describe('WorkspacePipeline analysis', () => {
 
     expect(warmGraph.nodes).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'src/index.ts', color: expect.stringMatching(/^#[0-9a-f]{6}$/i) }),
-        expect.objectContaining({ id: 'src/utils.ts', color: expect.stringMatching(/^#[0-9a-f]{6}$/i) }),
+        expect.objectContaining({ id: 'src/index.ts' }),
+        expect.objectContaining({ id: 'src/utils.ts' }),
       ]),
     );
     expect(warmGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');

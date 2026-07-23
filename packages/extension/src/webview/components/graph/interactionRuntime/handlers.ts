@@ -53,7 +53,6 @@ export interface GraphInteractionHandlers {
   previewNode: (this: void, nodeId: string) => void;
   requestNodeOpenById: (this: void, nodeId: string) => void;
   selectOnlyNode: (this: void, nodeId: string) => void;
-  sendGraphInteraction: (this: void, event: string, eventData: unknown) => void;
   setGraphCursor: (this: void, cursor: GraphCursorStyle) => void;
   setHighlight: (this: void, nodeId: string | null) => void;
   setSelection: (this: void, nodeIds: string[]) => void;
@@ -105,7 +104,6 @@ export function createGraphInteractionHandlers(
     previewNode: effectHandlers.previewNode,
     requestNodeOpenById: effectHandlers.requestNodeOpenById,
     selectOnlyNode: selectionHandlers.selectOnlyNode,
-    sendGraphInteraction: effectHandlers.sendGraphInteraction,
     setGraphCursor,
     setHighlight: selectionHandlers.setHighlight,
     setSelection: selectionHandlers.setSelection,

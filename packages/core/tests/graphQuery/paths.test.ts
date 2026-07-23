@@ -4,10 +4,10 @@ import { findGraphPaths } from '../../src/graphQuery';
 
 const graphData: IGraphData = {
   nodes: [
-    { id: 'a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-    { id: 'b.ts', label: 'b.ts', color: '#111111', nodeType: 'file' },
-    { id: 'c.ts', label: 'c.ts', color: '#111111', nodeType: 'file' },
-    { id: 'd.ts', label: 'd.ts', color: '#111111', nodeType: 'file' },
+    { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+    { id: 'b.ts', label: 'b.ts', nodeType: 'file' },
+    { id: 'c.ts', label: 'c.ts', nodeType: 'file' },
+    { id: 'd.ts', label: 'd.ts', nodeType: 'file' },
   ],
   edges: [
     { id: 'a.ts->c.ts#import', from: 'a.ts', to: 'c.ts', kind: 'import', sources: [] },
@@ -106,9 +106,9 @@ describe('core/graphQuery paths report', () => {
   it('keeps discovered paths acyclic', () => {
     const graphWithCycle: IGraphData = {
       nodes: [
-        { id: 'a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-        { id: 'b.ts', label: 'b.ts', color: '#111111', nodeType: 'file' },
-        { id: 'd.ts', label: 'd.ts', color: '#111111', nodeType: 'file' },
+        { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+        { id: 'b.ts', label: 'b.ts', nodeType: 'file' },
+        { id: 'd.ts', label: 'd.ts', nodeType: 'file' },
       ],
       edges: [
         { id: 'a.ts->b.ts#import', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [] },
@@ -141,7 +141,6 @@ describe('core/graphQuery paths report', () => {
     const symbolNode = (id: string, filePath: string) => ({
       id,
       label: id,
-      color: '#111111',
       nodeType: 'symbol',
       symbol: { id, name: id, kind: 'function', filePath },
     });
@@ -151,10 +150,10 @@ describe('core/graphQuery paths report', () => {
     ));
     const projectedGraph: IGraphData = {
       nodes: [
-        { id: 'a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-        { id: 'z.ts', label: 'z.ts', color: '#111111', nodeType: 'file' },
-        { id: 'shared.ts', label: 'shared.ts', color: '#111111', nodeType: 'file' },
-        { id: 'distinct.ts', label: 'distinct.ts', color: '#111111', nodeType: 'file' },
+        { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+        { id: 'z.ts', label: 'z.ts', nodeType: 'file' },
+        { id: 'shared.ts', label: 'shared.ts', nodeType: 'file' },
+        { id: 'distinct.ts', label: 'distinct.ts', nodeType: 'file' },
         symbolNode('shared.ts#route:function', 'shared.ts'),
         symbolNode('distinct.ts#route:function', 'distinct.ts'),
         ...targetSymbols,

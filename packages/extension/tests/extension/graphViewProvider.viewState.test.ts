@@ -295,6 +295,9 @@ describe('GraphViewProvider view state and internal helpers', () => {
         rebuildGraph: typeof rebuildGraph;
         registry: {
           list(): [];
+          extensionPlugins: {
+            list(): [];
+          };
           notifyGraphRebuild: typeof notifyGraphRebuild;
         };
       };
@@ -302,6 +305,9 @@ describe('GraphViewProvider view state and internal helpers', () => {
       rebuildGraph,
       registry: {
         list: () => [],
+        extensionPlugins: {
+          list: () => [],
+        },
         notifyGraphRebuild,
       },
     };

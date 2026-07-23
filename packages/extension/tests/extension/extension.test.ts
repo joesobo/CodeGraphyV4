@@ -28,6 +28,12 @@ describe('Extension', () => {
   });
 
   describe('activate', () => {
+    it('does not expose a raw plugin registration path', () => {
+      const api = activate(mockContext as unknown as Parameters<typeof activate>[0]);
+
+      expect(api).not.toHaveProperty('registerPlugin');
+    });
+
     it('should register the webview view provider', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 

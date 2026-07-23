@@ -13,7 +13,7 @@ export type CliCommandName =
   | 'scope'
   | 'status'
   | 'version';
-export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'link' | 'list' | 'register';
+export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'inherit' | 'link' | 'list' | 'register';
 
 export interface CliCommand {
   name: CliCommandName;
@@ -23,6 +23,7 @@ export interface CliCommand {
   invokedCommand?: string;
   packageName?: string;
   packageRoot?: string;
+  pluginScope?: 'global' | 'workspace';
   parseError?: string;
   projection?: WorkspaceGraphQueryProjection;
   report?: GraphQueryReport;

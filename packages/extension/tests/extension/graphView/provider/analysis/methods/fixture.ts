@@ -29,7 +29,6 @@ export function createSource(
   _applyViewTransform: ReturnType<typeof vi.fn>;
   _sendPluginStatuses: ReturnType<typeof vi.fn>;
   _sendDecorations: ReturnType<typeof vi.fn>;
-  _sendContextMenuItems: ReturnType<typeof vi.fn>;
   _analyzeAndSendData?: () => Promise<void>;
   _doAnalyzeAndSendData?: (signal: AbortSignal, requestId: number) => Promise<void>;
   _markWorkspaceReady?: (graph: IGraphData) => void;
@@ -64,7 +63,6 @@ export function createSource(
     _applyViewTransform: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
-    _sendContextMenuItems: vi.fn(),
     ...overrides,
   };
 }

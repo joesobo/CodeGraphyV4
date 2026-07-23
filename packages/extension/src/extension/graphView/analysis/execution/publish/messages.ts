@@ -44,10 +44,6 @@ export function publishStaticGraphMessages(handlers: GraphViewAnalysisExecutionH
   handlers.sendDepthState();
   handlers.sendPluginStatuses();
   handlers.sendDecorations();
-  handlers.sendContextMenuItems();
-  handlers.sendPluginExporters?.();
-  handlers.sendPluginToolbarActions?.();
-  handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections?.();
 }
 

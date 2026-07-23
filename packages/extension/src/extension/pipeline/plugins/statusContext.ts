@@ -1,15 +1,24 @@
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  createPluginActivityState,
   createBundledMarkdownInstalledPluginRecord,
+  createInitialCodeGraphyWorkspaceSettings,
+  preferBundledCodeGraphyPluginRecords,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettingsOrInitial,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyUserStateOptions,
 } from '@codegraphy-dev/core';
+import { readWorkspacePluginPackageRecords } from './bootstrap/bundledPackages';
 
 export interface WorkspacePluginStatusContext {
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[];
   workspaceEnabledPluginIds?: ReadonlySet<string>;
+}
+
+export interface WorkspacePluginStatusContextOptions extends CodeGraphyUserStateOptions {
+  bundledPackageRoots?: Iterable<string>;
 }
 
 function withBundledMarkdownPluginRecord(
@@ -27,23 +36,26 @@ function withBundledMarkdownPluginRecord(
 
 export function readWorkspacePluginStatusContext(
   workspaceRoot: string | undefined,
-  options: CodeGraphyUserStateOptions = {},
+  options: WorkspacePluginStatusContextOptions = {},
 ): WorkspacePluginStatusContext {
-  const installedPlugins = withBundledMarkdownPluginRecord(
-    readCodeGraphyInstalledPluginCache(options).plugins,
+  const installedPlugins = preferBundledCodeGraphyPluginRecords(
+    withBundledMarkdownPluginRecord(
+      readCodeGraphyInstalledPluginCache(options).plugins,
+    ),
+    readWorkspacePluginPackageRecords(options.bundledPackageRoots ?? []),
   );
 
-  if (!workspaceRoot) {
-    return { installedPlugins };
-  }
-
-  const workspacePluginIds = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
-    .plugins
-    .filter(plugin => plugin.enabled)
-    .map(plugin => plugin.id);
+  const settings = workspaceRoot
+    ? readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
+    : createInitialCodeGraphyWorkspaceSettings();
+  const activity = createPluginActivityState({
+    settings,
+    installedPlugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
 
   return {
     installedPlugins,
-    workspaceEnabledPluginIds: new Set(workspacePluginIds),
+    workspaceEnabledPluginIds: activity.enabledPluginIds,
   };
 }

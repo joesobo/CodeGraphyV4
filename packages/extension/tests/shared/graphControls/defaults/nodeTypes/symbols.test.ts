@@ -26,11 +26,6 @@ describe('shared/graphControls/defaults/nodeTypes/symbols', () => {
       'symbol:typedef',
       'symbol:alias',
       'symbol:template',
-      'plugin:codegraphy.gdscript:symbol:scene',
-      'plugin:codegraphy.gdscript:symbol:resource',
-      'plugin:codegraphy.gdscript:symbol:autoload',
-      'plugin:codegraphy.gdscript:symbol:scene-node',
-      'plugin:codegraphy.gdscript:symbol:signal',
     ]);
   });
 });

@@ -13,12 +13,7 @@ export type GraphInteractionEffect =
   | { kind: 'clearFocusedFile' }
   | { kind: 'previewNode'; nodeId: string }
   | { kind: 'openNode'; nodeId: string }
-  | { kind: 'focusNode'; nodeId: string }
-  | {
-      kind: 'sendInteraction';
-      event: 'graph:nodeClick' | 'graph:nodeDoubleClick' | 'graph:backgroundClick';
-      payload: unknown;
-    };
+  | { kind: 'focusNode'; nodeId: string };
 
 export interface GraphNodeContextMenuSelection {
   nodeIds: string[];

@@ -6,7 +6,6 @@ import type {
 import { unknownRecordSchema } from '../values';
 
 const impactSchema: z.ZodType<IPluginUpdateImpact> = z.enum([
-  'view-only',
   'settings-only',
   'projection-only',
   'reanalyze-plugin-files',

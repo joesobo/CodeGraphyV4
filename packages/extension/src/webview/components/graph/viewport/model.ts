@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { GraphViewStoreState } from '../view/store';
 import type {
   GraphContextSelection,
@@ -25,12 +25,12 @@ export interface GraphViewportModelOptions {
     contextSelection: GraphContextSelection;
     graphData: GraphRuntime['renderer']['graphData'];
   };
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
-  viewState: Pick<GraphViewStoreState, 'favorites' | 'pluginContextMenuItems'>;
+  viewState: Pick<GraphViewStoreState, 'favorites'>;
 }
 
 export function useGraphViewportModel({
@@ -68,7 +68,6 @@ export function useGraphViewportModel({
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
     favorites: viewState.favorites,
-    pluginItems: viewState.pluginContextMenuItems,
     graphViewContributions,
     nodes: graphState.graphData.nodes,
     edges: graphState.graphData.links,

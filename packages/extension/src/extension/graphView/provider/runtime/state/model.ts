@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../../core/views/contracts';
 import { ViewRegistry } from '../../../../../core/views/registry';
 import { DecorationManager } from '../../../../../core/plugins/decoration/manager';
-import { EventBus } from '../../../../../core/plugins/events/bus';
+import { EventBus } from '../../../../events/bus';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { NodeSizeMode } from '../../../../../shared/settings/modes';
@@ -113,7 +113,13 @@ export class GraphViewProviderRuntime {
     this._decorationManager = new DecorationManager();
     this._context.subscriptions.push({
       dispose: () => {
-        this._extensionMessageEmitter.dispose();
+        this._analysisController?.abort();
+        this._indexingController?.abort();
+        try {
+          this._analyzer?.dispose();
+        } finally {
+          this._extensionMessageEmitter.dispose();
+        }
       },
     });
 

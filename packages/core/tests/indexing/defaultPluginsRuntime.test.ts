@@ -38,7 +38,7 @@ describe('indexing/defaultPlugins runtime loading', () => {
       },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' }],
       },
     );
 

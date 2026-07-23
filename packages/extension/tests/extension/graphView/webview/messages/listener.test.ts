@@ -242,32 +242,6 @@ describe('graph view webview message listener', () => {
     expect(context.clearCacheAndRefresh).not.toHaveBeenCalled();
   });
 
-  it('does not store ready state for handled plugin messages without a ready flag', async () => {
-    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
-    const webview = {
-      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-        messageHandler = handler;
-        return { dispose: () => {} };
-      }),
-    };
-    const context = createContext();
-
-    setGraphViewWebviewMessageListener(webview as never, context);
-    await messageHandler?.({
-      type: 'GRAPH_INTERACTION',
-      payload: {
-        event: 'nodeClick',
-        data: { pluginId: 'plugin.test', nodeId: 'src/index.ts' },
-      },
-    });
-
-    expect(context.emitEvent).toHaveBeenCalledWith('nodeClick', {
-      pluginId: 'plugin.test',
-      nodeId: 'src/index.ts',
-    });
-    expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
-  });
-
   it('ignores messages not handled by the primary or plugin dispatchers', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {

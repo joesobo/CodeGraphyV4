@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { afterEach, describe, expect, it } from 'vitest';
 import { analyzeUnitySerializedFile } from '../../../../plugin-unity/src/analysis';
+import { createUnityNodeTypes } from '../../../../plugin-unity/src/graph/types';
 import {
   buildCompleteWorkspaceGraphData,
   readWorkspaceAnalysisDatabaseSnapshot,
@@ -15,6 +16,7 @@ import {
   createWorkspaceTempRoot,
   readExampleWorkspaceFiles,
 } from '../../acceptance/graphView/workspace';
+import { mergeNodeTypes } from '../../../src/extension/graphView/controls/send/definitions/mergeNodeTypes';
 import { applyGraphScope } from '../../../src/shared/visibleGraph/scope';
 
 const tempRoots = new Set<string>();
@@ -52,7 +54,7 @@ describe('Unity Graph Cache round trip', { timeout: 30_000 }, () => {
       showOrphans: true,
       workspaceRoot,
     });
-    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, graph);
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, graph, createUnityNodeTypes());
     const persistedGraph = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).graph;
     const expectedKeys = [...new Set(graph.nodes.map(node => node.id))].sort();
     const persistedKeys = persistedGraph.nodes.map(node => node.id).sort();
@@ -71,6 +73,8 @@ describe('Unity Graph Cache round trip', { timeout: 30_000 }, () => {
     expect(new Set(persistedComponents.map(node => node.nodeType))).toEqual(
       new Set(['plugin:codegraphy.unity:symbol:component']),
     );
+    const unityNodeTypes = createUnityNodeTypes();
+
     expect(applyGraphScope(persistedGraph, {
       nodes: [
         { type: 'file', enabled: true },
@@ -80,6 +84,12 @@ describe('Unity Graph Cache round trip', { timeout: 30_000 }, () => {
         { type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
       ],
       edges: [{ type: 'contains', enabled: true }],
+      nodeTypes: mergeNodeTypes(
+        persistedGraph,
+        unityNodeTypes,
+        {},
+        unityNodeTypes.map(nodeType => nodeType.id),
+      ),
     }).nodes).toHaveLength(135);
   });
 });

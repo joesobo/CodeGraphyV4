@@ -14,23 +14,3 @@ export function createSymbolNodeType(
     parentId: 'symbol',
   };
 }
-
-interface GodotSymbolNodeTypeDefinition extends Omit<
-  SymbolNodeTypeDefinition,
-  'matchSymbolKinds' | 'matchSymbolPluginKind' | 'matchSymbolSource' | 'pluginName'
-> {
-  pluginKind: string;
-}
-
-export function createGodotSymbolNodeType(
-  definition: GodotSymbolNodeTypeDefinition,
-): IGraphNodeTypeDefinition {
-  const { pluginKind, ...nodeType } = definition;
-  return createSymbolNodeType({
-    ...nodeType,
-    pluginName: 'Godot',
-    matchSymbolKinds: [pluginKind],
-    matchSymbolPluginKind: pluginKind,
-    matchSymbolSource: 'codegraphy.gdscript',
-  });
-}

@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../../shared/fileColors';
 import type { IGroup } from '../../../../shared/settings/groups';
 import { globMatch } from '../../../globMatch';
 
@@ -15,7 +16,7 @@ export function buildExportNodes(graphData: IGraphData, activeLegendRules: IGrou
       id: node.id,
       label: node.label,
       nodeType: node.nodeType ?? 'file',
-      color: node.color,
+      color: node.color ?? DEFAULT_NODE_COLOR,
       legendIds: getNodeLegendIds(node.id, activeLegendRules),
       symbol: node.symbol,
       fileSize: node.fileSize,

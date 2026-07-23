@@ -1,4 +1,4 @@
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import type { IFileAnalysisResult, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../discovery/contracts';
 import type { IGraphData } from '../graph/contracts';
 import { throwIfWorkspaceAnalysisAborted } from './abort';
@@ -52,6 +52,9 @@ export interface WorkspacePipelineAnalysisSource {
     disabledPlugins?: Set<string>,
   ): Promise<void>;
   getPluginFilterPatterns(disabledPlugins?: ReadonlySet<string>): string[];
+  _listPluginNodeTypes?(
+    disabledPlugins?: ReadonlySet<string>,
+  ): readonly IPluginNodeType[];
 }
 
 export interface WorkspacePipelineAnalysisDependencies

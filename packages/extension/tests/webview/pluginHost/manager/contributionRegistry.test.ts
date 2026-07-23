@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphViewRuntimeNodeContribution } from '../../../../src/core/plugins/types/contracts';
+import type { IGraphViewRuntimeNodeContribution } from '@codegraphy-dev/extension-plugin-api';
 import { GraphViewContributionRegistry } from '../../../../src/webview/pluginHost/manager/contributionRegistry';
 
 function runtimeNodeContribution(id: string): IGraphViewRuntimeNodeContribution {
@@ -62,6 +62,32 @@ describe('webview/pluginHost/manager/contributionRegistry', () => {
     registry.register('plugin.two', { runtimeNodes: [runtimeNodeContribution('after-unsubscribe')] });
 
     expect(listener).toHaveBeenCalledTimes(4);
+  });
+
+  it('continues notifying contribution listeners when one listener throws', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const registry = new GraphViewContributionRegistry();
+    const failingListener = vi.fn(() => {
+      throw new Error('listener failed');
+    });
+    const healthyListener = vi.fn();
+    registry.subscribe(failingListener);
+    registry.subscribe(healthyListener);
+
+    let disposable: ReturnType<GraphViewContributionRegistry['register']> | undefined;
+    expect(() => {
+      disposable = registry.register('plugin.one', {
+        runtimeNodes: [runtimeNodeContribution('node')],
+      });
+    }).not.toThrow();
+    expect(() => disposable?.dispose()).not.toThrow();
+
+    expect(failingListener).toHaveBeenCalledTimes(2);
+    expect(healthyListener).toHaveBeenCalledTimes(2);
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] Graph View contribution listener failed:',
+      expect.any(Error),
+    );
   });
 
   it('allows a contribution disposable to run after its plugin was removed', () => {

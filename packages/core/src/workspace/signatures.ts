@@ -22,14 +22,26 @@ export function createCodeGraphyWorkspacePluginSignature(
     .join('|');
 }
 
+export function createCodeGraphyWorkspacePluginBuildSignature(
+  plugins: ReadonlyArray<{ id: string; signature: string }>,
+): string | null {
+  if (plugins.length === 0) {
+    return null;
+  }
+
+  return createHash('sha1')
+    .update(JSON.stringify(plugins))
+    .digest('hex');
+}
+
 export function createCodeGraphyWorkspacePackageAwarePluginSignature(input: {
   runtimePlugins: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
-  packagePlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version'>>;
+  packagePlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'id' | 'package' | 'version'>>;
   missingPackagePlugins?: readonly string[];
 }): string | null {
   const entries = [
     ...input.runtimePlugins.map(plugin => `${plugin.id}@${plugin.version}`),
-    ...(input.packagePlugins ?? []).map(plugin => `npm:${plugin.package}@${plugin.version}`),
+    ...(input.packagePlugins ?? []).map(plugin => `npm:${plugin.id}:${plugin.package}@${plugin.version}`),
     ...(input.missingPackagePlugins ?? []).map(packageName => `npm:${packageName}@missing`),
   ];
 
@@ -38,17 +50,20 @@ export function createCodeGraphyWorkspacePackageAwarePluginSignature(input: {
 
 export function createCodeGraphyWorkspaceSettingsSignature(
   settings: CodeGraphyWorkspaceSettings,
+  analysisPluginIds?: ReadonlySet<string>,
 ): string {
   const stableSettings = {
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     maxFiles: settings.maxFiles,
     include: settings.include,
     respectGitignore: settings.respectGitignore,
-    plugins: settings.plugins.map(plugin => ({
-      id: plugin.id,
-      enabled: plugin.enabled,
-      options: sortRecord(plugin.options),
-    })),
+    plugins: settings.plugins
+      .filter(plugin => analysisPluginIds?.has(plugin.id) ?? true)
+      .map(plugin => ({
+        id: plugin.id,
+        activation: plugin.activation,
+        options: sortRecord(plugin.options),
+      })),
   };
 
   return createHash('sha1')

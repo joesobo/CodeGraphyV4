@@ -129,7 +129,6 @@ describe('graphCache/database/serializer', () => {
         id: 'src/player.cs#speed:field',
         nodeType: 'variable',
         label: 'speed',
-        color: '#fff',
         symbol: {
           id: 'src/player.cs#speed:field',
           filePath: 'src/player.cs',
@@ -201,8 +200,8 @@ describe('graphCache/database/serializer', () => {
       },
     }, {
       nodes: [
-        { id: 'eslint.config.mjs', nodeType: 'file', label: 'eslint.config.mjs', color: '#fff' },
-        { id: 'pkg:@eslint/js', nodeType: 'package', label: '@eslint/js', color: '#fff' },
+        { id: 'eslint.config.mjs', nodeType: 'file', label: 'eslint.config.mjs' },
+        { id: 'pkg:@eslint/js', nodeType: 'package', label: '@eslint/js' },
       ],
       edges: [{
         id: 'eslint.config.mjs->pkg:@eslint/js#import',

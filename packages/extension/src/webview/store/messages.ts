@@ -24,10 +24,6 @@ import {
 import {
   handlePluginsUpdated,
   handleDecorationsUpdated,
-  handleContextMenuItems,
-  handlePluginExportersUpdated,
-  handlePluginToolbarActionsUpdated,
-  handleGraphViewContributionsUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
 import { handleToggleDepthMode } from './messageHandlers/toolbar';
@@ -106,14 +102,6 @@ export const MESSAGE_HANDLERS: Record<
       msg as Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>,
       ctx,
     ),
-  CONTEXT_MENU_ITEMS: (msg) =>
-    handleContextMenuItems(msg as Extract<ExtensionToWebviewMessage, { type: 'CONTEXT_MENU_ITEMS' }>),
-  PLUGIN_EXPORTERS_UPDATED: (msg) =>
-    handlePluginExportersUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>),
-  PLUGIN_TOOLBAR_ACTIONS_UPDATED: (msg) =>
-    handlePluginToolbarActionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>),
-  GRAPH_VIEW_CONTRIBUTIONS_UPDATED: (msg) =>
-    handleGraphViewContributionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>),
   PLUGIN_WEBVIEW_INJECT: () => undefined,
   NODE_SIZE_MODE_UPDATED: (msg) =>
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FileDiscovery } from '@codegraphy-dev/core';
-import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline/plugins/registry';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import { hasWorkspacePipelineIndex } from '../../../../src/extension/pipeline/service/cache/index';
 import { getWorkspacePipelineIndexStatus } from '../../../../src/extension/pipeline/service/indexStatus';
@@ -52,7 +52,10 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
 
   _config = { id: 'config' } as unknown as Configuration;
   _discovery = { kind: 'discovery' } as unknown as FileDiscovery;
-  _registry = { id: 'registry' } as unknown as PluginRegistry;
+  _registry = {
+    id: 'registry',
+    disposeAll: vi.fn(),
+  } as unknown as WorkspacePluginRegistry;
 
   constructor() {
     super({
@@ -75,8 +78,16 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
     return this._getEffectivePluginFilterPatterns(disabledPlugins);
   }
 
+  disposePluginHost(): void {
+    this._disposeWorkspacePluginHost();
+  }
+
   protected override _getPluginSignature(): string | null {
     return 'plugin-signature';
+  }
+
+  protected override _getPluginBuildSignature(): string | null {
+    return 'plugin-build-signature';
   }
 
   protected override _getSettingsSignature(): string {
@@ -141,12 +152,37 @@ describe('extension/pipeline/service/pluginFacade', () => {
       expect.any(Promise),
       facade._registry,
       expect.any(Function),
+      expect.any(Function),
     );
     expect(initializeWorkspacePipelinePlugins).toHaveBeenCalledWith(
       facade._registry,
       expect.any(Function),
       '/extension',
     );
+  });
+
+  it('cleans partial initialization when disposal happens before an initialization error', async () => {
+    let markInitializationStarted!: () => void;
+    let rejectInitialization!: (error: Error) => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((_resolve, reject) => {
+      rejectInitialization = reject;
+    });
+    vi.mocked(initializeWorkspacePipelinePlugins).mockImplementationOnce(async () => {
+      markInitializationStarted();
+      await initializationGate;
+    });
+    const facade = new TestPluginFacade();
+
+    const initialization = facade.initialize();
+    await initializationStarted;
+    facade.disposePluginHost();
+    rejectInitialization(new Error('initialization failed'));
+
+    await expect(initialization).rejects.toThrow('initialization failed');
+    expect(facade._registry.disposeAll).toHaveBeenCalledTimes(2);
   });
 
   it('syncs workspace plugins with the current workspace-root callback', async () => {
@@ -157,6 +193,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     expect(queueWorkspacePipelinePluginSync).toHaveBeenCalledWith(
       expect.any(Promise),
       facade._registry,
+      expect.any(Function),
       expect.any(Function),
       '/extension',
     );
@@ -200,6 +237,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     });
 
     const statusInput = vi.mocked(getWorkspacePipelineIndexStatus).mock.calls[0][0];
+    expect(statusInput.pluginBuildSignature).toBe('plugin-build-signature');
     expect(statusInput.pluginSignature).toBe('plugin-signature');
     expect(statusInput.settingsSignature).toBe('settings-signature');
     expect(statusInput.workspaceRoot).toBe('/workspace');

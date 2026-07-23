@@ -4,7 +4,6 @@ import { nodeMatchesProjectedNodeTypes } from '../../../../src/graphQuery/nodeTy
 const functionNode = {
   id: 'src/app.ts#run:function',
   label: 'run',
-  color: '#000000',
   nodeType: 'symbol:function',
   symbol: {
     id: 'src/app.ts:function:run',
@@ -55,7 +54,6 @@ describe('graph query Node Type matching', () => {
     const fileNode = {
       id: 'src/app.ts',
       label: 'app.ts',
-      color: '#000000',
       nodeType: 'file',
     };
 

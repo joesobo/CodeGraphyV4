@@ -4,8 +4,9 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
+import type { IGroup } from '../../../../../../shared/settings/groups';
 import type { GraphContextMenuActionInvocation, GraphContextSelection } from '../../../contextMenu/contracts';
 import type { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
 import type { FGNode } from '../../../model/build';
@@ -23,13 +24,14 @@ export interface UseGraphInteractionRuntimeOptions {
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: GraphRuntime['renderer']['graphDataRef'];
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   highlightedNeighborsRef: GraphRuntime['highlightedNeighborsRef'];
   highlightedNodeRef: GraphRuntime['highlightedNodeRef'];
   isMacPlatform: boolean;
   lastClickRef: GraphRuntime['lastClickRef'];
   lastContainerContextMenuEventRef: GraphRuntime['context']['lastContainerContextMenuEventRef'];
   lastGraphContextEventRef: GraphRuntime['context']['lastGraphContextEventRef'];
+  legends?: readonly IGroup[];
   openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;

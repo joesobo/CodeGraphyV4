@@ -8,6 +8,7 @@ import {
 } from '../../shared/settings/physics';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  type CodeGraphyWorkspaceInterfaceSettings,
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
 import {
@@ -16,29 +17,19 @@ import {
   createDefaultNodeVisibility,
 } from '../../shared/graphControls/defaults/maps';
 
-export interface ICodeGraphyRepoSettings {
-  version: 2;
-  maxFiles: number;
+export const CODEGRAPHY_EXTENSION_INTERFACE_ID = 'codegraphy.extension';
+
+export interface ICodeGraphyExtensionInterfaceSettings {
+  showOrphans: boolean;
   showFps: boolean;
   showMinimap: boolean;
-  verboseDiagnostics: boolean;
-  include: string[];
-  respectGitignore: boolean;
-  showOrphans: boolean;
   cssSnippets: Record<string, boolean>;
-  plugins: CodeGraphyWorkspacePluginSettings[];
-  pluginData: Record<string, unknown>;
   nodeColors: Record<string, string>;
-  nodeVisibility: Record<string, boolean>;
-  edgeVisibility: Record<string, boolean>;
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
   legendVisibility: Record<string, boolean>;
   legendOrder: string[];
-  filterPatterns: string[];
-  disabledCustomFilterPatterns: string[];
-  disabledPluginFilterPatterns: string[];
   showLabels: boolean;
   directionMode: 'arrows' | 'particles' | 'none';
   directionColor: string;
@@ -50,33 +41,56 @@ export interface ICodeGraphyRepoSettings {
   physics: IPhysicsSettings;
 }
 
-export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
+export const CODEGRAPHY_EXTENSION_INTERFACE_SETTING_KEYS = [
+  'showOrphans',
+  'showFps',
+  'showMinimap',
+  'cssSnippets',
+  'nodeColors',
+  'favorites',
+  'bidirectionalEdges',
+  'legend',
+  'legendVisibility',
+  'legendOrder',
+  'showLabels',
+  'directionMode',
+  'directionColor',
+  'particleSpeed',
+  'particleSize',
+  'depthMode',
+  'depthLimit',
+  'nodeSizeMode',
+  'physics',
+] satisfies readonly (keyof ICodeGraphyExtensionInterfaceSettings)[];
+
+export interface ICodeGraphyRepoSettings extends ICodeGraphyExtensionInterfaceSettings {
+  version: 4;
+  maxFiles: number;
+  verboseDiagnostics: boolean;
+  include: string[];
+  respectGitignore: boolean;
+  plugins: CodeGraphyWorkspacePluginSettings[];
+  interfaces: CodeGraphyWorkspaceInterfaceSettings[];
+  pluginData: Record<string, unknown>;
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
+}
+
+function createDefaultExtensionInterfaceSettings(): ICodeGraphyExtensionInterfaceSettings {
   return {
-    version: 2,
-    maxFiles: DEFAULT_MAX_FILES,
+    showOrphans: true,
     showFps: false,
     showMinimap: DEFAULT_SHOW_MINIMAP,
-    verboseDiagnostics: false,
-    include: ['**/*'],
-    respectGitignore: true,
-    showOrphans: true,
     cssSnippets: {},
-    plugins: [{
-      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      enabled: true,
-    }],
-    pluginData: {},
     nodeColors: createDefaultNodeColors(),
-    nodeVisibility: createDefaultNodeVisibility(),
-    edgeVisibility: createDefaultEdgeVisibility(),
     favorites: [],
     bidirectionalEdges: 'separate',
     legend: [],
     legendVisibility: {},
     legendOrder: [],
-    filterPatterns: [],
-    disabledCustomFilterPatterns: [],
-    disabledPluginFilterPatterns: [],
     showLabels: true,
     directionMode: 'arrows',
     directionColor: DEFAULT_DIRECTION_COLOR,
@@ -86,5 +100,32 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     depthLimit: 1,
     nodeSizeMode: 'connections',
     physics: { ...DEFAULT_PHYSICS_SETTINGS },
+  };
+}
+
+export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
+  const extensionSettings = createDefaultExtensionInterfaceSettings();
+
+  return {
+    version: 4,
+    maxFiles: DEFAULT_MAX_FILES,
+    verboseDiagnostics: false,
+    include: ['**/*'],
+    respectGitignore: true,
+    plugins: [{
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      activation: 'inherit',
+    }],
+    interfaces: [{
+      id: CODEGRAPHY_EXTENSION_INTERFACE_ID,
+      data: createDefaultExtensionInterfaceSettings(),
+    }],
+    pluginData: {},
+    nodeVisibility: createDefaultNodeVisibility(),
+    edgeVisibility: createDefaultEdgeVisibility(),
+    filterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    disabledPluginFilterPatterns: [],
+    ...extensionSettings,
   };
 }

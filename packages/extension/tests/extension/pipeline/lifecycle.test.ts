@@ -344,6 +344,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       lastIndexedCommit: 'abc123',
+      pluginBuildSignature: 'plugin-build-signature',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
       pendingChangedFiles: [],
@@ -372,6 +373,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       version: 1,
       lastIndexedAt: null,
       lastIndexedCommit: null,
+      pluginBuildSignature: null,
       pluginSignature: null,
       settingsSignature: null,
       pendingChangedFiles: [],
@@ -517,10 +519,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
+      pluginBuildSignature: null,
       pluginSignature: 'old-plugin-signature',
       settingsSignature: 'settings-signature',
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
+      failedPluginIds: [],
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -556,10 +560,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
+      pluginBuildSignature: null,
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
+      failedPluginIds: [],
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -595,10 +601,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
+      pluginBuildSignature: null,
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
       analysisVersion: 'old-analysis-version',
       pendingChangedFiles: [],
+      failedPluginIds: [],
     });
     vi.spyOn(
       analyzer as unknown as {

@@ -53,14 +53,6 @@ describe('graph/interaction node double click', () => {
         { kind: 'selectOnlyNode', nodeId: 'src/app.ts' },
         { kind: 'openNode', nodeId: 'src/app.ts' },
         { kind: 'focusNode', nodeId: 'src/app.ts' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeDoubleClick',
-          payload: {
-            node: { id: 'src/app.ts', label: 'app.ts' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
   });
@@ -76,14 +68,6 @@ describe('graph/interaction node double click', () => {
       nextLastClick: null,
       effects: [
         { kind: 'selectOnlyNode', nodeId: 'plugin-node' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeDoubleClick',
-          payload: {
-            node: { id: 'plugin-node', label: 'Plugin Node' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
     expect(result.effects).not.toContainEqual({ kind: 'openNode', nodeId: 'plugin-node' });

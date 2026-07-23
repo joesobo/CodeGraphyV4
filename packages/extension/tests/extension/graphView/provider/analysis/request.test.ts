@@ -30,7 +30,6 @@ function createSource(
     _applyViewTransform: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
-    _sendContextMenuItems: vi.fn(),
     ...overrides,
   };
 }

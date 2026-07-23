@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { UseGraphCallbacksResult } from '../../rendering/useGraphCallbacks';
 import type { GraphRuntime } from '../../runtime/use/state';
 import type { GraphViewStoreState } from '../../view/store';
@@ -7,7 +7,7 @@ import type { ViewportProps } from '../view';
 export interface CreateGraphViewportSurfacePropsInput {
   callbacks: UseGraphCallbacksResult;
   graphState: GraphRuntime;
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   onRenderFramePost: ViewportProps['surface2dProps']['onRenderFramePost'];
   sharedProps: ViewportProps['surface2dProps']['sharedProps'];
   viewState: Pick<

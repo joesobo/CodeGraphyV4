@@ -1,4 +1,4 @@
-import type { CodeGraphyWebviewAPI } from '@codegraphy-dev/plugin-api';
+import type { CodeGraphyWebviewAPI } from '@codegraphy-dev/extension-plugin-api';
 
 export type ParticlePreset =
   | 'none'

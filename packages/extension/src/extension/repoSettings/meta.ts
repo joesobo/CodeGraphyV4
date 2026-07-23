@@ -7,6 +7,7 @@ export interface ICodeGraphyRepoMeta {
   version: 1;
   lastIndexedAt: string | null;
   lastIndexedCommit: string | null;
+  pluginBuildSignature: string | null;
   pluginSignature: string | null;
   settingsSignature: string | null;
   pendingChangedFiles: string[];
@@ -20,12 +21,14 @@ const codeGraphyRepoMetaSchema = z.looseObject({
   lastIndexedAt: optionalNullableStringSchema,
   lastIndexedCommit: optionalNullableStringSchema,
   pendingChangedFiles: looseStringArraySchema,
+  pluginBuildSignature: optionalNullableStringSchema,
   pluginSignature: optionalNullableStringSchema,
   settingsSignature: optionalNullableStringSchema,
 }).transform((meta): ICodeGraphyRepoMeta => ({
   ...createDefaultCodeGraphyRepoMeta(),
   ...(meta.lastIndexedAt !== undefined ? { lastIndexedAt: meta.lastIndexedAt } : {}),
   ...(meta.lastIndexedCommit !== undefined ? { lastIndexedCommit: meta.lastIndexedCommit } : {}),
+  ...(meta.pluginBuildSignature !== undefined ? { pluginBuildSignature: meta.pluginBuildSignature } : {}),
   ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
   ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
   pendingChangedFiles: meta.pendingChangedFiles,
@@ -37,6 +40,7 @@ export function createDefaultCodeGraphyRepoMeta(): ICodeGraphyRepoMeta {
     version: 1,
     lastIndexedAt: null,
     lastIndexedCommit: null,
+    pluginBuildSignature: null,
     pluginSignature: null,
     settingsSignature: null,
     pendingChangedFiles: [],

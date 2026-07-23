@@ -5,7 +5,6 @@
  * - L37:19 ArrowFunction: () => undefined (getGraphData callback)
  * - L38:20 ArrowFunction: () => undefined (sendToWebview callback)
  * - L39:23 ArrowFunction: () => undefined (onWebviewMessage callback)
- * - L40:21 ArrowFunction: () => undefined (registerPlugin callback)
  *
  * Each of these mutations replaces the arrow function body with `() => undefined`,
  * meaning the API methods would silently return undefined instead of delegating
@@ -91,20 +90,4 @@ describe('activate() API return values delegate to provider', () => {
     expect(disposable).not.toBeUndefined();
   });
 
-  it('registerPlugin delegates to the provider with plugin and options', () => {
-    const api = activate(mockContext as unknown as vscode.ExtensionContext);
-
-    const provider = (
-      vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
-    ).mock.calls[0]?.[1] as GraphViewProvider;
-
-    const registerSpy = vi.spyOn(provider, 'registerExternalPlugin').mockImplementation(async () => undefined);
-    const mockPlugin = { id: 'test-plugin' };
-    const mockOptions = { extensionUri: '/ext' };
-
-    api.registerPlugin(mockPlugin, mockOptions);
-
-    // If mutated to () => undefined, registerExternalPlugin would NOT be called
-    expect(registerSpy).toHaveBeenCalledWith(mockPlugin, mockOptions);
-  });
 });

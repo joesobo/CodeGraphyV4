@@ -139,8 +139,8 @@ describe('GraphViewProvider lifecycle', () => {
     vi.spyOn(internals._fileInfoMethods, '_sendFavorites').mockImplementation(() => {});
 
     (provider as unknown as {
-      _analyzer: { clearCache: () => void };
-    })._analyzer = { clearCache };
+      _analyzer: { clearCache: () => void; hasIndex: () => boolean };
+    })._analyzer = { clearCache, hasIndex: () => true };
 
     await provider.clearCacheAndRefresh();
 

@@ -1,14 +1,14 @@
-import type { CodeGraphyPluginPackageManifest } from '../packageManifest';
+import type { CodeGraphyPluginPackageDescriptor } from '../packageManifest';
 
-export interface CodeGraphyInstalledPluginRecord extends CodeGraphyPluginPackageManifest {
+export interface CodeGraphyInstalledPluginRecord extends CodeGraphyPluginPackageDescriptor {
+  package: string;
+  version: string;
   packageRoot: string;
-  pluginId?: string;
-  pluginName?: string;
-  supportedExtensions?: string[];
+  globallyEnabled: boolean;
 }
 
 export interface CodeGraphyInstalledPluginCache {
-  version: 1;
+  version: 3;
   plugins: CodeGraphyInstalledPluginRecord[];
 }
 

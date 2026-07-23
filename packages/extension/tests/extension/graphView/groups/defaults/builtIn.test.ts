@@ -83,7 +83,7 @@ describe('graphView/builtInDefaultGroups', () => {
     ]));
   });
 
-  it('adds scoped symbol defaults for core symbol kinds and Godot class names', () => {
+  it('adds only core symbol defaults from the built-in catalog', () => {
     const groups = getBuiltInGraphViewDefaultGroups(
       {
         nodes: [
@@ -200,27 +200,13 @@ describe('graphView/builtInDefaultGroups', () => {
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
       }),
-      expect.objectContaining({
-        id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
-        displayLabel: 'class_name',
-        pattern: '**',
-        color: '#478CBF',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'class',
-        matchSymbolPluginKind: 'godot-class-name',
-        matchSymbolSource: 'codegraphy.gdscript',
-        matchSymbolLanguage: 'gdscript',
-        matchSymbolFilePath: '**/*.gd',
-        isPluginDefault: true,
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-      }),
     ]));
 
     expect(groups.map((group) => group.id)).not.toEqual(expect.arrayContaining([
       'default:symbol-kind:struct',
       'default:symbol-kind:enum',
       'default:symbol-kind:plugin',
+      'plugin:codegraphy.gdscript:symbol:godot-class-name',
     ]));
   });
 

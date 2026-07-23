@@ -93,7 +93,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
 
     const state = readSettingsFromDisk(settingsPath, defaults);
 
-    expect(state.settings.version).toBe(2);
+    expect(state.settings.version).toBe(4);
     expect(state.settings.physics).toMatchObject({
       centerForce: 0.25,
       damping: 0.4,
@@ -102,9 +102,91 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
       repelForce: 6,
     });
     expect(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))).toMatchObject({
-      version: 2,
-      physics: { damping: 0.4, linkForce: 1 },
+      version: 4,
+      interfaces: [{
+        id: 'codegraphy.extension',
+        data: { physics: { damping: 0.4, linkForce: 1 } },
+      }],
     });
+  });
+
+  it('migrates version two Extension intent into its interface entry', () => {
+    const defaults = createDefaultCodeGraphyRepoSettings();
+    const settingsPath = createTempSettingsPath();
+    tempDirectories.push(path.dirname(path.dirname(settingsPath)));
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      version: 2,
+      nodeColors: { file: '#123456' },
+      favorites: ['src/app.ts'],
+      directionMode: 'particles',
+      depthLimit: 4,
+      nodeSizeMode: 'file-size',
+      physics: { damping: 0.2 },
+    }), 'utf8');
+
+    const state = readSettingsFromDisk(settingsPath, defaults);
+    const persisted = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as Record<string, unknown>;
+    const interfaces = persisted.interfaces as Array<{ id: string; data: Record<string, unknown> }>;
+
+    expect(state.settings).toMatchObject({
+      version: 4,
+      nodeColors: { file: '#123456' },
+      favorites: ['src/app.ts'],
+      directionMode: 'particles',
+      depthLimit: 4,
+      nodeSizeMode: 'file-size',
+      physics: { damping: 0.2 },
+    });
+    expect(interfaces.find(entry => entry.id === 'codegraphy.extension')?.data).toMatchObject({
+      nodeColors: { file: '#123456' },
+      favorites: ['src/app.ts'],
+      directionMode: 'particles',
+      depthLimit: 4,
+      nodeSizeMode: 'file-size',
+      physics: { damping: 0.2 },
+    });
+    expect(persisted).not.toHaveProperty('nodeColors');
+    expect(persisted).not.toHaveProperty('favorites');
+    expect(persisted).not.toHaveProperty('directionMode');
+    expect(persisted).not.toHaveProperty('depthLimit');
+    expect(persisted).not.toHaveProperty('nodeSizeMode');
+    expect(persisted).not.toHaveProperty('physics');
+  });
+
+  it('migrates remaining version three Extension intent into its interface entry', () => {
+    const defaults = createDefaultCodeGraphyRepoSettings();
+    const settingsPath = createTempSettingsPath();
+    tempDirectories.push(path.dirname(path.dirname(settingsPath)));
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      version: 3,
+      showFps: true,
+      showMinimap: false,
+      showOrphans: false,
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
+    }), 'utf8');
+
+    const state = readSettingsFromDisk(settingsPath, defaults);
+    const persisted = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as Record<string, unknown>;
+    const interfaces = persisted.interfaces as Array<{ id: string; data: Record<string, unknown> }>;
+
+    expect(state.settings).toMatchObject({
+      version: 4,
+      showFps: true,
+      showMinimap: false,
+      showOrphans: false,
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
+    });
+    expect(interfaces.find(entry => entry.id === 'codegraphy.extension')?.data).toMatchObject({
+      showFps: true,
+      showMinimap: false,
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
+    });
+    expect(persisted).not.toHaveProperty('showFps');
+    expect(persisted).not.toHaveProperty('showMinimap');
+    expect(persisted).not.toHaveProperty('showOrphans');
+    expect(persisted).not.toHaveProperty('cssSnippets');
   });
 
   it('reads an already-normalized settings file without rewriting it', () => {

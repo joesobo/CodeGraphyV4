@@ -57,4 +57,23 @@ describe('graph view plugin graph work scheduler', () => {
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
     expect(reprocessPluginFiles).not.toHaveBeenCalled();
   });
+
+  it('reports a rejected scheduled refresh without leaving an unhandled promise', async () => {
+    vi.useFakeTimers();
+    const error = new Error('refresh failed');
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const scheduler = createPluginGraphWorkScheduler({
+      analyzeAndSendData: vi.fn(() => Promise.reject(error)),
+      reprocessPluginFiles: vi.fn(() => Promise.resolve()),
+      smartRebuild: vi.fn(),
+    }, { delayMs: 50 });
+
+    scheduler.schedule({ kind: 'analyze-workspace' });
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(logError).toHaveBeenCalledWith(
+      '[CodeGraphy] Scheduled plugin graph refresh failed:',
+      error,
+    );
+  });
 });

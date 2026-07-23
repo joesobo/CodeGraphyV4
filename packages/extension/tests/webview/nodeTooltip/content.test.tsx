@@ -78,6 +78,54 @@ describe('nodeTooltipContent', () => {
     expect(action).toHaveBeenCalledOnce();
   });
 
+  it('reports tooltip actions that throw without breaking the click path', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <TooltipExtraSections
+        sections={[]}
+        actions={[{
+          id: 'broken',
+          label: 'Broken action',
+          action() {
+            throw new Error('action failed');
+          },
+        }]}
+      />,
+    );
+
+    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Broken action' })))
+      .not.toThrow();
+    expect(errorSpy).toHaveBeenCalledWith(
+      "[CodeGraphy] Tooltip action 'broken' failed:",
+      expect.any(Error),
+    );
+  });
+
+  it('reports tooltip actions that reject', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <TooltipExtraSections
+        sections={[]}
+        actions={[{
+          id: 'rejected',
+          label: 'Rejected action',
+          async action() {
+            throw new Error('action rejected');
+          },
+        }]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rejected action' }));
+
+    await vi.waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        "[CodeGraphy] Tooltip action 'rejected' failed:",
+        expect.any(Error),
+      );
+    });
+  });
+
   it('renders a section list without an action wrapper when there are no actions', () => {
     const { container } = render(
       <TooltipExtraSections

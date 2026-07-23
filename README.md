@@ -152,7 +152,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin processing, SQLite Graph Cache storage, Graph Query, and the CLI. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Headless plugins communicate through `@codegraphy-dev/plugin-api` contracts.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|
@@ -160,8 +160,9 @@ A public `codegraphy/skills` repository will host the skill once published.
 | [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
 | [`@codegraphy-dev/tldraw`](./packages/tldraw/README.md) | macOS launcher and native tldraw offline canvas integration. |
 | [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | WebGPU graph renderer and WebAssembly physics. |
-| [`@codegraphy-dev/plugin-api`](./packages/plugin-api/README.md) | Public TypeScript contracts for plugins. |
-| `@codegraphy-dev/plugin-*` | Optional language, framework, Unity, and visual plugins. |
+| [`@codegraphy-dev/plugin-api`](./packages/plugin-api/README.md) | Public TypeScript contracts for Core plugins. |
+| [`@codegraphy-dev/extension-plugin-api`](./packages/extension-plugin-api/README.md) | Public TypeScript contracts for VS Code Extension plugins. |
+| `@codegraphy-dev/plugin-*` | Optional plugins for Core or an interface host. |
 | [`@codegraphy/web`](./apps/web/README.md) | Account, subscription, billing, and access routes. |
 
 The editable diagram source is [`docs/media/readme/codegraphy-architecture.excalidraw`](./docs/media/readme/codegraphy-architecture.excalidraw).

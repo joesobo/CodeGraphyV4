@@ -25,6 +25,17 @@ export interface TooltipContentProps {
   extraSections?: Array<{ title: string; content: string }>;
 }
 
+function runTooltipAction(action: TooltipAction): void {
+  const report = (error: unknown): void => {
+    console.error(`[CodeGraphy] Tooltip action '${action.id}' failed:`, error);
+  };
+  try {
+    void Promise.resolve(action.action()).catch(report);
+  } catch (error) {
+    report(error);
+  }
+}
+
 export function TooltipHeader({
   path,
   symbol,
@@ -93,7 +104,7 @@ export function TooltipExtraSections({
                 size="sm"
                 variant="outline"
                 className="h-6 px-2 text-[10px]"
-                onClick={() => { void action.action(); }}
+                onClick={() => runTooltipAction(action)}
               >
                 {action.label}
               </Button>

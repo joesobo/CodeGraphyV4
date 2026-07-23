@@ -1,6 +1,7 @@
 import {
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
+  inheritCodeGraphyWorkspacePlugin,
   linkCodeGraphyInstalledPluginPackage,
   type LinkCodeGraphyInstalledPluginPackageOptions,
   readCodeGraphyInstalledPluginCache,
@@ -8,6 +9,7 @@ import {
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyUserStateOptions,
   registerCodeGraphyInstalledPlugin,
+  setCodeGraphyInstalledPluginGlobalActivation,
   type RegisterCodeGraphyInstalledPluginOptions,
 } from '../../plugins/installedCache';
 import { resolveNpmGlobalPackageRoots } from './globalPackages';
@@ -17,20 +19,28 @@ export interface PluginsCommandDependencies {
   disableWorkspacePlugin(workspaceRoot: string, pluginId: string): void;
   enableWorkspacePlugin(workspaceRoot: string, plugin: CodeGraphyInstalledPluginRecord): void;
   homeDir?: string;
+  inheritWorkspacePlugin(workspaceRoot: string, pluginId: string): void;
   linkInstalledPluginPackage(
     options: LinkCodeGraphyInstalledPluginPackageOptions,
-  ): Promise<CodeGraphyInstalledPluginRecord>;
+  ): Promise<CodeGraphyInstalledPluginRecord[]>;
   readInstalledPluginCache(options?: CodeGraphyUserStateOptions): CodeGraphyInstalledPluginCache;
-  registerInstalledPlugin(options: RegisterCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord>;
+  registerInstalledPlugin(options: RegisterCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord[]>;
   resolveGlobalPackageRoots(): string[];
+  setGlobalPluginActivation(
+    installedPlugin: CodeGraphyInstalledPluginRecord,
+    globallyEnabled: boolean,
+    options?: CodeGraphyUserStateOptions,
+  ): CodeGraphyInstalledPluginRecord;
 }
 
 export const DEFAULT_DEPENDENCIES: PluginsCommandDependencies = {
   cwd: () => process.cwd(),
   disableWorkspacePlugin: disableCodeGraphyWorkspacePlugin,
   enableWorkspacePlugin: enableCodeGraphyWorkspacePlugin,
+  inheritWorkspacePlugin: inheritCodeGraphyWorkspacePlugin,
   linkInstalledPluginPackage: linkCodeGraphyInstalledPluginPackage,
   readInstalledPluginCache: readCodeGraphyInstalledPluginCache,
   registerInstalledPlugin: registerCodeGraphyInstalledPlugin,
   resolveGlobalPackageRoots: resolveNpmGlobalPackageRoots,
+  setGlobalPluginActivation: setCodeGraphyInstalledPluginGlobalActivation,
 };

@@ -2,48 +2,49 @@ import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { ResetPluginAssets } from '../messageListener';
 import { toPluginRegistrationCandidate, type PluginRegistrationCandidate } from './pluginRegistrations/candidate';
 import { getPluginStatusEntries } from './pluginRegistrations/payload';
-import { removePackageRuntimePlugin, removePluginRuntime } from './pluginRegistrations/runtime';
+import { removePluginRuntime } from './pluginRegistrations/runtime';
 
-export function removeDisabledPluginRegistrations(
+export function reconcilePluginRegistrations(
   raw: { type?: unknown; payload?: unknown },
   pluginHost: WebviewPluginHost,
-  packagePluginIdsByPackageName: Map<string, string>,
-  resetPluginAssets?: ResetPluginAssets,
+  resetPluginAssets: ResetPluginAssets | undefined,
+  knownPluginIds: Set<string>,
 ): void {
   const plugins = getPluginStatusEntries(raw);
   if (!plugins) {
     return;
   }
 
-  for (const plugin of plugins) {
-    const candidate = toPluginRegistrationCandidate(plugin);
-    if (candidate) {
-      applyPluginRegistration(candidate, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
+  const candidates: PluginRegistrationCandidate[] = plugins
+    .map(toPluginRegistrationCandidate)
+    .filter((candidate): candidate is PluginRegistrationCandidate => candidate !== null);
+  if (candidates.length !== plugins.length) {
+    return;
+  }
+
+  const currentPluginIds = new Set<string>(candidates.map(candidate => candidate.id));
+  for (const pluginId of knownPluginIds) {
+    if (!currentPluginIds.has(pluginId)) {
+      removePluginRuntime(pluginId, pluginHost, resetPluginAssets);
     }
   }
+
+  for (const candidate of candidates) {
+    applyPluginRegistration(candidate, pluginHost, resetPluginAssets);
+  }
+
+  knownPluginIds.clear();
+  for (const pluginId of currentPluginIds) knownPluginIds.add(pluginId);
 }
 
 function applyPluginRegistration(
   candidate: PluginRegistrationCandidate,
   pluginHost: WebviewPluginHost,
-  packagePluginIdsByPackageName: Map<string, string>,
   resetPluginAssets?: ResetPluginAssets,
 ): void {
-  if (candidate.enabled !== false && candidate.packageName) {
-    packagePluginIdsByPackageName.set(candidate.packageName, candidate.id);
-    return;
-  }
-
-  if (candidate.enabled !== false) {
+  if (candidate.enabled !== false && candidate.status !== 'unavailable') {
     return;
   }
 
   removePluginRuntime(candidate.id, pluginHost, resetPluginAssets);
-  removePackageRuntimePlugin(
-    candidate.packageName,
-    candidate.id,
-    pluginHost,
-    packagePluginIdsByPackageName,
-    resetPluginAssets,
-  );
 }

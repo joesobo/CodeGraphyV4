@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { createGraphStore } from '../../../../src/webview/store/state';
@@ -148,96 +147,8 @@ describe('GraphStore message routing', () => {
     expect(store.getState().optimisticUserLegends).toBeNull();
   });
 
-  it('handles CONTEXT_MENU_ITEMS messages', () => {
-    const items: IPluginContextMenuItem[] = [
-      {
-        label: 'Open docs',
-        when: 'node',
-        pluginId: 'plugin.docs',
-        index: 1,
-      },
-    ];
-
-    store.getState().handleExtensionMessage({
-      type: 'CONTEXT_MENU_ITEMS',
-      payload: { items },
-    });
-
-    expect(store.getState().pluginContextMenuItems).toEqual(items);
-  });
-
-  it('handles PLUGIN_EXPORTERS_UPDATED messages', () => {
-    const items = [
-      {
-        id: 'summary',
-        label: 'Summary Export',
-        pluginId: 'plugin.docs',
-        pluginName: 'Docs Plugin',
-        index: 0,
-        group: 'Reports',
-      },
-    ];
-
-    store.getState().handleExtensionMessage({
-      type: 'PLUGIN_EXPORTERS_UPDATED',
-      payload: { items },
-    });
-
-    expect(store.getState().pluginExporters).toEqual(items);
-  });
-
-  it('handles PLUGIN_TOOLBAR_ACTIONS_UPDATED messages', () => {
-    const items = [
-      {
-        id: 'wikilinks',
-        label: 'Docs',
-        pluginId: 'plugin.docs',
-        pluginName: 'Docs Plugin',
-        index: 0,
-        items: [
-          {
-            id: 'docs-summary',
-            label: 'Docs Summary',
-            index: 0,
-          },
-        ],
-      },
-    ];
-
-    store.getState().handleExtensionMessage({
-      type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED',
-      payload: { items },
-    });
-
-    expect(store.getState().pluginToolbarActions).toEqual(items);
-  });
-
   it('ignores PLUGIN_WEBVIEW_INJECT messages without mutating state', () => {
     store.setState({
-      pluginContextMenuItems: [
-        { label: 'Existing', when: 'both', pluginId: 'plugin.existing', index: 0 },
-      ],
-      pluginExporters: [
-        {
-          id: 'existing',
-          label: 'Existing Export',
-          pluginId: 'plugin.existing',
-          pluginName: 'Existing Plugin',
-          index: 0,
-        },
-      ],
-      pluginToolbarActions: [
-        {
-          id: 'wikilinks',
-          label: 'Docs',
-          pluginId: 'plugin.existing',
-          pluginName: 'Existing Plugin',
-          index: 0,
-          items: [
-            { id: 'docs-summary', label: 'Docs Summary', index: 0 },
-          ],
-        },
-      ],
       nodeSizeMode: 'connections',
     });
 
@@ -250,30 +161,6 @@ describe('GraphStore message routing', () => {
       },
     });
 
-    expect(store.getState().pluginContextMenuItems).toEqual([
-      { label: 'Existing', when: 'both', pluginId: 'plugin.existing', index: 0 },
-    ]);
-    expect(store.getState().pluginExporters).toEqual([
-      {
-        id: 'existing',
-        label: 'Existing Export',
-        pluginId: 'plugin.existing',
-        pluginName: 'Existing Plugin',
-        index: 0,
-      },
-    ]);
-    expect(store.getState().pluginToolbarActions).toEqual([
-      {
-        id: 'wikilinks',
-        label: 'Docs',
-        pluginId: 'plugin.existing',
-        pluginName: 'Existing Plugin',
-        index: 0,
-        items: [
-          { id: 'docs-summary', label: 'Docs Summary', index: 0 },
-        ],
-      },
-    ]);
     expect(store.getState().nodeSizeMode).toBe('connections');
   });
 

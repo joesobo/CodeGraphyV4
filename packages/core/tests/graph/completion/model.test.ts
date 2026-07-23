@@ -16,7 +16,6 @@ describe('complete workspace graph', () => {
           nodeTypes: [{
             id: 'plugin:test:route',
             label: 'Route',
-            defaultColor: '#123456',
             defaultVisible: false,
           }],
           nodes: [{
@@ -67,7 +66,6 @@ describe('complete workspace graph', () => {
       expect.objectContaining({
         id: 'src/app.ts:route:home',
         nodeType: 'plugin:test:route',
-        color: '#123456',
       }),
       expect.objectContaining({
         id: 'src/app.ts#speed:field',

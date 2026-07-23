@@ -111,9 +111,11 @@
 				"entrypoints": [
 					"src/analysis/workspaceState.ts",
 					"src/cli/main.ts",
+					"src/cli/version.ts",
 					"src/graphCache/status.ts",
 					"src/graphQuery/execute.ts",
 					"src/packageIdentity.ts",
+					"src/plugins/disclosures.ts",
 					"src/visibleGraph/derive.ts",
 					"src/workspace/requestQuery.ts"
 				]
@@ -174,7 +176,6 @@
 					"src/extension/activate.ts",
 					"src/extension/graphViewProvider.ts",
 					"src/core/graphQuery/index.ts",
-					"src/core/plugins/api/instance/index.ts",
 					"src/extension/repoSettings/freshness/index.ts",
 					"src/extension/repoSettings/store/index.ts",
 					"src/shared/visibleGraph/index.ts",
@@ -300,6 +301,17 @@
 				]
 			}
 		},
+		"extension-plugin-api": {
+			"boundaries": {
+				"entrypoints": [
+					"src/events.ts",
+					"src/graphView.ts",
+					"src/metadata.ts",
+					"src/plugin.ts",
+					"src/webview.ts"
+				]
+			}
+		},
 		"plugin-godot": {
 			"crap": {
 				"coverage": {
@@ -320,7 +332,8 @@
 			},
 			"boundaries": {
 				"entrypoints": [
-					"src/plugin.ts"
+					"src/plugin.ts",
+					"src/extension.ts"
 				]
 			}
 		},
@@ -408,7 +421,8 @@
 		"plugin-unity": {
 			"boundaries": {
 				"entrypoints": [
-					"src/lifecycle.ts"
+					"src/plugin.ts",
+					"src/extension.ts"
 				]
 			}
 		},

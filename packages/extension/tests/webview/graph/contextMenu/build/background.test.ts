@@ -9,7 +9,6 @@ describe('graph/contextMenu/build/background', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       favorites: new Set(),
-      pluginItems: [],
     });
 
     expect(entries).toHaveLength(5);

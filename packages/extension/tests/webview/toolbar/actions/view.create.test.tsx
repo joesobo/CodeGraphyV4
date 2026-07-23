@@ -5,7 +5,6 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({ postMessage: vi.fn() }));
 
 import { postMessage } from '../../../../src/webview/vscodeApi';
 import {
-  enableRuntimeGraphViewContributions,
   iconButtonTitles,
   renderToolbar,
   resetToolbarState,
@@ -15,7 +14,6 @@ describe('ToolbarActions', () => {
   beforeEach(resetToolbarState);
   afterEach(() => vi.useRealTimers());
   it('orders the graph tool rail create menu as file and folder without a separator', () => {
-    enableRuntimeGraphViewContributions();
     renderToolbar();
 
     const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
@@ -72,8 +70,88 @@ describe('ToolbarActions', () => {
     });
   });
 
+  it('keeps healthy create contributions when another plugin callback throws', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const contributions = {
+      runtimeNodes: [],
+      runtimeEdges: [],
+      projections: [],
+      forces: [],
+      nodeDragEnd: [],
+      contextMenu: [
+        {
+          pluginId: 'broken.plugin',
+          contribution: {
+            id: 'broken-create',
+            label: 'Broken create',
+            placement: { menu: 'create' as const },
+            targets: [{ kind: 'background' as const }],
+            getLabel() {
+              throw new Error('label failed');
+            },
+            run: vi.fn(),
+          },
+        },
+        {
+          pluginId: 'healthy.plugin',
+          contribution: {
+            id: 'healthy-create',
+            label: 'Healthy create',
+            placement: { menu: 'create' as const },
+            targets: [{ kind: 'background' as const }],
+            run: vi.fn(),
+          },
+        },
+      ],
+      ui: [],
+    };
+    const pluginHost = {
+      getGraphViewContributions: vi.fn(() => contributions),
+      subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
+    };
+
+    renderToolbar({ pluginHost: pluginHost as never });
+
+    expect(screen.getByText('Healthy create')).toBeInTheDocument();
+    expect(errorSpy).toHaveBeenCalledOnce();
+  });
+
+  it('reports create contribution failures without breaking the toolbar action', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const contributions = {
+      runtimeNodes: [],
+      runtimeEdges: [],
+      projections: [],
+      forces: [],
+      nodeDragEnd: [],
+      contextMenu: [{
+        pluginId: 'broken.plugin',
+        contribution: {
+          id: 'broken-create',
+          label: 'Broken create',
+          placement: { menu: 'create' as const },
+          targets: [{ kind: 'background' as const }],
+          run() {
+            throw new Error('run failed');
+          },
+        },
+      }],
+      ui: [],
+    };
+    const pluginHost = {
+      getGraphViewContributions: vi.fn(() => contributions),
+      subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
+    };
+    renderToolbar({ pluginHost: pluginHost as never });
+
+    expect(() => fireEvent.click(screen.getByText('Broken create'))).not.toThrow();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Create contribution 'broken-create' from plugin 'broken.plugin' failed"),
+      expect.any(Error),
+    );
+  });
+
   it('posts root creation messages from the graph tool rail create menu', () => {
-    enableRuntimeGraphViewContributions();
     renderToolbar();
     expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
 

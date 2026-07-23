@@ -1,5 +1,6 @@
 import type { CorePluginRegistry } from '../plugins/registry';
 import { loadBundledMarkdownPlugin } from '../plugins/markdown/runtime';
+import { isBundledMarkdownPluginEnabled } from '../plugins/installedPluginCache/bundled';
 import { analyzeFileWithCoreTreeSitter } from '../treeSitter/core';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
@@ -26,14 +27,16 @@ function shouldRegisterDefaultMarkdownPlugin(
   }
 
   const providedPluginIds = new Set((options.plugins ?? []).map(plugin => readPluginEntry(plugin).plugin.id));
-  return settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)
+  return isBundledMarkdownPluginEnabled(settings, {
+    ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
+  })
     && !providedPluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID);
 }
 
 function getDefaultMarkdownPluginOptions(
   settings: CodeGraphyWorkspaceSettings,
 ): Record<string, unknown> | undefined {
-  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)?.options;
+  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID)?.options;
 }
 
 export async function registerDefaultIndexPlugins(
@@ -67,6 +70,7 @@ export function registerProvidedPlugins(
   registry: CorePluginRegistry,
   plugins: readonly IndexCodeGraphyWorkspacePlugin[] | undefined,
   disabledPluginsInput: Iterable<string> = [],
+  warn: (message: string) => void = () => undefined,
 ): void {
   const disabledPlugins = new Set(disabledPluginsInput);
   for (const pluginInput of plugins ?? []) {
@@ -75,10 +79,27 @@ export function registerProvidedPlugins(
       continue;
     }
 
-    registry.register(entry.plugin, {
-      ...(entry.builtIn !== undefined ? { builtIn: entry.builtIn } : {}),
-      ...(entry.sourcePackage ? { sourcePackage: entry.sourcePackage } : {}),
-      ...(entry.options ? { options: entry.options } : {}),
-    });
+    try {
+      registry.register(entry.plugin, {
+        ...(entry.builtIn !== undefined ? { builtIn: entry.builtIn } : {}),
+        ...(entry.sourcePackage ? { sourcePackage: entry.sourcePackage } : {}),
+        ...(entry.options ? { options: entry.options } : {}),
+      });
+    } catch (error) {
+      if (registry.get(entry.plugin.id)?.plugin !== entry.plugin) {
+        try {
+          entry.plugin.onUnload?.();
+        } catch (unloadError) {
+          const message = unloadError instanceof Error
+            ? unloadError.message
+            : String(unloadError);
+          warn(
+            `CodeGraphy provided plugin '${entry.plugin.id}' could not be unloaded after registration failed: ${message}`,
+          );
+        }
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy provided plugin '${entry.plugin.id}' could not be registered: ${message}`);
+    }
   }
 }

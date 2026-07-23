@@ -114,12 +114,14 @@ suite(pluginSuiteName, function () {
     const graphData = api.getGraphData();
     assert.ok(graphData.nodes.length > 0, `Expected ${scenario.name} nodes in the graph`);
 
-    const scenarioNodes = graphData.nodes.filter(
-      (n) => typeof n.id === 'string' && n.id.endsWith(scenario.graphNodeExtension)
+    const scenarioNodes: Array<{ id: string }> = graphData.nodes.filter(
+      (node: { id: string }) => node.id.endsWith(scenario.graphNodeExtension)
     );
     assert.ok(
       scenarioNodes.length > 0,
-      `Expected ${scenario.graphNodeExtension} nodes, found: ${graphData.nodes.map(n => n.id).join(', ')}`
+      `Expected ${scenario.graphNodeExtension} nodes, found: ${graphData.nodes
+        .map((node: { id: string }) => node.id)
+        .join(', ')}`
     );
   });
 

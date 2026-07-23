@@ -25,7 +25,6 @@ function scopeNode(overrides: Partial<IGraphNode>): IGraphNode {
   return {
     id: 'src/app.ts',
     label: 'src/app.ts',
-    color: '#111111',
     nodeType: 'file',
     ...overrides,
   };
@@ -36,7 +35,6 @@ function scopeNode(overrides: Partial<IGraphNode>): IGraphNode {
 const gdscriptScopedDefinition: IGraphNodeTypeDefinition = {
   id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
   label: 'Godot class_name',
-  defaultColor: '#478CBF',
   defaultVisible: false,
   parentId: 'variable',
   matchSymbolKinds: ['class'],

@@ -67,7 +67,7 @@ async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../../../src/core/plugins/events/bus', () => ({
+  vi.doMock('../../../../src/extension/events/bus', () => ({
     EventBus: class EventBus {},
   }));
   vi.doMock('../../../../src/core/plugins/decoration/manager', () => ({
@@ -109,7 +109,7 @@ describe('graphView/provider/runtime', () => {
       vi.doUnmock('../../../../src/extension/pipeline/service/lifecycleFacade');
       vi.doUnmock('../../../../src/extension/repoSettings/meta');
       vi.doUnmock('../../../../src/core/views');
-      vi.doUnmock('../../../../src/core/plugins/events/bus');
+      vi.doUnmock('../../../../src/extension/events/bus');
       vi.doUnmock('../../../../src/core/plugins/decoration/manager');
       vi.doUnmock('../../../../src/extension/graphView/provider/wiring/methodContainers');
       vi.doUnmock('../../../../src/extension/graphView/provider/wiring/bootstrap');

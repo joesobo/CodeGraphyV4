@@ -36,7 +36,7 @@ describe('graph cache database inspection', () => {
     expect(inspectWorkspaceAnalysisDatabase(workspaceRoot)).toEqual({
       ok: false,
       schemaVersion: null,
-      expectedSchemaVersion: 9,
+      expectedSchemaVersion: 10,
       schemaCompatible: false,
       integrityOk: false,
       foreignKeyOk: false,
@@ -50,8 +50,8 @@ describe('graph cache database inspection', () => {
 
     expect(inspectWorkspaceAnalysisDatabase(workspaceRoot)).toEqual({
       ok: true,
-      schemaVersion: 9,
-      expectedSchemaVersion: 9,
+      schemaVersion: 10,
+      expectedSchemaVersion: 10,
       schemaCompatible: true,
       integrityOk: true,
       foreignKeyOk: true,
@@ -67,7 +67,7 @@ describe('graph cache database inspection', () => {
 
     expect(inspectWorkspaceAnalysisDatabase(workspaceRoot)).toMatchObject({
       ok: false,
-      schemaVersion: 9,
+      schemaVersion: 10,
       schemaCompatible: false,
       integrityOk: true,
       foreignKeyOk: true,
@@ -97,7 +97,7 @@ describe('graph cache database inspection', () => {
     const workspaceRoot = await createIndexedWorkspace('inspection-integrity');
     const database = new Database(getWorkspaceAnalysisDatabasePath(workspaceRoot));
     database.pragma('ignore_check_constraints = ON');
-    database.prepare('UPDATE NodeView SET favorite = 2').run();
+    database.prepare('UPDATE File SET size = -2').run();
     database.close();
 
     expect(inspectWorkspaceAnalysisDatabase(workspaceRoot)).toMatchObject({

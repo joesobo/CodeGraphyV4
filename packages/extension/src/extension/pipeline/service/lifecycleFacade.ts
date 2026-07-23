@@ -11,11 +11,16 @@ import {
   getWorkspacePipelineStatusList,
 } from './runtime/plugins';
 import { readWorkspacePluginStatusContext } from '../plugins/statusContext';
+import { readBundledWorkspacePluginPackageRootsSync } from '../plugins/bootstrap/bundledPackages';
 import { removeInvalidatedDiscoveredDirectories } from './directoryInvalidation';
 
 export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFacade {
   getPluginStatuses(disabledPlugins: Set<string>): IPluginStatus[] {
-    const pluginStatusContext = readWorkspacePluginStatusContext(this._getWorkspaceRoot());
+    const pluginStatusContext = readWorkspacePluginStatusContext(this._getWorkspaceRoot(), {
+      bundledPackageRoots: readBundledWorkspacePluginPackageRootsSync(
+        this._context.extensionUri?.fsPath,
+      ),
+    });
     return getWorkspacePipelineStatusList(
       this._registry,
       disabledPlugins,
@@ -118,7 +123,7 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
   }
 
   dispose(): void {
-    this._registry.disposeAll();
+    this._disposeWorkspacePluginHost();
   }
 }
 

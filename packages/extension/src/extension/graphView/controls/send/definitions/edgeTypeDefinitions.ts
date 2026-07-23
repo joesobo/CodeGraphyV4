@@ -36,7 +36,7 @@ function toEdgeTypeDefinition(definition: GraphEdgeTypeLike): IGraphEdgeTypeDefi
   return {
     id: definition.id as IGraphEdgeTypeDefinition['id'],
     label: definition.label,
-    defaultColor: definition.defaultColor,
+    defaultColor: definition.defaultColor ?? '#94A3B8',
     defaultVisible: definition.defaultVisible,
     description: definition.description,
   };

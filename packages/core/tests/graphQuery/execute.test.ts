@@ -5,8 +5,8 @@ import type { GraphQueryData } from '../../src/graphQuery';
 const queryData: GraphQueryData = {
   graphData: {
     nodes: [
-      { id: 'a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-      { id: 'b.ts', label: 'b.ts', color: '#222222', nodeType: 'file' },
+      { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+      { id: 'b.ts', label: 'b.ts', nodeType: 'file' },
     ],
     edges: [
       { id: 'a.ts->b.ts#import', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [] },

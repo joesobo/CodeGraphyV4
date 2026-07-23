@@ -30,7 +30,7 @@ export function projectFolders(
 
   return {
     paths: folderPaths,
-    nodes: createFolderNodes(generatedFolderPaths, ''),
+    nodes: createFolderNodes(generatedFolderPaths),
   };
 }
 

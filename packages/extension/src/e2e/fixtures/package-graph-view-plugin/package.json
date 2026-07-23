@@ -4,8 +4,16 @@
   "type": "module",
   "exports": "./plugin.js",
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "disclosures": []
+    "plugins": [{
+      "id": "e2e.graph-view-plugin",
+      "name": "E2E Graph View Plugin",
+      "host": "codegraphy.extension",
+      "entry": "./plugin.js",
+      "apiVersion": "^1.0.0",
+      "data": {
+        "supportedExtensions": [],
+        "defaultFilters": []
+      }
+    }]
   }
 }

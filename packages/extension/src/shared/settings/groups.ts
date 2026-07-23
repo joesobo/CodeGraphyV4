@@ -1,4 +1,5 @@
 import type { NodeShape2D } from './modes';
+import type { NodeType } from '../graph/contracts';
 
 export type LegendRuleTarget = 'node' | 'edge' | 'both';
 
@@ -8,7 +9,7 @@ export interface IGroup {
   displayLabel?: string;
   color: string;
   target?: LegendRuleTarget;
-  matchNodeType?: 'file' | 'folder' | 'package' | 'symbol' | 'variable';
+  matchNodeType?: NodeType;
   matchSymbolKind?: string;
   matchSymbolKinds?: string[];
   matchSymbolPluginKind?: string;

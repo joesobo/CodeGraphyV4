@@ -1,10 +1,22 @@
 import type { GraphViewProviderRefreshMethodsSource } from './contracts';
+import { resolveGraphIndexStatus } from '../../analysis/execution/publish/status';
 
 export type ChangedFileRefreshMode = 'analysis' | 'incremental' | 'primary';
 
 export function sendRefreshState(
   source: GraphViewProviderRefreshMethodsSource,
 ): void {
+  const hasIndex = source._analyzer?.hasIndex() ?? false;
+  const status = source._analyzer?.getIndexStatus?.()
+    ?? resolveGraphIndexStatus(undefined, hasIndex);
+  source._sendMessage({
+    type: 'GRAPH_INDEX_STATUS_UPDATED',
+    payload: {
+      hasIndex,
+      freshness: status.freshness,
+      detail: status.detail,
+    },
+  });
   source._sendAllSettings();
   source._sendGraphControls?.();
 }

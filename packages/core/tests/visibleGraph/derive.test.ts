@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
+import type { VisibleGraphConfig } from '../../src/visibleGraph/contracts';
 import { deriveVisibleGraph } from '../../src/visibleGraph/derive';
 
 function node(id: string, nodeType?: IGraphNode['nodeType']): IGraphNode {
   return {
     id,
     label: id,
-    color: '#111111',
     ...(nodeType ? { nodeType } : {}),
   };
 }
@@ -22,6 +22,12 @@ function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {
 }
 
 describe('visibleGraph/derive', () => {
+  it('does not accept interface-owned collapse state', () => {
+    type CoreCollapseKey = Extract<keyof VisibleGraphConfig, 'collapse'>;
+
+    expectTypeOf<CoreCollapseKey>().toEqualTypeOf<never>();
+  });
+
   it('returns an empty result when no graph data is available', () => {
     expect(deriveVisibleGraph(null)).toEqual({
       graphData: null,
@@ -135,7 +141,7 @@ describe('visibleGraph/derive', () => {
     });
   });
 
-  it('applies scope, filter, search, orphan, and collapse projections in order', () => {
+  it('applies scope, filter, search, and orphan projections in order', () => {
     const graphData: IGraphData = {
       nodes: [
         node('src', 'folder'),
@@ -150,7 +156,7 @@ describe('visibleGraph/derive', () => {
       ],
     };
 
-    expect(deriveVisibleGraph(graphData, {
+    const result = deriveVisibleGraph(graphData, {
       scope: {
         nodes: [
           { type: 'folder', enabled: true },
@@ -162,19 +168,14 @@ describe('visibleGraph/derive', () => {
       filter: { patterns: ['src/generated.ts'] },
       search: { query: 'src' },
       showOrphans: false,
-      collapse: { collapsedNodeIds: ['src'] },
-    })).toMatchObject({
-      graphData: {
-        nodes: [
-          {
-            id: 'src',
-            isCollapsed: true,
-            collapsedDescendantCount: 3,
-          },
-        ],
-        edges: [],
-      },
-      regexError: null,
     });
+
+    expect(result.graphData.nodes.map(candidate => candidate.id)).toEqual([
+      'src',
+      'src/app.ts',
+      'src/keep.ts',
+      'src/orphan.ts',
+    ]);
+    expect(result.regexError).toBeNull();
   });
 });

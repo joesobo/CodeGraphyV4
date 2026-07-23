@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import type { IProjectedConnection } from '../../../../src/analysis/projectedConnection';
-import { DEFAULT_NODE_COLOR } from '../../../../src/fileColors';
 import { buildWorkspaceGraphData } from '../../../../src/graph/data';
 import { createPlugin } from '../fixture';
 
@@ -28,13 +27,11 @@ describe('core/graph/data file relationships', () => {
         {
           id: 'src/index.ts',
           label: 'index.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 10,
         },
         {
           id: 'src/utils.ts',
           label: 'utils.ts',
-          color: DEFAULT_NODE_COLOR,
           fileSize: 20,
         },
       ]);

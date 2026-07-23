@@ -5,7 +5,7 @@ import {
 } from '../../../../../src/extension/graphView/webview/providerMessages/readContext';
 
 describe('graph view provider listener read context', () => {
-  it('reads provider state and resolves graph targets from the current graph data', () => {
+  it('reads provider state', () => {
     const analyzer = {
       getPluginFilterPatterns: () => ['dist/**'],
       lastFileAnalysis: new Map(),
@@ -41,21 +41,9 @@ describe('graph view provider listener read context', () => {
     expect(context.getViewContext()).toBe(source._viewContext);
     expect(context.getFocusedFile()).toBe('src/app.ts');
     expect(context.workspaceFolder).toEqual({ uri: { fsPath: '/workspace' } });
-    expect(context.findNode('src/app.ts')).toEqual({
-      id: 'src/app.ts',
-      label: 'app.ts',
-      color: '#93C5FD',
-    });
-    expect(context.findEdge('edge-1')).toEqual({
-      id: 'edge-1',
-      from: 'src/app.ts',
-      to: 'src/lib.ts',
-      kind: 'import',
-      sources: [],
-    });
   });
 
-  it('returns undefined for missing graph targets and absent provider state', () => {
+  it('returns undefined for absent provider state', () => {
     const context = createGraphViewProviderMessageReadContext(
       {
         _userGroups: [],
@@ -72,8 +60,6 @@ describe('graph view provider listener read context', () => {
     expect(context.workspaceFolder).toBeUndefined();
     expect(context.getAnalyzer()).toBeUndefined();
     expect(context.getFocusedFile()).toBeUndefined();
-    expect(context.findNode('missing')).toBeUndefined();
-    expect(context.findEdge('missing')).toBeUndefined();
   });
 
 });

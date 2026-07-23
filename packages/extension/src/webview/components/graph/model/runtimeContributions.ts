@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 
 function appendUniqueNodes(
@@ -32,9 +32,21 @@ function appendUniqueEdges(
   }
 }
 
+function reportContributionFailure(
+  kind: string,
+  pluginId: string,
+  contributionId: string,
+  error: unknown,
+): void {
+  console.error(
+    `[CodeGraphy] ${kind} contribution '${contributionId}' from plugin '${pluginId}' failed:`,
+    error,
+  );
+}
+
 export function applyGraphViewRuntimeContributions(
   data: IGraphData,
-  contributions: CoreGraphViewContributionSet | undefined,
+  contributions: ExtensionGraphViewContributionSet | undefined,
 ): IGraphData {
   if (!contributions) {
     return data;
@@ -46,20 +58,32 @@ export function applyGraphViewRuntimeContributions(
   const edgeIds = new Set(edges.map(edge => edge.id));
 
   for (const entry of contributions.runtimeNodes) {
-    appendUniqueNodes(
-      nodes,
-      nodeIds,
-      entry.contribution.createNodes({ visibleGraph: { nodes, edges } }),
-    );
+    try {
+      appendUniqueNodes(
+        nodes,
+        nodeIds,
+        entry.contribution.createNodes({ visibleGraph: { nodes, edges } }),
+      );
+    } catch (error) {
+      reportContributionFailure(
+        'Runtime node', entry.pluginId, entry.contribution.id, error,
+      );
+    }
   }
 
   for (const entry of contributions.runtimeEdges) {
-    appendUniqueEdges(
-      edges,
-      edgeIds,
-      nodeIds,
-      entry.contribution.createEdges({ visibleGraph: { nodes, edges } }),
-    );
+    try {
+      appendUniqueEdges(
+        edges,
+        edgeIds,
+        nodeIds,
+        entry.contribution.createEdges({ visibleGraph: { nodes, edges } }),
+      );
+    } catch (error) {
+      reportContributionFailure(
+        'Runtime edge', entry.pluginId, entry.contribution.id, error,
+      );
+    }
   }
 
   return { nodes, edges };
@@ -67,17 +91,21 @@ export function applyGraphViewRuntimeContributions(
 
 export function applyGraphViewProjectionContributions(
   data: IGraphData,
-  contributions: CoreGraphViewContributionSet | undefined,
+  contributions: ExtensionGraphViewContributionSet | undefined,
 ): IGraphData {
   if (!contributions) {
     return data;
   }
 
-  return contributions.projections.reduce<IGraphData>(
-    (
-      visibleGraph: IGraphData,
-      entry: CoreGraphViewContributionSet['projections'][number],
-    ) => entry.contribution.project({ visibleGraph }),
-    data,
-  );
+  let visibleGraph = data;
+  for (const entry of contributions.projections) {
+    try {
+      visibleGraph = entry.contribution.project({ visibleGraph });
+    } catch (error) {
+      reportContributionFailure(
+        'Projection', entry.pluginId, entry.contribution.id, error,
+      );
+    }
+  }
+  return visibleGraph;
 }

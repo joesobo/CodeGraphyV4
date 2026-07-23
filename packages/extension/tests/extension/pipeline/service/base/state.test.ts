@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { EventBus } from '../../../../../src/core/plugins/events/bus';
+import { EventBus } from '../../../../../src/extension/events/bus';
 import {
   BASELINE_ANALYSIS_CACHE_TIER,
   FileDiscovery,

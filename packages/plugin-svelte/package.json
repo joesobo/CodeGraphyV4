@@ -35,13 +35,12 @@
   },
   "files": [
     "dist",
-    "codegraphy.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js",
+    "build": "node build.mjs",
     "test": "vitest run",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -51,9 +50,30 @@
     "svelte": "^5.56.2",
     "typescript": "^5.3.3"
   },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "disclosures": []
+    "plugins": [
+      {
+        "id": "codegraphy.svelte",
+        "name": "Svelte",
+        "host": "core",
+        "entry": "./dist/plugin.js",
+        "apiVersion": "^4.0.0",
+        "data": {
+          "updateImpact": {
+            "toggle": "reanalyze-plugin-files",
+            "defaultSetting": "reanalyze-plugin-files"
+          },
+          "supportedExtensions": [
+            ".svelte"
+          ],
+          "defaultFilters": [
+            "**/.svelte-kit/**"
+          ]
+        }
+      }
+    ]
   }
 }

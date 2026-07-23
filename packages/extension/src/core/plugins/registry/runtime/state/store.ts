@@ -1,9 +1,5 @@
-import type { EventBus } from '../../../events/bus';
-import type { CodeGraphyAPIImpl } from '../../../api/instance';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPluginInfo } from '../../../types/contracts';
-import { DEFAULT_LOG_FN } from '../registration/configure';
-import type { RegistryV2Config } from '../registration/register';
 import {
   replayReadinessForPlugin as lifecycleReplayReadiness,
 } from '../../../lifecycle/replay';
@@ -16,19 +12,17 @@ export type CoreGraphScopeCapabilitiesProvider = (
   filePaths?: readonly string[],
 ) => Required<IPluginGraphScopeCapabilities>;
 
-export interface IPluginInfoV2 extends IPluginInfo {
-  api?: CodeGraphyAPIImpl;
-}
+export type IPluginInfoV2 = IPluginInfo;
 
 export abstract class PluginRegistryState {
   protected readonly _plugins = new Map<string, IPluginInfoV2>();
   protected readonly _extensionMap = new Map<string, string[]>();
-  protected readonly _initializedPlugins = new Set<string>();
-  protected _eventBus?: EventBus;
-  protected _v2Config: RegistryV2Config = { logFn: DEFAULT_LOG_FN };
+  protected readonly _initializedPlugins = new Set<IPluginInfoV2>();
+  protected readonly _initializingPlugins = new Map<IPluginInfoV2, Promise<boolean>>();
+  private readonly _pendingPluginUnloads = new Set<() => void>();
+  private _activePluginOperations = 0;
   protected _lastWorkspaceReadyGraph?: IGraphData;
   protected _workspaceReadyNotified = false;
-  protected _webviewReadyNotified = false;
   protected _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
   protected _coreGraphScopeCapabilitiesProvider?: CoreGraphScopeCapabilitiesProvider;
 
@@ -37,7 +31,55 @@ export abstract class PluginRegistryState {
       info,
       this._workspaceReadyNotified,
       this._lastWorkspaceReadyGraph,
-      this._webviewReadyNotified,
     );
+  }
+
+  protected async _runPluginOperation<TResult>(operation: () => Promise<TResult>): Promise<TResult> {
+    this._activePluginOperations += 1;
+    try {
+      return await operation();
+    } finally {
+      this._releasePluginOperation();
+    }
+  }
+
+  protected _runPluginOperationSync<TResult>(operation: () => TResult): TResult {
+    this._activePluginOperations += 1;
+    try {
+      return operation();
+    } finally {
+      this._releasePluginOperation();
+    }
+  }
+
+  protected _queuePluginUnload(
+    unload: () => void,
+    initialization: Promise<boolean> | undefined,
+  ): void {
+    if (initialization) {
+      void initialization.then(
+        () => this._queueSettledPluginUnload(unload),
+        () => this._queueSettledPluginUnload(unload),
+      );
+      return;
+    }
+    this._queueSettledPluginUnload(unload);
+  }
+
+  private _releasePluginOperation(): void {
+    this._activePluginOperations -= 1;
+    if (this._activePluginOperations !== 0) {
+      return;
+    }
+    for (const unload of this._pendingPluginUnloads) unload();
+    this._pendingPluginUnloads.clear();
+  }
+
+  private _queueSettledPluginUnload(unload: () => void): void {
+    if (this._activePluginOperations > 0) {
+      this._pendingPluginUnloads.add(unload);
+      return;
+    }
+    unload();
   }
 }

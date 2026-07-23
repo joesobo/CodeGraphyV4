@@ -1,18 +1,54 @@
-import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 import { createPluginFromModule } from './packageModule';
 import { createPackagePluginFactoryInvocation } from './packageOptions';
-import { resolvePackageEntrypoint } from './packageEntrypoint';
 import type {
+  LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
-  PackageJsonWithEntrypoint,
+  PreparedCodeGraphyPluginPackageModule,
+  PreparedCodeGraphyWorkspacePluginPackage,
 } from './packageRuntimeContracts';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
+import {
+  assertPluginApiCompatibility,
+  assertPluginDescriptorApiCompatibility,
+} from './compatibility';
+import { prepareCodeGraphyPackageBuildSnapshot } from './packageBuildSnapshot';
 
 function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
-  return record.pluginId ?? record.package;
+  return record.id;
+}
+
+export async function importCodeGraphyPluginPackageModule(
+  record: CodeGraphyInstalledPluginRecord,
+): Promise<LoadedCodeGraphyPluginPackageModule> {
+  return (await prepareCodeGraphyPluginPackageModule(record)).load();
+}
+
+export async function prepareCodeGraphyPluginPackageModule(
+  record: CodeGraphyInstalledPluginRecord,
+): Promise<PreparedCodeGraphyPluginPackageModule> {
+  const packageRoot = path.resolve(record.packageRoot);
+  const { buildIdentity, snapshotPackageRoot } = await prepareCodeGraphyPackageBuildSnapshot(
+    packageRoot,
+  );
+  return {
+    buildIdentity,
+    packageSnapshotRoot: snapshotPackageRoot,
+    async load(): Promise<LoadedCodeGraphyPluginPackageModule> {
+      const modulePath = path.resolve(snapshotPackageRoot, record.entry);
+      const moduleUrl = pathToFileURL(modulePath);
+      moduleUrl.searchParams.set('codegraphyPluginId', record.id);
+      moduleUrl.searchParams.set('codegraphyPluginApiVersion', record.apiVersion);
+      moduleUrl.searchParams.set('codegraphyPackageVersion', record.version);
+      return {
+        buildIdentity,
+        moduleNamespace: await import(moduleUrl.href),
+        packageSnapshotRoot: snapshotPackageRoot,
+      };
+    },
+  };
 }
 
 function validateRuntimePluginId(
@@ -22,7 +58,7 @@ function validateRuntimePluginId(
   const staticPluginId = getStaticPluginId(record);
   if (pluginId !== staticPluginId) {
     throw new Error(
-      `Package '${record.package}' exported plugin id '${pluginId}', but codegraphy.json declares '${staticPluginId}'.`,
+      `Package '${record.package}' exported plugin id '${pluginId}', but its package manifest declares '${staticPluginId}'.`,
     );
   }
 }
@@ -32,19 +68,49 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   record: CodeGraphyInstalledPluginRecord,
   workspaceRoot?: string,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
-  const packageJson = JSON.parse(
-    await fs.readFile(path.join(record.packageRoot, 'package.json'), 'utf-8'),
-  ) as PackageJsonWithEntrypoint;
-  const modulePath = resolvePackageEntrypoint(record.packageRoot, packageJson);
-  const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
+  return (await prepareCodeGraphyWorkspacePluginPackage(settings, record, workspaceRoot)).load();
+}
+
+export async function prepareCodeGraphyWorkspacePluginPackage(
+  settings: CodeGraphyWorkspacePluginSettings,
+  record: CodeGraphyInstalledPluginRecord,
+  workspaceRoot?: string,
+): Promise<PreparedCodeGraphyWorkspacePluginPackage> {
+  assertPluginDescriptorApiCompatibility(record.id, record.apiVersion);
+  const preparedModule = await prepareCodeGraphyPluginPackageModule(record);
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
-  const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
-  validateRuntimePluginId(plugin.id, record);
 
   return {
-    plugin,
+    buildIdentity: preparedModule.buildIdentity,
+    packageSnapshotRoot: preparedModule.packageSnapshotRoot,
     packageName: record.package,
     record,
     ...(options ? { options } : {}),
+    async load(): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+      const { moduleNamespace } = await preparedModule.load();
+      const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
+      try {
+        validateRuntimePluginId(plugin.id, record);
+        assertPluginApiCompatibility(plugin);
+      } catch (error) {
+        try {
+          plugin.onUnload?.();
+        } catch (unloadError) {
+          console.error(
+            `[CodeGraphy] Error unloading rejected plugin ${plugin.id}:`,
+            unloadError,
+          );
+        }
+        throw error;
+      }
+      return {
+        buildIdentity: preparedModule.buildIdentity,
+        packageSnapshotRoot: preparedModule.packageSnapshotRoot,
+        plugin,
+        packageName: record.package,
+        record,
+        ...(options ? { options } : {}),
+      };
+    },
   };
 }

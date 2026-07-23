@@ -1,5 +1,4 @@
 import * as path from 'path';
-import { DEFAULT_NODE_COLOR, DEFAULT_PACKAGE_NODE_COLOR } from '../fileColors';
 import type { IGraphNode } from './contracts';
 import {
   getExternalPackageLabelFromNodeId,
@@ -12,9 +11,7 @@ function createExternalPackageNode(filePath: string): IGraphNode {
   return {
     id: filePath,
     label: getExternalPackageLabelFromNodeId(filePath),
-    color: DEFAULT_PACKAGE_NODE_COLOR,
     nodeType: 'package',
-    shape2D: 'hexagon',
   };
 }
 
@@ -26,7 +23,6 @@ function createWorkspaceFileNode(
   return {
     id: filePath,
     label: path.basename(filePath),
-    color: DEFAULT_NODE_COLOR,
     fileSize: cacheFiles[filePath]?.size,
     ...(gitIgnored
       ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }

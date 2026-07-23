@@ -120,15 +120,6 @@ export {
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
 } from './discovery/pathMatching';
-export {
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-  DEFAULT_NODE_COLOR,
-  DEFAULT_PACKAGE_NODE_COLOR,
-  FILE_TYPE_COLORS,
-  getFileColor,
-  normalizeHexColor,
-} from './fileColors';
 export type { WorkspaceAnalysisDatabaseSnapshot } from './graphCache/database/storage';
 export {
   clearWorkspaceAnalysisDatabaseCache,
@@ -146,7 +137,6 @@ export type {
   GraphEdgeKind,
   GraphMetadata,
   GraphMetadataValue,
-  GraphNodeShape2D,
   IGraphData,
   IGraphEdge,
   IGraphEdgeSource,
@@ -254,13 +244,11 @@ export type {
   WorkspaceIndexPluginStatusOptions,
 } from './plugins/status';
 export type {
-  CoreGraphViewContributionEntry,
-  CoreGraphViewContributionSet,
   CorePluginAccessCheck,
   CorePluginAccessContext,
 } from './plugins/access/checks';
 export {
-  createEmptyGraphViewContributionSet,
+  listAccessProviders,
   resolvePluginAccess,
 } from './plugins/access/checks';
 export {
@@ -273,14 +261,37 @@ export type {
 } from './plugins/activityState/model';
 export { createWorkspacePluginDataHost } from './plugins/data/host';
 export type {
+  LoadedCodeGraphyPluginPackageModule,
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
+  PreparedCodeGraphyPluginPackageModule,
+  PreparedCodeGraphyWorkspacePluginPackage,
+  ResolvedCodeGraphyWorkspacePluginRecords,
 } from './plugins/packageRuntime';
-export { loadCodeGraphyWorkspacePluginPackages } from './plugins/packageRuntime';
+export {
+  loadCodeGraphyWorkspacePluginPackages,
+  preferBundledCodeGraphyPluginRecords,
+  prepareCodeGraphyWorkspacePluginPackages,
+  resolveCodeGraphyWorkspacePluginRecords,
+  resolveCodeGraphyWorkspacePluginRecordsForHost,
+} from './plugins/packageRuntime';
+export {
+  importCodeGraphyPluginPackageModule,
+  prepareCodeGraphyPluginPackageModule,
+} from './plugins/packageLoad';
+export {
+  mergePluginOptions,
+  readCodeGraphyCorePluginDescriptorData,
+  readCodeGraphyPluginDescriptorDefaultOptions,
+} from './plugins/packageOptions';
 export type {
-  CodeGraphyPluginDisclosure,
+  CodeGraphyCorePluginDescriptorData,
+} from './plugins/packageOptions';
+export type {
+  CodeGraphyPluginPackageDescriptor,
   CodeGraphyPluginPackageManifest,
 } from './plugins/packageManifest';
+export type { CodeGraphyPluginDisclosure } from './plugins/disclosures';
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
   CodeGraphyWorkspacePluginIndexingPlan,
@@ -298,14 +309,17 @@ export {
   createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
   createCodeGraphyWorkspacePluginTogglePlan,
   createBundledMarkdownInstalledPluginRecord,
+  isBundledMarkdownPluginEnabled,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   getCodeGraphyUserDirectoryPath,
   getCodeGraphyUserSettingsPath,
   getInstalledPluginsCachePath,
+  inheritCodeGraphyWorkspacePlugin,
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
+  setCodeGraphyInstalledPluginGlobalActivation,
   updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
@@ -372,6 +386,7 @@ export {
   resolveWorkspaceRoot,
 } from './workspace/paths';
 export type {
+  CodeGraphyWorkspaceInterfaceSettings,
   CodeGraphyWorkspacePluginSettings,
   CodeGraphyWorkspaceSettings,
 } from './workspace/settings';
@@ -394,6 +409,7 @@ export {
   writeCodeGraphyWorkspaceMeta,
 } from './workspace/meta';
 export {
+  createCodeGraphyWorkspacePluginBuildSignature,
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,

@@ -13,7 +13,7 @@ function createPlugin(id: string): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     sources: [
       { id: 'import', name: 'Import', description: 'Import relation' },

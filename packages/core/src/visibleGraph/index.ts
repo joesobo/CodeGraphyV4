@@ -1,6 +1,5 @@
 export type {
   VisibleGraphConfig,
-  VisibleGraphCollapseConfig,
   VisibleGraphFilterConfig,
   VisibleGraphResult,
   VisibleGraphScopeConfig,

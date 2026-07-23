@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import type { IGraphData } from '../../../graph/contracts';
+import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
   recreateInvalidDatabase,
   runStatementSync,
@@ -26,6 +26,7 @@ export interface WorkspaceAnalysisDatabaseSaveProgress {
 
 export interface WorkspaceAnalysisDatabaseSaveOptions {
   graph?: IGraphData;
+  nodeTypes?: readonly IPluginNodeType[];
   onProgress?: (progress: WorkspaceAnalysisDatabaseSaveProgress) => void;
   yieldEvery?: number;
 }
@@ -34,6 +35,7 @@ export interface WorkspaceAnalysisDatabasePatch {
   deleteFilePaths?: readonly string[];
   upsertFiles?: IWorkspaceAnalysisCache['files'];
   graph?: IGraphData;
+  nodeTypes?: readonly IPluginNodeType[];
 }
 
 function normalizedPath(value: string): string {
@@ -100,6 +102,7 @@ export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
+  nodeTypes?: readonly IPluginNodeType[],
 ): void {
   ensureDatabaseDirectory(workspaceRoot);
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
@@ -115,11 +118,11 @@ export function saveWorkspaceAnalysisDatabaseCache(
         runStatementSync(connection, 'DELETE FROM File');
 
         const writer = createWorkspaceAnalysisCacheWriter(connection);
-        persistWorkspaceCache(writer, cache, graph);
-        runStatementSync(
-          connection,
-          'DELETE FROM NodeView WHERE NOT EXISTS (SELECT 1 FROM Node WHERE Node.key = NodeView.nodeKey)',
-        );
+        if (nodeTypes) {
+          persistWorkspaceCache(writer, cache, graph, nodeTypes);
+        } else {
+          persistWorkspaceCache(writer, cache, graph);
+        }
       });
     });
   };
@@ -160,7 +163,12 @@ export function patchWorkspaceAnalysisDatabaseCache(
       for (const filePath of deleteFilePaths) {
         deleteAnalysisEntry(writer, filePath);
       }
-      persistWorkspaceCachePatch(writer, { version: '', files: upsertFiles }, graph);
+      const patchCache = { version: '', files: upsertFiles };
+      if (patch.nodeTypes) {
+        persistWorkspaceCachePatch(writer, patchCache, graph, patch.nodeTypes);
+      } else {
+        persistWorkspaceCachePatch(writer, patchCache, graph);
+      }
     });
   });
 }

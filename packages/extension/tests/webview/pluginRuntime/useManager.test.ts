@@ -20,6 +20,8 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerContainers;
     delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
     delete (globalThis as Record<string, unknown>).__useManagerCleanupCount;
+    delete (globalThis as Record<string, unknown>).__useManagerFailingCleanupCount;
+    delete (globalThis as Record<string, unknown>).__useManagerHealthyCleanupCount;
     delete (globalThis as Record<string, unknown>).__useManagerMessages;
     delete (globalThis as Record<string, unknown>).__useManagerPluginData;
   });
@@ -427,6 +429,241 @@ describe('usePluginManager', () => {
 
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);
     expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
+  });
+
+  it('continues resetting plugin assets when one activation cleanup throws', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderHook(() => usePluginManager());
+    const failingScriptUrl = toDataUrlModule(`
+      export function activate() {
+        return () => {
+          globalThis.__useManagerFailingCleanupCount =
+            (globalThis.__useManagerFailingCleanupCount || 0) + 1;
+          throw new Error('cleanup failed');
+        };
+      }
+    `);
+    const healthyScriptUrl = toDataUrlModule(`
+      export function activate() {
+        return () => {
+          globalThis.__useManagerHealthyCleanupCount =
+            (globalThis.__useManagerHealthyCleanupCount || 0) + 1;
+        };
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'cleanup-plugin',
+        scripts: [failingScriptUrl, healthyScriptUrl],
+        styles: ['https://example.com/cleanup.css'],
+      });
+    });
+
+    expect(() => result.current.resetPluginAssets('cleanup-plugin')).not.toThrow();
+
+    expect((globalThis as Record<string, unknown>).__useManagerFailingCleanupCount).toBe(1);
+    expect((globalThis as Record<string, unknown>).__useManagerHealthyCleanupCount).toBe(1);
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(0);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to clean up webview plugin'),
+      expect.any(Error),
+    );
+  });
+
+  it('replaces an active plugin when its runtime revision changes', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate() {
+        globalThis.__useManagerActivationCount = (globalThis.__useManagerActivationCount || 0) + 1;
+        return () => {
+          globalThis.__useManagerCleanupCount = (globalThis.__useManagerCleanupCount || 0) + 1;
+        };
+      }
+    `);
+    const firstInjection = {
+      pluginId: 'linked-plugin',
+      revision: 'build-v1',
+      scripts: [scriptUrl],
+      styles: [],
+    };
+    const replacementInjection = {
+      ...firstInjection,
+      revision: 'build-v2',
+    };
+
+    await act(async () => {
+      await result.current.injectPluginAssets(firstInjection);
+      await result.current.injectPluginAssets(replacementInjection);
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(2);
+    expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
+  });
+
+  it('removes host registrations before activating a revised runtime', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate(api) {
+        api.registerNodeRenderer('.ts', () => undefined);
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'linked-plugin',
+        revision: 'build-v1',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+      await result.current.injectPluginAssets({
+        pluginId: 'linked-plugin',
+        revision: 'build-v2',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    expect(result.current.pluginHost.getNodeRenderers('.ts')).toHaveLength(1);
+  });
+
+  it('blocks stale registrations from an activation that finishes after reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    let releaseActivation: (() => void) | undefined;
+    let markStarted: (() => void) | undefined;
+    (globalThis as Record<string, unknown>).__useManagerActivationGate = new Promise<void>((resolve) => {
+      releaseActivation = resolve;
+    });
+    const activationStarted = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerActivationStarted = markStarted;
+    const scriptUrl = toDataUrlModule(`
+      export async function activate(api) {
+        globalThis.__useManagerActivationStarted();
+        await globalThis.__useManagerActivationGate;
+        api.registerNodeRenderer('.stale', () => undefined);
+      }
+    `);
+
+    const activation = result.current.injectPluginAssets({
+      pluginId: 'linked-plugin',
+      revision: 'build-v1',
+      scripts: [scriptUrl],
+      styles: [],
+    });
+    await activationStarted;
+    result.current.resetPluginAssets('linked-plugin');
+    releaseActivation?.();
+    await activation;
+
+    expect(result.current.pluginHost.getNodeRenderers('.stale')).toEqual([]);
+  });
+
+  it('does not run later scripts from a payload replaced during activation', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    let releaseOldActivation: (() => void) | undefined;
+    let markOldActivationStarted: (() => void) | undefined;
+    (globalThis as Record<string, unknown>).__useManagerOldActivationGate = new Promise<void>(
+      (resolve) => {
+        releaseOldActivation = resolve;
+      },
+    );
+    const oldActivationStarted = new Promise<void>((resolve) => {
+      markOldActivationStarted = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerOldActivationStarted =
+      markOldActivationStarted;
+    const blockingScript = toDataUrlModule(`
+      export async function activate() {
+        globalThis.__useManagerOldActivationStarted();
+        await globalThis.__useManagerOldActivationGate;
+      }
+    `);
+    const staleFollowUpScript = toDataUrlModule(`
+      export function activate(api) {
+        api.registerNodeRenderer('.stale-follow-up', () => undefined);
+      }
+    `);
+    const replacementScript = toDataUrlModule(`
+      export function activate(api) {
+        api.registerNodeRenderer('.replacement', () => undefined);
+      }
+    `);
+
+    const oldInjection = result.current.injectPluginAssets({
+      pluginId: 'linked-plugin',
+      revision: 'build-v1',
+      scripts: [blockingScript, staleFollowUpScript],
+      styles: [],
+    });
+    await oldActivationStarted;
+    await result.current.injectPluginAssets({
+      pluginId: 'linked-plugin',
+      revision: 'build-v2',
+      scripts: [replacementScript],
+      styles: [],
+    });
+    releaseOldActivation?.();
+    await oldInjection;
+
+    expect(result.current.pluginHost.getNodeRenderers('.stale-follow-up')).toEqual([]);
+    expect(result.current.pluginHost.getNodeRenderers('.replacement')).toHaveLength(1);
+  });
+
+  it('keeps the replacement activation pending when the stale activation finishes', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    let releaseFirst: (() => void) | undefined;
+    let releaseSecond: (() => void) | undefined;
+    let markFirstStarted: (() => void) | undefined;
+    let markSecondStarted: (() => void) | undefined;
+    (globalThis as Record<string, unknown>).__useManagerFirstGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerSecondGate = new Promise<void>((resolve) => {
+      releaseSecond = resolve;
+    });
+    const firstStarted = new Promise<void>((resolve) => {
+      markFirstStarted = resolve;
+    });
+    const secondStarted = new Promise<void>((resolve) => {
+      markSecondStarted = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerFirstStarted = markFirstStarted;
+    (globalThis as Record<string, unknown>).__useManagerSecondStarted = markSecondStarted;
+    const scriptUrl = toDataUrlModule(`
+      export async function activate() {
+        globalThis.__useManagerOverlapCount = (globalThis.__useManagerOverlapCount || 0) + 1;
+        if (globalThis.__useManagerOverlapCount === 1) {
+          globalThis.__useManagerFirstStarted();
+          await globalThis.__useManagerFirstGate;
+          return;
+        }
+        if (globalThis.__useManagerOverlapCount === 2) {
+          globalThis.__useManagerSecondStarted();
+          await globalThis.__useManagerSecondGate;
+        }
+      }
+    `);
+    const injection = {
+      pluginId: 'linked-plugin',
+      scripts: [scriptUrl],
+      styles: [],
+    };
+
+    const firstActivation = result.current.injectPluginAssets(injection);
+    await firstStarted;
+    result.current.resetPluginAssets('linked-plugin');
+    const secondActivation = result.current.injectPluginAssets(injection);
+    await secondStarted;
+    releaseFirst?.();
+    await firstActivation;
+    const thirdActivation = result.current.injectPluginAssets(injection);
+    await Promise.resolve();
+    releaseSecond?.();
+    await Promise.all([secondActivation, thirdActivation]);
+
+    expect((globalThis as Record<string, unknown>).__useManagerOverlapCount).toBe(2);
   });
 
   it('warns when a script has no activate export', async () => {

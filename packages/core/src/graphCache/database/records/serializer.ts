@@ -6,6 +6,7 @@ import type {
   IAnalysisSymbol,
   IGraphData,
   IGraphNode,
+  IPluginNodeType,
 } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import { CORE_GRAPH_NODE_TYPES } from '../../../graphControls/defaults/definitions';
@@ -15,7 +16,6 @@ import {
   type EdgeRecord,
   type FileRecord,
   type NodeRecord,
-  type NodeViewRecord,
   type SymbolRecord,
 } from './types';
 
@@ -24,7 +24,6 @@ export type DatabaseRecord = Record<string, SQLiteValue>;
 export interface NormalizedDatabaseRecords {
   files: FileRecord[];
   nodes: NodeRecord[];
-  nodeViews: NodeViewRecord[];
   symbols: SymbolRecord[];
   edges: EdgeRecord[];
 }
@@ -41,10 +40,6 @@ function emptyNullableNodeFields(): NullableNodeFields {
     pluginId: null,
     language: null,
   };
-}
-
-function sqliteBoolean(value: boolean): number {
-  return Number(value);
 }
 
 function metadataString(metadata: GraphMetadata | undefined, key: string): string | null {
@@ -69,7 +64,7 @@ function isGenericSymbolNodeType(type: string): boolean {
 
 function matchesSymbolNodeTypeDefinition(
   facts: SymbolNodeTypeFacts,
-  definition: (typeof CORE_GRAPH_NODE_TYPES)[number],
+  definition: IPluginNodeType,
 ): boolean {
   return Boolean(definition.parentId)
     && (!definition.matchSymbolKinds || definition.matchSymbolKinds.includes(facts.kind))
@@ -78,38 +73,50 @@ function matchesSymbolNodeTypeDefinition(
     && (!definition.matchSymbolPluginKind || definition.matchSymbolPluginKind === facts.pluginKind);
 }
 
-function resolveSymbolNodeType(facts: SymbolNodeTypeFacts, fallback: string): string {
+function resolveSymbolNodeType(
+  facts: SymbolNodeTypeFacts,
+  fallback: string,
+  nodeTypes: readonly IPluginNodeType[],
+): string {
   if (!isGenericSymbolNodeType(fallback)) return fallback;
 
-  const pluginType = CORE_GRAPH_NODE_TYPES.find(definition =>
+  const pluginType = nodeTypes.find(definition =>
     Boolean(definition.matchSymbolSource)
     && matchesSymbolNodeTypeDefinition(facts, definition),
   );
   if (pluginType) return pluginType.id;
 
   const exactCoreTypeId = facts.kind === 'variable' ? 'variable:plain' : `symbol:${facts.kind}`;
-  return CORE_GRAPH_NODE_TYPES.some(definition => definition.id === exactCoreTypeId)
+  return nodeTypes.some(definition => definition.id === exactCoreTypeId)
     ? exactCoreTypeId
     : fallback;
 }
 
-function analysisSymbolNodeType(symbol: IAnalysisSymbol, fallback: string): string {
+function analysisSymbolNodeType(
+  symbol: IAnalysisSymbol,
+  fallback: string,
+  nodeTypes: readonly IPluginNodeType[],
+): string {
   return resolveSymbolNodeType({
     kind: symbol.kind,
     language: metadataString(symbol.metadata, 'language'),
     pluginId: metadataPluginId(symbol.metadata),
     pluginKind: metadataString(symbol.metadata, 'pluginKind'),
-  }, fallback);
+  }, fallback, nodeTypes);
 }
 
-function graphSymbolNodeType(node: IGraphNode, fallback: string): string {
+function graphSymbolNodeType(
+  node: IGraphNode,
+  fallback: string,
+  nodeTypes: readonly IPluginNodeType[],
+): string {
   if (!node.symbol) return fallback;
   return resolveSymbolNodeType({
     kind: node.symbol.kind,
     language: node.symbol.language ?? null,
     pluginId: node.symbol.source ?? metadataPluginId(node.metadata),
     pluginKind: node.symbol.pluginKind ?? null,
-  }, fallback);
+  }, fallback, nodeTypes);
 }
 
 function normalizeSlashes(value: string): string {
@@ -192,12 +199,13 @@ function graphNodeRecord(
   node: IGraphNode,
   knownFilePaths: ReadonlySet<string>,
   context: IdentityNormalizationContext,
+  nodeTypes: readonly IPluginNodeType[],
 ): NodeRecord {
   const fallbackType = node.nodeType ?? 'file';
   return {
     ...emptyNullableNodeFields(),
     key: normalizeAnalysisId(node.id, context) ?? node.id,
-    type: graphSymbolNodeType(node, fallbackType),
+    type: graphSymbolNodeType(node, fallbackType, nodeTypes),
     label: node.label,
     fileId: graphNodeFilePath(node, knownFilePaths, context),
     parentId: normalizeAnalysisId(
@@ -206,19 +214,6 @@ function graphNodeRecord(
     ),
     pluginId: node.symbol?.source ?? metadataPluginId(node.metadata),
     language: node.symbol?.language ?? metadataString(node.metadata, 'language'),
-  };
-}
-
-function graphNodeViewRecord(node: IGraphNode, nodeKey: string): NodeViewRecord {
-  return {
-    nodeKey,
-    color: node.color,
-    x: node.x ?? null,
-    y: node.y ?? null,
-    favorite: node.favorite === undefined ? null : sqliteBoolean(node.favorite),
-    shape: node.shape2D ?? null,
-    imageUrl: node.imageUrl ?? null,
-    isCollapsed: node.isCollapsed === undefined ? null : sqliteBoolean(node.isCollapsed),
   };
 }
 
@@ -375,7 +370,14 @@ function createAnalysisToGraphId(
 export function serializeDatabaseRecords(
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
+  pluginNodeTypes: readonly IPluginNodeType[] = [],
 ): NormalizedDatabaseRecords {
+  const nodeTypes = [
+    ...new Map(
+      [...CORE_GRAPH_NODE_TYPES, ...pluginNodeTypes]
+        .map(definition => [definition.id, definition]),
+    ).values(),
+  ];
   const graphData = graph ?? { nodes: [], edges: [] };
   const sortedFiles = Object.entries(cache.files).sort(([left], [right]) => left.localeCompare(right));
   const knownFilePaths = new Set(sortedFiles.map(([filePath]) => filePath));
@@ -389,11 +391,9 @@ export function serializeDatabaseRecords(
   }));
 
   const nodes = new Map<string, NodeRecord>();
-  const nodeViews = new Map<string, NodeViewRecord>();
   for (const node of graphData.nodes) {
-    const record = graphNodeRecord(node, knownFilePaths, normalization);
+    const record = graphNodeRecord(node, knownFilePaths, normalization, nodeTypes);
     nodes.set(record.key, record);
-    nodeViews.set(record.key, graphNodeViewRecord(node, record.key));
   }
   for (const [filePath] of sortedFiles) addEndpointNode(nodes, filePath, knownFilePaths);
   for (const [filePath, entry] of sortedFiles) {
@@ -409,7 +409,7 @@ export function serializeDatabaseRecords(
       if (node) {
         const wasGenericSymbol = isGenericSymbolNodeType(node.type);
         node.fileId ??= filePath;
-        node.type = analysisSymbolNodeType(symbol, node.type);
+        node.type = analysisSymbolNodeType(symbol, node.type, nodeTypes);
         node.pluginId ??= metadataPluginId(symbol.metadata);
         node.language ??= metadataString(symbol.metadata, 'language');
         if (wasGenericSymbol) node.label = symbol.name;
@@ -481,7 +481,6 @@ export function serializeDatabaseRecords(
   return {
     files,
     nodes: [...nodes.values()].sort((left, right) => left.key.localeCompare(right.key)),
-    nodeViews: [...nodeViews.values()].sort((left, right) => left.nodeKey.localeCompare(right.nodeKey)),
     symbols: [...symbols.values()].sort((left, right) => left.nodeId.localeCompare(right.nodeId)),
     edges: [...edges.values()].sort((left, right) => left.key.localeCompare(right.key)),
   };

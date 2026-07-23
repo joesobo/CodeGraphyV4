@@ -44,7 +44,7 @@ describe('graphCache/database/snapshot', () => {
       }];
       if (query === NODE_ROWS_QUERY) return [
         {
-          id: 1, key: 'src/app.ts', type: 'file', label: 'app.ts', filePath: 'src/app.ts', color: '#fff',
+          id: 1, key: 'src/app.ts', type: 'file', label: 'app.ts', filePath: 'src/app.ts',
         },
         {
           id: 2, key: 'symbol-1', type: 'symbol', label: 'App', filePath: 'src/app.ts',

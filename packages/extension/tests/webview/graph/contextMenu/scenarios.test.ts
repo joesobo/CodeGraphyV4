@@ -48,7 +48,6 @@ describe('graph/contextMenu product scenarios', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       favorites: new Set(),
-      pluginItems: [],
     });
 
     expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
@@ -61,7 +60,6 @@ describe('graph/contextMenu product scenarios', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set<string>()),
       favorites: new Set<string>(),
-      pluginItems: [],
       nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
     });
 
@@ -84,7 +82,6 @@ describe('graph/contextMenu product scenarios', () => {
     const entries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set<string>(),
-      pluginItems: [],
     });
     const actionContext = resolveGraphContextActionContext(selection);
 
@@ -106,7 +103,6 @@ describe('graph/contextMenu product scenarios', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src'])),
       favorites: new Set<string>(),
-      pluginItems: [],
       nodes: [
         { id: 'src/app.ts', label: 'app.ts', color: '#93c5fd', nodeType: 'file' },
         { id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' },

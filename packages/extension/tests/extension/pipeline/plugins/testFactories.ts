@@ -7,7 +7,7 @@ export function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
     id: 'test.plugin',
     name: 'Test Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
@@ -25,9 +25,12 @@ export function createInstalledPlugin(
   return {
     package: '@codegraphy-dev/plugin-test',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
-    disclosures: [],
+    id: 'codegraphy.test',
+    host: 'core',
+    entry: './dist/plugin.js',
+    apiVersion: '^4.0.0',
     packageRoot: '/global/node_modules/@codegraphy-dev/plugin-test',
+    globallyEnabled: false,
     ...overrides,
   };
 }

@@ -16,16 +16,16 @@ function plugin(id: string, initialize?: IPlugin['initialize']): IPlugin {
 describe('plugins/lifecycle/initialize', () => {
   it('initializes each plugin once with workspace analysis context options', async () => {
     const initialize = vi.fn();
-    const initialized = new Set<string>();
     const info = {
       plugin: plugin('test', initialize),
       options: { includeTests: true },
     };
+    const initialized = new Set<typeof info>();
 
     await initializePlugin(info, '/workspace', initialized);
     await initializePlugin(info, '/workspace', initialized);
 
-    expect(initialized).toEqual(new Set(['test']));
+    expect(initialized).toEqual(new Set([info]));
     expect(initialize).toHaveBeenCalledTimes(1);
     expect(initialize).toHaveBeenCalledWith('/workspace', expect.objectContaining({
       options: { includeTests: true },
@@ -33,11 +33,12 @@ describe('plugins/lifecycle/initialize', () => {
   });
 
   it('marks plugins without initialize hooks as initialized', async () => {
-    const initialized = new Set<string>();
+    const info = { plugin: plugin('metadata-only') };
+    const initialized = new Set<typeof info>();
 
-    await initializePlugin({ plugin: plugin('metadata-only') }, '/workspace', initialized);
+    await initializePlugin(info, '/workspace', initialized);
 
-    expect(initialized).toEqual(new Set(['metadata-only']));
+    expect(initialized).toEqual(new Set([info]));
   });
 
   it('initializes all plugins and allows failed plugins to retry later', async () => {
@@ -47,14 +48,16 @@ describe('plugins/lifecycle/initialize', () => {
     const failingInitialize = vi.fn(async () => {
       throw failingError;
     });
-    const initialized = new Set<string>();
+    const firstInfo = { plugin: plugin('first', firstInitialize) };
+    const failingInfo = { plugin: plugin('failing', failingInitialize) };
+    const initialized = new Set<typeof firstInfo>();
 
     await initializeAll(new Map([
-      ['first', { plugin: plugin('first', firstInitialize) }],
-      ['failing', { plugin: plugin('failing', failingInitialize) }],
+      ['first', firstInfo],
+      ['failing', failingInfo],
     ]), '/workspace', initialized);
 
-    expect(initialized).toEqual(new Set(['first']));
+    expect(initialized).toEqual(new Set([firstInfo]));
     expect(consoleError).toHaveBeenCalledWith(
       '[CodeGraphy] Error initializing plugin failing:',
       failingError,

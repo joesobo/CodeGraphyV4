@@ -21,7 +21,6 @@ export const CORE_GRAPH_EDGE_TYPES = [
   'type',
   'type-import',
   'using',
-  'codegraphy.gdscript:signal-connection',
 ] as const;
 
 export const CORE_GRAPH_EDGE_DEFAULT_VISIBILITY: Record<string, boolean> = {
@@ -39,5 +38,4 @@ export const CORE_GRAPH_EDGE_DEFAULT_VISIBILITY: Record<string, boolean> = {
   reference: false,
   type: false,
   'type-import': false,
-  'codegraphy.gdscript:signal-connection': false,
 };

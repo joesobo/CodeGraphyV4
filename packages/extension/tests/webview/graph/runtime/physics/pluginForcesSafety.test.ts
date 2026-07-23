@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { createOwnedGraphPluginForces } from '../../../../../src/webview/components/graph/rendering/surface/owned2d/plugin/forces/model';
 
-function emptyContributions(): CoreGraphViewContributionSet {
+function emptyContributions(): ExtensionGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],
@@ -19,7 +19,7 @@ describe('owned Graph View plugin force safety', () => {
   it('applies plugin forces in contribution order so later explicit output is authoritative', () => {
     const forces = createOwnedGraphPluginForces();
     const node = { id: 'node', x: 0, y: 0, vx: 0, vy: 0 } as FGNode;
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [
         {
@@ -66,7 +66,7 @@ describe('owned Graph View plugin force safety', () => {
       expect(node).toMatchObject({ x: 1, y: 2, vx: 3, vy: 4, fx: undefined });
       node.vx = 5;
     });
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [
         {
@@ -111,7 +111,7 @@ describe('owned Graph View plugin force safety', () => {
     const forces = createOwnedGraphPluginForces();
     const healthyTick = vi.fn();
     const healthyDispose = vi.fn();
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [
         {

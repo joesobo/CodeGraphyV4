@@ -222,9 +222,8 @@ describe('pipeline/service/refreshFacade changed files', () => {
     const [refreshSource] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
     expect(refreshSource._patchGraphDataNodeMetrics?.({
       nodes: [
-        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 10 },
+        { id: 'src/a.ts', label: 'a.ts', fileSize: 10 },
         {
-          color: '#fff',
           id: 'src/a.ts#run:function',
           label: 'run',
           symbol: {
@@ -235,14 +234,13 @@ describe('pipeline/service/refreshFacade changed files', () => {
           },
           fileSize: 10,
         },
-        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4 },
+        { id: 'src/b.ts', label: 'b.ts', fileSize: 4 },
       ],
       edges: [],
     }, ['src/a.ts'])).toEqual({
       nodes: [
-        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 12 },
+        { id: 'src/a.ts', label: 'a.ts', fileSize: 12 },
         {
-          color: '#fff',
           id: 'src/a.ts#run:function',
           label: 'run',
           symbol: {
@@ -253,7 +251,7 @@ describe('pipeline/service/refreshFacade changed files', () => {
           },
           fileSize: 12,
         },
-        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4 },
+        { id: 'src/b.ts', label: 'b.ts', fileSize: 4 },
       ],
       edges: [],
     });

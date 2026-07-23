@@ -1,60 +1,58 @@
 import { z } from 'zod';
-import { satisfiesSemverRange } from './apiVersion';
-import type { CodeGraphyPluginDisclosure } from './disclosures';
-import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
-import { CORE_PLUGIN_API_VERSION } from './api';
-import { createCodeGraphyPluginPackageManifest } from './packageManifestBuild';
+
+const nonEmptyStringSchema = z.string().trim().min(1);
+
+const pluginDescriptorSchema = z.looseObject({
+  id: nonEmptyStringSchema,
+  name: nonEmptyStringSchema.optional().catch(undefined),
+  host: nonEmptyStringSchema,
+  entry: nonEmptyStringSchema,
+  apiVersion: nonEmptyStringSchema,
+  data: z.unknown().optional(),
+});
 
 const pluginPackageJsonSchema = z.looseObject({
-  name: z.string().catch(''),
-  version: z.string().catch(''),
+  name: nonEmptyStringSchema,
+  version: nonEmptyStringSchema,
   codegraphy: z.looseObject({
-    type: z.unknown(),
-    apiVersion: z.string().catch(''),
+    plugins: z.array(pluginDescriptorSchema).min(1),
   }),
 });
 
-export type { CodeGraphyPluginDisclosure };
+export interface CodeGraphyPluginPackageDescriptor {
+  id: string;
+  name?: string;
+  host: string;
+  entry: string;
+  apiVersion: string;
+  data?: unknown;
+}
 
 export interface CodeGraphyPluginPackageManifest {
   package: string;
   version: string;
-  apiVersion: string;
-  defaultOptions?: Record<string, unknown>;
-  updateImpact?: IPluginUpdateImpactPolicy;
-  disclosures: CodeGraphyPluginDisclosure[];
+  plugins: CodeGraphyPluginPackageDescriptor[];
 }
 
 export function parseCodeGraphyPluginPackageManifest(
   packageJson: unknown,
 ): CodeGraphyPluginPackageManifest | null {
   const parsed = pluginPackageJsonSchema.safeParse(packageJson);
-  if (!parsed.success) {
-    return null;
-  }
+  if (!parsed.success) return null;
 
-  const { name: packageName, version, codegraphy } = parsed.data;
-  const apiVersion = codegraphy.apiVersion;
+  const pluginIds = parsed.data.codegraphy.plugins.map(plugin => plugin.id);
+  if (new Set(pluginIds).size !== pluginIds.length) return null;
 
-  if (
-    packageName.length === 0
-    || version.length === 0
-    || codegraphy.type !== 'plugin'
-    || apiVersion.length === 0
-  ) {
-    return null;
-  }
-
-  if (!satisfiesSemverRange(CORE_PLUGIN_API_VERSION, apiVersion)) {
-    throw new Error(
-      `Plugin '${packageName}' targets unsupported CodeGraphy Plugin API '${apiVersion}'.`,
-    );
-  }
-
-  return createCodeGraphyPluginPackageManifest({
-    apiVersion,
-    codegraphy,
-    packageName,
-    version,
-  });
+  return {
+    package: parsed.data.name,
+    version: parsed.data.version,
+    plugins: parsed.data.codegraphy.plugins.map(plugin => ({
+      id: plugin.id,
+      ...(plugin.name ? { name: plugin.name } : {}),
+      host: plugin.host,
+      entry: plugin.entry,
+      apiVersion: plugin.apiVersion,
+      ...(plugin.data !== undefined ? { data: plugin.data } : {}),
+    })),
+  };
 }

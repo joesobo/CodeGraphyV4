@@ -1,4 +1,3 @@
-import { DEFAULT_FOLDER_NODE_COLOR } from '../fileColors';
 import type { IGraphNode } from './contracts';
 import { isExternalPackageNodeId } from './packageSpecifiers/nodeId';
 
@@ -29,7 +28,6 @@ function createDirectoryNode(directoryPath: string, gitIgnored: boolean): IGraph
   return {
     id: directoryPath,
     label: directoryPath.split('/').pop() ?? directoryPath,
-    color: DEFAULT_FOLDER_NODE_COLOR,
     nodeType: 'folder',
     ...(gitIgnored
       ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }

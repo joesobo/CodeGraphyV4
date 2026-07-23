@@ -13,10 +13,11 @@ export function createPluginSource(
     _analyzer: {
       registry: {
         list: vi.fn(() => []),
-        getPluginAPI: vi.fn(),
+        extensionPlugins: {
+          listActive: vi.fn(() => []),
+        },
         register: vi.fn(),
         initializePlugin: vi.fn(async () => undefined),
-        replayReadinessForPlugin: vi.fn(),
       },
       getPluginStatuses: vi.fn(() => []),
     },
@@ -40,9 +41,6 @@ export function createPluginSource(
     _registerBuiltInPluginRoots: vi.fn(),
     _resolveWebviewAssetPath: vi.fn(() => 'asset://icon.svg'),
     _refreshWebviewResourceRoots: vi.fn(),
-    _normalizeExternalExtensionUri: vi.fn(uri =>
-      typeof uri === 'string' ? vscode.Uri.file(uri) : uri,
-    ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),

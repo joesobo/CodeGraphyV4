@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
+    "@codegraphy-dev/extension-plugin-api": "workspace:*",
     "@codegraphy-dev/graph-renderer": "workspace:*",
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
@@ -53,6 +54,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "detect-libc": "2.0.2",
+    "esbuild": "^0.25.0",
     "graphology": "^0.26.0",
     "ignore": "^7.0.5",
     "libsql": "0.5.29",

@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { FGNode } from '../../../model/build';
 import { createDragGroupSession, getDragEndNodes } from './nodeDrag/group';
 import { releaseNodeDrag } from './nodeDrag/policy';
@@ -54,7 +54,7 @@ export function applyNodeDrag(
 
 export function postNodeDragEndMessages(
   node: FGNode,
-  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+  graphViewContributions?: Pick<ExtensionGraphViewContributionSet, 'nodeDragEnd'>,
   options: {
     graphData?: NodeDragEndOptions['graphData'];
   } = {},

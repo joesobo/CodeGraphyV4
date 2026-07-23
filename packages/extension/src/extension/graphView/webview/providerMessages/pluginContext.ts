@@ -3,7 +3,6 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-import { createGraphViewProviderPluginApis } from './pluginApis';
 import {
   setPluginFilterPatterns,
   setPluginUserGroups,
@@ -23,19 +22,10 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendFavorites'
   | 'sendSettings'
   | 'sendDecorations'
-  | 'sendContextMenuItems'
-  | 'sendPluginExporters'
-  | 'sendPluginToolbarActions'
-  | 'sendGraphViewContributionStatuses'
   | 'sendPluginWebviewInjections'
   | 'sendActiveFile'
   | 'waitForFirstWorkspaceReady'
   | 'notifyWebviewReady'
-  | 'getInteractionPluginApi'
-  | 'getContextMenuPluginApi'
-  | 'getExporterPluginApi'
-  | 'getToolbarActionPluginApi'
-  | 'emitEvent'
   | 'logError'
   | 'setUserGroups'
   | 'setFilterPatterns'
@@ -46,8 +36,6 @@ export function createGraphViewProviderMessagePluginContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderPluginContext {
-  const pluginApis = createGraphViewProviderPluginApis(source);
-
   return {
     getPluginFilterPatterns: () =>
       typeof source._analyzer?.getPluginFilterPatterns === 'function'
@@ -63,24 +51,13 @@ export function createGraphViewProviderMessagePluginContext(
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
     sendDecorations: () => source._sendDecorations(),
-    sendContextMenuItems: () => source._sendContextMenuItems(),
-    sendPluginExporters: () => source._sendPluginExporters?.(),
-    sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
-    sendGraphViewContributionStatuses: () => source._sendGraphViewContributionStatuses?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
     sendActiveFile: () => source._sendMessage({
       type: 'ACTIVE_FILE_UPDATED',
       payload: { filePath: source._viewContext.focusedFile },
     }),
     waitForFirstWorkspaceReady: () => source._firstWorkspaceReadyPromise,
-    notifyWebviewReady: pluginApis.notifyWebviewReady,
-    getInteractionPluginApi: pluginApis.getInteractionPluginApi,
-    getContextMenuPluginApi: pluginApis.getContextMenuPluginApi,
-    getExporterPluginApi: pluginApis.getExporterPluginApi,
-    getToolbarActionPluginApi: pluginApis.getToolbarActionPluginApi,
-    emitEvent: (event, payload) => {
-      source._eventBus.emit(event, payload);
-    },
+    notifyWebviewReady: () => source._analyzer?.registry?.notifyWebviewReady(),
     logError: (label, error) => {
       console.error(label, error);
     },

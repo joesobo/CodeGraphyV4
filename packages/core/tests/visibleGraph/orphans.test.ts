@@ -6,7 +6,6 @@ function node(id: string): IGraphNode {
   return {
     id,
     label: id,
-    color: '#111111',
   };
 }
 

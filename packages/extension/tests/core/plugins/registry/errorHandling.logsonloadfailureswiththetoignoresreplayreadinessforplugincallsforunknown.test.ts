@@ -1,8 +1,5 @@
-import { DecorationManager } from '@/core/plugins/decoration/manager';
-import { EventBus } from '@/core/plugins/events/bus';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
 import { IPlugin } from '@/core/plugins/types/contracts';
-import { ViewRegistry } from '@/core/views/registry';
 import { describe, expect, it, vi } from 'vitest';
 
 function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
@@ -10,7 +7,7 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
     id,
     name: `Test Plugin ${id}`,
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: ['.test'],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
@@ -18,38 +15,10 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
 }
 
 function createConfiguredRegistry() {
-  const registry = new PluginRegistry();
-  registry.configureV2({
-    eventBus: new EventBus(),
-    decorationManager: new DecorationManager(),
-    viewRegistry: new ViewRegistry(),
-    graphProvider: () => ({ nodes: [], edges: [] }),
-    commandRegistrar: () => ({ dispose: () => {} }),
-    webviewSender: () => {},
-    workspaceRoot: '/workspace',
-  });
-  return registry;
+  return new PluginRegistry();
 }
 
 describe('PluginRegistry error handling', () => {
-
-
-    it('logs onLoad failures with the plugin id', () => {
-      const registry = createConfiguredRegistry();
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const failure = new Error('onLoad failed');
-      const plugin = createPlugin('load-error', {
-        onLoad: vi.fn(() => {
-          throw failure;
-        }),
-      });
-
-      expect(() => registry.register(plugin)).not.toThrow();
-
-      expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onLoad for plugin load-error:', failure);
-      errorSpy.mockRestore();
-    });
-
 
 
     it('logs each notification hook failure with hook-specific context', async () => {
@@ -59,7 +28,6 @@ describe('PluginRegistry error handling', () => {
       const preAnalyzeFailure = new Error('pre');
       const postAnalyzeFailure = new Error('post');
       const rebuildFailure = new Error('rebuild');
-      const webviewFailure = new Error('webview');
       const plugin = createPlugin('notify-errors', {
         onWorkspaceReady: vi.fn(() => {
           throw workspaceFailure;
@@ -71,9 +39,6 @@ describe('PluginRegistry error handling', () => {
         onGraphRebuild: vi.fn(() => {
           throw rebuildFailure;
         }),
-        onWebviewReady: vi.fn(() => {
-          throw webviewFailure;
-        }),
       });
 
       registry.register(plugin);
@@ -83,13 +48,11 @@ describe('PluginRegistry error handling', () => {
       ], '/workspace');
       registry.notifyPostAnalyze({ nodes: [], edges: [] });
       registry.notifyGraphRebuild({ nodes: [], edges: [] });
-      registry.notifyWebviewReady();
 
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onWorkspaceReady for notify-errors:', workspaceFailure);
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onPreAnalyze for notify-errors:', preAnalyzeFailure);
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onPostAnalyze for notify-errors:', postAnalyzeFailure);
       expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onGraphRebuild for notify-errors:', rebuildFailure);
-      expect(errorSpy).toHaveBeenCalledWith('[CodeGraphy] Error in onWebviewReady for notify-errors:', webviewFailure);
       errorSpy.mockRestore();
     });
 
@@ -105,7 +68,6 @@ describe('PluginRegistry error handling', () => {
       await registry.notifyPreAnalyze([], '/workspace');
       registry.notifyPostAnalyze({ nodes: [], edges: [] });
       registry.notifyGraphRebuild({ nodes: [], edges: [] });
-      registry.notifyWebviewReady();
 
       expect(errorSpy).not.toHaveBeenCalled();
       errorSpy.mockRestore();
@@ -133,13 +95,5 @@ describe('PluginRegistry error handling', () => {
       const registry = createConfiguredRegistry();
 
       await expect(registry.initializePlugin('missing-plugin', '/workspace')).resolves.toBeUndefined();
-    });
-
-
-
-    it('ignores replayReadinessForPlugin calls for unknown plugin ids', () => {
-      const registry = createConfiguredRegistry();
-
-      expect(() => registry.replayReadinessForPlugin('missing-plugin')).not.toThrow();
     });
 });

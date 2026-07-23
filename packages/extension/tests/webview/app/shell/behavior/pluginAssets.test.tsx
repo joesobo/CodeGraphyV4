@@ -40,7 +40,7 @@ describe('App plugin asset behavior', () => {
   it('injects plugin assets, activates scripts once, and reuses cached styles', async () => {
         render(<App />);
   
-        const scriptUrl = 'data:text/javascript,export default { activate(api) { globalThis.__pluginActivations.push({ hasSendMessage: typeof api.sendMessage === "function", hasHelpers: typeof api.helpers.drawLabel === "function" }); } }';
+        const scriptUrl = 'data:text/javascript,export default { activate(api) { globalThis.__pluginActivations.push({ hasPluginDataWrite: typeof api.setPluginData === "function", hasHelpers: typeof api.helpers.drawLabel === "function" }); } }';
   
         await act(async () => {
           sendAppMessage({
@@ -75,7 +75,7 @@ describe('App plugin asset behavior', () => {
         });
         expect(document.head.querySelectorAll('link[href="https://example.com/plugin.css"]')).toHaveLength(1);
         expect((globalThis as { __pluginActivations?: unknown[] }).__pluginActivations).toEqual([
-          { hasSendMessage: true, hasHelpers: true },
+          { hasPluginDataWrite: true, hasHelpers: true },
         ]);
       });
 });

@@ -88,7 +88,6 @@ describe('graph view provider listener registration and messages', () => {
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
-    expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();

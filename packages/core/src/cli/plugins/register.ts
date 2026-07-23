@@ -19,7 +19,7 @@ export async function runRegisterCommand(
     };
   }
 
-  const record = await dependencies.registerInstalledPlugin({
+  const records = await dependencies.registerInstalledPlugin({
     homeDir: dependencies.homeDir,
     packageName: command.packageName,
     globalPackageRoots,
@@ -27,6 +27,6 @@ export async function runRegisterCommand(
 
   return {
     exitCode: 0,
-    output: `Registered ${record.package} in ~/.codegraphy/plugins.json.`,
+    output: `Registered ${records.length} plugin${records.length === 1 ? '' : 's'} from ${command.packageName} in ~/.codegraphy/plugins.json.`,
   };
 }

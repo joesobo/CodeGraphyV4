@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
+import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type {
   ExtensionToWebviewMessage,
@@ -95,13 +96,9 @@ export interface GraphViewProviderMessageListenerSource {
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;
-          getPluginAPI(
-            pluginId: string,
-          ):
-            | { deliverWebviewMessage(message: { type: string; data: unknown }): void }
-            | { contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }> }
-            | { exporters: ReadonlyArray<{ run(): Promise<void> | void }> }
-            | undefined;
+          get?(pluginId: string): {
+            plugin: { updateImpact?: IPluginUpdateImpactPolicy };
+          } | undefined;
         };
       }
     | undefined;
@@ -152,11 +149,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendFavorites(favorites?: string[]): void;
   _sendSettings(): void;
   _sendDecorations(): void;
-  _sendContextMenuItems(): void;
   _sendPluginStatuses(): void;
-  _sendPluginExporters?(): void;
-  _sendPluginToolbarActions?(): void;
-  _sendGraphViewContributionStatuses?(): void;
   _sendPluginWebviewInjections(): void;
   _sendGraphControls?(): void;
   invalidatePluginFiles(pluginIds: readonly string[]): string[];

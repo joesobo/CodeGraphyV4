@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import { describe, expect, it } from 'vitest';
 import { createGraphViewProviderSettingsMethodDelegates } from '../../../../../../src/extension/graphView/provider/source/delegates/settings';
 import { createMethodSourceOwnerStub } from '../fakes';
@@ -9,12 +8,10 @@ describe('source/delegates/settings', () => {
     const delegates = createGraphViewProviderSettingsMethodDelegates(owner);
     const assetPath = 'media/plugin.js';
     const pluginId = 'plugin.test';
-    const uri = vscode.Uri.file('/test/plugin');
 
     delegates._registerBuiltInPluginRoots();
     delegates._resolveWebviewAssetPath(assetPath, pluginId);
     delegates._refreshWebviewResourceRoots();
-    delegates._normalizeExternalExtensionUri(uri);
     delegates._loadDisabledRulesAndPlugins();
     delegates._sendSettings();
     delegates._sendPhysicsSettings();
@@ -34,7 +31,6 @@ describe('source/delegates/settings', () => {
       pluginId,
     );
     expect(owner._pluginResourceMethods._refreshWebviewResourceRoots).toHaveBeenCalledTimes(1);
-    expect(owner._pluginResourceMethods._normalizeExternalExtensionUri).toHaveBeenCalledWith(uri);
     expect(owner._settingsStateMethods._loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
     expect(owner._settingsStateMethods._sendSettings).toHaveBeenCalledTimes(1);
     expect(owner._physicsSettingsMethods._sendPhysicsSettings).toHaveBeenCalledTimes(1);

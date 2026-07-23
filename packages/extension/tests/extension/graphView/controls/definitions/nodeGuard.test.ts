@@ -7,7 +7,6 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
       isGraphNodeTypeLike({
         id: 'route',
         label: 'Route',
-        defaultColor: '#22C55E',
         defaultVisible: false,
       }),
     ).toBe(true);
@@ -18,7 +17,6 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
       isGraphNodeTypeLike({
         id: 'route',
         label: 'Route',
-        defaultColor: '#22C55E',
         defaultVisible: false,
         description: {
           description: 'Application routes exposed by a framework.',
@@ -39,7 +37,6 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
     expect(
       isGraphNodeTypeLike({
         label: 'Route',
-        defaultColor: '#22C55E',
         defaultVisible: true,
       }),
     ).toBe(false);
@@ -47,7 +44,6 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
       isGraphNodeTypeLike({
         id: 'route',
         label: {},
-        defaultColor: '#22C55E',
         defaultVisible: true,
       }),
     ).toBe(false);
@@ -55,15 +51,6 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
       isGraphNodeTypeLike({
         id: 'route',
         label: 'Route',
-        defaultColor: null,
-        defaultVisible: true,
-      }),
-    ).toBe(false);
-    expect(
-      isGraphNodeTypeLike({
-        id: 'route',
-        label: 'Route',
-        defaultColor: '#22C55E',
         defaultVisible: 1,
       }),
     ).toBe(false);
@@ -71,7 +58,6 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
       isGraphNodeTypeLike({
         id: 'route',
         label: 'Route',
-        defaultColor: '#22C55E',
         defaultVisible: true,
         description: {
           description: 'Application routes exposed by a framework.',

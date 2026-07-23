@@ -59,16 +59,21 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
           }
         };
 
-        await persistWorkspaceCacheAsync(
-          writer,
-          cache,
-          options.graph,
-          { afterFile: reportPersistedFile, afterStatement: yieldAfterStatement },
-        );
-        await runStatementAsync(
-          connection,
-          'DELETE FROM NodeView WHERE NOT EXISTS (SELECT 1 FROM Node WHERE Node.key = NodeView.nodeKey)',
-        );
+        const callbacks = {
+          afterFile: reportPersistedFile,
+          afterStatement: yieldAfterStatement,
+        };
+        if (options.nodeTypes) {
+          await persistWorkspaceCacheAsync(
+            writer,
+            cache,
+            options.graph,
+            callbacks,
+            options.nodeTypes,
+          );
+        } else {
+          await persistWorkspaceCacheAsync(writer, cache, options.graph, callbacks);
+        }
         await runStatementAsync(connection, 'COMMIT');
         committed = true;
         if (total > reportedProgress) {

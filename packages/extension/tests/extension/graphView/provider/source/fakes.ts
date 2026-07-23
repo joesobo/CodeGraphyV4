@@ -41,19 +41,13 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendGroupsUpdated: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
-    _sendContextMenuItems: vi.fn(),
-    _sendPluginExporters: vi.fn(),
-    _sendPluginToolbarActions: vi.fn(),
-    _sendGraphViewContributionStatuses: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
-    registerExternalPlugin: vi.fn(),
   };
   const pluginResourceMethods = {
     _computeMergedGroups: vi.fn(() => []),
     _registerBuiltInPluginRoots: vi.fn(),
     _resolveWebviewAssetPath: vi.fn(() => vscode.Uri.file('/test/asset.js')),
     _refreshWebviewResourceRoots: vi.fn(),
-    _normalizeExternalExtensionUri: vi.fn((uri: vscode.Uri) => uri),
     _getLocalResourceRoots: vi.fn(() => []),
   };
   const physicsSettingsMethods = {

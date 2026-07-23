@@ -29,15 +29,6 @@ export function initializeGraphViewProviderRuntimeServices(
     coreViews,
     eventBus: source._eventBus,
     decorationManager: source._decorationManager as GraphViewProviderServicesArgs['decorationManager'],
-    getGraphData: () => source._graphData,
-    registerCommand: (id, action) => vscode.commands.registerCommand(id, action),
-    pushSubscription: (subscription) => {
-      source._context.subscriptions.push(subscription as vscode.Disposable);
-    },
-    sendMessage: (message) => {
-      source.getMethodContainers().webview._sendMessage(message);
-    },
-    workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
     onDecorationsChanged: () => {
       source.getMethodContainers().plugin._sendDecorations();
     },

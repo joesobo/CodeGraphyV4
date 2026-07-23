@@ -5,6 +5,7 @@ import {
   createPackageFixtureRoot,
   createPluginPackageWithRuntimeMarkers,
   createDataHostPluginPackage,
+  createExtensionDataHostPluginPackage,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -15,6 +16,69 @@ import {
 } from './bootstrapFixture';
 
 describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
+  it('passes merged options and plugin-owned data to Extension plugin factories', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-extension-data-host',
+    );
+
+    await createExtensionDataHostPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/codegraphy-extension-data-host',
+        version: '1.0.0',
+        id: 'acme.extension-data-host',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        data: {
+          defaultOptions: {
+            mode: 'default',
+            defaultOnly: true,
+          },
+        },
+        packageRoot,
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        id: 'acme.extension-data-host',
+        activation: 'inherit',
+        options: { mode: 'strict' },
+      }],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+    const registration = registry.extensionPlugins.register.mock.calls.find(
+      ([plugin]) => plugin.id === 'acme.extension-data-host',
+    );
+    await registration?.[0].initialize?.(workspaceRoot);
+
+    expect(registration?.[1]).toEqual(expect.objectContaining({
+      options: {
+        mode: 'strict',
+        defaultOnly: true,
+      },
+    }));
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).pluginData).toEqual({
+      'acme.extension-data-host': {
+        mode: 'strict',
+        defaultOnly: true,
+      },
+    });
+  });
+
   it('passes workspace plugin data host to package factories in the extension pipeline', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
@@ -28,26 +92,28 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
 
     await createDataHostPluginPackage(packageRoot);
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-data-host',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: ['workspaceWrites'],
+        id: 'acme.extension-data-host',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-data-host',
-        defaultOptions: {
-          mode: 'default',
-        },
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'acme.extension-data-host',
-        enabled: true,
+        activation: 'enabled',
         options: {
         },
+      }, {
+        id: 'codegraphy.markdown',
+        activation: 'disabled',
       }],
     });
 
@@ -71,7 +137,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
     });
   });
 
-  it('does not register Markdown when the workspace plugins array removes it', async () => {
+  it('registers Markdown from its global default when the workspace omits it', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
@@ -85,7 +151,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
 
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual([]);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -102,23 +168,24 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
     const { factoryMarkerPath, importMarkerPath } = await createPluginPackageWithRuntimeMarkers(packageRoot);
 
     writeCodeGraphyInstalledPluginCache({
-      version: 1,
+      version: 3,
       plugins: [{
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        id: 'acme.extension-bootstrap',
+        name: 'Extension Bootstrap',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot,
-        pluginId: 'acme.extension-bootstrap',
-        pluginName: 'Extension Bootstrap',
-        supportedExtensions: ['.txt'],
+        globallyEnabled: false,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.markdown', enabled: true },
-        { id: 'acme.extension-bootstrap', enabled: true },
+        { id: 'codegraphy.markdown', activation: 'enabled' },
+        { id: 'acme.extension-bootstrap', activation: 'enabled' },
       ],
     });
 

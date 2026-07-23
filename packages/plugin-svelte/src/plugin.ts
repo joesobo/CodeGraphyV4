@@ -1,5 +1,5 @@
 import type { IFileAnalysisResult, IPlugin } from '@codegraphy-dev/plugin-api';
-import manifest from '../codegraphy.json';
+import { manifest } from './metadata';
 import { analyzeSvelteComponent } from './analysis';
 
 export function createSveltePlugin(): IPlugin {
@@ -10,8 +10,7 @@ export function createSveltePlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    updateImpact: manifest.updateImpact as IPlugin['updateImpact'],
-    fileColors: manifest.fileColors,
+    updateImpact: manifest.updateImpact,
     contributeGraphScopeCapabilities: () => ({
       edgeTypes: ['import', 'type-import', 'call'],
     }),

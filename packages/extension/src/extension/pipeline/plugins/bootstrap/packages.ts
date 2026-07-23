@@ -1,9 +1,17 @@
 import {
-  loadCodeGraphyWorkspacePluginPackages,
+  prepareCodeGraphyWorkspacePluginPackages,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import type { WorkspacePipelinePluginRegistration } from './builtIns';
+import type {
+  WorkspacePipelinePluginCandidate,
+  WorkspacePipelinePluginRegistration,
+} from './builtIns';
+import {
+  createWorkspacePluginDescriptorSignature,
+  createWorkspacePluginRuntimeSignature,
+} from './signature';
+import { disposeRejectedPluginRuntime } from './registrationCleanup';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
   bundledPluginPackageRoots?: Iterable<string>;
@@ -17,24 +25,70 @@ export async function loadWorkspacePackagePluginRegistrations(
   workspaceRoot: string,
   dependencies: WorkspacePackagePluginRegistrationDependencies,
 ): Promise<WorkspacePipelinePluginRegistration[]> {
-  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+  const candidates = await prepareWorkspacePackagePluginCandidates(
+    settings,
+    workspaceRoot,
+    dependencies,
+  );
+  const registrations: WorkspacePipelinePluginRegistration[] = [];
+  const warn = dependencies.warn ?? console.warn;
+  for (const candidate of candidates) {
+    try {
+      registrations.push(await candidate.load());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${candidate.id}' could not be loaded: ${message}`);
+    }
+  }
+  return registrations;
+}
+
+export async function prepareWorkspacePackagePluginCandidates(
+  settings: CodeGraphyWorkspaceSettings,
+  workspaceRoot: string,
+  dependencies: WorkspacePackagePluginRegistrationDependencies,
+): Promise<WorkspacePipelinePluginCandidate[]> {
+  const warn = dependencies.warn ?? console.warn;
+  const preparedPackages = await prepareCodeGraphyWorkspacePluginPackages({
     bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
     settings,
     workspaceRoot,
     homeDir: dependencies.userHomeDir,
-    warn: dependencies.warn,
+    warn,
   });
 
-  return loadedPackagePlugins.map(loadedPlugin => ({
-    plugin: loadedPlugin.plugin,
-    options: {
-      ...(loadedPlugin.bundled ? { builtIn: true } : {}),
-      sourcePackage: loadedPlugin.packageName,
-      sourcePackageRoot: loadedPlugin.record.packageRoot,
-      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
-    },
-  }));
+  return preparedPackages.map(prepared => {
+    const sourceSignature = createWorkspacePluginDescriptorSignature(
+      prepared.record,
+      prepared.buildIdentity,
+    );
+    const candidateOptions: WorkspacePipelinePluginRegistration['options'] = {
+      ...(prepared.bundled ? { builtIn: true } : {}),
+      sourcePackage: prepared.packageName,
+      sourcePackageRoot: prepared.packageSnapshotRoot,
+      sourceSignature,
+      ...(prepared.options ? { options: prepared.options } : {}),
+    };
+    return {
+      id: prepared.record.id,
+      options: candidateOptions,
+      async load(): Promise<WorkspacePipelinePluginRegistration> {
+        const loaded = await prepared.load();
+        return {
+          plugin: loaded.plugin,
+          options: {
+            ...candidateOptions,
+            descriptorSignature: createWorkspacePluginRuntimeSignature(
+              loaded.record,
+              loaded.plugin,
+              loaded.buildIdentity,
+            ),
+          },
+        };
+      },
+    };
+  });
 }
 
 export async function registerWorkspacePackagePlugins(
@@ -54,6 +108,7 @@ export async function registerWorkspacePackagePlugins(
     try {
       registry.register(registration.plugin, registration.options);
     } catch (error) {
+      disposeRejectedPluginRuntime(registration.plugin, warn);
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy plugin '${registration.plugin.id}' could not be registered: ${message}`);
     }

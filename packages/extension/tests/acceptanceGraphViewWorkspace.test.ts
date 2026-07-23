@@ -225,13 +225,13 @@ describe('acceptance graph view workspace fixtures', () => {
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
       filterPatterns?: string[];
-      plugins?: Array<{ enabled?: boolean; id?: string }>;
+      plugins?: Array<{ activation?: 'disabled' | 'enabled' | 'inherit'; id?: string }>;
     };
 
     expect(settings.plugins).toEqual([
-      { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.typescript', enabled: true },
-      { id: 'codegraphy.vue', enabled: true },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
+      { id: 'codegraphy.typescript', activation: 'enabled' },
+      { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
     expect(settings.filterPatterns).toEqual(['src/vue.d.ts']);
   });

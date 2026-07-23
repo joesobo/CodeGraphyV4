@@ -8,11 +8,19 @@ interface SymbolKindScopeState {
   specificity: number;
 }
 
-export function getDisabledSymbolKinds(scope: VisibleGraphScopeConfig): Set<string> {
+export function getDisabledSymbolKinds(
+  scope: VisibleGraphScopeConfig,
+  nodeTypes: readonly IGraphNodeTypeDefinition[] = [
+    ...new Map(
+      [...CORE_GRAPH_NODE_TYPES, ...(scope.nodeTypes ?? [])]
+        .map(definition => [definition.id, definition]),
+    ).values(),
+  ],
+): Set<string> {
   const stateByKind = new Map<string, SymbolKindScopeState>();
 
   for (const item of scope.nodes.filter((scopeItem) => scopeItem.type.startsWith('symbol:'))) {
-    const definition = CORE_GRAPH_NODE_TYPES.find((candidate) => candidate.id === item.type);
+    const definition = nodeTypes.find((candidate) => candidate.id === item.type);
     const symbolKinds = getDefinitionSymbolKinds(definition, item.type);
     const specificity = getDefinitionSpecificity(definition, item.type);
 

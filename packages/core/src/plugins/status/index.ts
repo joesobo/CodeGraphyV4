@@ -36,6 +36,7 @@ export interface WorkspaceIndexPluginStatusOptions {
       version: string;
       supportedExtensions: string[];
     };
+    runtimeActive?: boolean;
     sourcePackage?: string;
   }>;
   workspaceEnabledPluginIds?: ReadonlySet<string>;
@@ -52,7 +53,7 @@ interface RegisteredPluginStatusOptions {
 }
 
 interface RegisteredWorkspaceIndexPluginStatuses {
-  byPackageName: Map<string, WorkspaceIndexPluginStatus>;
+  byPluginId: Map<string, WorkspaceIndexPluginStatus>;
   inPluginOrder: WorkspaceIndexPluginStatus[];
 }
 
@@ -127,7 +128,9 @@ export function buildRegisteredWorkspaceIndexPluginStatus(
     name: plugin.name,
     version: plugin.version,
     supportedExtensions: plugin.supportedExtensions,
-    status: getWorkspaceIndexPluginWorkspaceStatus(matchingFileCount, connectionCount),
+    status: pluginInfo.runtimeActive
+      ? 'active'
+      : getWorkspaceIndexPluginWorkspaceStatus(matchingFileCount, connectionCount),
     enabled: pluginInfo.sourcePackage
       ? workspaceEnabledPluginIds?.has(plugin.id) ?? false
       : !disabledPlugins.has(plugin.id),
@@ -139,17 +142,16 @@ export function buildUnregisteredInstalledWorkspaceIndexPluginStatus(
   plugin: CodeGraphyInstalledPluginRecord,
   workspaceEnabledPluginIds?: ReadonlySet<string>,
 ): WorkspaceIndexPluginStatus {
-  const id = plugin.pluginId ?? plugin.package;
+  const id = plugin.id;
   const enabled = workspaceEnabledPluginIds?.has(id) ?? false;
-  const name = plugin.pluginName ?? plugin.package;
-  const supportedExtensions = plugin.supportedExtensions ?? [];
+  const name = plugin.name ?? plugin.package;
 
   return {
     id,
     packageName: plugin.package,
     name,
     version: plugin.version,
-    supportedExtensions,
+    supportedExtensions: [],
     status: enabled ? 'unavailable' : 'installed',
     enabled,
     connectionCount: 0,
@@ -185,7 +187,7 @@ function dedupeWorkspaceIndexPluginStatuses(
 function buildRegisteredWorkspaceIndexPluginStatuses(
   options: WorkspaceIndexPluginStatusOptions,
 ): RegisteredWorkspaceIndexPluginStatuses {
-  const byPackageName = new Map<string, WorkspaceIndexPluginStatus>();
+  const byPluginId = new Map<string, WorkspaceIndexPluginStatus>();
   const inPluginOrder: WorkspaceIndexPluginStatus[] = [];
 
   for (const pluginInfo of options.pluginInfos.filter(isUserFacingWorkspaceIndexPlugin)) {
@@ -201,23 +203,21 @@ function buildRegisteredWorkspaceIndexPluginStatuses(
 
     inPluginOrder.push(status);
 
-    if (pluginInfo.sourcePackage) {
-      byPackageName.set(pluginInfo.sourcePackage, status);
-    }
+    byPluginId.set(pluginInfo.plugin.id, status);
   }
 
-  return { byPackageName, inPluginOrder };
+  return { byPluginId, inPluginOrder };
 }
 
 function appendInstalledWorkspaceIndexPluginStatuses(
   statuses: WorkspaceIndexPluginStatus[],
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
-  registeredByPackageName: ReadonlyMap<string, WorkspaceIndexPluginStatus>,
+  registeredByPluginId: ReadonlyMap<string, WorkspaceIndexPluginStatus>,
   workspaceEnabledPluginIds?: ReadonlySet<string>,
 ): void {
   for (const installedPlugin of installedPlugins) {
     statuses.push(
-      registeredByPackageName.get(installedPlugin.package)
+      registeredByPluginId.get(installedPlugin.id)
       ?? buildUnregisteredInstalledWorkspaceIndexPluginStatus(
         installedPlugin,
         workspaceEnabledPluginIds,
@@ -229,10 +229,10 @@ function appendInstalledWorkspaceIndexPluginStatuses(
 function appendUninstalledRegisteredWorkspaceIndexPluginStatuses(
   statuses: WorkspaceIndexPluginStatus[],
   registeredStatuses: readonly WorkspaceIndexPluginStatus[],
-  installedPackageNames: ReadonlySet<string>,
+  installedPluginIds: ReadonlySet<string>,
 ): void {
   for (const status of registeredStatuses) {
-    if (!status.packageName || !installedPackageNames.has(status.packageName)) {
+    if (!installedPluginIds.has(status.id)) {
       statuses.push(status);
     }
   }
@@ -249,17 +249,17 @@ export function buildWorkspaceIndexPluginStatuses(
   }
 
   const statuses: WorkspaceIndexPluginStatus[] = [];
-  const installedPackageNames = new Set(installedPlugins.map(plugin => plugin.package));
+  const installedPluginIds = new Set(installedPlugins.map(plugin => plugin.id));
   appendInstalledWorkspaceIndexPluginStatuses(
     statuses,
     installedPlugins,
-    registered.byPackageName,
+    registered.byPluginId,
     options.workspaceEnabledPluginIds,
   );
   appendUninstalledRegisteredWorkspaceIndexPluginStatuses(
     statuses,
     registered.inPluginOrder,
-    installedPackageNames,
+    installedPluginIds,
   );
 
   return dedupeWorkspaceIndexPluginStatuses(statuses);

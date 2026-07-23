@@ -44,24 +44,26 @@ describe('plugins/status construction', () => {
       ]),
       installedPlugins: [
         {
-          apiVersion: '^3.0.0',
-          disclosures: [],
           package: '@codegraphy-dev/plugin-typescript',
           packageRoot: '/plugins/typescript',
-          pluginId: 'plugin.typescript',
-          pluginName: 'TypeScript',
+          id: 'plugin.typescript',
+          name: 'TypeScript',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           version: '1.0.0',
-          supportedExtensions: ['.ts'],
+          globallyEnabled: false,
         },
         {
-          apiVersion: '^3.0.0',
-          disclosures: [],
           package: '@acme/missing',
           packageRoot: '/plugins/missing',
-          pluginId: 'plugin.missing',
-          pluginName: 'Missing',
+          id: 'plugin.missing',
+          name: 'Missing',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           version: '2.0.0',
-          supportedExtensions: ['.acme'],
+          globallyEnabled: false,
         },
       ],
       pluginInfos: [
@@ -117,13 +119,15 @@ describe('plugins/status construction', () => {
         discoveredFiles: [{ relativePath: 'src/index.ts' }],
         fileConnections: new Map(),
         installedPlugins: [{
-          apiVersion: '^3.0.0',
-          disclosures: [],
           package: '@codegraphy-dev/plugin-typescript',
           packageRoot: '/plugins/typescript',
-          pluginId: 'plugin.typescript',
-          pluginName: 'TypeScript',
+          id: 'plugin.typescript',
+          name: 'TypeScript',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           version: '1.0.0',
+          globallyEnabled: false,
         }],
         pluginInfos: [
           {
@@ -148,6 +152,67 @@ describe('plugins/status construction', () => {
     ]);
   });
 
+  it('keeps independently registered plugin IDs from one package as separate statuses', () => {
+    const statuses = buildWorkspaceIndexPluginStatuses({
+      disabledPlugins: new Set<string>(),
+      discoveredFiles: [
+        { relativePath: 'src/app.one' },
+        { relativePath: 'src/app.two' },
+      ],
+      fileConnections: new Map(),
+      installedPlugins: [
+        {
+          package: '@acme/plugin-tools',
+          packageRoot: '/plugins/tools',
+          id: 'acme.one',
+          name: 'Tool One',
+          host: 'core',
+          entry: './one.js',
+          apiVersion: '^4.0.0',
+          version: '1.0.0',
+          globallyEnabled: true,
+        },
+        {
+          package: '@acme/plugin-tools',
+          packageRoot: '/plugins/tools',
+          id: 'acme.two',
+          name: 'Tool Two',
+          host: 'core',
+          entry: './two.js',
+          apiVersion: '^4.0.0',
+          version: '1.0.0',
+          globallyEnabled: true,
+        },
+      ],
+      pluginInfos: [
+        {
+          builtIn: false,
+          sourcePackage: '@acme/plugin-tools',
+          plugin: {
+            id: 'acme.one',
+            name: 'Tool One',
+            version: '1.0.0',
+            supportedExtensions: ['.one'],
+          },
+        },
+        {
+          builtIn: false,
+          sourcePackage: '@acme/plugin-tools',
+          plugin: {
+            id: 'acme.two',
+            name: 'Tool Two',
+            version: '1.0.0',
+            supportedExtensions: ['.two'],
+          },
+        },
+      ],
+      workspaceEnabledPluginIds: new Set(['acme.one', 'acme.two']),
+    });
+
+    expect(statuses.map(status => status.id)).toEqual(['acme.one', 'acme.two']);
+    expect(statuses.map(status => status.name)).toEqual(['Tool One', 'Tool Two']);
+  });
+
   it('keeps package-backed registered plugins disabled until workspace activity enables their plugin ID', () => {
     expect(
       buildWorkspaceIndexPluginStatuses({
@@ -155,13 +220,15 @@ describe('plugins/status construction', () => {
         discoveredFiles: [{ relativePath: 'src/index.ts' }],
         fileConnections: new Map(),
         installedPlugins: [{
-          apiVersion: '^3.0.0',
-          disclosures: [],
           package: '@codegraphy-dev/plugin-typescript',
           packageRoot: '/plugins/typescript',
-          pluginId: 'plugin.typescript',
-          pluginName: 'TypeScript',
+          id: 'plugin.typescript',
+          name: 'TypeScript',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           version: '1.0.0',
+          globallyEnabled: false,
         }],
         pluginInfos: [
           {
@@ -219,7 +286,7 @@ describe('plugins/status construction', () => {
           id: 'plugin.typescript',
           name: 'TypeScript',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
+          apiVersion: '^4.0.0',
           supportedExtensions: ['.ts'],
           sources: [],
         },

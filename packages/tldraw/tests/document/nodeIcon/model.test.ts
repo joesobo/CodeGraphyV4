@@ -5,10 +5,10 @@ import { createNodeIconMap } from '../../../src/document/nodeIcon/model';
 describe('tldraw node icons', () => {
   it('uses portable white Material Icon Theme SVGs with deterministic file-type matches', () => {
     const nodes = [
-      { id: 'src/app.ts', label: 'app.ts', nodeType: 'file', color: '#000000' },
-      { id: 'tests/app.ts', label: 'app.ts', nodeType: 'file', color: '#000000' },
-      { id: 'tools/build.py', label: 'build.py', nodeType: 'file', color: '#000000' },
-      { id: 'LICENSE', label: 'LICENSE', nodeType: 'file', color: '#000000' },
+      { id: 'src/app.ts', label: 'app.ts', nodeType: 'file' },
+      { id: 'tests/app.ts', label: 'app.ts', nodeType: 'file' },
+      { id: 'tools/build.py', label: 'build.py', nodeType: 'file' },
+      { id: 'LICENSE', label: 'LICENSE', nodeType: 'file' },
     ] satisfies IGraphNode[];
 
     const icons = createNodeIconMap(nodes);

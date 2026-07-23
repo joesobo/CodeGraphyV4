@@ -2,27 +2,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { z } from 'zod';
 import {
+  parseCodeGraphyPluginPackageManifest,
+  type CodeGraphyInstalledPluginRecord,
+} from '@codegraphy-dev/core';
+import {
   looseStringArraySchema,
   trimmedNonEmptyStringSchema,
   unknownRecordSchema,
 } from '../shared/values';
 import type { E2EScenario } from './scenarios';
 
-interface CodeGraphyInstalledPluginRecord {
-  package: string;
-  version: string;
-  apiVersion: string;
-  packageRoot: string;
+interface E2EInstalledPluginRecord extends CodeGraphyInstalledPluginRecord {
   defaultOptions?: Record<string, unknown>;
-  disclosures: string[];
-  pluginId: string;
-  pluginName?: string;
   supportedExtensions?: string[];
 }
 
 interface CodeGraphyWorkspacePluginSettings {
   id: string;
-  enabled: boolean;
+  activation: 'enabled';
   options?: Record<string, unknown>;
 }
 
@@ -31,7 +28,6 @@ interface E2EWorkspaceSettings {
   maxFiles: number;
   include: string[];
   respectGitignore: boolean;
-  showOrphans: boolean;
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
@@ -45,7 +41,6 @@ const workspaceSettingsShapeSchema = z.looseObject({
   maxFiles: z.number().optional().catch(undefined),
   include: z.unknown(),
   respectGitignore: z.boolean().optional().catch(undefined),
-  showOrphans: z.boolean().optional().catch(undefined),
   filterPatterns: z.unknown(),
   disabledCustomFilterPatterns: z.unknown(),
   plugins: z.array(z.unknown()),
@@ -54,19 +49,8 @@ const workspaceSettingsShapeSchema = z.looseObject({
 const workspacePluginShapeSchema = z.looseObject({
   id: z.unknown(),
   package: z.unknown(),
-  enabled: z.boolean().optional().catch(undefined),
+  activation: z.enum(['enabled']).optional().catch(undefined),
   options: unknownRecordSchema.optional().catch(undefined),
-});
-
-const scenarioPackageJsonSchema = z.looseObject({
-  name: z.string().catch(''),
-  version: z.string().catch(''),
-  codegraphy: z.looseObject({
-    type: z.unknown(),
-    apiVersion: z.string().catch(''),
-    disclosures: z.unknown(),
-    defaultOptions: unknownRecordSchema.optional().catch(undefined),
-  }),
 });
 
 function readTrimmedOptionalString(value: unknown): string | undefined {
@@ -75,77 +59,52 @@ function readTrimmedOptionalString(value: unknown): string | undefined {
 }
 
 function readScenarioPackageDescriptor(
-  packageRoot: string,
-): Pick<CodeGraphyInstalledPluginRecord, 'pluginId' | 'pluginName' | 'supportedExtensions'> {
-  const descriptorPath = path.join(packageRoot, 'codegraphy.json');
-  const descriptor = unknownRecordSchema.safeParse(
-    JSON.parse(fs.readFileSync(descriptorPath, 'utf-8')),
-  );
+  data: unknown,
+): Pick<E2EInstalledPluginRecord, 'supportedExtensions'> & { defaultOptions?: Record<string, unknown> } {
+  const descriptor = unknownRecordSchema.safeParse(data);
   if (!descriptor.success) {
-    throw new Error(`E2E scenario package has invalid codegraphy.json: ${packageRoot}`);
+    return {};
   }
 
-  const pluginId = readTrimmedOptionalString(descriptor.data.id);
-  if (!pluginId) {
-    throw new Error(`E2E scenario package is missing codegraphy.json id: ${packageRoot}`);
-  }
-
-  const pluginName = readTrimmedOptionalString(descriptor.data.name);
   const supportedExtensions = looseStringArraySchema.parse(descriptor.data.supportedExtensions);
+  const defaultOptions = unknownRecordSchema.safeParse(descriptor.data.defaultOptions);
   return {
-    pluginId,
-    ...(pluginName ? { pluginName } : {}),
     ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+    ...(defaultOptions.success ? { defaultOptions: { ...defaultOptions.data } } : {}),
   };
 }
 
-function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPluginRecord {
+function readScenarioPackageRecords(packageRoot: string): E2EInstalledPluginRecord[] {
   const packageJsonPath = path.join(packageRoot, 'package.json');
-  const packageJson = scenarioPackageJsonSchema.safeParse(
+  const manifest = parseCodeGraphyPluginPackageManifest(
     JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')),
   );
-  if (!packageJson.success) {
+  if (!manifest) {
     throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
   }
 
-  const { name: packageName, version, codegraphy } = packageJson.data;
-  if (
-    packageName.length === 0
-    || version.length === 0
-    || codegraphy.type !== 'plugin'
-    || codegraphy.apiVersion.length === 0
-  ) {
-    throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
-  }
-
-  const plugin: CodeGraphyInstalledPluginRecord = {
-    package: packageName,
-    version,
-    apiVersion: codegraphy.apiVersion,
-    packageRoot,
-    disclosures: looseStringArraySchema.parse(codegraphy.disclosures),
-    ...readScenarioPackageDescriptor(packageRoot),
-  };
-  if (codegraphy.defaultOptions) {
-    plugin.defaultOptions = { ...codegraphy.defaultOptions };
-  }
-
-  return plugin;
+  return manifest.plugins.map((descriptor): E2EInstalledPluginRecord => ({
+      package: manifest.package,
+      version: manifest.version,
+      packageRoot,
+      globallyEnabled: false,
+      ...descriptor,
+      ...readScenarioPackageDescriptor(descriptor.data),
+    }));
 }
 
 function createInitialWorkspaceSettings(
-  plugins: readonly CodeGraphyInstalledPluginRecord[],
+  plugins: readonly E2EInstalledPluginRecord[],
 ): E2EWorkspaceSettings {
   return {
     version: 1,
     maxFiles: DEFAULT_MAX_FILES,
     include: DEFAULT_INCLUDE,
     respectGitignore: true,
-    showOrphans: true,
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     plugins: [
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
       ...plugins.map(createWorkspacePluginSettings),
     ],
   };
@@ -153,13 +112,13 @@ function createInitialWorkspaceSettings(
 
 function writeInstalledPluginCache(
   homeDir: string,
-  plugins: CodeGraphyInstalledPluginRecord[],
+  plugins: E2EInstalledPluginRecord[],
 ): void {
   const userDirectoryPath = path.join(homeDir, '.codegraphy');
   fs.mkdirSync(userDirectoryPath, { recursive: true });
   fs.writeFileSync(
     path.join(userDirectoryPath, 'plugins.json'),
-    `${JSON.stringify({ version: 1, plugins }, null, 2)}\n`,
+    `${JSON.stringify({ version: 3, plugins }, null, 2)}\n`,
   );
 }
 
@@ -183,7 +142,6 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
     maxFiles: settings.maxFiles ?? DEFAULT_MAX_FILES,
     include: include.length > 0 ? include : DEFAULT_INCLUDE,
     respectGitignore: settings.respectGitignore ?? true,
-    showOrphans: settings.showOrphans ?? true,
     filterPatterns: looseStringArraySchema.parse(settings.filterPatterns),
     disabledCustomFilterPatterns: looseStringArraySchema.parse(settings.disabledCustomFilterPatterns),
     plugins: settings.plugins
@@ -199,7 +157,7 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
 
         const normalized: CodeGraphyWorkspacePluginSettings = {
           id: pluginId,
-          enabled: plugin.enabled ?? true,
+          activation: plugin.activation ?? 'enabled',
         };
         if (plugin.options) {
           normalized.options = { ...plugin.options };
@@ -217,11 +175,11 @@ function writeWorkspaceSettings(workspacePath: string, settings: E2EWorkspaceSet
 }
 
 function createWorkspacePluginSettings(
-  plugin: CodeGraphyInstalledPluginRecord,
+  plugin: E2EInstalledPluginRecord,
 ): CodeGraphyWorkspacePluginSettings {
   const settings: CodeGraphyWorkspacePluginSettings = {
-    id: plugin.pluginId,
-    enabled: true,
+    id: plugin.id,
+    activation: 'enabled',
   };
   if (plugin.defaultOptions && Object.keys(plugin.defaultOptions).length > 0) {
     settings.options = { ...plugin.defaultOptions };
@@ -238,7 +196,7 @@ export function prepareScenarioWorkspacePlugins(
   shouldWriteWorkspaceSettings = true,
 ): void {
   const plugins = scenario.workspacePluginPackageRelativePaths
-    .map(relativePath => readScenarioPackageRecord(path.resolve(repoRoot, relativePath)));
+    .flatMap(relativePath => readScenarioPackageRecords(path.resolve(repoRoot, relativePath)));
 
   writeInstalledPluginCache(homeDir, plugins);
 
@@ -253,7 +211,7 @@ export function prepareScenarioWorkspacePlugins(
     plugins: [
       ...settings.plugins,
       ...plugins
-        .filter(plugin => !enabledPluginIds.has(plugin.pluginId))
+        .filter(plugin => !enabledPluginIds.has(plugin.id))
         .map(createWorkspacePluginSettings),
     ],
   });

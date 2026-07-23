@@ -58,7 +58,9 @@ export function createPluginGraphWorkScheduler(
         return;
       }
 
-      void runPluginGraphWork(handlers, work);
+      void runPluginGraphWork(handlers, work).catch(error => {
+        console.error('[CodeGraphy] Scheduled plugin graph refresh failed:', error);
+      });
     }, delayMs);
   };
 

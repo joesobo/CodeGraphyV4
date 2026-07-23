@@ -1,10 +1,15 @@
 import type * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import type { CodeGraphyInstalledPluginRecord, IDiscoveredFile } from '@codegraphy-dev/core';
+import type { WorkspacePluginRegistry } from '../../plugins/registry';
+import {
+  buildWorkspaceIndexPluginStatuses,
+  type CodeGraphyInstalledPluginRecord,
+  type IDiscoveredFile,
+  type WorkspaceIndexPluginStatusOptions,
+} from '@codegraphy-dev/core';
 import type { IPluginStatus } from '../../../../shared/plugins/status';
 import {
-  getWorkspacePipelinePluginStatuses,
   resolveWorkspacePipelinePluginNameForFile,
 } from '../../plugins/queries';
 import { readWorkspacePipelineRoot } from '../../serviceAdapters';
@@ -15,18 +20,36 @@ export interface WorkspacePipelineStatusListOptions {
 }
 
 export function getWorkspacePipelineStatusList(
-  registry: PluginRegistry,
+  registry: WorkspacePluginRegistry,
   disabledPlugins: Set<string>,
   discoveredFiles: IDiscoveredFile[],
   fileConnections: Map<string, IProjectedConnection[]>,
   options: WorkspacePipelineStatusListOptions = {},
 ): IPluginStatus[] {
-  return getWorkspacePipelinePluginStatuses({
+  const extensionPluginInfos: WorkspaceIndexPluginStatusOptions['pluginInfos'] = registry
+    .extensionPlugins
+    .listActive()
+    .map(info => ({
+      builtIn: info.builtIn,
+      plugin: {
+        id: info.plugin.id,
+        name: info.plugin.name,
+        version: info.plugin.version,
+        supportedExtensions: [],
+      },
+      runtimeActive: true,
+      ...(info.sourcePackage ? { sourcePackage: info.sourcePackage } : {}),
+    }));
+
+  return buildWorkspaceIndexPluginStatuses({
     disabledPlugins,
     discoveredFiles,
     fileConnections,
     installedPlugins: options.installedPlugins,
-    registry,
+    pluginInfos: [
+      ...registry.list(),
+      ...extensionPluginInfos,
+    ],
     workspaceEnabledPluginIds: options.workspaceEnabledPluginIds,
   });
 }

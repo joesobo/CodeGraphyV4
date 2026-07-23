@@ -19,11 +19,12 @@ describe('CodeGraphy installed plugin workspace state', () => {
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {
       package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
-      apiVersion: '^3.0.0',
-      defaultOptions: { includeTests: true },
-      disclosures: [],
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '/global/@codegraphy-dev/plugin-vue',
-      pluginId: 'codegraphy.vue',
+      id: 'codegraphy.vue',
+      globallyEnabled: false,
     });
 
     expect(readCodeGraphyInstalledPluginCache({
@@ -32,22 +33,18 @@ describe('CodeGraphy installed plugin workspace state', () => {
     expect(JSON.parse(
       await fs.readFile(path.join(workspaceRoot, '.codegraphy', 'settings.json'), 'utf-8'),
     ).plugins).toEqual([
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
-      {
-        id: 'codegraphy.vue',
-        enabled: true,
-        options: { includeTests: true },
-      },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'inherit' },
+      { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
   });
 
-  it('merges default options into existing workspace plugin entries and disables by plugin id', async () => {
+  it('keeps existing workspace options when enabling and disabling by plugin id', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
         id: 'codegraphy.vue',
-        enabled: true,
+        activation: 'enabled',
         options: { includeTests: false },
       }],
     });
@@ -55,25 +52,26 @@ describe('CodeGraphy installed plugin workspace state', () => {
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {
       package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
-      apiVersion: '^3.0.0',
-      defaultOptions: { includeTests: true, pythonVersion: '3.12' },
-      disclosures: [],
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '/global/@codegraphy-dev/plugin-vue',
-      pluginId: 'codegraphy.vue',
+      id: 'codegraphy.vue',
+      globallyEnabled: false,
     });
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: 'codegraphy.vue',
-      enabled: true,
-      options: { includeTests: false, pythonVersion: '3.12' },
+      activation: 'enabled',
+      options: { includeTests: false },
     }]);
 
     disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.vue');
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: 'codegraphy.vue',
-      enabled: false,
-      options: { includeTests: false, pythonVersion: '3.12' },
+      activation: 'disabled',
+      options: { includeTests: false },
     }]);
   });
 
@@ -83,22 +81,24 @@ describe('CodeGraphy installed plugin workspace state', () => {
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {
       package: '@codegraphy-dev/plugin-ruby',
       version: '1.2.3',
-      apiVersion: '^3.0.0',
-      disclosures: [],
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '/global/@codegraphy-dev/plugin-ruby',
-      pluginId: 'codegraphy.ruby',
+      id: 'codegraphy.ruby',
+      globallyEnabled: false,
     });
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toContainEqual({
       id: 'codegraphy.ruby',
-      enabled: true,
+      activation: 'enabled',
     });
 
     disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.ruby');
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toContainEqual({
       id: 'codegraphy.ruby',
-      enabled: false,
+      activation: 'disabled',
     });
   });
 
@@ -106,21 +106,23 @@ describe('CodeGraphy installed plugin workspace state', () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      plugins: [{ id: 'codegraphy.ruby', enabled: false }],
+      plugins: [{ id: 'codegraphy.ruby', activation: 'disabled' }],
     });
 
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {
       package: '@codegraphy-dev/plugin-ruby',
       version: '1.2.3',
-      apiVersion: '^3.0.0',
-      disclosures: [],
+      host: 'core',
+      entry: './plugin.js',
+      apiVersion: '^4.0.0',
       packageRoot: '/global/@codegraphy-dev/plugin-ruby',
-      pluginId: 'codegraphy.ruby',
+      id: 'codegraphy.ruby',
+      globallyEnabled: false,
     });
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: 'codegraphy.ruby',
-      enabled: true,
+      activation: 'enabled',
     }]);
   });
 
@@ -129,16 +131,16 @@ describe('CodeGraphy installed plugin workspace state', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.vue', enabled: true },
-        { id: 'codegraphy.ruby', enabled: true },
+        { id: 'codegraphy.vue', activation: 'enabled' },
+        { id: 'codegraphy.ruby', activation: 'enabled' },
       ],
     });
 
     disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.vue');
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { id: 'codegraphy.vue', enabled: false },
-      { id: 'codegraphy.ruby', enabled: true },
+      { id: 'codegraphy.vue', activation: 'disabled' },
+      { id: 'codegraphy.ruby', activation: 'enabled' },
     ]);
   });
 });

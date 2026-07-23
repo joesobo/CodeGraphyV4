@@ -42,7 +42,9 @@ describe('pipeline/service/lifecycleFacade', () => {
     const disabledPlugins = new Set(['plugin.disabled']);
 
     expect(facade.getPluginStatuses(disabledPlugins)).toEqual([{ id: 'plugin.a' }]);
-    expect(readWorkspacePluginStatusContext).toHaveBeenCalledWith('/workspace');
+    expect(readWorkspacePluginStatusContext).toHaveBeenCalledWith('/workspace', {
+      bundledPackageRoots: [],
+    });
     expect(getWorkspacePipelineStatusList).toHaveBeenCalledWith(
       facade._registry,
       disabledPlugins,
@@ -53,8 +55,11 @@ describe('pipeline/service/lifecycleFacade', () => {
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            apiVersion: '^4.0.0',
+            id: 'codegraphy.vue',
+            host: 'core',
+            entry: './dist/plugin.js',
+            globallyEnabled: false,
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
@@ -95,5 +100,31 @@ describe('pipeline/service/lifecycleFacade', () => {
     facade.dispose();
 
     expect(lifecycleState(facade)._registry.disposeAll).toHaveBeenCalledOnce();
+  });
+
+  it('disposes plugins registered by a reload that finishes after host disposal', async () => {
+    let markInitializationStarted!: () => void;
+    let finishInitialization!: () => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((resolve) => {
+      finishInitialization = resolve;
+    });
+    class DeferredReloadFacade extends TestLifecycleFacade {
+      override async initialize(): Promise<void> {
+        markInitializationStarted();
+        await initializationGate;
+      }
+    }
+    const facade = new DeferredReloadFacade();
+
+    const reload = facade.reloadWorkspacePlugins();
+    await initializationStarted;
+    facade.dispose();
+    finishInitialization();
+    await reload;
+
+    expect(lifecycleState(facade)._registry.disposeAll).toHaveBeenCalledTimes(3);
   });
 });

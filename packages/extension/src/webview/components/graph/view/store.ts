@@ -10,7 +10,6 @@ export type GraphViewStoreState = Pick<
   | 'particleSize'
   | 'particleSpeed'
   | 'physicsSettings'
-  | 'pluginContextMenuItems'
   | 'showFps'
   | 'showLabels'
   | 'showMinimap'
@@ -27,9 +26,12 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     particleSize: useGraphStore(state => state.particleSize),
     particleSpeed: useGraphStore(state => state.particleSpeed),
     physicsSettings: useGraphStore(state => state.physicsSettings),
-    pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
     showFps: useGraphStore(state => state.showFps),
     showLabels: useGraphStore(state => state.showLabels),
     showMinimap: useGraphStore(state => state.showMinimap),
   };
+}
+
+export function useGraphLegends(): GraphState['legends'] {
+  return useGraphStore(state => state.legends);
 }

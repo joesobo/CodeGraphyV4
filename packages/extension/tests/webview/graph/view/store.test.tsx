@@ -20,7 +20,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
       linkForce: 0.2,
       repelForce: 50,
     },
-    pluginContextMenuItems: [{ index: 0, label: 'Copy Id', pluginId: 'test.plugin', when: 'node' }],
     showLabels: true,
     ...overrides,
   });
@@ -39,7 +38,6 @@ describe('graph/store', () => {
 
     act(() => {
       graphStore.setState({
-        graphViewContributionStatuses: [],
         pluginStatuses: [],
       });
     });
@@ -70,8 +68,5 @@ describe('graph/store', () => {
       showLabels: false,
     });
     expect(result.current.favorites).toEqual(new Set(['src/app.ts']));
-    expect(result.current.pluginContextMenuItems).toEqual([
-      { index: 0, label: 'Copy Id', pluginId: 'test.plugin', when: 'node' },
-    ]);
   });
 });

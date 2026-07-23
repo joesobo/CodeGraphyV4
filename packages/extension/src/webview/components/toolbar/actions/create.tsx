@@ -5,7 +5,7 @@ import {
   mdiPlusBoxOutline,
   mdiShapeSquarePlus,
 } from '@mdi/js';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import {
@@ -17,7 +17,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { postRootFileCreation, postRootFolderCreation } from './rootCreation';
 
-type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
+type GraphViewCreateContribution = ExtensionGraphViewContributionSet['contextMenu'][number];
 type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
 
 
@@ -47,28 +47,49 @@ function createGraphViewCreateContext(): GraphViewCreateContext {
 export function resolveGraphViewCreateContributions({
   graphViewContributions,
 }: {
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
 }): ResolvedGraphViewCreateContribution[] {
   const context = createGraphViewCreateContext();
-  return graphViewContributions?.contextMenu
-    .filter(entry => isGraphViewCreateContribution(entry, context))
-    .map(entry => ({
-      context,
-      entry,
-      label: entry.contribution.getLabel?.(context) ?? entry.contribution.label,
-    })) ?? [];
+  const resolved: ResolvedGraphViewCreateContribution[] = [];
+  for (const entry of graphViewContributions?.contextMenu ?? []) {
+    try {
+      if (!isGraphViewCreateContribution(entry, context)) continue;
+      resolved.push({
+        context,
+        entry,
+        label: entry.contribution.getLabel?.(context) ?? entry.contribution.label,
+      });
+    } catch (error) {
+      console.error(
+        `[CodeGraphy] Create contribution '${entry.contribution.id}' from plugin '${entry.pluginId}' failed:`,
+        error,
+      );
+    }
+  }
+  return resolved;
 }
 
 function runGraphViewCreateContribution(
   contribution: ResolvedGraphViewCreateContribution,
 ): void {
-  void contribution.entry.contribution.run(contribution.context);
+  const { entry, context } = contribution;
+  const report = (error: unknown): void => {
+    console.error(
+      `[CodeGraphy] Create contribution '${entry.contribution.id}' from plugin '${entry.pluginId}' failed:`,
+      error,
+    );
+  };
+  try {
+    void Promise.resolve(entry.contribution.run(context)).catch(report);
+  } catch (error) {
+    report(error);
+  }
 }
 
 export function CreateToolbarAction({
   graphViewContributions,
 }: {
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
 }): React.ReactElement {
   const graphViewCreateContributions = resolveGraphViewCreateContributions({
     graphViewContributions,

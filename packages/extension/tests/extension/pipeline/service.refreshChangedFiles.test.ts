@@ -249,7 +249,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       nodes: [{
         id: 'src/keep.ts',
         label: 'keep.ts',
-        color: '#A1A1AA',
         fileSize: undefined,
       }],
       edges: [],

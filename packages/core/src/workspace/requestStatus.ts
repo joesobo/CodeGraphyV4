@@ -1,14 +1,18 @@
 import * as path from 'node:path';
 import { createDiagnosticEvent } from '../diagnostics/events';
+import { createPluginActivityState } from '../plugins/activityState/model';
+import { readCodeGraphyInstalledPluginCache } from '../plugins/installedCache';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
 } from './settings';
 import { readCodeGraphyWorkspaceStatus } from './status';
 import { resolveCodeGraphyWorkspacePath } from './requestPaths';
 import type { WorkspacePathInput, WorkspaceStatusResult } from './requestTypes';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from './settings';
 
 export interface WorkspaceStatusDependencies {
   cwd(): string;
+  homeDir?: string;
 }
 
 const DEFAULT_DEPENDENCIES: WorkspaceStatusDependencies = {
@@ -32,8 +36,18 @@ export function readCodeGraphyWorkspaceStatusForCli(
   dependencies: WorkspaceStatusDependencies = DEFAULT_DEPENDENCIES,
 ): WorkspaceStatusResult {
   const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
-  const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
+  const status = readCodeGraphyWorkspaceStatus(workspaceRoot, {
+    ...(dependencies.homeDir ? { userHomeDir: dependencies.homeDir } : {}),
+  });
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  const activity = createPluginActivityState({
+    settings,
+    installedPlugins: readCodeGraphyInstalledPluginCache({
+      ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
+    }).plugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
+  const enabledPlugins = [...activity.activePluginIds];
   input.diagnostics?.emit(createDiagnosticEvent({
     area: 'workspace',
     event: 'status-read',
@@ -43,7 +57,7 @@ export function readCodeGraphyWorkspaceStatusForCli(
       state: status.state,
       hasGraphCache: status.hasGraphCache,
       staleReasons: status.staleReasons,
-      enabledPluginCount: settings.plugins.filter(plugin => plugin.enabled).length,
+      enabledPluginCount: enabledPlugins.length,
     },
   }));
 
@@ -53,9 +67,7 @@ export function readCodeGraphyWorkspaceStatusForCli(
     state: status.state,
     hasGraphCache: status.hasGraphCache,
     staleReasons: status.staleReasons,
-    enabledPlugins: settings.plugins
-      .filter(plugin => plugin.enabled)
-      .map(plugin => plugin.id),
+    enabledPlugins,
     message: createStatusMessage(status.state),
   };
 }

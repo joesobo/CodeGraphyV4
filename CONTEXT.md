@@ -17,7 +17,7 @@ CodeGraphy turns a folder into an interactive Relationship Graph so people and a
 | **Symbol Node** | A declaration such as a function, class, interface, type, variable, or plugin-defined symbol projected from indexed analysis. |
 | **Plugin Node** | A Node contributed by a plugin for a concept that Core does not own. |
 | **Relationship** | A meaningful connection between two Nodes. |
-| **Edge** | A rendered Relationship with a source, target, and Edge Type. |
+| **Edge** | A semantic Relationship record with a source, target, and Edge Type. An interface decides how to render it. |
 | **Edge Type** | The semantic category of an Edge, such as import, call, reference, inherit, contains, or nests. |
 | **Edge Direction** | The source-to-target direction of a Relationship. The source initiates the import, call, reference, containment, or other relation. |
 | **Dependency** | A Relationship whose Edge Type means one Node needs another to build, run, or resolve. Do not use dependency as a synonym for every Relationship. |
@@ -25,7 +25,7 @@ CodeGraphy turns a folder into an interactive Relationship Graph so people and a
 
 ### Type Definitions and Capabilities
 
-**Node Type Definitions** and **Edge Type Definitions** provide shared labels, defaults, descriptions, and examples. Graph Scope, Legend, Core analysis, and plugins consume those definitions instead of redefining them in each UI.
+**Node Type Definitions** and **Edge Type Definitions** provide shared semantic labels, visibility defaults, descriptions, and examples. Core analysis, Graph Scope, and plugins use these definitions. Each interface owns styling.
 
 A **Graph Scope Capability Declaration** tells CodeGraphy which Node Types and Edge Types an analyzer or enabled plugin can produce for the indexed workspace. Capabilities describe workspace relevance, not whether the current graph already contains a matching Node or Edge. File, Folder, and Package are structural Node Types. Symbol and Variable are parent toggles that appear when relevant child types exist.
 
@@ -107,7 +107,8 @@ The Graph View can use a whole-view loading state before its first graph payload
 | **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
 | **Graph Query CLI** | `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output. |
 | **CodeGraphy Agent Skill** | Instructions that teach shell-capable agents when to index, which Graph Query command to choose, and when to inspect source. |
-| **Plugin API** | Host-agnostic contracts for plugin authors. |
+| **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
+| **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |
 
 The CLI never searches parent directories for a workspace. Indexing and Graph Query are separate operations, so a query does not perform Indexing. Agents run Indexing when their task may have changed cached knowledge, then choose the narrowest query that answers the question.
 
@@ -115,17 +116,20 @@ The CLI never searches parent directories for a workspace. Indexing and Graph Qu
 
 | Term | Meaning |
 |---|---|
-| **Plugin Package** | A headless npm package with `package.json#codegraphy`, `codegraphy.json`, and a plugin runtime export. |
-| **Plugin ID** | The stable capability identifier from `codegraphy.json#id`. Workspace activity and plugin-owned data use this ID. |
-| **Plugin Registry** | User-level registered packages at `~/.codegraphy/plugins.json`. |
-| **Workspace Enabled Plugin** | A registered or built-in plugin with `enabled: true` in workspace settings and a valid resolved package. |
-| **Disabled Plugin** | A plugin whose runtime is unloaded and whose contributions do not participate in analysis or the Graph View. |
+| **Plugin Package** | An npm package with one or more descriptors in `package.json#codegraphy.plugins`. A package can support several runtime hosts. |
+| **Plugin Descriptor** | One plugin ID, host, entry file, and API version declared by a package. |
+| **Plugin Host** | The open host string that owns a plugin runtime, such as `core` or `codegraphy.extension`. |
+| **Plugin ID** | The stable identifier from a Plugin Descriptor. Activation and plugin-owned data use this ID. |
+| **Plugin Registry** | User-level installed Plugin Descriptors at `~/.codegraphy/plugins.json`. |
+| **Global Plugin Activation** | The default enabled value for an installed Plugin Descriptor. |
+| **Workspace Plugin Activation** | An `inherit`, `enabled`, or `disabled` workspace override. An explicit workspace value wins over the global value. |
+| **Dormant Plugin** | An active plugin whose matching host is not open. Its runtime is not imported. |
 | **Plugin Data** | Plugin-owned workspace state under `.codegraphy/settings.json#pluginData`, keyed by Plugin ID. |
 | **Plugin Options** | Host-owned configuration merged from package defaults and workspace settings before runtime creation. |
 
-Installation, registration, and workspace enablement are separate. Core resolves Plugin Activity State before importing runtime code. A missing, incompatible, or conflicting package keeps the user's enabled intent in settings but does not run. Disabled plugin facts may remain dormant in the Graph Cache for reuse, while projection and Graph Query exclude them.
+Registration, activation, and runtime loading are separate. Core resolves Plugin Activity State for every host. Core imports only active `core` plugins. An interface imports only active plugins for its own host. A missing, incompatible, or conflicting package keeps the user's activation intent in settings but does not run.
 
-The Markdown plugin ships with Core and starts enabled in new workspaces. Other registered plugins remain disabled until the user enables them.
+The Markdown plugin ships with Core and starts enabled in new workspaces. Other registered plugins start disabled. An enabled Extension plugin stays dormant during a CLI query and runs when the VS Code Extension host opens it.
 
 ## Settings and Styling
 
@@ -141,8 +145,9 @@ The Markdown plugin ships with Core and starts enabled in new workspaces. Other 
 | **CodeGraphy CSS Snippet** | A workspace-relative CSS file enabled through `cssSnippets`. |
 | **Styling Hook** | A stable `data-codegraphy-*` attribute exposed for CSS Snippets. |
 | **Verbose Diagnostics** | Opt-in support logging for extension and CLI workflows. |
+| **Interface Data** | Interface-owned workspace state in `.codegraphy/settings.json#interfaces`, stored as open `{ id, data }` entries. Core preserves it without defining IDs or keys. |
 
-Graph Scope decides eligibility. Legend decides styling. Turning off a Legend Entry never hides matching graph items. Legend precedence is Core defaults, plugin defaults, then custom user entries.
+Graph Scope decides eligibility. Legend decides styling. Turning off a Legend Entry never hides matching graph items. In the VS Code extension, Legend precedence is Extension defaults, Extension plugin defaults, then custom user entries.
 
 Extension chrome inherits the active VS Code theme. Graph Data Color may encode Node or Edge meaning, but it must remain legible on the themed Graph Stage. Each rendering interface owns its host-specific theme rules and supplies resolved colors to its renderer.
 
@@ -152,8 +157,9 @@ Extension chrome inherits the active VS Code theme. Graph Data Color may encode 
 - `packages/extension` owns the VS Code product surface.
 - `packages/tldraw` owns the tldraw offline product surface and launcher.
 - `packages/graph-renderer` owns graph drawing and physics.
-- `packages/plugin-api` owns public plugin contracts.
-- `packages/plugin-*` own optional analysis and Graph View contributions.
+- `packages/plugin-api` owns public Core plugin contracts.
+- `packages/extension-plugin-api` owns public VS Code Extension plugin contracts.
+- `packages/plugin-*` own optional Core or interface plugins.
 - `apps/web` owns account, subscription, billing, and access routes.
 
 Package boundaries are the architecture map. Do not create a parallel `architecture.md`.

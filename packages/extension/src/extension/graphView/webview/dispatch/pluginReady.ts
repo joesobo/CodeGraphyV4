@@ -30,11 +30,7 @@ export interface GraphViewPluginReadyContext {
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
   sendDecorations(): void;
-  sendContextMenuItems(): void;
   sendPluginStatuses?(): void;
-  sendPluginExporters?(): void;
-  sendPluginToolbarActions?(): void;
-  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -74,11 +70,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendGroupsUpdated: () => context.sendGroupsUpdated(),
       sendMessage: message => context.sendMessage(message),
       sendDecorations: () => context.sendDecorations(),
-      sendContextMenuItems: () => context.sendContextMenuItems(),
       sendPluginStatuses: () => context.sendPluginStatuses?.(),
-      sendPluginExporters: () => context.sendPluginExporters?.(),
-      sendPluginToolbarActions: () => context.sendPluginToolbarActions?.(),
-      sendGraphViewContributionStatuses: () => context.sendGraphViewContributionStatuses?.(),
       sendPluginWebviewInjections: () => context.sendPluginWebviewInjections(),
       sendActiveFile: () => context.sendActiveFile(),
       waitForFirstWorkspaceReady: () => context.waitForFirstWorkspaceReady(),

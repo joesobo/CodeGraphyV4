@@ -39,6 +39,6 @@ export interface IProjectedConnection {
    */
   variant?: string;
 
-  /** Optional scalar-only metadata for display, export, and queries. */
+  /** Optional scalar metadata for exports and queries. */
   metadata?: GraphMetadata;
 }

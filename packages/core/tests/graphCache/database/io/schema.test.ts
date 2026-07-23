@@ -7,7 +7,6 @@ import { createEmptyWorkspaceAnalysisCache } from '../../../../src/analysis/cach
 import {
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
-  readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
 } from '../../../../src/graphCache/database/storage';
 import {
@@ -19,7 +18,6 @@ import {
   EDGE_COLUMNS,
   FILE_COLUMNS,
   NODE_COLUMNS,
-  NODE_VIEW_COLUMNS,
   SYMBOL_COLUMNS,
 } from '../../../../src/graphCache/database/records/types';
 
@@ -63,7 +61,6 @@ describe('workspace analysis database schema', () => {
       edge: readRowsSync(connection, 'PRAGMA table_info(Edge)').map(row => row.name),
       file: readRowsSync(connection, 'PRAGMA table_info(File)').map(row => row.name),
       node: readRowsSync(connection, 'PRAGMA table_info(Node)').map(row => row.name),
-      nodeView: readRowsSync(connection, 'PRAGMA table_info(NodeView)').map(row => row.name),
       symbol: readRowsSync(connection, 'PRAGMA table_info(Symbol)').map(row => row.name),
       tables: readRowsSync(
         connection,
@@ -78,20 +75,16 @@ describe('workspace analysis database schema', () => {
         .map(row => ({ from: row.from, table: row.table, to: row.to })),
       strictTables: readRowsSync(
         connection,
-        "SELECT name FROM pragma_table_list WHERE name IN ('File', 'Node', 'NodeView', 'Symbol', 'Edge') AND strict = 1 ORDER BY name",
+        "SELECT name FROM pragma_table_list WHERE name IN ('File', 'Node', 'Symbol', 'Edge') AND strict = 1 ORDER BY name",
       ).map(row => row.name),
-      nodeViewDefaults: readRowsSync(connection, 'PRAGMA table_info(NodeView)')
-        .filter(row => row.name === 'favorite' || row.name === 'isCollapsed')
-        .map(row => ({ name: row.name, notnull: row.notnull, defaultValue: row.dflt_value })),
     }));
     expect(columns).toEqual({
-      tables: ['Edge', 'File', 'Node', 'NodeView', 'Symbol'],
+      tables: ['Edge', 'File', 'Node', 'Symbol'],
       file: ['id', ...FILE_COLUMNS],
       node: ['id', ...NODE_COLUMNS],
-      nodeView: [...NODE_VIEW_COLUMNS],
       symbol: [...SYMBOL_COLUMNS],
       edge: ['id', ...EDGE_COLUMNS],
-      userVersion: 9,
+      userVersion: 10,
       nodeForeignKeys: [
         { from: 'parentId', table: 'Node', to: 'id' },
         { from: 'fileId', table: 'File', to: 'id' },
@@ -101,61 +94,7 @@ describe('workspace analysis database schema', () => {
         { from: 'targetNodeId', table: 'Node', to: 'id' },
         { from: 'sourceNodeId', table: 'Node', to: 'id' },
       ],
-      strictTables: ['Edge', 'File', 'Node', 'NodeView', 'Symbol'],
-      nodeViewDefaults: [
-        { name: 'favorite', notnull: 1, defaultValue: '0' },
-        { name: 'isCollapsed', notnull: 1, defaultValue: '0' },
-      ],
+      strictTables: ['Edge', 'File', 'Node', 'Symbol'],
     });
-  });
-
-  it('preserves view state by stable node key when the fact schema rebuilds', () => {
-    const workspaceRoot = createWorkspaceRoot();
-    const cache = createEmptyWorkspaceAnalysisCache();
-    const graph = {
-      nodes: [{
-        id: 'src/app.ts',
-        label: 'app.ts',
-        color: '#123456',
-        nodeType: 'file' as const,
-        x: 12,
-        y: 34,
-        favorite: true,
-        isCollapsed: true,
-      }],
-      edges: [],
-    };
-    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, graph);
-    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-
-    withConnection(databasePath, connection => {
-      runStatementSync(connection, 'ALTER TABLE Node ADD COLUMN obsolete TEXT');
-    });
-
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
-    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, {
-      nodes: [{
-        id: 'src/app.ts',
-        label: 'app.ts',
-        color: '#abcdef',
-        nodeType: 'file',
-      }],
-      edges: [],
-    });
-
-    expect(withConnection(databasePath, connection => (
-      readRowsSync(connection, 'SELECT * FROM NodeView WHERE nodeKey = \'src/app.ts\'')[0]
-    ))).toEqual({
-      nodeKey: 'src/app.ts',
-      color: '#abcdef',
-      x: 12,
-      y: 34,
-      favorite: 1,
-      shape: null,
-      imageUrl: null,
-      isCollapsed: 1,
-    });
-    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).graph.nodes[0])
-      .toMatchObject({ id: 'src/app.ts', x: 12, y: 34, favorite: true, isCollapsed: true });
   });
 });

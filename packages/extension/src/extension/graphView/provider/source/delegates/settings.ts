@@ -10,7 +10,6 @@ export function createGraphViewProviderSettingsMethodDelegates(
   | '_registerBuiltInPluginRoots'
   | '_resolveWebviewAssetPath'
   | '_refreshWebviewResourceRoots'
-  | '_normalizeExternalExtensionUri'
   | '_loadDisabledRulesAndPlugins'
   | '_sendSettings'
   | '_sendPhysicsSettings'
@@ -31,8 +30,6 @@ export function createGraphViewProviderSettingsMethodDelegates(
       owner._methodContainers.pluginResource._resolveWebviewAssetPath(assetPath, pluginId),
     _refreshWebviewResourceRoots: () =>
       owner._methodContainers.pluginResource._refreshWebviewResourceRoots(),
-    _normalizeExternalExtensionUri: uri =>
-      owner._methodContainers.pluginResource._normalizeExternalExtensionUri(uri),
     _loadDisabledRulesAndPlugins: () =>
       owner._methodContainers.settingsState._loadDisabledRulesAndPlugins(),
     _sendSettings: () => owner._methodContainers.settingsState._sendSettings(),

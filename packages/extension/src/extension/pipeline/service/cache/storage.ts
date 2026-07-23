@@ -8,6 +8,7 @@ import {
   saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../database/cache/storage';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IPluginNodeType } from '@codegraphy-dev/plugin-api';
 
 export interface WorkspacePipelineCachePatch {
   deleteFilePaths: readonly string[];
@@ -34,12 +35,16 @@ export function persistWorkspacePipelineCache(
   cache: IWorkspaceAnalysisCache,
   graph: IGraphData,
   warn: (message: string, error: unknown) => void,
+  nodeTypes: readonly IPluginNodeType[] = [],
 ): void {
   if (!workspaceRoot) {
     return;
   }
 
-  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, { graph })
+  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, {
+    graph,
+    ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
+  })
     .catch((error: unknown) => {
       warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
     });
@@ -50,6 +55,7 @@ export function patchWorkspacePipelineCache(
   cache: IWorkspaceAnalysisCache,
   patch: WorkspacePipelineCachePatch,
   warn: (message: string, error: unknown) => void,
+  nodeTypes: readonly IPluginNodeType[] = [],
 ): void {
   if (!workspaceRoot) {
     return;
@@ -66,6 +72,7 @@ export function patchWorkspacePipelineCache(
   void patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
     deleteFilePaths: patch.deleteFilePaths,
     upsertFiles,
+    ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
   })
     .catch((error: unknown) => {
       warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);

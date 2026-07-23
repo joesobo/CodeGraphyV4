@@ -10,7 +10,7 @@ import type {
 import { handleCssSnippetsUpdatedMessage } from './cssSnippets';
 import { handlePluginDataUpdatedMessage } from './pluginData';
 import { handlePluginInjectMessage } from './pluginInjection';
-import { removeDisabledPluginRegistrations } from './pluginRegistrations';
+import { reconcilePluginRegistrations } from './pluginRegistrations';
 
 export interface RawExtensionMessage {
   type: string;
@@ -20,7 +20,7 @@ export interface RawExtensionMessage {
 
 interface MessageRouteRuntime {
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>;
-  packagePluginIdsByPackageName: Map<string, string>;
+  knownPluginIds: Set<string>;
   pluginHost: WebviewPluginHost;
   resetPluginAssets?: ResetPluginAssets;
   updatePluginData: UpdatePluginData;
@@ -40,7 +40,11 @@ function deliverPluginScopedMessage(
 
 function createMessageConsumers(runtime: MessageRouteRuntime): MessageConsumer[] {
   return [
-    message => handlePluginInjectMessage(message, runtime.injectPluginAssets),
+    message => handlePluginInjectMessage(
+      message,
+      runtime.injectPluginAssets,
+      runtime.knownPluginIds,
+    ),
     handleCssSnippetsUpdatedMessage,
     message => deliverPluginScopedMessage(message, runtime.pluginHost),
     message => handlePluginDataUpdatedMessage(message, runtime.updatePluginData),
@@ -52,11 +56,11 @@ export function routeExtensionMessage(
   runtime: MessageRouteRuntime,
 ): void {
   if (createMessageConsumers(runtime).some(consume => consume(message))) return;
-  removeDisabledPluginRegistrations(
+  reconcilePluginRegistrations(
     message,
     runtime.pluginHost,
-    runtime.packagePluginIdsByPackageName,
     runtime.resetPluginAssets,
+    runtime.knownPluginIds,
   );
   graphStore.getState().handleExtensionMessage(message as ExtensionToWebviewMessage);
 }

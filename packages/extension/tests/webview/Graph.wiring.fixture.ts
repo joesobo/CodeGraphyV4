@@ -124,7 +124,6 @@ function resetStore(overrides: Record<string, unknown> = {}): void {
       linkForce: 0.2,
       damping: 0.7,
     },
-    pluginContextMenuItems: [],
     showLabels: true,
     ...overrides,
   });

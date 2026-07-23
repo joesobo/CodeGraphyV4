@@ -1,6 +1,7 @@
 import type { MutableRefObject } from 'react';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
+import type { IGroup } from '../../../../../shared/settings/groups';
 import {
 	hideGraphTooltipState,
 	type GraphTooltipRect,
@@ -18,6 +19,7 @@ export interface TooltipHoverOptions {
 	getNodeRect(this: void, node: FGNode): GraphTooltipRect | null;
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
 	interactionHandlers: GraphTooltipInteractionDependencies;
+	legends?: readonly IGroup[];
 	pluginHost?: WebviewPluginHost;
 	postMessage(this: void, message: WebviewToExtensionMessage): void;
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
@@ -36,7 +38,6 @@ function clearTooltipHoverState(
   hoveredNodeRef.current = null;
   stopTracking();
   setTooltipData(hideGraphTooltipState);
-  interactionHandlers.sendGraphInteraction('graph:nodeHover', { node: null });
 }
 
 export function handleTooltipNodeHover(
@@ -47,6 +48,7 @@ export function handleTooltipNodeHover(
 		getNodeRect,
 		hoveredNodeRef,
 		interactionHandlers,
+		legends,
 		pluginHost,
 		postMessage,
 		setTooltipData,
@@ -68,13 +70,13 @@ export function handleTooltipNodeHover(
 	}
 
 	interactionHandlers.setGraphCursor('pointer');
-	interactionHandlers.sendGraphInteraction('graph:nodeHover', { node: { id: node.id, label: node.label } });
 
 	hoveredNodeRef.current = node;
 	scheduleTooltipHover(node, {
 		dataRef,
 		fileInfoCacheRef,
 		getNodeRect,
+		legends,
 		pluginHost,
 		postMessage,
 		setTooltipData,

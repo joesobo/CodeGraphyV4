@@ -9,7 +9,10 @@ import {
   createCodeGraphyWorkspaceSettingsSignature,
 } from './signatures';
 import { createCodeGraphyWorkspaceStatusDetail } from './statusDetail';
-import { createDefaultStatusPluginSignature } from './statusPlugins';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from './statusPlugins';
 import {
   collectCodeGraphyWorkspaceStaleReasons,
 } from './statusReasons';
@@ -35,11 +38,23 @@ export function readCodeGraphyWorkspaceStatus(
   const hasGraphCache = (options.exists ?? fs.existsSync)(graphCachePath);
   const meta = readCodeGraphyWorkspaceMeta(resolvedWorkspaceRoot);
   const settings = options.settings ?? readCodeGraphyWorkspaceSettings(resolvedWorkspaceRoot);
-  const settingsSignature = options.settingsSignature ?? createCodeGraphyWorkspaceSettingsSignature(settings);
+  const settingsSignature = options.settingsSignature ?? createCodeGraphyWorkspaceSettingsSignature(
+    settings,
+    options.plugins
+      ? new Set(options.plugins.map(plugin => plugin.id))
+      : createDefaultStatusCorePluginIds(settings, options.userHomeDir),
+  );
   const pluginSignature = options.pluginSignature
     ?? (options.plugins
       ? createCodeGraphyWorkspacePluginSignature(options.plugins)
       : createDefaultStatusPluginSignature(settings, options.userHomeDir));
+  const comparesPluginBuild = Object.prototype.hasOwnProperty.call(options, 'pluginBuildSignature');
+  const comparableMetaPluginSignature = comparesPluginBuild
+    ? JSON.stringify([meta.pluginSignature, meta.pluginBuildSignature])
+    : meta.pluginSignature;
+  const comparablePluginSignature = comparesPluginBuild
+    ? JSON.stringify([pluginSignature, options.pluginBuildSignature ?? null])
+    : pluginSignature;
   const pendingChangedFiles = filterWorkspaceStatusPendingChangedFiles(
     meta.pendingChangedFiles,
     {
@@ -50,11 +65,11 @@ export function readCodeGraphyWorkspaceStatus(
   const staleReasons = collectCodeGraphyWorkspaceStaleReasons({
     hasGraphCache,
     indexedAt: meta.lastIndexedAt,
-    metaPluginSignature: meta.pluginSignature,
+    metaPluginSignature: comparableMetaPluginSignature,
     metaSettingsSignature: meta.settingsSignature,
     metaAnalysisVersion: meta.analysisVersion,
     pendingChangedFiles,
-    pluginSignature,
+    pluginSignature: comparablePluginSignature,
     settingsSignature,
   });
   const state = createCodeGraphyWorkspaceStatusState({ hasGraphCache, staleReasons });

@@ -8,7 +8,7 @@ export const CODEGRAPHY_MARKDOWN_PLUGIN_METADATA = {
   id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   name: 'Markdown',
   version: '1.0.0',
-  apiVersion: '^3.0.0',
+  apiVersion: '^4.0.0',
   supportedExtensions: ['*'],
   updateImpact: {
     toggle: 'reanalyze-plugin-files',

@@ -6,7 +6,7 @@ import test from 'node:test';
 
 import * as releaseCore from '../../scripts/release-core.mjs';
 
-test('core extension release includes built-in Unity plugin icon assets', () => {
+test('core extension release includes built-in Extension plugin icon assets', () => {
   const rootManifest = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
   );
@@ -15,22 +15,36 @@ test('core extension release includes built-in Unity plugin icon assets', () => 
     releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-unity/assets'),
     'Unity plugin icon assets must be staged so plugin legend and graph node image URLs resolve in packaged webviews.',
   );
+  assert.ok(
+    releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-godot/assets'),
+    'Godot plugin icon assets must be staged so plugin legend and graph node image URLs resolve in packaged webviews.',
+  );
 });
 
-test('core extension release includes the bundled Unity plugin runtime and manifest', () => {
+test('core extension release includes every bundled plugin runtime and package descriptor', () => {
   const rootManifest = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
   );
   const entries = releaseCore.collectCoreReleaseEntries(rootManifest);
 
-  assert.ok(
-    entries.includes('packages/plugin-unity/codegraphy.json'),
-    'Unity plugin manifest must be staged so packaged extension defaults match the bundled runtime.',
-  );
-  assert.ok(
-    entries.includes('packages/plugin-unity/dist'),
-    'Unity plugin runtime must be staged so packaged extensions can load the bundled Unity plugin.',
-  );
+  for (const plugin of [
+    'godot',
+    'markdown',
+    'particles',
+    'svelte',
+    'typescript',
+    'unity',
+    'vue',
+  ]) {
+    assert.ok(
+      entries.includes(`packages/plugin-${plugin}/package.json`),
+      `${plugin} package manifest must be staged so the host-neutral loader can discover it.`,
+    );
+    assert.ok(
+      entries.includes(`packages/plugin-${plugin}/dist`),
+      `${plugin} runtime must be staged so packaged extensions can load it.`,
+    );
+  }
 });
 
 test('core extension release declares platform-specific VSIX targets', () => {

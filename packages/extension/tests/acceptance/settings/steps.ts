@@ -39,9 +39,6 @@ export const settingsAcceptanceSteps: Record<string, AcceptanceStepImplementatio
   'I do not see the graph FPS counter': async (context) => {
     const frame = requireGraphFrame(context);
     await expect(frame.getByTestId('graph-fps')).toHaveCount(0);
-    await expect.poll(() => frame.evaluate(() =>
-      window.__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot().fps ?? null
-    )).toBeNull();
   },
 };
 

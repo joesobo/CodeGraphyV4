@@ -56,10 +56,6 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _applyViewTransform(): void;
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
-  _sendContextMenuItems(): void;
-  _sendPluginExporters?(): void;
-  _sendPluginToolbarActions?(): void;
-  _sendGraphViewContributionStatuses?(): void;
   _sendPluginWebviewInjections?(): void;
   _loadAndSendData?(this: void): Promise<void>;
   _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;

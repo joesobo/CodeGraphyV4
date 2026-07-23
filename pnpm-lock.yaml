@@ -211,6 +211,9 @@ importers:
       '@codegraphy-dev/core':
         specifier: workspace:*
         version: link:../core
+      '@codegraphy-dev/extension-plugin-api':
+        specifier: workspace:*
+        version: link:../extension-plugin-api
       '@codegraphy-dev/graph-renderer':
         specifier: workspace:*
         version: link:../graph-renderer
@@ -277,6 +280,9 @@ importers:
       detect-libc:
         specifier: 2.0.2
         version: 2.0.2
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
       graphology:
         specifier: ^0.26.0
         version: 0.26.0(graphology-types@0.24.8)
@@ -405,6 +411,12 @@ importers:
         specifier: ^6.2.0
         version: 6.4.1(@types/node@20.19.37)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.3)
 
+  packages/extension-plugin-api:
+    dependencies:
+      '@codegraphy-dev/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+
   packages/graph-renderer:
     devDependencies:
       '@webgpu/types':
@@ -413,11 +425,23 @@ importers:
       assemblyscript:
         specifier: 0.28.19
         version: 0.28.19
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-api: {}
 
   packages/plugin-godot:
     dependencies:
+      '@codegraphy-dev/extension-plugin-api':
+        specifier: workspace:*
+        version: link:../extension-plugin-api
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
@@ -433,18 +457,32 @@ importers:
       '@lezer/lr':
         specifier: ^1.4.10
         version: 1.4.10
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-markdown:
     dependencies:
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-particles:
     dependencies:
-      '@codegraphy-dev/plugin-api':
+      '@codegraphy-dev/extension-plugin-api':
         specifier: workspace:*
-        version: link:../plugin-api
+        version: link:../extension-plugin-api
       esbuild:
         specifier: ^0.25.0
         version: 0.25.12
@@ -476,6 +514,10 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
 
   packages/plugin-typescript:
     dependencies:
@@ -485,12 +527,26 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
 
   packages/plugin-unity:
     dependencies:
+      '@codegraphy-dev/extension-plugin-api':
+        specifier: workspace:*
+        version: link:../extension-plugin-api
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-vue:
     dependencies:
@@ -503,6 +559,10 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+    devDependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
 
   packages/tldraw:
     dependencies:

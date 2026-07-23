@@ -200,7 +200,37 @@ describe('app message listener', () => {
     expect(handleExtensionMessage).toHaveBeenCalledWith(message);
   });
 
-  it('removes a package plugin by its last runtime plugin id when package status becomes unavailable', () => {
+  it('removes an injected runtime that is absent from the first status snapshot', () => {
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const resetPluginAssets = vi.fn();
+    const pluginHost = {
+      deliverMessage: vi.fn(),
+      removePlugin: vi.fn(),
+    } as unknown as WebviewPluginHost;
+    const handler = createMessageHandler(injectPluginAssets, pluginHost, resetPluginAssets);
+
+    handler({
+      data: {
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'acme.removed-during-startup',
+          scripts: ['webview://plugin.js'],
+          styles: [],
+        },
+      },
+    } as MessageEvent<unknown>);
+    handler({
+      data: {
+        type: 'PLUGINS_UPDATED',
+        payload: { plugins: [] },
+      },
+    } as MessageEvent<unknown>);
+
+    expect(pluginHost.removePlugin).toHaveBeenCalledWith('acme.removed-during-startup');
+    expect(resetPluginAssets).toHaveBeenCalledWith('acme.removed-during-startup');
+  });
+
+  it('removes both a disappeared descriptor and the disabled descriptor that replaces it', () => {
     const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
     const resetPluginAssets = vi.fn();
     const pluginHost = {
@@ -234,7 +264,9 @@ describe('app message listener', () => {
       },
     } as MessageEvent<unknown>);
 
+    expect(pluginHost.removePlugin).toHaveBeenCalledWith('@acme/graph-tools');
     expect(pluginHost.removePlugin).toHaveBeenCalledWith('acme.graph-tools');
+    expect(resetPluginAssets).toHaveBeenCalledWith('@acme/graph-tools');
     expect(resetPluginAssets).toHaveBeenCalledWith('acme.graph-tools');
   });
 

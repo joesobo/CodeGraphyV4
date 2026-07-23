@@ -18,22 +18,6 @@ describe('WebviewPluginHost messaging and viewport',()=>{
       expect(document.body.contains(firstContainer)).toBe(true);
     });
 
-  it('scopes outbound graph interaction messages by plugin id', () => {
-      const postMessage = vi.fn();
-      const host = new WebviewPluginHost();
-      const api = host.createAPI('acme.plugin', postMessage);
-  
-      api.sendMessage({ type: 'NODE_SELECTED', data: { nodeId: 'src/App.ts' } });
-  
-      expect(postMessage).toHaveBeenCalledWith({
-        type: 'GRAPH_INTERACTION',
-        payload: {
-          event: 'plugin:acme.plugin:NODE_SELECTED',
-          data: { nodeId: 'src/App.ts' },
-        },
-      });
-    });
-
   it('delivers plugin messages to subscribed handlers and stops after disposal', () => {
       const host = new WebviewPluginHost();
       const api = host.createAPI('acme.plugin', vi.fn());
@@ -112,6 +96,28 @@ describe('WebviewPluginHost messaging and viewport',()=>{
   
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(null);
+    });
+
+  it('continues notifying viewport listeners when one plugin listener throws', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const host = new WebviewPluginHost();
+      const failingApi = host.createAPI('failing.plugin', vi.fn());
+      const healthyApi = host.createAPI('healthy.plugin', vi.fn());
+      const failingHandler = vi.fn(() => {
+        throw new Error('listener failed');
+      });
+      const healthyHandler = vi.fn();
+
+      expect(() => failingApi.onGraphViewViewportState(failingHandler)).not.toThrow();
+      healthyApi.onGraphViewViewportState(healthyHandler);
+      expect(() => host.setGraphViewViewportState(null)).not.toThrow();
+
+      expect(failingHandler).toHaveBeenCalledTimes(2);
+      expect(healthyHandler).toHaveBeenCalledTimes(2);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Viewport listener for plugin 'failing.plugin' failed"),
+        expect.any(Error),
+      );
     });
 
   it('continues delivering plugin messages when one handler throws', () => {

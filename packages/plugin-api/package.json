@@ -25,9 +25,6 @@
     ".": {
       "types": "./src/index.ts"
     },
-    "./events": {
-      "types": "./src/events.ts"
-    },
     "./plugin": {
       "types": "./src/plugin.ts"
     },
@@ -37,14 +34,33 @@
     "./data": {
       "types": "./src/data.ts"
     },
-    "./graph-view": {
-      "types": "./src/graphView.ts"
+    "./disposable": {
+      "types": "./src/disposable.ts"
     },
-    "./webview": {
-      "types": "./src/webview.ts"
+    "./graph": {
+      "types": "./src/graph.ts"
     }
   },
   "types": "src/index.ts",
+  "typesVersions": {
+    "*": {
+      "access": [
+        "src/access.ts"
+      ],
+      "data": [
+        "src/data.ts"
+      ],
+      "disposable": [
+        "src/disposable.ts"
+      ],
+      "graph": [
+        "src/graph.ts"
+      ],
+      "plugin": [
+        "src/plugin.ts"
+      ]
+    }
+  },
   "publishConfig": {
     "access": "public"
   },

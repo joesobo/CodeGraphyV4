@@ -9,6 +9,7 @@ export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'showOrphans',
   'cssSnippets',
   'plugins',
+  'interfaces',
   'pluginData',
   'nodeColors',
   'nodeVisibility',

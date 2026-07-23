@@ -55,6 +55,7 @@ export async function loadSubject(
   vi.doMock('../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
     WorkspacePipeline: class WorkspacePipeline {
       warmGraphCache = vi.fn(async () => undefined);
+      dispose = vi.fn(async () => undefined);
     },
   }));
   vi.doMock('../../../../../src/core/views', () => ({
@@ -65,7 +66,7 @@ export async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../../../../src/core/plugins/events/bus', () => ({
+  vi.doMock('../../../../../src/extension/events/bus', () => ({
     EventBus: class EventBus {},
   }));
   vi.doMock('../../../../../src/core/plugins/decoration/manager', () => ({
@@ -97,7 +98,7 @@ export function unmockRuntimeModules() {
   vi.doUnmock('../../../../../src/extension/pipeline/service/lifecycleFacade');
   vi.doUnmock('../../../../../src/extension/repoSettings/meta');
   vi.doUnmock('../../../../../src/core/views');
-  vi.doUnmock('../../../../../src/core/plugins/events/bus');
+  vi.doUnmock('../../../../../src/extension/events/bus');
   vi.doUnmock('../../../../../src/core/plugins/decoration/manager');
   vi.doUnmock('../../../../../src/extension/graphView/provider/wiring/methodContainers');
   vi.doUnmock('../../../../../src/extension/graphView/provider/wiring/bootstrap');

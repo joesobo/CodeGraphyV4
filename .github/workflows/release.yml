@@ -14,6 +14,7 @@ on:
           - graph-renderer
           - tldraw
           - plugin-api
+          - extension-plugin-api
           - plugin-typescript
           - plugin-godot
           - plugin-unity

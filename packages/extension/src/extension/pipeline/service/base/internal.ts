@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import type {
   IProjectedConnection,
   IFileAnalysisResult,
+  IPluginNodeType,
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
@@ -23,7 +24,10 @@ import {
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../cacheSignatures/commit';
-import { createWorkspacePipelinePluginSignature } from '../../cacheSignatures/plugin';
+import {
+  createWorkspacePipelinePluginBuildSignature,
+  createWorkspacePipelinePluginSignature,
+} from '../../cacheSignatures/plugin';
 import { createWorkspacePipelineSettingsSignature } from '../../cacheSignatures/settings';
 import {
   patchWorkspacePipelineCache,
@@ -39,6 +43,12 @@ import { listActiveAnalysisPluginIds } from '../../pluginAnalysis/selection';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected _completeGraphData: IGraphData = { nodes: [], edges: [] };
+
+  protected _listPluginNodeTypes(
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): readonly IPluginNodeType[] {
+    return this._registry.listNodeTypes(disabledPlugins);
+  }
 
   protected async _preAnalyzePlugins(
     files: IDiscoveredFile[],
@@ -191,8 +201,12 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     });
   }
 
+  protected _getPluginBuildSignature(): string | null {
+    return createWorkspacePipelinePluginBuildSignature(this._registry.list());
+  }
+
   protected _getSettingsSignature(): string {
-    return createWorkspacePipelineSettingsSignature(this._config);
+    return createWorkspacePipelineSettingsSignature(this._config, this._registry.list());
   }
 
   protected async _getCurrentCommitSha(workspaceRoot: string): Promise<string | null> {
@@ -225,6 +239,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       getCurrentCommitSha: () =>
         workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
       getPluginSignature: () => this._getPluginSignature(),
+      getPluginBuildSignature: () => this._getPluginBuildSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
       warn: (message: string, error: unknown) => {
         console.warn(message, error);
@@ -240,6 +255,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       (message: string, error: unknown) => {
         console.warn(message, error);
       },
+      this._registry.listNodeTypes(),
     );
   }
 
@@ -251,6 +267,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       (message: string, error: unknown) => {
         console.warn(message, error);
       },
+      this._registry.listNodeTypes(),
     );
   }
 }

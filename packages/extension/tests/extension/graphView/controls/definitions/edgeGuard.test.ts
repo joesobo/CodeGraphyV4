@@ -7,7 +7,6 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
       isGraphEdgeTypeLike({
         id: 'import',
         label: 'Import',
-        defaultColor: '#3178C6',
         defaultVisible: true,
       }),
     ).toBe(true);
@@ -18,7 +17,6 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
       isGraphEdgeTypeLike({
         id: 'plugin:route',
         label: 'Route Links',
-        defaultColor: '#10B981',
         defaultVisible: true,
         description: {
           description: 'A route points at the file that renders it.',
@@ -39,7 +37,6 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
     expect(
       isGraphEdgeTypeLike({
         label: 'Import',
-        defaultColor: '#3178C6',
         defaultVisible: true,
       }),
     ).toBe(false);
@@ -47,7 +44,6 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
       isGraphEdgeTypeLike({
         id: 'import',
         label: 123,
-        defaultColor: '#3178C6',
         defaultVisible: true,
       }),
     ).toBe(false);
@@ -55,15 +51,6 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
       isGraphEdgeTypeLike({
         id: 'import',
         label: 'Import',
-        defaultColor: 123,
-        defaultVisible: true,
-      }),
-    ).toBe(false);
-    expect(
-      isGraphEdgeTypeLike({
-        id: 'import',
-        label: 'Import',
-        defaultColor: '#3178C6',
         defaultVisible: 'yes',
       }),
     ).toBe(false);
@@ -71,7 +58,6 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
       isGraphEdgeTypeLike({
         id: 'plugin:route',
         label: 'Route Links',
-        defaultColor: '#10B981',
         defaultVisible: true,
         description: {
           examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],

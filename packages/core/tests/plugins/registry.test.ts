@@ -8,7 +8,7 @@ function plugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'codegraphy.test',
     name: 'Test',
     version: '1.0.0',
-    apiVersion: '3',
+    apiVersion: '4',
     supportedExtensions: ['.test'],
     ...overrides,
   };
@@ -188,6 +188,123 @@ describe('CorePluginRegistry', () => {
     expect(secondInitialize).toHaveBeenCalledTimes(1);
   });
 
+  it('does not route plugins whose initialization fails', async () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const healthy = plugin({
+      id: 'healthy',
+      supportedExtensions: ['.good'],
+      initialize: vi.fn(),
+    });
+
+    registry.register(plugin({
+      id: 'broken',
+      supportedExtensions: ['.bad'],
+      initialize: vi.fn(async () => {
+        throw new Error('boom');
+      }),
+    }));
+    registry.register(healthy);
+
+    await registry.initializeAll('/workspace');
+
+    expect(registry.getPluginForFile('src/file.bad')).toBeUndefined();
+    expect(registry.getPluginForFile('src/file.good')).toBe(healthy);
+    consoleError.mockRestore();
+  });
+
+  it('keeps replacement initialization state when the old runtime fails later', async () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let rejectOldInitialization!: (error: Error) => void;
+    const oldInitialization = new Promise<void>((_resolve, reject) => {
+      rejectOldInitialization = reject;
+    });
+    const replacementInitialize = vi.fn();
+
+    registry.register(plugin({
+      id: 'replaceable',
+      initialize: () => oldInitialization,
+    }));
+    const initializingOldRuntime = registry.initializePlugin('replaceable', '/workspace');
+    registry.unregister('replaceable');
+    registry.register(plugin({
+      id: 'replaceable',
+      initialize: replacementInitialize,
+    }));
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    rejectOldInitialization(new Error('old runtime failed'));
+    await initializingOldRuntime;
+    await registry.initializePlugin('replaceable', '/workspace');
+
+    expect(replacementInitialize).toHaveBeenCalledOnce();
+    consoleError.mockRestore();
+  });
+
+  it('unloads registered plugins without letting one failure block later cleanup', () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const brokenUnload = vi.fn(() => {
+      throw new Error('broken cleanup');
+    });
+    const healthyUnload = vi.fn();
+
+    registry.register(plugin({
+      id: 'broken',
+      supportedExtensions: ['.bad'],
+      onUnload: brokenUnload,
+    }));
+    registry.register(plugin({
+      id: 'healthy',
+      supportedExtensions: ['.good'],
+      onUnload: healthyUnload,
+    }));
+
+    expect(registry.unregister('missing')).toBe(false);
+    registry.disposeAll();
+
+    expect(brokenUnload).toHaveBeenCalledOnce();
+    expect(healthyUnload).toHaveBeenCalledOnce();
+    expect(registry.list()).toEqual([]);
+    expect(registry.getPluginForFile('src/file.bad')).toBeUndefined();
+    expect(registry.getPluginForFile('src/file.good')).toBeUndefined();
+    consoleError.mockRestore();
+  });
+
+  it('waits for an active analysis callback before unloading its plugin', async () => {
+    let markAnalysisStarted!: () => void;
+    let finishAnalysis!: () => void;
+    const analysisStarted = new Promise<void>(resolve => {
+      markAnalysisStarted = resolve;
+    });
+    const analysisGate = new Promise<void>(resolve => {
+      finishAnalysis = resolve;
+    });
+    const onUnload = vi.fn();
+    const registry = new CorePluginRegistry();
+    registry.register(plugin({
+      async analyzeFile(filePath) {
+        markAnalysisStarted();
+        await analysisGate;
+        return { filePath, relations: [] };
+      },
+      onUnload,
+    }));
+
+    const analysis = registry.analyzeFileResult('src/app.test', '', '/workspace');
+    await analysisStarted;
+    registry.unregister('codegraphy.test');
+
+    expect(registry.get('codegraphy.test')).toBeUndefined();
+    expect(onUnload).not.toHaveBeenCalled();
+
+    finishAnalysis();
+    await analysis;
+
+    expect(onUnload).toHaveBeenCalledOnce();
+  });
+
   it('lists node and edge type contributions through the registry facade', () => {
     const registry = new CorePluginRegistry();
 
@@ -249,5 +366,33 @@ describe('CorePluginRegistry', () => {
     expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
       filePaths: ['src/app.ts'],
     });
+  });
+
+  it('keeps collecting graph scope capabilities after one plugin throws', () => {
+    const registry = new CorePluginRegistry();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    registry.register(plugin({
+      id: 'broken',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: () => {
+        throw new Error('broken capabilities');
+      },
+    }));
+    registry.register(plugin({
+      id: 'healthy',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function'],
+        edgeTypes: ['call'],
+      }),
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts'])).toEqual({
+      nodeTypes: ['symbol:function'],
+      edgeTypes: ['call'],
+    });
+    expect(consoleError).toHaveBeenCalledOnce();
+    consoleError.mockRestore();
   });
 });

@@ -8,7 +8,9 @@ interface PackagePluginRootInfo {
 }
 
 interface PackagePluginRootRegistry {
-  list(): PackagePluginRootInfo[];
+  extensionPlugins: {
+    list(): PackagePluginRootInfo[];
+  };
 }
 
 interface PackagePluginRootAnalyzer {
@@ -17,8 +19,8 @@ interface PackagePluginRootAnalyzer {
 
 function getBuiltInGraphViewPluginDirEntries(): Array<readonly [string, string]> {
   return [
-    ['codegraphy.godot', 'plugin-godot'],
-    ['codegraphy.unity', 'plugin-unity'],
+    ['codegraphy.godot.extension', 'plugin-godot'],
+    ['codegraphy.unity.extension', 'plugin-unity'],
   ];
 }
 
@@ -44,14 +46,30 @@ export function registerPackageGraphViewPluginRoots(
   analyzer: PackagePluginRootAnalyzer | undefined,
   pluginExtensionUris: Map<string, vscode.Uri>,
 ): void {
-  for (const pluginInfo of analyzer?.registry.list() ?? []) {
-    if (!pluginInfo.sourcePackageRoot || pluginExtensionUris.has(pluginInfo.plugin.id)) {
+  const pluginInfos: PackagePluginRootInfo[] = analyzer
+    ? analyzer.registry.extensionPlugins.list()
+    : [];
+  const packageRoots = new Map<string, vscode.Uri>();
+  for (const pluginInfo of pluginInfos) {
+    if (!pluginInfo.sourcePackageRoot) {
       continue;
     }
 
-    pluginExtensionUris.set(
+    packageRoots.set(
       pluginInfo.plugin.id,
       vscode.Uri.file(pluginInfo.sourcePackageRoot),
     );
+  }
+
+  const builtInPluginIds = new Set(
+    getBuiltInGraphViewPluginDirEntries().map(([pluginId]) => pluginId),
+  );
+  for (const pluginId of pluginExtensionUris.keys()) {
+    if (!builtInPluginIds.has(pluginId) && !packageRoots.has(pluginId)) {
+      pluginExtensionUris.delete(pluginId);
+    }
+  }
+  for (const [pluginId, root] of packageRoots) {
+    pluginExtensionUris.set(pluginId, root);
   }
 }

@@ -25,7 +25,6 @@ describe('graph interaction handler composition', () => {
       applyGraphInteractionEffects: vi.fn(),
       previewNode: vi.fn(),
       requestNodeOpenById: vi.fn(),
-      sendGraphInteraction: vi.fn(),
     };
     const clickHandlers = {
       handleBackgroundClick: vi.fn(),
@@ -113,7 +112,6 @@ describe('graph interaction handler composition', () => {
     expect(handlers.previewNode).toBe(effectHandlers.previewNode);
     expect(handlers.requestNodeOpenById).toBe(effectHandlers.requestNodeOpenById);
     expect(handlers.selectOnlyNode).toBe(selectionHandlers.selectOnlyNode);
-    expect(handlers.sendGraphInteraction).toBe(effectHandlers.sendGraphInteraction);
     expect(handlers.setGraphCursor).toBe(clickCallbacks[1].setGraphCursor);
     expect(handlers.setHighlight).toBe(selectionHandlers.setHighlight);
     expect(handlers.setSelection).toBe(selectionHandlers.setSelection);

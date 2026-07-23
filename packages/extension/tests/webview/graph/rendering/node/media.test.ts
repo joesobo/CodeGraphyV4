@@ -122,12 +122,12 @@ describe('graph/rendering/node/media', () => {
     expect(getNodeRenderers).toHaveBeenCalledWith('.ts');
     expect(typeRenderer).toHaveBeenCalledWith(expect.objectContaining({
       node: expect.objectContaining({ id: 'src/app.ts' }),
-      ctx,
+      canvasContext: ctx,
       globalScale: 1,
     }));
     expect(wildcardRenderer).toHaveBeenCalledWith(expect.objectContaining({
       node: expect.objectContaining({ id: 'src/app.ts' }),
-      ctx,
+      canvasContext: ctx,
       globalScale: 1,
     }));
     expect(ctx.save).toHaveBeenCalledTimes(2);
@@ -136,8 +136,8 @@ describe('graph/rendering/node/media', () => {
 
   it('restores Canvas state and continues after a plugin renderer error', () => {
     const error = new Error('boom');
-    const failedRenderer = vi.fn(({ ctx }: { ctx: CanvasRenderingContext2D }) => {
-      ctx.globalAlpha = 0.2;
+    const failedRenderer = vi.fn(({ canvasContext }: { canvasContext: CanvasRenderingContext2D }) => {
+      canvasContext.globalAlpha = 0.2;
       throw error;
     });
     const healthyRenderer = vi.fn();

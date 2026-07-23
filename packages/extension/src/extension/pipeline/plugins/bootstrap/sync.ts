@@ -1,15 +1,24 @@
 import type { IPluginInfo } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import type { WorkspacePluginRegistry } from '../registry';
 import {
-  getBuiltInWorkspacePipelinePluginRegistrations,
+  getBuiltInWorkspacePipelinePluginCandidates,
+  type WorkspacePipelinePluginCandidate,
   type WorkspacePipelinePluginRegistration,
 } from './builtIns';
-import { loadWorkspacePackagePluginRegistrations } from './packages';
+import { prepareWorkspacePackagePluginCandidates } from './packages';
 import {
   readWorkspacePipelineSettings,
   type WorkspacePipelineSettingsResult,
 } from './settings';
 import type { WorkspacePipelineInitializationDependencies } from './initialize';
+import {
+  prepareWorkspaceExtensionPluginCandidates,
+  type WorkspaceExtensionPluginCandidate,
+  type WorkspaceExtensionPluginRegistration,
+} from './extensionPackages';
+import type { ExtensionPluginRegistry } from '../../../plugins/registry';
+import { disposeRejectedPluginRuntime } from './registrationCleanup';
 
 function stableOptionsString(value: unknown): string {
   if (value === undefined) {
@@ -21,22 +30,27 @@ function stableOptionsString(value: unknown): string {
 
 function hasRegistrationChanged(
   current: IPluginInfo,
-  desired: WorkspacePipelinePluginRegistration,
+  desired: WorkspacePipelinePluginCandidate,
 ): boolean {
-  return current.plugin.id !== desired.plugin.id
+  return current.plugin.id !== desired.id
     || current.builtIn !== Boolean(desired.options.builtIn)
     || current.sourcePackageRoot !== desired.options.sourcePackageRoot
+    || current.sourceSignature !== desired.options.sourceSignature
     || stableOptionsString(current.options) !== stableOptionsString(desired.options.options);
 }
 
-async function collectDesiredRegistrations(
+async function collectDesiredCandidates(
   { settings, workspaceRoot }: WorkspacePipelineSettingsResult,
   dependencies: WorkspacePipelineInitializationDependencies,
-): Promise<WorkspacePipelinePluginRegistration[]> {
-  const desired = await getBuiltInWorkspacePipelinePluginRegistrations(settings, dependencies.disabledPlugins);
+): Promise<WorkspacePipelinePluginCandidate[]> {
+  const desired = await getBuiltInWorkspacePipelinePluginCandidates(
+    settings,
+    dependencies.disabledPlugins,
+    { ...(dependencies.userHomeDir ? { homeDir: dependencies.userHomeDir } : {}) },
+  );
 
   if (workspaceRoot && settings) {
-    desired.push(...await loadWorkspacePackagePluginRegistrations(
+    desired.push(...await prepareWorkspacePackagePluginCandidates(
       settings,
       workspaceRoot,
       dependencies,
@@ -46,31 +60,30 @@ async function collectDesiredRegistrations(
   return desired;
 }
 
-function mapDesiredPackageRegistrations(
-  registrations: readonly WorkspacePipelinePluginRegistration[],
-): Map<string, WorkspacePipelinePluginRegistration> {
-  const desiredByPackage = new Map<string, WorkspacePipelinePluginRegistration>();
+function mapDesiredPackageRegistrationsById(
+  candidates: readonly WorkspacePipelinePluginCandidate[],
+): Map<string, WorkspacePipelinePluginCandidate> {
+  const desiredById = new Map<string, WorkspacePipelinePluginCandidate>();
 
-  for (const registration of registrations) {
-    const packageName = registration.options.sourcePackage;
-    if (packageName) {
-      desiredByPackage.set(packageName, registration);
+  for (const candidate of candidates) {
+    if (candidate.options.sourcePackage) {
+      desiredById.set(candidate.id, candidate);
     }
   }
 
-  return desiredByPackage;
+  return desiredById;
 }
 
 function unregisterOutdatedPackagePlugins(
   registry: PluginRegistry,
-  desiredByPackage: ReadonlyMap<string, WorkspacePipelinePluginRegistration>,
+  desiredById: ReadonlyMap<string, WorkspacePipelinePluginCandidate>,
 ): void {
   for (const pluginInfo of registry.list()) {
     if (!pluginInfo.sourcePackage) {
       continue;
     }
 
-    const desired = desiredByPackage.get(pluginInfo.sourcePackage);
+    const desired = desiredById.get(pluginInfo.plugin.id);
     if (!desired || hasRegistrationChanged(pluginInfo, desired)) {
       registry.unregister(pluginInfo.plugin.id);
     }
@@ -79,29 +92,109 @@ function unregisterOutdatedPackagePlugins(
 
 async function registerMissingPlugins(
   registry: PluginRegistry,
-  registrations: readonly WorkspacePipelinePluginRegistration[],
-  workspaceRoot: string | undefined,
+  candidates: readonly WorkspacePipelinePluginCandidate[],
+  warn: (message: string) => void,
 ): Promise<void> {
-  for (const registration of registrations) {
-    if (registry.get(registration.plugin.id)) {
+  for (const candidate of candidates) {
+    if (registry.get(candidate.id)) {
       continue;
     }
 
-    registry.register(registration.plugin, registration.options);
-    if (workspaceRoot) {
-      await registry.initializePlugin(registration.plugin.id, workspaceRoot);
+    let registration: WorkspacePipelinePluginRegistration;
+    try {
+      registration = await candidate.load();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${candidate.id}' could not be loaded: ${message}`);
+      continue;
+    }
+    try {
+      registry.register(registration.plugin, registration.options);
+    } catch (error) {
+      disposeRejectedPluginRuntime(registration.plugin, warn);
+      const message = error instanceof Error ? error.message : String(error);
+      warn(`CodeGraphy plugin '${candidate.id}' could not be registered: ${message}`);
+      continue;
     }
   }
 }
 
+function hasExtensionRegistrationChanged(
+  current: ReturnType<ExtensionPluginRegistry['list']>[number],
+  desired: WorkspaceExtensionPluginCandidate,
+): boolean {
+  return current.sourcePackage !== desired.options.sourcePackage
+    || current.sourcePackageRoot !== desired.options.sourcePackageRoot
+    || current.descriptorSignature !== desired.options.descriptorSignature
+    || current.builtIn !== Boolean(desired.options.builtIn)
+    || stableOptionsString(current.options) !== stableOptionsString(desired.options.options);
+}
+
+async function syncExtensionPlugins(
+  registry: ExtensionPluginRegistry,
+  settingsResult: WorkspacePipelineSettingsResult,
+  dependencies: WorkspacePipelineInitializationDependencies,
+): Promise<void> {
+  if (!settingsResult.workspaceRoot || !settingsResult.settings) {
+    for (const info of registry.list()) registry.unregister(info.plugin.id);
+    return;
+  }
+
+  const desired = await prepareWorkspaceExtensionPluginCandidates(
+    settingsResult.settings,
+    settingsResult.workspaceRoot,
+    dependencies,
+  );
+  const warn = dependencies.warn ?? console.warn;
+  const desiredById: Map<string, WorkspaceExtensionPluginCandidate> = new Map(
+    desired.map(candidate => [candidate.id, candidate]),
+  );
+
+  for (const current of registry.list()) {
+    const candidate = desiredById.get(current.plugin.id);
+    if (!candidate || hasExtensionRegistrationChanged(current, candidate)) {
+      registry.unregister(current.plugin.id);
+    }
+  }
+
+  for (const candidate of desired) {
+    if (!registry.get(candidate.id)) {
+      let registration: WorkspaceExtensionPluginRegistration;
+      try {
+        registration = await candidate.load();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`CodeGraphy Extension plugin '${candidate.id}' could not be loaded: ${message}`);
+        continue;
+      }
+      try {
+        registry.register(registration.plugin, registration.options);
+      } catch (error) {
+        disposeRejectedPluginRuntime(registration.plugin, warn);
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`CodeGraphy Extension plugin '${candidate.id}' could not be registered: ${message}`);
+      }
+    }
+  }
+  await registry.initializeAll(settingsResult.workspaceRoot);
+}
+
 export async function syncWorkspacePipelinePlugins(
-  registry: PluginRegistry,
+  registry: WorkspacePluginRegistry,
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<void> {
   const settingsResult = readWorkspacePipelineSettings(() => dependencies.getWorkspaceRoot());
-  const desiredRegistrations = await collectDesiredRegistrations(settingsResult, dependencies);
-  const desiredByPackage = mapDesiredPackageRegistrations(desiredRegistrations);
+  const desiredCandidates = await collectDesiredCandidates(settingsResult, dependencies);
+  const desiredById = mapDesiredPackageRegistrationsById(desiredCandidates);
 
-  unregisterOutdatedPackagePlugins(registry, desiredByPackage);
-  await registerMissingPlugins(registry, desiredRegistrations, settingsResult.workspaceRoot);
+  unregisterOutdatedPackagePlugins(registry, desiredById);
+  await registerMissingPlugins(
+    registry,
+    desiredCandidates,
+    dependencies.warn ?? console.warn,
+  );
+  if (settingsResult.workspaceRoot) {
+    await registry.initializeAll(settingsResult.workspaceRoot);
+  }
+  await syncExtensionPlugins(registry.extensionPlugins, settingsResult, dependencies);
 }

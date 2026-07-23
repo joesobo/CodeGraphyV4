@@ -30,23 +30,27 @@ describe('pipeline/plugins/statusContext', () => {
   it('reads the user installed plugin cache and workspace enabled plugin IDs', () => {
     writeCodeGraphyInstalledPluginCache(
       {
-        version: 1,
+        version: 3,
         plugins: [
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            id: 'codegraphy.vue',
+            host: 'core',
+            entry: './dist/plugin.js',
+            apiVersion: '^4.0.0',
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
-            pluginId: 'codegraphy.vue',
+            globallyEnabled: false,
           },
           {
             package: '@codegraphy-dev/plugin-godot',
             version: '3.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            id: 'codegraphy.godot',
+            host: 'core',
+            entry: './dist/plugin.js',
+            apiVersion: '^4.0.0',
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
-            pluginId: 'codegraphy.godot',
+            globallyEnabled: false,
           },
         ],
       },
@@ -57,10 +61,10 @@ describe('pipeline/plugins/statusContext', () => {
       maxFiles: 1000,
       include: ['**/*'],
       respectGitignore: true,
-      showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      plugins: [{ id: 'codegraphy.vue', enabled: true }],
+      plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],
+      interfaces: [],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
@@ -74,17 +78,96 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.godot')).toBe(false);
   });
 
+  it('lists disabled plugins bundled with the Extension as installed', () => {
+    const bundledPackageRoot = path.join(tempRoot, 'extension', 'packages', 'plugin-particles');
+    fs.mkdirSync(bundledPackageRoot, { recursive: true });
+    fs.writeFileSync(path.join(bundledPackageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-particles',
+      version: '0.2.4',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.particles',
+          name: 'Particles',
+          host: 'codegraphy.extension',
+          entry: './dist/plugin.js',
+          apiVersion: '^1.0.0',
+        }],
+      },
+    }));
+    writeCodeGraphyInstalledPluginCache({ version: 3, plugins: [] }, { homeDir });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, {
+      homeDir,
+      bundledPackageRoots: [bundledPackageRoot],
+    });
+
+    expect(statusContext.installedPlugins).toContainEqual(expect.objectContaining({
+      id: 'codegraphy.particles',
+      package: '@codegraphy-dev/plugin-particles',
+      globallyEnabled: false,
+    }));
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.particles')).toBe(false);
+  });
+
+  it('prefers a bundled plugin when an installed package claims the same plugin id', () => {
+    const bundledPackageRoot = path.join(tempRoot, 'extension', 'packages', 'plugin-bundled');
+    fs.mkdirSync(bundledPackageRoot, { recursive: true });
+    fs.writeFileSync(path.join(bundledPackageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-bundled',
+      version: '1.0.0',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.shared-id',
+          name: 'Bundled',
+          host: 'codegraphy.extension',
+          entry: './dist/plugin.js',
+          apiVersion: '^1.0.0',
+        }],
+      },
+    }));
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        package: '@acme/plugin-conflict',
+        version: '1.0.0',
+        id: 'codegraphy.shared-id',
+        host: 'codegraphy.extension',
+        entry: './plugin.js',
+        apiVersion: '^1.0.0',
+        packageRoot: '/global/node_modules/@acme/plugin-conflict',
+        globallyEnabled: true,
+      }],
+    }, { homeDir });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, {
+      homeDir,
+      bundledPackageRoots: [bundledPackageRoot],
+    });
+
+    expect(statusContext.installedPlugins.filter(
+      plugin => plugin.id === 'codegraphy.shared-id',
+    )).toEqual([
+      expect.objectContaining({
+        package: '@codegraphy-dev/plugin-bundled',
+        packageRoot: bundledPackageRoot,
+      }),
+    ]);
+  });
+
   it('uses initial Markdown activity state without materializing workspace settings', () => {
     writeCodeGraphyInstalledPluginCache(
       {
-        version: 1,
+        version: 3,
         plugins: [
           {
             package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
-            apiVersion: '^3.0.0',
-            disclosures: [],
+            id: 'codegraphy.vue',
+            host: 'core',
+            entry: './dist/plugin.js',
+            apiVersion: '^4.0.0',
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
+            globallyEnabled: false,
           },
         ],
       },
@@ -102,16 +185,98 @@ describe('pipeline/plugins/statusContext', () => {
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 
-  it('includes bundled Markdown as an installed disabled plugin when workspace settings remove it', () => {
+  it('uses global defaults for missing and inherited workspace activation', () => {
+    writeCodeGraphyInstalledPluginCache(
+      {
+        version: 3,
+        plugins: [
+          {
+            package: '@acme/global-on',
+            version: '1.0.0',
+            id: 'acme.global-on',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-on',
+            globallyEnabled: true,
+          },
+          {
+            package: '@acme/global-off',
+            version: '1.0.0',
+            id: 'acme.global-off',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-off',
+            globallyEnabled: false,
+          },
+        ],
+      },
+      { homeDir },
+    );
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       version: 1,
       maxFiles: 1000,
       include: ['**/*'],
       respectGitignore: true,
-      showOrphans: true,
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      plugins: [{ id: 'acme.global-off', activation: 'inherit' }],
+      interfaces: [],
+    });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).toContain('acme.global-on');
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).not.toContain('acme.global-off');
+  });
+
+  it('reports global activation when no workspace is open', () => {
+    writeCodeGraphyInstalledPluginCache(
+      {
+        version: 3,
+        plugins: [
+          {
+            package: '@acme/global-on',
+            version: '1.0.0',
+            id: 'acme.global-on',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-on',
+            globallyEnabled: true,
+          },
+          {
+            package: '@acme/global-off',
+            version: '1.0.0',
+            id: 'acme.global-off',
+            host: 'codegraphy.extension',
+            entry: './plugin.js',
+            apiVersion: '^1.0.0',
+            packageRoot: '/global/node_modules/@acme/global-off',
+            globallyEnabled: false,
+          },
+        ],
+      },
+      { homeDir },
+    );
+
+    const statusContext = readWorkspacePluginStatusContext(undefined, { homeDir });
+
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).toContain('acme.global-on');
+    expect([...statusContext.workspaceEnabledPluginIds ?? []]).not.toContain('acme.global-off');
+  });
+
+  it('uses the bundled Markdown global default when workspace settings omit it', () => {
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      version: 1,
+      maxFiles: 1000,
+      include: ['**/*'],
+      respectGitignore: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [],
+      interfaces: [],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
@@ -119,6 +284,6 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toContain(
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     );
-    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(true);
   });
 });

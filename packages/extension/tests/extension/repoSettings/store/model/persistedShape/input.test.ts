@@ -75,7 +75,7 @@ describe('extension/repoSettings persisted shape inputs', () => {
 
   it('preserves every supported top-level setting and drops undefined values', () => {
     const normalized = normalizePersistedSettingsShape({
-      version: 3,
+      version: 4,
       maxFiles: 750,
       include: ['src/**'],
       respectGitignore: false,
@@ -117,7 +117,7 @@ describe('extension/repoSettings persisted shape inputs', () => {
     });
 
     expect(normalized).toEqual({
-      version: 3,
+      version: 4,
       maxFiles: 750,
       include: ['src/**'],
       respectGitignore: false,

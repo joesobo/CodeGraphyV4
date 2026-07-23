@@ -13,7 +13,6 @@ describe('built-in graph context menus', () => {
     const liveEntries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set(),
-      pluginItems: [],
     });
     expect(menuLabels(liveEntries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
     selection.targets.push('src/late.ts');
@@ -31,7 +30,6 @@ describe('built-in graph context menus', () => {
     const liveEntries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set(['src/app.ts']),
-      pluginItems: [],
     });
 
     expect(menuLabels(liveEntries)).toEqual([
@@ -53,7 +51,6 @@ describe('built-in graph context menus', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set<string>()),
       favorites: new Set<string>(),
-      pluginItems: [],
       nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
     });
 
@@ -77,7 +74,6 @@ describe('built-in graph context menus', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('(root)', new Set<string>()),
       favorites: new Set<string>(),
-      pluginItems: [],
       nodes: [{ id: '(root)', label: '(root)', color: '#94a3b8', nodeType: 'folder' }],
     });
 
@@ -90,7 +86,6 @@ describe('built-in graph context menus', () => {
     const entries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set(['src/a.ts']),
-      pluginItems: [],
     });
     expect(menuLabels(entries)).toEqual([
       'Open 2 Files',
@@ -106,7 +101,6 @@ describe('built-in graph context menus', () => {
     const backgroundLive = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       favorites: new Set(),
-      pluginItems: [],
     });
     expect(builtInActions(backgroundLive)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
 
@@ -115,7 +109,6 @@ describe('built-in graph context menus', () => {
     const singleLive = buildGraphContextMenuEntries({
       selection: singleSelection,
       favorites: new Set<string>(),
-      pluginItems: [],
     });
     expect(builtInActions(singleLive)).toEqual([
       'open',
@@ -135,7 +128,6 @@ describe('built-in graph context menus', () => {
     const multiLive = buildGraphContextMenuEntries({
       selection: multiSelection,
       favorites: new Set<string>(),
-      pluginItems: [],
     });
     expect(builtInActions(multiLive)).toEqual([
       'open',
@@ -150,7 +142,6 @@ describe('built-in graph context menus', () => {
     const edgeLive = buildGraphContextMenuEntries({
       selection: edgeSelection,
       favorites: new Set<string>(),
-      pluginItems: [],
     });
     expect(menuLabels(edgeLive)).toEqual([
       'Open Source',

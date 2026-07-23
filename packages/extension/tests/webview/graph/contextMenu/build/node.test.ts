@@ -42,7 +42,6 @@ describe('graph/contextMenu/build/node', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),
       favorites: new Set(),
-      pluginItems: [],
       nodes: [{ id: 'src', nodeType: 'folder' }],
     });
 
@@ -54,7 +53,6 @@ describe('graph/contextMenu/build/node', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set()),
       favorites: new Set(),
-      pluginItems: [],
     });
 
     expect(itemLabels(entries)).toContain('Open File');
@@ -65,7 +63,6 @@ describe('graph/contextMenu/build/node', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),
       favorites: new Set(),
-      pluginItems: [],
       nodes: [{ id: 'src', nodeType: 'folder' }],
     });
 
@@ -77,7 +74,6 @@ describe('graph/contextMenu/build/node', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts'])),
       favorites: new Set(),
-      pluginItems: [],
     });
 
     expect(itemLabels(entries)).toHaveLength(5);
@@ -94,7 +90,6 @@ describe('graph/contextMenu/build/node', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src', 'plugin-node'])),
       favorites: new Set(),
-      pluginItems: [],
       nodes: [
         { id: 'src/app.ts', nodeType: 'file' },
         { id: 'src', nodeType: 'folder' },
@@ -115,7 +110,6 @@ describe('graph/contextMenu/build/node', () => {
     expect(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: [] },
       favorites: new Set(),
-      pluginItems: [],
     })).toEqual([]);
   });
 });

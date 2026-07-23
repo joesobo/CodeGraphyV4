@@ -1,6 +1,6 @@
 /**
  * @fileoverview GDScript (Godot) plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from codegraphy.json and delegates
+ * Thin orchestrator that loads package metadata and delegates
  * detection to individual source modules in sources/.
  * @module plugins/godot
  */
@@ -11,7 +11,8 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { collectGodotProjectRoots } from './projectRoot';
-import manifest from '../codegraphy.json';
+import { createGodotEdgeTypes, createGodotNodeTypes } from './graph/types';
+import { manifest } from './metadata';
 import { buildAnalysisContext } from './plugin/context';
 import {
   readChangedAnalysisTargets,
@@ -61,8 +62,16 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly apiVersion = manifest.apiVersion;
   readonly supportedExtensions = manifest.supportedExtensions;
   readonly defaultFilters = manifest.defaultFilters;
-  readonly updateImpact = manifest.updateImpact as IGDScriptAnalyzeFilePlugin['updateImpact'];
+  readonly updateImpact = manifest.updateImpact;
   readonly sources = manifest.sources;
+
+  contributeNodeTypes() {
+    return createGodotNodeTypes();
+  }
+
+  contributeEdgeTypes() {
+    return createGodotEdgeTypes();
+  }
 
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
     const pluginSymbolNodeType = (pluginKind: string) =>

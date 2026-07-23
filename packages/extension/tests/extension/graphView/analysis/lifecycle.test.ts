@@ -59,7 +59,6 @@ function createHandlers(
     applyViewTransform: vi.fn(),
     sendPluginStatuses: vi.fn(),
     sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
     sendGraphIndexStatusUpdated: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAnalysisStale: vi.fn(() => false),

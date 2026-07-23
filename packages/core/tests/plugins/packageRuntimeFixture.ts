@@ -22,11 +22,12 @@ export async function createPluginPackage(packageRoot: string): Promise<void> {
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
-        defaultOptions: {
-          marker: 'from-default-options',
-        },
+        plugins: [{
+          id: 'acme.data-host',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+        }],
       },
     }, null, 2)}\n`,
     'utf-8',
@@ -42,7 +43,7 @@ export default function createPlugin(factoryOptions = {}) {
     id: 'acme.data-host',
     name: 'Data Host Plugin',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^4.0.0',
     supportedExtensions: [],
     async initialize() {
       if (!dataHost) {
@@ -63,6 +64,9 @@ export async function createPluginPackageWithRuntimeMarkers(
   pluginId = 'acme.disabled-runtime',
   pluginName = 'Disabled Runtime Plugin',
   version = '1.0.0',
+  apiVersion = '^4.0.0',
+  runtimeApiVersion = apiVersion,
+  unloadMarkerPath?: string,
 ): Promise<{
   factoryMarkerPath: string;
   importMarkerPath: string;
@@ -79,20 +83,14 @@ export async function createPluginPackageWithRuntimeMarkers(
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
-        type: 'plugin',
-        apiVersion: '^3.0.0',
+        plugins: [{
+          id: pluginId,
+          name: pluginName,
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion,
+        }],
       },
-    }, null, 2)}\n`,
-    'utf-8',
-  );
-  await fs.writeFile(
-    path.join(packageRoot, 'codegraphy.json'),
-    `${JSON.stringify({
-      id: pluginId,
-      name: pluginName,
-      version,
-      apiVersion: '^3.0.0',
-      supportedExtensions: ['.disabled'],
     }, null, 2)}\n`,
     'utf-8',
   );
@@ -109,8 +107,11 @@ export default function createPlugin() {
     id: ${JSON.stringify(pluginId)},
     name: ${JSON.stringify(pluginName)},
     version: ${JSON.stringify(version)},
-    apiVersion: '^3.0.0',
-    supportedExtensions: ['.disabled']
+    apiVersion: ${JSON.stringify(runtimeApiVersion)},
+    supportedExtensions: ['.disabled']${unloadMarkerPath ? `,
+    onUnload() {
+      writeFileSync(${JSON.stringify(unloadMarkerPath)}, 'unloaded');
+    }` : ''}
   };
 }
 `,

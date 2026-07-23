@@ -17,7 +17,7 @@ describe('PluginRegistry collection', () => {
     expect(result.map((pluginInfo) => pluginInfo.plugin.id)).toContain('second');
   });
 
-  it('exposes plugin lookup, size, api, and file support helpers from the collection surface', () => {
+  it('exposes plugin lookup, size, and file support helpers from the collection surface', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin({
       id: 'typescript',
@@ -28,9 +28,6 @@ describe('PluginRegistry collection', () => {
 
     expect(registry.get('typescript')?.plugin).toBe(plugin);
     expect(registry.size).toBe(1);
-    expect(registry.getPluginAPI('typescript')).toEqual(
-      expect.objectContaining({ version: '3.0.0' }),
-    );
     expect(registry.supportsFile('src/app.ts')).toBe(true);
     expect(registry.supportsFile('src/app.py')).toBe(false);
   });
@@ -72,24 +69,51 @@ describe('PluginRegistry collection', () => {
     expect(registry.size).toBe(0);
   });
 
-  it('replays readiness only for a known deferred plugin', () => {
+  it('replays workspace readiness only after a late plugin initializes', async () => {
     const registry = createConfiguredRegistry();
-    const readyGraph = { nodes: [{ id: 'graph', label: 'graph', color: '#fff' }], edges: [] };
+    const readyGraph = { nodes: [{ id: 'graph', label: 'graph' }], edges: [] };
+    const lifecycleCalls: string[] = [];
     const plugin = createMockPlugin({
       id: 'late',
-      onWorkspaceReady: vi.fn(),
-      onWebviewReady: vi.fn(),
+      initialize: async () => {
+        lifecycleCalls.push('initialize');
+      },
+      onWorkspaceReady: () => {
+        lifecycleCalls.push('workspace-ready');
+      },
     });
 
     registry.notifyWorkspaceReady(readyGraph);
-    registry.notifyWebviewReady();
-    registry.register(plugin, { deferReadinessReplay: true });
+    registry.register(plugin);
 
-    registry.replayReadinessForPlugin('missing');
-    registry.replayReadinessForPlugin('late');
+    expect(lifecycleCalls).toEqual([]);
 
-    expect(plugin.onWorkspaceReady).toHaveBeenCalledOnce();
-    expect(plugin.onWorkspaceReady).toHaveBeenCalledWith(readyGraph);
-    expect(plugin.onWebviewReady).toHaveBeenCalledOnce();
+    await registry.initializePlugin(plugin.id, '/workspace');
+
+    expect(lifecycleCalls).toEqual(['initialize', 'workspace-ready']);
+  });
+
+  it('replays workspace readiness once when late initialization is shared', async () => {
+    const registry = createConfiguredRegistry();
+    let finishInitialization: (() => void) | undefined;
+    const initializationGate = new Promise<void>((resolve) => {
+      finishInitialization = resolve;
+    });
+    const onWorkspaceReady = vi.fn();
+    const plugin = createMockPlugin({
+      id: 'late-concurrent',
+      initialize: () => initializationGate,
+      onWorkspaceReady,
+    });
+
+    registry.notifyWorkspaceReady({ nodes: [], edges: [] });
+    registry.register(plugin);
+
+    const firstInitialization = registry.initializePlugin(plugin.id, '/workspace');
+    const secondInitialization = registry.initializePlugin(plugin.id, '/workspace');
+    finishInitialization?.();
+    await Promise.all([firstInitialization, secondInitialization]);
+
+    expect(onWorkspaceReady).toHaveBeenCalledOnce();
   });
 });

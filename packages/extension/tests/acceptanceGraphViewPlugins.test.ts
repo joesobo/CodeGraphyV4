@@ -22,8 +22,9 @@ describe('acceptance graph view plugin fixtures', () => {
         expect.objectContaining({
           package: '@codegraphy-dev/plugin-typescript',
           packageRoot: path.join(repoRoot(), 'packages/plugin-typescript'),
-          pluginId: 'codegraphy.typescript',
-          pluginName: 'TypeScript/JavaScript',
+          id: 'codegraphy.typescript',
+          name: 'TypeScript/JavaScript',
+          host: 'core',
           supportedExtensions: expect.arrayContaining(['.ts', '.tsx', '.js', '.jsx']),
         }),
       ]);
@@ -42,6 +43,26 @@ describe('acceptance graph view plugin fixtures', () => {
     expect(acceptancePluginPackageRelativePathsForExample('example-godot')).toEqual([
       'packages/plugin-godot',
     ]);
+  });
+
+  it('registers Extension-hosted plugins in the installed plugin cache', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cgv-plugin-test-'));
+    try {
+      writeAcceptanceInstalledPluginCache(homeDir, repoRoot(), [
+        'packages/plugin-particles',
+      ]);
+
+      const cache = readPluginCache(homeDir);
+      expect(cache.plugins).toEqual([
+        expect.objectContaining({
+          package: '@codegraphy-dev/plugin-particles',
+          id: 'codegraphy.particles',
+          host: 'codegraphy.extension',
+        }),
+      ]);
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+    }
   });
 
   it('registers the Svelte plugin for the Svelte example', () => {

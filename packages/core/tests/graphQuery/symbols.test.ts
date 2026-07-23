@@ -5,13 +5,12 @@ import { listGraphSymbols } from '../../src/graphQuery';
 
 const graphData: IGraphData = {
   nodes: [
-    { id: 'packages/app/src/a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-    { id: 'packages/app/src/b.ts', label: 'b.ts', color: '#111111', nodeType: 'file' },
-    { id: 'packages/app/src/c.ts', label: 'c.ts', color: '#111111', nodeType: 'file' },
+    { id: 'packages/app/src/a.ts', label: 'a.ts', nodeType: 'file' },
+    { id: 'packages/app/src/b.ts', label: 'b.ts', nodeType: 'file' },
+    { id: 'packages/app/src/c.ts', label: 'c.ts', nodeType: 'file' },
     {
       id: 'packages/app/src/b.ts#UserConfig',
       label: 'UserConfig',
-      color: '#111111',
       nodeType: 'symbol',
       symbol: {
         id: 'packages/app/src/b.ts#UserConfig',
@@ -23,7 +22,6 @@ const graphData: IGraphData = {
     {
       id: 'packages/app/src/b.ts#Unused',
       label: 'Unused',
-      color: '#111111',
       nodeType: 'symbol',
       symbol: {
         id: 'packages/app/src/b.ts#Unused',

@@ -44,9 +44,9 @@ describe('extension activate API', () => {
     expect(typeof api.onWebviewMessage).toBe('function');
   });
 
-  it('returns an API object with registerPlugin function', () => {
+  it('does not expose raw plugin registration', () => {
     const api = activate(mockContext as never);
-    expect(typeof api.registerPlugin).toBe('function');
+    expect(api).not.toHaveProperty('registerPlugin');
   });
 
   it('registers the webview view provider with the correct viewType', () => {

@@ -62,8 +62,6 @@ export function resetToolbarState(): void {
   vi.useFakeTimers();
   graphStore.setState({
     activePanel: 'none',
-    pluginExporters: [],
-    pluginToolbarActions: [],
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,
@@ -71,26 +69,6 @@ export function resetToolbarState(): void {
     graphIndexProgress: null,
     nodeSizeMode: 'connections',
     graphViewportScale: null,
-    graphViewContributionStatuses: [],
-  });
-}
-
-export function enableRuntimeGraphViewContributions(): void {
-  graphStore.setState({
-    graphViewContributionStatuses: [
-      {
-        kind: 'runtimeNodes',
-        pluginId: 'acme.graph-tools',
-        contributionId: 'acme.graph-tools.runtime-nodes',
-        label: 'Runtime Nodes',
-      },
-      {
-        kind: 'projections',
-        pluginId: 'acme.graph-tools',
-        contributionId: 'acme.graph-tools.projection',
-        label: 'Runtime Projection',
-      },
-    ],
   });
 }
 

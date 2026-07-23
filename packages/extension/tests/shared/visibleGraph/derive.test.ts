@@ -5,6 +5,7 @@ import {
   deriveVisibleGraph,
   STRUCTURAL_NESTS_EDGE_KIND,
 } from '../../../src/shared/visibleGraph';
+import { ENGINE_PLUGIN_NODE_TYPES } from './scope/enginePluginNodeTypes';
 
 function node(id: string, nodeType = 'file'): IGraphNode {
   return {
@@ -269,6 +270,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
               { type: 'contains', enabled: true },
               { type: 'reference', enabled: true },
             ],
+            nodeTypes: ENGINE_PLUGIN_NODE_TYPES,
           },
         },
       );
@@ -312,6 +314,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
               { type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
             ],
             edges: [{ type: 'contains', enabled: true }],
+            nodeTypes: ENGINE_PLUGIN_NODE_TYPES,
           },
         },
       );

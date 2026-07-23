@@ -39,19 +39,18 @@
   },
   "files": [
     "dist",
-    "codegraphy.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js && pnpm exec esbuild src/effects.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=dist/effects.js --sourcemap && pnpm exec esbuild src/webview.tsx --bundle --platform=browser --format=esm --target=es2020 --define:process.env.NODE_ENV=\\\"production\\\" --outfile=dist/webview.js --sourcemap",
+    "build": "node build.mjs",
     "test": "vitest run",
     "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy-dev/plugin-api": "workspace:*",
+    "@codegraphy-dev/extension-plugin-api": "workspace:*",
     "esbuild": "^0.25.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -62,7 +61,14 @@
     "@types/react-dom": "^18.2.18"
   },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0"
+    "plugins": [
+      {
+        "id": "codegraphy.particles",
+        "name": "Particles",
+        "host": "codegraphy.extension",
+        "entry": "./dist/plugin.js",
+        "apiVersion": "^1.0.0"
+      }
+    ]
   }
 }

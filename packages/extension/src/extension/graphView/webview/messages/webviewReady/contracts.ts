@@ -31,11 +31,7 @@ export interface GraphViewReadyHandlers {
   sendGroupsUpdated(): void;
   sendMessage(message: { type: string; payload?: unknown }): void;
   sendDecorations(): void;
-  sendContextMenuItems(): void;
   sendPluginStatuses?(): void;
-  sendPluginExporters?(): void;
-  sendPluginToolbarActions?(): void;
-  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;

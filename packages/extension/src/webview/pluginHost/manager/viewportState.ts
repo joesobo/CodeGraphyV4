@@ -19,7 +19,12 @@ export function notifyGraphViewViewportStateListeners(
   state: GraphViewViewportState | null,
 ): void {
   for (const entry of entries) {
-    entry.listener(state);
+    try {
+      entry.listener(state);
+    } catch (error) {
+      const owner = entry.pluginId ? ` for plugin '${entry.pluginId}'` : '';
+      console.error(`[CodeGraphy] Viewport listener${owner} failed:`, error);
+    }
   }
 }
 

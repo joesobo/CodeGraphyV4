@@ -35,6 +35,7 @@ import {
 } from './canvas';
 import { requireValue } from './context';
 import { acceptancePluginPackageRelativePathsForExample } from './plugins';
+import { extensionFavoritesFromSettings } from './settings';
 import type { AcceptanceRuntimeStep, AcceptanceStepImplementation, GraphAcceptanceContext } from './types';
 import {
   copyExampleWorkspace,
@@ -1053,8 +1054,8 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^"(.+)" should be added to the "favorites" array in \.codegraphy\/settings\.json$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as { favorites?: string[] };
-    expect(settings.favorites ?? []).toContain(match[1]);
+    const settings: unknown = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    expect(extensionFavoritesFromSettings(settings)).toContain(match[1]);
   }),
 
   step(/^the (.+) node should be centered in the middle of the graph$/, async (context, _step, match) => {
@@ -1432,8 +1433,8 @@ function readWorkspaceFavorites(context: GraphAcceptanceContext): string[] {
     return [];
   }
 
-  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as { favorites?: string[] };
-  return settings.favorites ?? [];
+  const settings: unknown = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  return extensionFavoritesFromSettings(settings);
 }
 
 function setWorkspaceEdgeVisibility(
@@ -1460,8 +1461,29 @@ export async function setPluginSwitch(
   enabled: boolean,
   options: { forceTransition?: boolean } = {},
 ): Promise<void> {
-  const frame = requireGraphFrame(context);
   const normalizedLabel = normalizePanelLabel(label);
+  for (let frameAttempt = 0; frameAttempt < 2; frameAttempt += 1) {
+    try {
+      await setPluginSwitchInCurrentFrame(context, normalizedLabel, enabled, options);
+      return;
+    } catch (error) {
+      if (!isFrameDetachedError(error) || frameAttempt === 1) {
+        throw error;
+      }
+
+      await refreshGraphFrameAfterDetach(context);
+      await clickToolbarButton(requireGraphFrame(context), 'Plugins');
+    }
+  }
+}
+
+async function setPluginSwitchInCurrentFrame(
+  context: GraphAcceptanceContext,
+  normalizedLabel: string,
+  enabled: boolean,
+  options: { forceTransition?: boolean },
+): Promise<void> {
+  const frame = requireGraphFrame(context);
   const switchInOpenPanel = await findPanelSwitch(frame, normalizedLabel);
   if (!(await switchInOpenPanel.isVisible().catch(() => false))) {
     await clickToolbarButton(frame, 'Plugins');
@@ -1475,27 +1497,43 @@ export async function setPluginSwitch(
   const checked = await pluginSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
   if (enabled && options.forceTransition && checked === 'true') {
     await pluginSwitch.click();
-    await waitForIndexingToFinish(context);
+    await waitForPluginSwitchState(context, normalizedLabel, false);
     await (await findPanelSwitch(frame, normalizedLabel)).click();
-    await waitForIndexingToFinish(context);
+    await waitForPluginSwitchState(context, normalizedLabel, true);
     await closePanelIfOpen(frame);
     return;
   }
 
   if (checked !== expected) {
     await pluginSwitch.click();
+    await waitForPluginSwitchState(context, normalizedLabel, enabled);
   }
 
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
 }
 
-function shouldForcePluginToggleTransition(
+async function waitForPluginSwitchState(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+): Promise<void> {
+  await expect.poll(async () => (
+    await (await findPanelSwitch(requireGraphFrame(context), label)).getAttribute('aria-checked')
+  )).toBe(String(enabled));
+}
+
+export function shouldForcePluginToggleTransition(
   sourcePath: string,
   label: string,
 ): boolean {
-  return path.basename(sourcePath) === 'unity-example.feature'
-    && normalizePanelLabel(label) === 'Unity';
+  const sourceName = path.basename(sourcePath);
+  const normalizedLabel = normalizePanelLabel(label);
+  return (sourceName === 'unity-example.feature' && normalizedLabel === 'Unity')
+    || (
+      sourceName === 'graph-scope-node-types-typescript.feature'
+      && normalizedLabel === 'TypeScript/JavaScript'
+    );
 }
 
 async function showOnlyEdgeType(
@@ -1524,7 +1562,9 @@ async function setCoreEdgeTypes(
   enabledForLabel: (label: string) => boolean,
 ): Promise<void> {
   const frame = requireGraphFrame(context);
-  await openGraphScopeSection(context, 'Edge Types');
+  if (!await openGraphScopeSection(context, 'Edge Types')) {
+    return;
+  }
 
   for (const edgeTypeLabel of CORE_EDGE_TYPE_LABELS) {
     await setPanelSwitchIfPresent(context, edgeTypeLabel, enabledForLabel(edgeTypeLabel));
@@ -1619,10 +1659,10 @@ export function requiresCoreNodeTypeSwitch(label: string): boolean {
   return REQUIRED_CORE_NODE_TYPE_LABELS.has(label);
 }
 
-async function openGraphScopeSection(
+export async function openGraphScopeSection(
   context: GraphAcceptanceContext,
   sectionName: 'Edge Types' | 'Node Types',
-): Promise<void> {
+): Promise<boolean> {
   context.activeGraphScopeSection = sectionName;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     await ensureGraphViewVisible(context);
@@ -1633,8 +1673,13 @@ async function openGraphScopeSection(
         await clickToolbarButton(frame, 'Graph Scope');
       }
 
-      await frame.getByRole('button', { name: sectionName }).click();
-      return;
+      const sectionButton = frame.getByRole('button', { name: sectionName });
+      if (await isGraphScopeSectionUnavailable(sectionButton)) {
+        return false;
+      }
+
+      await sectionButton.click();
+      return true;
     } catch (error) {
       if (!isFrameDetachedError(error) || attempt === 1) {
         throw error;
@@ -1643,6 +1688,14 @@ async function openGraphScopeSection(
       await refreshGraphFrameAfterDetach(context);
     }
   }
+
+  return false;
+}
+
+export async function isGraphScopeSectionUnavailable(
+  sectionButton: Locator,
+): Promise<boolean> {
+  return sectionButton.isDisabled().catch(() => false);
 }
 
 export async function setPanelSwitch(

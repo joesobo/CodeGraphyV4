@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { createOwnedGraphPluginForces } from '../../../../../src/webview/components/graph/rendering/surface/owned2d/plugin/forces/model';
 
-function emptyContributions(): CoreGraphViewContributionSet {
+function emptyContributions(): ExtensionGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],
@@ -28,7 +28,7 @@ describe('owned Graph View plugin force adapters', () => {
     const graphData = { nodes: [runtimeNode], links: [] as FGLink[] };
     const initialize = vi.fn();
     const dispose = vi.fn();
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',
@@ -64,7 +64,7 @@ describe('owned Graph View plugin force adapters', () => {
     const graphData = { nodes: [] as FGNode[], links: [] as FGLink[] };
     const dispose = vi.fn();
     const create = vi.fn(() => ({ dispose }));
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',
@@ -102,7 +102,7 @@ describe('owned Graph View plugin force adapters', () => {
     const forces = createOwnedGraphPluginForces();
     const nodes = [{ id: 'a' }, { id: 'b' }] as FGNode[];
     const create = vi.fn(() => ({ dispose: vi.fn() }));
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',
@@ -134,7 +134,7 @@ describe('owned Graph View plugin force adapters', () => {
     const create = vi.fn()
       .mockReturnValueOnce({ dispose, tick })
       .mockImplementationOnce(() => { throw new Error('create failed'); });
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',
@@ -172,7 +172,7 @@ describe('owned Graph View plugin force adapters', () => {
           throw new Error('initialize failed');
         },
       });
-    const contributions: CoreGraphViewContributionSet = {
+    const contributions: ExtensionGraphViewContributionSet = {
       ...emptyContributions(),
       forces: [{
         pluginId: 'acme.graph-tools',

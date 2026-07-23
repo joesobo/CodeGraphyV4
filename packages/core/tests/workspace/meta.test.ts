@@ -34,9 +34,11 @@ describe('workspace/meta', () => {
       version: 1 as const,
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
       pluginSignature: 'codegraphy.markdown@1.0.0',
+      pluginBuildSignature: 'plugin-build-sha',
       settingsSignature: 'settings-sha',
       analysisVersion: null,
       pendingChangedFiles: ['src/index.ts'],
+      failedPluginIds: ['acme.failed'],
     };
 
     writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
@@ -58,6 +60,7 @@ describe('workspace/meta', () => {
         pluginSignature: 'plugins-sha',
         settingsSignature: { sha: 'settings-sha' },
         pendingChangedFiles: ['src/app.ts', 7, 'src/index.ts'],
+        failedPluginIds: ['acme.failed', 7],
       }, null, 2),
       'utf8',
     );
@@ -67,6 +70,7 @@ describe('workspace/meta', () => {
       analysisVersion: null,
       pluginSignature: 'plugins-sha',
       pendingChangedFiles: ['src/app.ts', 'src/index.ts'],
+      failedPluginIds: ['acme.failed'],
       version: 1,
     });
   });

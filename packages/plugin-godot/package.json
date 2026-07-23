@@ -35,28 +35,236 @@
     "access": "public"
   },
   "files": [
+    "assets",
     "dist",
-    "codegraphy.json",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js",
+    "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts src/extension.ts --bundle --platform=node --format=esm --target=node20 --sourcemap --outdir=dist",
     "test": "vitest run",
-    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" \"__tests__/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@codegraphy-dev/extension-plugin-api": "workspace:*",
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@fernforestgames/godot-resource-parser": "0.1.3",
     "@gdquest/lezer-gdscript": "0.1.2",
     "@lezer/highlight": "^1.2.3",
     "@lezer/lr": "^1.4.10"
   },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3"
+  },
   "codegraphy": {
-    "type": "plugin",
-    "apiVersion": "^3.0.0",
-    "disclosures": []
+    "plugins": [
+      {
+        "id": "codegraphy.gdscript",
+        "name": "GDScript (Godot)",
+        "host": "core",
+        "entry": "./dist/plugin.js",
+        "apiVersion": "^4.0.0",
+        "data": {
+          "updateImpact": {
+            "toggle": "reanalyze-plugin-files",
+            "defaultSetting": "reanalyze-plugin-files"
+          },
+          "supportedExtensions": [
+            ".gd",
+            ".godot",
+            ".tscn",
+            ".tres"
+          ],
+          "defaultFilters": [
+            "**/.godot/**",
+            "**/.import/**",
+            "**/*.import",
+            "**/.mono/**",
+            "**/addons/**",
+            "**/*.uid"
+          ],
+          "sources": [
+            {
+              "id": "preload",
+              "name": "Preload",
+              "description": "preload(\"res://...\")"
+            },
+            {
+              "id": "load",
+              "name": "Load",
+              "description": "load(), ResourceLoader.load()"
+            },
+            {
+              "id": "extends",
+              "name": "Extends",
+              "description": "extends \"res://...\" or ClassName"
+            },
+            {
+              "id": "class-name-usage",
+              "name": "Class Name Usage",
+              "description": "Type annotations, static calls"
+            },
+            {
+              "id": "ext-resource",
+              "name": "External Resource",
+              "description": "[ext_resource ... path=\"res://...\"] in .tscn and .tres files"
+            },
+            {
+              "id": "project-settings",
+              "name": "Project Settings",
+              "description": "Resource-bearing settings in project.godot"
+            }
+          ]
+        }
+      },
+      {
+        "id": "codegraphy.godot.extension",
+        "name": "Godot Graph View",
+        "host": "codegraphy.extension",
+        "entry": "./dist/extension.js",
+        "apiVersion": "^1.0.0",
+        "data": {
+          "legendEntries": [
+            {
+              "id": "plugin:codegraphy.godot:file:script",
+              "label": "GDScript",
+              "pattern": "*.gd",
+              "color": "#478CBF",
+              "shape2D": "circle",
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.godot:file:project",
+              "label": "Godot Project",
+              "pattern": "*.godot",
+              "color": "#6A9FB5",
+              "shape2D": "square",
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.godot:file:scene",
+              "label": "Godot Scene",
+              "pattern": "*.tscn",
+              "color": "#478CBF",
+              "shape2D": "hexagon",
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.godot:file:resource",
+              "label": "Godot Resource",
+              "pattern": "*.tres",
+              "color": "#F59E0B",
+              "shape2D": "triangle",
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:godot-class-name",
+              "label": "class_name",
+              "pattern": "**",
+              "color": "#478CBF",
+              "match": {
+                "nodeType": "symbol",
+                "symbolKinds": ["class"],
+                "symbolPluginKind": "godot-class-name",
+                "symbolSource": "codegraphy.gdscript",
+                "symbolLanguage": "gdscript",
+                "symbolFilePath": "**/*.gd"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:scene",
+              "label": "Scene",
+              "pattern": "**",
+              "color": "#478CBF",
+              "match": {
+                "nodeType": "symbol",
+                "symbolKinds": ["scene"],
+                "symbolPluginKind": "scene",
+                "symbolSource": "codegraphy.gdscript"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:resource",
+              "label": "Resource",
+              "pattern": "**",
+              "color": "#F59E0B",
+              "match": {
+                "nodeType": "symbol",
+                "symbolKinds": ["resource"],
+                "symbolPluginKind": "resource",
+                "symbolSource": "codegraphy.gdscript"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:autoload",
+              "label": "Autoload",
+              "pattern": "**",
+              "color": "#10B981",
+              "match": {
+                "nodeType": "symbol",
+                "symbolKinds": ["autoload"],
+                "symbolPluginKind": "autoload",
+                "symbolSource": "codegraphy.gdscript"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:scene-node",
+              "label": "Scene Node",
+              "pattern": "**",
+              "color": "#A855F7",
+              "match": {
+                "nodeType": "symbol",
+                "symbolKinds": ["scene-node"],
+                "symbolPluginKind": "scene-node",
+                "symbolSource": "codegraphy.gdscript"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:signal",
+              "label": "Signal",
+              "pattern": "**",
+              "color": "#EF4444",
+              "match": {
+                "nodeType": "symbol",
+                "symbolKinds": ["signal"],
+                "symbolPluginKind": "signal",
+                "symbolSource": "codegraphy.gdscript"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:symbol:exported-property",
+              "label": "Exported Property",
+              "pattern": "**",
+              "color": "#2DD4BF",
+              "match": {
+                "nodeType": "variable",
+                "symbolKinds": ["variable"],
+                "symbolPluginKind": "exported-property",
+                "symbolSource": "codegraphy.gdscript",
+                "symbolLanguage": "gdscript",
+                "symbolFilePath": "**/*.gd"
+              },
+              "imagePath": "assets/godot.svg"
+            },
+            {
+              "id": "plugin:codegraphy.gdscript:edge:signal-connection",
+              "label": "Signal Connections",
+              "pattern": "codegraphy.gdscript:signal-connection",
+              "color": "#EF4444",
+              "target": "edge"
+            }
+          ]
+        }
+      }
+    ]
   }
 }

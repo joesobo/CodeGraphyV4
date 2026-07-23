@@ -15,7 +15,6 @@ describe('core/graph/symbolNodes', () => {
     );
 
     expect(node.nodeType).toBe('symbol');
-    expect(node.color).toBe('#8B5CF6');
     expect(node.symbol?.kind).toBe('property');
   });
 });

@@ -10,6 +10,7 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'libsql',
   '@neon-rs/load',
   'detect-libc',
+  'esbuild',
   getLibsqlNativePackageName(),
   'material-icon-theme',
   'node-gyp-build',

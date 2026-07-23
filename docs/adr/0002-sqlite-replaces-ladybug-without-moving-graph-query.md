@@ -1,6 +1,6 @@
 # SQLite replaces LadybugDB without moving Graph Query
 
-**Status:** Accepted
+**Status:** Accepted; `NodeView` persistence superseded by ADR 0004
 
 The workspace-local **Graph Cache** will use SQLite instead of LadybugDB. This change replaces the persistence package and file format while preserving the Core storage API, in-memory **Graph Query**, and **Relationship Graph** projection behavior.
 

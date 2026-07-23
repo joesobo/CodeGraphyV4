@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../shared/fileColors';
 import { postMessage as postWebviewMessage } from '../../vscodeApi';
 
 export function createVisibleGraphStatePayload(graphData: IGraphData | null | undefined) {
@@ -8,7 +9,7 @@ export function createVisibleGraphStatePayload(graphData: IGraphData | null | un
     nodes: graphData?.nodes.map(node => ({
       id: node.id,
       nodeType: node.nodeType,
-      color: node.color,
+      color: node.color ?? DEFAULT_NODE_COLOR,
     })) ?? [],
     edgeCount: graphData?.edges.length ?? 0,
     edgeIds: graphData?.edges.map(edge => edge.id) ?? [],

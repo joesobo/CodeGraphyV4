@@ -6,16 +6,16 @@ import {
   type WorkspaceIndexEngineState,
 } from '@codegraphy-dev/core';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../../core/plugins/types/contracts';
-import { PluginRegistry } from '../../../core/plugins/registry/manager';
-import { EventBus } from '../../../core/plugins/events/bus';
+import { EventBus } from '../../events/bus';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { Configuration } from '../../config/reader';
 import type { IWorkspaceAnalysisCache } from '../cache';
 import { createWorkspacePipelineInitialCache } from '../service/cache/initialState';
+import { WorkspacePluginRegistry } from '../plugins/registry';
 
 export abstract class WorkspacePipelineEngineStateBase {
   protected readonly _config: Configuration;
-  protected readonly _registry: PluginRegistry;
+  protected readonly _registry: WorkspacePluginRegistry;
   protected readonly _discovery: FileDiscovery;
   protected readonly _context: vscode.ExtensionContext;
   protected readonly _engineState: WorkspaceIndexEngineState;
@@ -24,7 +24,7 @@ export abstract class WorkspacePipelineEngineStateBase {
   constructor(context: vscode.ExtensionContext) {
     this._context = context;
     this._config = new Configuration();
-    this._registry = new PluginRegistry();
+    this._registry = new WorkspacePluginRegistry();
     this._discovery = new FileDiscovery();
     this._engineState = createWorkspaceIndexEngineState(
       createWorkspacePipelineInitialCache(vscode.workspace.workspaceFolders),
@@ -65,7 +65,7 @@ export abstract class WorkspacePipelineEngineStateBase {
   protected set _lastGraphData(value: IGraphData) { this._engineState.graph = value; }
 
   setEventBus(eventBus: EventBus): void { this._eventBus = eventBus; }
-  get registry(): PluginRegistry { return this._registry; }
+  get registry(): WorkspacePluginRegistry { return this._registry; }
   get lastFileAnalysis(): ReadonlyMap<string, IFileAnalysisResult> { return this._lastFileAnalysis; }
 
   protected abstract _getWorkspaceRoot(): string | undefined;

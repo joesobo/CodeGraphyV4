@@ -38,7 +38,7 @@ async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../src/core/plugins/events/bus', () => ({
+  vi.doMock('../../src/extension/events/bus', () => ({
     EventBus: class EventBus {},
   }));
   vi.doMock('../../src/core/plugins/decoration/manager', () => ({
@@ -115,7 +115,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     vi.doUnmock('vscode');
     vi.doUnmock('../../src/extension/pipeline/service/lifecycleFacade');
     vi.doUnmock('../../src/core/views');
-    vi.doUnmock('../../src/core/plugins/events/bus');
+    vi.doUnmock('../../src/extension/events/bus');
     vi.doUnmock('../../src/core/plugins/decoration/manager');
     vi.doUnmock('../../src/extension/graphView/provider/analysis/methods');
     vi.doUnmock('../../src/extension/graphView/provider/commands');
@@ -155,9 +155,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     );
     const internals = getGraphViewProviderInternals(provider);
     const initArgs = initializeGraphViewProviderServices.mock.calls[0][0];
-    const sendMessageSpy = vi
-      .spyOn(internals._webviewMethods, '_sendMessage')
-      .mockImplementation(() => {});
     const sendDecorationsSpy = vi
       .spyOn(internals._pluginMethods, '_sendDecorations')
       .mockImplementation(() => {});
@@ -188,16 +185,12 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect((provider as unknown as { _userGroups: unknown[] })._userGroups).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
 
-    expect(initArgs.workspaceRoot).toBe('/test/workspace');
-    expect(initArgs.getGraphData()).toEqual({ nodes: [], edges: [] });
+    expect(
+      (provider as unknown as { _getWorkspaceRoot(): string | undefined })._getWorkspaceRoot(),
+    ).toBe('/test/workspace');
 
-    initArgs.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     initArgs.onDecorationsChanged();
 
-    expect(sendMessageSpy).toHaveBeenCalledWith({
-      type: 'GRAPH_DATA_UPDATED',
-      payload: { nodes: [], edges: [] },
-    });
     expect(sendDecorationsSpy).toHaveBeenCalledOnce();
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -219,16 +212,15 @@ describe('GraphViewProvider bootstrap wiring', () => {
 
     const { GraphViewProvider, vscodeModule } = await loadSubject(undefined);
 
-    new GraphViewProvider(
+    const provider = new GraphViewProvider(
       vscodeModule.Uri.file('/test/extension'),
       createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
     );
 
-    expect(initializeGraphViewProviderServices).toHaveBeenCalledWith(
-      expect.objectContaining({
-        workspaceRoot: '',
-      }),
-    );
+    expect(initializeGraphViewProviderServices).toHaveBeenCalledOnce();
+    expect(
+      (provider as unknown as { _getWorkspaceRoot(): string | undefined })._getWorkspaceRoot(),
+    ).toBeUndefined();
   });
 
   it('passes an empty workspace root to provider services when the folder list is empty', async () => {
@@ -242,15 +234,14 @@ describe('GraphViewProvider bootstrap wiring', () => {
 
     const { GraphViewProvider, vscodeModule } = await loadSubject([]);
 
-    new GraphViewProvider(
+    const provider = new GraphViewProvider(
       vscodeModule.Uri.file('/test/extension'),
       createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
     );
 
-    expect(initializeGraphViewProviderServices).toHaveBeenCalledWith(
-      expect.objectContaining({
-        workspaceRoot: '',
-      }),
-    );
+    expect(initializeGraphViewProviderServices).toHaveBeenCalledOnce();
+    expect(
+      (provider as unknown as { _getWorkspaceRoot(): string | undefined })._getWorkspaceRoot(),
+    ).toBeUndefined();
   });
 });

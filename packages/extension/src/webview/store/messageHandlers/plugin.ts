@@ -29,30 +29,6 @@ export function handleDecorationsUpdated(
   };
 }
 
-export function handleContextMenuItems(
-  message: Extract<ExtensionToWebviewMessage, { type: 'CONTEXT_MENU_ITEMS' }>,
-): PartialState {
-  return { pluginContextMenuItems: message.payload.items };
-}
-
-export function handlePluginExportersUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>,
-): PartialState {
-  return { pluginExporters: message.payload.items };
-}
-
-export function handlePluginToolbarActionsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>,
-): PartialState {
-  return { pluginToolbarActions: message.payload.items };
-}
-
-export function handleGraphViewContributionsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>,
-): PartialState {
-  return { graphViewContributionStatuses: message.payload.contributions };
-}
-
 export function handleNodeSizeModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>,
 ): PartialState {

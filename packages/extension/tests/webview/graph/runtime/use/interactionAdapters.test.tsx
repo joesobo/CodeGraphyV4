@@ -102,12 +102,8 @@ describe('graph/runtime/useGraphInteractionRuntime adapters', () => {
     }));
 
     const tooltipOptions = interactionRuntimeHarness.useGraphTooltip.mock.calls[0]?.[0];
-    tooltipOptions.interactionHandlers.sendGraphInteraction('graph:nodeHover', { node: 'src/selected.ts' });
     tooltipOptions.interactionHandlers.setGraphCursor('grab');
 
-    expect(interactionHandlers.sendGraphInteraction).toHaveBeenCalledWith('graph:nodeHover', {
-      node: 'src/selected.ts',
-    });
     expect(interactionHandlers.setGraphCursor).toHaveBeenCalledWith('grab');
 
     const contextMenuOptions = interactionRuntimeHarness.createGraphContextMenuRuntime.mock.calls[0]?.[0];

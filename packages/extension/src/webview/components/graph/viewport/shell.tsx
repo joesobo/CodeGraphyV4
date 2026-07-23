@@ -5,7 +5,7 @@ import {
   useState,
   type ReactElement,
 } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
@@ -32,7 +32,7 @@ export interface GraphViewportShellProps {
   callbacks: UseGraphCallbacksResult;
   graphDataLayoutKey: string;
   graphState: GraphRuntime;
-  graphViewContributions?: CoreGraphViewContributionSet;
+  graphViewContributions?: ExtensionGraphViewContributionSet;
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
   pluginHost?: WebviewPluginHost;

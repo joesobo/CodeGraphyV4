@@ -3,19 +3,12 @@ import { describe, expectTypeOf, it } from 'vitest';
 import type {
   CodeGraphyAccessKey,
   IAccessProvider,
-  IGraphViewContextMenuContribution,
-  IGraphViewForceAdapterContribution,
-  IGraphViewProjectionContribution,
-  IGraphViewRuntimeNode,
-  IGraphViewRuntimeEdgeContribution,
-  IGraphViewRuntimeNodeContribution,
-  IGraphViewUiSlotContribution,
   IPlugin,
   IPluginGraphScopeCapabilityContext,
-  CodeGraphyWebviewAPI,
   IPluginDataHost,
   IPluginFactory,
   IPluginFactoryOptions,
+  IPluginNodeType,
 } from '../src';
 
 describe('plugin API contracts', () => {
@@ -24,7 +17,7 @@ describe('plugin API contracts', () => {
       id: 'acme.routes',
       name: 'Acme Routes',
       version: '0.1.0',
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: ['.route'],
       contributeEdgeTypes: () => [{
         id: 'acme.routes:route',
@@ -44,14 +37,14 @@ describe('plugin API contracts', () => {
     expectTypeOf(plugin.contributeGraphScopeCapabilities).toMatchTypeOf<IPlugin['contributeGraphScopeCapabilities']>();
   });
 
-  it('lets packages register access plumbing and contribute account UI without owning feature behavior', () => {
+  it('lets packages register access plumbing', () => {
     const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 
     const plugin = {
       id: 'acme.account',
       name: 'Acme Account',
       version: '0.1.0',
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: [],
       accessProvider: {
         id: 'acme.account.access',
@@ -63,107 +56,35 @@ describe('plugin API contracts', () => {
           };
         },
       } satisfies IAccessProvider,
-      graphView: {
-        ui: [{
-          id: 'acme.account.toolbar',
-          slot: 'graph.toolbar',
-          label: 'Account',
-          view: { kind: 'command', command: 'acme.account.toggle' },
-        } satisfies IGraphViewUiSlotContribution],
-      },
     } satisfies IPlugin;
 
     expectTypeOf(plugin.accessProvider).toMatchTypeOf<IAccessProvider>();
-    expectTypeOf(plugin.graphView.ui[0].slot).toEqualTypeOf<'graph.toolbar'>();
   });
 
-  it('lets plugins contribute gated runtime graph behavior through public Graph View contracts', () => {
-    const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
+  it('keeps interface rendering contracts out of Core plugins', () => {
+    expectTypeOf<IPlugin>().not.toHaveProperty('fileColors');
+    expectTypeOf<IPlugin>().not.toHaveProperty('graphView');
+    expectTypeOf<IPlugin>().not.toHaveProperty('webviewApiVersion');
+    expectTypeOf<IPlugin>().not.toHaveProperty('webviewContributions');
+    expectTypeOf<IPlugin>().not.toHaveProperty('onLoad');
+    expectTypeOf<IPlugin>().not.toHaveProperty('onWebviewReady');
+  });
 
-    const positionedRuntimeNode = {
-      id: 'runtime:frontend',
-      label: 'Runtime Frontend',
-      color: '#84cc16',
-      nodeType: 'acme:runtime',
-      x: 120,
-      y: 240,
-      fx: 120,
-      fy: 240,
-      vx: 0,
-      vy: 0,
-    } satisfies IGraphViewRuntimeNode;
+  it('lets Core plugins describe how their semantic node types match analysis output', () => {
+    const nodeType = {
+      id: 'plugin:acme.engine:symbol:scene',
+      label: 'Scene',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['scene'],
+      matchSymbolPluginKind: 'scene',
+      matchSymbolSource: 'acme.engine',
+      matchSymbolLanguage: 'engine',
+      matchSymbolFilePath: '**/*.scene',
+    } satisfies IPluginNodeType;
 
-    const runtimeNode = {
-      id: 'acme.graph.runtime-node',
-      label: 'Runtime Node',
-      requiresAccess: premiumAccess,
-      createNodes() {
-        return [positionedRuntimeNode];
-      },
-    } satisfies IGraphViewRuntimeNodeContribution;
-
-    const runtimeEdge = {
-      id: 'acme.graph.runtime-edge',
-      label: 'Runtime Edge',
-      requiresAccess: premiumAccess,
-      createEdges() {
-        return [{
-          id: 'runtime:frontend->src/App.tsx#acme:member',
-          from: 'runtime:frontend',
-          to: 'src/App.tsx',
-          kind: 'acme:member',
-          sources: [],
-        }];
-      },
-    } satisfies IGraphViewRuntimeEdgeContribution;
-
-    const projection = {
-      id: 'acme.graph.projection',
-      label: 'Runtime Projection',
-      requiresAccess: premiumAccess,
-      project({ visibleGraph }) {
-        return visibleGraph;
-      },
-    } satisfies IGraphViewProjectionContribution;
-
-    const force = {
-      id: 'acme.graph.force',
-      label: 'Runtime Force',
-      requiresAccess: premiumAccess,
-      create() {
-        return {
-          tick() {},
-          dispose() {},
-        };
-      },
-    } satisfies IGraphViewForceAdapterContribution;
-
-    const contextMenu = {
-      id: 'acme.graph.context-menu',
-      label: 'Run Runtime Action',
-      requiresAccess: premiumAccess,
-      targets: [{ kind: 'multiSelection' }],
-      run() {},
-    } satisfies IGraphViewContextMenuContribution;
-
-    const plugin = {
-      id: 'acme.graph-tools',
-      name: 'Acme Graph Tools',
-      version: '0.1.0',
-      apiVersion: '^3.0.0',
-      supportedExtensions: ['*'],
-      requiresAccess: premiumAccess,
-      graphView: {
-        runtimeNodes: [runtimeNode],
-        runtimeEdges: [runtimeEdge],
-        projections: [projection],
-        forces: [force],
-        contextMenu: [contextMenu],
-      },
-    } satisfies IPlugin;
-
-    expectTypeOf(plugin.graphView.forces[0]).toMatchTypeOf<IGraphViewForceAdapterContribution>();
-    expectTypeOf(plugin.graphView.contextMenu[0].targets[0]).toMatchTypeOf<{ kind: 'multiSelection' }>();
+    expectTypeOf(nodeType.matchSymbolKinds).toEqualTypeOf<string[]>();
+    expectTypeOf(nodeType.matchSymbolSource).toEqualTypeOf<string>();
   });
 
   it('exposes Obsidian-style plugin-owned data persistence', async () => {
@@ -183,7 +104,7 @@ describe('plugin API contracts', () => {
       id: 'acme.graph-tools',
       name: 'Acme Graph Tools',
       version: '0.1.0',
-      apiVersion: '^3.0.0',
+      apiVersion: '^4.0.0',
       supportedExtensions: [],
       async initialize() {
         await options?.dataHost?.saveData({ runtimeNodes: [] });
@@ -197,54 +118,4 @@ describe('plugin API contracts', () => {
     expectTypeOf(factory).parameter(0).toEqualTypeOf<IPluginFactoryOptions | undefined>();
   });
 
-  it('types package plugins that ship webview assets and bridge messages through the host API', () => {
-    const plugin = {
-      id: 'acme.graph-tools',
-      name: 'Acme Graph Tools',
-      version: '0.1.0',
-      apiVersion: '^3.0.0',
-      supportedExtensions: [],
-      webviewApiVersion: '^1.0.0',
-      webviewContributions: {
-        scripts: ['dist/webview.js'],
-        styles: ['dist/webview.css'],
-      },
-      onLoad(api) {
-        const graph = api.getGraph();
-        api.sendToWebview({
-          type: 'runtimeDataUpdated',
-          data: { nodes: graph.nodes },
-        });
-        api.onWebviewMessage((message) => {
-          api.log('info', message.type);
-        });
-      },
-      onWebviewReady() {
-        // no-op: contract assertion only
-      },
-    } satisfies IPlugin;
-
-    expectTypeOf(plugin.webviewContributions.scripts[0]).toEqualTypeOf<string>();
-    expectTypeOf(plugin.onLoad).toMatchTypeOf<IPlugin['onLoad']>();
-    expectTypeOf(plugin.onWebviewReady).toMatchTypeOf<IPlugin['onWebviewReady']>();
-  });
-
-  it('types webview plugins that register Graph View contributions through the public webview API', () => {
-    const api = {
-      registerGraphViewContributions(contributions) {
-        expectTypeOf(contributions.runtimeNodes![0]!).toMatchTypeOf<IGraphViewRuntimeNodeContribution>();
-        return { dispose() {} };
-      },
-    } satisfies Pick<CodeGraphyWebviewAPI, 'registerGraphViewContributions'>;
-
-    const disposable = api.registerGraphViewContributions({
-      runtimeNodes: [{
-        id: 'acme.runtime-node',
-        label: 'Runtime Node',
-        createNodes: () => [{ id: 'runtime', label: 'Runtime', color: '#ffffff' }],
-      }],
-    });
-
-    expectTypeOf(disposable.dispose).toEqualTypeOf<() => void>();
-  });
 });

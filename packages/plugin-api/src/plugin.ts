@@ -1,7 +1,7 @@
 /**
  * @fileoverview The IPlugin interface — the canonical plugin contract.
  *
- * Plugin API v3 is required. Every plugin must declare `apiVersion`
+ * Core Plugin API v4 is required. Every Core plugin must declare `apiVersion`
  * and is validated by the host at registration time.
  *
  * @module @codegraphy-dev/plugin-api/plugin
@@ -15,28 +15,11 @@ import type {
 import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
 import type { IPluginDataHost } from './data';
-import type { Disposable } from './disposable';
 import type {
   GraphEdgeKind,
-  GraphNodeShape2D,
   IGraphData,
   NodeType,
 } from './graph';
-import type { IGraphViewContributions } from './graphView';
-
-export interface IPluginWebviewContributions {
-  scripts?: string[];
-  styles?: string[];
-  assets?: IPluginWebviewAsset[];
-}
-
-export interface IPluginWebviewAsset {
-  id: string;
-  label: string;
-  path: string;
-  kind?: string;
-  metadata?: Record<string, unknown>;
-}
 
 export interface IPluginGraphScopeCapabilityContext {
   /**
@@ -48,53 +31,6 @@ export interface IPluginGraphScopeCapabilityContext {
 export interface IPluginGraphScopeCapabilities {
   nodeTypes?: readonly NodeType[];
   edgeTypes?: readonly GraphEdgeKind[];
-}
-
-export interface IPluginWebviewMessage {
-  type: string;
-  data: unknown;
-}
-
-export interface IPluginExportRequest {
-  filename: string;
-  content: string | Uint8Array;
-  filters?: Record<string, string[]>;
-  title?: string;
-  successMessage?: string;
-}
-
-export interface IPluginExporter {
-  id: string;
-  label: string;
-  description?: string;
-  group?: string;
-  run(this: void): void | Promise<void>;
-}
-
-export interface IPluginToolbarActionItem {
-  id: string;
-  label: string;
-  description?: string;
-  run(this: void): void | Promise<void>;
-}
-
-export interface IPluginToolbarAction {
-  id: string;
-  label: string;
-  icon?: string;
-  description?: string;
-  items: IPluginToolbarActionItem[];
-}
-
-export interface IPluginHostApi {
-  getGraph(): IGraphData;
-  sendToWebview(message: IPluginWebviewMessage): void;
-  onWebviewMessage(handler: (message: IPluginWebviewMessage) => void): Disposable;
-  registerExporter(exporter: IPluginExporter): Disposable;
-  registerToolbarAction(action: IPluginToolbarAction): Disposable;
-  saveExport(request: IPluginExportRequest): Promise<void>;
-  getWorkspaceRoot(): string;
-  log(level: 'info' | 'warn' | 'error', ...args: unknown[]): void;
 }
 
 /**
@@ -136,16 +72,8 @@ export interface IPluginAnalysisContext {
   options?: Record<string, unknown>;
 }
 
-export interface IPluginFileColorDefinition {
-  /** CSS color resolved in the Graph View theme context. */
-  color: string;
-  shape2D?: GraphNodeShape2D;
-  /** Relative path from the plugin root to an image asset. */
-  imagePath?: string;
-}
-
 export interface IPluginFactoryOptions {
-  /** Workspace-scoped persistence owned by the plugin id returned from the factory. */
+  /** Workspace-scoped persistence owned by the plugin descriptor ID. */
   dataHost?: IPluginDataHost;
   /** Merged package default options and CodeGraphy Workspace plugin options. */
   options?: Record<string, unknown>;
@@ -154,7 +82,6 @@ export interface IPluginFactoryOptions {
 export type IPluginFactory = (options?: IPluginFactoryOptions) => IPlugin | Promise<IPlugin>;
 
 export type IPluginUpdateImpact =
-  | 'view-only'
   | 'settings-only'
   | 'projection-only'
   | 'reanalyze-plugin-files'
@@ -164,7 +91,7 @@ export interface IPluginUpdateImpactPolicy {
   /**
    * Impact of enabling or disabling the plugin.
    *
-   * Plugins that only contribute UI/runtime projection should use
+   * Plugins whose toggles do not change indexed evidence should use
    * `projection-only`. Plugins that emit per-file indexed evidence should use
    * `reanalyze-plugin-files` unless a toggle truly invalidates the whole index.
    */
@@ -186,7 +113,7 @@ export interface IPluginUpdateImpactPolicy {
  *   id: 'myplugin.coverage',
  *   name: 'Coverage Overlay',
  *   version: '0.1.0',
- *   apiVersion: '^3.0.0',
+ *   apiVersion: '^4.0.0',
  *   supportedExtensions: [],
  *   async analyzeFile(filePath) {
  *     return { filePath, relations: [] };
@@ -198,7 +125,7 @@ export interface IPlugin {
   /** Unique identifier for the plugin (e.g., 'codegraphy.typescript'). */
   id: string;
 
-  /** Human-readable name for display. */
+  /** Human-readable plugin name. */
   name: string;
 
   /** Semantic version string. */
@@ -226,31 +153,11 @@ export interface IPlugin {
   sources?: IConnectionSource[];
 
   /**
-   * Preferred colors for supported file extensions.
-   * These colors override generated colors but can be overridden by user settings.
-   *
-   * Supports three pattern types:
-   * - Extensions: `.ts`, `.md`
-   * - Exact filenames: `project.godot`, `Makefile`
-   * - Glob patterns: `**\/*.test.ts`
-   */
-  fileColors?: Record<string, string | IPluginFileColorDefinition>;
-
-  /**
    * Default filter patterns for this plugin's ecosystem.
    * Merged with user-defined filter patterns at file discovery time —
    * files matching these patterns are excluded from analysis.
    */
   defaultFilters?: string[];
-
-  /** Optional Graph View runtime, UI, menu, projection, and force contributions. */
-  graphView?: IGraphViewContributions;
-
-  /** Optional webview API range this plugin's injected webview assets target. */
-  webviewApiVersion?: string;
-
-  /** Optional webview scripts and styles loaded into CodeGraphy Graph View. */
-  webviewContributions?: IPluginWebviewContributions;
 
   /** Declares how plugin toggles and plugin-owned settings affect graph work. */
   updateImpact?: IPluginUpdateImpactPolicy;
@@ -271,24 +178,19 @@ export interface IPlugin {
     context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult>;
 
-  /**
-   * Optional node-type contributions shown in graph controls and legends.
-   */
+  /** Optional semantic node types that the plugin can emit. */
   contributeNodeTypes?(): IPluginNodeType[];
 
-  /**
-   * Optional edge-type contributions shown in graph controls and legends.
-   */
+  /** Optional semantic edge types that the plugin can emit. */
   contributeEdgeTypes?(): IPluginEdgeType[];
 
   /**
    * Optional Graph Scope capabilities this plugin can make relevant when it is
    * applicable to the indexed workspace.
    *
-   * These declarations are independent from emitted graph output, so graph
-   * controls can show relevant toggles even before the current graph contains
-   * matching nodes or edges. Plugins may declare core and plugin-owned node
-   * types and edge kinds.
+   * These declarations are independent from emitted graph output. Plugins may
+   * declare core and plugin-owned node types and edge kinds before the current
+   * graph contains matching nodes or edges.
    */
   contributeGraphScopeCapabilities?(
     context?: IPluginGraphScopeCapabilityContext,
@@ -303,19 +205,6 @@ export interface IPlugin {
    * Use to set up state or resources.
    */
   initialize?(workspaceRoot: string, context?: IPluginAnalysisContext): Promise<void>;
-
-  /**
-   * Called when the host creates this plugin's scoped runtime API.
-   * Use this to bridge package-owned state and commands to injected webview assets.
-   */
-  onLoad?(api: IPluginHostApi): void;
-
-  /**
-   * Called when the Graph View webview has finished its initial ready handshake.
-   * Use this to send plugin-owned state to injected webview assets after the host
-   * is ready to deliver messages.
-   */
-  onWebviewReady?(): void;
 
   // ---------------------------------------------------------------------------
   // Lifecycle hooks

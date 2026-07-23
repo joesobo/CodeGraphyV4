@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import { buildWorkspaceGraphNodes } from '../../src/graph/nodes';
 
 describe('core/graph/nodes', () => {
@@ -18,13 +17,11 @@ describe('core/graph/nodes', () => {
       {
         id: 'src/index.ts',
         label: 'index.ts',
-        color: DEFAULT_NODE_COLOR,
         fileSize: 12,
       },
       {
         id: 'src/utils.ts',
         label: 'utils.ts',
-        color: DEFAULT_NODE_COLOR,
         fileSize: 7,
       },
     ]);
@@ -42,7 +39,6 @@ describe('core/graph/nodes', () => {
       {
         id: 'src/index.ts',
         label: 'index.ts',
-        color: DEFAULT_NODE_COLOR,
         fileSize: undefined,
       },
     ]);

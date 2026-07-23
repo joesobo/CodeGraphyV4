@@ -8,10 +8,10 @@ import type { IGraphData } from '../../src/graph/contracts';
 
 const graphData: IGraphData = {
   nodes: [
-    { id: 'src/a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-    { id: 'src/b.ts', label: 'b.ts', color: '#222222', nodeType: 'file' },
-    { id: 'src/orphan.ts', label: 'orphan.ts', color: '#333333', nodeType: 'file' },
-    { id: 'src', label: 'src', color: '#444444', nodeType: 'folder' },
+    { id: 'src/a.ts', label: 'a.ts', nodeType: 'file' },
+    { id: 'src/b.ts', label: 'b.ts', nodeType: 'file' },
+    { id: 'src/orphan.ts', label: 'orphan.ts', nodeType: 'file' },
+    { id: 'src', label: 'src', nodeType: 'folder' },
   ],
   edges: [
     { id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts', kind: 'import', sources: [] },

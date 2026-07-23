@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/plugin-api';
+import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/extension-plugin-api';
 import { createParticlesPlugin } from '../src/plugin';
 import { activate } from '../src/webview';
 import { startBackgroundParticleEffect, startCustomParticleEffect } from '../src/effects';
@@ -316,8 +316,6 @@ function createWebviewApi(
     registerOverlay: vi.fn(() => ({ dispose: vi.fn() })),
     registerTooltipProvider: vi.fn(() => ({ dispose: vi.fn() })),
     registerGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
-    sendMessage: vi.fn(),
-    postHostMessage: vi.fn(),
     onMessage: vi.fn(() => ({ dispose: vi.fn() })),
     helpers: {
       drawBadge: vi.fn(),

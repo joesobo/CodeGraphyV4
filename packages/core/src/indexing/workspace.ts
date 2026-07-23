@@ -11,17 +11,26 @@ import {
 } from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { createWorkspacePluginAnalysisContext } from '../plugins/context/workspace';
+import type { CorePluginRegistry } from '../plugins/registry';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { readCodeGraphyWorkspaceStatus } from '../workspace/status';
+import { readCodeGraphyWorkspaceMeta } from '../workspace/meta';
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
-import { createWorkspaceIndexPluginSignature, persistWorkspaceIndexMetadata } from './metadata';
+import {
+  createWorkspaceIndexPluginBuildSignature,
+  createWorkspaceIndexPluginSignature,
+  persistWorkspaceIndexMetadata,
+} from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
-import { createDefaultStatusPluginSignature } from '../workspace/statusPlugins';
+import {
+  createDefaultStatusCorePluginIds,
+  createDefaultStatusPluginSignature,
+} from '../workspace/statusPlugins';
 import {
   createWorkspaceIndexFileContentReader,
   findAffectedWorkspaceIndexDependents,
@@ -59,43 +68,67 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(settings, options.disabledPlugins);
-  const { registry, loadedPackagePlugins } = await timeIndexPhase(
-    options,
-    'load-plugins',
-    () => createWorkspaceIndexRegistry(
+  let loadedRegistry: CorePluginRegistry | undefined;
+  let registryResult: Awaited<ReturnType<typeof createWorkspaceIndexRegistry>>;
+  try {
+    registryResult = await timeIndexPhase(
       options,
-      settings,
-      workspaceRoot,
-      disabledPlugins,
-    ),
-    result => ({
-      loadedPackagePlugins: result.loadedPackagePlugins.length,
-      registeredPlugins: result.registry.list().length,
-    }),
-  );
+      'load-plugins',
+      async () => {
+        const result = await createWorkspaceIndexRegistry(
+          options,
+          settings,
+          workspaceRoot,
+          disabledPlugins,
+        );
+        loadedRegistry = result.registry;
+        return result;
+      },
+      result => ({
+        loadedPackagePlugins: result.loadedPackagePlugins.length,
+        registeredPlugins: result.registry.list().length,
+      }),
+    );
+  } catch (error) {
+    loadedRegistry?.disposeAll();
+    throw error;
+  }
+  const { registry, loadedPackagePlugins } = registryResult;
+  const registeredPluginIds = new Set(registry.list().map(info => info.plugin.id));
 
+  try {
   await timeIndexPhase(
     options,
     'initialize-plugins',
     () => registry.initializeAll(workspaceRoot),
     () => ({ registeredPlugins: registry.list().length }),
   );
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const failedPluginIds = new Set(
+    [...registeredPluginIds].filter(pluginId => !activePluginIds.has(pluginId)),
+  );
 
   const pluginSignature = options.plugins === undefined
     ? createDefaultStatusPluginSignature(settings, options.userHomeDir)
     : createWorkspaceIndexPluginSignature({
+      explicitPlugins: options.plugins,
       loadedPackagePlugins,
       registry,
-      settings,
-      includeMissingConfiguredPlugins: false,
     });
+  const pluginBuildSignature = createWorkspaceIndexPluginBuildSignature(loadedPackagePlugins);
   const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {
+    pluginBuildSignature,
     pluginSignature,
+    plugins: registry.list().map(info => info.plugin),
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
+  const previousFailedPluginIds = readCodeGraphyWorkspaceMeta(workspaceRoot).failedPluginIds;
+  const pluginFailureStateChanged = previousFailedPluginIds.length !== failedPluginIds.size
+    || previousFailedPluginIds.some(pluginId => !failedPluginIds.has(pluginId));
   let canReusePersistedCache = previousStatus.hasGraphCache
-    && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files');
+    && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files')
+    && !pluginFailureStateChanged;
   const activeAnalysisCacheTiers = createWorkspaceIndexAnalysisCacheTiers(
     registry.list()
       .map(({ plugin }) => plugin.id)
@@ -246,7 +279,12 @@ export async function indexCodeGraphyWorkspace(
     'save-graph-cache',
     () => {
       if (indexingMode === 'full') {
-        saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, completeGraph);
+        saveWorkspaceAnalysisDatabaseCache(
+          workspaceRoot,
+          cache,
+          completeGraph,
+          registry.listNodeTypes(disabledPlugins),
+        );
         return;
       }
 
@@ -259,6 +297,7 @@ export async function indexCodeGraphyWorkspace(
         deleteFilePaths: deletedFilePaths,
         upsertFiles,
         graph: completeGraph,
+        nodeTypes: registry.listNodeTypes(disabledPlugins),
       });
     },
     () => ({
@@ -273,8 +312,13 @@ export async function indexCodeGraphyWorkspace(
     options,
     'persist-metadata',
     () => persistWorkspaceIndexMetadata({
+      pluginBuildSignature,
       pluginSignature,
+      failedPluginIds,
       settings,
+      settingsPluginIds: options.plugins === undefined
+        ? createDefaultStatusCorePluginIds(settings, options.userHomeDir)
+        : registeredPluginIds,
       workspaceRoot,
     }),
   );
@@ -297,4 +341,7 @@ export async function indexCodeGraphyWorkspace(
       reusedFiles: analysisResult.cacheHits,
     },
   };
+  } finally {
+    registry.disposeAll();
+  }
 }

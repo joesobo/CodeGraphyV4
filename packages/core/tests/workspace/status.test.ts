@@ -23,7 +23,7 @@ const textPlugin: IPlugin = {
   id: 'codegraphy.test-text',
   name: 'Test Text',
   version: '1.0.0',
-  apiVersion: '^3.0.0',
+  apiVersion: '^4.0.0',
   supportedExtensions: ['.txt'],
   async analyzeFile(filePath) {
     return { filePath, relations: [] };
@@ -57,7 +57,11 @@ describe('CodeGraphy Workspace status', () => {
     const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
-      plugins: [{ id: 'codegraphy.vue', enabled: true }],
+      plugins: [{
+        id: textPlugin.id,
+        activation: 'enabled',
+        options: { mode: 'strict' },
+      }],
     });
 
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
@@ -89,6 +93,31 @@ describe('CodeGraphy Workspace status', () => {
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
       pluginSignature: 'legacy-adapter-plugin@1.0.0',
       settingsSignature: meta.settingsSignature ?? '',
+    })).toMatchObject({
+      state: 'stale',
+      staleReasons: ['plugin-signature-changed'],
+    });
+  });
+
+  it('compares a host-provided plugin build signature only when the host supplies one', async () => {
+    const workspaceRoot = await createWorkspace();
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...meta,
+      pluginBuildSignature: 'build-a',
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+    }).state).toBe('fresh');
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+      pluginBuildSignature: 'build-b',
     })).toMatchObject({
       state: 'stale',
       staleReasons: ['plugin-signature-changed'],

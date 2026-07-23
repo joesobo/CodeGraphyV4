@@ -6,37 +6,117 @@ import {
 } from '../../../src/plugins/activityState/model';
 
 describe('plugins/activityState/model', () => {
+  it('uses the built-in default when inherited activation has no global override', () => {
+    const state = createPluginActivityState({
+      settings: {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [{ id: 'codegraphy.markdown', activation: 'inherit' }],
+      },
+      builtInPluginIds: ['codegraphy.markdown'],
+    });
+
+    expect([...state.activePluginIds]).toEqual(['codegraphy.markdown']);
+    expect([...state.enabledPluginIds]).toEqual(['codegraphy.markdown']);
+    expect(state.packagePlugins).toEqual([]);
+    expect(state.warnings).toEqual([]);
+  });
+
+  it('combines global defaults with workspace inherit, enabled, and disabled overrides', () => {
+    const state = createPluginActivityState({
+      settings: {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [
+          { id: 'codegraphy.vue', activation: 'disabled' },
+          { id: 'codegraphy.particles', activation: 'enabled' },
+          { id: 'acme.inherited', activation: 'inherit' },
+        ],
+      },
+      installedPlugins: [
+        {
+          package: '@codegraphy-dev/plugin-vue',
+          version: '1.0.0',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+          packageRoot: '/global/@codegraphy-dev/plugin-vue',
+          id: 'codegraphy.vue',
+          globallyEnabled: true,
+        },
+        {
+          package: '@codegraphy-dev/plugin-particles',
+          version: '1.0.0',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+          packageRoot: '/global/@codegraphy-dev/plugin-particles',
+          id: 'codegraphy.particles',
+          globallyEnabled: false,
+        },
+        {
+          package: '@acme/codegraphy-inherited',
+          version: '1.0.0',
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
+          packageRoot: '/global/@acme/codegraphy-inherited',
+          id: 'acme.inherited',
+          globallyEnabled: true,
+        },
+      ],
+    });
+
+    expect([...state.activePluginIds]).toEqual([
+      'codegraphy.particles',
+      'acme.inherited',
+    ]);
+    expect([...state.disabledPluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual([
+      'codegraphy.particles',
+      'acme.inherited',
+    ]);
+    expect(state.packagePlugins.map(plugin => plugin.id)).toEqual([
+      'codegraphy.particles',
+      'acme.inherited',
+    ]);
+    expect(state.warnings).toEqual([]);
+  });
+
   it('keeps duplicate installed package claims inactive with a developer-console warning', () => {
     const state = createPluginActivityState({
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
           id: 'codegraphy.vue',
-          enabled: true,
+          activation: 'enabled',
         }],
       },
       installedPlugins: [
         {
           package: '@acme/codegraphy-vue-one',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
-          disclosures: [],
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           packageRoot: '/global/@acme/codegraphy-vue-one',
-          pluginId: 'codegraphy.vue',
+          id: 'codegraphy.vue',
+          globallyEnabled: false,
         },
         {
           package: '@acme/codegraphy-vue-two',
           version: '1.0.0',
-          apiVersion: '^3.0.0',
-          disclosures: [],
+          host: 'core',
+          entry: './plugin.js',
+          apiVersion: '^4.0.0',
           packageRoot: '/global/@acme/codegraphy-vue-two',
-          pluginId: 'codegraphy.vue',
+          id: 'codegraphy.vue',
+          globallyEnabled: false,
         },
       ],
     });
 
     expect([...state.activePluginIds]).toEqual([]);
     expect([...state.inactivePluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual(['codegraphy.vue']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([
       "CodeGraphy plugin 'codegraphy.vue' is enabled but multiple installed packages claim it: @acme/codegraphy-vue-one, @acme/codegraphy-vue-two. No runtime was loaded.",
@@ -49,7 +129,7 @@ describe('plugins/activityState/model', () => {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
           id: 'codegraphy.vue',
-          enabled: true,
+          activation: 'enabled',
         }],
       },
       installedPlugins: [],
@@ -57,6 +137,7 @@ describe('plugins/activityState/model', () => {
 
     expect([...state.activePluginIds]).toEqual([]);
     expect([...state.inactivePluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual(['codegraphy.vue']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([
       "CodeGraphy plugin 'codegraphy.vue' is enabled but not installed. No runtime was loaded.",
@@ -69,21 +150,24 @@ describe('plugins/activityState/model', () => {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
           id: 'codegraphy.vue',
-          enabled: false,
+          activation: 'disabled',
         }],
       },
       installedPlugins: [{
         package: '@codegraphy-dev/plugin-vue',
         version: '1.0.0',
-        apiVersion: '^3.0.0',
-        disclosures: [],
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
         packageRoot: '/global/@codegraphy-dev/plugin-vue',
-        pluginId: 'codegraphy.vue',
+        id: 'codegraphy.vue',
+        globallyEnabled: false,
       }],
     });
 
     expect([...state.activePluginIds]).toEqual([]);
     expect([...state.disabledPluginIds]).toEqual(['codegraphy.vue']);
+    expect([...state.enabledPluginIds]).toEqual([]);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([]);
   });
@@ -92,8 +176,8 @@ describe('plugins/activityState/model', () => {
     const disabledPlugins = createDisabledPluginSet({
       ...createDefaultCodeGraphyWorkspaceSettings(),
       plugins: [
-        { id: 'codegraphy.vue', enabled: false },
-        { id: 'codegraphy.vue', enabled: true },
+        { id: 'codegraphy.vue', activation: 'disabled' },
+        { id: 'codegraphy.vue', activation: 'enabled' },
       ],
     }, ['codegraphy.markdown']);
 

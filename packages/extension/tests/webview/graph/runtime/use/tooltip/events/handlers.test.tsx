@@ -59,7 +59,6 @@ describe('graph/runtime/useTooltipEvents', () => {
 			fileInfoCacheRef: { current: new Map() } as never,
 			hoveredNodeRef: { current: null },
 			interactionHandlers: {
-				sendGraphInteraction: vi.fn(),
 				setGraphCursor,
 			},
 			postMessage: vi.fn(),
@@ -81,8 +80,6 @@ describe('graph/runtime/useTooltipEvents', () => {
 		const secondSetTooltipData = vi.fn();
 		const firstSetGraphCursor = vi.fn();
 		const secondSetGraphCursor = vi.fn();
-		const firstSendGraphInteraction = vi.fn();
-		const secondSendGraphInteraction = vi.fn();
 		const firstPostMessage = vi.fn();
 		const secondPostMessage = vi.fn();
 
@@ -93,7 +90,6 @@ describe('graph/runtime/useTooltipEvents', () => {
 			fileInfoCacheRef: { current: new Map() } as never,
 			hoveredNodeRef: { current: null },
 			interactionHandlers: {
-				sendGraphInteraction: firstSendGraphInteraction,
 				setGraphCursor: firstSetGraphCursor,
 			},
 			postMessage: firstPostMessage,
@@ -108,7 +104,6 @@ describe('graph/runtime/useTooltipEvents', () => {
 		rerender({
 			...initialProps,
 			interactionHandlers: {
-				sendGraphInteraction: secondSendGraphInteraction,
 				setGraphCursor: secondSetGraphCursor,
 			},
 			postMessage: secondPostMessage,
@@ -124,10 +119,6 @@ describe('graph/runtime/useTooltipEvents', () => {
 		expect(firstSetGraphCursor).not.toHaveBeenCalled();
 		expect(secondSetGraphCursor).toHaveBeenNthCalledWith(1, 'default');
 		expect(secondSetGraphCursor).toHaveBeenNthCalledWith(2, 'pointer');
-		expect(firstSendGraphInteraction).not.toHaveBeenCalled();
-		expect(secondSendGraphInteraction).toHaveBeenCalledWith('graph:nodeHover', {
-			node: { id: 'src/app.ts', label: 'app.ts' },
-		});
 		expect(firstSetTooltipData).not.toHaveBeenCalled();
 		expect(secondSetTooltipData).toHaveBeenCalledWith(expect.objectContaining({
 			path: 'src/app.ts',

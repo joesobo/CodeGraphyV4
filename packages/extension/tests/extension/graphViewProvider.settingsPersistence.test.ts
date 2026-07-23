@@ -128,7 +128,7 @@ describe('GraphViewProvider settings persistence', () => {
     expect(edgeVisibilityUpdateCall).toBeDefined();
     expect(edgeVisibilityUpdateCall?.[1]).toEqual({ IMPORTS: false });
     expect(pluginsUpdateCall).toBeDefined();
-    expect(pluginsUpdateCall?.[1]).toEqual([{ id: 'codegraphy.vue', enabled: false }]);
+    expect(pluginsUpdateCall?.[1]).toEqual([{ id: 'codegraphy.vue', activation: 'disabled' }]);
 
     expect(
       workspaceStateUpdate.mock.calls.some(

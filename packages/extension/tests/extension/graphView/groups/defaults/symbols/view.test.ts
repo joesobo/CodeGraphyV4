@@ -258,7 +258,7 @@ describe('graphView/default symbol groups', () => {
     expect(groups.map((group) => group.id)).toEqual(['default:symbol-kind:class']);
   });
 
-  it('adds the Godot class_name group when a GDScript class_name symbol is present', () => {
+  it('leaves Godot-specific class_name styling to active Extension plugins', () => {
     const groups = getSymbolDefaultGroups({
       nodes: [
         symbolNode('godot-class-name', 'class', {
@@ -271,24 +271,10 @@ describe('graphView/default symbol groups', () => {
       edges: [],
     });
 
-    expect(groups.map(selectStableGroupFields)).toContainEqual({
-      id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
-      displayLabel: 'class_name',
-      color: '#478CBF',
-      pattern: '**',
-      isPluginDefault: true,
-      pluginId: 'codegraphy.gdscript',
-      pluginName: 'Godot',
-      matchNodeType: 'symbol',
-      matchSymbolKind: 'class',
-      matchSymbolPluginKind: 'godot-class-name',
-      matchSymbolSource: 'codegraphy.gdscript',
-      matchSymbolLanguage: 'gdscript',
-      matchSymbolFilePath: '**/*.gd',
-    });
+    expect(groups.map((group) => group.id)).toEqual(['default:symbol-kind:class']);
   });
 
-  it('adds Unity icon groups for GameObject and Component symbols', () => {
+  it('leaves Unity-specific symbol styling to active Extension plugins', () => {
     const groups = getSymbolDefaultGroups({
       nodes: [
         symbolNode('unity-game-object', 'game-object', {
@@ -307,40 +293,10 @@ describe('graphView/default symbol groups', () => {
       edges: [],
     });
 
-    expect(groups.map(selectStableGroupFields)).toEqual([
-      {
-        id: 'plugin:codegraphy.unity:symbol:game-object',
-        displayLabel: 'GameObject',
-        color: '#0EA5E9',
-        pattern: '**',
-        isPluginDefault: true,
-        pluginId: 'codegraphy.unity',
-        pluginName: 'Unity',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'game-object',
-        matchSymbolPluginKind: 'game-object',
-        matchSymbolSource: 'codegraphy.unity',
-        matchSymbolLanguage: 'unity',
-      },
-      {
-        id: 'plugin:codegraphy.unity:symbol:component',
-        displayLabel: 'Component',
-        color: '#22C55E',
-        pattern: '**',
-        isPluginDefault: true,
-        pluginId: 'codegraphy.unity',
-        pluginName: 'Unity',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'component',
-        matchSymbolPluginKind: 'component',
-        matchSymbolSource: 'codegraphy.unity',
-        matchSymbolLanguage: 'unity',
-      },
-    ]);
-    expect(groups.every((group) => group.imageUrl && decodesToMaterialIcon(group.imageUrl))).toBe(true);
+    expect(groups).toEqual([]);
   });
 
-  it('adds Godot scene-node and exported-property groups when those symbols are present', () => {
+  it('does not add Godot-specific groups from the core symbol catalog', () => {
     const groups = getSymbolDefaultGroups({
       nodes: [
         symbolNode('scene-node', 'scene-node', {
@@ -360,36 +316,7 @@ describe('graphView/default symbol groups', () => {
       edges: [],
     });
 
-    expect(groups.map(selectStableGroupFields)).toEqual(expect.arrayContaining([
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:scene-node',
-        displayLabel: 'Scene Node',
-        color: '#A855F7',
-        pattern: '**',
-        isPluginDefault: true,
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'scene-node',
-        matchSymbolPluginKind: 'scene-node',
-        matchSymbolSource: 'codegraphy.gdscript',
-      },
-      {
-        id: 'plugin:codegraphy.gdscript:symbol:exported-property',
-        displayLabel: 'Exported Property',
-        color: '#2DD4BF',
-        pattern: '**',
-        isPluginDefault: true,
-        pluginId: 'codegraphy.gdscript',
-        pluginName: 'Godot',
-        matchNodeType: 'variable',
-        matchSymbolKind: 'variable',
-        matchSymbolPluginKind: 'exported-property',
-        matchSymbolSource: 'codegraphy.gdscript',
-        matchSymbolLanguage: 'gdscript',
-        matchSymbolFilePath: '**/*.gd',
-      },
-    ]));
+    expect(groups.map((group) => group.id)).toEqual(['default:symbol-kind:variable']);
   });
 });
 

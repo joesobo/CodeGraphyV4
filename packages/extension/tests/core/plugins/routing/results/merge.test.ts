@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../../../plugin-api/src';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import {
   createEmptyFileAnalysisResult,
   mergeById,
@@ -22,28 +22,28 @@ describe('routing/results/merge', () => {
   it('prefers later items when merging lists by id', () => {
     expect(
       mergeById(
-        [{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }],
-        [{ id: 'file', label: 'Updated', defaultColor: '#bbb', defaultVisible: false }],
+        [{ id: 'file', label: 'File', defaultVisible: true }],
+        [{ id: 'file', label: 'Updated', defaultVisible: false }],
       ),
-    ).toEqual([{ id: 'file', label: 'Updated', defaultColor: '#bbb', defaultVisible: false }]);
+    ).toEqual([{ id: 'file', label: 'Updated', defaultVisible: false }]);
   });
 
   it('keeps base items when no later items are provided', () => {
     expect(
       mergeById(
-        [{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }],
+        [{ id: 'file', label: 'File', defaultVisible: true }],
         undefined,
       ),
-    ).toEqual([{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }]);
+    ).toEqual([{ id: 'file', label: 'File', defaultVisible: true }]);
   });
 
   it('treats missing item arrays as empty lists', () => {
     expect(mergeById(undefined, undefined)).toEqual([]);
     expect(
       mergeById(undefined, [
-        { id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true },
+        { id: 'file', label: 'File', defaultVisible: true },
       ]),
-    ).toEqual([{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }]);
+    ).toEqual([{ id: 'file', label: 'File', defaultVisible: true }]);
   });
 
   it('deduplicates relations by the routed relation key', () => {
@@ -144,8 +144,8 @@ describe('routing/results/merge', () => {
     const baseResult = createEmptyFileAnalysisResult('src/base.ts');
     const nextResult: IFileAnalysisResult = {
       filePath: 'src/next.ts',
-      edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#38BDF8', defaultVisible: true }],
-      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      edgeTypes: [{ id: 'import', label: 'Import', defaultVisible: true }],
+      nodeTypes: [{ id: 'file', label: 'File', defaultVisible: true }],
       nodes: [{ id: 'src/app.ts', nodeType: 'file', label: 'app.ts' }],
       relations: [{
         kind: 'import' as const,
@@ -169,7 +169,7 @@ describe('routing/results/merge', () => {
       mergeFileAnalysisResults(
         {
           ...createEmptyFileAnalysisResult('src/base.ts'),
-          nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+          nodeTypes: [{ id: 'file', label: 'File', defaultVisible: true }],
         },
         {
           ...createEmptyFileAnalysisResult(''),
@@ -179,7 +179,7 @@ describe('routing/results/merge', () => {
     ).toEqual({
       filePath: 'src/base.ts',
       edgeTypes: [],
-      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      nodeTypes: [{ id: 'file', label: 'File', defaultVisible: true }],
       nodes: [],
       relations: [],
       symbols: [],

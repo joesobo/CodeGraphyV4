@@ -33,7 +33,7 @@ describe('extension/diagnostics/logger', () => {
 
     expect(write).toHaveBeenCalledOnce();
     expect(write.mock.calls[0][0]).toBe(
-      '[CodeGraphy] Extension activation started: workspaceFolders=1',
+      '[CodeGraphy] Activation started: area=extension.lifecycle, workspaceFolders=1',
     );
   });
 });

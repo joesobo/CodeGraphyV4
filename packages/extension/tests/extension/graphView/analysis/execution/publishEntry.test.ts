@@ -45,7 +45,6 @@ describe('graph view analysis execution publish entry points', () => {
 
   it('publishes analysis failure without optional contribution status broadcaster', () => {
     const { handlers } = createExecutionHandlers({
-      sendGraphViewContributionStatuses: undefined,
     });
 
     expect(() => publishAnalysisFailure(handlers)).not.toThrow();

@@ -1,6 +1,6 @@
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
-import manifest from '../../codegraphy.json';
 import { GDScriptPathResolver } from '../PathResolver';
+import { manifest } from '../metadata';
 import {
   absolutePath,
   readSignalConnectUsages,

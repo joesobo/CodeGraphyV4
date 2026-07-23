@@ -45,13 +45,13 @@ describe('usePluginOverlays', () => {
     });
 
     expect(firstOverlay).toHaveBeenCalledWith({
-      ctx,
+      canvasContext: ctx,
       globalScale: 2.5,
       height: 180,
       width: 320,
     });
     expect(secondOverlay).toHaveBeenCalledWith({
-      ctx,
+      canvasContext: ctx,
       globalScale: 2.5,
       height: 180,
       width: 320,
@@ -71,7 +71,7 @@ describe('usePluginOverlays', () => {
       globalScale: 1,
       onError,
       overlays: [
-        { id: 'bad', fn: ({ ctx: mutableContext }) => {
+        { id: 'bad', fn: ({ canvasContext: mutableContext }) => {
           mutableContext.globalAlpha = 0.2;
           throw thrownError;
         } },
@@ -123,7 +123,7 @@ describe('usePluginOverlays', () => {
     result.current(ctx, 2.5);
 
     expect(overlay).toHaveBeenCalledWith({
-      ctx,
+      canvasContext: ctx,
       globalScale: 2.5,
       height: 180,
       width: 320,
@@ -184,7 +184,7 @@ describe('usePluginOverlays', () => {
     expect(firstOverlay).toHaveBeenCalledOnce();
     expect(secondOverlay).toHaveBeenCalledOnce();
     expect(secondOverlay).toHaveBeenCalledWith({
-      ctx,
+      canvasContext: ctx,
       globalScale: 2,
       height: 90,
       width: 120,

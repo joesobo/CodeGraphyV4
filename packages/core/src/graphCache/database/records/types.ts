@@ -6,10 +6,6 @@ export const NODE_COLUMNS = [
   'key', 'type', 'label', 'fileId', 'parentId', 'pluginId', 'language',
 ] as const;
 
-export const NODE_VIEW_COLUMNS = [
-  'nodeKey', 'color', 'x', 'y', 'favorite', 'shape', 'imageUrl', 'isCollapsed',
-] as const;
-
 export const SYMBOL_COLUMNS = ['nodeId', 'name', 'kind', 'pluginId', 'language'] as const;
 
 export const EDGE_COLUMNS = ['key', 'sourceNodeId', 'targetNodeId', 'type'] as const;
@@ -34,12 +30,6 @@ export type NodeRecord = ColumnRecord<typeof NODE_COLUMNS> & {
 export type StoredNodeRecord = Omit<NodeRecord, 'fileId' | 'parentId'> & {
   fileId: number | null;
   parentId: number | null;
-};
-
-export type NodeViewRecord = ColumnRecord<typeof NODE_VIEW_COLUMNS> & {
-  nodeKey: string;
-  favorite: number | null;
-  isCollapsed: number | null;
 };
 
 export type SymbolRecord = ColumnRecord<typeof SYMBOL_COLUMNS> & {
@@ -81,13 +71,6 @@ export interface GraphNodeRow {
   filePath?: unknown;
   parentId?: unknown;
   parentKey?: unknown;
-  color?: unknown;
-  x?: unknown;
-  y?: unknown;
-  favorite?: unknown;
-  shape?: unknown;
-  imageUrl?: unknown;
-  isCollapsed?: unknown;
   pluginId?: unknown;
   language?: unknown;
 }

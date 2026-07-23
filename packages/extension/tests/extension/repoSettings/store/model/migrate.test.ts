@@ -14,7 +14,7 @@ describe('persisted repository settings migration', () => {
         repelForce: 6,
       },
     })).toEqual({
-      version: 2,
+      version: 4,
       physics: {
         centerForce: 0.25,
         damping: 0.4,
@@ -28,13 +28,35 @@ describe('persisted repository settings migration', () => {
       version: 1,
       physics: { damping: 0.2, linkForce: 0.6 },
     })).toEqual({
-      version: 2,
+      version: 4,
       physics: { damping: 0.2, linkForce: 0.6 },
     });
   });
 
+  it('advances version two without applying version one physics migration', () => {
+    expect(migratePersistedSettings({
+      version: 2,
+      physics: { damping: 0.7, linkForce: 0.15 },
+    })).toEqual({
+      version: 4,
+      physics: { damping: 0.7, linkForce: 0.15 },
+    });
+  });
+
   it('leaves current and invalid settings unchanged', () => {
-    const current = { version: 2, physics: { damping: 0.7, linkForce: 0.15 } };
+    expect(migratePersistedSettings({
+      version: 3,
+      showFps: true,
+      showMinimap: false,
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
+    })).toEqual({
+      version: 4,
+      showFps: true,
+      showMinimap: false,
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
+    });
+
+    const current = { version: 4, physics: { damping: 0.7, linkForce: 0.15 } };
     expect(migratePersistedSettings(current)).toBe(current);
     expect(migratePersistedSettings(null)).toBeNull();
   });

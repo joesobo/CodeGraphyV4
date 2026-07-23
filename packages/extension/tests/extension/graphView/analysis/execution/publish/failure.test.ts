@@ -36,8 +36,6 @@ describe('graph view analysis unavailable and failed publication', () => {
   it('publishes an empty graph fallback with plugin state updates after failures', () => {
     const sendPluginWebviewInjections = vi.fn();
     const { handlers } = createExecutionHandlers({
-      sendPluginExporters: vi.fn(),
-      sendPluginToolbarActions: vi.fn(),
       sendPluginWebviewInjections,
     });
 
@@ -45,9 +43,6 @@ describe('graph view analysis unavailable and failed publication', () => {
 
     expect(handlers.setRawGraphData).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(handlers.sendPluginExporters).toHaveBeenCalledOnce();
-    expect(handlers.sendPluginToolbarActions).toHaveBeenCalledOnce();
-    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });

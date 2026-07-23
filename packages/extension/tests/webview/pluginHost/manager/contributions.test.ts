@@ -8,7 +8,7 @@ import type {
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
-} from '../../../../src/core/plugins/types/contracts';
+} from '@codegraphy-dev/extension-plugin-api';
 import {
   createEmptyWebviewGraphViewContributionSet,
   mergeGraphViewContributions,

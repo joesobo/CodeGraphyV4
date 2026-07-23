@@ -71,8 +71,6 @@ describe('graph view analysis initial publication', () => {
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(transformedGraphData);
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
-    expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(
       getGraphData(),
