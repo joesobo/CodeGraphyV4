@@ -84,6 +84,39 @@ describe('graphView/pluginDefaultGroups', () => {
     ]);
   });
 
+  it('keeps custom plugin Node Type matches open to third-party plugins', () => {
+    const groups = getGraphViewPluginDefaultGroups(
+      {
+        registry: {
+          extensionPlugins: {
+            list: () => [{
+              plugin: { id: 'acme.widgets.extension', name: 'Acme Widgets' },
+              data: {
+                legendEntries: [{
+                  id: 'acme.widgets:node',
+                  label: 'Widget',
+                  pattern: '**',
+                  color: '#22C55E',
+                  match: { nodeType: 'acme.widgets:widget' },
+                }],
+              },
+            }],
+          },
+        },
+      },
+      new Set<string>(),
+      new Map<string, vscode.Uri>(),
+      vscode.Uri.file('/test/extension'),
+    );
+
+    expect(groups).toEqual([
+      expect.objectContaining({
+        id: 'acme.widgets:node',
+        matchNodeType: 'acme.widgets:widget',
+      }),
+    ]);
+  });
+
   it('does not add optional metadata keys when a plugin color definition only provides a color', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {

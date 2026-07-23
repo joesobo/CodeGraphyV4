@@ -154,6 +154,16 @@ describe('tooltipModel', () => {
       rect: { x: 10, y: 20, radius: 30 },
       cachedInfo: null,
       pluginSections: [],
+      legends: [{
+        id: 'plugin:codegraphy.gdscript:symbol:function',
+        pattern: '**',
+        color: '#478CBF',
+        matchNodeType: 'symbol',
+        matchSymbolSource: 'codegraphy.gdscript',
+        pluginId: 'codegraphy.godot.extension',
+        pluginName: 'Godot Graph View',
+        isPluginDefault: true,
+      }],
     });
 
     expect(result.tooltipData).toEqual(expect.objectContaining({
@@ -164,6 +174,7 @@ describe('tooltipModel', () => {
         name: 'boot',
         kind: 'function',
         filePath: 'src/app.ts',
+        plugin: 'Godot Graph View',
       },
     }));
     expect(result.shouldRequestFileInfo).toBe(false);

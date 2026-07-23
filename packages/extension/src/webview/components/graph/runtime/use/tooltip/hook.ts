@@ -3,6 +3,7 @@ import type { OwnedGraph2dControls } from '../../../rendering/surface/owned2d/vi
 import type { IFileInfo } from '../../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
+import type { IGroup } from '../../../../../../shared/settings/groups';
 import type { GraphCursorStyle } from '../../../support/dom';
 import type { FGNode } from '../../../model/build';
 import type { GraphTooltipState } from '../../../tooltip/model';
@@ -20,6 +21,7 @@ export interface UseGraphTooltipOptions {
 	fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
 	fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
 	interactionHandlers: GraphTooltipInteractionDependencies;
+	legends?: readonly IGroup[];
 	pluginHost?: WebviewPluginHost;
 	postMessage: (this: void, message: WebviewToExtensionMessage) => void;
 }
@@ -40,6 +42,7 @@ export function useGraphTooltip({
 	fg2dRef,
 	fileInfoCacheRef,
 	interactionHandlers,
+	legends,
 	pluginHost,
 	postMessage,
 }: UseGraphTooltipOptions): UseGraphTooltipResult {
@@ -61,6 +64,7 @@ export function useGraphTooltip({
 		fileInfoCacheRef,
 		hoveredNodeRef,
 		interactionHandlers,
+		legends,
 		pluginHost,
 		postMessage,
 		setTooltipData,

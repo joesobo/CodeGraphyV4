@@ -31,3 +31,7 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     showMinimap: useGraphStore(state => state.showMinimap),
   };
 }
+
+export function useGraphLegends(): GraphState['legends'] {
+  return useGraphStore(state => state.legends);
+}

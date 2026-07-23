@@ -16,7 +16,7 @@ import { useGraphDebugApi } from '../debug/api';
 import { buildGraphDebugOptions } from '../debug/options';
 import { buildGraphDataLayoutKey } from './layoutKey';
 import { detectMacPlatform } from '../environment/platform';
-import { useGraphViewStoreState } from './store';
+import { useGraphLegends, useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
 import { useGraphInteractionRuntime } from '../runtime/use/interaction';
 import { useGraphRuntime } from '../runtime/use/state';
@@ -61,6 +61,7 @@ export default function Graph({
   pluginHost,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
+  const legends = useGraphLegends();
   const appearance = useGraphAppearance(theme);
   const pluginContributions = useGraphViewContributions(pluginHost);
   const graphViewContributions = hasGraphViewContributions(pluginContributions)
@@ -97,6 +98,7 @@ export default function Graph({
     lastClickRef: graphRuntime.lastClickRef,
     lastContainerContextMenuEventRef: graphRuntime.context.lastContainerContextMenuEventRef,
     lastGraphContextEventRef: graphRuntime.context.lastGraphContextEventRef,
+    legends,
     openFilterPatternPrompt: onAddFilterRequested,
     openLegendRulePrompt: onAddLegendRequested,
     pluginHost,

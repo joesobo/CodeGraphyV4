@@ -37,10 +37,14 @@ const GRAPH_NODE_SHAPES = new Set([
 ]);
 
 function readStringArray(value: unknown): readonly string[] | undefined {
-  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
-    return undefined;
+  if (!Array.isArray(value)) return undefined;
+
+  const result: string[] = [];
+  for (const item of value as unknown[]) {
+    if (typeof item !== 'string') return undefined;
+    result.push(item);
   }
-  return value;
+  return result;
 }
 
 function readPluginLegendEntry(value: unknown): IExtensionPluginLegendEntry | undefined {
@@ -80,7 +84,10 @@ function readPluginLegendEntry(value: unknown): IExtensionPluginLegendEntry | un
   const match = matchCandidate as Record<string, unknown> | undefined;
   if (
     match?.nodeType !== undefined
-    && !['file', 'folder', 'package', 'symbol', 'variable'].includes(String(match.nodeType))
+    && (
+      typeof match.nodeType !== 'string'
+      || match.nodeType.length === 0
+    )
   ) return undefined;
   if (
     match?.symbolKinds !== undefined
@@ -173,7 +180,7 @@ function createPluginDefaultGroup(
 
   if (entry.target) group.target = entry.target;
   if (entry.match?.nodeType) {
-    group.matchNodeType = entry.match.nodeType as IGroup['matchNodeType'];
+    group.matchNodeType = entry.match.nodeType;
   }
   if (entry.match?.symbolKinds) group.matchSymbolKinds = [...entry.match.symbolKinds];
   if (entry.match?.symbolPluginKind) {

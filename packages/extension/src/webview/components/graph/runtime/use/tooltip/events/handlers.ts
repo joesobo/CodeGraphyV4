@@ -6,6 +6,7 @@ import type { OwnedGraph2dControls } from '../../../../rendering/surface/owned2d
 import type { IFileInfo } from '../../../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../../shared/protocol/webviewToExtension';
+import type { IGroup } from '../../../../../../../shared/settings/groups';
 import type { FGNode } from '../../../../model/build';
 import type { GraphTooltipState } from '../../../../tooltip/model';
 import type { WebviewPluginHost } from '../../../../../../pluginHost/manager';
@@ -24,6 +25,7 @@ export interface UseTooltipEventsOptions {
 	fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
 	interactionHandlers: GraphTooltipInteractionDependencies;
+	legends?: readonly IGroup[];
 	pluginHost?: WebviewPluginHost;
 	postMessage: (this: void, message: WebviewToExtensionMessage) => void;
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
@@ -44,6 +46,7 @@ export function useTooltipEvents({
 	fileInfoCacheRef,
 	hoveredNodeRef,
 	interactionHandlers,
+	legends,
 	pluginHost,
 	postMessage,
 	setTooltipData,
@@ -75,6 +78,7 @@ export function useTooltipEvents({
 			getNodeRect: getNodeScreenRect,
 			hoveredNodeRef,
 			interactionHandlers,
+			legends,
 			pluginHost,
 			postMessage,
 			setTooltipData,

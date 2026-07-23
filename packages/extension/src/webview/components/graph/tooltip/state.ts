@@ -1,5 +1,6 @@
 import type { IFileInfo } from '../../../../shared/files/info';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IGroup } from '../../../../shared/settings/groups';
 import type { TooltipAction } from '../../../pluginHost/api/contracts/webview';
 import { countTooltipEdges } from './edgeCounts';
 import { readTooltipSymbol } from './symbol';
@@ -32,6 +33,7 @@ export interface GraphTooltipStateOptions {
   snapshot: Pick<IGraphData, 'nodes' | 'edges'>;
   rect: GraphTooltipRect | null;
   cachedInfo: IFileInfo | null;
+  legends?: readonly IGroup[];
   pluginActions?: TooltipAction[];
   pluginSections: Array<{ title: string; content: string }>;
 }
@@ -55,7 +57,7 @@ function getGitIgnoredTooltipSections(
 
 export function buildGraphTooltipState(options: GraphTooltipStateOptions): GraphTooltipStateResult {
   const edgeCounts = countTooltipEdges(options.nodeId, options.snapshot);
-  const symbol = readTooltipSymbol(options.nodeId, options.snapshot);
+  const symbol = readTooltipSymbol(options.nodeId, options.snapshot, options.legends);
   const node = options.snapshot.nodes.find(candidate => candidate.id === options.nodeId);
   return {
     tooltipData: {
