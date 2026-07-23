@@ -1,18 +1,14 @@
-import type { IPlugin, IPluginFactoryOptions } from '@codegraphy-dev/plugin-api';
+import type { IPlugin, IPluginFactory, IPluginFactoryOptions } from '@codegraphy-dev/plugin-api';
 
 export interface PackagePluginFactoryInvocation {
   options?: IPluginFactoryOptions;
 }
 
-type UnknownPluginFactory = (options?: IPluginFactoryOptions) => unknown;
-
 interface PluginModuleExports {
   default?: unknown;
-  createPlugin?: unknown;
-  plugin?: unknown;
 }
 
-function isPluginFactory(value: unknown): value is UnknownPluginFactory {
+function isPluginFactory(value: unknown): value is IPluginFactory {
   return typeof value === 'function';
 }
 
@@ -32,13 +28,14 @@ export async function createPluginFromModule(
   }
 
   const moduleExports = moduleNamespace as PluginModuleExports;
-  const exportedPlugin: unknown = moduleExports.default ?? moduleExports.createPlugin ?? moduleExports.plugin;
-  const plugin: unknown = isPluginFactory(exportedPlugin)
-    ? await exportedPlugin(invocation.options)
-    : exportedPlugin;
+  if (!isPluginFactory(moduleExports.default)) {
+    throw new Error(`CodeGraphy plugin package '${packageName}' must export a default Core plugin factory.`);
+  }
+
+  const plugin: unknown = await moduleExports.default(invocation.options);
 
   if (!isPlugin(plugin)) {
-    throw new Error(`CodeGraphy plugin package '${packageName}' did not export a plugin factory or plugin object.`);
+    throw new Error(`CodeGraphy plugin package '${packageName}' default factory returned an invalid Core plugin runtime.`);
   }
 
   return plugin;
