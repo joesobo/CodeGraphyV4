@@ -82,7 +82,7 @@ export function MediaImage({
         alt={activeMedia.alt}
         className={cn(
           'transition-opacity duration-200',
-          restingLoaded && !playing ? 'opacity-100' : 'opacity-0',
+          restingLoaded ? 'opacity-100' : 'opacity-0',
           imageClassName,
         )}
         onLoad={() => markImageLoaded(restingSrc)}
@@ -91,17 +91,22 @@ export function MediaImage({
         {...imageProps}
       />
       {wantsToPlay ? (
-        <Image
+        // Animated GIFs use a native image element so the browser owns one
+        // continuous decode and playback lifecycle from load through display.
+        <img
           alt=""
           aria-hidden="true"
           className={cn(
-            animationLoaded ? 'animate-media-reveal opacity-100' : 'opacity-0',
+            imageProps.fill && 'absolute inset-0 size-full',
+            animationLoaded ? 'opacity-100' : 'opacity-0',
             imageClassName,
           )}
+          decoding="async"
+          height={imageProps.fill ? undefined : imageProps.height}
           onLoad={() => markAnimationLoaded(activeMedia.src)}
+          sizes={imageProps.sizes}
           src={activeMedia.src}
-          unoptimized
-          {...imageProps}
+          width={imageProps.fill ? undefined : imageProps.width}
         />
       ) : null}
       {animated && !reduceMotion ? (
