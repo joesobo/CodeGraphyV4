@@ -21,7 +21,7 @@ describe('graphView/pluginDefaultGroups', () => {
     ).toEqual([]);
   });
 
-  it('builds plugin default groups and registers known built-in asset roots', () => {
+  it('does not register a Core plugin ID as an Extension asset root', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>();
 
     const groups = getGraphViewPluginDefaultGroups(
@@ -73,9 +73,7 @@ describe('graphView/pluginDefaultGroups', () => {
         imagePath: 'assets/godot.svg',
       },
     ]);
-    expect(pluginExtensionUris.get('codegraphy.godot')?.fsPath).toBe(
-      '/test/extension/packages/plugin-godot',
-    );
+    expect(pluginExtensionUris.has('codegraphy.godot')).toBe(false);
   });
 
   it('reuses an existing built-in plugin root registration', () => {

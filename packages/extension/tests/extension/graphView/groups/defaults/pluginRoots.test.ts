@@ -7,10 +7,10 @@ import {
 } from '../../../../../src/extension/graphView/groups/defaults/pluginRoots';
 
 describe('graphView/builtInPluginRoots', () => {
-  it('resolves built-in plugin directories by plugin id', () => {
-    expect(getBuiltInGraphViewPluginDir('codegraphy.godot')).toBe('plugin-godot');
-    expect(getBuiltInGraphViewPluginDir('codegraphy.unity')).toBe('plugin-unity');
+  it('resolves built-in Extension plugin directories by plugin id', () => {
     expect(getBuiltInGraphViewPluginDir('codegraphy.unity.extension')).toBe('plugin-unity');
+    expect(getBuiltInGraphViewPluginDir('codegraphy.godot')).toBeUndefined();
+    expect(getBuiltInGraphViewPluginDir('codegraphy.unity')).toBeUndefined();
     expect(getBuiltInGraphViewPluginDir('codegraphy.markdown')).toBeUndefined();
     expect(getBuiltInGraphViewPluginDir('codegraphy.unknown')).toBeUndefined();
   });
@@ -22,26 +22,43 @@ describe('graphView/builtInPluginRoots', () => {
     registerBuiltInGraphViewPluginRoots(vscode.Uri.file('/test/extension'), pluginExtensionUris);
 
     expect([...pluginExtensionUris.entries()]).toEqual([
-      ['codegraphy.godot', vscode.Uri.file('/test/extension/packages/plugin-godot')],
-      ['codegraphy.unity', vscode.Uri.file('/test/extension/packages/plugin-unity')],
       ['codegraphy.unity.extension', vscode.Uri.file('/test/extension/packages/plugin-unity')],
     ]);
   });
 
   it('preserves an existing built-in plugin root while adding the missing ones', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>([
-      ['codegraphy.godot', vscode.Uri.file('/custom/plugin-godot')],
+      ['codegraphy.unity.extension', vscode.Uri.file('/custom/plugin-unity')],
     ]);
 
     registerBuiltInGraphViewPluginRoots(vscode.Uri.file('/test/extension'), pluginExtensionUris);
 
-    expect(pluginExtensionUris.get('codegraphy.godot')).toEqual(
-      vscode.Uri.file('/custom/plugin-godot'),
-    );
-    expect(pluginExtensionUris.get('codegraphy.unity')).toEqual(
-      vscode.Uri.file('/test/extension/packages/plugin-unity'),
+    expect(pluginExtensionUris.get('codegraphy.unity.extension')).toEqual(
+      vscode.Uri.file('/custom/plugin-unity'),
     );
     expect(pluginExtensionUris.has('codegraphy.markdown')).toBe(false);
+  });
+
+  it('does not expose Core plugin package roots to the Graph View', () => {
+    const pluginExtensionUris = new Map<string, vscode.Uri>();
+
+    registerPackageGraphViewPluginRoots({
+      registry: {
+        list: () => [{
+          plugin: { id: 'acme.core' },
+          sourcePackageRoot: '/plugins/core',
+        }],
+        extensionPlugins: {
+          list: () => [{
+            plugin: { id: 'acme.view' },
+            sourcePackageRoot: '/plugins/view',
+          }],
+        },
+      },
+    }, pluginExtensionUris);
+
+    expect(pluginExtensionUris.has('acme.core')).toBe(false);
+    expect(pluginExtensionUris.get('acme.view')).toEqual(vscode.Uri.file('/plugins/view'));
   });
 
   it('replaces a linked package root when the same plugin id moves', () => {
@@ -66,7 +83,7 @@ describe('graphView/builtInPluginRoots', () => {
 
   it('removes package roots for plugins that are no longer registered', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>([
-      ['codegraphy.godot', vscode.Uri.file('/extension/packages/plugin-godot')],
+      ['codegraphy.unity.extension', vscode.Uri.file('/extension/packages/plugin-unity')],
       ['acme.disabled', vscode.Uri.file('/plugins/disabled')],
       ['acme.active', vscode.Uri.file('/plugins/active')],
     ]);
@@ -85,8 +102,8 @@ describe('graphView/builtInPluginRoots', () => {
 
     expect(pluginExtensionUris.has('acme.disabled')).toBe(false);
     expect(pluginExtensionUris.get('acme.active')).toEqual(vscode.Uri.file('/plugins/active'));
-    expect(pluginExtensionUris.get('codegraphy.godot')).toEqual(
-      vscode.Uri.file('/extension/packages/plugin-godot'),
+    expect(pluginExtensionUris.get('codegraphy.unity.extension')).toEqual(
+      vscode.Uri.file('/extension/packages/plugin-unity'),
     );
   });
 });

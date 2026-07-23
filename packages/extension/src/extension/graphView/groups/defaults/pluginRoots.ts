@@ -8,10 +8,9 @@ interface PackagePluginRootInfo {
 }
 
 interface PackagePluginRootRegistry {
-  extensionPlugins?: {
+  extensionPlugins: {
     list(): PackagePluginRootInfo[];
   };
-  list?(): PackagePluginRootInfo[];
 }
 
 interface PackagePluginRootAnalyzer {
@@ -20,8 +19,6 @@ interface PackagePluginRootAnalyzer {
 
 function getBuiltInGraphViewPluginDirEntries(): Array<readonly [string, string]> {
   return [
-    ['codegraphy.godot', 'plugin-godot'],
-    ['codegraphy.unity', 'plugin-unity'],
     ['codegraphy.unity.extension', 'plugin-unity'],
   ];
 }
@@ -49,7 +46,7 @@ export function registerPackageGraphViewPluginRoots(
   pluginExtensionUris: Map<string, vscode.Uri>,
 ): void {
   const pluginInfos: PackagePluginRootInfo[] = analyzer
-    ? [...(analyzer.registry.list?.() ?? []), ...(analyzer.registry.extensionPlugins?.list() ?? [])]
+    ? analyzer.registry.extensionPlugins.list()
     : [];
   const packageRoots = new Map<string, vscode.Uri>();
   for (const pluginInfo of pluginInfos) {
