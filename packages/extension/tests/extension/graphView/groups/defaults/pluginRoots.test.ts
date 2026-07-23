@@ -61,4 +61,30 @@ describe('graphView/builtInPluginRoots', () => {
 
     expect(pluginExtensionUris.get('acme.view')).toEqual(vscode.Uri.file('/plugins/new'));
   });
+
+  it('removes package roots for plugins that are no longer registered', () => {
+    const pluginExtensionUris = new Map<string, vscode.Uri>([
+      ['codegraphy.godot', vscode.Uri.file('/extension/packages/plugin-godot')],
+      ['acme.disabled', vscode.Uri.file('/plugins/disabled')],
+      ['acme.active', vscode.Uri.file('/plugins/active')],
+    ]);
+
+    registerPackageGraphViewPluginRoots({
+      registry: {
+        list: () => [],
+        extensionPlugins: {
+          list: () => [{
+            plugin: { id: 'acme.active' },
+            sourcePackageRoot: '/plugins/active',
+          }],
+        },
+      },
+    }, pluginExtensionUris);
+
+    expect(pluginExtensionUris.has('acme.disabled')).toBe(false);
+    expect(pluginExtensionUris.get('acme.active')).toEqual(vscode.Uri.file('/plugins/active'));
+    expect(pluginExtensionUris.get('codegraphy.godot')).toEqual(
+      vscode.Uri.file('/extension/packages/plugin-godot'),
+    );
+  });
 });
