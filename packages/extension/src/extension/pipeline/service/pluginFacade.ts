@@ -18,11 +18,16 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
 
   async initialize(): Promise<void> {
     if (!this._workspacePluginHostActive) return;
-    await initializeWorkspacePipelinePlugins(
-      this._registry,
-      () => this._getWorkspaceRoot(),
-      this._context.extensionUri.fsPath,
-    );
+    try {
+      await initializeWorkspacePipelinePlugins(
+        this._registry,
+        () => this._getWorkspaceRoot(),
+        this._context.extensionUri.fsPath,
+      );
+    } catch (error) {
+      this._registry.disposeAll();
+      throw error;
+    }
 
     if (!this._workspacePluginHostActive) {
       this._registry.disposeAll();

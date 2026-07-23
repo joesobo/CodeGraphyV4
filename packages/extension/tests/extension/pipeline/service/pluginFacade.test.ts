@@ -52,7 +52,10 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
 
   _config = { id: 'config' } as unknown as Configuration;
   _discovery = { kind: 'discovery' } as unknown as FileDiscovery;
-  _registry = { id: 'registry' } as unknown as PluginRegistry;
+  _registry = {
+    id: 'registry',
+    disposeAll: vi.fn(),
+  } as unknown as PluginRegistry;
 
   constructor() {
     super({
@@ -73,6 +76,10 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
 
   effectivePluginFilterPatterns(disabledPlugins: ReadonlySet<string>): string[] {
     return this._getEffectivePluginFilterPatterns(disabledPlugins);
+  }
+
+  disposePluginHost(): void {
+    this._disposeWorkspacePluginHost();
   }
 
   protected override _getPluginSignature(): string | null {
@@ -148,6 +155,30 @@ describe('extension/pipeline/service/pluginFacade', () => {
       expect.any(Function),
       '/extension',
     );
+  });
+
+  it('cleans partial initialization when disposal happens before an initialization error', async () => {
+    let markInitializationStarted!: () => void;
+    let rejectInitialization!: (error: Error) => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((_resolve, reject) => {
+      rejectInitialization = reject;
+    });
+    vi.mocked(initializeWorkspacePipelinePlugins).mockImplementationOnce(async () => {
+      markInitializationStarted();
+      await initializationGate;
+    });
+    const facade = new TestPluginFacade();
+
+    const initialization = facade.initialize();
+    await initializationStarted;
+    facade.disposePluginHost();
+    rejectInitialization(new Error('initialization failed'));
+
+    await expect(initialization).rejects.toThrow('initialization failed');
+    expect(facade._registry.disposeAll).toHaveBeenCalledTimes(2);
   });
 
   it('syncs workspace plugins with the current workspace-root callback', async () => {
