@@ -5,7 +5,6 @@ import type {
 } from '../listener';
 import { createSettingsConfigPersistence } from './persistence';
 import {
-  readInstalledPluginDefaultOptions,
   readInstalledPluginUpdateImpact,
 } from '../../settingsMessages/defaultOptions';
 import type { GraphViewProviderSettingsContext } from './contracts';
@@ -35,8 +34,6 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue) ?? defaultValue,
     updateConfig: async (key, value) => persistConfig(key, value),
-    getInstalledPluginDefaultOptions: (pluginId: string) =>
-      readInstalledPluginDefaultOptions(pluginId, { bundledPackageRoots }),
     getInstalledPluginUpdateImpact: (pluginId: string) => (
       source._analyzer?.registry?.get?.(pluginId)?.plugin.updateImpact
       ?? readInstalledPluginUpdateImpact(pluginId, { bundledPackageRoots })

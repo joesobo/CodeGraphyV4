@@ -8,7 +8,6 @@ import type { CodeGraphyInstalledPluginRecord } from './contracts';
 export interface UpdateCodeGraphyWorkspacePluginSelectionOptions {
   pluginId: string;
   activation: CodeGraphyWorkspacePluginSettings['activation'];
-  defaultOptions?: Record<string, unknown>;
 }
 
 export function updateCodeGraphyWorkspacePluginSelection(
@@ -21,14 +20,6 @@ export function updateCodeGraphyWorkspacePluginSelection(
     id: options.pluginId,
     activation: options.activation,
   };
-  const defaultOptions = options.defaultOptions ?? {};
-  if (Object.keys(defaultOptions).length > 0) {
-    nextPlugin.options = {
-      ...defaultOptions,
-      ...nextPlugin.options,
-    };
-  }
-
   if (existingIndex < 0) {
     return [...plugins, nextPlugin];
   }

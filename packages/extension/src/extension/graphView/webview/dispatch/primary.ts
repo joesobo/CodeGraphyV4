@@ -80,7 +80,6 @@ export interface GraphViewPrimaryMessageContext {
   ): Thenable<void>;
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
-  getInstalledPluginDefaultOptions?(pluginId: string): Record<string, unknown> | undefined;
   getInstalledPluginUpdateImpact?(pluginId: string): IPluginUpdateImpactPolicy | undefined;
   reloadWorkspacePlugins(): Promise<void>;
   syncWorkspacePlugins?(): Promise<void>;

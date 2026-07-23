@@ -10,7 +10,6 @@ export type CodeGraphyWorkspacePluginIndexingPlan =
 export interface CodeGraphyWorkspacePluginToggleOptions {
   pluginId: string;
   enabled: boolean;
-  defaultOptions?: Record<string, unknown>;
   updateImpact?: IPluginUpdateImpactPolicy;
 }
 
@@ -26,7 +25,6 @@ export function createCodeGraphyWorkspacePluginTogglePlan(
   return {
     plugins: updateCodeGraphyWorkspacePluginSelection(plugins, {
       pluginId: options.pluginId,
-      defaultOptions: options.defaultOptions,
       activation: options.enabled ? 'enabled' : 'disabled',
     }),
     indexing: createPluginToggleIndexingPlan(

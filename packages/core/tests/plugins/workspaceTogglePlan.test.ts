@@ -2,16 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { createCodeGraphyWorkspacePluginTogglePlan } from '../../src';
 
 describe('plugins/workspaceTogglePlan', () => {
-  it('enables a plugin with its default options and conservatively analyzes the workspace', () => {
+  it('enables a plugin without copying package defaults into workspace overrides', () => {
     expect(createCodeGraphyWorkspacePluginTogglePlan([], {
       pluginId: 'codegraphy.godot',
       enabled: true,
-      defaultOptions: { includeAutoloads: true },
     })).toEqual({
       plugins: [{
         id: 'codegraphy.godot',
         activation: 'enabled',
-        options: { includeAutoloads: true },
       }],
       indexing: { kind: 'analyze-workspace' },
     });

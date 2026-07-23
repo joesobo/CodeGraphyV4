@@ -6,7 +6,6 @@ export type GraphViewProviderSettingsContext = Pick<
   | 'updateNodeSizeMode'
   | 'getConfig'
   | 'updateConfig'
-  | 'getInstalledPluginDefaultOptions'
   | 'getInstalledPluginUpdateImpact'
   | 'reloadWorkspacePlugins'
   | 'syncWorkspacePlugins'

@@ -22,9 +22,6 @@ export async function applySettingsToggleMessage(
         {
           pluginId: message.payload.pluginId,
           enabled: message.payload.enabled,
-          defaultOptions: message.payload.enabled
-            ? handlers.getInstalledPluginDefaultOptions?.(message.payload.pluginId)
-            : undefined,
           updateImpact: handlers.getInstalledPluginUpdateImpact?.(message.payload.pluginId),
         },
       );

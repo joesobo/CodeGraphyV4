@@ -282,7 +282,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.unity');
   });
 
-  it('copies plugin default options into workspace settings when enabling a package-backed plugin', async () => {
+  it('keeps package defaults out of workspace settings when enabling a package-backed plugin', async () => {
     const state = createState();
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -290,15 +290,6 @@ describe('graph view settings toggle message', () => {
           return [{ id: 'codegraphy.markdown', activation: 'enabled' }] as T;
         }
         return defaultValue;
-      }),
-      getInstalledPluginDefaultOptions: vi.fn((pluginId: string) => {
-        if (pluginId === 'codegraphy.godot') {
-          return {
-            includeSceneResources: true,
-            includeAutoloads: true,
-          };
-        }
-        return undefined;
       }),
     });
 
@@ -317,14 +308,7 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.markdown', activation: 'enabled' },
-      {
-        id: 'codegraphy.godot',
-        activation: 'enabled',
-        options: {
-          includeSceneResources: true,
-          includeAutoloads: true,
-        },
-      },
+      { id: 'codegraphy.godot', activation: 'enabled' },
     ]);
   });
 

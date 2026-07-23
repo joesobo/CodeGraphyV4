@@ -48,7 +48,7 @@ describe('plugins/workspaceSelection', () => {
     ]);
   });
 
-  it('adds enabled plugin ids with default options', () => {
+  it('keeps package defaults out of workspace overrides when enabling a plugin', () => {
     const plugins: CodeGraphyWorkspacePluginSettings[] = [
       { id: 'codegraphy.markdown', activation: 'enabled' },
     ];
@@ -57,21 +57,10 @@ describe('plugins/workspaceSelection', () => {
       updateCodeGraphyWorkspacePluginSelection(plugins, {
         pluginId: 'codegraphy.godot',
         activation: 'enabled',
-        defaultOptions: {
-          includeAutoloads: true,
-          includeSceneResources: true,
-        },
       }),
     ).toEqual([
       { id: 'codegraphy.markdown', activation: 'enabled' },
-      {
-        id: 'codegraphy.godot',
-        activation: 'enabled',
-        options: {
-          includeAutoloads: true,
-          includeSceneResources: true,
-        },
-      },
+      { id: 'codegraphy.godot', activation: 'enabled' },
     ]);
   });
 
@@ -84,7 +73,6 @@ describe('plugins/workspaceSelection', () => {
       updateCodeGraphyWorkspacePluginSelection(plugins, {
         pluginId: 'codegraphy.vue',
         activation: 'enabled',
-        defaultOptions: { includeTests: false },
       }),
     ).toEqual([
       { id: 'codegraphy.vue', activation: 'enabled', options: { includeTests: true } },
@@ -95,7 +83,6 @@ describe('plugins/workspaceSelection', () => {
     expect(updateCodeGraphyWorkspacePluginSelection([], {
       pluginId: 'codegraphy.ruby',
       activation: 'enabled',
-      defaultOptions: {},
     })).toEqual([{ id: 'codegraphy.ruby', activation: 'enabled' }]);
   });
 
