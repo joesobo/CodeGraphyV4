@@ -22,6 +22,11 @@ export function handlePluginInjectMessage(
       scripts: payload.scripts,
       styles: payload.styles,
       assets: payload.assets,
+    }).catch(error => {
+      console.error(
+        `[CodeGraphy] Failed to load webview assets for plugin '${payload.pluginId}':`,
+        error,
+      );
     }).finally(() => {
       graphStore.getState().finishPluginAssetLoad();
     });

@@ -70,4 +70,32 @@ describe('app/shell/messageListener/pluginInjection', () => {
     expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
     expect(knownPluginIds).toEqual(new Set(['codegraphy.organize']));
   });
+
+  it('reports a rejected asset load and still finishes loading', async () => {
+    const error = new Error('style load failed');
+    const injectPluginAssets = vi.fn().mockRejectedValue(error);
+    const beginPluginAssetLoad = vi.fn();
+    const finishPluginAssetLoad = vi.fn();
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      beginPluginAssetLoad,
+      finishPluginAssetLoad,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+
+    expect(handlePluginInjectMessage({
+      type: 'PLUGIN_WEBVIEW_INJECT',
+      payload: {
+        pluginId: 'acme.broken-style',
+        styles: ['broken.css'],
+      },
+    }, injectPluginAssets, new Set<string>())).toBe(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(logError).toHaveBeenCalledWith(
+      "[CodeGraphy] Failed to load webview assets for plugin 'acme.broken-style':",
+      error,
+    );
+    expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
+  });
 });
