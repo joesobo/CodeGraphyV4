@@ -33,7 +33,6 @@ describe('CodeGraphy tldraw document script', () => {
     const storeListener = vi.fn();
     const editor = {
       getCurrentPage: () => ({ meta: {} }),
-      getCurrentPageId: () => 'page:page',
       getCurrentPageShapes: () => [
         {
           id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
@@ -46,7 +45,6 @@ describe('CodeGraphy tldraw document script', () => {
       ],
       off: vi.fn(),
       on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
-      reparentShapes: vi.fn(),
       run: vi.fn((operation: () => void) => operation()),
       store: { listen: vi.fn(() => storeListener) },
       updateShapes,
@@ -76,14 +74,12 @@ describe('CodeGraphy tldraw document script', () => {
     const listeners = new Map<string, (payload: unknown) => void>();
     const editor = {
       getCurrentPage: () => ({ meta: {} }),
-      getCurrentPageId: () => 'page:page',
       getCurrentPageShapes: () => [{
         id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
         meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
       }],
       off: vi.fn(),
       on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
-      reparentShapes: vi.fn(),
       run: vi.fn((operation: () => void) => operation()),
       store: { listen: vi.fn(() => vi.fn()) },
       updateShapes: vi.fn(),
@@ -120,11 +116,9 @@ describe('CodeGraphy tldraw document script', () => {
     let nodeShapes = [nodeShape];
     const editor = {
       getCurrentPage: () => ({ meta: {} }),
-      getCurrentPageId: () => 'page:page',
       getCurrentPageShapes: () => nodeShapes,
       off: vi.fn(),
       on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
-      reparentShapes: vi.fn(),
       run: vi.fn((operation: () => void) => operation()),
       store: { listen: vi.fn((listener: (entry: object) => void) => {
         storeListener = listener;
@@ -172,14 +166,12 @@ describe('CodeGraphy tldraw document script', () => {
     };
     const editor = {
       getCurrentPage: () => ({ meta: { codegraphyPhysics: physics } }),
-      getCurrentPageId: () => 'page:page',
       getCurrentPageShapes: () => [{
         id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 20, h: 20 },
         meta: { codegraphyKind: 'node', codegraphyEntityId: 'a' },
       }],
       off: vi.fn(),
       on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
-      reparentShapes: vi.fn(),
       run: vi.fn((operation: () => void) => operation()),
       store: { listen: vi.fn((listener: () => void) => {
         storeListener = listener;
@@ -211,11 +203,9 @@ describe('CodeGraphy tldraw document script', () => {
     };
     const editor = {
       getCurrentPage: () => ({ meta: {} }),
-      getCurrentPageId: () => 'page:page',
       getCurrentPageShapes: () => [nodeShape],
       off: vi.fn(),
       on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
-      reparentShapes: vi.fn(),
       run: vi.fn((operation: () => void) => operation()),
       store: { listen: vi.fn(() => vi.fn()) },
       updateShapes: vi.fn(),

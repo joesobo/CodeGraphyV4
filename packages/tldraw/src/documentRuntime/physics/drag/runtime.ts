@@ -66,8 +66,7 @@ export function synchronizeDraggedNode(host: DragHost): void {
   );
 }
 
-function endPointerDrag(host: DragHost): string | undefined {
-  const entityId = host.drag.entityId;
+function endPointerDrag(host: DragHost): void {
   const index = host.drag.nodeIndex;
   const engine = host.getEngine();
   if (index !== undefined && engine) {
@@ -76,19 +75,14 @@ function endPointerDrag(host: DragHost): string | undefined {
     engine.setAlphaTarget(0);
   }
   clearDragSession(host.drag);
-  return entityId;
 }
 
-export function handlePointerEvent(
-  host: DragHost,
-  event: ScriptPointerEvent,
-): string | undefined {
-  if (event.type !== 'pointer') return undefined;
+export function handlePointerEvent(host: DragHost, event: ScriptPointerEvent): void {
+  if (event.type !== 'pointer') return;
   if (event.name === 'pointer_down') {
     const node = pointerNode(host, event.shape);
     if (node) beginDragSession(host.drag, node);
   }
   if (event.name === 'pointer_move') synchronizeDraggedNode(host);
-  if (event.name === 'pointer_up') return endPointerDrag(host);
-  return undefined;
+  if (event.name === 'pointer_up') endPointerDrag(host);
 }

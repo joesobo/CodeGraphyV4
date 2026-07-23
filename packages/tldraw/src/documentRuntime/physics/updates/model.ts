@@ -16,8 +16,6 @@ interface TrackedNode {
 }
 
 interface TrackedEdge {
-  currentParentId: string;
-  parentId: string;
   shape: ScriptShape;
   source: number;
   target: number;
@@ -61,22 +59,12 @@ function trackedNodes(
 
 function trackedEdges(
   shapes: readonly ScriptShape[],
-  nodes: ReadonlyMap<string, TrackedNode>,
-  pageId: string,
+  indexes: ReadonlyMap<string, number>,
 ): TrackedEdge[] {
   return shapes.flatMap((shape): TrackedEdge[] => {
-    const source = nodes.get(String(shape.meta.codegraphyFrom));
-    const target = nodes.get(String(shape.meta.codegraphyTo));
-    if (!source || !target) return [];
-    const sourceParentId = source.shape.parentId ?? pageId;
-    const targetParentId = target.shape.parentId ?? pageId;
-    return [{
-      currentParentId: shape.parentId ?? pageId,
-      parentId: sourceParentId === targetParentId ? sourceParentId : pageId,
-      shape,
-      source: source.index,
-      target: target.index,
-    }];
+    const source = indexes.get(String(shape.meta.codegraphyFrom));
+    const target = indexes.get(String(shape.meta.codegraphyTo));
+    return source === undefined || target === undefined ? [] : [{ shape, source, target }];
   });
 }
 
@@ -107,8 +95,6 @@ export function createShapeUpdateModel(
   labelShapes: readonly LabelShape[],
   engine: GraphLayoutEngine,
   geometryHost?: ShapeGeometryHost,
-  pageId = 'page:page',
-  synchronizeNodeIds: ReadonlySet<string> = new Set<string>(),
 ): ShapeUpdateModel {
   const indexes = nodeIndexes(engine);
   const nodes = trackedNodes(nodeShapes, indexes);
@@ -128,23 +114,19 @@ export function createShapeUpdateModel(
       companionParentMismatches.add(label.node.shape.meta.codegraphyEntityId);
     }
   }
-  const synchronize = new Uint8Array(engine.nodeIds.length);
-  const edges = trackedEdges(edgeShapes, nodesByEntityId, pageId);
   const lastX = new Float64Array(engine.nodeIds.length);
   const lastY = new Float64Array(engine.nodeIds.length);
+  const synchronize = new Uint8Array(engine.nodeIds.length);
   for (const node of nodes) {
     const bounds = shapePageBounds(node.shape, geometryHost);
     lastX[node.index] = bounds.x + bounds.w / 2;
     lastY[node.index] = bounds.y + bounds.h / 2;
-    if (
-      companionParentMismatches.has(node.shape.meta.codegraphyEntityId)
-      || synchronizeNodeIds.has(node.shape.meta.codegraphyEntityId)
-    ) {
+    if (companionParentMismatches.has(node.shape.meta.codegraphyEntityId)) {
       synchronize[node.index] = 1;
     }
   }
   return {
-    edges,
+    edges: trackedEdges(edgeShapes, indexes),
     icons,
     labels,
     lastX,
@@ -205,33 +187,18 @@ function appendEdgeUpdates(
   model: ShapeUpdateModel,
 ): void {
   for (const edge of model.edges) {
-    const parentChanged = edge.currentParentId !== edge.parentId;
-    if (
-      !parentChanged
-      && model.moved[edge.source] === 0
-      && model.moved[edge.target] === 0
-    ) continue;
-    const shapeInTargetParent = { ...edge.shape, parentId: edge.parentId };
-    const start = shapeLocalPoint(shapeInTargetParent, {
-      x: model.lastX[edge.source],
-      y: model.lastY[edge.source],
-    }, model.geometryHost);
-    const end = shapeLocalPoint(shapeInTargetParent, {
-      x: model.lastX[edge.target],
-      y: model.lastY[edge.target],
-    }, model.geometryHost);
+    if (model.moved[edge.source] === 0 && model.moved[edge.target] === 0) continue;
     updates.push({
       id: edge.shape.id,
-      ...(parentChanged ? { parentId: edge.parentId } : {}),
       type: edge.shape.type,
-      x: start.x,
-      y: start.y,
+      x: model.lastX[edge.source],
+      y: model.lastY[edge.source],
       props: {
         ...edge.shape.props,
         start: { x: 0, y: 0 },
         end: {
-          x: end.x - start.x,
-          y: end.y - start.y,
+          x: model.lastX[edge.target] - model.lastX[edge.source],
+          y: model.lastY[edge.target] - model.lastY[edge.source],
         },
       },
     });

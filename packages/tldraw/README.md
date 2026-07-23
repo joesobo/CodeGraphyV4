@@ -163,14 +163,13 @@ Changes apply to the active graph and remain saved in the document.
 ## Group nodes with native frames
 
 Use tldraw's **Frame** tool (`F`) to draw a frame around generated nodes.
-tldraw captures each node, icon, label, and connection between grouped nodes as
-native frame children. You can also drag a node into an existing frame or drag
-it out again. The frame becomes a soft local gravity center for its nodes.
+tldraw captures each node, icon, and label as native frame children. The frame
+then becomes a soft local gravity center for those nodes.
 
 The grouped nodes keep their normal link, repel, collision, resize, and drag
-physics. Their collision radii stay inside the frame boundary. Move or resize
-the frame to move the local gravity center; the nodes settle again inside the
-updated frame. Nodes outside frames continue to use the canvas center.
+physics. Move or resize the frame to move the local gravity center; the nodes
+settle again inside the updated frame. Nodes outside frames continue to use the
+canvas center.
 
 Run the same `codegraphy-tldraw` command after workspace changes. Refresh keeps
 the frame and the surviving generated nodes inside it.
@@ -195,7 +194,7 @@ Use the search bar at the top of the canvas to find files by their
 workspace-relative path. Search is case-insensitive and updates while you type.
 The canvas shows matching nodes, their icons and labels, and edges between
 matching nodes. The filtered nodes continue to use force physics, and the camera
-fits the results when their layout settles. Hidden results cannot be selected.
+fits the results when their layout settles.
 
 Use `*` as a wildcard. For example, `*.ts` shows TypeScript files, and `*`
 shows the complete graph.
