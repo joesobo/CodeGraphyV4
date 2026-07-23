@@ -10,3 +10,7 @@ Use the four canvas controls to adjust repel force, center force, link distance,
 and link force while the graph is open. Resizing a node also updates its
 collision spacing and repel strength, so manually sized nodes remain part of the
 same stable layout.
+
+Keep larger canvases responsive while they settle by sending tldraw only the
+node movement that is large enough to display and the connected shapes that
+must move with it.

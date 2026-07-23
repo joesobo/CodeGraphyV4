@@ -15,7 +15,11 @@ import {
   type ScriptShape,
 } from './shape/model';
 import { graphStructureKey } from './shape/structure';
-import { createShapeUpdates } from './updates/model';
+import {
+  createShapeUpdateModel,
+  createShapeUpdates,
+  type ShapeUpdateModel,
+} from './updates/model';
 
 export interface ScriptEditor {
   getCurrentPage(): { meta: Record<string, unknown> };
@@ -47,6 +51,7 @@ interface PhysicsRuntime {
   iconShapes: IconShape[];
   labelShapes: LabelShape[];
   nodeShapes: NodeShape[];
+  shapeUpdates?: ShapeUpdateModel;
   structureKey: string;
   writingPhysicsUpdates: boolean;
 }
@@ -58,11 +63,21 @@ function rebuildRuntime(runtime: PhysicsRuntime): void {
   runtime.edgeShapes = shapes.filter(isEdgeShape);
   runtime.iconShapes = shapes.filter(isIconShape);
   runtime.labelShapes = shapes.filter(isLabelShape);
-  runtime.engine = createRuntimeEngine(
+  const engine = createRuntimeEngine(
     runtime.nodeShapes,
     runtime.edgeShapes,
     runtime.forceSettings,
   );
+  runtime.engine = engine;
+  runtime.shapeUpdates = engine
+    ? createShapeUpdateModel(
+      runtime.nodeShapes,
+      runtime.edgeShapes,
+      runtime.iconShapes,
+      runtime.labelShapes,
+      engine,
+    )
+    : undefined;
   runtime.dirty = false;
 }
 
@@ -84,15 +99,11 @@ function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
   prepareRuntimeEngine(runtime);
   synchronizeDraggedNode(dragHost);
   const engine = runtime.engine;
-  if (!engine || engine.settled) return;
+  const shapeUpdates = runtime.shapeUpdates;
+  if (!engine || !shapeUpdates || engine.settled) return;
   engine.tick();
-  const updates = createShapeUpdates(
-    runtime.nodeShapes,
-    runtime.edgeShapes,
-    runtime.iconShapes,
-    runtime.labelShapes,
-    engine,
-  );
+  const updates = createShapeUpdates(shapeUpdates, engine);
+  if (updates.length === 0) return;
   runtime.editor.run(
     () => {
       runtime.writingPhysicsUpdates = true;
@@ -127,16 +138,20 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
   const edgeShapes = shapes.filter(isEdgeShape);
   const iconShapes = shapes.filter(isIconShape);
   const labelShapes = shapes.filter(isLabelShape);
+  const engine = createRuntimeEngine(nodeShapes, edgeShapes, forceSettings);
   return {
     dirty: false,
     drag: {},
     edgeShapes,
     editor,
-    engine: createRuntimeEngine(nodeShapes, edgeShapes, forceSettings),
+    engine,
     forceSettings,
     iconShapes,
     labelShapes,
     nodeShapes,
+    shapeUpdates: engine
+      ? createShapeUpdateModel(nodeShapes, edgeShapes, iconShapes, labelShapes, engine)
+      : undefined,
     structureKey: graphStructureKey(shapes),
     writingPhysicsUpdates: false,
   };

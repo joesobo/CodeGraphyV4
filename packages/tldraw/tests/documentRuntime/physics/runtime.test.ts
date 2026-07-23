@@ -195,6 +195,20 @@ describe('tldraw physics runtime', () => {
     expect(harness.getCurrentPage).toHaveBeenCalledOnce();
   });
 
+  it('does not write a tldraw transaction when movement is too small to display', async () => {
+    const settledNodeA = { ...nodeA, x: -10, y: 40 };
+    const settledNodeB = { ...nodeB, x: 390, y: 440 };
+    const harness = createHarness({ shapes: [settledNodeA, settledNodeB, edgeAB] });
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({ editor: harness.editor, signal: new AbortController().signal });
+    harness.emit('tick', 16);
+
+    expect(engine.tick).toHaveBeenCalledOnce();
+    expect(harness.editor.run).not.toHaveBeenCalled();
+    expect(harness.updateShapes).not.toHaveBeenCalled();
+  });
+
   it('rebuilds physics for graph structure changes but not delayed position updates', async () => {
     const harness = createHarness({ shapes: [nodeA] });
     const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');

@@ -1,6 +1,9 @@
 import type { GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 import { describe, expect, it } from 'vitest';
-import { createShapeUpdates } from '../../../../src/documentRuntime/physics/updates/model';
+import {
+  createShapeUpdateModel,
+  createShapeUpdates,
+} from '../../../../src/documentRuntime/physics/updates/model';
 
 describe('tldraw physics shape updates', () => {
   it('projects normalized node positions and resolved edge geometry onto native shapes', () => {
@@ -44,7 +47,9 @@ describe('tldraw physics shape updates', () => {
       y: Float32Array.of(20, 100),
     } as unknown as GraphLayoutEngine;
 
-    expect(createShapeUpdates(nodes, edges, icons, labels, engine)).toEqual([
+    const model = createShapeUpdateModel(nodes, edges, icons, labels, engine);
+
+    expect(createShapeUpdates(model, engine)).toEqual([
       { id: 'shape:a', type: 'geo', x: -10, y: 40 },
       { id: 'shape:b', type: 'geo', x: 390, y: 440 },
       {
@@ -53,6 +58,50 @@ describe('tldraw physics shape updates', () => {
       },
       { id: 'icon:a', type: 'image', x: 22, y: 72 },
       { id: 'label:a', type: 'text', x: -40, y: 168 },
+    ]);
+  });
+
+  it('updates only visibly moved nodes and their dependent shapes', () => {
+    const nodes = [
+      {
+        id: 'shape:a', type: 'geo', x: 0, y: 0, props: { w: 120, h: 120 },
+        meta: { codegraphyKind: 'node' as const, codegraphyEntityId: 'a' },
+      },
+      {
+        id: 'shape:b', type: 'geo', x: 200, y: 0, props: { w: 120, h: 120 },
+        meta: { codegraphyKind: 'node' as const, codegraphyEntityId: 'b' },
+      },
+    ];
+    const edges = [{
+      id: 'edge:ab', type: 'arrow', x: 60, y: 60, props: {},
+      meta: { codegraphyFrom: 'a', codegraphyTo: 'b' },
+    }];
+    const icons = [{
+      id: 'icon:a', type: 'image', x: 32, y: 32, props: { w: 56, h: 56 },
+      meta: { codegraphyKind: 'icon' as const, codegraphyNodeId: 'a' },
+    }];
+    const labels = [{
+      id: 'label:a', type: 'text', x: -30, y: 128, props: { w: 180 },
+      meta: { codegraphyKind: 'label' as const, codegraphyNodeId: 'a' },
+    }];
+    const engine = {
+      nodeIds: ['a', 'b'],
+      x: Float32Array.of(12, 52),
+      y: Float32Array.of(12, 12),
+    } as unknown as GraphLayoutEngine;
+    const model = createShapeUpdateModel(nodes, edges, icons, labels, engine);
+
+    expect(createShapeUpdates(model, engine)).toEqual([]);
+
+    engine.x[0] += 0.04;
+    expect(createShapeUpdates(model, engine)).toEqual([]);
+
+    engine.x[0] += 0.02;
+    expect(createShapeUpdates(model, engine).map(update => update.id)).toEqual([
+      'shape:a',
+      'edge:ab',
+      'icon:a',
+      'label:a',
     ]);
   });
 });
