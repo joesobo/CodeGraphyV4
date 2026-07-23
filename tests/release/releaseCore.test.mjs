@@ -17,20 +17,34 @@ test('core extension release includes built-in Unity plugin icon assets', () => 
   );
 });
 
-test('core extension release includes the bundled Unity plugin runtime and manifest', () => {
+test('core extension release includes every bundled plugin runtime and manifest', () => {
   const rootManifest = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
   );
   const entries = releaseCore.collectCoreReleaseEntries(rootManifest);
 
-  assert.ok(
-    entries.includes('packages/plugin-unity/codegraphy.json'),
-    'Unity plugin manifest must be staged so packaged extension defaults match the bundled runtime.',
-  );
-  assert.ok(
-    entries.includes('packages/plugin-unity/dist'),
-    'Unity plugin runtime must be staged so packaged extensions can load the bundled Unity plugin.',
-  );
+  for (const plugin of [
+    'godot',
+    'markdown',
+    'particles',
+    'svelte',
+    'typescript',
+    'unity',
+    'vue',
+  ]) {
+    assert.ok(
+      entries.includes(`packages/plugin-${plugin}/package.json`),
+      `${plugin} package manifest must be staged so the host-neutral loader can discover it.`,
+    );
+    assert.ok(
+      entries.includes(`packages/plugin-${plugin}/codegraphy.json`),
+      `${plugin} runtime manifest must be staged with the bundled plugin.`,
+    );
+    assert.ok(
+      entries.includes(`packages/plugin-${plugin}/dist`),
+      `${plugin} runtime must be staged so packaged extensions can load it.`,
+    );
+  }
 });
 
 test('core extension release declares platform-specific VSIX targets', () => {
