@@ -91,6 +91,7 @@ describe('extension/pipeline/service/internalBase signatures', () => {
     expect(source.getSettingsSignature()).toBe('settings-signature');
     expect(createWorkspacePipelineSettingsSignature).toHaveBeenCalledWith(
       source._config,
+      source._registry.list(),
     );
   });
 

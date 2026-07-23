@@ -55,6 +55,7 @@ export async function loadSubject(
   vi.doMock('../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
     WorkspacePipeline: class WorkspacePipeline {
       warmGraphCache = vi.fn(async () => undefined);
+      dispose = vi.fn(async () => undefined);
     },
   }));
   vi.doMock('../../../../../src/core/views', () => ({

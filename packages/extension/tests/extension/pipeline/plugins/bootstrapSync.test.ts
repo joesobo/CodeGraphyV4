@@ -72,8 +72,16 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
 
     expect(extensionPlugins.register).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'acme.particles' }),
-      expect.objectContaining({ sourcePackageRoot: packageRoot }),
+      expect.objectContaining({
+        sourcePackage: '@acme/codegraphy-extension-particles',
+      }),
     );
+    const registrationOptions = extensionPlugins.register.mock.calls[0]?.[1] as {
+      sourcePackageRoot?: string;
+    };
+    expect(registrationOptions.sourcePackageRoot).not.toBe(packageRoot);
+    expect(registrationOptions.sourcePackageRoot).toContain('codegraphy-plugin-modules');
+    expect(await fs.stat(registrationOptions.sourcePackageRoot ?? '')).toBeDefined();
     expect(extensionPlugins.initializeAll).toHaveBeenCalledWith(workspaceRoot);
     expect(registry.register).not.toHaveBeenCalledWith(
       expect.objectContaining({ id: 'acme.particles' }),
