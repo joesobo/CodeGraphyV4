@@ -39,15 +39,12 @@ function getResourceRootKey(uri: vscode.Uri): string {
   return getGraphViewUriKey(uri);
 }
 
-function areLocalResourceRootsEqual(
+function hasNewLocalResourceRoots(
   current: readonly vscode.Uri[] | undefined,
   next: readonly vscode.Uri[],
 ): boolean {
-  return Boolean(
-    current
-    && current.length === next.length
-    && current.every((uri, index) => getResourceRootKey(uri) === getResourceRootKey(next[index])),
-  );
+  const currentKeys = new Set((current ?? []).map(getResourceRootKey));
+  return next.some(uri => !currentKeys.has(getResourceRootKey(uri)));
 }
 
 function mergeLiveWebviewResourceRoots(
@@ -70,13 +67,14 @@ function refreshWebviewResourceRoots(
   webview: vscode.Webview,
   localResourceRoots: readonly vscode.Uri[],
 ): void {
+  if (!hasNewLocalResourceRoots(webview.options.localResourceRoots, localResourceRoots)) {
+    return;
+  }
+
   const mergedRoots = mergeLiveWebviewResourceRoots(
     webview.options.localResourceRoots,
     localResourceRoots,
   );
-  if (areLocalResourceRootsEqual(webview.options.localResourceRoots, mergedRoots)) {
-    return;
-  }
 
   webview.options = {
     ...webview.options,

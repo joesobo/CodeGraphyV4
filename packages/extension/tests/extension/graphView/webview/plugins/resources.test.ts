@@ -102,6 +102,48 @@ describe('graphView/webview/plugins/resources', () => {
     });
   });
 
+  it('keeps old roots when it adds a replacement root to a live webview', () => {
+    const extensionRoot = vscode.Uri.file('/test/extension');
+    const oldPluginRoot = vscode.Uri.file('/test/old-plugin');
+    const newPluginRoot = vscode.Uri.file('/test/new-plugin');
+    const view = {
+      webview: {
+        options: {
+          enableScripts: true,
+          localResourceRoots: [extensionRoot, oldPluginRoot],
+        },
+      },
+    };
+
+    refreshGraphViewResourceRoots(
+      view as unknown as vscode.WebviewView,
+      [],
+      [extensionRoot, newPluginRoot],
+    );
+
+    expect(view.webview.options.localResourceRoots).toEqual([
+      extensionRoot,
+      oldPluginRoot,
+      newPluginRoot,
+    ]);
+  });
+
+  it('refreshes panels without a sidebar view', () => {
+    const roots: vscode.Uri[] = [vscode.Uri.file('/test/extension')];
+    const panel = { webview: { options: { enableScripts: true } } };
+
+    refreshGraphViewResourceRoots(
+      undefined,
+      [panel as unknown as vscode.WebviewPanel],
+      roots,
+    );
+
+    expect(panel.webview.options).toEqual({
+      enableScripts: true,
+      localResourceRoots: roots,
+    });
+  });
+
   it('resolves plugin assets against the current webview and known extension roots', () => {
     const webview = {
       asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
