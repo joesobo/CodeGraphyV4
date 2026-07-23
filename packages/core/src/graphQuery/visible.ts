@@ -27,7 +27,9 @@ export function deriveScopedGraphQueryData(
   graphData: IGraphData,
   config: GraphQueryConfig = {},
 ): IGraphData {
-  const scopedGraph = deriveVisibleGraph(graphData, { scope: toVisibleScope(config.scope) }).graphData;
+  const scopedGraph = deriveVisibleGraph(graphData, {
+    scope: toVisibleScope(config.scope, config.nodeTypeDefinitions),
+  }).graphData;
   return applyExplicitScope(scopedGraph, config);
 }
 

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { resolveProjectedGraphNodeTypes } from '../../../src/workspace/graphScopeProjection/model';
+import {
+  ENGINE_PLUGIN_NODE_TYPES,
+  GODOT_NODE_TYPES,
+} from '../../fixtures/enginePluginNodeTypes';
 
 describe('workspace graph scope projection', () => {
   it('adds parent and overlapping Core Node Types for a requested child', () => {
@@ -30,7 +34,7 @@ describe('workspace graph scope projection', () => {
   it('does not broaden plugin Node Types to Core types with the same symbol kind', () => {
     expect(new Set(resolveProjectedGraphNodeTypes([
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
-    ]))).toEqual(new Set([
+    ], GODOT_NODE_TYPES))).toEqual(new Set([
       'symbol',
       'variable',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
@@ -44,7 +48,7 @@ describe('workspace graph scope projection', () => {
   });
 
   it('adds descendants needed to evaluate a parent Node Type projection', () => {
-    const symbolTypes = resolveProjectedGraphNodeTypes(['symbol']);
+    const symbolTypes = resolveProjectedGraphNodeTypes(['symbol'], ENGINE_PLUGIN_NODE_TYPES);
     const variableTypes = resolveProjectedGraphNodeTypes(['variable']);
 
     expect(symbolTypes).toEqual(expect.arrayContaining([

@@ -1,4 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
+import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import type { VisibleGraphScopeConfig } from './contracts';
 import { filterEdgesToNodes, getDisabledTypes } from './model';
 import {
@@ -145,15 +146,22 @@ export function applyGraphScope(
   graphData: IGraphData,
   scope: VisibleGraphScopeConfig,
 ): IGraphData {
+  const nodeTypes = [
+    ...new Map(
+      [...CORE_GRAPH_NODE_TYPES, ...(scope.nodeTypes ?? [])]
+        .map(definition => [definition.id, definition]),
+    ).values(),
+  ];
   const disabledNodeTypes = getDisabledNodeTypes(scope);
-  const disabledSymbolKinds = getDisabledSymbolKinds(scope);
-  const disabledScopedSymbolDefinitions = getDisabledScopedSymbolDefinitions(scope);
+  const disabledSymbolKinds = getDisabledSymbolKinds(scope, nodeTypes);
+  const disabledScopedSymbolDefinitions = getDisabledScopedSymbolDefinitions(scope, nodeTypes);
   const disabledEdgeTypes = getDisabledTypes(scope.edges);
   const nodes = graphData.nodes.filter((node) => nodeMatchesScope(
     node,
     disabledNodeTypes,
     disabledSymbolKinds,
     disabledScopedSymbolDefinitions,
+    nodeTypes,
   ));
   const scopedEdges = graphData.edges.filter((edge) => !disabledEdgeTypes.has(edge.kind));
   const edges = keepMostSpecificUniqueEdges(

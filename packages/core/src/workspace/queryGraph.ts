@@ -49,7 +49,8 @@ export function readWorkspaceQueryGraph(
     nodes: projection.nodeTypes
       ? Object.fromEntries([
           ...Object.keys(savedScope.nodes).map(type => [type, false] as const),
-          ...resolveProjectedGraphNodeTypes(projection.nodeTypes).map(type => [type, true] as const),
+          ...resolveProjectedGraphNodeTypes(projection.nodeTypes, declarations.nodes)
+            .map(type => [type, true] as const),
         ])
       : savedScope.nodes,
     edges: projection.edgeTypes
@@ -62,6 +63,7 @@ export function readWorkspaceQueryGraph(
 
   return {
     graphData,
+    nodeTypes: declarations.nodes,
     scope,
     settings,
     snapshotFacts: normalizeWorkspaceQueryFacts(

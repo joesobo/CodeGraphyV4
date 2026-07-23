@@ -4,18 +4,17 @@ import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import { getNodeType } from './model';
 import { symbolMatchesScopedDefinition } from './scopeSymbolMatch';
 
-const CORE_NODE_TYPE_BY_ID = new Map(CORE_GRAPH_NODE_TYPES.map((definition) => [definition.id, definition]));
-
 function hasDisabledAncestor(
   definition: Pick<IGraphNodeTypeDefinition, 'parentId'> | undefined,
   disabledNodeTypes: ReadonlySet<string>,
+  nodeTypeById: ReadonlyMap<string, IGraphNodeTypeDefinition>,
 ): boolean {
   let current = definition;
   while (current?.parentId) {
     if (disabledNodeTypes.has(current.parentId)) {
       return true;
     }
-    current = CORE_NODE_TYPE_BY_ID.get(current.parentId);
+    current = nodeTypeById.get(current.parentId);
   }
 
   return false;
@@ -24,13 +23,14 @@ function hasDisabledAncestor(
 function hasDisabledDefinitionOrAncestor(
   definition: IGraphNodeTypeDefinition | undefined,
   disabledNodeTypes: ReadonlySet<string>,
+  nodeTypeById: ReadonlyMap<string, IGraphNodeTypeDefinition>,
 ): boolean {
   let current = definition;
   while (current) {
     if (disabledNodeTypes.has(current.id)) {
       return true;
     }
-    current = current.parentId ? CORE_NODE_TYPE_BY_ID.get(current.parentId) : undefined;
+    current = current.parentId ? nodeTypeById.get(current.parentId) : undefined;
   }
 
   return false;
@@ -39,8 +39,9 @@ function hasDisabledDefinitionOrAncestor(
 function nodeTypeHasDisabledAncestor(
   nodeType: string,
   disabledNodeTypes: ReadonlySet<string>,
+  nodeTypeById: ReadonlyMap<string, IGraphNodeTypeDefinition>,
 ): boolean {
-  return hasDisabledAncestor(CORE_NODE_TYPE_BY_ID.get(nodeType), disabledNodeTypes);
+  return hasDisabledAncestor(nodeTypeById.get(nodeType), disabledNodeTypes, nodeTypeById);
 }
 
 function getDefinitionSymbolKinds(definition: IGraphNodeTypeDefinition): readonly string[] | undefined {
@@ -71,8 +72,11 @@ export function symbolDefinitionHasMatcher(definition: IGraphNodeTypeDefinition)
   return getDefinitionSpecificity(definition) > 0;
 }
 
-function findMatchingSymbolDefinition(node: IGraphData['nodes'][number]): IGraphNodeTypeDefinition | undefined {
-  return CORE_GRAPH_NODE_TYPES
+function findMatchingSymbolDefinition(
+  node: IGraphData['nodes'][number],
+  nodeTypes: readonly IGraphNodeTypeDefinition[],
+): IGraphNodeTypeDefinition | undefined {
+  return nodeTypes
     .filter((definition) =>
       definition.parentId
       && symbolDefinitionHasMatcher(definition)
@@ -86,16 +90,25 @@ export function nodeMatchesScope(
   disabledNodeTypes: ReadonlySet<string>,
   disabledSymbolKinds: ReadonlySet<string>,
   disabledScopedSymbolDefinitions: readonly IGraphNodeTypeDefinition[],
+  nodeTypes: readonly IGraphNodeTypeDefinition[] = CORE_GRAPH_NODE_TYPES,
 ): boolean {
+  const nodeTypeById = new Map(nodeTypes.map((definition) => [definition.id, definition]));
   const nodeType = getNodeType(node);
-  if (disabledNodeTypes.has(nodeType) || nodeTypeHasDisabledAncestor(nodeType, disabledNodeTypes)) {
+  if (
+    disabledNodeTypes.has(nodeType)
+    || nodeTypeHasDisabledAncestor(nodeType, disabledNodeTypes, nodeTypeById)
+  ) {
     return false;
   }
 
   const symbolKind = node.symbol?.kind;
-  const matchingSymbolDefinition = findMatchingSymbolDefinition(node);
+  const matchingSymbolDefinition = findMatchingSymbolDefinition(node, nodeTypes);
   return (!symbolKind || !disabledSymbolKinds.has(symbolKind))
-    && !hasDisabledDefinitionOrAncestor(matchingSymbolDefinition, disabledNodeTypes)
+    && !hasDisabledDefinitionOrAncestor(
+      matchingSymbolDefinition,
+      disabledNodeTypes,
+      nodeTypeById,
+    )
     && (!symbolKind || Boolean(matchingSymbolDefinition))
     && disabledScopedSymbolDefinitions.every((definition) => !symbolMatchesScopedDefinition(node, definition));
 }

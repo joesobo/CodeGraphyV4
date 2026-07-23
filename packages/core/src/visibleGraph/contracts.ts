@@ -1,4 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
+import type { IGraphNodeTypeDefinition } from '../graphControls/contracts';
 
 export interface VisibleGraphScopeItem {
   type: string;
@@ -8,6 +9,7 @@ export interface VisibleGraphScopeItem {
 export interface VisibleGraphScopeConfig {
   nodes: VisibleGraphScopeItem[];
   edges: VisibleGraphScopeItem[];
+  nodeTypes?: readonly IGraphNodeTypeDefinition[];
 }
 
 export interface VisibleGraphFilterConfig {

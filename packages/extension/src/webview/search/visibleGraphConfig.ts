@@ -68,6 +68,7 @@ export function buildVisibleGraphScopeConfig(
   return {
     nodes: Array.from(nodeScopes, ([type, enabled]) => ({ type, enabled })),
     edges: Array.from(edgeScopes, ([type, enabled]) => ({ type, enabled })),
+    ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
   };
 }
 

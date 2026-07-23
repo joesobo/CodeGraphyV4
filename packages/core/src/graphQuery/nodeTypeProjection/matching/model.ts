@@ -5,18 +5,15 @@ import { getNodeType } from '../../../visibleGraph/model';
 import { symbolDefinitionHasMatcher } from '../../../visibleGraph/scopeMatch';
 import { symbolMatchesScopedDefinition } from '../../../visibleGraph/scopeSymbolMatch';
 
-const NODE_TYPE_BY_ID = new Map(
-  CORE_GRAPH_NODE_TYPES.map(definition => [definition.id, definition]),
-);
-
 function isDefinitionAtOrBelow(
   definition: IGraphNodeTypeDefinition,
   requestedType: string,
+  nodeTypeById: ReadonlyMap<string, IGraphNodeTypeDefinition>,
 ): boolean {
   let current: IGraphNodeTypeDefinition | undefined = definition;
   while (current) {
     if (current.id === requestedType) return true;
-    current = current.parentId ? NODE_TYPE_BY_ID.get(current.parentId) : undefined;
+    current = current.parentId ? nodeTypeById.get(current.parentId) : undefined;
   }
   return false;
 }
@@ -24,10 +21,12 @@ function isDefinitionAtOrBelow(
 function nodeMatchesDescendantDefinition(
   node: IGraphData['nodes'][number],
   requestedType: string,
+  nodeTypes: readonly IGraphNodeTypeDefinition[],
+  nodeTypeById: ReadonlyMap<string, IGraphNodeTypeDefinition>,
 ): boolean {
-  return CORE_GRAPH_NODE_TYPES.some(definition => (
+  return nodeTypes.some(definition => (
     definition.id !== requestedType
-    && isDefinitionAtOrBelow(definition, requestedType)
+    && isDefinitionAtOrBelow(definition, requestedType, nodeTypeById)
     && symbolDefinitionHasMatcher(definition)
     && symbolMatchesScopedDefinition(node, definition)
   ));
@@ -36,8 +35,9 @@ function nodeMatchesDescendantDefinition(
 function nodeMatchesRequestedDefinition(
   node: IGraphData['nodes'][number],
   requestedType: string,
+  nodeTypeById: ReadonlyMap<string, IGraphNodeTypeDefinition>,
 ): boolean {
-  const definition = NODE_TYPE_BY_ID.get(requestedType);
+  const definition = nodeTypeById.get(requestedType);
   return Boolean(
     definition
     && symbolDefinitionHasMatcher(definition)
@@ -48,13 +48,16 @@ function nodeMatchesRequestedDefinition(
 export function nodeMatchesProjectedNodeTypes(
   node: IGraphData['nodes'][number],
   projectedNodeTypes: readonly string[],
+  pluginNodeTypes: readonly IGraphNodeTypeDefinition[] = [],
 ): boolean {
+  const nodeTypes = [...CORE_GRAPH_NODE_TYPES, ...pluginNodeTypes];
+  const nodeTypeById = new Map(nodeTypes.map(definition => [definition.id, definition]));
   if (projectedNodeTypes.includes(getNodeType(node))) return true;
   if (!node.symbol) return false;
   if (projectedNodeTypes.includes('symbol')) return true;
 
   return projectedNodeTypes.some(requestedType => (
-    nodeMatchesDescendantDefinition(node, requestedType)
-    || nodeMatchesRequestedDefinition(node, requestedType)
+    nodeMatchesDescendantDefinition(node, requestedType, nodeTypes, nodeTypeById)
+    || nodeMatchesRequestedDefinition(node, requestedType, nodeTypeById)
   ));
 }

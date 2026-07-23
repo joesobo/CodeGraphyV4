@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { applyGraphScope } from '../../../../src/shared/visibleGraph/scope';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
+import type { VisibleGraphScopeConfig } from '../../../../src/shared/visibleGraph/contracts';
+import { applyGraphScope as applyGraphScopeWithoutPluginTypes } from '../../../../src/shared/visibleGraph/scope';
 import { edge, ids, node, symbolNode } from './fixture';
+import { ENGINE_PLUGIN_NODE_TYPES } from './enginePluginNodeTypes';
+
+function applyGraphScope(
+	graphData: IGraphData,
+	scope: VisibleGraphScopeConfig,
+): IGraphData {
+	return applyGraphScopeWithoutPluginTypes(graphData, {
+		...scope,
+		nodeTypes: ENGINE_PLUGIN_NODE_TYPES,
+	});
+}
 
 describe('shared/visibleGraph/scope plugin symbols', () => {
 it('keeps Unity file to GameObject containment when Component symbols are visible', () => {

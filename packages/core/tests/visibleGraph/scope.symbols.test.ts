@@ -6,6 +6,7 @@ import { applyGraphScope } from '../../src/visibleGraph/scope';
 import { getDisabledScopedSymbolDefinitions } from '../../src/visibleGraph/scopeScopedDefinitions';
 import { symbolMatchesScopedDefinition } from '../../src/visibleGraph/scopeSymbolMatch';
 import { getDisabledSymbolKinds } from '../../src/visibleGraph/scopeSymbolTypes';
+import { ENGINE_PLUGIN_NODE_TYPES } from '../fixtures/enginePluginNodeTypes';
 
 function node(id: string, nodeType?: IGraphNode['nodeType'], symbol?: IGraphNode['symbol']): IGraphNode {
   return {
@@ -27,7 +28,7 @@ function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {
 }
 
 function scopeConfig(nodes: VisibleGraphScopeConfig['nodes']): VisibleGraphScopeConfig {
-  return { nodes, edges: [] };
+  return { nodes, edges: [], nodeTypes: ENGINE_PLUGIN_NODE_TYPES };
 }
 
 function symbol(overrides: Partial<NonNullable<IGraphNode['symbol']>>): NonNullable<IGraphNode['symbol']> {
@@ -198,6 +199,7 @@ describe('visibleGraph/scope', () => {
         { type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
       ],
       edges: [{ type: 'contains', enabled: true }],
+      nodeTypes: ENGINE_PLUGIN_NODE_TYPES,
     });
 
     expect(result.nodes.map((item) => item.id)).toEqual([

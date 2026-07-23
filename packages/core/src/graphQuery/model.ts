@@ -1,5 +1,6 @@
 import type { GraphEdgeKind, NodeType } from '../graph/contracts';
 import type { IAnalysisRange, IGraphNodeSymbolMetadata } from '@codegraphy-dev/plugin-api';
+import type { IGraphNodeTypeDefinition } from '../graphControls/contracts';
 
 export type GraphQueryFilterOperator =
   | 'equals'
@@ -26,6 +27,7 @@ export interface GraphQuerySort {
 
 export interface GraphQueryConfig {
   scope?: GraphQueryScope;
+  nodeTypeDefinitions?: readonly IGraphNodeTypeDefinition[];
   projectedNodeTypes?: readonly string[];
   filters?: readonly GraphQueryFilter[];
   search?: string;
