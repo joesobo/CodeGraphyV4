@@ -97,7 +97,7 @@ export function MediaImage({
           alt=""
           aria-hidden="true"
           className={cn(
-            imageProps.fill && 'absolute inset-0 size-full',
+            'absolute inset-0 size-full',
             animationLoaded ? 'opacity-100' : 'opacity-0',
             imageClassName,
           )}
