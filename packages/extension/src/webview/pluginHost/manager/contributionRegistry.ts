@@ -70,7 +70,11 @@ export class GraphViewContributionRegistry {
 
   private notifyListeners(): void {
     for (const listener of this._listeners) {
-      listener();
+      try {
+        listener();
+      } catch (error) {
+        console.error('[CodeGraphy] Graph View contribution listener failed:', error);
+      }
     }
   }
 }
