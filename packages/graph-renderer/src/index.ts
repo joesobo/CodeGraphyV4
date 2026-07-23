@@ -67,4 +67,7 @@ export {
   type WebGpuGraphRendererOptions,
   type WebGpuGraphSecondaryFrame,
 } from './webgpu/renderer';
-export { prepareGraphPhysics } from './physics/wasm/runtime/loader';
+export {
+  prepareGraphPhysics,
+  prepareGraphPhysicsFromBytes,
+} from './physics/wasm/runtime/loader';

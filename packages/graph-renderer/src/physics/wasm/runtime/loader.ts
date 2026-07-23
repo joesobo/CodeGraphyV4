@@ -30,3 +30,16 @@ export function prepareGraphPhysics(): Promise<void> {
     });
   return preparation;
 }
+
+export function prepareGraphPhysicsFromBytes(bytes: BufferSource): Promise<void> {
+  if (graphPhysicsModuleReady()) return Promise.resolve();
+  preparation ??= WebAssembly.compile(bytes)
+    .then(module => {
+      installGraphPhysicsModule(module);
+    })
+    .catch(error => {
+      preparation = undefined;
+      throw error;
+    });
+  return preparation;
+}

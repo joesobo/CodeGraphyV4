@@ -12,6 +12,7 @@ on:
           - core
           - extension
           - graph-renderer
+          - tldraw
           - plugin-api
           - extension-plugin-api
           - plugin-typescript
