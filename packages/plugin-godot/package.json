@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-godot",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "description": "CodeGraphy Godot plugin",
   "license": "MIT",
   "type": "module",
@@ -167,7 +167,9 @@
               "color": "#478CBF",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["class"],
+                "symbolKinds": [
+                  "class"
+                ],
                 "symbolPluginKind": "godot-class-name",
                 "symbolSource": "codegraphy.gdscript",
                 "symbolLanguage": "gdscript",
@@ -182,7 +184,9 @@
               "color": "#478CBF",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["scene"],
+                "symbolKinds": [
+                  "scene"
+                ],
                 "symbolPluginKind": "scene",
                 "symbolSource": "codegraphy.gdscript"
               },
@@ -195,7 +199,9 @@
               "color": "#F59E0B",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["resource"],
+                "symbolKinds": [
+                  "resource"
+                ],
                 "symbolPluginKind": "resource",
                 "symbolSource": "codegraphy.gdscript"
               },
@@ -208,7 +214,9 @@
               "color": "#10B981",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["autoload"],
+                "symbolKinds": [
+                  "autoload"
+                ],
                 "symbolPluginKind": "autoload",
                 "symbolSource": "codegraphy.gdscript"
               },
@@ -221,7 +229,9 @@
               "color": "#A855F7",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["scene-node"],
+                "symbolKinds": [
+                  "scene-node"
+                ],
                 "symbolPluginKind": "scene-node",
                 "symbolSource": "codegraphy.gdscript"
               },
@@ -234,7 +244,9 @@
               "color": "#EF4444",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["signal"],
+                "symbolKinds": [
+                  "signal"
+                ],
                 "symbolPluginKind": "signal",
                 "symbolSource": "codegraphy.gdscript"
               },
@@ -247,7 +259,9 @@
               "color": "#2DD4BF",
               "match": {
                 "nodeType": "variable",
-                "symbolKinds": ["variable"],
+                "symbolKinds": [
+                  "variable"
+                ],
                 "symbolPluginKind": "exported-property",
                 "symbolSource": "codegraphy.gdscript",
                 "symbolLanguage": "gdscript",

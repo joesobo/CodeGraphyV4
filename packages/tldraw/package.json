@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/tldraw",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Render a CodeGraphy workspace as a native tldraw document",
   "license": "MIT",
   "type": "module",

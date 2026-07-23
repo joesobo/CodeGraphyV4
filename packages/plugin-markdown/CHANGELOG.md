@@ -1,5 +1,30 @@
 # @codegraphy-dev/plugin-markdown
 
+## 1.1.11
+
+### Patch Changes
+
+- [`7ecf8fd`](https://github.com/joesobo/CodeGraphyV4/commit/7ecf8fd0488aa7dcf0dc84e512de19f83ab323f2) Thanks [@joesobo](https://github.com/joesobo)! - - Make CLI help self-contained for agents. Return exclusive success or error envelopes, resumable pagination, bounded-path completeness, and one-off Filter, Node Type, and Edge Type projections with semantic parent, descendant, and overlapping Node Type matches.
+
+  - Store file state and complete semantic graph facts in compact `File`, `Node`, `Symbol`, and `Edge` SQLite tables. Preserve file modification times for fast cache reuse and enforce foreign keys. Interfaces own view state outside the Graph Cache.
+  - Index Nodes, Symbols, and Edges once regardless of Graph Scope. Extend doctor with cache metadata, integrity, foreign-key health, and record counts, keep a new index fresh when configured Plugins are unavailable, and persist the complete extension graph.
+  - Prevent binary files from reaching analyzers. Skip binary sampling I/O for known text formats.
+
+- [#317](https://github.com/joesobo/CodeGraphyV4/pull/317) [`cc4e303`](https://github.com/joesobo/CodeGraphyV4/commit/cc4e303350145d117142d012c3e55a910d147bfa) Thanks [@joesobo](https://github.com/joesobo)! - Use one global and workspace plugin activation model for every runtime host.
+  Keep Core plugins headless, move VS Code Extension contracts to the Extension
+  Plugin API, and load active host-specific plugins only when that host opens.
+
+  Remove rendering fields and persisted view state from Core graph data. Let each
+  interface own its rendering and preserve optional interface data through the
+  open workspace `interfaces` list.
+
+  Ship Godot and Unity as dual-host packages. Their Core entries own analysis and
+  semantic graph types. Their Extension entries own Graph View Legend colors,
+  shapes, and icons.
+
+- Updated dependencies [[`cc4e303`](https://github.com/joesobo/CodeGraphyV4/commit/cc4e303350145d117142d012c3e55a910d147bfa)]:
+  - @codegraphy-dev/plugin-api@7.0.0
+
 ## 1.1.10
 
 ### Patch Changes

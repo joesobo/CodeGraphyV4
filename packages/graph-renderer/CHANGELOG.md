@@ -1,5 +1,14 @@
 # @codegraphy-dev/graph-renderer
 
+## 0.3.0
+
+### Minor Changes
+
+- [#316](https://github.com/joesobo/CodeGraphyV4/pull/316) [`b0be906`](https://github.com/joesobo/CodeGraphyV4/commit/b0be906f58c265ccb66fb6b54998525429c90acb) Thanks [@joesobo](https://github.com/joesobo)! - Allow rendering interfaces to resolve the packaged physics asset and start
+  graph physics from embedded WebAssembly bytes. This lets offline hosts use
+  CodeGraphy's force layout without loading a separate WebAssembly file at
+  runtime.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-unity",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "CodeGraphy Unity plugin",
   "license": "MIT",
   "type": "module",
@@ -214,7 +214,9 @@
               "color": "#0EA5E9",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["game-object"],
+                "symbolKinds": [
+                  "game-object"
+                ],
                 "symbolPluginKind": "game-object",
                 "symbolSource": "codegraphy.unity",
                 "symbolLanguage": "unity"
@@ -228,7 +230,9 @@
               "color": "#22C55E",
               "match": {
                 "nodeType": "symbol",
-                "symbolKinds": ["component"],
+                "symbolKinds": [
+                  "component"
+                ],
                 "symbolPluginKind": "component",
                 "symbolSource": "codegraphy.unity",
                 "symbolLanguage": "unity"
