@@ -64,6 +64,34 @@ describe('CodeGraphy package build snapshots', () => {
     expect(secondRuntime.default).toBe('v2');
   });
 
+  it('refreshes a package whose registered root is a symbolic link', async () => {
+    const fixtureRoot = await createPackageFixtureRoot('codegraphy-symlinked-package-');
+    const packageRoot = path.join(fixtureRoot, 'package');
+    const registeredPackageRoot = path.join(fixtureRoot, 'registered-package');
+    await fs.mkdir(packageRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(packageRoot, 'package.json'),
+      JSON.stringify({ type: 'module' }),
+      'utf8',
+    );
+    await fs.writeFile(path.join(packageRoot, 'plugin.js'), "export default 'v1';", 'utf8');
+    await fs.symlink(packageRoot, registeredPackageRoot, 'junction');
+
+    const first = await prepareCodeGraphyPackageBuildSnapshot(registeredPackageRoot);
+    const firstRuntime = await import(pathToFileURL(
+      path.join(first.snapshotPackageRoot, 'plugin.js'),
+    ).href);
+    await fs.writeFile(path.join(packageRoot, 'plugin.js'), "export default 'v2';", 'utf8');
+    const second = await prepareCodeGraphyPackageBuildSnapshot(registeredPackageRoot);
+    const secondRuntime = await import(pathToFileURL(
+      path.join(second.snapshotPackageRoot, 'plugin.js'),
+    ).href);
+
+    expect(second.buildIdentity).not.toBe(first.buildIdentity);
+    expect(firstRuntime.default).toBe('v1');
+    expect(secondRuntime.default).toBe('v2');
+  });
+
   it('preserves and refreshes dependencies of a linked dependency', async () => {
     const packageRoot = await createPackageFixtureRoot('codegraphy-transitive-package-');
     const dependencyRoot = await createPackageFixtureRoot('codegraphy-transitive-runtime-');

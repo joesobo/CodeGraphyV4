@@ -325,7 +325,7 @@ export async function prepareCodeGraphyPackageBuildSnapshot(
 ): Promise<CodeGraphyPackageBuildSnapshot> {
   registerProcessSnapshotCleanup();
   await removeDeadProcessSnapshots();
-  const packageRoot = path.resolve(packageRootInput);
+  const packageRoot = await fs.realpath(path.resolve(packageRootInput));
   const buildIdentity = await createPackageBuildIdentity(packageRoot);
   const snapshotPackageRoot = await createPackageBuildSnapshot(packageRoot, buildIdentity);
   return { buildIdentity, snapshotPackageRoot };
