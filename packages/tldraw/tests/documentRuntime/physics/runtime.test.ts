@@ -13,14 +13,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ScriptShape } from '../../../src/documentRuntime/physics/shape/model';
 
 const engine = {
+  flags: new Uint8Array(2),
   nodeIds: ['a', 'b'],
   getNodeIndex: vi.fn((nodeId: string) => ['a', 'b'].indexOf(nodeId)),
   pin: vi.fn(),
   release: vi.fn(),
+  radii: Float32Array.of(16, 16),
   setAlphaTarget: vi.fn(),
   setConfig: vi.fn(),
   setNodePosition: vi.fn(),
   settled: false,
+  vx: new Float32Array(2),
+  vy: new Float32Array(2),
   x: Float32Array.from([10, 90]),
   y: Float32Array.from([20, 100]),
   tick: vi.fn(() => ({ moving: true, settled: false, steps: 1 })),
@@ -44,15 +48,22 @@ function createHarness(options: HarnessOptions = {}) {
   const off = vi.fn();
   const stopStoreListener = vi.fn();
   const updateShapes = vi.fn();
+  const selectNone = vi.fn();
+  const getSelectedShapes = vi.fn((): ScriptShape[] => []);
+  const reparentShapes = vi.fn();
   const zoomToBounds = vi.fn();
   const getCurrentPage = vi.fn(() => ({ meta }));
   let storeListener: () => void = () => undefined;
   const editor = {
     getCurrentPage,
+    getCurrentPageId: () => 'page:page',
     getCurrentPageShapes: () => shapes,
+    getSelectedShapes,
     off,
     on: vi.fn((event: string, listener: (payload: unknown) => void) => listeners.set(event, listener)),
     run: vi.fn((operation: () => void) => operation()),
+    reparentShapes,
+    selectNone,
     store: {
       listen: vi.fn((listener: () => void) => {
         storeListener = listener;
@@ -68,9 +79,11 @@ function createHarness(options: HarnessOptions = {}) {
     getCurrentPage,
     notifyStore: () => storeListener(),
     off,
+    reparentShapes,
     setMeta: (nextMeta: Record<string, unknown>) => { meta = nextMeta; },
     setShapes: (nextShapes: ScriptShape[]) => { shapes = nextShapes; },
     stopStoreListener,
+    selectNone,
     updateShapes,
     zoomToBounds,
   };
@@ -94,6 +107,10 @@ const labelA = {
 } satisfies ScriptShape;
 const userNote = {
   id: 'shape:note', type: 'note', x: 0, y: 0, props: {}, meta: {},
+} satisfies ScriptShape;
+const frame = {
+  id: 'shape:frame', type: 'frame', x: 400, y: 200, props: { h: 400, w: 600 },
+  meta: {},
 } satisfies ScriptShape;
 
 describe('tldraw physics runtime', () => {
@@ -274,6 +291,34 @@ describe('tldraw physics runtime', () => {
     );
   });
 
+  it('clears a hidden search result if tldraw selects it through model hit testing', async () => {
+    const searchEvents = new EventTarget();
+    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB] });
+    harness.editor.getSelectedShapes.mockReturnValue([nodeB]);
+    const { graphSearchEventName } = await import(
+      '../../../src/documentRuntime/search/model'
+    );
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({
+      editor: harness.editor,
+      searchEvents,
+      signal: new AbortController().signal,
+    });
+    searchEvents.dispatchEvent(new CustomEvent(graphSearchEventName, {
+      detail: { query: 'a' },
+    }));
+    harness.selectNone.mockClear();
+    harness.emit('event', {
+      name: 'pointer_down',
+      shape: nodeB,
+      type: 'pointer',
+    });
+
+    expect(harness.selectNone).toHaveBeenCalledOnce();
+    expect(engine.pin).not.toHaveBeenCalled();
+  });
+
   it('sends only changed document force settings to the active engine', async () => {
     const physics = { repelForce: 18, centerForce: 0.15, linkDistance: 80, linkForce: 2 };
     const harness = createHarness({ meta: { codegraphyPhysics: physics }, shapes: [nodeA] });
@@ -326,6 +371,49 @@ describe('tldraw physics runtime', () => {
     harness.emit('event', { type: 'pointer', name: 'pointer_up' });
     expect(engine.release).toHaveBeenCalledWith(1);
     expect(engine.setAlphaTarget).toHaveBeenLastCalledWith(0);
+  });
+
+  it('puts a dropped node and its companions into the frame under its center', async () => {
+    let draggedNode = nodeA;
+    const iconA = {
+      id: 'shape:icon-a', type: 'image', x: 32, y: 32, props: { h: 56, w: 56 },
+      meta: { codegraphyKind: 'icon', codegraphyNodeId: 'a' },
+    } satisfies ScriptShape;
+    const harness = createHarness({ shapes: [frame, draggedNode, iconA, labelA] });
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({ editor: harness.editor, signal: new AbortController().signal });
+    harness.emit('event', { type: 'pointer', name: 'pointer_down', shape: draggedNode });
+    draggedNode = { ...draggedNode, x: 500, y: 300 };
+    harness.setShapes([frame, draggedNode, iconA, labelA]);
+    harness.emit('event', { type: 'pointer', name: 'pointer_move' });
+    harness.emit('event', { type: 'pointer', name: 'pointer_up' });
+    harness.emit('tick', 16);
+
+    expect(harness.reparentShapes).toHaveBeenCalledWith(
+      ['shape:a', 'shape:icon-a', 'shape:label-a'],
+      'shape:frame',
+    );
+  });
+
+  it('uses native reparenting to restore companion visibility after tldraw captures a node', async () => {
+    const framedNode = { ...nodeA, parentId: frame.id };
+    const iconA = {
+      id: 'shape:icon-a', parentId: 'page:page', type: 'image', x: 32, y: 32,
+      props: { h: 56, w: 56 },
+      meta: { codegraphyKind: 'icon', codegraphyNodeId: 'a' },
+    } satisfies ScriptShape;
+    const staleLabelA = { ...labelA, parentId: 'page:page' };
+    const harness = createHarness({ shapes: [frame, framedNode, iconA, staleLabelA] });
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({ editor: harness.editor, signal: new AbortController().signal });
+    harness.emit('tick', 16);
+
+    expect(harness.reparentShapes).toHaveBeenCalledWith(
+      ['shape:icon-a', 'shape:label-a'],
+      'shape:frame',
+    );
   });
 
   it('removes the event, tick, and store listeners when the script stops', async () => {

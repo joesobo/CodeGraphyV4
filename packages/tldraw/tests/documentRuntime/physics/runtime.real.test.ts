@@ -63,6 +63,83 @@ afterEach(() => {
 });
 
 describe('real tldraw force drag', () => {
+  it('captures generated nodes, icons, labels, and their connection in a new native frame', () => {
+    const editor = createRealEditor();
+    const frameId = createShapeId('generated-frame');
+    const nodeAId = createShapeId('codegraphy-node-frame-a');
+    const nodeBId = createShapeId('codegraphy-node-frame-b');
+    const iconAId = createShapeId('codegraphy-icon-frame-a');
+    const labelAId = createShapeId('codegraphy-label-frame-a');
+    const edgeId = createShapeId('codegraphy-edge-frame');
+    editor.createShapes([
+      {
+        id: nodeAId,
+        meta: { codegraphyEntityId: 'frame-a', codegraphyKind: 'node' },
+        props: { geo: 'ellipse', h: 120, w: 120 },
+        type: 'geo',
+        x: 500,
+        y: 300,
+      },
+      {
+        id: nodeBId,
+        meta: { codegraphyEntityId: 'frame-b', codegraphyKind: 'node' },
+        props: { geo: 'ellipse', h: 120, w: 120 },
+        type: 'geo',
+        x: 700,
+        y: 300,
+      },
+      {
+        id: iconAId,
+        isLocked: true,
+        meta: { codegraphyKind: 'icon', codegraphyNodeId: 'frame-a' },
+        props: { assetId: null, h: 56, w: 56 },
+        type: 'image',
+        x: 532,
+        y: 332,
+      },
+      {
+        id: labelAId,
+        isLocked: true,
+        meta: { codegraphyKind: 'label', codegraphyNodeId: 'frame-a' },
+        props: { w: 180 },
+        type: 'text',
+        x: 470,
+        y: 428,
+      },
+      {
+        id: edgeId,
+        meta: {
+          codegraphyFrom: 'frame-a',
+          codegraphyKind: 'edge',
+          codegraphyTo: 'frame-b',
+        },
+        props: { end: { x: 200, y: 0 }, start: { x: 0, y: 0 } },
+        type: 'arrow',
+        x: 560,
+        y: 360,
+      },
+    ]);
+    startPhysicsRuntime({
+      editor: editor as unknown as Parameters<typeof startPhysicsRuntime>[0]['editor'],
+      signal: new AbortController().signal,
+    });
+
+    editor.createShape({
+      id: frameId,
+      props: { h: 400, name: 'Generated', w: 600 },
+      type: 'frame',
+      x: 400,
+      y: 200,
+    });
+    editor.emit('tick', 16);
+
+    expect(editor.getShape(nodeAId)?.parentId).toBe(frameId);
+    expect(editor.getShape(nodeBId)?.parentId).toBe(frameId);
+    expect(editor.getShape(iconAId)?.parentId).toBe(frameId);
+    expect(editor.getShape(labelAId)?.parentId).toBe(frameId);
+    expect(editor.getShape(edgeId)?.parentId).toBe(frameId);
+  });
+
   it('keeps a running node near its page position when a native frame captures it', () => {
     const editor = createRealEditor();
     const frameId = createShapeId('capture-frame');

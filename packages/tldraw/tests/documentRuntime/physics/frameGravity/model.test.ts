@@ -73,4 +73,22 @@ describe('tldraw frame gravity', () => {
     expect(engine.vx[1]).toBe(0);
     expect(engine.vy[1]).toBe(0);
   });
+
+  it('keeps a framed node collision radius inside the frame boundary', () => {
+    const engine = createEngine();
+    engine.radii[0] = 12;
+    engine.x[0] = 220;
+    engine.y[0] = 20;
+    engine.vx[0] = 5;
+    engine.vy[0] = -5;
+    const force = createFrameGravityForce([frame, framedNode], engine, 0);
+    if (!force) throw new Error('Expected frame gravity force');
+
+    force.beforeIntegration(1);
+
+    expect(engine.x[0]).toBe(188);
+    expect(engine.y[0]).toBe(52);
+    expect(engine.vx[0]).toBeLessThanOrEqual(0);
+    expect(engine.vy[0]).toBeGreaterThanOrEqual(0);
+  });
 });
