@@ -1,5 +1,10 @@
 import * as fs from 'node:fs/promises';
+import { readFileSync, readdirSync } from 'node:fs';
 import * as path from 'node:path';
+import {
+  parseCodeGraphyPluginPackageManifest,
+  type CodeGraphyInstalledPluginRecord,
+} from '@codegraphy-dev/core';
 
 const BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV = 'CODEGRAPHY_BUNDLED_PLUGIN_PACKAGE_ROOTS';
 
@@ -23,15 +28,74 @@ async function readPackageDirectories(packagesRoot: string): Promise<string[]> {
   }
 }
 
+function readPackageDirectoriesSync(packagesRoot: string): string[] {
+  try {
+    return readdirSync(packagesRoot, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => path.join(packagesRoot, entry.name));
+  } catch {
+    return [];
+  }
+}
+
+function readEnvironmentPackageRoots(): string[] | undefined {
+  if (!Object.prototype.hasOwnProperty.call(process.env, BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV)) {
+    return undefined;
+  }
+  return (process.env[BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV] ?? '')
+    .split(path.delimiter)
+    .map(root => root.trim())
+    .filter(Boolean);
+}
+
+export function readBundledWorkspacePluginPackageRootsSync(
+  extensionRoot: string | undefined,
+): string[] {
+  const environmentRoots = readEnvironmentPackageRoots();
+  if (environmentRoots) return environmentRoots;
+  if (!extensionRoot) return [];
+
+  return [...new Set(
+    getCandidatePackagesRoots(extensionRoot).flatMap(readPackageDirectoriesSync),
+  )];
+}
+
+export function readWorkspacePluginPackageRecords(
+  packageRoots: Iterable<string>,
+): CodeGraphyInstalledPluginRecord[] {
+  return [...packageRoots].flatMap((packageRoot) => {
+    try {
+      const packageJson = JSON.parse(
+        readFileSync(path.join(packageRoot, 'package.json'), 'utf-8'),
+      ) as unknown;
+      const manifest = parseCodeGraphyPluginPackageManifest(packageJson);
+      if (!manifest) return [];
+      return manifest.plugins.map(descriptor => ({
+        package: manifest.package,
+        version: manifest.version,
+        packageRoot,
+        globallyEnabled: false,
+        ...descriptor,
+      }));
+    } catch {
+      return [];
+    }
+  });
+}
+
+export function readBundledWorkspacePluginPackageRecords(
+  extensionRoot: string | undefined,
+): CodeGraphyInstalledPluginRecord[] {
+  return readWorkspacePluginPackageRecords(
+    readBundledWorkspacePluginPackageRootsSync(extensionRoot),
+  );
+}
+
 export async function readBundledWorkspacePluginPackageRoots(
   extensionRoot: string | undefined,
 ): Promise<string[]> {
-  if (Object.prototype.hasOwnProperty.call(process.env, BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV)) {
-    return (process.env[BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV] ?? '')
-      .split(path.delimiter)
-      .map(root => root.trim())
-      .filter(Boolean);
-  }
+  const environmentRoots = readEnvironmentPackageRoots();
+  if (environmentRoots) return environmentRoots;
 
   if (!extensionRoot) {
     return [];

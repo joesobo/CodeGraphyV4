@@ -39,6 +39,7 @@ vi.mock('vscode', () => ({
 class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
   constructor(private readonly workspaceRoot: string) {
     super({
+      extensionUri: { fsPath: path.join(workspaceRoot, 'extension') },
       subscriptions: [],
       workspaceState: {
         get: vi.fn(),
@@ -150,6 +151,39 @@ describe('pipeline/service plugin statuses', () => {
         status: 'installed',
       }),
     ]);
+  });
+
+  it('reports inactive packaged plugins so the Plugins panel can enable them', () => {
+    const bundledPackageRoot = path.join(
+      workspaceRoot,
+      'extension',
+      'packages',
+      'plugin-particles',
+    );
+    fs.mkdirSync(bundledPackageRoot, { recursive: true });
+    fs.writeFileSync(path.join(bundledPackageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-particles',
+      version: '0.2.4',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.particles',
+          name: 'Particles',
+          host: 'codegraphy.extension',
+          entry: './dist/plugin.js',
+          apiVersion: '^1.0.0',
+        }],
+      },
+    }));
+    writeCodeGraphyInstalledPluginCache({ version: 3, plugins: [] }, { homeDir });
+
+    const reader = new PluginStatusReader(workspaceRoot);
+
+    expect(reader.getPluginStatuses(new Set())).toContainEqual(expect.objectContaining({
+      id: 'codegraphy.particles',
+      packageName: '@codegraphy-dev/plugin-particles',
+      enabled: false,
+      status: 'installed',
+    }));
   });
 
   it('reports a loaded Extension plugin as active', async () => {

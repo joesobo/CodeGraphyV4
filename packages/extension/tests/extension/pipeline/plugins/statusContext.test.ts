@@ -78,6 +78,37 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.godot')).toBe(false);
   });
 
+  it('lists disabled plugins bundled with the Extension as installed', () => {
+    const bundledPackageRoot = path.join(tempRoot, 'extension', 'packages', 'plugin-particles');
+    fs.mkdirSync(bundledPackageRoot, { recursive: true });
+    fs.writeFileSync(path.join(bundledPackageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-particles',
+      version: '0.2.4',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.particles',
+          name: 'Particles',
+          host: 'codegraphy.extension',
+          entry: './dist/plugin.js',
+          apiVersion: '^1.0.0',
+        }],
+      },
+    }));
+    writeCodeGraphyInstalledPluginCache({ version: 3, plugins: [] }, { homeDir });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, {
+      homeDir,
+      bundledPackageRoots: [bundledPackageRoot],
+    });
+
+    expect(statusContext.installedPlugins).toContainEqual(expect.objectContaining({
+      id: 'codegraphy.particles',
+      package: '@codegraphy-dev/plugin-particles',
+      globallyEnabled: false,
+    }));
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.particles')).toBe(false);
+  });
+
   it('uses initial Markdown activity state without materializing workspace settings', () => {
     writeCodeGraphyInstalledPluginCache(
       {

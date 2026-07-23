@@ -2,7 +2,10 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { readBundledWorkspacePluginPackageRoots } from '../../../../src/extension/pipeline/plugins/bootstrap/bundledPackages';
+import {
+  readBundledWorkspacePluginPackageRecords,
+  readBundledWorkspacePluginPackageRoots,
+} from '../../../../src/extension/pipeline/plugins/bootstrap/bundledPackages';
 
 const BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV = 'CODEGRAPHY_BUNDLED_PLUGIN_PACKAGE_ROOTS';
 const previousBundledRoots = process.env[BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV];
@@ -44,5 +47,37 @@ describe('extension/pipeline/plugins/bootstrap/bundledPackages', () => {
     await fs.mkdir(pluginRoot, { recursive: true });
 
     await expect(readBundledWorkspacePluginPackageRoots(extensionRoot)).resolves.toEqual([pluginRoot]);
+  });
+
+  it('reads every descriptor from packaged plugin manifests', async () => {
+    delete process.env[BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV];
+    const extensionRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-bundled-packages-'));
+    const pluginRoot = path.join(extensionRoot, 'packages', 'plugin-multi');
+    await fs.mkdir(pluginRoot, { recursive: true });
+    await fs.writeFile(path.join(pluginRoot, 'package.json'), JSON.stringify({
+      name: '@acme/plugin-multi',
+      version: '1.2.3',
+      codegraphy: {
+        plugins: [
+          { id: 'acme.core', host: 'core', entry: './core.js', apiVersion: '^4.0.0' },
+          { id: 'acme.extension', host: 'codegraphy.extension', entry: './extension.js', apiVersion: '^1.0.0' },
+        ],
+      },
+    }));
+
+    expect(readBundledWorkspacePluginPackageRecords(extensionRoot)).toEqual([
+      expect.objectContaining({
+        id: 'acme.core',
+        package: '@acme/plugin-multi',
+        packageRoot: pluginRoot,
+        globallyEnabled: false,
+      }),
+      expect.objectContaining({
+        id: 'acme.extension',
+        package: '@acme/plugin-multi',
+        packageRoot: pluginRoot,
+        globallyEnabled: false,
+      }),
+    ]);
   });
 });

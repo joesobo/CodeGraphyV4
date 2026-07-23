@@ -14,6 +14,33 @@ import {
 } from '../../../../../src/extension/graphView/webview/settingsMessages/defaultOptions';
 
 describe('graph view settings plugin defaults', () => {
+  it('reads metadata from an inactive plugin bundled with the Extension', async () => {
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-bundled-defaults-'));
+    await fs.writeFile(path.join(packageRoot, 'package.json'), JSON.stringify({
+      name: '@codegraphy-dev/plugin-vue',
+      version: '0.3.6',
+      codegraphy: {
+        plugins: [{
+          id: 'codegraphy.vue',
+          host: 'core',
+          entry: './dist/plugin.js',
+          apiVersion: '^4.0.0',
+          data: {
+            defaultOptions: { mode: 'strict' },
+            updateImpact: { toggle: 'reanalyze-plugin-files' },
+          },
+        }],
+      },
+    }));
+
+    expect(readInstalledPluginDefaultOptions('codegraphy.vue', {
+      bundledPackageRoots: [packageRoot],
+    })).toEqual({ mode: 'strict' });
+    expect(readInstalledPluginUpdateImpact('codegraphy.vue', {
+      bundledPackageRoots: [packageRoot],
+    })).toEqual({ toggle: 'reanalyze-plugin-files' });
+  });
+
   it('reads per-descriptor Core metadata and skips Core work for Extension plugins', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-plugin-settings-'));
     const records = [{
