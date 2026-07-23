@@ -41,20 +41,21 @@ describe('graphView/builtInPluginRoots', () => {
 
   it('does not expose Core plugin package roots to the Graph View', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>();
+    const registryWithCoreAndExtension = {
+      list: () => [{
+        plugin: { id: 'acme.core' },
+        sourcePackageRoot: '/plugins/core',
+      }],
+      extensionPlugins: {
+        list: () => [{
+          plugin: { id: 'acme.view' },
+          sourcePackageRoot: '/plugins/view',
+        }],
+      },
+    };
 
     registerPackageGraphViewPluginRoots({
-      registry: {
-        list: () => [{
-          plugin: { id: 'acme.core' },
-          sourcePackageRoot: '/plugins/core',
-        }],
-        extensionPlugins: {
-          list: () => [{
-            plugin: { id: 'acme.view' },
-            sourcePackageRoot: '/plugins/view',
-          }],
-        },
-      },
+      registry: registryWithCoreAndExtension,
     }, pluginExtensionUris);
 
     expect(pluginExtensionUris.has('acme.core')).toBe(false);
@@ -68,7 +69,6 @@ describe('graphView/builtInPluginRoots', () => {
 
     registerPackageGraphViewPluginRoots({
       registry: {
-        list: () => [],
         extensionPlugins: {
           list: () => [{
             plugin: { id: 'acme.view' },
@@ -90,7 +90,6 @@ describe('graphView/builtInPluginRoots', () => {
 
     registerPackageGraphViewPluginRoots({
       registry: {
-        list: () => [],
         extensionPlugins: {
           list: () => [{
             plugin: { id: 'acme.active' },
