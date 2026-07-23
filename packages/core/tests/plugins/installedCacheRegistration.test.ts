@@ -73,6 +73,37 @@ describe('CodeGraphy installed plugin registration', () => {
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });
 
+  it('stores a linked package root as an absolute path', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-relative-package-'));
+    await fs.writeFile(
+      path.join(packageRoot, 'package.json'),
+      `${JSON.stringify({
+        name: '@acme/codegraphy-relative-plugin',
+        version: '0.1.0',
+        codegraphy: {
+          plugins: [{
+            id: 'acme.relative',
+            host: 'core',
+            entry: './plugin.js',
+            apiVersion: '^4.0.0',
+          }],
+        },
+      }, null, 2)}\n`,
+      'utf-8',
+    );
+    const relativePackageRoot = path.relative(process.cwd(), packageRoot);
+
+    const [record] = await linkCodeGraphyInstalledPluginPackage({
+      homeDir,
+      packageRoot: relativePackageRoot,
+    });
+
+    expect(record.packageRoot).toBe(packageRoot);
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins[0]?.packageRoot)
+      .toBe(packageRoot);
+  });
+
   it('does not inherit global activation from a different package with the same plugin id', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));

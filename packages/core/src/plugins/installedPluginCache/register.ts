@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import type {
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
@@ -69,9 +70,10 @@ export async function registerCodeGraphyInstalledPlugin(
 export async function linkCodeGraphyInstalledPluginPackage(
   options: LinkCodeGraphyInstalledPluginPackageOptions,
 ): Promise<CodeGraphyInstalledPluginRecord[]> {
-  const records = await readPackageManifest(options.packageRoot);
+  const packageRoot = path.resolve(options.packageRoot);
+  const records = await readPackageManifest(packageRoot);
   if (!records) {
-    throw new Error(`Package at '${options.packageRoot}' is not a CodeGraphy plugin.`);
+    throw new Error(`Package at '${packageRoot}' is not a CodeGraphy plugin.`);
   }
   storeRecords(records, options.homeDir);
   return records;
