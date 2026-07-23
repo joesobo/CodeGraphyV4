@@ -102,6 +102,7 @@ The Graph View can use a whole-view loading state before its first graph payload
 |---|---|
 | **Core Package** | `@codegraphy-dev/core` owns headless Indexing, Graph Cache storage, plugin processing, Graph Query, and the `codegraphy` CLI. |
 | **VS Code Extension** | Owns VS Code lifecycle, the Graph View, editor actions, workspace settings UI, and adapters over Core and the renderer. |
+| **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
 | **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
 | **Graph Query CLI** | `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output. |
@@ -143,12 +144,13 @@ The Markdown plugin ships with Core and starts enabled in new workspaces. Other 
 
 Graph Scope decides eligibility. Legend decides styling. Turning off a Legend Entry never hides matching graph items. Legend precedence is Core defaults, plugin defaults, then custom user entries.
 
-Extension chrome inherits the active VS Code theme. Graph Data Color may encode Node or Edge meaning, but it must remain legible on the themed Graph Stage. Renderers consume resolved concrete colors rather than owning separate theme rules.
+Extension chrome inherits the active VS Code theme. Graph Data Color may encode Node or Edge meaning, but it must remain legible on the themed Graph Stage. Each rendering interface owns its host-specific theme rules and supplies resolved colors to its renderer.
 
 ## Package Boundaries
 
 - `packages/core` owns shared engine behavior and the CLI.
 - `packages/extension` owns the VS Code product surface.
+- `packages/tldraw` owns the tldraw offline product surface and launcher.
 - `packages/graph-renderer` owns graph drawing and physics.
 - `packages/plugin-api` owns public plugin contracts.
 - `packages/plugin-*` own optional analysis and Graph View contributions.
