@@ -18,7 +18,9 @@ export function runInheritCommand(
     dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
     command.packageName,
   );
-  const pluginIds = plugins.length > 0 ? plugins.map(plugin => plugin.id) : [command.packageName];
+  const pluginIds = plugins.length > 0
+    ? [...new Set(plugins.map(plugin => plugin.id))]
+    : [command.packageName];
   for (const pluginId of pluginIds) {
     dependencies.inheritWorkspacePlugin(workspaceRoot, pluginId);
   }

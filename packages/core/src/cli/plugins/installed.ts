@@ -30,8 +30,8 @@ export function findRegisteredPlugins(
     return [createBundledMarkdownInstalledPluginRecord()];
   }
 
-  const exactPlugin = cache.plugins.find(plugin => plugin.id === pluginIdOrPackageName);
-  if (exactPlugin) return [exactPlugin];
+  const exactPlugins = cache.plugins.filter(plugin => plugin.id === pluginIdOrPackageName);
+  if (exactPlugins.length > 0) return exactPlugins;
   return cache.plugins.filter(plugin => plugin.package === pluginIdOrPackageName);
 }
 

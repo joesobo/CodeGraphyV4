@@ -17,7 +17,9 @@ export function runDisableCommand(
     dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
     command.packageName,
   );
-  const pluginIds = plugins.length > 0 ? plugins.map(plugin => plugin.id) : [command.packageName];
+  const pluginIds = plugins.length > 0
+    ? [...new Set(plugins.map(plugin => plugin.id))]
+    : [command.packageName];
   const pluginLabel = pluginIds.join(', ');
   if (command.pluginScope === 'global') {
     if (plugins.length === 0) {

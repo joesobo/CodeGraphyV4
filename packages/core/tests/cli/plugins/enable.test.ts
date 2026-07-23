@@ -143,4 +143,47 @@ describe('cli/plugins/enable', () => {
       {},
     );
   });
+
+  it('applies a plugin-id global default to every conflicting installed record', () => {
+    const setGlobalPluginActivation = vi.fn();
+    const records = [
+      {
+        package: '@acme/first',
+        id: 'acme.shared',
+        version: '1.0.0',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
+        packageRoot: '/global/first',
+        globallyEnabled: false,
+      },
+      {
+        package: '@acme/second',
+        id: 'acme.shared',
+        version: '1.0.0',
+        host: 'core',
+        entry: './plugin.js',
+        apiVersion: '^4.0.0',
+        packageRoot: '/global/second',
+        globallyEnabled: false,
+      },
+    ];
+
+    expect(runEnableCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'acme.shared',
+      pluginScope: 'global',
+    }, dependencies({
+      readInstalledPluginCache: () => ({ version: 3, plugins: records }),
+      setGlobalPluginActivation,
+    }))).toEqual({
+      exitCode: 0,
+      output: 'Enabled acme.shared globally.',
+    });
+    expect(setGlobalPluginActivation.mock.calls).toEqual([
+      [records[0], true, {}],
+      [records[1], true, {}],
+    ]);
+  });
 });

@@ -27,7 +27,7 @@ export function runEnableCommand(
     };
   }
 
-  const pluginIds = plugins.map(plugin => plugin.id);
+  const pluginIds = [...new Set(plugins.map(plugin => plugin.id))];
   const pluginLabel = pluginIds.join(', ');
   if (command.pluginScope === 'global') {
     for (const plugin of plugins) {
