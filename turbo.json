@@ -6,6 +6,10 @@
     "packages/*/tsconfig*.json",
     "packages/*/src/**/tsconfig*.json",
     "packages/*/tests/**/tsconfig*.json",
+    "apps/*/components.json",
+    "apps/*/next.config.*",
+    "apps/*/postcss.config.*",
+    "apps/*/tsconfig*.json",
     "packages/extension/postcss.config.cjs",
     "packages/extension/tailwind.config.cjs",
     "packages/extension/vite.config.ts"
@@ -13,7 +17,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "lint": {
       "dependsOn": ["^build", "^lint"],

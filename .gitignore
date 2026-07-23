@@ -29,6 +29,7 @@ reports/
 /docs/handoff/
 /docs/archive/
 /docs/superpowers/
+/work/
 
 .codegraphy/*
 !.codegraphy/settings.json
