@@ -30,22 +30,15 @@ export function createDefaultStatusPluginSignature(
   const installedPlugins = readCodeGraphyInstalledPluginCache({
     ...(homeDir ? { homeDir } : {}),
   }).plugins;
-  const installedPluginIds = new Set(installedPlugins.map(plugin => plugin.id));
   const activity = createPluginActivityState({
     settings,
     installedPlugins,
     builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
   });
-  const missingPackagePlugins = settings.plugins
-    .filter(plugin => plugin.activation === 'enabled'
-      && plugin.id !== CODEGRAPHY_MARKDOWN_PLUGIN_ID
-      && !installedPluginIds.has(plugin.id))
-    .map(plugin => plugin.id);
 
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
     runtimePlugins: createDefaultStatusRuntimePlugins(activity.activePluginIds),
     packagePlugins: activity.packagePlugins.filter(plugin => plugin.host === 'core'),
-    missingPackagePlugins,
   });
 }
 

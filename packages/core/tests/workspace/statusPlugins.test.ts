@@ -54,4 +54,19 @@ describe('workspace status plugin signature', () => {
     expect(createDefaultStatusPluginSignature(settings, homeDir)).toBe(baseline);
     expect(createDefaultStatusCorePluginIds(settings, homeDir)).not.toContain('acme.view');
   });
+
+  it('keeps enabled plugins with an unknown host out of Core cache freshness', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-status-home-'));
+    const settings = createInitialCodeGraphyWorkspaceSettings();
+    const baseline = createDefaultStatusPluginSignature(settings, homeDir);
+
+    settings.plugins.push({
+      id: 'acme.future-interface',
+      activation: 'enabled',
+    });
+
+    expect(createDefaultStatusPluginSignature(settings, homeDir)).toBe(baseline);
+    expect(createDefaultStatusCorePluginIds(settings, homeDir))
+      .not.toContain('acme.future-interface');
+  });
 });

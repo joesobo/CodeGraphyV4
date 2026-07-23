@@ -114,8 +114,6 @@ export async function indexCodeGraphyWorkspace(
       explicitPlugins: options.plugins,
       loadedPackagePlugins,
       registry,
-      settings,
-      includeMissingConfiguredPlugins: false,
     });
   const pluginBuildSignature = createWorkspaceIndexPluginBuildSignature(loadedPackagePlugins);
   const previousStatus = readCodeGraphyWorkspaceStatus(workspaceRoot, {

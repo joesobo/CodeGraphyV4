@@ -1,5 +1,4 @@
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspacePluginBuildSignature,
   readCodeGraphyInstalledPluginCache,
@@ -67,21 +66,10 @@ function findMissingCorePluginIds(
   settings: readonly CodeGraphyWorkspacePluginSettings[],
 ): string[] {
   const settingsById = new Map(settings.map(plugin => [plugin.id, plugin] as const));
-  const installedPluginIds = new Set(installedPlugins.map(plugin => plugin.id));
-  const missing = new Set(
-    installedPlugins
-      .filter(plugin => isEffectivelyEnabledCorePlugin(plugin, settingsById))
-      .map(plugin => plugin.id)
-      .filter(pluginId => !loadedPluginIds.has(pluginId)),
-  );
-  for (const plugin of settings) {
-    if (
-      plugin.activation === 'enabled'
-      && plugin.id !== CODEGRAPHY_MARKDOWN_PLUGIN_ID
-      && !installedPluginIds.has(plugin.id)
-    ) missing.add(plugin.id);
-  }
-  return [...missing];
+  return installedPlugins
+    .filter(plugin => isEffectivelyEnabledCorePlugin(plugin, settingsById))
+    .map(plugin => plugin.id)
+    .filter(pluginId => !loadedPluginIds.has(pluginId));
 }
 
 export function createWorkspacePipelinePluginSignature(

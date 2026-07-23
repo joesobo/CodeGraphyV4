@@ -22,8 +22,6 @@ export function createWorkspaceIndexPluginSignature(input: {
   explicitPlugins?: readonly IndexCodeGraphyWorkspacePlugin[];
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
   registry: CorePluginRegistry;
-  settings: CodeGraphyWorkspaceSettings;
-  includeMissingConfiguredPlugins?: boolean;
 }): string | null {
   const explicitRuntimePlugins = (input.explicitPlugins ?? []).map(plugin => (
     'plugin' in plugin ? plugin.plugin : plugin
@@ -35,22 +33,9 @@ export function createWorkspaceIndexPluginSignature(input: {
     runtimePluginsById.set(plugin.id, plugin);
   }
   const runtimePlugins = [...runtimePluginsById.values()];
-  const representedPluginIds = new Set([
-    ...runtimePlugins.map(plugin => plugin.id),
-    ...input.loadedPackagePlugins.flatMap(loadedPlugin => [
-      loadedPlugin.record.package,
-      loadedPlugin.record.id,
-    ].filter((value): value is string => Boolean(value))),
-  ]);
-  const missingPackagePlugins = input.includeMissingConfiguredPlugins === false
-    ? []
-    : input.settings.plugins
-      .filter(plugin => plugin.activation === 'enabled' && !representedPluginIds.has(plugin.id))
-      .map(plugin => plugin.id);
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
     runtimePlugins,
     packagePlugins: input.loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
-    missingPackagePlugins,
   }) ?? createCodeGraphyWorkspacePluginSignature(
     input.registry.list().map(info => info.plugin),
   );

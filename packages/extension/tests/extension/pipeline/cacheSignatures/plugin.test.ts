@@ -55,11 +55,23 @@ describe('workspace pipeline plugin signature', () => {
     );
   });
 
-  it('marks enabled workspace plugin packages missing from the runtime', () => {
+  it('marks enabled installed Core plugin packages missing from the runtime', () => {
     expect(createWorkspacePipelinePluginSignature([], {
-      installedPlugins: [],
+      installedPlugins: [{
+        package: '@acme/core', version: '1.0.0', id: 'codegraphy.vue',
+        host: 'core', globallyEnabled: false,
+      }],
       settings: { plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }] },
     })).toBe('npm:codegraphy.vue@missing');
+  });
+
+  it('ignores enabled plugins whose host is unknown to Core', () => {
+    expect(createWorkspacePipelinePluginSignature([], {
+      installedPlugins: [],
+      settings: {
+        plugins: [{ id: 'acme.future-interface', activation: 'enabled' }],
+      },
+    })).toBeNull();
   });
 
   it('matches runtime records by plugin ID inside a multi-plugin package', () => {

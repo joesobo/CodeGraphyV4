@@ -73,8 +73,6 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
       explicitPlugins: runtime.options.plugins,
       loadedPackagePlugins: state.loadedPackagePlugins,
       registry: state.registry,
-      settings: state.settings,
-      includeMissingConfiguredPlugins: false,
     });
   persistWorkspaceIndexMetadata({
     pluginBuildSignature: createWorkspaceIndexPluginBuildSignature(state.loadedPackagePlugins),
