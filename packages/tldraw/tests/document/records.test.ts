@@ -5,8 +5,8 @@ import { reconcileGraphRecords } from '../../src/document/records';
 
 const INITIAL_GRAPH = {
   nodes: [
-    { id: 'src/a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-    { id: 'src/b.ts', label: 'b.ts', color: '#222222', nodeType: 'file' },
+    { id: 'src/a.ts', label: 'a.ts', nodeType: 'file' },
+    { id: 'src/b.ts', label: 'b.ts', nodeType: 'file' },
   ],
   edges: [{ id: 'a-imports-b', from: 'src/a.ts', to: 'src/b.ts', kind: 'import', sources: [] }],
 } satisfies IGraphData;
@@ -15,9 +15,9 @@ describe('reconcileGraphRecords', () => {
   it('renders connected nodes larger than nodes with no connections', () => {
     const graph = {
       nodes: [
-        { id: 'src/orphan.ts', label: 'orphan.ts', color: '#111111', nodeType: 'file' },
-        { id: 'src/connected-a.ts', label: 'connected-a.ts', color: '#222222', nodeType: 'file' },
-        { id: 'src/connected-b.ts', label: 'connected-b.ts', color: '#333333', nodeType: 'file' },
+        { id: 'src/orphan.ts', label: 'orphan.ts', nodeType: 'file' },
+        { id: 'src/connected-a.ts', label: 'connected-a.ts', nodeType: 'file' },
+        { id: 'src/connected-b.ts', label: 'connected-b.ts', nodeType: 'file' },
       ],
       edges: [{
         id: 'connected-a-imports-b',
@@ -45,12 +45,11 @@ describe('reconcileGraphRecords', () => {
     const leaves = Array.from({ length: 35 }, (_, index) => ({
       id: `src/leaf-${index}.ts`,
       label: `leaf-${index}.ts`,
-      color: '#111111',
       nodeType: 'file',
     }));
     const graph = {
       nodes: [
-        { id: 'src/hub.ts', label: 'hub.ts', color: '#222222', nodeType: 'file' },
+        { id: 'src/hub.ts', label: 'hub.ts', nodeType: 'file' },
         ...leaves,
       ],
       edges: leaves.flatMap((leaf, index) => [
@@ -84,9 +83,9 @@ describe('reconcileGraphRecords', () => {
   it('groups file extensions into solid native palette fills', () => {
     const records = reconcileGraphRecords([], {
       nodes: [
-        { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', nodeType: 'file' },
-        { id: 'tests/app.ts', label: 'app.ts', color: '#93C5FD', nodeType: 'file' },
-        { id: 'tools/build.py', label: 'build.py', color: '#FDE68A', nodeType: 'file' },
+        { id: 'src/app.ts', label: 'app.ts', nodeType: 'file' },
+        { id: 'tests/app.ts', label: 'app.ts', nodeType: 'file' },
+        { id: 'tools/build.py', label: 'build.py', nodeType: 'file' },
       ],
       edges: [],
     });
@@ -155,7 +154,7 @@ describe('reconcileGraphRecords', () => {
 
   it('preserves manual node styling during refresh', () => {
     const graph = {
-      nodes: [{ id: 'tools/build.py', label: 'build.py', color: '#333333', nodeType: 'file' }],
+      nodes: [{ id: 'tools/build.py', label: 'build.py', nodeType: 'file' }],
       edges: [],
     } satisfies IGraphData;
     const initial = reconcileGraphRecords([], graph);
@@ -270,8 +269,8 @@ describe('reconcileGraphRecords', () => {
       .concat(movedNodeA, note);
     const updatedGraph = {
       nodes: [
-        { id: 'src/a.ts', label: 'renamed.ts', color: '#111111', nodeType: 'file' },
-        { id: 'src/c.ts', label: 'c.ts', color: '#333333', nodeType: 'file' },
+        { id: 'src/a.ts', label: 'renamed.ts', nodeType: 'file' },
+        { id: 'src/c.ts', label: 'c.ts', nodeType: 'file' },
       ],
       edges: [{ id: 'a-imports-c', from: 'src/a.ts', to: 'src/c.ts', kind: 'import', sources: [] }],
     } satisfies IGraphData;

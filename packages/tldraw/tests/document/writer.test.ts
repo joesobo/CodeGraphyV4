@@ -12,8 +12,8 @@ describe('writeGraphDocument', () => {
     const targetPath = path.join(directory, 'workspace.tldraw');
     const graph = {
       nodes: [
-        { id: 'a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
-        { id: 'symbol:a', label: 'a', color: '#222222', nodeType: 'function' },
+        { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+        { id: 'symbol:a', label: 'a', nodeType: 'function' },
       ],
       edges: [],
     } satisfies IGraphData;

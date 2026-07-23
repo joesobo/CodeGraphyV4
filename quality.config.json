@@ -332,7 +332,8 @@
 			},
 			"boundaries": {
 				"entrypoints": [
-					"src/plugin.ts"
+					"src/plugin.ts",
+					"src/extension.ts"
 				]
 			}
 		},

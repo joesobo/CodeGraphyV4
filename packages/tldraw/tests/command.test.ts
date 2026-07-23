@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { runTldrawCommand, type TldrawCommandDependencies } from '../src/command';
 
 const GRAPH = {
-  nodes: [{ id: 'src/main.ts', label: 'main.ts', color: '#67E8F9', nodeType: 'file' }],
+  nodes: [{ id: 'src/main.ts', label: 'main.ts', nodeType: 'file' }],
   edges: [],
 } satisfies IGraphData;
 

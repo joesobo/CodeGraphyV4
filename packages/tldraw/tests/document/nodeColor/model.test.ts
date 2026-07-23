@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createNodeColorMap } from '../../../src/document/nodeColor/model';
 
 function fileNode(id: string): IGraphNode {
-  return { id, label: id, color: '#A1A1AA', nodeType: 'file' };
+  return { id, label: id, nodeType: 'file' };
 }
 
 describe('tldraw node color', () => {
