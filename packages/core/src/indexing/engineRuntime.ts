@@ -18,6 +18,7 @@ export interface WorkspaceEngineState extends WorkspaceIndexEngineState {
 
 export interface WorkspaceEngineRuntime {
   discovery: FileDiscovery;
+  disposed: boolean;
   options: IndexCodeGraphyWorkspaceOptions;
   state: WorkspaceEngineState;
   workspaceRoot: string;
@@ -28,6 +29,7 @@ export function createWorkspaceEngineRuntime(
 ): WorkspaceEngineRuntime {
   return {
     discovery: new FileDiscovery(),
+    disposed: false,
     options,
     state: {
       ...createWorkspaceIndexEngineState(),
@@ -37,6 +39,12 @@ export function createWorkspaceEngineRuntime(
     },
     workspaceRoot: resolveWorkspaceRoot(options.workspaceRoot),
   };
+}
+
+export function assertWorkspaceEngineActive(runtime: WorkspaceEngineRuntime): void {
+  if (runtime.disposed) {
+    throw new Error('CodeGraphy Workspace Engine is disposed.');
+  }
 }
 
 export function hasWorkspaceEngineIndexState(state: WorkspaceEngineState): boolean {

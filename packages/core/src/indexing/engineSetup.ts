@@ -3,7 +3,7 @@ import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { discoverWorkspaceIndexFiles } from './discovery';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
-import type { WorkspaceEngineRuntime } from './engineRuntime';
+import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 
 export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime): Promise<void> {
   const { options, state, workspaceRoot } = runtime;
@@ -12,13 +12,23 @@ export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime)
   state.settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(state.settings, options.disabledPlugins);
   const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot, disabledPlugins);
+  const registry = registryResult.registry;
   previousRegistry?.disposeAll();
-  state.registry = registryResult.registry;
+  if (runtime.disposed) {
+    registry.disposeAll();
+    assertWorkspaceEngineActive(runtime);
+  }
+  state.registry = registry;
   state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
-  state.registeredPluginIds = new Set(state.registry.list().map(info => info.plugin.id));
+  state.registeredPluginIds = new Set(registry.list().map(info => info.plugin.id));
   state.workspaceRoot = workspaceRoot;
-  await state.registry.initializeAll(workspaceRoot);
-  const activePluginIds = new Set(state.registry.list().map(info => info.plugin.id));
+  await registry.initializeAll(workspaceRoot);
+  if (runtime.disposed) {
+    registry.disposeAll();
+    if (state.registry === registry) state.registry = undefined;
+    assertWorkspaceEngineActive(runtime);
+  }
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   state.failedPluginIds = new Set(
     [...state.registeredPluginIds].filter(pluginId => !activePluginIds.has(pluginId)),
   );

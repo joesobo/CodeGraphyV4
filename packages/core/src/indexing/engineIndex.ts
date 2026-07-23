@@ -1,16 +1,19 @@
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
 import { buildWorkspaceEngineGraph, createWorkspaceEngineIndexResult, persistWorkspaceEngine } from './engineGraph';
-import type { WorkspaceEngineRuntime } from './engineRuntime';
+import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 import { createWorkspaceEngineDisabledPlugins, discoverWorkspaceEngineFiles, initializeWorkspaceEngine } from './engineSetup';
 
 export async function indexWorkspaceEngine(
   runtime: WorkspaceEngineRuntime,
 ): Promise<IndexCodeGraphyWorkspaceResult> {
+  assertWorkspaceEngineActive(runtime);
   const { discovery, options, state, workspaceRoot } = runtime;
   await initializeWorkspaceEngine(runtime);
+  assertWorkspaceEngineActive(runtime);
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
   await discoverWorkspaceEngineFiles(runtime);
+  assertWorkspaceEngineActive(runtime);
   const analysis = await analyzeWorkspaceIndexFiles({
     cache: state.cache,
     discovery,
@@ -20,6 +23,7 @@ export async function indexWorkspaceEngine(
     registry: state.registry!,
     workspaceRoot,
   });
+  assertWorkspaceEngineActive(runtime);
   state.fileAnalysis = analysis.fileAnalysis;
   state.fileConnections = analysis.fileConnections;
   const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
