@@ -21,11 +21,12 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
     const info = this._plugins.get(pluginId);
-    if (!info) {
+    if (!info || this._initializedPlugins.has(info)) {
       return;
     }
 
     let initialization = this._initializingPlugins.get(info);
+    const ownsInitialization = !initialization;
     if (!initialization) {
       initialization = lifecycleInitializePlugin(
         info,
@@ -41,6 +42,10 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
     }
     if (!initialized && this._plugins.get(pluginId) === info) {
       this.unregister(pluginId);
+      return;
+    }
+    if (initialized && ownsInitialization && this._plugins.get(pluginId) === info) {
+      this._runPluginOperationSync(() => this._replayReadinessForPlugin(info));
     }
   }
 

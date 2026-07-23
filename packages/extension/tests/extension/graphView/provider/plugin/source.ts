@@ -18,7 +18,6 @@ export function createPluginSource(
         },
         register: vi.fn(),
         initializePlugin: vi.fn(async () => undefined),
-        replayReadinessForPlugin: vi.fn(),
       },
       getPluginStatuses: vi.fn(() => []),
     },

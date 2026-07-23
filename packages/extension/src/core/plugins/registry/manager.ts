@@ -21,7 +21,6 @@ export class PluginRegistry extends PluginRegistryLifecycle {
       descriptorSignature?: string;
       sourceSignature?: string;
       options?: Record<string, unknown>;
-      deferReadinessReplay?: boolean;
     } = {},
   ): void {
     if (this._plugins.has(plugin.id)) {
@@ -29,9 +28,6 @@ export class PluginRegistry extends PluginRegistryLifecycle {
     }
     const info = validateAndCreatePluginInfo(plugin, options);
     addToRegistry(info, this._plugins, this._extensionMap);
-    if (!options.deferReadinessReplay) {
-      this._replayReadinessForPlugin(info);
-    }
   }
 
   unregister(pluginId: string): boolean {

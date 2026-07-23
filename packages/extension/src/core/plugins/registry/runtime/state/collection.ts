@@ -184,14 +184,5 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     }
   }
 
-  replayReadinessForPlugin(pluginId: string): void {
-    const info = this._plugins.get(pluginId);
-    if (!info) {
-      return;
-    }
-
-    this._runPluginOperationSync(() => this._replayReadinessForPlugin(info));
-  }
-
   abstract unregister(pluginId: string): boolean;
 }

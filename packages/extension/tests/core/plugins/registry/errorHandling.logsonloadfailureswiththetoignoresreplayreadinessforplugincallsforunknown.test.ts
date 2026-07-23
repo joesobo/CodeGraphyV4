@@ -96,12 +96,4 @@ describe('PluginRegistry error handling', () => {
 
       await expect(registry.initializePlugin('missing-plugin', '/workspace')).resolves.toBeUndefined();
     });
-
-
-
-    it('ignores replayReadinessForPlugin calls for unknown plugin ids', () => {
-      const registry = createConfiguredRegistry();
-
-      expect(() => registry.replayReadinessForPlugin('missing-plugin')).not.toThrow();
-    });
 });

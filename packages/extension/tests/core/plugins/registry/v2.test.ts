@@ -95,13 +95,15 @@ describe('PluginRegistry registration', () => {
           expect(registry.size).toBe(0);
         });
 
-        it('replays onWorkspaceReady for plugins registered after readiness', () => {
+        it('replays onWorkspaceReady for plugins initialized after readiness', async () => {
           const { registry } = createConfiguredRegistry();
           const graph: IGraphData = { nodes: [{ id: 'a', label: 'a', color: '#fff' }], edges: [] };
           registry.notifyWorkspaceReady(graph);
 
           const latePlugin = createV2Plugin('late-workspace-ready');
           registry.register(latePlugin);
+          expect(latePlugin.onWorkspaceReady).not.toHaveBeenCalled();
+          await registry.initializePlugin(latePlugin.id, '/workspace');
 
           expect(latePlugin.onWorkspaceReady).toHaveBeenCalledWith(graph);
         });
