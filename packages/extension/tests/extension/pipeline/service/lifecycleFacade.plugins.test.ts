@@ -42,7 +42,9 @@ describe('pipeline/service/lifecycleFacade', () => {
     const disabledPlugins = new Set(['plugin.disabled']);
 
     expect(facade.getPluginStatuses(disabledPlugins)).toEqual([{ id: 'plugin.a' }]);
-    expect(readWorkspacePluginStatusContext).toHaveBeenCalledWith('/workspace');
+    expect(readWorkspacePluginStatusContext).toHaveBeenCalledWith('/workspace', {
+      bundledPackageRoots: [],
+    });
     expect(getWorkspacePipelineStatusList).toHaveBeenCalledWith(
       facade._registry,
       disabledPlugins,

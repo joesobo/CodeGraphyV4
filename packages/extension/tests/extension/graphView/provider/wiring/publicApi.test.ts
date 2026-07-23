@@ -64,6 +64,9 @@ function createTarget() {
   };
 
   const target = {
+    _context: {
+      extensionUri: { fsPath: '/test/extension' },
+    },
     refresh: vi.fn(async () => undefined),
     refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
