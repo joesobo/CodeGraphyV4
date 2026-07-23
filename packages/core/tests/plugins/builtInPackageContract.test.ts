@@ -24,6 +24,15 @@ describe('built-in plugin package contract', () => {
     expect(existsSync(resolve(repositoryRoot, 'scripts/build-plugin-package.mjs'))).toBe(false);
   });
 
+  it('keeps package build behavior out of root scripts', () => {
+    expect(existsSync(resolve(repositoryRoot, 'scripts/build-workspace-package.mjs'))).toBe(false);
+    const rendererManifest = JSON.parse(readFileSync(
+      resolve(repositoryRoot, 'packages/graph-renderer/package.json'),
+      'utf8',
+    )) as { scripts: { build: string } };
+    expect(rendererManifest.scripts.build).toBe('node build.mjs');
+  });
+
   it.each(PACKAGE_NAMES)('%s uses package.json as its only plugin manifest', (packageName) => {
     const packageRoot = resolve(repositoryRoot, 'packages', packageName);
     const manifest = JSON.parse(

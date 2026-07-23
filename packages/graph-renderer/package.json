@@ -55,8 +55,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/build-workspace-package.mjs --clean dist && pnpm run build:wasm && tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js --replace src/physics/wasm/runtime/loader.ts ../generated/physics.wasm ./generated/physics.wasm --copy src/physics/wasm/generated/physics.wasm dist/generated/physics.wasm",
-    "build:wasm": "tsx scripts/buildPhysics.ts",
+    "build": "node build.mjs",
     "watch:wasm": "tsx scripts/buildPhysics.ts --watch",
     "lint": "eslint src tests scripts vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
@@ -64,6 +63,9 @@
   },
   "devDependencies": {
     "@webgpu/types": "^0.1.71",
-    "assemblyscript": "0.28.19"
+    "assemblyscript": "0.28.19",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
   }
 }
