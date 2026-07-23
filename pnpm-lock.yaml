@@ -509,9 +509,6 @@ importers:
       '@codegraphy-dev/core':
         specifier: workspace:*
         version: link:../core
-      '@codegraphy-dev/graph-renderer':
-        specifier: workspace:*
-        version: link:../graph-renderer
       '@tldraw/tlschema':
         specifier: ^5.2.5
         version: 5.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -531,6 +528,9 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
     devDependencies:
+      '@codegraphy-dev/graph-renderer':
+        specifier: workspace:*
+        version: link:../graph-renderer
       '@testing-library/dom':
         specifier: ^10.0.0
         version: 10.4.1
@@ -555,6 +555,9 @@ importers:
       esbuild:
         specifier: ^0.25.0
         version: 0.25.12
+      jsdom:
+        specifier: ^25.0.0
+        version: 25.0.1
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -564,6 +567,9 @@ importers:
       tldraw:
         specifier: ^5.2.5
         version: 5.2.5(@floating-ui/dom@1.7.6)(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       typescript:
         specifier: ^5.3.3
         version: 5.9.3

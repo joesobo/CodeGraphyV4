@@ -1,14 +1,30 @@
 {
   "name": "@codegraphy-dev/tldraw",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Render a CodeGraphy workspace as a native tldraw document",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/tldraw",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "keywords": [
+    "codegraphy",
+    "force-directed",
+    "graph",
+    "tldraw",
+    "typescript",
+    "visualization"
+  ],
   "bin": {
     "codegraphy-tldraw": "./bin/codegraphy-tldraw.js"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=20 <23"
   },
   "os": [
     "darwin"
@@ -24,14 +40,13 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ./scripts/clean.mjs && node ./scripts/build.mjs",
-    "lint": "eslint src bin vitest.config.ts",
+    "build": "tsx ./scripts/build.ts",
+    "lint": "eslint src scripts bin vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
-    "@codegraphy-dev/graph-renderer": "workspace:*",
     "@tldraw/tlschema": "^5.2.5",
     "@tldraw/utils": "^5.2.5",
     "libsql": "0.5.29",
@@ -40,6 +55,7 @@
     "yazl": "^3.3.1"
   },
   "devDependencies": {
+    "@codegraphy-dev/graph-renderer": "workspace:*",
     "@testing-library/dom": "^10.0.0",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.2.0",
@@ -48,9 +64,11 @@
     "@types/yauzl": "^2.10.3",
     "@types/yazl": "^3.3.1",
     "esbuild": "^0.25.0",
+    "jsdom": "^25.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tldraw": "^5.2.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.3.3",
     "vitest": "^3.0.0"
   }

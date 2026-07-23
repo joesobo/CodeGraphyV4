@@ -98,7 +98,10 @@ codegraphy -C /path/to/workspace index
 
 ### tldraw Offline
 
-The first tldraw interface supports macOS and requires Node.js 22.12 or newer plus the [tldraw offline desktop app](https://www.tldraw.com/). Install Core and the interface globally, then run the launcher from the workspace to index:
+The first tldraw interface supports macOS and Node.js 20 through 22. Node.js 22
+LTS is recommended. Install the
+[tldraw offline desktop app](https://www.tldraw.com/), Core, and the interface.
+Then run the launcher from the workspace to index:
 
 ```bash
 npm install -g @codegraphy-dev/core @codegraphy-dev/tldraw

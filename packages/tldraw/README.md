@@ -5,7 +5,7 @@ Render a CodeGraphy Workspace as native shapes in tldraw offline.
 ## Requirements
 
 - macOS
-- Node.js 22.12 or newer
+- Node.js 20 through 22. Node.js 22 LTS is recommended.
 - [tldraw offline](https://www.tldraw.com/) installed as a desktop app
 
 ## Install
@@ -53,9 +53,9 @@ scale from 110 to 300 units, so ordinary nodes and hubs remain visibly
 different without allowing one hub to dominate the canvas.
 
 The persistent document script runs WebAssembly force physics from
-`@codegraphy-dev/graph-renderer`. It derives collision spacing and repel strength from each
-circle's visible size. Resizing a node updates both values and restarts the
-layout around the new size.
+`@codegraphy-dev/graph-renderer`. It derives collision spacing and repel
+strength from each circle's visible size. Resizing a node updates both values
+and restarts the layout around the new size.
 
 The canvas includes these controls:
 

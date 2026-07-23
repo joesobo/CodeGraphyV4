@@ -28,6 +28,10 @@ function packGraphRenderer(destination) {
 test('published graph renderer loads and instantiates its packaged WASM physics', async () => {
   const destination = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-graph-renderer-package-'));
   const unpackedPackage = packGraphRenderer(destination);
+  const manifest = JSON.parse(fs.readFileSync(
+    path.join(unpackedPackage, 'package.json'),
+    'utf8',
+  ));
   const entryFile = path.join(unpackedPackage, 'dist', 'index.js');
   const expectedAsset = path.join(unpackedPackage, 'dist', 'generated', 'physics.wasm');
   const originalFetch = globalThis.fetch;
@@ -46,6 +50,7 @@ test('published graph renderer loads and instantiates its packaged WASM physics'
   };
 
   try {
+    assert.equal(manifest.exports['./physics.wasm'], './dist/generated/physics.wasm');
     const renderer = await import(`${pathToFileURL(entryFile).href}?package-test=${Date.now()}`);
     await renderer.prepareGraphPhysics();
     const engine = renderer.createGraphLayoutEngine({

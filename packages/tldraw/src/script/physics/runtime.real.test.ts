@@ -1,8 +1,6 @@
 // @vitest-environment jsdom
 
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { prepareGraphPhysicsFromBytes } from '@codegraphy-dev/graph-renderer';
+import { installGeneratedGraphPhysicsForTests } from '@codegraphy-dev/graph-renderer/testing';
 import {
   createShapeId,
   createTLStore,
@@ -13,11 +11,15 @@ import {
   Editor,
   type TLPointerEventInfo,
 } from 'tldraw';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createRuntimeEngine } from './engine/model';
 import { startPhysicsRuntime } from './runtime';
 
 const editors: Editor[] = [];
+
+beforeAll(() => {
+  installGeneratedGraphPhysicsForTests();
+});
 
 function pointerEvent(
   name: TLPointerEventInfo['name'],
@@ -62,11 +64,6 @@ afterEach(() => {
 
 describe('real tldraw force drag', () => {
   it('settles mixed-size connected nodes without overlapping their padded collision bounds', async () => {
-    const wasm = await readFile(path.resolve(
-      process.cwd(),
-      '../graph-renderer/src/physics/wasm/generated/physics.wasm',
-    ));
-    await prepareGraphPhysicsFromBytes(wasm);
     const nodes = [
       {
         id: 'shape:small', type: 'geo', x: 0, y: 0, props: { h: 80, w: 80 },
@@ -117,11 +114,6 @@ describe('real tldraw force drag', () => {
   });
 
   it('moves a connected node while a settled node follows the pointer', async () => {
-    const wasm = await readFile(path.resolve(
-      process.cwd(),
-      '../graph-renderer/src/physics/wasm/generated/physics.wasm',
-    ));
-    await prepareGraphPhysicsFromBytes(wasm);
     const editor = createRealEditor();
     const nodeAId = createShapeId('codegraphy-node-a');
     const nodeBId = createShapeId('codegraphy-node-b');
