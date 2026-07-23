@@ -26,12 +26,58 @@ interface GraphViewAnalyzerLike {
   registry: GraphViewPluginRegistryLike;
 }
 
+const GRAPH_NODE_SHAPES = new Set([
+  'circle',
+  'square',
+  'rectangle',
+  'diamond',
+  'triangle',
+  'hexagon',
+  'star',
+]);
+
+function readPluginFileColorDefinition(
+  value: unknown,
+): string | IPluginFileColorDefinition | undefined {
+  if (typeof value === 'string' && value.length > 0) return value;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.color !== 'string' || candidate.color.length === 0) return undefined;
+  if (
+    candidate.shape2D !== undefined
+    && (typeof candidate.shape2D !== 'string' || !GRAPH_NODE_SHAPES.has(candidate.shape2D))
+  ) return undefined;
+  if (candidate.imagePath !== undefined && typeof candidate.imagePath !== 'string') {
+    return undefined;
+  }
+
+  return {
+    color: candidate.color,
+    ...(candidate.shape2D
+      ? { shape2D: candidate.shape2D as IPluginFileColorDefinition['shape2D'] }
+      : {}),
+    ...(candidate.imagePath ? { imagePath: candidate.imagePath } : {}),
+  };
+}
+
 function readPluginFileColors(
   pluginInfo: GraphViewPluginInfoLike,
 ): Record<string, string | IPluginFileColorDefinition> | undefined {
-  const fileColors = pluginInfo.data?.fileColors;
+  const descriptorData = pluginInfo.data as unknown;
+  if (!descriptorData || typeof descriptorData !== 'object' || Array.isArray(descriptorData)) {
+    return undefined;
+  }
+  const fileColors = (descriptorData as { fileColors?: unknown }).fileColors;
   if (!fileColors || typeof fileColors !== 'object' || Array.isArray(fileColors)) return undefined;
-  return fileColors as Record<string, string | IPluginFileColorDefinition>;
+
+  const result: Record<string, string | IPluginFileColorDefinition> = {};
+  for (const [pattern, value] of Object.entries(fileColors)) {
+    if (pattern.length === 0) continue;
+    const definition = readPluginFileColorDefinition(value);
+    if (definition) result[pattern] = definition;
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 function ensurePluginExtensionUri(

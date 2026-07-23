@@ -158,4 +158,43 @@ describe('graphView/pluginDefaultGroups', () => {
       },
     ]);
   });
+
+  it('ignores malformed Extension metadata without blocking healthy plugin defaults', () => {
+    const groups = getGraphViewPluginDefaultGroups(
+      {
+        registry: {
+          extensionPlugins: {
+            list: () => [
+              {
+                plugin: { id: 'acme.broken', name: 'Broken' },
+                data: {
+                  fileColors: {
+                    '*.null': null,
+                    '*.missing-color': { shape2D: 'circle' },
+                    '*.bad-shape': { color: '#111111', shape2D: 'octagon' },
+                  },
+                },
+              },
+              {
+                plugin: { id: 'acme.healthy', name: 'Healthy' },
+                data: extensionData({ '*.healthy': '#22C55E' }),
+              },
+            ],
+          },
+        },
+      } as never,
+      new Set<string>(),
+      new Map<string, vscode.Uri>(),
+      vscode.Uri.file('/test/extension'),
+    );
+
+    expect(groups).toEqual([{
+      id: 'plugin:acme.healthy:*.healthy',
+      pattern: '*.healthy',
+      color: '#22C55E',
+      isPluginDefault: true,
+      pluginId: 'acme.healthy',
+      pluginName: 'Healthy',
+    }]);
+  });
 });
