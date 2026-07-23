@@ -304,6 +304,7 @@ export {
   createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
   createCodeGraphyWorkspacePluginTogglePlan,
   createBundledMarkdownInstalledPluginRecord,
+  isBundledMarkdownPluginEnabled,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   getCodeGraphyUserDirectoryPath,

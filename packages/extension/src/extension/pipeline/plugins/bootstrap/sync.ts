@@ -42,7 +42,11 @@ async function collectDesiredCandidates(
   { settings, workspaceRoot }: WorkspacePipelineSettingsResult,
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<WorkspacePipelinePluginCandidate[]> {
-  const desired = await getBuiltInWorkspacePipelinePluginCandidates(settings, dependencies.disabledPlugins);
+  const desired = await getBuiltInWorkspacePipelinePluginCandidates(
+    settings,
+    dependencies.disabledPlugins,
+    { ...(dependencies.userHomeDir ? { homeDir: dependencies.userHomeDir } : {}) },
+  );
 
   if (workspaceRoot && settings) {
     desired.push(...await prepareWorkspacePackagePluginCandidates(

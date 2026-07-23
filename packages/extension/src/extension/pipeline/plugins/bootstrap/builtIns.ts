@@ -2,6 +2,7 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   loadBundledMarkdownPlugin,
+  type CodeGraphyUserStateOptions,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
@@ -30,10 +31,11 @@ export interface WorkspacePipelinePluginCandidate {
 export async function getBuiltInWorkspacePipelinePluginCandidates(
   settings: CodeGraphyWorkspaceSettings | undefined,
   disabledPluginsInput: Iterable<string> = [],
+  userStateOptions: CodeGraphyUserStateOptions = {},
 ): Promise<WorkspacePipelinePluginCandidate[]> {
   const disabledPlugins = new Set(disabledPluginsInput);
   if (
-    !shouldRegisterMarkdownPlugin(settings)
+    !shouldRegisterMarkdownPlugin(settings, userStateOptions)
     || disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)
   ) return [];
 
@@ -55,8 +57,13 @@ export async function getBuiltInWorkspacePipelinePluginCandidates(
 export async function getBuiltInWorkspacePipelinePluginRegistrations(
   settings: CodeGraphyWorkspaceSettings | undefined,
   disabledPluginsInput: Iterable<string> = [],
+  userStateOptions: CodeGraphyUserStateOptions = {},
 ): Promise<WorkspacePipelinePluginRegistration[]> {
-  const candidates = await getBuiltInWorkspacePipelinePluginCandidates(settings, disabledPluginsInput);
+  const candidates = await getBuiltInWorkspacePipelinePluginCandidates(
+    settings,
+    disabledPluginsInput,
+    userStateOptions,
+  );
   return Promise.all(candidates.map(candidate => candidate.load()));
 }
 
@@ -64,8 +71,13 @@ export async function registerBuiltInWorkspacePipelinePlugins(
   registry: PluginRegistry,
   settings: CodeGraphyWorkspaceSettings | undefined,
   disabledPlugins?: Iterable<string>,
+  userStateOptions: CodeGraphyUserStateOptions = {},
 ): Promise<void> {
-  for (const registration of await getBuiltInWorkspacePipelinePluginRegistrations(settings, disabledPlugins)) {
+  for (const registration of await getBuiltInWorkspacePipelinePluginRegistrations(
+    settings,
+    disabledPlugins,
+    userStateOptions,
+  )) {
     registry.register(registration.plugin, registration.options);
   }
 }

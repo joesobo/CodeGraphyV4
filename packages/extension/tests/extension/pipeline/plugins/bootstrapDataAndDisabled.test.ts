@@ -111,6 +111,9 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
         activation: 'enabled',
         options: {
         },
+      }, {
+        id: 'codegraphy.markdown',
+        activation: 'disabled',
       }],
     });
 
@@ -134,7 +137,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
     });
   });
 
-  it('does not register Markdown when the workspace plugins array removes it', async () => {
+  it('registers Markdown from its global default when the workspace omits it', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
@@ -148,7 +151,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
 
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual([]);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 

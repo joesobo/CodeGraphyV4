@@ -24,7 +24,12 @@ export async function initializeWorkspacePipeline(
 
   registry.setCoreAnalyzeFileResult(analyzeFileWithCoreTreeSitter);
   registry.setCoreGraphScopeCapabilitiesProvider(listCoreTreeSitterGraphScopeCapabilities);
-  await registerBuiltInWorkspacePipelinePlugins(registry, settings, dependencies.disabledPlugins);
+  await registerBuiltInWorkspacePipelinePlugins(
+    registry,
+    settings,
+    dependencies.disabledPlugins,
+    { ...(dependencies.userHomeDir ? { homeDir: dependencies.userHomeDir } : {}) },
+  );
 
   if (workspaceRoot && settings) {
     await registerWorkspacePackagePlugins(registry, settings, workspaceRoot, dependencies);

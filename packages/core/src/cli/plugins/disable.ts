@@ -26,8 +26,8 @@ export function runDisableCommand(
         output: `Plugin '${command.packageName}' is not in ~/.codegraphy/plugins.json.`,
       };
     }
-    for (const pluginId of pluginIds) {
-      dependencies.setGlobalPluginActivation(pluginId, false, {
+    for (const plugin of plugins) {
+      dependencies.setGlobalPluginActivation(plugin, false, {
         ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
       });
     }

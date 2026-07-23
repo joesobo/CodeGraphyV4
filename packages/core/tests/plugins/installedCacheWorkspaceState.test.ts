@@ -33,7 +33,7 @@ describe('CodeGraphy installed plugin workspace state', () => {
     expect(JSON.parse(
       await fs.readFile(path.join(workspaceRoot, '.codegraphy', 'settings.json'), 'utf-8'),
     ).plugins).toEqual([
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'inherit' },
       { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
   });

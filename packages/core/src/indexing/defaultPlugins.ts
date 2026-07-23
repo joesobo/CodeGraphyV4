@@ -1,5 +1,6 @@
 import type { CorePluginRegistry } from '../plugins/registry';
 import { loadBundledMarkdownPlugin } from '../plugins/markdown/runtime';
+import { isBundledMarkdownPluginEnabled } from '../plugins/installedPluginCache/bundled';
 import { analyzeFileWithCoreTreeSitter } from '../treeSitter/core';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
@@ -26,7 +27,9 @@ function shouldRegisterDefaultMarkdownPlugin(
   }
 
   const providedPluginIds = new Set((options.plugins ?? []).map(plugin => readPluginEntry(plugin).plugin.id));
-  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID)?.activation !== 'disabled'
+  return isBundledMarkdownPluginEnabled(settings, {
+    ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
+  })
     && !providedPluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID);
 }
 

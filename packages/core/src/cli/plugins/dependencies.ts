@@ -27,7 +27,7 @@ export interface PluginsCommandDependencies {
   registerInstalledPlugin(options: RegisterCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord[]>;
   resolveGlobalPackageRoots(): string[];
   setGlobalPluginActivation(
-    pluginId: string,
+    installedPlugin: CodeGraphyInstalledPluginRecord,
     globallyEnabled: boolean,
     options?: CodeGraphyUserStateOptions,
   ): CodeGraphyInstalledPluginRecord;

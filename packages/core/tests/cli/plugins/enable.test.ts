@@ -137,6 +137,10 @@ describe('cli/plugins/enable', () => {
       exitCode: 0,
       output: 'Enabled codegraphy.particles globally.',
     });
-    expect(setGlobalPluginActivation).toHaveBeenCalledWith('codegraphy.particles', true, {});
+    expect(setGlobalPluginActivation).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'codegraphy.particles' }),
+      true,
+      {},
+    );
   });
 });

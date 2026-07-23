@@ -41,6 +41,10 @@ describe('cli/plugins/disable', () => {
       exitCode: 0,
       output: 'Disabled codegraphy.particles globally.',
     });
-    expect(setGlobalPluginActivation).toHaveBeenCalledWith('codegraphy.particles', false, {});
+    expect(setGlobalPluginActivation).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'codegraphy.particles' }),
+      false,
+      {},
+    );
   });
 });

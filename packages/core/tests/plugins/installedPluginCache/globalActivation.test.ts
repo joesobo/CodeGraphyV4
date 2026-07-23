@@ -38,7 +38,8 @@ describe('plugins/installedPluginCache global activation', () => {
       ],
     }, { homeDir });
 
-    setCodeGraphyInstalledPluginGlobalActivation('codegraphy.particles', true, { homeDir });
+    const particles = readCodeGraphyInstalledPluginCache({ homeDir }).plugins[1];
+    setCodeGraphyInstalledPluginGlobalActivation(particles, true, { homeDir });
 
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([
       expect.objectContaining({ id: 'codegraphy.vue', globallyEnabled: false }),

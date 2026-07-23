@@ -17,7 +17,10 @@ export type {
   CodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
   CodeGraphyWorkspacePluginSettingUpdatePlanOptions,
 } from './installedPluginCache/workspaceSettingPlan';
-export { createBundledMarkdownInstalledPluginRecord } from './installedPluginCache/bundled';
+export {
+  createBundledMarkdownInstalledPluginRecord,
+  isBundledMarkdownPluginEnabled,
+} from './installedPluginCache/bundled';
 export { setCodeGraphyInstalledPluginGlobalActivation } from './installedPluginCache/globalActivation';
 export {
   getCodeGraphyUserDirectoryPath,

@@ -1,3 +1,6 @@
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
 import {
@@ -8,8 +11,10 @@ import type { CorePluginRegistry } from '../../src/plugins/registry';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  createBundledMarkdownInstalledPluginRecord,
   createDefaultCodeGraphyWorkspaceSettings,
-} from '../../src/workspace/settingsDefaults';
+  writeCodeGraphyInstalledPluginCache,
+} from '../../src';
 
 interface RegisteredPlugin {
   id: string;
@@ -115,6 +120,30 @@ describe('indexing/defaultPlugins', () => {
       builtIn: true,
       sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     }]);
+    expect(harness.coreAnalyzerRegistered.current).toBe(true);
+  });
+
+  it('does not register bundled Markdown when the workspace inherits a disabled global default', async () => {
+    const harness = registry();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    writeCodeGraphyInstalledPluginCache({
+      version: 3,
+      plugins: [{
+        ...createBundledMarkdownInstalledPluginRecord(),
+        globallyEnabled: false,
+      }],
+    }, { homeDir });
+
+    await registerDefaultIndexPlugins(
+      harness.registry,
+      { workspaceRoot: '/workspace', userHomeDir: homeDir },
+      {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'inherit' }],
+      },
+    );
+
+    expect(harness.registered).toEqual([]);
     expect(harness.coreAnalyzerRegistered.current).toBe(true);
   });
 

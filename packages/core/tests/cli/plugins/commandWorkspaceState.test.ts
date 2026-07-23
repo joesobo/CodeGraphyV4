@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
 } from '../../../src';
@@ -68,7 +69,7 @@ describe('plugins/command workspace state', () => {
       output: `Enabled codegraphy.vue for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'inherit' },
       { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
 
@@ -84,7 +85,7 @@ describe('plugins/command workspace state', () => {
       output: `Disabled codegraphy.vue for ${workspaceRoot}. Run \`codegraphy -C "${workspaceRoot}" index\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'inherit' },
       { id: 'codegraphy.vue', activation: 'disabled' },
     ]);
   });
@@ -122,6 +123,28 @@ describe('plugins/command workspace state', () => {
     }]);
   });
 
+  it('stores a global default for bundled Markdown without prior registration', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+
+    const result = await runPluginsCommand({
+      name: 'plugins',
+      action: 'disable',
+      packageName: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      pluginScope: 'global',
+    }, { homeDir });
+
+    expect(result).toEqual({
+      exitCode: 0,
+      output: `Disabled ${CODEGRAPHY_MARKDOWN_PLUGIN_ID} globally.`,
+    });
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([
+      expect.objectContaining({
+        id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        globallyEnabled: false,
+      }),
+    ]);
+  });
+
   it('lists disabled bundled Markdown without requiring it in the user installed plugin cache', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-markdown-'));
@@ -150,11 +173,14 @@ describe('plugins/command workspace state', () => {
     writeCodeGraphyInstalledPluginCache({
       version: 3,
       plugins: [
-        createPluginRecord(
-          '@codegraphy-dev/plugin-markdown',
-          '/global/@codegraphy-dev/plugin-markdown',
-          CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        ),
+        {
+          ...createPluginRecord(
+            '@codegraphy-dev/plugin-markdown',
+            '/global/@codegraphy-dev/plugin-markdown',
+            CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+          ),
+          globallyEnabled: true,
+        },
         createPluginRecord(
           '@codegraphy-dev/plugin-vue',
           '/global/@codegraphy-dev/plugin-vue',

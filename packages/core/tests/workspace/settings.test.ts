@@ -29,7 +29,7 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(settings.plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      activation: 'enabled',
+      activation: 'inherit',
     }]);
     expect(JSON.parse(
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
@@ -41,7 +41,7 @@ describe('CodeGraphy Workspace settings', () => {
     )).toMatchObject({
       plugins: [{
         id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-        activation: 'enabled',
+        activation: 'inherit',
       }],
     });
   });
@@ -65,7 +65,7 @@ describe('CodeGraphy Workspace settings', () => {
 
     expect(readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      activation: 'enabled',
+      activation: 'inherit',
     }]);
     await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });

@@ -30,8 +30,8 @@ export function runEnableCommand(
   const pluginIds = plugins.map(plugin => plugin.id);
   const pluginLabel = pluginIds.join(', ');
   if (command.pluginScope === 'global') {
-    for (const pluginId of pluginIds) {
-      dependencies.setGlobalPluginActivation(pluginId, true, {
+    for (const plugin of plugins) {
+      dependencies.setGlobalPluginActivation(plugin, true, {
         ...(dependencies.homeDir ? { homeDir: dependencies.homeDir } : {}),
       });
     }

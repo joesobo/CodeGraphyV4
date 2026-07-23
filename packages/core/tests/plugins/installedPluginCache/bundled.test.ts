@@ -30,7 +30,7 @@ describe('plugins/installedPluginCache/bundled', () => {
           defaultSetting: 'reanalyze-plugin-files',
         },
       },
-      packageRoot: '',
+      packageRoot: 'codegraphy:bundled',
       globallyEnabled: true,
     });
   });

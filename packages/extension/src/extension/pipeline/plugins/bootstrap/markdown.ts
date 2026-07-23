@@ -1,5 +1,7 @@
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  isBundledMarkdownPluginEnabled,
+  type CodeGraphyUserStateOptions,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 
@@ -19,12 +21,13 @@ export function getDefaultMarkdownPluginOptions(
   return undefined;
 }
 
-export function shouldRegisterMarkdownPlugin(settings: CodeGraphyWorkspaceSettings | undefined): boolean {
+export function shouldRegisterMarkdownPlugin(
+  settings: CodeGraphyWorkspaceSettings | undefined,
+  options: CodeGraphyUserStateOptions = {},
+): boolean {
   if (!settings) {
     return true;
   }
 
-  return settings.plugins.some(
-    plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.activation !== 'disabled',
-  );
+  return isBundledMarkdownPluginEnabled(settings, options);
 }

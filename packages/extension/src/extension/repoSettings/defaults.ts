@@ -114,7 +114,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     respectGitignore: true,
     plugins: [{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      activation: 'enabled',
+      activation: 'inherit',
     }],
     interfaces: [{
       id: CODEGRAPHY_EXTENSION_INTERFACE_ID,

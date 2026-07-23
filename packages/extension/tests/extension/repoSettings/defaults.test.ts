@@ -48,7 +48,7 @@ describe('extension/repoSettings/defaults', () => {
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,
-      plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' }],
+      plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'inherit' }],
       interfaces: [{ id: 'codegraphy.extension', data: extensionData }],
       pluginData: {},
       nodeVisibility: createDefaultNodeVisibility(),
