@@ -65,6 +65,21 @@ describe('extension/repoSettings persisted plugin shape', () => {
     });
   });
 
+  it('keeps only the last persisted entry for each plugin id', () => {
+    expect(normalizePersistedSettingsShape({
+      plugins: [
+        { id: 'codegraphy.vue', activation: 'disabled', options: { mode: 'old' } },
+        { id: 'codegraphy.svelte', activation: 'enabled' },
+        { id: 'codegraphy.vue', activation: 'enabled', options: { mode: 'current' } },
+      ],
+    })).toEqual({
+      plugins: [
+        { id: 'codegraphy.svelte', activation: 'enabled' },
+        { id: 'codegraphy.vue', activation: 'enabled', options: { mode: 'current' } },
+      ],
+    });
+  });
+
 
   it('drops plugin settings when the persisted value has no valid plugin packages', () => {
     expect(normalizePersistedSettingsShape({

@@ -25,7 +25,13 @@ export function normalizePersistedPlugins(normalized: Record<string, unknown>): 
     return;
   }
 
-  normalized.plugins = plugins;
+  const pluginsById = new Map<string, Record<string, unknown>>();
+  for (const plugin of plugins) {
+    const pluginId = String(plugin.id);
+    pluginsById.delete(pluginId);
+    pluginsById.set(pluginId, plugin);
+  }
+  normalized.plugins = [...pluginsById.values()];
 }
 
 function normalizePersistedPlugin(plugin: unknown): Record<string, unknown> | null {

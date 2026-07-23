@@ -14,7 +14,10 @@ export function updateCodeGraphyWorkspacePluginSelection(
   plugins: readonly CodeGraphyWorkspacePluginSettings[],
   options: UpdateCodeGraphyWorkspacePluginSelectionOptions,
 ): CodeGraphyWorkspacePluginSettings[] {
-  const existingIndex = plugins.findIndex(plugin => plugin.id === options.pluginId);
+  let existingIndex = -1;
+  for (let index = 0; index < plugins.length; index += 1) {
+    if (plugins[index].id === options.pluginId) existingIndex = index;
+  }
   const nextPlugin: CodeGraphyWorkspacePluginSettings = {
     ...plugins[existingIndex],
     id: options.pluginId,
@@ -24,7 +27,10 @@ export function updateCodeGraphyWorkspacePluginSelection(
     return [...plugins, nextPlugin];
   }
 
-  return plugins.map((plugin, index) => index === existingIndex ? nextPlugin : plugin);
+  return plugins.flatMap((plugin, index) => {
+    if (plugin.id !== options.pluginId) return [plugin];
+    return index === existingIndex ? [nextPlugin] : [];
+  });
 }
 
 export function enableCodeGraphyWorkspacePlugin(

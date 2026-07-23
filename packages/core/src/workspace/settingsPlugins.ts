@@ -52,13 +52,24 @@ function readPluginActivation(entry: PluginEntryShape): CodeGraphyWorkspacePlugi
   return (entry.package?.trim() ?? '').length > 0 ? 'enabled' : null;
 }
 
+function keepLastPluginSettings(
+  plugins: readonly CodeGraphyWorkspacePluginSettings[],
+): CodeGraphyWorkspacePluginSettings[] {
+  const pluginsById = new Map<string, CodeGraphyWorkspacePluginSettings>();
+  for (const plugin of plugins) {
+    pluginsById.delete(plugin.id);
+    pluginsById.set(plugin.id, plugin);
+  }
+  return [...pluginsById.values()];
+}
+
 export function normalizePluginSettings(value: unknown): CodeGraphyWorkspacePluginSettings[] {
   const entries = z.array(z.unknown()).safeParse(value);
   if (!entries.success) {
     return [];
   }
 
-  return entries.data
+  const plugins = entries.data
     .map(entry => pluginEntrySchema.safeParse(entry))
     .filter(result => result.success)
     .map((result): CodeGraphyWorkspacePluginSettings | null => {
@@ -84,4 +95,5 @@ export function normalizePluginSettings(value: unknown): CodeGraphyWorkspacePlug
       return plugin;
     })
     .filter((entry): entry is CodeGraphyWorkspacePluginSettings => entry !== null);
+  return keepLastPluginSettings(plugins);
 }

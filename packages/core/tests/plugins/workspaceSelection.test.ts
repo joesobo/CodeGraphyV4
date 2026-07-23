@@ -79,6 +79,32 @@ describe('plugins/workspaceSelection', () => {
     ]);
   });
 
+  it('replaces duplicate plugin entries with one effective selection', () => {
+    expect(updateCodeGraphyWorkspacePluginSelection([
+      {
+        id: 'codegraphy.vue',
+        activation: 'disabled',
+        options: { mode: 'old' },
+      },
+      { id: 'codegraphy.markdown', activation: 'enabled' },
+      {
+        id: 'codegraphy.vue',
+        activation: 'enabled',
+        options: { mode: 'current' },
+      },
+    ], {
+      pluginId: 'codegraphy.vue',
+      activation: 'disabled',
+    })).toEqual([
+      { id: 'codegraphy.markdown', activation: 'enabled' },
+      {
+        id: 'codegraphy.vue',
+        activation: 'disabled',
+        options: { mode: 'current' },
+      },
+    ]);
+  });
+
   it('does not add an empty options object', () => {
     expect(updateCodeGraphyWorkspacePluginSelection([], {
       pluginId: 'codegraphy.ruby',

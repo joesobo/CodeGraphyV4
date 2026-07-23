@@ -103,6 +103,31 @@ describe('CodeGraphy Workspace settings', () => {
     });
   });
 
+  it('keeps only the last settings entry for each plugin id', () => {
+    expect(normalizeCodeGraphyWorkspaceSettings({
+      plugins: [
+        {
+          id: 'codegraphy.vue',
+          activation: 'disabled',
+          options: { mode: 'old' },
+        },
+        { id: 'codegraphy.svelte', activation: 'enabled' },
+        {
+          id: 'codegraphy.vue',
+          activation: 'enabled',
+          options: { mode: 'current' },
+        },
+      ],
+    }).plugins).toEqual([
+      { id: 'codegraphy.svelte', activation: 'enabled' },
+      {
+        id: 'codegraphy.vue',
+        activation: 'enabled',
+        options: { mode: 'current' },
+      },
+    ]);
+  });
+
   it('writes plugin array order into the settings signature', async () => {
     const workspaceRoot = await createWorkspace();
     const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
