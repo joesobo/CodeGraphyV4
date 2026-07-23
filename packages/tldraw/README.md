@@ -162,7 +162,7 @@ Changes apply to the active graph and remain saved in the document.
 ## Inspect a node
 
 Double-click a generated node or its file icon. CodeGraphy opens one inspector
-on the right side of the canvas with:
+below tldraw's style panel on the right side of the canvas with:
 
 - the file name and workspace-relative path
 - the file type
@@ -172,6 +172,17 @@ on the right side of the canvas with:
 Double-click another node to update the same inspector. Click an empty part of
 the canvas to close it. The inspector is a temporary canvas control, so it does
 not add a shape to the saved document.
+
+## Search the graph
+
+Use the search bar at the top of the canvas to find files by their
+workspace-relative path. Search is case-insensitive and updates while you type.
+The canvas shows matching nodes, their icons and labels, and edges between
+matching nodes. The filtered nodes continue to use force physics, and the camera
+fits the results when their layout settles.
+
+Clear the search to restore the complete graph. Search is temporary and does
+not change the saved `.tldraw` document.
 
 ## Troubleshooting
 

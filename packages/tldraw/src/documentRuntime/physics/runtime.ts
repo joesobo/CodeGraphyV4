@@ -5,6 +5,12 @@ import { handlePointerEvent, synchronizeDraggedNode, type DragHost, type ScriptP
 import { createRuntimeEngine } from './engine/model';
 import { forceSettingsChanged } from './force/model';
 import {
+  createSearchProjection,
+  graphSearchEventName,
+  normalizeGraphSearchQuery,
+  type GraphSearchEventDetail,
+} from '../search/model';
+import {
   isEdgeShape,
   isIconShape,
   isLabelShape,
@@ -34,10 +40,19 @@ export interface ScriptEditor {
   store: { listen(listener: () => void): () => void };
   updateTheme?(theme: TLTheme): unknown;
   updateShapes(updates: Array<Record<string, unknown>>): void;
+  zoomToBounds?(
+    bounds: { h: number; w: number; x: number; y: number },
+    options: {
+      animation: { duration: number };
+      inset: number;
+      targetZoom: number;
+    },
+  ): unknown;
 }
 
 export interface PhysicsScriptContext {
   editor: ScriptEditor;
+  searchEvents?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
   signal: AbortSignal;
 }
 
@@ -48,21 +63,24 @@ interface PhysicsRuntime {
   editor: ScriptEditor;
   engine?: GraphLayoutEngine;
   forceSettings: ForceSettings;
+  fitSearchWhenSettled: boolean;
   iconShapes: IconShape[];
   labelShapes: LabelShape[];
   nodeShapes: NodeShape[];
   shapeUpdates?: ShapeUpdateModel;
+  searchQuery: string;
   structureKey: string;
   writingPhysicsUpdates: boolean;
 }
 
 function rebuildRuntime(runtime: PhysicsRuntime): void {
   const shapes = runtime.editor.getCurrentPageShapes();
+  const visibleShapes = createSearchProjection(shapes, runtime.searchQuery).visibleShapes;
   runtime.structureKey = graphStructureKey(shapes);
-  runtime.nodeShapes = shapes.filter(isNodeShape);
-  runtime.edgeShapes = shapes.filter(isEdgeShape);
-  runtime.iconShapes = shapes.filter(isIconShape);
-  runtime.labelShapes = shapes.filter(isLabelShape);
+  runtime.nodeShapes = visibleShapes.filter(isNodeShape);
+  runtime.edgeShapes = visibleShapes.filter(isEdgeShape);
+  runtime.iconShapes = visibleShapes.filter(isIconShape);
+  runtime.labelShapes = visibleShapes.filter(isLabelShape);
   const engine = createRuntimeEngine(
     runtime.nodeShapes,
     runtime.edgeShapes,
@@ -85,6 +103,36 @@ function prepareRuntimeEngine(runtime: PhysicsRuntime): void {
   if (runtime.dirty) rebuildRuntime(runtime);
 }
 
+function fitSettledSearch(runtime: PhysicsRuntime): void {
+  if (!runtime.fitSearchWhenSettled) return;
+  const nodeShapes = createSearchProjection(
+    runtime.editor.getCurrentPageShapes(),
+    runtime.searchQuery,
+  ).visibleShapes.filter(isNodeShape);
+  if (nodeShapes.length === 0) return;
+  let minimumX = Number.POSITIVE_INFINITY;
+  let minimumY = Number.POSITIVE_INFINITY;
+  let maximumX = Number.NEGATIVE_INFINITY;
+  let maximumY = Number.NEGATIVE_INFINITY;
+  for (const shape of nodeShapes) {
+    minimumX = Math.min(minimumX, shape.x);
+    minimumY = Math.min(minimumY, shape.y);
+    maximumX = Math.max(maximumX, shape.x + shape.props.w);
+    maximumY = Math.max(maximumY, shape.y + shape.props.h);
+  }
+  runtime.editor.zoomToBounds?.({
+    h: maximumY - minimumY,
+    w: maximumX - minimumX,
+    x: minimumX,
+    y: minimumY,
+  }, {
+    animation: { duration: 200 },
+    inset: 160,
+    targetZoom: 1,
+  });
+  runtime.fitSearchWhenSettled = false;
+}
+
 function createDragHost(runtime: PhysicsRuntime): DragHost {
   return {
     drag: runtime.drag,
@@ -100,7 +148,11 @@ function tickRuntime(runtime: PhysicsRuntime, dragHost: DragHost): void {
   synchronizeDraggedNode(dragHost);
   const engine = runtime.engine;
   const shapeUpdates = runtime.shapeUpdates;
-  if (!engine || !shapeUpdates || engine.settled) return;
+  if (!engine || !shapeUpdates) return;
+  if (engine.settled) {
+    fitSettledSearch(runtime);
+    return;
+  }
   engine.tick();
   const updates = createShapeUpdates(shapeUpdates, engine);
   if (updates.length === 0) return;
@@ -145,10 +197,12 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
     edgeShapes,
     editor,
     engine,
+    fitSearchWhenSettled: false,
     forceSettings,
     iconShapes,
     labelShapes,
     nodeShapes,
+    searchQuery: '',
     shapeUpdates: engine
       ? createShapeUpdateModel(nodeShapes, edgeShapes, iconShapes, labelShapes, engine)
       : undefined,
@@ -157,18 +211,33 @@ function createPhysicsRuntime(editor: ScriptEditor): PhysicsRuntime {
   };
 }
 
-export function startPhysicsRuntime({ editor, signal }: PhysicsScriptContext): void {
+export function startPhysicsRuntime({
+  editor,
+  searchEvents = typeof window === 'undefined' ? undefined : window,
+  signal,
+}: PhysicsScriptContext): void {
   const runtime = createPhysicsRuntime(editor);
   const dragHost = createDragHost(runtime);
   const handleEvent = (event: ScriptPointerEvent): void => handlePointerEvent(dragHost, event);
   const handleTick = (): void => tickRuntime(runtime, dragHost);
+  const handleSearch = (event: Event): void => {
+    const detail = (event as CustomEvent<GraphSearchEventDetail>).detail;
+    if (typeof detail?.query !== 'string') return;
+    const nextQuery = normalizeGraphSearchQuery(detail.query);
+    if (nextQuery === runtime.searchQuery) return;
+    runtime.searchQuery = nextQuery;
+    runtime.fitSearchWhenSettled = true;
+    runtime.dirty = true;
+  };
   const stopStoreListener = editor.store.listen(() => handleStoreChange(runtime));
 
   editor.on('event', handleEvent);
   editor.on('tick', handleTick);
+  searchEvents?.addEventListener(graphSearchEventName, handleSearch);
   signal.addEventListener('abort', () => {
     stopStoreListener();
     editor.off('event', handleEvent);
     editor.off('tick', handleTick);
+    searchEvents?.removeEventListener(graphSearchEventName, handleSearch);
   });
 }

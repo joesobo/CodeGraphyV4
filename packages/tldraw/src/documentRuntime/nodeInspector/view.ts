@@ -33,8 +33,8 @@ const inspectorStyle = {
   padding: 16,
   pointerEvents: 'auto',
   position: 'absolute',
-  right: 216,
-  top: 104,
+  right: 12,
+  top: 432,
   width: 280,
   zIndex: 300,
 } satisfies CSSProperties;

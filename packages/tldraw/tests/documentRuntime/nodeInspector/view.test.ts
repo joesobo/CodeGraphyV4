@@ -153,8 +153,8 @@ describe('CodeGraphy tldraw node inspector view', () => {
     activateNode(rendered, NODE_A);
 
     const inspector = screen.getByRole('region', { name: 'CodeGraphy node inspector' });
-    expect(inspector.style.right).toBe('216px');
-    expect(inspector.style.top).toBe('104px');
+    expect(inspector.style.right).toBe('12px');
+    expect(inspector.style.top).toBe('432px');
     expect(inspector.style.bottom).toBe('96px');
   });
 });

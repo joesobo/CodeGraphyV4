@@ -44,6 +44,7 @@ function createHarness(options: HarnessOptions = {}) {
   const off = vi.fn();
   const stopStoreListener = vi.fn();
   const updateShapes = vi.fn();
+  const zoomToBounds = vi.fn();
   const getCurrentPage = vi.fn(() => ({ meta }));
   let storeListener: () => void = () => undefined;
   const editor = {
@@ -59,6 +60,7 @@ function createHarness(options: HarnessOptions = {}) {
       }),
     },
     updateShapes,
+    zoomToBounds,
   };
   return {
     editor,
@@ -70,6 +72,7 @@ function createHarness(options: HarnessOptions = {}) {
     setShapes: (nextShapes: ScriptShape[]) => { shapes = nextShapes; },
     stopStoreListener,
     updateShapes,
+    zoomToBounds,
   };
 }
 
@@ -231,6 +234,46 @@ describe('tldraw physics runtime', () => {
     expect(createGraphLayoutEngine).toHaveBeenCalledTimes(3);
   });
 
+  it('rebuilds physics with only nodes that match the active graph search', async () => {
+    const searchEvents = new EventTarget();
+    const harness = createHarness({ shapes: [nodeA, nodeB, edgeAB] });
+    const { graphSearchEventName } = await import(
+      '../../../src/documentRuntime/search/model'
+    );
+    const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
+
+    startPhysicsRuntime({
+      editor: harness.editor,
+      searchEvents,
+      signal: new AbortController().signal,
+    });
+    searchEvents.dispatchEvent(new CustomEvent(graphSearchEventName, {
+      detail: { query: 'a' },
+    }));
+    harness.emit('tick', 16);
+
+    expect(createGraphLayoutEngine).toHaveBeenCalledTimes(2);
+    expect(createGraphLayoutEngine).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        edgeSources: new Uint32Array(),
+        nodeIds: ['a'],
+      }),
+      expect.any(Object),
+    );
+
+    harness.setShapes([{ ...nodeA, x: 240, y: 360 }, nodeB, edgeAB]);
+    engine.settled = true;
+    harness.emit('tick', 16);
+    expect(harness.zoomToBounds).toHaveBeenCalledWith(
+      { h: 120, w: 120, x: 240, y: 360 },
+      {
+        animation: { duration: 200 },
+        inset: 160,
+        targetZoom: 1,
+      },
+    );
+  });
+
   it('sends only changed document force settings to the active engine', async () => {
     const physics = { repelForce: 18, centerForce: 0.15, linkDistance: 80, linkForce: 2 };
     const harness = createHarness({ meta: { codegraphyPhysics: physics }, shapes: [nodeA] });
@@ -288,14 +331,20 @@ describe('tldraw physics runtime', () => {
   it('removes the event, tick, and store listeners when the script stops', async () => {
     const harness = createHarness();
     const controller = new AbortController();
+    const searchEvents = new EventTarget();
+    const removeSearchListener = vi.spyOn(searchEvents, 'removeEventListener');
     const { startPhysicsRuntime } = await import('../../../src/documentRuntime/physics/runtime');
 
-    startPhysicsRuntime({ editor: harness.editor, signal: controller.signal });
+    startPhysicsRuntime({ editor: harness.editor, searchEvents, signal: controller.signal });
     controller.abort();
 
     expect(harness.stopStoreListener).toHaveBeenCalledOnce();
     expect(harness.off).toHaveBeenCalledTimes(2);
     expect(harness.off).toHaveBeenCalledWith('event', expect.any(Function));
     expect(harness.off).toHaveBeenCalledWith('tick', expect.any(Function));
+    expect(removeSearchListener).toHaveBeenCalledWith(
+      'codegraphy:graph-search',
+      expect.any(Function),
+    );
   });
 });

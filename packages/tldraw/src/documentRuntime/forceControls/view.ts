@@ -13,6 +13,7 @@ import {
   type ForceSettings,
 } from './model';
 import { NodeInspectorPanel } from '../nodeInspector/view';
+import { GraphSearchPanel } from '../search/view';
 
 interface DocumentConfig {
   components: TLComponents;
@@ -110,6 +111,7 @@ export default function createCodeGraphyConfig({ config }: ConfigScriptContext):
     return createElement(Fragment, null,
       ExistingCanvasUi ? createElement(ExistingCanvasUi) : null,
       createElement(ForcePanel),
+      createElement(GraphSearchPanel),
       createElement(NodeInspectorPanel),
     );
   }
