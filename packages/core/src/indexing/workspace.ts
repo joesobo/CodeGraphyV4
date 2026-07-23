@@ -14,6 +14,7 @@ import { createWorkspacePluginAnalysisContext } from '../plugins/context/workspa
 import type { CorePluginRegistry } from '../plugins/registry';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { readCodeGraphyWorkspaceStatus } from '../workspace/status';
+import { readCodeGraphyWorkspaceMeta } from '../workspace/meta';
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
@@ -89,6 +90,7 @@ export async function indexCodeGraphyWorkspace(
     throw error;
   }
   const { registry, loadedPackagePlugins } = registryResult;
+  const registeredPluginIds = new Set(registry.list().map(info => info.plugin.id));
 
   try {
   await timeIndexPhase(
@@ -97,10 +99,15 @@ export async function indexCodeGraphyWorkspace(
     () => registry.initializeAll(workspaceRoot),
     () => ({ registeredPlugins: registry.list().length }),
   );
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const failedPluginIds = new Set(
+    [...registeredPluginIds].filter(pluginId => !activePluginIds.has(pluginId)),
+  );
 
   const pluginSignature = options.plugins === undefined
     ? createDefaultStatusPluginSignature(settings, options.userHomeDir)
     : createWorkspaceIndexPluginSignature({
+      explicitPlugins: options.plugins,
       loadedPackagePlugins,
       registry,
       settings,
@@ -112,8 +119,12 @@ export async function indexCodeGraphyWorkspace(
     settings,
     ...(options.userHomeDir ? { userHomeDir: options.userHomeDir } : {}),
   });
+  const previousFailedPluginIds = readCodeGraphyWorkspaceMeta(workspaceRoot).failedPluginIds;
+  const pluginFailureStateChanged = previousFailedPluginIds.length !== failedPluginIds.size
+    || previousFailedPluginIds.some(pluginId => !failedPluginIds.has(pluginId));
   let canReusePersistedCache = previousStatus.hasGraphCache
-    && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files');
+    && previousStatus.staleReasons.every(reason => reason === 'pending-changed-files')
+    && !pluginFailureStateChanged;
   const activeAnalysisCacheTiers = createWorkspaceIndexAnalysisCacheTiers(
     registry.list()
       .map(({ plugin }) => plugin.id)
@@ -292,10 +303,11 @@ export async function indexCodeGraphyWorkspace(
     'persist-metadata',
     () => persistWorkspaceIndexMetadata({
       pluginSignature,
+      failedPluginIds,
       settings,
       settingsPluginIds: options.plugins === undefined
         ? createDefaultStatusCorePluginIds(settings, options.userHomeDir)
-        : new Set(registry.list().map(info => info.plugin.id)),
+        : registeredPluginIds,
       workspaceRoot,
     }),
   );

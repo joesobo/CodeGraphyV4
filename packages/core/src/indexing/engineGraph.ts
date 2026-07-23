@@ -67,6 +67,7 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
   const pluginSignature = runtime.options.plugins === undefined
     ? createDefaultStatusPluginSignature(state.settings, runtime.options.userHomeDir)
     : createWorkspaceIndexPluginSignature({
+      explicitPlugins: runtime.options.plugins,
       loadedPackagePlugins: state.loadedPackagePlugins,
       registry: state.registry,
       settings: state.settings,
@@ -74,10 +75,11 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
     });
   persistWorkspaceIndexMetadata({
     pluginSignature,
+    failedPluginIds: state.failedPluginIds,
     settings: state.settings,
     settingsPluginIds: runtime.options.plugins === undefined
       ? createDefaultStatusCorePluginIds(state.settings, runtime.options.userHomeDir)
-      : new Set(state.registry.list().map(info => info.plugin.id)),
+      : state.registeredPluginIds,
     workspaceRoot,
   });
 }

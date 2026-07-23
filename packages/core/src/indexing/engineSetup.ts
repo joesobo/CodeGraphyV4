@@ -15,8 +15,13 @@ export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime)
   previousRegistry?.disposeAll();
   state.registry = registryResult.registry;
   state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
+  state.registeredPluginIds = new Set(state.registry.list().map(info => info.plugin.id));
   state.workspaceRoot = workspaceRoot;
   await state.registry.initializeAll(workspaceRoot);
+  const activePluginIds = new Set(state.registry.list().map(info => info.plugin.id));
+  state.failedPluginIds = new Set(
+    [...state.registeredPluginIds].filter(pluginId => !activePluginIds.has(pluginId)),
+  );
 }
 
 export async function discoverWorkspaceEngineFiles(

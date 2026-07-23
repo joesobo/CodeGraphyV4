@@ -63,6 +63,45 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
   });
 
+  it('performs a full rebuild when a previously failed plugin recovers', async () => {
+    const workspaceRoot = await createWorkspace();
+    let initializationAttempts = 0;
+    const recoveringPlugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.recovering',
+      async initialize() {
+        initializationAttempts += 1;
+        if (initializationAttempts === 1) throw new Error('initialization failed');
+      },
+    };
+    const healthyPlugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.healthy',
+    };
+    const options = {
+      workspaceRoot,
+      plugins: [recoveringPlugin, healthyPlugin],
+      includeCorePlugins: false,
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await indexCodeGraphyWorkspace(options);
+    const recovered = await indexCodeGraphyWorkspace(options);
+
+    expect(recovered.indexing.mode).toBe('full');
+    expect(recovered.indexing.analyzedFiles).toBe(2);
+  });
+
   it('applies plugin invalidation paths during incremental CLI-style indexing', async () => {
     const workspaceRoot = await createWorkspace();
     const calls = {

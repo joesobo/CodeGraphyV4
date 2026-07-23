@@ -12,6 +12,7 @@ export interface CodeGraphyWorkspaceMeta {
   settingsSignature: string | null;
   analysisVersion: string | null;
   pendingChangedFiles: string[];
+  failedPluginIds: string[];
 }
 
 const optionalNullableStringSchema = z.union([z.string(), z.null()]).optional().catch(undefined);
@@ -20,6 +21,7 @@ const codeGraphyWorkspaceMetaSchema = z.looseObject({
   analysisVersion: optionalNullableStringSchema,
   lastIndexedAt: optionalNullableStringSchema,
   pendingChangedFiles: looseStringArraySchema,
+  failedPluginIds: looseStringArraySchema,
   pluginSignature: optionalNullableStringSchema,
   settingsSignature: optionalNullableStringSchema,
 }).transform((meta): CodeGraphyWorkspaceMeta => ({
@@ -29,6 +31,7 @@ const codeGraphyWorkspaceMetaSchema = z.looseObject({
   ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
   ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
   pendingChangedFiles: meta.pendingChangedFiles,
+  failedPluginIds: meta.failedPluginIds,
   version: 1,
 }));
 
@@ -40,6 +43,7 @@ export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta 
     settingsSignature: null,
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     pendingChangedFiles: [],
+    failedPluginIds: [],
   };
 }
 
@@ -68,6 +72,7 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
   metadata: {
     pluginSignature: string | null;
     settingsSignature: string;
+    failedPluginIds?: readonly string[];
   },
 ): void {
   const previous = readCodeGraphyWorkspaceMeta(workspaceRoot);
@@ -78,5 +83,6 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
     settingsSignature: metadata.settingsSignature,
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     pendingChangedFiles: [],
+    failedPluginIds: [...(metadata.failedPluginIds ?? [])],
   });
 }

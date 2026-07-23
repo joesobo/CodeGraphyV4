@@ -521,6 +521,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       settingsSignature: 'settings-signature',
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
+      failedPluginIds: [],
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -560,6 +561,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       settingsSignature: 'settings-signature',
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
+      failedPluginIds: [],
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -599,6 +601,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       settingsSignature: 'settings-signature',
       analysisVersion: 'old-analysis-version',
       pendingChangedFiles: [],
+      failedPluginIds: [],
     });
     vi.spyOn(
       analyzer as unknown as {

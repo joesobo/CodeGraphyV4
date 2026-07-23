@@ -164,6 +164,62 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     );
   });
 
+  it('keeps the new cache fresh when an explicit runtime plugin fails to initialize', async () => {
+    const workspaceRoot = await createWorkspace();
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.explicit-failure',
+      async initialize() {
+        throw new Error('initialization failed');
+      },
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] })).toEqual(
+      expect.objectContaining({ state: 'fresh', staleReasons: [] }),
+    );
+  });
+
+  it('keeps the persistent engine cache fresh when an explicit plugin fails to initialize', async () => {
+    const workspaceRoot = await createWorkspace();
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      id: 'acme.engine-failure',
+      async initialize() {
+        throw new Error('initialization failed');
+      },
+    };
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await engine.index();
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] })).toEqual(
+      expect.objectContaining({ state: 'fresh', staleReasons: [] }),
+    );
+    engine.dispose();
+  });
+
   it('keeps indexing state in core so changed files update the graph without full indexing', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.writeFile(path.join(workspaceRoot, 'target-2.txt'), 'done\n', 'utf-8');

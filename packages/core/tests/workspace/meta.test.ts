@@ -37,6 +37,7 @@ describe('workspace/meta', () => {
       settingsSignature: 'settings-sha',
       analysisVersion: null,
       pendingChangedFiles: ['src/index.ts'],
+      failedPluginIds: ['acme.failed'],
     };
 
     writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
@@ -58,6 +59,7 @@ describe('workspace/meta', () => {
         pluginSignature: 'plugins-sha',
         settingsSignature: { sha: 'settings-sha' },
         pendingChangedFiles: ['src/app.ts', 7, 'src/index.ts'],
+        failedPluginIds: ['acme.failed', 7],
       }, null, 2),
       'utf8',
     );
@@ -67,6 +69,7 @@ describe('workspace/meta', () => {
       analysisVersion: null,
       pluginSignature: 'plugins-sha',
       pendingChangedFiles: ['src/app.ts', 'src/index.ts'],
+      failedPluginIds: ['acme.failed'],
       version: 1,
     });
   });
