@@ -147,7 +147,7 @@ describe('pipeline plugin sync identity', () => {
     expect(await fs.readFile(factoryMarkerPath, 'utf8')).toBe('factory\n');
     expect(registry.register).not.toHaveBeenCalled();
     expect(registry.unregister).not.toHaveBeenCalled();
-    expect([...registered.keys()]).toEqual(['acme.core-linked']);
+    expect([...registered.keys()]).toEqual(['codegraphy.markdown', 'acme.core-linked']);
   });
 
   it('does not construct another Extension runtime during an unchanged sync', async () => {
@@ -241,7 +241,11 @@ describe('pipeline plugin sync identity', () => {
     registry.initializePlugin.mockClear();
     await syncWorkspacePipelinePlugins(registry as never, dependencies);
 
-    expect([...registered.keys()]).toEqual(['acme.first', 'acme.second']);
+    expect([...registered.keys()]).toEqual([
+      'codegraphy.markdown',
+      'acme.first',
+      'acme.second',
+    ]);
     expect(registry.unregister).not.toHaveBeenCalled();
     expect(registry.register).not.toHaveBeenCalled();
     expect(registry.initializePlugin).not.toHaveBeenCalled();

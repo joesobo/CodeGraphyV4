@@ -6,6 +6,21 @@ import {
 } from '../../../src/plugins/activityState/model';
 
 describe('plugins/activityState/model', () => {
+  it('uses the built-in default when inherited activation has no global override', () => {
+    const state = createPluginActivityState({
+      settings: {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [{ id: 'codegraphy.markdown', activation: 'inherit' }],
+      },
+      builtInPluginIds: ['codegraphy.markdown'],
+    });
+
+    expect([...state.activePluginIds]).toEqual(['codegraphy.markdown']);
+    expect([...state.enabledPluginIds]).toEqual(['codegraphy.markdown']);
+    expect(state.packagePlugins).toEqual([]);
+    expect(state.warnings).toEqual([]);
+  });
+
   it('combines global defaults with workspace inherit, enabled, and disabled overrides', () => {
     const state = createPluginActivityState({
       settings: {

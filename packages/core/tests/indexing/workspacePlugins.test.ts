@@ -104,7 +104,7 @@ describe('indexCodeGraphyWorkspace plugin configuration', () => {
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
-      activation: 'enabled',
+      activation: 'inherit',
     }]);
     expect(result.graph.edges).toContainEqual(
       expect.objectContaining({

@@ -93,7 +93,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
     const workspaceRoot = await createWorkspace();
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      plugins: [],
+      plugins: [{ id: 'codegraphy.markdown', activation: 'disabled' }],
     });
     const registeredPlugins = new Map<string, {
       plugin: { id: string };

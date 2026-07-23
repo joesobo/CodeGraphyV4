@@ -69,10 +69,14 @@ function getEffectivePluginIds(
 function isPluginEnabled(
   plugin: CodeGraphyWorkspaceSettings['plugins'][number],
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
+  builtInPluginIds: ReadonlySet<string>,
 ): boolean {
   if (plugin.activation === 'enabled') return true;
   if (plugin.activation === 'disabled') return false;
-  return installedPlugins.some(installed => installed.globallyEnabled);
+  if (installedPlugins.length > 0) {
+    return installedPlugins.some(installed => installed.globallyEnabled);
+  }
+  return builtInPluginIds.has(plugin.id);
 }
 
 export function createPluginActivityState(
@@ -92,7 +96,7 @@ export function createPluginActivityState(
   for (const pluginId of getEffectivePluginIds(options.settings, installedPlugins)) {
     const pluginRecords = installedPluginsById.get(pluginId) ?? [];
     const plugin = settingsById.get(pluginId) ?? { id: pluginId, activation: 'inherit' };
-    const enabled = isPluginEnabled(plugin, pluginRecords);
+    const enabled = isPluginEnabled(plugin, pluginRecords, builtInPluginIds);
     if (enabled) enabledPluginIds.add(pluginId);
     const classification = classifyPluginActivity({
       builtInPluginIds,
