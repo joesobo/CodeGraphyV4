@@ -46,7 +46,14 @@ export class PluginRegistry extends PluginRegistryLifecycle {
   }
 
   unregister(pluginId: string): boolean {
-    return removeFromRegistry(pluginId, this._plugins, this._extensionMap, this._initializedPlugins, this._eventBus);
+    return removeFromRegistry(
+      pluginId,
+      this._plugins,
+      this._extensionMap,
+      this._initializedPlugins,
+      this._initializingPlugins,
+      this._eventBus,
+    );
   }
 
   notifyWebviewReady(): void {

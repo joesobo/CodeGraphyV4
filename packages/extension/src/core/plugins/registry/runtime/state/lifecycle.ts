@@ -1,9 +1,6 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPluginAnalysisContext } from '../../../types/contracts';
-import {
-  initializeAll as lifecycleInitializeAll,
-  initializePlugin as lifecycleInitializePlugin,
-} from '../../../lifecycle/initialize';
+import { initializePlugin as lifecycleInitializePlugin } from '../../../lifecycle/initialize';
 import {
   notifyGraphRebuild as lifecycleNotifyGraphRebuild,
   notifyPostAnalyze as lifecycleNotifyPostAnalyze,
@@ -18,14 +15,9 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
 
   async initializeAll(workspaceRoot: string): Promise<void> {
     this._v2Config.workspaceRoot = workspaceRoot;
-    const failedPluginIds = await lifecycleInitializeAll(
-      this._plugins,
-      workspaceRoot,
-      this._initializedPlugins,
+    await Promise.all(
+      [...this._plugins.keys()].map(pluginId => this.initializePlugin(pluginId, workspaceRoot)),
     );
-    for (const pluginId of failedPluginIds) {
-      this.unregister(pluginId);
-    }
   }
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
@@ -35,12 +27,21 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
       return;
     }
 
-    const initialized = await lifecycleInitializePlugin(
-      info,
-      workspaceRoot,
-      this._initializedPlugins,
-    );
-    if (!initialized) {
+    let initialization = this._initializingPlugins.get(info);
+    if (!initialization) {
+      initialization = lifecycleInitializePlugin(
+        info,
+        workspaceRoot,
+        this._initializedPlugins,
+      );
+      this._initializingPlugins.set(info, initialization);
+    }
+
+    const initialized = await initialization;
+    if (this._initializingPlugins.get(info) === initialization) {
+      this._initializingPlugins.delete(info);
+    }
+    if (!initialized && this._plugins.get(pluginId) === info) {
       this.unregister(pluginId);
     }
   }

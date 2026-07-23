@@ -36,6 +36,44 @@ describe('PluginRegistry unregister', () => {
     expect(onUnload).toHaveBeenCalled();
   });
 
+  it('calls onUnload after pending initialization settles', async () => {
+    let markInitializationStarted!: () => void;
+    let finishInitialization!: () => void;
+    const initializationStarted = new Promise<void>((resolve) => {
+      markInitializationStarted = resolve;
+    });
+    const initializationGate = new Promise<void>((resolve) => {
+      finishInitialization = resolve;
+    });
+    const lifecycleCalls: string[] = [];
+    let resourceActive = false;
+    const registry = createConfiguredRegistry();
+    const plugin = createMockPlugin({
+      async initialize() {
+        lifecycleCalls.push('initialize-start');
+        markInitializationStarted();
+        await initializationGate;
+        lifecycleCalls.push('initialize-finish');
+        resourceActive = true;
+      },
+      onUnload() {
+        lifecycleCalls.push('unload');
+        resourceActive = false;
+      },
+    });
+    registry.register(plugin);
+
+    const initialization = registry.initializePlugin(plugin.id, '/workspace');
+    await initializationStarted;
+    registry.unregister(plugin.id);
+    finishInitialization();
+    await initialization;
+
+    expect(resourceActive).toBe(false);
+    expect(lifecycleCalls).toEqual(['initialize-start', 'initialize-finish', 'unload']);
+    expect(registry.get(plugin.id)).toBeUndefined();
+  });
+
   it('removes plugin from extension map', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin({ supportedExtensions: ['.ts'] });

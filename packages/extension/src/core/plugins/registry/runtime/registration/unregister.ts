@@ -15,20 +15,12 @@ export function removeFromRegistry(
   plugins: Map<string, IPluginInfoV2>,
   extensionMap: Map<string, string[]>,
   initializedPlugins: Set<string>,
+  initializingPlugins: ReadonlyMap<IPluginInfoV2, Promise<boolean>>,
   eventBus?: EventBus,
 ): boolean {
   const info = plugins.get(pluginId);
   if (!info) return false;
 
-  if (info.plugin.onUnload) {
-    try {
-      info.plugin.onUnload();
-    } catch (error) {
-      console.error(`[CodeGraphy] Error in onUnload for plugin ${pluginId}:`, error);
-    }
-  }
-
-  info.api?.disposeAll();
   removePluginFromExtensionMap(pluginId, info.plugin, extensionMap);
   plugins.delete(pluginId);
   initializedPlugins.delete(pluginId);
@@ -36,7 +28,22 @@ export function removeFromRegistry(
   if (shouldLogPluginLifecycle(info)) {
     console.log(`[CodeGraphy] Unregistered plugin: ${pluginId}`);
   }
+  const initialization = initializingPlugins.get(info);
+  if (initialization) {
+    void initialization.then(() => unloadPlugin(info));
+  } else {
+    unloadPlugin(info);
+  }
   return true;
+}
+
+function unloadPlugin(info: IPluginInfoV2): void {
+  try {
+    info.plugin.onUnload?.();
+  } catch (error) {
+    console.error(`[CodeGraphy] Error in onUnload for plugin ${info.plugin.id}:`, error);
+  }
+  info.api?.disposeAll();
 }
 
 function shouldLogPluginLifecycle(info: IPluginInfoV2): boolean {

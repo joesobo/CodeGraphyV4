@@ -24,6 +24,7 @@ export abstract class PluginRegistryState {
   protected readonly _plugins = new Map<string, IPluginInfoV2>();
   protected readonly _extensionMap = new Map<string, string[]>();
   protected readonly _initializedPlugins = new Set<string>();
+  protected readonly _initializingPlugins = new Map<IPluginInfoV2, Promise<boolean>>();
   protected _eventBus?: EventBus;
   protected _v2Config: RegistryV2Config = { logFn: DEFAULT_LOG_FN };
   protected _lastWorkspaceReadyGraph?: IGraphData;
