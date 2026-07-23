@@ -47,15 +47,20 @@ export function usePluginManager(): IPluginManager {
       if (payload.revision) {
         pluginAssetRevisionsRef.current.set(payload.pluginId, payload.revision);
       }
+      const payloadVersion = pluginAssetVersionsRef.current.get(payload.pluginId) ?? 0;
+      const isCurrentPayload = (): boolean =>
+        (pluginAssetVersionsRef.current.get(payload.pluginId) ?? 0) === payloadVersion;
       for (const style of payload.styles) injectPluginStyle(refs, payload.pluginId, style);
       for (const script of payload.scripts) {
+        if (!isCurrentPayload()) return;
         try {
           await activatePluginScript(refs, payload.pluginId, script);
         } catch (error) {
           console.error(`[CodeGraphy] Failed to activate webview plugin script "${script}":`, error);
         }
+        if (!isCurrentPayload()) return;
       }
-      if (payload.assets?.length) {
+      if (payload.assets?.length && isCurrentPayload()) {
         pluginHostRef.current.deliverMessage(payload.pluginId, {
           type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
           data: payload.assets,

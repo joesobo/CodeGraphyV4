@@ -518,6 +518,57 @@ describe('usePluginManager', () => {
     expect(result.current.pluginHost.getNodeRenderers('.stale')).toEqual([]);
   });
 
+  it('does not run later scripts from a payload replaced during activation', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    let releaseOldActivation: (() => void) | undefined;
+    let markOldActivationStarted: (() => void) | undefined;
+    (globalThis as Record<string, unknown>).__useManagerOldActivationGate = new Promise<void>(
+      (resolve) => {
+        releaseOldActivation = resolve;
+      },
+    );
+    const oldActivationStarted = new Promise<void>((resolve) => {
+      markOldActivationStarted = resolve;
+    });
+    (globalThis as Record<string, unknown>).__useManagerOldActivationStarted =
+      markOldActivationStarted;
+    const blockingScript = toDataUrlModule(`
+      export async function activate() {
+        globalThis.__useManagerOldActivationStarted();
+        await globalThis.__useManagerOldActivationGate;
+      }
+    `);
+    const staleFollowUpScript = toDataUrlModule(`
+      export function activate(api) {
+        api.registerNodeRenderer('.stale-follow-up', () => undefined);
+      }
+    `);
+    const replacementScript = toDataUrlModule(`
+      export function activate(api) {
+        api.registerNodeRenderer('.replacement', () => undefined);
+      }
+    `);
+
+    const oldInjection = result.current.injectPluginAssets({
+      pluginId: 'linked-plugin',
+      revision: 'build-v1',
+      scripts: [blockingScript, staleFollowUpScript],
+      styles: [],
+    });
+    await oldActivationStarted;
+    await result.current.injectPluginAssets({
+      pluginId: 'linked-plugin',
+      revision: 'build-v2',
+      scripts: [replacementScript],
+      styles: [],
+    });
+    releaseOldActivation?.();
+    await oldInjection;
+
+    expect(result.current.pluginHost.getNodeRenderers('.stale-follow-up')).toEqual([]);
+    expect(result.current.pluginHost.getNodeRenderers('.replacement')).toHaveLength(1);
+  });
+
   it('keeps the replacement activation pending when the stale activation finishes', async () => {
     const { result } = renderHook(() => usePluginManager());
     let releaseFirst: (() => void) | undefined;
