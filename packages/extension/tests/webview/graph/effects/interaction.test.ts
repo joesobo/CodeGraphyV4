@@ -15,7 +15,6 @@ function createHandlers() {
     previewNode: vi.fn(),
     openNode: vi.fn(),
     focusNode: vi.fn(),
-    sendInteraction: vi.fn(),
   };
 }
 
@@ -123,16 +122,5 @@ describe('graph effects interaction', () => {
     applyInteractionEffects([{ kind: 'focusNode', nodeId: 'src/app.ts' }], handlers);
 
     expect(handlers.focusNode).toHaveBeenCalledWith('src/app.ts');
-  });
-
-  it('forwards interaction payloads', () => {
-    const handlers = createHandlers();
-
-    applyInteractionEffects(
-      [{ kind: 'sendInteraction', event: 'graph:nodeClick', payload: { node: 'src/app.ts' } }],
-      handlers
-    );
-
-    expect(handlers.sendInteraction).toHaveBeenCalledWith('graph:nodeClick', { node: 'src/app.ts' });
   });
 });

@@ -171,7 +171,5 @@ export interface CodeGraphyWebviewAPI {
     drawProgressRing(canvasContext: CanvasRenderingContext2D, options: RingOptions): void;
     drawLabel(canvasContext: CanvasRenderingContext2D, options: LabelOptions): void;
   };
-  sendMessage(message: { type: string; data: unknown }): void;
-  postHostMessage(message: unknown): void;
   onMessage(handler: (message: { type: string; data: unknown }) => void): Disposable;
 }

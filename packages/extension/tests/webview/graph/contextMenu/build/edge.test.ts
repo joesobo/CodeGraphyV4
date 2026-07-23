@@ -9,7 +9,6 @@ describe('graph/contextMenu/build/edge', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeEdgeContextSelection('src/a.ts->src/b.ts', 'src/a.ts', 'src/b.ts'),
       favorites: new Set(),
-      pluginItems: [],
     });
 
     expect(entries).toHaveLength(5);

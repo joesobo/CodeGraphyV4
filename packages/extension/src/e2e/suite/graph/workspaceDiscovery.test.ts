@@ -69,7 +69,7 @@ suite('Graph: Workspace Analysis', function () {
     await ensureDiscoveredGraph(api);
 
     const graphData = api.getGraphData();
-    const nodeIds = graphData.nodes.map((n) => n.id);
+    const nodeIds: string[] = graphData.nodes.map((node: { id: string }) => node.id);
 
     // The example workspace spans multiple packages and still exposes
     // workspace-relative file IDs to the graph.

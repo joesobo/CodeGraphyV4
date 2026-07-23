@@ -6,18 +6,11 @@
 import type {
   IPlugin,
 } from '../types/contracts';
-import { buildV2Config } from './runtime/registration/configure';
 import { PluginRegistryLifecycle } from './runtime/state/lifecycle';
 import { validateAndCreatePluginInfo, addToRegistry } from './runtime/registration/register';
-import type { ConfigureV2Options } from './runtime/registration/configure';
 import { removeFromRegistry, unloadPlugin } from './runtime/registration/unregister';
 
 export class PluginRegistry extends PluginRegistryLifecycle {
-  configureV2(options: ConfigureV2Options): void {
-    this._eventBus = options.eventBus;
-    this._v2Config = buildV2Config(options, this._v2Config.logFn);
-  }
-
   register(
     plugin: IPlugin,
     options: {
@@ -34,8 +27,8 @@ export class PluginRegistry extends PluginRegistryLifecycle {
     if (this._plugins.has(plugin.id)) {
       throw new Error(`Plugin with ID '${plugin.id}' is already registered`);
     }
-    const info = validateAndCreatePluginInfo(plugin, options, this._v2Config);
-    addToRegistry(info, this._plugins, this._extensionMap, this._eventBus);
+    const info = validateAndCreatePluginInfo(plugin, options);
+    addToRegistry(info, this._plugins, this._extensionMap);
     if (!options.deferReadinessReplay) {
       this._replayReadinessForPlugin(info);
     }
@@ -50,7 +43,6 @@ export class PluginRegistry extends PluginRegistryLifecycle {
       this._plugins,
       this._extensionMap,
       this._initializedPlugins,
-      this._eventBus,
     );
     if (removed) {
       this._queuePluginUnload(() => unloadPlugin(info), initialization);

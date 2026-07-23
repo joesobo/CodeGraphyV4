@@ -1,258 +1,59 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { NodeSizeMode } from '@/shared/settings/modes';
-import type { IGraphData } from '@/shared/graph/contracts';
+
 import {
   dispatchGraphViewPluginMessage,
   type GraphViewPluginMessageContext,
 } from '../../../../../src/extension/graphView/webview/dispatch/plugin';
 
-function createContext(
-  overrides: Partial<GraphViewPluginMessageContext> = {},
-): GraphViewPluginMessageContext {
-  const context = {
-    getFilterPatterns: vi.fn(() => []),
-    getPluginFilterPatterns: vi.fn(() => []),
-    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
-    getMaxFiles: vi.fn(() => 500),
-    getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
-    getFocusedFile: vi.fn(() => undefined),
-    hasWorkspace: vi.fn(() => false),
-    isFirstAnalysis: vi.fn(() => false),
-    isWebviewReadyNotified: vi.fn(() => false),
-    getGraphData: vi.fn(
-      () =>
-        ({
-          nodes: [{ id: 'src/index.ts' }],
-          edges: [{ id: 'src/index.ts->src/lib.ts' }],
-        }) as IGraphData,
-    ),
+function createContext(): GraphViewPluginMessageContext {
+  return {
+    getFilterPatterns: () => [],
+    getPluginFilterPatterns: () => [],
+    getPluginFilterGroups: () => [],
+    getConfig: <T>(_key: string, defaultValue: T): T => defaultValue,
+    getMaxFiles: () => 500,
+    getNodeSizeMode: () => 'connections',
+    getDepthMode: () => false,
+    getFocusedFile: () => undefined,
+    hasWorkspace: () => false,
+    isFirstAnalysis: () => false,
+    isWebviewReadyNotified: () => false,
+    getGraphData: () => ({ nodes: [], edges: [] }),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendDepthState: vi.fn(),
     sendGraphControls: vi.fn(),
-    loadAndSendData: vi.fn(() => Promise.resolve()),
-    analyzeAndSendData: vi.fn(),
+    loadAndSendData: vi.fn(async () => undefined),
+    analyzeAndSendData: vi.fn(async () => undefined),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
     sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
-    sendPluginExporters: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendActiveFile: vi.fn(),
-    waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
+    waitForFirstWorkspaceReady: () => Promise.resolve(),
     notifyWebviewReady: vi.fn(),
-    getInteractionPluginApi: vi.fn(),
-    getContextMenuPluginApi: vi.fn(),
-    getExporterPluginApi: vi.fn(),
-    emitEvent: vi.fn(),
-    findNode: vi.fn((targetId: string) => ({ id: targetId })),
-    findEdge: vi.fn((targetId: string) => ({ id: targetId })),
     logError: vi.fn(),
-    ...overrides,
   };
-
-  context.sendGraphControls ??= vi.fn();
-
-  return context as GraphViewPluginMessageContext;
 }
 
 describe('graph view plugin message dispatch', () => {
-  it('marks the webview as ready after applying the ready payloads', async () => {
+  it('handles webview readiness through the Extension plugin path', async () => {
     const context = createContext();
 
     await expect(
       dispatchGraphViewPluginMessage({ type: 'WEBVIEW_READY', payload: null }, context),
     ).resolves.toEqual({ handled: true, readyNotified: true });
 
-    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(context.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(context.notifyWebviewReady).toHaveBeenCalledOnce();
   });
 
-  it('forwards plugin interaction events through the event bus bridge', async () => {
-    const context = createContext();
-
+  it('does not claim unrelated webview messages', async () => {
     await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'GRAPH_INTERACTION',
-          payload: {
-            event: 'nodeClick',
-            data: { pluginId: 'plugin.test', nodeId: 'src/index.ts' },
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.emitEvent).toHaveBeenCalledWith('nodeClick', {
-      pluginId: 'plugin.test',
-      nodeId: 'src/index.ts',
-    });
-  });
-
-  it('runs plugin context menu actions against resolved graph targets', async () => {
-    const action = vi.fn(() => Promise.resolve());
-    const context = createContext({
-      getContextMenuPluginApi: vi.fn(() => ({
-        contextMenuItems: [{ action }],
-      })),
-      findNode: vi.fn(() => ({ id: 'src/index.ts', label: 'Index' })),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'PLUGIN_CONTEXT_MENU_ACTION',
-          payload: {
-            pluginId: 'plugin.test',
-            index: 0,
-            targetId: 'src/index.ts',
-            targetType: 'node',
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.getContextMenuPluginApi).toHaveBeenCalledWith('plugin.test');
-    expect(context.findNode).toHaveBeenCalledWith('src/index.ts');
-    expect(action).toHaveBeenCalledWith({ id: 'src/index.ts', label: 'Index' });
-    expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('runs plugin exporters through the extension-side plugin api', async () => {
-    const run = vi.fn(() => Promise.resolve());
-    const context = createContext({
-      getExporterPluginApi: vi.fn(() => ({
-        exporters: [{ run }],
-      })),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'RUN_PLUGIN_EXPORT',
-          payload: {
-            pluginId: 'plugin.test',
-            index: 0,
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.getExporterPluginApi).toHaveBeenCalledWith('plugin.test');
-    expect(run).toHaveBeenCalledOnce();
-    expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('treats missing plugin exporters as a no-op', async () => {
-    const context = createContext({
-      getExporterPluginApi: undefined,
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'RUN_PLUGIN_EXPORT',
-          payload: {
-            pluginId: 'plugin.test',
-            index: 0,
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('runs plugin toolbar actions through the extension-side plugin api', async () => {
-    const run = vi.fn(() => Promise.resolve());
-    const context = createContext({
-      getToolbarActionPluginApi: vi.fn(() => ({
-        toolbarActions: [{ items: [{ run }] }],
-      })),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'RUN_PLUGIN_TOOLBAR_ACTION',
-          payload: {
-            pluginId: 'plugin.test',
-            index: 0,
-            itemIndex: 0,
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.getToolbarActionPluginApi).toHaveBeenCalledWith('plugin.test');
-    expect(run).toHaveBeenCalledOnce();
-    expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('treats missing plugin toolbar actions as a no-op', async () => {
-    const context = createContext({
-      getToolbarActionPluginApi: undefined,
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'RUN_PLUGIN_TOOLBAR_ACTION',
-          payload: {
-            pluginId: 'plugin.test',
-            index: 0,
-            itemIndex: 0,
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('runs plugin context menu edge actions against resolved graph edges', async () => {
-    const action = vi.fn(() => Promise.resolve());
-    const context = createContext({
-      getContextMenuPluginApi: vi.fn(() => ({
-        contextMenuItems: [{ action }],
-      })),
-      findEdge: vi.fn(() => ({ id: 'src/index.ts->src/lib.ts', label: 'Edge' })),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'PLUGIN_CONTEXT_MENU_ACTION',
-          payload: {
-            pluginId: 'plugin.test',
-            index: 0,
-            targetId: 'src/index.ts->src/lib.ts',
-            targetType: 'edge',
-          },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.getContextMenuPluginApi).toHaveBeenCalledWith('plugin.test');
-    expect(context.findEdge).toHaveBeenCalledWith('src/index.ts->src/lib.ts');
-    expect(action).toHaveBeenCalledWith({ id: 'src/index.ts->src/lib.ts', label: 'Edge' });
-    expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('returns false for unrelated messages', async () => {
-    await expect(
-      dispatchGraphViewPluginMessage({ type: 'OPEN_FILE', payload: { path: 'src/index.ts' } }, createContext()),
+      dispatchGraphViewPluginMessage({ type: 'REFRESH_GRAPH' }, createContext()),
     ).resolves.toEqual({ handled: false });
   });
 });

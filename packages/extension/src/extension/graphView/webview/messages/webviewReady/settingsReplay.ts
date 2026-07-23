@@ -49,11 +49,7 @@ function replayWebviewReadySettingsMessages(
   }
   sendWebviewReadySettingValues(state, handlers);
   handlers.sendDecorations();
-  handlers.sendContextMenuItems();
-  handlers.sendPluginExporters?.();
-  handlers.sendPluginToolbarActions?.();
   if (options.includePluginBootstrap) {
-    handlers.sendGraphViewContributionStatuses?.();
     handlers.sendPluginWebviewInjections();
   }
   handlers.sendActiveFile();

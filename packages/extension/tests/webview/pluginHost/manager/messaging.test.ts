@@ -18,22 +18,6 @@ describe('WebviewPluginHost messaging and viewport',()=>{
       expect(document.body.contains(firstContainer)).toBe(true);
     });
 
-  it('scopes outbound graph interaction messages by plugin id', () => {
-      const postMessage = vi.fn();
-      const host = new WebviewPluginHost();
-      const api = host.createAPI('acme.plugin', postMessage);
-  
-      api.sendMessage({ type: 'NODE_SELECTED', data: { nodeId: 'src/App.ts' } });
-  
-      expect(postMessage).toHaveBeenCalledWith({
-        type: 'GRAPH_INTERACTION',
-        payload: {
-          event: 'plugin:acme.plugin:NODE_SELECTED',
-          data: { nodeId: 'src/App.ts' },
-        },
-      });
-    });
-
   it('delivers plugin messages to subscribed handlers and stops after disposal', () => {
       const host = new WebviewPluginHost();
       const api = host.createAPI('acme.plugin', vi.fn());

@@ -109,9 +109,6 @@ describe('GraphViewProvider error handling', () => {
     const sendPluginStatusesSpy = vi
       .spyOn(internals._pluginMethods, '_sendPluginStatuses')
       .mockImplementation(() => {});
-    const sendPluginExportersSpy = vi
-      .spyOn(internals._pluginMethods, '_sendPluginExporters')
-      .mockImplementation(() => {});
     const markWorkspaceReadySpy = vi
       .spyOn(internals._analysisMethods, '_markWorkspaceReady')
       .mockImplementation(() => {});
@@ -126,7 +123,6 @@ describe('GraphViewProvider error handling', () => {
     });
     expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
     expect(sendPluginStatusesSpy).toHaveBeenCalledTimes(1);
-    expect(sendPluginExportersSpy).toHaveBeenCalledTimes(1);
     expect(markWorkspaceReadySpy).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 

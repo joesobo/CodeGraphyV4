@@ -2,7 +2,6 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../contextMenu/contracts';
 import type { GraphContextActionContext } from './context';
 import { getBuiltInContextActionEffectsImpl } from './builtin/effects';
-import { createPluginContextActionEffects } from './pluginEffects';
 
 export type GraphContextEffect =
   | { kind: 'openFile'; path: string }
@@ -34,15 +33,11 @@ export function getGraphContextActionEffects(
     return getBuiltInContextActionEffects(action.action, context);
   }
 
-  if (action.kind === 'graphViewPlugin') {
-    return [{
-      kind: 'runGraphViewContextMenuContribution',
-      pluginId: action.pluginId,
-      contributionId: action.contributionId,
-      run: action.run,
-      context: action.context,
-    }];
-  }
-
-  return createPluginContextActionEffects(action);
+  return [{
+    kind: 'runGraphViewContextMenuContribution',
+    pluginId: action.pluginId,
+    contributionId: action.contributionId,
+    run: action.run,
+    context: action.context,
+  }];
 }

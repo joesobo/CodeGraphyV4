@@ -379,7 +379,7 @@ const packageGraphViewPluginScript = `
           placement: { menu: 'create' },
           targets: [{ kind: 'background' }],
           run(context) {
-            api.sendMessage({
+            api.setPluginData({
               type: 'createItem',
               data: {
                 position: context.graphPosition ?? { x: 0, y: 0 },
@@ -396,7 +396,7 @@ const packageGraphViewPluginScript = `
             return context.selectedNodeIds.length === 1;
           },
           run(context) {
-            api.sendMessage({
+            api.setPluginData({
               type: 'nodeAction',
               data: {
                 nodeId: context.selectedNodeIds[0],
@@ -409,7 +409,7 @@ const packageGraphViewPluginScript = `
         },
       ],
     });
-    api.sendMessage({ type: 'activated', data: { ok: true } });
+    api.setPluginData({ type: 'activated', data: { ok: true } });
   }
 `;
 
@@ -523,12 +523,9 @@ const packageGraphViewPluginHarnessScript = `
           state.enabled = Boolean(message.payload?.enabled);
           publishPluginState();
           break;
-        case 'GRAPH_INTERACTION':
-          if (typeof message.payload?.event === 'string' && message.payload.event.startsWith('plugin:' + pluginId + ':')) {
-            state.messages.push({
-              type: message.payload.event.split(':').at(-1),
-              data: message.payload.data,
-            });
+        case 'UPDATE_PLUGIN_DATA':
+          if (message.payload?.pluginId === pluginId && message.payload.data) {
+            state.messages.push(message.payload.data);
             renderHarnessState();
           }
           break;

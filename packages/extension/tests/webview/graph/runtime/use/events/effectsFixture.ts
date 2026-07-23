@@ -41,7 +41,6 @@ export function createInteractionHandlers(): GraphInteractionHandlers {
     previewNode: vi.fn(),
     requestNodeOpenById: vi.fn(),
     selectOnlyNode: vi.fn(),
-    sendGraphInteraction: vi.fn(),
     setGraphCursor: vi.fn(),
     setHighlight: vi.fn(),
     setSelection: vi.fn(),

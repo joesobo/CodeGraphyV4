@@ -4,7 +4,6 @@
  */
 
 import type { IPluginInfoV2 } from '../state/store';
-import type { EventBus } from '../../../events/bus';
 import { removePluginFromExtensionMap } from '../maps/extensionMap';
 
 /**
@@ -15,7 +14,6 @@ export function removeFromRegistry(
   plugins: Map<string, IPluginInfoV2>,
   extensionMap: Map<string, string[]>,
   initializedPlugins: Set<string>,
-  eventBus?: EventBus,
 ): boolean {
   const info = plugins.get(pluginId);
   if (!info) return false;
@@ -23,7 +21,6 @@ export function removeFromRegistry(
   removePluginFromExtensionMap(pluginId, info.plugin, extensionMap);
   plugins.delete(pluginId);
   initializedPlugins.delete(pluginId);
-  eventBus?.emit('plugin:unregistered', { pluginId });
   if (shouldLogPluginLifecycle(info)) {
     console.log(`[CodeGraphy] Unregistered plugin: ${pluginId}`);
   }
@@ -36,7 +33,6 @@ export function unloadPlugin(info: IPluginInfoV2): void {
   } catch (error) {
     console.error(`[CodeGraphy] Error in onUnload for plugin ${info.plugin.id}:`, error);
   }
-  info.api?.disposeAll();
 }
 
 function shouldLogPluginLifecycle(info: IPluginInfoV2): boolean {

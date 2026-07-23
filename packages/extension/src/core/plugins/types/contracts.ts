@@ -29,10 +29,8 @@ export type {
   NodeType,
 } from '@codegraphy-dev/plugin-api';
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
-import type { CodeGraphyAPI } from '../api/contracts';
 
 export type { IProjectedConnection } from '@codegraphy-dev/core';
-export type { CodeGraphyAPI };
 
 export type { IPlugin };
 

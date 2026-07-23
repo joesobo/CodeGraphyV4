@@ -116,7 +116,6 @@ export function createSource(
       getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
       registry: {
         notifyWebviewReady: vi.fn(),
-        getPluginAPI: vi.fn(),
       },
     } as never,
     _eventBus: {
@@ -166,7 +165,6 @@ export function createSource(
     _sendFavorites: vi.fn(),
     _sendSettings: vi.fn(),
     _sendDecorations: vi.fn(),
-    _sendContextMenuItems: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendGraphControls: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),

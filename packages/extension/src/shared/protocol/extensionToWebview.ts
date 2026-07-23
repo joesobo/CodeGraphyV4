@@ -1,9 +1,6 @@
 import type { IFileInfo } from '../files/info';
 import type { IGraphData, IGraphNode } from '../graph/contracts';
-import type { IPluginContextMenuItem } from '../plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/decorations';
-import type { IPluginExporterItem } from '../plugins/exporters';
-import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
 import type { IGraphControlsSnapshot } from '../graphControls/contracts';
 import type {
@@ -18,22 +15,6 @@ export interface IPluginFilterPatternGroup {
   pluginId: string;
   pluginName: string;
   patterns: string[];
-}
-
-export type GraphViewContributionStatusKind =
-  | 'runtimeNodes'
-  | 'runtimeEdges'
-  | 'projections'
-  | 'forces'
-  | 'nodeDragEnd'
-  | 'contextMenu'
-  | 'ui';
-
-export interface IGraphViewContributionStatus {
-  kind: GraphViewContributionStatusKind;
-  pluginId: string;
-  contributionId: string;
-  label: string;
 }
 
 export interface IGraphNodeMetricsUpdate {
@@ -117,10 +98,6 @@ export type ExtensionToWebviewMessage =
         edgeDecorations: Record<string, EdgeDecorationPayload>;
       };
     }
-  | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
-  | { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED'; payload: { contributions: IGraphViewContributionStatus[] } }
-  | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
-  | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
   | {
     type: 'PLUGIN_WEBVIEW_INJECT';
     payload: {

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
-import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
 import OwnedGraphSurface from '../../../../__mocks__/ownedGraphSurface';
 
@@ -40,8 +39,6 @@ describe('Graph context menu (background)', () => {
     OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      pluginContextMenuItems: [],
-      graphViewContributionStatuses: [],
     });
   });
 
@@ -50,8 +47,6 @@ describe('Graph context menu (background)', () => {
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        pluginContextMenuItems: [],
-        graphViewContributionStatuses: [],
       });
     });
   });
@@ -225,29 +220,6 @@ describe('Graph context menu (background)', () => {
 
     expect(methods.zoomToFit).toHaveBeenCalledWith(300, expect.any(Number));
     expect(methods.zoomToFit.mock.calls[0]?.[1]).toBeGreaterThan(20);
-  });
-
-  it('does not show node plugin items on background context', async () => {
-    const pluginItem: IPluginContextMenuItem = {
-      label: 'Plugin Inspect',
-      when: 'node',
-      pluginId: 'acme.plugin',
-      index: 0,
-    };
-    graphStore.setState({ pluginContextMenuItems: [pluginItem] });
-
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await act(async () => {
-      OwnedGraphSurface.simulateBackgroundRightClick();
-      fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('New File')).toBeInTheDocument();
-    });
-    expect(screen.queryByText('Plugin Inspect')).not.toBeInTheDocument();
   });
 
   it('shows background menu when right-clicking background even if a node is selected', async () => {

@@ -22,7 +22,6 @@ describe('Graph double-click behavior', () => {
     OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      pluginContextMenuItems: [],
     });
   });
 
@@ -50,11 +49,6 @@ describe('Graph double-click behavior', () => {
     const openMsg = findMessage('NODE_DOUBLE_CLICKED');
     expect(openMsg).toBeTruthy();
     expect(openMsg!.payload.nodeId).toBe('src/app.ts');
-
-    const nodeDoubleClickInteraction = getSentMessages().find(
-      msg => msg.type === 'GRAPH_INTERACTION' && msg.payload.event === 'graph:nodeDoubleClick'
-    );
-    expect(nodeDoubleClickInteraction).toBeTruthy();
   });
 
 

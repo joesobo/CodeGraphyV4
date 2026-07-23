@@ -52,11 +52,6 @@ import {
   type GraphViewViewportStateListenerEntry,
 } from './manager/viewportState';
 
-type GraphInteractionMessage = {
-  type: 'GRAPH_INTERACTION';
-  payload: { event: string; data: unknown };
-};
-
 export class WebviewPluginHost {
   private readonly _nodeRenderers: NodeRendererRegistry = new Map();
   private readonly _overlays: OverlayRegistry = new Map();
@@ -72,13 +67,12 @@ export class WebviewPluginHost {
 
   createAPI(
     pluginId: string,
-    postMessage: (msg: GraphInteractionMessage) => void,
     postHostMessage: (msg: unknown) => void = () => undefined,
     getHostState: () => Record<string, unknown> = () => ({}),
     getPluginData: (pluginId: string) => unknown = () => undefined,
   ): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
-      pluginId, postMessage,
+      pluginId,
       postHostMessage,
       getHostState,
       getPluginData,

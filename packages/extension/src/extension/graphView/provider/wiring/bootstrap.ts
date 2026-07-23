@@ -1,5 +1,4 @@
 import type { NodeSizeMode } from '../../../../shared/settings/modes';
-import { savePluginExport } from '../../../export/pluginSave';
 
 interface GraphViewCoreViewLike {
   id: string;
@@ -16,18 +15,6 @@ interface GraphViewViewRegistryLike {
 
 interface GraphViewAnalyzerLike {
   setEventBus(eventBus: unknown): void;
-  registry: {
-    configureV2(options: {
-      eventBus: unknown;
-      decorationManager: unknown;
-      viewRegistry: GraphViewViewRegistryLike;
-      graphProvider: () => unknown;
-      commandRegistrar: (id: string, action: () => void) => unknown;
-      webviewSender: (message: unknown) => void;
-      exportSaver: (request: unknown) => Promise<void>;
-      workspaceRoot: string;
-    }): void;
-  };
 }
 
 interface GraphViewDecorationManagerLike {
@@ -44,11 +31,6 @@ interface InitializeGraphViewProviderServicesOptions {
   coreViews: readonly GraphViewCoreViewLike[];
   eventBus: unknown;
   decorationManager: GraphViewDecorationManagerLike;
-  getGraphData: () => unknown;
-  registerCommand: (id: string, action: () => void) => unknown;
-  pushSubscription: (subscription: unknown) => void;
-  sendMessage: (message: unknown) => void;
-  workspaceRoot: string;
   onDecorationsChanged: () => void;
 }
 
@@ -69,11 +51,6 @@ export function initializeGraphViewProviderServices({
   coreViews,
   eventBus,
   decorationManager,
-  getGraphData,
-  registerCommand,
-  pushSubscription,
-  sendMessage,
-  workspaceRoot,
   onDecorationsChanged,
 }: InitializeGraphViewProviderServicesOptions): void {
   for (const view of coreViews) {
@@ -84,22 +61,6 @@ export function initializeGraphViewProviderServices({
   }
 
   analyzer.setEventBus(eventBus);
-  analyzer.registry.configureV2({
-    eventBus,
-    decorationManager,
-    viewRegistry,
-    graphProvider: () => getGraphData(),
-    commandRegistrar: (id: string, action: () => void) => {
-      const disposable = registerCommand(id, action);
-      pushSubscription(disposable);
-      return disposable;
-    },
-    webviewSender: (message: unknown) => {
-      sendMessage(message);
-    },
-    exportSaver: (request: unknown) => savePluginExport(request as Parameters<typeof savePluginExport>[0]),
-    workspaceRoot,
-  });
 
   decorationManager.onDecorationsChanged(onDecorationsChanged);
 }

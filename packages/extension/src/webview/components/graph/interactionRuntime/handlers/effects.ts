@@ -22,17 +22,12 @@ export interface EffectHandlers {
   ): void;
   previewNode(this: void, nodeId: string): void;
   requestNodeOpenById(this: void, nodeId: string): void;
-  sendGraphInteraction(this: void, event: string, eventData: unknown): void;
 }
 
 export function createEffectHandlers(
   dependencies: GraphInteractionHandlersDependencies,
   handlers: EffectCallbackHandlers,
 ): EffectHandlers {
-  const sendGraphInteraction = (event: string, eventData: unknown): void => {
-    postMessage({ type: 'GRAPH_INTERACTION', payload: { event, data: eventData } });
-  };
-
   const previewNode = (nodeId: string): void => {
     postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
   };
@@ -62,7 +57,6 @@ export function createEffectHandlers(
         openNodeContextMenu: handlers.openNodeContextMenu,
         previewNode,
         selectOnlyNode: handlers.selectOnlyNode,
-        sendInteraction: sendGraphInteraction,
         setSelection: handlers.setSelection,
       },
       options,
@@ -73,6 +67,5 @@ export function createEffectHandlers(
     applyGraphInteractionEffects,
     previewNode,
     requestNodeOpenById,
-    sendGraphInteraction,
   };
 }

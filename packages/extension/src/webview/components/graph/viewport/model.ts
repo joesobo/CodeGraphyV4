@@ -30,7 +30,7 @@ export interface GraphViewportModelOptions {
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
-  viewState: Pick<GraphViewStoreState, 'favorites' | 'pluginContextMenuItems'>;
+  viewState: Pick<GraphViewStoreState, 'favorites'>;
 }
 
 export function useGraphViewportModel({
@@ -68,7 +68,6 @@ export function useGraphViewportModel({
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
     favorites: viewState.favorites,
-    pluginItems: viewState.pluginContextMenuItems,
     graphViewContributions,
     nodes: graphState.graphData.nodes,
     edges: graphState.graphData.links,

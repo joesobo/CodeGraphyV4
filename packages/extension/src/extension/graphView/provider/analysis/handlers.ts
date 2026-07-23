@@ -49,15 +49,11 @@ export function createGraphViewProviderAnalysisHandlers(
     applyViewTransform: () => source._applyViewTransform(),
     sendPluginStatuses: () => source._sendPluginStatuses(),
     sendDecorations: () => source._sendDecorations(),
-    sendContextMenuItems: () => source._sendContextMenuItems(),
     sendGraphIndexStatusUpdated: (hasIndex, freshness, detail) =>
       sendGraphIndexStatusUpdated(source, hasIndex, freshness, detail),
     sendIndexProgress: progress => {
       source._sendMessage({ type: 'GRAPH_INDEX_PROGRESS', payload: progress });
     },
-    sendPluginExporters: () => source._sendPluginExporters?.(),
-    sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
-    sendGraphViewContributionStatuses: () => source._sendGraphViewContributionStatuses?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections?.(),
     markWorkspaceReady: (graphData, disabledPlugins) =>
       callbacks.markWorkspaceReady(graphData, disabledPlugins),

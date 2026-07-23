@@ -1,6 +1,6 @@
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import type { FileDiscovery } from '@codegraphy-dev/core';
-import type { EventBus } from '../../../../core/plugins/events/bus';
+import type { EventBus } from '../../../events/bus';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from '../../fileAnalysis';

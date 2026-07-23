@@ -116,11 +116,4 @@ export type WebviewToExtensionMessage =
         edgeIds: string[];
       };
     }
-  | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
-  | {
-      type: 'PLUGIN_CONTEXT_MENU_ACTION';
-      payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' };
-    }
-  | { type: 'RUN_PLUGIN_EXPORT'; payload: { pluginId: string; index: number } }
-  | { type: 'RUN_PLUGIN_TOOLBAR_ACTION'; payload: { pluginId: string; index: number; itemIndex: number } }
   | { type: 'UPDATE_NODE_SIZE_MODE'; payload: { nodeSizeMode: NodeSizeMode } };

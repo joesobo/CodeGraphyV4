@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '@codegraphy-dev/core';
-import { EventBus } from '../../../../src/core/plugins/events/bus';
+import { EventBus } from '../../../../src/extension/events/bus';
 import { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import { WorkspacePipelineEngineStateBase } from '../../../../src/extension/pipeline/indexingState/model';
 

@@ -11,7 +11,6 @@ export function createInteractionHandlers() {
     openEdgeContextMenu: vi.fn(),
     openNodeContextMenu: vi.fn(),
     requestNodeOpenById: vi.fn(),
-    sendGraphInteraction: vi.fn(),
     setGraphCursor: vi.fn(),
   };
 }

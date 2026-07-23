@@ -17,7 +17,7 @@ describe('PluginRegistry collection', () => {
     expect(result.map((pluginInfo) => pluginInfo.plugin.id)).toContain('second');
   });
 
-  it('exposes plugin lookup, size, api, and file support helpers from the collection surface', () => {
+  it('exposes plugin lookup, size, and file support helpers from the collection surface', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin({
       id: 'typescript',
@@ -28,9 +28,6 @@ describe('PluginRegistry collection', () => {
 
     expect(registry.get('typescript')?.plugin).toBe(plugin);
     expect(registry.size).toBe(1);
-    expect(registry.getPluginAPI('typescript')).toEqual(
-      expect.objectContaining({ version: '4.0.0' }),
-    );
     expect(registry.supportsFile('src/app.ts')).toBe(true);
     expect(registry.supportsFile('src/app.py')).toBe(false);
   });

@@ -86,12 +86,8 @@ export interface GraphViewAnalysisExecutionHandlers {
   applyViewTransform(): void;
   sendPluginStatuses(): void;
   sendDecorations(): void;
-  sendContextMenuItems(): void;
   sendGraphIndexStatusUpdated(hasIndex: boolean, freshness: CodeGraphyIndexFreshness, detail: string): void;
   sendIndexProgress?(progress: GraphViewIndexingProgress): void;
-  sendPluginExporters?(): void;
-  sendPluginToolbarActions?(): void;
-  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections?(): void;
   markWorkspaceReady(graphData: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   isAbortError(error: unknown): boolean;

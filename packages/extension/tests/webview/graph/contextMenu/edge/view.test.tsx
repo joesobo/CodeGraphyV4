@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
-import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
 import OwnedGraphSurface from '../../../../__mocks__/ownedGraphSurface';
 
@@ -38,7 +37,6 @@ describe('Graph context menu (edge)', () => {
     OwnedGraphSurface.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      pluginContextMenuItems: [],
     });
   });
 
@@ -47,7 +45,6 @@ describe('Graph context menu (edge)', () => {
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        pluginContextMenuItems: [],
       });
     });
   });
@@ -223,41 +220,6 @@ describe('Graph context menu (edge)', () => {
     const copyMsg = findMessage('COPY_TO_CLIPBOARD');
     expect(copyMsg).toBeTruthy();
     expect(copyMsg!.payload.text).toBe('src/app.ts\nsrc/utils.ts');
-  });
-
-  it('dispatches PLUGIN_CONTEXT_MENU_ACTION for edge plugin item', async () => {
-    const pluginItem: IPluginContextMenuItem = {
-      label: 'Edge Inspect',
-      when: 'edge',
-      pluginId: 'acme.plugin',
-      index: 1,
-    };
-    graphStore.setState({ pluginContextMenuItems: [pluginItem] });
-
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await act(async () => {
-      OwnedGraphSurface.simulateLinkRightClick(edge);
-      fireEvent.contextMenu(graphContainer, { clientX: 220, clientY: 210 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Edge Inspect')).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Edge Inspect'));
-    });
-
-    const pluginMsg = findMessage('PLUGIN_CONTEXT_MENU_ACTION');
-    expect(pluginMsg).toBeTruthy();
-    expect(pluginMsg!.payload).toEqual({
-      pluginId: 'acme.plugin',
-      index: 1,
-      targetId: 'src/app.ts->src/utils.ts',
-      targetType: 'edge',
-    });
   });
 
 });

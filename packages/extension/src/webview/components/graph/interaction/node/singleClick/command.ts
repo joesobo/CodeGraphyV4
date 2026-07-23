@@ -1,5 +1,4 @@
 import type { GraphNodeClickCommand } from '../../model';
-import { buildNodeSingleClickInteractionEffect } from '../effect';
 import { buildNodeSingleClickSelectionResult } from './selection';
 
 export interface GraphNodeSingleClickOptions {
@@ -17,8 +16,5 @@ export interface GraphNodeSingleClickOptions {
 export function getNodeSingleClickCommand(
   options: GraphNodeSingleClickOptions,
 ): GraphNodeClickCommand {
-  const { effects, nextLastClick } = buildNodeSingleClickSelectionResult(options);
-  effects.push(buildNodeSingleClickInteractionEffect(options));
-
-  return { nextLastClick, effects };
+  return buildNodeSingleClickSelectionResult(options);
 }

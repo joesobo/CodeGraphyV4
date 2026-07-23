@@ -19,7 +19,7 @@ function makeNodeSingleClickOptions(
 }
 
 describe('graph/interaction node single click', () => {
-  it('selects, previews, and reports a normal click', () => {
+  it('selects and previews a normal click', () => {
     const result = getNodeSingleClickCommand(makeNodeSingleClickOptions());
 
     expect(result).toEqual({
@@ -27,14 +27,6 @@ describe('graph/interaction node single click', () => {
       effects: [
         { kind: 'selectOnlyNode', nodeId: 'src/app.ts' },
         { kind: 'previewNode', nodeId: 'src/app.ts' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/app.ts', label: 'app.ts' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
   });
@@ -51,14 +43,6 @@ describe('graph/interaction node single click', () => {
       effects: [
         { kind: 'clearSelection' },
         { kind: 'clearFocusedFile' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/app.ts', label: 'app.ts' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
   });
@@ -79,14 +63,6 @@ describe('graph/interaction node single click', () => {
       nextLastClick: { nodeId: 'src/utils.ts', time: 200 },
       effects: [
         { kind: 'setSelection', nodeIds: ['src/app.ts', 'src/utils.ts'] },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/utils.ts', label: 'utils.ts' },
-            event: { x: 8, y: 16 },
-          },
-        },
       ],
     });
   });
@@ -108,14 +84,6 @@ describe('graph/interaction node single click', () => {
       effects: [
         { kind: 'setSelection', nodeIds: [] },
         { kind: 'clearFocusedFile' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/utils.ts', label: 'utils.ts' },
-            event: { x: 8, y: 16 },
-          },
-        },
       ],
     });
   });

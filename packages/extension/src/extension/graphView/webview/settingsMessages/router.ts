@@ -24,9 +24,6 @@ export interface GraphViewSettingsMessageHandlers {
   reloadWorkspacePlugins(): Promise<void>;
   syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
-  sendContextMenuItems?(): void;
-  sendPluginToolbarActions?(): void;
-  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections?(): void;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;

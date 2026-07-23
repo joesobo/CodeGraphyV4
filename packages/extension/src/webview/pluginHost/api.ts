@@ -16,11 +16,6 @@ import type {
 } from './api/contracts/webview';
 import type { BadgeOptions, RingOptions, LabelOptions } from './api/contracts/webview';
 
-type GraphInteractionMessage = {
-  type: 'GRAPH_INTERACTION';
-  payload: { event: string; data: unknown };
-};
-
 type DrawingHelpers = {
   drawBadge: (canvasContext: CanvasRenderingContext2D, options: BadgeOptions) => void;
   drawProgressRing: (canvasContext: CanvasRenderingContext2D, options: RingOptions) => void;
@@ -32,7 +27,6 @@ type DrawingHelpers = {
  */
 export function createPluginWebviewApi(
   pluginId: string,
-  postMessage: (msg: GraphInteractionMessage) => void,
   postHostMessage: (msg: unknown) => void,
   getHostState: () => Record<string, unknown>,
   getPluginData: (pluginId: string) => unknown,
@@ -77,13 +71,6 @@ export function createPluginWebviewApi(
       drawProgressRing: (canvasContext, options) => drawingHelpers.drawProgressRing(canvasContext, options),
       drawLabel: (canvasContext, options) => drawingHelpers.drawLabel(canvasContext, options),
     },
-    sendMessage: (msg: { type: string; data: unknown }) => {
-      postMessage({
-        type: 'GRAPH_INTERACTION',
-        payload: { event: `plugin:${pluginId}:${msg.type}`, data: msg.data },
-      });
-    },
-    postHostMessage,
     onMessage: (handler: (msg: { type: string; data: unknown }) => void) => {
       let handlers = messageHandlers.get(pluginId);
       if (!handlers) {

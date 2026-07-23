@@ -1,9 +1,5 @@
-import { CodeGraphyAPIImpl } from '@/core/plugins/api/instance';
-import { DecorationManager } from '@/core/plugins/decoration/manager';
-import { EventBus } from '@/core/plugins/events/bus';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
 import { IPlugin } from '@/core/plugins/types/contracts';
-import { ViewRegistry } from '@/core/views/registry';
 import type { IGraphData } from '@/shared/graph/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -40,28 +36,10 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
 }
 
 function createConfiguredRegistry() {
-  const eventBus = new EventBus();
-  const decorationManager = new DecorationManager();
-  const viewRegistry = new ViewRegistry();
-  const graphProvider = vi.fn(() => ({ nodes: [], edges: [] }));
-  const commandRegistrar = vi.fn(() => ({ dispose: vi.fn() }));
-  const webviewSender = vi.fn();
-
-  const registry = new PluginRegistry();
-  registry.configureV2({
-    eventBus,
-    decorationManager,
-    viewRegistry,
-    graphProvider,
-    commandRegistrar,
-    webviewSender,
-    workspaceRoot: '/workspace',
-  });
-
-  return { registry, eventBus };
+  return { registry: new PluginRegistry() };
 }
 
-describe('PluginRegistry v2', () => {
+describe('PluginRegistry notifications', () => {
   describe('notification hooks', () => {
 
         it('calls all notification hooks on registered plugins', async () => {
@@ -111,42 +89,4 @@ describe('PluginRegistry v2', () => {
         });
   });
 
-  describe('getPluginAPI', () => {
-
-        it('returns the API for a registered plugin', () => {
-          const { registry } = createConfiguredRegistry();
-          const plugin = createV2Plugin('api-get');
-
-          registry.register(plugin);
-
-          const api = registry.getPluginAPI(plugin.id);
-          expect(api).toBeInstanceOf(CodeGraphyAPIImpl);
-          expect(api?.pluginId).toBe('api-get');
-        });
-
-
-
-        it('returns undefined for a non-existent plugin', () => {
-          const { registry } = createConfiguredRegistry();
-          expect(registry.getPluginAPI('missing')).toBeUndefined();
-        });
-  });
-
-  describe('event emission', () => {
-
-        it('emits plugin:registered and plugin:unregistered events', () => {
-          const { registry, eventBus } = createConfiguredRegistry();
-          const registered = vi.fn();
-          const unregistered = vi.fn();
-          eventBus.on('plugin:registered', registered);
-          eventBus.on('plugin:unregistered', unregistered);
-
-          const plugin = createV2Plugin('eventful');
-          registry.register(plugin);
-          registry.unregister(plugin.id);
-
-          expect(registered).toHaveBeenCalledWith({ pluginId: 'eventful' });
-          expect(unregistered).toHaveBeenCalledWith({ pluginId: 'eventful' });
-        });
-  });
 });

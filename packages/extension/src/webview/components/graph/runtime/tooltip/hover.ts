@@ -36,7 +36,6 @@ function clearTooltipHoverState(
   hoveredNodeRef.current = null;
   stopTracking();
   setTooltipData(hideGraphTooltipState);
-  interactionHandlers.sendGraphInteraction('graph:nodeHover', { node: null });
 }
 
 export function handleTooltipNodeHover(
@@ -68,7 +67,6 @@ export function handleTooltipNodeHover(
 	}
 
 	interactionHandlers.setGraphCursor('pointer');
-	interactionHandlers.sendGraphInteraction('graph:nodeHover', { node: { id: node.id, label: node.label } });
 
 	hoveredNodeRef.current = node;
 	scheduleTooltipHover(node, {

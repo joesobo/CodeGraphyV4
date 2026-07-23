@@ -47,7 +47,6 @@ function createSource(
     _applyViewTransform: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
-    _sendContextMenuItems: vi.fn(),
     ...overrides,
   };
 }
@@ -101,7 +100,6 @@ describe('graphView/provider/analysis/handlers', () => {
     handlers.applyViewTransform();
     handlers.sendPluginStatuses();
     handlers.sendDecorations();
-    handlers.sendContextMenuItems();
     handlers.markWorkspaceReady(graphData);
     expect(handlers.isAbortError(new Error('boom'))).toBe(true);
     handlers.logError('label', new Error('boom'));
@@ -130,7 +128,6 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
-    expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
     expect(callbacks.markWorkspaceReady).toHaveBeenCalledWith(graphData, undefined);
     expect(callbacks.isAbortError).toHaveBeenCalledOnce();
     expect(dependencies.logError).toHaveBeenCalledOnce();
@@ -139,9 +136,6 @@ describe('graphView/provider/analysis/handlers', () => {
   it('forwards graph-control, index, and plugin broadcast messages through the source sender', () => {
     const source = createSource({
       _analyzer: { id: 'analyzer' } as never,
-      _sendPluginExporters: vi.fn(),
-      _sendPluginToolbarActions: vi.fn(),
-      _sendGraphViewContributionStatuses: vi.fn(),
     });
     const dependencies = createDependencies({ hasWorkspace: vi.fn(() => false) });
     const callbacks = {
@@ -175,16 +169,6 @@ describe('graphView/provider/analysis/handlers', () => {
     if (handlers.sendIndexProgress) {
       handlers.sendIndexProgress(progress);
     }
-    if (handlers.sendPluginExporters) {
-      handlers.sendPluginExporters();
-    }
-    if (handlers.sendPluginToolbarActions) {
-      handlers.sendPluginToolbarActions();
-    }
-    if (handlers.sendGraphViewContributionStatuses) {
-      handlers.sendGraphViewContributionStatuses();
-    }
-
     expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
       graphData,
       source._analyzer,
@@ -228,26 +212,6 @@ describe('graphView/provider/analysis/handlers', () => {
       type: 'GRAPH_INDEX_PROGRESS',
       payload: progress,
     });
-    expect(source._sendPluginExporters).toHaveBeenCalledOnce();
-    expect(source._sendPluginToolbarActions).toHaveBeenCalledOnce();
-    expect(source._sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-  });
-
-  it('tolerates missing optional plugin broadcast delegates', () => {
-    const source = createSource({
-      _sendPluginExporters: undefined,
-      _sendPluginToolbarActions: undefined,
-      _sendGraphViewContributionStatuses: undefined,
-    });
-    const handlers = createGraphViewProviderAnalysisHandlers(source, createDependencies(), {
-      isAnalysisStale: vi.fn(() => false),
-      isAbortError: vi.fn(() => false),
-      markWorkspaceReady: vi.fn(),
-    });
-
-    expect(() => handlers.sendPluginExporters?.()).not.toThrow();
-    expect(() => handlers.sendPluginToolbarActions?.()).not.toThrow();
-    expect(() => handlers.sendGraphViewContributionStatuses?.()).not.toThrow();
   });
 
   it('builds request handlers that update live request state', async () => {

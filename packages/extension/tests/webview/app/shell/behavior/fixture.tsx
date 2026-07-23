@@ -69,7 +69,7 @@ vi.mock('../../../../../src/webview/vscodeApi', () => ({
 
 vi.mock('../../../../../src/webview/pluginHost/manager', () => {
   class MockWebviewPluginHost {
-    createAPI(pluginId: string, postMessage: (message: { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }) => void) {
+    createAPI(pluginId: string, postHostMessage: (message: unknown) => void) {
       harness.createApiCalls.push(pluginId);
       const container = document.createElement('div');
       container.setAttribute('data-plugin-id', pluginId);
@@ -94,11 +94,8 @@ vi.mock('../../../../../src/webview/pluginHost/manager', () => {
           drawProgressRing() {},
           drawLabel() {},
         },
-        sendMessage: (message: { type: string; data: unknown }) => {
-          postMessage({
-            type: 'GRAPH_INTERACTION',
-            payload: { event: `plugin:${pluginId}:${message.type}`, data: message.data },
-          });
+        setPluginData: (data: unknown) => {
+          postHostMessage({ type: 'UPDATE_PLUGIN_DATA', payload: { pluginId, data } });
         },
         onMessage: () => ({ dispose() {} }),
       };

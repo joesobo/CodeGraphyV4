@@ -1,33 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
-import { savePluginExport } from '../../../../../src/extension/export/pluginSave';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
 } from '../../../../../src/extension/graphView/provider/wiring/bootstrap';
 
-vi.mock('../../../../../src/extension/export/pluginSave', () => ({
-  savePluginExport: vi.fn(),
-}));
-
 describe('graph view provider bootstrap helper', () => {
-  it('registers core views, configures analyzer services, and forwards decoration updates', async () => {
-    const graphData = {
-      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
-      edges: [],
-    };
+  it('registers core views, configures Extension services, and forwards decoration updates', () => {
     const register = vi.fn();
     const setEventBus = vi.fn();
-    const configureV2 = vi.fn();
-    const registerCommand = vi.fn(() => ({ dispose: vi.fn() }));
-    const pushSubscription = vi.fn();
-    const sendMessage = vi.fn();
     const onDecorationsChanged = vi.fn();
     let decorationsChangedHandler: (() => void) | undefined;
 
     initializeGraphViewProviderServices({
       analyzer: {
         setEventBus,
-        registry: { configureV2 },
       },
       viewRegistry: {
         register,
@@ -43,11 +29,6 @@ describe('graph view provider bootstrap helper', () => {
           decorationsChangedHandler = handler;
         },
       },
-      getGraphData: () => graphData,
-      registerCommand,
-      pushSubscription,
-      sendMessage,
-      workspaceRoot: '/workspace',
       onDecorationsChanged,
     });
 
@@ -57,22 +38,6 @@ describe('graph view provider bootstrap helper', () => {
       { core: true, isDefault: true },
     );
     expect(setEventBus).toHaveBeenCalledWith({ id: 'event-bus' });
-
-    const registration = configureV2.mock.calls[0]?.[0];
-    expect(registration.workspaceRoot).toBe('/workspace');
-    expect(registration.graphProvider()).toBe(graphData);
-
-    const action = vi.fn();
-    registration.commandRegistrar('plugin.command', action);
-    const disposable = registerCommand.mock.results[0]?.value;
-    expect(registerCommand).toHaveBeenCalledWith('plugin.command', action);
-    expect(pushSubscription).toHaveBeenCalledWith(disposable);
-
-    registration.webviewSender({ type: 'PLUGIN_MESSAGE' });
-    expect(sendMessage).toHaveBeenCalledWith({ type: 'PLUGIN_MESSAGE' });
-
-    await registration.exportSaver({ format: 'json' });
-    expect(savePluginExport).toHaveBeenCalledWith({ format: 'json' });
 
     decorationsChangedHandler?.();
     expect(onDecorationsChanged).toHaveBeenCalledOnce();

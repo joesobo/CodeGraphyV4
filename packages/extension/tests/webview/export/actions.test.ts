@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildGraphItems,
   buildImageItems,
-  runPluginExport,
 } from '../../../src/webview/components/export/actions';
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
@@ -52,17 +51,5 @@ describe('webview/export/actions', () => {
     expect(window.postMessage).toHaveBeenNthCalledWith(1, { type: 'REQUEST_EXPORT_JSON' }, '*');
     expect(window.postMessage).toHaveBeenNthCalledWith(2, { type: 'REQUEST_EXPORT_MD' }, '*');
     expect(postMessage).toHaveBeenCalledWith({ type: 'EXPORT_SYMBOLS_JSON' });
-  });
-
-  it('posts plugin exports through the host API with plugin id and index', () => {
-    runPluginExport('plugin.test', 2);
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'RUN_PLUGIN_EXPORT',
-      payload: {
-        pluginId: 'plugin.test',
-        index: 2,
-      },
-    });
   });
 });

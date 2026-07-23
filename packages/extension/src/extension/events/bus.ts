@@ -1,14 +1,18 @@
 /**
- * @fileoverview Typed event bus for the plugin system.
- * @module core/plugins/EventBus
+ * @fileoverview Typed event bus for Extension host events.
+ * @module extension/events/bus
  */
 
-import { Disposable, toDisposable } from '../disposable';
+import type { Disposable } from '@codegraphy-dev/plugin-api/disposable';
 import type { EventPayloads, EventName } from '@codegraphy-dev/extension-plugin-api/events';
 import { removeHandler, removeAllHandlersForPlugin } from './handlers';
 import type { EventHandler } from './handlers';
 
 export type { EventPayloads, EventName };
+
+function toDisposable(dispose: () => void): Disposable {
+  return { dispose };
+}
 
 /**
  * Typed event bus for the plugin system.

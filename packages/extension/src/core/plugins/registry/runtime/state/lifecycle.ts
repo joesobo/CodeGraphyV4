@@ -14,14 +14,12 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
   abstract unregister(pluginId: string): boolean;
 
   async initializeAll(workspaceRoot: string): Promise<void> {
-    this._v2Config.workspaceRoot = workspaceRoot;
     await Promise.all(
       [...this._plugins.keys()].map(pluginId => this.initializePlugin(pluginId, workspaceRoot)),
     );
   }
 
   async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
-    this._v2Config.workspaceRoot = workspaceRoot;
     const info = this._plugins.get(pluginId);
     if (!info) {
       return;

@@ -7,7 +7,7 @@ export function activate(api) {
         placement: { menu: 'create' },
         targets: [{ kind: 'background' }],
         run(context) {
-          api.sendMessage({
+          api.setPluginData({
             type: 'createItem',
             data: {
               position: context.graphPosition ?? { x: 0, y: 0 },
@@ -24,7 +24,7 @@ export function activate(api) {
           return context.selectedNodeIds.length === 1;
         },
         run(context) {
-          api.sendMessage({
+          api.setPluginData({
             type: 'nodeAction',
             data: {
               nodeId: context.selectedNodeIds[0],
@@ -37,5 +37,5 @@ export function activate(api) {
       },
     ],
   });
-  api.sendMessage({ type: 'activated', data: { ok: true } });
+  api.setPluginData({ type: 'activated', data: { ok: true } });
 }

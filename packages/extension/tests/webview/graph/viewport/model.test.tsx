@@ -77,7 +77,6 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
       openEdgeContextMenu: vi.fn(),
       openNodeContextMenu: vi.fn(),
       requestNodeOpenById: vi.fn(),
-      sendGraphInteraction: vi.fn(),
       setGraphCursor: vi.fn(),
       setSelection: vi.fn(),
       zoomGraphView: vi.fn(),
@@ -96,10 +95,9 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
   } as unknown as UseGraphInteractionRuntimeResult;
 }
 
-function createViewState(): Pick<GraphViewStoreState, 'favorites' | 'pluginContextMenuItems'> {
+function createViewState(): Pick<GraphViewStoreState, 'favorites'> {
   return {
     favorites: new Set(['src/app.ts']),
-    pluginContextMenuItems: [],
   };
 }
 
@@ -146,7 +144,6 @@ describe('graph/viewport/model', () => {
       favorites: viewState.favorites,
       graphViewContributions: undefined,
       nodes: graphData.nodes,
-      pluginItems: [],
       selection: { kind: 'background', targets: [] },
     });
     expect(harness.getGraphSurfaceColors).toHaveBeenCalledWith(undefined);

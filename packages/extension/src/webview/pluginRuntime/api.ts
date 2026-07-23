@@ -49,12 +49,6 @@ function createVersionedPluginApi(
         if (isCurrent()) api.helpers.drawLabel(canvasContext, options);
       },
     },
-    sendMessage: message => {
-      if (isCurrent()) api.sendMessage(message);
-    },
-    postHostMessage: message => {
-      if (isCurrent()) api.postHostMessage(message);
-    },
     onMessage: handler => isCurrent() ? api.onMessage(handler) : INACTIVE_DISPOSABLE,
   };
 }
@@ -71,7 +65,6 @@ export function getPluginApi(
   if (existing) return existing;
   const hostApi = refs.pluginHost.current.createAPI(
     pluginId,
-    postMessage,
     message => postMessage(message as never),
     () => ({}),
     pid => refs.pluginData.current.get(pid),

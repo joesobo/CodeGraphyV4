@@ -1,8 +1,5 @@
-import { DecorationManager } from '@/core/plugins/decoration/manager';
-import { EventBus } from '@/core/plugins/events/bus';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
 import { IPlugin } from '@/core/plugins/types/contracts';
-import { ViewRegistry } from '@/core/views/registry';
 import { describe, expect, it, vi } from 'vitest';
 
 function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
@@ -18,43 +15,10 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
 }
 
 function createConfiguredRegistry() {
-  const registry = new PluginRegistry();
-  registry.configureV2({
-    eventBus: new EventBus(),
-    decorationManager: new DecorationManager(),
-    viewRegistry: new ViewRegistry(),
-    graphProvider: () => ({ nodes: [], edges: [] }),
-    commandRegistrar: () => ({ dispose: () => {} }),
-    webviewSender: () => {},
-    workspaceRoot: '/workspace',
-  });
-  return registry;
+  return new PluginRegistry();
 }
 
 describe('PluginRegistry error handling', () => {
-
-    it('uses a custom log function when configureV2 provides one', () => {
-      const logFn = vi.fn();
-      const registry = new PluginRegistry();
-      registry.configureV2({
-        eventBus: new EventBus(),
-        decorationManager: new DecorationManager(),
-        viewRegistry: new ViewRegistry(),
-        graphProvider: () => ({ nodes: [], edges: [] }),
-        commandRegistrar: () => ({ dispose: () => {} }),
-        webviewSender: () => {},
-        workspaceRoot: '/workspace',
-        logFn,
-      });
-      const plugin = createPlugin('custom-logger');
-
-      registry.register(plugin);
-      registry.getPluginAPI(plugin.id)?.log('warn', 'through-custom-log');
-
-      expect(logFn).toHaveBeenCalledWith('warn', '[custom-logger]', 'through-custom-log');
-    });
-
-
 
     it('accepts whitespace-padded compatible core api ranges', () => {
       const registry = createConfiguredRegistry();

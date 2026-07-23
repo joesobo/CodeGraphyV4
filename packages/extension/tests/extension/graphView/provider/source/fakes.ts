@@ -41,10 +41,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendGroupsUpdated: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
-    _sendContextMenuItems: vi.fn(),
-    _sendPluginExporters: vi.fn(),
-    _sendPluginToolbarActions: vi.fn(),
-    _sendGraphViewContributionStatuses: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
   };
   const pluginResourceMethods = {

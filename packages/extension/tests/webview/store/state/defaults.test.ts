@@ -37,13 +37,12 @@ describe('GraphStore initial state', () => {
     expect(state.maxFiles).toBe(DEFAULT_MAX_FILES);
   });
 
-  it('starts with empty plugin decoration and context menu state', () => {
+  it('starts with empty plugin decoration state', () => {
     const state = store.getState();
 
     expect(state.pluginStatuses).toEqual([]);
     expect(state.nodeDecorations).toEqual({});
     expect(state.edgeDecorations).toEqual({});
-    expect(state.pluginContextMenuItems).toEqual([]);
     expect(state.expandedGroupId).toBeNull();
     expect(state.activePanel).toBe('none');
   });

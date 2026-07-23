@@ -8,9 +8,6 @@ type PluginSettingsMethods = Pick<
   | 'reloadWorkspacePlugins'
   | 'syncWorkspacePlugins'
   | 'sendPluginStatuses'
-  | 'sendContextMenuItems'
-  | 'sendPluginToolbarActions'
-  | 'sendGraphViewContributionStatuses'
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'schedulePluginGraphWork'
@@ -55,11 +52,6 @@ export function createPluginSettingsMethods(
       source._analyzer?.syncWorkspacePlugins?.bind(source._analyzer),
     ),
     sendPluginStatuses: () => { source._sendPluginStatuses(); },
-    sendContextMenuItems: () => { source._sendContextMenuItems(); },
-    sendPluginToolbarActions: () => { source._sendPluginToolbarActions?.(); },
-    sendGraphViewContributionStatuses: () => {
-      source._sendGraphViewContributionStatuses?.();
-    },
     sendPluginWebviewInjections: () => { source._sendPluginWebviewInjections(); },
     sendGraphControls: () => { source._sendGraphControls?.(); },
     schedulePluginGraphWork: request => { pluginGraphWorkScheduler.schedule(request); },

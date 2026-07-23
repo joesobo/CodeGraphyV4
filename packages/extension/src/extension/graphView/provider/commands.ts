@@ -1,5 +1,5 @@
 import { getUndoManager } from '../../undoManager';
-import type { EventName, EventPayloads } from '../../../core/plugins/events/bus';
+import type { EventName, EventPayloads } from '../../events/bus';
 
 interface GraphViewProviderCommandMessage {
   type:

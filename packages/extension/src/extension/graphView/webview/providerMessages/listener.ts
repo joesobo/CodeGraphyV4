@@ -99,13 +99,6 @@ export interface GraphViewProviderMessageListenerSource {
           get?(pluginId: string): {
             plugin: { updateImpact?: IPluginUpdateImpactPolicy };
           } | undefined;
-          getPluginAPI(
-            pluginId: string,
-          ):
-            | { deliverWebviewMessage(message: { type: string; data: unknown }): void }
-            | { contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }> }
-            | { exporters: ReadonlyArray<{ run(): Promise<void> | void }> }
-            | undefined;
         };
       }
     | undefined;
@@ -156,11 +149,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendFavorites(favorites?: string[]): void;
   _sendSettings(): void;
   _sendDecorations(): void;
-  _sendContextMenuItems(): void;
   _sendPluginStatuses(): void;
-  _sendPluginExporters?(): void;
-  _sendPluginToolbarActions?(): void;
-  _sendGraphViewContributionStatuses?(): void;
   _sendPluginWebviewInjections(): void;
   _sendGraphControls?(): void;
   invalidatePluginFiles(pluginIds: readonly string[]): string[];

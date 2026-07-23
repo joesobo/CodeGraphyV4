@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
-import { EventBus } from '@/core/plugins/events/bus';
-import { DecorationManager } from '@/core/plugins/decoration/manager';
-import { ViewRegistry } from '@/core/views/registry';
 import { IPlugin } from '@/core/plugins/types/contracts';
 
 function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
@@ -18,17 +15,7 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
 }
 
 function createConfiguredRegistry() {
-  const registry = new PluginRegistry();
-  registry.configureV2({
-    eventBus: new EventBus(),
-    decorationManager: new DecorationManager(),
-    viewRegistry: new ViewRegistry(),
-    graphProvider: () => ({ nodes: [], edges: [] }),
-    commandRegistrar: () => ({ dispose: () => {} }),
-    webviewSender: () => {},
-    workspaceRoot: '/workspace',
-  });
-  return registry;
+  return new PluginRegistry();
 }
 
 describe('PluginRegistry lookup resilience', () => {
@@ -102,7 +89,7 @@ describe('PluginRegistry lookup resilience', () => {
     expect(registry.getPluginsForExtension('.ts')).toEqual([plugin]);
   });
 
-  it('unregisters plugins without configured v2 services', () => {
+  it('unregisters plugins without host UI services', () => {
     const registry = new PluginRegistry();
     const onUnload = vi.fn();
     const plugin = createPlugin('no-config', { onUnload });

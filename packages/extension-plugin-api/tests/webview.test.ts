@@ -36,4 +36,16 @@ describe('CodeGraphyWebviewAPI', () => {
       .parameter(1).toEqualTypeOf<LabelOptions>();
     expectTypeOf<Parameters<NodeRenderFn>[0]>().toHaveProperty('canvasContext');
   });
+
+  it('does not claim unsupported generic host messaging', () => {
+    const verifyUnsupportedMessaging = (api: CodeGraphyWebviewAPI): void => {
+      // @ts-expect-error Generic messages to an Extension-host runtime are not supported.
+      api.sendMessage({ type: 'PING', data: null });
+      // @ts-expect-error Raw host messages are not part of the public API.
+      api.postHostMessage({ type: 'PING' });
+    };
+
+    expectTypeOf(verifyUnsupportedMessaging)
+      .parameter(0).toEqualTypeOf<CodeGraphyWebviewAPI>();
+  });
 });

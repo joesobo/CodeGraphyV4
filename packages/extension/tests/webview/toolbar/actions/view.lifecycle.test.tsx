@@ -7,7 +7,6 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({ postMessage: vi.fn() }));
 import { postMessage } from '../../../../src/webview/vscodeApi';
 import {
   clickToolbarAction,
-  enableRuntimeGraphViewContributions,
   renderToolbar,
   resetToolbarState,
 } from './viewFixture';
@@ -16,7 +15,6 @@ describe('ToolbarActions', () => {
   beforeEach(resetToolbarState);
   afterEach(() => vi.useRealTimers());
   it('renders lifecycle, graph tools, and system groups without feature-specific public actions', () => {
-    enableRuntimeGraphViewContributions();
     renderToolbar();
 
     expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();

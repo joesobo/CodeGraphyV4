@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { EventBus } from '../../../../src/core/plugins/events/bus';
+import { EventBus } from '../../../src/extension/events/bus';
 
 describe('EventBus pluginId guard (L35 mutant)', () => {
   it('does not track handlers under a plugin when no pluginId is provided', () => {

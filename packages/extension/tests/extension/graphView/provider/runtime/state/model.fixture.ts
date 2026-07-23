@@ -143,7 +143,7 @@ vi.mock('../../../../../../src/core/plugins/decoration/manager', () => ({
   },
 }));
 
-vi.mock('../../../../../../src/core/plugins/events/bus', () => ({
+vi.mock('../../../../../../src/extension/events/bus', () => ({
   EventBus: class EventBus {
     constructor() {
       stateHarness.eventBusInstances.push({ id: 'event-bus' });

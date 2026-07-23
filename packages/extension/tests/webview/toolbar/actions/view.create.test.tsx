@@ -5,7 +5,6 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({ postMessage: vi.fn() }));
 
 import { postMessage } from '../../../../src/webview/vscodeApi';
 import {
-  enableRuntimeGraphViewContributions,
   iconButtonTitles,
   renderToolbar,
   resetToolbarState,
@@ -15,7 +14,6 @@ describe('ToolbarActions', () => {
   beforeEach(resetToolbarState);
   afterEach(() => vi.useRealTimers());
   it('orders the graph tool rail create menu as file and folder without a separator', () => {
-    enableRuntimeGraphViewContributions();
     renderToolbar();
 
     const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
@@ -154,7 +152,6 @@ describe('ToolbarActions', () => {
   });
 
   it('posts root creation messages from the graph tool rail create menu', () => {
-    enableRuntimeGraphViewContributions();
     renderToolbar();
     expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
 

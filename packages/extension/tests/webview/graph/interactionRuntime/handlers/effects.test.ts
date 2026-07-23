@@ -3,12 +3,11 @@ import { createEffectHandlers } from '../../../../../src/webview/components/grap
 import {
   clearSentMessages,
   findMessage,
-  getSentMessages,
 } from '../../../../helpers/sentMessages';
 import { createInteractionDependencies } from '../testUtils';
 
 describe('graph/effectHandlers', () => {
-  it('posts preview, open, and interaction messages', () => {
+  it('posts preview and open messages', () => {
     clearSentMessages();
     const dependencies = createInteractionDependencies();
     const handlers = createEffectHandlers(dependencies, {
@@ -23,17 +22,9 @@ describe('graph/effectHandlers', () => {
 
     handlers.previewNode('src/app.ts');
     handlers.requestNodeOpenById('src/app.ts');
-    handlers.sendGraphInteraction('graph:nodeClick', { nodeId: 'src/app.ts' });
 
     expect(findMessage('NODE_SELECTED')?.payload.nodeId).toBe('src/app.ts');
     expect(findMessage('NODE_DOUBLE_CLICKED')?.payload.nodeId).toBe('src/app.ts');
-    expect(
-      getSentMessages().some(
-        (message) =>
-          message.type === 'GRAPH_INTERACTION'
-          && message.payload.event === 'graph:nodeClick',
-      ),
-    ).toBe(true);
   });
 
   it('posts clear-focused-file when the interaction effects request it', () => {

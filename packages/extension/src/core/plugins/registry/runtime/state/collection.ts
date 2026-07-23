@@ -13,7 +13,6 @@ import {
   type CorePluginAccessCheck,
   type CorePluginAccessContext,
 } from '@codegraphy-dev/core';
-import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import {
   analyzeFile,
   analyzeFileResult,
@@ -27,10 +26,7 @@ import {
 } from '../../../routing/router/lookups';
 import { listPluginContributions } from '../maps/contributions';
 import { PluginRegistryState } from './store';
-import {
-  listAvailableGraphViewContributionsForPlugins,
-  listPluginAccessProviders,
-} from './graphViewContributions';
+import { listPluginAccessProviders } from './accessProviders';
 import { collectGraphScopeCapabilities } from './graphScopeCapabilities';
 
 export abstract class PluginRegistryCollection extends PluginRegistryState {
@@ -51,14 +47,6 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       info.plugin,
       listPluginAccessProviders(this._plugins.values()),
       context,
-    ));
-  }
-
-  async listAvailableGraphViewContributions(
-    context: CorePluginAccessContext = {},
-  ): Promise<ExtensionGraphViewContributionSet> {
-    return this._runPluginOperation(() => (
-      listAvailableGraphViewContributionsForPlugins(this._plugins.values(), context)
     ));
   }
 
@@ -194,10 +182,6 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     for (const [id] of this._plugins) {
       this.unregister(id);
     }
-  }
-
-  getPluginAPI(pluginId: string) {
-    return this._plugins.get(pluginId)?.api;
   }
 
   replayReadinessForPlugin(pluginId: string): void {

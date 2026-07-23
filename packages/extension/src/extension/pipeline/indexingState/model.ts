@@ -6,7 +6,7 @@ import {
   type WorkspaceIndexEngineState,
 } from '@codegraphy-dev/core';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../../core/plugins/types/contracts';
-import { EventBus } from '../../../core/plugins/events/bus';
+import { EventBus } from '../../events/bus';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { Configuration } from '../../config/reader';
 import type { IWorkspaceAnalysisCache } from '../cache';

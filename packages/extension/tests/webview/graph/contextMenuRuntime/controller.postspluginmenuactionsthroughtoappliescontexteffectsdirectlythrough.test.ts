@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { resolveGraphContextActionContext } from '../../../../src/webview/components/graph/contextActions/context';
 import {
   createGraphContextMenuRuntime,
   type GraphContextMenuRuntimeDependencies,
@@ -8,10 +7,6 @@ import {
   type GraphTimerHandle,
 } from '../../../../src/webview/components/graph/contextMenuRuntime/controller';
 import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltip/model';
-
-function nodeContext(targets: string[]) {
-  return resolveGraphContextActionContext({ kind: 'node', targets });
-}
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {
   return { current };
@@ -67,34 +62,6 @@ describe('graph/contextMenuRuntime', () => {
 
     afterEach(() => {
       vi.useRealTimers();
-    });
-
-
-
-    it('posts plugin menu actions through context effects', () => {
-      const { dependencies } = createDependencies();
-      const runtime = createGraphContextMenuRuntime(dependencies);
-
-      runtime.handleMenuAction(
-        {
-          kind: 'plugin',
-          pluginId: 'plugin.test',
-          index: 2,
-          targetId: 'src/app.ts',
-          targetType: 'node',
-        },
-        nodeContext(['src/app.ts']),
-      );
-
-      expect(dependencies.postMessage).toHaveBeenCalledWith({
-        type: 'PLUGIN_CONTEXT_MENU_ACTION',
-        payload: {
-          pluginId: 'plugin.test',
-          index: 2,
-          targetId: 'src/app.ts',
-          targetType: 'node',
-        },
-      });
     });
 
 

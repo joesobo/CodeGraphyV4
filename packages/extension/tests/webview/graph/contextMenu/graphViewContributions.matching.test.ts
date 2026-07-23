@@ -46,14 +46,12 @@ describe('Graph View context menu contribution matching', () => {
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'background', targets: [] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
     }))).toContain('Create Runtime Item');
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/app.ts'] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes: [{ id: 'src/app.ts', nodeType: 'file' }],
     }))).toContain('Tag Node');
@@ -61,7 +59,6 @@ describe('Graph View context menu contribution matching', () => {
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'edge', edgeId: 'src/app.ts->src/util.ts#import', targets: ['src/app.ts', 'src/util.ts'] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       edges: [{ id: 'src/app.ts->src/util.ts#import', kind: 'import' }],
     }))).toContain('Inspect Import');
@@ -69,7 +66,6 @@ describe('Graph View context menu contribution matching', () => {
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/app.ts', 'src/util.ts'] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes: [
         { id: 'src/app.ts', nodeType: 'file' },
@@ -103,7 +99,6 @@ describe('Graph View context menu contribution matching', () => {
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['runtime:frontend'] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes: [{ id: 'runtime:frontend', runtimeNodeType: 'acme-panel' }],
     }))).toContain('Runtime Settings');
@@ -115,7 +110,6 @@ describe('Graph View context menu contribution matching', () => {
         targets: ['runtime:frontend', 'src/app.ts'],
       },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       edges: [{
         id: 'runtime:frontend->src/app.ts#acme-link',

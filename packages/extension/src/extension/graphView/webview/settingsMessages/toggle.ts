@@ -31,9 +31,6 @@ export async function applySettingsToggleMessage(
         replaySavedPluginData(message.payload.pluginId, handlers);
         handlers.sendPluginWebviewInjections?.();
       }
-      handlers.sendContextMenuItems?.();
-      handlers.sendPluginToolbarActions?.();
-      handlers.sendGraphViewContributionStatuses?.();
       if (!message.payload.enabled) {
         handlers.sendPluginStatuses?.();
       }

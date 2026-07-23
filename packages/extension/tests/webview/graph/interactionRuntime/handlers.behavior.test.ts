@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../src/webview/components/graph/model/build';
 import { createGraphInteractionHandlers } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
-import { clearSentMessages, findMessage, getSentMessages } from '../../../helpers/sentMessages';
+import { clearSentMessages, findMessage } from '../../../helpers/sentMessages';
 import { createDependencies, createRef } from './handlersFixture';
 
 describe('graph interaction handlers', () => {
@@ -92,13 +92,6 @@ describe('graph interaction handlers', () => {
     expect(findMessage('NODE_DOUBLE_CLICKED')?.payload.nodeId).toBe('src/app.ts');
     expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(0, 0, 300);
     expect(dependencies.fg2dRef.current?.zoom).toHaveBeenCalledWith(1.5, 300);
-    expect(
-      getSentMessages().some(
-        message =>
-          message.type === 'GRAPH_INTERACTION'
-          && message.payload.event === 'graph:nodeDoubleClick',
-      ),
-    ).toBe(true);
   });
 
   it('clears graph selection when background click runs without an event', () => {
@@ -113,13 +106,6 @@ describe('graph interaction handlers', () => {
     expect(dependencies.selectedNodesSetRef.current.size).toBe(0);
     expect(dependencies.setSelectedNodes).toHaveBeenCalledWith([]);
     expect(findMessage('CLEAR_FOCUSED_FILE')).toEqual({ type: 'CLEAR_FOCUSED_FILE' });
-    expect(
-      getSentMessages().some(
-        message =>
-          message.type === 'GRAPH_INTERACTION'
-          && message.payload.event === 'graph:backgroundClick',
-      ),
-    ).toBe(true);
   });
 
   it('clears the focused file when re-clicking the only selected node outside double-click timing', () => {

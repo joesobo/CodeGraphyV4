@@ -64,7 +64,6 @@ function createHandlers(
     sendDepthState: vi.fn(),
     sendPluginStatuses: vi.fn(),
     sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
     sendGraphDataUpdated: vi.fn(),
     isAnalysisStale: vi.fn(),
     hasWorkspace: vi.fn(),
@@ -141,7 +140,6 @@ describe('extension/graphView/analysis/execution/publish/messages', () => {
     expect(() => publishStaticGraphMessages(handlers)).not.toThrow();
     expect(handlers.sendDepthState).toHaveBeenCalledOnce();
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
   });
 
   it('sends metric patches instead of full graph data when the plan enables patches', () => {

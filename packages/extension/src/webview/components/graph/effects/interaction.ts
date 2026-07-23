@@ -16,10 +16,6 @@ export interface GraphInteractionEffectHandlers<TLink = unknown> {
   previewNode(nodeId: string): void;
   openNode(nodeId: string): void;
   focusNode(nodeId: string): void;
-  sendInteraction(
-    event: 'graph:nodeClick' | 'graph:nodeDoubleClick' | 'graph:backgroundClick',
-    payload: unknown
-  ): void;
 }
 
 type InteractionEffectHandler = (
@@ -34,7 +30,6 @@ type SetSelectionEffect = Extract<GraphInteractionEffect, { kind: 'setSelection'
 type PreviewNodeEffect = Extract<GraphInteractionEffect, { kind: 'previewNode' }>;
 type OpenNodeEffect = Extract<GraphInteractionEffect, { kind: 'openNode' }>;
 type FocusNodeEffect = Extract<GraphInteractionEffect, { kind: 'focusNode' }>;
-type SendInteractionEffect = Extract<GraphInteractionEffect, { kind: 'sendInteraction' }>;
 
 const INTERACTION_EFFECT_HANDLERS = {
   openNodeContextMenu: (effect, handlers, options) => {
@@ -72,10 +67,6 @@ const INTERACTION_EFFECT_HANDLERS = {
   },
   focusNode: (effect, handlers) => {
     handlers.focusNode((effect as FocusNodeEffect).nodeId);
-  },
-  sendInteraction: (effect, handlers) => {
-    const interactionEffect = effect as SendInteractionEffect;
-    handlers.sendInteraction(interactionEffect.event, interactionEffect.payload);
   },
 } satisfies Record<GraphInteractionEffect['kind'], InteractionEffectHandler>;
 

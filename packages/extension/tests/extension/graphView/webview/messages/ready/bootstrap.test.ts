@@ -31,9 +31,7 @@ describe('graph view ready bootstrap payloads', () => {
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
-    expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.sendActiveFile).toHaveBeenCalledOnce();
     expect(handlers.sendMessage).toHaveBeenCalledWith({

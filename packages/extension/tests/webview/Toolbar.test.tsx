@@ -55,8 +55,6 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     depthLimit: 1,
     depthMode: false,
     activePanel: 'none',
-    pluginExporters: [],
-    pluginToolbarActions: [],
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,

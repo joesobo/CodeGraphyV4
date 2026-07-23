@@ -1,9 +1,5 @@
-import type { EventBus } from '../../../events/bus';
-import type { CodeGraphyAPIImpl } from '../../../api/instance';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPluginInfo } from '../../../types/contracts';
-import { DEFAULT_LOG_FN } from '../registration/configure';
-import type { RegistryV2Config } from '../registration/register';
 import {
   replayReadinessForPlugin as lifecycleReplayReadiness,
 } from '../../../lifecycle/replay';
@@ -16,9 +12,7 @@ export type CoreGraphScopeCapabilitiesProvider = (
   filePaths?: readonly string[],
 ) => Required<IPluginGraphScopeCapabilities>;
 
-export interface IPluginInfoV2 extends IPluginInfo {
-  api?: CodeGraphyAPIImpl;
-}
+export type IPluginInfoV2 = IPluginInfo;
 
 export abstract class PluginRegistryState {
   protected readonly _plugins = new Map<string, IPluginInfoV2>();
@@ -27,8 +21,6 @@ export abstract class PluginRegistryState {
   protected readonly _initializingPlugins = new Map<IPluginInfoV2, Promise<boolean>>();
   private readonly _pendingPluginUnloads = new Set<() => void>();
   private _activePluginOperations = 0;
-  protected _eventBus?: EventBus;
-  protected _v2Config: RegistryV2Config = { logFn: DEFAULT_LOG_FN };
   protected _lastWorkspaceReadyGraph?: IGraphData;
   protected _workspaceReadyNotified = false;
   protected _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;

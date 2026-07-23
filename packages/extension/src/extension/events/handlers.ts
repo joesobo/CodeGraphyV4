@@ -1,6 +1,6 @@
 /**
  * @fileoverview Event handler management utilities for EventBus.
- * @module core/plugins/events/handlers
+ * @module extension/events/handlers
  */
 
 import type { EventName } from '@codegraphy-dev/extension-plugin-api/events';

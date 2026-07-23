@@ -14,7 +14,6 @@ export function getBackgroundClickCommand(
   return [
     { kind: 'clearSelection' },
     { kind: 'clearFocusedFile' },
-    { kind: 'sendInteraction', event: 'graph:backgroundClick', payload: {} },
   ];
 }
 

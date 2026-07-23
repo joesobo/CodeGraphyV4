@@ -11,7 +11,6 @@ import { useTooltipEvents } from './events/handlers';
 import { useTooltipState } from './events/state';
 
 export interface GraphTooltipInteractionDependencies {
-	sendGraphInteraction: (this: void, event: string, eventData: unknown) => void;
 	setGraphCursor: (this: void, cursor: GraphCursorStyle) => void;
 }
 

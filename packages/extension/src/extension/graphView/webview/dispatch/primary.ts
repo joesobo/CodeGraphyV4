@@ -84,9 +84,6 @@ export interface GraphViewPrimaryMessageContext {
   reloadWorkspacePlugins(): Promise<void>;
   syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
-  sendContextMenuItems(): void;
-  sendPluginToolbarActions?(): void;
-  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendGraphControls(): void;
   reprocessGraphScope(): Promise<void>;

@@ -4,14 +4,10 @@ import type { SearchOptions } from '../components/searchBar/field/model';
 import { INITIAL_STATE } from './initialState';
 import { createActions } from './actions/create';
 import type { IGraphData } from '../../shared/graph/contracts';
-import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
-import type { IPluginExporterItem } from '../../shared/plugins/exporters';
-import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type {
   ExtensionToWebviewMessage,
-  IGraphViewContributionStatus,
 } from '../../shared/protocol/extensionToWebview';
 import type { IPluginFilterPatternGroup } from '../../shared/protocol/extensionToWebview';
 import type {
@@ -67,10 +63,6 @@ export interface GraphState {
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
-  pluginContextMenuItems: IPluginContextMenuItem[];
-  pluginExporters: IPluginExporterItem[];
-  pluginToolbarActions: IPluginToolbarAction[];
-  graphViewContributionStatuses: IGraphViewContributionStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;

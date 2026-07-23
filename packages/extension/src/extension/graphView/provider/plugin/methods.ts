@@ -4,11 +4,7 @@ import type { ViewRegistry } from '../../../../core/views/registry';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
-import {
-  sendGraphViewContributionStatuses,
-  sendGraphViewContextMenuItems,
-  sendGraphViewPluginWebviewInjections,
-} from '../../webview/plugins/contributionDispatch';
+import { sendGraphViewPluginWebviewInjections } from '../../webview/plugins/contributionDispatch';
 import {
   sendGraphViewDecorations,
   sendGraphViewPluginStatuses,
@@ -22,9 +18,7 @@ import {
 const DEFAULT_DEPTH_LIMIT = 1;
 
 type GraphViewPluginAnalyzerLike =
-  NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
-  & NonNullable<Parameters<typeof sendGraphViewPluginWebviewInjections>[0]>
-  & NonNullable<Parameters<typeof sendGraphViewContributionStatuses>[0]>
+  NonNullable<Parameters<typeof sendGraphViewPluginWebviewInjections>[0]>
   & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
 
 type GraphViewDecorationManagerLike =
@@ -55,11 +49,6 @@ export interface GraphViewProviderPluginMethods {
   _sendGraphControls: GraphViewProviderPluginBroadcastMethods['_sendGraphControls'];
   _sendPluginStatuses: GraphViewProviderPluginBroadcastMethods['_sendPluginStatuses'];
   _sendDecorations: GraphViewProviderPluginBroadcastMethods['_sendDecorations'];
-  _sendContextMenuItems: GraphViewProviderPluginBroadcastMethods['_sendContextMenuItems'];
-  _sendPluginExporters: GraphViewProviderPluginBroadcastMethods['_sendPluginExporters'];
-  _sendPluginToolbarActions: GraphViewProviderPluginBroadcastMethods['_sendPluginToolbarActions'];
-  _sendGraphViewContributionStatuses:
-    GraphViewProviderPluginBroadcastMethods['_sendGraphViewContributionStatuses'];
   _sendPluginWebviewInjections: GraphViewProviderPluginBroadcastMethods['_sendPluginWebviewInjections'];
   _sendGroupsUpdated: GraphViewProviderPluginBroadcastMethods['_sendGroupsUpdated'];
 }

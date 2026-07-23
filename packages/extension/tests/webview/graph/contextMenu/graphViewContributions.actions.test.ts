@@ -22,7 +22,6 @@ describe('Graph View context menu contribution actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes,
     });
@@ -65,7 +64,6 @@ describe('Graph View context menu contribution actions', () => {
     const pinnedEntries = buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/pinned.ts'] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes: [{ id: 'src/fixed.ts', nodeType: 'file' }],
     });
@@ -74,7 +72,6 @@ describe('Graph View context menu contribution actions', () => {
     const multiSelectionEntries = buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/fixed.ts', 'src/app.ts'] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes: [
         { id: 'src/fixed.ts', nodeType: 'file' },
@@ -126,7 +123,6 @@ describe('Graph View context menu contribution actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection: { kind: 'background', targets: [] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
     });
 
@@ -153,7 +149,6 @@ describe('Graph View context menu contribution actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
     });
 
@@ -194,7 +189,6 @@ describe('Graph View context menu contribution actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection: { kind: 'background', targets: [] },
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
     });
 
@@ -220,7 +214,6 @@ describe('Graph View context menu contribution actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection,
       favorites: new Set(),
-      pluginItems: [],
       graphViewContributions,
       nodes: [{ id: 'src/app.ts', nodeType: 'file', x: 42, y: 24 }],
     });

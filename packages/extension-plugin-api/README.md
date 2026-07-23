@@ -100,7 +100,7 @@ The webview API supports:
 - custom force adapters and node-drag behavior;
 - viewport reads, node-position updates, and simulation controls;
 - plugin data reads and writes;
-- messages between the plugin webview and its Extension-host runtime.
+- notifications when the Extension refreshes plugin data or assets.
 
 Each registration returns a disposable cleanup handle.
 

@@ -71,9 +71,6 @@ export function publishAnalysisFailure(
 ): void {
   const graphData = publishEmptyGraph(handlers);
   handlers.sendPluginStatuses();
-  handlers.sendPluginExporters?.();
-  handlers.sendPluginToolbarActions?.();
-  handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections?.();
   handlers.markWorkspaceReady(graphData);
 }

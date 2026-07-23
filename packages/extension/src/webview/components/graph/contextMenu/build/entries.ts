@@ -4,7 +4,6 @@ import {
 } from '../contracts';
 import { decideGraphContextMenu } from '../decision/model';
 import { buildGraphViewContextMenuEntries } from '../graphView/entries';
-import { buildPluginEntriesForDecision } from '../plugin/entries';
 import { buildBaseGraphContextMenuEntries } from './baseEntries';
 import { captureContextSelection, insertCreateMenuEntries } from './selectionEntries';
 
@@ -14,7 +13,6 @@ export function buildGraphContextMenuEntries(
   const {
     selection,
     favorites,
-    pluginItems,
     graphViewContributions,
     nodes,
     edges,
@@ -35,7 +33,6 @@ export function buildGraphContextMenuEntries(
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
   return captureContextSelection([
     ...positionedBaseEntries,
-    ...buildPluginEntriesForDecision(decision, pluginItems),
     ...buildGraphViewContextMenuEntries({
       decision,
       edges,

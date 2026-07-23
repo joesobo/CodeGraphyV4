@@ -1,9 +1,5 @@
-import { CodeGraphyAPIImpl } from '@/core/plugins/api/instance';
-import { DecorationManager } from '@/core/plugins/decoration/manager';
-import { EventBus } from '@/core/plugins/events/bus';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
 import { IPlugin } from '@/core/plugins/types/contracts';
-import { ViewRegistry } from '@/core/views/registry';
 import { describe, expect, it, vi } from 'vitest';
 
 function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
@@ -19,17 +15,7 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
 }
 
 function createConfiguredRegistry() {
-  const registry = new PluginRegistry();
-  registry.configureV2({
-    eventBus: new EventBus(),
-    decorationManager: new DecorationManager(),
-    viewRegistry: new ViewRegistry(),
-    graphProvider: () => ({ nodes: [], edges: [] }),
-    commandRegistrar: () => ({ dispose: () => {} }),
-    webviewSender: () => {},
-    workspaceRoot: '/workspace',
-  });
-  return registry;
+  return new PluginRegistry();
 }
 
 describe('PluginRegistry error handling', () => {
@@ -51,30 +37,6 @@ describe('PluginRegistry error handling', () => {
         '[CodeGraphy] Error analyzing /workspace/app.ts with analysis-plugin:',
         failure
       );
-      errorSpy.mockRestore();
-    });
-
-
-
-    it('routes default API logs to the matching console method', () => {
-      const registry = createConfiguredRegistry();
-      const infoSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const plugin = createPlugin('logger-plugin');
-
-      registry.register(plugin);
-      const api = registry.getPluginAPI(plugin.id) as CodeGraphyAPIImpl;
-
-      api.log('info', 'hello');
-      api.log('warn', 'careful');
-      api.log('error', 'boom');
-
-      expect(infoSpy).toHaveBeenCalledWith('[logger-plugin]', 'hello');
-      expect(warnSpy).toHaveBeenCalledWith('[logger-plugin]', 'careful');
-      expect(errorSpy).toHaveBeenCalledWith('[logger-plugin]', 'boom');
-      infoSpy.mockRestore();
-      warnSpy.mockRestore();
       errorSpy.mockRestore();
     });
 

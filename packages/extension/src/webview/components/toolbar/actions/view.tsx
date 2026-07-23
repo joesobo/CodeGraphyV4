@@ -5,15 +5,8 @@ import { useGraphStore } from '../../../store/state';
 import { IndexToolbarAction } from './indexAction';
 import { ToolbarPanelButtons } from './panelButtons';
 import { GRAPH_TOOL_PANEL_BUTTONS, SYSTEM_PANEL_BUTTONS } from './model';
-import { PluginToolbarActions } from '../plugin/Actions';
 import { NodeSizeModePopover } from '../NodeSizeModePopover';
 import { CreateToolbarAction } from './create';
-
-export {
-  getToolbarActionIconPath,
-  getToolbarActionItemKey,
-  getToolbarActionKey,
-} from './model';
 
 export function ToolbarActions({
   pluginHost,
@@ -22,7 +15,6 @@ export function ToolbarActions({
 }): React.ReactElement {
   const activePanel = useGraphStore(s => s.activePanel);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
-  const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphViewContributions = useGraphViewContributions(pluginHost);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
@@ -45,7 +37,6 @@ export function ToolbarActions({
         <CreateToolbarAction
           graphViewContributions={graphViewContributions}
         />
-        <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons
           activePanel={activePanel}
           buttons={GRAPH_TOOL_PANEL_BUTTONS}

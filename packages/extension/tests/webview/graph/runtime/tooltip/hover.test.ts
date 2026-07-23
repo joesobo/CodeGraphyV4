@@ -19,7 +19,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: vi.fn(),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -42,7 +41,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: vi.fn(),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -59,7 +57,6 @@ describe('handleTooltipNodeHover', () => {
   it('hides the tooltip and clears hover state when no node is hovered', () => {
     const hoveredNodeRef = { current: { id: 'stale' } as unknown as FGNode };
     const interactionHandlers = {
-      sendGraphInteraction: vi.fn(),
       setGraphCursor: vi.fn(),
     };
     const setTooltipData = vi.fn();
@@ -83,12 +80,10 @@ describe('handleTooltipNodeHover', () => {
     expect(hoveredNodeRef.current).toBeNull();
     expect(stopTracking).toHaveBeenCalledOnce();
     expect(setTooltipData).toHaveBeenCalledOnce();
-    expect(interactionHandlers.sendGraphInteraction).toHaveBeenCalledWith('graph:nodeHover', { node: null });
   });
 
   it('shows the tooltip after the hover delay and requests missing file info', () => {
     const interactionHandlers = {
-      sendGraphInteraction: vi.fn(),
       setGraphCursor: vi.fn(),
     };
     const postMessage = vi.fn();
@@ -121,10 +116,6 @@ describe('handleTooltipNodeHover', () => {
     });
 
     expect(interactionHandlers.setGraphCursor).toHaveBeenCalledWith('pointer');
-    expect(interactionHandlers.sendGraphInteraction).toHaveBeenCalledWith('graph:nodeHover', {
-      node: { id: 'src/App.ts', label: 'App' },
-    });
-
     vi.advanceTimersByTime(500);
 
     expect(setTooltipData).toHaveBeenCalledOnce();
@@ -154,7 +145,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -206,7 +196,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -242,7 +231,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -282,7 +270,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -313,7 +300,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,
@@ -330,7 +316,6 @@ describe('handleTooltipNodeHover', () => {
       getNodeRect: () => ({ x: 4, y: 5, radius: 6 }),
       hoveredNodeRef: { current: null },
       interactionHandlers: {
-        sendGraphInteraction: vi.fn(),
         setGraphCursor: vi.fn(),
       },
       pluginHost: undefined,

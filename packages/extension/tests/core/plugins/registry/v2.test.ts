@@ -1,8 +1,5 @@
-import { DecorationManager } from '@/core/plugins/decoration/manager';
-import { EventBus } from '@/core/plugins/events/bus';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
 import { IPlugin } from '@/core/plugins/types/contracts';
-import { ViewRegistry } from '@/core/views/registry';
 import type { IGraphData } from '@/shared/graph/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -42,37 +39,18 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
 }
 
 function createConfiguredRegistry() {
-  const eventBus = new EventBus();
-  const decorationManager = new DecorationManager();
-  const viewRegistry = new ViewRegistry();
-  const graphProvider = vi.fn(() => ({ nodes: [], edges: [] }));
-  const commandRegistrar = vi.fn(() => ({ dispose: vi.fn() }));
-  const webviewSender = vi.fn();
-
-  const registry = new PluginRegistry();
-  registry.configureV2({
-    eventBus,
-    decorationManager,
-    viewRegistry,
-    graphProvider,
-    commandRegistrar,
-    webviewSender,
-    workspaceRoot: '/workspace',
-  });
-
-  return { registry, eventBus };
+  return { registry: new PluginRegistry() };
 }
 
-describe('PluginRegistry v2', () => {
+describe('PluginRegistry registration', () => {
   describe('registration contract', () => {
 
-        it('registers without configureV2 but does not create scoped API', () => {
+        it('registers without host UI services', () => {
           const registry = new PluginRegistry();
           const plugin = createV2Plugin('no-config');
 
           expect(() => registry.register(plugin)).not.toThrow();
           expect(registry.size).toBe(1);
-          expect(registry.getPluginAPI(plugin.id)).toBeUndefined();
           expect(plugin.onLoad).not.toHaveBeenCalled();
         });
 

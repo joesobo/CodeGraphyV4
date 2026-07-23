@@ -20,7 +20,6 @@ describe('GraphStore graph messages',()=>{
       expect(state.showLabels).toBe(true);
       expect(state.activePanel).toBe('none');
       expect(state.graphHasIndex).toBe(false);
-      expect(state.graphViewContributionStatuses).toEqual([]);
     });
 
   it('handles GRAPH_DATA_UPDATED message', () => {

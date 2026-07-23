@@ -19,8 +19,7 @@ function createNode(): FGNode {
 
 describe('graph/runtime/useGraphTooltip', () => {
 	it('resets the cursor and hides the tooltip when hovering out', () => {
-		const sendGraphInteraction = vi.fn();
-		const setGraphCursor = vi.fn();
+			const setGraphCursor = vi.fn();
 		const graph = {
 			graph2ScreenCoords: vi.fn(() => ({ x: 20, y: 30 })),
 			zoom: vi.fn(() => 1),
@@ -32,10 +31,9 @@ describe('graph/runtime/useGraphTooltip', () => {
 			containerRef: { current: container },
 			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
 			fg2dRef: { current: graph },
-			fileInfoCacheRef: { current: new Map() } as never,
-			interactionHandlers: {
-				sendGraphInteraction,
-				setGraphCursor,
+				fileInfoCacheRef: { current: new Map() } as never,
+				interactionHandlers: {
+					setGraphCursor,
 			},
 			postMessage: vi.fn(),
 		}));
@@ -45,8 +43,7 @@ describe('graph/runtime/useGraphTooltip', () => {
 			result.current.handleNodeHover(null);
 		});
 
-		expect(setGraphCursor).toHaveBeenLastCalledWith('default');
-		expect(sendGraphInteraction).toHaveBeenLastCalledWith('graph:nodeHover', { node: null });
-		expect(result.current.tooltipData.visible).toBe(false);
+			expect(setGraphCursor).toHaveBeenLastCalledWith('default');
+			expect(result.current.tooltipData.visible).toBe(false);
 	});
 });

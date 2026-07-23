@@ -316,8 +316,6 @@ function createWebviewApi(
     registerOverlay: vi.fn(() => ({ dispose: vi.fn() })),
     registerTooltipProvider: vi.fn(() => ({ dispose: vi.fn() })),
     registerGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
-    sendMessage: vi.fn(),
-    postHostMessage: vi.fn(),
     onMessage: vi.fn(() => ({ dispose: vi.fn() })),
     helpers: {
       drawBadge: vi.fn(),

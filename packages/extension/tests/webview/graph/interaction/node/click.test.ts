@@ -48,14 +48,6 @@ describe('graph/interaction node click', () => {
         { kind: 'selectOnlyNode', nodeId: 'src/app.ts' },
         { kind: 'openNode', nodeId: 'src/app.ts' },
         { kind: 'focusNode', nodeId: 'src/app.ts' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeDoubleClick',
-          payload: {
-            node: { id: 'src/app.ts', label: 'app.ts' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
   });
@@ -73,14 +65,6 @@ describe('graph/interaction node click', () => {
       effects: [
         { kind: 'selectOnlyNode', nodeId: 'src/app.ts' },
         { kind: 'previewNode', nodeId: 'src/app.ts' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/app.ts', label: 'app.ts' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
   });
@@ -98,14 +82,6 @@ describe('graph/interaction node click', () => {
       effects: [
         { kind: 'selectOnlyNode', nodeId: 'src/app.ts' },
         { kind: 'previewNode', nodeId: 'src/app.ts' },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/app.ts', label: 'app.ts' },
-            event: { x: 12, y: 24 },
-          },
-        },
       ],
     });
   });
@@ -127,14 +103,6 @@ describe('graph/interaction node click', () => {
       nextLastClick: { nodeId: 'src/utils.ts', time: 200 },
       effects: [
         { kind: 'setSelection', nodeIds: ['src/app.ts', 'src/utils.ts'] },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/utils.ts', label: 'utils.ts' },
-            event: { x: 8, y: 16 },
-          },
-        },
       ],
     });
   });
@@ -156,14 +124,6 @@ describe('graph/interaction node click', () => {
       nextLastClick: { nodeId: 'src/utils.ts', time: 200 },
       effects: [
         { kind: 'setSelection', nodeIds: ['src/app.ts'] },
-        {
-          kind: 'sendInteraction',
-          event: 'graph:nodeClick',
-          payload: {
-            node: { id: 'src/utils.ts', label: 'utils.ts' },
-            event: { x: 8, y: 16 },
-          },
-        },
       ],
     });
   });

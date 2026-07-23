@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   separator,
   builtInItem,
-  pluginItem,
 } from '../../../../src/webview/components/graph/contextMenu/common/entryFactories';
 
 describe('separator', () => {
@@ -46,37 +45,6 @@ describe('builtInItem', () => {
     if (entry.kind === 'item') {
       expect(entry.destructive).toBeUndefined();
       expect(entry.shortcut).toBeUndefined();
-    }
-  });
-});
-
-describe('pluginItem', () => {
-  it('creates an item entry with plugin action', () => {
-    const entry = pluginItem('p-1', 'Plugin Action', 'my-plugin', 0, 'file.ts', 'node');
-    expect(entry).toEqual({
-      kind: 'item',
-      id: 'p-1',
-      label: 'Plugin Action',
-      action: {
-        kind: 'plugin',
-        pluginId: 'my-plugin',
-        index: 0,
-        targetId: 'file.ts',
-        targetType: 'node',
-      },
-    });
-  });
-
-  it('creates plugin item with edge target type', () => {
-    const entry = pluginItem('p-2', 'Edge Action', 'edge-plugin', 1, 'edge-1', 'edge');
-    if (entry.kind === 'item') {
-      expect(entry.action).toMatchObject({
-        kind: 'plugin',
-        targetType: 'edge',
-        targetId: 'edge-1',
-        pluginId: 'edge-plugin',
-        index: 1,
-      });
     }
   });
 });

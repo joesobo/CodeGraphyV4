@@ -45,32 +45,6 @@ describe('graph/contextMenuRuntime/effects', () => {
     });
   });
 
-  it('posts plugin menu actions through context effects', () => {
-    const dependencies = createDependencies();
-    const runtime = createContextMenuEffectRuntime(dependencies);
-
-    runtime.handleMenuAction(
-      {
-        kind: 'plugin',
-        pluginId: 'plugin.test',
-        index: 2,
-        targetId: 'src/app.ts',
-        targetType: 'node',
-      },
-      nodeContext(['src/app.ts']),
-    );
-
-    expect(dependencies.postMessage).toHaveBeenCalledWith({
-      type: 'PLUGIN_CONTEXT_MENU_ACTION',
-      payload: {
-        pluginId: 'plugin.test',
-        index: 2,
-        targetId: 'src/app.ts',
-        targetType: 'node',
-      },
-    });
-  });
-
   it('opens the filter prompt for single-node add-to-filter actions', () => {
     const dependencies = createDependencies();
     const runtime = createContextMenuEffectRuntime(dependencies);
@@ -106,24 +80,6 @@ describe('graph/contextMenuRuntime/effects', () => {
 
     runtime.handleMenuAction(
       { kind: 'builtin', action: 'createFile' },
-      nodeContext(['src/app.ts']),
-    );
-
-    expect(dependencies.postMessage).not.toHaveBeenCalled();
-  });
-
-  it('skips plugin menu actions that are invalid for the execution selection', () => {
-    const dependencies = createDependencies();
-    const runtime = createContextMenuEffectRuntime(dependencies);
-
-    runtime.handleMenuAction(
-      {
-        kind: 'plugin',
-        pluginId: 'plugin.test',
-        index: 2,
-        targetId: 'src/app.ts->src/util.ts',
-        targetType: 'edge',
-      },
       nodeContext(['src/app.ts']),
     );
 

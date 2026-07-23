@@ -1,12 +1,8 @@
 import type { SearchOptions } from '../components/searchBar/field/model';
 import type { IGraphData } from '../../shared/graph/contracts';
-import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
-import type { IPluginExporterItem } from '../../shared/plugins/exporters';
-import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type {
-  IGraphViewContributionStatus,
   IPluginFilterPatternGroup,
 } from '../../shared/protocol/extensionToWebview';
 import type {
@@ -68,10 +64,6 @@ export interface IStoreFields {
   edgeVisibility: Record<string, boolean>;
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
-  pluginContextMenuItems: IPluginContextMenuItem[];
-  pluginExporters: IPluginExporterItem[];
-  pluginToolbarActions: IPluginToolbarAction[];
-  graphViewContributionStatuses: IGraphViewContributionStatus[];
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   showFps: boolean;

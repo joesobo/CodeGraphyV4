@@ -13,7 +13,9 @@ export function createPluginSource(
     _analyzer: {
       registry: {
         list: vi.fn(() => []),
-        getPluginAPI: vi.fn(),
+        extensionPlugins: {
+          listActive: vi.fn(() => []),
+        },
         register: vi.fn(),
         initializePlugin: vi.fn(async () => undefined),
         replayReadinessForPlugin: vi.fn(),

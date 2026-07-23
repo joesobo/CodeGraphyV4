@@ -35,8 +35,6 @@ describe('graph view analysis incremental metric publication', () => {
     });
     const sendPluginWebviewInjections = vi.fn();
     const { handlers, getGraphData } = createExecutionHandlers({
-      sendPluginExporters: vi.fn(),
-      sendPluginToolbarActions: vi.fn(),
       sendPluginWebviewInjections,
     });
     handlers.setRawGraphData(rawGraphData);
@@ -56,9 +54,6 @@ describe('graph view analysis incremental metric publication', () => {
     expect(handlers.sendDepthState).toHaveBeenCalledOnce();
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
-    expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(handlers.sendPluginExporters).toHaveBeenCalledOnce();
-    expect(handlers.sendPluginToolbarActions).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
       true,
@@ -187,16 +182,12 @@ describe('graph view analysis incremental metric publication', () => {
       analyzer: createExecutionAnalyzer(),
     });
     const sendGraphNodeMetricsUpdated = vi.fn();
-    const sendPluginExporters = vi.fn();
-    const sendPluginToolbarActions = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
     const { handlers, getGraphData } = createExecutionHandlers({
       applyViewTransform: vi.fn(() => {
         handlers.setGraphData(nextGraphData);
       }),
       sendGraphNodeMetricsUpdated,
-      sendPluginExporters,
-      sendPluginToolbarActions,
       sendPluginWebviewInjections,
     });
     handlers.setRawGraphData(currentGraphData);
@@ -210,10 +201,6 @@ describe('graph view analysis incremental metric publication', () => {
     expect(handlers.sendDepthState).not.toHaveBeenCalled();
     expect(handlers.sendPluginStatuses).not.toHaveBeenCalled();
     expect(handlers.sendDecorations).not.toHaveBeenCalled();
-    expect(handlers.sendContextMenuItems).not.toHaveBeenCalled();
-    expect(sendPluginExporters).not.toHaveBeenCalled();
-    expect(sendPluginToolbarActions).not.toHaveBeenCalled();
-    expect(handlers.sendGraphViewContributionStatuses).not.toHaveBeenCalled();
     expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
     expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
       true,
