@@ -32,7 +32,7 @@ const pluginFeatures: { icon: MaterialSymbolsComponent; title: string; summary: 
   {
     icon: Hub,
     title: 'Graph View roles',
-    summary: 'Ship Node and Edge styling, Filter defaults, file colors, and webview assets — all without importing VS Code.',
+    summary: 'Ship Node and Edge styling, Filter defaults, file colors, and webview assets without importing VS Code.',
   },
 ];
 

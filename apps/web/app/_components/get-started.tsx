@@ -81,9 +81,12 @@ export function GetStarted(): React.ReactElement {
             <div className="grid gap-4 lg:min-w-80">
               <div className="closing-cta-command flex min-h-14 items-center justify-between gap-4 rounded-xl px-4">
                 <code className="closing-cta-command-code min-w-0 overflow-x-auto text-xs font-semibold sm:text-sm">
-                  <span>$</span> codegraphy index
+                  <span>$</span> npm i -g @codegraphy-dev/core
                 </code>
-                <CopyButton className="closing-cta-copy-button" text="codegraphy index" />
+                <CopyButton
+                  className="closing-cta-copy-button"
+                  text="npm i -g @codegraphy-dev/core"
+                />
               </div>
               <Link
                 className={cn(buttonVariants({ size: 'lg' }), 'install-cta')}

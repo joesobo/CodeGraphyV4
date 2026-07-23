@@ -1,4 +1,4 @@
-import { exampleContent } from './examples';
+import { exampleContent, type ExampleContent } from './examples';
 import {
   docsHref,
   examplesHref,
@@ -29,6 +29,22 @@ export interface NavGroup {
   defaultOpen?: boolean;
 }
 
+function getExampleNavItems(category: ExampleContent['category']): NavItem[] {
+  const items: NavItem[] = [];
+
+  for (const example of exampleContent) {
+    if (example.category === category) {
+      items.push({
+        href: example.href,
+        iconUrl: example.iconUrl,
+        label: example.name,
+      });
+    }
+  }
+
+  return items;
+}
+
 export const pluginNavGroups: readonly NavGroup[] = [
   { items: [{ href: `${pluginsHref}#features`, label: 'Features' }] },
   {
@@ -54,16 +70,12 @@ export const exampleNavGroups: readonly NavGroup[] = [
     title: 'Language examples',
     collapsible: true,
     defaultOpen: true,
-    items: exampleContent
-      .filter((example) => example.category === 'language')
-      .map((example) => ({ href: example.href, iconUrl: example.iconUrl, label: example.name })),
+    items: getExampleNavItems('language'),
   },
   {
     title: 'Plugin examples',
     collapsible: true,
-    items: exampleContent
-      .filter((example) => example.category === 'plugin')
-      .map((example) => ({ href: example.href, iconUrl: example.iconUrl, label: example.name })),
+    items: getExampleNavItems('plugin'),
   },
 ];
 

@@ -14,7 +14,7 @@ const reasons: {
     icon: TravelExplore,
     title: 'See the whole workspace',
     summary:
-      'A bird’s-eye map of every file, folder, and package — and the Relationships between them. Stop guessing where things live or what a change might touch.',
+      'A bird’s-eye map of every file, folder, package, and the Relationships between them. See where code lives and what a change might touch.',
   },
   {
     icon: Route,
@@ -41,12 +41,12 @@ export function Why(): React.ReactElement {
           <p className="mt-7 text-base leading-7 text-[#526276] dark:text-white/72 sm:text-lg">
             CodeGraphy started with a simple frustration: editors organize code as folders nested
             inside folders, a flat list pretending to be structure. The real structure is the web
-            of imports, references, and calls underneath — and a file tree cannot show it. Lay a
+            of imports, references, and calls underneath. A file tree cannot show it. Lay a
             CodeGraphy Workspace out as a Relationship Graph and it organizes itself: islands
             appear, and clusters form around files that actually belong together.
           </p>
           <p className="mt-4 text-base leading-7 text-[#526276] dark:text-white/72 sm:text-lg">
-            CodeGraphy is local first by default: Indexing runs in your CodeGraphy Workspace and
+            CodeGraphy is local by default. Indexing runs in your CodeGraphy Workspace and
             writes a Graph Cache on disk, so editors and agents reuse local structure instead of
             uploading source code to a hosted graph service.
           </p>

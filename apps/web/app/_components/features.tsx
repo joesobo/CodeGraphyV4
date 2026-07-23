@@ -98,7 +98,7 @@ export function Features(): React.ReactElement {
     <section className="mx-auto grid w-full max-w-[90rem] gap-12 px-5 sm:px-8 lg:px-12" id="features">
       <SectionHeader
         title="From the whole system to one exact relationship."
-        description="Shape the Visible Graph with Graph Scope, persistent Filters, Search, Collapse, and focus controls—without losing the original indexed knowledge underneath."
+        description="Shape the Visible Graph with Graph Scope, persistent Filters, Search, Collapse, and focus controls while keeping the indexed knowledge underneath."
       />
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-6">
         {features.map((feature) => (

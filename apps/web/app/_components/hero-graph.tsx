@@ -9,9 +9,17 @@ import {
 } from '@codegraphy-dev/graph-renderer';
 import { useEffect, useRef } from 'react';
 
-const COMMUNITY_COUNT = 5;
-const MAX_NODE_COUNT = 84;
-const MIN_NODE_COUNT = 64;
+const COMMUNITY_COUNT = 6;
+const MAX_NODE_COUNT = 104;
+const MIN_NODE_COUNT = 78;
+const NODE_COLORS = [
+  [238, 248, 255],
+  [169, 214, 249],
+  [213, 235, 255],
+  [128, 190, 239],
+  [198, 229, 252],
+  [151, 204, 245],
+] satisfies [number, number, number][];
 
 interface CanvasSize {
   height: number;
@@ -29,6 +37,8 @@ interface PointerPosition {
 interface HeroGraphData {
   input: GraphLayoutInput;
   nodeGroups: Uint8Array;
+  nodeHoverScales: Float32Array;
+  nodeOpacities: Float32Array;
   orbitSpeedMultipliers: Float32Array;
 }
 
@@ -67,16 +77,17 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
     const layout = createGraphLayoutEngine(graphData.input, {
       alphaDecay: 0.014,
       centralGravity: 0,
-      chargeDistanceMax: 230,
-      chargeStrength: -150,
-      collisionPadding: 4,
-      initializationSpacing: 14,
-      linkDistance: 22,
+      chargeDistanceMax: 240,
+      chargeStrength: -138,
+      collisionPadding: 3.5,
+      initializationSpacing: 12,
+      linkDistance: 24,
       linkStrength: 2,
       settleSpeed: 0.5,
-      velocityDecay: 0.29,
+      velocityDecay: 0.31,
     });
-    layout.setAlphaTarget(0.006);
+    layout.setAlphaTarget(0.014);
+    let canvasSize = resizeCanvas(canvas, context);
     const pointer: PointerPosition = {
       active: false,
       currentX: 0,
@@ -85,13 +96,17 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
       targetY: 0,
     };
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const heroForces = createHeroForces(layout, pointer, graphData.orbitSpeedMultipliers);
-    let canvasSize = resizeCanvas(canvas, context);
+    const heroForces = createHeroForces(
+      layout,
+      graphData.orbitSpeedMultipliers,
+      (): CanvasSize => canvasSize,
+    );
     let visible = true;
 
     resizeObserver = new ResizeObserver(() => {
       canvasSize = resizeCanvas(canvas, context);
-      drawGraph(context, layout, graphData.nodeGroups, canvasSize);
+      containGraphWithinCanvas(layout, canvasSize);
+      drawGraph(context, layout, graphData, pointer, canvasSize);
     });
     resizeObserver.observe(canvas);
 
@@ -107,11 +122,7 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
         && event.clientX <= bounds.right
         && event.clientY >= bounds.top
         && event.clientY <= bounds.bottom;
-      if (!pointer.active) {
-        pointer.targetX = 0;
-        pointer.targetY = 0;
-        return;
-      }
+      if (!pointer.active) return;
 
       const scale = graphScale(canvasSize);
       pointer.targetX = (event.clientX - bounds.left - canvasSize.width / 2) / scale;
@@ -124,15 +135,16 @@ function startHeroGraph(canvas: HTMLCanvasElement): () => void {
 
     if (prefersReducedMotion) {
       for (let step = 0; step < 220 && !layout.settled; step += 1) layout.tick();
-      drawGraph(context, layout, graphData.nodeGroups, canvasSize);
+      containGraphWithinCanvas(layout, canvasSize);
+      drawGraph(context, layout, graphData, pointer, canvasSize);
       return;
     }
 
     const animate = (): void => {
       if (visible) {
-        updatePointerCenter(pointer);
+        updatePointerPosition(pointer);
         layout.tick(heroForces);
-        drawGraph(context, layout, graphData.nodeGroups, canvasSize);
+        drawGraph(context, layout, graphData, pointer, canvasSize);
       }
       frame = window.requestAnimationFrame(animate);
     };
@@ -159,6 +171,8 @@ function createGraphData(seed: number): HeroGraphData {
   const initialX = new Float32Array(nodeCount);
   const initialY = new Float32Array(nodeCount);
   const nodeGroups = new Uint8Array(nodeCount);
+  const nodeHoverScales = new Float32Array(nodeCount);
+  const nodeOpacities = new Float32Array(nodeCount);
   const orbitSpeedMultipliers = new Float32Array(nodeCount);
   const edgeSources: number[] = [];
   const edgeTargets: number[] = [];
@@ -176,12 +190,14 @@ function createGraphData(seed: number): HeroGraphData {
     const isCommunitySeed = index < COMMUNITY_COUNT;
 
     nodeGroups[index] = group;
-    orbitSpeedMultipliers[index] = 0.92 + random() * 0.16;
+    nodeHoverScales[index] = 1;
+    nodeOpacities[index] = 0.25 + random() * 0.25;
+    orbitSpeedMultipliers[index] = 0.7 + random() * 0.65;
     membersByCommunity[group].push(index);
     radii[index] = isCommunitySeed ? 15 + random() * 3 : 6 + random() * 6;
     chargeStrengthMultipliers[index] = isCommunitySeed ? 1.28 : 0.68 + random() * 0.42;
-    initialX[index] = Math.cos(angle) * distance;
-    initialY[index] = Math.sin(angle) * distance * 0.78;
+    initialX[index] = Math.cos(angle) * distance * 1.3;
+    initialY[index] = Math.sin(angle) * distance * 0.68;
   }
 
   // Dense local relationships form communities naturally. Sparse cross-group
@@ -201,24 +217,57 @@ function createGraphData(seed: number): HeroGraphData {
         }
       }
 
-      if (memberIndex > 4 && random() < 0.52) {
+      if (memberIndex > 4 && random() < 0.68) {
         const thirdTarget = members[Math.floor(random() * memberIndex)];
         if (thirdTarget !== firstTarget) {
           edgeSources.push(source);
           edgeTargets.push(thirdTarget);
         }
       }
+
+      if (memberIndex > 7 && random() < 0.28) {
+        const fourthTarget = members[Math.floor(random() * memberIndex)];
+        if (fourthTarget !== firstTarget) {
+          edgeSources.push(source);
+          edgeTargets.push(fourthTarget);
+        }
+      }
     }
   }
 
-  for (let group = 0; group < COMMUNITY_COUNT; group += 1) {
-    const nextGroup = (group + 1) % COMMUNITY_COUNT;
-    const sourceMembers = membersByCommunity[group];
-    const targetMembers = membersByCommunity[nextGroup];
+  const communityOrder: number[] = Array.from(
+    { length: COMMUNITY_COUNT },
+    (_, index): number => index,
+  );
+  for (let index = communityOrder.length - 1; index > 0; index -= 1) {
+    const targetIndex = Math.floor(random() * (index + 1));
+    [communityOrder[index], communityOrder[targetIndex]] = [
+      communityOrder[targetIndex],
+      communityOrder[index],
+    ];
+  }
+
+  // A randomized spanning tree keeps all communities connected without arranging
+  // them as a cycle. Extra cross-links make the silhouette less predictable.
+  for (let index = 1; index < communityOrder.length; index += 1) {
+    const sourceGroup = communityOrder[index];
+    const targetGroup = communityOrder[Math.floor(random() * index)];
+    const sourceMembers = membersByCommunity[sourceGroup];
+    const targetMembers = membersByCommunity[targetGroup];
     const source = sourceMembers[Math.floor(random() * sourceMembers.length)];
     const target = targetMembers[Math.floor(random() * targetMembers.length)];
     edgeSources.push(source);
     edgeTargets.push(target);
+  }
+
+  for (let index = 0; index < COMMUNITY_COUNT * 2; index += 1) {
+    const sourceGroup = Math.floor(random() * COMMUNITY_COUNT);
+    const targetGroup = (sourceGroup + 1 + Math.floor(random() * (COMMUNITY_COUNT - 1)))
+      % COMMUNITY_COUNT;
+    const sourceMembers = membersByCommunity[sourceGroup];
+    const targetMembers = membersByCommunity[targetGroup];
+    edgeSources.push(sourceMembers[Math.floor(random() * sourceMembers.length)]);
+    edgeTargets.push(targetMembers[Math.floor(random() * targetMembers.length)]);
   }
 
   return {
@@ -232,6 +281,8 @@ function createGraphData(seed: number): HeroGraphData {
       radii,
     },
     nodeGroups,
+    nodeHoverScales,
+    nodeOpacities,
     orbitSpeedMultipliers,
   };
 }
@@ -253,19 +304,22 @@ function createSeededRandom(seed: number): () => number {
   };
 }
 
-function updatePointerCenter(pointer: PointerPosition): void {
-  const smoothing = pointer.active ? 0.18 : 0.08;
+function updatePointerPosition(pointer: PointerPosition): void {
+  const smoothing = pointer.active ? 0.14 : 0.06;
   pointer.currentX += (pointer.targetX - pointer.currentX) * smoothing;
   pointer.currentY += (pointer.targetY - pointer.currentY) * smoothing;
 }
 
 function createHeroForces(
   layout: GraphLayoutEngine,
-  pointer: PointerPosition,
   orbitSpeedMultipliers: Float32Array,
+  getCanvasSize: () => CanvasSize,
 ): GraphLayoutExternalForce {
+  let ambientPhase = 0;
+
   return {
     beforeIntegration: alpha => {
+      ambientPhase += 0.006;
       let centerX = 0;
       let centerY = 0;
 
@@ -277,38 +331,81 @@ function createHeroForces(
       centerX /= layout.nodeIds.length;
       centerY /= layout.nodeIds.length;
 
-      const effectiveAlpha = Math.max(alpha, pointer.active ? 0.16 : 0.1);
-      const followStrength = (pointer.active ? 0.04 : 0.022) * effectiveAlpha;
-      const maxImpulse = pointer.active ? 2.4 : 2.2;
-      const impulseX = Math.max(
-        -maxImpulse,
-        Math.min(maxImpulse, (pointer.currentX - centerX) * followStrength),
-      );
-      const impulseY = Math.max(
-        -maxImpulse,
-        Math.min(maxImpulse, (pointer.currentY - centerY) * followStrength),
-      );
-      const settleProgress = 1 - Math.min(1, Math.max(0, alpha - 0.006) / 0.3);
-      const clusterGravity = 0.00016 * (0.35 + settleProgress * 0.65);
-      const orbitAcceleration = 0.00005 * (0.2 + settleProgress * 0.8);
+      const settleProgress = 1 - Math.min(1, Math.max(0, alpha - 0.014) / 0.3);
+      const anchorAcceleration = 0.0016 * (0.4 + settleProgress * 0.6);
+      const clusterGravity = 0.0002 * (0.35 + settleProgress * 0.65);
+      const orbitAcceleration = 0.000095 * (0.2 + settleProgress * 0.8);
+      const driftAcceleration = 0.012 * (0.25 + settleProgress * 0.75);
 
       for (let index = 0; index < layout.nodeIds.length; index += 1) {
-        layout.vx[index] += impulseX;
-        layout.vy[index] += impulseY;
+        layout.vx[index] -= centerX * anchorAcceleration;
+        layout.vy[index] -= centerY * anchorAcceleration;
 
         const clusterOffsetX = layout.x[index] - centerX;
         const clusterOffsetY = layout.y[index] - centerY;
-        layout.vx[index] -= clusterOffsetX * clusterGravity;
+        layout.vx[index] -= clusterOffsetX * clusterGravity * 0.42;
         layout.vy[index] -= clusterOffsetY * clusterGravity;
 
-        const offsetX = layout.x[index] - pointer.currentX;
-        const offsetY = layout.y[index] - pointer.currentY;
+        const offsetX = layout.x[index] - centerX;
+        const offsetY = layout.y[index] - centerY;
         const orbitSpeed = orbitAcceleration * orbitSpeedMultipliers[index];
         layout.vx[index] -= offsetY * orbitSpeed;
         layout.vy[index] += offsetX * orbitSpeed;
+
+        const driftPhase = ambientPhase * (0.75 + Math.abs(orbitSpeedMultipliers[index]) * 0.3)
+          + index * 2.399;
+        layout.vx[index] += Math.cos(driftPhase) * driftAcceleration;
+        layout.vy[index] += Math.sin(driftPhase * 0.86) * driftAcceleration;
       }
     },
+    afterIntegration: () => ({
+      positionChanged: containGraphWithinCanvas(layout, getCanvasSize()),
+    }),
   };
+}
+
+function containGraphWithinCanvas(
+  layout: GraphLayoutEngine,
+  size: CanvasSize,
+): boolean {
+  const scale = graphScale(size);
+  const halfWidth = size.width / (scale * 2);
+  const halfHeight = size.height / (scale * 2);
+  let positionChanged = false;
+
+  for (let index = 0; index < layout.nodeIds.length; index += 1) {
+    const renderedRadius = (
+      Math.max(4.5, layout.radii[index] * 0.78) * 1.22 + 2
+    ) / scale;
+    const boundedHalfWidth = Math.max(renderedRadius, halfWidth);
+    const boundedHalfHeight = Math.max(renderedRadius, halfHeight);
+    const minX = -boundedHalfWidth + renderedRadius;
+    const maxX = boundedHalfWidth - renderedRadius;
+    const minY = -boundedHalfHeight + renderedRadius;
+    const maxY = boundedHalfHeight - renderedRadius;
+
+    if (layout.x[index] < minX) {
+      layout.x[index] = minX;
+      layout.vx[index] = Math.abs(layout.vx[index]) * 0.58;
+      positionChanged = true;
+    } else if (layout.x[index] > maxX) {
+      layout.x[index] = maxX;
+      layout.vx[index] = -Math.abs(layout.vx[index]) * 0.58;
+      positionChanged = true;
+    }
+
+    if (layout.y[index] < minY) {
+      layout.y[index] = minY;
+      layout.vy[index] = Math.abs(layout.vy[index]) * 0.58;
+      positionChanged = true;
+    } else if (layout.y[index] > maxY) {
+      layout.y[index] = maxY;
+      layout.vy[index] = -Math.abs(layout.vy[index]) * 0.58;
+      positionChanged = true;
+    }
+  }
+
+  return positionChanged;
 }
 
 function resizeCanvas(
@@ -326,13 +423,14 @@ function resizeCanvas(
 }
 
 function graphScale(size: CanvasSize): number {
-  return Math.max(0.72, Math.min(size.width / 820, size.height / 660));
+  return Math.max(0.78, Math.min(size.width / 720, size.height / 540));
 }
 
 function drawGraph(
   context: CanvasRenderingContext2D,
   layout: GraphLayoutEngine,
-  nodeGroups: Uint8Array,
+  graphData: HeroGraphData,
+  pointer: PointerPosition,
   size: CanvasSize,
 ): void {
   const scale = graphScale(size);
@@ -349,34 +447,49 @@ function drawGraph(
     context.beginPath();
     context.moveTo(layout.x[source], layout.y[source]);
     context.lineTo(layout.x[target], layout.y[target]);
-    context.strokeStyle = nodeGroups[source] === nodeGroups[target]
-      ? 'rgba(190, 222, 255, 0.32)'
-      : 'rgba(147, 195, 236, 0.22)';
+    context.strokeStyle = graphData.nodeGroups[source] === graphData.nodeGroups[target]
+      ? 'rgba(224, 240, 255, 0.34)'
+      : 'rgba(194, 223, 248, 0.24)';
     context.stroke();
   }
 
   for (let index = 0; index < layout.nodeIds.length; index += 1) {
-    const radius = Math.max(4.5, layout.radii[index] * 0.78);
+    const baseRadius = Math.max(4.5, layout.radii[index] * 0.78) / scale;
+    const pointerDistance = Math.hypot(
+      layout.x[index] - pointer.currentX,
+      layout.y[index] - pointer.currentY,
+    );
+    const hoverRadius = baseRadius + 30 / scale;
+    const hoverInfluence = pointer.active
+      ? Math.max(0, 1 - pointerDistance / hoverRadius)
+      : 0;
+    const targetScale = 1 + hoverInfluence * 0.22;
+    graphData.nodeHoverScales[index] += (
+      targetScale - graphData.nodeHoverScales[index]
+    ) * 0.18;
+    const radius = baseRadius * graphData.nodeHoverScales[index];
+
+    context.save();
+    context.globalCompositeOperation = 'destination-out';
+    context.fillStyle = 'rgb(0 0 0)';
+    context.beginPath();
+    context.arc(layout.x[index], layout.y[index], radius + 1.25 / scale, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+
     context.beginPath();
     context.arc(layout.x[index], layout.y[index], radius, 0, Math.PI * 2);
-    context.fillStyle = nodeFill(nodeGroups[index], radius);
+    context.fillStyle = nodeFill(
+      graphData.nodeGroups[index],
+      graphData.nodeOpacities[index],
+    );
     context.fill();
-    context.lineWidth = 0.9 / scale;
-    context.strokeStyle = 'rgba(224, 244, 255, 0.7)';
-    context.stroke();
   }
 
   context.restore();
 }
 
-function nodeFill(group: number, radius: number): string {
-  if (radius > 10) return 'rgba(184, 224, 255, 0.84)';
-  const colors = [
-    'rgba(213, 237, 255, 0.76)',
-    'rgba(123, 184, 235, 0.82)',
-    'rgba(164, 211, 247, 0.8)',
-    'rgba(103, 170, 224, 0.82)',
-    'rgba(150, 207, 235, 0.8)',
-  ] as const;
-  return colors[group % colors.length];
+function nodeFill(group: number, opacity: number): string {
+  const [red, green, blue] = NODE_COLORS[group % NODE_COLORS.length];
+  return `rgba(${red}, ${green}, ${blue}, ${opacity.toFixed(2)})`;
 }

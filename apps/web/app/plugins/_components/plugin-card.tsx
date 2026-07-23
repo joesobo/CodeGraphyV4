@@ -21,7 +21,7 @@ export function PluginCard({
     <Card
       as="article"
       className={cn(
-        'catalog-card relative overflow-hidden rounded-[1.6rem] bg-card',
+        'catalog-card relative min-w-0 overflow-hidden rounded-[1.6rem] bg-card',
         featured && 'xl:col-span-2',
       )}
       id={plugin.id}
@@ -39,8 +39,8 @@ export function PluginCard({
             </span>
             <div className="min-w-0">
               <h3 className="text-2xl font-medium">{plugin.name}</h3>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                <Link className="text-primary" href={plugin.npmHref} variant="text">
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <Link className="min-h-0 break-all text-primary" href={plugin.npmHref} variant="text">
                   {plugin.packageName}
                 </Link>
                 {version ? (
@@ -67,13 +67,15 @@ export function PluginCard({
           <CodeBlock className="mt-5 text-xs">{installCommand}</CodeBlock>
         </div>
         {plugin.media ? (
-          <MediaImage
-            className="mt-5 h-64 rounded-2xl border border-border bg-secondary xl:mt-0 xl:h-full xl:min-h-72"
-            fill
-            imageClassName="object-contain object-center"
-            media={plugin.media}
-            sizes="(min-width: 1280px) 40vw, 100vw"
-          />
+          <div className="mt-5 aspect-[640/399] w-full self-center rounded-2xl border border-border bg-secondary p-3 xl:mt-0">
+            <MediaImage
+              className="h-full w-full rounded-xl bg-[#242b33]"
+              fill
+              imageClassName="object-contain object-center"
+              media={plugin.media}
+              sizes="(min-width: 1280px) 40vw, 100vw"
+            />
+          </div>
         ) : null}
       </CardContent>
     </Card>

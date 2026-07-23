@@ -17,7 +17,7 @@ export function ExampleList(): React.ReactElement {
         <div className="grid min-w-0 gap-14">
           <ExampleGroup
             title="Language examples"
-            description="The Core Package reads these out of the box — each card opens a runnable CodeGraphy Workspace showing the imports, symbols, and inheritance CodeGraphy indexes for that language."
+            description="The Core Package reads these languages out of the box. Each card opens a runnable CodeGraphy Workspace with real imports, symbols, and inheritance."
             examples={exampleContent.filter((example) => example.category === 'language')}
             id="language-examples"
           />
@@ -51,7 +51,7 @@ function ExampleGroup({
         <h3 className="text-3xl font-medium">{title}</h3>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
-      <div className="grid items-start gap-5 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid auto-rows-fr items-stretch gap-5 lg:grid-cols-2 xl:grid-cols-3">
         {examples.map((example) => (
           <ExampleCard example={example} key={example.id} />
         ))}

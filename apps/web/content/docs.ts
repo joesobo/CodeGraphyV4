@@ -14,7 +14,7 @@ interface DocsGroup {
 export const docsGroups: readonly DocsGroup[] = [
   {
     title: 'Product guides',
-    summary: 'Day-to-day usage of the extension — commands, Graph View interactions, and settings.',
+    summary: 'Daily extension use, including commands, Graph View interactions, and settings.',
     links: [
       {
         id: 'overview',
@@ -38,7 +38,7 @@ export const docsGroups: readonly DocsGroup[] = [
         id: 'settings',
         title: 'Settings',
         href: `${githubBlobHref}/docs/SETTINGS.md`,
-        summary: 'The .codegraphy/settings.json reference — Graph Scope, Filters, display settings, diagnostics, and theming.',
+        summary: 'The .codegraphy/settings.json reference for Graph Scope, Filters, display settings, diagnostics, and theming.',
       },
       {
         id: 'core-cli',

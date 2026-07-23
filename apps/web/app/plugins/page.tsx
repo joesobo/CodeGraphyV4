@@ -7,7 +7,7 @@ import { PluginInstall } from './_components/plugin-install';
 import { PluginList } from './_components/plugin-list';
 import { PluginsHeader } from './_components/plugins-header';
 
-const description = 'Official CodeGraphy Plugins — npm packages that teach the Core Package new languages, frameworks, and Relationship Graph effects.';
+const description = 'Official npm Plugins that teach CodeGraphy new languages, frameworks, and Relationship Graph effects.';
 
 export const metadata: Metadata = {
   title: 'Plugins',
@@ -24,7 +24,7 @@ export default function PluginsPage(): React.ReactElement {
       <div className="mx-auto w-full max-w-[90rem] px-5 py-16 sm:px-8 sm:py-20 lg:px-12" id="page-content">
         <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-10">
           <PageSidebar nav={pluginNavGroups} />
-          <div className="grid min-w-0 gap-16 sm:gap-20">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-16 sm:gap-20">
             <PluginFeatures />
             <PluginList />
             <PluginInstall />

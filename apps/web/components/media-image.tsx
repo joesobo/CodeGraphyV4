@@ -100,7 +100,7 @@ function SingleMediaImage({
             unoptimized={restingSrc.endsWith('.gif')}
             {...animatedImageProps}
           />
-          {posterSrc ? (
+          {posterSrc && (playing || animationLoaded) ? (
             <Image
               alt=""
               aria-hidden="true"

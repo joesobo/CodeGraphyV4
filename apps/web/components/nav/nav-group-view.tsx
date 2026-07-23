@@ -20,14 +20,16 @@ export function NavGroupView({
 }): React.ReactElement {
   return (
     <>
-      {groups.map((group, index) =>
-        group.collapsible ? (
+      {groups.map((group) => {
+        const groupKey = group.title ?? group.items.map((item) => item.href).join('|');
+
+        return group.collapsible ? (
           <NavDropdown
             activeHref={activeHref}
             group={group}
             initialOpen={initialOpen}
             itemLink={itemLink}
-            key={group.title ?? index}
+            key={groupKey}
             onNavigate={onNavigate}
           />
         ) : (
@@ -35,11 +37,11 @@ export function NavGroupView({
             activeHref={activeHref}
             group={group}
             itemLink={itemLink}
-            key={group.title ?? index}
+            key={groupKey}
             onNavigate={onNavigate}
           />
-        ),
-      )}
+        );
+      })}
     </>
   );
 }

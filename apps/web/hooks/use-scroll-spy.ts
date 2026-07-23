@@ -87,7 +87,13 @@ function getSectionElement(href: string): HTMLElement | null {
     return null;
   }
 
-  return document.getElementById(decodeURIComponent(href.slice(hashIndex + 1)));
+  const encodedId = href.slice(hashIndex + 1);
+
+  try {
+    return document.getElementById(decodeURIComponent(encodedId));
+  } catch {
+    return null;
+  }
 }
 
 /** The last section whose top has scrolled past the header — the one being read. */

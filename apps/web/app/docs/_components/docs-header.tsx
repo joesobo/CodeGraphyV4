@@ -25,7 +25,6 @@ export function DocsHeader(): React.ReactElement {
           ))}
         </>
       }
-      aside="The site points to the same documentation the project maintains alongside its code."
       darkImageSrc="/media/ocean-docs-hero.jpg"
       description="Source-backed guides for the extension, Core CLI, interactions, settings, built-in Plugins, and the Plugin API. Every topic leads to maintained Markdown in the repository."
       imageAlt=""

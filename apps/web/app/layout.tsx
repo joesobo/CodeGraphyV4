@@ -17,7 +17,7 @@ const newsreader = Newsreader({
 });
 const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-fira-code' });
 
-const title = 'CodeGraphy — Understand the code beneath the surface';
+const title = 'CodeGraphy | Understand the code beneath the surface';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),

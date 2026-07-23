@@ -23,11 +23,9 @@ const chapters: readonly DiveChapter[] = [
     detail: 'One graph cache · local source · no upload',
     mediaAspect: 'square',
     media: {
-      alt: 'Force-directed CodeGraphy Relationship Graph settling into workspace clusters',
-      src: '/media/features/force-graph-light.gif',
-      posterSrc: '/media/features/posters/force-graph-light.png',
-      darkSrc: '/media/features/force-graph-dark.gif',
-      darkPosterSrc: '/media/features/posters/force-graph-dark.png',
+      alt: 'CodeGraphy workspace Relationship Graph with connected file, package, and symbol clusters',
+      src: '/media/header-workspace-graph-light.png',
+      darkSrc: '/media/header-workspace-graph-dark.png',
     },
   },
   {
@@ -38,11 +36,11 @@ const chapters: readonly DiveChapter[] = [
     detail: 'WebGPU renderer · WebAssembly physics',
     mediaAspect: 'square',
     media: {
-      alt: 'Animation of CodeGraphy changing graph depth and navigating between related nodes',
-      src: '/media/features/view-modes-light.gif',
-      posterSrc: '/media/features/posters/view-modes-light.png',
-      darkSrc: '/media/features/view-modes-dark.gif',
-      darkPosterSrc: '/media/features/posters/view-modes-dark.png',
+      alt: 'Force-directed CodeGraphy Relationship Graph settling into workspace clusters',
+      src: '/media/features/force-graph-light.gif',
+      posterSrc: '/media/features/posters/force-graph-light.png',
+      darkSrc: '/media/features/force-graph-dark.gif',
+      darkPosterSrc: '/media/features/posters/force-graph-dark.png',
     },
   },
   {

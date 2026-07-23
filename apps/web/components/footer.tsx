@@ -46,8 +46,8 @@ export function Footer(): React.ReactElement {
         src="/media/ocean-footer-depth-v4.jpg"
       />
       <div className="absolute inset-0 bg-[#061321]/64" />
-      <div className="relative z-10 mx-auto max-w-[90rem] py-10 sm:py-12">
-        <div className="flex flex-col gap-9 lg:flex-row lg:items-end lg:justify-between">
+      <div className="relative z-10 mx-auto max-w-[90rem] py-8 sm:py-9">
+        <div className="grid gap-7 lg:grid-cols-[minmax(18rem,1fr)_auto] lg:items-start lg:gap-16">
           <div className="max-w-md">
             <Link
               aria-label="CodeGraphy home"
@@ -57,15 +57,15 @@ export function Footer(): React.ReactElement {
               <span aria-hidden="true" className="codegraphy-symbol text-[1.7rem] text-[#88b1ff]" />
               CodeGraphy
             </Link>
-            <p className="mt-3 text-2xl font-medium leading-tight text-white">
+            <p className="mt-2 text-xl font-medium leading-tight text-white">
               Find the shape of your code.
             </p>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-white/76">
-              A local-first Relationship Graph for your CodeGraphy Workspace—built for curious developers and capable agents.
+            <p className="mt-1.5 max-w-sm text-sm leading-6 text-white/76">
+              A local Relationship Graph for developers and coding agents.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 sm:gap-12 lg:min-w-[24rem]">
+          <div className="grid grid-cols-2 gap-8 sm:gap-14 lg:min-w-[22rem]">
             {footerColumns.map((column) => (
               <div key={column.title}>
                 <p className="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#88b1ff]">{column.title}</p>
@@ -87,7 +87,7 @@ export function Footer(): React.ReactElement {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-2 border-t border-white/14 pt-5 text-xs text-white/68 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-2 border-t border-white/14 pt-4 text-xs text-white/68 sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Joe Soboleski</p>
           <p className="font-mono uppercase tracking-widest">MIT licensed</p>
         </div>

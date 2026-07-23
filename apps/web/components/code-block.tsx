@@ -11,7 +11,7 @@ export function CodeBlock({ children, className }: CodeBlockProps): React.ReactE
   return (
     <div
       className={cn(
-        'flex min-w-0 items-start justify-between gap-3 rounded-md border border-border bg-muted p-3 font-mono text-sm leading-6',
+        'flex min-w-0 items-center justify-between gap-3 rounded-md border border-border bg-muted p-3 font-mono text-sm leading-6',
         className,
       )}
     >

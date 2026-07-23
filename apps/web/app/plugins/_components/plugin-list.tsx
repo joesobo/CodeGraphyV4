@@ -17,12 +17,12 @@ export async function PluginList(): Promise<React.ReactElement> {
   );
 
   return (
-    <section className="grid gap-8" id="plugin-list">
+    <section className="grid min-w-0 gap-8" id="plugin-list">
       <SectionHeader
         title="Official Plugins, maintained with the product."
         description="Install a package globally, register it once, enable its Plugin ID for a CodeGraphy Workspace, then run Indexing to add its graph understanding."
       />
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid min-w-0 gap-5 xl:grid-cols-2">
         {pluginContent.map((plugin) => (
           <PluginCard
             featured={Boolean(plugin.media)}
