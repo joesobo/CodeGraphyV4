@@ -3,6 +3,9 @@ import { Link } from '@/components/link';
 import { SectionHeader } from '@/components/section-header';
 import { githubBlobHref } from '@/content/links';
 
+const commandClassName =
+  'bg-secondary text-sm leading-6 text-foreground [&_pre]:whitespace-nowrap';
+
 export function Agents(): React.ReactElement {
   return (
     <section className="agents-scene relative flex items-center overflow-hidden px-5 py-12 sm:px-8 sm:py-16 lg:px-12" id="agents">
@@ -31,8 +34,14 @@ export function Agents(): React.ReactElement {
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Install Core and index the current workspace into the same Graph Cache used by VS Code.
                 </p>
-                <CodeBlock className="mt-3 bg-secondary text-sm leading-6 text-foreground [&_pre]:break-words [&_pre]:whitespace-pre-wrap">{`npm i -g @codegraphy-dev/core
-codegraphy index`}</CodeBlock>
+                <div className="mt-3 grid gap-2">
+                  <CodeBlock className={commandClassName}>
+                    npm i -g @codegraphy-dev/core
+                  </CodeBlock>
+                  <CodeBlock className={commandClassName}>
+                    codegraphy index
+                  </CodeBlock>
+                </div>
               </div>
             </li>
             <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
@@ -42,8 +51,9 @@ codegraphy index`}</CodeBlock>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Query dependencies, dependents, paths, or scoped symbols before opening source.
                 </p>
-                <CodeBlock className="mt-3 bg-secondary text-sm leading-6 text-foreground [&_pre]:break-words [&_pre]:whitespace-pre-wrap">{`codegraphy dependencies
-packages/core/src/cli/command.ts`}</CodeBlock>
+                <CodeBlock className={`mt-3 ${commandClassName}`}>
+                  codegraphy dependencies packages/core/src/cli/command.ts
+                </CodeBlock>
               </div>
             </li>
           </ol>
