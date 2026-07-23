@@ -40,9 +40,6 @@ export function createPluginSource(
     _registerBuiltInPluginRoots: vi.fn(),
     _resolveWebviewAssetPath: vi.fn(() => 'asset://icon.svg'),
     _refreshWebviewResourceRoots: vi.fn(),
-    _normalizeExternalExtensionUri: vi.fn(uri =>
-      typeof uri === 'string' ? vscode.Uri.file(uri) : uri,
-    ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),

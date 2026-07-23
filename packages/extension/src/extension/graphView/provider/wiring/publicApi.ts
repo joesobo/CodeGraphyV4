@@ -3,7 +3,6 @@ import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
 import type { EventName, EventPayloads } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration/register';
 import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/dispatch';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';
@@ -66,10 +65,6 @@ export interface GraphViewProviderPublicMethods {
   ) => void;
   updateGraphData: (data: IGraphData) => void;
   getGraphData: () => IGraphData;
-  registerExternalPlugin: (
-    plugin: unknown,
-    options?: GraphViewExternalPluginRegistrationOptions,
-  ) => Promise<void>;
   queryGraph: (request: GraphQueryRequest) => GraphQueryResult;
   setDepthMode: (depthMode: boolean) => Promise<void>;
   setFocusedFile: (filePath: string | undefined) => void;
@@ -122,8 +117,6 @@ export function assignGraphViewProviderPublicMethods(
     target._methodContainers.webview.resolveWebviewView(webviewView, context, token);
   target.updateGraphData = data => target._methodContainers.viewContext.updateGraphData(data);
   target.getGraphData = () => target._methodContainers.viewContext.getGraphData();
-  target.registerExternalPlugin = (plugin, options) =>
-    target._methodContainers.plugin.registerExternalPlugin(plugin, options);
   target.queryGraph = request => target._methodContainers.query.queryGraph(request);
   target.setDepthMode = depthMode => target._methodContainers.viewSelection.setDepthMode(depthMode);
   target.setFocusedFile = filePath => target._methodContainers.viewSelection.setFocusedFile(filePath);

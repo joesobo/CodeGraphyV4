@@ -5,9 +5,6 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
 import {
-  type GraphViewExternalPluginRegistrationOptions,
-} from '../../webview/plugins/registration/register';
-import {
   sendGraphViewContributionStatuses,
   sendGraphViewContextMenuItems,
   sendGraphViewPluginWebviewInjections,
@@ -21,18 +18,11 @@ import {
   DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
   createGraphViewProviderPluginBroadcastMethods,
 } from './broadcasts';
-import {
-  DEFAULT_GRAPH_VIEW_PROVIDER_EXTERNAL_PLUGIN_REGISTRATION_DEPENDENCIES,
-  createGraphViewProviderExternalPluginRegistration,
-} from './externalRegistration';
 
 const DEFAULT_DEPTH_LIMIT = 1;
 
 type GraphViewPluginAnalyzerLike =
-  NonNullable<
-    Parameters<typeof import('../../webview/plugins/registration/register').registerGraphViewExternalPlugin>[2]['analyzer']
-  >
-  & NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
+  NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
   & NonNullable<Parameters<typeof sendGraphViewPluginWebviewInjections>[0]>
   & NonNullable<Parameters<typeof sendGraphViewContributionStatuses>[0]>
   & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
@@ -53,21 +43,11 @@ export interface GraphViewProviderPluginMethodsSource {
   _graphData: IGraphData;
   _rawGraphData: IGraphData;
   _decorationManager: GraphViewDecorationManagerLike;
-  _firstAnalysis: boolean;
-  _webviewReadyNotified: boolean;
-  _analyzerInitialized: boolean;
-  _analyzerInitPromise?: Promise<void>;
   _registerBuiltInPluginRoots(): void;
   _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string;
   _refreshWebviewResourceRoots(): void;
-  _normalizeExternalExtensionUri(
-    uri: vscode.Uri | string | undefined,
-  ): vscode.Uri | undefined;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _analyzeAndSendData(): Promise<void>;
-  invalidatePluginFiles(pluginIds: readonly string[]): string[];
-  refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;
-  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
 }
 
 export interface GraphViewProviderPluginMethods {
@@ -82,18 +62,12 @@ export interface GraphViewProviderPluginMethods {
     GraphViewProviderPluginBroadcastMethods['_sendGraphViewContributionStatuses'];
   _sendPluginWebviewInjections: GraphViewProviderPluginBroadcastMethods['_sendPluginWebviewInjections'];
   _sendGroupsUpdated: GraphViewProviderPluginBroadcastMethods['_sendGroupsUpdated'];
-  registerExternalPlugin(
-    plugin: unknown,
-    options?: GraphViewExternalPluginRegistrationOptions,
-  ): Promise<void>;
 }
 export type GraphViewProviderPluginMethodDependencies =
-  import('./broadcasts').GraphViewProviderPluginBroadcastDependencies
-  & import('./externalRegistration').GraphViewProviderExternalPluginRegistrationDependencies;
+  import('./broadcasts').GraphViewProviderPluginBroadcastDependencies;
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderPluginMethodDependencies = {
   ...DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
-  ...DEFAULT_GRAPH_VIEW_PROVIDER_EXTERNAL_PLUGIN_REGISTRATION_DEPENDENCIES,
 };
 
 export function createGraphViewProviderPluginMethods(
@@ -105,14 +79,5 @@ export function createGraphViewProviderPluginMethods(
     dependencies,
     DEFAULT_DEPTH_LIMIT,
   );
-  const registerExternalPlugin = createGraphViewProviderExternalPluginRegistration(
-    source,
-    dependencies,
-    broadcasts,
-  );
-
-  return {
-    ...broadcasts,
-    registerExternalPlugin,
-  };
+  return broadcasts;
 }

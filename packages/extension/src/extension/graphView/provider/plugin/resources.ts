@@ -14,7 +14,6 @@ import {
   refreshGraphViewResourceRoots,
   resolveGraphViewPluginAssetPath,
 } from '../../webview/plugins/resources';
-import { normalizeGraphViewExtensionUri } from '../../resources';
 
 export interface GraphViewProviderPluginResourceMethodsSource {
   _extensionUri: vscode.Uri;
@@ -36,9 +35,6 @@ export interface GraphViewProviderPluginResourceMethods {
   _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string;
   _getLocalResourceRoots(): vscode.Uri[];
   _refreshWebviewResourceRoots(): void;
-  _normalizeExternalExtensionUri(
-    uri: vscode.Uri | string | undefined,
-  ): vscode.Uri | undefined;
 }
 
 export interface GraphViewProviderPluginResourceMethodDependencies {
@@ -50,7 +46,6 @@ export interface GraphViewProviderPluginResourceMethodDependencies {
   resolvePluginAssetPath: typeof resolveGraphViewPluginAssetPath;
   getWebviewResourceRoots: typeof getGraphViewWebviewResourceRoots;
   refreshWebviewResourceRoots: typeof refreshGraphViewResourceRoots;
-  normalizeExtensionUri: typeof normalizeGraphViewExtensionUri;
   getDefaultLegendVisibility(): Record<string, boolean>;
   getLegendOrder(): string[];
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
@@ -66,7 +61,6 @@ function createDefaultGraphViewProviderPluginResourceMethodDependencies(): Graph
     resolvePluginAssetPath: resolveGraphViewPluginAssetPath,
     getWebviewResourceRoots: getGraphViewWebviewResourceRoots,
     refreshWebviewResourceRoots: refreshGraphViewResourceRoots,
-    normalizeExtensionUri: normalizeGraphViewExtensionUri,
     getDefaultLegendVisibility: () =>
       getCodeGraphyConfiguration().get<Record<string, boolean>>('legendVisibility', {}) ?? {},
     getLegendOrder: () =>
@@ -132,10 +126,6 @@ export function createGraphViewProviderPluginResourceMethods(
     );
   };
 
-  const _normalizeExternalExtensionUri = (
-    uri: vscode.Uri | string | undefined,
-  ): vscode.Uri | undefined => resolvedDependencies.normalizeExtensionUri(uri);
-
   return {
     _registerBuiltInPluginRoots,
     _getPluginDefaultGroups,
@@ -144,6 +134,5 @@ export function createGraphViewProviderPluginResourceMethods(
     _resolveWebviewAssetPath,
     _getLocalResourceRoots,
     _refreshWebviewResourceRoots,
-    _normalizeExternalExtensionUri,
   };
 }

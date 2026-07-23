@@ -28,8 +28,6 @@ export interface CodeGraphyAPI {
   dispatchWebviewMessage(message: WebviewToExtensionMessage): Promise<void>;
   /** Listen for messages the extension sends to the webview. */
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
-  /** Register an external v2 plugin. */
-  registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): Promise<void>;
   /** Query the current Relationship Graph through @codegraphy-dev/core. */
   queryGraph(request: GraphQueryRequest): GraphQueryResult;
 }
@@ -78,8 +76,6 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     onWebviewMessage: (handler) => provider.onWebviewMessage(handler),
     dispatchWebviewMessage: (message) => provider.dispatchWebviewMessage(message),
     onExtensionMessage: (handler) => provider.onExtensionMessage(handler),
-    registerPlugin: (plugin: unknown, options?: { extensionUri?: vscode.Uri | string }) =>
-      provider.registerExternalPlugin(plugin, options),
     queryGraph: (request) => provider.queryGraph(request),
   };
 }

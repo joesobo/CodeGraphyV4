@@ -39,9 +39,7 @@ function createTarget() {
     requestExportMarkdown: vi.fn(),
     emitEvent: vi.fn(),
   };
-  const pluginMethods = {
-    registerExternalPlugin: vi.fn(),
-  };
+  const pluginMethods = {};
   const queryMethods = {
     queryGraph: vi.fn(() => ({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
@@ -86,7 +84,6 @@ function createTarget() {
     resolveWebviewView: vi.fn(),
     updateGraphData: vi.fn(),
     getGraphData,
-    registerExternalPlugin: vi.fn(),
     queryGraph: vi.fn(),
     setDepthMode: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
@@ -161,7 +158,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     );
   });
 
-  it('assigns graph, plugin, and selection delegates', async () => {
+  it('assigns graph, query, and selection delegates', async () => {
     const {
       target,
       graphData: previousGraphData,
@@ -180,7 +177,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(target.getGraphData()).toBe(previousGraphData);
     await target.refreshGitignoreMetadata();
     await target.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
-    target.registerExternalPlugin({ id: 'plugin.test' });
     expect(target.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
       page: { offset: 0, limit: 500, returned: 1, total: 1 },
@@ -194,10 +190,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(getGraphData).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshGitignoreMetadata).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshIndex).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
-      { id: 'plugin.test' },
-      undefined,
-    );
     expect(queryMethods.queryGraph).toHaveBeenCalledWith(query);
     expect(target._methodContainers.viewSelection.setDepthMode).toHaveBeenCalledWith(true);
     expect(target._methodContainers.viewSelection.setFocusedFile).toHaveBeenCalledWith(

@@ -12,7 +12,6 @@ function createOwner() {
     _sendGraphViewContributionStatuses: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
-    registerExternalPlugin: vi.fn(async (plugin, options) => ({ plugin, options })),
   };
 
   return {
@@ -23,11 +22,9 @@ function createOwner() {
 }
 
 describe('graphView/provider/source/delegates/plugin', () => {
-  it('creates delegates for every plugin method container entry', async () => {
+  it('creates delegates for every plugin method container entry', () => {
     const owner = createOwner();
     const delegates = createGraphViewProviderPluginMethodDelegates(owner as never);
-    const plugin = { id: 'external.plugin' };
-    const options = { extensionUri: '/extension' };
 
     delegates._sendGraphControls();
     delegates._sendPluginStatuses();
@@ -38,7 +35,6 @@ describe('graphView/provider/source/delegates/plugin', () => {
     delegates._sendGraphViewContributionStatuses();
     delegates._sendPluginWebviewInjections();
     delegates._sendGroupsUpdated();
-    const registration = await delegates.registerExternalPlugin(plugin as never, options as never);
 
     expect(owner._methodContainers.plugin._sendGraphControls).toHaveBeenCalledOnce();
     expect(owner._methodContainers.plugin._sendPluginStatuses).toHaveBeenCalledOnce();
@@ -49,10 +45,5 @@ describe('graphView/provider/source/delegates/plugin', () => {
     expect(owner._methodContainers.plugin._sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(owner._methodContainers.plugin._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(owner._methodContainers.plugin._sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect(owner._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
-      plugin,
-      options,
-    );
-    expect(registration).toEqual({ plugin, options });
   });
 });

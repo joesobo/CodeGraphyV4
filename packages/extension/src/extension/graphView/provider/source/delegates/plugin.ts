@@ -13,7 +13,6 @@ export function createGraphViewProviderPluginMethodDelegates(
   | '_sendGraphViewContributionStatuses'
   | '_sendPluginWebviewInjections'
   | '_sendGroupsUpdated'
-  | 'registerExternalPlugin'
 > {
   return {
     _sendGraphControls: () => owner._methodContainers.plugin._sendGraphControls(),
@@ -26,7 +25,5 @@ export function createGraphViewProviderPluginMethodDelegates(
       owner._methodContainers.plugin._sendGraphViewContributionStatuses(),
     _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
     _sendGroupsUpdated: () => owner._methodContainers.plugin._sendGroupsUpdated(),
-    registerExternalPlugin: (plugin, options) =>
-      owner._methodContainers.plugin.registerExternalPlugin(plugin, options),
   };
 }

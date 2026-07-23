@@ -37,20 +37,11 @@ function createSource(
       getMergedNodeDecorations: vi.fn(() => new Map()),
       getMergedEdgeDecorations: vi.fn(() => new Map()),
     },
-    _firstAnalysis: true,
-    _webviewReadyNotified: false,
-    _analyzerInitialized: true,
-    _analyzerInitPromise: undefined,
     _registerBuiltInPluginRoots: vi.fn(),
     _resolveWebviewAssetPath: vi.fn(() => 'asset://icon.svg'),
     _refreshWebviewResourceRoots: vi.fn(),
-    _normalizeExternalExtensionUri: vi.fn(uri =>
-      typeof uri === 'string' ? vscode.Uri.file(uri) : uri,
-    ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
-    invalidatePluginFiles: vi.fn(() => []),
-    refreshChangedFiles: vi.fn(async () => undefined),
     ...overrides,
   };
 
@@ -73,7 +64,6 @@ describe('graphView/provider/plugin/methods', () => {
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
         sendGroupsUpdated: vi.fn(),
-        registerExternalPlugin: vi.fn(),
         getWorkspaceFolders: vi.fn(() => []),
       },
     );
@@ -99,7 +89,6 @@ describe('graphView/provider/plugin/methods', () => {
         ),
         sendPluginWebviewInjections: vi.fn(),
         sendGroupsUpdated: vi.fn(),
-        registerExternalPlugin: vi.fn(),
         getWorkspaceFolders: vi.fn(() => []),
       },
     );
@@ -146,7 +135,6 @@ describe('graphView/provider/plugin/methods', () => {
       sendGroupsUpdated: vi.fn((_groups, _options, callback) =>
         callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } }),
       ),
-      registerExternalPlugin: vi.fn(),
       getWorkspaceFolders: vi.fn(() => []),
     });
 
@@ -196,7 +184,6 @@ describe('graphView/provider/plugin/methods', () => {
         expect(options.resolvePluginAssetPath('icon.svg', 'plugin.test')).toBe('asset://icon.svg');
         callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } });
       }),
-      registerExternalPlugin: vi.fn(),
       getWorkspaceFolders: vi.fn(() => []),
     });
 
@@ -218,7 +205,6 @@ describe('graphView/provider/plugin/methods', () => {
       sendGroupsUpdated: vi.fn((_groups, options) => {
         expect(options.workspaceFolder).toBe(workspaceFolder);
       }),
-      registerExternalPlugin: vi.fn(),
       getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
     });
 
@@ -235,7 +221,6 @@ describe('graphView/provider/plugin/methods', () => {
       sendGroupsUpdated: vi.fn((_groups, options) => {
         expect(options.workspaceFolder).toBeUndefined();
       }),
-      registerExternalPlugin: vi.fn(),
       getWorkspaceFolders: vi.fn(() => undefined),
     });
 
