@@ -3,7 +3,12 @@
 Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Package: [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
-- Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
+- Core API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
+- Extension API: [`@codegraphy-dev/extension-plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/extension-plugin-api)
+
+This package has two plugin entries. The Core entry analyzes Godot projects and
+declares Godot graph semantics. The Extension entry owns Godot Graph View
+colors, shapes, and icons. The CLI loads only the Core entry.
 
 ## Install
 
@@ -52,7 +57,8 @@ codegraphy index
 - Godot Scene, Resource, Autoload, Scene Node, Signal, and Exported Property rows are plugin-owned Symbol Node filters that still use the shared `contains` edge when ownership is visible.
 - Signal `connect(...)` relationships are emitted as `codegraphy.gdscript:signal-connection` edges and appear under the Signal Connections Graph Scope row.
 - Incremental indexing reanalyzes signal declaration files after a receiver adds, removes, or retargets a `connect(...)` call.
-- The Legend includes `Plugins` / `Godot` / `class_name` so these symbols can be styled separately from generic class symbols.
+- The Godot Extension entry adds plugin-owned Legend rules so `class_name` and
+  other Godot symbols can be styled separately from generic symbols.
 
 ## Example workspace
 

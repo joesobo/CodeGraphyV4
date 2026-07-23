@@ -162,7 +162,7 @@ is installed and active.
 
 Interface-specific static metadata also belongs to the interface descriptor.
 For example, a Unity package can contain one runtime for analysis and a second
-runtime for Graph View colors:
+runtime for Graph View presentation:
 
 ```json
 [
@@ -178,12 +178,15 @@ runtime for Graph View colors:
     "entry": "./dist/extension.js",
     "apiVersion": "^1.0.0",
     "data": {
-      "fileColors": {
-        "*.unity": {
+      "legendEntries": [
+        {
+          "id": "acme.unity:file:scene",
+          "label": "Unity Scene",
+          "pattern": "*.unity",
           "color": "#F97316",
           "shape2D": "hexagon"
         }
-      }
+      ]
     }
   }
 ]

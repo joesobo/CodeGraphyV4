@@ -140,7 +140,8 @@ plugin stays dormant during a CLI query.
 The descriptor in `package.json` is the only plugin manifest. Do not add a
 second `codegraphy.json` file.
 
-The optional descriptor `data` value supports Graph View file colors:
+The optional descriptor `data` value supports Graph View legend entries. An
+entry can style files, semantic Nodes, or Edges:
 
 ```json
 {
@@ -149,20 +150,39 @@ The optional descriptor `data` value supports Graph View file colors:
   "entry": "./dist/plugin.js",
   "apiVersion": "^1.0.0",
   "data": {
-    "fileColors": {
-      "*.acme": {
+    "legendEntries": [
+      {
+        "id": "acme:file",
+        "label": "Acme file",
+        "pattern": "*.acme",
         "color": "#0EA5E9",
         "shape2D": "hexagon",
         "imagePath": "assets/acme.svg"
+      },
+      {
+        "id": "acme:symbol:widget",
+        "label": "Widget",
+        "pattern": "**",
+        "color": "#22C55E",
+        "match": {
+          "nodeType": "symbol",
+          "symbolKinds": ["widget"],
+          "symbolSource": "acme.core"
+        }
       }
-    }
+    ]
   }
 }
 ```
 
 Use `IExtensionPluginDescriptorData` when you create or validate this value.
-Core does not read or transport it through the Core plugin registry. The
-Extension host reads it directly from the Extension descriptor.
+Each entry needs a stable `id`, a visible `label`, a match `pattern`, and a
+`color`. Use `target: "edge"` for an Edge rule. Use `match` when the rule must
+match semantic Node metadata from a Core plugin. `shape2D` and `imagePath` are
+Graph View presentation fields.
+
+Core does not interpret this data or transport it through the Core plugin
+registry. The Extension host reads it directly from the Extension descriptor.
 
 The current static metadata contract does not define Core analysis settings,
 arbitrary VS Code contributions, commands, editor menus, or workspace state.

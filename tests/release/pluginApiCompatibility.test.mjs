@@ -12,7 +12,7 @@ const PLUGIN_HOSTS = [
   {
     apiVersion: '^1.0.0',
     id: 'codegraphy.extension',
-    plugins: ['particles', 'unity'],
+    plugins: ['godot', 'particles', 'unity'],
   },
 ];
 

@@ -22,7 +22,7 @@ describe('createGDScriptPlugin lifecycle', () => {
 
 
 
-    it('does not expose fileColors when core Material theming owns Godot visuals', () => {
+    it('does not expose rendering fields from the Core runtime', () => {
       const plugin = createGodotPlugin();
 
       expect(plugin.fileColors).toBeUndefined();

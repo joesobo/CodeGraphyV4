@@ -57,6 +57,7 @@
 	"files": [
 		"dist/**",
 		"assets/**",
+		"packages/plugin-godot/assets/**",
 		"packages/plugin-godot/dist/**",
 		"packages/plugin-godot/package.json",
 		"packages/plugin-markdown/dist/**",

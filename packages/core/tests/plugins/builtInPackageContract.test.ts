@@ -13,6 +13,10 @@ const PACKAGE_NAMES: readonly string[] = [
   'plugin-unity',
   'plugin-particles',
 ];
+const DUAL_HOST_PACKAGE_NAMES: ReadonlySet<string> = new Set([
+  'plugin-godot',
+  'plugin-unity',
+]);
 
 const repositoryRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -51,7 +55,9 @@ describe('built-in plugin package contract', () => {
 
     expect(existsSync(resolve(packageRoot, 'codegraphy.json'))).toBe(false);
     expect(manifest.files ?? []).not.toContain('codegraphy.json');
-    expect(manifest.codegraphy?.plugins).toHaveLength(packageName === 'plugin-unity' ? 2 : 1);
+    expect(manifest.codegraphy?.plugins).toHaveLength(
+      DUAL_HOST_PACKAGE_NAMES.has(packageName) ? 2 : 1,
+    );
     expect(manifest.codegraphyBuild).toBeUndefined();
     if (packageName !== 'plugin-particles') {
       expect(manifest.codegraphy?.plugins?.[0]?.data?.supportedExtensions)
@@ -90,7 +96,7 @@ describe('built-in plugin package contract', () => {
       'codegraphy.extension',
     ]);
     expect(packageManifest.codegraphy.plugins[0]?.data).not.toHaveProperty('interfaces');
-    expect(packageManifest.codegraphy.plugins[1]?.data).toHaveProperty('fileColors');
+    expect(packageManifest.codegraphy.plugins[1]?.data).toHaveProperty('legendEntries');
   });
 
   it('does not keep a detached Extension metadata schema', () => {

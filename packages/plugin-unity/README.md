@@ -3,7 +3,12 @@
 Adds Unity project structure analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Package: [`@codegraphy-dev/plugin-unity`](https://www.npmjs.com/package/@codegraphy-dev/plugin-unity)
-- Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
+- Core API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
+- Extension API: [`@codegraphy-dev/extension-plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/extension-plugin-api)
+
+This package has two plugin entries. The Core entry analyzes Unity projects and
+declares Unity graph semantics. The Extension entry owns Unity Graph View
+colors, shapes, and icons. The CLI loads only the Core entry.
 
 ## Install
 

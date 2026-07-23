@@ -19,3 +19,7 @@ Plugin API, and load active host-specific plugins only when that host opens.
 Remove rendering fields and persisted view state from Core graph data. Let each
 interface own its rendering and preserve optional interface data through the
 open workspace `interfaces` list.
+
+Ship Godot and Unity as dual-host packages. Their Core entries own analysis and
+semantic graph types. Their Extension entries own Graph View Legend colors,
+shapes, and icons.

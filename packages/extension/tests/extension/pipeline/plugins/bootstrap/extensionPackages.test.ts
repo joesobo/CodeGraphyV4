@@ -44,9 +44,13 @@ export default function createPlugin() {
         packageRoot,
         globallyEnabled: true,
         data: {
-          fileColors: {
-            '*.acme': { color: '#0EA5E9', shape2D: 'hexagon' },
-          },
+          legendEntries: [{
+            id: 'acme:file',
+            label: 'Acme file',
+            pattern: '*.acme',
+            color: '#0EA5E9',
+            shape2D: 'hexagon',
+          }],
         },
       }],
     }, { homeDir });
@@ -58,9 +62,13 @@ export default function createPlugin() {
     );
 
     expect(registration?.options.data).toEqual({
-      fileColors: {
-        '*.acme': { color: '#0EA5E9', shape2D: 'hexagon' },
-      },
+      legendEntries: [{
+        id: 'acme:file',
+        label: 'Acme file',
+        pattern: '*.acme',
+        color: '#0EA5E9',
+        shape2D: 'hexagon',
+      }],
     });
   });
 

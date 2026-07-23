@@ -6,7 +6,7 @@ import test from 'node:test';
 
 import * as releaseCore from '../../scripts/release-core.mjs';
 
-test('core extension release includes built-in Unity plugin icon assets', () => {
+test('core extension release includes built-in Extension plugin icon assets', () => {
   const rootManifest = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
   );
@@ -14,6 +14,10 @@ test('core extension release includes built-in Unity plugin icon assets', () => 
   assert.ok(
     releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-unity/assets'),
     'Unity plugin icon assets must be staged so plugin legend and graph node image URLs resolve in packaged webviews.',
+  );
+  assert.ok(
+    releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-godot/assets'),
+    'Godot plugin icon assets must be staged so plugin legend and graph node image URLs resolve in packaged webviews.',
   );
 });
 
