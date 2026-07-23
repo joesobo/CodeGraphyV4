@@ -11,6 +11,9 @@ describe('cli/help/command', () => {
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
     expect(result.output).toContain('codegraphy scope node <type> <on|off>');
+    expect(result.output).toContain(
+      'codegraphy plugins                       Register Plugins and change global or workspace activity',
+    );
     expect(result.output).toContain('-C, --workspace <path>');
     expect(result.output).not.toContain('relationships');
     expect(result.output).not.toContain('symbols');

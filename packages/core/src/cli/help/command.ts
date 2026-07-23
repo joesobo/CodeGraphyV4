@@ -22,7 +22,7 @@ const ROOT_HELP = [
   '  codegraphy scope                         Read or change persisted Graph Scope',
   '  codegraphy scope node <type> <on|off>    Change one Node Type',
   '  codegraphy scope edge <type> <on|off>    Change one Edge Type',
-  '  codegraphy plugins                       Register Plugins and change workspace activity',
+  '  codegraphy plugins                       Register Plugins and change global or workspace activity',
   '',
   'Query commands:',
   '  codegraphy nodes                         List Nodes in the shaped graph',
