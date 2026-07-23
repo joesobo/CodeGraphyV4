@@ -56,5 +56,13 @@ export async function applyWorkspaceEngineChangedFiles(
   const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
   state.registry!.notifyPostAnalyze(graph, disabledPlugins);
   patchWorkspaceEngineCache(runtime, files.map(file => file.relativePath));
-  return createWorkspaceEngineIndexResult(runtime, graph);
+  return {
+    ...createWorkspaceEngineIndexResult(runtime, graph),
+    indexing: {
+      mode: 'incremental',
+      analyzedFiles: files.length,
+      deletedFiles: 0,
+      reusedFiles: Math.max(0, state.discoveryResult!.files.length - files.length),
+    },
+  };
 }

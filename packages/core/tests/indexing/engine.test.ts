@@ -1,3 +1,5 @@
+import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { createCodeGraphyWorkspaceEngine } from '../../src';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
@@ -202,5 +204,105 @@ describe('createCodeGraphyWorkspaceEngine', () => {
 
     expect(initialize).toHaveBeenCalledTimes(2);
     expect(onUnload).toHaveBeenCalledTimes(2);
+  });
+
+  it('applies known changed files incrementally after the first index', async () => {
+    const workspaceRoot = await createWorkspace();
+    const analyzeFile = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile,
+      })],
+      includeCorePlugins: false,
+    });
+
+    await engine.index();
+    analyzeFile.mockClear();
+    const sourcePath = join(workspaceRoot, 'source.txt');
+    await writeFile(sourcePath, 'target.txt\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([sourcePath]);
+
+    expect(result.indexing.mode).toBe('incremental');
+    expect(analyzeFile).toHaveBeenCalledOnce();
+    expect(analyzeFile).toHaveBeenCalledWith(sourcePath, 'target.txt\n', workspaceRoot);
+    engine.dispose();
+  });
+
+  it('falls back to a full index when a changed path is not discoverable', async () => {
+    const workspaceRoot = await createWorkspace();
+    const initialize = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        initialize,
+      }],
+      includeCorePlugins: false,
+    });
+
+    await engine.index();
+    const result = await engine.applyChangedFiles([join(workspaceRoot, 'missing.txt')]);
+
+    expect(result.indexing.mode).toBe('full');
+    expect(initialize).toHaveBeenCalledTimes(2);
+    engine.dispose();
+  });
+
+  it('does not unload before every queued operation settles after disposal', async () => {
+    const workspaceRoot = await createWorkspace();
+    let markFilesChangedStarted!: () => void;
+    let finishFilesChanged!: () => void;
+    const filesChangedStarted = new Promise<void>((resolve) => {
+      markFilesChangedStarted = resolve;
+    });
+    const filesChangedGate = new Promise<void>((resolve) => {
+      finishFilesChanged = resolve;
+    });
+    const lifecycleCalls: string[] = [];
+    const plugin = {
+      ...createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      }),
+      async onFilesChanged() {
+        markFilesChangedStarted();
+        await filesChangedGate;
+        return [];
+      },
+      onUnload() {
+        lifecycleCalls.push('unload');
+      },
+    };
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const sourcePath = join(workspaceRoot, 'source.txt');
+    const firstOperation = engine.applyChangedFiles([sourcePath]);
+    await filesChangedStarted;
+    const secondOperation = engine.applyChangedFiles([sourcePath]);
+    firstOperation.catch(() => lifecycleCalls.push('first-rejected'));
+    secondOperation.catch(() => lifecycleCalls.push('second-rejected'));
+
+    engine.dispose();
+    finishFilesChanged();
+    await expect(firstOperation).rejects.toThrow('CodeGraphy Workspace Engine is disposed.');
+    await expect(secondOperation).rejects.toThrow('CodeGraphy Workspace Engine is disposed.');
+
+    expect(lifecycleCalls).toEqual(['first-rejected', 'unload', 'second-rejected']);
   });
 });
