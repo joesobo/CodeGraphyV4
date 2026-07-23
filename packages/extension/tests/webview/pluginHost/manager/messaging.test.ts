@@ -114,6 +114,28 @@ describe('WebviewPluginHost messaging and viewport',()=>{
       expect(handler).toHaveBeenCalledWith(null);
     });
 
+  it('continues notifying viewport listeners when one plugin listener throws', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const host = new WebviewPluginHost();
+      const failingApi = host.createAPI('failing.plugin', vi.fn());
+      const healthyApi = host.createAPI('healthy.plugin', vi.fn());
+      const failingHandler = vi.fn(() => {
+        throw new Error('listener failed');
+      });
+      const healthyHandler = vi.fn();
+
+      expect(() => failingApi.onGraphViewViewportState(failingHandler)).not.toThrow();
+      healthyApi.onGraphViewViewportState(healthyHandler);
+      expect(() => host.setGraphViewViewportState(null)).not.toThrow();
+
+      expect(failingHandler).toHaveBeenCalledTimes(2);
+      expect(healthyHandler).toHaveBeenCalledTimes(2);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Viewport listener for plugin 'failing.plugin' failed"),
+        expect.any(Error),
+      );
+    });
+
   it('continues delivering plugin messages when one handler throws', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const host = new WebviewPluginHost();

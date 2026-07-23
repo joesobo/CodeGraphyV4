@@ -130,7 +130,7 @@ export class WebviewPluginHost {
   ): WebviewDisposable {
     const entry = createGraphViewViewportStateListenerEntry(listener, pluginId);
     this._graphViewViewportStateListeners.add(entry);
-    listener(this._graphViewViewportState);
+    notifyGraphViewViewportStateListeners(new Set([entry]), this._graphViewViewportState);
     return toWebviewDisposable(() => {
       this._graphViewViewportStateListeners.delete(entry);
     });

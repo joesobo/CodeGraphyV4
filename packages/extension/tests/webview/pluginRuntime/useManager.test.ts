@@ -20,6 +20,8 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerContainers;
     delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
     delete (globalThis as Record<string, unknown>).__useManagerCleanupCount;
+    delete (globalThis as Record<string, unknown>).__useManagerFailingCleanupCount;
+    delete (globalThis as Record<string, unknown>).__useManagerHealthyCleanupCount;
     delete (globalThis as Record<string, unknown>).__useManagerMessages;
     delete (globalThis as Record<string, unknown>).__useManagerPluginData;
   });
@@ -427,6 +429,46 @@ describe('usePluginManager', () => {
 
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);
     expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
+  });
+
+  it('continues resetting plugin assets when one activation cleanup throws', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderHook(() => usePluginManager());
+    const failingScriptUrl = toDataUrlModule(`
+      export function activate() {
+        return () => {
+          globalThis.__useManagerFailingCleanupCount =
+            (globalThis.__useManagerFailingCleanupCount || 0) + 1;
+          throw new Error('cleanup failed');
+        };
+      }
+    `);
+    const healthyScriptUrl = toDataUrlModule(`
+      export function activate() {
+        return () => {
+          globalThis.__useManagerHealthyCleanupCount =
+            (globalThis.__useManagerHealthyCleanupCount || 0) + 1;
+        };
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'cleanup-plugin',
+        scripts: [failingScriptUrl, healthyScriptUrl],
+        styles: ['https://example.com/cleanup.css'],
+      });
+    });
+
+    expect(() => result.current.resetPluginAssets('cleanup-plugin')).not.toThrow();
+
+    expect((globalThis as Record<string, unknown>).__useManagerFailingCleanupCount).toBe(1);
+    expect((globalThis as Record<string, unknown>).__useManagerHealthyCleanupCount).toBe(1);
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(0);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to clean up webview plugin'),
+      expect.any(Error),
+    );
   });
 
   it('replaces an active plugin when its runtime revision changes', async () => {

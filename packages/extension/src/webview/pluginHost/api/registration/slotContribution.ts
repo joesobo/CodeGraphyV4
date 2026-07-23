@@ -105,6 +105,13 @@ export function removePluginSlotContributions(
   const entries = slotContributions.get(pluginId);
   if (!entries) return;
   for (const entry of Array.from(entries)) {
-    disposeSlotContributionEntry(entry, entries, slotContributions, slotHosts);
+    try {
+      disposeSlotContributionEntry(entry, entries, slotContributions, slotHosts);
+    } catch (error) {
+      console.error(
+        `[CodeGraphy] Failed to clean up slot contribution '${entry.id}' for plugin '${pluginId}':`,
+        error,
+      );
+    }
   }
 }

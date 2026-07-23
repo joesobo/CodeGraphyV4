@@ -76,6 +76,37 @@ describe('WebviewPluginHost slots',()=>{
       expect(slotHost.childElementCount).toBe(0);
     });
 
+  it('continues removing slot contributions when one cleanup throws', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const host = new WebviewPluginHost();
+      const api = host.createAPI('acme.plugin', vi.fn());
+      const slotHost = document.createElement('div');
+      const failingCleanup = vi.fn(() => {
+        throw new Error('cleanup failed');
+      });
+      const healthyCleanup = vi.fn();
+
+      host.attachSlotHost('theme.panel', slotHost);
+      api.registerSlotContribution('theme.panel', {
+        id: 'failing',
+        render: () => failingCleanup,
+      });
+      api.registerSlotContribution('theme.panel', {
+        id: 'healthy',
+        render: () => healthyCleanup,
+      });
+
+      expect(() => host.removePlugin('acme.plugin')).not.toThrow();
+
+      expect(failingCleanup).toHaveBeenCalledOnce();
+      expect(healthyCleanup).toHaveBeenCalledOnce();
+      expect(slotHost.childElementCount).toBe(0);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to clean up slot contribution'),
+        expect.any(Error),
+      );
+    });
+
   it('disposes slot contribution cleanup once when host removal and registration disposal both run', () => {
       const host = new WebviewPluginHost();
       const api = host.createAPI('acme.plugin', vi.fn());
