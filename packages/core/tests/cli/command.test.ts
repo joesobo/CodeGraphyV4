@@ -34,7 +34,7 @@ describe('cli/command', () => {
     });
     await expect(runCliCommand({ name: 'help', helpPath: ['plugins', 'enable'] })).resolves.toMatchObject({
       exitCode: 0,
-      output: expect.stringContaining('Usage: codegraphy plugins enable <plugin-id-or-package>'),
+      output: expect.stringContaining('Usage: codegraphy plugins enable [--global] <plugin-id-or-package>'),
     });
   });
 
