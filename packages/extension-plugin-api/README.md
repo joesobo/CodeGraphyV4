@@ -94,9 +94,11 @@ Core records and activates this descriptor, but it does not import the runtime.
 The VS Code extension imports it when the Extension host opens. This means the
 plugin stays dormant during a CLI query.
 
-The API includes Extension plugin lifecycle, webview assets, Extension events,
-and Graph View contribution types. Rendering and persisted interface data stay
-owned by the Extension.
+The API includes Extension plugin lifecycle, webview assets, Extension event
+payload types, and Graph View contribution types. The event types are a
+reference for host messages; this version does not provide a runtime event
+subscription API. Rendering and persisted interface data stay owned by the
+Extension.
 
 See the [Plugin Guide](../../docs/PLUGINS.md) for the shared installation and
 activation model.

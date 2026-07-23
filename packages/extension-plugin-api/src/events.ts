@@ -1,6 +1,6 @@
 /**
- * @fileoverview Canonical event payload contract for the CodeGraphy plugin API.
- * Event keys and payloads mirror the extension host runtime exactly.
+ * @fileoverview Extension-owned event payload vocabulary.
+ * This file is a type reference, not a public subscription API.
  * @module @codegraphy-dev/extension-plugin-api/events
  */
 
@@ -210,8 +210,8 @@ export interface PluginMessagePayload {
 // ============================================================================
 
 /**
- * Canonical mapping from event names to payload types.
- * These keys intentionally match the runtime EventBus in the extension host.
+ * Mapping from Extension event names to payload types.
+ * Some names are reserved and are not emitted by the current host runtime.
  */
 export interface EventPayloads {
   // Graph interaction (12)

@@ -12,6 +12,9 @@ import type {
 } from '@codegraphy-dev/extension-plugin-api/events';
 ```
 
+This is a typed payload reference, not a public subscription API. Some event
+names are reserved and are not emitted by the current Extension runtime.
+
 The canonical contracts are in
 [`packages/extension-plugin-api/src/events.ts`](../../packages/extension-plugin-api/src/events.ts).
 
