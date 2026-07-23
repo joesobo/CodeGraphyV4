@@ -31,13 +31,24 @@ function readPluginIdentity(value: unknown): string | undefined {
   return packageName || undefined;
 }
 
+function findLastRawPluginIndex(
+  rawPlugins: readonly unknown[],
+  pluginId: string,
+  usedIndexes: ReadonlySet<number>,
+): number {
+  for (let index = rawPlugins.length - 1; index >= 0; index -= 1) {
+    if (!usedIndexes.has(index) && readPluginIdentity(rawPlugins[index]) === pluginId) {
+      return index;
+    }
+  }
+  return -1;
+}
+
 function mergeRawPluginEntries(rawValue: unknown, plugins: CodeGraphyWorkspaceSettings['plugins']): unknown[] {
   const rawPlugins: unknown[] = Array.isArray(rawValue) ? rawValue as unknown[] : [];
   const usedIndexes = new Set<number>();
   const merged = plugins.map((plugin) => {
-    const rawIndex = rawPlugins.findIndex((entry, index) => (
-      !usedIndexes.has(index) && readPluginIdentity(entry) === plugin.id
-    ));
+    const rawIndex = findLastRawPluginIndex(rawPlugins, plugin.id, usedIndexes);
     if (rawIndex < 0) return plugin;
     usedIndexes.add(rawIndex);
     const raw = unknownRecordSchema.safeParse(rawPlugins[rawIndex]);

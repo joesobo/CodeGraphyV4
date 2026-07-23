@@ -209,6 +209,38 @@ describe('CodeGraphy Workspace settings', () => {
     ]));
   });
 
+  it('keeps unknown fields from the effective duplicate plugin entry', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
+    await fs.writeFile(getWorkspaceSettingsPath(workspaceRoot), JSON.stringify({
+      plugins: [
+        {
+          id: 'codegraphy.vue',
+          activation: 'disabled',
+          oldOnlyField: true,
+        },
+        {
+          id: 'codegraphy.vue',
+          activation: 'enabled',
+          currentOnlyField: true,
+        },
+      ],
+    }));
+
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+
+    expect(JSON.parse(
+      await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
+    ).plugins).toEqual([{
+      id: 'codegraphy.vue',
+      activation: 'enabled',
+      currentOnlyField: true,
+    }]);
+  });
+
   it('drops representable raw plugins that the caller explicitly removes', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
