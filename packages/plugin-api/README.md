@@ -51,6 +51,9 @@ Core plugins cannot define colors, shapes, positions, physics, webviews,
 toolbars, context menus, or editor actions. Those behaviors belong to an
 interface API.
 
+The descriptor in `package.json` is the only plugin manifest. Do not add a
+second `codegraphy.json` file.
+
 Core runs its built-in analysis first, then merges active plugin results. Paths
 in results are absolute workspace paths. Use `context.fileSystem` for workspace
 reads when possible.

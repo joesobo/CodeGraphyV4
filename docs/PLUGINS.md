@@ -98,6 +98,9 @@ host without adding it to a Core enum.
 One package can contain descriptors for several hosts. Each descriptor is one
 installed plugin record and has its own stable ID.
 
+`package.json#codegraphy.plugins` is the only plugin manifest. Do not repeat
+the descriptor in `codegraphy.json`.
+
 The optional `data` value belongs to the descriptor. Core reads only its own
 plugin defaults and update impact. An interface can read its matching entry in
 the open `interfaces` list without adding interface keys to Core.
@@ -206,6 +209,21 @@ example. Temporary physics positions and derived colors normally should not be
 stored.
 
 ## Local development
+
+CodeGraphy does not require a specific bundler. Build each descriptor `entry`
+as an ECMAScript module and emit the public type declarations for your package.
+The built-in workspace packages use one repository script:
+
+```json
+{
+  "scripts": {
+    "build": "node ../../scripts/build-plugin-package.mjs"
+  }
+}
+```
+
+That command is a repository convenience, not part of the public plugin
+contract. External plugins can use `tsc`, esbuild, Vite, or another tool.
 
 ```bash
 codegraphy plugins link /path/to/acme-codegraphy-tools
