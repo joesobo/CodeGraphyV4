@@ -18,20 +18,30 @@ export function createCodeGraphyWorkspaceEngine(
 ): CodeGraphyWorkspaceEngine {
   const runtime = createWorkspaceEngineRuntime(options);
   const activeOperations = new Set<Promise<unknown>>();
+  let operationTail: Promise<void> = Promise.resolve();
   const disposeRegistry = () => {
     runtime.state.registry?.disposeAll();
     runtime.state.registry = undefined;
   };
   const trackOperation = async <T>(operation: () => Promise<T>): Promise<T> => {
     assertWorkspaceEngineActive(runtime);
-    const result = operation();
+    const result = operationTail.then(() => {
+      assertWorkspaceEngineActive(runtime);
+      return operation();
+    });
+    operationTail = result.then(
+      () => undefined,
+      () => undefined,
+    );
     activeOperations.add(result);
-    return result.finally(() => {
+    try {
+      return await result;
+    } finally {
       activeOperations.delete(result);
       if (runtime.disposed && activeOperations.size === 0) {
         disposeRegistry();
       }
-    });
+    }
   };
   const index = () => trackOperation(() => indexWorkspaceEngine(runtime));
   const applyChangedFiles = (filePaths: readonly string[]) => trackOperation(() => (

@@ -145,4 +145,62 @@ describe('createCodeGraphyWorkspaceEngine', () => {
     expect(onUnload).toHaveBeenCalledOnce();
     expect(resourceActive).toBe(false);
   });
+
+  it('serializes overlapping operations so one registry owns the workspace at a time', async () => {
+    const workspaceRoot = await createWorkspace();
+    let finishFirstInitialization!: () => void;
+    const firstInitializationGate = new Promise<void>((resolve) => {
+      finishFirstInitialization = resolve;
+    });
+    let markFirstInitializationStarted!: () => void;
+    const firstInitializationStarted = new Promise<void>((resolve) => {
+      markFirstInitializationStarted = resolve;
+    });
+    let markSecondInitializationStarted!: () => void;
+    const secondInitializationStarted = new Promise<void>((resolve) => {
+      markSecondInitializationStarted = resolve;
+    });
+    const initialize = vi.fn(async () => {
+      if (initialize.mock.calls.length === 1) {
+        markFirstInitializationStarted();
+        await firstInitializationGate;
+        return;
+      }
+      markSecondInitializationStarted();
+    });
+    const onUnload = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        initialize,
+        onUnload,
+      }],
+      includeCorePlugins: false,
+    });
+
+    const firstIndex = engine.index();
+    await firstInitializationStarted;
+    const secondIndex = engine.index();
+    const earlySecondInitialization = await Promise.race([
+      secondInitializationStarted.then(() => true),
+      new Promise<false>(resolve => setTimeout(() => resolve(false), 100)),
+    ]);
+
+    expect(earlySecondInitialization).toBe(false);
+    expect(initialize).toHaveBeenCalledOnce();
+
+    finishFirstInitialization();
+    await firstIndex;
+    await secondIndex;
+    engine.dispose();
+
+    expect(initialize).toHaveBeenCalledTimes(2);
+    expect(onUnload).toHaveBeenCalledTimes(2);
+  });
 });
