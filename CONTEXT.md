@@ -105,7 +105,7 @@ The Graph View can use a whole-view loading state before its first graph payload
 | **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
 | **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
-| **Graph Query CLI** | `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output. |
+| **Graph Query CLI** | `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output. `batch` runs several of these commands against one Graph Cache snapshot. |
 | **CodeGraphy Agent Skill** | Instructions that teach shell-capable agents when to index, which Graph Query command to choose, and when to inspect source. |
 | **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
 | **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |

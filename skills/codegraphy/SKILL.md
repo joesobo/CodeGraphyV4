@@ -26,6 +26,14 @@ Use `-C <workspace>` from outside the workspace. File selectors are workspace-re
 
 Prefer one-off repeatable `--filter`, `--node-type`, and `--edge-type` options for a task. They do not change settings. Use `codegraphy scope` to discover available type IDs. Use `codegraphy filter` and `codegraphy scope ...` only for durable workspace changes.
 
+When several queries are independent and known in advance, send them through one snapshot with `codegraphy batch`:
+
+```sh
+printf '%s' '{"queries":[{"id":"uses","argv":["dependencies","src/app.ts"]},{"id":"used-by","argv":["dependents","src/app.ts"]}]}' | codegraphy batch
+```
+
+Batching reduces latency and Graph Cache reads, but its JSON wrapper may use more tokens. Keep sequential calls when one result determines the next query.
+
 ## Failures and recovery
 
 Data commands write a single `{ok:true,command,data}` JSON envelope to stdout. Failures write `{ok:false,command,error}` to stderr and exit nonzero: 1 for an operational failure, 2 for invalid invocation. Use `--verbose` only when diagnostics/progress are useful; it writes additional lines to stderr.

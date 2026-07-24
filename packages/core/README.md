@@ -8,7 +8,7 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. `batch` accepts several existing query argument vectors as JSON on standard input and runs them against one Graph Cache snapshot. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
 
 ```bash
 codegraphy index
@@ -20,6 +20,7 @@ codegraphy edges
 codegraphy dependencies src/app.ts
 codegraphy dependents src/config.ts
 codegraphy path src/app.ts src/config.ts
+printf '%s' '{"queries":[{"id":"uses","argv":["dependencies","src/app.ts"]},{"id":"used-by","argv":["dependents","src/app.ts"]}]}' | codegraphy batch
 codegraphy scope
 codegraphy scope node symbol:function on
 codegraphy scope edge call on
