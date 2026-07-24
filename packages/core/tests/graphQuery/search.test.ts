@@ -74,6 +74,17 @@ describe('core/graphQuery search', () => {
     });
   });
 
+  it('finds indexed Nodes by exact path or partial label', () => {
+    expect(search('src/index.ts').matches[0]).toEqual({
+      type: 'node',
+      node: { path: 'src/index.ts', nodeType: 'file' },
+    });
+    expect(search('index').matches).toEqual(expect.arrayContaining([{
+      type: 'node',
+      node: { path: 'src/index.ts', nodeType: 'file' },
+    }]));
+  });
+
   it('finds exact source text with one-based locations and bounded excerpts', () => {
     expect(search('Indexing ').matches).toEqual([
       {
@@ -96,6 +107,23 @@ describe('core/graphQuery search', () => {
         excerpt: "it('keeps non-verbose stderr clean', () => {});",
       },
     ]);
+  });
+
+  it('centers long excerpts on the matching source text', () => {
+    const longLine = `${'before '.repeat(30)}needle${' after'.repeat(30)}`;
+    const result = searchGraph({
+      graphData,
+      sourceText: {
+        files: [{ filePath: 'src/long.ts', content: `${longLine}\n` }],
+        filesScanned: 1,
+        filesSkipped: 0,
+      },
+    }, { pattern: 'needle', limit: 20 });
+    const match = result.matches[0];
+
+    expect(match).toMatchObject({ type: 'text', filePath: 'src/long.ts' });
+    expect(match && 'excerpt' in match ? match.excerpt : '').toContain('needle');
+    expect(match && 'excerpt' in match ? match.excerpt.length : 0).toBeLessThanOrEqual(240);
   });
 
   it('ranks source paths related to the phrase ahead of documentation history', () => {

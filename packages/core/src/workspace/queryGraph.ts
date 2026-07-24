@@ -24,43 +24,49 @@ function isInsideWorkspace(workspaceRoot: string, absolutePath: string): boolean
     && !path.isAbsolute(relativePath);
 }
 
+interface QuerySourceFileResult {
+  file?: GraphQuerySourceText['files'][number];
+  changed: boolean;
+}
+
+function readQuerySourceFile(
+  workspaceRoot: string,
+  filePath: string,
+  indexedContentHash: string | undefined,
+): QuerySourceFileResult {
+  const absolutePath = path.resolve(workspaceRoot, filePath);
+  if (!isInsideWorkspace(workspaceRoot, absolutePath)) return { changed: false };
+
+  try {
+    if (fs.statSync(absolutePath).size > MAX_QUERY_SOURCE_FILE_BYTES) return { changed: false };
+    const content = fs.readFileSync(absolutePath, 'utf8');
+    if (content.includes('\0')) return { changed: false };
+    return {
+      file: { filePath, content },
+      changed: indexedContentHash !== undefined
+        && indexedContentHash !== createWorkspaceFileContentHash(content),
+    };
+  } catch {
+    return { changed: false };
+  }
+}
+
 export function readWorkspaceQuerySourceText(
   workspaceRoot: string,
   graphData: IGraphData,
   indexedContentHashes: ReadonlyMap<string, string> = new Map(),
 ): GraphQuerySourceText {
-  const files: GraphQuerySourceText['files'][number][] = [];
-  let filesSkipped = 0;
-  let hasChangedFiles = false;
+  const results = graphData.nodes
+    .filter(node => getNodeType(node) === 'file')
+    .map(node => readQuerySourceFile(workspaceRoot, node.id, indexedContentHashes.get(node.id)));
+  const files = results.flatMap(result => result.file ? [result.file] : []);
 
-  for (const node of graphData.nodes) {
-    if (getNodeType(node) !== 'file') continue;
-    const absolutePath = path.resolve(workspaceRoot, node.id);
-    if (!isInsideWorkspace(workspaceRoot, absolutePath)) {
-      filesSkipped += 1;
-      continue;
-    }
-    try {
-      if (fs.statSync(absolutePath).size > MAX_QUERY_SOURCE_FILE_BYTES) {
-        filesSkipped += 1;
-        continue;
-      }
-      const content = fs.readFileSync(absolutePath, 'utf8');
-      if (content.includes('\0')) {
-        filesSkipped += 1;
-        continue;
-      }
-      files.push({ filePath: node.id, content });
-      const indexedHash = indexedContentHashes.get(node.id);
-      if (indexedHash && indexedHash !== createWorkspaceFileContentHash(content)) {
-        hasChangedFiles = true;
-      }
-    } catch {
-      filesSkipped += 1;
-    }
-  }
-
-  return { files, filesScanned: files.length, filesSkipped, hasChangedFiles };
+  return {
+    files,
+    filesScanned: files.length,
+    filesSkipped: results.length - files.length,
+    hasChangedFiles: results.some(result => result.changed),
+  };
 }
 
 function applyPathFilters(graphData: IGraphData, patterns: readonly string[]): IGraphData {

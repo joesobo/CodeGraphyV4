@@ -82,6 +82,36 @@ describe('core/graphQuery target overview', () => {
     });
   });
 
+  it('inspects an exact cached Symbol with its containing File provenance', () => {
+    const result = inspectGraphTarget(
+      {
+        graphData,
+        symbols: [...symbols, {
+          id: 'src/settings.ts#readSettings:function',
+          filePath: 'src/settings.ts',
+          name: 'readSettings',
+          kind: 'function',
+        }],
+        relations,
+      },
+      { target: 'src/settings.ts#readSettings:function' },
+    );
+
+    expect(result).toMatchObject({
+      target: {
+        path: 'src/settings.ts#readSettings:function',
+        nodeType: 'symbol:function',
+        symbol: {
+          id: 'src/settings.ts#readSettings:function',
+          name: 'readSettings',
+          kind: 'function',
+          filePath: 'src/settings.ts',
+        },
+      },
+      declaredSymbols: { symbols: [] },
+    });
+  });
+
   it('returns a typed error when the exact target is absent', () => {
     expect(inspectGraphTarget({ graphData, symbols, relations }, { target: 'src/missing.ts' })).toEqual({
       error: 'query_target_not_found',
