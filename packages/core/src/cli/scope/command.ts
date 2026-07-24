@@ -69,9 +69,15 @@ function createNodeVisibilityUpdates(type: string, enabled: boolean): Record<str
   return updates;
 }
 
+interface ScopeOutputSelection {
+  edgeTypes: ReadonlySet<string>;
+  nodeTypes: ReadonlySet<string>;
+}
+
 function createScopeOutput(
   settings: ReturnType<typeof readCodeGraphyWorkspaceSettingsOrInitial>,
   workspaceRoot: string,
+  selection?: ScopeOutputSelection,
 ): string {
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   const snapshot = status.hasGraphCache
@@ -114,16 +120,21 @@ function createScopeOutput(
     ))
   );
   return JSON.stringify({
-    nodes: nodeTypes.map(type => ({
-      type,
-      enabled: nodeVisibility[type] ?? definitions.get(type)?.defaultVisible ?? false,
-      available: availableNodeTypes.has(type),
-    })),
-    edges: edgeTypes.map(type => ({
-      type,
-      enabled: edgeVisibility[type] ?? true,
-      available: observedEdgeTypes.has(type),
-    })),
+    complete: selection === undefined,
+    nodes: nodeTypes
+      .filter(type => selection === undefined || selection.nodeTypes.has(type))
+      .map(type => ({
+        type,
+        enabled: nodeVisibility[type] ?? definitions.get(type)?.defaultVisible ?? false,
+        available: availableNodeTypes.has(type),
+      })),
+    edges: edgeTypes
+      .filter(type => selection === undefined || selection.edgeTypes.has(type))
+      .map(type => ({
+        type,
+        enabled: edgeVisibility[type] ?? true,
+        available: observedEdgeTypes.has(type),
+      })),
     indexRequired,
     ...(indexRequired
       ? { action: 'Run `codegraphy index` to hydrate the required symbol analysis.' }
@@ -140,6 +151,7 @@ export function runScopeCommand(
   const kind = command.arguments?.kind;
   const type = command.arguments?.type;
   const enabled = command.arguments?.enabled;
+  let selection: ScopeOutputSelection | undefined;
 
   if ((kind === 'node' || kind === 'edge') && typeof type === 'string' && typeof enabled === 'boolean') {
     const updates = kind === 'node'
@@ -151,7 +163,11 @@ export function runScopeCommand(
       updates,
     );
     settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+    selection = {
+      nodeTypes: new Set(kind === 'node' ? Object.keys(updates) : []),
+      edgeTypes: new Set(kind === 'edge' ? Object.keys(updates) : []),
+    };
   }
 
-  return { exitCode: 0, output: createScopeOutput(settings, workspaceRoot) };
+  return { exitCode: 0, output: createScopeOutput(settings, workspaceRoot, selection) };
 }

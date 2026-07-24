@@ -31,6 +31,26 @@ describe('cli graph controls', () => {
       '-C', workspace, 'scope', 'edge', 'call', 'off',
     ], { stdout, stderr })).resolves.toBe(0);
 
+    const nodeResult = JSON.parse(stdout.mock.calls[0][0]);
+    expect(nodeResult.data).toMatchObject({
+      complete: false,
+      nodes: expect.arrayContaining([
+        { type: 'symbol', enabled: true, available: false },
+        { type: 'symbol:callable', enabled: true, available: false },
+        { type: 'symbol:function', enabled: true, available: false },
+        { type: 'symbol:method', enabled: true, available: false },
+      ]),
+      edges: [],
+    });
+    expect(nodeResult.data.nodes).toHaveLength(4);
+
+    const edgeResult = JSON.parse(stdout.mock.calls[1][0]);
+    expect(edgeResult.data).toMatchObject({
+      complete: false,
+      nodes: [],
+      edges: [{ type: 'call', enabled: false, available: false }],
+    });
+
     expect(JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf-8'))).toMatchObject({
       extensionPanelPlacement: 'right',
       nodeVisibility: {
@@ -64,6 +84,7 @@ describe('cli graph controls', () => {
     expect(settings.filterPatterns).toEqual(['**/generated/**']);
     expect(JSON.parse(outputs.at(-1) ?? '')).toMatchObject({
       data: {
+        complete: true,
         nodes: expect.arrayContaining([
           { type: 'file', enabled: true, available: true },
           { type: 'symbol:function', enabled: false, available: false },
