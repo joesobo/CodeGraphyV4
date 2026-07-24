@@ -417,13 +417,19 @@ export {
 export type {
   GraphQueryReport as WorkspaceGraphQueryReport,
   IndexWorkspaceResult,
+  WorkspaceGraphQueryBatchInput,
+  WorkspaceGraphQueryBatchItem,
+  WorkspaceGraphQueryBatchResult,
   WorkspaceGraphQueryInput,
   WorkspaceGraphQueryResult,
   WorkspacePathInput,
   WorkspaceStatusResult,
 } from './workspace/requestTypes';
 export { requestCodeGraphyIndexWorkspace } from './workspace/requestIndexing';
-export { requestWorkspaceGraphQuery } from './workspace/requestQuery';
+export {
+  requestWorkspaceGraphQuery,
+  requestWorkspaceGraphQueryBatch,
+} from './workspace/requestQuery';
 export { readCodeGraphyWorkspaceStatusForCli } from './workspace/requestStatus';
 export type {
   CodeGraphyWorkspaceStaleReason,

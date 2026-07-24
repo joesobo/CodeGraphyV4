@@ -42,6 +42,19 @@ export interface WorkspaceGraphQueryInput extends WorkspacePathInput {
   projection?: WorkspaceGraphQueryProjection;
 }
 
+export type WorkspaceGraphQueryBatchItem = Omit<
+  WorkspaceGraphQueryInput,
+  'diagnostics' | 'workspacePath'
+>;
+
+export interface WorkspaceGraphQueryBatchInput extends WorkspacePathInput {
+  queries: WorkspaceGraphQueryBatchItem[];
+}
+
+export interface WorkspaceGraphQueryBatchResult {
+  results: WorkspaceGraphQueryResult[];
+}
+
 export interface WorkspaceGraphQueryProjection {
   filterPatterns?: string[];
   nodeTypes?: string[];

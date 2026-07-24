@@ -1,3 +1,4 @@
+import { runBatchCommand } from './batch/command';
 import { runIndexCommand } from './index/command';
 import { runDoctorCommand } from './doctor/command';
 import { runFilterCommand } from './filter/command';
@@ -74,6 +75,9 @@ export async function runCliCommand(
   let result: CommandExecutionResult;
 
   switch (command.name) {
+    case 'batch':
+      result = await runBatchCommand(command);
+      break;
     case 'doctor':
       result = runDoctorCommand(command);
       break;

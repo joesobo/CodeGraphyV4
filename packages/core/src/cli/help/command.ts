@@ -31,6 +31,7 @@ const ROOT_HELP = [
   '  codegraphy dependencies <node>           List outgoing Relationships',
   '  codegraphy dependents <node>             List incoming Relationships',
   '  codegraphy path <from> <to>              Find a bounded path between Nodes',
+  '  codegraphy batch < queries.json          Run several query commands against one snapshot',
   '  All query commands accept one-off --filter, --node-type, and --edge-type options.',
   '',
   'Global options:',
@@ -56,6 +57,18 @@ const QUERY_PROJECTION_OPTIONS = [
 ];
 
 const COMMAND_HELP: Record<string, string> = {
+  batch: [
+    'Usage: codegraphy batch < queries.json',
+    '',
+    'Run several existing Graph Query commands against one Graph Cache snapshot.',
+    'Standard input must be JSON: {"queries":[{"id":"files","argv":["nodes","--limit","10"]}]}',
+    'Each argv starts with nodes, search, edges, dependencies, dependents, or path.',
+    'Query ids must be unique. A batch accepts 1 through 100 queries and at most 1 MiB of input.',
+    '',
+    'Effects: Read-only. Does not perform Indexing or change settings.',
+    'Output: JSON results in input order, correlated by id.',
+    'Example: printf \'%s\' \'{"queries":[{"id":"uses","argv":["dependencies","src/app.ts"]}]}\' | codegraphy batch',
+  ].join('\n'),
   index: [
     'Usage: codegraphy index',
     '',

@@ -7,6 +7,7 @@ describe('cli/help/command', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain('codegraphy doctor');
+    expect(result.output).toContain('codegraphy batch');
     expect(result.output).toContain('codegraphy search <text>');
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
@@ -38,6 +39,7 @@ describe('cli/help/command', () => {
 
   it('reports local pagination options for bounded list queries', () => {
     expect(createHelpResult(['status']).output).toContain('Usage: codegraphy status');
+    expect(createHelpResult(['batch']).output).toContain('Usage: codegraphy batch');
     expect(createHelpResult(['query']).output).toContain('Query commands are top-level');
     expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
     expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search');
