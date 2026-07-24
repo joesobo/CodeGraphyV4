@@ -414,7 +414,7 @@ describe('WorkspacePipeline analysis', () => {
     expect(analyzerPrivate._lastWorkspaceRoot).toBe('/test/workspace');
   });
 
-  it('does not apply query Filters to workspace discovery', async () => {
+  it('applies active plugin Filters to workspace discovery', async () => {
     const context = createContext();
     const analyzer = new WorkspacePipeline(
       context as unknown as vscode.ExtensionContext
@@ -433,6 +433,7 @@ describe('WorkspacePipeline analysis', () => {
         discover: (options: unknown) => Promise<{
           durationMs: number;
           files: [];
+          cacheFilePaths: string[];
           limitReached: boolean;
           totalFound: number;
         }>;
@@ -465,6 +466,7 @@ describe('WorkspacePipeline analysis', () => {
     const discoverSpy = vi.spyOn(analyzerPrivate._discovery, 'discover').mockResolvedValue({
       durationMs: 2,
       files: [],
+      cacheFilePaths: [],
       limitReached: false,
       totalFound: 0,
     });
@@ -491,10 +493,11 @@ describe('WorkspacePipeline analysis', () => {
       maxFiles: 25,
       include: ['**/*'],
       exclude: DEFAULT_EXCLUDE_PATTERNS,
+      filter: ['**/*.generated.ts'],
       respectGitignore: false,
       signal,
     });
-    expect(getPluginFilterPatterns).not.toHaveBeenCalled();
+    expect(getPluginFilterPatterns).toHaveBeenCalledWith(new Set<string>());
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(context.workspaceState.update).not.toHaveBeenCalled();
   });
