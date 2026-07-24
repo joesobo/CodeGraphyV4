@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { runIndexCommand } from '../../../src/cli/index/command';
 
 describe('index/command', () => {
-  it('indexes the current workspace by default and prints wait feedback', async () => {
+  it('keeps non-verbose stderr clean while indexing the current workspace', async () => {
     let finishIndex: (() => void) | undefined;
     const writeStatus = vi.fn();
     const indexing = runIndexCommand(undefined, {
@@ -25,9 +25,7 @@ describe('index/command', () => {
 
     await Promise.resolve();
 
-    expect(writeStatus).toHaveBeenCalledWith(
-      'Indexing /workspace/project...',
-    );
+    expect(writeStatus).not.toHaveBeenCalled();
 
     finishIndex?.();
     await expect(indexing).resolves.toMatchObject({ exitCode: 0 });
@@ -52,6 +50,7 @@ describe('index/command', () => {
 
   it('passes verbose diagnostics to the workspace indexing request', async () => {
     const diagnosticAreas: string[] = [];
+    const writeStatus = vi.fn();
 
     await runIndexCommand('/workspace/other', {
       cwd: () => '/workspace/project',
@@ -69,9 +68,10 @@ describe('index/command', () => {
         };
       },
       writeDiagnostic: line => diagnosticAreas.push(line),
-      writeStatus: vi.fn(),
+      writeStatus,
     }, { verbose: true });
 
+    expect(writeStatus).toHaveBeenCalledWith('Indexing /workspace/other...');
     expect(diagnosticAreas).toEqual([
       '[CodeGraphy] Indexing complete: 2 files, operation=index-1',
     ]);
