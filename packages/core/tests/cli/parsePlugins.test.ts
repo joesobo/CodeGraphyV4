@@ -37,6 +37,11 @@ describe('cli/parsePlugins', () => {
       action: 'inherit',
       packageName: 'codegraphy.particles',
     });
+    expect(parsePluginsCommand(['enable', '--', '--global'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '--global',
+    });
   });
 
   it('routes an empty group to plugin help', () => {

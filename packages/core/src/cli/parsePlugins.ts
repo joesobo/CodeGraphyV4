@@ -8,9 +8,14 @@ export function isPluginCommand(value: string | undefined): boolean {
 
 export function parsePluginsCommand(argv: string[]): CliCommand {
   const [action, ...rawOperands] = argv;
-  const separatedOperands = rawOperands[0] === '--' ? rawOperands.slice(1) : rawOperands;
-  const globalFlags = separatedOperands.filter(operand => operand === '--global' || operand === '-g');
-  const operands = separatedOperands.filter(operand => operand !== '--global' && operand !== '-g');
+  const optionsEnded = rawOperands[0] === '--';
+  const separatedOperands = optionsEnded ? rawOperands.slice(1) : rawOperands;
+  const globalFlags = optionsEnded
+    ? []
+    : separatedOperands.filter(operand => operand === '--global' || operand === '-g');
+  const operands = optionsEnded
+    ? separatedOperands
+    : separatedOperands.filter(operand => operand !== '--global' && operand !== '-g');
   const [packageName, extra] = operands;
 
   if (!action || action === 'help') {
