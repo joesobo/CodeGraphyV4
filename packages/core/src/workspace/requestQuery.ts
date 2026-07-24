@@ -55,6 +55,7 @@ function hasTargetSelector(arguments_: Record<string, unknown>): boolean {
 }
 
 function shouldApplyWorkspaceGraphScope(input: WorkspaceGraphQueryInput): boolean {
+  if (input.report === 'relationships') return true;
   if (input.report === 'search' || input.report === 'overview' || input.report === 'paths') return false;
   return !hasTargetSelector(input.arguments);
 }
