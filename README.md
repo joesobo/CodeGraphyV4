@@ -76,6 +76,8 @@ The terminal CLI supports Node.js 20 through 22. Node 22 LTS is recommended.
 
 ```bash
 npm install -g @codegraphy-dev/core
+codegraphy settings get maxFiles
+codegraphy settings set maxFiles 2500
 codegraphy index
 codegraphy search SettingsPanel
 codegraphy query packages/extension/src/webview/app/shell/view.tsx
@@ -126,10 +128,11 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 |---|---|
 | `codegraphy status` | Reports fresh, stale, or missing Graph Cache state. |
 | `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
-| `codegraphy index` | Makes the selected workspace Graph Cache current. |
+| `codegraphy index` | Makes the Graph Cache current and reports actionable file-budget truncation. |
+| `codegraphy settings [get|set|unset]` | Safely reads or changes validated workspace settings such as `maxFiles`. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
-| `codegraphy search <pattern>` | Finds live source lines, cached AST Symbols, and indexed Nodes with provenance. |
-| `codegraphy query <node>` | Inspects one exact File or Symbol with declarations and incoming/outgoing Relationships. |
+| `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
+| `codegraphy query <node>` | Inspects one exact File or Symbol with prioritized declarations and incoming/outgoing Relationships. |
 | `codegraphy edges` | Lists bounded Edges. |
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |
 | `codegraphy dependents <node>` | Lists incoming Relationships for a file or exact Symbol Node. |

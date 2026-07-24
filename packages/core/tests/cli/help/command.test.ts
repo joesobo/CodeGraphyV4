@@ -45,15 +45,15 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['query']).output).toContain('Usage: codegraphy query <node>');
     expect(createHelpResult(['query']).output).toContain('declared AST Symbols');
     expect(createHelpResult(['query']).output).toContain('incoming and outgoing Relationships');
-    expect(createHelpResult(['query']).output).toContain('live source context');
     expect(createHelpResult(['settings']).output).toContain('settings set maxFiles 2500');
+    expect(createHelpResult(['settings']).output).toContain('Supported keys: maxFiles, include, respectGitignore');
     expect(createHelpResult(['settings']).output).toContain('never replace malformed settings with defaults');
     expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
     expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search');
     expect(createHelpResult(['search']).output).toContain('live source lines');
     expect(createHelpResult(['search']).output).toContain('cached AST Symbols');
     expect(createHelpResult(['search']).output).toContain('`*` wildcard');
-    expect(createHelpResult(['search']).output).toContain('BM25');
+    expect(createHelpResult(['search']).output).toContain('all-term path/source ranking');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');
@@ -80,7 +80,8 @@ describe('cli/help/command', () => {
     const indexHelp = createHelpResult(['index']).output;
     expect(indexHelp).toContain('Create or update the workspace Graph Cache.');
     expect(indexHelp).toContain('Effects: Writes .codegraphy/graph.sqlite');
-    expect(indexHelp).toContain('Output: JSON indexing summary.');
+    expect(indexHelp).toContain('discovery.limitReached');
+    expect(indexHelp).toContain('actionable maxFiles command');
     expect(indexHelp).toContain('Example: codegraphy index');
 
     const filterHelp = createHelpResult(['filter']).output;

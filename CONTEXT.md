@@ -45,8 +45,8 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Sea
 | **Filtered Graph** | The Scoped Graph after Filter rules. |
 | **Graph View Search** | A temporary text query that narrows the current graph without changing Filter settings. |
 | **Searched Graph** | The Filtered Graph after Graph View Search. |
-| **CLI Search** | A bounded discovery query over live source lines, cached AST Symbols, and indexed Nodes. It reports source and cache provenance and does not change settings. |
-| **Target Query** | A bounded overview of one exact File or Symbol Node, including declarations and incoming/outgoing Relationships. |
+| **CLI Search** | A bounded discovery query over exact live source, cached AST Symbols, and indexed Nodes. Sparse natural multi-term phrases add deterministic all-term File candidates. It reports source and cache provenance and does not change settings. |
+| **Target Query** | A bounded overview of one exact File or Symbol Node, including prioritized declarations and incoming/outgoing Relationships. |
 | **Visible Graph** | The graph shown on screen after Graph Scope, Filter, Search, Show Orphans, and other view projection rules. |
 | **Orphan Node** | A Node with no remaining Edges after graph narrowing. |
 | **Show Orphans** | A final Graph View setting that keeps or removes Orphan Nodes. |
@@ -107,13 +107,14 @@ The Graph View can use a whole-view loading state before its first graph payload
 | **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
 | **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
-| **CodeGraphy Exploration CLI** | `search` discovers live source, cached AST Symbols, and indexed Nodes; `query` inspects one exact File or Symbol. Both return bounded JSON with provenance. |
+| **CodeGraphy Exploration CLI** | `search` combines exact evidence with deterministic all-term fallback ranking for natural phrases; `query` inspects one exact File or Symbol with prioritized declarations and Relationships. Both return bounded JSON with provenance. |
+| **CodeGraphy Settings CLI** | `settings`, `settings get`, `settings set`, and `settings unset` read or safely mutate supported workspace settings without silently repairing corrupt persisted input. |
 | **Graph Query CLI** | `nodes`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output over the shaped Relationship Graph. |
 | **CodeGraphy Agent Skill** | Instructions that teach shell-capable agents when to index, which Graph Query command to choose, and when to inspect source. |
 | **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
 | **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |
 
-The CLI never searches parent directories for a workspace. Indexing and exploration are separate operations, so `search` and `query` never perform Indexing. CLI Search reads source text live from eligible indexed File Nodes and labels cached Symbol provenance as fresh or stale. Agents start with the narrowest useful discovery operation, run Indexing only after a missing-cache result or when current AST/Relationship facts are required, and inspect returned source evidence directly.
+The CLI never searches parent directories for a workspace. Indexing and exploration are separate operations, so `search` and `query` never perform Indexing. CLI Search reads source text live from eligible indexed File Nodes and labels cached Symbol provenance as fresh or stale. When Indexing reports a file-budget cap, agents can inspect or raise `maxFiles`, adjust durable filters, and explicitly re-index before querying. Persisted known settings fields are validated strictly; malformed input is reported and never replaced by defaults during mutation. Agents otherwise start with the narrowest useful discovery operation and inspect returned source evidence directly.
 
 ## Plugins
 
