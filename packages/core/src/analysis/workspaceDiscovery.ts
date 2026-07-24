@@ -18,7 +18,7 @@ export interface WorkspacePipelineDiscoveryResult<TFile> {
 export interface WorkspacePipelineDiscoveryDependencies<TFile> {
   discover(options: {
     exclude: string[];
-    filter: string[];
+    filter?: string[];
     include: string[];
     maxFiles: number;
     respectGitignore: boolean;
