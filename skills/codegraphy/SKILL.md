@@ -1,55 +1,51 @@
 ---
 name: codegraphy
-description: Use the CodeGraphy CLI to discover source, AST Symbols, and Relationships in a prepared workspace graph.
+description: Use the CodeGraphy CLI for bounded source and relationship navigation in a prepared workspace graph.
 ---
 
 # CodeGraphy
 
-Use CodeGraphy to identify the smallest set of source files worth reading. It provides navigation evidence, not a substitute for source inspection.
+CodeGraphy identifies the smallest set of source files worth reading. It provides navigation evidence, not a substitute for source inspection.
 
-## Fast workflow
+## When to use it
 
-1. Start with useful evidence instead of a preparatory status call:
-   - `search <pattern>` discovers an identifier, path, or exact source phrase.
-   - `query <node>` inspects one exact File path or Symbol Node ID already returned by search.
-2. Read the returned source files and lines.
-3. Use a narrow continuation command only when the overview is insufficient.
+Use CodeGraphy when:
 
-If a command reports `graph_cache_not_found`, run `codegraphy index` once and retry. Search reports whether live source differs from its cached Symbol facts in `data.sources.symbols.cacheState`; do not run `status` before every query. If Indexing reports a file-budget truncation, inspect `codegraphy settings get maxFiles`, raise it with `codegraphy settings set maxFiles <number>`, adjust durable exclusions with `codegraphy filter` when appropriate, then run `codegraphy index` once. Do not inspect or mutate settings preemptively when results are already complete.
+- a task gives a symptom or identifier but not the owning source;
+- an unfamiliar or large repository makes broad search expensive;
+- a caller, dependency, re-export, or impact path is unknown.
 
-Use `-C <workspace>` from outside the workspace. Quote patterns containing spaces or `*`.
+Skip CodeGraphy when:
 
-## Choose the command by question
+- the task or failing test already names the relevant source and the question is local to it;
+- a small repository or one narrow text search is sufficient;
+- the task is primarily about prose or configuration rather than code relationships.
 
-- `search <pattern>`: locate matching live source lines, cached AST Symbols, and indexed File or concept Nodes. Matching is case-insensitive; `*` spans characters within one line or name. Natural multi-term phrases also use deterministic all-term File ranking when literal evidence is sparse. Symbol results include their `filePath`; text results include `line`, `column`, and `excerpt`.
-- `query <node>`: inspect one exact File or Symbol. It returns prioritized declared AST Symbols plus bounded incoming and outgoing Relationships in one call.
-- `dependencies <node>`: continue through outgoing Relationships—what the Node uses.
-- `dependents <node>`: continue through incoming Relationships—what may be affected.
-- `path <from> <to>`: verify whether and how two exact Nodes connect.
-- `nodes`: inventory shaped Nodes when type-level enumeration is the task.
-- `edges`: inventory shaped Relationships when edge-level enumeration is the task.
-- `status`: inspect Graph Cache state when freshness itself is the task.
-- `doctor`: diagnose settings, cache, runtime, or Plugin failures.
-- `settings`: read effective workspace configuration or safely `get`, `set`, and `unset` any supported top-level setting. Values passed to `set` are JSON; mutations report `indexRequired`.
-- `filter`, `scope`, and `plugins`: inspect or change durable workspace configuration; do not use them for ordinary navigation.
+## Setup only when needed
 
-Query with the narrowest command that answers the current question. Prefer `search` → `query` → source reads over dumping Nodes or Edges.
+Do not call `status`, inspect settings, or index before ordinary navigation. If a command reports `graph_cache_not_found`, run `codegraphy index` once and retry. Use `codegraphy filter`, `settings`, `scope`, or `plugins` only to prepare or durably change the workspace, not as navigation steps. If indexing reports a file-budget cap, follow its `maxFiles` recovery action and reindex once.
 
-Once `search` or `query` identifies a relevant File, stop using graph commands to look for details inside that File. Read the known File or use file-local text search, preferably alongside the other already-known source and test files in one tool turn. Do not search again for identifiers already present in returned declarations. Use at most four individual CodeGraphy invocations for an investigation unless you are following `nextOffset`; commands launched together still count separately. Do not guess possible function or type names for another Search—use only task literals or identifiers already returned. If four invocations have not narrowed the evidence, switch to ordinary source search. Repeated workspace searches are slower and more expensive than reading known source. This navigation budget does not weaken the answer: verify and state every requested condition, default adapter, side-effect destination, and test from source before stopping.
+Query with the narrowest operation that answers the question:
 
-## Keep output bounded
+- `search <pattern>` locates live source, AST Symbols, and File Nodes.
+- `query <exact-node>` gives bounded declarations plus incoming and outgoing Relationships for one returned File or Symbol ID.
+- `dependencies`, `dependents`, and `path` answer one unresolved relationship question.
+- `nodes` and `edges` enumerate graph inventories; do not use them for ordinary localization.
 
-`search` defaults to 20 combined matches. `nodes`, `edges`, `dependencies`, and `dependents` default to 100 results. When `data.page.nextOffset` is not `null`, continue with `--offset <nextOffset>` only if the current page did not answer the question.
+## Token-bounded navigation policy
 
-Graph navigation commands accept repeatable `--filter`, `--node-type`, and `--edge-type` projections without changing settings. Saved Graph View Scope does not hide evidence from Search, Target Query, Path, or an exact targeted Relationship selector; those operations use complete cached types unless you explicitly project that dimension. Use persisted `filter` or `scope` mutations only for durable workspace changes.
+1. Use `search` only when the relevant source is not already known. Search with at most three task literals:
+   - use an exact identifier plus one domain word when the identifier is common;
+   - otherwise use two or three short task words;
+   - never submit a sentence or guess an API name.
+2. If the first page is broad or unrelated, the second and final normal call may refine the search with one different task word. Otherwise use `query` only when one returned target's relationships are needed.
+3. Normally make at most two CodeGraphy calls. A third is allowed only for one unresolved relationship continuation. Commands launched concurrently count separately.
+4. Never repeat the same search or search an identifier already returned.
+5. Once Search returns plausible source or test paths, read the best few paths directly. Do not rerun repository-wide `rg`, `grep`, or `find` merely to localize the same task. Use file-local search after reading.
+6. Stop graph navigation once relevant files are known. Verify the requested behavior and tests from source before answering or editing.
 
-## Failures and recovery
+Search is case-insensitive, `*` is a line-local wildcard, and multi-term searches rank Files containing all terms. Quote patterns containing spaces or `*`. Search results include paths and locations; query targets must be exact returned File paths or Symbol IDs.
 
-Data commands write one `{ok:true,command,data}` JSON envelope to stdout. Failures write `{ok:false,command,error}` to stderr and exit nonzero: 1 for an operational failure and 2 for an invalid invocation. `--verbose` adds diagnostics on stderr. Error identifiers below are recovery signals, not repository search terms; do not spend navigation calls searching their names unless the task cites that exact runtime error.
+Results are JSON envelopes. Use `data.page.nextOffset` only when the current page is insufficient. On `query_target_not_found`, search for an exact target. After one empty or refined search, switch to ordinary source search rather than spending more graph calls.
 
-- `graph_cache_not_found`: run `codegraphy index`, then retry.
-- `query_target_not_found`: use `search` to obtain an exact File path or Symbol Node ID.
-- Empty search: use a shorter literal or one `*` wildcard; after one broader attempt, fall back to ordinary source search.
-- Unhealthy cache/settings: run `codegraphy doctor` and follow `error.details.checks`.
-
-Run `codegraphy --help` or `codegraphy <command> --help` for the complete interface and examples.
+Run `codegraphy --help` or `codegraphy <command> --help` for complete syntax and examples.
