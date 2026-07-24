@@ -21,8 +21,8 @@ Use `-C <workspace>` from outside the workspace. Quote patterns containing space
 
 ## Choose the command by question
 
-- `search <pattern>`: locate matching live source lines, cached AST Symbols, and indexed File or concept Nodes. Matching is case-insensitive; `*` spans characters within one line or name. Natural multi-term phrases also use BM25 File ranking when literal evidence is sparse. Symbol results include their `filePath`; text results include `line`, `column`, and `excerpt`.
-- `query <node>`: inspect one exact File or Symbol. It returns declared AST Symbols plus bounded incoming and outgoing Relationships in one call. Exact Symbol queries also include bounded live `sourceContext`; use it before issuing a separate source read.
+- `search <pattern>`: locate matching live source lines, cached AST Symbols, and indexed File or concept Nodes. Matching is case-insensitive; `*` spans characters within one line or name. Natural multi-term phrases also use deterministic all-term File ranking when literal evidence is sparse. Symbol results include their `filePath`; text results include `line`, `column`, and `excerpt`.
+- `query <node>`: inspect one exact File or Symbol. It returns prioritized declared AST Symbols plus bounded incoming and outgoing Relationships in one call.
 - `dependencies <node>`: continue through outgoing Relationships—what the Node uses.
 - `dependents <node>`: continue through incoming Relationships—what may be affected.
 - `path <from> <to>`: verify whether and how two exact Nodes connect.
@@ -35,7 +35,7 @@ Use `-C <workspace>` from outside the workspace. Quote patterns containing space
 
 Query with the narrowest command that answers the current question. Prefer `search` → `query` → source reads over dumping Nodes or Edges.
 
-Once `search` or `query` identifies a relevant File, stop using graph commands to look for details inside that File. Use returned Symbol `sourceContext`, read it, or use file-local text search. Do not search again for identifiers already present in returned declarations. Use at most four CodeGraphy calls for an investigation unless you are following `nextOffset`; if four calls have not narrowed the evidence, switch to ordinary source search. Repeated workspace searches are slower and more expensive than reading known source. This navigation budget does not weaken the answer: verify and state every requested condition, default adapter, side-effect destination, and test from source before stopping.
+Once `search` or `query` identifies a relevant File, stop using graph commands to look for details inside that File. Read the known File or use file-local text search, preferably alongside the other already-known source and test files in one tool turn. Do not search again for identifiers already present in returned declarations. Use at most four CodeGraphy calls for an investigation unless you are following `nextOffset`; if four calls have not narrowed the evidence, switch to ordinary source search. Repeated workspace searches are slower and more expensive than reading known source. This navigation budget does not weaken the answer: verify and state every requested condition, default adapter, side-effect destination, and test from source before stopping.
 
 ## Keep output bounded
 
@@ -45,7 +45,7 @@ Graph navigation commands accept repeatable `--filter`, `--node-type`, and `--ed
 
 ## Failures and recovery
 
-Data commands write one `{ok:true,command,data}` JSON envelope to stdout. Failures write `{ok:false,command,error}` to stderr and exit nonzero: 1 for an operational failure and 2 for an invalid invocation. `--verbose` adds diagnostics on stderr.
+Data commands write one `{ok:true,command,data}` JSON envelope to stdout. Failures write `{ok:false,command,error}` to stderr and exit nonzero: 1 for an operational failure and 2 for an invalid invocation. `--verbose` adds diagnostics on stderr. Error identifiers below are recovery signals, not repository search terms; do not spend navigation calls searching their names unless the task cites that exact runtime error.
 
 - `graph_cache_not_found`: run `codegraphy index`, then retry.
 - `query_target_not_found`: use `search` to obtain an exact File path or Symbol Node ID.

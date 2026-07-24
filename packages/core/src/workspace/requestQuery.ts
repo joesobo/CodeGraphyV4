@@ -61,18 +61,9 @@ function executeWorkspaceGraphQuery(
     source,
     input.projection,
   );
-  const target = typeof input.arguments.target === 'string' ? input.arguments.target : undefined;
-  const targetFilePath = target
-    ? snapshotFacts.symbols.find(symbol => symbol.id === target)?.filePath ?? target
-    : undefined;
   const sourceText = input.report === 'search'
     ? readWorkspaceQuerySourceText(workspaceRoot, graphData, source.indexedContentHashes)
-    : input.report === 'overview' && targetFilePath
-      ? readWorkspaceQuerySourceText(workspaceRoot, {
-          nodes: graphData.nodes.filter(node => node.id === targetFilePath),
-          edges: [],
-        }, source.indexedContentHashes)
-      : undefined;
+    : undefined;
   const queryResult = executeGraphQuery({
     graphData,
     symbols: snapshotFacts.symbols,

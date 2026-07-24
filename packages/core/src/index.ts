@@ -460,7 +460,6 @@ export type {
   GraphQuerySearchConfig,
   GraphQuerySearchMatch,
   GraphQuerySearchReport,
-  GraphQuerySourceContext,
   GraphQuerySort,
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
