@@ -32,6 +32,13 @@ describe('pipeline/fileAnalysis/targetSymbolName', () => {
     )).toBe('/workspace/src/target.ts:target');
   });
 
+  it('does not substitute the sole target when a requested name is missing', () => {
+    expect(resolveTargetSymbolId(
+      relation({ metadata: { importedName: 'missing' } }),
+      [symbol('/workspace/src/target.ts', 'other')],
+    )).toBeUndefined();
+  });
+
   it('does not pick an ambiguous named target symbol', () => {
     expect(resolveTargetSymbolId(
       relation({ metadata: { importedName: 'target' } }),

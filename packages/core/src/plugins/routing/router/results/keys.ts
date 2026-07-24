@@ -15,6 +15,22 @@ function getBaseRelationKeyParts(
   ];
 }
 
+function getBindingRelationKeyParts(
+  relation: NonNullable<IFileAnalysisResult['relations']>[number],
+): string[] {
+  const metadata = relation.metadata;
+  const parts = [
+    metadata?.bindingKind,
+    metadata?.importedName,
+    metadata?.localName,
+    metadata?.memberName,
+    metadata?.exportedName,
+    metadata?.reexport,
+    metadata?.reexportAll,
+  ].map(value => value === undefined || value === null ? '' : String(value));
+  return parts.some(Boolean) ? ['binding', ...parts] : [];
+}
+
 function getResolvedRelationKeyParts(
   relation: NonNullable<IFileAnalysisResult['relations']>[number],
 ): string[] {
@@ -27,7 +43,10 @@ function getResolvedRelationKeyParts(
 }
 
 export function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
-  const key = getBaseRelationKeyParts(relation);
+  const key = [
+    ...getBaseRelationKeyParts(relation),
+    ...getBindingRelationKeyParts(relation),
+  ];
 
   if (relation.kind === 'call' || relation.kind === 'reference' || relation.kind === 'event') {
     key.push(...getResolvedRelationKeyParts(relation));

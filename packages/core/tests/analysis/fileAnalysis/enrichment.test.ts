@@ -29,10 +29,7 @@ function analysis(
   filePath: string,
   values: Partial<IFileAnalysisResult>,
 ): IFileAnalysisResult {
-  return {
-    filePath,
-    ...values,
-  };
+  return { filePath, ...values };
 }
 
 describe('pipeline/fileAnalysis/enrichment', () => {

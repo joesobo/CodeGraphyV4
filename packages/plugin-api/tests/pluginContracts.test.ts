@@ -2,6 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import type {
   CodeGraphyAccessKey,
+  CoreEdgeKind,
   IAccessProvider,
   IPlugin,
   IPluginGraphScopeCapabilityContext,
@@ -12,6 +13,10 @@ import type {
 } from '../src';
 
 describe('plugin API contracts', () => {
+  it('includes re-exports in the Core relationship vocabulary', () => {
+    expectTypeOf<'reexport'>().toMatchTypeOf<CoreEdgeKind>();
+  });
+
   it('lets plugins declare graph scope capabilities separately from emitted graph output', () => {
     const plugin = {
       id: 'acme.routes',
