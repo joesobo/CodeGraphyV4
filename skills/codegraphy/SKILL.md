@@ -26,6 +26,8 @@ Use `-C <workspace>` from outside the workspace. File selectors are workspace-re
 
 Prefer one-off repeatable `--filter`, `--node-type`, and `--edge-type` options for a task. They do not change settings. Use `codegraphy scope` to discover available type IDs. Use `codegraphy filter` and `codegraphy scope ...` only for durable workspace changes.
 
+Query with the narrowest command that answers the current question instead of dumping the complete graph.
+
 When several queries are independent and known in advance, send them through one snapshot with `codegraphy batch`:
 
 ```sh
