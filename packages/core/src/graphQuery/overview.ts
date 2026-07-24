@@ -6,6 +6,8 @@ import type {
   GraphQueryNodeReportItem,
   GraphQueryOverviewConfig,
   GraphQueryOverviewReport,
+  GraphQuerySourceContext,
+  GraphQuerySymbolReport,
   GraphQueryTargetNotFoundReport,
 } from './model';
 import { toNodeReportItem } from './nodeReport';
@@ -15,6 +17,8 @@ import { toSymbolReportBase } from './symbols/metadata';
 
 const DECLARED_SYMBOL_LIMIT = 25;
 const RELATIONSHIP_LIMIT = 25;
+const SOURCE_CONTEXT_LINE_LIMIT = 80;
+const SOURCE_CONTEXT_CHARACTER_LIMIT = 8_000;
 
 function symbolTarget(symbol: IAnalysisSymbol): GraphQueryNodeReportItem {
   return {
@@ -34,6 +38,69 @@ function resolveTarget(data: GraphQueryData, selector: string): GraphQueryNodeRe
   if (node) return toNodeReportItem(node);
   const symbol = data.symbols?.find(candidate => candidate.id === selector);
   return symbol ? symbolTarget(symbol) : undefined;
+}
+
+function declarationKindRank(kind: string | undefined): number {
+  const ranks: Record<string, number> = {
+    function: 0,
+    method: 0,
+    class: 1,
+    interface: 1,
+    type: 1,
+    enum: 1,
+    constant: 3,
+    variable: 3,
+  };
+  return kind ? ranks[kind] ?? 2 : 2;
+}
+
+function listOverviewSymbols(data: GraphQueryData, filePath: string): GraphQuerySymbolReport {
+  const complete = listGraphSymbols(data, {
+    filePath,
+    limit: Math.max(1, data.symbols?.length ?? 0),
+  }).symbols.sort((left, right) => (
+    declarationKindRank(left.kind) - declarationKindRank(right.kind)
+    || left.name.localeCompare(right.name)
+    || (left.id ?? '').localeCompare(right.id ?? '')
+  ));
+  const symbols = complete.slice(0, DECLARED_SYMBOL_LIMIT);
+  return {
+    symbols,
+    page: {
+      offset: 0,
+      limit: DECLARED_SYMBOL_LIMIT,
+      returned: symbols.length,
+      total: complete.length,
+      nextOffset: complete.length > DECLARED_SYMBOL_LIMIT ? DECLARED_SYMBOL_LIMIT : null,
+    },
+  };
+}
+
+function createSourceContext(
+  data: GraphQueryData,
+  symbol: IAnalysisSymbol | undefined,
+): GraphQuerySourceContext | undefined {
+  if (!symbol) return undefined;
+  const sourceFile = data.sourceText?.files.find(file => file.filePath === symbol.filePath);
+  if (!sourceFile) return undefined;
+  const lines = sourceFile.content.split(/\r?\n/u);
+  const matchedLine = lines.findIndex(line => line.includes(symbol.name));
+  const startIndex = Math.max(0, (symbol.range?.startLine ?? matchedLine + 1) - 1);
+  const requestedEnd = symbol.range?.endLine ?? startIndex + SOURCE_CONTEXT_LINE_LIMIT;
+  const endIndex = Math.min(lines.length, requestedEnd, startIndex + SOURCE_CONTEXT_LINE_LIMIT);
+  const completeText = lines.slice(startIndex, endIndex).join('\n');
+  const text = completeText.slice(0, SOURCE_CONTEXT_CHARACTER_LIMIT);
+  return {
+    filePath: symbol.filePath,
+    startLine: startIndex + 1,
+    endLine: endIndex,
+    text,
+    truncated: (symbol.range
+      ? requestedEnd > endIndex
+      : startIndex + SOURCE_CONTEXT_LINE_LIMIT < lines.length)
+      || text.length < completeText.length,
+    freshness: 'live',
+  };
 }
 
 export function inspectGraphTarget(
@@ -60,12 +127,17 @@ export function inspectGraphTarget(
     edges: Object.fromEntries(data.graphData.edges.map(edge => [edge.kind, true])),
   };
   const filePath = target.symbol?.filePath ?? target.path;
+  const targetSymbol = target.symbol
+    ? data.symbols?.find(symbol => symbol.id === target.path)
+    : undefined;
+  const sourceContext = createSourceContext(data, targetSymbol);
 
   return {
     target,
     declaredSymbols: target.symbol
       ? listGraphSymbols(data, { filePath: '__symbol-target__', limit: DECLARED_SYMBOL_LIMIT })
-      : listGraphSymbols(data, { filePath, limit: DECLARED_SYMBOL_LIMIT }),
+      : listOverviewSymbols(data, filePath),
+    ...(sourceContext ? { sourceContext } : {}),
     outgoing: listGraphEdges(relationshipData.graphData, {
       from: target.path,
       scope: completeScope,

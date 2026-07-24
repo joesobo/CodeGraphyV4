@@ -189,9 +189,19 @@ export interface GraphQuerySearchReport {
   };
 }
 
+export interface GraphQuerySourceContext {
+  filePath: string;
+  startLine: number;
+  endLine: number;
+  text: string;
+  truncated: boolean;
+  freshness: 'live';
+}
+
 export interface GraphQueryOverviewReport {
   target: GraphQueryNodeReportItem;
   declaredSymbols: GraphQuerySymbolReport;
+  sourceContext?: GraphQuerySourceContext;
   outgoing: GraphQueryEdgeReport;
   incoming: GraphQueryEdgeReport;
   limits: {

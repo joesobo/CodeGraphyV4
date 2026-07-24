@@ -82,6 +82,38 @@ describe('core/graphQuery target overview', () => {
     });
   });
 
+  it('prioritizes callable and type declarations over local constants', () => {
+    const crowdedSymbols: IAnalysisSymbol[] = [
+      ...Array.from({ length: 30 }, (_, index) => ({
+        id: `src/settings.ts#aValue${index}:constant`,
+        filePath: 'src/settings.ts',
+        name: `aValue${String(index).padStart(2, '0')}`,
+        kind: 'constant',
+      })),
+      {
+        id: 'src/settings.ts#readSettings:function',
+        filePath: 'src/settings.ts',
+        name: 'readSettings',
+        kind: 'function',
+      },
+    ];
+
+    const result = inspectGraphTarget(
+      { graphData, symbols: crowdedSymbols, relations },
+      { target: 'src/settings.ts' },
+    );
+
+    expect('declaredSymbols' in result ? result.declaredSymbols.symbols[0] : undefined).toMatchObject({
+      name: 'readSettings',
+      kind: 'function',
+    });
+    expect('declaredSymbols' in result ? result.declaredSymbols.page : undefined).toMatchObject({
+      returned: 25,
+      total: 31,
+      nextOffset: 25,
+    });
+  });
+
   it('inspects an exact cached Symbol with its containing File provenance', () => {
     const result = inspectGraphTarget(
       {
@@ -91,8 +123,23 @@ describe('core/graphQuery target overview', () => {
           filePath: 'src/settings.ts',
           name: 'readSettings',
           kind: 'function',
+          range: { startLine: 2, endLine: 4 },
         }],
         relations,
+        sourceText: {
+          files: [{
+            filePath: 'src/settings.ts',
+            content: [
+              "import { readFile } from 'node:fs';",
+              'export function readSettings() {',
+              "  return JSON.parse(readFile('settings.json'));",
+              '}',
+              '',
+            ].join('\n'),
+          }],
+          filesScanned: 1,
+          filesSkipped: 0,
+        },
       },
       { target: 'src/settings.ts#readSettings:function' },
     );
@@ -109,6 +156,18 @@ describe('core/graphQuery target overview', () => {
         },
       },
       declaredSymbols: { symbols: [] },
+      sourceContext: {
+        filePath: 'src/settings.ts',
+        startLine: 2,
+        endLine: 4,
+        text: [
+          'export function readSettings() {',
+          "  return JSON.parse(readFile('settings.json'));",
+          '}',
+        ].join('\n'),
+        truncated: false,
+        freshness: 'live',
+      },
     });
   });
 

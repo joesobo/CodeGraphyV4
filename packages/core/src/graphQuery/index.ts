@@ -23,6 +23,7 @@ export type {
   GraphQuerySearchConfig,
   GraphQuerySearchMatch,
   GraphQuerySearchReport,
+  GraphQuerySourceContext,
   GraphQuerySort,
   GraphQueryResult,
   GraphQuerySymbolReport,
