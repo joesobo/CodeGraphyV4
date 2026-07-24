@@ -34,6 +34,8 @@ Use `-C <workspace>` from outside the workspace. Quote patterns containing space
 
 Query with the narrowest command that answers the current question. Prefer `search` → `query` → source reads over dumping Nodes or Edges.
 
+Once `search` or `query` identifies a relevant File, stop using graph commands to look for details inside that File. Read it or use file-local text search. Do not search again for identifiers already present in returned declarations. A normal investigation should need one discovery search and at most one target query per relevant File; repeated workspace searches are usually slower and more expensive than reading the known source.
+
 ## Keep output bounded
 
 `search` defaults to 20 combined matches. `nodes`, `edges`, `dependencies`, and `dependents` default to 100 results. When `data.page.nextOffset` is not `null`, continue with `--offset <nextOffset>` only if the current page did not answer the question.
