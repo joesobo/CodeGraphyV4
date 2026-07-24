@@ -145,6 +145,52 @@ describe('plugins/command workspace state', () => {
     ]);
   });
 
+  it('returns structured plugin activity for automation', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-list-'));
+    const vue = createPluginRecord(
+      '@codegraphy-dev/plugin-vue',
+      '/global/@codegraphy-dev/plugin-vue',
+      'codegraphy.vue',
+    );
+    writeCodeGraphyInstalledPluginCache({ version: 3, plugins: [vue] }, { homeDir });
+    await runPluginsCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'codegraphy.vue',
+      workspacePath: workspaceRoot,
+    }, { homeDir });
+
+    const result = await runPluginsCommand({
+      name: 'plugins',
+      action: 'list',
+      workspacePath: workspaceRoot,
+    }, { homeDir });
+
+    expect(JSON.parse(result.output)).toEqual({
+      workspaceRoot,
+      plugins: [
+        {
+          id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+          package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+          host: 'core',
+          globallyEnabled: true,
+          workspaceActivation: 'inherit',
+          state: 'active',
+        },
+        {
+          id: 'codegraphy.vue',
+          package: '@codegraphy-dev/plugin-vue',
+          host: 'core',
+          globallyEnabled: false,
+          workspaceActivation: 'enabled',
+          state: 'active',
+        },
+      ],
+      warnings: [],
+    });
+  });
+
   it('lists disabled bundled Markdown without requiring it in the user installed plugin cache', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-markdown-'));
@@ -162,9 +208,14 @@ describe('plugins/command workspace state', () => {
       workspacePath: workspaceRoot,
     }, { homeDir });
 
-    expect(result.output).toContain('Enabled in workspace:\nnone');
-    expect(result.output).toContain('Registered but disabled:');
-    expect(result.output).toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
+    expect(JSON.parse(result.output)).toMatchObject({
+      plugins: [{
+        id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        workspaceActivation: 'disabled',
+        state: 'disabled',
+      }],
+      warnings: [],
+    });
   });
 
   it('lists enabled workspace plugins separately from registered disabled plugins', async () => {
@@ -201,12 +252,14 @@ describe('plugins/command workspace state', () => {
       workspacePath: workspaceRoot,
     }, { homeDir });
 
-    expect(result.output).toContain(`CodeGraphy plugins for ${workspaceRoot}`);
-    expect(result.output).toContain('Enabled in workspace:');
-    expect(result.output).toContain(`1. ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
-    expect(result.output).toContain('2. codegraphy.vue');
-    expect(result.output).toContain('Registered but disabled:');
-    expect(result.output).not.toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
+    expect(JSON.parse(result.output)).toMatchObject({
+      workspaceRoot,
+      plugins: [
+        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, state: 'active' },
+        { id: 'codegraphy.vue', state: 'active' },
+      ],
+      warnings: [],
+    });
   });
 
   it('lists enabled conflicting descriptors as unavailable instead of disabled', async () => {
@@ -231,8 +284,21 @@ describe('plugins/command workspace state', () => {
       workspacePath: workspaceRoot,
     }, { homeDir });
 
-    expect(result.output).toContain('Enabled but unavailable:');
-    expect(result.output).toContain('- acme.conflict');
-    expect(result.output).not.toContain('Registered but disabled:\n- acme.conflict');
+    const output = JSON.parse(result.output);
+    expect(output.plugins).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'acme.conflict',
+        package: '@acme/plugin-one',
+        state: 'enabled-unavailable',
+      }),
+      expect.objectContaining({
+        id: 'acme.conflict',
+        package: '@acme/plugin-two',
+        state: 'enabled-unavailable',
+      }),
+    ]));
+    expect(output.warnings).toEqual([
+      expect.stringContaining("CodeGraphy plugin 'acme.conflict' is enabled but multiple installed packages claim it"),
+    ]);
   });
 });
