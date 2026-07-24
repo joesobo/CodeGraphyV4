@@ -12,6 +12,26 @@ function createGitCheckIgnoreInput(pathsByGitPath: ReadonlyMap<string, string>):
   return `${[...pathsByGitPath.keys()].join('\n')}\n`;
 }
 
+function createCachedGitPathBatches(gitPaths: readonly string[]): string[][] {
+  const batches: string[][] = [];
+  let batch: string[] = [];
+  let batchBytes = 0;
+  const maxBatchBytes = 256 * 1024;
+
+  for (const gitPath of gitPaths) {
+    const pathBytes = Buffer.byteLength(gitPath, 'utf8') + 1;
+    if (batch.length > 0 && batchBytes + pathBytes > maxBatchBytes) {
+      batches.push(batch);
+      batch = [];
+      batchBytes = 0;
+    }
+    batch.push(gitPath);
+    batchBytes += pathBytes;
+  }
+  if (batch.length > 0) batches.push(batch);
+  return batches;
+}
+
 function didGitCheckIgnoreFail(result: ReturnType<typeof spawnSync>): boolean {
   if (result.error) {
     return true;
@@ -46,20 +66,21 @@ export function collectCachedGitIgnoredPaths(
   }
 
   const pathsByGitPath = createCachedGitPathLookup(relativePaths);
-  const gitPaths = [...pathsByGitPath.keys()];
   const ignoredPaths: string[] = [];
-  const batchSize = 500;
 
-  for (let offset = 0; offset < gitPaths.length; offset += batchSize) {
-    const batchPaths = gitPaths.slice(offset, offset + batchSize);
+  for (const batchPaths of createCachedGitPathBatches([...pathsByGitPath.keys()])) {
     const batchLookup = new Map(
       batchPaths.map(gitPath => [gitPath, pathsByGitPath.get(gitPath) ?? gitPath]),
     );
     const result = spawnSync('git', ['-C', workspaceRoot, 'check-ignore', '--stdin'], {
       encoding: 'utf8',
       input: createGitCheckIgnoreInput(batchLookup),
+      maxBuffer: 4 * 1024 * 1024,
     });
 
+    if (result.error && (result.error as NodeJS.ErrnoException).code === 'ENOBUFS') {
+      throw result.error;
+    }
     if (didGitCheckIgnoreFail(result)) {
       return [];
     }

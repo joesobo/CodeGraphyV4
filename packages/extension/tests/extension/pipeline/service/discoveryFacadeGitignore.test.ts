@@ -102,6 +102,7 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
       {
         encoding: 'utf8',
         input: 'example-python\nexample-python/src\nexample-python/src/main.py\n',
+        maxBuffer: 4 * 1024 * 1024,
       },
     );
     expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);

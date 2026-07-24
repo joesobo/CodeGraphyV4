@@ -1,3 +1,4 @@
+import { projectFileAnalysisConnections } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { RefreshFacadeContext } from '../context';
 import { EMPTY_REFRESH_GRAPH } from '../context';
@@ -40,11 +41,17 @@ export async function refreshGitignoreMetadataForFacade(
   const eligibleFilePaths = new Set(
     discoveryResult.files.map(file => file.relativePath),
   );
-  const eligibleFileAnalysis = new Map(
-    [...facade._lastFileAnalysis].filter(([filePath]) => eligibleFilePaths.has(filePath)),
+  facade._lastFileAnalysis = new Map(
+    Object.entries(facade._cache.files)
+      .filter(([filePath]) => eligibleFilePaths.has(filePath))
+      .map(([filePath, entry]) => [filePath, entry.analysis]),
+  );
+  facade._lastFileConnections = projectFileAnalysisConnections(
+    facade._lastFileAnalysis,
+    workspaceRoot,
   );
   return facade._buildGraphDataFromAnalysis(
-    eligibleFileAnalysis,
+    facade._lastFileAnalysis,
     workspaceRoot,
     config.showOrphans,
     input.disabledPlugins,

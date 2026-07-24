@@ -57,6 +57,7 @@ describe('pipeline/service/cache/cachedDiscovery', () => {
       {
         encoding: 'utf8',
         input: 'src\nsrc/nested\nsrc/nested/cached.ts\nREADME.md\n',
+        maxBuffer: 4 * 1024 * 1024,
       },
     );
   });
@@ -94,6 +95,7 @@ describe('pipeline/service/cache/cachedDiscovery', () => {
       {
         encoding: 'utf8',
         input: 'src\nsrc/generated.ts\nsrc/kept.ts\n',
+        maxBuffer: 4 * 1024 * 1024,
       },
     );
   });
@@ -118,8 +120,24 @@ describe('pipeline/service/cache/cachedDiscovery', () => {
       {
         encoding: 'utf8',
         input: 'src/generated.ts\n',
+        maxBuffer: 4 * 1024 * 1024,
       },
     );
+  });
+
+  it('does not silently replay ignored files when git output exceeds its buffer', () => {
+    const bufferError = Object.assign(new Error('buffer exceeded'), { code: 'ENOBUFS' });
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      error: bufferError,
+      status: null,
+      stdout: '',
+    } as never);
+
+    expect(() => collectCachedGitIgnoredPaths(
+      '/workspace',
+      ['src/generated.ts'],
+      true,
+    )).toThrow(bufferError);
   });
 
   it('returns no ignored paths when git check-ignore fails', () => {

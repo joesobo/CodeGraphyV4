@@ -42,6 +42,26 @@ function toGitPath(relativePath: string): string {
   return relativePath.split(path.sep).join('/');
 }
 
+function createGitPathBatches(gitPaths: readonly string[]): string[][] {
+  const batches: string[][] = [];
+  let batch: string[] = [];
+  let batchBytes = 0;
+  const maxBatchBytes = 256 * 1024;
+
+  for (const gitPath of gitPaths) {
+    const pathBytes = Buffer.byteLength(gitPath, 'utf8') + 1;
+    if (batch.length > 0 && batchBytes + pathBytes > maxBatchBytes) {
+      batches.push(batch);
+      batch = [];
+      batchBytes = 0;
+    }
+    batch.push(gitPath);
+    batchBytes += pathBytes;
+  }
+  if (batch.length > 0) batches.push(batch);
+  return batches;
+}
+
 function collectGitIgnoredPathsFromGit(
   rootPath: string,
   relativePaths: readonly string[],
@@ -55,20 +75,21 @@ function collectGitIgnoredPathsFromGit(
     pathsByGitPath.set(toGitPath(relativePath), relativePath);
   }
 
-  const gitPaths = [...pathsByGitPath.keys()];
   const ignoredPaths = new Set<string>();
-  const batchSize = 500;
-  for (let offset = 0; offset < gitPaths.length; offset += batchSize) {
-    const batch = gitPaths.slice(offset, offset + batchSize);
+  for (const batch of createGitPathBatches([...pathsByGitPath.keys()])) {
     const result = spawnSync(
       'git',
       ['-C', rootPath, 'check-ignore', '--stdin'],
       {
         encoding: 'utf8',
         input: `${batch.join('\n')}\n`,
+        maxBuffer: 4 * 1024 * 1024,
       },
     );
 
+    if (result.error && (result.error as NodeJS.ErrnoException).code === 'ENOBUFS') {
+      throw result.error;
+    }
     if (result.error || (result.status !== 0 && result.status !== 1)) {
       return undefined;
     }
