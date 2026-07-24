@@ -141,7 +141,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
 
-Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
+Target Query, Path, and exact targeted Relationship selectors use complete cached Node and Edge Types by default rather than saved Graph View Scope; explicit `--node-type` or `--edge-type` arguments still constrain that dimension. JavaScript-family `reexport` Relationships let calls through barrels terminate at implementation Symbols. Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
 
 ### Agent Skill
 

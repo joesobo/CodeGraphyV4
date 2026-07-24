@@ -41,7 +41,7 @@ Once `search` or `query` identifies a relevant File, stop using graph commands t
 
 `search` defaults to 20 combined matches. `nodes`, `edges`, `dependencies`, and `dependents` default to 100 results. When `data.page.nextOffset` is not `null`, continue with `--offset <nextOffset>` only if the current page did not answer the question.
 
-Graph navigation commands accept repeatable `--filter`, `--node-type`, and `--edge-type` projections without changing settings. Use persisted `filter` or `scope` mutations only for durable workspace changes.
+Graph navigation commands accept repeatable `--filter`, `--node-type`, and `--edge-type` projections without changing settings. Saved Graph View Scope does not hide evidence from Search, Target Query, Path, or an exact targeted Relationship selector; those operations use complete cached types unless you explicitly project that dimension. Use persisted `filter` or `scope` mutations only for durable workspace changes.
 
 ## Failures and recovery
 

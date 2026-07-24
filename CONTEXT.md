@@ -18,7 +18,7 @@ CodeGraphy turns a folder into an interactive Relationship Graph so people and a
 | **Plugin Node** | A Node contributed by a plugin for a concept that Core does not own. |
 | **Relationship** | A meaningful connection between two Nodes. |
 | **Edge** | A semantic Relationship record with a source, target, and Edge Type. An interface decides how to render it. |
-| **Edge Type** | The semantic category of an Edge, such as import, call, reference, inherit, contains, or nests. |
+| **Edge Type** | The semantic category of an Edge, such as import, reexport, call, reference, inherit, contains, or nests. |
 | **Edge Direction** | The source-to-target direction of a Relationship. The source initiates the import, call, reference, containment, or other relation. |
 | **Dependency** | A Relationship whose Edge Type means one Node needs another to build, run, or resolve. Do not use dependency as a synonym for every Relationship. |
 | **Downstream** | Following Edge Direction away from a Node. The Edge Type explains what the direction means. |
@@ -51,7 +51,7 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Sea
 | **Orphan Node** | A Node with no remaining Edges after graph narrowing. |
 | **Show Orphans** | A final Graph View setting that keeps or removes Orphan Nodes. |
 
-Graph Scope runs before Filter, Filter runs before Graph View Search, and sorting or pagination runs after those stages. Core Graph Query uses the same order for graph navigation. CLI Search is a discovery operation: persisted and one-off path Filters still apply, but Graph Scope does not hide cached AST Symbols or live source matches. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
+Graph Scope runs before Filter, Filter runs before Graph View Search, and sorting or pagination runs after those stages. Graph Query inventories use that shaped graph. CLI Search, Target Query, Path, and exact targeted Relationship selectors instead read the complete cached Node and Edge Types unless an invocation explicitly projects that dimension with `--node-type` or `--edge-type`; path Filters still apply. This keeps Graph View preferences from hiding indexed call or reexport evidence. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
 
 ## Selection, Focus, and Collapse
 
@@ -94,7 +94,7 @@ Interaction rules:
 | **Refresh Graph** | Restart layout physics without processing source data. |
 | **Re-index Workspace** | Run Indexing, save the Graph Cache, and refresh the graph. |
 
-Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
+Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. JavaScript-family reexports are explicit Relationships; renamed exports are Alias Symbol Nodes, so calls can resolve through barrels to implementation Symbols across full and incremental Indexing. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
 
 The Graph View can use a whole-view loading state before its first graph payload. Graph Cache Sync, Live Update, plugin changes, and Re-index keep the current graph visible after that first render and use graph-local progress.
 
