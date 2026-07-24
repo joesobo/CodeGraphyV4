@@ -82,6 +82,30 @@ describe('core/graphQuery target overview', () => {
     });
   });
 
+  it('includes bounded live source context for an exact File target', () => {
+    const result = inspectGraphTarget({
+      graphData,
+      symbols,
+      relations,
+      sourceText: {
+        files: [{ filePath: 'src/command.ts', content: 'export function runCommand() {\n  return true;\n}\n' }],
+        filesScanned: 1,
+        filesSkipped: 0,
+      },
+    }, { target: 'src/command.ts' });
+
+    expect(result).toMatchObject({
+      sourceContext: {
+        filePath: 'src/command.ts',
+        startLine: 1,
+        endLine: 4,
+        text: 'export function runCommand() {\n  return true;\n}\n',
+        truncated: false,
+        freshness: 'live',
+      },
+    });
+  });
+
   it('prioritizes callable and type declarations over local constants', () => {
     const crowdedSymbols: IAnalysisSymbol[] = [
       ...Array.from({ length: 30 }, (_, index) => ({

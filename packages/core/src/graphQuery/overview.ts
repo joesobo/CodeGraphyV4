@@ -17,8 +17,10 @@ import { toSymbolReportBase } from './symbols/metadata';
 
 const DECLARED_SYMBOL_LIMIT = 25;
 const RELATIONSHIP_LIMIT = 25;
-const SOURCE_CONTEXT_LINE_LIMIT = 80;
-const SOURCE_CONTEXT_CHARACTER_LIMIT = 8_000;
+const SYMBOL_SOURCE_CONTEXT_LINE_LIMIT = 80;
+const SYMBOL_SOURCE_CONTEXT_CHARACTER_LIMIT = 8_000;
+const FILE_SOURCE_CONTEXT_LINE_LIMIT = 200;
+const FILE_SOURCE_CONTEXT_CHARACTER_LIMIT = 12_000;
 
 function symbolTarget(symbol: IAnalysisSymbol): GraphQueryNodeReportItem {
   return {
@@ -76,7 +78,27 @@ function listOverviewSymbols(data: GraphQueryData, filePath: string): GraphQuery
   };
 }
 
-function createSourceContext(
+function createFileSourceContext(
+  data: GraphQueryData,
+  filePath: string,
+): GraphQuerySourceContext | undefined {
+  const sourceFile = data.sourceText?.files.find(file => file.filePath === filePath);
+  if (!sourceFile) return undefined;
+  const lines = sourceFile.content.split(/\r?\n/u);
+  const endIndex = Math.min(lines.length, FILE_SOURCE_CONTEXT_LINE_LIMIT);
+  const completeText = lines.slice(0, endIndex).join('\n');
+  const text = completeText.slice(0, FILE_SOURCE_CONTEXT_CHARACTER_LIMIT);
+  return {
+    filePath,
+    startLine: 1,
+    endLine: endIndex,
+    text,
+    truncated: endIndex < lines.length || text.length < completeText.length,
+    freshness: 'live',
+  };
+}
+
+function createSymbolSourceContext(
   data: GraphQueryData,
   symbol: IAnalysisSymbol | undefined,
 ): GraphQuerySourceContext | undefined {
@@ -86,10 +108,10 @@ function createSourceContext(
   const lines = sourceFile.content.split(/\r?\n/u);
   const matchedLine = lines.findIndex(line => line.includes(symbol.name));
   const startIndex = Math.max(0, (symbol.range?.startLine ?? matchedLine + 1) - 1);
-  const requestedEnd = symbol.range?.endLine ?? startIndex + SOURCE_CONTEXT_LINE_LIMIT;
-  const endIndex = Math.min(lines.length, requestedEnd, startIndex + SOURCE_CONTEXT_LINE_LIMIT);
+  const requestedEnd = symbol.range?.endLine ?? startIndex + SYMBOL_SOURCE_CONTEXT_LINE_LIMIT;
+  const endIndex = Math.min(lines.length, requestedEnd, startIndex + SYMBOL_SOURCE_CONTEXT_LINE_LIMIT);
   const completeText = lines.slice(startIndex, endIndex).join('\n');
-  const text = completeText.slice(0, SOURCE_CONTEXT_CHARACTER_LIMIT);
+  const text = completeText.slice(0, SYMBOL_SOURCE_CONTEXT_CHARACTER_LIMIT);
   return {
     filePath: symbol.filePath,
     startLine: startIndex + 1,
@@ -97,7 +119,7 @@ function createSourceContext(
     text,
     truncated: (symbol.range
       ? requestedEnd > endIndex
-      : startIndex + SOURCE_CONTEXT_LINE_LIMIT < lines.length)
+      : startIndex + SYMBOL_SOURCE_CONTEXT_LINE_LIMIT < lines.length)
       || text.length < completeText.length,
     freshness: 'live',
   };
@@ -130,7 +152,9 @@ export function inspectGraphTarget(
   const targetSymbol = target.symbol
     ? data.symbols?.find(symbol => symbol.id === target.path)
     : undefined;
-  const sourceContext = createSourceContext(data, targetSymbol);
+  const sourceContext = targetSymbol
+    ? createSymbolSourceContext(data, targetSymbol)
+    : createFileSourceContext(data, filePath);
 
   return {
     target,
