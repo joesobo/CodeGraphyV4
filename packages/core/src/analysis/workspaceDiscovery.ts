@@ -18,6 +18,7 @@ export interface WorkspacePipelineDiscoveryResult<TFile> {
 export interface WorkspacePipelineDiscoveryDependencies<TFile> {
   discover(options: {
     exclude: string[];
+    filter?: string[];
     include: string[];
     maxFiles: number;
     respectGitignore: boolean;
@@ -31,12 +32,14 @@ export async function discoverWorkspacePipelineFiles<TFile>(
   workspaceRoot: string,
   config: WorkspacePipelineDiscoveryConfig,
   signal?: AbortSignal,
+  filterPatterns: readonly string[] = [],
 ): Promise<WorkspacePipelineDiscoveryResult<TFile>> {
   return dependencies.discover({
     rootPath: workspaceRoot,
     maxFiles: config.maxFiles,
     include: config.include,
     exclude: [...DEFAULT_EXCLUDE],
+    filter: [...filterPatterns],
     respectGitignore: config.respectGitignore,
     signal,
   });
@@ -47,7 +50,7 @@ export function formatWorkspacePipelineLimitReachedMessage(
   maxFiles: number,
 ): string {
   return (
-    `CodeGraphy: Found ${totalFound}+ files, showing first ${maxFiles}. `
+    `CodeGraphy: Found ${totalFound} files, showing first ${maxFiles}. `
     + 'Increase maxFiles in .codegraphy/settings.json to see more.'
   );
 }

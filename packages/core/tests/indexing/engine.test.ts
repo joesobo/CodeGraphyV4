@@ -1,7 +1,12 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { createCodeGraphyWorkspaceEngine } from '../../src';
+import {
+  createCodeGraphyWorkspaceEngine,
+  readCodeGraphyWorkspaceSettings,
+  readWorkspaceAnalysisDatabaseSnapshot,
+  writeCodeGraphyWorkspaceSettings,
+} from '../../src';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
 
 describe('createCodeGraphyWorkspaceEngine', () => {
@@ -204,6 +209,50 @@ describe('createCodeGraphyWorkspaceEngine', () => {
 
     expect(initialize).toHaveBeenCalledTimes(2);
     expect(onUnload).toHaveBeenCalledTimes(2);
+  });
+
+  it('retains cached files when filters are re-enabled across engine indexes', async () => {
+    const workspaceRoot = await createWorkspace();
+    await mkdir(join(workspaceRoot, '.claude'), { recursive: true });
+    await writeFile(join(workspaceRoot, '.claude', 'notes.txt'), 'hidden\n', 'utf-8');
+    const baseSettings = {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      include: ['**/*.txt'],
+      maxFiles: 10,
+      respectGitignore: false,
+    };
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...baseSettings,
+      filterPatterns: ['.claude/**'],
+    });
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+
+    await engine.index();
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...baseSettings,
+      filterPatterns: [],
+    });
+    await engine.index();
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...baseSettings,
+      filterPatterns: ['.claude/**'],
+    });
+    const filteredAgain = await engine.index();
+
+    expect(
+      readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
+    ).toContain('.claude/notes.txt');
+    expect(filteredAgain.graph.nodes.map(node => node.id)).not.toContain('.claude/notes.txt');
+    engine.dispose();
   });
 
   it('applies known changed files incrementally after the first index', async () => {

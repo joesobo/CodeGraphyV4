@@ -56,7 +56,6 @@ export function createCodeGraphyWorkspaceSettingsSignature(
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     maxFiles: settings.maxFiles,
     include: settings.include,
-    respectGitignore: settings.respectGitignore,
     plugins: settings.plugins
       .filter(plugin => analysisPluginIds?.has(plugin.id) ?? true)
       .map(plugin => ({

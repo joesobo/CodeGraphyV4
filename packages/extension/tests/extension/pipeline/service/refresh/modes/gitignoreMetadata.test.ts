@@ -30,6 +30,14 @@ function createFacade(
   overrides: Partial<RefreshFacadeContext> = {},
 ): RefreshFacadeContext {
   return {
+    _cache: {
+      files: {
+        'src/a.ts': {
+          analysis: { filePath: '/workspace/src/a.ts' },
+          mtime: 1,
+        },
+      },
+    },
     _analyzeFiles: vi.fn(),
     _buildGraphData: vi.fn(),
     _buildGraphDataFromAnalysis: vi.fn(() => createGraph('rebuilt')),
@@ -43,7 +51,7 @@ function createFacade(
     _lastDiscoveredDirectories: ['old-src'],
     _lastDiscoveredFiles: [createFile('old.ts')],
     _lastFileAnalysis: new Map([['src/a.ts', { filePath: '/workspace/src/a.ts' }]]),
-    _lastFileConnections: new Map(),
+    _lastFileConnections: new Map([['src/a.ts', [{ from: 'src/a.ts', to: 'src/b.ts' }]]]),
     _lastGitIgnoredPaths: ['old-ignore'],
     _lastGraphData: createGraph('last'),
     _lastWorkspaceRoot: '/old-workspace',
@@ -129,13 +137,15 @@ describe('extension/pipeline/service/refresh/modes/gitignoreMetadata', () => {
     expect(facade._lastDiscoveredFiles).toBe(files);
     expect(facade._lastGitIgnoredPaths).toEqual([]);
     expect(facade._lastWorkspaceRoot).toBe('/workspace');
+    expect(facade._lastFileAnalysis).toEqual(new Map());
+    expect(facade._lastFileConnections).toEqual(new Map());
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
     expect(warn).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to persist gitignore metadata refresh.',
       persistError,
     );
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
-      facade._lastFileAnalysis,
+      new Map(),
       '/workspace',
       false,
       disabledPlugins,

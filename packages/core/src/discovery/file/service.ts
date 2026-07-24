@@ -6,9 +6,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
-import { IDiscoveryOptions, IDiscoveredFile, IDiscoveryResult } from '../contracts';
+import { IDiscoveryOptions, IDiscoveredFile, IFileDiscoveryResult } from '../contracts';
 import { throwIfAborted } from '../abort';
-import { DEFAULT_EXCLUDE } from '../pathMatching';
+import { DEFAULT_EXCLUDE, matchesAnyPattern } from '../pathMatching';
 import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
@@ -18,6 +18,7 @@ function getDiscoveryConfig(options: IDiscoveryOptions) {
     maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
     includePatterns: options.include ?? DEFAULT_INCLUDE,
     excludePatterns: options.exclude ?? EMPTY_PATTERNS,
+    filterPatterns: options.filter ?? EMPTY_PATTERNS,
     respectGitignore: options.respectGitignore ?? true,
     extensions: options.extensions ?? EMPTY_PATTERNS,
   };
@@ -41,6 +42,26 @@ function toGitPath(relativePath: string): string {
   return relativePath.split(path.sep).join('/');
 }
 
+function createGitPathBatches(gitPaths: readonly string[]): string[][] {
+  const batches: string[][] = [];
+  let batch: string[] = [];
+  let batchBytes = 0;
+  const maxBatchBytes = 256 * 1024;
+
+  for (const gitPath of gitPaths) {
+    const pathBytes = Buffer.byteLength(gitPath, 'utf8') + 1;
+    if (batch.length > 0 && batchBytes + pathBytes > maxBatchBytes) {
+      batches.push(batch);
+      batch = [];
+      batchBytes = 0;
+    }
+    batch.push(gitPath);
+    batchBytes += pathBytes;
+  }
+  if (batch.length > 0) batches.push(batch);
+  return batches;
+}
+
 function collectGitIgnoredPathsFromGit(
   rootPath: string,
   relativePaths: readonly string[],
@@ -54,25 +75,31 @@ function collectGitIgnoredPathsFromGit(
     pathsByGitPath.set(toGitPath(relativePath), relativePath);
   }
 
-  const result = spawnSync(
-    'git',
-    ['-C', rootPath, 'check-ignore', '--stdin'],
-    {
-      encoding: 'utf8',
-      input: `${[...pathsByGitPath.keys()].join('\n')}\n`,
-    },
-  );
+  const ignoredPaths = new Set<string>();
+  for (const batch of createGitPathBatches([...pathsByGitPath.keys()])) {
+    const result = spawnSync(
+      'git',
+      ['-C', rootPath, 'check-ignore', '--stdin'],
+      {
+        encoding: 'utf8',
+        input: `${batch.join('\n')}\n`,
+        maxBuffer: 4 * 1024 * 1024,
+      },
+    );
 
-  if (result.error || (result.status !== 0 && result.status !== 1)) {
-    return undefined;
+    if (result.error && (result.error as NodeJS.ErrnoException).code === 'ENOBUFS') {
+      throw result.error;
+    }
+    if (result.error || (result.status !== 0 && result.status !== 1)) {
+      return undefined;
+    }
+
+    for (const gitPath of result.stdout.split(/\r?\n/).filter(Boolean)) {
+      ignoredPaths.add(pathsByGitPath.get(gitPath) ?? gitPath);
+    }
   }
 
-  return new Set(
-    result.stdout
-      .split(/\r?\n/)
-      .filter(Boolean)
-      .map(gitPath => pathsByGitPath.get(gitPath) ?? gitPath),
-  );
+  return ignoredPaths;
 }
 
 function collectGitIgnoredPaths(
@@ -86,14 +113,46 @@ function collectGitIgnoredPaths(
   ) ?? new Set();
 }
 
+function collectContainingDirectories(filePaths: readonly string[]): Set<string> {
+  const directories = new Set<string>();
+  for (const filePath of filePaths) {
+    let directoryPath = path.dirname(filePath);
+    while (directoryPath !== '.') {
+      directories.add(directoryPath);
+      directoryPath = path.dirname(directoryPath);
+    }
+  }
+  return directories;
+}
+
+function filterEligibleDirectories(
+  directories: readonly string[],
+  candidateFilePaths: readonly string[],
+  eligibleFilePaths: readonly string[],
+  filterPatterns: readonly string[],
+  gitIgnoredPaths: ReadonlySet<string>,
+): string[] {
+  const directoriesWithCandidates = collectContainingDirectories(candidateFilePaths);
+  const directoriesWithEligibleFiles = collectContainingDirectories(eligibleFilePaths);
+  return directories.filter(directoryPath => (
+    !matchesAnyPattern(directoryPath, filterPatterns)
+    && !gitIgnoredPaths.has(directoryPath)
+    && (
+      !directoriesWithCandidates.has(directoryPath)
+      || directoriesWithEligibleFiles.has(directoryPath)
+    )
+  ));
+}
+
 export class FileDiscovery {
-  async discover(options: IDiscoveryOptions): Promise<IDiscoveryResult> {
+  async discover(options: IDiscoveryOptions): Promise<IFileDiscoveryResult> {
     const startTime = Date.now();
     const { rootPath, signal } = options;
     const {
       maxFiles,
       includePatterns,
       excludePatterns,
+      filterPatterns,
       respectGitignore,
       extensions,
     } = getDiscoveryConfig(options);
@@ -101,10 +160,8 @@ export class FileDiscovery {
     throwIfAborted(signal);
 
     const allExclude = [...DEFAULT_EXCLUDE, ...excludePatterns];
-    const discoveredFiles: Array<{ absolutePath: string; relativePath: string }> = [];
+    const candidateFiles: Array<{ absolutePath: string; relativePath: string }> = [];
     const directories: string[] = [];
-    let totalFound = 0;
-    let limitReached = false;
 
     await walkDirectory(
       rootPath,
@@ -112,23 +169,14 @@ export class FileDiscovery {
       (relativePath, absolutePath) => {
         throwIfAborted(signal);
 
-        if (discoveredFiles.length >= maxFiles) {
-          limitReached = true;
-          totalFound++;
-          return false;
-        }
-
-        if (!shouldIncludeFile(relativePath, absolutePath, {
+        if (shouldIncludeFile(relativePath, absolutePath, {
           includePatterns,
           excludePatterns: allExclude,
           extensions,
           gitignore: null,
         })) {
-          return true;
+          candidateFiles.push({ absolutePath, relativePath });
         }
-
-        discoveredFiles.push({ absolutePath, relativePath });
-        totalFound++;
         return true;
       },
       relativePath => {
@@ -140,25 +188,42 @@ export class FileDiscovery {
     const gitIgnoredPaths = respectGitignore
       ? collectGitIgnoredPaths(
         rootPath,
-        discoveredFiles.map(file => file.relativePath),
+        candidateFiles.map(file => file.relativePath),
         directories,
       )
       : new Set<string>();
-    const files = discoveredFiles.map(file =>
-      createDiscoveredFile(
-        file.relativePath,
-        file.absolutePath,
-        gitIgnoredPaths.has(file.relativePath),
-      ),
+    const eligibleFiles = candidateFiles.filter(file => (
+      !matchesAnyPattern(file.relativePath, filterPatterns)
+      && !gitIgnoredPaths.has(file.relativePath)
+    ));
+    const limitReached = eligibleFiles.length > maxFiles;
+    const indexedFiles = eligibleFiles.slice(0, maxFiles);
+    const indexedFilePaths = new Set(indexedFiles.map(file => file.relativePath));
+    const eligibleFilePaths = new Set(eligibleFiles.map(file => file.relativePath));
+    const cacheFilePaths = candidateFiles
+      .filter(file => (
+        !eligibleFilePaths.has(file.relativePath)
+        || indexedFilePaths.has(file.relativePath)
+      ))
+      .map(file => file.relativePath);
+    const files = indexedFiles
+      .map(file => createDiscoveredFile(file.relativePath, file.absolutePath, false));
+    const eligibleDirectories = filterEligibleDirectories(
+      directories,
+      candidateFiles.map(file => file.relativePath),
+      files.map(file => file.relativePath),
+      filterPatterns,
+      gitIgnoredPaths,
     );
 
     const durationMs = Date.now() - startTime;
     return {
       files,
-      directories,
+      cacheFilePaths,
+      directories: eligibleDirectories,
       gitIgnoredPaths: [...gitIgnoredPaths],
       limitReached,
-      totalFound: limitReached ? totalFound : undefined,
+      totalFound: limitReached ? eligibleFiles.length : undefined,
       durationMs,
     };
   }

@@ -72,7 +72,6 @@ function createHydrateAnalysisCacheTiersMethod(
         source._disabledPlugins,
         signal,
         {
-          includeCurrentGitignoreMetadata: true,
           requiredAnalysisCacheTiers: createRequiredAnalysisCacheTiers(tiers),
           warmAnalysis: false,
         },

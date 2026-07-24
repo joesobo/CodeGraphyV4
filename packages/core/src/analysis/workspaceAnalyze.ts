@@ -77,7 +77,7 @@ export interface WorkspacePipelineAnalysisDependencies
 export async function analyzeWorkspaceWithAnalyzer(
   source: WorkspacePipelineAnalysisSource,
   dependencies: WorkspacePipelineAnalysisDependencies,
-  _filterPatterns: string[] = [],
+  filterPatterns: string[] = [],
   disabledPlugins: Set<string> = new Set(),
   signal?: AbortSignal,
 ): Promise<IGraphData> {
@@ -95,11 +95,19 @@ export async function analyzeWorkspaceWithAnalyzer(
     current: 0,
     total: 1,
   });
+  const disabledCustomFilterPatterns = new Set(config.disabledCustomFilterPatterns ?? []);
+  const disabledPluginFilterPatterns = new Set(config.disabledPluginFilterPatterns ?? []);
+  const activeFilterPatterns = [...new Set([
+    ...filterPatterns.filter(pattern => !disabledCustomFilterPatterns.has(pattern)),
+    ...source.getPluginFilterPatterns(disabledPlugins)
+      .filter(pattern => !disabledPluginFilterPatterns.has(pattern)),
+  ])];
   const discoveryResult = await discoverWorkspacePipelineFiles(
     dependencies,
     workspaceRoot,
     config,
     signal,
+    activeFilterPatterns,
   );
   dependencies.sendProgress?.({
     phase: 'Discovering Files',

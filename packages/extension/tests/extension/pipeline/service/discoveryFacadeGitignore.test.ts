@@ -102,12 +102,13 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
       {
         encoding: 'utf8',
         input: 'example-python\nexample-python/src\nexample-python/src/main.py\n',
+        maxBuffer: 4 * 1024 * 1024,
       },
     );
     expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
   });
 
-  it('can defer current gitignore metadata while replaying stale cached graph data', async () => {
+  it('applies current gitignore metadata while replaying stale cached graph data', async () => {
     const facade = new TestDiscoveryFacade();
     const cachedAnalysis = {
       filePath: '/workspace/example-python/src/main.py',
@@ -122,24 +123,34 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
         },
       },
     } as never;
-    vi.spyOn(
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      error: undefined,
+      status: 0,
+      stdout: 'example-python/src/main.py\n',
+    } as never);
+    const buildGraph = vi.spyOn(
       facade as unknown as {
         _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
       },
       '_buildGraphDataFromAnalysis',
-    ).mockReturnValue({
-      nodes: [{ id: 'example-python/src/main.py', label: 'main.py', color: '#333333' }],
-      edges: [],
-    });
+    ).mockReturnValue({ nodes: [], edges: [] });
 
     await facade.loadCachedGraph(
       [],
       new Set<string>(),
       undefined,
-      { includeCurrentGitignoreMetadata: false },
+      { warmAnalysis: false },
     );
 
-    expect(spawnSync).not.toHaveBeenCalled();
-    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
+    expect(spawnSync).toHaveBeenCalledOnce();
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([
+      'example-python/src/main.py',
+    ]);
+    expect(buildGraph).toHaveBeenCalledWith(
+      new Map(),
+      '/workspace',
+      true,
+      new Set<string>(),
+    );
   });
 });

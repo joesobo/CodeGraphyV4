@@ -67,7 +67,7 @@ describe('FileDiscovery discover', () => {
     });
   });
 
-  it('stops immediately after hitting the max file limit', async () => {
+  it('reports the eligible file count when applying the max file limit', async () => {
     createFile('a.ts');
     createFile('b.ts');
     createFile('c.ts');
@@ -79,10 +79,10 @@ describe('FileDiscovery discover', () => {
 
     expect(result.files).toHaveLength(1);
     expect(result.limitReached).toBe(true);
-    expect(result.totalFound).toBe(2);
+    expect(result.totalFound).toBe(3);
   });
 
-  it('bubbles nested max file stops back to the root walk', async () => {
+  it('counts eligible files across nested directories before applying the limit', async () => {
     createFile('a/one.ts');
     createFile('b/two.ts');
     createFile('c/three.ts');
@@ -93,7 +93,23 @@ describe('FileDiscovery discover', () => {
     });
 
     expect(result.files).toHaveLength(1);
-    expect(result.totalFound).toBe(2);
+    expect(result.totalFound).toBe(3);
+  });
+
+  it('keeps filtered paths cacheable without retaining eligible files beyond the limit', async () => {
+    createFile('.hidden/note.ts');
+    createFile('a.ts');
+    createFile('b.ts');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filter: ['.hidden/**'],
+      maxFiles: 1,
+      respectGitignore: false,
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual(['a.ts']);
+    expect(result.cacheFilePaths).toEqual(['.hidden/note.ts', 'a.ts']);
   });
 
   it('reports limitReached as false when under the limit', async () => {
@@ -180,7 +196,7 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.extension)).toEqual(['.ts']);
   });
 
-  it('marks gitignored files by default when the option is omitted', async () => {
+  it('excludes gitignored files by default when the option is omitted', async () => {
     initGitRepo();
     createFile('.gitignore', '*.log\n');
     createFile('app.ts');
@@ -189,14 +205,11 @@ describe('FileDiscovery discover', () => {
     const result = await discovery.discover({ rootPath: tempDir });
 
     expect(result.files.map((file) => file.name)).toContain('app.ts');
-    expect(result.files.find((file) => file.name === 'debug.log')).toMatchObject({
-      gitIgnored: true,
-      relativePath: 'debug.log',
-    });
+    expect(result.files.map((file) => file.name)).not.toContain('debug.log');
     expect(result.gitIgnoredPaths).toContain('debug.log');
   });
 
-  it('keeps scanning after marking a gitignored file', async () => {
+  it('keeps scanning after excluding a gitignored file', async () => {
     initGitRepo();
     createFile('.gitignore', '*.log\n');
     createFile('a.log');
@@ -206,10 +219,27 @@ describe('FileDiscovery discover', () => {
 
     expect(result.files.map((file) => file.name)).toContain('.gitignore');
     expect(result.files.map((file) => file.name)).toContain('z.ts');
-    expect(result.files.find((file) => file.name === 'a.log')).toMatchObject({
-      gitIgnored: true,
-    });
+    expect(result.files.map((file) => file.name)).not.toContain('a.log');
   });
+
+  it('classifies Git-ignored paths when their combined output exceeds the process buffer', async () => {
+    initGitRepo();
+    createFile('.gitignore', 'ignored/\n');
+    for (let index = 0; index < 5_000; index += 1) {
+      const fileName = `${index.toString(36)}-${'x'.repeat(210)}.ts`;
+      createFile(path.join('ignored', fileName));
+    }
+    createFile('z.ts');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      include: ['**/*.ts'],
+      maxFiles: 1,
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual(['z.ts']);
+    expect(result.gitIgnoredPaths).toHaveLength(5_001);
+  }, 15_000);
 
   it('does not infer gitignored state from .gitignore outside a Git repository', async () => {
     createFile('.gitignore', '*.log\n');
@@ -238,17 +268,15 @@ describe('FileDiscovery discover', () => {
     expect(result.gitIgnoredPaths).toEqual([]);
   });
 
-  it('marks gitignored directories without omitting their files', async () => {
+  it('excludes files from gitignored directories', async () => {
     initGitRepo();
     createFile('.gitignore', 'generated/\n');
     createFile('generated/output.ts');
 
     const result = await discovery.discover({ rootPath: tempDir });
 
-    expect(result.directories).toContain('generated');
-    expect(result.files.find((file) => file.relativePath === path.join('generated', 'output.ts'))).toMatchObject({
-      gitIgnored: true,
-    });
+    expect(result.directories).not.toContain('generated');
+    expect(result.files.map(file => file.relativePath)).not.toContain(path.join('generated', 'output.ts'));
     expect(result.gitIgnoredPaths).toEqual(expect.arrayContaining([
       'generated',
       path.join('generated', 'output.ts'),
@@ -272,7 +300,7 @@ describe('FileDiscovery discover', () => {
     expect(result.gitIgnoredPaths).not.toContain(path.join('tracked-dir', 'keep.log'));
   });
 
-  it('does not mark mixed tracked folders as gitignored but still marks ignored descendants', async () => {
+  it('keeps tracked files in mixed ignored folders while excluding ignored descendants', async () => {
     initGitRepo();
     createFile('mixed-dir/tracked.ts', 'tracked');
     commitAll();
@@ -286,9 +314,9 @@ describe('FileDiscovery discover', () => {
     expect(result.files.find(file =>
       file.relativePath === path.join('mixed-dir', 'tracked.ts'),
     )?.gitIgnored).toBeUndefined();
-    expect(result.files.find(file =>
-      file.relativePath === path.join('mixed-dir', 'ignored.ts'),
-    )).toMatchObject({ gitIgnored: true });
+    expect(result.files.map(file => file.relativePath)).not.toContain(
+      path.join('mixed-dir', 'ignored.ts'),
+    );
     expect(result.gitIgnoredPaths).toContain(path.join('mixed-dir', 'ignored.ts'));
   });
 

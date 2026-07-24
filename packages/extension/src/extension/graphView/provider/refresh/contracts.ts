@@ -21,7 +21,6 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
     options?: {
-      includeCurrentGitignoreMetadata?: boolean;
       requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
       warmAnalysis?: boolean;
     },

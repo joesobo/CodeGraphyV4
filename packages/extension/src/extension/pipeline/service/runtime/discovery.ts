@@ -30,8 +30,8 @@ export async function discoverWorkspacePipelineFilesWithWarnings(
   dependencies: WorkspacePipelineDiscoveryDependencies<IDiscoveredFile>,
   workspaceRoot: string,
   config: WorkspacePipelineDiscoveryConfig,
-  _filterPatterns: string[],
-  _pluginFilterPatterns: string[],
+  filterPatterns: string[],
+  pluginFilterPatterns: string[],
   signal: AbortSignal | undefined,
   showWarningMessage: (message: string) => void,
 ): Promise<WorkspacePipelineDiscoveryResult<IDiscoveredFile>> {
@@ -40,6 +40,7 @@ export async function discoverWorkspacePipelineFilesWithWarnings(
     workspaceRoot,
     config,
     signal,
+    [...new Set([...filterPatterns, ...pluginFilterPatterns])],
   );
 
   if (discoveryResult.limitReached) {

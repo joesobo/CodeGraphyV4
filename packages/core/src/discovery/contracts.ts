@@ -13,8 +13,10 @@ export interface IDiscoveryOptions {
   maxFiles?: number;
   /** Glob patterns for files to include (default: ['**\/*']) */
   include?: string[];
-  /** Glob patterns for files to exclude */
+  /** Glob patterns that exclude files from index membership */
   exclude?: string[];
+  /** Active graph filter patterns. Matching files remain present but are not newly indexed. */
+  filter?: string[];
   /** Whether to respect Git ignored state (default: true) */
   respectGitignore?: boolean;
   /** File extensions to include (e.g., ['.ts', '.js']). If empty, all extensions allowed. */
@@ -35,7 +37,7 @@ export interface IDiscoveredFile {
   extension: string;
   /** File name without path */
   name: string;
-  /** Whether Git reports this file as ignored. It remains discoverable so the graph can dim it. */
+  /** Whether Git reports this cached file as ignored during Graph Cache replay. */
   gitIgnored?: boolean;
 }
 
@@ -43,7 +45,7 @@ export interface IDiscoveredFile {
  * Result of a discovery operation.
  */
 export interface IDiscoveryResult {
-  /** Discovered files */
+  /** Eligible discovered files, capped by maxFiles */
   files: IDiscoveredFile[];
   /** Discovered directory paths relative to the workspace root */
   directories: string[];
@@ -55,4 +57,9 @@ export interface IDiscoveryResult {
   totalFound?: number;
   /** Time taken in milliseconds */
   durationMs: number;
+}
+
+/** Internal indexing result with paths allowed to remain in the Graph Cache. */
+export interface IFileDiscoveryResult extends IDiscoveryResult {
+  cacheFilePaths: string[];
 }

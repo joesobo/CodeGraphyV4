@@ -1,4 +1,4 @@
-import type { IDiscoveryResult } from '../discovery/contracts';
+import type { IFileDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
 import type { CorePluginRegistry } from '../plugins/registry';
 import type { LoadedCodeGraphyWorkspacePluginPackage } from '../plugins/packageRuntime';
@@ -8,7 +8,7 @@ import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { createWorkspaceIndexEngineState, type WorkspaceIndexEngineState } from './state';
 
 export interface WorkspaceEngineState extends WorkspaceIndexEngineState {
-  discoveryResult?: IDiscoveryResult;
+  discoveryResult?: IFileDiscoveryResult;
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
   registeredPluginIds: Set<string>;
   failedPluginIds: Set<string>;

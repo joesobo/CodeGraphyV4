@@ -25,6 +25,12 @@ export function runWorkspacePipelineAnalysis(
     {
       discover: async options => {
         const result = await discovery.discover(options);
+        const cacheFilePaths = new Set(result.cacheFilePaths);
+        for (const filePath of Object.keys(cache.files)) {
+          if (!cacheFilePaths.has(filePath)) {
+            delete cache.files[filePath];
+          }
+        }
         return {
           directories: result.directories,
           durationMs: result.durationMs,

@@ -46,7 +46,7 @@ The extension normalizes missing values against current defaults and preserves r
 | Key | Type | Default | Purpose |
 |---|---|---|---|
 | `version` | number | `4` | Persisted extension settings schema. |
-| `maxFiles` | number | `1000` | Maximum files discovered during Indexing. |
+| `maxFiles` | number | `1000` | Maximum currently eligible files indexed. |
 | `include` | string[] | `["**/*"]` | Workspace-relative discovery globs. |
 | `respectGitignore` | boolean | `true` | Exclude paths Git reports as ignored. |
 | `filterPatterns` | string[] | `[]` | Enabled custom exclusion patterns. |
@@ -111,7 +111,7 @@ The Settings > Forces controls apply these values to the live WebAssembly layout
 }
 ```
 
-`filterPatterns` removes recurring noise after Graph Scope. Patterns support basename matching, so `*.png` matches at any depth.
+`filterPatterns` removes recurring noise after Graph Scope. During Indexing, active custom and plugin Filters also keep matching files out of fresh analysis and the `maxFiles` budget. Analysis cached while a Filter was disabled remains reusable when that Filter is enabled again. Patterns support basename matching, so `*.png` matches at any depth.
 
 ```json
 {
@@ -119,7 +119,7 @@ The Settings > Forces controls apply these values to the live WebAssembly layout
 }
 ```
 
-Core also excludes common generated directories and artifacts such as `node_modules`, `dist`, `build`, `.git`, coverage output, minified JavaScript, and bundles. When `respectGitignore` is true, Git-ignored paths do not enter File Discovery.
+Core also excludes common generated directories and artifacts such as `node_modules`, `dist`, `build`, `.git`, coverage output, minified JavaScript, and bundles. When `respectGitignore` is true, Git-ignored paths do not enter fresh analysis or consume `maxFiles`. Existing cached analysis for those paths remains available if Git ignored handling is later disabled.
 
 CodeGraphy normalizes an empty `include` to `["**/*"]` and removes duplicate filters.
 

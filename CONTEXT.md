@@ -92,7 +92,7 @@ Interaction rules:
 | **Refresh Graph** | Restart layout physics without processing source data. |
 | **Re-index Workspace** | Run Indexing, save the Graph Cache, and refresh the graph. |
 
-Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
+Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
 
 The Graph View can use a whole-view loading state before its first graph payload. Graph Cache Sync, Live Update, plugin changes, and Re-index keep the current graph visible after that first render and use graph-local progress.
 

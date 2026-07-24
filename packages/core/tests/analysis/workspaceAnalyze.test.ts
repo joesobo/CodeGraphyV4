@@ -86,17 +86,22 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.saveCache).not.toHaveBeenCalled();
   });
 
-  it('uses only index-membership exclusions during discovery', async () => {
+  it('excludes active custom and plugin filters during discovery', async () => {
     const source = createSource();
     const dependencies = createDependencies();
 
-    await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
+    await analyzeWorkspaceWithAnalyzer(
+      source as never,
+      dependencies as never,
+      ['**/*.user.ts'],
+    );
 
     expect(dependencies.discover).toHaveBeenCalledWith({
       rootPath: '/workspace',
       maxFiles: 25,
       include: ['**/*'],
       exclude: [...DEFAULT_EXCLUDE],
+      filter: ['**/*.user.ts', '**/*.generated.ts'],
       respectGitignore: true,
       signal: undefined,
     });

@@ -10,7 +10,6 @@ export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | '
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
 
 export interface GraphViewCachedGraphLoadOptions {
-  includeCurrentGitignoreMetadata?: boolean;
   warmAnalysis?: boolean;
 }
 

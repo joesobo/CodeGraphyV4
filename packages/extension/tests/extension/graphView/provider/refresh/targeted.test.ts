@@ -204,7 +204,6 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       source._disabledPlugins,
       expect.any(AbortSignal),
       {
-        includeCurrentGitignoreMetadata: true,
         requiredAnalysisCacheTiers: ['baseline', 'symbols'],
         warmAnalysis: false,
       },
@@ -235,7 +234,6 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       source._disabledPlugins,
       expect.any(AbortSignal),
       {
-        includeCurrentGitignoreMetadata: true,
         requiredAnalysisCacheTiers: ['baseline', 'symbols'],
         warmAnalysis: false,
       },
@@ -291,7 +289,6 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       source._disabledPlugins,
       expect.any(AbortSignal),
       {
-        includeCurrentGitignoreMetadata: true,
         requiredAnalysisCacheTiers: ['baseline', 'plugin:codegraphy.vue'],
         warmAnalysis: false,
       },

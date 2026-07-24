@@ -99,7 +99,7 @@ describe('graph view analysis execution load', () => {
       [],
       new Set<string>(),
       expect.any(AbortSignal),
-      { includeCurrentGitignoreMetadata: true },
+      undefined,
     );
     expect(analyze).not.toHaveBeenCalled();
     expect(refreshIndex).not.toHaveBeenCalled();
@@ -154,7 +154,7 @@ describe('graph view analysis execution load', () => {
       [],
       new Set<string>(),
       expect.any(AbortSignal),
-      { includeCurrentGitignoreMetadata: false, warmAnalysis: false },
+      { warmAnalysis: false },
     );
     expect(refreshIndex).not.toHaveBeenCalled();
     expect(analyze).not.toHaveBeenCalled();

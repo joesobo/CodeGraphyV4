@@ -1,3 +1,4 @@
+import { projectFileAnalysisConnections } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { RefreshFacadeContext } from '../context';
 import { EMPTY_REFRESH_GRAPH } from '../context';
@@ -37,6 +38,18 @@ export async function refreshGitignoreMetadataForFacade(
     console.warn('[CodeGraphy] Failed to persist gitignore metadata refresh.', error);
   });
 
+  const eligibleFilePaths = new Set(
+    discoveryResult.files.map(file => file.relativePath),
+  );
+  facade._lastFileAnalysis = new Map(
+    Object.entries(facade._cache.files)
+      .filter(([filePath]) => eligibleFilePaths.has(filePath))
+      .map(([filePath, entry]) => [filePath, entry.analysis]),
+  );
+  facade._lastFileConnections = projectFileAnalysisConnections(
+    facade._lastFileAnalysis,
+    workspaceRoot,
+  );
   return facade._buildGraphDataFromAnalysis(
     facade._lastFileAnalysis,
     workspaceRoot,

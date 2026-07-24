@@ -116,7 +116,7 @@ describe('pipeline/service/discoveryFacade analysis', () => {
     });
 
     expect(facade.clearCache).not.toHaveBeenCalled();
-    expect(facade._cache).not.toBe(cacheBeforeRefresh);
+    expect(facade._cache).toBe(cacheBeforeRefresh);
     expect(facade._cache.files).toEqual({});
     expect(analyzeSpy).toHaveBeenCalledWith([], disabledPlugins, signal, expect.any(Function));
 

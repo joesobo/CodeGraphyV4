@@ -24,6 +24,7 @@ describe('pipeline/service/discovery', () => {
         directories: ['src/new-folder'],
         durationMs: 12,
         files: [{ relativePath: 'src/a.ts' }],
+        cacheFilePaths: ['src/a.ts', 'example-python/app.py'],
         gitIgnoredPaths: ['example-python/app.py'],
         limitReached: false,
         totalFound: undefined,
@@ -69,6 +70,7 @@ describe('pipeline/service/discovery', () => {
       '/workspace',
       { maxFiles: 200 },
       undefined,
+      ['**/*.ts', 'plugin-filter'],
     );
     expect(formatWorkspacePipelineLimitReachedMessage).toHaveBeenCalledWith(250, 200);
     expect(showWarningMessage).toHaveBeenCalledWith('limit reached');

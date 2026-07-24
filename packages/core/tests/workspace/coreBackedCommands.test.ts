@@ -196,6 +196,19 @@ describe('core-backed CodeGraphy Workspace commands', () => {
 
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      disabledCustomFilterPatterns: ['**/generated/**'],
+    });
+    const unfilteredNodeReport = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'nodes',
+      arguments: {},
+    });
+    expect(unfilteredNodeReport.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'generated/output.ts' }),
+    ]));
+
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       edgeVisibility: { import: false, call: false, contains: false },
     });
     const pathReport = await requestWorkspaceGraphQuery({

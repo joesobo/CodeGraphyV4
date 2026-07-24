@@ -8,7 +8,7 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
 
 ```bash
 codegraphy index
@@ -32,7 +32,7 @@ Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` 
 
 - CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.sqlite` for any folder path.
 - Workspace Settings: read, normalize, write, and fingerprint workspace-local settings, including Graph Scope, filters, and ordered plugin entries without erasing extension-owned presentation settings.
-- File Discovery: discover analyzable files and directories in any CodeGraphy Workspace without VS Code APIs.
+- File Discovery: discover analyzable files and directories, apply active custom/plugin/Git filters before the eligible-file budget, and report cache-retention paths without VS Code APIs.
 - Built-in language analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
 - File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
 - Core Indexing: index an explicit CodeGraphy Workspace path, run headless plugins, build the Relationship Graph, and write the workspace Graph Cache.
