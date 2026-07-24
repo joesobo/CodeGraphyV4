@@ -1,5 +1,14 @@
 # @codegraphy-dev/tldraw
 
+## 0.1.1
+
+### Patch Changes
+
+- [#321](https://github.com/joesobo/CodeGraphyV4/pull/321) [`cd5c766`](https://github.com/joesobo/CodeGraphyV4/commit/cd5c7661a73f5b720bbbd54c5ede97152cb0da4a) Thanks [@joesobo](https://github.com/joesobo)! - Stop the tldraw launcher from printing Node's Lua grammar package deprecation warning while it indexes a workspace.
+
+- Updated dependencies [[`6c72b74`](https://github.com/joesobo/CodeGraphyV4/commit/6c72b74692e653450a537d4a05fe856f99a73b26), [`cd5c766`](https://github.com/joesobo/CodeGraphyV4/commit/cd5c7661a73f5b720bbbd54c5ede97152cb0da4a)]:
+  - @codegraphy-dev/core@4.0.1
+
 ## 0.1.0
 
 ### Minor Changes

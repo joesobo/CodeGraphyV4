@@ -1,5 +1,11 @@
 # @codegraphy/web
 
+## 0.1.2
+
+### Patch Changes
+
+- [#319](https://github.com/joesobo/CodeGraphyV4/pull/319) [`7baf0e5`](https://github.com/joesobo/CodeGraphyV4/commit/7baf0e5f444074b8842bbb1524e33fab165c9c6d) Thanks [@joesobo](https://github.com/joesobo)! - Add site-wide Vercel Web Analytics and Speed Insights.
+
 ## 0.1.1
 
 ### Patch Changes

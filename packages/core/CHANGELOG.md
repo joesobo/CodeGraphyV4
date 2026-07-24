@@ -1,5 +1,13 @@
 # @codegraphy-dev/core
 
+## 4.0.1
+
+### Patch Changes
+
+- [#322](https://github.com/joesobo/CodeGraphyV4/pull/322) [`6c72b74`](https://github.com/joesobo/CodeGraphyV4/commit/6c72b74692e653450a537d4a05fe856f99a73b26) Thanks [@joesobo](https://github.com/joesobo)! - Keep filtered and Git-ignored files from consuming the indexing file limit or entering a fresh Graph Cache, while retaining previously cached files when filters are re-enabled.
+
+- [#321](https://github.com/joesobo/CodeGraphyV4/pull/321) [`cd5c766`](https://github.com/joesobo/CodeGraphyV4/commit/cd5c7661a73f5b720bbbd54c5ede97152cb0da4a) Thanks [@joesobo](https://github.com/joesobo)! - Stop the tldraw launcher from printing Node's Lua grammar package deprecation warning while it indexes a workspace.
+
 ## 4.0.0
 
 ### Major Changes
