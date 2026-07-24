@@ -24,6 +24,24 @@ interface ParsedQueryArguments {
   projection?: WorkspaceGraphQueryProjection;
 }
 
+interface QueryBuilderInput {
+  command: string;
+  operands: string[];
+  page: { limit: number; offset?: number };
+  projection?: WorkspaceGraphQueryProjection;
+}
+
+type ParsedOption =
+  | { type: 'limit' | 'offset'; value: number }
+  | { type: 'projection'; key: keyof WorkspaceGraphQueryProjection; values: string[] }
+  | { type: 'error'; message: string };
+
+const PROJECTION_OPTION_KEYS: Record<string, keyof WorkspaceGraphQueryProjection> = {
+  '--filter': 'filterPatterns',
+  '--node-type': 'nodeTypes',
+  '--edge-type': 'edgeTypes',
+};
+
 export function isGraphQueryReport(value: string | undefined): boolean {
   return value !== undefined && QUERY_COMMANDS.has(value);
 }
@@ -38,6 +56,69 @@ function parseInteger(value: string | undefined, minimum: number): number | unde
   return Number.isSafeInteger(parsed) && parsed >= minimum ? parsed : undefined;
 }
 
+function parsePaginationOption(
+  command: string,
+  argument: '--limit' | '--offset',
+  value: string | undefined,
+  allowPagination: boolean,
+): ParsedOption {
+  if (!allowPagination) return { type: 'error', message: `Unknown option for ${command}: ${argument}` };
+  const minimum = argument === '--limit' ? 1 : 0;
+  const parsed = parseInteger(value, minimum);
+  if (parsed !== undefined) return { type: argument === '--limit' ? 'limit' : 'offset', value: parsed };
+  const requirement = argument === '--limit' ? 'a positive integer' : 'a non-negative integer';
+  return { type: 'error', message: `${argument} requires ${requirement}` };
+}
+
+function parseProjectionOption(
+  argument: string,
+  value: string | undefined,
+  key: keyof WorkspaceGraphQueryProjection,
+): ParsedOption {
+  const values = !value || value.startsWith('-')
+    ? []
+    : value.split(',').map(item => item.trim()).filter(Boolean);
+  return values.length > 0
+    ? { type: 'projection', key, values }
+    : { type: 'error', message: `${argument} requires a comma-separated list` };
+}
+
+function parseOption(
+  command: string,
+  argument: string,
+  value: string | undefined,
+  allowPagination: boolean,
+): ParsedOption | undefined {
+  if (argument === '--limit' || argument === '--offset') {
+    return parsePaginationOption(command, argument, value, allowPagination);
+  }
+  const projectionKey = PROJECTION_OPTION_KEYS[argument];
+  return projectionKey ? parseProjectionOption(argument, value, projectionKey) : undefined;
+}
+
+function applyOption(
+  parsed: ParsedOption,
+  state: { limit: number; offset?: number; projection: WorkspaceGraphQueryProjection },
+): void {
+  if (parsed.type === 'limit') state.limit = parsed.value;
+  if (parsed.type === 'offset') state.offset = parsed.value;
+  if (parsed.type === 'projection') {
+    state.projection[parsed.key] = [...new Set([...(state.projection[parsed.key] ?? []), ...parsed.values])];
+  }
+}
+
+function completeParsedArguments(
+  operands: string[],
+  state: { limit: number; offset?: number; projection: WorkspaceGraphQueryProjection },
+): ParsedQueryArguments {
+  return {
+    operands,
+    limit: state.limit,
+    ...(state.offset !== undefined ? { offset: state.offset } : {}),
+    ...(Object.keys(state.projection).length > 0 ? { projection: state.projection } : {}),
+  };
+}
+
 function parseArguments(
   command: string,
   argv: string[],
@@ -45,63 +126,36 @@ function parseArguments(
   defaultLimit = DEFAULT_LIMIT,
 ): ParsedQueryArguments {
   const operands: string[] = [];
-  let limit = defaultLimit;
-  let offset: number | undefined;
+  const state: { limit: number; offset?: number; projection: WorkspaceGraphQueryProjection } = {
+    limit: defaultLimit,
+    projection: {},
+  };
   let optionsEnded = false;
-  const projection: NonNullable<ParsedQueryArguments['projection']> = {};
 
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
-    if (!optionsEnded && argument === '--') {
+    if (optionsEnded) {
+      operands.push(argument);
+      continue;
+    }
+    if (argument === '--') {
       optionsEnded = true;
       continue;
     }
-    if (!optionsEnded && (argument === '--limit' || argument === '--offset')) {
-      if (!allowPagination) {
-        return { operands, limit, parseError: `Unknown option for ${command}: ${argument}` };
-      }
-      const minimum = argument === '--limit' ? 1 : 0;
-      const value = parseInteger(argv[index + 1], minimum);
-      if (value === undefined) {
-        const requirement = argument === '--limit' ? 'a positive integer' : 'a non-negative integer';
-        return { operands, limit, parseError: `${argument} requires ${requirement}` };
-      }
-      if (argument === '--limit') limit = value;
-      else offset = value;
+    const option = parseOption(command, argument, argv[index + 1], allowPagination);
+    if (option?.type === 'error') return { operands, limit: state.limit, parseError: option.message };
+    if (option) {
+      applyOption(option, state);
       index += 1;
       continue;
     }
-    if (!optionsEnded && (
-      argument === '--filter'
-      || argument === '--node-type'
-      || argument === '--edge-type'
-    )) {
-      const optionValue = argv[index + 1];
-      const values = !optionValue || optionValue.startsWith('-')
-        ? []
-        : optionValue.split(',').map(value => value.trim()).filter(Boolean);
-      if (values.length === 0) {
-        return { operands, limit, parseError: `${argument} requires a comma-separated list` };
-      }
-      const key = argument === '--filter'
-        ? 'filterPatterns'
-        : argument === '--node-type' ? 'nodeTypes' : 'edgeTypes';
-      projection[key] = [...new Set([...(projection[key] ?? []), ...values])];
-      index += 1;
-      continue;
-    }
-    if (!optionsEnded && argument.startsWith('-')) {
-      return { operands, limit, parseError: `Unknown option for ${command}: ${argument}` };
+    if (argument.startsWith('-')) {
+      return { operands, limit: state.limit, parseError: `Unknown option for ${command}: ${argument}` };
     }
     operands.push(argument);
   }
 
-  return {
-    operands,
-    limit,
-    ...(offset !== undefined ? { offset } : {}),
-    ...(Object.keys(projection).length > 0 ? { projection } : {}),
-  };
+  return completeParsedArguments(operands, state);
 }
 
 function requireOperands(command: string, args: string[], count: number, usage: string): CliCommand | undefined {
@@ -114,7 +168,7 @@ function query(
   invokedCommand: string,
   report: GraphQueryReport,
   arguments_: Record<string, unknown>,
-  projection?: ParsedQueryArguments['projection'],
+  projection?: WorkspaceGraphQueryProjection,
 ): CliCommand {
   return {
     name: 'query',
@@ -125,65 +179,75 @@ function query(
   };
 }
 
+function buildList(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 0, '');
+  return invalid ?? query(input.command, input.command as 'nodes' | 'edges', input.page, input.projection);
+}
+
+function buildSearch(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 1, '<pattern>');
+  if (invalid) return invalid;
+  if (!input.operands[0].replace(/\*/g, '').trim()) {
+    return parseError(input.command, 'search pattern must contain a literal character');
+  }
+  return query(input.command, 'search', { pattern: input.operands[0], ...input.page }, input.projection);
+}
+
+function buildOverview(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 1, '<node>');
+  return invalid ?? query(input.command, 'overview', { target: input.operands[0] }, input.projection);
+}
+
+function buildConnection(input: QueryBuilderInput, endpoint: 'from' | 'to'): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 1, '<node>');
+  return invalid ?? query(input.command, 'edges', {
+    [endpoint]: input.operands[0],
+    expandFileSelectors: true,
+    projectFileEndpoints: true,
+    ...input.page,
+  }, input.projection);
+}
+
+function buildPath(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 2, '<from> <to>');
+  return invalid ?? query(input.command, 'paths', {
+    from: input.operands[0],
+    to: input.operands[1],
+    maxDepth: DEFAULT_MAX_DEPTH,
+    maxPaths: DEFAULT_MAX_PATHS,
+    expandFileSelectors: true,
+    projectFileEndpoints: true,
+  }, input.projection);
+}
+
+const QUERY_BUILDERS: Record<string, (input: QueryBuilderInput) => CliCommand> = {
+  nodes: buildList,
+  edges: buildList,
+  search: buildSearch,
+  query: buildOverview,
+  dependencies: input => buildConnection(input, 'from'),
+  dependents: input => buildConnection(input, 'to'),
+  path: buildPath,
+};
+
 export function parseQueryCommand(argv: string[]): CliCommand {
   const [command = '', ...rawArgs] = argv;
-  if (!isGraphQueryReport(command)) {
-    return parseError(command, `Unknown query command: ${command}`);
-  }
-
-  const acceptsPagination = command !== 'path' && command !== 'query';
+  const builder = QUERY_BUILDERS[command];
+  if (!builder) return parseError(command, `Unknown query command: ${command}`);
   const parsed = parseArguments(
     command,
     rawArgs,
-    acceptsPagination,
+    command !== 'path' && command !== 'query',
     command === 'search' ? DEFAULT_SEARCH_LIMIT : DEFAULT_LIMIT,
   );
   if (parsed.parseError) return parseError(command, parsed.parseError);
-  const { operands, limit, offset, projection } = parsed;
-  const page = { limit, ...(offset !== undefined ? { offset } : {}) };
-
-  switch (command) {
-    case 'nodes':
-    case 'edges': {
-      const invalid = requireOperands(command, operands, 0, '');
-      return invalid ?? query(command, command, page, projection);
-    }
-    case 'search': {
-      const invalid = requireOperands(command, operands, 1, '<pattern>');
-      if (invalid) return invalid;
-      if (!operands[0].replace(/\*/g, '').trim()) {
-        return parseError(command, 'search pattern must contain a literal character');
-      }
-      return query(command, 'search', { pattern: operands[0], ...page }, projection);
-    }
-    case 'query': {
-      const invalid = requireOperands(command, operands, 1, '<node>');
-      return invalid ?? query(command, 'overview', { target: operands[0] }, projection);
-    }
-    case 'dependencies': {
-      const invalid = requireOperands(command, operands, 1, '<node>');
-      return invalid ?? query(command, 'edges', {
-        from: operands[0], expandFileSelectors: true, projectFileEndpoints: true, ...page,
-      }, projection);
-    }
-    case 'dependents': {
-      const invalid = requireOperands(command, operands, 1, '<node>');
-      return invalid ?? query(command, 'edges', {
-        to: operands[0], expandFileSelectors: true, projectFileEndpoints: true, ...page,
-      }, projection);
-    }
-    case 'path': {
-      const invalid = requireOperands(command, operands, 2, '<from> <to>');
-      return invalid ?? query(command, 'paths', {
-        from: operands[0],
-        to: operands[1],
-        maxDepth: DEFAULT_MAX_DEPTH,
-        maxPaths: DEFAULT_MAX_PATHS,
-        expandFileSelectors: true,
-        projectFileEndpoints: true,
-      }, projection);
-    }
-  }
-
-  return parseError(command, `Unknown query command: ${command}`);
+  return builder({
+    command,
+    operands: parsed.operands,
+    page: {
+      limit: parsed.limit,
+      ...(parsed.offset !== undefined ? { offset: parsed.offset } : {}),
+    },
+    ...(parsed.projection ? { projection: parsed.projection } : {}),
+  });
 }
