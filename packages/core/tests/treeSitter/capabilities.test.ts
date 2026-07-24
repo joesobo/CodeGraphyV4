@@ -27,6 +27,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   it('advertises TypeScript graph scope edges supported by the current analyzer', () => {
     expect(listTreeSitterEdgeTypeCapabilities(['src/commented.ts'])).toEqual([
       'import',
+      'reexport',
       'type-import',
       'call',
       'inherit',
@@ -271,6 +272,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       nodeTypes: [],
       edgeTypes: [
         'import',
+        'reexport',
         'reference',
         'call',
         'type-import',
