@@ -60,10 +60,46 @@ describe('cli/parse', () => {
     });
   });
 
+  it('parses structured workspace settings reads and mutations', () => {
+    expect(parseCliCommand(['settings'])).toEqual({ name: 'settings' });
+    expect(parseCliCommand(['settings', 'get', 'maxFiles'])).toEqual({
+      name: 'settings',
+      settingsAction: 'get',
+      settingsKey: 'maxFiles',
+    });
+    expect(parseCliCommand(['settings', 'set', 'maxFiles', '2500'])).toEqual({
+      name: 'settings',
+      settingsAction: 'set',
+      settingsKey: 'maxFiles',
+      settingsValue: 2500,
+    });
+    expect(parseCliCommand(['settings', 'set', 'include', '["packages/**/*.ts"]'])).toEqual({
+      name: 'settings',
+      settingsAction: 'set',
+      settingsKey: 'include',
+      settingsValue: ['packages/**/*.ts'],
+    });
+    expect(parseCliCommand(['settings', 'unset', 'maxFiles'])).toEqual({
+      name: 'settings',
+      settingsAction: 'unset',
+      settingsKey: 'maxFiles',
+    });
+    expect(parseCliCommand(['settings', 'set', 'maxFiles', 'many'])).toMatchObject({
+      parseError: 'settings set value must be valid JSON: many',
+    });
+    expect(parseCliCommand(['settings', 'set', 'unknown', '1'])).toMatchObject({
+      parseError: 'Unknown workspace setting: unknown',
+    });
+  });
+
   it('parses scoped help only for public commands', () => {
     expect(parseCliCommand(['help', 'dependencies'])).toEqual({
       name: 'help',
       helpPath: ['dependencies'],
+    });
+    expect(parseCliCommand(['settings', '--help'])).toEqual({
+      name: 'help',
+      helpPath: ['settings'],
     });
     expect(parseCliCommand(['scope', '--help'])).toEqual({
       name: 'help',

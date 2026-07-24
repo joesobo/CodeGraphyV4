@@ -11,9 +11,11 @@ export type CliCommandName =
   | 'plugins'
   | 'query'
   | 'scope'
+  | 'settings'
   | 'status'
   | 'version';
 export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'inherit' | 'link' | 'list' | 'register';
+export type WorkspaceSettingsCommandAction = 'get' | 'set' | 'unset';
 
 export interface CliCommand {
   name: CliCommandName;
@@ -27,6 +29,9 @@ export interface CliCommand {
   parseError?: string;
   projection?: WorkspaceGraphQueryProjection;
   report?: GraphQueryReport;
+  settingsAction?: WorkspaceSettingsCommandAction;
+  settingsKey?: string;
+  settingsValue?: unknown;
   verbose?: boolean;
   workspacePath?: string;
 }

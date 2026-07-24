@@ -8,6 +8,7 @@ describe('cli/help/command', () => {
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain('codegraphy doctor');
     expect(result.output).not.toContain('codegraphy batch');
+    expect(result.output).toContain('codegraphy settings');
     expect(result.output).toContain('codegraphy search <pattern>');
     expect(result.output).toContain('codegraphy query <node>');
     expect(result.output).toContain('codegraphy dependencies <node>');
@@ -32,6 +33,7 @@ describe('cli/help/command', () => {
     expect(output).toContain('3. Discover source and AST Symbols with search; inspect an exact result with query.');
     expect(output).toContain('4. Continue through the shaped graph with dependencies, dependents, or path.');
     expect(output).toContain('codegraphy index                         Create or update the Graph Cache');
+    expect(output).toContain('codegraphy settings set <key> <json>');
     expect(output).toContain('codegraphy filter                        Read or change persisted Filters');
     expect(output).toContain('codegraphy dependencies <node>           List outgoing Relationships');
     expect(output).toContain('Exit status: 0 success, 1 operational failure, 2 invalid invocation.');
@@ -43,11 +45,15 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['query']).output).toContain('Usage: codegraphy query <node>');
     expect(createHelpResult(['query']).output).toContain('declared AST Symbols');
     expect(createHelpResult(['query']).output).toContain('incoming and outgoing Relationships');
+    expect(createHelpResult(['query']).output).toContain('live source context');
+    expect(createHelpResult(['settings']).output).toContain('settings set maxFiles 2500');
+    expect(createHelpResult(['settings']).output).toContain('never replace malformed settings with defaults');
     expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
     expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search');
     expect(createHelpResult(['search']).output).toContain('live source lines');
     expect(createHelpResult(['search']).output).toContain('cached AST Symbols');
     expect(createHelpResult(['search']).output).toContain('`*` wildcard');
+    expect(createHelpResult(['search']).output).toContain('BM25');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');

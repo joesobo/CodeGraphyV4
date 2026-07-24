@@ -3,9 +3,15 @@ import { isHelpCommandName } from './parseHelp';
 import { isPluginCommand, parsePluginsCommand } from './parsePlugins';
 import { isGraphQueryReport, parseQueryCommand } from './parseQuery';
 import { parseWorkspaceCommand } from './parseWorkspace';
+import { parseSettingsCommand } from './parseSettings';
 import type { CliCommand } from './parseTypes';
 
-export type { CliCommand, CliCommandName, PluginsCommandAction } from './parseTypes';
+export type {
+  CliCommand,
+  CliCommandName,
+  PluginsCommandAction,
+  WorkspaceSettingsCommandAction,
+} from './parseTypes';
 
 interface GlobalFlags {
   argv: string[];
@@ -70,6 +76,7 @@ function isKnownCommandName(name: string): boolean {
     || name === 'index'
     || name === 'plugins'
     || name === 'scope'
+    || name === 'settings'
     || name === 'status'
     || name === 'query'
     || isGraphQueryReport(name);
@@ -118,6 +125,9 @@ export function parseCliCommand(argv: string[]): CliCommand {
       break;
     case 'scope':
       command = parseScopeCommand(rest);
+      break;
+    case 'settings':
+      command = parseSettingsCommand(rest);
       break;
     case 'filter':
       command = parseFilterCommand(rest);

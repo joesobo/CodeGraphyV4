@@ -70,6 +70,23 @@ describe('cli graph controls', () => {
     expect(stderr).not.toHaveBeenCalled();
   });
 
+  it('refuses to hide or overwrite malformed persisted settings', async () => {
+    const workspace = await createWorkspace();
+    const settingsPath = path.join(workspace, '.codegraphy/settings.json');
+    await fs.writeFile(settingsPath, '{ malformed');
+    const before = await fs.readFile(settingsPath, 'utf8');
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'filter'], { stderr })).resolves.toBe(1);
+    await expect(runCli(['-C', workspace, 'filter', 'add', '**/generated/**'], { stderr })).resolves.toBe(1);
+
+    expect(stderr).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: { code: 'command_failed', message: expect.stringContaining('settings.json') },
+    });
+    await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
+  });
+
   it('lists discoverable scope and mutates filter patterns idempotently', async () => {
     const workspace = await createWorkspace();
     const outputs: string[] = [];

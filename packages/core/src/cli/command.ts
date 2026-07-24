@@ -6,6 +6,7 @@ import { runPluginsCommand } from './plugins/command';
 import { runQueryCommand } from './query/command';
 import { runScopeCommand } from './scope/command';
 import { runStatusCommand } from './status/command';
+import { runSettingsCommand } from './settings/command';
 import type { CliCommand } from './parse';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
 
@@ -82,6 +83,9 @@ export async function runCliCommand(
       break;
     case 'scope':
       result = runScopeCommand(command);
+      break;
+    case 'settings':
+      result = runSettingsCommand(command);
       break;
     case 'status':
       result = runStatusCommand(command.workspacePath, undefined, {
