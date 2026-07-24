@@ -126,6 +126,53 @@ describe('core/graphQuery search', () => {
     expect(match && 'excerpt' in match ? match.excerpt.length : 0).toBeLessThanOrEqual(240);
   });
 
+  it('falls back to BM25-ranked Files for natural multi-term searches', () => {
+    const result = searchGraph({
+      graphData: {
+        nodes: [
+          { id: 'src/cli/filter/command.ts', label: 'command.ts', nodeType: 'file' },
+          { id: 'src/cli/doctor/command.ts', label: 'command.ts', nodeType: 'file' },
+          { id: 'tests/cli/parse.test.ts', label: 'parse.test.ts', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      sourceText: {
+        files: [
+          {
+            filePath: 'src/cli/filter/command.ts',
+            content: 'export function runFilterCommand() { return readWorkspaceSettings(); }\n',
+          },
+          {
+            filePath: 'src/cli/doctor/command.ts',
+            content: 'export function runDoctorCommand() { return validateSettings(); }\n',
+          },
+          {
+            filePath: 'tests/cli/parse.test.ts',
+            content: "it('parses compact scope and filter commands', () => {});\n",
+          },
+        ],
+        filesScanned: 3,
+        filesSkipped: 0,
+      },
+    }, { pattern: 'filter command', limit: 20 });
+
+    expect(result.matches[0]).toEqual({
+      type: 'node',
+      node: { path: 'src/cli/filter/command.ts', nodeType: 'file' },
+    });
+    expect(result.matches).toContainEqual(expect.objectContaining({
+      type: 'text',
+      filePath: 'tests/cli/parse.test.ts',
+    }));
+  });
+
+  it('keeps exact identifier Symbols ahead of BM25 fallback candidates', () => {
+    expect(search('runIndexCommand').matches[0]).toMatchObject({
+      type: 'symbol',
+      symbol: { name: 'runIndexCommand' },
+    });
+  });
+
   it('ranks source paths related to the phrase ahead of documentation history', () => {
     const result = searchGraph({
       graphData,

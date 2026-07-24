@@ -10,6 +10,7 @@ import type {
 import { toNodeReportItem } from './nodeReport';
 import { paginate } from './pagination';
 import { toSymbolReportBase } from './symbols/metadata';
+import { rankSearchDocuments } from './search/ranking';
 
 const MAX_EXCERPT_LENGTH = 240;
 const SOURCE_FILE_EXTENSION = /\.(?:[cm]?[jt]sx?|py|go|rs|java|kt|kts|swift|dart|cs|c|cc|cpp|cxx|h|hh|hpp|hxx|m|mm|php|rb|lua|scala|sc|hs|lhs|pas|pp)$/iu;
@@ -125,15 +126,45 @@ function sourceMatches(data: GraphQueryData, pattern: string, matcher: PatternMa
   ));
 }
 
+function bm25FallbackMatches(
+  data: GraphQueryData,
+  pattern: string,
+  existingMatches: readonly RankedMatch[],
+): RankedMatch[] {
+  if (pattern.includes('*') || existingMatches.length >= 5) return [];
+  const nodesByPath = new Map(data.graphData.nodes
+    .filter(node => !node.symbol)
+    .map(node => [node.id, node]));
+  const existingNodePaths = new Set(existingMatches.flatMap(item => (
+    item.match.type === 'node' ? [item.match.node.path] : []
+  )));
+  return rankSearchDocuments(pattern, (data.sourceText?.files ?? []).map(file => ({
+    id: file.filePath,
+    path: file.filePath,
+    text: file.content,
+  }))).slice(0, 10).flatMap((result, index) => {
+    const node = nodesByPath.get(result.id);
+    return node && !existingNodePaths.has(result.id) ? [{
+      match: { type: 'node' as const, node: toNodeReportItem(node) },
+      rank: 4,
+      sortKey: String(index).padStart(10, '0'),
+    }] : [];
+  });
+}
+
 export function searchGraph(
   data: GraphQueryData,
   config: GraphQuerySearchConfig,
 ): GraphQuerySearchReport {
   const matcher = createPatternMatcher(config.pattern);
-  const rankedMatches = [
+  const directMatches = [
     ...(data.symbols ?? []).map(symbol => symbolMatch(symbol, matcher)).filter(match => match !== undefined),
     ...data.graphData.nodes.map(node => nodeMatch(node, matcher)).filter(match => match !== undefined),
     ...sourceMatches(data, config.pattern, matcher),
+  ];
+  const rankedMatches = [
+    ...directMatches,
+    ...bm25FallbackMatches(data, config.pattern, directMatches),
   ].sort((left, right) => left.rank - right.rank || left.sortKey.localeCompare(right.sortKey));
   const page = paginate(rankedMatches.map(item => item.match), config);
 
