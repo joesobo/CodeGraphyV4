@@ -58,6 +58,14 @@ export async function requestCodeGraphyIndexWorkspace(
     files: result.files.length,
     nodes: result.graph.nodes.length,
     edges: result.graph.edges.length,
+    discovery: {
+      indexedFiles: result.files.length,
+      totalFound: result.totalFound,
+      limitReached: result.limitReached,
+      ...(result.limitReached ? {
+        action: `Run \`codegraphy settings set maxFiles ${result.totalFound}\`, then rerun \`codegraphy index\`.`,
+      } : {}),
+    },
     indexing: result.indexing,
   };
 }

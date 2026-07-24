@@ -17,6 +17,7 @@ describe('index/command', () => {
           workspaceRoot: '/workspace/project',
           graphCache: '.codegraphy/graph.sqlite',
           message: 'CodeGraphy indexing completed. CLI queries can now read the Graph Cache.',
+          discovery: { indexedFiles: 2, totalFound: 2, limitReached: false },
           indexing: { mode: 'full', analyzedFiles: 2, deletedFiles: 0, reusedFiles: 0 },
         };
       },
@@ -38,6 +39,7 @@ describe('index/command', () => {
         workspaceRoot: workspacePath ?? '/workspace/project',
         graphCache: '.codegraphy/graph.sqlite',
         message: 'indexed',
+        discovery: { indexedFiles: 0, totalFound: 0, limitReached: false },
         indexing: { mode: 'full', analyzedFiles: 0, deletedFiles: 0, reusedFiles: 0 },
       }),
       writeStatus: vi.fn(),
@@ -64,6 +66,7 @@ describe('index/command', () => {
           workspaceRoot: '/workspace/other',
           graphCache: '.codegraphy/graph.sqlite',
           message: 'indexed',
+          discovery: { indexedFiles: 2, totalFound: 2, limitReached: false },
           indexing: { mode: 'full', analyzedFiles: 2, deletedFiles: 0, reusedFiles: 0 },
         };
       },

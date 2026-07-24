@@ -73,7 +73,11 @@ describe('cli/settings command', () => {
     await expect(runCli(['-C', workspace, 'settings', 'set', 'maxFiles', '-1'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      error: { code: 'command_failed', message: 'maxFiles must be a positive integer' },
+      error: {
+        code: 'invalid_workspace_settings',
+        message: 'maxFiles must be a positive integer',
+        details: { path: settingsPath },
+      },
     });
     await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
   });
@@ -87,7 +91,11 @@ describe('cli/settings command', () => {
     await expect(runCli(['-C', workspace, 'settings', 'set', 'maxFiles', '2500'], { stderr })).resolves.toBe(1);
 
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      error: { code: 'command_failed', message: expect.stringContaining('settings.json') },
+      error: {
+        code: 'invalid_workspace_settings',
+        message: expect.any(String),
+        details: { path: settingsPath },
+      },
     });
     await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
   });

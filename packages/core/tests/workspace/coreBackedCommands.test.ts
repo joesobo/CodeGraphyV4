@@ -64,6 +64,11 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     expect(indexResult).toMatchObject({
       workspaceRoot,
       graphCache: '.codegraphy/graph.sqlite',
+      discovery: {
+        indexedFiles: 2,
+        totalFound: 2,
+        limitReached: false,
+      },
       indexing: {
         mode: 'full',
         analyzedFiles: 2,
@@ -82,6 +87,25 @@ describe('core-backed CodeGraphy Workspace commands', () => {
         to: 'Target.md',
       }),
     ]);
+  });
+
+  it('returns an actionable file-budget result when discovery is truncated', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-budget-'));
+    await fs.writeFile(path.join(workspaceRoot, 'one.ts'), 'export const one = 1;\n');
+    await fs.writeFile(path.join(workspaceRoot, 'two.ts'), 'export const two = 2;\n');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      maxFiles: 1,
+    });
+
+    const result = await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    expect(result.discovery).toEqual({
+      indexedFiles: 1,
+      totalFound: 2,
+      limitReached: true,
+      action: 'Run `codegraphy settings set maxFiles 2`, then rerun `codegraphy index`.',
+    });
   });
 
   it('reports a fresh cache immediately after indexing with an unavailable configured plugin', async () => {

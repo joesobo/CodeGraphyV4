@@ -82,7 +82,7 @@ describe('cli graph controls', () => {
 
     expect(stderr).toHaveBeenCalledTimes(2);
     expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
-      error: { code: 'command_failed', message: expect.stringContaining('settings.json') },
+      error: { code: 'invalid_workspace_settings', details: { path: settingsPath } },
     });
     await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
   });

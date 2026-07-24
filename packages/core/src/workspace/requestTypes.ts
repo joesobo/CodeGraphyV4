@@ -30,6 +30,12 @@ export interface IndexWorkspaceResult {
   workspaceRoot: string;
   graphCache: string;
   message: string;
+  discovery: {
+    indexedFiles: number;
+    totalFound: number;
+    limitReached: boolean;
+    action?: string;
+  };
   indexing: {
     mode: 'full' | 'incremental';
     analyzedFiles: number;

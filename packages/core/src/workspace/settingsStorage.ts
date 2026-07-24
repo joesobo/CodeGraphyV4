@@ -23,7 +23,13 @@ export class WorkspaceSettingsError extends Error {
 
 function writeRawWorkspaceSettings(workspaceRoot: string, settings: Record<string, unknown>): void {
   const settingsPath = getWorkspaceSettingsPath(workspaceRoot);
-  const validated = validateWorkspaceSettingsRecord(settings);
+  let validated: Record<string, unknown>;
+  try {
+    validated = validateWorkspaceSettingsRecord(settings);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new WorkspaceSettingsError(settingsPath, reason);
+  }
   fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
   fs.writeFileSync(settingsPath, `${JSON.stringify(validated, null, 2)}\n`);
 }
