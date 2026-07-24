@@ -5,9 +5,10 @@ import { discoverWorkspaceIndexFiles } from '../../src/indexing/discovery';
 import { createDefaultCodeGraphyWorkspaceSettings } from '../../src/workspace/settingsDefaults';
 
 describe('indexing/discovery', () => {
-  it('discovers the complete workspace independently of saved graph filters', async () => {
+  it('excludes active custom filters from fresh indexing', async () => {
     const discover = vi.fn(async () => ({
       files: [],
+      presentFilePaths: ['generated/cache.ts'],
       directories: ['src'],
       durationMs: 12,
       limitReached: true,
@@ -21,11 +22,13 @@ describe('indexing/discovery', () => {
     await expect(discoverWorkspaceIndexFiles({
       discovery: { discover } as unknown as FileDiscovery,
       options: { workspaceRoot: '/workspace', warn, logInfo, signal },
+      pluginFilterPatterns: ['**/.cache/**'],
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         include: [],
         maxFiles: 50,
         filterPatterns: ['**/generated/**', '**/dist/**'],
+        disabledCustomFilterPatterns: ['**/dist/**'],
         plugins: [{
           id: 'codegraphy.test',
           activation: 'enabled',
@@ -44,12 +47,13 @@ describe('indexing/discovery', () => {
       rootPath: '/workspace',
       include: DEFAULT_INCLUDE,
       exclude: [],
+      filter: ['**/generated/**', '**/.cache/**'],
       maxFiles: 50,
       respectGitignore: true,
       signal,
     });
     expect(warn).toHaveBeenCalledWith(
-      'CodeGraphy: Found 101+ files, showing first 50. Increase maxFiles in .codegraphy/settings.json to see more.',
+      'CodeGraphy: Found 101 files, showing first 50. Increase maxFiles in .codegraphy/settings.json to see more.',
     );
     expect(logInfo).toHaveBeenCalledWith('[CodeGraphy] Discovered 0 files in 12ms');
   });
@@ -57,6 +61,7 @@ describe('indexing/discovery', () => {
   it('uses explicit include patterns and skips optional callbacks when the limit is not reached', async () => {
     const discover = vi.fn(async () => ({
       files: [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' }],
+      presentFilePaths: ['src/app.ts'],
       durationMs: 3,
       limitReached: false,
     }));
@@ -64,6 +69,7 @@ describe('indexing/discovery', () => {
     const result = await discoverWorkspaceIndexFiles({
       discovery: { discover } as unknown as FileDiscovery,
       options: { workspaceRoot: '/workspace' },
+      pluginFilterPatterns: [],
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         include: ['src/**/*.ts'],

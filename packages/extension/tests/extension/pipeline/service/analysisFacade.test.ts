@@ -139,7 +139,7 @@ describe('extension/pipeline/service/analysisFacade', () => {
     );
   });
 
-  it('refreshes from an empty cache and forwards progress with fallback phases', async () => {
+  it('refreshes without dropping reusable filtered cache entries and forwards fallback phases', async () => {
     const facade = new TestAnalysisFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
     const signal = new AbortController().signal;
@@ -164,9 +164,9 @@ describe('extension/pipeline/service/analysisFacade', () => {
       edges: [],
     });
 
-    expect(facade._cache).not.toBe(cacheBeforeRefresh);
-    expect(facade._cache.files).toEqual({});
-    expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
+    expect(facade._cache).toBe(cacheBeforeRefresh);
+    expect(facade._cache.files).toHaveProperty('src/stale.ts');
+    expect(logSpy).not.toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
     expect(analyzeSpy).toHaveBeenCalledWith(
       [],
       disabledPlugins,

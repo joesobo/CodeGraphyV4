@@ -140,6 +140,17 @@ export async function indexCodeGraphyWorkspace(
   const previousCacheFingerprints = new Map(
     Object.entries(cache.files).map(([filePath, entry]) => [filePath, JSON.stringify(entry)] as const),
   );
+  const disabledFilterPatternsByPlugin = new Map(
+    settings.plugins.map(plugin => [
+      plugin.id,
+      new Set(plugin.disabledFilterPatterns ?? []),
+    ] as const),
+  );
+  const pluginFilterPatterns = registry.list().flatMap(({ plugin }) => {
+    if (disabledPlugins.has(plugin.id)) return [];
+    const disabledPatterns = disabledFilterPatternsByPlugin.get(plugin.id) ?? new Set<string>();
+    return (plugin.defaultFilters ?? []).filter(pattern => !disabledPatterns.has(pattern));
+  });
 
   const discoveryResult = await timeIndexPhase(
     options,
@@ -147,6 +158,7 @@ export async function indexCodeGraphyWorkspace(
     () => discoverWorkspaceIndexFiles({
       discovery,
       options,
+      pluginFilterPatterns,
       settings,
       workspaceRoot,
     }),
@@ -164,9 +176,9 @@ export async function indexCodeGraphyWorkspace(
   ) {
     canReusePersistedCache = false;
   }
-  const discoveredFilePaths = new Set(discoveryResult.files.map(file => file.relativePath));
+  const presentFilePaths = new Set(discoveryResult.presentFilePaths);
   const deletedFilePaths = Object.keys(cache.files)
-    .filter(filePath => !discoveredFilePaths.has(filePath));
+    .filter(filePath => !presentFilePaths.has(filePath));
   const readContent = createWorkspaceIndexFileContentReader(discovery);
 
   if (canReusePersistedCache) {

@@ -40,9 +40,23 @@ export async function discoverWorkspaceEngineFiles(
   const { discovery, options, state, workspaceRoot } = runtime;
   if (!state.registry || !state.settings) return;
 
+  const disabledPlugins = createDisabledPluginSet(state.settings, options.disabledPlugins);
+  const disabledFilterPatternsByPlugin = new Map(
+    state.settings.plugins.map(plugin => [
+      plugin.id,
+      new Set(plugin.disabledFilterPatterns ?? []),
+    ] as const),
+  );
+  const pluginFilterPatterns = state.registry.list().flatMap(({ plugin }) => {
+    if (disabledPlugins.has(plugin.id)) return [];
+    const disabledPatterns = disabledFilterPatternsByPlugin.get(plugin.id) ?? new Set<string>();
+    return (plugin.defaultFilters ?? []).filter(pattern => !disabledPatterns.has(pattern));
+  });
+
   state.discoveryResult = await discoverWorkspaceIndexFiles({
     discovery,
     options,
+    pluginFilterPatterns,
     settings: state.settings,
     workspaceRoot,
   });

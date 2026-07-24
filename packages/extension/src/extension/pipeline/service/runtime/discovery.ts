@@ -18,6 +18,7 @@ export function createWorkspacePipelineDiscoveryDependencies(
         directories: result.directories,
         durationMs: result.durationMs,
         files: result.files,
+        presentFilePaths: result.presentFilePaths,
         gitIgnoredPaths: result.gitIgnoredPaths,
         limitReached: result.limitReached,
         totalFound: result.totalFound ?? result.files.length,
@@ -30,8 +31,8 @@ export async function discoverWorkspacePipelineFilesWithWarnings(
   dependencies: WorkspacePipelineDiscoveryDependencies<IDiscoveredFile>,
   workspaceRoot: string,
   config: WorkspacePipelineDiscoveryConfig,
-  _filterPatterns: string[],
-  _pluginFilterPatterns: string[],
+  filterPatterns: string[],
+  pluginFilterPatterns: string[],
   signal: AbortSignal | undefined,
   showWarningMessage: (message: string) => void,
 ): Promise<WorkspacePipelineDiscoveryResult<IDiscoveredFile>> {
@@ -40,6 +41,7 @@ export async function discoverWorkspacePipelineFilesWithWarnings(
     workspaceRoot,
     config,
     signal,
+    [...new Set([...filterPatterns, ...pluginFilterPatterns])],
   );
 
   if (discoveryResult.limitReached) {

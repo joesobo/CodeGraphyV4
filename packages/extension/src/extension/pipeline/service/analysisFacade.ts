@@ -1,6 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
-import { createEmptyWorkspaceAnalysisCache } from '../cache';
 import { WorkspacePipelineGraphDiscoveryFacade } from './graphDiscovery';
 import {
   analyzeWorkspacePipeline,
@@ -36,18 +35,12 @@ export abstract class WorkspacePipelineAnalysisFacade extends WorkspacePipelineG
     );
   }
 
-  protected resetCacheForIndexRefresh(): void {
-    this._cache = createEmptyWorkspaceAnalysisCache();
-    console.log('[CodeGraphy] Cache cleared');
-  }
-
   async refreshIndex(
     filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this.resetCacheForIndexRefresh();
     return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
       onProgress?.({
         ...progress,

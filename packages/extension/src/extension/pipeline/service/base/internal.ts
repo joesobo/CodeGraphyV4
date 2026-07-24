@@ -50,6 +50,15 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     return this._registry.listNodeTypes(disabledPlugins);
   }
 
+  protected _pruneMissingCacheFiles(presentFilePaths: readonly string[]): void {
+    const presentPaths = new Set(presentFilePaths);
+    for (const filePath of Object.keys(this._cache.files)) {
+      if (!presentPaths.has(filePath)) {
+        delete this._cache.files[filePath];
+      }
+    }
+  }
+
   protected async _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,

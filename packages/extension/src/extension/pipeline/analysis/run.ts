@@ -29,6 +29,7 @@ export function runWorkspacePipelineAnalysis(
           directories: result.directories,
           durationMs: result.durationMs,
           files: result.files,
+          presentFilePaths: result.presentFilePaths,
           gitIgnoredPaths: result.gitIgnoredPaths,
           limitReached: result.limitReached,
           totalFound: result.totalFound ?? result.files.length,

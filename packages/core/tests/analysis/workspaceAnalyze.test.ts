@@ -40,6 +40,7 @@ function createSource() {
     _lastFileConnections: new Map<string, IProjectedConnection[]>(),
     _lastGitIgnoredPaths: [] as string[],
     _lastWorkspaceRoot: '',
+    _pruneMissingCacheFiles: vi.fn(),
     _preAnalyzePlugins: vi.fn(async () => undefined),
     getPluginFilterPatterns: vi.fn(() => ['**/*.generated.ts']),
   };
@@ -51,6 +52,7 @@ function createDependencies() {
       directories: [] as string[],
       durationMs: 3,
       files: [] as IDiscoveredFile[],
+      presentFilePaths: [] as string[],
       gitIgnoredPaths: [] as string[],
       limitReached: false,
       totalFound: 0,
@@ -86,17 +88,22 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.saveCache).not.toHaveBeenCalled();
   });
 
-  it('uses only index-membership exclusions during discovery', async () => {
+  it('excludes active custom and plugin filters during discovery', async () => {
     const source = createSource();
     const dependencies = createDependencies();
 
-    await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
+    await analyzeWorkspaceWithAnalyzer(
+      source as never,
+      dependencies as never,
+      ['**/*.user.ts'],
+    );
 
     expect(dependencies.discover).toHaveBeenCalledWith({
       rootPath: '/workspace',
       maxFiles: 25,
       include: ['**/*'],
       exclude: [...DEFAULT_EXCLUDE],
+      filter: ['**/*.user.ts', '**/*.generated.ts'],
       respectGitignore: true,
       signal: undefined,
     });
@@ -128,6 +135,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: ['src/new-folder'],
       durationMs: 4,
       files,
+      presentFilePaths: ['src/index.ts'],
       gitIgnoredPaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
@@ -163,6 +171,7 @@ describe('pipeline/analysis/analyze', () => {
     ).resolves.toEqual(graphData);
 
     expect(dependencies.discover).toHaveBeenCalledOnce();
+    expect(source._pruneMissingCacheFiles).toHaveBeenCalledWith(['src/index.ts']);
     expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
     expect(source._analyzeFiles).toHaveBeenCalledWith(
       files,
@@ -248,6 +257,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 5,
       files: [] as IDiscoveredFile[],
+      presentFilePaths: [] as string[],
       limitReached: true,
       totalFound: 27,
     });
@@ -270,6 +280,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 4,
       files,
+      presentFilePaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
     });
@@ -316,6 +327,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 2,
       files: [] as IDiscoveredFile[],
+      presentFilePaths: [] as string[],
       limitReached: false,
       totalFound: 0,
     });
