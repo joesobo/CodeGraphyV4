@@ -3,6 +3,7 @@ import {
   createWorkspaceIndexAnalysisCacheTiers,
   getWorkspaceIndexPluginMatchingFiles,
   hasRequiredAnalysisCacheTiers,
+  matchesAnyPattern,
   SYMBOLS_ANALYSIS_CACHE_TIER,
   type AnalysisCacheTier,
   type IDiscoveredFile,
@@ -10,7 +11,10 @@ import {
   throwIfWorkspaceAnalysisAborted,
 } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
-import { createCachedWorkspaceDiscoveryState } from './cache/cachedDiscovery';
+import {
+  collectCachedDirectoryPaths,
+  createCachedWorkspaceDiscoveryState,
+} from './cache/cachedDiscovery';
 import {
   isMissingFileError,
   isWorkspaceAnalysisAbortError,
@@ -24,14 +28,13 @@ import type { IWorkspaceAnalysisCache } from '../cache';
 import type { IPluginInfo } from '../../../core/plugins/types/contracts';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
-  includeCurrentGitignoreMetadata?: boolean;
   requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
   warmAnalysis?: boolean;
 }
 
 export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipelineAnalysisFacade {
   async loadCachedGraph(
-    _filterPatterns?: string[],
+    filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     options: WorkspacePipelineCachedGraphLoadOptions = {},
@@ -54,16 +57,29 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     throwIfWorkspaceAnalysisAborted(signal);
 
     const cachedFilePaths = Object.keys(this._cache.files);
-    const includeCurrentGitignoreMetadata = options.includeCurrentGitignoreMetadata !== false;
     const cachedDiscovery = createCachedWorkspaceDiscoveryState(
       workspaceRoot,
       cachedFilePaths,
-      config.respectGitignore && includeCurrentGitignoreMetadata,
+      config.respectGitignore,
+    );
+
+    const activeFilterPatterns = [
+      ...this._getEffectiveCustomFilterPatterns(filterPatterns),
+      ...this._getEffectivePluginFilterPatterns(disabledPlugins),
+    ];
+    const gitIgnoredPaths = new Set(cachedDiscovery.gitIgnoredPaths);
+    const eligibleFiles = cachedDiscovery.files.filter(file => (
+      !gitIgnoredPaths.has(file.relativePath)
+      && !matchesAnyPattern(file.relativePath, activeFilterPatterns)
+    ));
+    const eligibleFilePaths = new Set(eligibleFiles.map(file => file.relativePath));
+    const eligibleCacheFiles = Object.fromEntries(
+      Object.entries(this._cache.files).filter(([filePath]) => eligibleFilePaths.has(filePath)),
     );
 
     if (!canReplayCachedGraphAnalysis(
-      this._cache.files,
-      cachedDiscovery.files,
+      eligibleCacheFiles,
+      eligibleFiles,
       this._registry.list(),
       options.requiredAnalysisCacheTiers,
     )) {
@@ -71,14 +87,16 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     }
 
     const fileAnalysis = new Map(
-      Object.entries(this._cache.files).map(([filePath, entry]) => [
+      Object.entries(eligibleCacheFiles).map(([filePath, entry]) => [
         filePath,
         entry.analysis,
       ]),
     );
 
-    this._lastDiscoveredFiles = cachedDiscovery.files;
-    this._lastDiscoveredDirectories = cachedDiscovery.directories;
+    this._lastDiscoveredFiles = eligibleFiles;
+    this._lastDiscoveredDirectories = collectCachedDirectoryPaths(
+      eligibleFiles.map(file => file.relativePath),
+    );
     this._lastGitIgnoredPaths = cachedDiscovery.gitIgnoredPaths;
     this._lastFileAnalysis = fileAnalysis;
     this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
@@ -95,7 +113,7 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
 
     if (options.warmAnalysis !== false) {
       this._scheduleCachedGraphAnalysisWarmup(
-        cachedDiscovery.files,
+        eligibleFiles,
         workspaceRoot,
         disabledPlugins,
         signal,

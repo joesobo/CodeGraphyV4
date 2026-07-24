@@ -135,7 +135,7 @@ describe('extension/pipeline/service/refresh/modes/gitignoreMetadata', () => {
       persistError,
     );
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
-      facade._lastFileAnalysis,
+      new Map(),
       '/workspace',
       false,
       disabledPlugins,

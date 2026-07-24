@@ -1,5 +1,5 @@
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
-import type { IDiscoveryResult } from '../discovery/contracts';
+import type { IFileDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
@@ -10,7 +10,7 @@ export async function discoverWorkspaceIndexFiles(input: {
   pluginFilterPatterns: readonly string[];
   settings: CodeGraphyWorkspaceSettings;
   workspaceRoot: string;
-}): Promise<IDiscoveryResult> {
+}): Promise<IFileDiscoveryResult> {
   const disabledFilterPatterns = new Set(input.settings.disabledCustomFilterPatterns);
   const discoveryResult = await input.discovery.discover({
     rootPath: input.workspaceRoot,

@@ -46,15 +46,26 @@ export function collectCachedGitIgnoredPaths(
   }
 
   const pathsByGitPath = createCachedGitPathLookup(relativePaths);
+  const gitPaths = [...pathsByGitPath.keys()];
+  const ignoredPaths: string[] = [];
+  const batchSize = 500;
 
-  const result = spawnSync('git', ['-C', workspaceRoot, 'check-ignore', '--stdin'], {
-    encoding: 'utf8',
-    input: createGitCheckIgnoreInput(pathsByGitPath),
-  });
+  for (let offset = 0; offset < gitPaths.length; offset += batchSize) {
+    const batchPaths = gitPaths.slice(offset, offset + batchSize);
+    const batchLookup = new Map(
+      batchPaths.map(gitPath => [gitPath, pathsByGitPath.get(gitPath) ?? gitPath]),
+    );
+    const result = spawnSync('git', ['-C', workspaceRoot, 'check-ignore', '--stdin'], {
+      encoding: 'utf8',
+      input: createGitCheckIgnoreInput(batchLookup),
+    });
 
-  if (didGitCheckIgnoreFail(result)) {
-    return [];
+    if (didGitCheckIgnoreFail(result)) {
+      return [];
+    }
+
+    ignoredPaths.push(...readGitIgnoredCachedPaths(result.stdout, batchLookup));
   }
 
-  return readGitIgnoredCachedPaths(result.stdout, pathsByGitPath);
+  return ignoredPaths;
 }

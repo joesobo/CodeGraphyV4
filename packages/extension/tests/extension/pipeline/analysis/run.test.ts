@@ -87,7 +87,6 @@ describe('pipeline/analysis/run', () => {
     })).resolves.toEqual({
       durationMs: 1,
       files: [],
-      cacheFilePaths: ['example-python/src/main.py'],
       gitIgnoredPaths: ['example-python/src/main.py'],
       limitReached: false,
       totalFound: 0,

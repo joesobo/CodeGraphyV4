@@ -30,7 +30,8 @@ vi.mock('@codegraphy-dev/core', async (importOriginal) => {
   };
 });
 
-vi.mock('../../../../src/extension/pipeline/service/cache/cachedDiscovery', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/cachedDiscovery', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../src/extension/pipeline/service/cache/cachedDiscovery')>()),
   createCachedWorkspaceDiscoveryState: vi.fn(),
 }));
 vi.mock('../../../../src/extension/pipeline/service/cachedGraphWarmup/errors', () => ({
@@ -256,18 +257,17 @@ describe('extension/pipeline/service/cachedGraph', () => {
     );
   });
 
-  it('honors gitignore and warmup replay options independently', async () => {
+  it('always honors current gitignore while allowing warmup replay to be disabled', async () => {
     const facade = new TestCachedGraphFacade();
 
     await facade.loadCachedGraph([], new Set(), undefined, {
-      includeCurrentGitignoreMetadata: false,
       warmAnalysis: false,
     });
 
     expect(createCachedWorkspaceDiscoveryState).toHaveBeenLastCalledWith(
       '/workspace',
       ['src/cached.ts'],
-      false,
+      true,
     );
     expect(createCachedGraphAnalysisWarmupInput).not.toHaveBeenCalled();
     expect(warmCachedGraphAnalysisFile).not.toHaveBeenCalled();
@@ -291,6 +291,39 @@ describe('extension/pipeline/service/cachedGraph', () => {
       '/workspace',
       true,
       new Set<string>(),
+    );
+  });
+
+  it('keeps retained Git-ignored cache entries out of replay and warmup', async () => {
+    const facade = new TestCachedGraphFacade();
+    setCachedGraphCache(facade, {
+      files: {
+        'src/cached.ts': { analysis: cachedAnalysis, mtime: 1, size: 10 },
+        'README.md': { analysis: readmeAnalysis, mtime: 1, size: 10 },
+      },
+    });
+    setupCachedDiscovery(mixedCachedFiles);
+    vi.mocked(createCachedWorkspaceDiscoveryState).mockReturnValue({
+      directories: ['src'],
+      files: mixedCachedFiles,
+      gitIgnoredPaths: ['README.md'],
+    });
+
+    await facade.loadCachedGraph();
+
+    expect(projectFileAnalysisConnections).toHaveBeenCalledWith(
+      new Map([['src/cached.ts', cachedAnalysis]]),
+      '/workspace',
+    );
+    expect(facade.buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      new Map([['src/cached.ts', cachedAnalysis]]),
+      '/workspace',
+      false,
+      new Set<string>(),
+    );
+    expect(cachedGraphState(facade)._lastDiscoveredFiles).toEqual(cachedFiles);
+    expect(createCachedGraphAnalysisWarmupInput).toHaveBeenCalledWith(
+      expect.objectContaining({ files: cachedFiles }),
     );
   });
 

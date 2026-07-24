@@ -39,7 +39,6 @@ describe('pipeline/service/discovery', () => {
       directories: ['src/new-folder'],
       durationMs: 12,
       files: [{ relativePath: 'src/a.ts' }],
-      cacheFilePaths: ['src/a.ts', 'example-python/app.py'],
       gitIgnoredPaths: ['example-python/app.py'],
       limitReached: false,
       totalFound: 1,

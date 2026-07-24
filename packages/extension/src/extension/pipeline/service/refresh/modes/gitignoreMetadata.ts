@@ -37,8 +37,14 @@ export async function refreshGitignoreMetadataForFacade(
     console.warn('[CodeGraphy] Failed to persist gitignore metadata refresh.', error);
   });
 
+  const eligibleFilePaths = new Set(
+    discoveryResult.files.map(file => file.relativePath),
+  );
+  const eligibleFileAnalysis = new Map(
+    [...facade._lastFileAnalysis].filter(([filePath]) => eligibleFilePaths.has(filePath)),
+  );
   return facade._buildGraphDataFromAnalysis(
-    facade._lastFileAnalysis,
+    eligibleFileAnalysis,
     workspaceRoot,
     config.showOrphans,
     input.disabledPlugins,

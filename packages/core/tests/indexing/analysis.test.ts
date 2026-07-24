@@ -51,7 +51,6 @@ describe('indexing/analysis', () => {
       discoveryResult: {
         durationMs: 1,
         files,
-        cacheFilePaths: files.map(file => file.relativePath),
         directories: [],
         gitIgnoredPaths: [],
         limitReached: false,

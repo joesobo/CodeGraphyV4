@@ -222,6 +222,25 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.name)).not.toContain('a.log');
   });
 
+  it('classifies Git-ignored paths when their combined output exceeds the process buffer', async () => {
+    initGitRepo();
+    createFile('.gitignore', 'ignored/\n');
+    for (let index = 0; index < 5_000; index += 1) {
+      const fileName = `${index.toString(36)}-${'x'.repeat(210)}.ts`;
+      createFile(path.join('ignored', fileName));
+    }
+    createFile('z.ts');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      include: ['**/*.ts'],
+      maxFiles: 1,
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual(['z.ts']);
+    expect(result.gitIgnoredPaths).toHaveLength(5_001);
+  }, 15_000);
+
   it('does not infer gitignored state from .gitignore outside a Git repository', async () => {
     createFile('.gitignore', '*.log\n');
     createFile('debug.log');

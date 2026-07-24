@@ -6,7 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
-import { IDiscoveryOptions, IDiscoveredFile, IDiscoveryResult } from '../contracts';
+import { IDiscoveryOptions, IDiscoveredFile, IFileDiscoveryResult } from '../contracts';
 import { throwIfAborted } from '../abort';
 import { DEFAULT_EXCLUDE, matchesAnyPattern } from '../pathMatching';
 import { shouldIncludeFile } from './filter';
@@ -55,25 +55,30 @@ function collectGitIgnoredPathsFromGit(
     pathsByGitPath.set(toGitPath(relativePath), relativePath);
   }
 
-  const result = spawnSync(
-    'git',
-    ['-C', rootPath, 'check-ignore', '--stdin'],
-    {
-      encoding: 'utf8',
-      input: `${[...pathsByGitPath.keys()].join('\n')}\n`,
-    },
-  );
+  const gitPaths = [...pathsByGitPath.keys()];
+  const ignoredPaths = new Set<string>();
+  const batchSize = 500;
+  for (let offset = 0; offset < gitPaths.length; offset += batchSize) {
+    const batch = gitPaths.slice(offset, offset + batchSize);
+    const result = spawnSync(
+      'git',
+      ['-C', rootPath, 'check-ignore', '--stdin'],
+      {
+        encoding: 'utf8',
+        input: `${batch.join('\n')}\n`,
+      },
+    );
 
-  if (result.error || (result.status !== 0 && result.status !== 1)) {
-    return undefined;
+    if (result.error || (result.status !== 0 && result.status !== 1)) {
+      return undefined;
+    }
+
+    for (const gitPath of result.stdout.split(/\r?\n/).filter(Boolean)) {
+      ignoredPaths.add(pathsByGitPath.get(gitPath) ?? gitPath);
+    }
   }
 
-  return new Set(
-    result.stdout
-      .split(/\r?\n/)
-      .filter(Boolean)
-      .map(gitPath => pathsByGitPath.get(gitPath) ?? gitPath),
-  );
+  return ignoredPaths;
 }
 
 function collectGitIgnoredPaths(
@@ -119,7 +124,7 @@ function filterEligibleDirectories(
 }
 
 export class FileDiscovery {
-  async discover(options: IDiscoveryOptions): Promise<IDiscoveryResult> {
+  async discover(options: IDiscoveryOptions): Promise<IFileDiscoveryResult> {
     const startTime = Date.now();
     const { rootPath, signal } = options;
     const {

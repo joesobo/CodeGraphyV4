@@ -47,8 +47,6 @@ export interface IDiscoveredFile {
 export interface IDiscoveryResult {
   /** Eligible discovered files, capped by maxFiles */
   files: IDiscoveredFile[];
-  /** Paths allowed to remain cached: selected files plus currently filtered and Git-ignored files */
-  cacheFilePaths: string[];
   /** Discovered directory paths relative to the workspace root */
   directories: string[];
   /** Discovered file and directory paths reported by Git as ignored */
@@ -59,4 +57,9 @@ export interface IDiscoveryResult {
   totalFound?: number;
   /** Time taken in milliseconds */
   durationMs: number;
+}
+
+/** Internal indexing result with paths allowed to remain in the Graph Cache. */
+export interface IFileDiscoveryResult extends IDiscoveryResult {
+  cacheFilePaths: string[];
 }

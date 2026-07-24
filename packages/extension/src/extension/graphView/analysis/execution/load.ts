@@ -29,10 +29,12 @@ async function loadDiscoveredGraphViewRawData(context: GraphViewRawDataLoadConte
 }
 
 async function loadCachedOrRefreshedGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
-  const cachedGraphData = await loadCachedGraphViewRawData(context.signal, context.state, context.analyzer, {
-    includeCurrentGitignoreMetadata: context.indexFreshness !== 'stale',
-    ...(context.indexFreshness === 'stale' ? { warmAnalysis: false } : {}),
-  });
+  const cachedGraphData = await loadCachedGraphViewRawData(
+    context.signal,
+    context.state,
+    context.analyzer,
+    context.indexFreshness === 'stale' ? { warmAnalysis: false } : undefined,
+  );
 
   return hasReplayableGraphData(cachedGraphData)
     ? cachedGraphData

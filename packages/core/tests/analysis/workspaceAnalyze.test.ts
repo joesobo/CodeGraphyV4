@@ -51,7 +51,6 @@ function createDependencies() {
       directories: [] as string[],
       durationMs: 3,
       files: [] as IDiscoveredFile[],
-      cacheFilePaths: [] as string[],
       gitIgnoredPaths: [] as string[],
       limitReached: false,
       totalFound: 0,
@@ -134,7 +133,6 @@ describe('pipeline/analysis/analyze', () => {
       directories: ['src/new-folder'],
       durationMs: 4,
       files,
-      cacheFilePaths: ['src/index.ts'],
       gitIgnoredPaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
@@ -255,7 +253,6 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 5,
       files: [] as IDiscoveredFile[],
-      cacheFilePaths: [] as string[],
       limitReached: true,
       totalFound: 27,
     });
@@ -278,7 +275,6 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 4,
       files,
-      cacheFilePaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
     });
@@ -325,7 +321,6 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 2,
       files: [] as IDiscoveredFile[],
-      cacheFilePaths: [] as string[],
       limitReached: false,
       totalFound: 0,
     });
