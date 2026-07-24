@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { rankSearchDocuments } from '../../../src/graphQuery/search/ranking';
 
-describe('core/graphQuery/search BM25 ranking', () => {
-  it('tokenizes camelCase identifiers and boosts matching paths', () => {
+describe('core/graphQuery/search natural phrase ranking', () => {
+  it('tokenizes camelCase identifiers and prioritizes all-term path matches', () => {
     const ranked = rankSearchDocuments('filter command', [
       {
         id: 'parse-test',
@@ -16,7 +16,7 @@ describe('core/graphQuery/search BM25 ranking', () => {
       },
     ]);
 
-    expect(ranked.map(result => result.id)).toEqual(['filter-command', 'parse-test']);
+    expect(ranked.map(result => result.id)).toEqual(['filter-command']);
   });
 
   it('returns no fallback ranking for a single exact-search term', () => {

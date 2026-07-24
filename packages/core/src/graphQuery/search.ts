@@ -126,7 +126,7 @@ function sourceMatches(data: GraphQueryData, pattern: string, matcher: PatternMa
   ));
 }
 
-function bm25FallbackMatches(
+function phraseFallbackMatches(
   data: GraphQueryData,
   pattern: string,
   existingMatches: readonly RankedMatch[],
@@ -142,7 +142,7 @@ function bm25FallbackMatches(
     id: file.filePath,
     path: file.filePath,
     text: file.content,
-  }))).slice(0, 10).flatMap((result, index) => {
+  }))).slice(0, 3).flatMap((result, index) => {
     const node = nodesByPath.get(result.id);
     return node && !existingNodePaths.has(result.id) ? [{
       match: { type: 'node' as const, node: toNodeReportItem(node) },
@@ -164,7 +164,7 @@ export function searchGraph(
   ];
   const rankedMatches = [
     ...directMatches,
-    ...bm25FallbackMatches(data, config.pattern, directMatches),
+    ...phraseFallbackMatches(data, config.pattern, directMatches),
   ].sort((left, right) => left.rank - right.rank || left.sortKey.localeCompare(right.sortKey));
   const page = paginate(rankedMatches.map(item => item.match), config);
 

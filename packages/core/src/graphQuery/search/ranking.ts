@@ -1,6 +1,5 @@
-const BM25_K1 = 1.2;
-const BM25_B = 0.75;
-const PATH_TERM_WEIGHT = 8;
+const PATH_TERM_WEIGHT = 100;
+const PATH_FRAGMENT_WEIGHT = 20;
 
 const STOP_WORDS = new Set([
   'a', 'an', 'and', 'are', 'as', 'at', 'be', 'but', 'by', 'for', 'from',
@@ -25,10 +24,22 @@ function tokenize(value: string): string[] {
     .filter(term => term.length > 1 && !STOP_WORDS.has(term)) ?? [];
 }
 
-function countTerms(terms: readonly string[]): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const term of terms) counts.set(term, (counts.get(term) ?? 0) + 1);
-  return counts;
+function scoreDocument(
+  document: SearchDocument,
+  queryTerms: readonly string[],
+): RankedSearchDocument | undefined {
+  const path = document.path.toLocaleLowerCase();
+  const pathTerms = tokenize(document.path);
+  const textTerms = tokenize(document.text);
+  const availableTerms = new Set([...pathTerms, ...textTerms]);
+  if (!queryTerms.every(term => availableTerms.has(term))) return undefined;
+  const score = queryTerms.reduce((total, term) => (
+    total
+    + pathTerms.filter(pathTerm => pathTerm === term).length * PATH_TERM_WEIGHT
+    + (path.includes(term) ? PATH_FRAGMENT_WEIGHT : 0)
+    + Math.min(10, textTerms.filter(textTerm => textTerm === term).length)
+  ), 0);
+  return { id: document.id, score };
 }
 
 export function rankSearchDocuments(
@@ -37,32 +48,13 @@ export function rankSearchDocuments(
 ): RankedSearchDocument[] {
   if (!/\s/u.test(pattern)) return [];
   const queryTerms = [...new Set(tokenize(pattern))];
-  if (queryTerms.length < 2 || documents.length === 0) return [];
-
-  const prepared = documents.map((document) => {
-    const pathTerms = tokenize(document.path);
-    const terms = [...pathTerms.flatMap(term => Array<string>(PATH_TERM_WEIGHT).fill(term)), ...tokenize(document.text)];
-    return { document, terms, counts: countTerms(terms) };
+  if (queryTerms.length < 2) return [];
+  const ranked = documents.flatMap(document => scoreDocument(document, queryTerms) ?? []);
+  const pathMatches = ranked.filter(result => {
+    const document = documents.find(candidate => candidate.id === result.id);
+    const pathTerms = new Set(tokenize(document?.path ?? ''));
+    return queryTerms.every(term => pathTerms.has(term));
   });
-  const averageLength = prepared.reduce((total, item) => total + item.terms.length, 0) / prepared.length;
-  const documentFrequency = new Map(queryTerms.map(term => [
-    term,
-    prepared.filter(item => item.counts.has(term)).length,
-  ]));
-
-  return prepared.flatMap(({ document, terms, counts }) => {
-    const score = queryTerms.reduce((total, term) => {
-      const frequency = counts.get(term) ?? 0;
-      if (frequency === 0) return total;
-      const frequencyInDocuments = documentFrequency.get(term) ?? 0;
-      const inverseDocumentFrequency = Math.log(
-        1 + (documents.length - frequencyInDocuments + 0.5) / (frequencyInDocuments + 0.5),
-      );
-      const normalizedFrequency = frequency + BM25_K1 * (
-        1 - BM25_B + BM25_B * terms.length / averageLength
-      );
-      return total + inverseDocumentFrequency * frequency * (BM25_K1 + 1) / normalizedFrequency;
-    }, 0);
-    return score > 0 ? [{ id: document.id, score }] : [];
-  }).sort((left, right) => right.score - left.score || left.id.localeCompare(right.id));
+  return (pathMatches.length > 0 ? pathMatches : ranked)
+    .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id));
 }

@@ -126,7 +126,7 @@ describe('core/graphQuery search', () => {
     expect(match && 'excerpt' in match ? match.excerpt.length : 0).toBeLessThanOrEqual(240);
   });
 
-  it('falls back to BM25-ranked Files for natural multi-term searches', () => {
+  it('falls back to all-term File ranking for natural multi-term searches', () => {
     const result = searchGraph({
       graphData: {
         nodes: [
@@ -166,7 +166,7 @@ describe('core/graphQuery search', () => {
     }));
   });
 
-  it('keeps exact identifier Symbols ahead of BM25 fallback candidates', () => {
+  it('keeps exact identifier Symbols ahead of natural phrase fallback candidates', () => {
     expect(search('runIndexCommand').matches[0]).toMatchObject({
       type: 'symbol',
       symbol: { name: 'runIndexCommand' },
