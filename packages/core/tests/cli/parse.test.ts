@@ -70,6 +70,14 @@ describe('cli/parse', () => {
       name: 'help',
       helpPath: ['plugins', 'enable'],
     });
+    expect(parseCliCommand(['query', '--help'])).toEqual({
+      name: 'help',
+      helpPath: ['query'],
+    });
+    expect(parseCliCommand(['help', 'query'])).toEqual({
+      name: 'help',
+      helpPath: ['query'],
+    });
   });
 
   it('rejects per-command workspaces, query flags, retired commands, and malformed globals', () => {

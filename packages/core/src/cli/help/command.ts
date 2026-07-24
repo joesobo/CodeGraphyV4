@@ -86,6 +86,18 @@ const COMMAND_HELP: Record<string, string> = {
     'Failure envelope: Includes the completed checks in error.details.',
     'Example: codegraphy doctor',
   ].join('\n'),
+  query: [
+    'Query commands are top-level:',
+    '',
+    '  codegraphy nodes',
+    '  codegraphy search <text>',
+    '  codegraphy edges',
+    '  codegraphy dependencies <node>',
+    '  codegraphy dependents <node>',
+    '  codegraphy path <from> <to>',
+    '',
+    'Run `codegraphy <command> --help` for arguments and options.',
+  ].join('\n'),
   nodes: [
     'Usage: codegraphy nodes [--limit <count>] [--offset <count>]',
     '',

@@ -71,6 +71,7 @@ function isKnownCommandName(name: string): boolean {
     || name === 'plugins'
     || name === 'scope'
     || name === 'status'
+    || name === 'query'
     || isGraphQueryReport(name);
 }
 
