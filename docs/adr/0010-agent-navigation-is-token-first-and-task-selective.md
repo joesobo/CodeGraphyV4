@@ -1,6 +1,6 @@
 # Agent navigation is token-first and task-selective
 
-**Status:** Accepted
+**Status:** Superseded by ADR 0011
 
 ## Context
 

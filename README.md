@@ -145,7 +145,7 @@ Target Query, Path, and exact targeted Relationship selectors use complete cache
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents when graph navigation can replace broad search, when to skip it, and how to stop after a bounded Search and exact Target Query before reading the smallest useful source set. Clean-install coding benchmarks use cumulative model tokens per correct task as the primary acceptance metric; see [ADR 0010](./docs/adr/0010-agent-navigation-is-token-first-and-task-selective.md). Install the skill from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) explains the Relationship Graph, lifecycle, query surfaces, JSON output, freshness, shaping, and limits so shell-capable agents can choose their own navigation strategy. Clean coding benchmarks compare fresh raw agents against CodeGraphy-plus-skill agents on the same feature change and use cumulative model tokens per correct task as the primary acceptance metric; see [ADR 0011](./docs/adr/0011-agents-choose-their-codegraphy-strategy.md). Install the skill from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
