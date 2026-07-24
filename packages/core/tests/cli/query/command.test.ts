@@ -30,6 +30,30 @@ describe('cli/query/command', () => {
     });
   });
 
+  it('normalizes an absolute query target to its workspace-relative Node id', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-target-'));
+    const filePath = path.join(workspaceRoot, 'src', 'command.ts');
+    await fs.mkdir(path.dirname(filePath));
+    await fs.writeFile(filePath, 'export const command = true;\n');
+    let receivedInput: unknown;
+
+    await runQueryCommand({
+      name: 'query',
+      invokedCommand: 'query',
+      report: 'overview',
+      workspacePath: workspaceRoot,
+      arguments: { target: filePath },
+    }, {
+      cwd: () => workspaceRoot,
+      query: async (input) => {
+        receivedInput = input;
+        return {};
+      },
+    });
+
+    expect(receivedInput).toMatchObject({ arguments: { target: 'src/command.ts' } });
+  });
+
   it('accepts an in-workspace path whose segment starts with two dots', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-segment-'));
     const selector = path.join(workspaceRoot, '..cache', 'entry.ts');

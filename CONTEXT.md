@@ -34,7 +34,7 @@ A **Graph Scope Capability Declaration** tells CodeGraphy which Node Types and E
 CodeGraphy narrows graph data in one order:
 
 ```text
-Relationship Graph -> Scoped Graph -> Filtered Graph -> Searched Graph -> Visible Graph
+Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Searched Graph -> Visible Graph
 ```
 
 | Stage | Meaning |
@@ -43,13 +43,15 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Searched Graph -> Visibl
 | **Scoped Graph** | The Relationship Graph after Graph Scope removes disabled types. |
 | **Filter** | Persisted include and exclude rules for recurring workspace noise. |
 | **Filtered Graph** | The Scoped Graph after Filter rules. |
-| **Search** | A temporary text query that narrows the current graph without changing Filter settings. |
-| **Searched Graph** | The Filtered Graph after Search. |
+| **Graph View Search** | A temporary text query that narrows the current graph without changing Filter settings. |
+| **Searched Graph** | The Filtered Graph after Graph View Search. |
+| **CLI Search** | A bounded discovery query over live source lines, cached AST Symbols, and indexed Nodes. It reports source and cache provenance and does not change settings. |
+| **Target Query** | A bounded overview of one exact File or Symbol Node, including declarations and incoming/outgoing Relationships. |
 | **Visible Graph** | The graph shown on screen after Graph Scope, Filter, Search, Show Orphans, and other view projection rules. |
 | **Orphan Node** | A Node with no remaining Edges after graph narrowing. |
 | **Show Orphans** | A final Graph View setting that keeps or removes Orphan Nodes. |
 
-Graph Scope runs before Filter, Filter runs before Search, and sorting or pagination runs after those stages. Core Graph Query uses the same order. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
+Graph Scope runs before Filter, Filter runs before Graph View Search, and sorting or pagination runs after those stages. Core Graph Query uses the same order for graph navigation. CLI Search is a discovery operation: persisted and one-off path Filters still apply, but Graph Scope does not hide cached AST Symbols or live source matches. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
 
 ## Selection, Focus, and Collapse
 
@@ -105,12 +107,13 @@ The Graph View can use a whole-view loading state before its first graph payload
 | **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
 | **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
-| **Graph Query CLI** | `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output. `batch` runs several of these commands against one Graph Cache snapshot. |
+| **CodeGraphy Exploration CLI** | `search` discovers live source, cached AST Symbols, and indexed Nodes; `query` inspects one exact File or Symbol. Both return bounded JSON with provenance. |
+| **Graph Query CLI** | `nodes`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output over the shaped Relationship Graph. |
 | **CodeGraphy Agent Skill** | Instructions that teach shell-capable agents when to index, which Graph Query command to choose, and when to inspect source. |
 | **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
 | **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |
 
-The CLI never searches parent directories for a workspace. Indexing and Graph Query are separate operations, so a query does not perform Indexing. Agents run Indexing when their task may have changed cached knowledge, then choose the narrowest query that answers the question.
+The CLI never searches parent directories for a workspace. Indexing and exploration are separate operations, so `search` and `query` never perform Indexing. CLI Search reads source text live from eligible indexed File Nodes and labels cached Symbol provenance as fresh or stale. Agents start with the narrowest useful discovery operation, run Indexing only after a missing-cache result or when current AST/Relationship facts are required, and inspect returned source evidence directly.
 
 ## Plugins
 

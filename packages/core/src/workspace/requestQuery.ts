@@ -7,14 +7,15 @@ import {
   type GraphQueryRequest,
 } from '../graphQuery';
 import { emitGraphQueryCacheMissing, emitGraphQueryCompleted, emitGraphQueryStarted } from './queryDiagnostics';
-import { projectWorkspaceQueryGraph, readWorkspaceQuerySource } from './queryGraph';
-import { resolveCodeGraphyWorkspacePath } from './requestPaths';
 import {
-  MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE,
-  type WorkspaceGraphQueryBatchInput,
-  type WorkspaceGraphQueryBatchResult,
-  type WorkspaceGraphQueryInput,
-  type WorkspaceGraphQueryResult,
+  projectWorkspaceQueryGraph,
+  readWorkspaceQuerySource,
+  readWorkspaceQuerySourceText,
+} from './queryGraph';
+import { resolveCodeGraphyWorkspacePath } from './requestPaths';
+import type {
+  WorkspaceGraphQueryInput,
+  WorkspaceGraphQueryResult,
 } from './requestTypes';
 import { readCodeGraphyWorkspaceStatus } from './status';
 
@@ -60,10 +61,15 @@ function executeWorkspaceGraphQuery(
     source,
     input.projection,
   );
+  const sourceText = input.report === 'search'
+    ? readWorkspaceQuerySourceText(workspaceRoot, graphData, source.indexedContentHashes)
+    : undefined;
   const queryResult = executeGraphQuery({
     graphData,
     symbols: snapshotFacts.symbols,
     relations: snapshotFacts.relations,
+    ...(sourceText ? { sourceText } : {}),
+    cacheState: status.state === 'stale' || sourceText?.hasChangedFiles ? 'stale' : 'fresh',
   }, {
     report: input.report,
     arguments: {
@@ -128,44 +134,4 @@ export async function requestWorkspaceGraphQuery(
       dependencies.readInstalledPluginCache(),
     ),
   );
-}
-
-export async function requestWorkspaceGraphQueryBatch(
-  input: WorkspaceGraphQueryBatchInput,
-  dependencies: WorkspaceGraphQueryDependencies = DEFAULT_DEPENDENCIES,
-): Promise<WorkspaceGraphQueryBatchResult> {
-  if (input.queries.length < 1 || input.queries.length > MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE) {
-    throw new Error(`Batch queries must contain 1 through ${MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE} items`);
-  }
-  const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
-  const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
-  if (!status.hasGraphCache) {
-    return {
-      results: input.queries.map(query => {
-        const operationId = createGraphQueryOperationId();
-        emitGraphQueryStarted({ diagnostics: input.diagnostics, operationId, report: query.report, workspaceRoot });
-        emitGraphQueryCacheMissing({
-          diagnostics: input.diagnostics,
-          operationId,
-          report: query.report,
-          status,
-          workspaceRoot,
-        });
-        return createCacheMissingResult(workspaceRoot);
-      }),
-    };
-  }
-
-  const source = (dependencies.readQuerySource ?? readWorkspaceQuerySource)(
-    workspaceRoot,
-    dependencies.readInstalledPluginCache(),
-  );
-  return {
-    results: input.queries.map(query => executeWorkspaceGraphQuery(
-      { ...query, diagnostics: input.diagnostics },
-      workspaceRoot,
-      status,
-      source,
-    )),
-  };
 }

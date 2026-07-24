@@ -8,7 +8,7 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. `batch` accepts several existing query argument vectors as JSON on standard input and runs them against one Graph Cache snapshot. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. `search` merges live source-line matches with cached AST Symbols and indexed Nodes, including file and line provenance. `query` inspects one exact File path or Symbol Node ID and returns its declarations plus incoming and outgoing Relationships. The narrower `nodes`, `edges`, `dependencies`, `dependents`, and `path` commands continue or enumerate the shaped graph. Graph navigation accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
 
 ```bash
 codegraphy index
@@ -16,11 +16,12 @@ codegraphy status
 codegraphy doctor
 codegraphy nodes
 codegraphy search SettingsPanel
+codegraphy search 'Indexing *workspace*'
+codegraphy query src/cli/index/command.ts
 codegraphy edges
 codegraphy dependencies src/app.ts
 codegraphy dependents src/config.ts
 codegraphy path src/app.ts src/config.ts
-printf '%s' '{"queries":[{"id":"uses","argv":["dependencies","src/app.ts"]},{"id":"used-by","argv":["dependents","src/app.ts"]}]}' | codegraphy batch
 codegraphy scope
 codegraphy scope node symbol:function on
 codegraphy scope edge call on
@@ -45,7 +46,9 @@ Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` 
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
 - Graph Cache storage: load, save, clear, and inspect normalized File, Node, Symbol, and Edge rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
-- Graph Query: search scoped Nodes, list scoped Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
+- Workspace Search: merge bounded live source-line matches, cached AST Symbols, and indexed Nodes with file provenance.
+- Target Query: inspect one exact File or Symbol with declarations plus bounded incoming and outgoing Relationships.
+- Graph Query: list scoped Nodes and Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
 
 The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
 

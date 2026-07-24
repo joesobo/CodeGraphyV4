@@ -4,7 +4,6 @@ import type {
 } from '../workspace/requestTypes';
 
 export type CliCommandName =
-  | 'batch'
   | 'doctor'
   | 'filter'
   | 'help'

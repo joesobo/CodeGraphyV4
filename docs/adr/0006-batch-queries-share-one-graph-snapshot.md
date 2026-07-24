@@ -1,6 +1,6 @@
 # Batch queries share one Graph Cache snapshot
 
-**Status:** Accepted
+**Status:** Superseded by ADR 0007
 
 ## Context
 

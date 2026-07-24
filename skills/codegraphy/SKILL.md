@@ -1,47 +1,52 @@
 ---
 name: codegraphy
-description: Use the CodeGraphy CLI to index, shape, and query a workspace Relationship Graph before reading source.
+description: Use the CodeGraphy CLI to discover source, AST Symbols, and Relationships in a prepared workspace graph.
 ---
 
 # CodeGraphy
 
-Use CodeGraphy to narrow codebase exploration. The graph guides which source files to read; it does not replace source inspection.
+Use CodeGraphy to identify the smallest set of source files worth reading. It provides navigation evidence, not a substitute for source inspection.
 
 ## Fast workflow
 
-1. Run `codegraphy status`. Run `codegraphy index` when the cache is missing/stale **or when the task may follow source changes that status cannot detect**. Indexing is explicit and successful non-verbose output is one JSON line.
-2. Choose the narrowest query:
-   - `search <text>` resolves a concept or partial path to Nodes.
-   - `dependencies <node>` finds outgoing Relationships: what it uses.
-   - `dependents <node>` finds incoming Relationships: what may be affected.
-   - `path <from> <to>` explains whether and how two Nodes connect.
-   - `nodes` and `edges` inventory the shaped graph.
-3. Read the returned source files and verify behavior there.
+1. Start with useful evidence instead of a preparatory status call:
+   - `search <pattern>` discovers an identifier, path, or exact source phrase.
+   - `query <node>` inspects one exact File path or Symbol Node ID already returned by search.
+2. Read the returned source files and lines.
+3. Use a narrow continuation command only when the overview is insufficient.
 
-Use `-C <workspace>` from outside the workspace. File selectors are workspace-relative paths or exact Node IDs. Quote multiword search text and globs.
+If a command reports `graph_cache_not_found`, run `codegraphy index` once and retry. Search reports whether live source differs from its cached Symbol facts in `data.sources.symbols.cacheState`; do not run `status` before every query. Use `codegraphy filter` only when persisted path exclusions need inspection or change.
 
-## Keep work bounded
+Use `-C <workspace>` from outside the workspace. Quote patterns containing spaces or `*`.
 
-`nodes`, `search`, `edges`, `dependencies`, and `dependents` default to 100 results. Their `data.page.nextOffset` is `null` when complete; otherwise rerun with `--offset <nextOffset>` and, when useful, a smaller `--limit`.
+## Choose the command by question
 
-Prefer one-off repeatable `--filter`, `--node-type`, and `--edge-type` options for a task. They do not change settings. Use `codegraphy scope` to discover available type IDs. Use `codegraphy filter` and `codegraphy scope ...` only for durable workspace changes.
+- `search <pattern>`: locate matching live source lines, cached AST Symbols, and indexed File or concept Nodes. Matching is case-insensitive; `*` spans characters within one line or name. Symbol results include their `filePath`; text results include `line`, `column`, and `excerpt`.
+- `query <node>`: inspect one exact File or Symbol. It returns declared AST Symbols plus bounded incoming and outgoing Relationships in one call.
+- `dependencies <node>`: continue through outgoing Relationships—what the Node uses.
+- `dependents <node>`: continue through incoming Relationships—what may be affected.
+- `path <from> <to>`: verify whether and how two exact Nodes connect.
+- `nodes`: inventory shaped Nodes when type-level enumeration is the task.
+- `edges`: inventory shaped Relationships when edge-level enumeration is the task.
+- `status`: inspect Graph Cache state when freshness itself is the task.
+- `doctor`: diagnose settings, cache, runtime, or Plugin failures.
+- `filter`, `scope`, and `plugins`: inspect or change durable workspace configuration; do not use them for ordinary navigation.
 
-Query with the narrowest command that answers the current question instead of dumping the complete graph.
+Query with the narrowest command that answers the current question. Prefer `search` → `query` → source reads over dumping Nodes or Edges.
 
-When several queries are independent and known in advance, send them through one snapshot with `codegraphy batch`:
+## Keep output bounded
 
-```sh
-printf '%s' '{"queries":[{"id":"uses","argv":["dependencies","src/app.ts"]},{"id":"used-by","argv":["dependents","src/app.ts"]}]}' | codegraphy batch
-```
+`search` defaults to 20 combined matches. `nodes`, `edges`, `dependencies`, and `dependents` default to 100 results. When `data.page.nextOffset` is not `null`, continue with `--offset <nextOffset>` only if the current page did not answer the question.
 
-Batching reduces latency and Graph Cache reads, but its JSON wrapper may use more tokens. Keep sequential calls when one result determines the next query.
+Graph navigation commands accept repeatable `--filter`, `--node-type`, and `--edge-type` projections without changing settings. Use persisted `filter` or `scope` mutations only for durable workspace changes.
 
 ## Failures and recovery
 
-Data commands write a single `{ok:true,command,data}` JSON envelope to stdout. Failures write `{ok:false,command,error}` to stderr and exit nonzero: 1 for an operational failure, 2 for invalid invocation. Use `--verbose` only when diagnostics/progress are useful; it writes additional lines to stderr.
+Data commands write one `{ok:true,command,data}` JSON envelope to stdout. Failures write `{ok:false,command,error}` to stderr and exit nonzero: 1 for an operational failure and 2 for an invalid invocation. `--verbose` adds diagnostics on stderr.
 
-- `graph_cache_not_found`: run `codegraphy index`.
-- Missing/stale/unhealthy uncertainty: run `codegraphy doctor` and follow `error.details.checks` actions.
-- Empty result: use `search` or `nodes` to confirm the selector, then retry with the exact path/Node ID.
+- `graph_cache_not_found`: run `codegraphy index`, then retry.
+- `query_target_not_found`: use `search` to obtain an exact File path or Symbol Node ID.
+- Empty search: use a shorter literal or one `*` wildcard; after one broader attempt, fall back to ordinary source search.
+- Unhealthy cache/settings: run `codegraphy doctor` and follow `error.details.checks`.
 
-Run `codegraphy --help` or `codegraphy <command> --help` for exact options and examples.
+Run `codegraphy --help` or `codegraphy <command> --help` for the complete interface and examples.

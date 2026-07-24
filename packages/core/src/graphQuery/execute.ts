@@ -2,14 +2,18 @@ import type { GraphQueryData } from './data';
 import type {
   GraphQueryConfig,
   GraphQueryConnectionConfig,
+  GraphQueryOverviewConfig,
   GraphQueryPathConfig,
   GraphQueryRequest,
   GraphQueryResult,
+  GraphQuerySearchConfig,
   GraphQuerySymbolsConfig,
 } from './model';
+import { inspectGraphTarget } from './overview';
 import { findGraphPaths } from './paths';
 import { listGraphEdges, listGraphNodes } from './reports';
 import { listGraphRelationships } from './relationships';
+import { searchGraph } from './search';
 import { listGraphSymbols } from './symbols';
 import { deriveScopedGraphQueryData } from './visible';
 
@@ -24,6 +28,8 @@ type GraphQueryHandlers = {
   relationships: GraphQueryHandler<GraphQueryConnectionConfig | undefined>;
   symbols: GraphQueryHandler<GraphQuerySymbolsConfig | undefined>;
   paths: GraphQueryHandler<GraphQueryPathConfig>;
+  search: GraphQueryHandler<GraphQuerySearchConfig>;
+  overview: GraphQueryHandler<GraphQueryOverviewConfig>;
 };
 
 const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
@@ -32,6 +38,8 @@ const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
   relationships: (data, args) => listGraphRelationships(data, args),
   symbols: (data, args) => listGraphSymbols(data, args),
   paths: (data, args) => findGraphPaths(deriveScopedGraphQueryData(data.graphData, args), args),
+  search: (data, args) => searchGraph(data, args),
+  overview: (data, args) => inspectGraphTarget(data, args),
 };
 
 export function executeGraphQuery(

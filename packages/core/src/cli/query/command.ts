@@ -23,7 +23,7 @@ const DEFAULT_DEPENDENCIES: QueryCommandDependencies = {
   query: requestWorkspaceGraphQuery,
 };
 
-const PATH_ARGUMENTS = ['from', 'to', 'filePath', 'relatedFrom', 'relatedTo'] as const;
+const PATH_ARGUMENTS = ['from', 'to', 'target', 'filePath', 'relatedFrom', 'relatedTo'] as const;
 
 function canonicalizeExistingPathPrefix(inputPath: string): string {
   let existingPath = inputPath;

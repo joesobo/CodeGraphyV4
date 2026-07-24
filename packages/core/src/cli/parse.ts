@@ -65,8 +65,7 @@ function nestedHelpPath(name: string, rest: string[]): string[] | undefined {
 }
 
 function isKnownCommandName(name: string): boolean {
-  return name === 'batch'
-    || name === 'doctor'
+  return name === 'doctor'
     || name === 'filter'
     || name === 'index'
     || name === 'plugins'
@@ -112,7 +111,6 @@ export function parseCliCommand(argv: string[]): CliCommand {
 
   let command: CliCommand;
   switch (name) {
-    case 'batch':
     case 'doctor':
     case 'index':
     case 'status':

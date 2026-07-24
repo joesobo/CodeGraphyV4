@@ -7,8 +7,9 @@ describe('cli/help/command', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain('codegraphy doctor');
-    expect(result.output).toContain('codegraphy batch');
-    expect(result.output).toContain('codegraphy search <text>');
+    expect(result.output).not.toContain('codegraphy batch');
+    expect(result.output).toContain('codegraphy search <pattern>');
+    expect(result.output).toContain('codegraphy query <node>');
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
     expect(result.output).toContain('codegraphy scope node <type> <on|off>');
@@ -28,8 +29,8 @@ describe('cli/help/command', () => {
 
     expect(output).toContain('1. Configure graph contributors with Plugins when needed.');
     expect(output).toContain('2. Index the complete workspace graph into its Graph Cache.');
-    expect(output).toContain('3. Shape returned results with Filters and Graph Scope.');
-    expect(output).toContain('4. Query the resulting graph.');
+    expect(output).toContain('3. Discover source and AST Symbols with search; inspect an exact result with query.');
+    expect(output).toContain('4. Continue through the shaped graph with dependencies, dependents, or path.');
     expect(output).toContain('codegraphy index                         Create or update the Graph Cache');
     expect(output).toContain('codegraphy filter                        Read or change persisted Filters');
     expect(output).toContain('codegraphy dependencies <node>           List outgoing Relationships');
@@ -39,13 +40,14 @@ describe('cli/help/command', () => {
 
   it('reports local pagination options for bounded list queries', () => {
     expect(createHelpResult(['status']).output).toContain('Usage: codegraphy status');
-    const batchHelp = createHelpResult(['batch']).output;
-    expect(batchHelp).toContain('Usage: codegraphy batch');
-    expect(batchHelp).toContain('data.results contains {id, command, data}');
-    expect(batchHelp).toContain('error.details identifies the failed query');
-    expect(createHelpResult(['query']).output).toContain('Query commands are top-level');
+    expect(createHelpResult(['query']).output).toContain('Usage: codegraphy query <node>');
+    expect(createHelpResult(['query']).output).toContain('declared AST Symbols');
+    expect(createHelpResult(['query']).output).toContain('incoming and outgoing Relationships');
     expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
     expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search');
+    expect(createHelpResult(['search']).output).toContain('live source lines');
+    expect(createHelpResult(['search']).output).toContain('cached AST Symbols');
+    expect(createHelpResult(['search']).output).toContain('`*` wildcard');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');
@@ -53,7 +55,7 @@ describe('cli/help/command', () => {
   });
 
   it('documents one-off query projections without implying settings changes', () => {
-    for (const command of ['nodes', 'search', 'edges', 'dependencies', 'dependents', 'path']) {
+    for (const command of ['nodes', 'edges', 'dependencies', 'dependents', 'path']) {
       const output = createHelpResult([command]).output;
       expect(output).toContain('--filter <glob[,glob...]>');
       expect(output).toContain('--node-type <type[,type...]>');

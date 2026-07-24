@@ -5,7 +5,9 @@ export type GraphQueryReport =
   | 'edges'
   | 'relationships'
   | 'symbols'
-  | 'paths';
+  | 'paths'
+  | 'search'
+  | 'overview';
 
 export interface WorkspacePathInput {
   diagnostics?: DiagnosticEventSink;
@@ -40,21 +42,6 @@ export interface WorkspaceGraphQueryInput extends WorkspacePathInput {
   report: GraphQueryReport;
   arguments: Record<string, unknown>;
   projection?: WorkspaceGraphQueryProjection;
-}
-
-export const MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE = 100;
-
-export type WorkspaceGraphQueryBatchItem = Omit<
-  WorkspaceGraphQueryInput,
-  'diagnostics' | 'workspacePath'
->;
-
-export interface WorkspaceGraphQueryBatchInput extends WorkspacePathInput {
-  queries: WorkspaceGraphQueryBatchItem[];
-}
-
-export interface WorkspaceGraphQueryBatchResult {
-  results: WorkspaceGraphQueryResult[];
 }
 
 export interface WorkspaceGraphQueryProjection {

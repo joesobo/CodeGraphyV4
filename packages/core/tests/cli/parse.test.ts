@@ -10,7 +10,9 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['--version'])).toEqual({ name: 'version' });
     expect(parseCliCommand(['-V'])).toEqual({ name: 'version' });
     expect(parseCliCommand(['--', 'index'])).toEqual({ name: 'index' });
-    expect(parseCliCommand(['batch'])).toEqual({ name: 'batch' });
+    expect(parseCliCommand(['batch'])).toMatchObject({
+      parseError: 'Unknown command: batch',
+    });
   });
 
   it('uses cwd by default and one global workspace override for every workspace command', () => {
@@ -53,8 +55,8 @@ describe('cli/parse', () => {
       arguments: { action: 'add', pattern: '-draft/**' },
     });
     expect(parseCliCommand(['search', '--', '-C'])).toMatchObject({
-      invokedCommand: 'search',
-      arguments: { search: '-C', limit: 100 },
+      report: 'search',
+      arguments: { pattern: '-C', limit: 20 },
     });
   });
 
@@ -70,10 +72,6 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['plugins', 'enable', '--help'])).toEqual({
       name: 'help',
       helpPath: ['plugins', 'enable'],
-    });
-    expect(parseCliCommand(['batch', '--help'])).toEqual({
-      name: 'help',
-      helpPath: ['batch'],
     });
     expect(parseCliCommand(['query', '--help'])).toEqual({
       name: 'help',
@@ -92,7 +90,7 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['edges', '--from', 'src/app.ts'])).toMatchObject({
       parseError: 'Unknown option for edges: --from',
     });
-    for (const command of ['setup', 'relationships', 'symbols', 'paths', 'query']) {
+    for (const command of ['setup', 'relationships', 'symbols', 'paths', 'batch']) {
       expect(parseCliCommand([command])).toMatchObject({
         parseError: `Unknown command: ${command}`,
       });

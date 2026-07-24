@@ -1,4 +1,4 @@
 interface:
   display_name: "CodeGraphy"
-  short_description: "Configure and query indexed code graphs"
-  default_prompt: "Use $codegraphy to index this workspace and answer a graph structure, dependency, or impact question."
+  short_description: "Discover source, AST symbols, and code relationships"
+  default_prompt: "Use $codegraphy when its prepared Relationship Graph can reduce source navigation for this task."

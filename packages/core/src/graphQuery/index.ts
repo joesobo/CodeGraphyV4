@@ -7,6 +7,8 @@ export type {
   GraphQueryFilterOperator,
   GraphQueryNodeReport,
   GraphQueryNodeReportItem,
+  GraphQueryOverviewConfig,
+  GraphQueryOverviewReport,
   GraphQueryPage,
   GraphQueryPathConfig,
   GraphQueryPathReport,
@@ -18,6 +20,9 @@ export type {
   GraphQueryRelationshipReportItem,
   GraphQueryRelationshipSymbol,
   GraphQueryScope,
+  GraphQuerySearchConfig,
+  GraphQuerySearchMatch,
+  GraphQuerySearchReport,
   GraphQuerySort,
   GraphQueryResult,
   GraphQuerySymbolReport,
@@ -26,7 +31,9 @@ export type {
 } from './model';
 export type { GraphQueryData } from './data';
 export { executeGraphQuery } from './execute';
+export { inspectGraphTarget } from './overview';
 export { findGraphPaths } from './paths';
 export { listGraphEdges, listGraphNodes } from './reports';
 export { listGraphRelationships } from './relationships';
+export { searchGraph } from './search';
 export { listGraphSymbols } from './symbols';

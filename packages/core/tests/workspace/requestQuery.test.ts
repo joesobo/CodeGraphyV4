@@ -1,69 +1,66 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
-import { readWorkspaceQuerySource } from '../../src/workspace/queryGraph';
-import { requestWorkspaceGraphQueryBatch } from '../../src/workspace/requestQuery';
+import { requestWorkspaceGraphQuery } from '../../src/workspace/requestQuery';
 
-describe('workspace/requestQuery batch', () => {
-  it('executes independent projections from one Graph Cache snapshot', async () => {
-    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-batch-'));
-    await fs.writeFile(path.join(workspaceRoot, 'entry.ts'), "import './model';\n");
-    await fs.writeFile(path.join(workspaceRoot, 'model.ts'), 'export const model = 1;\n');
+describe('workspace/requestQuery', () => {
+  it('searches current source text and cached AST Symbols through one bounded report', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-search-'));
+    await fs.writeFile(path.join(workspaceRoot, 'entry.ts'), [
+      'export function runIndexCommand(): void {',
+      '  process.stderr.write(`Indexing ${workspaceRoot}...`);',
+      '}',
+      '',
+    ].join('\n'));
     await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
-    const readQuerySource = vi.fn(readWorkspaceQuerySource);
-    const edgeArguments = {
-      from: 'entry.ts',
-      expandFileSelectors: true,
-      projectFileEndpoints: true,
-      limit: 100,
-    };
 
-    const result = await requestWorkspaceGraphQueryBatch({
+    const symbolResult = await requestWorkspaceGraphQuery({
       workspacePath: workspaceRoot,
-      queries: [
-        {
-          report: 'nodes',
-          arguments: { limit: 100 },
-          projection: { filterPatterns: ['model.ts'] },
-        },
-        {
-          report: 'edges',
-          arguments: edgeArguments,
-          projection: { edgeTypes: ['call'] },
-        },
-        {
-          report: 'edges',
-          arguments: edgeArguments,
-          projection: { edgeTypes: ['import'] },
-        },
-      ],
-    }, {
-      cwd: () => workspaceRoot,
-      readInstalledPluginCache: () => ({ version: 3, plugins: [] }),
-      readQuerySource,
+      report: 'search',
+      arguments: { pattern: 'runIndexCommand', limit: 20 },
+    });
+    const textResult = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'search',
+      arguments: { pattern: 'Indexing ', limit: 20 },
     });
 
-    expect(readQuerySource).toHaveBeenCalledTimes(1);
-    expect(result.results[0]).toMatchObject({
-      nodes: [{ path: 'entry.ts', nodeType: 'file' }],
+    expect(symbolResult).toMatchObject({
+      sources: { symbols: { freshness: 'cached', cacheState: 'fresh' } },
     });
-    expect(result.results[1]).toMatchObject({ edges: [] });
-    expect(result.results[2]).toMatchObject({
-      edges: [{ from: 'entry.ts', to: 'model.ts', edgeTypes: ['import'] }],
+    expect(symbolResult.matches).toEqual(expect.arrayContaining([{
+      type: 'symbol',
+      symbol: expect.objectContaining({ name: 'runIndexCommand', kind: 'function', filePath: 'entry.ts' }),
+    }]));
+    expect(textResult).toMatchObject({
+      matches: [{
+        type: 'text',
+        filePath: 'entry.ts',
+        line: 2,
+        excerpt: '  process.stderr.write(`Indexing ${workspaceRoot}...`);',
+      }],
+      sources: { text: { freshness: 'live', filesScanned: 1, filesSkipped: 0 } },
     });
   });
 
-  it('enforces the public Batch query-count bound', async () => {
-    await expect(requestWorkspaceGraphQueryBatch({ queries: [] })).rejects.toThrow(
-      'Batch queries must contain 1 through 100 items',
-    );
-    await expect(requestWorkspaceGraphQueryBatch({
-      queries: Array.from({ length: 101 }, () => ({
-        report: 'nodes' as const,
-        arguments: {},
-      })),
-    })).rejects.toThrow('Batch queries must contain 1 through 100 items');
+  it('reads live text after Indexing while marking cached Symbols stale', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-live-text-'));
+    const entryPath = path.join(workspaceRoot, 'entry.ts');
+    await fs.writeFile(entryPath, 'export const original = 1;\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    await fs.writeFile(entryPath, 'export const changedAfterIndex = 2;\n');
+
+    const result = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'search',
+      arguments: { pattern: 'changedAfterIndex', limit: 20 },
+    });
+
+    expect(result).toMatchObject({
+      matches: [{ type: 'text', filePath: 'entry.ts', line: 1 }],
+      sources: { symbols: { freshness: 'cached', cacheState: 'stale' } },
+    });
   });
 });

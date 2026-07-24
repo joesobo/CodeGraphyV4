@@ -18,9 +18,14 @@ describe('cli/parseQuery', () => {
   it('maps intent commands to graph reports with positional operands', () => {
     expect(parseQueryCommand(['search', 'render settings'])).toEqual({
       name: 'query',
-      invokedCommand: 'search',
-      report: 'nodes',
-      arguments: { search: 'render settings', limit: 100 },
+      report: 'search',
+      arguments: { pattern: 'render settings', limit: 20 },
+    });
+    expect(parseQueryCommand(['query', 'src/cli/command.ts'])).toEqual({
+      name: 'query',
+      invokedCommand: 'query',
+      report: 'overview',
+      arguments: { target: 'src/cli/command.ts' },
     });
     expect(parseQueryCommand(['dependencies', 'src/app.ts'])).toEqual({
       name: 'query',
@@ -51,12 +56,12 @@ describe('cli/parseQuery', () => {
 
   it('parses local pagination options and the end-of-options delimiter', () => {
     expect(parseQueryCommand(['search', '--limit', '5', '--offset', '10', 'render'])).toMatchObject({
-      invokedCommand: 'search',
-      arguments: { search: 'render', limit: 5, offset: 10 },
+      report: 'search',
+      arguments: { pattern: 'render', limit: 5, offset: 10 },
     });
     expect(parseQueryCommand(['search', '--', '-generated'])).toMatchObject({
-      invokedCommand: 'search',
-      arguments: { search: '-generated', limit: 100 },
+      report: 'search',
+      arguments: { pattern: '-generated', limit: 20 },
     });
   });
 
@@ -108,7 +113,15 @@ describe('cli/parseQuery', () => {
     });
     expect(parseQueryCommand(['search'])).toMatchObject({
       invokedCommand: 'search',
-      parseError: 'search requires <text>',
+      parseError: 'search requires <pattern>',
+    });
+    expect(parseQueryCommand(['search', '*'])).toMatchObject({
+      invokedCommand: 'search',
+      parseError: 'search pattern must contain a literal character',
+    });
+    expect(parseQueryCommand(['query'])).toMatchObject({
+      invokedCommand: 'query',
+      parseError: 'query requires <node>',
     });
     expect(parseQueryCommand(['dependencies', 'a.ts', 'b.ts'])).toMatchObject({
       parseError: 'Unexpected argument for dependencies: b.ts',

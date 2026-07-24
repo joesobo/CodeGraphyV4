@@ -1,3 +1,6 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { createWorkspaceFileContentHash } from '../analysis/cache';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
 import { filterInactivePluginSnapshotFacts } from '../plugins/activityState/analysisFacts';
 import { createPluginActivityState } from '../plugins/activityState/model';
@@ -6,9 +9,59 @@ import { CODEGRAPHY_MARKDOWN_PLUGIN_ID, readCodeGraphyWorkspaceSettings } from '
 import { normalizeWorkspaceQueryFacts } from './queryFacts';
 import { matchesAnyPattern } from '../discovery/pathMatching';
 import type { IGraphData } from '../graph/contracts';
+import { getNodeType } from '../visibleGraph/model';
+import type { GraphQuerySourceText } from '../graphQuery/data';
 import { resolveProjectedGraphNodeTypes } from './graphScopeProjection/model';
 import { resolveSavedGraphScope } from './graphScopeSettings';
 import type { WorkspaceGraphQueryProjection } from './requestTypes';
+
+const MAX_QUERY_SOURCE_FILE_BYTES = 1024 * 1024;
+
+function isInsideWorkspace(workspaceRoot: string, absolutePath: string): boolean {
+  const relativePath = path.relative(workspaceRoot, absolutePath);
+  return relativePath !== '..'
+    && !relativePath.startsWith(`..${path.sep}`)
+    && !path.isAbsolute(relativePath);
+}
+
+export function readWorkspaceQuerySourceText(
+  workspaceRoot: string,
+  graphData: IGraphData,
+  indexedContentHashes: ReadonlyMap<string, string> = new Map(),
+): GraphQuerySourceText {
+  const files: GraphQuerySourceText['files'][number][] = [];
+  let filesSkipped = 0;
+  let hasChangedFiles = false;
+
+  for (const node of graphData.nodes) {
+    if (getNodeType(node) !== 'file') continue;
+    const absolutePath = path.resolve(workspaceRoot, node.id);
+    if (!isInsideWorkspace(workspaceRoot, absolutePath)) {
+      filesSkipped += 1;
+      continue;
+    }
+    try {
+      if (fs.statSync(absolutePath).size > MAX_QUERY_SOURCE_FILE_BYTES) {
+        filesSkipped += 1;
+        continue;
+      }
+      const content = fs.readFileSync(absolutePath, 'utf8');
+      if (content.includes('\0')) {
+        filesSkipped += 1;
+        continue;
+      }
+      files.push({ filePath: node.id, content });
+      const indexedHash = indexedContentHashes.get(node.id);
+      if (indexedHash && indexedHash !== createWorkspaceFileContentHash(content)) {
+        hasChangedFiles = true;
+      }
+    } catch {
+      filesSkipped += 1;
+    }
+  }
+
+  return { files, filesScanned: files.length, filesSkipped, hasChangedFiles };
+}
 
 function applyPathFilters(graphData: IGraphData, patterns: readonly string[]): IGraphData {
   if (patterns.length === 0) return graphData;
@@ -43,6 +96,9 @@ export function readWorkspaceQuerySource(
   return {
     declarations,
     graphData: snapshot.graph,
+    indexedContentHashes: new Map(snapshot.files.flatMap(file => (
+      file.contentHash ? [[file.filePath, file.contentHash] as const] : []
+    ))),
     settings,
     snapshotFacts: normalizeWorkspaceQueryFacts(
       filterInactivePluginSnapshotFacts(snapshot, activePluginIds),

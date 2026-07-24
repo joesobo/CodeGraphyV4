@@ -7,10 +7,12 @@ const QUERY_COMMANDS = new Set([
   'edges',
   'nodes',
   'path',
+  'query',
   'search',
 ]);
 
 const DEFAULT_LIMIT = 100;
+const DEFAULT_SEARCH_LIMIT = 20;
 const DEFAULT_MAX_DEPTH = 6;
 const DEFAULT_MAX_PATHS = 5;
 
@@ -40,9 +42,10 @@ function parseArguments(
   command: string,
   argv: string[],
   allowPagination: boolean,
+  defaultLimit = DEFAULT_LIMIT,
 ): ParsedQueryArguments {
   const operands: string[] = [];
-  let limit = DEFAULT_LIMIT;
+  let limit = defaultLimit;
   let offset: number | undefined;
   let optionsEnded = false;
   const projection: NonNullable<ParsedQueryArguments['projection']> = {};
@@ -128,8 +131,13 @@ export function parseQueryCommand(argv: string[]): CliCommand {
     return parseError(command, `Unknown query command: ${command}`);
   }
 
-  const acceptsPagination = command !== 'path';
-  const parsed = parseArguments(command, rawArgs, acceptsPagination);
+  const acceptsPagination = command !== 'path' && command !== 'query';
+  const parsed = parseArguments(
+    command,
+    rawArgs,
+    acceptsPagination,
+    command === 'search' ? DEFAULT_SEARCH_LIMIT : DEFAULT_LIMIT,
+  );
   if (parsed.parseError) return parseError(command, parsed.parseError);
   const { operands, limit, offset, projection } = parsed;
   const page = { limit, ...(offset !== undefined ? { offset } : {}) };
@@ -141,8 +149,16 @@ export function parseQueryCommand(argv: string[]): CliCommand {
       return invalid ?? query(command, command, page, projection);
     }
     case 'search': {
-      const invalid = requireOperands(command, operands, 1, '<text>');
-      return invalid ?? query(command, 'nodes', { search: operands[0], ...page }, projection);
+      const invalid = requireOperands(command, operands, 1, '<pattern>');
+      if (invalid) return invalid;
+      if (!operands[0].replace(/\*/g, '').trim()) {
+        return parseError(command, 'search pattern must contain a literal character');
+      }
+      return query(command, 'search', { pattern: operands[0], ...page }, projection);
+    }
+    case 'query': {
+      const invalid = requireOperands(command, operands, 1, '<node>');
+      return invalid ?? query(command, 'overview', { target: operands[0] }, projection);
     }
     case 'dependencies': {
       const invalid = requireOperands(command, operands, 1, '<node>');

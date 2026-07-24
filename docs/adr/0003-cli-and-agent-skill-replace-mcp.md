@@ -1,6 +1,6 @@
 # CLI and Agent Skill replace MCP
 
-**Status:** Accepted
+**Status:** Accepted; exploration vocabulary amended by ADR 0007
 
 CodeGraphy's agent interface will use the Core-owned `codegraphy` CLI and a distributable Agent Skill. Delete the `@codegraphy-dev/mcp` package and MCP-specific product surface.
 
@@ -14,7 +14,7 @@ CodeGraphy's agent interface will use the Core-owned `codegraphy` CLI and a dist
 
 Add a small positional JSON Graph Query surface to the Core CLI. Expose the extension's persisted Graph Scope, Filter, and plugin controls through the same workspace settings. Make `codegraphy index` reuse and patch compatible persisted cache data. Publish a general `codegraphy` Agent Skill and delete MCP.
 
-The public Graph Query vocabulary is `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`. Symbols remain Node Types, and Relationships remain Edges. `nodes`, `search`, `edges`, `dependencies`, and `dependents` use a default limit of 100 and accept `--limit` plus `--offset` for bounded continuation. `path` uses fixed depth and path-count bounds instead of pagination. Commands target the current directory unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace.
+The original public Graph Query vocabulary was `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`. ADR 0007 later deepens `search`, adds executable Target Query, and leaves `nodes`, `edges`, `dependencies`, `dependents`, and `path` as graph navigation commands. Symbols remain Node Types, and Relationships remain Edges. `nodes`, `search`, `edges`, `dependencies`, and `dependents` use a default limit of 100 and accept `--limit` plus `--offset` for bounded continuation. `path` uses fixed depth and path-count bounds instead of pagination. Commands target the current directory unless the global `-C, --workspace <path>` option selects another CodeGraphy Workspace.
 
 Every query accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options. These are one-off projections layered over persisted workspace settings for that invocation. A child `--node-type` enables the parent Node Types needed to evaluate Graph Scope. Node Type matching follows the Graph Scope hierarchy and symbol meaning: a parent includes matching descendants, and overlapping types can match the same symbol. Each result keeps its most specific stored `nodeType`. These options do not write `.codegraphy/settings.json`; durable changes still use `codegraphy filter` and `codegraphy scope`.
 

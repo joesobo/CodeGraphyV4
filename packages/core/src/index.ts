@@ -414,23 +414,16 @@ export {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from './workspace/signatures';
-export { MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE } from './workspace/requestTypes';
 export type {
   GraphQueryReport as WorkspaceGraphQueryReport,
   IndexWorkspaceResult,
-  WorkspaceGraphQueryBatchInput,
-  WorkspaceGraphQueryBatchItem,
-  WorkspaceGraphQueryBatchResult,
   WorkspaceGraphQueryInput,
   WorkspaceGraphQueryResult,
   WorkspacePathInput,
   WorkspaceStatusResult,
 } from './workspace/requestTypes';
 export { requestCodeGraphyIndexWorkspace } from './workspace/requestIndexing';
-export {
-  requestWorkspaceGraphQuery,
-  requestWorkspaceGraphQueryBatch,
-} from './workspace/requestQuery';
+export { requestWorkspaceGraphQuery } from './workspace/requestQuery';
 export { readCodeGraphyWorkspaceStatusForCli } from './workspace/requestStatus';
 export type {
   CodeGraphyWorkspaceStaleReason,
@@ -450,6 +443,8 @@ export type {
   GraphQueryFilterOperator,
   GraphQueryNodeReport,
   GraphQueryNodeReportItem,
+  GraphQueryOverviewConfig,
+  GraphQueryOverviewReport,
   GraphQueryPage,
   GraphQueryPathConfig,
   GraphQueryPathReport,
@@ -462,6 +457,9 @@ export type {
   GraphQueryRelationshipSymbol,
   GraphQueryResult,
   GraphQueryScope,
+  GraphQuerySearchConfig,
+  GraphQuerySearchMatch,
+  GraphQuerySearchReport,
   GraphQuerySort,
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
@@ -470,8 +468,10 @@ export type {
 export {
   executeGraphQuery,
   findGraphPaths,
+  inspectGraphTarget,
   listGraphEdges,
   listGraphNodes,
   listGraphRelationships,
   listGraphSymbols,
+  searchGraph,
 } from './graphQuery';

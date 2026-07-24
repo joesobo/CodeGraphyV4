@@ -78,6 +78,7 @@ The terminal CLI supports Node.js 20 through 22. Node 22 LTS is recommended.
 npm install -g @codegraphy-dev/core
 codegraphy index
 codegraphy search SettingsPanel
+codegraphy query packages/extension/src/webview/app/shell/view.tsx
 codegraphy dependencies packages/extension/src/webview/app/shell/view.tsx
 ```
 
@@ -127,12 +128,12 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
 | `codegraphy index` | Makes the selected workspace Graph Cache current. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
-| `codegraphy search <text>` | Searches Nodes. |
+| `codegraphy search <pattern>` | Finds live source lines, cached AST Symbols, and indexed Nodes with provenance. |
+| `codegraphy query <node>` | Inspects one exact File or Symbol with declarations and incoming/outgoing Relationships. |
 | `codegraphy edges` | Lists bounded Edges. |
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |
 | `codegraphy dependents <node>` | Lists incoming Relationships for a file or exact Symbol Node. |
 | `codegraphy path <from> <to>` | Finds bounded directed paths. |
-| `codegraphy batch < queries.json` | Runs several Graph Query commands against one Graph Cache snapshot. |
 | `codegraphy scope` | Reads or changes saved Node Type and Edge Type scope. |
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
@@ -141,7 +142,7 @@ Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current and choose a bounded Graph Query before reading source. Install it from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to discover live source and cached AST Symbols, inspect exact targets, and continue through bounded Relationships before reading the smallest useful source set. Install it from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
