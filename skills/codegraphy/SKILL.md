@@ -34,7 +34,7 @@ Use `-C <workspace>` from outside the workspace. Quote patterns containing space
 
 Query with the narrowest command that answers the current question. Prefer `search` → `query` → source reads over dumping Nodes or Edges.
 
-Once `search` or `query` identifies a relevant File, stop using graph commands to look for details inside that File. Read it or use file-local text search. Do not search again for identifiers already present in returned declarations. A normal investigation should need one discovery search and at most one target query per relevant File; repeated workspace searches are usually slower and more expensive than reading the known source.
+Once `search` or `query` identifies a relevant File, stop using graph commands to look for details inside that File. Read it or use file-local text search. Do not search again for identifiers already present in returned declarations. Use at most four CodeGraphy calls for an investigation unless you are following `nextOffset`; if four calls have not narrowed the evidence, switch to ordinary source search. Repeated workspace searches are slower and more expensive than reading known source.
 
 ## Keep output bounded
 
