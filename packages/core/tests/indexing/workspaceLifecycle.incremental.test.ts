@@ -28,7 +28,7 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
     const unchanged = await indexCodeGraphyWorkspace(options);
     await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
     const changed = await indexCodeGraphyWorkspace(options);
-    const incompatible = await indexCodeGraphyWorkspace({
+    const gitignoreToggle = await indexCodeGraphyWorkspace({
       ...options,
       settings: {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
@@ -54,13 +54,13 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       deletedFiles: 0,
       reusedFiles: 1,
     });
-    expect(incompatible.indexing).toEqual({
-      mode: 'full',
-      analyzedFiles: 2,
+    expect(gitignoreToggle.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
       deletedFiles: 0,
-      reusedFiles: 0,
+      reusedFiles: 2,
     });
-    expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(3);
   });
 
   it('performs a full rebuild when a previously failed plugin recovers', async () => {

@@ -40,9 +40,13 @@ export function readWorkspaceQueryGraph(
     nodes: snapshot.files.flatMap(file => file.analysis.nodeTypes ?? []),
     edges: snapshot.files.flatMap(file => file.analysis.edgeTypes ?? []),
   };
+  const disabledFilterPatterns = new Set(settings.disabledCustomFilterPatterns);
   const graphData = applyPathFilters(
     snapshot.graph,
-    [...settings.filterPatterns, ...(projection.filterPatterns ?? [])],
+    [
+      ...settings.filterPatterns.filter(pattern => !disabledFilterPatterns.has(pattern)),
+      ...(projection.filterPatterns ?? []),
+    ],
   );
   const savedScope = resolveSavedGraphScope(settings, graphData, declarations);
   const scope = {

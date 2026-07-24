@@ -176,9 +176,9 @@ export async function indexCodeGraphyWorkspace(
   ) {
     canReusePersistedCache = false;
   }
-  const presentFilePaths = new Set(discoveryResult.presentFilePaths);
+  const cacheFilePaths = new Set(discoveryResult.cacheFilePaths);
   const deletedFilePaths = Object.keys(cache.files)
-    .filter(filePath => !presentFilePaths.has(filePath));
+    .filter(filePath => !cacheFilePaths.has(filePath));
   const readContent = createWorkspaceIndexFileContentReader(discovery);
 
   if (canReusePersistedCache) {

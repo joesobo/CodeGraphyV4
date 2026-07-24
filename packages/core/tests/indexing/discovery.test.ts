@@ -8,7 +8,7 @@ describe('indexing/discovery', () => {
   it('excludes active custom filters from fresh indexing', async () => {
     const discover = vi.fn(async () => ({
       files: [],
-      presentFilePaths: ['generated/cache.ts'],
+      cacheFilePaths: ['generated/cache.ts'],
       directories: ['src'],
       durationMs: 12,
       limitReached: true,
@@ -61,7 +61,7 @@ describe('indexing/discovery', () => {
   it('uses explicit include patterns and skips optional callbacks when the limit is not reached', async () => {
     const discover = vi.fn(async () => ({
       files: [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' }],
-      presentFilePaths: ['src/app.ts'],
+      cacheFilePaths: ['src/app.ts'],
       durationMs: 3,
       limitReached: false,
     }));

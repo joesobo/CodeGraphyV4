@@ -103,6 +103,10 @@ describe('workspace/signatures', () => {
       ...defaults,
       filterPatterns: ['**/__pycache__/**'],
     })).toBe(first);
+    expect(createCodeGraphyWorkspaceSettingsSignature({
+      ...defaults,
+      respectGitignore: false,
+    })).toBe(first);
     const plugin = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],

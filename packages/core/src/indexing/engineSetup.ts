@@ -3,16 +3,34 @@ import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { discoverWorkspaceIndexFiles } from './discovery';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
+import {
+  createCodeGraphyWorkspacePluginSignature,
+  createCodeGraphyWorkspaceSettingsSignature,
+} from '../workspace/signatures';
 import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 
 export async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime): Promise<void> {
   const { options, state, workspaceRoot } = runtime;
   const previousRegistry = state.registry;
-  state.cache = createEmptyWorkspaceAnalysisCache();
+  const previousIndexSignature = state.settings && previousRegistry
+    ? [
+        createCodeGraphyWorkspaceSettingsSignature(state.settings),
+        createCodeGraphyWorkspacePluginSignature(
+          previousRegistry.list().map(({ plugin }) => plugin),
+        ),
+      ].join('|')
+    : undefined;
   state.settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(state.settings, options.disabledPlugins);
   const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot, disabledPlugins);
   const registry = registryResult.registry;
+  const nextIndexSignature = [
+    createCodeGraphyWorkspaceSettingsSignature(state.settings),
+    createCodeGraphyWorkspacePluginSignature(registry.list().map(({ plugin }) => plugin)),
+  ].join('|');
+  if (previousIndexSignature !== undefined && previousIndexSignature !== nextIndexSignature) {
+    state.cache = createEmptyWorkspaceAnalysisCache();
+  }
   previousRegistry?.disposeAll();
   if (runtime.disposed) {
     registry.disposeAll();

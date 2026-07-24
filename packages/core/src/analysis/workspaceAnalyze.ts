@@ -45,7 +45,6 @@ export interface WorkspacePipelineAnalysisSource {
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastGitIgnoredPaths?: string[];
   _lastWorkspaceRoot: string;
-  _pruneMissingCacheFiles(presentFilePaths: readonly string[]): void;
   _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
@@ -117,7 +116,6 @@ export async function analyzeWorkspaceWithAnalyzer(
   });
 
   throwIfWorkspaceAnalysisAborted(signal);
-  source._pruneMissingCacheFiles(discoveryResult.presentFilePaths);
 
   if (discoveryResult.limitReached) {
     dependencies.showWarningMessage(

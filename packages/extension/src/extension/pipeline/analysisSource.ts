@@ -36,7 +36,6 @@ export interface WorkspacePipelineSourceOwner {
     nextDisabledRules: Set<string>,
     nextDisabledPlugins: Set<string>,
   ): IGraphData;
-  _pruneMissingCacheFiles(presentFilePaths: readonly string[]): void;
   _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
@@ -107,8 +106,6 @@ export function createWorkspacePipelineAnalysisSource(
         nextDisabledRules,
         nextDisabledPlugins,
       ),
-    _pruneMissingCacheFiles: (presentFilePaths: readonly string[]) =>
-      owner._pruneMissingCacheFiles(presentFilePaths),
     _preAnalyzePlugins: (
       files: IDiscoveredFile[],
       workspaceRoot: string,

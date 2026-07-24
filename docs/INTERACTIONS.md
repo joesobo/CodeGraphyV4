@@ -18,7 +18,7 @@
 
 Fit to Screen animates graph center and zoom. Pointer input interrupts a running camera animation so panning and wheel zoom stay responsive.
 
-Git-ignored File and Folder Nodes remain visible with muted styling. CodeGraphy uses Git's ignored state rather than dimming every path that happens to match text in `.gitignore`.
+When **Respect Gitignore** is enabled, Git-ignored files and folders stay out of the current graph and do not consume the indexing file limit. Analysis cached while those paths were eligible is retained for reuse.
 
 ## Minimap
 

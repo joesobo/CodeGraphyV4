@@ -56,6 +56,35 @@ describe('indexCodeGraphyWorkspace filters', () => {
     ).toEqual(['source.txt', 'target.txt']);
   });
 
+  it('prunes cached eligible files displaced beyond the file budget', async () => {
+    const workspaceRoot = await createWorkspace();
+    const settings = {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      include: ['**/*.txt'],
+      maxFiles: 2,
+      respectGitignore: false,
+    };
+
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [createPlugin()],
+      includeCorePlugins: false,
+      settings,
+    });
+    await fs.mkdir(path.join(workspaceRoot, '.early'), { recursive: true });
+    await fs.writeFile(path.join(workspaceRoot, '.early', 'first.txt'), 'first\n', 'utf-8');
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [createPlugin()],
+      includeCorePlugins: false,
+      settings,
+    });
+
+    expect(
+      readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
+    ).toEqual(['.early/first.txt', 'source.txt']);
+  });
+
   it('applies active plugin filters to the file budget and fresh Graph Cache', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.mkdir(path.join(workspaceRoot, '.generated'), { recursive: true });
@@ -86,6 +115,50 @@ describe('indexCodeGraphyWorkspace filters', () => {
     ).toEqual(['source.txt', 'target.txt']);
   });
 
+  it('retains cached files when a plugin filter is re-enabled', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.mkdir(path.join(workspaceRoot, '.generated'), { recursive: true });
+    await fs.writeFile(path.join(workspaceRoot, '.generated', 'notes.txt'), 'hidden\n', 'utf-8');
+    const plugin = { ...createPlugin(), defaultFilters: ['.generated/**'] };
+    const baseSettings = {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      include: ['**/*.txt'],
+      maxFiles: 10,
+      respectGitignore: false,
+      plugins: [{ id: plugin.id, activation: 'enabled' as const }],
+    };
+
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+      settings: baseSettings,
+    });
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+      settings: {
+        ...baseSettings,
+        plugins: [{
+          ...baseSettings.plugins[0],
+          disabledFilterPatterns: ['.generated/**'],
+        }],
+      },
+    });
+    const filteredAgain = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+      settings: baseSettings,
+    });
+
+    expect(
+      readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
+    ).toContain('.generated/notes.txt');
+    expect(filteredAgain.graph.nodes.map(node => node.id)).not.toContain('.generated/notes.txt');
+  });
+
   it('retains cached files when a filter is re-enabled while keeping them out of the current graph', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.mkdir(path.join(workspaceRoot, '.claude'), { recursive: true });
@@ -95,13 +168,14 @@ describe('indexCodeGraphyWorkspace filters', () => {
       include: ['**/*.txt'],
       maxFiles: 10,
       respectGitignore: false,
+      filterPatterns: ['.claude/**'],
     };
 
     await indexCodeGraphyWorkspace({
       workspaceRoot,
       plugins: [createPlugin()],
       includeCorePlugins: false,
-      settings: { ...baseSettings, filterPatterns: ['.claude/**'] },
+      settings: baseSettings,
     });
     expect(
       readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
@@ -111,7 +185,10 @@ describe('indexCodeGraphyWorkspace filters', () => {
       workspaceRoot,
       plugins: [createPlugin()],
       includeCorePlugins: false,
-      settings: { ...baseSettings, filterPatterns: [] },
+      settings: {
+        ...baseSettings,
+        disabledCustomFilterPatterns: ['.claude/**'],
+      },
     });
     expect(
       readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
@@ -121,7 +198,7 @@ describe('indexCodeGraphyWorkspace filters', () => {
       workspaceRoot,
       plugins: [createPlugin()],
       includeCorePlugins: false,
-      settings: { ...baseSettings, filterPatterns: ['.claude/**'] },
+      settings: baseSettings,
     });
 
     expect(
@@ -161,5 +238,33 @@ describe('indexCodeGraphyWorkspace filters', () => {
     expect(
       readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
     ).toEqual(['source.txt', 'target.txt']);
+
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [createPlugin()],
+      includeCorePlugins: false,
+      settings: {
+        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+        include: ['**/*.txt'],
+        maxFiles: 10,
+        respectGitignore: false,
+      },
+    });
+    const ignoredAgain = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [createPlugin()],
+      includeCorePlugins: false,
+      settings: {
+        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+        include: ['**/*.txt'],
+        maxFiles: 10,
+        respectGitignore: true,
+      },
+    });
+
+    expect(
+      readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
+    ).toContain('.claude/a.txt');
+    expect(ignoredAgain.graph.nodes.map(node => node.id)).not.toContain('.claude/a.txt');
   });
 });

@@ -1,6 +1,6 @@
 # SQLite replaces LadybugDB without moving Graph Query
 
-**Status:** Accepted; `NodeView` persistence superseded by ADR 0004
+**Status:** Accepted; `NodeView` persistence superseded by ADR 0004; filter-independent cache population superseded by ADR 0005
 
 The workspace-local **Graph Cache** will use SQLite instead of LadybugDB. This change replaces the persistence package and file format while preserving the Core storage API, in-memory **Graph Query**, and **Relationship Graph** projection behavior.
 
@@ -57,9 +57,10 @@ the five tables and relational joins; removed analyzer details are not recreated
 Every persisted file record represents a completed core analysis, including an
 empty symbol result, so per-collection `*Indexed` flags are unnecessary.
 
-Indexing stores complete nodes, symbols, and edges independently of Filters,
-Graph Scope, and edge visibility. Those settings shape extension display and
-CLI query results without requiring a new index. `mtime` avoids reading and
+Indexing stores complete nodes, symbols, and edges independently of Graph Scope
+and edge visibility. ADR 0005 supersedes the original Filter behavior: active
+Filters and Git ignored state gate fresh analysis while reusable hidden facts may
+remain cached. `mtime` avoids reading and
 hashing files whose timestamps are unchanged. `contentHash` validates reuse
 when timestamps are ambiguous; it is not exposed as a stale row flag. The CLI
 keeps indexing explicit for now. Automatic stale notifications, watchers, and

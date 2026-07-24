@@ -96,6 +96,22 @@ describe('FileDiscovery discover', () => {
     expect(result.totalFound).toBe(3);
   });
 
+  it('keeps filtered paths cacheable without retaining eligible files beyond the limit', async () => {
+    createFile('.hidden/note.ts');
+    createFile('a.ts');
+    createFile('b.ts');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filter: ['.hidden/**'],
+      maxFiles: 1,
+      respectGitignore: false,
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual(['a.ts']);
+    expect(result.cacheFilePaths).toEqual(['.hidden/note.ts', 'a.ts']);
+  });
+
   it('reports limitReached as false when under the limit', async () => {
     createFile('a.ts');
     createFile('b.ts');

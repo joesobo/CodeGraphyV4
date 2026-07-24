@@ -14,6 +14,12 @@ export async function indexWorkspaceEngine(
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
   await discoverWorkspaceEngineFiles(runtime);
   assertWorkspaceEngineActive(runtime);
+  const cacheFilePaths = new Set(state.discoveryResult!.cacheFilePaths);
+  for (const filePath of Object.keys(state.cache.files)) {
+    if (!cacheFilePaths.has(filePath)) {
+      delete state.cache.files[filePath];
+    }
+  }
   const analysis = await analyzeWorkspaceIndexFiles({
     cache: state.cache,
     discovery,

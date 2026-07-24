@@ -32,7 +32,13 @@ describe('pipeline/analysis/run', () => {
       _preAnalyzePlugins: vi.fn(async () => undefined),
       getPluginFilterPatterns: vi.fn(() => []),
     };
-    const cache = { files: {}, version: '1' };
+    const cache = {
+      files: {
+        'example-python/src/main.py': { analysis: {}, mtime: 1 },
+        'src/deleted.ts': { analysis: {}, mtime: 1 },
+      },
+      version: '1',
+    };
     const config = {
       getAll: vi.fn(() => ({
         include: ['**/*'],
@@ -45,7 +51,7 @@ describe('pipeline/analysis/run', () => {
       discover: vi.fn(async () => ({
         durationMs: 1,
         files: [] as IDiscoveredFile[],
-        presentFilePaths: ['example-python/src/main.py'],
+        cacheFilePaths: ['example-python/src/main.py'],
         gitIgnoredPaths: ['example-python/src/main.py'],
         limitReached: false,
         totalFound: 0,
@@ -81,11 +87,12 @@ describe('pipeline/analysis/run', () => {
     })).resolves.toEqual({
       durationMs: 1,
       files: [],
-      presentFilePaths: ['example-python/src/main.py'],
+      cacheFilePaths: ['example-python/src/main.py'],
       gitIgnoredPaths: ['example-python/src/main.py'],
       limitReached: false,
       totalFound: 0,
     });
+    expect(Object.keys(cache.files)).toEqual(['example-python/src/main.py']);
     expect(discovery.discover).toHaveBeenCalledOnce();
     dependencies.logInfo('hello');
     expect(logSpy).toHaveBeenCalledWith('hello');

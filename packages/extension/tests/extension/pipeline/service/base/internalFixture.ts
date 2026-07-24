@@ -77,10 +77,6 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
     super._cache = cache;
   }
 
-  public pruneMissingCacheFiles(presentFilePaths: readonly string[]): void {
-    this._pruneMissingCacheFiles(presentFilePaths);
-  }
-
   public preAnalyzePlugins(
     files: Array<{ absolutePath: string; relativePath: string }>,
     workspaceRoot: string,

@@ -171,8 +171,16 @@ export class FileDiscovery {
       && !gitIgnoredPaths.has(file.relativePath)
     ));
     const limitReached = eligibleFiles.length > maxFiles;
-    const files = eligibleFiles
-      .slice(0, maxFiles)
+    const indexedFiles = eligibleFiles.slice(0, maxFiles);
+    const indexedFilePaths = new Set(indexedFiles.map(file => file.relativePath));
+    const eligibleFilePaths = new Set(eligibleFiles.map(file => file.relativePath));
+    const cacheFilePaths = candidateFiles
+      .filter(file => (
+        !eligibleFilePaths.has(file.relativePath)
+        || indexedFilePaths.has(file.relativePath)
+      ))
+      .map(file => file.relativePath);
+    const files = indexedFiles
       .map(file => createDiscoveredFile(file.relativePath, file.absolutePath, false));
     const eligibleDirectories = filterEligibleDirectories(
       directories,
@@ -185,7 +193,7 @@ export class FileDiscovery {
     const durationMs = Date.now() - startTime;
     return {
       files,
-      presentFilePaths: candidateFiles.map(file => file.relativePath),
+      cacheFilePaths,
       directories: eligibleDirectories,
       gitIgnoredPaths: [...gitIgnoredPaths],
       limitReached,

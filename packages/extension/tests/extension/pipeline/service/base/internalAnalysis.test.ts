@@ -79,15 +79,6 @@ import {
 describe('extension/pipeline/service/internalBase analysis', () => {
   beforeEach(setUpInternalBase);
 
-  it('prunes only cache entries whose files are no longer present', () => {
-    const source = new TestInternalBase();
-    source._cache.files['src/deleted.ts'] = { cached: true } as never;
-
-    source.pruneMissingCacheFiles(['src/a.ts', 'src/filtered.ts']);
-
-    expect(Object.keys(source._cache.files)).toEqual(['src/a.ts']);
-  });
-
   it('delegates pre-analysis through the shared helper with registry and discovery callbacks', async () => {
     const source = new TestInternalBase();
     const files = [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }];
