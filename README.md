@@ -145,7 +145,7 @@ Target Query, Path, and exact targeted Relationship selectors use complete cache
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to discover live source and cached AST Symbols, inspect exact targets, and continue through bounded Relationships before reading the smallest useful source set. Install it from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents when graph navigation can replace broad search, when to skip it, and how to stop after a bounded Search and exact Target Query before reading the smallest useful source set. Clean-install coding benchmarks use cumulative model tokens per correct task as the primary acceptance metric; see [ADR 0010](./docs/adr/0010-agent-navigation-is-token-first-and-task-selective.md). Install the skill from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
