@@ -414,6 +414,7 @@ export {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from './workspace/signatures';
+export { MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE } from './workspace/requestTypes';
 export type {
   GraphQueryReport as WorkspaceGraphQueryReport,
   IndexWorkspaceResult,

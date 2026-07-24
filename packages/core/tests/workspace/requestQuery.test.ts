@@ -7,25 +7,36 @@ import { readWorkspaceQuerySource } from '../../src/workspace/queryGraph';
 import { requestWorkspaceGraphQueryBatch } from '../../src/workspace/requestQuery';
 
 describe('workspace/requestQuery batch', () => {
-  it('executes several projections from one Graph Cache snapshot', async () => {
+  it('executes independent projections from one Graph Cache snapshot', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-batch-'));
     await fs.writeFile(path.join(workspaceRoot, 'entry.ts'), "import './model';\n");
     await fs.writeFile(path.join(workspaceRoot, 'model.ts'), 'export const model = 1;\n');
     await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
     const readQuerySource = vi.fn(readWorkspaceQuerySource);
+    const edgeArguments = {
+      from: 'entry.ts',
+      expandFileSelectors: true,
+      projectFileEndpoints: true,
+      limit: 100,
+    };
 
     const result = await requestWorkspaceGraphQueryBatch({
       workspacePath: workspaceRoot,
       queries: [
-        { report: 'nodes', arguments: { limit: 1 } },
+        {
+          report: 'nodes',
+          arguments: { limit: 100 },
+          projection: { filterPatterns: ['model.ts'] },
+        },
         {
           report: 'edges',
-          arguments: {
-            from: 'entry.ts',
-            expandFileSelectors: true,
-            projectFileEndpoints: true,
-            limit: 100,
-          },
+          arguments: edgeArguments,
+          projection: { edgeTypes: ['call'] },
+        },
+        {
+          report: 'edges',
+          arguments: edgeArguments,
+          projection: { edgeTypes: ['import'] },
         },
       ],
     }, {
@@ -38,8 +49,21 @@ describe('workspace/requestQuery batch', () => {
     expect(result.results[0]).toMatchObject({
       nodes: [{ path: 'entry.ts', nodeType: 'file' }],
     });
-    expect(result.results[1]).toMatchObject({
+    expect(result.results[1]).toMatchObject({ edges: [] });
+    expect(result.results[2]).toMatchObject({
       edges: [{ from: 'entry.ts', to: 'model.ts', edgeTypes: ['import'] }],
     });
+  });
+
+  it('enforces the public Batch query-count bound', async () => {
+    await expect(requestWorkspaceGraphQueryBatch({ queries: [] })).rejects.toThrow(
+      'Batch queries must contain 1 through 100 items',
+    );
+    await expect(requestWorkspaceGraphQueryBatch({
+      queries: Array.from({ length: 101 }, () => ({
+        report: 'nodes' as const,
+        arguments: {},
+      })),
+    })).rejects.toThrow('Batch queries must contain 1 through 100 items');
   });
 });

@@ -66,7 +66,8 @@ const COMMAND_HELP: Record<string, string> = {
     'Query ids must be unique. A batch accepts 1 through 100 queries and at most 1 MiB of input.',
     '',
     'Effects: Read-only. Does not perform Indexing or change settings.',
-    'Output: JSON results in input order, correlated by id.',
+    'Output: data.results contains {id, command, data} items in input order.',
+    'Failure: Batch is all-or-nothing; error.details identifies the failed query.',
     'Example: printf \'%s\' \'{"queries":[{"id":"uses","argv":["dependencies","src/app.ts"]}]}\' | codegraphy batch',
   ].join('\n'),
   index: [

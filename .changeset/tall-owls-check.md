@@ -1,5 +1,5 @@
 ---
-"@codegraphy-dev/core": minor
+"@codegraphy-dev/core": major
 ---
 
-Add faster batched graph queries, structured plugin state, compact Graph Scope mutation results, clean non-verbose Indexing output, and clearer agent guidance.
+Add `codegraphy batch` for faster multi-query workflows, return structured data from `plugins list`, return compact partial results from Graph Scope mutations, and keep successful non-verbose Indexing output on stdout only.

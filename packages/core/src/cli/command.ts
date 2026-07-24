@@ -76,7 +76,9 @@ export async function runCliCommand(
 
   switch (command.name) {
     case 'batch':
-      result = await runBatchCommand(command);
+      result = await runBatchCommand(command, undefined, {
+        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
+      });
       break;
     case 'doctor':
       result = runDoctorCommand(command);

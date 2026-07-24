@@ -25,7 +25,9 @@ Add `codegraphy batch` as a transport over the six existing Graph Query commands
 
 Each `argv` uses the existing parser for `nodes`, `search`, `edges`, `dependencies`, `dependents`, or `path`. Existing defaults, bounds, one-off Graph Scope and Filter projections, and selector safety therefore stay on one forward path.
 
-The complete input is validated before Graph Query execution. Query IDs are unique strings. A batch contains 1 through 100 queries and at most 1 MiB of UTF-8 JSON. The command resolves one CodeGraphy Workspace, reads one Graph Cache snapshot, then applies each query's projection against that snapshot. Results preserve input order and include their caller-provided IDs.
+The complete input is validated before Graph Query execution. Query IDs are unique strings. A batch contains 1 through 100 queries and at most 1 MiB of UTF-8 JSON. The public Core batch request enforces the same query-count bound; the byte bound belongs to the stdin transport. The command resolves one CodeGraphy Workspace, reads one Graph Cache snapshot, then applies each query's projection against that snapshot.
+
+Success results preserve input order and include their caller-provided IDs. Failure is all-or-nothing: the CLI returns a failed outer envelope, discards sibling results, and identifies the failed query ID, command, code, and message in `error.details`.
 
 Batch remains read-only. It never performs Indexing, mutates settings, executes non-query commands, refers to an earlier result, or searches parent directories for a workspace. Agents continue to run explicit Indexing when cached knowledge may be outdated.
 

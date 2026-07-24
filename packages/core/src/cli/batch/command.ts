@@ -1,8 +1,11 @@
+import type { DiagnosticEvent, DiagnosticEventSink } from '../../diagnostics/events';
+import { formatDiagnosticEventLine } from '../../diagnostics/events';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import { requestWorkspaceGraphQueryBatch } from '../../workspace/requestQuery';
-import type {
-  WorkspaceGraphQueryBatchInput,
-  WorkspaceGraphQueryBatchResult,
+import {
+  MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE,
+  type WorkspaceGraphQueryBatchInput,
+  type WorkspaceGraphQueryBatchResult,
 } from '../../workspace/requestTypes';
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parseTypes';
@@ -20,8 +23,11 @@ interface BatchCommandDependencies {
   readInput(): Promise<string>;
 }
 
+interface BatchCommandOptions {
+  writeDiagnostic?(line: string): void;
+}
+
 const MAX_BATCH_INPUT_BYTES = 1024 * 1024;
-const MAX_BATCH_QUERIES = 100;
 
 async function readStandardInput(): Promise<string> {
   const chunks: Buffer[] = [];
@@ -70,8 +76,8 @@ function parseBatchInput(input: string): BatchInputItem[] | CommandExecutionResu
   if (Object.keys(record).some(key => key !== 'queries') || !Array.isArray(record.queries)) {
     return invalid('Batch input must contain only a queries array');
   }
-  if (record.queries.length < 1 || record.queries.length > MAX_BATCH_QUERIES) {
-    return invalid(`Batch queries must contain 1 through ${MAX_BATCH_QUERIES} items`);
+  if (record.queries.length < 1 || record.queries.length > MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE) {
+    return invalid(`Batch queries must contain 1 through ${MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE} items`);
   }
 
   const items: BatchInputItem[] = [];
@@ -111,6 +117,7 @@ function commandName(command: CliCommand): string {
 export async function runBatchCommand(
   command: CliCommand,
   dependencies: BatchCommandDependencies = DEFAULT_DEPENDENCIES,
+  options: BatchCommandOptions = {},
 ): Promise<CommandExecutionResult> {
   let input: string;
   try {
@@ -144,13 +151,46 @@ export async function runBatchCommand(
     }
   }
 
+  const diagnostics: DiagnosticEventSink | undefined = command.verbose
+    ? {
+        emit(event: DiagnosticEvent): void {
+          const line = formatDiagnosticEventLine(event);
+          if (options.writeDiagnostic) {
+            options.writeDiagnostic(line);
+            return;
+          }
+          process.stderr.write(`${line}\n`);
+        },
+      }
+    : undefined;
   const batch = await dependencies.queryBatch({
     workspacePath: workspaceRoot,
     queries,
+    ...(diagnostics ? { diagnostics } : {}),
   });
-  const failed = batch.results.find(result => result.error);
-  if (failed) {
-    return { exitCode: 1, output: JSON.stringify(failed) };
+  const failedIndex = batch.results.findIndex(result => result.error);
+  if (failedIndex >= 0) {
+    const failed = batch.results[failedIndex];
+    const item = items[failedIndex];
+    const failedCommand = commandName(commands[failedIndex]);
+    return {
+      exitCode: 1,
+      output: JSON.stringify({
+        error: {
+          code: 'batch_query_failed',
+          message: `Batch query ${item.id} failed.`,
+          action: 'Fix the failed query and retry the Batch.',
+          details: {
+            id: item.id,
+            command: failedCommand,
+            error: {
+              code: typeof failed.error === 'string' ? failed.error : 'command_failed',
+              message: typeof failed.message === 'string' ? failed.message : 'Command failed.',
+            },
+          },
+        },
+      }),
+    };
   }
 
   return {

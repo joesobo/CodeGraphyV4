@@ -9,11 +9,12 @@ import {
 import { emitGraphQueryCacheMissing, emitGraphQueryCompleted, emitGraphQueryStarted } from './queryDiagnostics';
 import { projectWorkspaceQueryGraph, readWorkspaceQuerySource } from './queryGraph';
 import { resolveCodeGraphyWorkspacePath } from './requestPaths';
-import type {
-  WorkspaceGraphQueryBatchInput,
-  WorkspaceGraphQueryBatchResult,
-  WorkspaceGraphQueryInput,
-  WorkspaceGraphQueryResult,
+import {
+  MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE,
+  type WorkspaceGraphQueryBatchInput,
+  type WorkspaceGraphQueryBatchResult,
+  type WorkspaceGraphQueryInput,
+  type WorkspaceGraphQueryResult,
 } from './requestTypes';
 import { readCodeGraphyWorkspaceStatus } from './status';
 
@@ -133,6 +134,9 @@ export async function requestWorkspaceGraphQueryBatch(
   input: WorkspaceGraphQueryBatchInput,
   dependencies: WorkspaceGraphQueryDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<WorkspaceGraphQueryBatchResult> {
+  if (input.queries.length < 1 || input.queries.length > MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE) {
+    throw new Error(`Batch queries must contain 1 through ${MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE} items`);
+  }
   const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   if (!status.hasGraphCache) {

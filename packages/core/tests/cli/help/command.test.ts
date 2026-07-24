@@ -39,7 +39,10 @@ describe('cli/help/command', () => {
 
   it('reports local pagination options for bounded list queries', () => {
     expect(createHelpResult(['status']).output).toContain('Usage: codegraphy status');
-    expect(createHelpResult(['batch']).output).toContain('Usage: codegraphy batch');
+    const batchHelp = createHelpResult(['batch']).output;
+    expect(batchHelp).toContain('Usage: codegraphy batch');
+    expect(batchHelp).toContain('data.results contains {id, command, data}');
+    expect(batchHelp).toContain('error.details identifies the failed query');
     expect(createHelpResult(['query']).output).toContain('Query commands are top-level');
     expect(createHelpResult(['nodes']).output).toContain('Usage: codegraphy nodes');
     expect(createHelpResult(['search']).output).toContain('Usage: codegraphy search');

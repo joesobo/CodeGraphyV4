@@ -42,6 +42,8 @@ export interface WorkspaceGraphQueryInput extends WorkspacePathInput {
   projection?: WorkspaceGraphQueryProjection;
 }
 
+export const MAX_WORKSPACE_GRAPH_QUERY_BATCH_SIZE = 100;
+
 export type WorkspaceGraphQueryBatchItem = Omit<
   WorkspaceGraphQueryInput,
   'diagnostics' | 'workspacePath'
