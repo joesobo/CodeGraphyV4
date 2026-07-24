@@ -45,6 +45,43 @@ describe('workspace/requestQuery', () => {
     });
   });
 
+  it('uses complete graph scope for an exact targeted Relationship query', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-target-scope-'));
+    await fs.writeFile(path.join(workspaceRoot, 'dependency.ts'), [
+      'export function readSetting(): string {',
+      "  return 'value';",
+      '}',
+      '',
+    ].join('\n'));
+    await fs.writeFile(path.join(workspaceRoot, 'entry.ts'), [
+      "import { readSetting } from './dependency';",
+      'export function runCommand(): string {',
+      '  return readSetting();',
+      '}',
+      '',
+    ].join('\n'));
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    for (const projection of [undefined, { edgeTypes: ['call'] }]) {
+      const result = await requestWorkspaceGraphQuery({
+        workspacePath: workspaceRoot,
+        report: 'edges',
+        arguments: {
+          from: 'entry.ts#runCommand:function',
+          edgeType: 'call',
+          limit: 20,
+        },
+        ...(projection ? { projection } : {}),
+      });
+
+      expect(result.edges).toEqual([{
+        from: 'entry.ts#runCommand:function',
+        to: 'dependency.ts#readSetting:function',
+        edgeTypes: ['call'],
+      }]);
+    }
+  });
+
   it('reads live text after Indexing while marking cached Symbols stale', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-live-text-'));
     const entryPath = path.join(workspaceRoot, 'entry.ts');

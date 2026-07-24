@@ -21,14 +21,29 @@ interface PathCollection {
   truncated: boolean;
 }
 
+function exactSelectorFirst(ids: readonly string[], selector: string): string[] {
+  return [...ids].sort((left, right) => (
+    Number(right === selector) - Number(left === selector)
+    || left.localeCompare(right)
+  ));
+}
+
 function collectExpandedPaths(
   graphData: IGraphData,
   config: GraphQueryPathConfig,
   maxDepth: number,
   maxPaths: number,
 ): PathCollection {
-  const fromIds = resolveSelectorNodeIds(graphData, config.from, config.expandFileSelectors === true);
-  const toIds = resolveSelectorNodeIds(graphData, config.to, config.expandFileSelectors === true);
+  const fromIds = exactSelectorFirst(
+    resolveSelectorNodeIds(graphData, config.from, config.expandFileSelectors === true),
+    config.from,
+  );
+  const toIds = exactSelectorFirst(
+    resolveSelectorNodeIds(graphData, config.to, config.expandFileSelectors === true),
+    config.to,
+  );
+  const fromIsFile = isFileSelector(graphData, config.from);
+  const toIsFile = isFileSelector(graphData, config.to);
   const paths: string[][] = [];
   let truncated = false;
 
@@ -42,6 +57,11 @@ function collectExpandedPaths(
       );
       paths.push(...result.paths);
       truncated ||= result.truncated;
+      const reachedExactFileEndpoint = result.paths.length > 0 && (
+        (fromIsFile && from === config.from)
+        || (toIsFile && to === config.to)
+      );
+      if (reachedExactFileEndpoint) return { paths, truncated };
       if (paths.length >= maxPaths) return { paths: paths.slice(0, maxPaths), truncated: true };
     }
   }

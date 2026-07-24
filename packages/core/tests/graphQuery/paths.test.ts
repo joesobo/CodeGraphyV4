@@ -137,6 +137,35 @@ describe('core/graphQuery paths report', () => {
     });
   });
 
+  it('prefers an exact File endpoint before expanding its Symbols', () => {
+    const mixedGraph: IGraphData = {
+      nodes: [
+        { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+        { id: 'a.ts#run:function', label: 'run', nodeType: 'symbol:function', symbol: {
+          id: 'a.ts#run:function', filePath: 'a.ts', name: 'run', kind: 'function',
+        } },
+        { id: 'z.ts', label: 'z.ts', nodeType: 'file' },
+        { id: 'z.ts#target:function', label: 'target', nodeType: 'symbol:function', symbol: {
+          id: 'z.ts#target:function', filePath: 'z.ts', name: 'target', kind: 'function',
+        } },
+      ],
+      edges: [
+        { id: 'run-z', from: 'a.ts#run:function', to: 'z.ts', kind: 'call', sources: [] },
+        { id: 'z-target', from: 'z.ts', to: 'z.ts#target:function', kind: 'contains', sources: [] },
+      ],
+    };
+
+    expect(findGraphPaths(mixedGraph, {
+      from: 'a.ts#run:function',
+      to: 'z.ts',
+      expandFileSelectors: true,
+      projectFileEndpoints: true,
+    })).toMatchObject({
+      paths: [['a.ts#run:function', 'z.ts']],
+      complete: true,
+    });
+  });
+
   it('keeps collecting raw symbol routes until projected file paths are unique', () => {
     const symbolNode = (id: string, filePath: string) => ({
       id,

@@ -6,6 +6,7 @@ import {
   executeGraphQuery,
   type GraphQueryRequest,
 } from '../graphQuery';
+import { getNodeType } from '../visibleGraph/model';
 import { emitGraphQueryCacheMissing, emitGraphQueryCompleted, emitGraphQueryStarted } from './queryDiagnostics';
 import {
   projectWorkspaceQueryGraph,
@@ -48,6 +49,16 @@ function createCacheMissingResult(workspaceRoot: string): WorkspaceGraphQueryRes
   };
 }
 
+function hasTargetSelector(arguments_: Record<string, unknown>): boolean {
+  return ['from', 'to', 'target', 'filePath', 'relatedFrom', 'relatedTo']
+    .some(key => typeof arguments_[key] === 'string');
+}
+
+function shouldApplyWorkspaceGraphScope(input: WorkspaceGraphQueryInput): boolean {
+  if (input.report === 'search' || input.report === 'overview' || input.report === 'paths') return false;
+  return !hasTargetSelector(input.arguments);
+}
+
 function executeWorkspaceGraphQuery(
   input: Omit<WorkspaceGraphQueryInput, 'workspacePath'>,
   workspaceRoot: string,
@@ -64,6 +75,16 @@ function executeWorkspaceGraphQuery(
   const sourceText = input.report === 'search'
     ? readWorkspaceQuerySourceText(workspaceRoot, graphData, source.indexedContentHashes)
     : undefined;
+  const completeScope = {
+    nodes: Object.fromEntries(graphData.nodes.map(node => [getNodeType(node), true])),
+    edges: Object.fromEntries(graphData.edges.map(edge => [edge.kind, true])),
+  };
+  const queryScope = shouldApplyWorkspaceGraphScope(input)
+    ? { nodes: scope.nodes, edges: scope.edges }
+    : {
+        nodes: input.projection?.nodeTypes ? scope.nodes : completeScope.nodes,
+        edges: input.projection?.edgeTypes ? scope.edges : completeScope.edges,
+      };
   const queryResult = executeGraphQuery({
     graphData,
     symbols: snapshotFacts.symbols,
@@ -73,10 +94,7 @@ function executeWorkspaceGraphQuery(
   }, {
     report: input.report,
     arguments: {
-      scope: {
-        nodes: scope.nodes,
-        edges: scope.edges,
-      },
+      scope: queryScope,
       ...(input.projection?.nodeTypes
         ? {
             nodeTypeDefinitions: nodeTypes,
