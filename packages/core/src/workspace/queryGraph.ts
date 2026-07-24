@@ -23,10 +23,9 @@ function applyPathFilters(graphData: IGraphData, patterns: readonly string[]): I
   };
 }
 
-export function readWorkspaceQueryGraph(
+export function readWorkspaceQuerySource(
   workspaceRoot: string,
   installedPluginCache: CodeGraphyInstalledPluginCache,
-  projection: WorkspaceGraphQueryProjection = {},
 ) {
   const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
   const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
@@ -40,20 +39,36 @@ export function readWorkspaceQueryGraph(
     nodes: snapshot.files.flatMap(file => file.analysis.nodeTypes ?? []),
     edges: snapshot.files.flatMap(file => file.analysis.edgeTypes ?? []),
   };
-  const disabledFilterPatterns = new Set(settings.disabledCustomFilterPatterns);
+
+  return {
+    declarations,
+    graphData: snapshot.graph,
+    settings,
+    snapshotFacts: normalizeWorkspaceQueryFacts(
+      filterInactivePluginSnapshotFacts(snapshot, activePluginIds),
+      workspaceRoot,
+    ),
+  };
+}
+
+export function projectWorkspaceQueryGraph(
+  source: ReturnType<typeof readWorkspaceQuerySource>,
+  projection: WorkspaceGraphQueryProjection = {},
+) {
+  const disabledFilterPatterns = new Set(source.settings.disabledCustomFilterPatterns);
   const graphData = applyPathFilters(
-    snapshot.graph,
+    source.graphData,
     [
-      ...settings.filterPatterns.filter(pattern => !disabledFilterPatterns.has(pattern)),
+      ...source.settings.filterPatterns.filter(pattern => !disabledFilterPatterns.has(pattern)),
       ...(projection.filterPatterns ?? []),
     ],
   );
-  const savedScope = resolveSavedGraphScope(settings, graphData, declarations);
+  const savedScope = resolveSavedGraphScope(source.settings, graphData, source.declarations);
   const scope = {
     nodes: projection.nodeTypes
       ? Object.fromEntries([
           ...Object.keys(savedScope.nodes).map(type => [type, false] as const),
-          ...resolveProjectedGraphNodeTypes(projection.nodeTypes, declarations.nodes)
+          ...resolveProjectedGraphNodeTypes(projection.nodeTypes, source.declarations.nodes)
             .map(type => [type, true] as const),
         ])
       : savedScope.nodes,
@@ -67,12 +82,20 @@ export function readWorkspaceQueryGraph(
 
   return {
     graphData,
-    nodeTypes: declarations.nodes,
+    nodeTypes: source.declarations.nodes,
     scope,
-    settings,
-    snapshotFacts: normalizeWorkspaceQueryFacts(
-      filterInactivePluginSnapshotFacts(snapshot, activePluginIds),
-      workspaceRoot,
-    ),
+    settings: source.settings,
+    snapshotFacts: source.snapshotFacts,
   };
+}
+
+export function readWorkspaceQueryGraph(
+  workspaceRoot: string,
+  installedPluginCache: CodeGraphyInstalledPluginCache,
+  projection: WorkspaceGraphQueryProjection = {},
+) {
+  return projectWorkspaceQueryGraph(
+    readWorkspaceQuerySource(workspaceRoot, installedPluginCache),
+    projection,
+  );
 }

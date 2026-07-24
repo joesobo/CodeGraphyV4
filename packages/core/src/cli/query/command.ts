@@ -62,7 +62,7 @@ function normalizeWorkspaceSelector(selector: string, workspaceRoot: string): st
   return normalized;
 }
 
-function normalizeQueryArguments(
+export function normalizeQueryArguments(
   queryArguments: Record<string, unknown>,
   workspaceRoot: string,
 ): Record<string, unknown> {

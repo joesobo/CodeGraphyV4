@@ -21,11 +21,17 @@ describe('cli/result/parser', () => {
       action: 'Retry.',
     });
     expect(readCliError({
-      error: { code: 'bad', message: 'Nested failure.', action: 'Repair settings.' },
+      error: {
+        code: 'bad',
+        message: 'Nested failure.',
+        action: 'Repair settings.',
+        details: { id: 'query-1' },
+      },
     })).toEqual({
       code: 'bad',
       message: 'Nested failure.',
       action: 'Repair settings.',
+      details: { id: 'query-1' },
     });
   });
 });

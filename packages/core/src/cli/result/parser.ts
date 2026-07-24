@@ -38,9 +38,11 @@ export function readCliError(output: unknown): CliError {
     ? nested.message
     : typeof parsed.message === 'string' ? parsed.message : 'Command failed.';
   const action = typeof nested?.action === 'string' ? nested.action : parsed.action;
+  const details = nested?.details ?? parsed.details;
   return {
     code,
     message,
     ...(typeof action === 'string' ? { action } : {}),
+    ...(details !== undefined ? { details } : {}),
   };
 }

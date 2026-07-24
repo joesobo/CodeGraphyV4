@@ -37,6 +37,23 @@ describe('cli/parsePlugins', () => {
       action: 'inherit',
       packageName: 'codegraphy.particles',
     });
+    expect(parsePluginsCommand(['enable', '--', '--global'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '--global',
+    });
+    expect(parsePluginsCommand(['enable', '--global', '--', 'codegraphy.vue'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: 'codegraphy.vue',
+      pluginScope: 'global',
+    });
+    expect(parsePluginsCommand(['enable', '--global', '--', '--global'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '--global',
+      pluginScope: 'global',
+    });
   });
 
   it('routes an empty group to plugin help', () => {

@@ -10,6 +10,7 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['--version'])).toEqual({ name: 'version' });
     expect(parseCliCommand(['-V'])).toEqual({ name: 'version' });
     expect(parseCliCommand(['--', 'index'])).toEqual({ name: 'index' });
+    expect(parseCliCommand(['batch'])).toEqual({ name: 'batch' });
   });
 
   it('uses cwd by default and one global workspace override for every workspace command', () => {
@@ -69,6 +70,18 @@ describe('cli/parse', () => {
     expect(parseCliCommand(['plugins', 'enable', '--help'])).toEqual({
       name: 'help',
       helpPath: ['plugins', 'enable'],
+    });
+    expect(parseCliCommand(['batch', '--help'])).toEqual({
+      name: 'help',
+      helpPath: ['batch'],
+    });
+    expect(parseCliCommand(['query', '--help'])).toEqual({
+      name: 'help',
+      helpPath: ['query'],
+    });
+    expect(parseCliCommand(['help', 'query'])).toEqual({
+      name: 'help',
+      helpPath: ['query'],
     });
   });
 

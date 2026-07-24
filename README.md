@@ -123,7 +123,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 
 | Command | Result |
 |---|---|
-| `codegraphy status` | Reports fresh, stale, missing, or unusable Graph Cache state. |
+| `codegraphy status` | Reports fresh, stale, or missing Graph Cache state. |
 | `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
 | `codegraphy index` | Makes the selected workspace Graph Cache current. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
@@ -132,6 +132,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |
 | `codegraphy dependents <node>` | Lists incoming Relationships for a file or exact Symbol Node. |
 | `codegraphy path <from> <to>` | Finds bounded directed paths. |
+| `codegraphy batch < queries.json` | Runs several Graph Query commands against one Graph Cache snapshot. |
 | `codegraphy scope` | Reads or changes saved Node Type and Edge Type scope. |
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
