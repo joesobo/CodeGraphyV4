@@ -61,6 +61,12 @@ A detached candidate combined both rejected ideas to test their interaction. Eve
 
 Triage reduced observation bytes, but successful trajectories consumed more model tokens and one implementation was incomplete. The detached worktree and prototype were removed.
 
+### Incoming Impact radius
+
+An `impact <node>` prototype traversed incoming Relationships from one exact File or Symbol to depth one through four, projected results to Files, and reported shortest distance, typed reasons, pagination, visited Nodes, and completeness. Runtime call/import reasons ranked ahead of type-only consumers. On the structural fixture, a 1.4 KB result around `plugins/registry.ts` placed `engine.ts`, `engineSetup.ts`, and `workspace.ts` in the first page.
+
+All three treatment agents read the updated skill but none selected Impact or any other CodeGraphy command. Raw correctness was 3/3 versus treatment 2/3. Mean correct-run tokens increased from 318,247 to 832,347, calls increased 60.3%, output increased 28.2%, and elapsed increased 65.7%. These trajectory regressions cannot be attributed to unused Impact output, but non-adoption fails the public-interface gate. The implementation, tests, documentation, and changeset update were reverted.
+
 ## Decision
 
 Retain the neutral generalized Agent Skill from ADR 0011. It explains the graph model, lifecycle, command semantics, output, freshness, shaping, and limitations without prescribing a workflow. Do not retain Triage or evidence-first comparative framing.
@@ -78,7 +84,7 @@ Three repetitions remain a fast screening instrument rather than confirmation. R
 - New commands must earn both discoverability and successful-trajectory value.
 - Skill wording is itself an intervention and can increase exhaustive ordinary exploration even without CLI use.
 - Tool output reduction is diagnostic; cumulative model tokens per correct implementation remain primary.
-- Watcher, impact, neighbor, conflict, inference, fuzzy, hub, and budgeted-map experiments remain candidates, but each must use the same structural task and adoption gate.
+- Watcher, neighbor, conflict, inference, fuzzy, hub, and budgeted-map experiments remain candidates, but each must use the same structural task and adoption gate; the tested incoming Impact command is rejected.
 
 ## References
 
