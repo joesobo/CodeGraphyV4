@@ -81,6 +81,12 @@ A follow-up candidate reduced default output from eight Files, three declaration
 
 A direct accepted-Map-versus-compact-Map A/B had 3/3 correctness and Map adoption in all six runs. Compact Map regressed mean tokens 73.2%, median tokens 53.2%, calls 10.0%, output 84.5%, and elapsed time 45.9%. Agents compensated for omitted context with substantially more fallback Search. The compact bounds were reverted; the accepted eight/three/twelve defaults remain.
 
+### Fuzzy Symbol fallback
+
+A Search candidate returned up to three exact Symbol identities labeled `match: "fuzzy"` only when an identifier-like pattern had no exact, wildcard, phrase, source, Node, or Symbol evidence. Isolated smoke repaired a one-character scheduler typo and the guessed `loadPluginAssets` identifier observed in an earlier trajectory.
+
+In its required relationship-task comparison, treatment correctness was 3/3 versus raw 2/3 and correct-run mean tokens were 1.7% lower. However, no treatment Search activated the fallback. Agents selected exact and phrase searches instead, while calls, output, and elapsed time regressed. The candidate failed attribution and was fully reverted.
+
 ## Decision
 
 Retain `codegraphy map <task>` as a public bounded query. Its selected direct A/B passed adoption, correctness, and correct-run token gates while also reducing calls, output, and elapsed time.
@@ -96,7 +102,7 @@ Treat all measurements as small-sample evidence. Three-versus-three runs screen 
 - Hidden graders must assert behavior rather than historical wording or decomposition.
 - Invocation telemetry must recognize equivalent executable launch forms.
 - Complete-graph persistence remains an unsuitable rapid screen despite being a valid historical feature.
-- Incoming Impact, Triage, connected Search augmentation, BM25 fallback, phrase-line evidence, compact skill subtraction, compact Map payloads, and default Leiden ranking remain rejected.
+- Incoming Impact, Triage, connected Search augmentation, BM25 fallback, phrase-line evidence, fuzzy Symbol fallback, compact skill subtraction, compact Map payloads, and default Leiden ranking remain rejected.
 
 ## References
 

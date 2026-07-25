@@ -88,7 +88,8 @@ Three repetitions remain a fast screening instrument rather than confirmation. R
 - New commands must earn both discoverability and successful-trajectory value.
 - Skill wording is itself an intervention and can increase exhaustive ordinary exploration even without CLI use.
 - Tool output reduction is diagnostic; cumulative model tokens per correct implementation remain primary.
-- Watcher, neighbor, conflict, inference, fuzzy, and hub experiments remain candidates under the same adoption and correctness gate; the tested incoming Impact command is rejected.
+- Watcher, neighbor, conflict, inference, and hub experiments remain candidates under the same adoption and correctness gate; the tested incoming Impact command is rejected.
+- ADR 0013 records the rejected fuzzy Symbol fallback.
 - ADR 0013 records the selected relationship fixture and accepted personalized Task Map.
 
 ## References
