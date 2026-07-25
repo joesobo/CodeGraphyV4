@@ -31,6 +31,7 @@ test('the CodeGraphy skill explains the tool without prescribing an agent workfl
     'live source',
     'cached',
     'Graph Scope',
+    'fuzzy',
     'pagination',
     'stdout',
     'stale',

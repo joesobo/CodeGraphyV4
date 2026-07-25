@@ -131,7 +131,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy index` | Makes the Graph Cache current and reports actionable file-budget truncation. |
 | `codegraphy settings [get|set|unset]` | Safely reads or changes validated workspace settings such as `maxFiles`. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
-| `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
+| `codegraphy search <pattern>` | Finds exact evidence, deterministic all-term File candidates, and labeled fuzzy Symbol suggestions for otherwise empty identifier searches. |
 | `codegraphy map <task>` | Builds a compact task-personalized File map with declarations and typed connecting Relationships. |
 | `codegraphy query <node>` | Inspects one exact File or Symbol with prioritized declarations and incoming/outgoing Relationships. |
 | `codegraphy edges` | Lists bounded Edges. |

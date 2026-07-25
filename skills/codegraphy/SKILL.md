@@ -38,7 +38,7 @@ Inventory reports reflect persisted Graph Scope. Search, exact Target Query, Pat
 
 ## Search and target identity
 
-Search literal matching is case-insensitive. `*` is a line-local wildcard over source, names, and paths. A whitespace-containing phrase with sparse literal matches can also produce deterministic File candidates whose paths or source contain all query terms. Search is lexical rather than a semantic-answer engine.
+Search literal matching is case-insensitive. `*` is a line-local wildcard over source, names, and paths. A whitespace-containing phrase with sparse literal matches can also produce deterministic File candidates whose paths or source contain all query terms. An identifier-like pattern with no evidence can return up to three fuzzy Symbol suggestions; each is labeled `match: "fuzzy"` and retains its exact identity. Search is lexical rather than a semantic-answer engine.
 
 Source matches include File path, line, column, excerpt, and live freshness. Symbol matches include an exact Symbol ID and source location. Node matches include exact Node identity. An exact File path or Symbol ID from these results can address Target Query and relationship commands; a display label is not necessarily a Node ID.
 

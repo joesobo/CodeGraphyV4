@@ -45,7 +45,7 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Sea
 | **Filtered Graph** | The Scoped Graph after Filter rules. |
 | **Graph View Search** | A temporary text query that narrows the current graph without changing Filter settings. |
 | **Searched Graph** | The Filtered Graph after Graph View Search. |
-| **CLI Search** | A bounded discovery query over exact live source, cached AST Symbols, and indexed Nodes. Sparse natural multi-term phrases add deterministic all-term File candidates. It reports source and cache provenance and does not change settings. |
+| **CLI Search** | A bounded discovery query over exact live source, cached AST Symbols, and indexed Nodes. Sparse natural multi-term phrases add deterministic all-term File candidates; otherwise empty identifier-like patterns can add labeled fuzzy Symbol suggestions. It reports source and cache provenance and does not change settings. |
 | **Task Map** | A bounded task-personalized File map combining independent live terms, selected declarations, and cached typed Relationships with source-area diversity. |
 | **Target Query** | A bounded overview of one exact File or Symbol Node, including prioritized declarations and incoming/outgoing Relationships. |
 | **Visible Graph** | The graph shown on screen after Graph Scope, Filter, Search, Show Orphans, and other view projection rules. |
