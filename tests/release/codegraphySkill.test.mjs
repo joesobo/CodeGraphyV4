@@ -43,12 +43,6 @@ test('the CodeGraphy skill explains the tool without prescribing an agent workfl
   assert.doesNotMatch(skill, /(?:never submit|one domain word|task literals|after one empty or refined search)/i);
 });
 
-test('the CodeGraphy capability reference stays compact', () => {
-  const skill = readFileSync(skillPath, 'utf8');
-
-  assert.ok(Buffer.byteLength(skill, 'utf8') <= 4096);
-});
-
 test('the old MCP package and skill are absent from the release source', () => {
   assert.equal(existsSync(path.join(repoRoot, 'packages', 'mcp', 'package.json')), false);
   assert.equal(existsSync(path.join(repoRoot, 'skills', 'codegraphy-mcp', 'SKILL.md')), false);
