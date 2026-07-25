@@ -464,9 +464,6 @@ export type {
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
   GraphQuerySymbolsConfig,
-  GraphQueryTriageConfig,
-  GraphQueryTriageFile,
-  GraphQueryTriageReport,
 } from './graphQuery';
 export {
   executeGraphQuery,
@@ -477,5 +474,4 @@ export {
   listGraphRelationships,
   listGraphSymbols,
   searchGraph,
-  triageGraph,
 } from './graphQuery';

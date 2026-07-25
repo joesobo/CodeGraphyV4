@@ -21,11 +21,6 @@ describe('cli/parseQuery', () => {
       report: 'search',
       arguments: { pattern: 'render settings', limit: 20 },
     });
-    expect(parseQueryCommand(['triage', 'offline graph document physics'])).toEqual({
-      name: 'query',
-      report: 'triage',
-      arguments: { query: 'offline graph document physics', limit: 8 },
-    });
     expect(parseQueryCommand(['query', 'src/cli/command.ts'])).toEqual({
       name: 'query',
       invokedCommand: 'query',
@@ -67,10 +62,6 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['search', '--', '-generated'])).toMatchObject({
       report: 'search',
       arguments: { pattern: '-generated', limit: 20 },
-    });
-    expect(parseQueryCommand(['triage', '--limit', '5', '--offset', '2', 'graph physics'])).toMatchObject({
-      report: 'triage',
-      arguments: { query: 'graph physics', limit: 5, offset: 2 },
     });
   });
 
@@ -131,14 +122,6 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['query'])).toMatchObject({
       invokedCommand: 'query',
       parseError: 'query requires <node>',
-    });
-    expect(parseQueryCommand(['triage'])).toMatchObject({
-      invokedCommand: 'triage',
-      parseError: 'triage requires <text>',
-    });
-    expect(parseQueryCommand(['triage', '--limit', '21', 'graph physics'])).toMatchObject({
-      invokedCommand: 'triage',
-      parseError: '--limit for triage must be at most 20',
     });
     expect(parseQueryCommand(['dependencies', 'a.ts', 'b.ts'])).toMatchObject({
       parseError: 'Unexpected argument for dependencies: b.ts',

@@ -28,9 +28,6 @@ export type {
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
   GraphQuerySymbolsConfig,
-  GraphQueryTriageConfig,
-  GraphQueryTriageFile,
-  GraphQueryTriageReport,
 } from './model';
 export type { GraphQueryData } from './data';
 export { executeGraphQuery } from './execute';
@@ -40,4 +37,3 @@ export { listGraphEdges, listGraphNodes } from './reports';
 export { listGraphRelationships } from './relationships';
 export { searchGraph } from './search';
 export { listGraphSymbols } from './symbols';
-export { triageGraph } from './triage';

@@ -24,7 +24,6 @@ Most Symbols and Relationships are cached. Search also reads current source text
 | Command | Information returned |
 |---|---|
 | `search <pattern>` | One ranked result set merging live source locations, cached AST Symbols, and indexed Nodes. |
-| `triage <text>` | A compact File ranking that matches task terms independently, balances their coverage, and records the matched terms without adding excerpts or inferred answers. |
 | `query <node>` | A bounded overview of one exact File or Symbol Node, with prioritized declarations and incoming and outgoing Relationships. |
 | `nodes` | A paginated Node inventory from the shaped graph. |
 | `edges` | A paginated Relationship inventory from the shaped graph. |
@@ -42,7 +41,7 @@ Search literal matching is case-insensitive. `*` is a line-local wildcard over s
 
 Source matches include File path, line, column, excerpt, and live freshness. Symbol matches include an exact Symbol ID and source location. Node matches include exact Node identity. An exact File path or Symbol ID from these results can address Target Query and relationship commands; a display label is not necessarily a Node ID.
 
-Search, Triage, inventories, overviews, and relationship reports are bounded. Pagination uses `page` metadata recording offset, limit, returned count, total count, and `nextOffset` when another page exists. Target Query reports independent declaration and relationship bounds. Path reports include traversal limits and a `complete` boolean; `complete: false` means the configured search bound was reached before the entire search space was exhausted.
+Search, inventories, overviews, and relationship reports are bounded. Pagination uses `page` metadata recording offset, limit, returned count, total count, and `nextOffset` when another page exists. Target Query reports independent declaration and relationship bounds. Path reports include traversal limits and a `complete` boolean; `complete: false` means the configured search bound was reached before the entire search space was exhausted.
 
 ## Machine-readable contract
 

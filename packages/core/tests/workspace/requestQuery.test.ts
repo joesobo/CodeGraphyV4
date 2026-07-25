@@ -26,11 +26,6 @@ describe('workspace/requestQuery', () => {
       report: 'search',
       arguments: { pattern: 'Indexing ', limit: 20 },
     });
-    const triageResult = await requestWorkspaceGraphQuery({
-      workspacePath: workspaceRoot,
-      report: 'triage',
-      arguments: { query: 'index command progress', limit: 8 },
-    });
 
     expect(symbolResult).toMatchObject({
       sources: { symbols: { freshness: 'cached', cacheState: 'fresh' } },
@@ -46,11 +41,6 @@ describe('workspace/requestQuery', () => {
         line: 2,
         excerpt: '  process.stderr.write(`Indexing ${workspaceRoot}...`);',
       }],
-      sources: { text: { freshness: 'live', filesScanned: 1, filesSkipped: 0 } },
-    });
-    expect(triageResult).toMatchObject({
-      terms: ['index', 'command'],
-      files: [{ path: 'entry.ts', nodeType: 'file', matchedTerms: ['index', 'command'] }],
       sources: { text: { freshness: 'live', filesScanned: 1, filesSkipped: 0 } },
     });
   });
