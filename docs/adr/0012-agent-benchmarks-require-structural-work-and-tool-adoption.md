@@ -6,7 +6,7 @@
 
 ADR 0011 established fresh three-versus-three implementation benchmarks and a generalized, non-prescriptive Agent Skill. The first candidate task added `path --max-depth`. All six agents implemented it correctly, but only one of three CodeGraphy agents made one CLI help call. The task named the exact command and reduced to local parser/help work, so its token difference could not measure graph navigation.
 
-A connection-aware offline graph-document feature was broader, but its first prompt named the owning tldraw package. After removing that ownership leak, every agent still localized the task lexically. In the frozen lexical round, CodeGraphy agents made zero CLI calls and regressed against raw agents despite equal 3/3 correctness:
+A connection-aware offline graph-document feature was broader, but its first prompt named the owning tldraw package. After removing that ownership leak, agents still localized the task primarily through lexical evidence. Corrected telemetry later found that one treatment agent made two CodeGraphy calls through `pnpm codegraphy`; the original counter recognized only a bare executable. Treatment still regressed against raw agents despite equal 3/3 correctness:
 
 | Mean | Raw | CodeGraphy + skill | Delta |
 |---|---:|---:|---:|
@@ -14,7 +14,7 @@ A connection-aware offline graph-document feature was broader, but its first pro
 | Tool calls | 22.0 | 28.7 | 30.3% more |
 | Tool output | 123,569 B | 140,578 B | 13.8% more |
 | Elapsed | 126.0 s | 135.1 s | 7.2% slower |
-| CodeGraphy calls | 0 | 0 | no adoption |
+| CodeGraphy calls | 0 | 0.7 | one of three adopted |
 
 The task was therefore rejected as a stable graph benchmark. It primarily measured the overhead and model variance of loading a skill around work that ordinary lexical search already solved directly.
 
@@ -65,13 +65,17 @@ Triage reduced observation bytes, but successful trajectories consumed more mode
 
 An `impact <node>` prototype traversed incoming Relationships from one exact File or Symbol to depth one through four, projected results to Files, and reported shortest distance, typed reasons, pagination, visited Nodes, and completeness. Runtime call/import reasons ranked ahead of type-only consumers. On the structural fixture, a 1.4 KB result around `plugins/registry.ts` placed `engine.ts`, `engineSetup.ts`, and `workspace.ts` in the first page.
 
-All three treatment agents read the updated skill but none selected Impact or any other CodeGraphy command. Raw correctness was 3/3 versus treatment 2/3. Mean correct-run tokens increased from 318,247 to 832,347, calls increased 60.3%, output increased 28.2%, and elapsed increased 65.7%. These trajectory regressions cannot be attributed to unused Impact output, but non-adoption fails the public-interface gate. The implementation, tests, documentation, and changeset update were reverted.
+All three treatment agents read the updated skill and none selected Impact. Corrected telemetry found three ordinary CodeGraphy Search calls in one successful treatment run. Raw correctness was 3/3 versus treatment 2/3. Mean correct-run tokens increased from 318,247 to 832,347, calls increased 60.3%, output increased 28.2%, and elapsed increased 65.7%. These trajectory regressions cannot be attributed to unused Impact output, but non-adoption fails the public-interface gate. The implementation, tests, documentation, and changeset update were reverted.
+
+### Compact capability reference
+
+A subtraction candidate reduced the neutral capability reference from 6,082 to 4,051 bytes without adding workflow policy. It increased voluntary CodeGraphy adoption to two of three treatment runs, with four Search calls in each adopted run. Both adopted runs omitted the required bulk-disposal API and failed; the only successful treatment did not invoke CodeGraphy. Treatment correctness fell to 1/3 from raw 3/3, and correct-run tokens increased 40.4%. The shorter skill and its release assertion were reverted.
 
 ## Decision
 
 Retain the neutral generalized Agent Skill from ADR 0011. It explains the graph model, lifecycle, command semantics, output, freshness, shaping, and limitations without prescribing a workflow. Do not retain Triage or evidence-first comparative framing.
 
-Use the headless Plugin-runtime disposal task as the current structural benchmark. Report both all-run and correct-run token statistics. A CLI candidate must be invoked by treatment agents before a result can be attributed to that candidate. Non-adoption is a failed interface experiment even when aggregate model variance favors the treatment.
+Retain the headless Plugin-runtime disposal task as a harder confirmation benchmark, and select an independently viable relationship task before screening new candidates. Report both all-run and correct-run token statistics. A CLI candidate must be invoked by treatment agents before a result can be attributed to that candidate. Non-adoption is a failed interface experiment even when aggregate model variance favors the treatment.
 
 Correctness remains a gate. Lower output bytes, elapsed time, or all-run mean tokens do not justify a candidate whose correct-run tokens regress or whose correctness drops.
 
@@ -84,7 +88,8 @@ Three repetitions remain a fast screening instrument rather than confirmation. R
 - New commands must earn both discoverability and successful-trajectory value.
 - Skill wording is itself an intervention and can increase exhaustive ordinary exploration even without CLI use.
 - Tool output reduction is diagnostic; cumulative model tokens per correct implementation remain primary.
-- Watcher, neighbor, conflict, inference, fuzzy, hub, and budgeted-map experiments remain candidates, but each must use the same structural task and adoption gate; the tested incoming Impact command is rejected.
+- Watcher, neighbor, conflict, inference, fuzzy, and hub experiments remain candidates under the same adoption and correctness gate; the tested incoming Impact command is rejected.
+- ADR 0013 records the selected relationship fixture and accepted personalized Task Map.
 
 ## References
 
