@@ -19,8 +19,8 @@ const STOP_WORDS = new Set([
 
 interface TaskDocument {
   node: IGraphNode;
-  pathTerms: readonly string[];
-  textTerms: readonly string[];
+  pathText: string;
+  sourceText: string;
 }
 
 interface RankedTaskFile {
@@ -46,8 +46,13 @@ function termVariants(term: string): string[] {
   return [...variants];
 }
 
-function includesTerm(terms: readonly string[], queryTerm: string): boolean {
-  return termVariants(queryTerm).some(term => terms.includes(term));
+function normalizeSearchText(value: string): string {
+  const separated = value.replace(/([\p{Ll}\d])(\p{Lu})/gu, '$1 $2').toLocaleLowerCase();
+  return ` ${separated.replace(/[^\p{L}\d]+/gu, ' ')} `;
+}
+
+function includesTerm(value: string, queryTerm: string): boolean {
+  return termVariants(queryTerm).some(term => value.includes(` ${term} `));
 }
 
 function createDocuments(data: GraphQueryData): TaskDocument[] {
@@ -56,7 +61,11 @@ function createDocuments(data: GraphQueryData): TaskDocument[] {
     .map(node => [node.id, node]));
   return (data.sourceText?.files ?? []).flatMap(({ filePath, content }) => {
     const node = files.get(filePath);
-    return node ? [{ node, pathTerms: tokenize(filePath), textTerms: tokenize(content) }] : [];
+    return node ? [{
+      node,
+      pathText: normalizeSearchText(filePath),
+      sourceText: normalizeSearchText(content),
+    }] : [];
   });
 }
 
@@ -64,7 +73,7 @@ function selectTerms(query: string, documents: readonly TaskDocument[]): string[
   const candidates = [...new Set(tokenize(query))];
   const frequency = new Map(candidates.map(term => [
     term,
-    documents.filter(document => includesTerm(document.pathTerms, term) || includesTerm(document.textTerms, term)).length,
+    documents.filter(document => includesTerm(document.pathText, term) || includesTerm(document.sourceText, term)).length,
   ]));
   return candidates
     .filter(term => (frequency.get(term) ?? 0) > 0)
@@ -75,11 +84,6 @@ function selectTerms(query: string, documents: readonly TaskDocument[]): string[
     .map(item => item.term);
 }
 
-function countTerm(terms: readonly string[], target: string): number {
-  const variants = new Set(termVariants(target));
-  return terms.reduce((total, term) => total + (variants.has(term) ? 1 : 0), 0);
-}
-
 function lexicalRank(
   document: TaskDocument,
   queryTerms: readonly string[],
@@ -87,12 +91,12 @@ function lexicalRank(
   documentCount: number,
 ): { matchedTerms: string[]; score: number } {
   const matchedTerms = queryTerms.filter(term => (
-    includesTerm(document.pathTerms, term) || includesTerm(document.textTerms, term)
+    includesTerm(document.pathText, term) || includesTerm(document.sourceText, term)
   ));
   const score = matchedTerms.reduce((total, term) => {
     const inverseFrequency = Math.log((documentCount + 1) / ((frequencies.get(term) ?? 0) + 1)) + 1;
-    const pathMatch = countTerm(document.pathTerms, term) > 0;
-    const textMatch = countTerm(document.textTerms, term) > 0;
+    const pathMatch = includesTerm(document.pathText, term);
+    const textMatch = includesTerm(document.sourceText, term);
     return total + inverseFrequency * (pathMatch ? 4 : textMatch ? 1 : 0);
   }, 0);
   const isTest = /(?:^|\/)(?:__tests__|tests?)(?:\/|\.)|\.(?:spec|test)\.[^/]+$/iu.test(document.node.id);
@@ -157,8 +161,10 @@ function personalizedPageRank(
 function rankingGroup(filePath: string): string {
   const segments = filePath.split('/');
   const sourceIndex = segments.findIndex(segment => segment === 'src' || segment === 'tests');
-  const end = sourceIndex >= 0 ? sourceIndex + 3 : Math.min(segments.length, 4);
-  return segments.slice(0, end).join('/');
+  if (sourceIndex < 0) return segments.slice(0, Math.min(segments.length, 4)).join('/');
+  const sourceArea = segments[sourceIndex + 1];
+  const areaDepth = sourceArea === 'extension' || sourceArea === 'webview' ? 2 : 1;
+  return segments.slice(0, sourceIndex + 1 + areaDepth).join('/');
 }
 
 function balanceSourceAreas(ranked: readonly RankedTaskFile[]): RankedTaskFile[] {
@@ -229,19 +235,19 @@ export function mapGraphTask(
   const terms = selectTerms(config.query, documents);
   const frequencies = new Map(terms.map(term => [
     term,
-    documents.filter(document => includesTerm(document.pathTerms, term) || includesTerm(document.textTerms, term)).length,
+    documents.filter(document => includesTerm(document.pathText, term) || includesTerm(document.sourceText, term)).length,
   ]));
   const lexical = new Map(documents.map(document => [
     document.node.id,
     lexicalRank(document, terms, frequencies, documents.length),
   ]));
   const filePaths = new Set(documents.map(document => document.node.id));
+  const links = createFileLinks(data, filePaths);
   const graphRanks = personalizedPageRank(
-    createFileLinks(data, filePaths),
+    links,
     new Map([...lexical].map(([path, rank]) => [path, rank.score])),
   );
   const connected = new Set<string>();
-  const links = createFileLinks(data, filePaths);
   for (const [path, rank] of lexical) {
     if (rank.score <= 0) continue;
     connected.add(path);
