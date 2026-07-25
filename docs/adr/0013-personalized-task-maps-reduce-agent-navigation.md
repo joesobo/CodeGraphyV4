@@ -34,7 +34,7 @@ This established that agents voluntarily select the existing CLI on a task that 
 - combines live eligible source with cached File, Symbol, and typed Relationship facts;
 - uses personalized PageRank to retain connected Files;
 - balances source areas so one dense subsystem does not consume the complete result;
-- includes at most three selected declarations per File and twelve typed Relationships among returned Files;
+- returns eight Files by default, rejects CLI bounds above twenty, and includes at most three selected declarations per File and twelve typed Relationships among returned Files;
 - reports pagination, truncation completeness, live-source freshness, and Graph Cache freshness;
 - returns no source excerpts, inferred answers, hidden workflow policy, or model-specific token estimates.
 

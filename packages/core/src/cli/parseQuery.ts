@@ -15,6 +15,7 @@ const QUERY_COMMANDS = new Set([
 const DEFAULT_LIMIT = 100;
 const DEFAULT_SEARCH_LIMIT = 20;
 const DEFAULT_TASK_MAP_LIMIT = 8;
+const MAX_TASK_MAP_LIMIT = 20;
 const DEFAULT_MAX_DEPTH = 6;
 const DEFAULT_MAX_PATHS = 5;
 
@@ -197,7 +198,11 @@ function buildSearch(input: QueryBuilderInput): CliCommand {
 
 function buildTaskMap(input: QueryBuilderInput): CliCommand {
   const invalid = requireOperands(input.command, input.operands, 1, '<task>');
-  return invalid ?? query(input.command, 'task-map', { query: input.operands[0], ...input.page }, input.projection);
+  if (invalid) return invalid;
+  if (input.page.limit > MAX_TASK_MAP_LIMIT) {
+    return parseError(input.command, `map --limit must be between 1 and ${MAX_TASK_MAP_LIMIT}`);
+  }
+  return query(input.command, 'task-map', { query: input.operands[0], ...input.page }, input.projection);
 }
 
 function buildOverview(input: QueryBuilderInput): CliCommand {

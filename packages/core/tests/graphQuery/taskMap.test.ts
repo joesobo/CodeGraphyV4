@@ -63,16 +63,16 @@ describe('core/graphQuery task map', () => {
           symbols: [],
         },
         {
-          path: 'src/registry.ts',
-          nodeType: 'file',
-          matchedTerms: ['plugin', 'runtime', 'cleanup'],
-          symbols: [{ id: 'src/registry.ts#unloadPlugin:function', name: 'unloadPlugin', kind: 'function' }],
-        },
-        {
           path: 'tests/registry.test.ts',
           nodeType: 'file',
           matchedTerms: ['plugin', 'runtime', 'failure'],
           symbols: [],
+        },
+        {
+          path: 'src/registry.ts',
+          nodeType: 'file',
+          matchedTerms: ['plugin', 'runtime', 'cleanup'],
+          symbols: [{ id: 'src/registry.ts#unloadPlugin:function', name: 'unloadPlugin', kind: 'function' }],
         },
         {
           path: 'src/engine.ts',
@@ -95,11 +95,45 @@ describe('core/graphQuery task map', () => {
     });
   });
 
-  it('reports truncation when the File map omits ranked candidates', () => {
-    const report = mapGraphTask(data, { query: 'plugin runtime failure', limit: 1 });
+  it('reports truncation for every partial page and clamps public File bounds', () => {
+    const first = mapGraphTask(data, { query: 'plugin runtime failure', limit: 1 });
+    const final = mapGraphTask(data, { query: 'plugin runtime failure', limit: 1, offset: 2 });
+    const oversized = mapGraphTask(data, { query: 'plugin runtime failure', limit: 100 });
 
-    expect(report.page).toMatchObject({ limit: 1, returned: 1, total: 3, nextOffset: 1 });
-    expect(report.limits.complete).toBe(false);
-    expect(report.relationships).toEqual([]);
+    expect(first.page).toMatchObject({ limit: 1, returned: 1, total: 3, nextOffset: 1 });
+    expect(first.limits.complete).toBe(false);
+    expect(first.relationships).toEqual([]);
+    expect(final.page).toMatchObject({ offset: 2, returned: 1, nextOffset: null });
+    expect(final.limits.complete).toBe(false);
+    expect(oversized.page.limit).toBe(20);
+  });
+
+  it('returns an empty bounded map rather than throwing for malformed library input', () => {
+    expect(mapGraphTask(data, { query: undefined as unknown as string })).toMatchObject({
+      query: '',
+      terms: [],
+      files: [],
+      relationships: [],
+      page: { limit: 8, returned: 0, total: 0 },
+      limits: { complete: true },
+    });
+  });
+
+  it('matches common query inflections symmetrically without substring matches', () => {
+    const inflectedData: GraphQueryData = {
+      ...data,
+      sourceText: {
+        ...data.sourceText!,
+        files: data.sourceText!.files.map(file => file.filePath === 'src/unrelated.ts'
+          ? { ...file, content: 'export function runPluginAfterTaskFailed() {}' }
+          : file),
+      },
+    };
+    const report = mapGraphTask(inflectedData, { query: 'running plugin fail', limit: 8 });
+    const unrelated = report.files.find(file => file.path === 'src/unrelated.ts');
+    const registry = report.files.find(file => file.path === 'src/registry.ts');
+
+    expect(unrelated?.matchedTerms).toEqual(['running', 'plugin', 'fail']);
+    expect(registry?.matchedTerms).toEqual(['plugin']);
   });
 });

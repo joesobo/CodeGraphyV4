@@ -102,6 +102,10 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['nodes', '--limit', '0'])).toMatchObject({
       parseError: '--limit requires a positive integer',
     });
+    expect(parseQueryCommand(['map', 'task', '--limit', '21'])).toMatchObject({
+      invokedCommand: 'map',
+      parseError: 'map --limit must be between 1 and 20',
+    });
     expect(parseQueryCommand(['nodes', '--offset', '-1'])).toMatchObject({
       parseError: '--offset requires a non-negative integer',
     });

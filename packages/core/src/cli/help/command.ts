@@ -169,7 +169,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Effects: Read-only. Does not perform Indexing; source text is read live from indexed files.',
     'Output: Bounded JSON Files, matched terms, declarations, typed Relationships, freshness, and completeness.',
     'Options:',
-    '  --limit <count>   Maximum Files to return (default: 8)',
+    '  --limit <count>   Maximum Files to return (default: 8; range: 1-20)',
     '  --offset <count>  Zero-based File offset (default: 0)',
     ...QUERY_PROJECTION_OPTIONS,
     "Example: codegraphy map 'plugin cleanup after workspace failure'",

@@ -42,7 +42,10 @@ const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
   symbols: (data, args) => listGraphSymbols(data, args),
   paths: (data, args) => findGraphPaths(deriveScopedGraphQueryData(data.graphData, args), args),
   search: (data, args) => searchGraph(data, args),
-  'task-map': (data, args) => mapGraphTask(data, args),
+  'task-map': (data, args) => mapGraphTask({
+    ...data,
+    graphData: deriveScopedGraphQueryData(data.graphData, args),
+  }, args),
   overview: (data, args) => inspectGraphTarget(data, args),
 };
 

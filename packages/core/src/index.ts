@@ -464,6 +464,9 @@ export type {
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
   GraphQuerySymbolsConfig,
+  GraphQueryTaskMapConfig,
+  GraphQueryTaskMapFile,
+  GraphQueryTaskMapReport,
 } from './graphQuery';
 export {
   executeGraphQuery,
@@ -473,5 +476,6 @@ export {
   listGraphNodes,
   listGraphRelationships,
   listGraphSymbols,
+  mapGraphTask,
   searchGraph,
 } from './graphQuery';

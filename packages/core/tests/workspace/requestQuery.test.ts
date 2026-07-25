@@ -71,6 +71,15 @@ describe('workspace/requestQuery', () => {
       limits: { complete: true },
       sources: { text: { freshness: 'live' }, graph: { freshness: 'cached', cacheState: 'fresh' } },
     });
+
+    const projected = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'task-map',
+      arguments: { query: 'setting command', limit: 4 },
+      projection: { edgeTypes: ['type-import'] },
+    });
+    expect(projected.files).toHaveLength(2);
+    expect(projected.relationships).toEqual([]);
   });
 
   it('uses complete graph scope for an exact targeted Relationship query', async () => {
