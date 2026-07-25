@@ -2,6 +2,7 @@ import type { GraphQueryData } from './data';
 import type {
   GraphQueryConfig,
   GraphQueryConnectionConfig,
+  GraphQueryImpactConfig,
   GraphQueryOverviewConfig,
   GraphQueryPathConfig,
   GraphQueryRequest,
@@ -9,6 +10,7 @@ import type {
   GraphQuerySearchConfig,
   GraphQuerySymbolsConfig,
 } from './model';
+import { impactGraphTarget } from './impact';
 import { inspectGraphTarget } from './overview';
 import { findGraphPaths } from './paths';
 import { listGraphEdges, listGraphNodes } from './reports';
@@ -29,6 +31,7 @@ type GraphQueryHandlers = {
   symbols: GraphQueryHandler<GraphQuerySymbolsConfig | undefined>;
   paths: GraphQueryHandler<GraphQueryPathConfig>;
   search: GraphQueryHandler<GraphQuerySearchConfig>;
+  impact: GraphQueryHandler<GraphQueryImpactConfig>;
   overview: GraphQueryHandler<GraphQueryOverviewConfig>;
 };
 
@@ -39,6 +42,7 @@ const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
   symbols: (data, args) => listGraphSymbols(data, args),
   paths: (data, args) => findGraphPaths(deriveScopedGraphQueryData(data.graphData, args), args),
   search: (data, args) => searchGraph(data, args),
+  impact: (data, args) => impactGraphTarget(data, args),
   overview: (data, args) => inspectGraphTarget(data, args),
 };
 

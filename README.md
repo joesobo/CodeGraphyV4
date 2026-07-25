@@ -133,6 +133,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
 | `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
 | `codegraphy query <node>` | Inspects one exact File or Symbol with prioritized declarations and incoming/outgoing Relationships. |
+| `codegraphy impact <node>` | Lists a bounded incoming File radius with shortest hop distances and typed Relationship reasons. |
 | `codegraphy edges` | Lists bounded Edges. |
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |
 | `codegraphy dependents <node>` | Lists incoming Relationships for a file or exact Symbol Node. |
@@ -141,7 +142,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
 
-Target Query, Path, and exact targeted Relationship selectors use complete cached Node and Edge Types by default rather than saved Graph View Scope; explicit `--node-type` or `--edge-type` arguments still constrain that dimension. JavaScript-family `reexport` Relationships let calls through barrels terminate at implementation Symbols. Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
+Target Query, Impact, Path, and exact targeted Relationship selectors use complete cached Node and Edge Types by default rather than saved Graph View Scope; explicit `--node-type` or `--edge-type` arguments still constrain that dimension. JavaScript-family `reexport` Relationships let calls through barrels terminate at implementation Symbols. Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
 
 ### Agent Skill
 

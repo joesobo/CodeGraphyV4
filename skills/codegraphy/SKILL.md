@@ -25,13 +25,14 @@ Most Symbols and Relationships are cached. Search also reads current source text
 |---|---|
 | `search <pattern>` | One ranked result set merging live source locations, cached AST Symbols, and indexed Nodes. |
 | `query <node>` | A bounded overview of one exact File or Symbol Node, with prioritized declarations and incoming and outgoing Relationships. |
+| `impact <node>` | A bounded incoming File radius with shortest hop distance and typed Relationship reasons for one exact target. |
 | `nodes` | A paginated Node inventory from the shaped graph. |
 | `edges` | A paginated Relationship inventory from the shaped graph. |
 | `dependencies <node>` | Outgoing Relationships from a File path or exact Node ID. |
 | `dependents <node>` | Incoming Relationships to a File path or exact Node ID. |
 | `path <from> <to>` | A bounded Relationship route between two File paths or exact Node IDs. |
 
-Inventory reports reflect persisted Graph Scope. Search, exact Target Query, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
+Inventory reports reflect persisted Graph Scope. Search, exact Target Query, Impact, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
 
 `--filter`, `--node-type`, and `--edge-type` are one-off query projections and do not modify `.codegraphy/settings.json`. Persisted Filter and Scope changes affect later commands without deleting the complete cached facts.
 

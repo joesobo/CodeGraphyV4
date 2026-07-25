@@ -11,6 +11,7 @@ describe('cli/help/command', () => {
     expect(result.output).toContain('codegraphy settings');
     expect(result.output).toContain('codegraphy search <pattern>');
     expect(result.output).toContain('codegraphy query <node>');
+    expect(result.output).toContain('codegraphy impact <node>');
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
     expect(result.output).toContain('codegraphy scope node <type> <on|off>');
@@ -54,6 +55,9 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['search']).output).toContain('cached AST Symbols');
     expect(createHelpResult(['search']).output).toContain('`*` wildcard');
     expect(createHelpResult(['search']).output).toContain('all-term path/source ranking');
+    expect(createHelpResult(['impact']).output).toContain('Usage: codegraphy impact');
+    expect(createHelpResult(['impact']).output).toContain('--depth <count>');
+    expect(createHelpResult(['impact']).output).toContain('incoming File radius');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');

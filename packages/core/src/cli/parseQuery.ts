@@ -5,6 +5,7 @@ const QUERY_COMMANDS = new Set([
   'dependencies',
   'dependents',
   'edges',
+  'impact',
   'nodes',
   'path',
   'query',
@@ -13,11 +14,15 @@ const QUERY_COMMANDS = new Set([
 
 const DEFAULT_LIMIT = 100;
 const DEFAULT_SEARCH_LIMIT = 20;
+const DEFAULT_IMPACT_LIMIT = 10;
+const DEFAULT_IMPACT_DEPTH = 2;
+const MAX_IMPACT_DEPTH = 4;
 const DEFAULT_MAX_DEPTH = 6;
 const DEFAULT_MAX_PATHS = 5;
 
 interface ParsedQueryArguments {
   operands: string[];
+  depth?: number;
   limit: number;
   offset?: number;
   parseError?: string;
@@ -29,10 +34,11 @@ interface QueryBuilderInput {
   operands: string[];
   page: { limit: number; offset?: number };
   projection?: WorkspaceGraphQueryProjection;
+  depth?: number;
 }
 
 type ParsedOption =
-  | { type: 'limit' | 'offset'; value: number }
+  | { type: 'depth' | 'limit' | 'offset'; value: number }
   | { type: 'projection'; key: keyof WorkspaceGraphQueryProjection; values: string[] }
   | { type: 'error'; message: string };
 
@@ -92,14 +98,21 @@ function parseOption(
   if (argument === '--limit' || argument === '--offset') {
     return parsePaginationOption(command, argument, value, allowPagination);
   }
+  if (argument === '--depth' && command === 'impact') {
+    const depth = parseInteger(value, 1);
+    return depth !== undefined && depth <= MAX_IMPACT_DEPTH
+      ? { type: 'depth', value: depth }
+      : { type: 'error', message: `--depth requires an integer from 1 through ${MAX_IMPACT_DEPTH}` };
+  }
   const projectionKey = PROJECTION_OPTION_KEYS[argument];
   return projectionKey ? parseProjectionOption(argument, value, projectionKey) : undefined;
 }
 
 function applyOption(
   parsed: ParsedOption,
-  state: { limit: number; offset?: number; projection: WorkspaceGraphQueryProjection },
+  state: { depth?: number; limit: number; offset?: number; projection: WorkspaceGraphQueryProjection },
 ): void {
+  if (parsed.type === 'depth') state.depth = parsed.value;
   if (parsed.type === 'limit') state.limit = parsed.value;
   if (parsed.type === 'offset') state.offset = parsed.value;
   if (parsed.type === 'projection') {
@@ -109,10 +122,11 @@ function applyOption(
 
 function completeParsedArguments(
   operands: string[],
-  state: { limit: number; offset?: number; projection: WorkspaceGraphQueryProjection },
+  state: { depth?: number; limit: number; offset?: number; projection: WorkspaceGraphQueryProjection },
 ): ParsedQueryArguments {
   return {
     operands,
+    ...(state.depth !== undefined ? { depth: state.depth } : {}),
     limit: state.limit,
     ...(state.offset !== undefined ? { offset: state.offset } : {}),
     ...(Object.keys(state.projection).length > 0 ? { projection: state.projection } : {}),
@@ -126,7 +140,7 @@ function parseArguments(
   defaultLimit = DEFAULT_LIMIT,
 ): ParsedQueryArguments {
   const operands: string[] = [];
-  const state: { limit: number; offset?: number; projection: WorkspaceGraphQueryProjection } = {
+  const state: { depth?: number; limit: number; offset?: number; projection: WorkspaceGraphQueryProjection } = {
     limit: defaultLimit,
     projection: {},
   };
@@ -193,6 +207,15 @@ function buildSearch(input: QueryBuilderInput): CliCommand {
   return query(input.command, 'search', { pattern: input.operands[0], ...input.page }, input.projection);
 }
 
+function buildImpact(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 1, '<node>');
+  return invalid ?? query(input.command, 'impact', {
+    target: input.operands[0],
+    maxDepth: input.depth ?? DEFAULT_IMPACT_DEPTH,
+    ...input.page,
+  }, input.projection);
+}
+
 function buildOverview(input: QueryBuilderInput): CliCommand {
   const invalid = requireOperands(input.command, input.operands, 1, '<node>');
   return invalid ?? query(input.command, 'overview', { target: input.operands[0] }, input.projection);
@@ -224,6 +247,7 @@ const QUERY_BUILDERS: Record<string, (input: QueryBuilderInput) => CliCommand> =
   nodes: buildList,
   edges: buildList,
   search: buildSearch,
+  impact: buildImpact,
   query: buildOverview,
   dependencies: input => buildConnection(input, 'from'),
   dependents: input => buildConnection(input, 'to'),
@@ -238,7 +262,11 @@ export function parseQueryCommand(argv: string[]): CliCommand {
     command,
     rawArgs,
     command !== 'path' && command !== 'query',
-    command === 'search' ? DEFAULT_SEARCH_LIMIT : DEFAULT_LIMIT,
+    command === 'search'
+      ? DEFAULT_SEARCH_LIMIT
+      : command === 'impact'
+        ? DEFAULT_IMPACT_LIMIT
+        : DEFAULT_LIMIT,
   );
   if (parsed.parseError) return parseError(command, parsed.parseError);
   return builder({
@@ -249,5 +277,6 @@ export function parseQueryCommand(argv: string[]): CliCommand {
       ...(parsed.offset !== undefined ? { offset: parsed.offset } : {}),
     },
     ...(parsed.projection ? { projection: parsed.projection } : {}),
+    ...(parsed.depth !== undefined ? { depth: parsed.depth } : {}),
   });
 }

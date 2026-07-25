@@ -47,11 +47,12 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Sea
 | **Searched Graph** | The Filtered Graph after Graph View Search. |
 | **CLI Search** | A bounded discovery query over exact live source, cached AST Symbols, and indexed Nodes. Sparse natural multi-term phrases add deterministic all-term File candidates. It reports source and cache provenance and does not change settings. |
 | **Target Query** | A bounded overview of one exact File or Symbol Node, including prioritized declarations and incoming/outgoing Relationships. |
+| **Impact Query** | A bounded incoming traversal from one exact File or Symbol, projected to Files with shortest hop distance and typed Relationship reasons. |
 | **Visible Graph** | The graph shown on screen after Graph Scope, Filter, Search, Show Orphans, and other view projection rules. |
 | **Orphan Node** | A Node with no remaining Edges after graph narrowing. |
 | **Show Orphans** | A final Graph View setting that keeps or removes Orphan Nodes. |
 
-Graph Scope runs before Filter, Filter runs before Graph View Search, and sorting or pagination runs after those stages. Graph Query inventories use that shaped graph. CLI Search, Target Query, Path, and exact targeted Relationship selectors instead read the complete cached Node and Edge Types unless an invocation explicitly projects that dimension with `--node-type` or `--edge-type`; path Filters still apply. This keeps Graph View preferences from hiding indexed call or reexport evidence. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
+Graph Scope runs before Filter, Filter runs before Graph View Search, and sorting or pagination runs after those stages. Graph Query inventories use that shaped graph. CLI Search, Target Query, Impact Query, Path, and exact targeted Relationship selectors instead read the complete cached Node and Edge Types unless an invocation explicitly projects that dimension with `--node-type` or `--edge-type`; path Filters still apply. This keeps Graph View preferences from hiding indexed call or reexport evidence. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
 
 ## Selection, Focus, and Collapse
 

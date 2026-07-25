@@ -65,6 +65,11 @@ export interface GraphQuerySearchConfig extends GraphQueryConfig {
   pattern: string;
 }
 
+export interface GraphQueryImpactConfig extends GraphQueryConfig {
+  target: string;
+  maxDepth: number;
+}
+
 export interface GraphQueryOverviewConfig {
   target: string;
 }
@@ -189,6 +194,22 @@ export interface GraphQuerySearchReport {
   };
 }
 
+export interface GraphQueryImpactItem extends GraphQueryNodeReportItem {
+  distance: number;
+  edgeTypes: GraphEdgeKind[];
+}
+
+export interface GraphQueryImpactReport {
+  target: GraphQueryNodeReportItem;
+  impacted: GraphQueryImpactItem[];
+  page: GraphQueryPage;
+  limits: {
+    maxDepth: number;
+    visitedNodes: number;
+    complete: boolean;
+  };
+}
+
 export interface GraphQueryOverviewReport {
   target: GraphQueryNodeReportItem;
   declaredSymbols: GraphQuerySymbolReport;
@@ -212,6 +233,7 @@ export type GraphQueryReport =
   | 'symbols'
   | 'paths'
   | 'search'
+  | 'impact'
   | 'overview';
 
 export type GraphQueryRequest =
@@ -221,6 +243,7 @@ export type GraphQueryRequest =
   | { report: 'symbols'; arguments?: GraphQuerySymbolsConfig }
   | { report: 'paths'; arguments: GraphQueryPathConfig }
   | { report: 'search'; arguments: GraphQuerySearchConfig }
+  | { report: 'impact'; arguments: GraphQueryImpactConfig }
   | { report: 'overview'; arguments: GraphQueryOverviewConfig };
 
 export type GraphQueryResult =
@@ -230,5 +253,6 @@ export type GraphQueryResult =
   | GraphQuerySymbolReport
   | GraphQueryPathReport
   | GraphQuerySearchReport
+  | GraphQueryImpactReport
   | GraphQueryOverviewReport
   | GraphQueryTargetNotFoundReport;

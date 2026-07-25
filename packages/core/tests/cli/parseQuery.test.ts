@@ -21,6 +21,11 @@ describe('cli/parseQuery', () => {
       report: 'search',
       arguments: { pattern: 'render settings', limit: 20 },
     });
+    expect(parseQueryCommand(['impact', 'src/cli/command.ts'])).toEqual({
+      name: 'query',
+      report: 'impact',
+      arguments: { target: 'src/cli/command.ts', maxDepth: 2, limit: 10 },
+    });
     expect(parseQueryCommand(['query', 'src/cli/command.ts'])).toEqual({
       name: 'query',
       invokedCommand: 'query',
@@ -62,6 +67,12 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['search', '--', '-generated'])).toMatchObject({
       report: 'search',
       arguments: { pattern: '-generated', limit: 20 },
+    });
+    expect(parseQueryCommand([
+      'impact', '--depth', '3', '--limit', '5', '--offset', '2', 'src/registry.ts',
+    ])).toMatchObject({
+      report: 'impact',
+      arguments: { target: 'src/registry.ts', maxDepth: 3, limit: 5, offset: 2 },
     });
   });
 
@@ -122,6 +133,21 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['query'])).toMatchObject({
       invokedCommand: 'query',
       parseError: 'query requires <node>',
+    });
+    expect(parseQueryCommand(['impact'])).toMatchObject({
+      invokedCommand: 'impact',
+      parseError: 'impact requires <node>',
+    });
+    for (const value of [undefined, '0', '5', '-1', '1.5', 'many']) {
+      expect(parseQueryCommand([
+        'impact', 'src/registry.ts', '--depth', ...(value === undefined ? [] : [value]),
+      ])).toMatchObject({
+        invokedCommand: 'impact',
+        parseError: '--depth requires an integer from 1 through 4',
+      });
+    }
+    expect(parseQueryCommand(['nodes', '--depth', '2'])).toMatchObject({
+      parseError: 'Unknown option for nodes: --depth',
     });
     expect(parseQueryCommand(['dependencies', 'a.ts', 'b.ts'])).toMatchObject({
       parseError: 'Unexpected argument for dependencies: b.ts',
