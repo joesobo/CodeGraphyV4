@@ -441,9 +441,6 @@ export type {
   GraphQueryEdgeReportItem,
   GraphQueryFilter,
   GraphQueryFilterOperator,
-  GraphQueryImpactConfig,
-  GraphQueryImpactItem,
-  GraphQueryImpactReport,
   GraphQueryNodeReport,
   GraphQueryNodeReportItem,
   GraphQueryOverviewConfig,
@@ -471,7 +468,6 @@ export type {
 export {
   executeGraphQuery,
   findGraphPaths,
-  impactGraphTarget,
   inspectGraphTarget,
   listGraphEdges,
   listGraphNodes,

@@ -14,7 +14,7 @@ test('the generalized CodeGraphy skill teaches the lifecycle and delegates synta
   const lifecyclePositions = lifecycle.map(term => skill.indexOf(term));
   assert.ok(lifecyclePositions.every(position => position >= 0));
   assert.deepEqual(lifecyclePositions, [...lifecyclePositions].sort((left, right) => left - right));
-  for (const command of ['nodes', 'search', 'query', 'impact', 'edges', 'dependencies', 'dependents', 'path']) {
+  for (const command of ['nodes', 'search', 'query', 'edges', 'dependencies', 'dependents', 'path']) {
     assert.match(skill, new RegExp(`\\b${command}\\b`));
   }
   assert.match(skill, /codegraphy --help/);

@@ -80,17 +80,6 @@ describe('workspace/requestQuery', () => {
         edgeTypes: ['call'],
       }]);
     }
-
-    const impact = await requestWorkspaceGraphQuery({
-      workspacePath: workspaceRoot,
-      report: 'impact',
-      arguments: { target: 'dependency.ts', maxDepth: 2, limit: 10 },
-    });
-    expect(impact).toMatchObject({
-      target: { path: 'dependency.ts', nodeType: 'file' },
-      impacted: [{ path: 'entry.ts', nodeType: 'file', distance: 1 }],
-      limits: { maxDepth: 2, complete: true },
-    });
   });
 
   it('resolves targeted calls through named re-export barrels', async () => {

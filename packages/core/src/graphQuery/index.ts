@@ -5,9 +5,6 @@ export type {
   GraphQueryEdgeReportItem,
   GraphQueryFilter,
   GraphQueryFilterOperator,
-  GraphQueryImpactConfig,
-  GraphQueryImpactItem,
-  GraphQueryImpactReport,
   GraphQueryNodeReport,
   GraphQueryNodeReportItem,
   GraphQueryOverviewConfig,
@@ -34,7 +31,6 @@ export type {
 } from './model';
 export type { GraphQueryData } from './data';
 export { executeGraphQuery } from './execute';
-export { impactGraphTarget } from './impact';
 export { inspectGraphTarget } from './overview';
 export { findGraphPaths } from './paths';
 export { listGraphEdges, listGraphNodes } from './reports';
