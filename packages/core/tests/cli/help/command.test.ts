@@ -55,7 +55,6 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['search']).output).toContain('cached AST Symbols');
     expect(createHelpResult(['search']).output).toContain('`*` wildcard');
     expect(createHelpResult(['search']).output).toContain('all-term path/source ranking');
-    expect(createHelpResult(['search']).output).toContain('fuzzy Symbol suggestions');
     expect(createHelpResult(['map']).output).toContain('Usage: codegraphy map');
     expect(createHelpResult(['map']).output).toContain('personalized File map');
     expect(createHelpResult(['map']).output).toContain('typed Relationships');

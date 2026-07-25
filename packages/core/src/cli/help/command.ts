@@ -144,7 +144,6 @@ const COMMAND_HELP: Record<string, string> = {
     'Discover matching live source lines, cached AST Symbols, and indexed File or concept Nodes.',
     'Literal matching is case-insensitive. Add a `*` wildcard to span characters on one line or name.',
     'When a natural multi-term phrase has few literal matches, all-term path/source ranking finds relevant Files.',
-    'An identifier-like pattern with no evidence can return up to three fuzzy Symbol suggestions labeled `match: "fuzzy"`.',
     'Every Symbol match includes the File it came from. Text matches include line, column, and excerpt.',
     '',
     'Arguments:',

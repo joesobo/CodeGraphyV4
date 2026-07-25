@@ -10,7 +10,6 @@ import type {
 import { toNodeReportItem } from './nodeReport';
 import { paginate } from './pagination';
 import { toSymbolReportBase } from './symbols/metadata';
-import { findFuzzySymbols } from './search/fuzzy';
 import { rankSearchDocuments } from './search/ranking';
 
 const MAX_EXCERPT_LENGTH = 240;
@@ -153,19 +152,6 @@ function phraseFallbackMatches(
   });
 }
 
-function fuzzySymbolMatches(
-  data: GraphQueryData,
-  pattern: string,
-  existingMatches: readonly RankedMatch[],
-): RankedMatch[] {
-  if (existingMatches.length > 0) return [];
-  return findFuzzySymbols(pattern, data.symbols ?? []).map(symbol => ({
-    match: { type: 'symbol' as const, match: 'fuzzy' as const, symbol: symbolReportItem(symbol) },
-    rank: 7,
-    sortKey: `${symbol.filePath}\u0000${symbol.name}\u0000${symbol.id ?? ''}`,
-  }));
-}
-
 export function searchGraph(
   data: GraphQueryData,
   config: GraphQuerySearchConfig,
@@ -176,11 +162,9 @@ export function searchGraph(
     ...data.graphData.nodes.map(node => nodeMatch(node, matcher)).filter(match => match !== undefined),
     ...sourceMatches(data, config.pattern, matcher),
   ];
-  const phraseMatches = phraseFallbackMatches(data, config.pattern, directMatches);
   const rankedMatches = [
     ...directMatches,
-    ...phraseMatches,
-    ...fuzzySymbolMatches(data, config.pattern, [...directMatches, ...phraseMatches]),
+    ...phraseFallbackMatches(data, config.pattern, directMatches),
   ].sort((left, right) => left.rank - right.rank || left.sortKey.localeCompare(right.sortKey));
   const page = paginate(rankedMatches.map(item => item.match), config);
 

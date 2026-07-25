@@ -22,28 +22,14 @@ const graphData: IGraphData = {
   edges: [],
 };
 
-const symbols: IAnalysisSymbol[] = [
-  {
-    id: 'src/index.ts#runIndexCommand:function',
-    filePath: 'src/index.ts',
-    name: 'runIndexCommand',
-    kind: 'function',
-    signature: 'async function runIndexCommand()',
-    metadata: { language: 'typescript', source: 'core:treesitter' },
-  },
-  {
-    id: 'src/pluginGraphWork.ts#createPluginGraphWorkScheduler:function',
-    filePath: 'src/pluginGraphWork.ts',
-    name: 'createPluginGraphWorkScheduler',
-    kind: 'function',
-  },
-  {
-    id: 'src/pluginInjection.ts#injectPluginAssets:function',
-    filePath: 'src/pluginInjection.ts',
-    name: 'injectPluginAssets',
-    kind: 'function',
-  },
-];
+const symbols: IAnalysisSymbol[] = [{
+  id: 'src/index.ts#runIndexCommand:function',
+  filePath: 'src/index.ts',
+  name: 'runIndexCommand',
+  kind: 'function',
+  signature: 'async function runIndexCommand()',
+  metadata: { language: 'typescript', source: 'core:treesitter' },
+}];
 
 function search(pattern: string) {
   return searchGraph({
@@ -185,28 +171,6 @@ describe('core/graphQuery search', () => {
       type: 'symbol',
       symbol: { name: 'runIndexCommand' },
     });
-  });
-
-  it('suggests bounded exact Symbol identities for identifier typos and guessed names', () => {
-    expect(search('createPluginGraphWorkSchedulr').matches).toEqual([{
-      type: 'symbol',
-      match: 'fuzzy',
-      symbol: expect.objectContaining({
-        id: 'src/pluginGraphWork.ts#createPluginGraphWorkScheduler:function',
-        name: 'createPluginGraphWorkScheduler',
-        filePath: 'src/pluginGraphWork.ts',
-      }),
-    }]);
-    expect(search('loadPluginAssets').matches).toEqual([{
-      type: 'symbol',
-      match: 'fuzzy',
-      symbol: expect.objectContaining({
-        id: 'src/pluginInjection.ts#injectPluginAssets:function',
-        name: 'injectPluginAssets',
-        filePath: 'src/pluginInjection.ts',
-      }),
-    }]);
-    expect(search('indx').matches).toEqual([]);
   });
 
   it('ranks source paths related to the phrase ahead of documentation history', () => {

@@ -167,7 +167,7 @@ export interface GraphQueryPathReport {
 
 export type GraphQuerySearchMatch =
   | { type: 'node'; node: GraphQueryNodeReportItem }
-  | { type: 'symbol'; symbol: GraphQuerySymbolReportItem; match?: 'fuzzy' }
+  | { type: 'symbol'; symbol: GraphQuerySymbolReportItem }
   | {
       type: 'text';
       filePath: string;
