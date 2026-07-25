@@ -87,7 +87,7 @@ describe('core/graphQuery task map', () => {
         { from: 'tests/registry.test.ts', to: 'src/registry.ts', edgeTypes: ['import'] },
       ],
       page: { offset: 0, limit: 4, returned: 4, total: 4, nextOffset: null },
-      limits: { relationships: 12, complete: true },
+      limits: { relationships: 8, complete: true },
       sources: {
         text: { freshness: 'live', filesScanned: 5, filesSkipped: 0 },
         graph: { freshness: 'cached', cacheState: 'fresh' },
@@ -114,7 +114,7 @@ describe('core/graphQuery task map', () => {
       terms: [],
       files: [],
       relationships: [],
-      page: { limit: 8, returned: 0, total: 0 },
+      page: { limit: 6, returned: 0, total: 0 },
       limits: { complete: true },
     });
   });

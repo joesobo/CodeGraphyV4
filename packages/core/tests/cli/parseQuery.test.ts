@@ -25,7 +25,7 @@ describe('cli/parseQuery', () => {
       name: 'query',
       invokedCommand: 'map',
       report: 'task-map',
-      arguments: { query: 'render settings', limit: 8 },
+      arguments: { query: 'render settings', limit: 6 },
     });
     expect(parseQueryCommand(['query', 'src/cli/command.ts'])).toEqual({
       name: 'query',

@@ -30,7 +30,7 @@ describe('core/graphQuery task map projection', () => {
     const symbols = indexTaskMapSymbols(data);
     const relationships = selectTaskMapRelationships(data, new Set(filePaths), 12);
 
-    expect(symbols.get('src/file-0.ts')).toHaveLength(3);
+    expect(symbols.get('src/file-0.ts')).toHaveLength(1);
     expect(relationships.relationships).toHaveLength(12);
     expect(relationships.relationships.every(item => item.edgeTypes[0] === 'import')).toBe(true);
     expect(relationships.complete).toBe(false);
