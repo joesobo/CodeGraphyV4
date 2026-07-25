@@ -87,6 +87,18 @@ A Search candidate returned up to three exact Symbol identities labeled `match: 
 
 In its required relationship-task comparison, treatment correctness was 3/3 versus raw 2/3 and correct-run mean tokens were 1.7% lower. However, no treatment Search activated the fallback. Agents selected exact and phrase searches instead, while calls, output, and elapsed time regressed. The candidate failed attribution and was fully reverted.
 
+## Remaining queue disposition
+
+The remaining candidate queue does not contain another clean, benchmarkable forward path under current architecture:
+
+- **One-hop neighbors / edge explanation:** exact `query` already returns bounded incoming and outgoing typed Relationships, while `dependencies` and `dependents` expose either direction. Another neighbor command would duplicate those contracts and recreate the rejected generic-neighborhood path.
+- **Watcher-assisted impact:** the CLI is intentionally one-shot. A watcher requires a resident lifecycle, cache locking, debounce and recrawl semantics, and query-time mutation. That conflicts with ADR 0003's no-server boundary and the read-only query contract. Explicit incremental `index` remains the coherent refresh operation.
+- **Hub diagnostics:** hub suppression and community priors did not improve held-out localization, and a standalone god-node inventory has no demonstrated adoption in coding work. Task Map already uses degree-normalized transitions and source-area diversity without presenting centrality as risk.
+- **Conflict / co-change risk:** Core has no VCS-history abstraction, rename policy, time window, or persistence model. Clean benchmarks intentionally remove VCS history. Adding Git subprocess behavior solely for a benchmark would violate fixture isolation and make historical coupling look like static truth.
+- **Bounded inference:** call, import, inheritance, and reference Relationships have different transitivity. Generic two-hop inference would create semantically false Edges unless each language Plugin defines and tests explicit rules and confidence provenance.
+
+These are blockers or duplicate interfaces, not invitations for flags, shims, or weakened tests. Reconsider them only with a new architectural requirement or a viable historical task that naturally exercises the missing evidence.
+
 ## Decision
 
 Retain `codegraphy map <task>` as a public bounded query. Its selected direct A/B passed adoption, correctness, and correct-run token gates while also reducing calls, output, and elapsed time.
