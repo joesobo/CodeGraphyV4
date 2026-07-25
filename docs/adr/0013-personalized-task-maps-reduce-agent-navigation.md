@@ -75,6 +75,12 @@ The Map-only treatment trajectory completed correctly with one CodeGraphy call, 
 
 A fresh disposal-fixture confirmation retained equal 2/3 correctness. Correct-run mean tokens were 246,332 for CLI plus skill versus 685,081 raw, a 64.0% reduction, but no treatment agent selected Map. This confirms existing CLI value on that round, not Map value. It also shows that Map is task-selective rather than a required replacement for Search.
 
+### Compact payload subtraction
+
+A follow-up candidate reduced default output from eight Files, three declarations per File, and twelve Relationships to six, one, and eight. The isolated payload fell from about 5.4 KB to 2.4 KB while retaining both relationship-task targets and the harder-task Indexing runtime and Plugin Registry anchors. Its required raw comparison remained 3/3 correct and reduced mean treatment tokens by 32.0%, but that comparison could not isolate payload shape from general CLI value.
+
+A direct accepted-Map-versus-compact-Map A/B had 3/3 correctness and Map adoption in all six runs. Compact Map regressed mean tokens 73.2%, median tokens 53.2%, calls 10.0%, output 84.5%, and elapsed time 45.9%. Agents compensated for omitted context with substantially more fallback Search. The compact bounds were reverted; the accepted eight/three/twelve defaults remain.
+
 ## Decision
 
 Retain `codegraphy map <task>` as a public bounded query. Its selected direct A/B passed adoption, correctness, and correct-run token gates while also reducing calls, output, and elapsed time.
@@ -90,7 +96,7 @@ Treat all measurements as small-sample evidence. Three-versus-three runs screen 
 - Hidden graders must assert behavior rather than historical wording or decomposition.
 - Invocation telemetry must recognize equivalent executable launch forms.
 - Complete-graph persistence remains an unsuitable rapid screen despite being a valid historical feature.
-- Incoming Impact, Triage, connected Search augmentation, BM25 fallback, phrase-line evidence, compact skill subtraction, and default Leiden ranking remain rejected.
+- Incoming Impact, Triage, connected Search augmentation, BM25 fallback, phrase-line evidence, compact skill subtraction, compact Map payloads, and default Leiden ranking remain rejected.
 
 ## References
 
