@@ -1,62 +1,46 @@
 ---
 name: codegraphy
-description: Understand and operate the CodeGraphy CLI for workspace source, symbol, and relationship exploration.
+description: Explore workspace source identities and typed incoming, outgoing, and path relationships with the CodeGraphy CLI.
 ---
 
 # CodeGraphy
 
-CodeGraphy represents a workspace as a **Relationship Graph**. Nodes identify Files, Folders, Packages, AST Symbols, and plugin-defined concepts. Directed Edges identify relationships such as imports, reexports, calls, references, inheritance, and containment. Edge direction and type explain why two Nodes are connected.
+CodeGraphy represents a workspace as a **Relationship Graph**. Nodes identify Files, Folders, Packages, AST Symbols, and Plugin-defined concepts. Directed Edges identify typed relationships such as imports, reexports, calls, references, inheritance, and containment. Edge direction and type explain why Nodes are connected.
 
-The graph is navigation evidence. Static relationships can identify ownership and possible change surfaces, but they do not prove runtime behavior. Source, tests, generated behavior, dynamic dispatch, and unsupported language semantics can add facts that are absent from the graph.
+The graph is navigation evidence, not proof of runtime behavior. Source, tests, generated behavior, dynamic dispatch, and unsupported language semantics can contain facts absent from static analysis.
 
-## Graph lifecycle and freshness
+## Cache and freshness
 
-`codegraphy index` discovers eligible workspace files, runs built-in and enabled Plugin analysis, and creates or incrementally updates `.codegraphy/graph.sqlite`. The Graph Cache stores complete indexed facts before Graph Scope and path Filters shape query results.
+`codegraphy index` discovers eligible workspace files and builds or incrementally updates `.codegraphy/graph.sqlite`. This **Graph Cache** stores complete indexed facts before Filters and Graph Scope shape results. `codegraphy filter` changes persisted path exclusions; `codegraphy scope` changes visible Node and Edge Types.
 
-`codegraphy filter` changes persisted path exclusions without rebuilding cached analysis. `codegraphy scope` changes which Node Types and Edge Types appear in the shaped graph. `codegraphy settings` exposes workspace discovery, indexing, filter, scope, Plugin, and interface settings; settings mutations report whether another Index is required. `codegraphy plugins` controls installed Plugin registration and activation.
+Query with read-only commands after a Graph Cache exists. `codegraphy status` reports supported missing, stale, and fresh states. `codegraphy doctor` checks settings, runtime, Plugins, and cache health. Most Symbols and Relationships are cached. Search also reads **live source** text from eligible indexed File Nodes. One search can therefore contain live source matches and cached Symbol matches whose `cacheState` is fresh or stale. Indexing refreshes changed AST and Relationship facts.
 
-Query with any read-only graph command after a Graph Cache exists. A `graph_cache_not_found` result means that no indexed snapshot is available. `codegraphy status` reports supported missing, stale, and fresh cache conditions. `codegraphy doctor` checks runtime, settings, cache, and Plugin health and includes recovery information for unhealthy checks.
+## Query capabilities
 
-Most Symbols and Relationships are cached. Search also reads current source text from eligible indexed File Nodes. A single response can therefore contain `freshness: "live"` source matches and cached Symbol matches whose `cacheState` is `fresh` or `stale`. Indexing is what makes changed AST and Relationship facts current.
-
-## Query surfaces
-
-| Command | Information returned |
+| Command | Returned evidence |
 |---|---|
-| `search <pattern>` | One ranked result set merging live source locations, cached AST Symbols, and indexed Nodes. |
-| `query <node>` | A bounded overview of one exact File or Symbol Node, with prioritized declarations and incoming and outgoing Relationships. |
-| `nodes` | A paginated Node inventory from the shaped graph. |
-| `edges` | A paginated Relationship inventory from the shaped graph. |
-| `dependencies <node>` | Outgoing Relationships from a File path or exact Node ID. |
-| `dependents <node>` | Incoming Relationships to a File path or exact Node ID. |
-| `path <from> <to>` | A bounded Relationship route between two File paths or exact Node IDs. |
+| `search <pattern>` | Ranked live source locations, cached AST Symbols, and indexed Nodes. |
+| `query <node>` | A bounded exact File or Symbol overview with declarations and typed incoming and outgoing Relationships. |
+| `dependencies <node>` | Outgoing Relationships from an exact File path or Node ID. |
+| `dependents <node>` | Incoming Relationships to an exact File path or Node ID. |
+| `path <from> <to>` | Bounded typed routes between exact File paths or Node IDs. |
+| `nodes` | Paginated Node inventory. |
+| `edges` | Paginated Relationship inventory. |
 
-Inventory reports reflect persisted Graph Scope. Search, exact Target Query, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
+Search literal matching is case-insensitive, `*` is a line-local wildcard, and multi-term phrases can return Files containing every term. Search is lexical, not a semantic-answer engine.
 
-`--filter`, `--node-type`, and `--edge-type` are one-off query projections and do not modify `.codegraphy/settings.json`. Persisted Filter and Scope changes affect later commands without deleting the complete cached facts.
+Source matches include path, line, column, excerpt, and live freshness. Symbol matches include exact Symbol IDs and locations. Exact File paths and Symbol IDs address Target Query and relationship commands; display labels are not necessarily Node IDs.
 
-## Search and target identity
+## Shaping and bounds
 
-Search literal matching is case-insensitive. `*` is a line-local wildcard over source, names, and paths. A whitespace-containing phrase with sparse literal matches can also produce deterministic File candidates whose paths or source contain all query terms. Search is lexical rather than a semantic-answer engine.
+Inventory reports reflect persisted Graph Scope. Search, exact Target Query, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply. One-off projections do not modify workspace settings.
 
-Source matches include File path, line, column, excerpt, and live freshness. Symbol matches include an exact Symbol ID and source location. Node matches include exact Node identity. An exact File path or Symbol ID from these results can address Target Query and relationship commands; a display label is not necessarily a Node ID.
+Reports are bounded. Pagination metadata includes offset, limit, returned count, total count, and `nextOffset`. Target Query bounds declarations and each Relationship direction independently. Path results include traversal limits and `complete`; `complete: false` means a configured bound stopped exploration before the search space was exhausted.
 
-Search, inventories, overviews, and relationship reports are bounded. Pagination uses `page` metadata recording offset, limit, returned count, total count, and `nextOffset` when another page exists. Target Query reports independent declaration and relationship bounds. Path reports include traversal limits and a `complete` boolean; `complete: false` means the configured search bound was reached before the entire search space was exhausted.
+## Machine contract and limits
 
-## Machine-readable contract
+Normal results are JSON envelopes on stdout. Failures use structured error envelopes on stderr with nonzero exit status. `--verbose` adds stderr diagnostics.
 
-Normal command results are JSON envelopes. Successful data is written to stdout. Operational and invalid-invocation failures use structured error envelopes on stderr and nonzero exit statuses. `--verbose` adds lifecycle diagnostics to stderr without changing the data envelope.
+Coverage depends on eligible files, the indexing file budget, enabled Plugins, supported languages, analyzer capabilities, Filters, and Graph Scope. Edge Types have distinct semantics. Incoming Relationships suggest consumers or possible impact; outgoing Relationships suggest dependencies. Hubs, barrels, generated files, tests, and shared utilities can legitimately dominate broad results. Bounded output does not imply omitted evidence is absent.
 
-Common error codes distinguish invalid arguments, missing or stale workspace state, an exact target that is absent, malformed settings, and operational failures. Error `details` and `actions` carry command-specific recovery context when available.
-
-## Interpretation limits
-
-- Graph coverage depends on eligible files, the indexing file budget, enabled Plugins, supported languages, and analyzer capabilities.
-- Persisted Filters and Graph Scope can intentionally hide facts from broad inventories.
-- Live text and cached structural facts can have different freshness in the same result.
-- Imports, calls, references, and inferred or plugin-defined Edges have different semantics; an Edge Type should be interpreted rather than treated as generic proximity.
-- Incoming Relationships suggest consumers or possible impact, while outgoing Relationships suggest dependencies; neither alone defines the complete edit set.
-- Hubs, barrels, generated files, tests, and shared utilities can have many legitimate Relationships and can dominate broad graph results.
-- Bounded or paginated output is not evidence that omitted results do not exist.
-
-Current command syntax, options, and examples are available from `codegraphy --help` and `codegraphy <command> --help`.
+Current syntax and examples are available from `codegraphy --help` and `codegraphy <command> --help`.
