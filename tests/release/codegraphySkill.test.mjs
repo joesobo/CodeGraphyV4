@@ -41,6 +41,9 @@ test('the CodeGraphy skill explains the tool without prescribing an agent workfl
   assert.doesNotMatch(skill, /(?:at most|no more than|normally make)\s+(?:one|two|three|\d+)\s+CodeGraphy calls?/i);
   assert.doesNotMatch(skill, /(?:second and final|a third is allowed|commands launched concurrently count)/i);
   assert.doesNotMatch(skill, /(?:never submit|one domain word|task literals|after one empty or refined search)/i);
+  assert.match(skill, /ordinary source tools/i);
+  assert.match(skill, /typed direction/i);
+  assert.match(skill, /no required command order or call count/i);
 });
 
 test('the old MCP package and skill are absent from the release source', () => {
