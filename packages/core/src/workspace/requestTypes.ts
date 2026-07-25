@@ -7,6 +7,7 @@ export type GraphQueryReport =
   | 'symbols'
   | 'paths'
   | 'search'
+  | 'triage'
   | 'overview';
 
 export interface WorkspacePathInput {

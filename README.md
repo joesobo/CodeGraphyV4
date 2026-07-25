@@ -132,6 +132,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy settings [get|set|unset]` | Safely reads or changes validated workspace settings such as `maxFiles`. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
 | `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
+| `codegraphy triage <text>` | Fuses independently matched task terms into a compact, source-area-balanced File ranking. |
 | `codegraphy query <node>` | Inspects one exact File or Symbol with prioritized declarations and incoming/outgoing Relationships. |
 | `codegraphy edges` | Lists bounded Edges. |
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |

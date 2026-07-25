@@ -10,6 +10,7 @@ describe('cli/help/command', () => {
     expect(result.output).not.toContain('codegraphy batch');
     expect(result.output).toContain('codegraphy settings');
     expect(result.output).toContain('codegraphy search <pattern>');
+    expect(result.output).toContain('codegraphy triage <text>');
     expect(result.output).toContain('codegraphy query <node>');
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
@@ -54,6 +55,9 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['search']).output).toContain('cached AST Symbols');
     expect(createHelpResult(['search']).output).toContain('`*` wildcard');
     expect(createHelpResult(['search']).output).toContain('all-term path/source ranking');
+    expect(createHelpResult(['triage']).output).toContain('Usage: codegraphy triage');
+    expect(createHelpResult(['triage']).output).toContain('matched query terms');
+    expect(createHelpResult(['triage']).output).toContain('at most 20');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');

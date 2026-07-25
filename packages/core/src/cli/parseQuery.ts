@@ -9,10 +9,13 @@ const QUERY_COMMANDS = new Set([
   'path',
   'query',
   'search',
+  'triage',
 ]);
 
 const DEFAULT_LIMIT = 100;
 const DEFAULT_SEARCH_LIMIT = 20;
+const DEFAULT_TRIAGE_LIMIT = 8;
+const MAX_TRIAGE_LIMIT = 20;
 const DEFAULT_MAX_DEPTH = 6;
 const DEFAULT_MAX_PATHS = 5;
 
@@ -193,6 +196,15 @@ function buildSearch(input: QueryBuilderInput): CliCommand {
   return query(input.command, 'search', { pattern: input.operands[0], ...input.page }, input.projection);
 }
 
+function buildTriage(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 1, '<text>');
+  if (invalid) return invalid;
+  if (input.page.limit > MAX_TRIAGE_LIMIT) {
+    return parseError(input.command, `--limit for triage must be at most ${MAX_TRIAGE_LIMIT}`);
+  }
+  return query(input.command, 'triage', { query: input.operands[0], ...input.page }, input.projection);
+}
+
 function buildOverview(input: QueryBuilderInput): CliCommand {
   const invalid = requireOperands(input.command, input.operands, 1, '<node>');
   return invalid ?? query(input.command, 'overview', { target: input.operands[0] }, input.projection);
@@ -224,6 +236,7 @@ const QUERY_BUILDERS: Record<string, (input: QueryBuilderInput) => CliCommand> =
   nodes: buildList,
   edges: buildList,
   search: buildSearch,
+  triage: buildTriage,
   query: buildOverview,
   dependencies: input => buildConnection(input, 'from'),
   dependents: input => buildConnection(input, 'to'),
@@ -238,7 +251,11 @@ export function parseQueryCommand(argv: string[]): CliCommand {
     command,
     rawArgs,
     command !== 'path' && command !== 'query',
-    command === 'search' ? DEFAULT_SEARCH_LIMIT : DEFAULT_LIMIT,
+    command === 'search'
+      ? DEFAULT_SEARCH_LIMIT
+      : command === 'triage'
+        ? DEFAULT_TRIAGE_LIMIT
+        : DEFAULT_LIMIT,
   );
   if (parsed.parseError) return parseError(command, parsed.parseError);
   return builder({

@@ -65,6 +65,10 @@ export interface GraphQuerySearchConfig extends GraphQueryConfig {
   pattern: string;
 }
 
+export interface GraphQueryTriageConfig extends GraphQueryConfig {
+  query: string;
+}
+
 export interface GraphQueryOverviewConfig {
   target: string;
 }
@@ -189,6 +193,28 @@ export interface GraphQuerySearchReport {
   };
 }
 
+export interface GraphQueryTriageFile extends GraphQueryNodeReportItem {
+  matchedTerms: string[];
+}
+
+export interface GraphQueryTriageReport {
+  query: string;
+  terms: string[];
+  files: GraphQueryTriageFile[];
+  page: GraphQueryPage;
+  sources: {
+    text: {
+      freshness: 'live';
+      filesScanned: number;
+      filesSkipped: number;
+    };
+    graph: {
+      freshness: 'cached';
+      cacheState: 'fresh' | 'stale';
+    };
+  };
+}
+
 export interface GraphQueryOverviewReport {
   target: GraphQueryNodeReportItem;
   declaredSymbols: GraphQuerySymbolReport;
@@ -212,6 +238,7 @@ export type GraphQueryReport =
   | 'symbols'
   | 'paths'
   | 'search'
+  | 'triage'
   | 'overview';
 
 export type GraphQueryRequest =
@@ -221,6 +248,7 @@ export type GraphQueryRequest =
   | { report: 'symbols'; arguments?: GraphQuerySymbolsConfig }
   | { report: 'paths'; arguments: GraphQueryPathConfig }
   | { report: 'search'; arguments: GraphQuerySearchConfig }
+  | { report: 'triage'; arguments: GraphQueryTriageConfig }
   | { report: 'overview'; arguments: GraphQueryOverviewConfig };
 
 export type GraphQueryResult =
@@ -230,5 +258,6 @@ export type GraphQueryResult =
   | GraphQuerySymbolReport
   | GraphQueryPathReport
   | GraphQuerySearchReport
+  | GraphQueryTriageReport
   | GraphQueryOverviewReport
   | GraphQueryTargetNotFoundReport;
