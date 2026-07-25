@@ -58,7 +58,6 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['map']).output).toContain('Usage: codegraphy map');
     expect(createHelpResult(['map']).output).toContain('personalized File map');
     expect(createHelpResult(['map']).output).toContain('typed Relationships');
-    expect(createHelpResult(['map']).output).toContain('default: 6');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');

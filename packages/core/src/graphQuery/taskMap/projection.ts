@@ -2,7 +2,7 @@ import type { GraphEdgeKind, IGraphNode } from '../../graph/contracts';
 import type { GraphQueryData } from '../data';
 import type { GraphQueryTaskMapFile, GraphQueryTaskMapReport } from '../model';
 
-const MAX_SYMBOLS_PER_FILE = 1;
+const MAX_SYMBOLS_PER_FILE = 3;
 
 function filePathForNode(node: IGraphNode | undefined): string | undefined {
   if (!node) return undefined;

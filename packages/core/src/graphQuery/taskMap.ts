@@ -19,9 +19,9 @@ import {
 } from './taskMap/projection';
 import { balanceTaskMapSourceAreas } from './taskMap/sourceAreas';
 
-const DEFAULT_FILES = 6;
+const DEFAULT_FILES = 8;
 const MAX_FILES = 20;
-const MAX_RELATIONSHIPS = 8;
+const MAX_RELATIONSHIPS = 12;
 
 interface RankedTaskFile {
   file: GraphQueryTaskMapFile;
