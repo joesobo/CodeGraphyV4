@@ -5,6 +5,7 @@ const QUERY_COMMANDS = new Set([
   'dependencies',
   'dependents',
   'edges',
+  'map',
   'nodes',
   'path',
   'query',
@@ -13,6 +14,7 @@ const QUERY_COMMANDS = new Set([
 
 const DEFAULT_LIMIT = 100;
 const DEFAULT_SEARCH_LIMIT = 20;
+const DEFAULT_TASK_MAP_LIMIT = 8;
 const DEFAULT_MAX_DEPTH = 6;
 const DEFAULT_MAX_PATHS = 5;
 
@@ -193,6 +195,11 @@ function buildSearch(input: QueryBuilderInput): CliCommand {
   return query(input.command, 'search', { pattern: input.operands[0], ...input.page }, input.projection);
 }
 
+function buildTaskMap(input: QueryBuilderInput): CliCommand {
+  const invalid = requireOperands(input.command, input.operands, 1, '<task>');
+  return invalid ?? query(input.command, 'task-map', { query: input.operands[0], ...input.page }, input.projection);
+}
+
 function buildOverview(input: QueryBuilderInput): CliCommand {
   const invalid = requireOperands(input.command, input.operands, 1, '<node>');
   return invalid ?? query(input.command, 'overview', { target: input.operands[0] }, input.projection);
@@ -224,6 +231,7 @@ const QUERY_BUILDERS: Record<string, (input: QueryBuilderInput) => CliCommand> =
   nodes: buildList,
   edges: buildList,
   search: buildSearch,
+  map: buildTaskMap,
   query: buildOverview,
   dependencies: input => buildConnection(input, 'from'),
   dependents: input => buildConnection(input, 'to'),
@@ -238,7 +246,9 @@ export function parseQueryCommand(argv: string[]): CliCommand {
     command,
     rawArgs,
     command !== 'path' && command !== 'query',
-    command === 'search' ? DEFAULT_SEARCH_LIMIT : DEFAULT_LIMIT,
+    command === 'search'
+      ? DEFAULT_SEARCH_LIMIT
+      : command === 'map' ? DEFAULT_TASK_MAP_LIMIT : DEFAULT_LIMIT,
   );
   if (parsed.parseError) return parseError(command, parsed.parseError);
   return builder({

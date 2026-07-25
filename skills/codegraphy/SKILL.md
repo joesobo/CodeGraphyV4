@@ -24,6 +24,7 @@ Most Symbols and Relationships are cached. Search also reads current source text
 | Command | Information returned |
 |---|---|
 | `search <pattern>` | One ranked result set merging live source locations, cached AST Symbols, and indexed Nodes. |
+| `map <task>` | A compact task-personalized File map with matched terms, selected declarations, and typed connecting Relationships. |
 | `query <node>` | A bounded overview of one exact File or Symbol Node, with prioritized declarations and incoming and outgoing Relationships. |
 | `nodes` | A paginated Node inventory from the shaped graph. |
 | `edges` | A paginated Relationship inventory from the shaped graph. |

@@ -56,7 +56,7 @@ function hasTargetSelector(arguments_: Record<string, unknown>): boolean {
 
 function shouldApplyWorkspaceGraphScope(input: WorkspaceGraphQueryInput): boolean {
   if (input.report === 'relationships') return true;
-  if (input.report === 'search' || input.report === 'overview' || input.report === 'paths') return false;
+  if (input.report === 'search' || input.report === 'task-map' || input.report === 'overview' || input.report === 'paths') return false;
   return !hasTargetSelector(input.arguments);
 }
 
@@ -73,7 +73,7 @@ function executeWorkspaceGraphQuery(
     source,
     input.projection,
   );
-  const sourceText = input.report === 'search'
+  const sourceText = input.report === 'search' || input.report === 'task-map'
     ? readWorkspaceQuerySourceText(workspaceRoot, graphData, source.indexedContentHashes)
     : undefined;
   const completeScope = {

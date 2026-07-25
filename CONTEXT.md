@@ -46,6 +46,7 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Sea
 | **Graph View Search** | A temporary text query that narrows the current graph without changing Filter settings. |
 | **Searched Graph** | The Filtered Graph after Graph View Search. |
 | **CLI Search** | A bounded discovery query over exact live source, cached AST Symbols, and indexed Nodes. Sparse natural multi-term phrases add deterministic all-term File candidates. It reports source and cache provenance and does not change settings. |
+| **Task Map** | A bounded task-personalized File map combining independent live terms, selected declarations, and cached typed Relationships with source-area diversity. |
 | **Target Query** | A bounded overview of one exact File or Symbol Node, including prioritized declarations and incoming/outgoing Relationships. |
 | **Visible Graph** | The graph shown on screen after Graph Scope, Filter, Search, Show Orphans, and other view projection rules. |
 | **Orphan Node** | A Node with no remaining Edges after graph narrowing. |
@@ -107,7 +108,7 @@ The Graph View can use a whole-view loading state before its first graph payload
 | **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
 | **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
-| **CodeGraphy Exploration CLI** | `search` combines exact evidence with deterministic all-term fallback ranking for natural phrases; `query` inspects one exact File or Symbol with prioritized declarations and Relationships. Both return bounded JSON with provenance. |
+| **CodeGraphy Exploration CLI** | `search` combines exact evidence with deterministic all-term fallback ranking for natural phrases; `map` builds a compact task-personalized File map; `query` inspects one exact File or Symbol with prioritized declarations and Relationships. All return bounded JSON with provenance. |
 | **CodeGraphy Settings CLI** | `settings`, `settings get`, `settings set`, and `settings unset` read or safely mutate supported workspace settings without silently repairing corrupt persisted input. |
 | **Graph Query CLI** | `nodes`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output over the shaped Relationship Graph. |
 | **CodeGraphy Agent Skill** | Generalized instructions that explain the Relationship Graph, lifecycle, query surfaces, machine-readable output, freshness, shaping, and limits so a shell-capable agent can choose its own navigation strategy. |

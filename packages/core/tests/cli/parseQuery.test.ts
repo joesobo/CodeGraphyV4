@@ -21,6 +21,12 @@ describe('cli/parseQuery', () => {
       report: 'search',
       arguments: { pattern: 'render settings', limit: 20 },
     });
+    expect(parseQueryCommand(['map', 'render settings'])).toEqual({
+      name: 'query',
+      invokedCommand: 'map',
+      report: 'task-map',
+      arguments: { query: 'render settings', limit: 8 },
+    });
     expect(parseQueryCommand(['query', 'src/cli/command.ts'])).toEqual({
       name: 'query',
       invokedCommand: 'query',
@@ -118,6 +124,10 @@ describe('cli/parseQuery', () => {
     expect(parseQueryCommand(['search', '*'])).toMatchObject({
       invokedCommand: 'search',
       parseError: 'search pattern must contain a literal character',
+    });
+    expect(parseQueryCommand(['map'])).toMatchObject({
+      invokedCommand: 'map',
+      parseError: 'map requires <task>',
     });
     expect(parseQueryCommand(['query'])).toMatchObject({
       invokedCommand: 'query',

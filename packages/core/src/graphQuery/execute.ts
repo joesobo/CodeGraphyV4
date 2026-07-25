@@ -8,6 +8,7 @@ import type {
   GraphQueryResult,
   GraphQuerySearchConfig,
   GraphQuerySymbolsConfig,
+  GraphQueryTaskMapConfig,
 } from './model';
 import { inspectGraphTarget } from './overview';
 import { findGraphPaths } from './paths';
@@ -15,6 +16,7 @@ import { listGraphEdges, listGraphNodes } from './reports';
 import { listGraphRelationships } from './relationships';
 import { searchGraph } from './search';
 import { listGraphSymbols } from './symbols';
+import { mapGraphTask } from './taskMap';
 import { deriveScopedGraphQueryData } from './visible';
 
 type GraphQueryHandler<TArguments> = (
@@ -29,6 +31,7 @@ type GraphQueryHandlers = {
   symbols: GraphQueryHandler<GraphQuerySymbolsConfig | undefined>;
   paths: GraphQueryHandler<GraphQueryPathConfig>;
   search: GraphQueryHandler<GraphQuerySearchConfig>;
+  'task-map': GraphQueryHandler<GraphQueryTaskMapConfig>;
   overview: GraphQueryHandler<GraphQueryOverviewConfig>;
 };
 
@@ -39,6 +42,7 @@ const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
   symbols: (data, args) => listGraphSymbols(data, args),
   paths: (data, args) => findGraphPaths(deriveScopedGraphQueryData(data.graphData, args), args),
   search: (data, args) => searchGraph(data, args),
+  'task-map': (data, args) => mapGraphTask(data, args),
   overview: (data, args) => inspectGraphTarget(data, args),
 };
 
