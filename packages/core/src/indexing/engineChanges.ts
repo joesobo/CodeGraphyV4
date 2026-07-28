@@ -5,7 +5,11 @@ import { analyzeWorkspaceEngineChangedFiles, applyWorkspaceEngineAnalysisResult,
 import { buildWorkspaceEngineGraph, createWorkspaceEngineIndexResult, patchWorkspaceEngineCache } from './engineGraph';
 import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 import { createWorkspaceEngineDisabledPlugins, discoverWorkspaceEngineFiles } from './engineSetup';
-import { findAffectedWorkspaceIndexAnalysisDependents } from './workspace/changes';
+import {
+  createWorkspaceIndexFileContentReader,
+  findAffectedWorkspaceIndexAnalysisDependents,
+  findChangedWorkspaceIndexFiles,
+} from './workspace/changes';
 
 export async function applyWorkspaceEngineChangedFiles(
   runtime: WorkspaceEngineRuntime,
@@ -52,6 +56,18 @@ export async function applyWorkspaceEngineChangedFiles(
   invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, files.map(file => file.absolutePath));
   const analysis = await analyzeWorkspaceEngineChangedFiles(runtime, files, disabledPlugins);
   assertWorkspaceEngineActive(runtime);
+  const supersededFiles = await findChangedWorkspaceIndexFiles({
+    cache: state.cache,
+    files,
+    readContent: createWorkspaceIndexFileContentReader(runtime.discovery),
+  });
+  if (supersededFiles.length > 0) {
+    return applyWorkspaceEngineChangedFiles(
+      runtime,
+      supersededFiles.map(file => file.absolutePath),
+      fullIndex,
+    );
+  }
   applyWorkspaceEngineAnalysisResult(state, analysis);
   const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
   state.registry!.notifyPostAnalyze(graph, disabledPlugins);

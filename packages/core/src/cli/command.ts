@@ -7,6 +7,8 @@ import { runQueryCommand } from './query/command';
 import { runScopeCommand } from './scope/command';
 import { runStatusCommand } from './status/command';
 import { runSettingsCommand } from './settings/command';
+import { runWatchCommand, type WatchCommandEvent } from './watch/command';
+import { formatCliResult } from './result/serializer';
 import type { CliCommand } from './parse';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
 
@@ -16,7 +18,38 @@ export interface CommandExecutionResult {
 }
 
 export interface CliCommandDependencies {
+  runWatch?: typeof runWatchCommand;
   writeDiagnostic?(line: string): void;
+  writeError?(line: string): void;
+  writeOutput?(line: string): void;
+}
+
+function writeWatchEvent(
+  command: CliCommand,
+  dependencies: CliCommandDependencies,
+  event: WatchCommandEvent,
+): void {
+  if (event.event === 'error') {
+    const { code, event: eventName, message, ...details } = event;
+    const line = JSON.stringify({
+      ok: false,
+      command: 'watch',
+      error: {
+        code,
+        message,
+        details: { event: eventName, ...details },
+      },
+    });
+    if (dependencies.writeError) dependencies.writeError(line);
+    else process.stderr.write(`${line}\n`);
+    return;
+  }
+  const line = formatCliResult(command, {
+    exitCode: 0,
+    output: JSON.stringify(event),
+  });
+  if (dependencies.writeOutput) dependencies.writeOutput(line);
+  else process.stdout.write(`${line}\n`);
 }
 
 function emitCliDiagnostic(
@@ -107,6 +140,13 @@ export async function runCliCommand(
         verbose: command.verbose,
         ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
       });
+      break;
+    case 'watch':
+      result = await (dependencies.runWatch ?? runWatchCommand)(
+        command.workspacePath,
+        undefined,
+        { writeEvent: event => writeWatchEvent(command, dependencies, event) },
+      );
       break;
     case 'version':
       result = {

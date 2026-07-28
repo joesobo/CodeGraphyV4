@@ -158,4 +158,32 @@ describe('CodeGraphy Workspace cache updater', () => {
     );
     await updater.dispose();
   });
+
+  it('persists a pending batch before disposal completes', async () => {
+    const workspaceRoot = await createWorkspace();
+    await writeFile(join(workspaceRoot, 'next.txt'), 'next\n', 'utf-8');
+    const updater = createCodeGraphyWorkspaceCacheUpdater({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+    await updater.start();
+    vi.useFakeTimers();
+    const sourcePath = join(workspaceRoot, 'source.txt');
+    await writeFile(sourcePath, 'next.txt\n', 'utf-8');
+    updater.notify([sourcePath]);
+
+    await updater.dispose();
+
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).graph.edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ from: 'source.txt', kind: 'import', to: 'next.txt' }),
+      ]),
+    );
+  });
 });

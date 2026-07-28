@@ -78,6 +78,7 @@ function isKnownCommandName(name: string): boolean {
     || name === 'scope'
     || name === 'settings'
     || name === 'status'
+    || name === 'watch'
     || name === 'query'
     || isGraphQueryReport(name);
 }
@@ -121,6 +122,7 @@ export function parseCliCommand(argv: string[]): CliCommand {
     case 'doctor':
     case 'index':
     case 'status':
+    case 'watch':
       command = parseWorkspaceCommand(name, rest);
       break;
     case 'scope':

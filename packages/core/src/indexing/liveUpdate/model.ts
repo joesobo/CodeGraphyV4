@@ -36,8 +36,10 @@ export function createCodeGraphyWorkspaceCacheUpdater(
   const maxBatchAgeMs = options.maxBatchAgeMs ?? DEFAULT_MAX_BATCH_AGE_MS;
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   let maxBatchAgeTimer: ReturnType<typeof setTimeout> | undefined;
+  let acceptingChanges = true;
   let disposed = false;
   let flushRequested = false;
+  let disposePromise: Promise<void> | undefined;
   let startPromise: Promise<IndexCodeGraphyWorkspaceResult> | undefined;
   let updatePromise: Promise<void> | undefined;
 
@@ -113,16 +115,24 @@ export function createCodeGraphyWorkspaceCacheUpdater(
     }
   };
   const notify = (filePaths: readonly string[]): void => {
-    if (disposed) return;
+    if (!acceptingChanges) return;
     for (const filePath of filePaths) pendingFilePaths.add(filePath);
     schedule();
   };
-  const dispose = async (): Promise<void> => {
-    if (disposed) return;
-    disposed = true;
-    clearBatchTimers();
-    await updatePromise;
-    engine.dispose();
+  const dispose = (): Promise<void> => {
+    disposePromise ??= (async () => {
+      acceptingChanges = false;
+      clearBatchTimers();
+      while (pendingFilePaths.size > 0 || updatePromise) {
+        if (!updatePromise && pendingFilePaths.size > 0) await update();
+        const activeUpdate = updatePromise;
+        if (activeUpdate) await activeUpdate;
+      }
+      clearBatchTimers();
+      disposed = true;
+      engine.dispose();
+    })();
+    return disposePromise;
   };
 
   return { dispose, notify, start };

@@ -7,6 +7,7 @@ describe('cli/help/command', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain('codegraphy doctor');
+    expect(result.output).toContain('codegraphy watch');
     expect(result.output).not.toContain('codegraphy batch');
     expect(result.output).toContain('codegraphy settings');
     expect(result.output).toContain('codegraphy search <pattern>');
@@ -43,6 +44,9 @@ describe('cli/help/command', () => {
 
   it('reports local pagination options for bounded list queries', () => {
     expect(createHelpResult(['status']).output).toContain('Usage: codegraphy status');
+    expect(createHelpResult(['watch']).output).toContain('Usage: codegraphy watch');
+    expect(createHelpResult(['watch']).output).toContain('JSON Lines');
+    expect(createHelpResult(['watch']).output).toContain('cached Symbols and Relationships');
     expect(createHelpResult(['query']).output).toContain('Usage: codegraphy query <node>');
     expect(createHelpResult(['query']).output).toContain('declared AST Symbols');
     expect(createHelpResult(['query']).output).toContain('incoming and outgoing Relationships');

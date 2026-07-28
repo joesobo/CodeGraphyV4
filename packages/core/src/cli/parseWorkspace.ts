@@ -1,7 +1,7 @@
 import type { CliCommand } from './parseTypes';
 
 export function parseWorkspaceCommand(
-  name: 'doctor' | 'filter' | 'index' | 'scope' | 'status',
+  name: 'doctor' | 'filter' | 'index' | 'scope' | 'status' | 'watch',
   argv: string[],
 ): CliCommand {
   const [extra] = argv;

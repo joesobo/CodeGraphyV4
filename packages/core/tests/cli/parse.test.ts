@@ -17,6 +17,7 @@ describe('cli/parse', () => {
 
   it('uses cwd by default and one global workspace override for every workspace command', () => {
     expect(parseCliCommand(['index'])).toEqual({ name: 'index' });
+    expect(parseCliCommand(['watch'])).toEqual({ name: 'watch' });
     expect(parseCliCommand(['-C', '/workspace/project', 'nodes'])).toEqual({
       name: 'query',
       report: 'nodes',
@@ -122,6 +123,9 @@ describe('cli/parse', () => {
   it('rejects per-command workspaces, query flags, retired commands, and malformed globals', () => {
     expect(parseCliCommand(['status', '/workspace/project'])).toMatchObject({
       parseError: 'Unexpected argument for status: /workspace/project',
+    });
+    expect(parseCliCommand(['watch', 'extra'])).toMatchObject({
+      parseError: 'Unexpected argument for watch: extra',
     });
     expect(parseCliCommand(['edges', '--from', 'src/app.ts'])).toMatchObject({
       parseError: 'Unknown option for edges: --from',

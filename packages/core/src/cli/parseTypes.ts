@@ -13,7 +13,8 @@ export type CliCommandName =
   | 'scope'
   | 'settings'
   | 'status'
-  | 'version';
+  | 'version'
+  | 'watch';
 export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'inherit' | 'link' | 'list' | 'register';
 export type WorkspaceSettingsCommandAction = 'get' | 'set' | 'unset';
 
