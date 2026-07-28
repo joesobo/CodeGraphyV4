@@ -51,6 +51,12 @@ export {
   type CodeGraphyWorkspaceCacheUpdateEvent,
 } from './liveUpdate/model';
 export {
+  subscribeCodeGraphyWorkspaceChanges,
+  type CodeGraphyWorkspaceChangeSubscription,
+  type CodeGraphyWorkspaceFileEvent,
+  type SubscribeCodeGraphyWorkspaceChangesOptions,
+} from './liveUpdate/parcel/model';
+export {
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,

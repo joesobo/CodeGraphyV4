@@ -209,6 +209,7 @@ export {
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
+  subscribeCodeGraphyWorkspaceChanges,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceCacheUpdater,
@@ -219,6 +220,9 @@ export type {
   IndexCodeGraphyWorkspacePlugin,
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  CodeGraphyWorkspaceChangeSubscription,
+  CodeGraphyWorkspaceFileEvent,
+  SubscribeCodeGraphyWorkspaceChangesOptions,
   WorkspaceIndexAnalysisScopeRefreshDependencies,
   WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexRefreshDependencies,
