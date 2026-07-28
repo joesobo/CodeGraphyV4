@@ -35,6 +35,24 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('always hides structural reexport relationships from the Graph View', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [node('src/index.ts'), node('src/model.ts')],
+				edges: [edge('src/index.ts', 'src/model.ts', 'reexport')],
+			},
+			{
+				nodes: [{ type: 'file', enabled: true }],
+				edges: [],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/index.ts', 'src/model.ts'],
+			edges: [],
+		});
+	});
+
 	it('matches symbol-kind definitions that derive their kind from the type id', () => {
 		const result = applyGraphScope(
 			{

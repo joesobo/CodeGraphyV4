@@ -79,6 +79,27 @@ describe('graphView/provider/runtime/state/model', () => {
     consoleSpy.mockRestore();
   });
 
+  it('lets the explicit first Index subsume pre-cache workspace events', () => {
+    stateHarness.isGraphViewVisible.mockReturnValue(true);
+    stateHarness.hasWorkspaceGraphCache.mockReturnValue(false);
+    const runtime = new TestRuntimeState(
+      vscode.Uri.file('/extension'),
+      createContext() as never,
+    );
+
+    runtime.markWorkspaceRefreshPending(
+      '[CodeGraphy] Settings changed',
+      ['/workspace/.codegraphy/settings.json'],
+    );
+    runtime.flushPendingWorkspaceRefresh();
+
+    expect(stateHarness.methodContainers.refresh.refreshIndex).not.toHaveBeenCalled();
+    expect(stateHarness.persistPendingWorkspaceRefresh).toHaveBeenLastCalledWith(
+      '/workspace',
+      [],
+    );
+  });
+
   it('flushes pending CodeGraphy settings through a full Index refresh', () => {
     const refreshChangedFiles = vi.fn(async () => undefined);
     stateHarness.methodContainers.refresh.refreshChangedFiles = refreshChangedFiles;

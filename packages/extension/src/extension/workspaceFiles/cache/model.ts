@@ -12,7 +12,7 @@ export interface ExtensionWorkspaceCacheUpdater {
   update(workspaceRoot: string, filePaths: readonly string[]): Promise<boolean>;
 }
 
-function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
+export function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
   return existsSync(getGraphCachePath(workspaceRoot));
 }
 

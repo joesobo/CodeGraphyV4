@@ -42,6 +42,7 @@ import {
 import { isGraphViewVisible } from './visibility';
 import {
   createExtensionWorkspaceCacheUpdater,
+  hasWorkspaceGraphCache,
   type ExtensionWorkspaceCacheUpdater,
 } from '../../../../workspaceFiles/cache/model';
 import { isCodeGraphyWorkspaceSettingsPath } from '../../../../workspaceFiles/ignore';
@@ -274,6 +275,13 @@ export class GraphViewProviderRuntime {
 
     const pending = this._pendingWorkspaceRefresh ?? this._loadPersistedWorkspaceRefresh();
     if (!pending) {
+      return;
+    }
+
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot || !hasWorkspaceGraphCache(workspaceRoot)) {
+      this._pendingWorkspaceRefresh = undefined;
+      persistPendingWorkspaceRefresh(workspaceRoot, []);
       return;
     }
 

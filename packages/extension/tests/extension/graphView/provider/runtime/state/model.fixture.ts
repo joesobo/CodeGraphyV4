@@ -42,6 +42,7 @@ const stateHarness = vi.hoisted(() => {
     persistPendingWorkspaceRefresh: vi.fn(),
     loadPersistedWorkspaceRefresh: vi.fn(),
     getWorkspaceRoot: vi.fn(() => '/workspace'),
+    hasWorkspaceGraphCache: vi.fn((_workspaceRoot: string) => true),
     extensionMessageEmitter: {
       dispose: vi.fn(),
       fire: vi.fn(),
@@ -217,6 +218,18 @@ vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/flags'
   createGraphViewProviderRuntimeFlagState: () => stateHarness.flagState,
 }));
 
+vi.mock('../../../../../../src/extension/workspaceFiles/cache/model', async (importOriginal) => {
+  const actual = await importOriginal<typeof import(
+    '../../../../../../src/extension/workspaceFiles/cache/model'
+  )>();
+  return {
+    ...actual,
+    hasWorkspaceGraphCache: (workspaceRoot: string) => (
+      stateHarness.hasWorkspaceGraphCache(workspaceRoot)
+    ),
+  };
+});
+
 vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/refresh', () => ({
   invalidatePluginFiles: (analyzer: unknown, pluginIds: readonly string[]) =>
     stateHarness.invalidatePluginFiles(analyzer, pluginIds),
@@ -279,6 +292,7 @@ export function resetStateHarness(): void {
   stateHarness.decorationManagerInstances = [];
   stateHarness.eventBusInstances = [];
   stateHarness.getWorkspaceRoot.mockReturnValue('/workspace');
+  stateHarness.hasWorkspaceGraphCache.mockReturnValue(true);
   stateHarness.loadPersistedWorkspaceRefresh.mockReturnValue(undefined);
   stateHarness.isGraphViewVisible.mockReturnValue(false);
   stateHarness.methodContainers.refresh.refreshChangedFiles = undefined;
