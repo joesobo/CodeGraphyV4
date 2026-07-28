@@ -12,6 +12,7 @@ function makeProvider() {
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
@@ -54,22 +55,27 @@ describe('workspaceFiles/refresh', () => {
     consoleSpy.mockRestore();
   });
 
-  it('queues a pending refresh instead of refreshing while the graph is closed', () => {
+  it('refreshes the persisted cache while the graph is closed', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
 
-    scheduleWorkspaceRefresh(provider as never, '[CodeGraphy] File saved, refreshing graph');
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File saved, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
     vi.advanceTimersByTime(500);
 
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
-      '[CodeGraphy] File saved, refreshing graph',
-      [],
-    );
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/src/a.ts',
+    ]);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
   });
 
-  it('batches file paths while hidden and flushes them on reopen', () => {
+  it('batches persisted-cache file paths while the graph is hidden', () => {
+    vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
@@ -84,27 +90,22 @@ describe('workspaceFiles/refresh', () => {
       '[CodeGraphy] File created, refreshing graph',
       ['/workspace/src/b.ts'],
     );
+    vi.advanceTimersByTime(500);
 
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenNthCalledWith(
-      1,
-      '[CodeGraphy] File saved, refreshing graph',
-      ['/workspace/src/a.ts'],
-    );
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenNthCalledWith(
-      2,
-      '[CodeGraphy] File created, refreshing graph',
-      ['/workspace/src/b.ts'],
-    );
-
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledOnce();
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/src/b.ts',
+      '/workspace/src/a.ts',
+    ]);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 
-  it('moves a scheduled refresh back to pending when the graph closes before the timer fires', () => {
+  it('refreshes the persisted cache when the graph closes before the timer fires', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
-    provider.isGraphOpen
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false);
+    provider.isGraphOpen.mockReturnValue(false);
 
     scheduleWorkspaceRefresh(
       provider as never,
@@ -113,11 +114,11 @@ describe('workspaceFiles/refresh', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
-      '[CodeGraphy] File changed, refreshing graph',
-      ['/workspace/src/a.ts'],
-    );
-    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/src/a.ts',
+    ]);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
   });
 
   it('falls back to invalidateWorkspaceFiles and refresh when changed-file refresh is unavailable', () => {
@@ -144,17 +145,23 @@ describe('workspaceFiles/refresh', () => {
     consoleSpy.mockRestore();
   });
 
-  it('does not throw when the provider cannot mark a pending refresh', () => {
+  it('does not require a pending-refresh hook while the graph is closed', () => {
+    vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
     delete (provider as Partial<typeof provider>).markWorkspaceRefreshPending;
 
-    expect(() =>
-      scheduleWorkspaceRefresh(
-        provider as never,
-        '[CodeGraphy] File saved, refreshing graph',
-      ),
-    ).not.toThrow();
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File saved, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/src/a.ts',
+    ]);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
   });
 
   it('registers save and watcher listeners through the public handlers', () => {

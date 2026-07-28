@@ -19,6 +19,12 @@ function normalizeWorkspacePath(filePath: string): string {
 
 function shouldIgnoreWorkspaceRefreshPath(filePath: string): boolean {
   const normalized = normalizeWorkspacePath(filePath);
+  if (
+    normalized === '.codegraphy/settings.json'
+    || normalized.endsWith('/.codegraphy/settings.json')
+  ) {
+    return false;
+  }
   return matchesAnyPattern(normalized, WORKSPACE_REFRESH_IGNORE_PATTERNS);
 }
 

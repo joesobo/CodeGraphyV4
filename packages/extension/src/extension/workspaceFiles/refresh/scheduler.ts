@@ -1,21 +1,32 @@
 import type { GraphViewProvider } from '../../graphViewProvider';
 import type { PendingWorkspaceRefresh } from './contracts';
-import {
-  executeWorkspaceRefresh,
-  isGraphOpen,
-  markWorkspaceRefreshPending,
-} from './execution';
+import { executeWorkspaceRefresh, isGraphOpen } from './execution';
 import { mergePendingRefresh } from './pending';
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
+
+function warnWorkspaceCacheUpdate(error: unknown): void {
+  console.warn('[CodeGraphy] Failed to update the persisted Graph Cache.', error);
+}
 
 function runScheduledRefresh(
   provider: GraphViewProvider,
   pending: PendingWorkspaceRefresh,
 ): void {
   pendingWorkspaceRefreshes.delete(provider);
-  if (!isGraphOpen(provider)) {
-    markWorkspaceRefreshPending(provider, pending);
+  if (!isGraphOpen(provider) && provider.refreshPersistedWorkspaceCache) {
+    void provider.refreshPersistedWorkspaceCache([...pending.filePaths])
+      .then(() => scheduleWorkspaceRefreshFollowUp(provider, pending))
+      .catch(warnWorkspaceCacheUpdate);
+    return;
+  }
+
+  const released = provider.releasePersistedWorkspaceCacheUpdater?.();
+  if (released !== undefined) {
+    void released.then(() => {
+      executeWorkspaceRefresh(provider, pending);
+      scheduleWorkspaceRefreshFollowUp(provider, pending);
+    }).catch(warnWorkspaceCacheUpdate);
     return;
   }
   executeWorkspaceRefresh(provider, pending);
@@ -30,14 +41,6 @@ export function scheduleWorkspaceRefresh(
   options: { followUpDelayMs?: number; fullRefresh?: boolean; gitignoreRefresh?: boolean } = {},
 ): void {
   const nextFiles = new Set(filePaths);
-  if (!isGraphOpen(provider)) {
-    markWorkspaceRefreshPending(provider, {
-      filePaths: nextFiles,
-      gitignoreRefresh: options.gitignoreRefresh === true,
-      logMessage,
-    });
-    return;
-  }
   const merged = mergePendingRefresh(
     pendingWorkspaceRefreshes.get(provider),
     nextFiles,

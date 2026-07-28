@@ -7,6 +7,7 @@ function makeProvider() {
     refreshGitignoreMetadata: vi.fn().mockResolvedValue(undefined),
     refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
+    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
@@ -72,22 +73,26 @@ describe('workspaceFiles/refresh/scheduler', () => {
     consoleSpy.mockRestore();
   });
 
-  it('queues a pending refresh instead of refreshing while the graph is closed', () => {
+  it('updates the persisted graph while the Graph View is closed', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
 
-    scheduleWorkspaceRefresh(provider as never, '[CodeGraphy] File saved, refreshing graph');
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File saved, refreshing graph',
+      ['/workspace/src/app.ts'],
+    );
     vi.advanceTimersByTime(500);
 
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
-      '[CodeGraphy] File saved, refreshing graph',
-      [],
-    );
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/src/app.ts',
+    ]);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
   });
 
-  it('keeps gitignore refresh intent when queueing while the graph is closed', () => {
+  it('updates Git ignore metadata while the Graph View is closed', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
@@ -101,12 +106,11 @@ describe('workspaceFiles/refresh/scheduler', () => {
     );
     vi.advanceTimersByTime(500);
 
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/.gitignore',
+    ]);
     expect(provider.refreshGitignoreMetadata).not.toHaveBeenCalled();
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
-      '[CodeGraphy] .gitignore changed, refreshing graph',
-      ['/workspace/.gitignore'],
-      { gitignoreRefresh: true },
-    );
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
   });
 
   it('defaults to refreshing when the provider has no graph-open probe', () => {
@@ -129,12 +133,10 @@ describe('workspaceFiles/refresh/scheduler', () => {
     consoleSpy.mockRestore();
   });
 
-  it('moves a scheduled refresh back to pending when the graph closes before the timer fires', () => {
+  it('updates the persisted graph when the Graph View closes before the timer fires', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
-    provider.isGraphOpen
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false);
+    provider.isGraphOpen.mockReturnValue(false);
 
     scheduleWorkspaceRefresh(
       provider as never,
@@ -143,11 +145,11 @@ describe('workspaceFiles/refresh/scheduler', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
-      '[CodeGraphy] File changed, refreshing graph',
-      ['/workspace/src/a.ts'],
-    );
-    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+      '/workspace/src/a.ts',
+    ]);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
   });
 
   it('falls back to invalidateWorkspaceFiles and refresh when changed-file refresh is unavailable', () => {

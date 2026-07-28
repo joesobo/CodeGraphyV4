@@ -340,6 +340,23 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
   });
 
+  it('refreshes the persisted graph when CodeGraphy workspace settings change', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = {
+      ...makeProvider(),
+      refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    };
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    watcherListeners.change?.(uri('/workspace/.codegraphy/settings.json'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
+      '/workspace/.codegraphy/settings.json',
+    ]);
+  });
+
   it('ignores file-system change events for graph cache writes', () => {
     vi.useFakeTimers();
     const context = makeContext();

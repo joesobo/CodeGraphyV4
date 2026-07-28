@@ -41,6 +41,10 @@ import {
 } from './refresh';
 import { isGraphViewVisible } from './visibility';
 import {
+  createExtensionWorkspaceCacheUpdater,
+  type ExtensionWorkspaceCacheUpdater,
+} from '../../../../workspaceFiles/cache/model';
+import {
   loadPersistedWorkspaceRefresh,
   persistPendingWorkspaceRefresh,
   type PendingWorkspaceRefreshState,
@@ -77,6 +81,7 @@ export class GraphViewProviderRuntime {
   protected _installedPluginActivationPromise!: Promise<void>;
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
+  private readonly _workspaceCacheUpdater: ExtensionWorkspaceCacheUpdater;
 
   declare protected readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   declare protected readonly _commandMethods: GraphViewProviderMethodContainers['command'];
@@ -111,6 +116,7 @@ export class GraphViewProviderRuntime {
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
+    this._workspaceCacheUpdater = createExtensionWorkspaceCacheUpdater();
     this._context.subscriptions.push({
       dispose: () => {
         this._analysisController?.abort();
@@ -118,6 +124,7 @@ export class GraphViewProviderRuntime {
         try {
           this._analyzer?.dispose();
         } finally {
+          void this._workspaceCacheUpdater.dispose();
           this._extensionMessageEmitter.dispose();
         }
       },
@@ -150,6 +157,16 @@ export class GraphViewProviderRuntime {
 
   public isGraphOpen(): boolean {
     return isGraphViewVisible(this._view, this._panels);
+  }
+
+  public async refreshPersistedWorkspaceCache(filePaths: readonly string[]): Promise<void> {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) return;
+    await this._workspaceCacheUpdater.update(workspaceRoot, filePaths);
+  }
+
+  public releasePersistedWorkspaceCacheUpdater(): Promise<void> {
+    return this._workspaceCacheUpdater.dispose();
   }
 
   public invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
