@@ -9,6 +9,7 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
@@ -185,7 +186,7 @@ describe('registerFileWatcher', () => {
 
 
 
-    it('does not refresh on file watcher events when CodeGraphy is not open', () => {
+    it('updates the persisted cache on file watcher events when CodeGraphy is not open', async () => {
       vi.useFakeTimers();
       const context = makeContext();
       const provider = makeProvider();
@@ -196,9 +197,12 @@ describe('registerFileWatcher', () => {
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
       fileListeners.create!({ fsPath: '/workspace/new-file.ts' });
-      vi.advanceTimersByTime(600);
+      await vi.advanceTimersByTimeAsync(600);
 
       expect(provider.refresh).not.toHaveBeenCalled();
+      expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+        '/workspace/new-file.ts',
+      ]);
       expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
         filePath: '/workspace/new-file.ts',
       });

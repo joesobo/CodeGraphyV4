@@ -109,7 +109,7 @@ describe('Extension', () => {
       expect(saveListener).toBeTypeOf('function');
 
       saveListener({ uri: { fsPath: '/test/workspace/src/app.ts' } });
-      vi.advanceTimersByTime(600);
+      await vi.advanceTimersByTimeAsync(600);
 
       expect(refreshChangedFilesSpy).toHaveBeenCalledTimes(1);
       expect(refreshChangedFilesSpy).toHaveBeenCalledWith(['/test/workspace/src/app.ts']);

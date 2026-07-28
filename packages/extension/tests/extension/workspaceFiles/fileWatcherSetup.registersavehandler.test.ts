@@ -9,6 +9,7 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
@@ -111,7 +112,7 @@ describe('registerSaveHandler', () => {
 
 
 
-    it('does not refresh on save when CodeGraphy is not open', () => {
+    it('updates the persisted cache on save when CodeGraphy is not open', async () => {
       vi.useFakeTimers();
       const context = makeContext();
       const provider = makeProvider();
@@ -125,9 +126,12 @@ describe('registerSaveHandler', () => {
       const listener = mock.mock.calls[0]?.[0] as (doc: unknown) => void;
 
       listener({ uri: { fsPath: '/workspace/src/app.ts' } });
-      vi.advanceTimersByTime(600);
+      await vi.advanceTimersByTimeAsync(600);
 
       expect(provider.refresh).not.toHaveBeenCalled();
+      expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
+        '/workspace/src/app.ts',
+      ]);
       expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
         filePath: '/workspace/src/app.ts',
       });
