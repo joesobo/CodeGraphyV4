@@ -1,4 +1,11 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -60,6 +67,17 @@ describe('Graph Cache write coordination', () => {
       JSON.stringify({ pid: 999_999_999, token: 'abandoned' }),
       'utf-8',
     );
+
+    expect(() => withWorkspaceCacheWriteLock(databasePath, () => undefined)).not.toThrow();
+    expect(existsSync(writeLockPath)).toBe(false);
+  });
+
+  it('recovers a stale lock left before its owner record was written', () => {
+    const databasePath = createDatabasePath();
+    const writeLockPath = `${databasePath}.write-lock`;
+    mkdirSync(writeLockPath);
+    const staleTime = new Date(Date.now() - 2_000);
+    utimesSync(writeLockPath, staleTime, staleTime);
 
     expect(() => withWorkspaceCacheWriteLock(databasePath, () => undefined)).not.toThrow();
     expect(existsSync(writeLockPath)).toBe(false);

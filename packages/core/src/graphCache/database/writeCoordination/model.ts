@@ -54,16 +54,19 @@ function readOwner(writeLockPath: string): LockOwner | undefined {
   }
 }
 
+function lockOwnerMayStillBeWriting(writeLockPath: string, owner: LockOwner | undefined): boolean {
+  if (owner) return false;
+  try {
+    return Date.now() - statSync(writeLockPath).mtimeMs < OWNER_WRITE_GRACE_MS;
+  } catch {
+    return true;
+  }
+}
+
 function removeAbandonedLock(writeLockPath: string): void {
   const owner = readOwner(writeLockPath);
   if (owner && isProcessAlive(owner.pid)) return;
-  if (!owner) {
-    try {
-      if (Date.now() - statSync(writeLockPath).mtimeMs < OWNER_WRITE_GRACE_MS) return;
-    } catch {
-      return;
-    }
-  }
+  if (lockOwnerMayStillBeWriting(writeLockPath, owner)) return;
   rmSync(writeLockPath, { force: true, recursive: true });
 }
 
