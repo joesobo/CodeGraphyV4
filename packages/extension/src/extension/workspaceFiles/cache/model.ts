@@ -1,11 +1,13 @@
 import {
   createCodeGraphyWorkspaceCacheUpdater,
+  readCodeGraphyWorkspaceStatus,
   type CodeGraphyWorkspaceCacheUpdater,
   type CodeGraphyWorkspaceCacheUpdaterOptions,
 } from '@codegraphy-dev/core';
 
 interface ExtensionWorkspaceCacheUpdaterDependencies {
   createUpdater(options: CodeGraphyWorkspaceCacheUpdaterOptions): CodeGraphyWorkspaceCacheUpdater;
+  hasGraphCache?: (workspaceRoot: string) => boolean;
 }
 
 export interface ExtensionWorkspaceCacheUpdater {
@@ -19,8 +21,13 @@ interface ActiveWorkspaceCacheUpdater {
   workspaceRoot: string;
 }
 
+function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
+  return readCodeGraphyWorkspaceStatus(workspaceRoot).hasGraphCache;
+}
+
 const DEFAULT_DEPENDENCIES: ExtensionWorkspaceCacheUpdaterDependencies = {
   createUpdater: createCodeGraphyWorkspaceCacheUpdater,
+  hasGraphCache: hasWorkspaceGraphCache,
 };
 
 export function createExtensionWorkspaceCacheUpdater(
@@ -39,6 +46,8 @@ export function createExtensionWorkspaceCacheUpdater(
   ): Promise<void> => {
     if (active?.workspaceRoot !== workspaceRoot) {
       await dispose();
+      const hasGraphCache = dependencies.hasGraphCache ?? hasWorkspaceGraphCache;
+      if (!hasGraphCache(workspaceRoot)) return;
       const updater = dependencies.createUpdater({ workspaceRoot });
       active = {
         start: updater.start(),

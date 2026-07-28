@@ -1,7 +1,10 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { readWorkspaceAnalysisDatabaseSnapshot } from '@codegraphy-dev/core';
+import {
+  indexCodeGraphyWorkspace,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '@codegraphy-dev/core';
 import * as vscode from 'vscode';
 import { describe, expect, it } from 'vitest';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
@@ -10,8 +13,10 @@ describe('GraphViewProvider closed cache updates', () => {
   it('persists changed files before the Graph View has opened', async () => {
     const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-extension-closed-'));
     const sourcePath = join(workspaceRoot, 'source.md');
-    await writeFile(sourcePath, 'See [[target.md]].\n', 'utf-8');
+    await writeFile(sourcePath, 'Initial\n', 'utf-8');
     await writeFile(join(workspaceRoot, 'target.md'), 'Target\n', 'utf-8');
+    await indexCodeGraphyWorkspace({ workspaceRoot });
+    await writeFile(sourcePath, 'See [[target.md]].\n', 'utf-8');
     Object.defineProperty(vscode.workspace, 'workspaceFolders', {
       configurable: true,
       value: [{ uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 }],
@@ -36,5 +41,8 @@ describe('GraphViewProvider closed cache updates', () => {
     expect(snapshot.graph.nodes.map(node => node.id)).toEqual(
       expect.arrayContaining(['source.md', 'target.md']),
     );
+    expect(snapshot.graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ from: 'source.md', to: 'target.md' }),
+    ]));
   });
 });

@@ -2,12 +2,27 @@ import { describe, expect, it, vi } from 'vitest';
 import { createExtensionWorkspaceCacheUpdater } from '../../../../src/extension/workspaceFiles/cache/model';
 
 describe('Extension workspace cache updater', () => {
+  it('does not create a Graph Cache before the workspace has been indexed', async () => {
+    const createUpdater = vi.fn();
+    const updater = createExtensionWorkspaceCacheUpdater({
+      createUpdater,
+      hasGraphCache: () => false,
+    });
+
+    await updater.update('/workspace', ['/workspace/src/a.ts']);
+
+    expect(createUpdater).not.toHaveBeenCalled();
+  });
+
   it('reuses one Core updater while the Graph View remains closed', async () => {
     const start = vi.fn().mockResolvedValue({});
     const notify = vi.fn();
     const dispose = vi.fn().mockResolvedValue(undefined);
     const createUpdater = vi.fn(() => ({ start, notify, dispose }));
-    const updater = createExtensionWorkspaceCacheUpdater({ createUpdater });
+    const updater = createExtensionWorkspaceCacheUpdater({
+      createUpdater,
+      hasGraphCache: () => true,
+    });
 
     await updater.update('/workspace', ['/workspace/src/a.ts']);
     await updater.update('/workspace', ['/workspace/src/b.ts']);
@@ -36,7 +51,10 @@ describe('Extension workspace cache updater', () => {
         notify: recoveredNotify,
         dispose: vi.fn().mockResolvedValue(undefined),
       });
-    const updater = createExtensionWorkspaceCacheUpdater({ createUpdater });
+    const updater = createExtensionWorkspaceCacheUpdater({
+      createUpdater,
+      hasGraphCache: () => true,
+    });
 
     await expect(updater.update('/workspace', ['/workspace/src/a.ts']))
       .rejects.toThrow('startup failed');

@@ -24,7 +24,7 @@ Core owns a serialized workspace Graph Cache updater. It:
 
 The CLI exposes that updater as foreground `codegraphy watch [-C workspace]`. It subscribes before initial synchronization, uses Parcel's native recursive watcher, ignores cache artifacts at every `.codegraphy` path segment except the root settings file, emits bounded JSON Lines envelopes, and drains pending changes on `SIGINT` or `SIGTERM`. Query commands remain separate one-shot processes.
 
-The Extension feeds save, create, change, delete, rename, settings, and Git-ignore events into the same Core updater behavior while the Graph View is closed. When the view opens, the Extension releases the closed-view updater before its existing visible graph pipeline resumes ownership. Extension teardown also drains and disposes the updater.
+The Extension feeds save, create, change, delete, rename, settings, and Git-ignore events into the same Core updater behavior while the Graph View is closed **after a Graph Cache exists**. It does not implicitly index a workspace before the user's first Index operation. When the view opens, the Extension releases the closed-view updater before its existing visible graph pipeline resumes ownership. Extension teardown also drains and disposes the updater.
 
 Graph Cache writes use operation-scoped cross-process coordination beside `graph.sqlite`. An atomic lock directory records the writer PID and a unique token, is removed after each write, and can recover when its owner process has terminated. SQLite connections also wait up to five seconds for short-lived contention. Incremental analyses verify source content immediately before commit and retry if another writer's newer edit superseded them. This supports simultaneous CLI watchers and Extension writers without an exclusive long-lived watcher owner or heartbeat.
 
@@ -53,7 +53,7 @@ This does not establish a retrieval benefit: those agents navigated the graph be
 ## Consequences
 
 - ADR 0013's watcher rejection is superseded. ADR 0003 still excludes MCP and persistent query servers; a user-invoked foreground cache updater is allowed.
-- The Extension keeps the complete persisted graph current while its Graph View is closed.
+- The Extension keeps an existing complete persisted graph current while its Graph View is closed without changing the explicit first-Index lifecycle.
 - Multiple local updaters are supported without heartbeat traffic or permanent ownership files.
 - Event delivery is a hint, not correctness proof. Full rediscovery remains the recovery path for lifecycle changes and incomplete path evidence; Parcel snapshots remain a future recovery option if event-loss evidence requires them.
 - Watcher startup and resident memory are explicit costs. Short tasks can use one-shot `index`, and agents retain full discretion because the skill describes semantics rather than prescribing when to watch.
