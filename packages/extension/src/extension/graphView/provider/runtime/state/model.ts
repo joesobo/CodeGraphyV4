@@ -183,6 +183,11 @@ export class GraphViewProviderRuntime {
     return isGraphViewVisible(this._view, this._panels);
   }
 
+  public hasPersistedWorkspaceCache(): boolean {
+    const workspaceRoot = this._getWorkspaceRoot();
+    return Boolean(workspaceRoot && hasWorkspaceGraphCache(workspaceRoot));
+  }
+
   public async refreshPersistedWorkspaceCache(filePaths: readonly string[]): Promise<boolean> {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) return false;

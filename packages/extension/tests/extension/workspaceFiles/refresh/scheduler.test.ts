@@ -9,6 +9,7 @@ function makeProvider() {
     refresh: vi.fn().mockResolvedValue(undefined),
     refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(true),
     invalidateWorkspaceFiles: vi.fn(() => []),
+    hasPersistedWorkspaceCache: vi.fn(() => true),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
   };
@@ -130,6 +131,24 @@ describe('workspaceFiles/refresh/scheduler', () => {
       '[CodeGraphy] File changed, refreshing graph',
       ['/workspace/src/a.ts'],
     );
+  });
+
+  it('does not run an implicit first Index for settings events', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    provider.hasPersistedWorkspaceCache.mockReturnValue(false);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] Settings changed',
+      ['/workspace/.codegraphy/settings.json'],
+      500,
+      { fullRefresh: true },
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalled();
   });
 
   it('defaults to refreshing when the provider has no graph-open probe', () => {

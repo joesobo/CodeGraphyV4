@@ -18,6 +18,10 @@ function runScheduledRefresh(
   pending: PendingWorkspaceRefresh,
 ): void {
   pendingWorkspaceRefreshes.delete(provider);
+  if (pending.fullRefresh && provider.hasPersistedWorkspaceCache?.() === false) {
+    markWorkspaceRefreshPending(provider, pending);
+    return;
+  }
   if (!isGraphOpen(provider) && provider.refreshPersistedWorkspaceCache) {
     void provider.refreshPersistedWorkspaceCache([...pending.filePaths])
       .then((updated) => {

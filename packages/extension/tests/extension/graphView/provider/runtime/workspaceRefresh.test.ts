@@ -93,6 +93,10 @@ describe('graphView/provider/runtime workspace refresh', { timeout: 30_000 }, ()
   });
 
   it('flushes queued workspace changes through the incremental refresh path', async () => {
+    vi.doMock('../../../../../src/extension/workspaceFiles/cache/model', async (importOriginal) => ({
+      ...(await importOriginal()),
+      hasWorkspaceGraphCache: () => true,
+    }));
     vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
