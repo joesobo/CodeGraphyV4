@@ -87,6 +87,8 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     this._lastFileAnalysis = fileAnalysis;
     this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
     this._lastWorkspaceRoot = workspaceRoot;
+    const replayAnalysisPluginIds = collectCachedAnalysisPluginIds(fileAnalysis);
+    this._replayAnalysisPluginIds = replayAnalysisPluginIds;
 
     throwIfWorkspaceAnalysisAborted(signal);
 
@@ -95,7 +97,7 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       workspaceRoot,
       config.showOrphans,
       disabledPlugins,
-      collectCachedAnalysisPluginIds(fileAnalysis),
+      replayAnalysisPluginIds,
     );
 
     return graphData;

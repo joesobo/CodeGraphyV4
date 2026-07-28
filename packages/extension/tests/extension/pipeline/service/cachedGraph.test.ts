@@ -59,7 +59,11 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
     _pluginIds: readonly string[] | undefined, _disabledPlugins: ReadonlySet<string>,
   ) => ['plugin.active']);
   readonly buildGraphDataFromAnalysis = vi.fn((
-    _fileAnalysis: Map<string, never>, _workspaceRoot: string, _showOrphans: boolean, _disabledPlugins: Set<string>,
+    _fileAnalysis: Map<string, never>,
+    _workspaceRoot: string,
+    _showOrphans: boolean,
+    _disabledPlugins: Set<string>,
+    _activeAnalysisPluginIds?: ReadonlySet<string>,
   ) => ({ nodes: [{ id: 'graph', label: 'Graph', color: '#333333' }], edges: [] }));
 
   constructor() {
@@ -114,8 +118,15 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string>,
+    activeAnalysisPluginIds?: ReadonlySet<string>,
   ) {
-    return this.buildGraphDataFromAnalysis(fileAnalysis, workspaceRoot, showOrphans, disabledPlugins);
+    return this.buildGraphDataFromAnalysis(
+      fileAnalysis,
+      workspaceRoot,
+      showOrphans,
+      disabledPlugins,
+      activeAnalysisPluginIds,
+    );
   }
 }
 
@@ -206,6 +217,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
       '/workspace',
       false,
       disabledPlugins,
+      new Set<string>(),
     );
 
   });
@@ -271,6 +283,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
       ]),
       '/workspace',
       false,
+      new Set<string>(),
       new Set<string>(),
     );
   });
