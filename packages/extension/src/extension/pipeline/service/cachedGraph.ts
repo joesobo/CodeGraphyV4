@@ -97,7 +97,6 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       workspaceRoot,
       config.showOrphans,
       disabledPlugins,
-      replayAnalysisPluginIds,
     );
 
     return graphData;

@@ -217,7 +217,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
       '/workspace',
       false,
       disabledPlugins,
-      new Set<string>(),
+      undefined,
     );
 
   });
@@ -284,7 +284,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
       '/workspace',
       false,
       new Set<string>(),
-      new Set<string>(),
+      undefined,
     );
   });
 
