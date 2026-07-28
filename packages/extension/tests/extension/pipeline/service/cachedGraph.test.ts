@@ -142,7 +142,7 @@ function setupCachedDiscovery(files: readonly IDiscoveredFile[] = cachedFiles): 
   vi.mocked(createCachedWorkspaceDiscoveryState).mockReturnValue({
     directories: ['src'],
     files: [...files],
-    gitIgnoredPaths: ['dist/generated.ts'],
+    gitIgnoredPaths: [],
   });
   return projectedConnections;
 }
@@ -189,7 +189,6 @@ describe('extension/pipeline/service/cachedGraph', () => {
     expect(createCachedWorkspaceDiscoveryState).toHaveBeenCalledWith(
       '/workspace',
       ['src/cached.ts'],
-      true,
     );
     expect(projectFileAnalysisConnections).toHaveBeenCalledWith(
       new Map([['src/cached.ts', cachedAnalysis]]),
@@ -198,7 +197,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
     const retainedState = cachedGraphState(facade);
     expect(retainedState._lastDiscoveredFiles).toEqual(cachedFiles);
     expect(retainedState._lastDiscoveredDirectories).toEqual(['src']);
-    expect(retainedState._lastGitIgnoredPaths).toEqual(['dist/generated.ts']);
+    expect(retainedState._lastGitIgnoredPaths).toEqual([]);
     expect(retainedState._lastFileAnalysis).toEqual(new Map([['src/cached.ts', cachedAnalysis]]));
     expect(retainedState._lastFileConnections).toBe(projectedConnections);
     expect(retainedState._lastWorkspaceRoot).toBe('/workspace');
@@ -209,68 +208,6 @@ describe('extension/pipeline/service/cachedGraph', () => {
       disabledPlugins,
     );
 
-  });
-
-  it('always honors the current gitignore setting', async () => {
-    const facade = new TestCachedGraphFacade();
-
-    await facade.loadCachedGraph();
-
-    expect(createCachedWorkspaceDiscoveryState).toHaveBeenLastCalledWith(
-      '/workspace',
-      ['src/cached.ts'],
-      true,
-    );
-    vi.clearAllMocks();
-    setupCachedDiscovery();
-    vi.mocked(facade._config.getAll).mockReturnValueOnce({
-      showOrphans: true,
-      respectGitignore: false,
-    } as never);
-
-    await facade.loadCachedGraph();
-
-    expect(createCachedWorkspaceDiscoveryState).toHaveBeenLastCalledWith(
-      '/workspace',
-      ['src/cached.ts'],
-      false,
-    );
-    expect(facade.buildGraphDataFromAnalysis).toHaveBeenLastCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
-      '/workspace',
-      true,
-      new Set<string>(),
-    );
-  });
-
-  it('keeps retained Git-ignored cache entries out of replay', async () => {
-    const facade = new TestCachedGraphFacade();
-    setCachedGraphCache(facade, {
-      files: {
-        'src/cached.ts': { analysis: cachedAnalysis, mtime: 1, size: 10 },
-        'README.md': { analysis: readmeAnalysis, mtime: 1, size: 10 },
-      },
-    });
-    setupCachedDiscovery(mixedCachedFiles);
-    vi.mocked(createCachedWorkspaceDiscoveryState).mockReturnValue({
-      directories: ['src'],
-      files: mixedCachedFiles,
-      gitIgnoredPaths: ['README.md'],
-    });
-
-    await facade.loadCachedGraph();
-
-    expect(projectFileAnalysisConnections).toHaveBeenCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
-      '/workspace',
-    );
-    expect(facade.buildGraphDataFromAnalysis).toHaveBeenCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
-      '/workspace',
-      false,
-      new Set<string>(),
-    );
-    expect(cachedGraphState(facade)._lastDiscoveredFiles).toEqual(cachedFiles);
   });
 
   it('returns an empty graph without mutating retained graph state when required cache tiers are missing', async () => {

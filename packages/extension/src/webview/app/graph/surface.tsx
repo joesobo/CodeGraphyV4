@@ -32,6 +32,15 @@ export function GraphSurface({
   onAddFilterRequested,
   onAddLegendRequested,
 }: GraphSurfaceProps): React.ReactElement {
+  if (graphData.nodes.length === 0) {
+    return (
+      <EmptyState
+        hint={getNoDataHint(graphData, showOrphans, depthMode)}
+        fullScreen={false}
+      />
+    );
+  }
+
   return (
     <>
       <Graph
@@ -44,14 +53,6 @@ export function GraphSurface({
         pluginHost={pluginHost}
       />
       <DepthViewControls />
-      {graphData.nodes.length === 0 ? (
-        <div className="pointer-events-none absolute inset-0">
-          <EmptyState
-            hint={getNoDataHint(graphData, showOrphans, depthMode)}
-            fullScreen={false}
-          />
-        </div>
-      ) : null}
     </>
   );
 }

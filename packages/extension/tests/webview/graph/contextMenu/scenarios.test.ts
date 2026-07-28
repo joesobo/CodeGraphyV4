@@ -50,7 +50,7 @@ describe('graph/contextMenu product scenarios', () => {
       favorites: new Set(),
     });
 
-    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Re-index Workspace', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createFile', false);
     expectBuiltInDisabled(entries, 'createFolder', false);
   });

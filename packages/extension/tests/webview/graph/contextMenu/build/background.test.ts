@@ -16,7 +16,7 @@ describe('graph/contextMenu/build/background', () => {
       { kind: 'item', label: 'New File', disabled: false },
       { kind: 'item', label: 'New Folder', disabled: false },
       { kind: 'separator' },
-      { kind: 'item', label: 'Refresh' },
+      { kind: 'item', label: 'Re-index Workspace' },
       { kind: 'item', label: 'Fit All Nodes' },
     ]);
   });

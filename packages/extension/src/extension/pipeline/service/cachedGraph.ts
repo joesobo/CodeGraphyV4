@@ -53,7 +53,6 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     const cachedDiscovery = createCachedWorkspaceDiscoveryState(
       workspaceRoot,
       cachedFilePaths,
-      config.respectGitignore,
     );
 
     const activeFilterPatterns = [

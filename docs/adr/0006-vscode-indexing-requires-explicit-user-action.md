@@ -23,6 +23,8 @@ Workspace or Re-index Workspace.
   Indexing or invalidate the cached graph.
 - Opening the Graph View can read the last Graph Cache so it can render the
   indexed graph.
+- Graph Cache replay does not initialize source-processing plugins or query
+  current workspace Git state.
 - A cached graph load does not warm analysis or synchronize stale inputs in the
   background.
 - A missing Graph Cache stays empty until the user selects Index Workspace.

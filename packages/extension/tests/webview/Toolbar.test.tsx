@@ -142,12 +142,12 @@ describe('Toolbar', () => {
     expect(findMessage('INDEX_GRAPH')).toBeTruthy();
   });
 
-  it('shows Refresh when an index already exists', () => {
+  it('shows Re-index Workspace when an index already exists', () => {
     setDefaultState({ graphHasIndex: true });
 
     render(<Toolbar />);
 
-    expect(screen.getByTitle('Refresh')).toBeInTheDocument();
+    expect(screen.getByTitle('Re-index Workspace')).toBeInTheDocument();
   });
 
   it('hosts Graph View toolbar slot contributions under graph.toolbar', () => {
