@@ -203,6 +203,7 @@ export type {
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
 export {
+  createCodeGraphyWorkspaceCacheUpdater,
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
   refreshWorkspaceIndexAnalysisScope,
@@ -210,6 +211,9 @@ export {
   refreshWorkspaceIndexPluginFiles,
 } from './indexing/workspace';
 export type {
+  CodeGraphyWorkspaceCacheUpdater,
+  CodeGraphyWorkspaceCacheUpdaterOptions,
+  CodeGraphyWorkspaceCacheUpdateEvent,
   CodeGraphyWorkspaceEngine,
   IndexCodeGraphyWorkspaceOptions,
   IndexCodeGraphyWorkspacePlugin,

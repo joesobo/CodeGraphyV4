@@ -45,6 +45,12 @@ export {
   type CodeGraphyWorkspaceEngine,
 } from './engine';
 export {
+  createCodeGraphyWorkspaceCacheUpdater,
+  type CodeGraphyWorkspaceCacheUpdater,
+  type CodeGraphyWorkspaceCacheUpdaterOptions,
+  type CodeGraphyWorkspaceCacheUpdateEvent,
+} from './liveUpdate/model';
+export {
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
