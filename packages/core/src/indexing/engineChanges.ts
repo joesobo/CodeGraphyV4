@@ -27,7 +27,8 @@ async function unmatchedPathCanAffectIndex(
   }
   if (state.cache.files[relativePath]) return true;
   try {
-    return !(await stat(absolutePath)).isFile();
+    await stat(absolutePath);
+    return false;
   } catch {
     return true;
   }

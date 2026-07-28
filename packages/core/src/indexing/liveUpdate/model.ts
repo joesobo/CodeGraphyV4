@@ -1,3 +1,7 @@
+import path from 'node:path';
+import { matchesAnyPattern } from '../../discovery/pathMatching';
+import { resolveWorkspaceRoot } from '../../workspace/paths';
+import { readCodeGraphyWorkspaceSettings } from '../../workspace/settings';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from '../contracts';
 import { createCodeGraphyWorkspaceEngine } from '../engine';
 
@@ -31,6 +35,7 @@ export function createCodeGraphyWorkspaceCacheUpdater(
   options: CodeGraphyWorkspaceCacheUpdaterOptions,
 ): CodeGraphyWorkspaceCacheUpdater {
   const engine = createCodeGraphyWorkspaceEngine(options);
+  const workspaceRoot = resolveWorkspaceRoot(options.workspaceRoot);
   const pendingFilePaths = new Set<string>();
   const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
   const maxBatchAgeMs = options.maxBatchAgeMs ?? DEFAULT_MAX_BATCH_AGE_MS;
@@ -116,7 +121,23 @@ export function createCodeGraphyWorkspaceCacheUpdater(
   };
   const notify = (filePaths: readonly string[]): void => {
     if (!acceptingChanges) return;
-    for (const filePath of filePaths) pendingFilePaths.add(filePath);
+    let activePatterns: string[] = [];
+    try {
+      const settings = options.settings ?? readCodeGraphyWorkspaceSettings(workspaceRoot);
+      const disabledPatterns = new Set(settings.disabledCustomFilterPatterns);
+      activePatterns = settings.filterPatterns.filter(pattern => !disabledPatterns.has(pattern));
+    } catch {
+      // The update operation reports malformed settings through the event stream.
+    }
+    for (const filePath of filePaths) {
+      const relativePath = path.relative(workspaceRoot, path.resolve(workspaceRoot, filePath));
+      const normalizedPath = relativePath.split(path.sep).join('/');
+      const lifecyclePath = normalizedPath === '.codegraphy/settings.json'
+        || path.basename(normalizedPath) === '.gitignore';
+      if (lifecyclePath || !matchesAnyPattern(normalizedPath, activePatterns)) {
+        pendingFilePaths.add(filePath);
+      }
+    }
     schedule();
   };
   const dispose = (): Promise<void> => {

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createCodeGraphyWorkspaceCacheUpdater,
+  readCodeGraphyWorkspaceSettings,
   readWorkspaceAnalysisDatabaseSnapshot,
 } from '../../../src';
 import { createTextPlugin, createWorkspace } from '../workspaceFixture';
@@ -57,6 +58,65 @@ describe('CodeGraphy Workspace cache updater', () => {
         }),
       ]),
     );
+    await updater.dispose();
+  });
+
+  it('does not schedule updates for paths excluded by active workspace Filters', async () => {
+    const workspaceRoot = await createWorkspace();
+    const onEvent = vi.fn();
+    const updater = createCodeGraphyWorkspaceCacheUpdater({
+      workspaceRoot,
+      settings: {
+        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+        filterPatterns: ['tests/**'],
+      },
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+      onEvent,
+    });
+    await updater.start();
+    vi.useFakeTimers();
+    const excludedPath = join(workspaceRoot, 'tests', 'new-test.ts');
+
+    updater.notify([excludedPath]);
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    expect(onEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'updating' }));
+    await updater.dispose();
+  });
+
+  it('reports settings corruption without throwing from the watcher callback', async () => {
+    const workspaceRoot = await createWorkspace();
+    let markFailed!: () => void;
+    const failed = new Promise<void>((resolve) => {
+      markFailed = resolve;
+    });
+    const updater = createCodeGraphyWorkspaceCacheUpdater({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+      onEvent(event) {
+        if (event.type === 'error') markFailed();
+      },
+    });
+    await updater.start();
+    vi.useFakeTimers();
+    const settingsPath = join(workspaceRoot, '.codegraphy', 'settings.json');
+    await writeFile(settingsPath, '{ malformed', 'utf-8');
+
+    expect(() => updater.notify([settingsPath])).not.toThrow();
+    await vi.advanceTimersByTimeAsync(500);
+    await failed;
     await updater.dispose();
   });
 

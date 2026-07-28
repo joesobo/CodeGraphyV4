@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { createCodeGraphyWorkspaceEngine } from '../../src';
@@ -53,10 +53,12 @@ describe('workspace engine changed files', () => {
       includeCorePlugins: false,
     });
     await engine.index();
-    const ignoredPath = join(workspaceRoot, 'new-test.ts');
+    const ignoredDirectory = join(workspaceRoot, 'tests');
+    const ignoredPath = join(ignoredDirectory, 'new-test.ts');
+    await mkdir(ignoredDirectory);
     await writeFile(ignoredPath, 'ignored\n', 'utf-8');
 
-    const result = await engine.applyChangedFiles([ignoredPath]);
+    const result = await engine.applyChangedFiles([ignoredDirectory, ignoredPath]);
 
     expect(result.indexing).toEqual({
       mode: 'incremental',
