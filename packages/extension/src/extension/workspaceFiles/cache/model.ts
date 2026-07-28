@@ -1,6 +1,7 @@
+import { existsSync } from 'node:fs';
 import {
   createCodeGraphyWorkspaceCacheUpdater,
-  readCodeGraphyWorkspaceStatus,
+  getGraphCachePath,
   type CodeGraphyWorkspaceCacheUpdater,
   type CodeGraphyWorkspaceCacheUpdaterOptions,
 } from '@codegraphy-dev/core';
@@ -22,7 +23,7 @@ interface ActiveWorkspaceCacheUpdater {
 }
 
 function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
-  return readCodeGraphyWorkspaceStatus(workspaceRoot).hasGraphCache;
+  return existsSync(getGraphCachePath(workspaceRoot));
 }
 
 const DEFAULT_DEPENDENCIES: ExtensionWorkspaceCacheUpdaterDependencies = {
