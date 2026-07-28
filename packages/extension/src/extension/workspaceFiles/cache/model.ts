@@ -1,14 +1,9 @@
 import { existsSync } from 'node:fs';
-import {
-  createCodeGraphyWorkspaceCacheUpdater,
-  getGraphCachePath,
-  type CodeGraphyWorkspaceCacheUpdater,
-  type CodeGraphyWorkspaceCacheUpdaterOptions,
-} from '@codegraphy-dev/core';
+import { getGraphCachePath } from '@codegraphy-dev/core';
 
 interface ExtensionWorkspaceCacheUpdaterDependencies {
-  createUpdater(options: CodeGraphyWorkspaceCacheUpdaterOptions): CodeGraphyWorkspaceCacheUpdater;
   hasGraphCache?: (workspaceRoot: string) => boolean;
+  updateWorkspaceCache(workspaceRoot: string, filePaths: readonly string[]): Promise<void>;
 }
 
 export interface ExtensionWorkspaceCacheUpdater {
@@ -16,56 +11,26 @@ export interface ExtensionWorkspaceCacheUpdater {
   update(workspaceRoot: string, filePaths: readonly string[]): Promise<void>;
 }
 
-interface ActiveWorkspaceCacheUpdater {
-  start: Promise<unknown>;
-  updater: CodeGraphyWorkspaceCacheUpdater;
-  workspaceRoot: string;
-}
-
 function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
   return existsSync(getGraphCachePath(workspaceRoot));
 }
 
-const DEFAULT_DEPENDENCIES: ExtensionWorkspaceCacheUpdaterDependencies = {
-  createUpdater: createCodeGraphyWorkspaceCacheUpdater,
-  hasGraphCache: hasWorkspaceGraphCache,
-};
-
 export function createExtensionWorkspaceCacheUpdater(
-  dependencies: ExtensionWorkspaceCacheUpdaterDependencies = DEFAULT_DEPENDENCIES,
+  dependencies: ExtensionWorkspaceCacheUpdaterDependencies,
 ): ExtensionWorkspaceCacheUpdater {
-  let active: ActiveWorkspaceCacheUpdater | undefined;
+  let tail = Promise.resolve();
 
-  const dispose = async (): Promise<void> => {
-    const current = active;
-    active = undefined;
-    if (current) await current.updater.dispose();
-  };
-  const update = async (
+  const update = (
     workspaceRoot: string,
     filePaths: readonly string[],
   ): Promise<void> => {
-    if (active?.workspaceRoot !== workspaceRoot) {
-      await dispose();
-      const hasGraphCache = dependencies.hasGraphCache ?? hasWorkspaceGraphCache;
-      if (!hasGraphCache(workspaceRoot)) return;
-      const updater = dependencies.createUpdater({ workspaceRoot });
-      active = {
-        start: updater.start(),
-        updater,
-        workspaceRoot,
-      };
-    }
-    const current = active;
-    current.updater.notify(filePaths);
-    try {
-      await current.start;
-    } catch (error) {
-      if (active === current) active = undefined;
-      await current.updater.dispose();
-      throw error;
-    }
+    const hasGraphCache = dependencies.hasGraphCache ?? hasWorkspaceGraphCache;
+    if (!hasGraphCache(workspaceRoot)) return Promise.resolve();
+    const run = tail.then(() => dependencies.updateWorkspaceCache(workspaceRoot, filePaths));
+    tail = run.catch(() => undefined);
+    return run;
   };
+  const dispose = (): Promise<void> => tail;
 
   return { dispose, update };
 }

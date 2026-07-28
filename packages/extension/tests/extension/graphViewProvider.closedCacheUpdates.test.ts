@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -13,10 +13,11 @@ describe('GraphViewProvider closed cache updates', () => {
   it('persists changed files before the Graph View has opened', async () => {
     const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-extension-closed-'));
     const sourcePath = join(workspaceRoot, 'source.md');
-    await writeFile(sourcePath, 'Initial\n', 'utf-8');
-    await writeFile(join(workspaceRoot, 'target.md'), 'Target\n', 'utf-8');
+    const targetPath = join(workspaceRoot, 'target.md');
+    await writeFile(sourcePath, 'Source\n', 'utf-8');
+    await writeFile(targetPath, 'Target\n', 'utf-8');
     await indexCodeGraphyWorkspace({ workspaceRoot });
-    await writeFile(sourcePath, 'See [[target.md]].\n', 'utf-8');
+    await rm(targetPath);
     Object.defineProperty(vscode.workspace, 'workspaceFolders', {
       configurable: true,
       value: [{ uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 }],
@@ -35,14 +36,10 @@ describe('GraphViewProvider closed cache updates', () => {
     );
 
     expect(provider.isGraphOpen()).toBe(false);
-    await provider.refreshPersistedWorkspaceCache([sourcePath]);
+    await provider.refreshPersistedWorkspaceCache([targetPath]);
 
     const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
-    expect(snapshot.graph.nodes.map(node => node.id)).toEqual(
-      expect.arrayContaining(['source.md', 'target.md']),
-    );
-    expect(snapshot.graph.edges).toEqual(expect.arrayContaining([
-      expect.objectContaining({ from: 'source.md', to: 'target.md' }),
-    ]));
+    expect(snapshot.graph.nodes.map(node => node.id)).toContain('source.md');
+    expect(snapshot.graph.nodes.map(node => node.id)).not.toContain('target.md');
   });
 });

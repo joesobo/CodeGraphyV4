@@ -2,68 +2,65 @@ import { describe, expect, it, vi } from 'vitest';
 import { createExtensionWorkspaceCacheUpdater } from '../../../../src/extension/workspaceFiles/cache/model';
 
 describe('Extension workspace cache updater', () => {
-  it('does not create a Graph Cache before the workspace has been indexed', async () => {
-    const createUpdater = vi.fn();
+  it('does not update a Graph Cache before the workspace has been indexed', async () => {
+    const updateWorkspaceCache = vi.fn();
     const updater = createExtensionWorkspaceCacheUpdater({
-      createUpdater,
       hasGraphCache: () => false,
+      updateWorkspaceCache,
     });
 
     await updater.update('/workspace', ['/workspace/src/a.ts']);
 
-    expect(createUpdater).not.toHaveBeenCalled();
+    expect(updateWorkspaceCache).not.toHaveBeenCalled();
   });
 
-  it('reuses one Core updater while the Graph View remains closed', async () => {
-    const start = vi.fn().mockResolvedValue({});
-    const notify = vi.fn();
-    const dispose = vi.fn().mockResolvedValue(undefined);
-    const createUpdater = vi.fn(() => ({ start, notify, dispose }));
+  it('serializes closed-view cache updates', async () => {
+    let releaseFirst!: () => void;
+    const firstGate = new Promise<void>(resolve => { releaseFirst = resolve; });
+    const updateWorkspaceCache = vi.fn()
+      .mockImplementationOnce(() => firstGate)
+      .mockResolvedValueOnce(undefined);
     const updater = createExtensionWorkspaceCacheUpdater({
-      createUpdater,
       hasGraphCache: () => true,
+      updateWorkspaceCache,
     });
 
-    await updater.update('/workspace', ['/workspace/src/a.ts']);
-    await updater.update('/workspace', ['/workspace/src/b.ts']);
+    const first = updater.update('/workspace', ['/workspace/src/a.ts']);
+    const second = updater.update('/workspace', ['/workspace/src/b.ts']);
+    await Promise.resolve();
 
-    expect(createUpdater).toHaveBeenCalledOnce();
-    expect(createUpdater).toHaveBeenCalledWith({ workspaceRoot: '/workspace' });
-    expect(start).toHaveBeenCalledOnce();
-    expect(notify).toHaveBeenNthCalledWith(1, ['/workspace/src/a.ts']);
-    expect(notify).toHaveBeenNthCalledWith(2, ['/workspace/src/b.ts']);
+    expect(updateWorkspaceCache).toHaveBeenCalledOnce();
 
-    await updater.dispose();
-    expect(dispose).toHaveBeenCalledOnce();
+    releaseFirst();
+    await Promise.all([first, second]);
+
+    expect(updateWorkspaceCache).toHaveBeenNthCalledWith(
+      1,
+      '/workspace',
+      ['/workspace/src/a.ts'],
+    );
+    expect(updateWorkspaceCache).toHaveBeenNthCalledWith(
+      2,
+      '/workspace',
+      ['/workspace/src/b.ts'],
+    );
   });
 
-  it('creates a fresh Core updater after startup fails', async () => {
-    const failedDispose = vi.fn().mockResolvedValue(undefined);
-    const recoveredNotify = vi.fn();
-    const createUpdater = vi.fn()
-      .mockReturnValueOnce({
-        start: vi.fn().mockRejectedValue(new Error('startup failed')),
-        notify: vi.fn(),
-        dispose: failedDispose,
-      })
-      .mockReturnValueOnce({
-        start: vi.fn().mockResolvedValue({}),
-        notify: recoveredNotify,
-        dispose: vi.fn().mockResolvedValue(undefined),
-      });
+  it('continues after a failed cache update', async () => {
+    const updateWorkspaceCache = vi.fn()
+      .mockRejectedValueOnce(new Error('update failed'))
+      .mockResolvedValueOnce(undefined);
     const updater = createExtensionWorkspaceCacheUpdater({
-      createUpdater,
       hasGraphCache: () => true,
+      updateWorkspaceCache,
     });
 
     await expect(updater.update('/workspace', ['/workspace/src/a.ts']))
-      .rejects.toThrow('startup failed');
+      .rejects.toThrow('update failed');
     await expect(updater.update('/workspace', ['/workspace/src/b.ts']))
       .resolves.toBeUndefined();
 
-    expect(createUpdater).toHaveBeenCalledTimes(2);
-    expect(failedDispose).toHaveBeenCalledOnce();
-    expect(recoveredNotify).toHaveBeenCalledWith(['/workspace/src/b.ts']);
+    expect(updateWorkspaceCache).toHaveBeenCalledTimes(2);
     await updater.dispose();
   });
 });

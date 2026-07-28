@@ -60,6 +60,7 @@ export class GraphViewProviderRuntime {
   protected _analysisController?: AbortController;
   protected _analysisRequestId!: number;
   protected _changedFilePaths!: string[];
+  private readonly _graphCacheWarmPromise: Promise<void>;
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode!: boolean;
   protected _nodeSizeMode!: NodeSizeMode;
@@ -110,13 +111,17 @@ export class GraphViewProviderRuntime {
     Object.assign(this, createGraphViewProviderRuntimeFlagState());
 
     this._analyzer = new WorkspacePipeline(_context);
-    void this._analyzer.warmGraphCache().catch(error => {
+    this._graphCacheWarmPromise = this._analyzer.warmGraphCache().catch(error => {
       console.warn('[CodeGraphy] Failed to warm repo-local Graph Cache.', error);
     });
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
-    this._workspaceCacheUpdater = createExtensionWorkspaceCacheUpdater();
+    this._workspaceCacheUpdater = createExtensionWorkspaceCacheUpdater({
+      updateWorkspaceCache: (workspaceRoot, filePaths) => (
+        this._updatePersistedWorkspaceCache(workspaceRoot, filePaths)
+      ),
+    });
     this._context.subscriptions.push({
       dispose: () => {
         this._analysisController?.abort();
@@ -163,6 +168,34 @@ export class GraphViewProviderRuntime {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) return;
     await this._workspaceCacheUpdater.update(workspaceRoot, filePaths);
+  }
+
+  private async _updatePersistedWorkspaceCache(
+    workspaceRoot: string,
+    filePaths: readonly string[],
+  ): Promise<void> {
+    const analyzer = this._analyzer;
+    if (!analyzer) return;
+    await Promise.all([
+      this._graphCacheWarmPromise,
+      this._installedPluginActivationPromise,
+    ]);
+    if (workspaceRoot !== this._getWorkspaceRoot()) return;
+    const normalizedPaths = filePaths.map(filePath => filePath.replace(/\\/g, '/'));
+    if (normalizedPaths.some(filePath => filePath.endsWith('/.codegraphy/settings.json'))) {
+      this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
+      await analyzer.refreshIndex(this._filterPatterns, this._disabledPlugins);
+      return;
+    }
+    if (normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'))) {
+      await analyzer.refreshGitignoreMetadata(this._filterPatterns, this._disabledPlugins);
+      return;
+    }
+    await analyzer.refreshChangedFiles(
+      filePaths,
+      this._filterPatterns,
+      this._disabledPlugins,
+    );
   }
 
   public releasePersistedWorkspaceCacheUpdater(): Promise<void> {
