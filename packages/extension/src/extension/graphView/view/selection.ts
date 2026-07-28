@@ -27,14 +27,16 @@ export function setGraphViewFocusedFile(
   }: SetGraphViewFocusDependencies,
 ): void {
   const previousFocusedFile = state._viewContext.focusedFile;
+  if (previousFocusedFile === filePath) {
+    return;
+  }
+
   state._viewContext.focusedFile = filePath;
 
-  if (previousFocusedFile !== filePath) {
-    sendMessage({
-      type: 'ACTIVE_FILE_UPDATED',
-      payload: { filePath },
-    });
-  }
+  sendMessage({
+    type: 'ACTIVE_FILE_UPDATED',
+    payload: { filePath },
+  });
 
   if (state._depthMode) {
     applyViewTransform();
