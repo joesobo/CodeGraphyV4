@@ -12,6 +12,10 @@ export function isDirectSameFileSymbolRelation(relation: AnalysisRelation): bool
     && relation.metadata?.bindingKind == null;
 }
 
+function projectedRelationKind(relation: AnalysisRelation): AnalysisRelation['kind'] {
+  return relation.kind === 'reexport' ? 'import' : relation.kind;
+}
+
 function shouldOmitSameFileSymbolProjection(
   relation: AnalysisRelation,
 ): boolean {
@@ -34,7 +38,7 @@ export function projectProjectedConnectionsFromFileAnalysis(
   return (analysis.relations ?? [])
     .filter(relation => !shouldOmitSameFileSymbolProjection(relation))
     .map(relation => ({
-      kind: relation.kind,
+      kind: projectedRelationKind(relation),
       pluginId: relation.pluginId,
       sourceId: relation.sourceId,
       specifier: relation.specifier ?? '',

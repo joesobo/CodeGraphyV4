@@ -51,7 +51,7 @@ Use the complete cached Node and Edge Types for CLI Search, Target Query, Path, 
 
 When File selectors expand to their Symbols for Path, try exact File endpoints first and stop after finding that exact route. Do not emit redundant longer Symbol-expanded routes after an exact File path succeeds.
 
-Add `reexport` to the Core Relationship vocabulary and Plugin API. JavaScript-family export statements emit `reexport` rather than overloading `import`. Renamed exports create Alias Symbol Nodes, with the reexport originating at the alias. Reexport Edges remain hidden in the default Graph View Scope but are available to complete targeted queries and explicit projections.
+Add `reexport` to the Core Relationship vocabulary and Plugin API. JavaScript-family export statements emit `reexport` rather than overloading persisted relation identity. Renamed exports create Alias Symbol Nodes, with the reexport originating at the alias. File-level projection still presents export-from dependencies as imports, preserving the default Graph View and dependency semantics while the persisted structural relation remains available to exact queries. Reexport Edges and capabilities remain hidden in the default Graph View Scope but are available to complete targeted queries and explicit projections.
 
 Resolve call, event, inherit, and reference targets through named, aliased, and export-star reexport chains. Keep lexical import Relationships pointed at the barrel so dependency invalidation remains correct. Because the Graph Cache persists the reexport Edge Type, target Symbol, and Alias Symbol identity, a new CLI process can recover the same implementation target after incremental Indexing without persisting analyzer metadata or adding a compatibility path.
 
@@ -60,7 +60,7 @@ Do not add generic connected neighborhoods to Search or Target Query. Do not add
 ## Consequences
 
 - Exact Symbol dependencies and paths no longer depend on Graph View visibility settings.
-- Calls through barrels terminate at implementation Symbols while lexical imports still identify the barrel.
+- Calls through barrels terminate at implementation Symbols while File projection keeps lexical export-from dependencies visible as imports to the barrel.
 - `reexport` is independently filterable and queryable as an Edge Type.
 - Renamed exports are first-class Alias Symbols instead of metadata that disappears at the Graph Cache boundary.
 - Full and incremental CLI processes produce the same tested call target through named reexports.
