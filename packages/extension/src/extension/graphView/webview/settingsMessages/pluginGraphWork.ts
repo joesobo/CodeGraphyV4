@@ -6,8 +6,7 @@ import type {
 export type PluginGraphWorkRequest = CodeGraphyWorkspacePluginIndexingPlan;
 
 export interface PluginGraphWorkHandlers {
-  analyzeAndSendData(): Promise<void>;
-  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
+  reloadCachedGraph(): Promise<void>;
   smartRebuild(pluginId: string): void;
 }
 
@@ -25,8 +24,7 @@ interface PluginGraphWorkSchedulerOptions {
 }
 
 interface PendingPluginGraphWork {
-  kind: 'reprocess-plugin-files' | 'analyze-workspace';
-  pluginIds: Set<string>;
+  pending: true;
 }
 
 const DEFAULT_PLUGIN_GRAPH_WORK_DELAY_MS = 150;
@@ -100,39 +98,20 @@ export async function applyPluginGraphWorkPlan(
   }
 
   await runPluginGraphWork(handlers, {
-    kind: plan.kind,
-    pluginIds: new Set(plan.kind === 'reprocess-plugin-files' ? plan.pluginIds : []),
+    pending: true,
   });
 }
 
 async function runPluginGraphWork(
   handlers: PluginGraphWorkHandlers,
-  work: PendingPluginGraphWork,
+  _work: PendingPluginGraphWork,
 ): Promise<void> {
-  if (work.kind === 'analyze-workspace') {
-    await handlers.analyzeAndSendData();
-    return;
-  }
-
-  await handlers.reprocessPluginFiles([...work.pluginIds]);
+  await handlers.reloadCachedGraph();
 }
 
 function mergePluginGraphWork(
   pending: PendingPluginGraphWork | undefined,
-  request: Exclude<PluginGraphWorkRequest, { kind: 'projection-only' }>,
+  _request: Exclude<PluginGraphWorkRequest, { kind: 'projection-only' }>,
 ): PendingPluginGraphWork {
-  if (request.kind === 'analyze-workspace' || pending?.kind === 'analyze-workspace') {
-    return {
-      kind: 'analyze-workspace',
-      pluginIds: new Set<string>(),
-    };
-  }
-
-  return {
-    kind: 'reprocess-plugin-files',
-    pluginIds: new Set([
-      ...(pending?.pluginIds ?? []),
-      ...request.pluginIds,
-    ]),
-  };
+  return pending ?? { pending: true };
 }

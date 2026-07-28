@@ -95,7 +95,6 @@ describe('graph view analysis execution load', () => {
       [],
       new Set<string>(),
       expect.any(AbortSignal),
-      { warmAnalysis: false },
     );
     expect(analyze).not.toHaveBeenCalled();
     expect(refreshIndex).not.toHaveBeenCalled();
@@ -150,7 +149,6 @@ describe('graph view analysis execution load', () => {
       [],
       new Set<string>(),
       expect.any(AbortSignal),
-      { warmAnalysis: false },
     );
     expect(refreshIndex).not.toHaveBeenCalled();
     expect(analyze).not.toHaveBeenCalled();

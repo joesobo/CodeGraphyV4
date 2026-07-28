@@ -64,7 +64,7 @@ export interface GraphViewProviderMessageListenerDependencies {
     context: vscode.ExtensionContext,
     sendAllSettings: () => void,
     setNodeSizeMode: (mode: NodeSizeMode) => void,
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
   nodeSizeModeKey: string;
@@ -170,7 +170,7 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
     context,
     sendAllSettings,
     setNodeSizeMode,
-    analyzeAndSendData,
+    reloadCachedGraph,
   ) =>
     new ResetSettingsAction(
       snapshot,
@@ -178,7 +178,7 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
       context,
       sendAllSettings,
       setNodeSizeMode,
-      analyzeAndSendData,
+      reloadCachedGraph,
       ),
   executeUndoAction: action => getUndoManager().execute(action),
   nodeSizeModeKey: 'nodeSizeMode',

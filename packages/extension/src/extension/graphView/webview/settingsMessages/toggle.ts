@@ -59,8 +59,7 @@ async function applyPluginToggleGraphWorkPlan(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<void> {
   await applyPluginGraphWorkPlan(plan, pluginId, {
-    analyzeAndSendData: () => handlers.analyzeAndSendData(),
-    reprocessPluginFiles: pluginIds => handlers.reprocessPluginFiles(pluginIds),
+    reloadCachedGraph: () => handlers.reloadCachedGraph(),
     smartRebuild: id => handlers.smartRebuild(id),
   });
 }

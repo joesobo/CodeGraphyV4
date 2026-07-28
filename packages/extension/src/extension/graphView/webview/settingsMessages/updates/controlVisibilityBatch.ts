@@ -1,7 +1,7 @@
 import { pruneGraphControlConfigMap } from '../../../../../shared/graphControls/settings';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import type { GraphViewSettingsMessageHandlers } from '../router';
-import { hydrateOrReprocessGraphScope, shouldHydrateGraphScope } from './graphScopeHydration';
+import { hydrateOrReloadGraphScope, shouldHydrateGraphScope } from './graphScopeHydration';
 import { applyNodeVisibilityEntry } from './nodeVisibility';
 
 export async function applyGraphControlVisibilityBatch(
@@ -41,7 +41,7 @@ async function applyNodeVisibilityBatch(
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
   if (shouldHydrateGraphScope(previousVisibility, prunedVisibility)) {
-    await hydrateOrReprocessGraphScope(handlers);
+    await hydrateOrReloadGraphScope(handlers);
   }
 }
 

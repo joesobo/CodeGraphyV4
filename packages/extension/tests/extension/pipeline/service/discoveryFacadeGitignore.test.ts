@@ -139,7 +139,7 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
       [],
       new Set<string>(),
       undefined,
-      { warmAnalysis: false },
+      {},
     );
 
     expect(spawnSync).toHaveBeenCalledOnce();

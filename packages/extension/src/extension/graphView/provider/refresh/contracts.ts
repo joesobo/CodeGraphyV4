@@ -22,7 +22,6 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     signal?: AbortSignal,
     options?: {
       requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
-      warmAnalysis?: boolean;
     },
   ): Promise<IGraphData>;
   registry: {

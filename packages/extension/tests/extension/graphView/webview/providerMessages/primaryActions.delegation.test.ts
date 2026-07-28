@@ -58,7 +58,6 @@ describe('graph view provider primary action delegation', () => {
 
     await actions.loadAndSendData();
     await actions.indexAndSendData();
-    await actions.analyzeAndSendData();
     await actions.refreshIndex();
     await actions.clearCacheAndRefresh();
     await actions.undo();
@@ -71,7 +70,6 @@ describe('graph view provider primary action delegation', () => {
 
     expect(source._loadAndSendData).toHaveBeenCalledOnce();
     expect(source._indexAndSendData).toHaveBeenCalledOnce();
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
     expect(source.refreshIndex).toHaveBeenCalledOnce();
     expect(source.clearCacheAndRefresh).toHaveBeenCalledOnce();
     expect(source.undo).toHaveBeenCalledOnce();

@@ -15,7 +15,7 @@ describe('graphView/provider/webview/host', () => {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [] as vscode.WebviewPanel[],
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
     };
     const methods = createGraphViewProviderWebviewMethods(source as never, {
@@ -61,7 +61,7 @@ describe('graphView/provider/webview/host', () => {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [] as vscode.WebviewPanel[],
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
     };
     const methods = createGraphViewProviderWebviewMethods(source as never, {
@@ -118,7 +118,7 @@ describe('graphView/provider/webview/host', () => {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [] as vscode.WebviewPanel[],
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
     };
     const methods = createGraphViewProviderWebviewMethods(source as never, {

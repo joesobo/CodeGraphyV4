@@ -29,11 +29,11 @@ describe('graphView/provider/analysis/methods', () => {
     });
 
     expect(methods._loadAndSendData).toEqual(expect.any(Function));
-    expect(methods._doAnalyzeAndSendData).toEqual(expect.any(Function));
+    expect(methods._doLoadAndSendData).toEqual(expect.any(Function));
     expect(methods._markWorkspaceReady).toEqual(expect.any(Function));
     expect(methods._isAnalysisStale).toEqual(expect.any(Function));
     expect(methods._isAbortError).toEqual(expect.any(Function));
-    expect(source._doAnalyzeAndSendData).toBeUndefined();
+    expect(source._doLoadAndSendData).toBeUndefined();
     expect(source._markWorkspaceReady).toBeUndefined();
     expect(source._isAnalysisStale).toBeUndefined();
     expect(source._isAbortError).toBeUndefined();
@@ -178,7 +178,7 @@ describe('graphView/provider/analysis/methods', () => {
     });
 
     await methods._loadAndSendData();
-    await methods._doAnalyzeAndSendData(signal, 11);
+    await methods._doLoadAndSendData(signal, 11);
 
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
     expect(executeAnalysis).toHaveBeenCalledTimes(2);
@@ -298,7 +298,7 @@ describe('graphView/provider/analysis/methods', () => {
     source._isAnalysisStale = undefined;
     source._isAbortError = undefined;
 
-    await methods._doAnalyzeAndSendData(signal, 13);
+    await methods._doLoadAndSendData(signal, 13);
 
     expect(markWorkspaceReady).toHaveBeenCalledOnce();
     expect(isAnalysisStale).toHaveBeenCalledWith(signal, 13, 7);

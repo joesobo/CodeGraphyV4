@@ -38,11 +38,10 @@ export function createGraphViewProviderMessageSettingsContext(
       source._analyzer?.registry?.get?.(pluginId)?.plugin.updateImpact
       ?? readInstalledPluginUpdateImpact(pluginId, { bundledPackageRoots })
     ),
-    analyzeAndSendData: () => source._loadAndSendData(),
+    reloadCachedGraph: () => source._loadAndSendData(),
     hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
     hydratePluginGraphScope: pluginIds =>
       source.hydratePluginGraphScope?.(pluginIds) ?? Promise.resolve(false),
-    reprocessGraphScope: () => source._loadAndSendData(),
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(
         config,

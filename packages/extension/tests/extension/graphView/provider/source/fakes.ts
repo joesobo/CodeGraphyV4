@@ -7,7 +7,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _loadAndSendData: vi.fn(async () => undefined),
     _indexAndSendData: vi.fn(async () => undefined),
     _refreshAndSendData: vi.fn(async () => undefined),
-    _doAnalyzeAndSendData: vi.fn(async () => undefined),
+    _doLoadAndSendData: vi.fn(async () => undefined),
     _markWorkspaceReady: vi.fn(),
     _isAnalysisStale: vi.fn(() => false),
     _isAbortError: vi.fn(() => false),

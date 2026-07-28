@@ -16,12 +16,6 @@ import {
   createCachedWorkspaceDiscoveryState,
 } from './cache/cachedDiscovery';
 import {
-  isMissingFileError,
-  isWorkspaceAnalysisAbortError,
-} from './cachedGraphWarmup/errors';
-import { warmCachedGraphAnalysisFile } from './cachedGraphWarmup/execution';
-import { createCachedGraphAnalysisWarmupInput } from './cachedGraphWarmup/input';
-import {
   WorkspacePipelineAnalysisFacade,
 } from './analysisFacade';
 import type { IWorkspaceAnalysisCache } from '../cache';
@@ -29,7 +23,6 @@ import type { IPluginInfo } from '../../../core/plugins/types/contracts';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
   requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
-  warmAnalysis?: boolean;
 }
 
 export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipelineAnalysisFacade {
@@ -111,44 +104,7 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       disabledPlugins,
     );
 
-    if (options.warmAnalysis === true) {
-      this._scheduleCachedGraphAnalysisWarmup(
-        eligibleFiles,
-        workspaceRoot,
-        disabledPlugins,
-        signal,
-      );
-    }
-
     return graphData;
-  }
-
-  private _scheduleCachedGraphAnalysisWarmup(
-    files: readonly IDiscoveredFile[],
-    workspaceRoot: string,
-    disabledPlugins: Set<string>,
-    signal?: AbortSignal,
-  ): void {
-    const input = createCachedGraphAnalysisWarmupInput({
-      disabledPlugins,
-      files,
-      getActiveAnalysisPluginIds: disabledPluginSnapshot =>
-        this._getActiveAnalysisPluginIds(undefined, disabledPluginSnapshot),
-      registry: this._registry,
-      signal,
-      workspaceRoot,
-    });
-    if (!input) {
-      return;
-    }
-
-    void warmCachedGraphAnalysisFile(input, this._discovery, this._registry).catch(error => {
-      if (isWorkspaceAnalysisAbortError(error) || isMissingFileError(error)) {
-        return;
-      }
-
-      console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);
-    });
   }
 }
 

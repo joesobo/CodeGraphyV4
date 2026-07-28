@@ -26,8 +26,6 @@ export function createSource(
   _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
   _loadAndSendData?: ReturnType<typeof vi.fn>;
   _refreshAndSendData?: ReturnType<typeof vi.fn>;
-  _incrementalAnalyzeAndSendData?: ReturnType<typeof vi.fn>;
-  _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
   _sendFavorites: ReturnType<typeof vi.fn>;
   _computeMergedGroups: ReturnType<typeof vi.fn>;
@@ -64,8 +62,7 @@ export function createSource(
     _loadDisabledRulesAndPlugins: vi.fn(() => true),
     _loadGroupsAndFilterPatterns: vi.fn(),
     _loadAndSendData: vi.fn(async () => undefined),
-    _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
-    _analyzeAndSendData: vi.fn(async () => undefined),
+    _refreshAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
     _sendFavorites: vi.fn(),
     _computeMergedGroups: vi.fn(),

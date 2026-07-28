@@ -33,11 +33,9 @@ export interface GraphViewSettingsMessageHandlers {
   sendGraphControls(): void;
   hydrateGraphScope(): Promise<boolean>;
   hydratePluginGraphScope?(pluginIds: readonly string[]): Promise<boolean>;
-  reprocessGraphScope(): Promise<void>;
-  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
+  reloadCachedGraph(): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];
-  analyzeAndSendData(): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
   resetAllSettings(): Promise<void>;
 }

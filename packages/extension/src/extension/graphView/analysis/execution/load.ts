@@ -29,7 +29,6 @@ async function loadCachedGraphViewRawDataOnly(
     context.signal,
     context.state,
     context.analyzer,
-    { warmAnalysis: false },
   );
 }
 

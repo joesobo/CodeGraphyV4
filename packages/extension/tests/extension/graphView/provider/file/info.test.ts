@@ -22,7 +22,7 @@ function createSource() {
     _analyzerInitialized: false,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _sendMessage: vi.fn(),
-    _analyzeAndSendData: vi.fn(async () => undefined),
+    _loadAndSendData: vi.fn(async () => undefined),
   };
 }
 
@@ -72,7 +72,7 @@ describe('graphView/provider/file/info', () => {
     const action = createUndoableAction();
     const dependencies = createDependencies({
       addExcludeWithUndo: vi.fn(async (patterns, handlers) => {
-        const createdAction = handlers.createAction(patterns, handlers.analyzeAndSendData);
+        const createdAction = handlers.createAction(patterns, handlers.reloadCachedGraph);
         await handlers.executeAction(createdAction);
       }),
       createAddToExcludeAction: vi.fn(() => action),

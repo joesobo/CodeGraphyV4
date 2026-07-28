@@ -30,7 +30,7 @@ describe('graph view provider listener settings context hydration', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
         hydrateGraphScope,
       } as never,
       {
@@ -70,7 +70,7 @@ describe('graph view provider listener settings context hydration', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       {
         workspace: {

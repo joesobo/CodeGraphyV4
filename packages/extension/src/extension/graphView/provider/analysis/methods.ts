@@ -57,7 +57,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendDecorations(): void;
   _sendPluginWebviewInjections?(): void;
   _loadAndSendData?(this: void): Promise<void>;
-  _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
+  _doLoadAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady?(
     this: void,
     graph: IGraphData,
@@ -71,7 +71,7 @@ export interface GraphViewProviderAnalysisMethods {
   _loadAndSendData(): Promise<void>;
   _indexAndSendData(): Promise<void>;
   _refreshAndSendData(): Promise<void>;
-  _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
+  _doLoadAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   _isAbortError(error: unknown): boolean;
@@ -159,7 +159,7 @@ export function createGraphViewProviderAnalysisMethods(
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
     _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
-    _doAnalyzeAndSendData: _doLoadAndSendData,
+    _doLoadAndSendData,
     _markWorkspaceReady,
     _isAnalysisStale,
     _isAbortError,

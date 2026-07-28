@@ -1,5 +1,4 @@
 import type { GraphViewProviderMessageListenerSource } from '../listener';
-import { reprocessPluginFiles } from './pluginFiles';
 import { createPluginGraphWorkScheduler } from '../../settingsMessages/pluginGraphWork';
 import type { GraphViewProviderSettingsContext } from './contracts';
 
@@ -12,7 +11,6 @@ type PluginSettingsMethods = Pick<
   | 'sendGraphControls'
   | 'schedulePluginGraphWork'
   | 'cancelScheduledPluginGraphWork'
-  | 'reprocessPluginFiles'
 >;
 
 function runWorkspacePluginUpdate(
@@ -36,8 +34,7 @@ export function createPluginSettingsMethods(
   source: GraphViewProviderMessageListenerSource,
 ): PluginSettingsMethods {
   const pluginGraphWorkScheduler = createPluginGraphWorkScheduler({
-    analyzeAndSendData: () => source._loadAndSendData(),
-    reprocessPluginFiles: pluginIds => reprocessPluginFiles(source, pluginIds),
+    reloadCachedGraph: () => source._loadAndSendData(),
     smartRebuild: pluginId => source._smartRebuild(pluginId),
   });
   const runAnalyzerMethod = (
@@ -56,6 +53,5 @@ export function createPluginSettingsMethods(
     sendGraphControls: () => { source._sendGraphControls?.(); },
     schedulePluginGraphWork: request => { pluginGraphWorkScheduler.schedule(request); },
     cancelScheduledPluginGraphWork: () => { pluginGraphWorkScheduler.cancel(); },
-    reprocessPluginFiles: pluginIds => reprocessPluginFiles(source, pluginIds),
   };
 }

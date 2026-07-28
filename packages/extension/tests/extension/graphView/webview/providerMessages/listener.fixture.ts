@@ -141,7 +141,6 @@ export function createSource(
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
     _loadAndSendData: vi.fn(() => Promise.resolve()),
-    _analyzeAndSendData: vi.fn(() => Promise.resolve()),
     refreshIndex: vi.fn(() => Promise.resolve()),
     refreshChangedFiles: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),

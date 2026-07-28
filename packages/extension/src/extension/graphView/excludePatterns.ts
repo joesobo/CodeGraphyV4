@@ -3,10 +3,10 @@ import { addGraphViewExcludePatterns } from './files/actions';
 interface AddGraphViewExcludePatternsWithUndoOptions<TAction> {
   createAction: (
     patterns: string[],
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ) => TAction;
   executeAction: (action: TAction) => Promise<void>;
-  analyzeAndSendData: () => Promise<void>;
+  reloadCachedGraph: () => Promise<void>;
 }
 
 export async function addGraphViewExcludePatternsWithUndo<TAction>(
@@ -14,12 +14,12 @@ export async function addGraphViewExcludePatternsWithUndo<TAction>(
   {
     createAction,
     executeAction,
-    analyzeAndSendData,
+    reloadCachedGraph,
   }: AddGraphViewExcludePatternsWithUndoOptions<TAction>,
 ): Promise<void> {
   await addGraphViewExcludePatterns(patterns, {
     executeAddToExcludeAction: async nextPatterns => {
-      const action = createAction(nextPatterns, analyzeAndSendData);
+      const action = createAction(nextPatterns, reloadCachedGraph);
       await executeAction(action);
     },
   });

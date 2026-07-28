@@ -18,7 +18,6 @@ describe('graphView/provider/refresh', () => {
       expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
       expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
       expect(source._loadAndSendData).toHaveBeenCalledOnce();
-      expect(source._analyzeAndSendData).not.toHaveBeenCalled();
     });
 
 
@@ -74,7 +73,7 @@ describe('graphView/provider/refresh', () => {
       expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
       expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
       expect(refreshAndSendData).toHaveBeenCalledOnce();
-      expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+      expect(source._loadAndSendData).not.toHaveBeenCalled();
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
       expect(source._sendFavorites).not.toHaveBeenCalled();
     });

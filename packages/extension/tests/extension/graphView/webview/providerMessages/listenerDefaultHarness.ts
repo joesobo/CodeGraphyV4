@@ -26,7 +26,7 @@ export async function loadDefaultListenerHarness(
     context: unknown,
     sendAllSettings: () => void,
     setNodeSizeMode: (mode: GraphViewProviderMessageListenerSource['_nodeSizeMode']) => void,
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ) {
     this.description = 'reset settings';
     this.execute = vi.fn(async () => undefined);
@@ -36,7 +36,7 @@ export async function loadDefaultListenerHarness(
     this.context = context;
     this.sendAllSettings = sendAllSettings;
     this.setNodeSizeMode = setNodeSizeMode;
-    this.analyzeAndSendData = analyzeAndSendData;
+    this.reloadCachedGraph = reloadCachedGraph;
   });
   vi.doMock('vscode', () => ({
     workspace: {

@@ -28,11 +28,10 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       expect.any(AbortSignal),
       {
         requiredAnalysisCacheTiers: ['baseline', 'symbols'],
-        warmAnalysis: false,
       },
     );
     expect(source._analyzer.refreshAnalysisScope).not.toHaveBeenCalled();
-    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
     expect(rebuildGraphData).not.toHaveBeenCalled();
     expect(source._rawGraphData).toBe(graphData);
     expect(source._sendMessage).toHaveBeenCalledWith({
@@ -58,7 +57,6 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       expect.any(AbortSignal),
       {
         requiredAnalysisCacheTiers: ['baseline', 'symbols'],
-        warmAnalysis: false,
       },
     );
     expect(source._sendMessage).not.toHaveBeenCalledWith({
@@ -86,7 +84,7 @@ describe('graphView/provider/refresh targeted refreshes', () => {
 
     expect(source._analyzer.loadCachedGraph).toHaveBeenCalledOnce();
     expect(source._analyzer.refreshAnalysisScope).not.toHaveBeenCalled();
-    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
     expect(rebuildGraphData).not.toHaveBeenCalled();
   });
 
@@ -113,7 +111,6 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       expect.any(AbortSignal),
       {
         requiredAnalysisCacheTiers: ['baseline', 'plugin:codegraphy.vue'],
-        warmAnalysis: false,
       },
     );
     expect(source._rawGraphData).toBe(graphData);

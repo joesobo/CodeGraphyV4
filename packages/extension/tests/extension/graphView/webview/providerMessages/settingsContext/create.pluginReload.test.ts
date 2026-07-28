@@ -48,7 +48,7 @@ describe('graph view provider listener settings context plugin reload', () => {
       })),
       _sendMessage: vi.fn(),
       _sendAllSettings: vi.fn(),
-      _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+      _loadAndSendData: vi.fn(() => Promise.resolve()),
     };
 
     const context = createGraphViewProviderMessageSettingsContext(
@@ -97,7 +97,7 @@ describe('graph view provider listener settings context plugin reload', () => {
       })),
       _sendMessage: vi.fn(),
       _sendAllSettings: vi.fn(),
-      _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+      _loadAndSendData: vi.fn(() => Promise.resolve()),
     };
 
     const context = createGraphViewProviderMessageSettingsContext(

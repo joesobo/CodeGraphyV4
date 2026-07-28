@@ -24,7 +24,6 @@ function createContext(): GraphViewPluginMessageContext {
     sendDepthState: vi.fn(),
     sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(async () => undefined),
-    analyzeAndSendData: vi.fn(async () => undefined),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendPhysicsSettings: vi.fn(),

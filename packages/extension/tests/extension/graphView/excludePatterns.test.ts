@@ -6,15 +6,15 @@ describe('graph view exclude-pattern helper', () => {
     const createdAction = { id: 'exclude-action' };
     const createAction = vi.fn(() => createdAction);
     const executeAction = vi.fn(() => Promise.resolve());
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const reloadCachedGraph = vi.fn(() => Promise.resolve());
 
     await addGraphViewExcludePatternsWithUndo(['dist/**'], {
       createAction,
       executeAction,
-      analyzeAndSendData,
+      reloadCachedGraph,
     });
 
-    expect(createAction).toHaveBeenCalledWith(['dist/**'], analyzeAndSendData);
+    expect(createAction).toHaveBeenCalledWith(['dist/**'], reloadCachedGraph);
     expect(executeAction).toHaveBeenCalledWith(createdAction);
   });
 });

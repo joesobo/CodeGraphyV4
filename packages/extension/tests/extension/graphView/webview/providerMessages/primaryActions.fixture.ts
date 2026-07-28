@@ -22,7 +22,6 @@ export function createSource(overrides: Record<string, unknown> = {}) {
     _addToExclude: vi.fn(() => Promise.resolve()),
     _loadAndSendData: vi.fn(() => Promise.resolve()),
     _indexAndSendData: vi.fn(() => Promise.resolve()),
-    _analyzeAndSendData: vi.fn(() => Promise.resolve()),
     refreshIndex: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),

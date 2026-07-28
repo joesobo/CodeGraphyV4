@@ -22,7 +22,6 @@ export interface GraphViewPluginMessageContext {
   sendDepthState(): void;
   sendGraphControls(): void;
   loadAndSendData(): Promise<void>;
-  analyzeAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
   sendPhysicsSettings(): void;

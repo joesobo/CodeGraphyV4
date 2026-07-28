@@ -9,10 +9,10 @@ export function shouldHydrateGraphScope(
     && requiresSymbolAnalysisCacheTier(nextVisibility);
 }
 
-export async function hydrateOrReprocessGraphScope(
+export async function hydrateOrReloadGraphScope(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<void> {
   if (!await handlers.hydrateGraphScope()) {
-    await handlers.reprocessGraphScope();
+    await handlers.reloadCachedGraph();
   }
 }

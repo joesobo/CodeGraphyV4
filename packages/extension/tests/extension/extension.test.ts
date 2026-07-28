@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 
 // Import after mock is set up
 import { activate, deactivate } from '../../src/extension/activate';
-import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 describe('Extension', () => {
   let mockContext: {

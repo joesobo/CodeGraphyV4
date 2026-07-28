@@ -9,7 +9,7 @@ describe('graphView/provider/webview/host', () => {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [],
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
       flushPendingWorkspaceRefresh: vi.fn(),
     };
@@ -59,7 +59,7 @@ describe('graphView/provider/webview/host', () => {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [],
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
       flushPendingWorkspaceRefresh: vi.fn(),
     };
@@ -112,7 +112,7 @@ describe('graphView/provider/webview/host', () => {
       _view: undefined,
       _panels: [],
       _sendAllSettings: vi.fn(),
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
       flushPendingWorkspaceRefresh: vi.fn(),
     };

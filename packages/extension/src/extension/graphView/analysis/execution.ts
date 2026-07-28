@@ -1,6 +1,6 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IGraphNodeMetricsUpdate } from '../../../shared/protocol/extensionToWebview';
-import type { DiagnosticEventInput } from '@codegraphy-dev/core';
+import type { AnalysisCacheTier, DiagnosticEventInput } from '@codegraphy-dev/core';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
@@ -8,10 +8,6 @@ import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 
 export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
-
-export interface GraphViewCachedGraphLoadOptions {
-  warmAnalysis?: boolean;
-}
 
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
@@ -29,7 +25,9 @@ interface GraphViewAnalyzerLike {
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
-    options?: GraphViewCachedGraphLoadOptions,
+    options?: {
+      requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+    },
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],

@@ -105,7 +105,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reloadCachedGraph).toHaveBeenCalledOnce();
   });
 
   it('keeps node and edge visibility bursts projection-only with zero graph jobs', async () => {
@@ -148,9 +148,9 @@ describe('settingsMessages/updates/controls', () => {
       await expect(applyGraphControlMessage(message, handlers)).resolves.toBe(true);
     }
 
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.hydrateGraphScope).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
@@ -236,7 +236,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.updateConfig).toHaveBeenCalledOnce();
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', { symbol: true });
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('edgeVisibility', expect.anything());
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
@@ -266,7 +266,7 @@ describe('settingsMessages/updates/controls', () => {
       'symbol:function': true,
     });
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('edgeVisibility', expect.anything());
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reloadCachedGraph).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -289,8 +289,8 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.hydrateGraphScope).toHaveBeenCalledOnce();
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
   });
 
   it('keeps hydrated symbol evidence in memory for later off/on toggles', async () => {
@@ -330,8 +330,8 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.hydrateGraphScope).toHaveBeenCalledTimes(2);
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
   });
 
   it('enables Symbols and Variables when a variable child type is enabled', async () => {
@@ -356,7 +356,7 @@ describe('settingsMessages/updates/controls', () => {
       variable: true,
       'symbol:constant': true,
     });
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reloadCachedGraph).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -382,7 +382,7 @@ describe('settingsMessages/updates/controls', () => {
       variable: true,
       'symbol:global': true,
     });
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reloadCachedGraph).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -407,7 +407,7 @@ describe('settingsMessages/updates/controls', () => {
       symbol: true,
       variable: true,
     });
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -433,7 +433,7 @@ describe('settingsMessages/updates/controls', () => {
       'symbol:function': true,
       'symbol:prototype': true,
     });
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -458,7 +458,7 @@ describe('settingsMessages/updates/controls', () => {
       variable: true,
       'symbol:function': true,
     });
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 

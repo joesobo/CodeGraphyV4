@@ -93,7 +93,7 @@ export function createGraphViewProviderFileInfoMethods(
       createAction: (nextPatterns, analyzeAndSendData) =>
         resolvedDependencies.createAddToExcludeAction(nextPatterns, analyzeAndSendData),
       executeAction: action => resolvedDependencies.executeUndoAction(action),
-      analyzeAndSendData: () => source._loadAndSendData(),
+      reloadCachedGraph: () => source._loadAndSendData(),
     });
   };
 

@@ -73,7 +73,6 @@ function createHydrateAnalysisCacheTiersMethod(
         signal,
         {
           requiredAnalysisCacheTiers: createRequiredAnalysisCacheTiers(tiers),
-          warmAnalysis: false,
         },
       ),
       scopedRefreshLifecycle,

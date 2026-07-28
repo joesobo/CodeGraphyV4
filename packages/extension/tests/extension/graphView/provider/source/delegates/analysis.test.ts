@@ -23,7 +23,7 @@ describe('source/delegates/analysis', () => {
     await delegates._loadAndSendData!();
     await delegates._indexAndSendData!();
     await delegates._refreshAndSendData!();
-    await delegates._doAnalyzeAndSendData!(signal, 3);
+    await delegates._doLoadAndSendData!(signal, 3);
     delegates._markWorkspaceReady!(graph);
     expect(delegates._isAnalysisStale!(signal, 4)).toBe(false);
     expect(delegates._isAbortError!(error)).toBe(false);
@@ -40,7 +40,7 @@ describe('source/delegates/analysis', () => {
     expect(owner._analysisMethods._loadAndSendData).toHaveBeenCalledTimes(1);
     expect(owner._analysisMethods._indexAndSendData).toHaveBeenCalledTimes(1);
     expect(owner._analysisMethods._refreshAndSendData).toHaveBeenCalledTimes(1);
-    expect(owner._analysisMethods._doAnalyzeAndSendData).toHaveBeenCalledWith(signal, 3);
+    expect(owner._analysisMethods._doLoadAndSendData).toHaveBeenCalledWith(signal, 3);
     expect(owner._analysisMethods._markWorkspaceReady).toHaveBeenCalledWith(graph);
     expect(owner._analysisMethods._isAnalysisStale).toHaveBeenCalledWith(signal, 4);
     expect(owner._analysisMethods._isAbortError).toHaveBeenCalledWith(error);
