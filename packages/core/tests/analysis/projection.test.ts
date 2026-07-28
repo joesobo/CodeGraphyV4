@@ -56,7 +56,7 @@ describe('analysis/projection', () => {
     ]);
   });
 
-  it('keeps export-from dependencies visible as File import connections', () => {
+  it('preserves structural reexport relation identity', () => {
     expect(projectProjectedConnectionsFromFileAnalysis({
       filePath: '/workspace/src/index.ts',
       symbols: [],
@@ -70,7 +70,7 @@ describe('analysis/projection', () => {
       }],
     })).toEqual([
       expect.objectContaining({
-        kind: 'import',
+        kind: 'reexport',
         resolvedPath: '/workspace/src/model.ts',
         metadata: { reexport: true },
       }),
