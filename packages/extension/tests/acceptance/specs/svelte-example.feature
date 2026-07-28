@@ -19,6 +19,8 @@ Then I can see there are 13 nodes and 1 connection
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the Svelte plugin on
+And I re-index the workspace
+And I see indexing progress disappear
 And I see edges
 And I can see there are 13 nodes and 4 connections
 
@@ -38,6 +40,8 @@ Scenario: Svelte example exposes type, inheritance, and call relationships
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the Svelte plugin on
+And I re-index the workspace
+And I see indexing progress disappear
 And I show no edge types
 When I toggle the Type Imports edge on
 Then I can see there are 13 nodes and 3 connections

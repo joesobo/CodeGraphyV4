@@ -13,6 +13,8 @@ And the graph nodes match the expected files in the examples/example-godot works
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the GDScript (Godot) plugin on
+And I re-index the workspace
+And I see indexing progress disappear
 When I toggle the References edge on
 Then I see edges
 When I click the Graph Scope button
