@@ -5,7 +5,9 @@ export function resolveGraphIndexStatus(
   state: GraphViewAnalysisExecutionState | undefined,
   hasIndex: boolean,
 ): { freshness: CodeGraphyIndexFreshness; detail: string } {
-  const status = state?.analyzer?.getIndexStatus?.();
+  const status = state?.mode === 'load'
+    ? undefined
+    : state?.analyzer?.getIndexStatus?.();
   if (status) {
     return status;
   }

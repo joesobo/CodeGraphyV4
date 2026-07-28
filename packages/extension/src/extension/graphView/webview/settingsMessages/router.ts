@@ -21,8 +21,6 @@ export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginUpdateImpact?(pluginId: string): IPluginUpdateImpactPolicy | undefined;
-  reloadWorkspacePlugins(): Promise<void>;
-  syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
   sendPluginWebviewInjections?(): void;
   recomputeGroups(): void;

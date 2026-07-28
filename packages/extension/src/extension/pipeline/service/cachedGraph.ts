@@ -1,6 +1,5 @@
 import {
   BASELINE_ANALYSIS_CACHE_TIER,
-  createWorkspaceIndexAnalysisCacheTiers,
   getWorkspaceIndexPluginMatchingFiles,
   hasRequiredAnalysisCacheTiers,
   matchesAnyPattern,
@@ -34,12 +33,7 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
   ): Promise<IGraphData> {
     throwIfWorkspaceAnalysisAborted(signal);
     const workspaceRoot = this._getWorkspaceRoot();
-    await this._hydrateCacheFromGraphCache({
-      activeAnalysisCacheTiers: getCachedGraphRuntimeCacheTiers(
-        this._getActiveAnalysisPluginIds(undefined, disabledPlugins),
-        options.requiredAnalysisCacheTiers,
-      ),
-    });
+    await this._hydrateCacheFromGraphCache({ preserveAllAnalysisFacts: true });
     throwIfWorkspaceAnalysisAborted(signal);
 
     if (!workspaceRoot) {
@@ -101,22 +95,39 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       workspaceRoot,
       config.showOrphans,
       disabledPlugins,
+      collectCachedAnalysisPluginIds(fileAnalysis),
     );
 
     return graphData;
   }
 }
 
-function getCachedGraphRuntimeCacheTiers(
-  activePluginIds: readonly string[],
-  requiredAnalysisCacheTiers: readonly AnalysisCacheTier[] | undefined,
-): readonly AnalysisCacheTier[] {
-  if (requiredAnalysisCacheTiers && requiredAnalysisCacheTiers.length > 0) {
-    return requiredAnalysisCacheTiers;
-  }
+function readMetadataPluginId(metadata: Readonly<Record<string, unknown>> | undefined): string | undefined {
+  const pluginId = metadata?.pluginId;
+  const source = metadata?.source;
+  return typeof pluginId === 'string' && pluginId.length > 0
+    ? pluginId
+    : typeof source === 'string' && source.length > 0 ? source : undefined;
+}
 
-  return createWorkspaceIndexAnalysisCacheTiers(activePluginIds).active
-    ?? [BASELINE_ANALYSIS_CACHE_TIER];
+function collectCachedAnalysisPluginIds(
+  fileAnalysis: ReadonlyMap<string, IWorkspaceAnalysisCache['files'][string]['analysis']>,
+): ReadonlySet<string> {
+  const pluginIds = new Set<string>();
+  for (const analysis of fileAnalysis.values()) {
+    for (const node of analysis.nodes ?? []) {
+      const pluginId = readMetadataPluginId(node.metadata);
+      if (pluginId) pluginIds.add(pluginId);
+    }
+    for (const symbol of analysis.symbols ?? []) {
+      const pluginId = readMetadataPluginId(symbol.metadata);
+      if (pluginId) pluginIds.add(pluginId);
+    }
+    for (const relation of analysis.relations ?? []) {
+      if (relation.pluginId) pluginIds.add(relation.pluginId);
+    }
+  }
+  return pluginIds;
 }
 
 function canReplayCachedGraphAnalysis(

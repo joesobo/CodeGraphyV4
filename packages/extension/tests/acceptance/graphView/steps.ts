@@ -1199,7 +1199,10 @@ async function applyPostIndexScenarioStartingUiState(
 export async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
   const frame = requireGraphFrame(context);
   await closePanelIfOpen(frame);
-  context.beforeIndexStageImage = await graphStage(frame).screenshot();
+  const stage = graphStage(frame);
+  if (await stage.count()) {
+    context.beforeIndexStageImage = await stage.screenshot();
+  }
   const indexButton = frame.getByRole('button', { name: 'Index Workspace' });
   if (await indexButton.count()) {
     await indexButton.click();

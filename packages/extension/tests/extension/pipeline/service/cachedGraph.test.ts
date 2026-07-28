@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  BASELINE_ANALYSIS_CACHE_TIER,
-  SYMBOLS_ANALYSIS_CACHE_TIER,
   type AnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
   projectFileAnalysisConnections,
@@ -52,7 +50,10 @@ const mixedCachedFiles: IDiscoveredFile[] = [
 class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
   readonly hydrateCacheFromGraphCache = vi.fn(async (
-    _options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] },
+    _options?: {
+      activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+      preserveAllAnalysisFacts?: boolean;
+    },
   ) => undefined);
   readonly activeAnalysisPluginIds = vi.fn((
     _pluginIds: readonly string[] | undefined, _disabledPlugins: ReadonlySet<string>,
@@ -93,7 +94,10 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   }
 
   protected override async _hydrateCacheFromGraphCache(
-    options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] },
+    options?: {
+      activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+      preserveAllAnalysisFacts?: boolean;
+    },
   ): Promise<void> {
     await this.hydrateCacheFromGraphCache(options);
   }
@@ -180,11 +184,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
 
     expect(throwIfWorkspaceAnalysisAborted).toHaveBeenCalledWith(signal);
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
-      activeAnalysisCacheTiers: [
-        BASELINE_ANALYSIS_CACHE_TIER,
-        SYMBOLS_ANALYSIS_CACHE_TIER,
-        'plugin:plugin.active',
-      ],
+      preserveAllAnalysisFacts: true,
     });
     expect(createCachedWorkspaceDiscoveryState).toHaveBeenCalledWith(
       '/workspace',
@@ -275,14 +275,14 @@ describe('extension/pipeline/service/cachedGraph', () => {
     );
   });
 
-  it('hydrates baseline and symbol tiers when plugin analysis is inactive', async () => {
+  it('hydrates all persisted facts when plugin analysis is inactive', async () => {
     const facade = new TestCachedGraphFacade();
     facade.activeAnalysisPluginIds.mockReturnValue([]);
 
     await facade.loadCachedGraph();
 
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
-      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+      preserveAllAnalysisFacts: true,
     });
   });
 

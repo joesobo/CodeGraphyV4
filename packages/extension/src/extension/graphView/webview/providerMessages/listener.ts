@@ -91,8 +91,6 @@ export interface GraphViewProviderMessageListenerSource {
         getPluginFilterPatterns(): string[];
         getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
         lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
-        reloadWorkspacePlugins?(): Promise<void>;
-        syncWorkspacePlugins?(): Promise<void>;
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;

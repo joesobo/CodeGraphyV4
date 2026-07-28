@@ -35,8 +35,6 @@ function createHandlers(
       return defaultValue;
     }),
     updateConfig: vi.fn(() => Promise.resolve()),
-    reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
-    syncWorkspacePlugins: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     smartRebuild: vi.fn(),

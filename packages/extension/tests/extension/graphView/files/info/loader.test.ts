@@ -5,32 +5,28 @@ import { loadGraphViewFileInfo } from '../../../../../src/extension/graphView/fi
 describe('graphView/files/info/loader', () => {
   it('returns no payload when no workspace folder is available', async () => {
     const statFile = vi.fn();
-    const ensureAnalyzerReady = vi.fn();
+    const getPluginNamesForIds = vi.fn();
 
     const payload = await loadGraphViewFileInfo('src/main.py', {
       workspaceFolder: undefined,
       statFile,
-      ensureAnalyzerReady,
+      getPluginNamesForIds,
       graphData: { nodes: [], edges: [] },
     });
 
     expect(payload).toBeUndefined();
     expect(statFile).not.toHaveBeenCalled();
-    expect(ensureAnalyzerReady).not.toHaveBeenCalled();
+    expect(getPluginNamesForIds).not.toHaveBeenCalled();
   });
 
   it('omits plugin names when plugins support the file but did not contribute graph facts', async () => {
     const statFile = vi.fn().mockResolvedValue({ size: 456, mtime: 123 });
-    const analyzer = {
-      getPluginNameForFile: vi.fn(() => 'Markdown'),
-      getPluginNamesForIds: vi.fn(() => ['Markdown']),
-    };
-    const ensureAnalyzerReady = vi.fn().mockResolvedValue(analyzer);
+    const getPluginNamesForIds = vi.fn(() => ['Markdown']);
 
     const payload = await loadGraphViewFileInfo('src/main.py', {
       workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
       statFile,
-      ensureAnalyzerReady,
+      getPluginNamesForIds,
       graphData: {
         nodes: [],
         edges: [
@@ -42,9 +38,7 @@ describe('graphView/files/info/loader', () => {
     });
 
     expect(statFile).toHaveBeenCalledWith(vscode.Uri.file('/test/workspace/src/main.py'));
-    expect(ensureAnalyzerReady).not.toHaveBeenCalled();
-    expect(analyzer.getPluginNameForFile).not.toHaveBeenCalled();
-    expect(analyzer.getPluginNamesForIds).not.toHaveBeenCalled();
+    expect(getPluginNamesForIds).not.toHaveBeenCalled();
     expect(payload).toEqual({
       path: 'src/main.py',
       size: 456,
@@ -56,19 +50,17 @@ describe('graphView/files/info/loader', () => {
   });
 
   it('reports distinct plugin names from plugin-sourced edges touching the file', async () => {
-    const analyzer = {
-      getPluginNamesForIds: vi.fn((pluginIds: readonly string[]) =>
-        pluginIds.map(pluginId => ({
-          'codegraphy.markdown': 'Markdown',
-          'codegraphy.vue': 'Vue',
-        }[pluginId] ?? pluginId)),
-      ),
-    };
+    const getPluginNamesForIds = vi.fn((pluginIds: readonly string[]) =>
+      pluginIds.map(pluginId => ({
+        'codegraphy.markdown': 'Markdown',
+        'codegraphy.vue': 'Vue',
+      }[pluginId] ?? pluginId)),
+    );
 
     const payload = await loadGraphViewFileInfo('README.md', {
       workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
       statFile: vi.fn().mockResolvedValue({ size: 456, mtime: 123 }),
-      ensureAnalyzerReady: vi.fn().mockResolvedValue(analyzer),
+      getPluginNamesForIds,
       graphData: {
         nodes: [],
         edges: [
@@ -95,7 +87,7 @@ describe('graphView/files/info/loader', () => {
       },
     });
 
-    expect(analyzer.getPluginNamesForIds).toHaveBeenCalledWith(['codegraphy.markdown', 'codegraphy.vue']);
+    expect(getPluginNamesForIds).toHaveBeenCalledWith(['codegraphy.markdown', 'codegraphy.vue']);
     expect(payload?.plugin).toBe('Markdown, Vue');
   });
 
@@ -103,7 +95,7 @@ describe('graphView/files/info/loader', () => {
     const payload = await loadGraphViewFileInfo('src/main.py', {
       workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
       statFile: vi.fn().mockResolvedValue({ size: 456, mtime: 123 }),
-      ensureAnalyzerReady: vi.fn().mockResolvedValue(undefined),
+      getPluginNamesForIds: vi.fn(() => []),
       graphData: { nodes: [], edges: [] },
     });
 

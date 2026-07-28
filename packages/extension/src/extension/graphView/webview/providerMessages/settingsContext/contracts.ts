@@ -7,8 +7,6 @@ export type GraphViewProviderSettingsContext = Pick<
   | 'getConfig'
   | 'updateConfig'
   | 'getInstalledPluginUpdateImpact'
-  | 'reloadWorkspacePlugins'
-  | 'syncWorkspacePlugins'
   | 'sendPluginStatuses'
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'

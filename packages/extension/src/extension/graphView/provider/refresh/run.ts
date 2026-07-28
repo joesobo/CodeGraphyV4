@@ -5,8 +5,7 @@ export function sendRefreshState(
   source: GraphViewProviderRefreshMethodsSource,
 ): void {
   const hasIndex = source._analyzer?.hasIndex() ?? false;
-  const status = source._analyzer?.getIndexStatus?.()
-    ?? resolveGraphIndexStatus(undefined, hasIndex);
+  const status = resolveGraphIndexStatus(undefined, hasIndex);
   source._sendMessage({
     type: 'GRAPH_INDEX_STATUS_UPDATED',
     payload: {

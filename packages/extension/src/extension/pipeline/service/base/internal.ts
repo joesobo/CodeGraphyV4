@@ -159,6 +159,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
+    activeAnalysisPluginIds?: ReadonlySet<string>,
   ): IGraphData {
     const completeGraphData = buildWorkspacePipelineCompleteGraphDataFromAnalysis(
       this._cache,
@@ -169,6 +170,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       disabledPlugins,
       this._lastDiscoveredDirectories,
       this._lastGitIgnoredPaths,
+      activeAnalysisPluginIds,
     );
     const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
     const graphData = buildWorkspacePipelineGraphFromAnalysis(
@@ -181,6 +183,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       this._lastDiscoveredDirectories,
       { nodeVisibility },
       this._lastGitIgnoredPaths,
+      activeAnalysisPluginIds,
     );
     this._completeGraphData = completeGraphData;
     this._lastGraphData = graphData;

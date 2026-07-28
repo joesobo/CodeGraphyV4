@@ -25,7 +25,7 @@ function createState(
 
 describe('extension/graphView/analysis/execution/publish/status', () => {
   it('uses analyzer-provided index status when available', () => {
-    expect(resolveGraphIndexStatus(createState('load', {
+    expect(resolveGraphIndexStatus(createState('index', {
       analyzer: {
         getIndexStatus: () => ({
           freshness: 'stale',

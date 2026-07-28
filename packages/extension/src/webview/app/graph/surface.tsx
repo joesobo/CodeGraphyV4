@@ -9,6 +9,7 @@ type GraphComponentProps = React.ComponentProps<typeof Graph>;
 
 export interface GraphSurfaceProps {
   graphData: IGraphData;
+  hasIndex: boolean;
   coloredData: IGraphData | null | undefined;
   showOrphans: boolean;
   depthMode: boolean;
@@ -22,6 +23,7 @@ export interface GraphSurfaceProps {
 
 export function GraphSurface({
   graphData,
+  hasIndex,
   coloredData,
   showOrphans,
   depthMode,
@@ -35,7 +37,9 @@ export function GraphSurface({
   if (graphData.nodes.length === 0) {
     return (
       <EmptyState
-        hint={getNoDataHint(graphData, showOrphans, depthMode)}
+        hint={hasIndex
+          ? getNoDataHint(graphData, showOrphans, depthMode)
+          : 'Select Index Workspace to build this graph.'}
         fullScreen={false}
       />
     );

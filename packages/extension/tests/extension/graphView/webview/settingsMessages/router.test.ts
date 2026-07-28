@@ -42,7 +42,6 @@ function createHandlers(
     getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     reloadCachedGraph: vi.fn(() => Promise.resolve()),
-    reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
@@ -229,7 +228,7 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('enables package-backed plugins and reloads workspace plugins before loading the cached graph', async () => {
+  it('enables package-backed plugins before loading the cached graph', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -249,7 +248,6 @@ describe('graph view settings router', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.vue', activation: 'enabled' },
     ]);
-    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadCachedGraph).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });

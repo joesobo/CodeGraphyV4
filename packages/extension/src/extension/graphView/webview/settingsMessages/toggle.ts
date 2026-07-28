@@ -26,7 +26,6 @@ export async function applySettingsToggleMessage(
         },
       );
       await handlers.updateConfig('plugins', plan.plugins);
-      await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
       if (message.payload.enabled) {
         replaySavedPluginData(message.payload.pluginId, handlers);
         handlers.sendPluginWebviewInjections?.();

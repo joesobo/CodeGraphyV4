@@ -18,6 +18,7 @@ describe('app/graph/surface', () => {
     render(
       <GraphSurface
         graphData={{ nodes: [{ id: 'base-node', label: 'Base', color: '#111111' }], edges: [] }}
+        hasIndex
         coloredData={{ nodes: [{ id: 'colored-node', label: 'Colored', color: '#222222' }], edges: [] }}
         showOrphans
         depthMode={false}
@@ -38,6 +39,7 @@ describe('app/graph/surface', () => {
     render(
       <GraphSurface
         graphData={{ nodes: [], edges: [] }}
+        hasIndex
         coloredData={null}
         showOrphans={false}
         depthMode={false}
