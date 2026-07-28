@@ -14,31 +14,23 @@ import {
 } from './refresh';
 import {
   analyzeGraphViewRawData,
-  discoverGraphViewRawData,
   loadCachedGraphViewRawData,
 } from './load/analyzerData';
 import {
-  hasReplayableGraphData,
   selectGraphViewRawDataLoadDecisionForState,
   type GraphViewRawDataLoadContext,
   type GraphViewRawDataRoute,
 } from './load/context';
 
-async function loadDiscoveredGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
-  return discoverGraphViewRawData(context.signal, context.state, context.analyzer);
-}
-
-async function loadCachedOrRefreshedGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
-  const cachedGraphData = await loadCachedGraphViewRawData(
+async function loadCachedGraphViewRawDataOnly(
+  context: GraphViewRawDataLoadContext,
+): Promise<IGraphData> {
+  return loadCachedGraphViewRawData(
     context.signal,
     context.state,
     context.analyzer,
-    context.indexFreshness === 'stale' ? { warmAnalysis: false } : undefined,
+    { warmAnalysis: false },
   );
-
-  return hasReplayableGraphData(cachedGraphData)
-    ? cachedGraphData
-    : refreshGraphViewRawData(context.signal, context.state, context.forwardProgress);
 }
 
 async function loadRefreshedGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
@@ -62,8 +54,8 @@ const GRAPH_VIEW_RAW_DATA_LOADERS: Record<GraphViewRawDataRoute, (
   context: GraphViewRawDataLoadContext,
 ) => Promise<IGraphData>> = {
   analyze: loadAnalyzedGraphViewRawData,
-  cached: loadCachedOrRefreshedGraphViewRawData,
-  discover: loadDiscoveredGraphViewRawData,
+  cached: loadCachedGraphViewRawDataOnly,
+  empty: async () => EMPTY_GRAPH_DATA,
   incremental: loadIncrementalGraphViewRawData,
   refresh: loadRefreshedGraphViewRawData,
 };

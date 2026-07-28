@@ -9,7 +9,6 @@ import {
 import { createGraphViewProviderDoAnalyzeAndSendData } from './execution';
 import { createGraphViewProviderAnalyzeAndSendData } from './request';
 import {
-  canReplayStaleCache,
   createFullIndexAnalysisCoordinator,
 } from './fullIndex';
 import {
@@ -196,12 +195,6 @@ export function createGraphViewProviderAnalysisMethods(
       }
 
       await _loadAndSendData();
-      if (canReplayStaleCache(source)) {
-        fullIndexAnalysis.runFullIndexAnalysisInBackground(
-          _analyzeAndSendData,
-          () => source._analysisController === undefined,
-        );
-      }
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
     _analyzeAndSendData: () => fullIndexAnalysis.runAfterFullIndexAnalysis(_analyzeAndSendData),

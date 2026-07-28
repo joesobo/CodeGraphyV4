@@ -1,8 +1,13 @@
 import type { CodeGraphyIndexFreshness } from '../../../../repoSettings/freshness';
 import type { GraphViewAnalysisExecutionState } from '../../execution';
-import { shouldDiscoverGraph, shouldRefreshGraphIndex } from './policy';
+import { shouldRefreshGraphIndex } from './policy';
 
-export type GraphViewRawDataLoadRoute = 'discover' | 'cached' | 'refresh' | 'incremental' | 'analyze';
+export type GraphViewRawDataLoadRoute =
+  | 'analyze'
+  | 'cached'
+  | 'empty'
+  | 'incremental'
+  | 'refresh';
 
 export interface GraphViewRawDataLoadDecision {
   route: GraphViewRawDataLoadRoute;
@@ -14,22 +19,20 @@ export function selectGraphViewRawDataLoadDecision(
   freshness: CodeGraphyIndexFreshness,
   canLoadCachedGraph = false,
 ): GraphViewRawDataLoadDecision {
-  const shouldDiscover = shouldDiscoverGraph(mode, freshness);
-  if (shouldDiscover) {
-    return { route: 'discover', shouldDiscover };
-  }
-
-  if (mode === 'load' && freshness !== 'missing' && canLoadCachedGraph) {
-    return { route: 'cached', shouldDiscover };
+  if (mode === 'load') {
+    return {
+      route: freshness !== 'missing' && canLoadCachedGraph ? 'cached' : 'empty',
+      shouldDiscover: false,
+    };
   }
 
   if (shouldRefreshGraphIndex(mode, freshness)) {
-    return { route: 'refresh', shouldDiscover };
+    return { route: 'refresh', shouldDiscover: false };
   }
 
   if (mode === 'incremental') {
-    return { route: 'incremental', shouldDiscover };
+    return { route: 'incremental', shouldDiscover: false };
   }
 
-  return { route: 'analyze', shouldDiscover };
+  return { route: 'analyze', shouldDiscover: false };
 }

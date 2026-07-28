@@ -105,9 +105,6 @@ export class GraphViewProviderRuntime {
     Object.assign(this, createGraphViewProviderRuntimeFlagState());
 
     this._analyzer = new WorkspacePipeline(_context);
-    void this._analyzer.warmGraphCache().catch(error => {
-      console.warn('[CodeGraphy] Failed to warm repo-local Graph Cache.', error);
-    });
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
