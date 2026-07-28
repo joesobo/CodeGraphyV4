@@ -61,6 +61,7 @@ const stateHarness = vi.hoisted(() => {
       physicsSettings: {},
       refresh: {
         refresh: vi.fn(async () => undefined),
+        refreshIndex: vi.fn(async () => undefined),
         refreshGitignoreMetadata: vi.fn(async () => undefined),
         refreshChangedFiles: undefined as undefined | ((filePaths: readonly string[]) => Promise<void>),
       },

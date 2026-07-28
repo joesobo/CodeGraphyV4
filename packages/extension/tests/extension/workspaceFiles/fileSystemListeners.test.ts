@@ -17,6 +17,7 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    refreshIndex: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -152,6 +153,25 @@ describe('registerSaveHandler', () => {
     vi.advanceTimersByTime(600);
 
     expect(provider.refresh).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('runs a full refresh for CodeGraphy settings saves', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const mock = vscode.workspace.onDidSaveTextDocument as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (doc: vscode.TextDocument) => void;
+
+    listener(makeDocument('/project/.codegraphy/settings.json'));
+    vi.advanceTimersByTime(600);
+
+    expect(provider.refreshIndex).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });
 

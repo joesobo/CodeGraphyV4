@@ -44,6 +44,7 @@ import {
   createExtensionWorkspaceCacheUpdater,
   type ExtensionWorkspaceCacheUpdater,
 } from '../../../../workspaceFiles/cache/model';
+import { isCodeGraphyWorkspaceSettingsPath } from '../../../../workspaceFiles/ignore';
 import {
   loadPersistedWorkspaceRefresh,
   persistPendingWorkspaceRefresh,
@@ -56,7 +57,7 @@ function classifyPersistedWorkspaceCacheUpdate(
   filePaths: readonly string[],
 ): PersistedWorkspaceCacheUpdateKind {
   const normalizedPaths = filePaths.map(filePath => filePath.replace(/\\/g, '/'));
-  if (normalizedPaths.some(filePath => filePath.endsWith('/.codegraphy/settings.json'))) {
+  if (normalizedPaths.some(isCodeGraphyWorkspaceSettingsPath)) {
     return 'settings';
   }
   return normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'))
@@ -279,6 +280,10 @@ export class GraphViewProviderRuntime {
     this._pendingWorkspaceRefresh = undefined;
     persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), []);
     console.log(pending.logMessage);
+    if ([...pending.filePaths].some(isCodeGraphyWorkspaceSettingsPath)) {
+      void this._methodContainers.refresh.refreshIndex();
+      return;
+    }
     if (
       pending.gitignoreRefresh
       && this._methodContainers.refresh.refreshGitignoreMetadata

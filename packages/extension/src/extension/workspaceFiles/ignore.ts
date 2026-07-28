@@ -17,12 +17,15 @@ function normalizeWorkspacePath(filePath: string): string {
   return filePath.replace(/\\/g, '/');
 }
 
+export function isCodeGraphyWorkspaceSettingsPath(filePath: string): boolean {
+  const normalized = normalizeWorkspacePath(filePath);
+  return normalized === '.codegraphy/settings.json'
+    || normalized.endsWith('/.codegraphy/settings.json');
+}
+
 function shouldIgnoreWorkspaceRefreshPath(filePath: string): boolean {
   const normalized = normalizeWorkspacePath(filePath);
-  if (
-    normalized === '.codegraphy/settings.json'
-    || normalized.endsWith('/.codegraphy/settings.json')
-  ) {
+  if (isCodeGraphyWorkspaceSettingsPath(normalized)) {
     return false;
   }
   return matchesAnyPattern(normalized, WORKSPACE_REFRESH_IGNORE_PATTERNS);

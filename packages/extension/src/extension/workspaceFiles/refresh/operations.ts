@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
 import {
+  isCodeGraphyWorkspaceSettingsPath,
   shouldIgnoreSaveForGraphRefresh,
   shouldIgnoreWorkspaceFileWatcherRefresh,
 } from '../ignore';
@@ -65,7 +66,10 @@ export function refreshWorkspaceChangedPath(
     logMessage,
     [filePath],
     WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS,
-    { gitignoreRefresh: isGitignorePath(filePath) },
+    {
+      fullRefresh: isCodeGraphyWorkspaceSettingsPath(filePath),
+      gitignoreRefresh: isGitignorePath(filePath),
+    },
   );
   provider.emitEvent('workspace:fileChanged', { filePath });
 }
