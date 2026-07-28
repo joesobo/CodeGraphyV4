@@ -24,6 +24,7 @@ export function createExecutionAnalyzer(
 ) {
   return {
     initialize: vi.fn(async () => undefined),
+    syncWorkspacePlugins: vi.fn(async () => undefined),
     hasIndex: vi.fn(() => true),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),

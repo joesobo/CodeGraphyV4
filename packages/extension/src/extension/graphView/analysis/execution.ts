@@ -10,6 +10,7 @@ export type GraphViewIndexingProgress = { phase: string; current: number; total:
 
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
+  syncWorkspacePlugins(): Promise<void>;
   hasIndex(): boolean;
   getIndexStatus?(): {
     freshness: CodeGraphyIndexFreshness;

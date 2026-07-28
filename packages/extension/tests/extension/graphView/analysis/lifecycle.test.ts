@@ -29,6 +29,7 @@ function createState(
 function createAnalyzer(overrides: Partial<NonNullable<GraphViewProviderAnalysisState['analyzer']>> = {}) {
   return {
     initialize: vi.fn(async () => undefined),
+    syncWorkspacePlugins: vi.fn(async () => undefined),
     hasIndex: vi.fn(() => true),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     registry: {

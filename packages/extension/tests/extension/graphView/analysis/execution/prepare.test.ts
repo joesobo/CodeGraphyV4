@@ -84,6 +84,7 @@ describe('graph view analysis execution prepare', () => {
       isAnalysisStale: vi.fn()
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
         .mockReturnValueOnce(true),
     });
 

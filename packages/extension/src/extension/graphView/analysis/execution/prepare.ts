@@ -49,6 +49,11 @@ export async function prepareGraphViewAnalysis(
     if (!(await ensureGraphViewAnalyzerInitialized(signal, requestId, state, handlers))) {
       return false;
     }
+
+    await state.analyzer.syncWorkspacePlugins();
+    if (handlers.isAnalysisStale(signal, requestId)) {
+      return false;
+    }
   }
 
   if (!prepareAnalysisGroups(signal, requestId, handlers)) {
