@@ -7,22 +7,6 @@ import {
 import { hasSymbolEndpoint } from './symbolRelations';
 import { toRepoRelativeGraphPath } from './symbolPaths';
 
-type AnalysisRelation = NonNullable<IFileAnalysisResult['relations']>[number];
-
-function projectFileOnlyRelation(relation: AnalysisRelation): AnalysisRelation[] {
-  if (relation.kind === 'reexport') {
-    return [{
-      ...relation,
-      fromSymbolId: undefined,
-      kind: 'import',
-      toSymbolId: undefined,
-    }];
-  }
-  return !hasSymbolEndpoint(relation) || isDirectSameFileSymbolRelation(relation)
-    ? [relation]
-    : [];
-}
-
 export function projectFileAnalysisConnections(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
   workspaceRoot: string,
@@ -32,7 +16,9 @@ export function projectFileAnalysisConnections(
 
   for (const [filePath, analysis] of fileAnalysis) {
     const relations = options.includeSymbolEndpointRelations === false
-      ? analysis.relations?.flatMap(projectFileOnlyRelation)
+      ? analysis.relations?.filter(relation => (
+          !hasSymbolEndpoint(relation) || isDirectSameFileSymbolRelation(relation)
+        ))
       : analysis.relations;
     connections.set(
       toRepoRelativeGraphPath(filePath, workspaceRoot),

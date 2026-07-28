@@ -18,11 +18,10 @@ const reexportAnalysis: IFileAnalysisResult = {
 };
 
 describe('File analysis connection projection', () => {
-  it('projects reexports as imports when only File relationships are visible', () => {
+  it('projects reexports as imports when Symbol endpoints project to Files', () => {
     const connections = projectFileAnalysisConnections(
       new Map([[reexportAnalysis.filePath, reexportAnalysis]]),
       '/workspace',
-      { includeSymbolEndpointRelations: false },
     );
 
     expect(connections.get('src/index.ts')).toEqual([
@@ -34,14 +33,13 @@ describe('File analysis connection projection', () => {
     ]);
   });
 
-  it('preserves reexport identity when Symbol relationships are visible', () => {
+  it('omits reexport File projection when Symbol endpoints remain explicit', () => {
     const connections = projectFileAnalysisConnections(
       new Map([[reexportAnalysis.filePath, reexportAnalysis]]),
       '/workspace',
+      { includeSymbolEndpointRelations: false },
     );
 
-    expect(connections.get('src/index.ts')).toEqual([
-      expect.objectContaining({ kind: 'reexport' }),
-    ]);
+    expect(connections.get('src/index.ts')).toEqual([]);
   });
 });
