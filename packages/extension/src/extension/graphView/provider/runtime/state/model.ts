@@ -50,6 +50,20 @@ import {
   type PendingWorkspaceRefreshState,
 } from '../workspaceRefreshPersistence';
 
+type PersistedWorkspaceCacheUpdateKind = 'files' | 'gitignore' | 'settings';
+
+function classifyPersistedWorkspaceCacheUpdate(
+  filePaths: readonly string[],
+): PersistedWorkspaceCacheUpdateKind {
+  const normalizedPaths = filePaths.map(filePath => filePath.replace(/\\/g, '/'));
+  if (normalizedPaths.some(filePath => filePath.endsWith('/.codegraphy/settings.json'))) {
+    return 'settings';
+  }
+  return normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'))
+    ? 'gitignore'
+    : 'files';
+}
+
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
   protected _panels!: vscode.WebviewPanel[];
@@ -182,32 +196,42 @@ export class GraphViewProviderRuntime {
       this._installedPluginActivationPromise,
     ]);
     if (workspaceRoot !== this._getWorkspaceRoot()) return;
-    const normalizedPaths = filePaths.map(filePath => filePath.replace(/\\/g, '/'));
-    const settingsChanged = normalizedPaths.some(
-      filePath => filePath.endsWith('/.codegraphy/settings.json'),
-    );
-    const gitignoreChanged = normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'));
+    const updateKind = classifyPersistedWorkspaceCacheUpdate(filePaths);
     if (this._view || this._panels.length > 0) {
-      if (settingsChanged) {
-        this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
-        await this._methodContainers.refresh.refreshIndex();
-        return;
-      }
-      if (gitignoreChanged) {
-        await this._methodContainers.refresh.refreshGitignoreMetadata();
-        return;
-      }
-      await this._methodContainers.refresh.refreshChangedFiles(filePaths);
+      await this._updateResolvedGraphViewCache(updateKind, filePaths);
       return;
     }
+    await this._updateHeadlessGraphViewCache(updateKind, filePaths);
+  }
+
+  private async _updateResolvedGraphViewCache(
+    updateKind: PersistedWorkspaceCacheUpdateKind,
+    filePaths: readonly string[],
+  ): Promise<void> {
+    if (updateKind === 'settings') {
+      this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
+      await this._methodContainers.refresh.refreshIndex();
+      return;
+    }
+    if (updateKind === 'gitignore') {
+      await this._methodContainers.refresh.refreshGitignoreMetadata();
+      return;
+    }
+    await this._methodContainers.refresh.refreshChangedFiles(filePaths);
+  }
+
+  private async _updateHeadlessGraphViewCache(
+    updateKind: PersistedWorkspaceCacheUpdateKind,
+    filePaths: readonly string[],
+  ): Promise<void> {
     const analyzer = this._analyzer;
     if (!analyzer) return;
-    if (settingsChanged) {
+    if (updateKind === 'settings') {
       this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
       await analyzer.refreshIndex(this._filterPatterns, this._disabledPlugins);
       return;
     }
-    if (gitignoreChanged) {
+    if (updateKind === 'gitignore') {
       await analyzer.refreshGitignoreMetadata(this._filterPatterns, this._disabledPlugins);
       return;
     }
