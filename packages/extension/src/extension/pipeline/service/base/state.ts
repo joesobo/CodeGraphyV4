@@ -19,12 +19,6 @@ export abstract class WorkspacePipelineStateBase extends WorkspacePipelineEngine
     super(context);
   }
 
-  async warmGraphCache(): Promise<void> {
-    await this._hydrateCacheFromGraphCache({
-      activeAnalysisCacheTiers: DEFAULT_GRAPH_CACHE_HYDRATION_TIERS,
-    });
-  }
-
   readStructuredAnalysisSnapshot(): WorkspaceAnalysisDatabaseSnapshot {
     const workspaceRoot = this._getWorkspaceRoot();
     return workspaceRoot

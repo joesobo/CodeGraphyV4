@@ -70,9 +70,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
 export interface GraphViewProviderAnalysisMethods {
   _loadAndSendData(): Promise<void>;
   _indexAndSendData(): Promise<void>;
-  _analyzeAndSendData(): Promise<void>;
   _refreshAndSendData(): Promise<void>;
-  _incrementalAnalyzeAndSendData(filePaths: readonly string[]): Promise<void>;
   _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
@@ -84,7 +82,7 @@ export function createGraphViewProviderAnalysisMethods(
   dependencies: GraphViewProviderAnalysisMethodDependencies =
     createDefaultGraphViewProviderAnalysisMethodDependencies(),
 ): GraphViewProviderAnalysisMethods {
-  const fullIndexAnalysis = createFullIndexAnalysisCoordinator(dependencies);
+  const fullIndexAnalysis = createFullIndexAnalysisCoordinator();
 
   const _markWorkspaceReady = (
     graph: IGraphData,
@@ -125,19 +123,6 @@ export function createGraphViewProviderAnalysisMethods(
     _doLoadAndSendData,
     'load',
   );
-  const _doAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
-    source,
-    dependencies,
-    delegates,
-    'analyze',
-  );
-  const _analyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
-    source,
-    dependencies,
-    delegates,
-    _doAnalyzeAndSendData,
-    'analyze',
-  );
   const _doIndexAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
     source,
     dependencies,
@@ -164,30 +149,6 @@ export function createGraphViewProviderAnalysisMethods(
     _doRefreshAndSendData,
     'refresh',
   );
-  const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
-    await fullIndexAnalysis.waitForForegroundFullIndexAnalysis();
-    if (source._firstAnalysis && source._firstWorkspaceReadyPromise) {
-      await source._firstWorkspaceReadyPromise;
-    }
-
-    source._changedFilePaths = [...filePaths];
-    const doIncrementalAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
-      source,
-      dependencies,
-      delegates,
-      'incremental',
-    );
-    const runIncrementalAnalyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
-      source,
-      dependencies,
-      delegates,
-      doIncrementalAnalyzeAndSendData,
-      'incremental',
-    );
-
-    await runIncrementalAnalyzeAndSendData();
-  };
-
   const methods: GraphViewProviderAnalysisMethods = {
     _loadAndSendData: async () => {
       if (await fullIndexAnalysis.waitForFullIndexAnalysis()) {
@@ -197,10 +158,8 @@ export function createGraphViewProviderAnalysisMethods(
       await _loadAndSendData();
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
-    _analyzeAndSendData: () => fullIndexAnalysis.runAfterFullIndexAnalysis(_analyzeAndSendData),
     _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
-    _incrementalAnalyzeAndSendData,
-    _doAnalyzeAndSendData,
+    _doAnalyzeAndSendData: _doLoadAndSendData,
     _markWorkspaceReady,
     _isAnalysisStale,
     _isAbortError,

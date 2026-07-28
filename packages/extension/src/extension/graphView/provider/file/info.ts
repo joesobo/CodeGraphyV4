@@ -23,7 +23,7 @@ export interface GraphViewProviderFileInfoMethodsSource {
   _analyzerInitialized: boolean;
   _graphData: IGraphData;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _analyzeAndSendData(): Promise<void>;
+  _loadAndSendData(): Promise<void>;
 }
 
 export interface GraphViewProviderFileInfoMethods {
@@ -93,7 +93,7 @@ export function createGraphViewProviderFileInfoMethods(
       createAction: (nextPatterns, analyzeAndSendData) =>
         resolvedDependencies.createAddToExcludeAction(nextPatterns, analyzeAndSendData),
       executeAction: action => resolvedDependencies.executeUndoAction(action),
-      analyzeAndSendData: () => source._analyzeAndSendData(),
+      analyzeAndSendData: () => source._loadAndSendData(),
     });
   };
 

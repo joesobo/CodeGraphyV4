@@ -111,7 +111,7 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       disabledPlugins,
     );
 
-    if (options.warmAnalysis !== false) {
+    if (options.warmAnalysis === true) {
       this._scheduleCachedGraphAnalysisWarmup(
         eligibleFiles,
         workspaceRoot,

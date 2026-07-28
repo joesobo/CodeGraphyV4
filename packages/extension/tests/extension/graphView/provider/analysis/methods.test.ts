@@ -28,12 +28,11 @@ describe('graphView/provider/analysis/methods', () => {
       logError: vi.fn(),
     });
 
-    expect(methods._analyzeAndSendData).toEqual(expect.any(Function));
+    expect(methods._loadAndSendData).toEqual(expect.any(Function));
     expect(methods._doAnalyzeAndSendData).toEqual(expect.any(Function));
     expect(methods._markWorkspaceReady).toEqual(expect.any(Function));
     expect(methods._isAnalysisStale).toEqual(expect.any(Function));
     expect(methods._isAbortError).toEqual(expect.any(Function));
-    expect(source._analyzeAndSendData).toBeUndefined();
     expect(source._doAnalyzeAndSendData).toBeUndefined();
     expect(source._markWorkspaceReady).toBeUndefined();
     expect(source._isAnalysisStale).toBeUndefined();
@@ -178,7 +177,7 @@ describe('graphView/provider/analysis/methods', () => {
       logError: vi.fn(),
     });
 
-    await methods._analyzeAndSendData();
+    await methods._loadAndSendData();
     await methods._doAnalyzeAndSendData(signal, 11);
 
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
@@ -258,174 +257,6 @@ describe('graphView/provider/analysis/methods', () => {
     await load;
 
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
-  });
-
-  it('defers stale cache sync until after cached load returns to the caller', async () => {
-    const source = createSource({
-      _analyzer: {
-        getIndexStatus: vi.fn(() => ({
-          freshness: 'stale',
-          detail: 'CodeGraphy Workspace Graph Cache is stale: enabled plugins changed.',
-        })),
-        loadCachedGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
-        analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
-        refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),
-        registry: {
-          notifyWorkspaceReady: vi.fn(),
-        },
-      },
-    });
-    const events: string[] = [];
-    let finishCacheSync: (() => void) | undefined;
-    const runAnalysisRequest = vi.fn(async state => {
-      events.push(`${state.mode}:start`);
-      if (state.mode === 'analyze') {
-        await new Promise<void>(resolve => {
-          finishCacheSync = resolve;
-        });
-      }
-      events.push(`${state.mode}:end`);
-    });
-    const methods = createGraphViewProviderAnalysisMethods(source as never, {
-      runAnalysisRequest,
-      executeAnalysis: vi.fn(async () => undefined),
-      markWorkspaceReady: vi.fn(),
-      isAnalysisStale: vi.fn(() => false),
-      isAbortError: vi.fn(() => false),
-      hasWorkspace: vi.fn(() => true),
-      logError: vi.fn(),
-    });
-
-    await methods._loadAndSendData();
-    await Promise.resolve();
-
-    expect(events).toEqual(['load:start', 'load:end']);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(events).toEqual(['load:start', 'load:end', 'analyze:start']);
-
-    finishCacheSync?.();
-    await Promise.resolve();
-
-    expect(events).toEqual(['load:start', 'load:end', 'analyze:start', 'analyze:end']);
-  });
-
-  it('starts incremental analysis before deferred stale cache background sync', async () => {
-    const source = createSource({
-      _firstAnalysis: false,
-      _analyzer: {
-        getIndexStatus: vi.fn(() => ({
-          freshness: 'stale',
-          detail: 'CodeGraphy Workspace Graph Cache is stale: enabled plugins changed.',
-        })),
-        loadCachedGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
-        analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
-        refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),
-        registry: {
-          notifyWorkspaceReady: vi.fn(),
-        },
-      },
-    });
-    const events: string[] = [];
-    let finishCacheSync: (() => void) | undefined;
-    const runAnalysisRequest = vi.fn(async state => {
-      events.push(`${state.mode}:start`);
-      if (state.mode === 'analyze') {
-        await new Promise<void>(resolve => {
-          finishCacheSync = resolve;
-        });
-      }
-      events.push(`${state.mode}:end`);
-    });
-    const methods = createGraphViewProviderAnalysisMethods(source as never, {
-      runAnalysisRequest,
-      executeAnalysis: vi.fn(async () => undefined),
-      markWorkspaceReady: vi.fn(),
-      isAnalysisStale: vi.fn(() => false),
-      isAbortError: vi.fn(() => false),
-      hasWorkspace: vi.fn(() => true),
-      logError: vi.fn(),
-    });
-
-    await methods._loadAndSendData();
-    await Promise.resolve();
-    const incremental = methods._incrementalAnalyzeAndSendData(['src/changed.ts']);
-    await incremental;
-
-    expect(events).toEqual([
-      'load:start',
-      'load:end',
-      'incremental:start',
-      'incremental:end',
-    ]);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(events).toEqual([
-      'load:start',
-      'load:end',
-      'incremental:start',
-      'incremental:end',
-      'analyze:start',
-    ]);
-
-    finishCacheSync?.();
-    await Promise.resolve();
-
-    expect(source._changedFilePaths).toEqual(['src/changed.ts']);
-  });
-
-  it('waits for first workspace readiness before starting incremental analysis', async () => {
-    let markFirstWorkspaceReady: (() => void) | undefined;
-    const firstWorkspaceReadyPromise = new Promise<void>(resolve => {
-      markFirstWorkspaceReady = resolve;
-    });
-    const source = createSource({
-      _firstWorkspaceReadyPromise: firstWorkspaceReadyPromise,
-    });
-    const events: string[] = [];
-    let finishLoad: (() => void) | undefined;
-    const runAnalysisRequest = vi.fn(async state => {
-      events.push(`${state.mode}:start`);
-      if (state.mode === 'load') {
-        await new Promise<void>(resolve => {
-          finishLoad = resolve;
-        });
-        source._firstAnalysis = false;
-        markFirstWorkspaceReady?.();
-      }
-      events.push(`${state.mode}:end`);
-    });
-    const methods = createGraphViewProviderAnalysisMethods(source as never, {
-      runAnalysisRequest,
-      executeAnalysis: vi.fn(async () => undefined),
-      markWorkspaceReady: vi.fn(),
-      isAnalysisStale: vi.fn(() => false),
-      isAbortError: vi.fn(() => false),
-      hasWorkspace: vi.fn(() => true),
-      logError: vi.fn(),
-    });
-
-    const load = methods._loadAndSendData();
-    await Promise.resolve();
-    const incremental = methods._incrementalAnalyzeAndSendData(['src/changed.ts']);
-    await Promise.resolve();
-
-    expect(events).toEqual(['load:start']);
-    expect(runAnalysisRequest).toHaveBeenCalledOnce();
-
-    finishLoad?.();
-    await load;
-    await incremental;
-
-    expect(events).toEqual([
-      'load:start',
-      'load:end',
-      'incremental:start',
-      'incremental:end',
-    ]);
-    expect(source._changedFilePaths).toEqual(['src/changed.ts']);
   });
 
   it('falls back to the delegate wrappers when source-owned analysis methods are unavailable', async () => {

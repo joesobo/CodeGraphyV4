@@ -178,7 +178,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
 
     target.updateGraphData(graphData);
     expect(target.getGraphData()).toBe(previousGraphData);
-    await target.refreshGitignoreMetadata();
     await target.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
     expect(target.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
@@ -191,7 +190,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
 
     expect(target._methodContainers.viewContext.updateGraphData).toHaveBeenCalledWith(graphData);
     expect(getGraphData).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.refresh.refreshGitignoreMetadata).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshIndex).toHaveBeenCalledTimes(1);
     expect(queryMethods.queryGraph).toHaveBeenCalledWith(query);
     expect(target._methodContainers.viewSelection.setDepthMode).toHaveBeenCalledWith(true);

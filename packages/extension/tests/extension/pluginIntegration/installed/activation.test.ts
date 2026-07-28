@@ -132,14 +132,14 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     workspaceFixture = undefined;
   });
 
-  it('loads package-enabled plugins before the first analysis runs', async () => {
+  it('loads package-enabled plugins before an explicit index runs', async () => {
     currentContext = createContext();
     const api = activate(currentContext as unknown as vscode.ExtensionContext);
 
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
-    await internals._analysisMethods._analyzeAndSendData();
-    await internals._analysisMethods._analyzeAndSendData();
+    await internals._analysisMethods._indexAndSendData();
+    await internals._analysisMethods._indexAndSendData();
 
     expect(api.getGraphData().edges).toEqual(
       expect.arrayContaining([

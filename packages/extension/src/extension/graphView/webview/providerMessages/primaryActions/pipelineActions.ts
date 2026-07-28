@@ -17,9 +17,9 @@ export function createPipelineActions(
   return {
     loadAndSendData: () => source._loadAndSendData(),
     indexAndSendData: () => source._indexAndSendData(),
-    analyzeAndSendData: () => source._analyzeAndSendData(),
+    analyzeAndSendData: () => source._loadAndSendData(),
     refreshIndex: () => source.refreshIndex(),
-    refreshAnalysisScope: () => source.refreshAnalysisScope(),
+    refreshAnalysisScope: () => source._loadAndSendData(),
     clearCacheAndRefresh: () => source.clearCacheAndRefresh(),
   };
 }

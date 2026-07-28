@@ -121,13 +121,9 @@ export interface GraphViewProviderMessageListenerSource {
   _addToExclude(patterns: string[]): Promise<void>;
   _loadAndSendData(): Promise<void>;
   _indexAndSendData(): Promise<void>;
-  _analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
   hydrateGraphScope?(): Promise<boolean>;
   hydratePluginGraphScope?(pluginIds: readonly string[]): Promise<boolean>;
-  refreshAnalysisScope(): Promise<void>;
-  refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;
-  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   _getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
@@ -152,7 +148,6 @@ export interface GraphViewProviderMessageListenerSource {
   _sendPluginStatuses(): void;
   _sendPluginWebviewInjections(): void;
   _sendGraphControls?(): void;
-  invalidatePluginFiles(pluginIds: readonly string[]): string[];
 }
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {

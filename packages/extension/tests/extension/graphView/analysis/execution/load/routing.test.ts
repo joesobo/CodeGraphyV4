@@ -5,9 +5,9 @@ import { createExecutionAnalyzer } from '../fixtures';
 
 describe('graph view analysis execution load routing', () => {
   it.each([
-    ['load', 'missing', 'discover', true],
-    ['load', 'fresh', 'analyze', false],
-    ['load', 'stale', 'refresh', false],
+    ['load', 'missing', 'empty', false],
+    ['load', 'fresh', 'empty', false],
+    ['load', 'stale', 'empty', false],
     ['index', 'fresh', 'refresh', false],
     ['refresh', 'missing', 'refresh', false],
     ['analyze', 'stale', 'analyze', false],

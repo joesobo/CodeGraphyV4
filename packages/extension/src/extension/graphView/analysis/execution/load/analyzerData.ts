@@ -8,18 +8,6 @@ import { EMPTY_GRAPH_DATA } from '../publish';
 
 type GraphViewAnalyzer = NonNullable<GraphViewAnalysisExecutionState['analyzer']>;
 
-export async function discoverGraphViewRawData(
-  signal: AbortSignal,
-  state: GraphViewAnalysisExecutionState,
-  analyzer: GraphViewAnalyzer,
-): Promise<IGraphData> {
-  return (await analyzer.discoverGraph?.(
-    state.filterPatterns,
-    state.disabledPlugins,
-    signal,
-  )) ?? EMPTY_GRAPH_DATA;
-}
-
 export async function analyzeGraphViewRawData(
   signal: AbortSignal,
   state: GraphViewAnalysisExecutionState,

@@ -8,13 +8,10 @@ import {
 } from './fixtures';
 
 describe('graph view analysis execution load', () => {
-  it('discovers a disconnected graph when loading without an existing index', async () => {
-    const discoveredGraph = {
+  it('keeps the graph empty when loading without an existing index', async () => {
+    const discoverGraph = vi.fn(async () => ({
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
       edges: [],
-    };
-    const discoverGraph = vi.fn(async () => ({
-      ...discoveredGraph,
     }));
     const analyze = vi.fn(async () => ({ nodes: [], edges: [] }));
     const state = createExecutionState({
@@ -30,19 +27,18 @@ describe('graph view analysis execution load', () => {
 
     const result = await loadGraphViewRawData(new AbortController().signal, state, handlers);
 
-    expect(result.shouldDiscover).toBe(true);
-    expect(result.rawGraphData).toEqual(discoveredGraph);
-    expect(discoverGraph).toHaveBeenCalledOnce();
+    expect(result.shouldDiscover).toBe(false);
+    expect(result.rawGraphData).toEqual({ nodes: [], edges: [] });
+    expect(discoverGraph).not.toHaveBeenCalled();
     expect(analyze).not.toHaveBeenCalled();
     expect(handlers.sendIndexProgress).not.toHaveBeenCalled();
   });
 
-  it('analyzes the workspace when loading from an existing index', async () => {
-    const analyzedGraph = {
+  it('does not analyze while loading an index without cached replay support', async () => {
+    const analyze = vi.fn(async () => ({
       nodes: [{ id: 'src/app.ts', label: 'src/app.ts', color: '#ffffff' }],
       edges: [],
-    };
-    const analyze = vi.fn(async () => analyzedGraph);
+    }));
     const state = createExecutionState({
       mode: 'load',
       analyzer: createExecutionAnalyzer({
@@ -56,8 +52,8 @@ describe('graph view analysis execution load', () => {
     const result = await loadGraphViewRawData(new AbortController().signal, state, handlers);
 
     expect(result.shouldDiscover).toBe(false);
-    expect(result.rawGraphData).toEqual(analyzedGraph);
-    expect(analyze).toHaveBeenCalledOnce();
+    expect(result.rawGraphData).toEqual({ nodes: [], edges: [] });
+    expect(analyze).not.toHaveBeenCalled();
   });
 
   it('loads cached graph data instead of reanalyzing when a fresh index can be replayed', async () => {
@@ -99,7 +95,7 @@ describe('graph view analysis execution load', () => {
       [],
       new Set<string>(),
       expect.any(AbortSignal),
-      undefined,
+      { warmAnalysis: false },
     );
     expect(analyze).not.toHaveBeenCalled();
     expect(refreshIndex).not.toHaveBeenCalled();
@@ -160,21 +156,12 @@ describe('graph view analysis execution load', () => {
     expect(analyze).not.toHaveBeenCalled();
   });
 
-  it('falls back to full refresh when stale cache cannot be replayed', async () => {
-    const refreshedGraph: IGraphData = {
-      nodes: [{ id: 'src/app.ts', label: 'src/app.ts', color: '#ffffff' }],
-      edges: [
-        {
-          id: 'src/app.ts->src/plugin.ts#import',
-          from: 'src/app.ts',
-          to: 'src/plugin.ts',
-          kind: 'import',
-          sources: [],
-        },
-      ],
-    };
+  it('keeps a stale graph empty when cached replay is unavailable', async () => {
     const analyze = vi.fn(async () => ({ nodes: [], edges: [] }));
-    const refreshIndex = vi.fn(async () => refreshedGraph);
+    const refreshIndex = vi.fn(async () => ({
+      nodes: [{ id: 'src/app.ts', label: 'src/app.ts', color: '#ffffff' }],
+      edges: [],
+    }));
     const state = createExecutionState({
       mode: 'load',
       analyzer: createExecutionAnalyzer({
@@ -193,8 +180,8 @@ describe('graph view analysis execution load', () => {
     const result = await loadGraphViewRawData(new AbortController().signal, state, handlers);
 
     expect(result.shouldDiscover).toBe(false);
-    expect(result.rawGraphData).toEqual(refreshedGraph);
-    expect(refreshIndex).toHaveBeenCalledOnce();
+    expect(result.rawGraphData).toEqual({ nodes: [], edges: [] });
+    expect(refreshIndex).not.toHaveBeenCalled();
     expect(analyze).not.toHaveBeenCalled();
   });
 
@@ -323,7 +310,7 @@ describe('graph view analysis execution load', () => {
     });
   });
 
-  it('falls back to the empty graph when load discovery support is unavailable', async () => {
+  it('returns an empty graph when load discovery support is unavailable', async () => {
     const state = createExecutionState({
       mode: 'load',
       analyzer: createExecutionAnalyzer({
@@ -338,7 +325,7 @@ describe('graph view analysis execution load', () => {
       loadGraphViewRawData(new AbortController().signal, state, handlers),
     ).resolves.toEqual({
       rawGraphData: { nodes: [], edges: [] },
-      shouldDiscover: true,
+      shouldDiscover: false,
     });
 
     expect(handlers.sendIndexProgress).not.toHaveBeenCalled();

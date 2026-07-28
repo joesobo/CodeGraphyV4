@@ -7,7 +7,6 @@ import type {
 import { createRefreshCoordinatorState } from './coordinator';
 import { DEFAULT_DEPENDENCIES } from './defaults';
 import {
-  createRefreshChangedFilesMethod,
   createRefreshIndexMethod,
   createRefreshMethod,
 } from './requests/methods';
@@ -15,9 +14,6 @@ import { createScopedRefreshLifecycle } from './scoped/lifecycle';
 import {
   createHydrateGraphScopeMethod,
   createHydratePluginGraphScopeMethod,
-  createRefreshAnalysisScopeMethod,
-  createRefreshGitignoreMetadataMethod,
-  createRefreshPluginFilesMethod,
 } from './scoped/methods';
 
 export function createGraphViewProviderRefreshMethods(
@@ -33,11 +29,9 @@ export function createGraphViewProviderRefreshMethods(
   };
   const state = createRefreshCoordinatorState();
   const refresh = createRefreshMethod(source, state);
-  const refreshChangedFiles = createRefreshChangedFilesMethod(source, state);
   const refreshIndex = createRefreshIndexMethod(
     source,
     state,
-    refreshChangedFiles,
     () => scopedRefreshLifecycle.abort(),
   );
   const hydrateGraphScope = createHydrateGraphScopeMethod(
@@ -50,35 +44,11 @@ export function createGraphViewProviderRefreshMethods(
     state,
     scopedRefreshLifecycle,
   );
-  const refreshAnalysisScope = createRefreshAnalysisScopeMethod(
-    source,
-    state,
-    refresh,
-    scopedRefreshLifecycle,
-  );
-  const refreshGitignoreMetadata = createRefreshGitignoreMetadataMethod(
-    source,
-    state,
-    refresh,
-    refreshIndex,
-    scopedRefreshLifecycle,
-  );
-  const refreshPluginFiles = createRefreshPluginFilesMethod(
-    source,
-    state,
-    refresh,
-    scopedRefreshLifecycle,
-  );
-
   return {
     refresh,
     refreshIndex,
-    refreshGitignoreMetadata,
     hydrateGraphScope,
     hydratePluginGraphScope,
-    refreshAnalysisScope,
-    refreshPluginFiles,
-    refreshChangedFiles,
     refreshGroupSettings: () => {
       source._loadGroupsAndFilterPatterns();
       source._sendGroupsUpdated();

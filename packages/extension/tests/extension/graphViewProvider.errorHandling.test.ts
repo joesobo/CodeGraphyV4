@@ -59,7 +59,7 @@ describe('GraphViewProvider error handling', () => {
       },
     };
 
-    await internals._analysisMethods._analyzeAndSendData();
+    await internals._analysisMethods._indexAndSendData();
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', expect.any(Error));
     expect((provider as unknown as { _analysisController?: AbortController })._analysisController).toBeUndefined();

@@ -36,7 +36,7 @@ export function createPluginSettingsMethods(
   source: GraphViewProviderMessageListenerSource,
 ): PluginSettingsMethods {
   const pluginGraphWorkScheduler = createPluginGraphWorkScheduler({
-    analyzeAndSendData: () => source._analyzeAndSendData(),
+    analyzeAndSendData: () => source._loadAndSendData(),
     reprocessPluginFiles: pluginIds => reprocessPluginFiles(source, pluginIds),
     smartRebuild: pluginId => source._smartRebuild(pluginId),
   });

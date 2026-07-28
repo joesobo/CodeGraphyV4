@@ -26,7 +26,7 @@ export function selectGraphViewRawDataLoadDecision(
     };
   }
 
-  if (shouldRefreshGraphIndex(mode, freshness)) {
+  if (shouldRefreshGraphIndex(mode)) {
     return { route: 'refresh', shouldDiscover: false };
   }
 
