@@ -114,7 +114,6 @@ describe('pipeline/service/discoveryFacade cache replay', () => {
       '/workspace',
       true,
       disabledPlugins,
-      new Set<string>(),
     );
     expect(discoveryState(facade)._lastDiscoveredFiles).toEqual([
       {
