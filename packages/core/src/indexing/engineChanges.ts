@@ -13,6 +13,11 @@ import {
   findChangedWorkspaceIndexFiles,
 } from './workspace/changes';
 
+function isWorkspaceDiscoveryLifecyclePath(workspaceRoot: string, filePath: string): boolean {
+  const relativePath = path.relative(workspaceRoot, path.resolve(workspaceRoot, filePath));
+  return relativePath === '.codegraphy/settings.json' || path.basename(relativePath) === '.gitignore';
+}
+
 async function unmatchedPathCanAffectIndex(
   runtime: WorkspaceEngineRuntime,
   filePath: string,
@@ -22,9 +27,6 @@ async function unmatchedPathCanAffectIndex(
   const absolutePath = path.resolve(workspaceRoot, filePath);
   const relativePath = path.relative(workspaceRoot, absolutePath).split(path.sep).join('/');
   if (!relativePath || relativePath.startsWith('../')) return true;
-  if (relativePath === '.codegraphy/settings.json' || path.basename(relativePath) === '.gitignore') {
-    return true;
-  }
   if (state.cache.files[relativePath]) return true;
   try {
     await stat(absolutePath);
@@ -44,6 +46,9 @@ export async function applyWorkspaceEngineChangedFiles(
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
   await discoverWorkspaceEngineFiles(runtime);
   assertWorkspaceEngineActive(runtime);
+  if (filePaths.some(filePath => isWorkspaceDiscoveryLifecyclePath(workspaceRoot, filePath))) {
+    return fullIndex();
+  }
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);
   const changes = selectDiscoveredWorkspaceIndexFileChanges(workspaceRoot, filePaths, discoveredByPath);
 

@@ -70,6 +70,33 @@ describe('workspace engine changed files', () => {
     engine.dispose();
   });
 
+  it('runs a full refresh when Git ignore rules change', async () => {
+    const workspaceRoot = await createWorkspace();
+    const initialize = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        initialize,
+      }],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const ignorePath = join(workspaceRoot, '.gitignore');
+    await writeFile(ignorePath, 'target.txt\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([ignorePath]);
+
+    expect(result.indexing.mode).toBe('full');
+    expect(initialize).toHaveBeenCalledTimes(2);
+    engine.dispose();
+  });
+
   it('reports a full fallback when the changed path is not discoverable', async () => {
     const workspaceRoot = await createWorkspace();
     const initialize = vi.fn();
