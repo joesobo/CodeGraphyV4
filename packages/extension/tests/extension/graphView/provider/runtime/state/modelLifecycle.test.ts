@@ -85,7 +85,7 @@ describe('graphView/provider/runtime/state/model', () => {
     expect(stateHarness.invalidatePluginFiles).toHaveBeenCalledWith(expect.anything(), ['plugin.markdown']);
   });
 
-  it('disposes the pipeline and emitter from the registered host subscription', () => {
+  it('disposes the pipeline and emitter from the registered host subscription', async () => {
     const context = createContext();
     const runtime = new TestRuntimeState(
       vscode.Uri.file('/extension'),
@@ -94,6 +94,7 @@ describe('graphView/provider/runtime/state/model', () => {
 
     runtime.notify({ type: 'EXTENSION_MESSAGE' });
     context.subscriptions[0]?.dispose();
+    await runtime.dispose();
 
     expect(stateHarness.extensionMessageEmitter.fire).toHaveBeenCalledWith({
       type: 'EXTENSION_MESSAGE',

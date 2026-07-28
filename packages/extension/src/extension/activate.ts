@@ -13,6 +13,8 @@ import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
 /** Public API returned by activate() — usable from e2e tests. */
+let activeProvider: GraphViewProvider | undefined;
+
 export interface CodeGraphyAPI {
   /** Refresh graph data without clearing the persisted Graph Cache. */
   refresh(): Promise<void>;
@@ -43,6 +45,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     context: { workspaceFolders: vscode.workspace.workspaceFolders?.length ?? 0 },
   });
   const provider = new GraphViewProvider(context.extensionUri, context);
+  activeProvider = provider;
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -80,6 +83,8 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   };
 }
 
-export function deactivate(): void {
-  // Cleanup if needed
+export async function deactivate(): Promise<void> {
+  const provider = activeProvider;
+  activeProvider = undefined;
+  await provider?.dispose();
 }

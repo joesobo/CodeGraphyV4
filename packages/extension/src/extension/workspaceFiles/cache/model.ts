@@ -8,6 +8,7 @@ interface ExtensionWorkspaceCacheUpdaterDependencies {
 
 export interface ExtensionWorkspaceCacheUpdater {
   dispose(): Promise<void>;
+  release(): Promise<void>;
   update(workspaceRoot: string, filePaths: readonly string[]): Promise<void>;
 }
 
@@ -18,19 +19,25 @@ function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
 export function createExtensionWorkspaceCacheUpdater(
   dependencies: ExtensionWorkspaceCacheUpdaterDependencies,
 ): ExtensionWorkspaceCacheUpdater {
+  let acceptingUpdates = true;
   let tail = Promise.resolve();
 
   const update = (
     workspaceRoot: string,
     filePaths: readonly string[],
   ): Promise<void> => {
+    if (!acceptingUpdates) return Promise.resolve();
     const hasGraphCache = dependencies.hasGraphCache ?? hasWorkspaceGraphCache;
     if (!hasGraphCache(workspaceRoot)) return Promise.resolve();
     const run = tail.then(() => dependencies.updateWorkspaceCache(workspaceRoot, filePaths));
     tail = run.catch(() => undefined);
     return run;
   };
-  const dispose = (): Promise<void> => tail;
+  const release = (): Promise<void> => tail;
+  const dispose = (): Promise<void> => {
+    acceptingUpdates = false;
+    return release();
+  };
 
-  return { dispose, update };
+  return { dispose, release, update };
 }

@@ -83,6 +83,7 @@ export class GraphViewProviderRuntime {
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
   private readonly _workspaceCacheUpdater: ExtensionWorkspaceCacheUpdater;
+  private _disposePromise: Promise<void> | undefined;
 
   declare protected readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   declare protected readonly _commandMethods: GraphViewProviderMethodContainers['command'];
@@ -123,16 +124,7 @@ export class GraphViewProviderRuntime {
       ),
     });
     this._context.subscriptions.push({
-      dispose: () => {
-        this._analysisController?.abort();
-        this._indexingController?.abort();
-        try {
-          this._analyzer?.dispose();
-        } finally {
-          void this._workspaceCacheUpdater.dispose();
-          this._extensionMessageEmitter.dispose();
-        }
-      },
+      dispose: () => { void this.dispose(); },
     });
 
     this.initializeCoreServices();
@@ -154,6 +146,17 @@ export class GraphViewProviderRuntime {
 
   public get viewRegistry(): ViewRegistry {
     return this._viewRegistry;
+  }
+
+  public dispose(): Promise<void> {
+    this._disposePromise ??= (async () => {
+      this._analysisController?.abort();
+      this._indexingController?.abort();
+      await this._workspaceCacheUpdater.dispose();
+      this._analyzer?.dispose();
+      this._extensionMessageEmitter.dispose();
+    })();
+    return this._disposePromise;
   }
 
   public setInstalledPluginActivationPromise(promise: Promise<void>): void {
@@ -199,7 +202,7 @@ export class GraphViewProviderRuntime {
   }
 
   public releasePersistedWorkspaceCacheUpdater(): Promise<void> {
-    return this._workspaceCacheUpdater.dispose();
+    return this._workspaceCacheUpdater.release();
   }
 
   public invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {

@@ -46,6 +46,26 @@ describe('Extension workspace cache updater', () => {
     );
   });
 
+  it('drains active work and rejects updates after disposal starts', async () => {
+    let releaseUpdate!: () => void;
+    const gate = new Promise<void>(resolve => { releaseUpdate = resolve; });
+    const updateWorkspaceCache = vi.fn(() => gate);
+    const updater = createExtensionWorkspaceCacheUpdater({
+      hasGraphCache: () => true,
+      updateWorkspaceCache,
+    });
+    const update = updater.update('/workspace', ['/workspace/src/a.ts']);
+    const disposed = updater.dispose();
+    const ignored = updater.update('/workspace', ['/workspace/src/b.ts']);
+    await Promise.resolve();
+
+    expect(updateWorkspaceCache).toHaveBeenCalledOnce();
+
+    releaseUpdate();
+    await Promise.all([update, disposed, ignored]);
+    expect(updateWorkspaceCache).toHaveBeenCalledOnce();
+  });
+
   it('continues after a failed cache update', async () => {
     const updateWorkspaceCache = vi.fn()
       .mockRejectedValueOnce(new Error('update failed'))

@@ -118,8 +118,8 @@ describe('Extension', () => {
   });
 
   describe('deactivate', () => {
-    it('should not throw', () => {
-      expect(() => deactivate()).not.toThrow();
+    it('should not throw', async () => {
+      await expect(deactivate()).resolves.toBeUndefined();
     });
   });
 });
