@@ -131,6 +131,7 @@ describe('pipeline/service/discoveryFacade cache replay', () => {
       '/workspace',
       true,
       new Set<string>(),
+      new Set<string>(),
     );
   });
 });
