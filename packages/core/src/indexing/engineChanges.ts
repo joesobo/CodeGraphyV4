@@ -1,3 +1,5 @@
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
 import { invalidateWorkspaceIndexEngineFiles } from './state';
 import { mapDiscoveredWorkspaceIndexFilesByRelativePath, mergeDiscoveredWorkspaceIndexFiles, selectDiscoveredWorkspaceIndexFileChanges } from './changedFiles';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
@@ -10,6 +12,26 @@ import {
   findAffectedWorkspaceIndexAnalysisDependents,
   findChangedWorkspaceIndexFiles,
 } from './workspace/changes';
+
+async function unmatchedPathCanAffectIndex(
+  runtime: WorkspaceEngineRuntime,
+  filePath: string,
+): Promise<boolean> {
+  const { state, workspaceRoot } = runtime;
+  if (state.discoveryResult?.limitReached) return true;
+  const absolutePath = path.resolve(workspaceRoot, filePath);
+  const relativePath = path.relative(workspaceRoot, absolutePath).split(path.sep).join('/');
+  if (!relativePath || relativePath.startsWith('../')) return true;
+  if (relativePath === '.codegraphy/settings.json' || path.basename(relativePath) === '.gitignore') {
+    return true;
+  }
+  if (state.cache.files[relativePath]) return true;
+  try {
+    return !(await stat(absolutePath)).isFile();
+  } catch {
+    return true;
+  }
+}
 
 export async function applyWorkspaceEngineChangedFiles(
   runtime: WorkspaceEngineRuntime,
@@ -24,9 +46,26 @@ export async function applyWorkspaceEngineChangedFiles(
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);
   const changes = selectDiscoveredWorkspaceIndexFileChanges(workspaceRoot, filePaths, discoveredByPath);
 
-  if (changes.unmatchedFilePaths.length > 0) {
-    invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, changes.unmatchedFilePaths);
+  const unmatchedPathsWithIndexImpact = (
+    await Promise.all(changes.unmatchedFilePaths.map(async filePath => (
+      await unmatchedPathCanAffectIndex(runtime, filePath) ? filePath : undefined
+    )))
+  ).filter((filePath): filePath is string => filePath !== undefined);
+  if (unmatchedPathsWithIndexImpact.length > 0) {
+    invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, unmatchedPathsWithIndexImpact);
     return fullIndex();
+  }
+  if (changes.files.length === 0) {
+    const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+    return {
+      ...createWorkspaceEngineIndexResult(runtime, graph),
+      indexing: {
+        mode: 'incremental',
+        analyzedFiles: 0,
+        deletedFiles: 0,
+        reusedFiles: state.discoveryResult!.files.length,
+      },
+    };
   }
 
   const changedFiles = await readAnalysisFiles(runtime, changes.files);

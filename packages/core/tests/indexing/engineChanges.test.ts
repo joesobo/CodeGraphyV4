@@ -35,6 +35,39 @@ describe('workspace engine changed files', () => {
     engine.dispose();
   });
 
+  it('ignores a new file that is outside discovery eligibility', async () => {
+    const workspaceRoot = await createWorkspace();
+    const initialize = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      include: ['**/*.txt'],
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        initialize,
+      }],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const ignoredPath = join(workspaceRoot, 'new-test.ts');
+    await writeFile(ignoredPath, 'ignored\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([ignoredPath]);
+
+    expect(result.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 2,
+    });
+    expect(initialize).toHaveBeenCalledOnce();
+    engine.dispose();
+  });
+
   it('reports a full fallback when the changed path is not discoverable', async () => {
     const workspaceRoot = await createWorkspace();
     const initialize = vi.fn();
