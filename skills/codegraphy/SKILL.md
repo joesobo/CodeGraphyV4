@@ -13,11 +13,13 @@ The graph is navigation evidence. Static relationships can identify ownership an
 
 `codegraphy index` discovers eligible workspace files, runs built-in and enabled Plugin analysis, and creates or incrementally updates `.codegraphy/graph.sqlite`. The Graph Cache stores complete indexed facts before Graph Scope and path Filters shape query results.
 
+`codegraphy watch` performs that synchronization and remains in the foreground with the workspace engine resident in memory. Workspace events are debounced into serialized incremental updates, while file creation, deletion, renaming, Git ignore changes, and workspace settings changes can trigger rediscovery. Cache artifacts and active Filter matches are skipped. Changes that arrive during an update remain pending for another batch, simultaneous Graph Cache writers are coordinated, and interrupting the watcher persists its pending batch before shutdown. The VS Code Extension feeds its workspace events into the same Core updating behavior so the persisted Graph Cache remains current while the Graph View is closed; a separate CLI watcher is not required for that Extension-owned workspace lifecycle.
+
 `codegraphy filter` changes persisted path exclusions without rebuilding cached analysis. `codegraphy scope` changes which Node Types and Edge Types appear in the shaped graph. `codegraphy settings` exposes workspace discovery, indexing, filter, scope, Plugin, and interface settings; settings mutations report whether another Index is required. `codegraphy plugins` controls installed Plugin registration and activation.
 
 Query with any read-only graph command after a Graph Cache exists. A `graph_cache_not_found` result means that no indexed snapshot is available. `codegraphy status` reports supported missing, stale, and fresh cache conditions. `codegraphy doctor` checks runtime, settings, cache, and Plugin health and includes recovery information for unhealthy checks.
 
-Most Symbols and Relationships are cached. Search also reads current source text from eligible indexed File Nodes. A single response can therefore contain `freshness: "live"` source matches and cached Symbol matches whose `cacheState` is `fresh` or `stale`. Indexing is what makes changed AST and Relationship facts current.
+Most Symbols and Relationships are cached. Search also reads current source text from eligible indexed File Nodes. A single response can therefore contain `freshness: "live"` source matches and cached Symbol matches whose `cacheState` is `fresh` or `stale`. Indexing and live updates are what make changed AST and Relationship facts current; the watcher does not change the already-live source-text behavior.
 
 ## Query surfaces
 
@@ -47,6 +49,8 @@ Search, inventories, overviews, and relationship reports are bounded. Pagination
 ## Machine-readable contract
 
 Normal command results are JSON envelopes. Successful data is written to stdout. Operational and invalid-invocation failures use structured error envelopes on stderr and nonzero exit statuses. `--verbose` adds lifecycle diagnostics to stderr without changing the data envelope.
+
+The foreground watcher streams JSON Lines envelopes for readiness, updating, updated, recoverable error, and stopped events. Event batches report bounded file paths, totals, completeness, update duration, and full-versus-incremental Indexing metrics.
 
 Common error codes distinguish invalid arguments, missing or stale workspace state, an exact target that is absent, malformed settings, and operational failures. Error `details` and `actions` carry command-specific recovery context when available.
 

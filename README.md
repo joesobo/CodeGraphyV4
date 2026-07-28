@@ -129,6 +129,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy status` | Reports fresh, stale, or missing Graph Cache state. |
 | `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
 | `codegraphy index` | Makes the Graph Cache current and reports actionable file-budget truncation. |
+| `codegraphy watch` | Keeps cached Symbols and Relationships current and streams JSON Lines lifecycle events. |
 | `codegraphy settings [get|set|unset]` | Safely reads or changes validated workspace settings such as `maxFiles`. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
 | `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
@@ -142,7 +143,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
 
-Target Query, Path, and exact targeted Relationship selectors use complete cached Node and Edge Types by default rather than saved Graph View Scope; explicit `--node-type` or `--edge-type` arguments still constrain that dimension. JavaScript-family `reexport` Relationships let calls through barrels terminate at implementation Symbols. Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
+Target Query, Path, and exact targeted Relationship selectors use complete cached Node and Edge Types by default rather than saved Graph View Scope; explicit `--node-type` or `--edge-type` arguments still constrain that dimension. JavaScript-family `reexport` Relationships let calls through barrels terminate at implementation Symbols. The foreground watcher performs initial synchronization, debounces workspace changes into serialized updates, skips excluded and cache-artifact events, coordinates concurrent cache writers, and flushes pending work during shutdown. Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout; Watch emits one JSON envelope per line. Verbose diagnostics go to stderr.
 
 ### Agent Skill
 
@@ -158,7 +159,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, live Graph Cache updating, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View, and continues updating the shared Graph Cache when the Graph View is closed. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|

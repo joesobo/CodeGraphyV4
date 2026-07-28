@@ -8,12 +8,13 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current, reports structured file-budget truncation with an exact recovery command, and persists the complete Relationship Graph independently of Graph Scope. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. `settings get/set/unset` safely reads or mutates validated workspace settings and refuses to overwrite corrupt JSON. `search` merges exact live source, cached AST Symbol, and indexed Node evidence, then uses deterministic all-term File ranking when a natural multi-term phrase has few literal matches. `map` combines independent task terms, selected declarations, and personalized graph ranking into a bounded File map with typed connecting Relationships. `query` inspects one exact File path or Symbol Node ID and returns prioritized declarations plus incoming and outgoing Relationships. Exact targeted queries use the complete cached graph by default, independently of saved Graph View Scope, while explicit `--node-type` or `--edge-type` projections constrain that dimension. JavaScript-family reexports are indexed explicitly, allowing call Relationships to resolve through barrels to implementation Symbols. The narrower `nodes`, `edges`, `dependencies`, `dependents`, and `path` commands continue or enumerate the graph. Graph navigation accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current, reports structured file-budget truncation with an exact recovery command, and persists the complete Relationship Graph independently of Graph Scope. `codegraphy watch` performs initial synchronization and then debounces create, update, delete, rename, Git ignore, and settings events into serialized incremental updates; it skips cache artifacts and active Filter matches, coordinates simultaneous cache writers, emits JSON Lines lifecycle records, and flushes pending work on shutdown. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. `settings get/set/unset` safely reads or mutates validated workspace settings and refuses to overwrite corrupt JSON. `search` merges exact live source, cached AST Symbol, and indexed Node evidence, then uses deterministic all-term File ranking when a natural multi-term phrase has few literal matches. `map` combines independent task terms, selected declarations, and personalized graph ranking into a bounded File map with typed connecting Relationships. `query` inspects one exact File path or Symbol Node ID and returns prioritized declarations plus incoming and outgoing Relationships. Exact targeted queries use the complete cached graph by default, independently of saved Graph View Scope, while explicit `--node-type` or `--edge-type` projections constrain that dimension. JavaScript-family reexports are indexed explicitly, allowing call Relationships to resolve through barrels to implementation Symbols. The narrower `nodes`, `edges`, `dependencies`, `dependents`, and `path` commands continue or enumerate the graph. Graph navigation accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
 
 ```bash
 codegraphy settings get maxFiles
 codegraphy settings set maxFiles 2500
 codegraphy index
+codegraphy watch
 codegraphy status
 codegraphy doctor
 codegraphy nodes
@@ -41,6 +42,7 @@ Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` 
 - Built-in language analysis: parse supported languages and produce file, symbol, import, reexport, call, inherit, reference, and type-import relationships.
 - File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
 - Core Indexing: index an explicit CodeGraphy Workspace path, run headless plugins, build the Relationship Graph, and write the workspace Graph Cache.
+- Live Update: debounce native workspace events, retain changes during active Indexing, prevent superseded analysis from overwriting newer facts, and update the Graph Cache through one serialized workspace engine.
 - Workspace Analysis: orchestrate discovery, pre-analysis hooks, file analysis, cache updates, and graph rebuilds through headless dependencies.
 - Graph Projection: build file, package, folder, and symbol Relationship Graph nodes and edges from analysis results.
 - Plugin manifests: read `package.json#codegraphy` metadata without importing plugin runtime code.
@@ -54,7 +56,7 @@ Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` 
 - Target Query: inspect one exact File or Symbol with prioritized declarations and bounded Relationships.
 - Graph Query: list scoped Nodes and Edges, then use complete cached types by default for exact targeted relationships and bounded paths unless an invocation explicitly projects Node or Edge Types.
 
-The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
+The core package exposes `indexCodeGraphyWorkspace`, `createCodeGraphyWorkspaceCacheUpdater`, and `subscribeCodeGraphyWorkspaceChanges` for explicit path-based Indexing and live updates. VS Code and CLI adapters call this package instead of owning independent cache-update behavior.
 
 ## Built-In Language Coverage
 

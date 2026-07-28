@@ -25,7 +25,7 @@ The Agent Skill lives at `skills/codegraphy` in this repository. Users can insta
 **Consequences**
 
 - One Core CLI owns terminal and agent workflows.
-- Agents with shell access can use CodeGraphy without a persistent server.
+- Agents with shell access can use CodeGraphy without a persistent query server. ADR 0014 permits an optional foreground process which only updates the shared Graph Cache while query commands remain independent and one-shot.
 - Agents without shell access and remote/shared MCP use cases are unsupported.
 - Concise skill guidance, strict CLI parsing, exclusive JSON result envelopes, bounded resumable results, and documented exit codes replace typed protocol discovery.
 - CLI settings writes must preserve the complete workspace settings document. Terminal Graph Scope, Filter, and plugin changes must not erase extension-owned presentation settings.

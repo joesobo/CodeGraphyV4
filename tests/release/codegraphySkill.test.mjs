@@ -10,7 +10,7 @@ test('the generalized CodeGraphy skill teaches the lifecycle and delegates synta
   const skill = readFileSync(skillPath, 'utf8');
 
   assert.match(skill, /^name: codegraphy$/m);
-  const lifecycle = ['codegraphy index', 'codegraphy filter', 'Query with'];
+  const lifecycle = ['codegraphy index', 'codegraphy watch', 'codegraphy filter', 'Query with'];
   const lifecyclePositions = lifecycle.map(term => skill.indexOf(term));
   assert.ok(lifecyclePositions.every(position => position >= 0));
   assert.deepEqual(lifecyclePositions, [...lifecyclePositions].sort((left, right) => left - right));
@@ -34,6 +34,8 @@ test('the CodeGraphy skill explains the tool without prescribing an agent workfl
     'pagination',
     'stdout',
     'stale',
+    'JSON Lines',
+    'Graph View is closed',
   ]) {
     assert.match(skill, new RegExp(concept, 'i'));
   }
