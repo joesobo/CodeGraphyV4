@@ -45,6 +45,14 @@ describe('graphCache/database/io/connection', () => {
     }]);
   });
 
+  it('waits briefly for another Graph Cache writer', () => {
+    const busyTimeout = withConnection(createDatabasePath(), connection => (
+      connection.pragma('busy_timeout', { simple: true })
+    ));
+
+    expect(busyTimeout).toMatchObject({ timeout: 5_000 });
+  });
+
   it('closes the database when the callback throws', () => {
     const databasePath = createDatabasePath();
 

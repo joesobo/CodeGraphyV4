@@ -1,6 +1,10 @@
 import * as fs from 'node:fs';
 import Database from 'libsql';
 import { ensureSchema } from './schema';
+import {
+  withWorkspaceCacheWriteLock,
+  withWorkspaceCacheWriteLockAsync,
+} from '../writeCoordination/model';
 
 export type SQLiteConnection = Database.Database;
 export type SQLiteStatement = Database.Statement;
@@ -96,6 +100,7 @@ export function recreateInvalidDatabase(
 function openConnection(databasePath: string): SQLiteConnection {
   const connection = new Database(databasePath);
   try {
+    connection.pragma('busy_timeout = 5000');
     connection.pragma('foreign_keys = ON');
     connection.pragma('journal_mode = DELETE');
     connection.pragma('synchronous = NORMAL');
@@ -112,33 +117,37 @@ function openConnection(databasePath: string): SQLiteConnection {
 }
 
 function openReadOnlyConnection(databasePath: string): SQLiteConnection {
-  return new Database(databasePath, { readonly: true, fileMustExist: true });
+  const connection = new Database(databasePath, { readonly: true, fileMustExist: true });
+  connection.pragma('busy_timeout = 5000');
+  return connection;
 }
 
 export function withConnection<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => T,
 ): T {
-  const connection = openConnection(databasePath);
-
-  try {
-    return callback(connection);
-  } finally {
-    connection.close();
-  }
+  return withWorkspaceCacheWriteLock(databasePath, () => {
+    const connection = openConnection(databasePath);
+    try {
+      return callback(connection);
+    } finally {
+      connection.close();
+    }
+  });
 }
 
-export async function withConnectionAsync<T>(
+export function withConnectionAsync<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => Promise<T>,
 ): Promise<T> {
-  const connection = openConnection(databasePath);
-
-  try {
-    return await callback(connection);
-  } finally {
-    connection.close();
-  }
+  return withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+    const connection = openConnection(databasePath);
+    try {
+      return await callback(connection);
+    } finally {
+      connection.close();
+    }
+  });
 }
 
 export function withReadOnlyConnection<T>(

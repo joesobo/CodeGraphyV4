@@ -32,8 +32,8 @@ function toWorkspacePath(workspaceRoot: string, filePath: string): string {
 
 function isCodeGraphyCacheArtifact(workspaceRoot: string, filePath: string): boolean {
   const workspacePath = toWorkspacePath(workspaceRoot, filePath);
-  return workspacePath === CODEGRAPHY_DIRECTORY
-    || (workspacePath.startsWith(`${CODEGRAPHY_DIRECTORY}/`) && workspacePath !== SETTINGS_PATH);
+  if (workspacePath === SETTINGS_PATH) return false;
+  return workspacePath.split('/').includes(CODEGRAPHY_DIRECTORY);
 }
 
 function createSubscription(subscription: AsyncSubscription): CodeGraphyWorkspaceChangeSubscription {
