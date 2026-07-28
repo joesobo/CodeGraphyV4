@@ -11,11 +11,16 @@ export async function runGraphViewAnalysis(
   state: GraphViewAnalysisExecutionState,
   handlers: GraphViewAnalysisExecutionHandlers,
 ): Promise<boolean> {
-  const { rawGraphData, shouldDiscover } = await loadGraphViewRawData(signal, state, handlers);
+  const rawGraphData = await loadGraphViewRawData(signal, state, handlers);
   if (handlers.isAnalysisStale(signal, requestId)) {
     return false;
   }
 
-  publishAnalyzedGraph(state, handlers, rawGraphData, !shouldDiscover);
+  publishAnalyzedGraph(
+    state,
+    handlers,
+    rawGraphData,
+    state.analyzer?.hasIndex?.() ?? false,
+  );
   return true;
 }

@@ -99,7 +99,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _analyzerInitPromise?: Promise<void>;
   _analysisController?: AbortController;
   _analysisRequestId: number;
-  _changedFilePaths?: string[];
   _viewRegistry: ViewRegistry;
   _depthMode: boolean;
   _nodeSizeMode: NodeSizeMode;

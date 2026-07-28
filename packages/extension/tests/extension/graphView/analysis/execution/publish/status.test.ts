@@ -55,15 +55,11 @@ describe('extension/graphView/analysis/execution/publish/status', () => {
   it.each([
     'index',
     'refresh',
-    'incremental',
   ] as const)('reports graph view update progress for %s mode', (mode) => {
     expect(shouldReportGraphViewUpdateProgress(createState(mode))).toBe(true);
   });
 
-  it.each([
-    'analyze',
-    'load',
-  ] as const)('skips graph view update progress for %s mode', (mode) => {
+  it.each(['load'] as const)('skips graph view update progress for %s mode', (mode) => {
     expect(shouldReportGraphViewUpdateProgress(createState(mode))).toBe(false);
   });
 });

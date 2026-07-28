@@ -9,11 +9,9 @@ import { supportsInitialProgress } from './progress/modes';
 export { createGraphViewIndexProgressCoalescer } from './progress/coalescer';
 
 const ANALYSIS_PHASE_BY_MODE: Record<GraphViewAnalysisMode, string> = {
-  analyze: 'Indexing Workspace',
   load: 'Loading Graph',
   index: 'Indexing Workspace',
   refresh: 'Refreshing Index',
-  incremental: 'Applying Changes',
 };
 export function createGraphViewAnalysisProgressForwarder(
   mode: GraphViewAnalysisMode,

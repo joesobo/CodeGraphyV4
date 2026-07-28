@@ -44,7 +44,6 @@ export class GraphViewProviderRuntime {
   protected _analyzerInitPromise?: Promise<void>;
   protected _analysisController?: AbortController;
   protected _analysisRequestId!: number;
-  protected _changedFilePaths!: string[];
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode!: boolean;
   protected _nodeSizeMode!: NodeSizeMode;

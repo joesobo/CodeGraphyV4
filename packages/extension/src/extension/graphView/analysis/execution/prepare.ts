@@ -22,10 +22,6 @@ function prepareAnalysisGroups(
   return true;
 }
 
-function shouldPrepareAnalysisGroups(state: GraphViewAnalysisExecutionState): boolean {
-  return state.mode !== 'incremental';
-}
-
 function requiresSourceProcessingInitialization(state: GraphViewAnalysisExecutionState): boolean {
   return state.mode !== 'load';
 }
@@ -55,7 +51,7 @@ export async function prepareGraphViewAnalysis(
     }
   }
 
-  if (shouldPrepareAnalysisGroups(state) && !prepareAnalysisGroups(signal, requestId, handlers)) {
+  if (!prepareAnalysisGroups(signal, requestId, handlers)) {
     return false;
   }
 

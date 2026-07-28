@@ -73,7 +73,7 @@ describe('graphView/provider/analysis/request', () => {
       dependencies,
       delegates,
       doAnalyzeAndSendData,
-      'analyze',
+      'index',
     )();
 
     expect(doAnalyzeAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 4);

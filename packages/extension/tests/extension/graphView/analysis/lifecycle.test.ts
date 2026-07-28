@@ -19,7 +19,7 @@ function createState(
     analyzer: undefined,
     analyzerInitialized: false,
     analyzerInitPromise: undefined,
-    mode: 'analyze',
+    mode: 'index',
     filterPatterns: [],
     disabledPlugins: new Set<string>(),
     ...overrides,
@@ -30,7 +30,6 @@ function createAnalyzer(overrides: Partial<NonNullable<GraphViewProviderAnalysis
   return {
     initialize: vi.fn(async () => undefined),
     hasIndex: vi.fn(() => true),
-    discoverGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     registry: {
       notifyPostAnalyze: vi.fn(),
@@ -103,7 +102,7 @@ describe('graph view provider analysis lifecycle helper', () => {
       event: 'request-started',
       context: {
         requestId: 1,
-        mode: 'analyze',
+        mode: 'index',
         filterPatternCount: 0,
         disabledPluginCount: 0,
       },
@@ -113,7 +112,7 @@ describe('graph view provider analysis lifecycle helper', () => {
       event: 'request-completed',
       context: expect.objectContaining({
         requestId: 1,
-        mode: 'analyze',
+        mode: 'index',
         durationMs: expect.any(Number),
       }),
     });

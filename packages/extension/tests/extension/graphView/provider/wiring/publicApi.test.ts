@@ -19,7 +19,6 @@ function createTarget() {
     refresh: vi.fn(async () => undefined),
     refreshIndex: vi.fn(async () => undefined),
     refreshGitignoreMetadata: vi.fn(async () => undefined),
-    refreshChangedFiles: vi.fn(async () => undefined),
     refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
     refreshSettings: vi.fn(),

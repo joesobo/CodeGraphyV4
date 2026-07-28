@@ -44,7 +44,6 @@ export function createPluginSource(
     _sendMessage: vi.fn(),
     _loadAndSendData: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),
-    refreshChangedFiles: vi.fn(async () => undefined),
     ...overrides,
   };
 

@@ -5,30 +5,19 @@ import { createExecutionAnalyzer } from '../fixtures';
 
 describe('graph view analysis execution load routing', () => {
   it.each([
-    ['load', 'missing', 'empty', false],
-    ['load', 'fresh', 'empty', false],
-    ['load', 'stale', 'empty', false],
-    ['index', 'fresh', 'refresh', false],
-    ['refresh', 'missing', 'refresh', false],
-    ['analyze', 'stale', 'analyze', false],
-    ['analyze', 'missing', 'analyze', false],
-    ['incremental', 'stale', 'incremental', false],
+    ['load', 'missing', false, 'empty'],
+    ['load', 'fresh', false, 'empty'],
+    ['load', 'stale', true, 'cached'],
+    ['index', 'fresh', false, 'refresh'],
+    ['refresh', 'missing', false, 'refresh'],
   ] as const)(
     'routes %s mode with %s index freshness to %s',
-    (mode, freshness, route, shouldDiscover) => {
-      expect(selectGraphViewRawDataLoadDecision(mode, freshness)).toEqual({
-        route,
-        shouldDiscover,
-      });
+    (mode, freshness, canLoadCachedGraph, route) => {
+      expect(
+        selectGraphViewRawDataLoadDecision(mode, freshness, canLoadCachedGraph),
+      ).toEqual({ route });
     },
   );
-
-  it('replays a cached graph when loading with a fresh index and cached replay support', () => {
-    expect(selectGraphViewRawDataLoadDecision('load', 'fresh', true)).toEqual({
-      route: 'cached',
-      shouldDiscover: false,
-    });
-  });
 
   it('uses explicit index status freshness before falling back to hasIndex', () => {
     expect(getGraphIndexFreshness(createExecutionAnalyzer({

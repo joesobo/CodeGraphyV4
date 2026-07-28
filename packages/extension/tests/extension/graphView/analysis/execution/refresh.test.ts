@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   refreshGraphViewRawData,
-  refreshIncrementalGraphViewRawData,
 } from '../../../../../src/extension/graphView/analysis/execution/refresh';
 import {
   createExecutionAnalyzer,
@@ -71,70 +70,6 @@ describe('graph view analysis execution refresh', () => {
     expect(analyze).toHaveBeenCalledOnce();
   });
 
-  it('runs scoped incremental refresh through the changed-file analyzer path', async () => {
-    const refreshChangedFiles = vi.fn(async () => ({ nodes: [], edges: [] }));
-    const state = createExecutionState({
-      mode: 'incremental',
-      changedFilePaths: ['src/index.ts'],
-      analyzer: createExecutionAnalyzer({
-        refreshChangedFiles,
-      }),
-      analyzerInitialized: true,
-    });
-
-    await refreshIncrementalGraphViewRawData(new AbortController().signal, state, vi.fn());
-
-    expect(refreshChangedFiles).toHaveBeenCalledWith(
-      ['src/index.ts'],
-      [],
-      new Set<string>(),
-      expect.any(AbortSignal),
-      expect.any(Function),
-    );
-  });
-
-  it('falls back to analyzer analyze when incremental refresh support is unavailable', async () => {
-    const analyzeResult = { nodes: [], edges: [] };
-    const analyze = vi.fn(async () => analyzeResult);
-    const state = createExecutionState({
-      mode: 'incremental',
-      analyzer: createExecutionAnalyzer({
-        analyze,
-        refreshChangedFiles: undefined,
-      }),
-      analyzerInitialized: true,
-    });
-
-    await expect(
-      refreshIncrementalGraphViewRawData(new AbortController().signal, state, vi.fn()),
-    ).resolves.toEqual(analyzeResult);
-
-    expect(analyze).toHaveBeenCalledOnce();
-  });
-
-  it('uses empty changed-file paths for incremental refreshes and falls back to the empty graph', async () => {
-    const refreshChangedFiles = vi.fn(async () => undefined as never);
-    const state = createExecutionState({
-      mode: 'incremental',
-      changedFilePaths: undefined,
-      analyzer: createExecutionAnalyzer({
-        refreshChangedFiles,
-      }),
-      analyzerInitialized: true,
-    });
-
-    await expect(
-      refreshIncrementalGraphViewRawData(new AbortController().signal, state, vi.fn()),
-    ).resolves.toEqual(EMPTY_GRAPH_DATA);
-    expect(refreshChangedFiles).toHaveBeenCalledWith(
-      [],
-      [],
-      new Set<string>(),
-      expect.any(AbortSignal),
-      expect.any(Function),
-    );
-  });
-
   it('falls back to the empty graph when no refresh or analyze path is available', async () => {
     const state = createExecutionState({
       mode: 'refresh',
@@ -162,15 +97,4 @@ describe('graph view analysis execution refresh', () => {
     ).resolves.toBe(EMPTY_GRAPH_DATA);
   });
 
-  it('falls back to the empty graph when no analyzer exists for an incremental refresh', async () => {
-    const state = createExecutionState({
-      mode: 'incremental',
-      analyzer: undefined,
-      analyzerInitialized: false,
-    });
-
-    await expect(
-      refreshIncrementalGraphViewRawData(new AbortController().signal, state, vi.fn()),
-    ).resolves.toBe(EMPTY_GRAPH_DATA);
-  });
 });

@@ -8,7 +8,6 @@ import {
   publishRawGraphUpdate,
   publishStaticGraphMessages,
 } from './publish/messages';
-import { createGraphPublicationPlan } from './publish/plan';
 import {
   resolveGraphIndexStatus,
   shouldReportGraphViewUpdateProgress,
@@ -46,20 +45,11 @@ export function publishAnalyzedGraph(
     });
   }
 
-  const plan = createGraphPublicationPlan(
-    state,
-    handlers,
-    rawGraphData,
-    actualHasIndex,
-    status.freshness,
-  );
-  publishRawGraphUpdate(state, handlers, rawGraphData, plan);
+  publishRawGraphUpdate(handlers, rawGraphData);
 
   const graphData = handlers.getGraphData();
-  if (!plan.shouldSendMetricPatch) {
-    publishStaticGraphMessages(handlers);
-  }
-  publishGraphDataMessage(handlers, graphData, plan);
+  publishStaticGraphMessages(handlers);
+  publishGraphDataMessage(handlers, graphData);
 
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);

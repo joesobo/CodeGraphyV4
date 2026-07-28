@@ -12,7 +12,6 @@ import {
 export function createGraphViewProviderRuntimeDataState(): {
   _panels: vscode.WebviewPanel[];
   _graphData: IGraphData;
-  _changedFilePaths: string[];
   _rawGraphData: IGraphData;
   _viewContext: IViewContext;
   _groups: IGroup[];
@@ -23,7 +22,6 @@ export function createGraphViewProviderRuntimeDataState(): {
   return {
     _panels: [],
     _graphData: createEmptyGraphData(),
-    _changedFilePaths: [],
     _rawGraphData: createEmptyGraphData(),
     _viewContext: createInitialViewContext(),
     _groups: createEmptyGroups(),

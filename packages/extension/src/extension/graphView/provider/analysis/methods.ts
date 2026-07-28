@@ -35,7 +35,6 @@ interface GraphViewProviderAnalysisAnalyzerLike {
 export interface GraphViewProviderAnalysisMethodsSource {
   _analysisController?: AbortController;
   _analysisRequestId: number;
-  _changedFilePaths?: string[];
   _analyzer?: GraphViewProviderAnalysisState['analyzer'] & GraphViewProviderAnalysisAnalyzerLike;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;

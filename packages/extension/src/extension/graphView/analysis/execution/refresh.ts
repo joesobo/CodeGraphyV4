@@ -31,28 +31,3 @@ export async function refreshGraphViewRawData(
     forwardProgress,
   )) ?? EMPTY_GRAPH_DATA;
 }
-
-export async function refreshIncrementalGraphViewRawData(
-  signal: AbortSignal,
-  state: GraphViewAnalysisExecutionState,
-  forwardProgress: (progress: GraphViewIndexingProgress) => void,
-): Promise<IGraphData> {
-  if (state.analyzer?.refreshChangedFiles) {
-    return (
-      (await state.analyzer.refreshChangedFiles(
-        state.changedFilePaths ?? [],
-        state.filterPatterns,
-        state.disabledPlugins,
-        signal,
-        forwardProgress,
-      )) ?? EMPTY_GRAPH_DATA
-    );
-  }
-
-  return (await state.analyzer?.analyze(
-    state.filterPatterns,
-    state.disabledPlugins,
-    signal,
-    forwardProgress,
-  )) ?? EMPTY_GRAPH_DATA;
-}

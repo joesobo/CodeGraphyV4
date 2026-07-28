@@ -18,7 +18,6 @@ function createSource(
   return {
     _analysisController: undefined,
     _analysisRequestId: 1,
-    _changedFilePaths: undefined,
     _analyzer: undefined,
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,

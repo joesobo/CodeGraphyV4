@@ -21,5 +21,5 @@ export function resolveGraphIndexStatus(
 export function shouldReportGraphViewUpdateProgress(
   state: GraphViewAnalysisExecutionState,
 ): boolean {
-  return state.mode === 'index' || state.mode === 'refresh' || state.mode === 'incremental';
+  return state.mode === 'index' || state.mode === 'refresh';
 }

@@ -11,7 +11,7 @@ describe('graph view analysis execution', () => {
     const error = new Error('boom');
     const state = createExecutionState({
       analyzer: createExecutionAnalyzer({
-        analyze: vi.fn(async () => {
+        refreshIndex: vi.fn(async () => {
           throw error;
         }),
       }),
@@ -33,7 +33,7 @@ describe('graph view analysis execution', () => {
     const error = Object.assign(new Error('aborted'), { name: 'AbortError' });
     const state = createExecutionState({
       analyzer: createExecutionAnalyzer({
-        analyze: vi.fn(async () => {
+        refreshIndex: vi.fn(async () => {
           throw error;
         }),
       }),

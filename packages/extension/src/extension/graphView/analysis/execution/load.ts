@@ -10,10 +10,8 @@ import {
 import { EMPTY_GRAPH_DATA } from './publish';
 import {
   refreshGraphViewRawData,
-  refreshIncrementalGraphViewRawData,
 } from './refresh';
 import {
-  analyzeGraphViewRawData,
   loadCachedGraphViewRawData,
 } from './load/analyzerData';
 import {
@@ -36,26 +34,11 @@ async function loadRefreshedGraphViewRawData(context: GraphViewRawDataLoadContex
   return refreshGraphViewRawData(context.signal, context.state, context.forwardProgress);
 }
 
-async function loadIncrementalGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
-  return refreshIncrementalGraphViewRawData(context.signal, context.state, context.forwardProgress);
-}
-
-async function loadAnalyzedGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
-  return analyzeGraphViewRawData(
-    context.signal,
-    context.state,
-    context.analyzer,
-    context.forwardProgress,
-  );
-}
-
 const GRAPH_VIEW_RAW_DATA_LOADERS: Record<GraphViewRawDataRoute, (
   context: GraphViewRawDataLoadContext,
 ) => Promise<IGraphData>> = {
-  analyze: loadAnalyzedGraphViewRawData,
   cached: loadCachedGraphViewRawDataOnly,
   empty: async () => EMPTY_GRAPH_DATA,
-  incremental: loadIncrementalGraphViewRawData,
   refresh: loadRefreshedGraphViewRawData,
 };
 
@@ -63,10 +46,10 @@ export async function loadGraphViewRawData(
   signal: AbortSignal,
   state: GraphViewAnalysisExecutionState,
   handlers: GraphViewAnalysisExecutionHandlers,
-): Promise<{ rawGraphData: IGraphData; shouldDiscover: boolean }> {
+): Promise<IGraphData> {
   const analyzer = state.analyzer;
   if (!analyzer) {
-    return { rawGraphData: EMPTY_GRAPH_DATA, shouldDiscover: false };
+    return EMPTY_GRAPH_DATA;
   }
 
   const { decision, indexFreshness } = selectGraphViewRawDataLoadDecisionForState(state, analyzer);
@@ -77,16 +60,13 @@ export async function loadGraphViewRawData(
     context: {
         mode: state.mode,
         route: decision.route,
-        shouldDiscover: decision.shouldDiscover,
         indexFreshness: diagnosticIndexFreshness,
         canReplayCache: typeof analyzer.loadCachedGraph === 'function',
       },
   });
   const forwardProgress = createGraphViewAnalysisProgressForwarder(state.mode, handlers);
 
-  if (!decision.shouldDiscover) {
-    sendInitialGraphViewAnalysisProgress(state.mode, handlers);
-  }
+  sendInitialGraphViewAnalysisProgress(state.mode, handlers);
 
   const rawGraphData = await GRAPH_VIEW_RAW_DATA_LOADERS[decision.route]({
     analyzer,
@@ -95,8 +75,5 @@ export async function loadGraphViewRawData(
     signal,
     state,
   });
-  return {
-    rawGraphData,
-    shouldDiscover: decision.shouldDiscover,
-  };
+  return rawGraphData;
 }

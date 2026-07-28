@@ -54,7 +54,6 @@ const stateHarness = vi.hoisted(() => {
       _panels: [],
       _graphData: { nodes: [], edges: [] },
       _analysisRequestId: 0,
-      _changedFilePaths: [],
       _rawGraphData: { nodes: [], edges: [] },
       _viewContext: { activePlugins: new Set<string>(), depthLimit: 1 },
       _groups: [],
