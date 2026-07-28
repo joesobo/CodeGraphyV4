@@ -9,7 +9,7 @@ interface ExtensionWorkspaceCacheUpdaterDependencies {
 export interface ExtensionWorkspaceCacheUpdater {
   dispose(): Promise<void>;
   release(): Promise<void>;
-  update(workspaceRoot: string, filePaths: readonly string[]): Promise<void>;
+  update(workspaceRoot: string, filePaths: readonly string[]): Promise<boolean>;
 }
 
 function hasWorkspaceGraphCache(workspaceRoot: string): boolean {
@@ -25,12 +25,15 @@ export function createExtensionWorkspaceCacheUpdater(
   const update = (
     workspaceRoot: string,
     filePaths: readonly string[],
-  ): Promise<void> => {
-    if (!acceptingUpdates) return Promise.resolve();
+  ): Promise<boolean> => {
+    if (!acceptingUpdates) return Promise.resolve(false);
     const hasGraphCache = dependencies.hasGraphCache ?? hasWorkspaceGraphCache;
-    if (!hasGraphCache(workspaceRoot)) return Promise.resolve();
-    const run = tail.then(() => dependencies.updateWorkspaceCache(workspaceRoot, filePaths));
-    tail = run.catch(() => undefined);
+    if (!hasGraphCache(workspaceRoot)) return Promise.resolve(false);
+    const run = tail.then(async () => {
+      await dependencies.updateWorkspaceCache(workspaceRoot, filePaths);
+      return true;
+    });
+    tail = run.then(() => undefined, () => undefined);
     return run;
   };
   const release = (): Promise<void> => tail;

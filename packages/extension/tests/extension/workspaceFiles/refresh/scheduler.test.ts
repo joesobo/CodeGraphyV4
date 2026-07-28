@@ -7,7 +7,7 @@ function makeProvider() {
     refreshGitignoreMetadata: vi.fn().mockResolvedValue(undefined),
     refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
-    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(undefined),
+    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(true),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
@@ -73,7 +73,7 @@ describe('workspaceFiles/refresh/scheduler', () => {
     consoleSpy.mockRestore();
   });
 
-  it('updates the persisted graph while the Graph View is closed', () => {
+  it('updates the persisted graph while the Graph View is closed', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
@@ -83,7 +83,7 @@ describe('workspaceFiles/refresh/scheduler', () => {
       '[CodeGraphy] File saved, refreshing graph',
       ['/workspace/src/app.ts'],
     );
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
       '/workspace/src/app.ts',
@@ -92,7 +92,7 @@ describe('workspaceFiles/refresh/scheduler', () => {
     expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
   });
 
-  it('updates Git ignore metadata while the Graph View is closed', () => {
+  it('updates Git ignore metadata while the Graph View is closed', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
@@ -104,13 +104,32 @@ describe('workspaceFiles/refresh/scheduler', () => {
       500,
       { gitignoreRefresh: true },
     );
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
       '/workspace/.gitignore',
     ]);
     expect(provider.refreshGitignoreMetadata).not.toHaveBeenCalled();
     expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
+  });
+
+  it('retains pending refreshes until the first Graph Cache exists', async () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+    provider.refreshPersistedWorkspaceCache.mockResolvedValue(false);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
   });
 
   it('defaults to refreshing when the provider has no graph-open probe', () => {
@@ -133,7 +152,7 @@ describe('workspaceFiles/refresh/scheduler', () => {
     consoleSpy.mockRestore();
   });
 
-  it('updates the persisted graph when the Graph View closes before the timer fires', () => {
+  it('updates the persisted graph when the Graph View closes before the timer fires', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     provider.isGraphOpen.mockReturnValue(false);
@@ -143,7 +162,7 @@ describe('workspaceFiles/refresh/scheduler', () => {
       '[CodeGraphy] File changed, refreshing graph',
       ['/workspace/src/a.ts'],
     );
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshPersistedWorkspaceCache).toHaveBeenCalledWith([
       '/workspace/src/a.ts',

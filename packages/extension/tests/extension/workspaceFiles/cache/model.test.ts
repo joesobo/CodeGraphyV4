@@ -9,7 +9,8 @@ describe('Extension workspace cache updater', () => {
       updateWorkspaceCache,
     });
 
-    await updater.update('/workspace', ['/workspace/src/a.ts']);
+    await expect(updater.update('/workspace', ['/workspace/src/a.ts']))
+      .resolves.toBe(false);
 
     expect(updateWorkspaceCache).not.toHaveBeenCalled();
   });
@@ -32,7 +33,7 @@ describe('Extension workspace cache updater', () => {
     expect(updateWorkspaceCache).toHaveBeenCalledOnce();
 
     releaseFirst();
-    await Promise.all([first, second]);
+    await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
 
     expect(updateWorkspaceCache).toHaveBeenNthCalledWith(
       1,
@@ -78,7 +79,7 @@ describe('Extension workspace cache updater', () => {
     await expect(updater.update('/workspace', ['/workspace/src/a.ts']))
       .rejects.toThrow('update failed');
     await expect(updater.update('/workspace', ['/workspace/src/b.ts']))
-      .resolves.toBeUndefined();
+      .resolves.toBe(true);
 
     expect(updateWorkspaceCache).toHaveBeenCalledTimes(2);
     await updater.dispose();

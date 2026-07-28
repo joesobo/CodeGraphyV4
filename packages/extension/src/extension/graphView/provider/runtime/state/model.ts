@@ -181,10 +181,10 @@ export class GraphViewProviderRuntime {
     return isGraphViewVisible(this._view, this._panels);
   }
 
-  public async refreshPersistedWorkspaceCache(filePaths: readonly string[]): Promise<void> {
+  public async refreshPersistedWorkspaceCache(filePaths: readonly string[]): Promise<boolean> {
     const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot) return;
-    await this._workspaceCacheUpdater.update(workspaceRoot, filePaths);
+    if (!workspaceRoot) return false;
+    return this._workspaceCacheUpdater.update(workspaceRoot, filePaths);
   }
 
   private async _updatePersistedWorkspaceCache(

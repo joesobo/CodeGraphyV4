@@ -9,7 +9,7 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
-    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(undefined),
+    refreshPersistedWorkspaceCache: vi.fn().mockResolvedValue(true),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),

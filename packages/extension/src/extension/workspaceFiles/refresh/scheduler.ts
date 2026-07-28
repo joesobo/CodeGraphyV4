@@ -1,6 +1,10 @@
 import type { GraphViewProvider } from '../../graphViewProvider';
 import type { PendingWorkspaceRefresh } from './contracts';
-import { executeWorkspaceRefresh, isGraphOpen } from './execution';
+import {
+  executeWorkspaceRefresh,
+  isGraphOpen,
+  markWorkspaceRefreshPending,
+} from './execution';
 import { mergePendingRefresh } from './pending';
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
@@ -16,7 +20,13 @@ function runScheduledRefresh(
   pendingWorkspaceRefreshes.delete(provider);
   if (!isGraphOpen(provider) && provider.refreshPersistedWorkspaceCache) {
     void provider.refreshPersistedWorkspaceCache([...pending.filePaths])
-      .then(() => scheduleWorkspaceRefreshFollowUp(provider, pending))
+      .then((updated) => {
+        if (!updated) {
+          markWorkspaceRefreshPending(provider, pending);
+          return;
+        }
+        scheduleWorkspaceRefreshFollowUp(provider, pending);
+      })
       .catch(warnWorkspaceCacheUpdate);
     return;
   }
