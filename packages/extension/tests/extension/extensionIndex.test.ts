@@ -102,11 +102,7 @@ describe('extension deactivate', () => {
     expect(typeof deactivate).toBe('function');
   });
 
-  it('does not throw when called', () => {
-    expect(() => deactivate()).not.toThrow();
-  });
-
-  it('returns undefined', () => {
-    expect(deactivate()).toBeUndefined();
+  it('resolves after cleanup', async () => {
+    await expect(deactivate()).resolves.toBeUndefined();
   });
 });

@@ -177,28 +177,41 @@ export class GraphViewProviderRuntime {
     workspaceRoot: string,
     filePaths: readonly string[],
   ): Promise<void> {
-    const analyzer = this._analyzer;
-    if (!analyzer) return;
     await Promise.all([
       this._graphCacheWarmPromise,
       this._installedPluginActivationPromise,
     ]);
     if (workspaceRoot !== this._getWorkspaceRoot()) return;
     const normalizedPaths = filePaths.map(filePath => filePath.replace(/\\/g, '/'));
-    if (normalizedPaths.some(filePath => filePath.endsWith('/.codegraphy/settings.json'))) {
+    const settingsChanged = normalizedPaths.some(
+      filePath => filePath.endsWith('/.codegraphy/settings.json'),
+    );
+    const gitignoreChanged = normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'));
+    if (this._view || this._panels.length > 0) {
+      if (settingsChanged) {
+        this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
+        await this._methodContainers.refresh.refreshIndex();
+        return;
+      }
+      if (gitignoreChanged) {
+        await this._methodContainers.refresh.refreshGitignoreMetadata();
+        return;
+      }
+      await this._methodContainers.refresh.refreshChangedFiles(filePaths);
+      return;
+    }
+    const analyzer = this._analyzer;
+    if (!analyzer) return;
+    if (settingsChanged) {
       this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
       await analyzer.refreshIndex(this._filterPatterns, this._disabledPlugins);
       return;
     }
-    if (normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'))) {
+    if (gitignoreChanged) {
       await analyzer.refreshGitignoreMetadata(this._filterPatterns, this._disabledPlugins);
       return;
     }
-    await analyzer.refreshChangedFiles(
-      filePaths,
-      this._filterPatterns,
-      this._disabledPlugins,
-    );
+    await analyzer.refreshChangedFiles(filePaths, this._filterPatterns, this._disabledPlugins);
   }
 
   public releasePersistedWorkspaceCacheUpdater(): Promise<void> {
