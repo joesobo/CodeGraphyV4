@@ -108,6 +108,24 @@ try {
 console.log(`Loaded vendored SQLite native runtime from ${vendoredSQLitePath}`);
 
 try {
+  const watcherPackageName = process.platform === 'linux'
+    ? '@parcel/watcher-linux-x64-glibc'
+    : process.platform === 'darwin'
+      ? '@parcel/watcher-darwin-arm64'
+      : '@parcel/watcher-win32-x64';
+  const watcher = vendoredRequire(watcherPackageName);
+  if (
+    typeof watcher.subscribe !== 'function'
+    || typeof watcher.unsubscribe !== 'function'
+  ) {
+    throw new Error('Parcel watcher binding does not expose subscribe and unsubscribe.');
+  }
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  throw new Error(`Unable to load the vendored Parcel watcher runtime: ${message}`);
+}
+
+try {
   const Parser = vendoredRequire('tree-sitter');
 
   for (const languageModule of treeSitterLanguageModules) {

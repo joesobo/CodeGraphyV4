@@ -11,6 +11,7 @@ export type RuntimeTargetConfig = {
   arch: string;
   libsqlPackageName: string;
   esbuildPackageName: string;
+  parcelWatcherPackageName: string;
   nativePrebuildDirectory: string;
 };
 
@@ -20,6 +21,7 @@ export const RUNTIME_TARGET_CONFIG = {
     arch: 'x64',
     libsqlPackageName: '@libsql/linux-x64-gnu',
     esbuildPackageName: '@esbuild/linux-x64',
+    parcelWatcherPackageName: '@parcel/watcher-linux-x64-glibc',
     nativePrebuildDirectory: 'linux-x64',
   },
   'darwin-arm64': {
@@ -27,6 +29,7 @@ export const RUNTIME_TARGET_CONFIG = {
     arch: 'arm64',
     libsqlPackageName: '@libsql/darwin-arm64',
     esbuildPackageName: '@esbuild/darwin-arm64',
+    parcelWatcherPackageName: '@parcel/watcher-darwin-arm64',
     nativePrebuildDirectory: 'darwin-arm64',
   },
   'win32-x64': {
@@ -34,6 +37,7 @@ export const RUNTIME_TARGET_CONFIG = {
     arch: 'x64',
     libsqlPackageName: '@libsql/win32-x64-msvc',
     esbuildPackageName: '@esbuild/win32-x64',
+    parcelWatcherPackageName: '@parcel/watcher-win32-x64',
     nativePrebuildDirectory: 'win32-x64',
   },
 } satisfies Record<ExtensionRuntimeTarget, RuntimeTargetConfig>;

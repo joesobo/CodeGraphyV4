@@ -5,6 +5,7 @@ import {
   getExtensionRuntimePackageNames,
   resolveRuntimePackageRootPath,
 } from '../../../scripts/externalPackages';
+import { createRuntimePackagePlans } from '../../../scripts/runtimePackagePlan';
 
 describe('extension runtime package plan', () => {
   it('resolves the installed SQLite package root', () => {
@@ -23,6 +24,7 @@ describe('extension runtime package plan', () => {
         'esbuild',
         '@libsql/darwin-arm64',
         '@esbuild/darwin-arm64',
+        '@parcel/watcher-darwin-arm64',
         'material-icon-theme',
         'tree-sitter',
         'tree-sitter-c',
@@ -44,6 +46,15 @@ describe('extension runtime package plan', () => {
         'tree-sitter-swift',
         'tree-sitter-typescript',
       ]),
+    );
+  });
+
+  it('vendors the target Parcel watcher native binding', () => {
+    const plan = createRuntimePackagePlans('darwin-arm64')
+      .find(entry => entry.packageName === '@parcel/watcher-darwin-arm64');
+
+    expect(plan?.relativeFilePaths).toEqual(
+      expect.arrayContaining(['package.json', 'watcher.node']),
     );
   });
 

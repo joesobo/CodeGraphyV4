@@ -7,6 +7,7 @@ import {
 } from './runtimeTarget';
 
 const require = createRequire(import.meta.url);
+const requireFromCore = createRequire(require.resolve('@codegraphy-dev/core'));
 
 const TREE_SITTER_GRAMMAR_PACKAGE_NAMES = [
   'tree-sitter-c',
@@ -70,6 +71,14 @@ export function resolveRuntimePackageRootPath(
 function resolveEsbuildBinaryPackageRootPath(packageName: string): string {
   const manifestPath = require.resolve(`${packageName}/package.json`, {
     paths: [require.resolve('esbuild')],
+  });
+  return path.dirname(manifestPath);
+}
+
+function resolveParcelWatcherBinaryPackageRootPath(packageName: string): string {
+  const watcherEntryPath = requireFromCore.resolve('@parcel/watcher');
+  const manifestPath = requireFromCore.resolve(`${packageName}/package.json`, {
+    paths: [path.dirname(watcherEntryPath)],
   });
   return path.dirname(manifestPath);
 }
@@ -152,6 +161,7 @@ export function getExtensionRuntimePackageNames(
     ...EXTENSION_RUNTIME_PACKAGE_NAMES,
     config.libsqlPackageName,
     config.esbuildPackageName,
+    config.parcelWatcherPackageName,
   ];
 }
 
@@ -185,6 +195,11 @@ export function createRuntimePackagePlans(
       config.platform === 'win32' ? 'esbuild.exe' : 'bin/esbuild',
     ], resolveEsbuildBinaryPackageRootPath),
     staticPackagePlan(config.libsqlPackageName, ['package.json', 'index.node']),
+    staticPackagePlan(
+      config.parcelWatcherPackageName,
+      ['package.json', 'watcher.node'],
+      resolveParcelWatcherBinaryPackageRootPath,
+    ),
     staticPackagePlan('material-icon-theme', [
       'package.json',
       'dist/material-icons.json',

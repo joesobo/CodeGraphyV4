@@ -9,6 +9,7 @@ describe('extension runtime target', () => {
       expect.arrayContaining([
         '@libsql/darwin-arm64',
         '@esbuild/darwin-arm64',
+        '@parcel/watcher-darwin-arm64',
         'tree-sitter',
       ]),
     );

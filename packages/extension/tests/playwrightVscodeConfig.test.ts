@@ -109,7 +109,8 @@ describe('VS Code Playwright config', () => {
     );
 
     expect(vsixJob).toContain('CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1');
-    expect(smokeScript).toContain('version: vscodeVersion');
+    expect(smokeScript).toContain('downloadAndUnzipVSCode(vscodeVersion)');
+    expect(smokeScript).toContain('vscodeExecutablePath,');
   });
 
   it('pins the CI VS Code host version into the Playwright Turbo hash', () => {

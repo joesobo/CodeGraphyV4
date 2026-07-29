@@ -81,10 +81,31 @@ test('validates only the requested VSIX artifact targets', () => {
     target: 'linux-x64',
     sqliteBinary: createElfX64Binary(),
     treeSitterBinary: createElfX64Binary(),
+    parcelWatcherBinary: createElfX64Binary(),
   });
 
   assert.doesNotThrow(
     () => validateVsixNativeArtifacts({ artifactsDir, version, targets: ['linux-x64'] }),
+  );
+});
+
+test('rejects a VSIX with a Parcel watcher binding for the wrong architecture', () => {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'codegraphy-vsix-native-watcher-'));
+  const artifactsDir = path.join(tempDir, 'artifacts');
+  const version = '5.8.0';
+
+  writeVsixFixture({
+    artifactsDir,
+    version,
+    target: 'linux-x64',
+    sqliteBinary: createElfX64Binary(),
+    treeSitterBinary: createElfX64Binary(),
+    parcelWatcherBinary: createMachOArm64Binary(),
+  });
+
+  assert.throws(
+    () => validateVsixNativeArtifacts({ artifactsDir, version, targets: ['linux-x64'] }),
+    /linux-x64\.vsix contains Mach-O arm64 at extension\/dist\/node_modules\/@parcel\/watcher-linux-x64-glibc\/watcher\.node; expected ELF x86-64\./,
   );
 });
 
@@ -94,6 +115,7 @@ function writeVsixFixture({
   target,
   sqliteBinary,
   treeSitterBinary,
+  parcelWatcherBinary,
 }) {
   const fixtureRoot = mkdtempSync(path.join(tmpdir(), `codegraphy-vsix-${target}-`));
   writeFixtureBinary(
@@ -105,6 +127,11 @@ function writeVsixFixture({
     fixtureRoot,
     treeSitterNativeBinaryPath(target),
     treeSitterBinary,
+  );
+  writeFixtureBinary(
+    fixtureRoot,
+    parcelWatcherNativeBinaryPath(target),
+    parcelWatcherBinary ?? nativeBinaryForTarget(target),
   );
 
   mkdirSync(artifactsDir, { recursive: true });
@@ -135,6 +162,21 @@ function treeSitterNativeBinaryPath(target) {
     'win32-x64': 'win32-x64',
   };
   return `extension/dist/node_modules/tree-sitter/prebuilds/${prebuildByTarget[target]}/tree-sitter.node`;
+}
+
+function parcelWatcherNativeBinaryPath(target) {
+  const packageByTarget = {
+    'linux-x64': 'watcher-linux-x64-glibc',
+    'darwin-arm64': 'watcher-darwin-arm64',
+    'win32-x64': 'watcher-win32-x64',
+  };
+  return `extension/dist/node_modules/@parcel/${packageByTarget[target]}/watcher.node`;
+}
+
+function nativeBinaryForTarget(target) {
+  if (target === 'linux-x64') return createElfX64Binary();
+  if (target === 'darwin-arm64') return createMachOArm64Binary();
+  return createPe32PlusX64Binary();
 }
 
 function writeFixtureBinary(rootDir, relativePath, binary) {

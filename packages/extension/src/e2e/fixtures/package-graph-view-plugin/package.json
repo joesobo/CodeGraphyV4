@@ -1,6 +1,9 @@
 {
   "name": "@codegraphy/e2e-graph-view-plugin",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=22.14.0"
+  },
   "type": "module",
   "exports": "./plugin.js",
   "codegraphy": {
