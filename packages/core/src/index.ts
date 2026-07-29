@@ -1,8 +1,8 @@
 export { CODEGRAPHY_CORE_PACKAGE_NAME } from './packageIdentity';
 export type { CommandExecutionResult } from './cli/command';
 export { runCliCommand } from './cli/command';
-export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
-export { parseCliCommand } from './cli/parse';
+export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parser/command';
+export { parseCliCommand } from './cli/parser/command';
 export {
   CORE_GRAPH_EDGE_DEFAULT_VISIBILITY,
   CORE_GRAPH_EDGE_TYPES,
@@ -203,18 +203,26 @@ export type {
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
 export {
+  createCodeGraphyWorkspaceCacheUpdater,
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
+  subscribeCodeGraphyWorkspaceChanges,
 } from './indexing/workspace';
 export type {
+  CodeGraphyWorkspaceCacheUpdater,
+  CodeGraphyWorkspaceCacheUpdaterOptions,
+  CodeGraphyWorkspaceCacheUpdateEvent,
   CodeGraphyWorkspaceEngine,
   IndexCodeGraphyWorkspaceOptions,
   IndexCodeGraphyWorkspacePlugin,
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  CodeGraphyWorkspaceChangeSubscription,
+  CodeGraphyWorkspaceFileEvent,
+  SubscribeCodeGraphyWorkspaceChangesOptions,
   WorkspaceIndexAnalysisScopeRefreshDependencies,
   WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexRefreshDependencies,
@@ -443,6 +451,8 @@ export type {
   GraphQueryFilterOperator,
   GraphQueryNodeReport,
   GraphQueryNodeReportItem,
+  GraphQueryOverviewConfig,
+  GraphQueryOverviewReport,
   GraphQueryPage,
   GraphQueryPathConfig,
   GraphQueryPathReport,
@@ -455,16 +465,25 @@ export type {
   GraphQueryRelationshipSymbol,
   GraphQueryResult,
   GraphQueryScope,
+  GraphQuerySearchConfig,
+  GraphQuerySearchMatch,
+  GraphQuerySearchReport,
   GraphQuerySort,
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
   GraphQuerySymbolsConfig,
+  GraphQueryTaskMapConfig,
+  GraphQueryTaskMapFile,
+  GraphQueryTaskMapReport,
 } from './graphQuery';
 export {
   executeGraphQuery,
   findGraphPaths,
+  inspectGraphTarget,
   listGraphEdges,
   listGraphNodes,
   listGraphRelationships,
   listGraphSymbols,
+  mapGraphTask,
+  searchGraph,
 } from './graphQuery';

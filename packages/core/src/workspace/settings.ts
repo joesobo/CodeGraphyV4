@@ -14,8 +14,11 @@ export {
   ensureCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceSettingsOrInitial,
+  readRawWorkspaceSettingsOrInitial,
   patchCodeGraphyWorkspaceSettings,
   patchCodeGraphyWorkspaceSettingRecord,
+  removeCodeGraphyWorkspaceSetting,
   writeCodeGraphyWorkspacePluginData,
   writeCodeGraphyWorkspaceSettings,
+  WorkspaceSettingsError,
 } from './settingsStorage';

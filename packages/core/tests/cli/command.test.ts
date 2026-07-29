@@ -1,7 +1,7 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { runCliCommand } from '../../src/cli/command';
 
 describe('cli/command', () => {
@@ -14,6 +14,38 @@ describe('cli/command', () => {
       exitCode: 0,
       output: expect.stringContaining('codegraphy plugins register'),
     });
+  });
+
+  it('streams watch lifecycle events through the JSON command contract', async () => {
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const runWatch = vi.fn(async (_workspacePath, _dependencies, options) => {
+      options.writeEvent({ event: 'ready', indexedFiles: 2 });
+      options.writeEvent({ event: 'error', code: 'watch_update_failed', message: 'broken' });
+      return { exitCode: 0, output: '' };
+    });
+
+    const result = await runCliCommand({ name: 'watch', workspacePath: '/workspace' }, {
+      runWatch,
+      writeOutput: line => stdout.push(line),
+      writeError: line => stderr.push(line),
+    });
+
+    expect(result).toEqual({ exitCode: 0, output: '' });
+    expect(stdout.map(line => JSON.parse(line))).toEqual([{
+      ok: true,
+      command: 'watch',
+      data: { event: 'ready', indexedFiles: 2 },
+    }]);
+    expect(stderr.map(line => JSON.parse(line))).toEqual([{
+      ok: false,
+      command: 'watch',
+      error: {
+        code: 'watch_update_failed',
+        message: 'broken',
+        details: { event: 'error' },
+      },
+    }]);
   });
 
   it('reports the installed Core package version', async () => {

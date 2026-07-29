@@ -6,6 +6,8 @@ import { getScopedSymbolDefinitions } from './scope/definitions';
 import { resolveScopedEdges } from './scope/edges';
 import { nodeMatchesScope } from './scope/nodes';
 
+const INTERNAL_EDGE_KINDS = new Set(['reexport']);
+
 export function applyGraphScope(
   graphData: IGraphData,
   scope: VisibleGraphScopeConfig,
@@ -25,7 +27,9 @@ export function applyGraphScope(
     scopedSymbolDefinitions,
     nodeTypes,
   ));
-  const scopedEdges = graphData.edges.filter((edge) => !disabledEdgeTypes.has(edge.kind));
+  const scopedEdges = graphData.edges.filter((edge) => (
+    !INTERNAL_EDGE_KINDS.has(edge.kind) && !disabledEdgeTypes.has(edge.kind)
+  ));
   return {
     nodes,
     edges: resolveScopedEdges(nodes, graphData.nodes, scopedEdges),

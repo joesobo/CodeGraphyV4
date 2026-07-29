@@ -17,6 +17,29 @@ describe('plugins/routing', () => {
     }))).toBe('import|import-source|src/a.ts|node:a|symbol:a|./b|static|value');
   });
 
+  it('distinguishes named bindings and re-exports from the same module', () => {
+    const first = getRelationKey(relation({
+      kind: 'import',
+      specifier: './storage',
+      metadata: {
+        reexport: true,
+        importedName: 'internalRead',
+        exportedName: 'publicRead',
+      },
+    }));
+    const second = getRelationKey(relation({
+      kind: 'import',
+      specifier: './storage',
+      metadata: {
+        reexport: true,
+        importedName: 'internalWrite',
+        exportedName: 'publicWrite',
+      },
+    }));
+
+    expect(first).not.toBe(second);
+  });
+
   it('adds node and symbol destinations for non-resolved relation kinds', () => {
     expect(getRelationKey(relation({
       kind: 'import',

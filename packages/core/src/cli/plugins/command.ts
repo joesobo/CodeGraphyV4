@@ -1,5 +1,5 @@
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parse';
+import type { CliCommand } from '../parser/protocol';
 import { DEFAULT_DEPENDENCIES, type PluginsCommandDependencies } from './dependencies';
 import { runDisableCommand } from './disable';
 import { runEnableCommand } from './enable';

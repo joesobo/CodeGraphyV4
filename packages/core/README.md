@@ -8,34 +8,66 @@ The published CLI supports Node.js 22.14.0 and newer. An active Long-Term Suppor
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current and persists the complete Relationship Graph independently of Graph Scope, so later scope changes only affect projection and queries. Active Filters and Git ignored state gate fresh analysis without deleting reusable facts cached while those files were eligible. Query commands use positional inputs and bounded defaults; Symbol Nodes are exposed through `nodes` and `search`, and `edges` is the single Relationship Graph primitive. Every query also accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Node Type projections follow Graph Scope hierarchy and symbol meaning while each result keeps its specific stored Node Type. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+## Quick start
+
+Commands target the current directory. Put `-C, --workspace <path>` before the command to select another folder; CodeGraphy never searches parent directories for a workspace.
 
 ```bash
+cd /path/to/workspace
 codegraphy index
-codegraphy status
-codegraphy doctor
-codegraphy nodes
 codegraphy search SettingsPanel
-codegraphy edges
-codegraphy dependencies src/app.ts
-codegraphy dependents src/config.ts
-codegraphy path src/app.ts src/config.ts
-codegraphy scope
-codegraphy scope node symbol:function on
-codegraphy scope edge call on
-codegraphy filter add '**/generated/**'
+codegraphy query src/settingsPanel/view.tsx
+codegraphy dependencies src/settingsPanel/view.tsx
 ```
 
-Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for purpose, arguments, effects, output, and examples. Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. An unhealthy `doctor` result keeps all completed checks in `error.details`. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
+Indexing chooses the cheapest safe full or incremental refresh and persists the complete Relationship Graph independently of Graph Scope. If discovery reaches `maxFiles`, the result reports the total found and an exact settings command to raise the budget.
+
+## Explore the graph
+
+| Command | Purpose |
+|---|---|
+| `search <pattern>` | Merge exact live source, cached AST Symbols, and indexed Nodes; sparse natural phrases add deterministic all-term File candidates. |
+| `map <task>` | Return a bounded task-personalized File map with matched terms, selected declarations, and typed connecting Relationships. |
+| `query <node>` | Inspect one exact File path or Symbol ID with prioritized declarations and incoming/outgoing Relationships. |
+| `nodes`, `edges` | Page through the shaped graph inventory. |
+| `dependencies`, `dependents` | Read outgoing or incoming Relationships for an exact target. |
+| `path <from> <to>` | Find bounded directed routes between exact targets. |
+
+`nodes` and `edges` use saved Graph Scope. Search, Map, Target Query, Path, and targeted Relationship commands read complete cached types by default. Repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options narrow one command without changing workspace settings. JavaScript and TypeScript reexports are stored explicitly, so calls through barrels can resolve to implementation Symbols.
+
+## Maintain a workspace
+
+```bash
+codegraphy status
+codegraphy doctor
+codegraphy settings get maxFiles
+codegraphy settings set maxFiles 2500
+codegraphy filter add '**/generated/**'
+codegraphy scope node symbol:function on
+codegraphy index
+```
+
+Settings reads and mutations validate known fields and preserve unknown fields. They refuse to overwrite malformed JSON or unsupported settings versions and report whether Indexing is required. Adding an active Filter narrows queries immediately; removing or disabling one can expose files that were never indexed and therefore requires another Index. Changing discovery settings such as `respectGitignore` also invalidates Index freshness.
+
+## Keep the cache current
+
+`codegraphy watch` is an optional foreground process for long-running terminal sessions. It synchronizes first, then batches create, update, delete, rename, Git ignore, and settings events into serialized updates. It skips cache artifacts and active Filter matches, coordinates simultaneous writers, retains changes that arrive during active work, and flushes pending work on shutdown. Full and incremental updates verify discovery and source inputs under writer ownership before replacing cached facts; a corrupt cache encountered during an incremental update is rebuilt completely under the same ownership. The VS Code Extension does not start this process.
+
+## Output contract
+
+Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. Watch emits one JSON envelope per line. An unhealthy `doctor` result keeps completed checks in `error.details`; `--verbose` adds diagnostics to stderr.
+
+Run `codegraphy --help` for the command list and `codegraphy <command> --help` for arguments, bounds, effects, and examples.
 
 ## Current Entry Points
 
 - CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.sqlite` for any folder path.
-- Workspace Settings: read, normalize, write, and fingerprint workspace-local settings, including Graph Scope, filters, and ordered plugin entries without erasing extension-owned presentation settings.
+- Workspace Settings: strictly validate persisted known fields, safely read or mutate them through the CLI, and preserve unknown extension fields without replacing corrupt input with defaults.
 - File Discovery: discover analyzable files and directories, apply active custom/plugin/Git filters before the eligible-file budget, and report cache-retention paths without VS Code APIs.
-- Built-in language analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
+- Built-in language analysis: parse supported languages and produce file, symbol, import, reexport, call, inherit, reference, and type-import relationships.
 - File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
 - Core Indexing: index an explicit CodeGraphy Workspace path, run headless plugins, build the Relationship Graph, and write the workspace Graph Cache.
+- Live Update: debounce native workspace events, retain changes during active Indexing, prevent superseded analysis from overwriting newer facts, and update the Graph Cache through one serialized workspace engine.
 - Workspace Analysis: orchestrate discovery, pre-analysis hooks, file analysis, cache updates, and graph rebuilds through headless dependencies.
 - Graph Projection: build file, package, folder, and symbol Relationship Graph nodes and edges from analysis results.
 - Plugin manifests: read `package.json#codegraphy` metadata without importing plugin runtime code.
@@ -44,9 +76,12 @@ Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` 
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
 - Graph Cache storage: load, save, clear, and inspect normalized File, Node, Symbol, and Edge rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
-- Graph Query: search scoped Nodes, list scoped Edges, trace dependencies and dependents, and find bounded paths over Relationship Graph data plus persisted analysis metadata.
+- Workspace Search: merge bounded exact evidence with deterministic all-term File fallback candidates for natural multi-term phrases, limiting source extraction to 1 MiB per file and streaming freshness hashes for oversized files.
+- Task Map: rank task-relevant Files from live terms and cached Relationships, with selected declarations and typed connections.
+- Target Query: inspect one exact File or Symbol with prioritized declarations and bounded Relationships.
+- Graph Query: list scoped Nodes and Edges, then use complete cached types by default for exact targeted relationships and bounded paths unless an invocation explicitly projects Node or Edge Types.
 
-The core package exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code and CLI adapters call this package instead of owning independent indexing behavior.
+The core package exposes `indexCodeGraphyWorkspace` for one-shot Indexing and composes `createCodeGraphyWorkspaceCacheUpdater` with `subscribeCodeGraphyWorkspaceChanges` for the explicit foreground CLI watcher. The VS Code Extension uses Core only after an explicit Index or Re-index Workspace action; it does not subscribe to source-file changes.
 
 ## Built-In Language Coverage
 

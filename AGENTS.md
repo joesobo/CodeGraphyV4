@@ -33,8 +33,8 @@ Never create `architecture.md`. Package boundaries are the map:
 Discuss and plan before implementing. Work in a dedicated branch/worktree, commit frequently, deliver via GitHub PR.
 
 - Issues/PRDs live on the CodeGraphy Trello board (`docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md`).
-- Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan or handoff documents. Record durable technical decisions as ADRs and current behavior in the relevant reference doc.
-- Read root `CONTEXT.md` and `docs/adr/` when present.
+- Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan or handoff documents. Document current behavior in the closest product, package, or developer reference.
+- Read root `CONTEXT.md` and the relevant package or product docs before changing a contract.
 - The user's open worktree is **protected**. Do not run `git switch`, `git checkout <branch>`, or `git rebase` there. Use a separate agent worktree for branch work.
 - Refactors that change a contract must update callers, tests, docs, and changesets in one move. Keep one forward path without legacy shims.
 

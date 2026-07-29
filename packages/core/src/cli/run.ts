@@ -1,7 +1,8 @@
 import { runCliCommand, type CommandExecutionResult } from './command';
-import { parseCliCommand } from './parse';
-import type { CliCommand } from './parseTypes';
+import { parseCliCommand } from './parser/command';
+import type { CliCommand } from './parser/protocol';
 import { formatCliResult } from './result/serializer';
+import { WorkspaceSettingsError } from '../workspace/settings';
 
 export interface RunCliDependencies {
   runCommand(command: CliCommand): Promise<CommandExecutionResult>;
@@ -27,10 +28,17 @@ export async function runCli(
   } catch (error) {
     result = {
       exitCode: 1,
-      output: JSON.stringify({
-        error: 'command_failed',
-        message: error instanceof Error ? error.message : String(error),
-      }),
+      output: JSON.stringify(error instanceof WorkspaceSettingsError
+        ? {
+            error: 'invalid_workspace_settings',
+            message: error.reason,
+            action: 'Repair `.codegraphy/settings.json`, then retry.',
+            details: { path: error.settingsPath },
+          }
+        : {
+            error: 'command_failed',
+            message: error instanceof Error ? error.message : String(error),
+          }),
     };
   }
 

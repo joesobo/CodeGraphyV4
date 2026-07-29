@@ -18,7 +18,7 @@ Typical path:
 
 The graph-view provider now composes its host bridge through explicit typed method-source adapters instead of mutating the class surface with `Object.assign`.
 
-Startup loading is a special case. The webview may show `Loading graph...` only before the first graph payload and bootstrap completion for that page. After the first graph render, later Indexing, Graph Cache Sync, plugin changes, and file updates should keep the current graph rendered and use graph-local progress messages such as `GRAPH_INDEX_PROGRESS`.
+Startup loading is a special case. The webview may show `Loading graph...` only before the first graph payload and bootstrap completion for that page. After the first graph render, an explicit Index or Re-index Workspace action should keep the current graph rendered and use graph-local progress messages such as `GRAPH_INDEX_PROGRESS`. File events do not start Indexing.
 
 ## Webview to extension
 
@@ -42,7 +42,7 @@ Plugin-facing messaging is layered on top of the core bridge.
 
 - The extension tracks readiness and plugin lifecycle state.
 - Webview plugin APIs send plugin-scoped actions through the provider bridge.
-- Plugin enablement and late external registration reprocess plugin-owned files instead of clearing the Graph Cache.
+- Plugin activation changes settings and projected controls; processing changed source facts waits for an explicit Index or Re-index Workspace action.
 - Shared payload ownership is explicit:
   - `src/shared/graph/contracts.ts` for graph data
   - `src/shared/files/info.ts` for file info

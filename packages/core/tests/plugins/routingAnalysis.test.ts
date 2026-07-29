@@ -122,6 +122,36 @@ describe('plugins/routing', () => {
     consoleError.mockRestore();
   });
 
+  it('retains distinct named relations to the same module', async () => {
+    const result = await analyzeFileResult(
+      'src/app.ts',
+      'content',
+      '/workspace',
+      new Map(),
+      new Map(),
+      async () => ({
+        filePath: 'src/app.ts',
+        relations: [
+          relation({
+            kind: 'call',
+            specifier: './settings',
+            metadata: { importedName: 'readSettings' },
+          }),
+          relation({
+            kind: 'call',
+            specifier: './settings',
+            metadata: { importedName: 'writeSettings' },
+          }),
+        ],
+      }),
+    );
+
+    expect(result?.relations?.map(item => item.metadata?.importedName)).toEqual([
+      'readSettings',
+      'writeSettings',
+    ]);
+  });
+
   it('limits plugin analysis to selected plugin ids when requested', async () => {
     const selected = plugin('selected', ['.ts'], vi.fn(async () => ({
       filePath: 'src/app.ts',

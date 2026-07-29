@@ -41,6 +41,7 @@ This package is type-only. Use `import type`.
 Core plugins can:
 
 - analyze workspace files;
+- use Core Relationship kinds including `import`, `reexport`, `call`, `reference`, and `inherit`;
 - add semantic Nodes, Symbols, and Relationships;
 - add semantic Node Type and Edge Type definitions;
 - declare Graph Scope capabilities and default filters;

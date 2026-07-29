@@ -22,6 +22,7 @@ const {
   resolveCliArgsFromVSCodeExecutablePath,
   runTests,
 } = requireFromExtension('@vscode/test-electron');
+const vscodeVersion = process.env.CODEGRAPHY_VSCODE_TEST_VERSION ?? '1.125.1';
 
 const hostTargetByPlatform = {
   linux: {
@@ -101,7 +102,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, pluginCacheHomeDir, false);
 
     await writeHarnessExtension(harnessPath);
-    const downloadedExecutablePath = await downloadAndUnzipVSCode();
+    const downloadedExecutablePath = await downloadAndUnzipVSCode(vscodeVersion);
     const vscodeExecutablePath = resolveCurrentVsCodeExecutablePath(downloadedExecutablePath);
     const [cliPath, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
     const installResult = spawnSync(cliPath, [

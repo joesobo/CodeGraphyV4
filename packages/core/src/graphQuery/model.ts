@@ -61,6 +61,19 @@ export interface GraphQueryPathConfig extends GraphQueryConfig {
   projectFileEndpoints?: boolean;
 }
 
+export interface GraphQuerySearchConfig extends GraphQueryConfig {
+  pattern: string;
+}
+
+export interface GraphQueryTaskMapConfig extends GraphQueryConfig {
+  query: string;
+}
+
+export interface GraphQueryOverviewConfig extends GraphQueryConfig {
+  target: string;
+  projectedEdgeTypes?: readonly GraphEdgeKind[];
+}
+
 export interface GraphQueryPage {
   offset: number;
   limit: number;
@@ -153,23 +166,107 @@ export interface GraphQueryPathReport {
   };
 }
 
+export type GraphQuerySearchMatch =
+  | { type: 'node'; node: GraphQueryNodeReportItem }
+  | { type: 'symbol'; symbol: GraphQuerySymbolReportItem }
+  | {
+      type: 'text';
+      filePath: string;
+      line: number;
+      column: number;
+      excerpt: string;
+    };
+
+export interface GraphQuerySearchReport {
+  pattern: string;
+  matches: GraphQuerySearchMatch[];
+  page: GraphQueryPage;
+  sources: {
+    text: {
+      freshness: 'live';
+      filesScanned: number;
+      filesSkipped: number;
+    };
+    symbols: {
+      freshness: 'cached';
+      cacheState: 'fresh' | 'stale';
+    };
+  };
+}
+
+export interface GraphQueryTaskMapFile {
+  path: string;
+  nodeType: 'file';
+  matchedTerms: string[];
+  symbols: { id?: string; name: string; kind?: string }[];
+}
+
+export interface GraphQueryTaskMapReport {
+  query: string;
+  terms: string[];
+  files: GraphQueryTaskMapFile[];
+  relationships: GraphQueryEdgeReportItem[];
+  page: GraphQueryPage;
+  limits: {
+    relationships: number;
+    complete: boolean;
+  };
+  sources: {
+    text: {
+      freshness: 'live';
+      filesScanned: number;
+      filesSkipped: number;
+    };
+    graph: {
+      freshness: 'cached';
+      cacheState: 'fresh' | 'stale';
+    };
+  };
+}
+
+export interface GraphQueryOverviewReport {
+  target: GraphQueryNodeReportItem;
+  declaredSymbols: GraphQuerySymbolReport;
+  outgoing: GraphQueryEdgeReport;
+  incoming: GraphQueryEdgeReport;
+  limits: {
+    declaredSymbols: number;
+    relationshipsPerDirection: number;
+  };
+}
+
+export interface GraphQueryTargetNotFoundReport {
+  error: 'query_target_not_found';
+  message: string;
+}
+
 export type GraphQueryReport =
   | 'nodes'
   | 'edges'
   | 'relationships'
   | 'symbols'
-  | 'paths';
+  | 'paths'
+  | 'search'
+  | 'task-map'
+  | 'overview';
 
 export type GraphQueryRequest =
   | { report: 'nodes'; arguments?: GraphQueryConfig }
   | { report: 'edges'; arguments?: GraphQueryConnectionConfig }
   | { report: 'relationships'; arguments?: GraphQueryConnectionConfig }
   | { report: 'symbols'; arguments?: GraphQuerySymbolsConfig }
-  | { report: 'paths'; arguments: GraphQueryPathConfig };
+  | { report: 'paths'; arguments: GraphQueryPathConfig }
+  | { report: 'search'; arguments: GraphQuerySearchConfig }
+  | { report: 'task-map'; arguments: GraphQueryTaskMapConfig }
+  | { report: 'overview'; arguments: GraphQueryOverviewConfig };
 
 export type GraphQueryResult =
   | GraphQueryNodeReport
   | GraphQueryEdgeReport
   | GraphQueryRelationshipReport
   | GraphQuerySymbolReport
-  | GraphQueryPathReport;
+  | GraphQueryPathReport
+  | GraphQuerySearchReport
+  | GraphQueryTaskMapReport
+  | GraphQueryOverviewReport
+  | GraphQueryTargetNotFoundReport;

@@ -2,26 +2,27 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
-import { resolveTargetSymbolId } from './targetSymbolName';
+import { resolveRelationTargetSymbols } from './reexportTarget';
 
 export function enrichRelationTargetSymbol(
   relation: IAnalysisRelation,
   symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
+  relationsByFilePath: ReadonlyMap<string, readonly IAnalysisRelation[]> = new Map(),
 ): IAnalysisRelation {
-  if (relation.toSymbolId || !relation.toFilePath) {
-    return relation;
-  }
+  if (relation.toSymbolId || !relation.toFilePath) return relation;
 
-  const targetSymbols = symbolsByFilePath.get(relation.toFilePath);
-  if (!targetSymbols?.length) {
-    return relation;
-  }
-
-  const resolvedSymbolId = resolveTargetSymbolId(relation, targetSymbols);
-  return resolvedSymbolId
-    ? {
-      ...relation,
-      toSymbolId: resolvedSymbolId,
-    }
-    : relation;
+  const targets = resolveRelationTargetSymbols(
+    relation,
+    symbolsByFilePath,
+    relationsByFilePath,
+  );
+  const uniqueTargets = new Map(targets.map(target => [target.symbolId, target]));
+  if (uniqueTargets.size !== 1) return relation;
+  const target = [...uniqueTargets.values()][0];
+  return {
+    ...relation,
+    toFilePath: target.filePath,
+    resolvedPath: target.filePath,
+    toSymbolId: target.symbolId,
+  };
 }

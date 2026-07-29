@@ -28,11 +28,11 @@ vi.mock('node:timers/promises', () => ({
 }));
 
 vi.mock('../../../../src/graphCache/database/io/connection', () => ({
-  recreateInvalidDatabase: vi.fn(() => false),
   runStatementAsync: vi.fn(async () => undefined),
   runStatementSync: vi.fn(),
   withConnection: vi.fn(),
-  withConnectionAsync: vi.fn(),
+  withRecreatedConnection: vi.fn(),
+  withRecreatedConnectionAsync: vi.fn(),
 }));
 
 vi.mock('../../../../src/graphCache/database/io/load', () => ({
@@ -79,8 +79,22 @@ describe('graphCache/database/io/save', () => {
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriterAsync).mockResolvedValue(writer);
     vi.mocked(connectionModule.withConnection).mockImplementation((_databasePath, callback) =>
       callback('connection' as never));
-    vi.mocked(connectionModule.withConnectionAsync).mockImplementation(async (_databasePath, callback) =>
-      callback('connection' as never));
+    vi.mocked(connectionModule.withRecreatedConnection).mockImplementation((_databasePath, callback) => {
+      try {
+        return callback('connection' as never);
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'SQLITE_CORRUPT')) throw error;
+        return callback('connection' as never);
+      }
+    });
+    vi.mocked(connectionModule.withRecreatedConnectionAsync).mockImplementation(async (_databasePath, callback) => {
+      try {
+        return await callback('connection' as never);
+      } catch (error) {
+        if (!(error instanceof Error && 'code' in error && error.code === 'SQLITE_CORRUPT')) throw error;
+        return callback('connection' as never);
+      }
+    });
     vi.mocked(loadModule.loadWorkspaceAnalysisDatabaseCache).mockReturnValue({
       version: '1',
       files: {
@@ -128,7 +142,7 @@ describe('graphCache/database/io/save', () => {
   it('does not write when the database directory cannot be created', () => {
     vi.mocked(fs.existsSync).mockReturnValueOnce(false);
     saveWorkspaceAnalysisDatabaseCache('/workspace', cache);
-    expect(connectionModule.withConnection).not.toHaveBeenCalled();
+    expect(connectionModule.withRecreatedConnection).not.toHaveBeenCalled();
   });
 
   it('recreates a database that becomes corrupt during a full transaction', () => {
@@ -137,14 +151,9 @@ describe('graphCache/database/io/save', () => {
     });
     vi.mocked(writeModule.persistWorkspaceCache)
       .mockImplementationOnce(() => { throw corruption; });
-    vi.mocked(connectionModule.recreateInvalidDatabase).mockReturnValueOnce(true);
-
     expect(() => saveWorkspaceAnalysisDatabaseCache('/workspace', cache)).not.toThrow();
-    expect(connectionModule.recreateInvalidDatabase).toHaveBeenCalledWith(
-      '/workspace/.codegraphy/graph.sqlite',
-      corruption,
-    );
-    expect(connectionModule.withConnection).toHaveBeenCalledTimes(2);
+    expect(connectionModule.withRecreatedConnection).toHaveBeenCalledOnce();
+    expect(writeModule.persistWorkspaceCache).toHaveBeenCalledTimes(2);
   });
 
   it('clears normalized rows without deleting the database', () => {
@@ -241,7 +250,7 @@ describe('graphCache/database/io/save', () => {
   it('does not write an async cache when the database directory is absent', async () => {
     vi.mocked(fs.existsSync).mockReturnValueOnce(false);
     await saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache);
-    expect(connectionModule.withConnectionAsync).not.toHaveBeenCalled();
+    expect(connectionModule.withRecreatedConnectionAsync).not.toHaveBeenCalled();
   });
 
   it('retries async corruption without replaying progress', async () => {
@@ -263,11 +272,9 @@ describe('graphCache/database/io/save', () => {
         if (calls === 2) throw corruption;
       }
     });
-    vi.mocked(connectionModule.recreateInvalidDatabase).mockReturnValueOnce(true);
-
     await saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache, { onProgress, yieldEvery: 1 });
 
-    expect(connectionModule.withConnectionAsync).toHaveBeenCalledTimes(2);
+    expect(connectionModule.withRecreatedConnectionAsync).toHaveBeenCalledOnce();
     expect(onProgress.mock.calls).toEqual([
       [{ current: 0, total: 2 }],
       [{ current: 1, total: 2 }],

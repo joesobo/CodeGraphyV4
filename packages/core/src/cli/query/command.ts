@@ -5,7 +5,7 @@ import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from '../../workspace/requestTypes';
 import type { DiagnosticEvent, DiagnosticEventSink } from '../../diagnostics/events';
 import { formatDiagnosticEventLine } from '../../diagnostics/events';
-import type { CliCommand } from '../parseTypes';
+import type { CliCommand } from '../parser/protocol';
 import type { CommandExecutionResult } from '../command';
 
 interface QueryCommandDependencies {
@@ -23,7 +23,7 @@ const DEFAULT_DEPENDENCIES: QueryCommandDependencies = {
   query: requestWorkspaceGraphQuery,
 };
 
-const PATH_ARGUMENTS = ['from', 'to', 'filePath', 'relatedFrom', 'relatedTo'] as const;
+const PATH_ARGUMENTS = ['from', 'to', 'target', 'filePath', 'relatedFrom', 'relatedTo'] as const;
 
 function canonicalizeExistingPathPrefix(inputPath: string): string {
   let existingPath = inputPath;
@@ -62,7 +62,7 @@ function normalizeWorkspaceSelector(selector: string, workspaceRoot: string): st
   return normalized;
 }
 
-function normalizeQueryArguments(
+export function normalizeQueryArguments(
   queryArguments: Record<string, unknown>,
   workspaceRoot: string,
 ): Record<string, unknown> {
@@ -121,13 +121,14 @@ export async function runQueryCommand(
         },
       }
     : undefined;
-  const result = await dependencies.query({
+  const input = {
     workspacePath: workspaceRoot,
     report: command.report,
     arguments: queryArguments,
     ...(command.projection ? { projection: command.projection } : {}),
     ...(diagnostics ? { diagnostics } : {}),
-  });
+  } as WorkspaceGraphQueryInput;
+  const result = await dependencies.query(input);
   return {
     exitCode: result.error ? 1 : 0,
     output: JSON.stringify(compactQueryResult(result)),

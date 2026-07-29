@@ -70,7 +70,7 @@ describe('CodeGraphy Workspace settings', () => {
     await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });
 
-  it('normalizes workspace plugin entries from settings.json', async () => {
+  it('rejects malformed workspace plugin entries from settings.json', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
     await fs.writeFile(
@@ -92,15 +92,9 @@ describe('CodeGraphy Workspace settings', () => {
       'utf-8',
     );
 
-    expect(readCodeGraphyWorkspaceSettings(workspaceRoot)).toMatchObject({
-      maxFiles: 50,
-      plugins: [{
-        id: 'codegraphy.vue',
-        activation: 'disabled',
-        disabledFilterPatterns: ['**/__pycache__/**'],
-        options: { includeTests: true },
-      }],
-    });
+    expect(() => readCodeGraphyWorkspaceSettings(workspaceRoot)).toThrow(
+      'plugin disabledFilterPatterns must be an array of strings',
+    );
   });
 
   it('keeps only the last settings entry for each plugin id', () => {
@@ -190,8 +184,7 @@ describe('CodeGraphy Workspace settings', () => {
           enabled: true,
           futureMarkdownSetting: 'keep',
         },
-        { id: 'future.plugin', futureOnlyShape: true },
-        3,
+        { id: 'future.plugin', activation: 'disabled', futureOnlyShape: true },
       ],
     }));
 
@@ -204,8 +197,7 @@ describe('CodeGraphy Workspace settings', () => {
         package: '@codegraphy-dev/plugin-markdown',
         futureMarkdownSetting: 'keep',
       }),
-      { id: 'future.plugin', futureOnlyShape: true },
-      3,
+      { id: 'future.plugin', activation: 'disabled', futureOnlyShape: true },
     ]));
   });
 
@@ -247,18 +239,14 @@ describe('CodeGraphy Workspace settings', () => {
     await fs.writeFile(getWorkspaceSettingsPath(workspaceRoot), JSON.stringify({
       plugins: [
         { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, activation: 'enabled' },
-        { id: 'future.plugin', futureOnlyShape: true },
-        3,
+        { id: 'future.plugin', activation: 'disabled', futureOnlyShape: true },
       ],
     }));
 
     const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
     writeCodeGraphyWorkspaceSettings(workspaceRoot, { ...settings, plugins: [] });
 
-    expect(JSON.parse(await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8')).plugins).toEqual([
-      { id: 'future.plugin', futureOnlyShape: true },
-      3,
-    ]);
+    expect(JSON.parse(await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8')).plugins).toEqual([]);
   });
 
   it('returns defaults for non-object settings values', () => {

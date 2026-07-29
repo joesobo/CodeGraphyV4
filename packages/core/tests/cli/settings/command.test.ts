@@ -1,0 +1,179 @@
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
+import { runCli } from '../../../src/cli/run';
+import { requestCodeGraphyIndexWorkspace } from '../../../src/workspace/requestIndexing';
+
+async function createWorkspace(settings: unknown): Promise<string> {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-settings-'));
+  await fs.mkdir(path.join(workspace, '.codegraphy'), { recursive: true });
+  await fs.writeFile(
+    path.join(workspace, '.codegraphy/settings.json'),
+    typeof settings === 'string' ? settings : `${JSON.stringify(settings, null, 2)}\n`,
+  );
+  return workspace;
+}
+
+describe('cli/settings command', () => {
+  it('reads all effective settings or one requested value', async () => {
+    const workspace = await createWorkspace({ version: 1, maxFiles: 1200, futureSetting: 'preserved' });
+    const outputs: string[] = [];
+    const stdout = (output: string): void => { outputs.push(output); };
+
+    await expect(runCli(['-C', workspace, 'settings'], { stdout })).resolves.toBe(0);
+    await expect(runCli(['-C', workspace, 'settings', 'get', 'maxFiles'], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(outputs[0])).toMatchObject({
+      command: 'settings',
+      data: {
+        workspaceRoot: workspace,
+        settings: { maxFiles: 1200, respectGitignore: true },
+      },
+    });
+    expect(JSON.parse(outputs[1])).toMatchObject({
+      command: 'settings',
+      data: { workspaceRoot: workspace, key: 'maxFiles', value: 1200 },
+    });
+  });
+
+  it('sets and unsets a validated setting without losing unknown fields', async () => {
+    const workspace = await createWorkspace({ version: 1, maxFiles: 1200, futureSetting: 'preserved' });
+    const outputs: string[] = [];
+    const stdout = (output: string): void => { outputs.push(output); };
+
+    await expect(runCli(['-C', workspace, 'settings', 'set', 'maxFiles', '2500'], { stdout })).resolves.toBe(0);
+    expect(JSON.parse(outputs[0])).toMatchObject({
+      data: {
+        key: 'maxFiles',
+        previous: 1200,
+        value: 2500,
+        indexRequired: true,
+      },
+    });
+    expect(JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf8'))).toMatchObject({
+      maxFiles: 2500,
+      futureSetting: 'preserved',
+    });
+
+    await expect(runCli(['-C', workspace, 'settings', 'unset', 'maxFiles'], { stdout })).resolves.toBe(0);
+    expect(JSON.parse(outputs[1])).toMatchObject({
+      data: { key: 'maxFiles', previous: 2500, value: 1000, indexRequired: true },
+    });
+    const raw = JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf8'));
+    expect(raw).not.toHaveProperty('maxFiles');
+    expect(raw.futureSetting).toBe('preserved');
+  });
+
+  it('requires Indexing when a changed discovery setting invalidates a fresh cache', async () => {
+    const workspace = await createWorkspace({ version: 1, respectGitignore: true });
+    await fs.writeFile(path.join(workspace, 'entry.ts'), 'export const value = 1;\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const stdout = vi.fn();
+
+    await expect(runCli([
+      '-C', workspace, 'settings', 'set', 'respectGitignore', 'false',
+    ], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: { key: 'respectGitignore', previous: true, value: false, indexRequired: true },
+    });
+  });
+
+  it('does not blame an unrelated stale cache on a query-only setting change', async () => {
+    const workspace = await createWorkspace({ version: 1, filterPatterns: [] });
+    const entryPath = path.join(workspace, 'entry.ts');
+    await fs.writeFile(entryPath, 'export const before = 1;\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    await fs.writeFile(entryPath, 'export const after = 2;\n');
+    await fs.writeFile(
+      path.join(workspace, '.codegraphy/settings.json'),
+      JSON.stringify({ version: 1, include: ['other/**'], filterPatterns: [] }),
+    );
+    const stdout = vi.fn();
+
+    await expect(runCli([
+      '-C', workspace, 'settings', 'set', 'filterPatterns', '["generated/**"]',
+    ], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: { key: 'filterPatterns', indexRequired: false },
+    });
+  });
+
+  it('requires Indexing when removing or disabling an active Filter broadens discovery', async () => {
+    for (const [key, value] of [
+      ['filterPatterns', '[]'],
+      ['disabledCustomFilterPatterns', '["excluded/**"]'],
+    ] as const) {
+      const workspace = await createWorkspace({
+        version: 1,
+        filterPatterns: ['excluded/**'],
+        disabledCustomFilterPatterns: [],
+      });
+      const stdout = vi.fn();
+
+      await expect(runCli([
+        '-C', workspace, 'settings', 'set', key, value,
+      ], { stdout })).resolves.toBe(0);
+
+      expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+        data: { key, indexRequired: true },
+      });
+    }
+  });
+
+  it('reuses Scope hydration checks for Symbol visibility settings', async () => {
+    const workspace = await createWorkspace({ version: 1 });
+    const stdout = vi.fn();
+
+    await expect(runCli([
+      '-C',
+      workspace,
+      'settings',
+      'set',
+      'nodeVisibility',
+      '{"symbol":true,"symbol:callable":true,"symbol:function":true}',
+    ], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: { key: 'nodeVisibility', indexRequired: true },
+    });
+  });
+
+  it('rejects invalid values and leaves the persisted bytes unchanged', async () => {
+    const workspace = await createWorkspace({ version: 1, maxFiles: 1200 });
+    const settingsPath = path.join(workspace, '.codegraphy/settings.json');
+    const before = await fs.readFile(settingsPath, 'utf8');
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'settings', 'set', 'maxFiles', '-1'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        code: 'invalid_workspace_settings',
+        message: 'maxFiles must be a positive integer',
+        details: { path: settingsPath },
+      },
+    });
+    await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
+  });
+
+  it('does not overwrite malformed persisted settings', async () => {
+    const workspace = await createWorkspace('{ malformed');
+    const settingsPath = path.join(workspace, '.codegraphy/settings.json');
+    const before = await fs.readFile(settingsPath, 'utf8');
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'settings', 'set', 'maxFiles', '2500'], { stderr })).resolves.toBe(1);
+
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: {
+        code: 'invalid_workspace_settings',
+        message: expect.any(String),
+        details: { path: settingsPath },
+      },
+    });
+    await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
+  });
+});

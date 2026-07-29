@@ -186,6 +186,7 @@ jobs:
             os: windows-2022
     env:
       CODEGRAPHY_VSIX_TARGETS: ${{ matrix.target }}
+      CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1
 
     steps:
       - name: Checkout

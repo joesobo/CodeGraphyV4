@@ -72,7 +72,13 @@ const JAVASCRIPT_NODE_VISITORS: Record<string, JavaScriptNodeVisitor> = {
   },
   enum_declaration: handleTypeDeclarationNode,
   export_statement: (node, context) => {
-    handleJavaScriptExportStatement(node, context.filePath, context.relations);
+    handleJavaScriptExportStatement(
+      node,
+      context.filePath,
+      context.relations,
+      context.symbols,
+      context.symbolsEnabled,
+    );
   },
   function_declaration: (node, context) =>
     context.symbolsEnabled

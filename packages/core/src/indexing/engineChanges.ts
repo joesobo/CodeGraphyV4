@@ -1,3 +1,5 @@
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
 import { invalidateWorkspaceIndexEngineFiles } from './state';
 import { mapDiscoveredWorkspaceIndexFilesByRelativePath, mergeDiscoveredWorkspaceIndexFiles, selectDiscoveredWorkspaceIndexFileChanges } from './changedFiles';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
@@ -5,7 +7,71 @@ import { analyzeWorkspaceEngineChangedFiles, applyWorkspaceEngineAnalysisResult,
 import { buildWorkspaceEngineGraph, createWorkspaceEngineIndexResult, patchWorkspaceEngineCache } from './engineGraph';
 import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 import { createWorkspaceEngineDisabledPlugins, discoverWorkspaceEngineFiles } from './engineSetup';
-import { findAffectedWorkspaceIndexAnalysisDependents } from './workspace/changes';
+import {
+  createWorkspaceIndexFileContentReader,
+  findAffectedWorkspaceIndexAnalysisDependents,
+  findChangedWorkspaceIndexFiles,
+} from './workspace/changes';
+
+function isWorkspaceDiscoveryLifecyclePath(workspaceRoot: string, filePath: string): boolean {
+  const relativePath = path.relative(workspaceRoot, path.resolve(workspaceRoot, filePath));
+  return relativePath === '.codegraphy/settings.json' || path.basename(relativePath) === '.gitignore';
+}
+
+function shouldFullyReconcileWorkspaceChanges(
+  runtime: WorkspaceEngineRuntime,
+  filePaths: readonly string[],
+): boolean {
+  return runtime.state.discoveryResult!.limitReached
+    || filePaths.some(filePath => isWorkspaceDiscoveryLifecyclePath(runtime.workspaceRoot, filePath));
+}
+
+async function unmatchedPathCanAffectIndex(
+  runtime: WorkspaceEngineRuntime,
+  filePath: string,
+): Promise<boolean> {
+  const { state, workspaceRoot } = runtime;
+  const absolutePath = path.resolve(workspaceRoot, filePath);
+  const relativePath = path.relative(workspaceRoot, absolutePath).split(path.sep).join('/');
+  if (!relativePath || relativePath.startsWith('../')) return true;
+  if (state.cache.files[relativePath]) return true;
+  try {
+    await stat(absolutePath);
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+async function commitWorkspaceEngineAnalysis(
+  runtime: WorkspaceEngineRuntime,
+  files: NonNullable<WorkspaceEngineRuntime['state']['discoveryResult']>['files'],
+  analysis: Awaited<ReturnType<typeof analyzeWorkspaceEngineChangedFiles>>,
+  disabledPlugins: Set<string>,
+) {
+  const { state } = runtime;
+  let graph: ReturnType<typeof buildWorkspaceEngineGraph> | undefined;
+  let supersededFiles: typeof files = [];
+  const committed = await patchWorkspaceEngineCache(
+    runtime,
+    files.map(file => file.relativePath),
+    async () => {
+      assertWorkspaceEngineActive(runtime);
+      supersededFiles = await findChangedWorkspaceIndexFiles({
+        cache: state.cache,
+        files,
+        readContent: createWorkspaceIndexFileContentReader(runtime.discovery),
+      });
+      assertWorkspaceEngineActive(runtime);
+      if (supersededFiles.length > 0) return false;
+      applyWorkspaceEngineAnalysisResult(state, analysis);
+      graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+      state.registry!.notifyPostAnalyze(graph, disabledPlugins);
+      return true;
+    },
+  );
+  return { committed, graph, supersededFiles };
+}
 
 export async function applyWorkspaceEngineChangedFiles(
   runtime: WorkspaceEngineRuntime,
@@ -17,12 +83,30 @@ export async function applyWorkspaceEngineChangedFiles(
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
   await discoverWorkspaceEngineFiles(runtime);
   assertWorkspaceEngineActive(runtime);
+  if (shouldFullyReconcileWorkspaceChanges(runtime, filePaths)) return fullIndex();
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);
   const changes = selectDiscoveredWorkspaceIndexFileChanges(workspaceRoot, filePaths, discoveredByPath);
 
-  if (changes.unmatchedFilePaths.length > 0) {
-    invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, changes.unmatchedFilePaths);
+  const unmatchedPathsWithIndexImpact = (
+    await Promise.all(changes.unmatchedFilePaths.map(async filePath => (
+      await unmatchedPathCanAffectIndex(runtime, filePath) ? filePath : undefined
+    )))
+  ).filter((filePath): filePath is string => filePath !== undefined);
+  if (unmatchedPathsWithIndexImpact.length > 0) {
+    invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, unmatchedPathsWithIndexImpact);
     return fullIndex();
+  }
+  if (changes.files.length === 0) {
+    const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+    return {
+      ...createWorkspaceEngineIndexResult(runtime, graph),
+      indexing: {
+        mode: 'incremental',
+        analyzedFiles: 0,
+        deletedFiles: 0,
+        reusedFiles: state.discoveryResult!.files.length,
+      },
+    };
   }
 
   const changedFiles = await readAnalysisFiles(runtime, changes.files);
@@ -52,12 +136,17 @@ export async function applyWorkspaceEngineChangedFiles(
   invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, files.map(file => file.absolutePath));
   const analysis = await analyzeWorkspaceEngineChangedFiles(runtime, files, disabledPlugins);
   assertWorkspaceEngineActive(runtime);
-  applyWorkspaceEngineAnalysisResult(state, analysis);
-  const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
-  state.registry!.notifyPostAnalyze(graph, disabledPlugins);
-  patchWorkspaceEngineCache(runtime, files.map(file => file.relativePath));
+  const commit = await commitWorkspaceEngineAnalysis(runtime, files, analysis, disabledPlugins);
+  if (!commit.committed) {
+    return applyWorkspaceEngineChangedFiles(
+      runtime,
+      commit.supersededFiles.map(file => file.absolutePath),
+      fullIndex,
+    );
+  }
+  if (!commit.graph) throw new Error('Workspace Graph Cache commit completed without a Graph');
   return {
-    ...createWorkspaceEngineIndexResult(runtime, graph),
+    ...createWorkspaceEngineIndexResult(runtime, commit.graph),
     indexing: {
       mode: 'incremental',
       analyzedFiles: files.length,

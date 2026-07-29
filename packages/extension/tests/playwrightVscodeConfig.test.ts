@@ -97,6 +97,21 @@ describe('VS Code Playwright config', () => {
     );
   });
 
+  it('pins VSIX activation smoke to the validated VS Code host version', () => {
+    const workflow = readCiWorkflow();
+    const vsixJob = workflow.slice(
+      workflow.indexOf('  vsix-artifact-tests:'),
+      workflow.indexOf('  playwright:'),
+    );
+    const smokeScript = fs.readFileSync(
+      path.resolve(__dirname, '../../../scripts/smoke-installed-vsix.mjs'),
+      'utf8',
+    );
+
+    expect(vsixJob).toContain('CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1');
+    expect(smokeScript).toContain('version: vscodeVersion');
+  });
+
   it('pins the CI VS Code host version into the Playwright Turbo hash', () => {
     const workflow = readCiWorkflow();
     const turboConfig = JSON.parse(

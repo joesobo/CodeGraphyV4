@@ -66,7 +66,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
       const appSource = [
         "import { boot } from './lib';",
         "import { readFileSync } from 'node:fs';",
-        "export { helper } from './helper';",
+        "export { helper as publicHelper } from './helper';",
         "const lazy = import('./helper');",
         "const legacy = require('./lib');",
         'function run() {',
@@ -101,6 +101,11 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             kind: 'method',
             filePath: appPath,
           }),
+          expect.objectContaining({
+            name: 'publicHelper',
+            kind: 'alias',
+            filePath: appPath,
+          }),
         ]),
       );
       expect(result?.relations).toEqual(
@@ -122,12 +127,17 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
-            kind: 'import',
+            kind: 'reexport',
             specifier: './helper',
             resolvedPath: path.join(workspaceRoot, 'src/helper.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/helper.ts'),
             sourceId: 'core:treesitter:import',
+            metadata: {
+              reexport: true,
+              importedName: 'helper',
+              exportedName: 'publicHelper',
+            },
           }),
           expect.objectContaining({
             kind: 'import',

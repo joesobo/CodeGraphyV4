@@ -19,6 +19,7 @@ describe('graphScope/defaults', () => {
     expect(CORE_GRAPH_EDGE_DEFAULT_VISIBILITY.import).toBe(true);
     expect(CORE_GRAPH_EDGE_DEFAULT_VISIBILITY.using).toBe(true);
     expect(CORE_GRAPH_EDGE_DEFAULT_VISIBILITY.call).toBe(false);
+    expect(CORE_GRAPH_EDGE_DEFAULT_VISIBILITY.reexport).toBe(false);
     expect(CORE_GRAPH_EDGE_DEFAULT_VISIBILITY.reference).toBe(false);
   });
 });

@@ -3,7 +3,9 @@ import type { IDiscoveryResult } from '../discovery/contracts';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import type { IGraphData } from '../graph/contracts';
-import { patchWorkspaceAnalysisDatabaseCache, saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
+import {
+  withWorkspaceAnalysisDatabaseWriter,
+} from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { getGraphCachePath } from '../workspace/paths';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
@@ -103,37 +105,49 @@ function buildCompleteEngineGraph(runtime: WorkspaceEngineRuntime): IGraphData {
   });
 }
 
-export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
+function createWorkspaceEngineDatabaseReplacement(runtime: WorkspaceEngineRuntime) {
   const disabledPlugins = runtime.state.settings
     ? createDisabledPluginSet(runtime.state.settings)
     : new Set<string>();
-  saveWorkspaceAnalysisDatabaseCache(
-    runtime.workspaceRoot,
-    runtime.state.cache,
-    buildCompleteEngineGraph(runtime),
-    runtime.state.registry?.listNodeTypes(disabledPlugins),
-  );
-  persistMetadata(runtime);
+  return {
+    cache: runtime.state.cache,
+    graph: buildCompleteEngineGraph(runtime),
+    nodeTypes: runtime.state.registry?.listNodeTypes(disabledPlugins),
+  };
+}
+
+export function replaceWorkspaceEngineCache(
+  runtime: WorkspaceEngineRuntime,
+  prepare: () => Promise<boolean>,
+): Promise<boolean> {
+  return withWorkspaceAnalysisDatabaseWriter(runtime.workspaceRoot, async (writer) => {
+    if (!await prepare()) return false;
+    writer.replace(createWorkspaceEngineDatabaseReplacement(runtime));
+    persistMetadata(runtime);
+    return true;
+  });
 }
 
 export function patchWorkspaceEngineCache(
   runtime: WorkspaceEngineRuntime,
   upsertFilePaths: readonly string[],
-): void {
-  const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
-  for (const filePath of upsertFilePaths) {
-    const entry = runtime.state.cache.files[filePath];
-    if (entry) upsertFiles[filePath] = entry;
-  }
-  patchWorkspaceAnalysisDatabaseCache(runtime.workspaceRoot, {
-    deleteFilePaths: [],
-    upsertFiles,
-    graph: buildCompleteEngineGraph(runtime),
-    nodeTypes: runtime.state.registry?.listNodeTypes(
-      runtime.state.settings
-        ? createDisabledPluginSet(runtime.state.settings)
-        : new Set<string>(),
-    ),
+  prepare: () => Promise<boolean>,
+): Promise<boolean> {
+  return withWorkspaceAnalysisDatabaseWriter(runtime.workspaceRoot, async (writer) => {
+    if (!await prepare()) return false;
+    const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
+    for (const filePath of upsertFilePaths) {
+      const entry = runtime.state.cache.files[filePath];
+      if (entry) upsertFiles[filePath] = entry;
+    }
+    const recovery = createWorkspaceEngineDatabaseReplacement(runtime);
+    writer.patch({
+      deleteFilePaths: [],
+      upsertFiles,
+      graph: recovery.graph,
+      nodeTypes: recovery.nodeTypes,
+    }, recovery);
+    persistMetadata(runtime);
+    return true;
   });
-  persistMetadata(runtime);
 }

@@ -4,6 +4,12 @@ import { isFileNode } from '../../../../../shared/visibleGraph/model';
 import type { GraphEdgeTypeCapabilityLike } from './contracts';
 import { createEdgeCapabilityFilter } from './edgeCapabilityFilter';
 
+const INTERNAL_EDGE_KINDS = new Set(['reexport']);
+
+function isGraphScopeEdgeKind(edgeKind: string): boolean {
+  return !INTERNAL_EDGE_KINDS.has(edgeKind);
+}
+
 export function collectAvailableEdgeKinds(
   graphData: IGraphData,
   edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
@@ -12,7 +18,7 @@ export function collectAvailableEdgeKinds(
   const capabilityFilter = createEdgeCapabilityFilter(edgeTypeCapabilities);
 
   for (const edge of graphData.edges) {
-    if (capabilityFilter(edge.kind)) {
+    if (isGraphScopeEdgeKind(edge.kind) && capabilityFilter(edge.kind)) {
       edgeKinds.add(edge.kind);
     }
   }
@@ -34,7 +40,7 @@ function addStructuralEdgeKinds(edgeKinds: Set<string>, graphData: IGraphData): 
 export function collectCapabilityEdgeKinds(
   edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
 ): Set<string> {
-  return new Set<string>(edgeTypeCapabilities ?? []);
+  return new Set<string>((edgeTypeCapabilities ?? []).filter(isGraphScopeEdgeKind));
 }
 
 function shouldAddLegacyReferenceEdgeKind(edgeKinds: ReadonlySet<string>): boolean {

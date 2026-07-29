@@ -1,12 +1,7 @@
-import { runIndexCommand } from './index/command';
-import { runDoctorCommand } from './doctor/command';
-import { runFilterCommand } from './filter/command';
-import { createHelpResult } from './help/command';
-import { runPluginsCommand } from './plugins/command';
-import { runQueryCommand } from './query/command';
-import { runScopeCommand } from './scope/command';
-import { runStatusCommand } from './status/command';
-import type { CliCommand } from './parse';
+import { runRegisteredCommand } from './registry';
+import { runWatchCommand, type WatchCommandEvent } from './watch/command';
+import { formatCliResult } from './result/serializer';
+import type { CliCommand } from './parser/command';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
 
 export interface CommandExecutionResult {
@@ -15,7 +10,38 @@ export interface CommandExecutionResult {
 }
 
 export interface CliCommandDependencies {
+  runWatch?: typeof runWatchCommand;
   writeDiagnostic?(line: string): void;
+  writeError?(line: string): void;
+  writeOutput?(line: string): void;
+}
+
+function writeWatchEvent(
+  command: CliCommand,
+  dependencies: CliCommandDependencies,
+  event: WatchCommandEvent,
+): void {
+  if (event.event === 'error') {
+    const { code, event: eventName, message, ...details } = event;
+    const line = JSON.stringify({
+      ok: false,
+      command: 'watch',
+      error: {
+        code,
+        message,
+        details: { event: eventName, ...details },
+      },
+    });
+    if (dependencies.writeError) dependencies.writeError(line);
+    else process.stderr.write(`${line}\n`);
+    return;
+  }
+  const line = formatCliResult(command, {
+    exitCode: 0,
+    output: JSON.stringify(event),
+  });
+  if (dependencies.writeOutput) dependencies.writeOutput(line);
+  else process.stdout.write(`${line}\n`);
 }
 
 function emitCliDiagnostic(
@@ -71,49 +97,13 @@ export async function runCliCommand(
     };
   }
   emitCliDiagnostic(command, dependencies, 'command-started', createCommandContext(command));
-  let result: CommandExecutionResult;
-
-  switch (command.name) {
-    case 'doctor':
-      result = runDoctorCommand(command);
-      break;
-    case 'filter':
-      result = runFilterCommand(command);
-      break;
-    case 'scope':
-      result = runScopeCommand(command);
-      break;
-    case 'status':
-      result = runStatusCommand(command.workspacePath, undefined, {
-        verbose: command.verbose,
-        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
-      });
-      break;
-    case 'index':
-      result = await runIndexCommand(command.workspacePath, undefined, {
-        verbose: command.verbose,
-        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
-      });
-      break;
-    case 'plugins':
-      result = await runPluginsCommand(command);
-      break;
-    case 'query':
-      result = await runQueryCommand(command, undefined, {
-        verbose: command.verbose,
-        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
-      });
-      break;
-    case 'version':
-      result = {
-        exitCode: 0,
-        output: (await import('./version')).readCliVersion(),
-      };
-      break;
-    case 'help':
-    default:
-      result = createHelpResult(command.helpPath);
-  }
+  const result = await runRegisteredCommand(command, {
+    runWatch: dependencies.runWatch,
+    ...(dependencies.writeDiagnostic
+      ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) }
+      : {}),
+    writeWatchEvent: event => writeWatchEvent(command, dependencies, event),
+  });
 
   emitCliDiagnostic(command, dependencies, 'command-completed', {
     command: command.name,
