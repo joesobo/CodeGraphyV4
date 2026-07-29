@@ -3,9 +3,11 @@ import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
+  isInvalidDatabaseError,
   runStatementSync,
   withConnection,
   withOwnedConnection,
+  withOwnedRecreatedConnection,
   withRecreatedConnection,
 } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
@@ -30,6 +32,12 @@ export interface WorkspaceAnalysisDatabaseSaveOptions {
   nodeTypes?: readonly IPluginNodeType[];
   onProgress?: (progress: WorkspaceAnalysisDatabaseSaveProgress) => void;
   yieldEvery?: number;
+}
+
+export interface WorkspaceAnalysisDatabaseReplacement {
+  cache: IWorkspaceAnalysisCache;
+  graph?: IGraphData;
+  nodeTypes?: readonly IPluginNodeType[];
 }
 
 export interface WorkspaceAnalysisDatabasePatch {
@@ -99,32 +107,55 @@ function runTransactionSync(connection: Parameters<typeof runStatementSync>[0], 
   }
 }
 
+function writeWorkspaceAnalysisDatabaseReplacement(
+  connection: Parameters<typeof runStatementSync>[0],
+  replacement: WorkspaceAnalysisDatabaseReplacement,
+): void {
+  runTransactionSync(connection, () => {
+    runStatementSync(connection, 'DELETE FROM Edge');
+    runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Node');
+    runStatementSync(connection, 'DELETE FROM File');
+
+    const writer = createWorkspaceAnalysisCacheWriter(connection);
+    if (replacement.nodeTypes) {
+      persistWorkspaceCache(writer, replacement.cache, replacement.graph, replacement.nodeTypes);
+    } else {
+      persistWorkspaceCache(writer, replacement.cache, replacement.graph);
+    }
+  });
+}
+
+function prepareWorkspaceAnalysisDatabase(workspaceRoot: string): string | undefined {
+  ensureDatabaseDirectory(workspaceRoot);
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  return fs.existsSync(path.dirname(databasePath)) ? databasePath : undefined;
+}
+
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
   graph?: IGraphData,
   nodeTypes?: readonly IPluginNodeType[],
 ): void {
-  ensureDatabaseDirectory(workspaceRoot);
-  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(path.dirname(databasePath))) {
-    return;
-  }
-  withRecreatedConnection(databasePath, (connection) => {
-    runTransactionSync(connection, () => {
-      runStatementSync(connection, 'DELETE FROM Edge');
-      runStatementSync(connection, 'DELETE FROM Symbol');
-      runStatementSync(connection, 'DELETE FROM Node');
-      runStatementSync(connection, 'DELETE FROM File');
+  const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
+  if (!databasePath) return;
+  withRecreatedConnection(databasePath, connection => writeWorkspaceAnalysisDatabaseReplacement(
+    connection,
+    { cache, graph, nodeTypes },
+  ));
+}
 
-      const writer = createWorkspaceAnalysisCacheWriter(connection);
-      if (nodeTypes) {
-        persistWorkspaceCache(writer, cache, graph, nodeTypes);
-      } else {
-        persistWorkspaceCache(writer, cache, graph);
-      }
-    });
-  });
+export function replaceOwnedWorkspaceAnalysisDatabaseCache(
+  workspaceRoot: string,
+  replacement: WorkspaceAnalysisDatabaseReplacement,
+): void {
+  const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
+  if (!databasePath) return;
+  withOwnedRecreatedConnection(
+    databasePath,
+    connection => writeWorkspaceAnalysisDatabaseReplacement(connection, replacement),
+  );
 }
 
 function writeWorkspaceAnalysisDatabasePatch(
@@ -156,17 +187,11 @@ function writeWorkspaceAnalysisDatabasePatch(
   });
 }
 
-function prepareWorkspaceAnalysisDatabasePatch(workspaceRoot: string): string | undefined {
-  ensureDatabaseDirectory(workspaceRoot);
-  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  return fs.existsSync(path.dirname(databasePath)) ? databasePath : undefined;
-}
-
 export function patchWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   patch: WorkspaceAnalysisDatabasePatch,
 ): void {
-  const databasePath = prepareWorkspaceAnalysisDatabasePatch(workspaceRoot);
+  const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
   if (!databasePath) return;
   withConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
 }
@@ -174,10 +199,16 @@ export function patchWorkspaceAnalysisDatabaseCache(
 export function patchOwnedWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   patch: WorkspaceAnalysisDatabasePatch,
+  recovery: WorkspaceAnalysisDatabaseReplacement,
 ): void {
-  const databasePath = prepareWorkspaceAnalysisDatabasePatch(workspaceRoot);
+  const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
   if (!databasePath) return;
-  withOwnedConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
+  try {
+    withOwnedConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
+  } catch (error) {
+    if (!isInvalidDatabaseError(error)) throw error;
+    replaceOwnedWorkspaceAnalysisDatabaseCache(workspaceRoot, recovery);
+  }
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void {

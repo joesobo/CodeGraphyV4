@@ -39,6 +39,37 @@ describe('workspace engine changed files', () => {
     engine.dispose();
   });
 
+  it('rebuilds a corrupt Graph Cache completely during an incremental update', async () => {
+    const workspaceRoot = await createWorkspace();
+    const nextPath = join(workspaceRoot, 'next.txt');
+    await writeFile(nextPath, 'next\n', 'utf-8');
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    await writeFile(join(workspaceRoot, '.codegraphy', 'graph.sqlite'), 'not a database');
+    const sourcePath = join(workspaceRoot, 'source.txt');
+    await writeFile(sourcePath, 'next.txt\n', 'utf-8');
+
+    await engine.applyChangedFiles([sourcePath]);
+
+    const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshot.files.map(file => file.filePath).sort()).toEqual([
+      'next.txt',
+      'source.txt',
+      'target.txt',
+    ]);
+    expect(snapshot.graph.edges.map(edge => edge.id)).toContain('source.txt->next.txt#import');
+    engine.dispose();
+  });
+
   it('fully reconciles a capped workspace when a new file changes the selected set', async () => {
     const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-capped-changes-'));
     await writeFile(join(workspaceRoot, 'b.txt'), 'before\n', 'utf-8');

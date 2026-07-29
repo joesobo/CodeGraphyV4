@@ -106,17 +106,38 @@ function buildCompleteEngineGraph(runtime: WorkspaceEngineRuntime): IGraphData {
   });
 }
 
-export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
+function createWorkspaceEngineDatabaseReplacement(runtime: WorkspaceEngineRuntime) {
   const disabledPlugins = runtime.state.settings
     ? createDisabledPluginSet(runtime.state.settings)
     : new Set<string>();
+  return {
+    cache: runtime.state.cache,
+    graph: buildCompleteEngineGraph(runtime),
+    nodeTypes: runtime.state.registry?.listNodeTypes(disabledPlugins),
+  };
+}
+
+export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
+  const replacement = createWorkspaceEngineDatabaseReplacement(runtime);
   saveWorkspaceAnalysisDatabaseCache(
     runtime.workspaceRoot,
-    runtime.state.cache,
-    buildCompleteEngineGraph(runtime),
-    runtime.state.registry?.listNodeTypes(disabledPlugins),
+    replacement.cache,
+    replacement.graph,
+    replacement.nodeTypes,
   );
   persistMetadata(runtime);
+}
+
+export function replaceWorkspaceEngineCache(
+  runtime: WorkspaceEngineRuntime,
+  prepare: () => Promise<boolean>,
+): Promise<boolean> {
+  return withWorkspaceAnalysisDatabaseWriter(runtime.workspaceRoot, async (writer) => {
+    if (!await prepare()) return false;
+    writer.replace(createWorkspaceEngineDatabaseReplacement(runtime));
+    persistMetadata(runtime);
+    return true;
+  });
 }
 
 export function patchWorkspaceEngineCache(
@@ -131,16 +152,13 @@ export function patchWorkspaceEngineCache(
       const entry = runtime.state.cache.files[filePath];
       if (entry) upsertFiles[filePath] = entry;
     }
+    const recovery = createWorkspaceEngineDatabaseReplacement(runtime);
     writer.patch({
       deleteFilePaths: [],
       upsertFiles,
-      graph: buildCompleteEngineGraph(runtime),
-      nodeTypes: runtime.state.registry?.listNodeTypes(
-        runtime.state.settings
-          ? createDisabledPluginSet(runtime.state.settings)
-          : new Set<string>(),
-      ),
-    });
+      graph: recovery.graph,
+      nodeTypes: recovery.nodeTypes,
+    }, recovery);
     persistMetadata(runtime);
     return true;
   });
