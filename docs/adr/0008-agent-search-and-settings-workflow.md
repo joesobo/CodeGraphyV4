@@ -59,7 +59,7 @@ Add one workspace-settings interface:
 - `settings set <key> <json>` validates and persists one supported top-level setting;
 - `settings unset <key>` restores its default.
 
-Settings mutations preserve unknown top-level fields, validate the complete existing file before writing, report `indexRequired`, and never replace malformed persisted input with defaults. Persisted known fields use strict validation; the standalone normalization function remains tolerant for programmatic inputs.
+Settings mutations preserve unknown top-level fields, validate the complete existing file before writing, report `indexRequired`, and never replace malformed persisted input with defaults. Persisted known fields use strict validation, including the shared settings versions 1 through 4; unsupported future versions fail before mutation. `indexRequired` is derived from the setting that changed rather than unrelated cache staleness. Discovery inputs such as `respectGitignore` require Indexing, while Node visibility reuses Scope's Symbol-tier hydration check. The standalone normalization function remains tolerant for programmatic inputs.
 
 Indexing remains explicit and separate from settings and querying. Its structured `discovery` result reports `indexedFiles`, `totalFound`, and `limitReached`; a capped result includes the exact `settings set maxFiles` recovery command. An agent raises the file budget or adjusts durable filters only after Indexing reports truncation, then runs `index` and resumes Search or Target Query.
 

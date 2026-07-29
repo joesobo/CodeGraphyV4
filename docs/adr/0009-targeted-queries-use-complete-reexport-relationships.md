@@ -47,7 +47,7 @@ The samples are intentionally small and retain the variance seen in earlier agen
 
 ## Decision
 
-Use the complete cached Node and Edge Types for CLI Search, Target Query, Path, and exact targeted Relationship selectors. Saved Graph View Scope continues to shape inventory and presentation. An explicit `--node-type` or `--edge-type` projection constrains only that dimension for the current invocation.
+Use the complete cached Node and Edge Types for CLI Search, Target Query, Path, and exact targeted Relationship selectors. Saved Graph View Scope continues to shape inventory and presentation. Explicit `--node-type` and `--edge-type` projections constrain Search and Target Query before resolving cached Symbols or Relationships. Persisted and one-off path Filters apply to graph Nodes, live source evidence, cached Symbols, and cached relations through the same allowed-File set.
 
 When File selectors expand to their Symbols for Path, try exact File endpoints first and stop after finding that exact route. Do not emit redundant longer Symbol-expanded routes after an exact File path succeeds.
 
