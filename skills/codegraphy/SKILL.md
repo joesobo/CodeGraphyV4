@@ -15,7 +15,7 @@ The graph is navigation evidence. Static relationships can identify ownership an
 
 `codegraphy watch` performs that synchronization and remains in the foreground with the workspace engine resident in memory. Workspace events are debounced into serialized incremental updates, while file creation, deletion, renaming, Git ignore changes, and workspace settings changes can trigger rediscovery. Cache artifacts and active Filter matches are skipped. Changes that arrive during an update remain pending for another batch, simultaneous Graph Cache writers are coordinated, and interrupting the watcher persists its pending batch before shutdown. This is a CLI lifecycle: the VS Code Extension changes cached source facts only after an explicit Index or Re-index Workspace action.
 
-`codegraphy filter` changes persisted path exclusions without rebuilding cached analysis. `codegraphy scope` changes which Node Types and Edge Types appear in the shaped graph. `codegraphy settings` exposes workspace discovery, indexing, filter, scope, Plugin, and interface settings; settings mutations report whether another Index is required. `codegraphy plugins` controls installed Plugin registration and activation.
+`codegraphy filter` changes persisted path exclusions. Adding an active Filter narrows queries immediately; removing or disabling one can expose files that were not indexed and therefore requires another Index. `codegraphy scope` changes which Node Types and Edge Types appear in the shaped graph. `codegraphy settings` exposes workspace discovery, indexing, filter, scope, Plugin, and interface settings; settings mutations report whether another Index is required. `codegraphy plugins` controls installed Plugin registration and activation.
 
 Query with any read-only graph command after a Graph Cache exists. A `graph_cache_not_found` result means that no indexed snapshot is available. `codegraphy status` reports supported missing, stale, and fresh cache conditions. `codegraphy doctor` checks runtime, settings, cache, and Plugin health and includes recovery information for unhealthy checks.
 
@@ -34,7 +34,7 @@ Most Symbols and Relationships are cached. Search also reads current source text
 | `dependents <node>` | Incoming Relationships to a File path or exact Node ID. |
 | `path <from> <to>` | A bounded Relationship route between two File paths or exact Node IDs. |
 
-Inventory reports reflect persisted Graph Scope. Search, exact Target Query, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
+Inventory reports reflect persisted Graph Scope. Search, Map, exact Target Query, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
 
 `--filter`, `--node-type`, and `--edge-type` are one-off query projections and do not modify `.codegraphy/settings.json`. Persisted Filter and Scope changes affect later commands without deleting the complete cached facts.
 

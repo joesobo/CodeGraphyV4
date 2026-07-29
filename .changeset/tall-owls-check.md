@@ -3,4 +3,6 @@
 "@codegraphy-dev/plugin-api": minor
 ---
 
-Make `codegraphy search` discover exact live source and cached AST Symbols with deterministic natural-phrase File fallback results, add compact task-personalized `codegraphy map` File maps with typed Relationships, add `codegraphy query` overviews with prioritized declarations and Relationships, add safe workspace `settings get/set/unset` commands, reject corrupt persisted settings instead of silently replacing them with defaults, return structured data from `plugins list`, return compact partial results from Graph Scope mutations, keep successful non-verbose Indexing output on stdout only, query complete cached relationship types by default for exact targets, and resolve calls through explicit reexport Relationships to implementation Symbols.
+Improve terminal and agent workflows with live source and Symbol Search, task-personalized File maps, exact File and Symbol overviews, safe workspace settings commands, actionable Indexing limits, structured Plugin state, and an optional foreground watcher that keeps the Graph Cache current during long-running sessions.
+
+Query complete cached Relationships by default for exact targets, preserve JavaScript and TypeScript reexports so calls resolve through barrels, and expose `reexport` as a Plugin API Edge Type. Remove the experimental public Batch command in favor of adaptive queries.

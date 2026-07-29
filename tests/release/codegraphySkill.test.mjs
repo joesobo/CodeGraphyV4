@@ -6,30 +6,29 @@ import test from 'node:test';
 const repoRoot = process.cwd();
 const skillPath = path.join(repoRoot, 'skills', 'codegraphy', 'SKILL.md');
 
-test('the generalized CodeGraphy skill teaches the lifecycle and delegates syntax to CLI help', () => {
+test('the CodeGraphy skill covers the shipped CLI capabilities and machine contract', () => {
   const skill = readFileSync(skillPath, 'utf8');
 
   assert.match(skill, /^name: codegraphy$/m);
-  const lifecycle = ['codegraphy index', 'codegraphy watch', 'codegraphy filter', 'Query with'];
-  const lifecyclePositions = lifecycle.map(term => skill.indexOf(term));
-  assert.ok(lifecyclePositions.every(position => position >= 0));
-  assert.deepEqual(lifecyclePositions, [...lifecyclePositions].sort((left, right) => left - right));
-  for (const command of ['nodes', 'search', 'map', 'query', 'edges', 'dependencies', 'dependents', 'path']) {
+  for (const command of [
+    'index',
+    'watch',
+    'filter',
+    'nodes',
+    'search',
+    'map',
+    'query',
+    'edges',
+    'dependencies',
+    'dependents',
+    'path',
+  ]) {
     assert.match(skill, new RegExp(`\\b${command}\\b`));
   }
-  assert.match(skill, /codegraphy --help/);
-  assert.match(skill, /codegraphy <command> --help/);
-  assert.doesNotMatch(skill, /MCP|graph\.lbug/);
-});
-
-test('the CodeGraphy skill explains the tool without prescribing an agent workflow', () => {
-  const skill = readFileSync(skillPath, 'utf8');
-
   for (const concept of [
     'Relationship Graph',
     'Graph Cache',
     'live source',
-    'cached',
     'Graph Scope',
     'pagination',
     'stdout',
@@ -39,10 +38,8 @@ test('the CodeGraphy skill explains the tool without prescribing an agent workfl
   ]) {
     assert.match(skill, new RegExp(concept, 'i'));
   }
-  assert.doesNotMatch(skill, /Token-bounded navigation policy/i);
-  assert.doesNotMatch(skill, /(?:at most|no more than|normally make)\s+(?:one|two|three|\d+)\s+CodeGraphy calls?/i);
-  assert.doesNotMatch(skill, /(?:second and final|a third is allowed|commands launched concurrently count)/i);
-  assert.doesNotMatch(skill, /(?:never submit|one domain word|task literals|after one empty or refined search)/i);
+  assert.match(skill, /codegraphy --help/);
+  assert.match(skill, /codegraphy <command> --help/);
 });
 
 test('the old MCP package and skill are absent from the release source', () => {

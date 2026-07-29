@@ -36,4 +36,4 @@ The whole-view loading state is only for the first graph payload. During an expl
 - disable only actions that cannot run safely during Indexing;
 - replace the graph payload when the new data is ready.
 
-See [ADR 0015](../../../docs/adr/0015-vscode-indexing-requires-explicit-user-action.md) for the decision and its performance rationale.
+This explicit lifecycle prevents source analysis from competing with editor work or changing the graph before the user requests it.

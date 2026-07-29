@@ -1,6 +1,6 @@
 # CodeGraphy Domain
 
-CodeGraphy turns a folder into an interactive Relationship Graph so people and agents can inspect how files and code concepts connect. Use this glossary for product language, tests, issues, and documentation. Current behavior belongs in the focused docs under `docs/`; durable technical decisions belong in `docs/adr/`.
+CodeGraphy turns a folder into an interactive Relationship Graph so people and agents can inspect how files and code concepts connect. Use this glossary for product language, tests, issues, and documentation. Current behavior and important constraints belong in the closest product or package reference.
 
 ## Graph Model
 
@@ -117,7 +117,7 @@ The separate `codegraphy watch` CLI command is an explicit foreground workflow f
 | **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
 | **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |
 
-The CLI never searches parent directories for a workspace. Indexing and exploration are separate operations, so `search` and `query` never perform Indexing. `watch` is the explicit foreground exception: it performs initial synchronization and then keeps cached Symbols and Relationships current as files change. CLI Search reads source text live from eligible indexed File Nodes and labels cached Symbol provenance as fresh or stale. When Indexing reports a file-budget cap, agents can inspect or raise `maxFiles`, adjust durable filters, and explicitly re-index before querying. Persisted known settings fields are validated strictly; malformed input is reported and never replaced by defaults during mutation. The Agent Skill describes available evidence and its tradeoffs without prescribing a command sequence, call budget, search wording, or stopping rule. The agent chooses how CodeGraphy fits the task. Clean implementation benchmarks compare raw agents with CodeGraphy-plus-skill agents on the same fresh structural feature-change fixture, using three repetitions per condition and cumulative model tokens per correct task as the primary acceptance metric. A CLI candidate must also be selected by treatment agents before aggregate differences can be attributed to it. Personalized Task Map passed a direct adopted A/B after the required raw comparison; see ADR 0011, ADR 0012, and ADR 0013.
+The CLI never searches parent directories for a workspace. Indexing and exploration are separate operations, so `search`, `map`, and `query` never perform Indexing. `watch` is the explicit foreground exception: it performs initial synchronization and then keeps cached Symbols and Relationships current as files change. CLI Search reads source text live from eligible indexed File Nodes and labels cached Symbol provenance as fresh or stale. When Indexing reaches the file budget, users can raise `maxFiles`, adjust Filters, and explicitly re-index before querying. Persisted known settings fields are validated strictly; malformed input is reported and never replaced by defaults during mutation. The Agent Skill explains the available evidence and its tradeoffs while leaving navigation strategy to the agent.
 
 ## Plugins
 

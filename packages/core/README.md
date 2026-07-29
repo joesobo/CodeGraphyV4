@@ -8,31 +8,56 @@ The published CLI currently supports Node.js 20 through 22; Node 22 LTS is recom
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as Indexing, diagnostics, graph queries, Graph Scope and filter configuration, plugin registration, or workspace plugin enablement.
 
-All `codegraphy ...` terminal commands live in this package. `codegraphy index` incrementally makes a workspace Graph Cache current, reports structured file-budget truncation with an exact recovery command, and persists the complete Relationship Graph independently of Graph Scope. `codegraphy watch` performs initial synchronization and then debounces create, update, delete, rename, Git ignore, and settings events into serialized incremental updates; it skips cache artifacts and active Filter matches, coordinates simultaneous cache writers, emits JSON Lines lifecycle records, and flushes pending work on shutdown. Active Filters gate query results and reusable analysis facts consistently. Changing `respectGitignore` invalidates Index freshness and rebuilds discovery so newly ignored facts are pruned and newly eligible files can be analyzed. `settings get/set/unset` safely reads or mutates validated workspace settings, reports Indexing impact from the setting that changed, and refuses to overwrite corrupt JSON or unsupported settings versions. `search` merges exact live source, cached AST Symbol, and indexed Node evidence, then uses deterministic all-term File ranking when a natural multi-term phrase has few literal matches. `map` combines independent task terms, selected declarations, and personalized graph ranking into a bounded File map with typed connecting Relationships. `query` inspects one exact File path or Symbol Node ID and returns prioritized declarations plus incoming and outgoing Relationships. Exact targeted queries use the complete cached graph by default, independently of saved Graph View Scope, while explicit `--filter`, `--node-type`, or `--edge-type` projections constrain Nodes, cached Symbols, source evidence, and Relationships consistently. JavaScript-family reexports are indexed explicitly, allowing call Relationships to resolve through barrels to implementation Symbols. The narrower `nodes`, `edges`, `dependencies`, `dependents`, and `path` commands continue or enumerate the graph. Graph navigation accepts repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options for one invocation without changing workspace settings. Commands use the current directory unless the global `-C, --workspace <path>` option selects another workspace.
+## Quick start
+
+Commands target the current directory. Put `-C, --workspace <path>` before the command to select another folder; CodeGraphy never searches parent directories for a workspace.
 
 ```bash
-codegraphy settings get maxFiles
-codegraphy settings set maxFiles 2500
+cd /path/to/workspace
 codegraphy index
-codegraphy watch
-codegraphy status
-codegraphy doctor
-codegraphy nodes
 codegraphy search SettingsPanel
-codegraphy search 'Indexing *workspace*'
-codegraphy map 'settings corruption during filtering'
-codegraphy query src/cli/index/command.ts
-codegraphy edges
-codegraphy dependencies src/app.ts
-codegraphy dependents src/config.ts
-codegraphy path src/app.ts src/config.ts
-codegraphy scope
-codegraphy scope node symbol:function on
-codegraphy scope edge call on
-codegraphy filter add '**/generated/**'
+codegraphy query src/settingsPanel/view.tsx
+codegraphy dependencies src/settingsPanel/view.tsx
 ```
 
-Run `codegraphy --help` for the full workflow and `codegraphy <command> --help` for purpose, arguments, effects, output, and examples. Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. An unhealthy `doctor` result keeps all completed checks in `error.details`. Indexing always chooses the cheapest safe full or incremental refresh; callers do not select an Indexing mode.
+Indexing chooses the cheapest safe full or incremental refresh and persists the complete Relationship Graph independently of Graph Scope. If discovery reaches `maxFiles`, the result reports the total found and an exact settings command to raise the budget.
+
+## Explore the graph
+
+| Command | Purpose |
+|---|---|
+| `search <pattern>` | Merge exact live source, cached AST Symbols, and indexed Nodes; sparse natural phrases add deterministic all-term File candidates. |
+| `map <task>` | Return a bounded task-personalized File map with matched terms, selected declarations, and typed connecting Relationships. |
+| `query <node>` | Inspect one exact File path or Symbol ID with prioritized declarations and incoming/outgoing Relationships. |
+| `nodes`, `edges` | Page through the shaped graph inventory. |
+| `dependencies`, `dependents` | Read outgoing or incoming Relationships for an exact target. |
+| `path <from> <to>` | Find bounded directed routes between exact targets. |
+
+`nodes` and `edges` use saved Graph Scope. Search, Map, Target Query, Path, and targeted Relationship commands read complete cached types by default. Repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options narrow one command without changing workspace settings. JavaScript and TypeScript reexports are stored explicitly, so calls through barrels can resolve to implementation Symbols.
+
+## Maintain a workspace
+
+```bash
+codegraphy status
+codegraphy doctor
+codegraphy settings get maxFiles
+codegraphy settings set maxFiles 2500
+codegraphy filter add '**/generated/**'
+codegraphy scope node symbol:function on
+codegraphy index
+```
+
+Settings reads and mutations validate known fields and preserve unknown fields. They refuse to overwrite malformed JSON or unsupported settings versions and report whether Indexing is required. Adding an active Filter narrows queries immediately; removing or disabling one can expose files that were never indexed and therefore requires another Index. Changing discovery settings such as `respectGitignore` also invalidates Index freshness.
+
+## Keep the cache current
+
+`codegraphy watch` is an optional foreground process for long-running terminal sessions. It synchronizes first, then batches create, update, delete, rename, Git ignore, and settings events into serialized updates. It skips cache artifacts and active Filter matches, coordinates simultaneous writers, retains changes that arrive during active work, and flushes pending work on shutdown. The VS Code Extension does not start this process.
+
+## Output contract
+
+Data commands return `{"ok":true,"command":"...","data":...}` on stdout. Failures return `{"ok":false,"command":"...","error":{"code":"...","message":"..."}}` on stderr with a nonzero exit code. Watch emits one JSON envelope per line. An unhealthy `doctor` result keeps completed checks in `error.details`; `--verbose` adds diagnostics to stderr.
+
+Run `codegraphy --help` for the command list and `codegraphy <command> --help` for arguments, bounds, effects, and examples.
 
 ## Current Entry Points
 

@@ -76,13 +76,14 @@ The terminal CLI supports Node.js 20 through 22. Node 22 LTS is recommended.
 
 ```bash
 npm install -g @codegraphy-dev/core
-codegraphy settings get maxFiles
-codegraphy settings set maxFiles 2500
+cd /path/to/workspace
 codegraphy index
 codegraphy search SettingsPanel
 codegraphy query packages/extension/src/webview/app/shell/view.tsx
 codegraphy dependencies packages/extension/src/webview/app/shell/view.tsx
 ```
+
+Indexing reports when the workspace exceeds its file budget and provides the exact `settings set maxFiles` command needed to expand it. Run `codegraphy watch` in a dedicated terminal when a long-running session needs cached Symbols and Relationships to follow file changes.
 
 Install, register, and enable optional plugins separately:
 
@@ -143,11 +144,23 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
 
-Target Query, Path, and exact targeted Relationship selectors use complete cached Node and Edge Types by default rather than saved Graph View Scope; explicit `--node-type` or `--edge-type` arguments still constrain that dimension. JavaScript-family `reexport` Relationships let calls through barrels terminate at implementation Symbols. The foreground watcher performs initial synchronization, debounces workspace changes into serialized updates, skips excluded and cache-artifact events, coordinates concurrent cache writers, and flushes pending work during shutdown. Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout; Watch emits one JSON envelope per line. Verbose diagnostics go to stderr.
+### Query behavior
+
+- `nodes` and `edges` use saved Graph Scope.
+- Search, Map, Target Query, Path, and targeted Relationship commands read complete cached Node and Edge Types unless `--node-type` or `--edge-type` explicitly narrows them.
+- `--filter`, `--node-type`, and `--edge-type` are one-command projections; they do not change workspace settings.
+- JavaScript and TypeScript reexports remain structural Relationships, so calls through barrels can resolve to implementation Symbols.
+- Results are bounded. Use returned pagination and completeness fields instead of assuming omitted results do not exist.
+
+### Live updates and output
+
+`codegraphy watch` performs initial synchronization, stays in the foreground, and writes one JSON envelope per lifecycle event. It batches workspace changes, skips cache artifacts and active Filter matches, serializes cache writes, and flushes pending work when interrupted. The VS Code Extension does not start this process; it changes cached source facts only after **Index Workspace** or **Re-index Workspace**.
+
+Other data commands write one JSON envelope to stdout. Failures use stderr and a nonzero exit code; `--verbose` adds diagnostics to stderr. Run `codegraphy <command> --help` for exact arguments, bounds, and examples.
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) explains the Relationship Graph, lifecycle, query surfaces, JSON output, freshness, shaping, and limits so shell-capable agents can choose their own navigation strategy. Clean coding benchmarks compare fresh raw agents against CodeGraphy-plus-skill agents on the same feature change and use cumulative model tokens per correct task as the primary acceptance metric; see [ADR 0011](./docs/adr/0011-agents-choose-their-codegraphy-strategy.md). Install the skill from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) explains the Relationship Graph, lifecycle, query surfaces, JSON output, freshness, shaping, and limits so shell-capable agents can choose their own navigation strategy. Install it from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
