@@ -6,7 +6,6 @@ import {
   type CodeGraphyWorkspaceCacheUpdaterOptions,
   type SubscribeCodeGraphyWorkspaceChangesOptions,
 } from '../../indexing/workspace';
-import { getWorkspaceSettingsPath } from '../../workspace/paths';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import type { CommandExecutionResult } from '../command';
 
@@ -22,22 +21,28 @@ export interface WatchCommandDependencies {
   subscribe(
     options: SubscribeCodeGraphyWorkspaceChangesOptions,
   ): ReturnType<typeof subscribeCodeGraphyWorkspaceChanges>;
-  waitForStop(): Promise<void>;
+  waitForStop(signal?: AbortSignal): Promise<void>;
 }
 
 export interface WatchCommandOptions {
   writeEvent?(event: WatchCommandEvent): void;
 }
 
-function waitForProcessStop(): Promise<void> {
+function waitForProcessStop(signal?: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
     const stop = (): void => {
       process.off('SIGINT', stop);
       process.off('SIGTERM', stop);
+      signal?.removeEventListener('abort', stop);
       resolve();
     };
+    if (signal?.aborted) {
+      stop();
+      return;
+    }
     process.once('SIGINT', stop);
     process.once('SIGTERM', stop);
+    signal?.addEventListener('abort', stop, { once: true });
   });
 }
 
@@ -96,6 +101,8 @@ export async function runWatchCommand(
   const emit = (event: WatchCommandEvent): void => options.writeEvent?.(event);
   const startupFilePaths = new Set<string>();
   let ready = false;
+  const stopController = new AbortController();
+  const stopPromise = dependencies.waitForStop(stopController.signal);
   const updater = dependencies.createUpdater({
     workspaceRoot,
     onEvent: event => emit(toWatchCommandEvent(event)),
@@ -121,13 +128,13 @@ export async function runWatchCommand(
     try {
       await updater.start();
       ready = true;
-      startupFilePaths.delete(getWorkspaceSettingsPath(workspaceRoot));
       updater.notify([...startupFilePaths]);
-      await dependencies.waitForStop();
+      await stopPromise;
     } finally {
       await subscription.dispose();
     }
   } finally {
+    stopController.abort();
     await updater.dispose();
   }
   emit({ event: 'stopped', workspaceRoot });

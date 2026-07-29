@@ -53,18 +53,24 @@ describe('CLI watch command', () => {
           },
         };
       },
-      async waitForStop() {},
+      async waitForStop() {
+        lifecycle.push('stop-listening');
+      },
     }, {
       writeEvent: event => events.push(event),
     });
 
     expect(result).toEqual({ exitCode: 0, output: '' });
-    expect(notify).toHaveBeenCalledWith(['/workspace/src/app.ts']);
+    expect(notify).toHaveBeenCalledWith([
+      '/workspace/.codegraphy/settings.json',
+      '/workspace/src/app.ts',
+    ]);
     expect(events).toEqual([
       expect.objectContaining({ event: 'ready', indexedFiles: 2 }),
       expect.objectContaining({ event: 'stopped' }),
     ]);
     expect(lifecycle).toEqual([
+      'stop-listening',
       'subscribed',
       'started',
       'subscription-disposed',
@@ -152,8 +158,9 @@ describe('CLI watch command', () => {
     ]);
   });
 
-  it('disposes the updater when workspace subscription fails', async () => {
+  it('disposes startup resources when workspace subscription fails', async () => {
     const dispose = vi.fn();
+    let stopSignal: AbortSignal | undefined;
 
     await expect(runWatchCommand('/workspace', {
       cwd: () => '/cwd',
@@ -169,9 +176,12 @@ describe('CLI watch command', () => {
       async subscribe() {
         throw new Error('subscription failed');
       },
-      async waitForStop() {},
+      async waitForStop(signal) {
+        stopSignal = signal;
+      },
     })).rejects.toThrow('subscription failed');
 
     expect(dispose).toHaveBeenCalledOnce();
+    expect(stopSignal?.aborted).toBe(true);
   });
 });
