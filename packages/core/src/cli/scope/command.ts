@@ -1,20 +1,16 @@
 import { CORE_GRAPH_NODE_TYPES } from '../../graphControls/defaults/definitions';
-import {
-  hasRequiredAnalysisCacheTiers,
-  requiresSymbolAnalysisCacheTier,
-  SYMBOLS_ANALYSIS_CACHE_TIER,
-} from '../../analysis/fileAnalysis';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
 import { CORE_GRAPH_EDGE_TYPES } from '../../graphScope/defaults';
 import { resolveSavedGraphScope } from '../../workspace/graphScopeSettings';
+import { requiresSymbolAnalysisIndex } from '../../workspace/indexRequirement';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
   patchCodeGraphyWorkspaceSettingRecord,
 } from '../../workspace/settings';
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parseTypes';
+import type { CliCommand } from '../parser/protocol';
 
 interface ScopeCommandDependencies {
   cwd(): string;
@@ -69,9 +65,15 @@ function createNodeVisibilityUpdates(type: string, enabled: boolean): Record<str
   return updates;
 }
 
+interface ScopeOutputSelection {
+  edgeTypes: ReadonlySet<string>;
+  nodeTypes: ReadonlySet<string>;
+}
+
 function createScopeOutput(
   settings: ReturnType<typeof readCodeGraphyWorkspaceSettingsOrInitial>,
   workspaceRoot: string,
+  selection?: ScopeOutputSelection,
 ): string {
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   const snapshot = status.hasGraphCache
@@ -105,25 +107,27 @@ function createScopeOutput(
   const observedEdgeTypes = new Set<string>(snapshot.relations.map(relation => relation.kind));
   for (const definition of declaredPluginEdgeTypes) observedEdgeTypes.add(definition.id);
   const edgeTypes = [...new Set([...CORE_GRAPH_EDGE_TYPES, ...Object.keys(edgeVisibility), ...observedEdgeTypes])].sort();
-  const requiresSymbols = requiresSymbolAnalysisCacheTier(nodeVisibility);
-  const indexRequired = requiresSymbols && (
-    !status.hasGraphCache
-    || snapshot.files.some(file => !hasRequiredAnalysisCacheTiers(
-      file.analysis,
-      [SYMBOLS_ANALYSIS_CACHE_TIER],
-    ))
-  );
+  const indexRequired = requiresSymbolAnalysisIndex({
+    files: snapshot.files,
+    hasGraphCache: status.hasGraphCache,
+    nodeVisibility,
+  });
   return JSON.stringify({
-    nodes: nodeTypes.map(type => ({
-      type,
-      enabled: nodeVisibility[type] ?? definitions.get(type)?.defaultVisible ?? false,
-      available: availableNodeTypes.has(type),
-    })),
-    edges: edgeTypes.map(type => ({
-      type,
-      enabled: edgeVisibility[type] ?? true,
-      available: observedEdgeTypes.has(type),
-    })),
+    complete: selection === undefined,
+    nodes: nodeTypes
+      .filter(type => selection === undefined || selection.nodeTypes.has(type))
+      .map(type => ({
+        type,
+        enabled: nodeVisibility[type] ?? definitions.get(type)?.defaultVisible ?? false,
+        available: availableNodeTypes.has(type),
+      })),
+    edges: edgeTypes
+      .filter(type => selection === undefined || selection.edgeTypes.has(type))
+      .map(type => ({
+        type,
+        enabled: edgeVisibility[type] ?? true,
+        available: observedEdgeTypes.has(type),
+      })),
     indexRequired,
     ...(indexRequired
       ? { action: 'Run `codegraphy index` to hydrate the required symbol analysis.' }
@@ -140,6 +144,7 @@ export function runScopeCommand(
   const kind = command.arguments?.kind;
   const type = command.arguments?.type;
   const enabled = command.arguments?.enabled;
+  let selection: ScopeOutputSelection | undefined;
 
   if ((kind === 'node' || kind === 'edge') && typeof type === 'string' && typeof enabled === 'boolean') {
     const updates = kind === 'node'
@@ -151,7 +156,11 @@ export function runScopeCommand(
       updates,
     );
     settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+    selection = {
+      nodeTypes: new Set(kind === 'node' ? Object.keys(updates) : []),
+      edgeTypes: new Set(kind === 'edge' ? Object.keys(updates) : []),
+    };
   }
 
-  return { exitCode: 0, output: createScopeOutput(settings, workspaceRoot) };
+  return { exitCode: 0, output: createScopeOutput(settings, workspaceRoot, selection) };
 }

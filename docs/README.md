@@ -14,7 +14,7 @@ Start with the root [README](../README.md) for installation, the product overvie
 | [Plugin Guide](./PLUGINS.md) | Plugin packaging, registration, enablement, analysis, and Graph View contributions. |
 | [Philosophy](./PHILOSOPHY.md) | The product idea and design principles. |
 
-The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language. The ADRs under [`docs/adr/`](./adr/) record durable technical decisions.
+The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language and ownership. Current behavior and constraints live in the closest product or package reference.
 
 ## Developer Reference
 
@@ -32,8 +32,7 @@ The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language. Th
 
 ## Documentation Policy
 
-- Describe current behavior in the closest product, package, or developer reference.
-- Record a durable technical decision as an ADR.
+- Describe current behavior and important constraints in the closest product, package, or developer reference.
 - Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan documents.
-- Use package changelogs for shipped release history. Do not keep a second documentation archive.
+- Use package changelogs for shipped release history.
 - Remove superseded guidance instead of labeling it historical and leaving it in the main navigation.

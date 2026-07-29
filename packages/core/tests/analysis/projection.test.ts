@@ -56,6 +56,27 @@ describe('analysis/projection', () => {
     ]);
   });
 
+  it('keeps export-from dependencies visible as File import connections', () => {
+    expect(projectProjectedConnectionsFromFileAnalysis({
+      filePath: '/workspace/src/index.ts',
+      symbols: [],
+      relations: [{
+        kind: 'reexport',
+        sourceId: 'core:treesitter:reexport',
+        fromFilePath: '/workspace/src/index.ts',
+        toFilePath: '/workspace/src/model.ts',
+        specifier: './model',
+        metadata: { reexport: true },
+      }],
+    })).toEqual([
+      expect.objectContaining({
+        kind: 'import',
+        resolvedPath: '/workspace/src/model.ts',
+        metadata: { reexport: true },
+      }),
+    ]);
+  });
+
   it('returns an empty projected connection list when a file analysis has no relations', () => {
     expect(projectProjectedConnectionsFromFileAnalysis({
       filePath: '/workspace/src/app.ts',

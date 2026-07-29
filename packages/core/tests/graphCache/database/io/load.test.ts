@@ -4,8 +4,13 @@ import {
   createEmptyWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../../src/analysis/cache';
-import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from '../../../../src/graphCache/database/io/connection';
-import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../src/graphCache/database/io/paths';
+import {
+  readRowsAsync,
+  readRowsSync,
+  withRecreatedConnection,
+  withRecreatedConnectionAsync,
+} from '../../../../src/graphCache/database/io/connection';
+import { getWorkspaceAnalysisDatabasePath } from '../../../../src/graphCache/database/io/paths';
 import { parseDatabaseRecords } from '../../../../src/graphCache/database/records/parser';
 
 vi.mock('node:fs', () => ({
@@ -21,12 +26,11 @@ vi.mock('../../../../src/analysis/cache', () => ({
 vi.mock('../../../../src/graphCache/database/io/connection', () => ({
   readRowsSync: vi.fn(),
   readRowsAsync: vi.fn(),
-  withConnection: vi.fn(),
-  withConnectionAsync: vi.fn(),
+  withRecreatedConnection: vi.fn(),
+  withRecreatedConnectionAsync: vi.fn(),
 }));
 
 vi.mock('../../../../src/graphCache/database/io/paths', () => ({
-  clearDatabaseArtifacts: vi.fn(),
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
@@ -59,12 +63,12 @@ describe('graphCache/database/load', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(false);
 
     expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({ version: '0.0.0', files: {} });
-    expect(withConnection).not.toHaveBeenCalled();
+    expect(withRecreatedConnection).not.toHaveBeenCalled();
   });
 
   it('loads and hydrates all relational tables', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withConnection).mockImplementation((_databasePath, callback) => callback('connection' as never));
+    vi.mocked(withRecreatedConnection).mockImplementation((_databasePath, callback) => callback('connection' as never));
     vi.mocked(readRowsSync)
       .mockReturnValueOnce(['file-row'] as never)
       .mockReturnValueOnce(['node-row'] as never)
@@ -94,13 +98,12 @@ describe('graphCache/database/load', () => {
     );
   });
 
-  it('clears broken database artifacts and falls back to an empty cache', () => {
+  it('reports an unreadable database after coordinated recovery fails', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withConnection).mockImplementation(() => { throw new Error('sqlite error'); });
+    vi.mocked(withRecreatedConnection).mockImplementation(() => { throw new Error('sqlite error'); });
 
     expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({ version: '0.0.0', files: {} });
-    expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite');
     expect(warn).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.',
       expect.any(Error),
@@ -109,7 +112,7 @@ describe('graphCache/database/load', () => {
 
   it('loads all relational tables asynchronously', async () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withConnectionAsync).mockImplementation(async (_path, callback) => callback('connection' as never));
+    vi.mocked(withRecreatedConnectionAsync).mockImplementation(async (_path, callback) => callback('connection' as never));
     vi.mocked(readRowsAsync)
       .mockResolvedValueOnce(['file-row'] as never)
       .mockResolvedValueOnce(['node-row'] as never)
@@ -127,9 +130,8 @@ describe('graphCache/database/load', () => {
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toEqual({ version: '0.0.0', files: {} });
 
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withConnectionAsync).mockRejectedValue(new Error('database error'));
+    vi.mocked(withRecreatedConnectionAsync).mockRejectedValue(new Error('database error'));
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toEqual({ version: '0.0.0', files: {} });
-    expect(clearDatabaseArtifacts).toHaveBeenCalledWith('/workspace/.codegraphy/graph.sqlite');
   });
 });

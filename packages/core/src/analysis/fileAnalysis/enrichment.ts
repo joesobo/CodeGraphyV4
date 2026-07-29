@@ -8,6 +8,10 @@ export function enrichWorkspaceFileAnalysis(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): Map<string, IFileAnalysisResult> {
   const symbolsByFilePath = createSymbolsByFilePath(fileAnalysis);
+  const relationsByFilePath = new Map([...fileAnalysis.values()].map(analysis => [
+    analysis.filePath,
+    analysis.relations ?? [],
+  ]));
 
   return new Map(
     Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
@@ -15,7 +19,7 @@ export function enrichWorkspaceFileAnalysis(
       {
         ...analysis,
         relations: (analysis.relations ?? []).map((relation) =>
-          enrichRelationTargetSymbol(relation, symbolsByFilePath),
+          enrichRelationTargetSymbol(relation, symbolsByFilePath, relationsByFilePath),
         ),
       },
     ]),

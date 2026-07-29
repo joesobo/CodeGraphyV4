@@ -59,8 +59,7 @@ CodeGraphy accepts focused changes through pull requests against `main`.
 
 ## Documentation
 
-- Document current behavior in the closest user, package, or developer reference.
-- Record durable technical decisions under `docs/adr/`.
+- Document current behavior and its important constraints in the closest user, package, or developer reference.
 - Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan documents.
 - Add a changeset only for a user-facing package change. Docs-only changes do not need one.
 

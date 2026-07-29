@@ -88,7 +88,7 @@ describe('workspace/signatures', () => {
     expect(first).not.toBe(withoutOptions);
   });
 
-  it('keeps query-only graph settings out of index freshness signatures', () => {
+  it('tracks discovery settings while ignoring query-only graph settings', () => {
     const defaults = createDefaultCodeGraphyWorkspaceSettings();
     const first = createCodeGraphyWorkspaceSettingsSignature(defaults);
 
@@ -106,7 +106,7 @@ describe('workspace/signatures', () => {
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       respectGitignore: false,
-    })).toBe(first);
+    })).not.toBe(first);
     const plugin = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{ id: 'codegraphy.vue', activation: 'enabled' }],

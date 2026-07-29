@@ -6,20 +6,40 @@ import test from 'node:test';
 const repoRoot = process.cwd();
 const skillPath = path.join(repoRoot, 'skills', 'codegraphy', 'SKILL.md');
 
-test('the generalized CodeGraphy skill teaches the lifecycle and delegates syntax to CLI help', () => {
+test('the CodeGraphy skill covers the shipped CLI capabilities and machine contract', () => {
   const skill = readFileSync(skillPath, 'utf8');
 
   assert.match(skill, /^name: codegraphy$/m);
-  const lifecycle = ['codegraphy index', 'codegraphy filter', 'Query with'];
-  const lifecyclePositions = lifecycle.map(term => skill.indexOf(term));
-  assert.ok(lifecyclePositions.every(position => position >= 0));
-  assert.deepEqual(lifecyclePositions, [...lifecyclePositions].sort((left, right) => left - right));
-  for (const command of ['nodes', 'search', 'edges', 'dependencies', 'dependents', 'path']) {
+  for (const command of [
+    'index',
+    'watch',
+    'filter',
+    'nodes',
+    'search',
+    'map',
+    'query',
+    'edges',
+    'dependencies',
+    'dependents',
+    'path',
+  ]) {
     assert.match(skill, new RegExp(`\\b${command}\\b`));
+  }
+  for (const concept of [
+    'Relationship Graph',
+    'Graph Cache',
+    'live source',
+    'Graph Scope',
+    'pagination',
+    'stdout',
+    'stale',
+    'JSON Lines',
+    'explicit Index or Re-index Workspace',
+  ]) {
+    assert.match(skill, new RegExp(concept, 'i'));
   }
   assert.match(skill, /codegraphy --help/);
   assert.match(skill, /codegraphy <command> --help/);
-  assert.doesNotMatch(skill, /MCP|graph\.lbug/);
 });
 
 test('the old MCP package and skill are absent from the release source', () => {

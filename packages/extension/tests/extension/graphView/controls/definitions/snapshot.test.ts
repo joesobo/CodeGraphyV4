@@ -86,6 +86,34 @@ describe('extension/graphView/controls/snapshot', () => {
     });
   });
 
+  it('keeps structural reexport relationships out of Graph Scope controls', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(_key: string, defaultValue: T): T => defaultValue,
+      },
+      {
+        nodes: [
+          { id: 'src/index.ts', label: 'index.ts', color: '#111111', nodeType: 'file' },
+          { id: 'src/model.ts', label: 'model.ts', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [
+          {
+            id: 'reexport',
+            from: 'src/index.ts',
+            to: 'src/model.ts',
+            kind: 'reexport',
+            sources: [],
+          },
+        ],
+      },
+      [],
+      [],
+      { nodeTypes: [], edgeTypes: ['import', 'reexport'] },
+    );
+
+    expect(snapshot.edgeTypes.map(edgeType => edgeType.id)).not.toContain('reexport');
+  });
+
   it('preserves hidden node capability settings without showing irrelevant rows', () => {
     const snapshot = captureGraphControlsSnapshot(
       {

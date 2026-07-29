@@ -76,7 +76,7 @@ Good acceptance specs describe observable product behavior in CodeGraphy's langu
 Use these local language sources before inventing new terms:
 
 - `CONTEXT.md`
-- `docs/adr/`
+- the relevant product or package reference linked from `docs/README.md`
 - `docs/agents/domain.md`
 - `docs/agents/acceptance-specs.md`
 

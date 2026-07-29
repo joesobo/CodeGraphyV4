@@ -17,12 +17,16 @@ import {
 } from './snapshot';
 import {
   clearWorkspaceAnalysisDatabaseCache as clearWorkspaceAnalysisDatabaseCacheImpl,
+  patchOwnedWorkspaceAnalysisDatabaseCache as patchOwnedWorkspaceAnalysisDatabaseCacheImpl,
   patchWorkspaceAnalysisDatabaseCache as patchWorkspaceAnalysisDatabaseCacheImpl,
+  replaceOwnedWorkspaceAnalysisDatabaseCache as replaceOwnedWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCache as saveWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncImpl,
   type WorkspaceAnalysisDatabasePatch,
+  type WorkspaceAnalysisDatabaseReplacement,
   type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
+import { withWorkspaceCacheWriteLockAsync } from './writeCoordination/model';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
 export type WorkspaceAnalysisDatabaseInspection = WorkspaceAnalysisDatabaseInspectionImpl;
@@ -84,6 +88,34 @@ export function patchWorkspaceAnalysisDatabaseCache(
   patch: WorkspaceAnalysisDatabasePatch,
 ): void {
   patchWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch);
+}
+
+interface WorkspaceAnalysisDatabaseWriter {
+  patch(
+    patch: WorkspaceAnalysisDatabasePatch,
+    recovery: WorkspaceAnalysisDatabaseReplacement,
+  ): void;
+  replace(replacement: WorkspaceAnalysisDatabaseReplacement): void;
+}
+
+export function withWorkspaceAnalysisDatabaseWriter<T>(
+  workspaceRoot: string,
+  write: (writer: WorkspaceAnalysisDatabaseWriter) => Promise<T>,
+): Promise<T> {
+  return withWorkspaceCacheWriteLockAsync(
+    getWorkspaceAnalysisDatabasePathImpl(workspaceRoot),
+    () => write({
+      patch: (patch, recovery) => patchOwnedWorkspaceAnalysisDatabaseCacheImpl(
+        workspaceRoot,
+        patch,
+        recovery,
+      ),
+      replace: replacement => replaceOwnedWorkspaceAnalysisDatabaseCacheImpl(
+        workspaceRoot,
+        replacement,
+      ),
+    }),
+  );
 }
 
 export function saveWorkspaceAnalysisDatabaseCacheAsync(

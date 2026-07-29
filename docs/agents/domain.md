@@ -1,14 +1,7 @@
 # Domain Docs
 
-This repo is single-context.
-
-Before broad exploration, engineering skills should read:
-
-- `CONTEXT.md` at the repo root, if present.
-- Relevant ADRs under `docs/adr/`, if present.
-
-Continue if these files do not exist. `/grill-with-docs` creates or updates them after the team resolves domain language or decisions.
+This repo is single-context. Before broad exploration, read the root `CONTEXT.md` and the relevant package or product references linked from `docs/README.md`.
 
 Use vocabulary from `CONTEXT.md` in issue titles, hypotheses, tests, and refactor proposals. If a term is missing, note the gap rather than inventing new project language.
 
-If work conflicts with an ADR, surface the conflict explicitly.
+When a change conflicts with documented behavior or ownership, surface the conflict before implementation and update the owning reference with the accepted contract.

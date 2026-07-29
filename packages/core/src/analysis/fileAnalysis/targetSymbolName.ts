@@ -8,20 +8,27 @@ export function resolveTargetSymbolId(
   targetSymbols: readonly IAnalysisSymbol[],
 ): string | undefined {
   const symbolName = readRelationSymbolName(relation);
-  const namedSymbolId = symbolName
-    ? resolveUniqueSymbolName(targetSymbols, symbolName)
-    : undefined;
-
-  return namedSymbolId ?? resolveUniqueTargetSymbol(targetSymbols);
+  if (symbolName) return resolveUniqueSymbolName(targetSymbols, symbolName);
+  return hasRelationSymbolNameHint(relation)
+    ? undefined
+    : resolveUniqueTargetSymbol(targetSymbols);
 }
 
-function readRelationSymbolName(
+export function readRelationSymbolName(
   relation: IAnalysisRelation,
 ): string | undefined {
   const memberName = readRelationMetadataString(relation, 'memberName');
   const importedName = readRelationMetadataString(relation, 'importedName');
 
   return memberName ?? readNamedImport(importedName) ?? relation.specifier;
+}
+
+function hasRelationSymbolNameHint(relation: IAnalysisRelation): boolean {
+  return Boolean(
+    readRelationMetadataString(relation, 'memberName')
+    || readRelationMetadataString(relation, 'importedName')
+    || relation.specifier,
+  );
 }
 
 function readNamedImport(importedName: string | undefined): string | undefined {

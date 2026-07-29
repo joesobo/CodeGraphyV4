@@ -76,10 +76,14 @@ The terminal CLI supports Node.js 20 through 22. Node 22 LTS is recommended.
 
 ```bash
 npm install -g @codegraphy-dev/core
+cd /path/to/workspace
 codegraphy index
 codegraphy search SettingsPanel
+codegraphy query packages/extension/src/webview/app/shell/view.tsx
 codegraphy dependencies packages/extension/src/webview/app/shell/view.tsx
 ```
+
+Indexing reports when the workspace exceeds its file budget and provides the exact `settings set maxFiles` command needed to expand it. Run `codegraphy watch` in a dedicated terminal when a long-running session needs cached Symbols and Relationships to follow file changes.
 
 Install, register, and enable optional plugins separately:
 
@@ -123,11 +127,15 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 
 | Command | Result |
 |---|---|
-| `codegraphy status` | Reports fresh, stale, missing, or unusable Graph Cache state. |
+| `codegraphy status` | Reports fresh, stale, or missing Graph Cache state. |
 | `codegraphy doctor` | Checks runtime, settings, Graph Cache schema, integrity, foreign keys, counts, and plugin state. |
-| `codegraphy index` | Makes the selected workspace Graph Cache current. |
+| `codegraphy index` | Makes the Graph Cache current and reports actionable file-budget truncation. |
+| `codegraphy watch` | Keeps cached Symbols and Relationships current and streams JSON Lines lifecycle events. |
+| `codegraphy settings [get|set|unset]` | Safely reads or changes validated workspace settings such as `maxFiles`. |
 | `codegraphy nodes` | Lists bounded Nodes from saved Graph Scope. |
-| `codegraphy search <text>` | Searches Nodes. |
+| `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
+| `codegraphy map <task>` | Builds a compact task-personalized File map with declarations and typed connecting Relationships. |
+| `codegraphy query <node>` | Inspects one exact File or Symbol with prioritized declarations and incoming/outgoing Relationships. |
 | `codegraphy edges` | Lists bounded Edges. |
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |
 | `codegraphy dependents <node>` | Lists incoming Relationships for a file or exact Symbol Node. |
@@ -136,11 +144,23 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy filter` | Reads or changes persisted filter patterns. |
 | `codegraphy plugins` | Registers, links, lists, enables, or disables plugins. |
 
-Run `codegraphy <command> --help` for exact arguments. Query, settings, Indexing, and diagnostic commands keep machine-readable JSON on stdout. Verbose diagnostics go to stderr.
+### Query behavior
+
+- `nodes` and `edges` use saved Graph Scope.
+- Search, Map, Target Query, Path, and targeted Relationship commands read complete cached Node and Edge Types unless `--node-type` or `--edge-type` explicitly narrows them.
+- `--filter`, `--node-type`, and `--edge-type` are one-command projections; they do not change workspace settings.
+- JavaScript and TypeScript reexports remain structural Relationships, so calls through barrels can resolve to implementation Symbols.
+- Results are bounded. Use returned pagination and completeness fields instead of assuming omitted results do not exist.
+
+### Live updates and output
+
+`codegraphy watch` performs initial synchronization, stays in the foreground, and writes one JSON envelope per lifecycle event. It batches workspace changes, skips cache artifacts and active Filter matches, serializes cache writes, and flushes pending work when interrupted. The VS Code Extension does not start this process; it changes cached source facts only after **Index Workspace** or **Re-index Workspace**.
+
+Other data commands write one JSON envelope to stdout. Failures use stderr and a nonzero exit code; `--verbose` adds diagnostics to stderr. Run `codegraphy <command> --help` for exact arguments, bounds, and examples.
 
 ### Agent Skill
 
-The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) teaches shell-capable agents to keep the index current and choose a bounded Graph Query before reading source. Install it from a clone of this repo:
+The [CodeGraphy Agent Skill](./skills/codegraphy/SKILL.md) explains the Relationship Graph, lifecycle, query surfaces, JSON output, freshness, shaping, and limits so shell-capable agents can choose their own navigation strategy. Install it from a clone of this repo:
 
 ```bash
 npx skills@latest add ./skills/codegraphy
@@ -152,7 +172,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, optional foreground Graph Cache watching, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View; it changes cached source facts only after an explicit Index or Re-index Workspace action. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|

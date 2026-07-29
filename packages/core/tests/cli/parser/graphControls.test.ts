@@ -1,0 +1,115 @@
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
+import { runCli } from '../../../src/cli/run';
+
+async function createWorkspace(): Promise<string> {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-controls-'));
+  await fs.mkdir(path.join(workspace, '.codegraphy'), { recursive: true });
+  await fs.writeFile(path.join(workspace, '.codegraphy/settings.json'), JSON.stringify({
+    version: 1,
+    extensionPanelPlacement: 'right',
+    plugins: [{ id: 'codegraphy.future', activation: 'disabled', futurePluginSetting: { mode: 'fast' } }],
+    nodeVisibility: { file: true },
+    edgeVisibility: { import: true },
+    filterPatterns: ['**/dist/**'],
+  }));
+  return workspace;
+}
+
+describe('cli graph controls', () => {
+  it('updates saved node and edge scope without losing extension settings', async () => {
+    const workspace = await createWorkspace();
+    const stdout = vi.fn();
+    const stderr = vi.fn();
+
+    await expect(runCli([
+      '-C', workspace, 'scope', 'node', 'symbol:function', 'on',
+    ], { stdout, stderr })).resolves.toBe(0);
+    await expect(runCli([
+      '-C', workspace, 'scope', 'edge', 'call', 'off',
+    ], { stdout, stderr })).resolves.toBe(0);
+
+    const nodeResult = JSON.parse(stdout.mock.calls[0][0]);
+    expect(nodeResult.data).toMatchObject({
+      complete: false,
+      nodes: expect.arrayContaining([
+        { type: 'symbol', enabled: true, available: false },
+        { type: 'symbol:callable', enabled: true, available: false },
+        { type: 'symbol:function', enabled: true, available: false },
+        { type: 'symbol:method', enabled: true, available: false },
+      ]),
+      edges: [],
+    });
+    expect(nodeResult.data.nodes).toHaveLength(4);
+
+    const edgeResult = JSON.parse(stdout.mock.calls[1][0]);
+    expect(edgeResult.data).toMatchObject({
+      complete: false,
+      nodes: [],
+      edges: [{ type: 'call', enabled: false, available: false }],
+    });
+
+    expect(JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf-8'))).toMatchObject({
+      extensionPanelPlacement: 'right',
+      nodeVisibility: {
+        file: true,
+        symbol: true,
+        'symbol:function': true,
+        'symbol:callable': true,
+        'symbol:method': true,
+      },
+      edgeVisibility: { import: true, call: false },
+      plugins: [{
+        id: 'codegraphy.future',
+        activation: 'disabled',
+        futurePluginSetting: { mode: 'fast' },
+      }],
+    });
+    expect(stderr).not.toHaveBeenCalled();
+  });
+
+  it('refuses to hide or overwrite malformed persisted settings', async () => {
+    const workspace = await createWorkspace();
+    const settingsPath = path.join(workspace, '.codegraphy/settings.json');
+    await fs.writeFile(settingsPath, '{ malformed');
+    const before = await fs.readFile(settingsPath, 'utf8');
+    const stderr = vi.fn();
+
+    await expect(runCli(['-C', workspace, 'filter'], { stderr })).resolves.toBe(1);
+    await expect(runCli(['-C', workspace, 'filter', 'add', '**/generated/**'], { stderr })).resolves.toBe(1);
+
+    expect(stderr).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({
+      error: { code: 'invalid_workspace_settings', details: { path: settingsPath } },
+    });
+    await expect(fs.readFile(settingsPath, 'utf8')).resolves.toBe(before);
+  });
+
+  it('lists discoverable scope and mutates filter patterns idempotently', async () => {
+    const workspace = await createWorkspace();
+    const outputs: string[] = [];
+    const stdout = (output: string): void => { outputs.push(output); };
+
+    await expect(runCli(['-C', workspace, 'filter', 'add', '**/generated/**'], { stdout })).resolves.toBe(0);
+    await expect(runCli(['-C', workspace, 'filter', 'add', '**/generated/**'], { stdout })).resolves.toBe(0);
+    await expect(runCli(['-C', workspace, 'filter', 'remove', '**/dist/**'], { stdout })).resolves.toBe(0);
+    await expect(runCli(['-C', workspace, 'scope'], { stdout })).resolves.toBe(0);
+
+    const settings = JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf-8'));
+    expect(settings.filterPatterns).toEqual(['**/generated/**']);
+    expect(JSON.parse(outputs.at(-1) ?? '')).toMatchObject({
+      data: {
+        complete: true,
+        nodes: expect.arrayContaining([
+          { type: 'file', enabled: true, available: true },
+          { type: 'symbol:function', enabled: false, available: false },
+        ]),
+        edges: expect.arrayContaining([
+          { type: 'import', enabled: true, available: false },
+        ]),
+      },
+    });
+  });
+});

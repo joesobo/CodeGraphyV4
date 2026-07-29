@@ -30,6 +30,7 @@ describe('core tree-sitter baseline analysis', () => {
   it('reports core Tree-sitter edge capabilities without plugin metadata', () => {
     expect(listCoreTreeSitterEdgeTypeCapabilities()).toEqual([
       'import',
+      'reexport',
       'reference',
       'call',
       'type-import',
@@ -47,6 +48,7 @@ describe('core tree-sitter baseline analysis', () => {
       'import',
       'call',
       'inherit',
+      'reexport',
       'type-import',
       'contains',
     ]);
@@ -73,6 +75,7 @@ describe('core tree-sitter baseline analysis', () => {
         'import',
         'call',
         'inherit',
+        'reexport',
         'type-import',
         'contains',
       ],

@@ -11,6 +11,7 @@ const {
   addImportRelation,
   addTypeImportRelation,
   addRelation,
+  createSymbol,
 } = vi.hoisted(() => ({
   resolveTreeSitterImportPath: vi.fn(),
   collectImportBindings: vi.fn(),
@@ -18,6 +19,7 @@ const {
   addImportRelation: vi.fn(),
   addTypeImportRelation: vi.fn(),
   addRelation: vi.fn(),
+  createSymbol: vi.fn(),
 }));
 
 vi.mock('../../../src/treeSitter/runtime/resolve', () => ({
@@ -36,6 +38,7 @@ vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
   addImportRelation,
   addTypeImportRelation,
   addRelation,
+  createSymbol,
 }));
 
 describe('extension/pipeline/treesitter/javascriptImports', () => {
@@ -47,6 +50,8 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     addImportRelation.mockReset();
     addTypeImportRelation.mockReset();
     addRelation.mockReset();
+    createSymbol.mockReset();
+    createSymbol.mockReturnValue({ id: 'publicRead-alias' });
     collectImportBindings.mockReturnValue([]);
   });
 
@@ -338,7 +343,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(addTypeImportRelation).not.toHaveBeenCalled();
   });
 
-  it('adds import relations for export specifiers', () => {
+  it('adds re-export relations for export specifiers', () => {
     resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
     getStringSpecifier.mockReturnValueOnce('./lib').mockReturnValueOnce(null);
     const stringNode = { type: 'string' };
@@ -359,12 +364,62 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(getStringSpecifier).toHaveBeenNthCalledWith(2, undefined);
     expect(addRelation).toHaveBeenCalledTimes(1);
     expect(addRelation).toHaveBeenCalledWith(relations, {
-      kind: 'import',
+      kind: 'reexport',
       sourceId: 'core:treesitter:import',
       fromFilePath: '/workspace/src/app.ts',
       specifier: './lib',
       resolvedPath: '/workspace/src/lib.ts',
       toFilePath: '/workspace/src/lib.ts',
+      metadata: { reexportAll: true },
+    });
+  });
+
+  it('records imported and public names for named re-exports', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
+    getStringSpecifier.mockReturnValue('./lib');
+    const name = { type: 'identifier', text: 'internalRead' };
+    const alias = { type: 'identifier', text: 'publicRead' };
+    const exportSpecifier = {
+      type: 'export_specifier',
+      namedChildren: [name, alias],
+      childForFieldName: (field: string) => field === 'name' ? name : field === 'alias' ? alias : null,
+    };
+    const relations: never[] = [];
+    const symbols: never[] = [];
+
+    handleJavaScriptExportStatement(
+      {
+        namedChildren: [
+          { type: 'export_clause', namedChildren: [exportSpecifier] },
+          { type: 'string' },
+        ],
+      } as never,
+      '/workspace/src/app.ts',
+      relations,
+      symbols,
+      true,
+    );
+
+    expect(createSymbol).toHaveBeenCalledWith(
+      '/workspace/src/app.ts',
+      'alias',
+      'publicRead',
+      exportSpecifier,
+    );
+    expect(symbols).toEqual([{ id: 'publicRead-alias' }]);
+    expect(addRelation).toHaveBeenCalledWith(relations, {
+      kind: 'reexport',
+      sourceId: 'core:treesitter:import',
+      fromFilePath: '/workspace/src/app.ts',
+      specifier: './lib',
+      resolvedPath: '/workspace/src/lib.ts',
+      toFilePath: '/workspace/src/lib.ts',
+      fromSymbolId: 'publicRead-alias',
+      metadata: {
+        reexport: true,
+        importedName: 'internalRead',
+        exportedName: 'publicRead',
+      },
     });
   });
 });

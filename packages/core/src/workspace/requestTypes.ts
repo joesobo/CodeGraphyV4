@@ -1,11 +1,7 @@
 import type { DiagnosticEventSink } from '../diagnostics/events';
+import type { GraphQueryRequest } from '../graphQuery';
 
-export type GraphQueryReport =
-  | 'nodes'
-  | 'edges'
-  | 'relationships'
-  | 'symbols'
-  | 'paths';
+export type { GraphQueryReport } from '../graphQuery';
 
 export interface WorkspacePathInput {
   diagnostics?: DiagnosticEventSink;
@@ -28,6 +24,12 @@ export interface IndexWorkspaceResult {
   workspaceRoot: string;
   graphCache: string;
   message: string;
+  discovery: {
+    indexedFiles: number;
+    totalFound: number;
+    limitReached: boolean;
+    action?: string;
+  };
   indexing: {
     mode: 'full' | 'incremental';
     analyzedFiles: number;
@@ -36,11 +38,9 @@ export interface IndexWorkspaceResult {
   };
 }
 
-export interface WorkspaceGraphQueryInput extends WorkspacePathInput {
-  report: GraphQueryReport;
-  arguments: Record<string, unknown>;
+export type WorkspaceGraphQueryInput = GraphQueryRequest & WorkspacePathInput & {
   projection?: WorkspaceGraphQueryProjection;
-}
+};
 
 export interface WorkspaceGraphQueryProjection {
   filterPatterns?: string[];

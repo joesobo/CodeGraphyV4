@@ -4,9 +4,9 @@ import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   readRowsSync,
-  recreateInvalidDatabase,
   runStatementSync,
   withConnection,
+  withRecreatedConnection,
 } from '../../../../src/graphCache/database/io/connection';
 
 const temporaryDirectories = new Set<string>();
@@ -45,6 +45,14 @@ describe('graphCache/database/io/connection', () => {
     }]);
   });
 
+  it('waits briefly for another Graph Cache writer', () => {
+    const busyTimeout = withConnection(createDatabasePath(), connection => (
+      connection.pragma('busy_timeout', { simple: true })
+    ));
+
+    expect(busyTimeout).toMatchObject({ timeout: 5_000 });
+  });
+
   it('closes the database when the callback throws', () => {
     const databasePath = createDatabasePath();
 
@@ -55,19 +63,12 @@ describe('graphCache/database/io/connection', () => {
     expect(() => fs.rmSync(databasePath, { force: true })).not.toThrow();
   });
 
-  it('recreates an invalid database before opening it for a full save', () => {
+  it('repairs and retries an invalid database while retaining writer ownership', () => {
     const databasePath = createDatabasePath();
     fs.writeFileSync(databasePath, 'not a database');
-    let invalidDatabaseError: unknown;
-    try {
-      withConnection(databasePath, () => undefined);
-    } catch (error) {
-      invalidDatabaseError = error;
-    }
 
-    expect(recreateInvalidDatabase(databasePath, invalidDatabaseError)).toBe(true);
-
-    withConnection(databasePath, (connection) => {
+    withRecreatedConnection(databasePath, (connection) => {
+      expect(fs.existsSync(`${databasePath}.write-lock.sqlite`)).toBe(true);
       runStatementSync(
         connection,
         "INSERT INTO File(path, mtime, size, contentHash) VALUES ('src/app.ts', 123.5, 2, 'sha256:app')",
@@ -89,16 +90,10 @@ describe('graphCache/database/io/connection', () => {
   it('preserves the invalid database error when recreation reset fails', () => {
     const databasePath = createDatabasePath();
     fs.writeFileSync(databasePath, 'not a database');
-    let invalidDatabaseError: unknown;
-    try {
-      withConnection(databasePath, () => undefined);
-    } catch (error) {
-      invalidDatabaseError = error;
-    }
 
-    expect(() => recreateInvalidDatabase(
+    expect(() => withRecreatedConnection(
       databasePath,
-      invalidDatabaseError,
+      () => undefined,
       () => {
         throw new Error('reset failed');
       },

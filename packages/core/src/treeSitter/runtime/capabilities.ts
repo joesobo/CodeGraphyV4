@@ -18,6 +18,7 @@ interface TreeSitterCapabilityContext {
 
 const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
   'import',
+  'reexport',
   'reference',
   'call',
   'type-import',
@@ -32,7 +33,7 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   go: ['import', 'reference', 'call', 'inherit', 'contains'],
   haskell: ['import', 'reference', 'call', 'contains'],
   java: ['import', 'reference', 'call', 'inherit'],
-  javascript: ['import', 'call', 'inherit'],
+  javascript: ['import', 'reexport', 'call', 'inherit'],
   kotlin: ['import', 'reference', 'call', 'inherit'],
   lua: ['import', 'reference', 'call'],
   objectiveC: ['import', 'reference', 'call', 'inherit'],
@@ -43,8 +44,8 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   rust: ['import', 'reference', 'call'],
   scala: ['import', 'reference', 'call', 'inherit'],
   swift: ['import', 'reference', 'call', 'inherit'],
-  tsx: ['import', 'type-import', 'call', 'inherit', 'contains'],
-  typescript: ['import', 'type-import', 'call', 'inherit', 'contains'],
+  tsx: ['import', 'reexport', 'type-import', 'call', 'inherit', 'contains'],
+  typescript: ['import', 'reexport', 'type-import', 'call', 'inherit', 'contains'],
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly GraphEdgeKind[]>;
 
 const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {

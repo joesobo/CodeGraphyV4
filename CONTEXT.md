@@ -1,6 +1,6 @@
 # CodeGraphy Domain
 
-CodeGraphy turns a folder into an interactive Relationship Graph so people and agents can inspect how files and code concepts connect. Use this glossary for product language, tests, issues, and documentation. Current behavior belongs in the focused docs under `docs/`; durable technical decisions belong in `docs/adr/`.
+CodeGraphy turns a folder into an interactive Relationship Graph so people and agents can inspect how files and code concepts connect. Use this glossary for product language, tests, issues, and documentation. Current behavior and important constraints belong in the closest product or package reference.
 
 ## Graph Model
 
@@ -18,7 +18,7 @@ CodeGraphy turns a folder into an interactive Relationship Graph so people and a
 | **Plugin Node** | A Node contributed by a plugin for a concept that Core does not own. |
 | **Relationship** | A meaningful connection between two Nodes. |
 | **Edge** | A semantic Relationship record with a source, target, and Edge Type. An interface decides how to render it. |
-| **Edge Type** | The semantic category of an Edge, such as import, call, reference, inherit, contains, or nests. |
+| **Edge Type** | The semantic category of an Edge, such as import, reexport, call, reference, inherit, contains, or nests. |
 | **Edge Direction** | The source-to-target direction of a Relationship. The source initiates the import, call, reference, containment, or other relation. |
 | **Dependency** | A Relationship whose Edge Type means one Node needs another to build, run, or resolve. Do not use dependency as a synonym for every Relationship. |
 | **Downstream** | Following Edge Direction away from a Node. The Edge Type explains what the direction means. |
@@ -34,7 +34,7 @@ A **Graph Scope Capability Declaration** tells CodeGraphy which Node Types and E
 CodeGraphy narrows graph data in one order:
 
 ```text
-Relationship Graph -> Scoped Graph -> Filtered Graph -> Searched Graph -> Visible Graph
+Relationship Graph -> Scoped Graph -> Filtered Graph -> Graph View Search -> Searched Graph -> Visible Graph
 ```
 
 | Stage | Meaning |
@@ -43,13 +43,16 @@ Relationship Graph -> Scoped Graph -> Filtered Graph -> Searched Graph -> Visibl
 | **Scoped Graph** | The Relationship Graph after Graph Scope removes disabled types. |
 | **Filter** | Persisted include and exclude rules for recurring workspace noise. |
 | **Filtered Graph** | The Scoped Graph after Filter rules. |
-| **Search** | A temporary text query that narrows the current graph without changing Filter settings. |
-| **Searched Graph** | The Filtered Graph after Search. |
+| **Graph View Search** | A temporary text query that narrows the current graph without changing Filter settings. |
+| **Searched Graph** | The Filtered Graph after Graph View Search. |
+| **CLI Search** | A bounded discovery query over exact live source, cached AST Symbols, and indexed Nodes. Sparse natural multi-term phrases add deterministic all-term File candidates. It reports source and cache provenance and does not change settings. |
+| **Task Map** | A bounded task-personalized File map combining independent live terms, selected declarations, and cached typed Relationships with source-area diversity. |
+| **Target Query** | A bounded overview of one exact File or Symbol Node, including prioritized declarations and incoming/outgoing Relationships. |
 | **Visible Graph** | The graph shown on screen after Graph Scope, Filter, Search, Show Orphans, and other view projection rules. |
 | **Orphan Node** | A Node with no remaining Edges after graph narrowing. |
 | **Show Orphans** | A final Graph View setting that keeps or removes Orphan Nodes. |
 
-Graph Scope runs before Filter, Filter runs before Search, and sorting or pagination runs after those stages. Core Graph Query uses the same order. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
+Graph Scope runs before Filter, Filter runs before Graph View Search, and sorting or pagination runs after those stages. Graph Query inventories use that shaped graph. CLI Search, Target Query, Path, and exact targeted Relationship selectors instead read the complete cached Node and Edge Types unless an invocation explicitly projects that dimension with `--node-type` or `--edge-type`; path Filters still apply. This keeps Graph View preferences from hiding indexed call or reexport evidence. Show Orphans is a Graph View presentation setting rather than an Indexing or Graph Query input.
 
 ## Selection, Focus, and Collapse
 
@@ -88,12 +91,15 @@ Interaction rules:
 | **Graph Projection** | Turn discovered files and analysis facts into graph Nodes and Edges. |
 | **Graph Cache** | Workspace-local SQLite data at `.codegraphy/graph.sqlite`. |
 | **Cached Graph Load** | Read and show the last explicitly indexed Relationship Graph without processing workspace source files. |
+| **Live Cache Watch** | An explicit foreground CLI workflow that keeps the Graph Cache current until the process stops. |
 | **Refresh Graph** | Restart layout physics without processing source data. |
 | **Re-index Workspace** | Run Indexing, save the Graph Cache, and refresh the graph. |
 
-Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
+Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. JavaScript-family reexports are explicit Relationships; renamed exports are Alias Symbol Nodes, so calls can resolve through barrels to implementation Symbols across full and incremental Indexing. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
 
 The VS Code extension runs Indexing only after an explicit Index or Re-index Workspace action. Saving, creating, deleting, or renaming a workspace file does not process source files or change the cached Relationship Graph. Opening the Graph View reads the last Graph Cache without warming analysis or updating stale inputs in the background. The Graph View keeps the current graph visible during an explicit Re-index and uses graph-local progress.
+
+The separate `codegraphy watch` CLI command is an explicit foreground workflow for sessions that need a continuously current Graph Cache. It subscribes before initial synchronization, batches workspace changes for 500 ms with a two-second maximum batch age, preserves arrivals during active work, skips cache artifacts and paths excluded by active Filters, and flushes pending changes during shutdown. Graph Cache writers coordinate through operation-scoped exclusive transactions in a separate SQLite coordinator, which releases ownership automatically when a process terminates; no long-lived watcher ownership or heartbeat is required. Full and incremental updates acquire writer ownership before their final discovery and source verification and retain it through persistence, retrying when analyzed inputs were superseded. If an incremental write finds a corrupt Graph Cache, it rebuilds the complete database from current in-memory analysis under that same ownership instead of replaying a partial patch.
 
 ## Interfaces and Ownership
 
@@ -103,13 +109,15 @@ The VS Code extension runs Indexing only after an explicit Index or Re-index Wor
 | **VS Code Extension** | Owns VS Code lifecycle, the Graph View, editor actions, workspace settings UI, and adapters over Core and the renderer. |
 | **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
-| **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. |
-| **Graph Query CLI** | `nodes`, `search`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output. |
-| **CodeGraphy Agent Skill** | Instructions that teach shell-capable agents when to index, which Graph Query command to choose, and when to inspect source. |
+| **CodeGraphy CLI** | The terminal interface installed by `@codegraphy-dev/core`. It targets the current directory unless `-C, --workspace <path>` selects another workspace. Its foreground `watch` command streams JSON Lines lifecycle events while keeping cached structural facts current. |
+| **CodeGraphy Exploration CLI** | `search` combines exact evidence with deterministic all-term fallback ranking for natural phrases; `map` builds a compact task-personalized File map; `query` inspects one exact File or Symbol with prioritized declarations and Relationships. All return bounded JSON with provenance. |
+| **CodeGraphy Settings CLI** | `settings`, `settings get`, `settings set`, and `settings unset` read or safely mutate supported workspace settings without silently repairing corrupt persisted input. |
+| **Graph Query CLI** | `nodes`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output over the shaped Relationship Graph. |
+| **CodeGraphy Agent Skill** | Generalized instructions that explain the Relationship Graph, lifecycle, query surfaces, machine-readable output, freshness, shaping, and limits so a shell-capable agent can choose its own navigation strategy. |
 | **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
 | **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |
 
-The CLI never searches parent directories for a workspace. Indexing and Graph Query are separate operations, so a query does not perform Indexing. Agents run Indexing when their task may have changed cached knowledge, then choose the narrowest query that answers the question.
+The CLI never searches parent directories for a workspace. Indexing and exploration are separate operations, so `search`, `map`, and `query` never perform Indexing. `watch` is the explicit foreground exception: it performs initial synchronization and then keeps cached Symbols and Relationships current as files change. CLI Search reads source text live from eligible indexed File Nodes and labels cached Symbol provenance as fresh or stale. Source extraction is limited to 1 MiB per file; oversized files are omitted and freshness is checked with a bounded-memory streamed hash. When Indexing reaches the file budget, users can raise `maxFiles`, adjust Filters, and explicitly re-index before querying. Persisted known settings fields are validated strictly; malformed input is reported and never replaced by defaults during mutation. The Agent Skill explains the available evidence and its tradeoffs while leaving navigation strategy to the agent.
 
 ## Plugins
 

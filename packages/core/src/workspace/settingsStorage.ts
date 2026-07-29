@@ -1,23 +1,47 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { getWorkspaceSettingsPath } from './paths';
-import {
-  createDefaultCodeGraphyWorkspaceSettings,
-  createInitialCodeGraphyWorkspaceSettings,
-} from './settingsDefaults';
+import { createInitialCodeGraphyWorkspaceSettings } from './settingsDefaults';
 import { normalizeCodeGraphyWorkspaceSettings } from './settingsNormalize';
 import { unknownRecordSchema } from '../values';
 import type { CodeGraphyWorkspaceSettings } from './settingsContracts';
 import { hasSupportedRawPluginIdentity } from './settingsPlugins';
+import { validateWorkspaceSettingsRecord } from './settingsValidation';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
 } from './settingsDefaults';
 
+export class WorkspaceSettingsError extends Error {
+  constructor(
+    readonly settingsPath: string,
+    readonly reason: string,
+  ) {
+    super(`Invalid CodeGraphy workspace settings at ${settingsPath}: ${reason}`);
+  }
+}
+
 function writeRawWorkspaceSettings(workspaceRoot: string, settings: Record<string, unknown>): void {
   const settingsPath = getWorkspaceSettingsPath(workspaceRoot);
+  let validated: Record<string, unknown>;
+  try {
+    validated = validateWorkspaceSettingsRecord(settings);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new WorkspaceSettingsError(settingsPath, reason);
+  }
   fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+  fs.writeFileSync(settingsPath, `${JSON.stringify(validated, null, 2)}\n`);
+}
+
+function readRawWorkspaceSettings(workspaceRoot: string): Record<string, unknown> {
+  const settingsPath = getWorkspaceSettingsPath(workspaceRoot);
+  try {
+    return validateWorkspaceSettingsRecord(JSON.parse(fs.readFileSync(settingsPath, 'utf-8')));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new WorkspaceSettingsError(settingsPath, message);
+  }
 }
 
 function readPluginIdentity(value: unknown): string | undefined {
@@ -77,13 +101,9 @@ function mergeRawPluginEntries(rawValue: unknown, plugins: CodeGraphyWorkspaceSe
 export function readCodeGraphyWorkspaceSettings(
   workspaceRoot: string,
 ): CodeGraphyWorkspaceSettings {
-  try {
-    return normalizeCodeGraphyWorkspaceSettings(
-      JSON.parse(fs.readFileSync(getWorkspaceSettingsPath(workspaceRoot), 'utf-8')),
-    );
-  } catch {
-    return createDefaultCodeGraphyWorkspaceSettings();
-  }
+  return fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))
+    ? normalizeCodeGraphyWorkspaceSettings(readRawWorkspaceSettings(workspaceRoot))
+    : normalizeCodeGraphyWorkspaceSettings({});
 }
 
 export function readCodeGraphyWorkspaceSettingsOrInitial(
@@ -110,15 +130,10 @@ export function writeCodeGraphyWorkspaceSettings(
   });
 }
 
-function readRawWorkspaceSettingsOrInitial(workspaceRoot: string): Record<string, unknown> {
-  try {
-    const parsed = unknownRecordSchema.safeParse(
-      JSON.parse(fs.readFileSync(getWorkspaceSettingsPath(workspaceRoot), 'utf-8')),
-    );
-    return parsed.success ? { ...parsed.data } : { ...createInitialCodeGraphyWorkspaceSettings() };
-  } catch {
-    return { ...createInitialCodeGraphyWorkspaceSettings() };
-  }
+export function readRawWorkspaceSettingsOrInitial(workspaceRoot: string): Record<string, unknown> {
+  return fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))
+    ? readRawWorkspaceSettings(workspaceRoot)
+    : { ...createInitialCodeGraphyWorkspaceSettings() };
 }
 
 export function patchCodeGraphyWorkspaceSettings(
@@ -129,6 +144,15 @@ export function patchCodeGraphyWorkspaceSettings(
     ...readRawWorkspaceSettingsOrInitial(workspaceRoot),
     ...patch,
   });
+}
+
+export function removeCodeGraphyWorkspaceSetting(
+  workspaceRoot: string,
+  key: string,
+): void {
+  const settings = readRawWorkspaceSettingsOrInitial(workspaceRoot);
+  delete settings[key];
+  writeRawWorkspaceSettings(workspaceRoot, settings);
 }
 
 export function patchCodeGraphyWorkspaceSettingRecord(

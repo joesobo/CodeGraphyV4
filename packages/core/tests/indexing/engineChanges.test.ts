@@ -1,7 +1,11 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { createCodeGraphyWorkspaceEngine } from '../../src';
+import {
+  createCodeGraphyWorkspaceEngine,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../src';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
 
 describe('workspace engine changed files', () => {
@@ -32,6 +36,126 @@ describe('workspace engine changed files', () => {
       reusedFiles: 1,
     });
     expect(analyzeFile).toHaveBeenCalledOnce();
+    engine.dispose();
+  });
+
+  it('rebuilds a corrupt Graph Cache completely during an incremental update', async () => {
+    const workspaceRoot = await createWorkspace();
+    const nextPath = join(workspaceRoot, 'next.txt');
+    await writeFile(nextPath, 'next\n', 'utf-8');
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    await writeFile(join(workspaceRoot, '.codegraphy', 'graph.sqlite'), 'not a database');
+    const sourcePath = join(workspaceRoot, 'source.txt');
+    await writeFile(sourcePath, 'next.txt\n', 'utf-8');
+
+    await engine.applyChangedFiles([sourcePath]);
+
+    const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshot.files.map(file => file.filePath).sort()).toEqual([
+      'next.txt',
+      'source.txt',
+      'target.txt',
+    ]);
+    expect(snapshot.graph.edges.map(edge => edge.id)).toContain('source.txt->next.txt#import');
+    engine.dispose();
+  });
+
+  it('fully reconciles a capped workspace when a new file changes the selected set', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-capped-changes-'));
+    await writeFile(join(workspaceRoot, 'b.txt'), 'before\n', 'utf-8');
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      maxFiles: 1,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const createdPath = join(workspaceRoot, 'a.txt');
+    await writeFile(createdPath, 'after\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([createdPath]);
+
+    expect(result.indexing.mode).toBe('full');
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual([
+      'a.txt',
+    ]);
+    engine.dispose();
+  });
+
+  it('ignores a new file that is outside discovery eligibility', async () => {
+    const workspaceRoot = await createWorkspace();
+    const initialize = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      include: ['**/*.txt'],
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        initialize,
+      }],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const ignoredDirectory = join(workspaceRoot, 'tests');
+    const ignoredPath = join(ignoredDirectory, 'new-test.ts');
+    await mkdir(ignoredDirectory);
+    await writeFile(ignoredPath, 'ignored\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([ignoredDirectory, ignoredPath]);
+
+    expect(result.indexing).toEqual({
+      mode: 'incremental',
+      analyzedFiles: 0,
+      deletedFiles: 0,
+      reusedFiles: 2,
+    });
+    expect(initialize).toHaveBeenCalledOnce();
+    engine.dispose();
+  });
+
+  it('runs a full refresh when Git ignore rules change', async () => {
+    const workspaceRoot = await createWorkspace();
+    const initialize = vi.fn();
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [{
+        ...createTextPlugin({
+          onPreAnalyze: vi.fn(),
+          onPostAnalyze: vi.fn(),
+          onWorkspaceReady: vi.fn(),
+          analyzeFile: vi.fn(),
+        }),
+        initialize,
+      }],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const ignorePath = join(workspaceRoot, '.gitignore');
+    await writeFile(ignorePath, 'target.txt\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([ignorePath]);
+
+    expect(result.indexing.mode).toBe('full');
+    expect(initialize).toHaveBeenCalledTimes(2);
     engine.dispose();
   });
 
