@@ -84,6 +84,7 @@ describe('concurrent workspace cache updaters', () => {
     await freshEngine.index();
     freshEngine.dispose();
 
+    expect(concurrentEdges).toContain('source.txt->next.txt#import');
     expect(concurrentEdges).toEqual(edgeIdentities(workspaceRoot));
   });
 
