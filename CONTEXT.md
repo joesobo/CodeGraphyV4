@@ -99,7 +99,7 @@ Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph P
 
 The VS Code extension runs Indexing only after an explicit Index or Re-index Workspace action. Saving, creating, deleting, or renaming a workspace file does not process source files or change the cached Relationship Graph. Opening the Graph View reads the last Graph Cache without warming analysis or updating stale inputs in the background. The Graph View keeps the current graph visible during an explicit Re-index and uses graph-local progress.
 
-The separate `codegraphy watch` CLI command is an explicit foreground workflow for sessions that need a continuously current Graph Cache. It subscribes before initial synchronization, batches workspace changes for 500 ms with a two-second maximum batch age, preserves arrivals during active work, skips cache artifacts and paths excluded by active Filters, and flushes pending changes during shutdown. Graph Cache writers coordinate through an operation-scoped cross-process lock with terminated-owner recovery; no long-lived watcher ownership or heartbeat is required.
+The separate `codegraphy watch` CLI command is an explicit foreground workflow for sessions that need a continuously current Graph Cache. It subscribes before initial synchronization, batches workspace changes for 500 ms with a two-second maximum batch age, preserves arrivals during active work, skips cache artifacts and paths excluded by active Filters, and flushes pending changes during shutdown. Graph Cache writers coordinate through operation-scoped exclusive transactions in a separate SQLite coordinator, which releases ownership automatically when a process terminates; no long-lived watcher ownership or heartbeat is required.
 
 ## Interfaces and Ownership
 

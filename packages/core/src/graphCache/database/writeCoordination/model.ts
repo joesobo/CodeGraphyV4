@@ -1,108 +1,45 @@
-import {
-  linkSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
-import { randomUUID } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import Database from 'libsql';
 import { setTimeout as wait } from 'node:timers/promises';
 
-const LOCK_SUFFIX = '.write-lock';
-const OWNER_FILE = 'owner.json';
+const LOCK_SUFFIX = '.write-lock.sqlite';
 const RETRY_DELAY_MS = 25;
 const ACQUIRE_TIMEOUT_MS = 60_000;
-const OWNER_WRITE_GRACE_MS = 1_000;
 const syncWaitState = new Int32Array(new SharedArrayBuffer(4));
 const processLocks = new Set<string>();
 
-interface LockOwner {
-  pid: number;
-  token: string;
-}
+type LockConnection = Database.Database;
 
 function lockPath(databasePath: string): string {
   return `${databasePath}${LOCK_SUFFIX}`;
 }
 
-function ownerPath(writeLockPath: string): string {
-  try {
-    return statSync(writeLockPath).isDirectory()
-      ? path.join(writeLockPath, OWNER_FILE)
-      : writeLockPath;
-  } catch {
-    return writeLockPath;
-  }
-}
-
-function isExistingPathError(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'EEXIST';
-}
-
-function isProcessAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return !(error instanceof Error && 'code' in error && error.code === 'ESRCH');
-  }
-}
-
-function readOwner(writeLockPath: string): LockOwner | undefined {
-  try {
-    const value = JSON.parse(readFileSync(ownerPath(writeLockPath), 'utf-8')) as Partial<LockOwner>;
-    return Number.isInteger(value.pid) && typeof value.token === 'string'
-      ? { pid: value.pid!, token: value.token }
-      : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function lockOwnerMayStillBeWriting(writeLockPath: string, owner: LockOwner | undefined): boolean {
-  if (owner) return false;
-  try {
-    return Date.now() - statSync(writeLockPath).mtimeMs < OWNER_WRITE_GRACE_MS;
-  } catch {
-    return true;
-  }
-}
-
-function removeAbandonedLock(writeLockPath: string): void {
-  const owner = readOwner(writeLockPath);
-  if (owner && isProcessAlive(owner.pid)) return;
-  if (lockOwnerMayStillBeWriting(writeLockPath, owner)) return;
-  rmSync(writeLockPath, { force: true, recursive: true });
+function isBusyError(error: unknown): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_LOCKED');
 }
 
 function tryAcquire(databasePath: string): (() => void) | undefined {
   const writeLockPath = lockPath(databasePath);
   mkdirSync(path.dirname(writeLockPath), { recursive: true });
-  const token = randomUUID();
-  const claimPath = `${writeLockPath}.${process.pid}.${token}.claim`;
+  const connection: LockConnection = new Database(writeLockPath);
   try {
-    writeFileSync(
-      claimPath,
-      JSON.stringify({ pid: process.pid, token }),
-      { encoding: 'utf-8', flag: 'wx' },
-    );
-    linkSync(claimPath, writeLockPath);
-    rmSync(claimPath, { force: true });
+    connection.pragma('busy_timeout = 0');
+    connection.exec('BEGIN EXCLUSIVE');
     processLocks.add(writeLockPath);
   } catch (error) {
-    rmSync(claimPath, { force: true });
-    if (!isExistingPathError(error)) throw error;
-    removeAbandonedLock(writeLockPath);
-    return undefined;
+    connection.close();
+    if (isBusyError(error)) return undefined;
+    throw error;
   }
 
   return () => {
     try {
-      const owner = readOwner(writeLockPath);
-      if (owner?.token === token) rmSync(writeLockPath, { force: true, recursive: true });
+      connection.exec('COMMIT');
     } finally {
+      connection.close();
       processLocks.delete(writeLockPath);
     }
   };
@@ -127,9 +64,10 @@ function acquireSync(databasePath: string): () => void {
 }
 
 async function acquireAsync(databasePath: string): Promise<() => void> {
+  const writeLockPath = lockPath(databasePath);
   const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    if (!processLocks.has(lockPath(databasePath))) {
+    if (!processLocks.has(writeLockPath)) {
       const release = tryAcquire(databasePath);
       if (release) return release;
     }

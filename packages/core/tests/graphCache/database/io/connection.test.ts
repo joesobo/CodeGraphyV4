@@ -68,7 +68,7 @@ describe('graphCache/database/io/connection', () => {
     fs.writeFileSync(databasePath, 'not a database');
 
     withRecreatedConnection(databasePath, (connection) => {
-      expect(fs.existsSync(`${databasePath}.write-lock`)).toBe(true);
+      expect(fs.existsSync(`${databasePath}.write-lock.sqlite`)).toBe(true);
       runStatementSync(
         connection,
         "INSERT INTO File(path, mtime, size, contentHash) VALUES ('src/app.ts', 123.5, 2, 'sha256:app')",
