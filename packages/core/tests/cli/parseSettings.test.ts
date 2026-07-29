@@ -17,9 +17,24 @@ describe('cli/parseSettings', () => {
     });
   });
 
-  it('rejects unknown keys and malformed JSON values', () => {
+  it('rejects incomplete, unknown, malformed, and extra operands', () => {
+    expect(parseSettingsCommand(['unknown'])).toMatchObject({
+      parseError: 'Unknown settings action: unknown',
+    });
+    expect(parseSettingsCommand(['get'])).toMatchObject({
+      parseError: 'settings command requires a workspace setting key',
+    });
+    expect(parseSettingsCommand(['get', 'maxFiles', 'extra'])).toMatchObject({
+      parseError: 'Unexpected argument for settings get: extra',
+    });
     expect(parseSettingsCommand(['set', 'unknown', '1'])).toMatchObject({
       parseError: 'Unknown workspace setting: unknown',
+    });
+    expect(parseSettingsCommand(['set', 'maxFiles'])).toMatchObject({
+      parseError: 'settings set requires a JSON value',
+    });
+    expect(parseSettingsCommand(['set', 'maxFiles', '1', 'extra'])).toMatchObject({
+      parseError: 'Unexpected argument for settings set: extra',
     });
     expect(parseSettingsCommand(['set', 'maxFiles', 'many'])).toMatchObject({
       parseError: 'settings set value must be valid JSON: many',

@@ -101,6 +101,24 @@ describe('cli/settings command', () => {
     });
   });
 
+  it('reuses Scope hydration checks for Symbol visibility settings', async () => {
+    const workspace = await createWorkspace({ version: 1 });
+    const stdout = vi.fn();
+
+    await expect(runCli([
+      '-C',
+      workspace,
+      'settings',
+      'set',
+      'nodeVisibility',
+      '{"symbol":true,"symbol:callable":true,"symbol:function":true}',
+    ], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: { key: 'nodeVisibility', indexRequired: true },
+    });
+  });
+
   it('rejects invalid values and leaves the persisted bytes unchanged', async () => {
     const workspace = await createWorkspace({ version: 1, maxFiles: 1200 });
     const settingsPath = path.join(workspace, '.codegraphy/settings.json');
