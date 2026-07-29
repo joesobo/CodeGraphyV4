@@ -49,19 +49,27 @@ function createCacheMissingResult(workspaceRoot: string): WorkspaceGraphQueryRes
   };
 }
 
-function hasTargetSelector(arguments_: Record<string, unknown>): boolean {
-  return ['from', 'to', 'target', 'filePath', 'relatedFrom', 'relatedTo']
-    .some(key => typeof arguments_[key] === 'string');
-}
-
 function shouldApplyWorkspaceGraphScope(input: WorkspaceGraphQueryInput): boolean {
-  if (input.report === 'relationships') return true;
-  if (input.report === 'search' || input.report === 'task-map' || input.report === 'overview' || input.report === 'paths') return false;
-  return !hasTargetSelector(input.arguments);
+  switch (input.report) {
+    case 'nodes':
+    case 'relationships':
+      return true;
+    case 'edges':
+      return !input.arguments?.from && !input.arguments?.to;
+    case 'symbols':
+      return !input.arguments?.filePath
+        && !input.arguments?.relatedFrom
+        && !input.arguments?.relatedTo;
+    case 'paths':
+    case 'search':
+    case 'task-map':
+    case 'overview':
+      return false;
+  }
 }
 
 function executeWorkspaceGraphQuery(
-  input: Omit<WorkspaceGraphQueryInput, 'workspacePath'>,
+  input: WorkspaceGraphQueryInput,
   workspaceRoot: string,
   status: ReturnType<typeof readCodeGraphyWorkspaceStatus>,
   source: ReturnType<typeof readWorkspaceQuerySource>,

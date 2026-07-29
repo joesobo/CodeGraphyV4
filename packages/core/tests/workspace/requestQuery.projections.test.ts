@@ -96,6 +96,22 @@ describe('workspace/requestQuery', () => {
     ]));
   });
 
+  it('does not let invalid report arguments bypass saved Graph Scope', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-invalid-arguments-'));
+    await fs.writeFile(workspaceRoot + '/entry.ts', 'export function hiddenBySavedScope(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    const result = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'nodes',
+      arguments: { target: 'entry.ts' },
+    } as Parameters<typeof requestWorkspaceGraphQuery>[0]);
+
+    expect(result.nodes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ nodeType: expect.stringMatching(/^symbol:/u) }),
+    ]));
+  });
+
   it('honors an explicit contains projection in Target Query', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-contains-'));
     await fs.writeFile(workspaceRoot + '/entry.ts', 'export function containedSymbol(): void {}\n');

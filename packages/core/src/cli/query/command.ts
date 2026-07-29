@@ -121,13 +121,14 @@ export async function runQueryCommand(
         },
       }
     : undefined;
-  const result = await dependencies.query({
+  const input = {
     workspacePath: workspaceRoot,
     report: command.report,
     arguments: queryArguments,
     ...(command.projection ? { projection: command.projection } : {}),
     ...(diagnostics ? { diagnostics } : {}),
-  });
+  } as WorkspaceGraphQueryInput;
+  const result = await dependencies.query(input);
   return {
     exitCode: result.error ? 1 : 0,
     output: JSON.stringify(compactQueryResult(result)),
