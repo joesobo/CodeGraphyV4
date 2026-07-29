@@ -23,7 +23,6 @@ async function unmatchedPathCanAffectIndex(
   filePath: string,
 ): Promise<boolean> {
   const { state, workspaceRoot } = runtime;
-  if (state.discoveryResult?.limitReached) return true;
   const absolutePath = path.resolve(workspaceRoot, filePath);
   const relativePath = path.relative(workspaceRoot, absolutePath).split(path.sep).join('/');
   if (!relativePath || relativePath.startsWith('../')) return true;
@@ -47,6 +46,9 @@ export async function applyWorkspaceEngineChangedFiles(
   await discoverWorkspaceEngineFiles(runtime);
   assertWorkspaceEngineActive(runtime);
   if (filePaths.some(filePath => isWorkspaceDiscoveryLifecyclePath(workspaceRoot, filePath))) {
+    return fullIndex();
+  }
+  if (state.discoveryResult!.limitReached) {
     return fullIndex();
   }
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);

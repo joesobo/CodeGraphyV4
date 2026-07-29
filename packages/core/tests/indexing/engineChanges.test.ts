@@ -1,7 +1,11 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { createCodeGraphyWorkspaceEngine } from '../../src';
+import {
+  createCodeGraphyWorkspaceEngine,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../src';
 import { createTextPlugin, createWorkspace } from './workspaceFixture';
 
 describe('workspace engine changed files', () => {
@@ -32,6 +36,33 @@ describe('workspace engine changed files', () => {
       reusedFiles: 1,
     });
     expect(analyzeFile).toHaveBeenCalledOnce();
+    engine.dispose();
+  });
+
+  it('fully reconciles a capped workspace when a new file changes the selected set', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-capped-changes-'));
+    await writeFile(join(workspaceRoot, 'b.txt'), 'before\n', 'utf-8');
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      maxFiles: 1,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+    await engine.index();
+    const createdPath = join(workspaceRoot, 'a.txt');
+    await writeFile(createdPath, 'after\n', 'utf-8');
+
+    const result = await engine.applyChangedFiles([createdPath]);
+
+    expect(result.indexing.mode).toBe('full');
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual([
+      'a.txt',
+    ]);
     engine.dispose();
   });
 
