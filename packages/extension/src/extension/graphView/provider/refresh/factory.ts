@@ -68,7 +68,7 @@ export function createGraphViewProviderRefreshMethods(
     clearCacheAndRefresh: async () => {
       source._analyzer?.clearCache();
       state.hydratedAnalysisCacheTiers.clear();
-      await refresh();
+      await refreshIndex();
     },
     _rebuildAndSend,
     _smartRebuild,

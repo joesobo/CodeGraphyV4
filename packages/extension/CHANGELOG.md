@@ -1,5 +1,11 @@
 # @codegraphy-dev/extension
 
+## 5.15.3
+
+### Patch Changes
+
+- [#325](https://github.com/joesobo/CodeGraphyV4/pull/325) [`ccb7973`](https://github.com/joesobo/CodeGraphyV4/commit/ccb79735adc7147d1df1039e6ed1967d351216be) Thanks [@joesobo](https://github.com/joesobo)! - Re-index the workspace after clearing the Graph Cache so the Graph View does not become empty.
+
 ## 5.15.2
 
 ### Patch Changes
