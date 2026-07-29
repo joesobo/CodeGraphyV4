@@ -2,7 +2,9 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
+  statSync,
   utimesSync,
   writeFileSync,
 } from 'node:fs';
@@ -30,7 +32,7 @@ afterEach(() => {
 });
 
 describe('Graph Cache write coordination', () => {
-  it('serializes asynchronous writers and releases the lock directory', async () => {
+  it('serializes asynchronous writers and releases the lock record', async () => {
     const databasePath = createDatabasePath();
     const order: string[] = [];
     let markEntered!: () => void;
@@ -56,6 +58,21 @@ describe('Graph Cache write coordination', () => {
 
     expect(order).toEqual(['first-start', 'first-end', 'second']);
     expect(existsSync(`${databasePath}.write-lock`)).toBe(false);
+  });
+
+  it('publishes a complete owner record atomically before entering the writer', () => {
+    const databasePath = createDatabasePath();
+    const writeLockPath = `${databasePath}.write-lock`;
+
+    withWorkspaceCacheWriteLock(databasePath, () => {
+      expect(statSync(writeLockPath).isFile()).toBe(true);
+      expect(JSON.parse(readFileSync(writeLockPath, 'utf8'))).toMatchObject({
+        pid: process.pid,
+        token: expect.any(String),
+      });
+    });
+
+    expect(existsSync(writeLockPath)).toBe(false);
   });
 
   it('recovers a lock abandoned by a terminated writer process', () => {

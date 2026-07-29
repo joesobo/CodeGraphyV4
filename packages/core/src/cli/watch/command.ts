@@ -101,12 +101,12 @@ export async function runWatchCommand(
   const emit = (event: WatchCommandEvent): void => options.writeEvent?.(event);
   const startupFilePaths = new Set<string>();
   let ready = false;
-  const stopController = new AbortController();
-  const stopPromise = dependencies.waitForStop(stopController.signal);
   const updater = dependencies.createUpdater({
     workspaceRoot,
     onEvent: event => emit(toWatchCommandEvent(event)),
   });
+  const stopController = new AbortController();
+  const stopPromise = dependencies.waitForStop(stopController.signal);
   try {
     const subscription = await dependencies.subscribe({
       workspaceRoot,

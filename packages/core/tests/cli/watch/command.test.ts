@@ -158,6 +158,23 @@ describe('CLI watch command', () => {
     ]);
   });
 
+  it('does not install process handlers when updater creation fails', async () => {
+    const waitForStop = vi.fn(async () => undefined);
+
+    await expect(runWatchCommand('/workspace', {
+      cwd: () => '/cwd',
+      createUpdater() {
+        throw new Error('updater failed');
+      },
+      async subscribe() {
+        return { async dispose() {} };
+      },
+      waitForStop,
+    })).rejects.toThrow('updater failed');
+
+    expect(waitForStop).not.toHaveBeenCalled();
+  });
+
   it('disposes startup resources when workspace subscription fails', async () => {
     const dispose = vi.fn();
     let stopSignal: AbortSignal | undefined;

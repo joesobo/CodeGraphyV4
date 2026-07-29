@@ -1,7 +1,7 @@
 import {
+  linkSync,
   mkdirSync,
   readFileSync,
-  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -28,13 +28,17 @@ function lockPath(databasePath: string): string {
 }
 
 function ownerPath(writeLockPath: string): string {
-  return path.join(writeLockPath, OWNER_FILE);
+  try {
+    return statSync(writeLockPath).isDirectory()
+      ? path.join(writeLockPath, OWNER_FILE)
+      : writeLockPath;
+  } catch {
+    return writeLockPath;
+  }
 }
 
 function isExistingPathError(error: unknown): boolean {
-  return error instanceof Error
-    && 'code' in error
-    && (error.code === 'EEXIST' || error.code === 'ENOTEMPTY');
+  return error instanceof Error && 'code' in error && error.code === 'EEXIST';
 }
 
 function isProcessAlive(pid: number): boolean {
@@ -79,12 +83,16 @@ function tryAcquire(databasePath: string): (() => void) | undefined {
   const token = randomUUID();
   const claimPath = `${writeLockPath}.${process.pid}.${token}.claim`;
   try {
-    mkdirSync(claimPath);
-    writeFileSync(ownerPath(claimPath), JSON.stringify({ pid: process.pid, token }), 'utf-8');
-    renameSync(claimPath, writeLockPath);
+    writeFileSync(
+      claimPath,
+      JSON.stringify({ pid: process.pid, token }),
+      { encoding: 'utf-8', flag: 'wx' },
+    );
+    linkSync(claimPath, writeLockPath);
+    rmSync(claimPath, { force: true });
     processLocks.add(writeLockPath);
   } catch (error) {
-    rmSync(claimPath, { force: true, recursive: true });
+    rmSync(claimPath, { force: true });
     if (!isExistingPathError(error)) throw error;
     removeAbandonedLock(writeLockPath);
     return undefined;
