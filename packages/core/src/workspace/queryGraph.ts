@@ -1,5 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { createHash } from 'node:crypto';
+import { StringDecoder } from 'node:string_decoder';
 import { createWorkspaceFileContentHash } from '../analysis/cache';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
 import { filterInactivePluginSnapshotFacts } from '../plugins/activityState/analysisFacts';
@@ -29,6 +31,23 @@ interface QuerySourceFileResult {
   changed: boolean;
 }
 
+function createQuerySourceFileHash(absolutePath: string): string {
+  const hash = createHash('sha256');
+  const decoder = new StringDecoder('utf8');
+  const buffer = Buffer.allocUnsafe(64 * 1024);
+  const descriptor = fs.openSync(absolutePath, 'r');
+  try {
+    let bytesRead = 0;
+    while ((bytesRead = fs.readSync(descriptor, buffer, 0, buffer.length, null)) > 0) {
+      hash.update(decoder.write(buffer.subarray(0, bytesRead)));
+    }
+    hash.update(decoder.end());
+    return hash.digest('hex');
+  } finally {
+    fs.closeSync(descriptor);
+  }
+}
+
 function readQuerySourceFile(
   workspaceRoot: string,
   filePath: string,
@@ -40,10 +59,15 @@ function readQuerySourceFile(
 
   try {
     const size = fs.statSync(absolutePath).size;
+    if (size > MAX_QUERY_SOURCE_FILE_BYTES) {
+      const changed = indexedContentHash !== undefined
+        && indexedContentHash !== createQuerySourceFileHash(absolutePath);
+      return { changed };
+    }
     const content = fs.readFileSync(absolutePath, 'utf8');
     const changed = indexedContentHash !== undefined
       && indexedContentHash !== createWorkspaceFileContentHash(content);
-    if (size > MAX_QUERY_SOURCE_FILE_BYTES || content.includes('\0')) return { changed };
+    if (content.includes('\0')) return { changed };
     return {
       file: { filePath, content },
       changed,

@@ -1,7 +1,13 @@
+import { readFileSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('node:fs', async (importOriginal) => {
+  const original = await importOriginal<typeof import('node:fs')>();
+  return { ...original, readFileSync: vi.fn(original.readFileSync) };
+});
 import { createWorkspaceFileContentHash } from '../../src/analysis/cache';
 import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
 import {
@@ -34,6 +40,22 @@ describe('workspace/queryGraph', () => {
     ]));
     expect(complete.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts', 'model.ts']));
     expect(source.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts', 'model.ts']));
+  });
+
+  it('does not load oversized source files into memory', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-bounded-source-'));
+    const largePath = path.join(workspaceRoot, 'large.ts');
+    const largeContent = 'x'.repeat(1024 * 1024 + 1);
+    await fs.writeFile(largePath, largeContent);
+    vi.mocked(readFileSync).mockClear();
+
+    const result = readWorkspaceQuerySourceText(workspaceRoot, {
+      nodes: [{ id: 'large.ts', label: 'large.ts', nodeType: 'file' }],
+      edges: [],
+    }, new Map([['large.ts', createWorkspaceFileContentHash(largeContent)]]));
+
+    expect(result).toMatchObject({ filesSkipped: 1, hasChangedFiles: false });
+    expect(readFileSync).not.toHaveBeenCalledWith(largePath, 'utf8');
   });
 
   it('keeps unchanged indexed binary and oversized files fresh while skipping their source', async () => {
