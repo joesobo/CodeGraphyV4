@@ -102,6 +102,9 @@ function executeWorkspaceGraphQuery(
             projectedNodeTypes: input.projection.nodeTypes,
           }
         : {}),
+      ...(input.projection?.edgeTypes
+        ? { projectedEdgeTypes: input.projection.edgeTypes }
+        : {}),
       ...input.arguments,
     },
   } as GraphQueryRequest);

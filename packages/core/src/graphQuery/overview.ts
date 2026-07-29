@@ -85,11 +85,14 @@ export function inspectGraphTarget(
     };
   }
 
+  const includeContains = config.projectedEdgeTypes?.includes('contains') ?? false;
   const relationshipData = {
     ...data,
     graphData: {
       nodes: data.graphData.nodes,
-      edges: data.graphData.edges.filter(edge => edge.kind !== 'contains'),
+      edges: includeContains
+        ? data.graphData.edges
+        : data.graphData.edges.filter(edge => edge.kind !== 'contains'),
     },
   };
   const completeScope = {
@@ -107,14 +110,14 @@ export function inspectGraphTarget(
       from: target.path,
       scope: completeScope,
       expandFileSelectors: !target.symbol,
-      projectFileEndpoints: !target.symbol,
+      projectFileEndpoints: !target.symbol && !includeContains,
       limit: RELATIONSHIP_LIMIT,
     }),
     incoming: listGraphEdges(relationshipData.graphData, {
       to: target.path,
       scope: completeScope,
       expandFileSelectors: !target.symbol,
-      projectFileEndpoints: !target.symbol,
+      projectFileEndpoints: !target.symbol && !includeContains,
       limit: RELATIONSHIP_LIMIT,
     }),
     limits: {

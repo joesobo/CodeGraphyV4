@@ -264,6 +264,48 @@ describe('workspace/requestQuery', () => {
     ]));
   });
 
+  it('honors an explicit contains projection in Target Query', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-contains-'));
+    await fs.writeFile(workspaceRoot + '/entry.ts', 'export function containedSymbol(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+
+    const result = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'overview',
+      arguments: { target: 'entry.ts' },
+      projection: { edgeTypes: ['contains'] },
+    });
+
+    expect(result).toMatchObject({
+      outgoing: {
+        edges: [{
+          from: 'entry.ts',
+          to: 'entry.ts#containedSymbol:function',
+          edgeTypes: ['contains'],
+        }],
+      },
+    });
+  });
+
+  it('marks cached Symbols stale after their indexed source file is deleted', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-deleted-'));
+    const entryPath = path.join(workspaceRoot, 'entry.ts');
+    await fs.writeFile(entryPath, 'export function deletedSymbol(): void {}\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    await fs.rm(entryPath);
+
+    const result = await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'search',
+      arguments: { pattern: 'deletedSymbol', limit: 20 },
+    });
+
+    expect(result).toMatchObject({
+      matches: [{ type: 'symbol', symbol: { name: 'deletedSymbol', filePath: 'entry.ts' } }],
+      sources: { symbols: { freshness: 'cached', cacheState: 'stale' } },
+    });
+  });
+
   it('reads live text after Indexing while marking cached Symbols stale', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-live-text-'));
     const entryPath = path.join(workspaceRoot, 'entry.ts');

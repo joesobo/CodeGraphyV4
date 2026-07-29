@@ -35,19 +35,20 @@ function readQuerySourceFile(
   indexedContentHash: string | undefined,
 ): QuerySourceFileResult {
   const absolutePath = path.resolve(workspaceRoot, filePath);
-  if (!isInsideWorkspace(workspaceRoot, absolutePath)) return { changed: false };
+  const skippedResult = { changed: indexedContentHash !== undefined };
+  if (!isInsideWorkspace(workspaceRoot, absolutePath)) return skippedResult;
 
   try {
-    if (fs.statSync(absolutePath).size > MAX_QUERY_SOURCE_FILE_BYTES) return { changed: false };
+    if (fs.statSync(absolutePath).size > MAX_QUERY_SOURCE_FILE_BYTES) return skippedResult;
     const content = fs.readFileSync(absolutePath, 'utf8');
-    if (content.includes('\0')) return { changed: false };
+    if (content.includes('\0')) return skippedResult;
     return {
       file: { filePath, content },
       changed: indexedContentHash !== undefined
         && indexedContentHash !== createWorkspaceFileContentHash(content),
     };
   } catch {
-    return { changed: false };
+    return skippedResult;
   }
 }
 

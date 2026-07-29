@@ -71,6 +71,7 @@ export interface GraphQueryTaskMapConfig extends GraphQueryConfig {
 
 export interface GraphQueryOverviewConfig extends GraphQueryConfig {
   target: string;
+  projectedEdgeTypes?: readonly GraphEdgeKind[];
 }
 
 export interface GraphQueryPage {
