@@ -17,7 +17,11 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const requireFromExtension = createRequire(
   path.join(repoRoot, 'packages', 'extension', 'package.json'),
 );
-const { runTests, runVSCodeCommand } = requireFromExtension('@vscode/test-electron');
+const {
+  downloadAndUnzipVSCode,
+  resolveCliArgsFromVSCodeExecutablePath,
+  runTests,
+} = requireFromExtension('@vscode/test-electron');
 
 const hostTargetByPlatform = {
   linux: {
@@ -97,17 +101,32 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, pluginCacheHomeDir, false);
 
     await writeHarnessExtension(harnessPath);
-    await runVSCodeCommand([
+    const downloadedExecutablePath = await downloadAndUnzipVSCode();
+    const vscodeExecutablePath = resolveCurrentVsCodeExecutablePath(downloadedExecutablePath);
+    const [cliPath, ...cliArgs] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
+    const installResult = spawnSync(cliPath, [
+      ...cliArgs,
       ...profileArgs,
       '--install-extension',
       vsixPath,
       '--force',
-    ]);
+    ], {
+      encoding: 'utf8',
+      shell: process.platform === 'win32',
+    });
+    if (installResult.status !== 0) {
+      throw new Error(
+        `Unable to install ${path.basename(vsixPath)}.\n`
+        + `${installResult.stdout}${installResult.stderr}`,
+      );
+    }
 
     await runTests({
       extensionDevelopmentPath: harnessPath,
       extensionTestsPath,
+      vscodeExecutablePath,
       extensionTestsEnv: {
+        ELECTRON_RUN_AS_NODE: undefined,
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
         CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
       },
@@ -130,6 +149,21 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     restoreInstalledPluginCache();
     rmSync(profilePath, { recursive: true, force: true });
   }
+}
+
+function resolveCurrentVsCodeExecutablePath(downloadedExecutablePath) {
+  if (existsSync(downloadedExecutablePath)) {
+    return downloadedExecutablePath;
+  }
+
+  if (process.platform === 'darwin' && path.basename(downloadedExecutablePath) === 'Electron') {
+    const currentExecutablePath = path.join(path.dirname(downloadedExecutablePath), 'Code');
+    if (existsSync(currentExecutablePath)) {
+      return currentExecutablePath;
+    }
+  }
+
+  throw new Error(`Downloaded VS Code executable is missing at ${downloadedExecutablePath}.`);
 }
 
 function buildScenarioWorkspacePluginPackages(scenario) {
