@@ -16,23 +16,35 @@ export type CliCommandName =
   | 'version'
   | 'watch';
 export type PluginsCommandAction = 'disable' | 'enable' | 'help' | 'inherit' | 'link' | 'list' | 'register';
-export type WorkspaceSettingsCommandAction = 'get' | 'set' | 'unset';
+export type WorkspaceSettingsCommandAction = 'get' | 'list' | 'set' | 'unset';
 
-export interface CliCommand {
-  name: CliCommandName;
+interface CliCommandContext {
   action?: PluginsCommandAction;
   arguments?: Record<string, unknown>;
   helpPath?: string[];
   invokedCommand?: string;
   packageName?: string;
   packageRoot?: string;
-  pluginScope?: 'global' | 'workspace';
   parseError?: string;
+  pluginScope?: 'global' | 'workspace';
   projection?: WorkspaceGraphQueryProjection;
   report?: GraphQueryReport;
-  settingsAction?: WorkspaceSettingsCommandAction;
-  settingsKey?: string;
-  settingsValue?: unknown;
   verbose?: boolean;
   workspacePath?: string;
 }
+
+interface GeneralCliCommand extends CliCommandContext {
+  name: Exclude<CliCommandName, 'settings'>;
+}
+
+export type WorkspaceSettingsCommand =
+  | { action: 'list' }
+  | { action: 'get' | 'unset'; key: string }
+  | { action: 'set'; key: string; value: unknown };
+
+export interface SettingsCliCommand extends CliCommandContext {
+  name: 'settings';
+  settings: WorkspaceSettingsCommand;
+}
+
+export type CliCommand = GeneralCliCommand | SettingsCliCommand;

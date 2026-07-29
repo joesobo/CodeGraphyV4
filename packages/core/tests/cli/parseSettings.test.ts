@@ -3,15 +3,17 @@ import { parseSettingsCommand } from '../../src/cli/parseSettings';
 
 describe('cli/parseSettings', () => {
   it('parses reads and JSON mutations', () => {
-    expect(parseSettingsCommand([])).toEqual({ name: 'settings' });
+    expect(parseSettingsCommand([])).toEqual({
+      name: 'settings', settings: { action: 'list' },
+    });
     expect(parseSettingsCommand(['get', 'maxFiles'])).toMatchObject({
-      name: 'settings', settingsAction: 'get', settingsKey: 'maxFiles',
+      name: 'settings', settings: { action: 'get', key: 'maxFiles' },
     });
     expect(parseSettingsCommand(['set', 'include', '["src/**/*.ts"]'])).toMatchObject({
-      name: 'settings', settingsAction: 'set', settingsKey: 'include', settingsValue: ['src/**/*.ts'],
+      name: 'settings', settings: { action: 'set', key: 'include', value: ['src/**/*.ts'] },
     });
     expect(parseSettingsCommand(['unset', 'maxFiles'])).toMatchObject({
-      name: 'settings', settingsAction: 'unset', settingsKey: 'maxFiles',
+      name: 'settings', settings: { action: 'unset', key: 'maxFiles' },
     });
   });
 

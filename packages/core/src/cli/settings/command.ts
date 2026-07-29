@@ -7,35 +7,35 @@ import {
 } from '../../workspace/settings';
 import { workspaceSettingChangeRequiresIndex } from '../../workspace/indexRequirement';
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parseTypes';
+import type { SettingsCliCommand } from '../parseTypes';
 
 function settingValue(settings: object, key: string): unknown {
   return Reflect.get(settings, key) as unknown;
 }
 
-export function runSettingsCommand(command: CliCommand): CommandExecutionResult {
+export function runSettingsCommand(command: SettingsCliCommand): CommandExecutionResult {
   const workspaceRoot = resolveCodeGraphyWorkspacePath(command.workspacePath, process.cwd());
   const settingsPath = getWorkspaceSettingsPath(workspaceRoot);
   const current = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
-  const key = command.settingsKey;
+  const settingsCommand = command.settings;
 
-  if (!command.settingsAction) {
+  if (settingsCommand.action === 'list') {
     return {
       exitCode: 0,
       output: JSON.stringify({ workspaceRoot, settingsPath, settings: current }),
     };
   }
-  if (!key) throw new Error('Workspace setting key is required');
+  const key = settingsCommand.key;
   const previous = settingValue(current, key);
-  if (command.settingsAction === 'get') {
+  if (settingsCommand.action === 'get') {
     return {
       exitCode: 0,
       output: JSON.stringify({ workspaceRoot, settingsPath, key, value: previous }),
     };
   }
 
-  if (command.settingsAction === 'set') {
-    patchCodeGraphyWorkspaceSettings(workspaceRoot, { [key]: command.settingsValue });
+  if (settingsCommand.action === 'set') {
+    patchCodeGraphyWorkspaceSettings(workspaceRoot, { [key]: settingsCommand.value });
   } else {
     removeCodeGraphyWorkspaceSetting(workspaceRoot, key);
   }

@@ -14,7 +14,7 @@ const WORKSPACE_SETTING_KEYS = new Set([
 ]);
 
 function parseError(message: string): CliCommand {
-  return { name: 'settings', parseError: message };
+  return { name: 'settings', settings: { action: 'list' }, parseError: message };
 }
 
 function readOperands(argv: string[]): string[] {
@@ -31,23 +31,21 @@ function validateKey(key: string | undefined): CliCommand | undefined {
 
 export function parseSettingsCommand(argv: string[]): CliCommand {
   const [action, key, value, extra] = readOperands(argv);
-  if (!action) return { name: 'settings' };
+  if (!action) return { name: 'settings', settings: { action: 'list' } };
   if (!['get', 'set', 'unset'].includes(action)) return parseError(`Unknown settings action: ${action}`);
   const invalidKey = validateKey(key);
   if (invalidKey) return invalidKey;
   if (action === 'get' || action === 'unset') {
     return extra || value
       ? parseError(`Unexpected argument for settings ${action}: ${value ?? extra}`)
-      : { name: 'settings', settingsAction: action, settingsKey: key };
+      : { name: 'settings', settings: { action, key } };
   }
   if (value === undefined) return parseError('settings set requires a JSON value');
   if (extra) return parseError(`Unexpected argument for settings set: ${extra}`);
   try {
     return {
       name: 'settings',
-      settingsAction: 'set',
-      settingsKey: key,
-      settingsValue: JSON.parse(value) as unknown,
+      settings: { action: 'set', key, value: JSON.parse(value) as unknown },
     };
   } catch {
     return parseError(`settings set value must be valid JSON: ${value}`);

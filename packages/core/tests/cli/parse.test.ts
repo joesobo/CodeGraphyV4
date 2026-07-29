@@ -62,28 +62,20 @@ describe('cli/parse', () => {
   });
 
   it('parses structured workspace settings reads and mutations', () => {
-    expect(parseCliCommand(['settings'])).toEqual({ name: 'settings' });
+    expect(parseCliCommand(['settings'])).toEqual({
+      name: 'settings', settings: { action: 'list' },
+    });
     expect(parseCliCommand(['settings', 'get', 'maxFiles'])).toEqual({
-      name: 'settings',
-      settingsAction: 'get',
-      settingsKey: 'maxFiles',
+      name: 'settings', settings: { action: 'get', key: 'maxFiles' },
     });
     expect(parseCliCommand(['settings', 'set', 'maxFiles', '2500'])).toEqual({
-      name: 'settings',
-      settingsAction: 'set',
-      settingsKey: 'maxFiles',
-      settingsValue: 2500,
+      name: 'settings', settings: { action: 'set', key: 'maxFiles', value: 2500 },
     });
     expect(parseCliCommand(['settings', 'set', 'include', '["packages/**/*.ts"]'])).toEqual({
-      name: 'settings',
-      settingsAction: 'set',
-      settingsKey: 'include',
-      settingsValue: ['packages/**/*.ts'],
+      name: 'settings', settings: { action: 'set', key: 'include', value: ['packages/**/*.ts'] },
     });
     expect(parseCliCommand(['settings', 'unset', 'maxFiles'])).toEqual({
-      name: 'settings',
-      settingsAction: 'unset',
-      settingsKey: 'maxFiles',
+      name: 'settings', settings: { action: 'unset', key: 'maxFiles' },
     });
     expect(parseCliCommand(['settings', 'set', 'maxFiles', 'many'])).toMatchObject({
       parseError: 'settings set value must be valid JSON: many',
