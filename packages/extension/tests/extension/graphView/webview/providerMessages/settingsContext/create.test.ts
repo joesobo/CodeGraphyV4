@@ -33,7 +33,7 @@ describe('graph view provider listener settings context configuration', () => {
         _getPhysicsSettings: vi.fn(() => ({})),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       {
         workspace: { workspaceFolders: [], getConfiguration: vi.fn() },
@@ -80,7 +80,7 @@ describe('graph view provider listener settings context configuration', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       dependencies as never,
     );
@@ -109,7 +109,7 @@ describe('graph view provider listener settings context configuration', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       {
         workspace: {
@@ -155,7 +155,7 @@ describe('graph view provider listener settings context configuration', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       {
         workspace: {
@@ -204,7 +204,7 @@ describe('graph view provider listener settings context configuration', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       {
         workspace: {

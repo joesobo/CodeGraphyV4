@@ -1,7 +1,7 @@
 import { pruneGraphControlConfigMap } from '../../../../../shared/graphControls/settings';
 import type { GraphViewSettingsMessageHandlers } from '../router';
 import { applyGraphControlsUpdate } from './controlConfig';
-import { hydrateOrReprocessGraphScope, shouldHydrateGraphScope } from './graphScopeHydration';
+import { hydrateOrReloadGraphScope, shouldHydrateGraphScope } from './graphScopeHydration';
 import { getParentNodeTypeUpdates } from './nodeVisibility';
 
 export async function applySymbolVisibilityUpdate(
@@ -52,6 +52,6 @@ async function publishNodeVisibility(
   handlers.sendGroupsUpdated();
   handlers.sendGraphControls();
   if (shouldHydrateGraphScope(previousVisibility, nextVisibility)) {
-    await hydrateOrReprocessGraphScope(handlers);
+    await hydrateOrReloadGraphScope(handlers);
   }
 }

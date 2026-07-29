@@ -30,12 +30,8 @@ interface GraphViewProviderPublicMethodsOwner {
 export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
   refreshIndex: () => Promise<void>;
-  refreshGitignoreMetadata: () => Promise<void>;
   hydrateGraphScope: () => Promise<boolean>;
   hydratePluginGraphScope: (pluginIds: readonly string[]) => Promise<boolean>;
-  refreshAnalysisScope: () => Promise<void>;
-  refreshPluginFiles: (pluginIds: readonly string[]) => Promise<void>;
-  refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>;
   refreshGroupSettings: () => void;
   refreshPhysicsSettings: () => void;
   refreshSettings: () => void;
@@ -88,15 +84,9 @@ export function assignGraphViewProviderPublicMethods(
 ): void {
   target.refresh = () => target._methodContainers.refresh.refresh();
   target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
-  target.refreshGitignoreMetadata = () =>
-    target._methodContainers.refresh.refreshGitignoreMetadata();
   target.hydrateGraphScope = () => target._methodContainers.refresh.hydrateGraphScope();
   target.hydratePluginGraphScope = pluginIds =>
     target._methodContainers.refresh.hydratePluginGraphScope(pluginIds);
-  target.refreshAnalysisScope = () => target._methodContainers.refresh.refreshAnalysisScope();
-  target.refreshPluginFiles = pluginIds => target._methodContainers.refresh.refreshPluginFiles(pluginIds);
-  target.refreshChangedFiles = filePaths =>
-    target._methodContainers.refresh.refreshChangedFiles(filePaths);
   target.refreshGroupSettings = () => target._methodContainers.refresh.refreshGroupSettings();
   target.refreshPhysicsSettings = () => target._methodContainers.refresh.refreshPhysicsSettings();
   target.refreshSettings = () => target._methodContainers.refresh.refreshSettings();

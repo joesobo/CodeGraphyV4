@@ -4,7 +4,6 @@ import type { GraphViewProviderAnalysisHandlers } from '../../../analysis/lifecy
 import { sendGraphControlsUpdated } from '../../../controls/send';
 import type { GraphViewProviderAnalysisMethodsSource } from '../methods';
 
-type GraphNodeMetricUpdates = Parameters<NonNullable<GraphViewProviderAnalysisHandlers['sendGraphNodeMetricsUpdated']>>[0];
 type GraphIndexStatusUpdated = GraphViewProviderAnalysisHandlers['sendGraphIndexStatusUpdated'];
 
 export function sendGraphDataUpdated(
@@ -19,16 +18,6 @@ export function sendGraphDataUpdated(
     source._disabledPlugins,
   );
   source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
-}
-
-export function sendGraphNodeMetricsUpdated(
-  source: GraphViewProviderAnalysisMethodsSource,
-  updates: GraphNodeMetricUpdates,
-): void {
-  source._sendMessage({
-    type: 'GRAPH_NODE_METRICS_UPDATED',
-    payload: { nodes: updates },
-  });
 }
 
 export const sendGraphIndexStatusUpdated: (

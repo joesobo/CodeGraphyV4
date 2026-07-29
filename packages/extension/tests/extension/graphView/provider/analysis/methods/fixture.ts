@@ -29,8 +29,7 @@ export function createSource(
   _applyViewTransform: ReturnType<typeof vi.fn>;
   _sendPluginStatuses: ReturnType<typeof vi.fn>;
   _sendDecorations: ReturnType<typeof vi.fn>;
-  _analyzeAndSendData?: () => Promise<void>;
-  _doAnalyzeAndSendData?: (signal: AbortSignal, requestId: number) => Promise<void>;
+  _doLoadAndSendData?: (signal: AbortSignal, requestId: number) => Promise<void>;
   _markWorkspaceReady?: (graph: IGraphData) => void;
   _isAnalysisStale?: (signal: AbortSignal, requestId: number) => boolean;
   _isAbortError?: (error: unknown) => boolean;

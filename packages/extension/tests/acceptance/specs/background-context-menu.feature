@@ -12,5 +12,5 @@ And the graph nodes match the expected files in the examples/example-typescript 
 When I right click the graph background to open its Graph Context Menu
 And I see the "New File" entry
 And I see the "New Folder" entry
-And I see the "Refresh" entry
+And I see the "Re-index Workspace" entry
 And I see the "Fit All Nodes" entry

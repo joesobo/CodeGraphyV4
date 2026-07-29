@@ -87,14 +87,13 @@ Interaction rules:
 | **Plugin Analysis** | Enabled plugins adding project or ecosystem-specific facts. |
 | **Graph Projection** | Turn discovered files and analysis facts into graph Nodes and Edges. |
 | **Graph Cache** | Workspace-local SQLite data at `.codegraphy/graph.sqlite`. |
-| **Live Update** | Patch graph data after a workspace file change. |
-| **Graph Cache Sync** | Show readable cached data first, then update stale inputs in the background. |
+| **Cached Graph Load** | Read and show the last explicitly indexed Relationship Graph without processing workspace source files. |
 | **Refresh Graph** | Restart layout physics without processing source data. |
 | **Re-index Workspace** | Run Indexing, save the Graph Cache, and refresh the graph. |
 
 Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
 
-The Graph View can use a whole-view loading state before its first graph payload. Graph Cache Sync, Live Update, plugin changes, and Re-index keep the current graph visible after that first render and use graph-local progress.
+The VS Code extension runs Indexing only after an explicit Index or Re-index Workspace action. Saving, creating, deleting, or renaming a workspace file does not process source files or change the cached Relationship Graph. Opening the Graph View reads the last Graph Cache without warming analysis or updating stale inputs in the background. The Graph View keeps the current graph visible during an explicit Re-index and uses graph-local progress.
 
 ## Interfaces and Ownership
 

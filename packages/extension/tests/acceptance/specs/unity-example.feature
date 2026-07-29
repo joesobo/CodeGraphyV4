@@ -11,6 +11,8 @@ Feature: Unity Example
     When I click the plugins button
     Then I see a list of plugins with toggles
     And I toggle the Unity plugin on
+    And I re-index the workspace
+    And I see indexing progress disappear
     When I click the Graph Scope button
     And I select edge types
     Then the available edge types are Using, Type, References, Call, Inherits, Implements, Events, Contains

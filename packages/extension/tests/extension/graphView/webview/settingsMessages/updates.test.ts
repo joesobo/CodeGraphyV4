@@ -33,10 +33,10 @@ describe('graph view settings update message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('showMinimap', false);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
   });
 
   it('updates filter patterns and publishes plugin patterns', async () => {
@@ -63,7 +63,7 @@ describe('graph view settings update message', () => {
         disabledPluginPatterns: [],
       },
     });
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -88,7 +88,7 @@ describe('graph view settings update message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', []);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -109,7 +109,7 @@ describe('graph view settings update message', () => {
       'dist/**',
       'coverage/**',
     ]);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -160,10 +160,10 @@ describe('graph view settings update message', () => {
       await expect(applySettingsUpdateMessage(message, state, handlers)).resolves.toBe(true);
     }
 
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
-    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
   });
 
   it('persists update-show-orphans through config updates', async () => {
@@ -266,8 +266,8 @@ describe('graph view settings update message', () => {
     ).resolves.toBe(true);
 
     expect(schedulePluginGraphWork).not.toHaveBeenCalled();
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -275,11 +275,9 @@ describe('graph view settings update message', () => {
     vi.useFakeTimers();
     const state = createState();
     const pluginData: Record<string, unknown> = {};
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
-    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const reloadCachedGraph = vi.fn(() => Promise.resolve());
     const scheduler = createPluginGraphWorkScheduler({
-      analyzeAndSendData,
-      reprocessPluginFiles,
+      reloadCachedGraph,
       smartRebuild: vi.fn(),
     }, { delayMs: 50 });
     const handlers = createHandlers({
@@ -299,8 +297,7 @@ describe('graph view settings update message', () => {
         defaultSetting: 'reanalyze-plugin-files' as const,
       })),
       schedulePluginGraphWork: request => scheduler.schedule(request),
-      analyzeAndSendData,
-      reprocessPluginFiles,
+      reloadCachedGraph,
     });
 
     for (let index = 0; index < 10; index += 1) {
@@ -319,14 +316,12 @@ describe('graph view settings update message', () => {
       ).resolves.toBe(true);
     }
 
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
-    expect(reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(reloadCachedGraph).not.toHaveBeenCalled();
+    expect(reloadCachedGraph).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(50);
 
-    expect(reprocessPluginFiles).toHaveBeenCalledOnce();
-    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(reloadCachedGraph).toHaveBeenCalledOnce();
   });
 
   it('merges plugin-owned data with existing plugin data', async () => {

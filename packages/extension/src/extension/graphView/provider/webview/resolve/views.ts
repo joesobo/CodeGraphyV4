@@ -16,10 +16,3 @@ export function clearResolvedWebviewView(
 ): void {
   if (source._view === webviewView) source._view = undefined;
 }
-
-export function maybeFlushPendingWorkspaceRefresh(
-  source: GraphViewProviderWebviewResolveSource,
-  webviewView: vscode.WebviewView,
-): void {
-  if (webviewView.visible) source.flushPendingWorkspaceRefresh?.();
-}

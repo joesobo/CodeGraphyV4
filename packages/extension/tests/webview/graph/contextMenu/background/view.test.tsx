@@ -125,14 +125,14 @@ describe('Graph context menu (background)', () => {
       expect(screen.getByText('New File')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Refresh')).toBeInTheDocument();
+    expect(screen.getByText('Re-index Workspace')).toBeInTheDocument();
     expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
   });
 
 
-  it('sends REFRESH_GRAPH message when clicking Refresh', async () => {
+  it('sends REFRESH_GRAPH message when clicking Re-index Workspace', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -142,11 +142,11 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
+      expect(screen.getByText('Re-index Workspace')).toBeInTheDocument();
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Refresh'));
+      fireEvent.click(screen.getByText('Re-index Workspace'));
     });
 
     expect(findMessage('REFRESH_GRAPH')).toBeTruthy();

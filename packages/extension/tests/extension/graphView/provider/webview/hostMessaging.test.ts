@@ -13,7 +13,7 @@ describe('graphView/provider/webview/host', () => {
       _view: { kind: 'graph-view' } as unknown as vscode.WebviewView,
       _panels: [{ kind: 'panel' } as unknown as vscode.WebviewPanel],
       _notifyExtensionMessage: notifyExtensionMessage,
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
     };
     const methods = createGraphViewProviderWebviewMethods(source as never, {
@@ -58,7 +58,7 @@ describe('graphView/provider/webview/host', () => {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [],
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
     };
     const methods = createGraphViewProviderWebviewMethods(source as never, {

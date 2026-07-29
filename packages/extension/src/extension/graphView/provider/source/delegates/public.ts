@@ -13,14 +13,9 @@ export function createGraphViewProviderPublicMethodDelegates(
   | 'undo'
   | 'redo'
   | 'refreshIndex'
-  | 'refreshGitignoreMetadata'
   | 'hydrateGraphScope'
   | 'hydratePluginGraphScope'
-  | 'refreshAnalysisScope'
-  | 'refreshPluginFiles'
-  | 'refreshChangedFiles'
   | 'clearCacheAndRefresh'
-  | 'invalidatePluginFiles'
   | '_notifyExtensionMessage'
   > {
   return {
@@ -30,15 +25,10 @@ export function createGraphViewProviderPublicMethodDelegates(
     undo: () => owner._methodContainers.command.undo(),
     redo: () => owner._methodContainers.command.redo(),
     refreshIndex: () => owner._methodContainers.refresh.refreshIndex(),
-    refreshGitignoreMetadata: () => owner._methodContainers.refresh.refreshGitignoreMetadata(),
     hydrateGraphScope: () => owner._methodContainers.refresh.hydrateGraphScope(),
     hydratePluginGraphScope: pluginIds =>
       owner._methodContainers.refresh.hydratePluginGraphScope(pluginIds),
-    refreshAnalysisScope: () => owner._methodContainers.refresh.refreshAnalysisScope(),
-    refreshPluginFiles: pluginIds => owner._methodContainers.refresh.refreshPluginFiles(pluginIds),
-    refreshChangedFiles: filePaths => owner._methodContainers.refresh.refreshChangedFiles(filePaths),
     clearCacheAndRefresh: () => owner._methodContainers.refresh.clearCacheAndRefresh(),
-    invalidatePluginFiles: pluginIds => owner.invalidatePluginFiles(pluginIds),
     _notifyExtensionMessage: message => owner._notifyExtensionMessage(message),
   };
 }

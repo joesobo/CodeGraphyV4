@@ -48,7 +48,7 @@ describe('settingsMessages/updates/apply/filterPatternState', () => {
         disabledPluginPatterns: ['venv/**', '.mypy_cache/**'],
       }),
     }));
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -75,7 +75,7 @@ describe('settingsMessages/updates/apply/filterPatternState', () => {
         disabledPluginPatterns: ['venv/**', '.mypy_cache/**'],
       }),
     }));
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 

@@ -47,7 +47,7 @@ describe('graphView/provider/analysis/state', () => {
       _analyzerInitPromise: Promise.resolve(),
     });
 
-    const state = createGraphViewProviderAnalysisState(source, 'analyze');
+    const state = createGraphViewProviderAnalysisState(source, 'index');
     state.analysisController = undefined;
     state.analysisRequestId = 7;
 
@@ -98,7 +98,7 @@ describe('graphView/provider/analysis/state', () => {
         analyzer: source._analyzer,
         analyzerInitialized: source._analyzerInitialized,
         analyzerInitPromise: source._analyzerInitPromise,
-        mode: 'analyze',
+        mode: 'index',
         filterPatterns: source._filterPatterns,
         disabledPlugins: source._disabledPlugins,
       } as never,
@@ -112,8 +112,6 @@ describe('graphView/provider/analysis/state', () => {
     const source = createSource();
     const analysisController = new AbortController();
     const analyzerInitPromise = Promise.resolve();
-    const changedFilePaths = ['src/app.ts'];
-
     syncGraphViewProviderAnalysisExecutionState(
       source,
       {
@@ -122,8 +120,7 @@ describe('graphView/provider/analysis/state', () => {
         analyzer: source._analyzer,
         analyzerInitialized: true,
         analyzerInitPromise,
-        changedFilePaths,
-        mode: 'analyze',
+        mode: 'index',
         filterPatterns: source._filterPatterns,
         disabledPlugins: source._disabledPlugins,
       } as never,
@@ -133,13 +130,11 @@ describe('graphView/provider/analysis/state', () => {
     expect(source._analysisRequestId).toBe(9);
     expect(source._analyzerInitialized).toBe(true);
     expect(source._analyzerInitPromise).toBe(analyzerInitPromise);
-    expect(source._changedFilePaths).toEqual(['src/app.ts']);
-    expect(source._changedFilePaths).not.toBe(changedFilePaths);
   });
 
   it('reflects analyzer initialization progress onto the provider source immediately', () => {
     const source = createSource();
-    const state = createGraphViewProviderAnalysisState(source, 'analyze');
+    const state = createGraphViewProviderAnalysisState(source, 'index');
     const initializePromise = Promise.resolve();
 
     state.analyzerInitPromise = initializePromise;
@@ -147,22 +142,6 @@ describe('graphView/provider/analysis/state', () => {
 
     expect(source._analyzerInitPromise).toBe(initializePromise);
     expect(source._analyzerInitialized).toBe(true);
-  });
-
-  it('clones changed file path arrays through the state accessors', () => {
-    const source = createSource({
-      _changedFilePaths: ['src/original.ts'],
-    });
-    const state = createGraphViewProviderAnalysisState(source, 'analyze');
-    const nextChangedFilePaths = ['src/app.ts'];
-
-    expect(state.changedFilePaths).toEqual(['src/original.ts']);
-
-    state.changedFilePaths = nextChangedFilePaths;
-    nextChangedFilePaths.push('src/other.ts');
-
-    expect(source._changedFilePaths).toEqual(['src/app.ts']);
-    expect(state.changedFilePaths).toEqual(['src/app.ts']);
   });
 
   it('creates and syncs the workspace-ready state', () => {

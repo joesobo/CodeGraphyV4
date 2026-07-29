@@ -17,11 +17,11 @@ describe('buildBackgroundEntries mutation coverage', () => {
     expect(entry?.action).toEqual({ kind: 'builtin', action: 'createFile' });
   });
 
-  it('produces the exact Refresh label and action', () => {
+  it('produces the exact Re-index Workspace label and action', () => {
     const entry = getItems(buildBackgroundEntries())
       .find(item => item.id === 'background-refresh');
 
-    expect(entry?.label).toBe('Refresh');
+    expect(entry?.label).toBe('Re-index Workspace');
     expect(entry?.action).toEqual({ kind: 'builtin', action: 'refresh' });
   });
 

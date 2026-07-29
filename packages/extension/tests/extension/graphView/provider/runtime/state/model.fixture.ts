@@ -10,8 +10,6 @@ const stateHarness = vi.hoisted(() => {
     analyzerInstances: [] as Array<{
       context: unknown;
       dispose: ReturnType<typeof vi.fn>;
-      invalidateWorkspaceFiles: ReturnType<typeof vi.fn>;
-      warmGraphCache: ReturnType<typeof vi.fn>;
     }>,
     viewRegistryInstances: [] as Array<{ id: string }>,
     decorationManagerInstances: [] as Array<{ id: string }>,
@@ -24,24 +22,7 @@ const stateHarness = vi.hoisted(() => {
     createGraphViewProviderMethodContainers: vi.fn(),
     defineGraphViewProviderMethodAccessors: vi.fn(),
     assignGraphViewProviderPublicMethods: vi.fn(),
-    invalidateWorkspaceFiles: vi.fn((_analyzer: unknown, filePaths: readonly string[]) => [...filePaths]),
-    invalidatePluginFiles: vi.fn((_analyzer: unknown, pluginIds: readonly string[]) => [...pluginIds]),
     isGraphViewVisible: vi.fn(() => false),
-    mergePendingWorkspaceRefresh: vi.fn(
-      (
-        previous: { filePaths: Set<string>; gitignoreRefresh?: boolean; logMessage: string } | undefined,
-        logMessage: string,
-        filePaths: readonly string[],
-        options?: { gitignoreRefresh?: boolean },
-      ) => ({
-        filePaths: new Set([...(previous?.filePaths ?? []), ...filePaths]),
-        gitignoreRefresh: previous?.gitignoreRefresh === true || options?.gitignoreRefresh === true,
-        logMessage,
-      }),
-    ),
-    persistPendingWorkspaceRefresh: vi.fn(),
-    loadPersistedWorkspaceRefresh: vi.fn(),
-    getWorkspaceRoot: vi.fn(() => '/workspace'),
     extensionMessageEmitter: {
       dispose: vi.fn(),
       fire: vi.fn(),
@@ -61,8 +42,6 @@ const stateHarness = vi.hoisted(() => {
       physicsSettings: {},
       refresh: {
         refresh: vi.fn(async () => undefined),
-        refreshGitignoreMetadata: vi.fn(async () => undefined),
-        refreshChangedFiles: undefined as undefined | ((filePaths: readonly string[]) => Promise<void>),
       },
       settingsState: {
         _loadDisabledRulesAndPlugins: vi.fn(() => undefined),
@@ -75,7 +54,6 @@ const stateHarness = vi.hoisted(() => {
       _panels: [],
       _graphData: { nodes: [], edges: [] },
       _analysisRequestId: 0,
-      _changedFilePaths: [],
       _rawGraphData: { nodes: [], edges: [] },
       _viewContext: { activePlugins: new Set<string>(), depthLimit: 1 },
       _groups: [],
@@ -113,15 +91,11 @@ vi.mock('vscode', () => ({
 vi.mock('../../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
   WorkspacePipeline: class WorkspacePipeline {
     dispose = vi.fn();
-    invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => [...filePaths]);
-    warmGraphCache = vi.fn(async () => undefined);
 
     constructor(context: unknown) {
       stateHarness.analyzerInstances.push({
         context,
         dispose: this.dispose,
-        invalidateWorkspaceFiles: this.invalidateWorkspaceFiles,
-        warmGraphCache: this.warmGraphCache,
       });
     }
   },
@@ -184,10 +158,6 @@ vi.mock('../../../../../../src/extension/graphView/provider/runtimeDefaults', ()
 }));
 
 vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/bootstrap', () => ({
-  getWorkspaceRoot: (workspaceFolders: unknown) =>
-    (
-      stateHarness.getWorkspaceRoot as unknown as (workspaceFolders: unknown) => string | undefined
-    )(workspaceFolders),
   initializeRuntimeStateServices: (
     dependencies: unknown,
     getGraphData: unknown,
@@ -216,19 +186,6 @@ vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/flags'
   createGraphViewProviderRuntimeFlagState: () => stateHarness.flagState,
 }));
 
-vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/refresh', () => ({
-  invalidatePluginFiles: (analyzer: unknown, pluginIds: readonly string[]) =>
-    stateHarness.invalidatePluginFiles(analyzer, pluginIds),
-  invalidateWorkspaceFiles: (analyzer: unknown, filePaths: readonly string[]) =>
-    stateHarness.invalidateWorkspaceFiles(analyzer, filePaths),
-  mergePendingWorkspaceRefresh: (
-    previous: { filePaths: Set<string>; gitignoreRefresh?: boolean; logMessage: string } | undefined,
-    logMessage: string,
-    filePaths: readonly string[],
-    options?: { gitignoreRefresh?: boolean },
-  ) => stateHarness.mergePendingWorkspaceRefresh(previous, logMessage, filePaths, options),
-}));
-
 vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/visibility', () => ({
   isGraphViewVisible: (view: unknown, panels: unknown[]) =>
     (
@@ -237,15 +194,6 @@ vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/visibi
         panels: unknown[],
       ) => boolean
     )(view, panels),
-}));
-
-vi.mock('../../../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence', () => ({
-  loadPersistedWorkspaceRefresh: (workspaceRoot: string | undefined) =>
-    stateHarness.loadPersistedWorkspaceRefresh(workspaceRoot),
-  persistPendingWorkspaceRefresh: (
-    workspaceRoot: string | undefined,
-    filePaths: string[],
-  ) => stateHarness.persistPendingWorkspaceRefresh(workspaceRoot, filePaths),
 }));
 
 export * as vscode from 'vscode';
@@ -277,8 +225,5 @@ export function resetStateHarness(): void {
   stateHarness.viewRegistryInstances = [];
   stateHarness.decorationManagerInstances = [];
   stateHarness.eventBusInstances = [];
-  stateHarness.getWorkspaceRoot.mockReturnValue('/workspace');
-  stateHarness.loadPersistedWorkspaceRefresh.mockReturnValue(undefined);
   stateHarness.isGraphViewVisible.mockReturnValue(false);
-  stateHarness.methodContainers.refresh.refreshChangedFiles = undefined;
 }

@@ -35,12 +35,12 @@ describe('webview/toolbar/refresh', () => {
     });
     expect(createRefreshConfig(true, 'fresh')).toEqual({
       phase: 'Refreshing Index',
-      title: 'Refresh',
+      title: 'Re-index Workspace',
       type: 'REFRESH_GRAPH',
     });
     expect(createRefreshConfig(false, 'stale')).toEqual({
       phase: 'Refreshing Index',
-      title: 'Reindex Workspace',
+      title: 'Re-index Workspace',
       type: 'REFRESH_GRAPH',
     });
   });

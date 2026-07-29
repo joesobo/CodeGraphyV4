@@ -118,108 +118,6 @@ describe('extension/pipeline/service/stateBase', () => {
     expect(state._discovery).toBeInstanceOf(FileDiscovery);
   });
 
-  it('warms the repo-local Graph Cache using the shared hydration promise', async () => {
-    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValueOnce({
-      version: '2.1.0',
-      files: {
-        'src/app.ts': {
-          mtime: 1,
-          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
-        },
-      },
-    });
-    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
-      _cache: unknown;
-      warmGraphCache(): Promise<void>;
-    };
-
-    const firstWarm = state.warmGraphCache();
-    const secondWarm = state.warmGraphCache();
-
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
-
-    await Promise.all([firstWarm, secondWarm]);
-
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledOnce();
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace', {
-      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
-    });
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
-    expect(state._cache).toEqual({
-      version: '2.1.0',
-      files: {
-        'src/app.ts': {
-          mtime: 1,
-          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
-        },
-      },
-    });
-  });
-
-  it('skips Graph Cache warming without a workspace root or when cache is already populated', async () => {
-    const stateWithoutRoot = new TestWorkspacePipelineState(createContext()) as TestWorkspacePipelineState & {
-      warmGraphCache(): Promise<void>;
-    };
-
-    await stateWithoutRoot.warmGraphCache();
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
-
-    const stateWithCache = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
-      _cache: unknown;
-      warmGraphCache(): Promise<void>;
-    };
-    stateWithCache._cache = {
-      version: '2.1.0',
-      files: {
-        'src/current.ts': {
-          mtime: 2,
-          analysis: { filePath: '/workspace/src/current.ts', relations: [] },
-        },
-      },
-    };
-
-    await stateWithCache.warmGraphCache();
-
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
-  });
-
-  it('does not overwrite cache populated while Graph Cache hydration is pending', async () => {
-    let resolveHydration!: (cache: unknown) => void;
-    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValueOnce(
-      new Promise(resolve => {
-        resolveHydration = resolve;
-      }),
-    );
-    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
-      _cache: unknown;
-      warmGraphCache(): Promise<void>;
-    };
-    const populatedDuringHydration = {
-      version: '2.1.0',
-      files: {
-        'src/current.ts': {
-          mtime: 2,
-          analysis: { filePath: '/workspace/src/current.ts', relations: [] },
-        },
-      },
-    };
-
-    const warm = state.warmGraphCache();
-    state._cache = populatedDuringHydration;
-    resolveHydration({
-      version: '2.1.0',
-      files: {
-        'src/stale.ts': {
-          mtime: 1,
-          analysis: { filePath: '/workspace/src/stale.ts', relations: [] },
-        },
-      },
-    });
-    await warm;
-
-    expect(state._cache).toBe(populatedDuringHydration);
-  });
-
   it('reloads Graph Cache when later hydration needs tiers missing from warm baseline memory', async () => {
     stateBaseHarness.loadWorkspaceAnalysisDatabaseCache
       .mockReturnValueOnce({
@@ -400,21 +298,6 @@ describe('extension/pipeline/service/stateBase', () => {
     });
 
     expect(state._cache).toBe(baselineCache);
-  });
-
-  it('clears the shared hydration promise so empty cache warms can retry', async () => {
-    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValue({
-      version: '2.1.0',
-      files: {},
-    });
-    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
-      warmGraphCache(): Promise<void>;
-    };
-
-    await state.warmGraphCache();
-    await state.warmGraphCache();
-
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledTimes(2);
   });
 
   it('stores retained indexing fields in the core engine state', () => {

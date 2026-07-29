@@ -18,7 +18,6 @@ describe('graphView/provider/refresh', () => {
       expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
       expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
       expect(source._loadAndSendData).toHaveBeenCalledOnce();
-      expect(source._analyzeAndSendData).not.toHaveBeenCalled();
     });
 
 
@@ -74,42 +73,9 @@ describe('graphView/provider/refresh', () => {
       expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
       expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
       expect(refreshAndSendData).toHaveBeenCalledOnce();
-      expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+      expect(source._loadAndSendData).not.toHaveBeenCalled();
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
       expect(source._sendFavorites).not.toHaveBeenCalled();
-    });
-
-
-
-    it('queues changed-file refreshes while a full index refresh is running', async () => {
-      let finishRefreshIndex: (() => void) | undefined;
-      const refreshAndSendData = vi.fn(async () => {
-        await new Promise<void>(resolve => {
-          finishRefreshIndex = resolve;
-        });
-      });
-      const incrementalAnalyzeAndSendData = vi.fn(async () => undefined);
-      const source = createSource({
-        _refreshAndSendData: refreshAndSendData,
-        _incrementalAnalyzeAndSendData: incrementalAnalyzeAndSendData,
-      });
-      const methods = createGraphViewProviderRefreshMethods(source as never, {
-        getShowOrphans: vi.fn(() => true),
-        rebuildGraphData: vi.fn(),
-        smartRebuildGraphData: vi.fn(),
-      });
-
-      const refreshIndex = methods.refreshIndex();
-      await Promise.resolve();
-      const changedFiles = methods.refreshChangedFiles(['src/branch.ts']);
-
-      expect(incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
-
-      finishRefreshIndex?.();
-      await refreshIndex;
-      await changedFiles;
-
-      expect(incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/branch.ts']);
     });
 
 
@@ -149,24 +115,4 @@ describe('graphView/provider/refresh', () => {
 
 
   });
-
-  describe('refreshChangedFiles', () => {
-    it('uses indexed incremental analysis without replaying full settings state', async () => {
-      const source = createSource();
-      const methods = createGraphViewProviderRefreshMethods(source as never, {
-        getShowOrphans: vi.fn(() => true),
-        rebuildGraphData: vi.fn(),
-        smartRebuildGraphData: vi.fn(),
-      });
-
-      await methods.refreshChangedFiles(['src/example.ts']);
-
-      expect(source._loadDisabledRulesAndPlugins).not.toHaveBeenCalled();
-      expect(source._loadGroupsAndFilterPatterns).not.toHaveBeenCalled();
-      expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/example.ts']);
-      expect(source._sendAllSettings).not.toHaveBeenCalled();
-      expect(source._sendGraphControls).not.toHaveBeenCalled();
-    });
-  });
-
 });

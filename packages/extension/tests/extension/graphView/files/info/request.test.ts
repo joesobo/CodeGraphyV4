@@ -9,16 +9,13 @@ const workspaceFolder = {
 } as never;
 
 describe('graph view file-info request helper', () => {
-  it('initializes the analyzer on demand before loading and sending file info', async () => {
+  it('uses available plugin names without initializing the analyzer', async () => {
     const sendMessage = vi.fn();
     const logError = vi.fn();
     const state = {
       analyzer: {
-        initialize: vi.fn(() => Promise.resolve()),
-        getPluginNameForFile: vi.fn(() => undefined),
-        getPluginNamesForIds: vi.fn(() => []),
+        getPluginNamesForIds: vi.fn(() => ['TypeScript/JavaScript']),
       },
-      analyzerInitialized: false,
       graphData: { nodes: [], edges: [] } satisfies IGraphData,
     };
 
@@ -26,36 +23,34 @@ describe('graph view file-info request helper', () => {
       workspaceFolder,
       statFile: vi.fn(),
       loadFileInfo: vi.fn(async (_filePath, options) => {
-        await options.ensureAnalyzerReady();
         return {
           path: 'src/index.ts',
+          plugins: options.getPluginNamesForIds(['codegraphy.typescript']),
         };
       }),
       sendMessage,
       logError,
     });
 
-    expect(state.analyzerInitialized).toBe(true);
-    expect(state.analyzer?.initialize).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'FILE_INFO',
       payload: {
         path: 'src/index.ts',
+        plugins: ['TypeScript/JavaScript'],
       },
     });
     expect(logError).not.toHaveBeenCalled();
   });
 
-  it('returns undefined analyzer state without trying to initialize it', async () => {
+  it('returns no plugin names when the analyzer is unavailable', async () => {
     const sendMessage = vi.fn();
     const logError = vi.fn();
     const state = {
       analyzer: undefined,
-      analyzerInitialized: false,
       graphData: { nodes: [], edges: [] } satisfies IGraphData,
     };
     const loadFileInfo = vi.fn(async (_filePath, options) => ({
-      analyzer: await options.ensureAnalyzerReady(),
+      plugins: options.getPluginNamesForIds(['codegraphy.typescript']),
     }));
 
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
@@ -66,26 +61,22 @@ describe('graph view file-info request helper', () => {
       logError,
     });
 
-    expect(state.analyzerInitialized).toBe(false);
     expect(loadFileInfo).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'FILE_INFO',
-      payload: { analyzer: undefined },
+      payload: { plugins: [] },
     });
     expect(logError).not.toHaveBeenCalled();
   });
 
-  it('reuses an initialized analyzer without running initialize again', async () => {
+  it('reuses the current analyzer metadata', async () => {
     const sendMessage = vi.fn();
     const logError = vi.fn();
     const analyzer = {
-      initialize: vi.fn(() => Promise.resolve()),
-      getPluginNameForFile: vi.fn(() => undefined),
-      getPluginNamesForIds: vi.fn(() => []),
+      getPluginNamesForIds: vi.fn(() => ['Markdown']),
     };
     const state = {
       analyzer,
-      analyzerInitialized: true,
       graphData: { nodes: [], edges: [] } satisfies IGraphData,
     };
 
@@ -93,16 +84,15 @@ describe('graph view file-info request helper', () => {
       workspaceFolder,
       statFile: vi.fn(),
       loadFileInfo: vi.fn(async (_filePath, options) => ({
-        analyzer: await options.ensureAnalyzerReady(),
+        plugins: options.getPluginNamesForIds(['codegraphy.markdown']),
       })),
       sendMessage,
       logError,
     });
 
-    expect(analyzer.initialize).not.toHaveBeenCalled();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'FILE_INFO',
-      payload: { analyzer },
+      payload: { plugins: ['Markdown'] },
     });
     expect(logError).not.toHaveBeenCalled();
   });

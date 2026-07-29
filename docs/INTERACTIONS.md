@@ -58,7 +58,7 @@ The left rail groups lifecycle, graph tools, plugin actions, and system panels.
 
 | Control | Result |
 |---|---|
-| Index / Refresh | Shows **Index Workspace** when the Graph Cache is missing, **Reindex Workspace** when stale, and **Refresh** when a cache exists. |
+| Index / Re-index | Shows **Index Workspace** when the Graph Cache is missing and **Re-index Workspace** when a cache exists. Source processing starts only after the user selects one of these actions. |
 | Node Size | Chooses Connections or File Size. |
 | New | Creates a file, folder, or plugin-provided background item. |
 | Plugin actions | Runs active plugin toolbar contributions. |

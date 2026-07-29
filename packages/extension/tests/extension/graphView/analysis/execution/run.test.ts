@@ -8,7 +8,7 @@ import {
 } from './fixtures';
 
 describe('graph view analysis execution run', () => {
-  it('analyzes the workspace and publishes the transformed graph', async () => {
+  it('indexes the workspace and publishes the transformed graph', async () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
       edges: [],
@@ -19,7 +19,7 @@ describe('graph view analysis execution run', () => {
     };
     const state = createExecutionState({
       analyzer: createExecutionAnalyzer({
-        analyze: vi.fn(() => Promise.resolve(rawGraphData)),
+        refreshIndex: vi.fn(() => Promise.resolve(rawGraphData)),
       }),
       analyzerInitialized: true,
     });
@@ -33,7 +33,7 @@ describe('graph view analysis execution run', () => {
       runGraphViewAnalysis(new AbortController().signal, 1, state, handlers),
     ).resolves.toBe(true);
 
-    expect(state.analyzer?.analyze).toHaveBeenCalledOnce();
+    expect(state.analyzer?.refreshIndex).toHaveBeenCalledOnce();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(transformedGraphData);
     expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
       true,
@@ -42,14 +42,14 @@ describe('graph view analysis execution run', () => {
     );
   });
 
-  it('drops analyzed graph results when the request turns stale after analyze resolves', async () => {
+  it('drops indexed graph results when the request turns stale after indexing resolves', async () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
       edges: [],
     };
     const state = createExecutionState({
       analyzer: createExecutionAnalyzer({
-        analyze: vi.fn(async () => rawGraphData),
+        refreshIndex: vi.fn(async () => rawGraphData),
       }),
       analyzerInitialized: true,
     });

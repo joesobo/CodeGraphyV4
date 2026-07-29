@@ -22,8 +22,8 @@ function prepareAnalysisGroups(
   return true;
 }
 
-function shouldPrepareAnalysisGroups(state: GraphViewAnalysisExecutionState): boolean {
-  return state.mode !== 'incremental';
+function requiresSourceProcessingInitialization(state: GraphViewAnalysisExecutionState): boolean {
+  return state.mode !== 'load';
 }
 
 export async function prepareGraphViewAnalysis(
@@ -41,15 +41,22 @@ export async function prepareGraphViewAnalysis(
     return false;
   }
 
-  if (!(await awaitGraphViewPluginActivation(signal, requestId, state, handlers))) {
-    return false;
+  if (requiresSourceProcessingInitialization(state)) {
+    if (!(await awaitGraphViewPluginActivation(signal, requestId, state, handlers))) {
+      return false;
+    }
+
+    if (!(await ensureGraphViewAnalyzerInitialized(signal, requestId, state, handlers))) {
+      return false;
+    }
+
+    await state.analyzer.syncWorkspacePlugins();
+    if (handlers.isAnalysisStale(signal, requestId)) {
+      return false;
+    }
   }
 
-  if (!(await ensureGraphViewAnalyzerInitialized(signal, requestId, state, handlers))) {
-    return false;
-  }
-
-  if (shouldPrepareAnalysisGroups(state) && !prepareAnalysisGroups(signal, requestId, handlers)) {
+  if (!prepareAnalysisGroups(signal, requestId, handlers)) {
     return false;
   }
 

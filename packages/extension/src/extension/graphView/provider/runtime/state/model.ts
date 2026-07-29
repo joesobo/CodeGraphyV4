@@ -28,23 +28,12 @@ import {
 } from '../../runtimeDefaults';
 import { defineGraphViewProviderMethodAccessors } from '../methodAccessors';
 import {
-  getWorkspaceRoot,
   initializeRuntimeStateServices,
   restorePersistedRuntimeState,
 } from './bootstrap';
 import { createGraphViewProviderRuntimeDataState } from './data';
 import { createGraphViewProviderRuntimeFlagState } from './flags';
-import {
-  invalidatePluginFiles,
-  invalidateWorkspaceFiles,
-  mergePendingWorkspaceRefresh,
-} from './refresh';
 import { isGraphViewVisible } from './visibility';
-import {
-  loadPersistedWorkspaceRefresh,
-  persistPendingWorkspaceRefresh,
-  type PendingWorkspaceRefreshState,
-} from '../workspaceRefreshPersistence';
 
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
@@ -55,7 +44,6 @@ export class GraphViewProviderRuntime {
   protected _analyzerInitPromise?: Promise<void>;
   protected _analysisController?: AbortController;
   protected _analysisRequestId!: number;
-  protected _changedFilePaths!: string[];
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode!: boolean;
   protected _nodeSizeMode!: NodeSizeMode;
@@ -72,7 +60,6 @@ export class GraphViewProviderRuntime {
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
   protected _webviewReadyNotified!: boolean;
   protected _indexingController?: AbortController;
-  protected _pendingWorkspaceRefresh?: PendingWorkspaceRefreshState;
   protected readonly _pluginExtensionUris = createPluginExtensionUris();
   protected _installedPluginActivationPromise!: Promise<void>;
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
@@ -105,9 +92,6 @@ export class GraphViewProviderRuntime {
     Object.assign(this, createGraphViewProviderRuntimeFlagState());
 
     this._analyzer = new WorkspacePipeline(_context);
-    void this._analyzer.warmGraphCache().catch(error => {
-      console.warn('[CodeGraphy] Failed to warm repo-local Graph Cache.', error);
-    });
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
@@ -152,60 +136,6 @@ export class GraphViewProviderRuntime {
     return isGraphViewVisible(this._view, this._panels);
   }
 
-  public invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
-    return invalidateWorkspaceFiles(this._analyzer, filePaths);
-  }
-
-  public invalidatePluginFiles(pluginIds: readonly string[]): string[] {
-    return invalidatePluginFiles(this._analyzer, pluginIds);
-  }
-
-  public markWorkspaceRefreshPending(
-    logMessage: string,
-    filePaths: readonly string[] = [],
-    options: { gitignoreRefresh?: boolean } = {},
-  ): void {
-    this._pendingWorkspaceRefresh = mergePendingWorkspaceRefresh(
-      this._pendingWorkspaceRefresh,
-      logMessage,
-      filePaths,
-      options,
-    );
-    persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), [
-      ...this._pendingWorkspaceRefresh.filePaths,
-    ]);
-  }
-
-  public flushPendingWorkspaceRefresh(): void {
-    if (!this.isGraphOpen()) {
-      return;
-    }
-
-    const pending = this._pendingWorkspaceRefresh ?? this._loadPersistedWorkspaceRefresh();
-    if (!pending) {
-      return;
-    }
-
-    this._pendingWorkspaceRefresh = undefined;
-    persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), []);
-    console.log(pending.logMessage);
-    if (
-      pending.gitignoreRefresh
-      && this._methodContainers.refresh.refreshGitignoreMetadata
-    ) {
-      void this._methodContainers.refresh.refreshGitignoreMetadata();
-      return;
-    }
-
-    if (this._methodContainers.refresh.refreshChangedFiles) {
-      void this._methodContainers.refresh.refreshChangedFiles([...pending.filePaths]);
-      return;
-    }
-
-    this.invalidateWorkspaceFiles([...pending.filePaths]);
-    void this._methodContainers.refresh.refresh();
-  }
-
   private initializeCoreServices(): void {
     initializeRuntimeStateServices(
       {
@@ -228,14 +158,6 @@ export class GraphViewProviderRuntime {
 
     this._depthMode = restoredState.depthMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
-  }
-
-  private _getWorkspaceRoot(): string | undefined {
-    return getWorkspaceRoot(vscode.workspace.workspaceFolders);
-  }
-
-  private _loadPersistedWorkspaceRefresh(): PendingWorkspaceRefreshState | undefined {
-    return loadPersistedWorkspaceRefresh(this._getWorkspaceRoot());
   }
 
   protected _notifyExtensionMessage(message: unknown): void {

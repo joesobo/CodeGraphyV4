@@ -1,8 +1,5 @@
 import * as path from 'node:path';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
-import { collectCachedGitIgnoredPaths } from './cachedDiscovery/gitignore';
-
-export { collectCachedGitIgnoredPaths } from './cachedDiscovery/gitignore';
 
 export interface CachedWorkspaceDiscoveryState {
   directories: string[];
@@ -39,16 +36,11 @@ export function collectCachedDirectoryPaths(filePaths: readonly string[]): strin
 export function createCachedWorkspaceDiscoveryState(
   workspaceRoot: string,
   filePaths: readonly string[],
-  respectGitignore: boolean,
 ): CachedWorkspaceDiscoveryState {
   const directories = collectCachedDirectoryPaths(filePaths);
   return {
     directories,
     files: createCachedDiscoveredFiles(workspaceRoot, filePaths),
-    gitIgnoredPaths: collectCachedGitIgnoredPaths(
-      workspaceRoot,
-      [...directories, ...filePaths],
-      respectGitignore,
-    ),
+    gitIgnoredPaths: [],
   };
 }

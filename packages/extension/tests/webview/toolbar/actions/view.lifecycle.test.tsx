@@ -53,14 +53,14 @@ describe('ToolbarActions', () => {
 
     renderToolbar();
 
-    expect(screen.getByTitle('Reindex Workspace')).toBeInTheDocument();
+    expect(screen.getByTitle('Re-index Workspace')).toBeInTheDocument();
   });
 
   it('sends REFRESH_GRAPH when a graph index already exists', () => {
     graphStore.setState({ graphHasIndex: true });
 
     renderToolbar();
-    clickToolbarAction('Refresh');
+    clickToolbarAction('Re-index Workspace');
 
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
     expect(graphStore.getState().graphIsIndexing).toBe(true);

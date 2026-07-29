@@ -27,7 +27,6 @@ function createSource() {
     _extensionUri: vscode.Uri.file('/test/extension'),
     _view: undefined as vscode.WebviewView | undefined,
     _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
-    flushPendingWorkspaceRefresh: vi.fn(),
   };
 }
 
@@ -83,7 +82,6 @@ describe('graphView/provider/webview/resolve', () => {
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, view.webview);
     expect(setWebviewMessageListener).toHaveBeenCalledWith(view.webview, source);
     expect(executeCommand).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', true);
-    expect(source.flushPendingWorkspaceRefresh).toHaveBeenCalledOnce();
 
     source._view = createView();
     disposeListener?.();
@@ -103,24 +101,5 @@ describe('graphView/provider/webview/resolve', () => {
     disposeListener?.();
 
     expect(source._view).toBeUndefined();
-  });
-
-  it('flushes pending refreshes only after the graph becomes visible', () => {
-    let visibilityListener: (() => void) | undefined;
-    const view = createView(false);
-    (view as unknown as {
-      onDidChangeVisibility: typeof view.onDidChangeVisibility;
-    }).onDidChangeVisibility = vi.fn(listener => {
-      visibilityListener = listener;
-      return { dispose: vi.fn() };
-    });
-    const source = createSource();
-
-    resolveGraphViewProviderWebviewView(source, createDependencies(), view);
-    expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
-
-    (view as { visible: boolean }).visible = true;
-    visibilityListener?.();
-    expect(source.flushPendingWorkspaceRefresh).toHaveBeenCalledOnce();
   });
 });

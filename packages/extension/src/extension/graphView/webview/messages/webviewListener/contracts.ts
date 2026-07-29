@@ -13,7 +13,6 @@ export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
     GraphViewPluginMessageContext {
   hydratePluginGraphScope(pluginIds: readonly string[]): Promise<boolean>;
-  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   setUserGroups(groups: IGroup[]): void;
   setFilterPatterns(patterns: string[]): void;
   setWebviewReadyNotified(nextValue: boolean): void;

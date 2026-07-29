@@ -9,11 +9,11 @@ function itemLabels(entries: GraphContextMenuEntry[]): string[] {
 }
 
 describe('buildBackgroundEntries', () => {
-  it('orders New File, New Folder, Refresh, and Fit All Nodes', () => {
+  it('orders New File, New Folder, Re-index Workspace, and Fit All Nodes', () => {
     expect(itemLabels(buildBackgroundEntries())).toEqual([
       'New File',
       'New Folder',
-      'Refresh',
+      'Re-index Workspace',
       'Fit All Nodes',
     ]);
   });
@@ -22,8 +22,8 @@ describe('buildBackgroundEntries', () => {
     expect(buildBackgroundEntries().filter(entry => entry.kind === 'separator')).toHaveLength(1);
   });
 
-  it('always includes Refresh', () => {
-    expect(itemLabels(buildBackgroundEntries())).toContain('Refresh');
+  it('always includes Re-index Workspace', () => {
+    expect(itemLabels(buildBackgroundEntries())).toContain('Re-index Workspace');
   });
 
   it('always includes Fit All Nodes', () => {

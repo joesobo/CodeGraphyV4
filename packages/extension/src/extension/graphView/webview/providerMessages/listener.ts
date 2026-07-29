@@ -64,7 +64,7 @@ export interface GraphViewProviderMessageListenerDependencies {
     context: vscode.ExtensionContext,
     sendAllSettings: () => void,
     setNodeSizeMode: (mode: NodeSizeMode) => void,
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
   nodeSizeModeKey: string;
@@ -91,8 +91,6 @@ export interface GraphViewProviderMessageListenerSource {
         getPluginFilterPatterns(): string[];
         getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
         lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
-        reloadWorkspacePlugins?(): Promise<void>;
-        syncWorkspacePlugins?(): Promise<void>;
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;
@@ -121,13 +119,9 @@ export interface GraphViewProviderMessageListenerSource {
   _addToExclude(patterns: string[]): Promise<void>;
   _loadAndSendData(): Promise<void>;
   _indexAndSendData(): Promise<void>;
-  _analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
   hydrateGraphScope?(): Promise<boolean>;
   hydratePluginGraphScope?(pluginIds: readonly string[]): Promise<boolean>;
-  refreshAnalysisScope(): Promise<void>;
-  refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;
-  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   _getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
@@ -152,7 +146,6 @@ export interface GraphViewProviderMessageListenerSource {
   _sendPluginStatuses(): void;
   _sendPluginWebviewInjections(): void;
   _sendGraphControls?(): void;
-  invalidatePluginFiles(pluginIds: readonly string[]): string[];
 }
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
@@ -175,7 +168,7 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
     context,
     sendAllSettings,
     setNodeSizeMode,
-    analyzeAndSendData,
+    reloadCachedGraph,
   ) =>
     new ResetSettingsAction(
       snapshot,
@@ -183,7 +176,7 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
       context,
       sendAllSettings,
       setNodeSizeMode,
-      analyzeAndSendData,
+      reloadCachedGraph,
       ),
   executeUndoAction: action => getUndoManager().execute(action),
   nodeSizeModeKey: 'nodeSizeMode',

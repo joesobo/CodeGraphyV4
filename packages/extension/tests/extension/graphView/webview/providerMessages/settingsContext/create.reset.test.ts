@@ -33,7 +33,7 @@ describe('graph view provider listener settings context reset', () => {
       })),
       _sendMessage: vi.fn(),
       _sendAllSettings: vi.fn(),
-      _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+      _loadAndSendData: vi.fn(() => Promise.resolve()),
     };
     const configuration = {
       get: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
@@ -78,7 +78,7 @@ describe('graph view provider listener settings context reset', () => {
 
   it('wires reset callbacks to resend settings, store node size mode, and reanalyze', async () => {
     const sendAllSettings = vi.fn();
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const reloadCachedGraph = vi.fn(() => Promise.resolve());
     const createResetSettingsAction = vi.fn(
       (
         _snapshot,
@@ -110,7 +110,7 @@ describe('graph view provider listener settings context reset', () => {
       })),
       _sendMessage: vi.fn(),
       _sendAllSettings: sendAllSettings,
-      _analyzeAndSendData: analyzeAndSendData,
+      _loadAndSendData: reloadCachedGraph,
     };
     const dependencies = {
       workspace: {
@@ -139,7 +139,7 @@ describe('graph view provider listener settings context reset', () => {
     expect(createResetSettingsAction).toHaveBeenCalledOnce();
     expect(sendAllSettings).toHaveBeenCalledOnce();
     expect(source._nodeSizeMode).toBe('files');
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reloadCachedGraph).toHaveBeenCalledOnce();
   });
 
 });

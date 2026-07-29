@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  BASELINE_ANALYSIS_CACHE_TIER,
-  SYMBOLS_ANALYSIS_CACHE_TIER,
   type AnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
   projectFileAnalysisConnections,
@@ -13,12 +11,6 @@ import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline
 import type { Configuration } from '../../../../src/extension/config/reader';
 import { WorkspacePipelineCachedGraphFacade } from '../../../../src/extension/pipeline/service/cachedGraph';
 import { createCachedWorkspaceDiscoveryState } from '../../../../src/extension/pipeline/service/cache/cachedDiscovery';
-import {
-  isMissingFileError,
-  isWorkspaceAnalysisAbortError,
-} from '../../../../src/extension/pipeline/service/cachedGraphWarmup/errors';
-import { warmCachedGraphAnalysisFile } from '../../../../src/extension/pipeline/service/cachedGraphWarmup/execution';
-import { createCachedGraphAnalysisWarmupInput } from '../../../../src/extension/pipeline/service/cachedGraphWarmup/input';
 
 vi.mock('@codegraphy-dev/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@codegraphy-dev/core')>();
@@ -34,17 +26,6 @@ vi.mock('../../../../src/extension/pipeline/service/cache/cachedDiscovery', asyn
   ...(await importOriginal<typeof import('../../../../src/extension/pipeline/service/cache/cachedDiscovery')>()),
   createCachedWorkspaceDiscoveryState: vi.fn(),
 }));
-vi.mock('../../../../src/extension/pipeline/service/cachedGraphWarmup/errors', () => ({
-  isMissingFileError: vi.fn(),
-  isWorkspaceAnalysisAbortError: vi.fn(),
-}));
-vi.mock('../../../../src/extension/pipeline/service/cachedGraphWarmup/execution', () => ({
-  warmCachedGraphAnalysisFile: vi.fn(),
-}));
-vi.mock('../../../../src/extension/pipeline/service/cachedGraphWarmup/input', () => ({
-  createCachedGraphAnalysisWarmupInput: vi.fn(),
-}));
-
 vi.mock('vscode', () => ({
   workspace: {
     workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
@@ -69,13 +50,20 @@ const mixedCachedFiles: IDiscoveredFile[] = [
 class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
   readonly hydrateCacheFromGraphCache = vi.fn(async (
-    _options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] },
+    _options?: {
+      activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+      preserveAllAnalysisFacts?: boolean;
+    },
   ) => undefined);
   readonly activeAnalysisPluginIds = vi.fn((
     _pluginIds: readonly string[] | undefined, _disabledPlugins: ReadonlySet<string>,
   ) => ['plugin.active']);
   readonly buildGraphDataFromAnalysis = vi.fn((
-    _fileAnalysis: Map<string, never>, _workspaceRoot: string, _showOrphans: boolean, _disabledPlugins: Set<string>,
+    _fileAnalysis: Map<string, never>,
+    _workspaceRoot: string,
+    _showOrphans: boolean,
+    _disabledPlugins: Set<string>,
+    _activeAnalysisPluginIds?: ReadonlySet<string>,
   ) => ({ nodes: [{ id: 'graph', label: 'Graph', color: '#333333' }], edges: [] }));
 
   constructor() {
@@ -110,7 +98,10 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   }
 
   protected override async _hydrateCacheFromGraphCache(
-    options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] },
+    options?: {
+      activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+      preserveAllAnalysisFacts?: boolean;
+    },
   ): Promise<void> {
     await this.hydrateCacheFromGraphCache(options);
   }
@@ -127,8 +118,15 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string>,
+    activeAnalysisPluginIds?: ReadonlySet<string>,
   ) {
-    return this.buildGraphDataFromAnalysis(fileAnalysis, workspaceRoot, showOrphans, disabledPlugins);
+    return this.buildGraphDataFromAnalysis(
+      fileAnalysis,
+      workspaceRoot,
+      showOrphans,
+      disabledPlugins,
+      activeAnalysisPluginIds,
+    );
   }
 }
 
@@ -159,27 +157,15 @@ function setupCachedDiscovery(files: readonly IDiscoveredFile[] = cachedFiles): 
   vi.mocked(createCachedWorkspaceDiscoveryState).mockReturnValue({
     directories: ['src'],
     files: [...files],
-    gitIgnoredPaths: ['dist/generated.ts'],
+    gitIgnoredPaths: [],
   });
-  vi.mocked(createCachedGraphAnalysisWarmupInput).mockReturnValue({
-    file: files[0],
-  } as never);
-  vi.mocked(warmCachedGraphAnalysisFile).mockResolvedValue(undefined);
-
   return projectedConnections;
-}
-
-async function flushWarmupCatch(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
 }
 
 describe('extension/pipeline/service/cachedGraph', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(hasRequiredAnalysisCacheTiers).mockReturnValue(true);
-    vi.mocked(isMissingFileError).mockReturnValue(false);
-    vi.mocked(isWorkspaceAnalysisAbortError).mockReturnValue(false);
     setupCachedDiscovery();
   });
 
@@ -192,10 +178,9 @@ describe('extension/pipeline/service/cachedGraph', () => {
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledOnce();
     expect(facade._config.getAll).not.toHaveBeenCalled();
     expect(createCachedWorkspaceDiscoveryState).not.toHaveBeenCalled();
-    expect(warmCachedGraphAnalysisFile).not.toHaveBeenCalled();
   });
 
-  it('replays cached analysis into graph state and schedules warmup by default', async () => {
+  it('replays cached analysis into graph state', async () => {
     const facade = new TestCachedGraphFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
     const signal = new AbortController().signal;
@@ -210,16 +195,11 @@ describe('extension/pipeline/service/cachedGraph', () => {
 
     expect(throwIfWorkspaceAnalysisAborted).toHaveBeenCalledWith(signal);
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
-      activeAnalysisCacheTiers: [
-        BASELINE_ANALYSIS_CACHE_TIER,
-        SYMBOLS_ANALYSIS_CACHE_TIER,
-        'plugin:plugin.active',
-      ],
+      preserveAllAnalysisFacts: true,
     });
     expect(createCachedWorkspaceDiscoveryState).toHaveBeenCalledWith(
       '/workspace',
       ['src/cached.ts'],
-      true,
     );
     expect(projectFileAnalysisConnections).toHaveBeenCalledWith(
       new Map([['src/cached.ts', cachedAnalysis]]),
@@ -228,7 +208,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
     const retainedState = cachedGraphState(facade);
     expect(retainedState._lastDiscoveredFiles).toEqual(cachedFiles);
     expect(retainedState._lastDiscoveredDirectories).toEqual(['src']);
-    expect(retainedState._lastGitIgnoredPaths).toEqual(['dist/generated.ts']);
+    expect(retainedState._lastGitIgnoredPaths).toEqual([]);
     expect(retainedState._lastFileAnalysis).toEqual(new Map([['src/cached.ts', cachedAnalysis]]));
     expect(retainedState._lastFileConnections).toBe(projectedConnections);
     expect(retainedState._lastWorkspaceRoot).toBe('/workspace');
@@ -237,94 +217,9 @@ describe('extension/pipeline/service/cachedGraph', () => {
       '/workspace',
       false,
       disabledPlugins,
+      undefined,
     );
 
-    expect(createCachedGraphAnalysisWarmupInput).toHaveBeenCalledWith({
-      disabledPlugins,
-      files: cachedFiles,
-      getActiveAnalysisPluginIds: expect.any(Function),
-      registry: facade._registry,
-      signal,
-      workspaceRoot: '/workspace',
-    });
-    const warmupInput = vi.mocked(createCachedGraphAnalysisWarmupInput).mock.calls[0][0];
-    expect(warmupInput.getActiveAnalysisPluginIds(new Set(['disabled']))).toEqual(['plugin.active']);
-    expect(facade.activeAnalysisPluginIds).toHaveBeenCalledWith(undefined, new Set(['disabled']));
-    expect(warmCachedGraphAnalysisFile).toHaveBeenCalledWith(
-      { file: cachedFiles[0] },
-      facade._discovery,
-      facade._registry,
-    );
-  });
-
-  it('always honors current gitignore while allowing warmup replay to be disabled', async () => {
-    const facade = new TestCachedGraphFacade();
-
-    await facade.loadCachedGraph([], new Set(), undefined, {
-      warmAnalysis: false,
-    });
-
-    expect(createCachedWorkspaceDiscoveryState).toHaveBeenLastCalledWith(
-      '/workspace',
-      ['src/cached.ts'],
-      true,
-    );
-    expect(createCachedGraphAnalysisWarmupInput).not.toHaveBeenCalled();
-    expect(warmCachedGraphAnalysisFile).not.toHaveBeenCalled();
-
-    vi.clearAllMocks();
-    setupCachedDiscovery();
-    vi.mocked(facade._config.getAll).mockReturnValueOnce({
-      showOrphans: true,
-      respectGitignore: false,
-    } as never);
-
-    await facade.loadCachedGraph();
-
-    expect(createCachedWorkspaceDiscoveryState).toHaveBeenLastCalledWith(
-      '/workspace',
-      ['src/cached.ts'],
-      false,
-    );
-    expect(facade.buildGraphDataFromAnalysis).toHaveBeenLastCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
-      '/workspace',
-      true,
-      new Set<string>(),
-    );
-  });
-
-  it('keeps retained Git-ignored cache entries out of replay and warmup', async () => {
-    const facade = new TestCachedGraphFacade();
-    setCachedGraphCache(facade, {
-      files: {
-        'src/cached.ts': { analysis: cachedAnalysis, mtime: 1, size: 10 },
-        'README.md': { analysis: readmeAnalysis, mtime: 1, size: 10 },
-      },
-    });
-    setupCachedDiscovery(mixedCachedFiles);
-    vi.mocked(createCachedWorkspaceDiscoveryState).mockReturnValue({
-      directories: ['src'],
-      files: mixedCachedFiles,
-      gitIgnoredPaths: ['README.md'],
-    });
-
-    await facade.loadCachedGraph();
-
-    expect(projectFileAnalysisConnections).toHaveBeenCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
-      '/workspace',
-    );
-    expect(facade.buildGraphDataFromAnalysis).toHaveBeenCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
-      '/workspace',
-      false,
-      new Set<string>(),
-    );
-    expect(cachedGraphState(facade)._lastDiscoveredFiles).toEqual(cachedFiles);
-    expect(createCachedGraphAnalysisWarmupInput).toHaveBeenCalledWith(
-      expect.objectContaining({ files: cachedFiles }),
-    );
   });
 
   it('returns an empty graph without mutating retained graph state when required cache tiers are missing', async () => {
@@ -334,7 +229,6 @@ describe('extension/pipeline/service/cachedGraph', () => {
     await expect(
       facade.loadCachedGraph([], new Set(), undefined, {
         requiredAnalysisCacheTiers: ['baseline', 'symbols'],
-        warmAnalysis: false,
       }),
     ).resolves.toEqual({ nodes: [], edges: [] });
 
@@ -372,7 +266,6 @@ describe('extension/pipeline/service/cachedGraph', () => {
     await expect(
       facade.loadCachedGraph([], new Set(), undefined, {
         requiredAnalysisCacheTiers: ['baseline', 'plugin:codegraphy.typescript'],
-        warmAnalysis: false,
       }),
     ).resolves.toEqual({
       nodes: [{ id: 'graph', label: 'Graph', color: '#333333' }],
@@ -391,54 +284,19 @@ describe('extension/pipeline/service/cachedGraph', () => {
       '/workspace',
       false,
       new Set<string>(),
+      undefined,
     );
   });
 
-  it('hydrates baseline and symbol tiers when plugin analysis is inactive', async () => {
+  it('hydrates all persisted facts when plugin analysis is inactive', async () => {
     const facade = new TestCachedGraphFacade();
     facade.activeAnalysisPluginIds.mockReturnValue([]);
 
-    await facade.loadCachedGraph([], new Set(), undefined, {
-      warmAnalysis: false,
-    });
+    await facade.loadCachedGraph();
 
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
-      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+      preserveAllAnalysisFacts: true,
     });
   });
 
-  it('logs only unexpected cached analysis warmup failures', async () => {
-    const facade = new TestCachedGraphFacade();
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const abortError = new Error('aborted');
-    const missingFileError = new Error('missing');
-    const failedError = new Error('failed');
-
-    vi.mocked(warmCachedGraphAnalysisFile).mockRejectedValueOnce(abortError);
-    vi.mocked(isWorkspaceAnalysisAbortError).mockImplementation(error => error === abortError);
-    await facade.loadCachedGraph();
-    await flushWarmupCatch();
-    expect(warnSpy).not.toHaveBeenCalled();
-
-    vi.mocked(warmCachedGraphAnalysisFile).mockRejectedValueOnce(missingFileError);
-    vi.mocked(isWorkspaceAnalysisAbortError).mockReturnValue(false);
-    vi.mocked(isMissingFileError).mockImplementation(error => error === missingFileError);
-    await facade.loadCachedGraph();
-    await flushWarmupCatch();
-    expect(warnSpy).not.toHaveBeenCalled();
-
-    vi.mocked(warmCachedGraphAnalysisFile).mockRejectedValueOnce(failedError);
-    vi.mocked(isMissingFileError).mockReturnValue(false);
-    await facade.loadCachedGraph();
-    await flushWarmupCatch();
-
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[CodeGraphy] Failed to warm cached graph analysis.',
-      failedError,
-    );
-
-    vi.mocked(createCachedGraphAnalysisWarmupInput).mockReturnValueOnce(undefined);
-    await facade.loadCachedGraph();
-    expect(warmCachedGraphAnalysisFile).toHaveBeenCalledTimes(3);
-  });
 });

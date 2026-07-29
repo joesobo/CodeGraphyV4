@@ -4,7 +4,6 @@ import { registerConfigHandler } from './config/listener';
 import { initializeCurrentCodeGraphyConfiguration } from './repoSettings/current';
 import { registerCommands } from './commands/register';
 import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
-import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
 import { createCodeGraphyAgentUriHandler } from './agentBridge/uri';
 import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
 import { getCodeGraphyConfiguration } from './repoSettings/current';
@@ -59,8 +58,6 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
 
   registerConfigHandler(context, provider);
   registerEditorChangeHandler(context, provider);
-  registerSaveHandler(context, provider);
-  registerFileWatcher(context, provider);
   registerCommands(context, provider);
   diagnostics.emit({
     area: 'extension.lifecycle',

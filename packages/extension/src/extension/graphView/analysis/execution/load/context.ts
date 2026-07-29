@@ -32,14 +32,9 @@ export function selectGraphViewRawDataLoadDecisionForState(
   decision: GraphViewRawDataLoadDecision;
   indexFreshness: CodeGraphyIndexFreshness | undefined;
 } {
-  if (state.mode === 'incremental') {
-    return {
-      decision: { route: 'incremental', shouldDiscover: false },
-      indexFreshness: undefined,
-    };
-  }
-
-  const indexFreshness = getGraphIndexFreshness(analyzer);
+  const indexFreshness = state.mode === 'load'
+    ? (analyzer.hasIndex() ? 'fresh' : 'missing')
+    : getGraphIndexFreshness(analyzer);
   return {
     decision: selectGraphViewRawDataLoadDecision(
       state.mode,

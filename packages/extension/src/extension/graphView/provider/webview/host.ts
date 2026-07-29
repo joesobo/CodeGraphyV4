@@ -15,7 +15,6 @@ export interface GraphViewProviderWebviewSource
   _panels: vscode.WebviewPanel[];
   _notifyExtensionMessage(message: unknown): void;
   _loadAndSendData(): Promise<void>;
-  _analyzeAndSendData(): Promise<void>;
   _getLocalResourceRoots(): vscode.Uri[];
 }
 

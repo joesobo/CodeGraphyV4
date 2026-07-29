@@ -19,7 +19,6 @@ function createTarget() {
     refresh: vi.fn(async () => undefined),
     refreshIndex: vi.fn(async () => undefined),
     refreshGitignoreMetadata: vi.fn(async () => undefined),
-    refreshChangedFiles: vi.fn(async () => undefined),
     refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
     refreshSettings: vi.fn(),
@@ -178,7 +177,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
 
     target.updateGraphData(graphData);
     expect(target.getGraphData()).toBe(previousGraphData);
-    await target.refreshGitignoreMetadata();
     await target.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
     expect(target.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
@@ -191,7 +189,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
 
     expect(target._methodContainers.viewContext.updateGraphData).toHaveBeenCalledWith(graphData);
     expect(getGraphData).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.refresh.refreshGitignoreMetadata).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshIndex).toHaveBeenCalledTimes(1);
     expect(queryMethods.queryGraph).toHaveBeenCalledWith(query);
     expect(target._methodContainers.viewSelection.setDepthMode).toHaveBeenCalledWith(true);

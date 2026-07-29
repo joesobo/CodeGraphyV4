@@ -19,6 +19,7 @@ export abstract class WorkspacePipelineEngineStateBase {
   protected readonly _discovery: FileDiscovery;
   protected readonly _context: vscode.ExtensionContext;
   protected readonly _engineState: WorkspaceIndexEngineState;
+  protected _replayAnalysisPluginIds: ReadonlySet<string> = new Set<string>();
   protected _eventBus?: EventBus;
 
   constructor(context: vscode.ExtensionContext) {

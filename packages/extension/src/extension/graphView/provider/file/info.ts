@@ -9,8 +9,6 @@ import { sendGraphViewProviderFileInfoMessage } from '../../files/info/request';
 import { sendGraphViewFavorites } from '../../favorites';
 
 interface GraphViewProviderFileInfoAnalyzerLike {
-  initialize(): Promise<void>;
-  getPluginNameForFile(filePath: string): string | undefined;
   getPluginNamesForIds(pluginIds: readonly string[]): string[];
 }
 
@@ -20,10 +18,9 @@ interface GraphViewProviderFavoritesConfigLike {
 
 export interface GraphViewProviderFileInfoMethodsSource {
   _analyzer?: GraphViewProviderFileInfoAnalyzerLike;
-  _analyzerInitialized: boolean;
   _graphData: IGraphData;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _analyzeAndSendData(): Promise<void>;
+  _loadAndSendData(): Promise<void>;
 }
 
 export interface GraphViewProviderFileInfoMethods {
@@ -74,7 +71,6 @@ export function createGraphViewProviderFileInfoMethods(
   const _getFileInfo = async (filePath: string): Promise<void> => {
     const state = {
       analyzer: source._analyzer,
-      analyzerInitialized: source._analyzerInitialized,
       graphData: source._graphData,
     };
 
@@ -84,8 +80,6 @@ export function createGraphViewProviderFileInfoMethods(
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
       logError: (label, error) => resolvedDependencies.logError(label, error),
     });
-
-    source._analyzerInitialized = state.analyzerInitialized;
   };
 
   const _addToExclude = async (patterns: string[]): Promise<void> => {
@@ -93,7 +87,7 @@ export function createGraphViewProviderFileInfoMethods(
       createAction: (nextPatterns, analyzeAndSendData) =>
         resolvedDependencies.createAddToExcludeAction(nextPatterns, analyzeAndSendData),
       executeAction: action => resolvedDependencies.executeUndoAction(action),
-      analyzeAndSendData: () => source._analyzeAndSendData(),
+      reloadCachedGraph: () => source._loadAndSendData(),
     });
   };
 

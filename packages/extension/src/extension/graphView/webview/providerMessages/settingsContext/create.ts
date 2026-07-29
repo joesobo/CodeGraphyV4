@@ -38,11 +38,10 @@ export function createGraphViewProviderMessageSettingsContext(
       source._analyzer?.registry?.get?.(pluginId)?.plugin.updateImpact
       ?? readInstalledPluginUpdateImpact(pluginId, { bundledPackageRoots })
     ),
-    analyzeAndSendData: () => source._analyzeAndSendData(),
+    reloadCachedGraph: () => source._loadAndSendData(),
     hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
     hydratePluginGraphScope: pluginIds =>
       source.hydratePluginGraphScope?.(pluginIds) ?? Promise.resolve(false),
-    reprocessGraphScope: () => source.refreshAnalysisScope(),
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(
         config,
@@ -57,7 +56,7 @@ export function createGraphViewProviderMessageSettingsContext(
         mode => {
           source._nodeSizeMode = mode;
         },
-        () => source._analyzeAndSendData(),
+        () => source._loadAndSendData(),
       );
       await dependencies.executeUndoAction(action);
     },

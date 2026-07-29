@@ -23,6 +23,7 @@ function shouldReplaceCache(
 
 export class WorkspacePipelineCacheHydrator {
   private pending?: Promise<void>;
+  private allFactsWorkspaceRoot?: string;
 
   async hydrate(
     workspaceRoot: string,
@@ -37,6 +38,34 @@ export class WorkspacePipelineCacheHydrator {
       await this.load(workspaceRoot, requestedTiers, cache);
       return;
     }
+  }
+
+  async hydrateAll(
+    workspaceRoot: string,
+    cache: WorkspacePipelineCacheAccess,
+  ): Promise<void> {
+    if (this.allFactsWorkspaceRoot === workspaceRoot && hasCacheFiles(cache.get())) {
+      return;
+    }
+    if (this.pending) {
+      await this.pending;
+      if (this.allFactsWorkspaceRoot === workspaceRoot && hasCacheFiles(cache.get())) {
+        return;
+      }
+    }
+
+    const cacheWasEmptyAtStart = !hasCacheFiles(cache.get());
+    const hydration = Promise.resolve()
+      .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot))
+      .then((loaded) => {
+        if (shouldReplaceCache(cache.get(), loaded, cacheWasEmptyAtStart)) cache.set(loaded);
+        this.allFactsWorkspaceRoot = workspaceRoot;
+      })
+      .finally(() => {
+        if (this.pending === hydration) this.pending = undefined;
+      });
+    this.pending = hydration;
+    await hydration;
   }
 
   private async load(

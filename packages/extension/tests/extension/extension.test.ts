@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 
 // Import after mock is set up
 import { activate, deactivate } from '../../src/extension/activate';
-import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 describe('Extension', () => {
   let mockContext: {
@@ -66,54 +65,10 @@ describe('Extension', () => {
     it('should add subscriptions to context', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
-      // view provider (1) + config listener (1) + active editor listener (1) + save listener (1)
-      // + file watcher events (3) + gitignore watcher events (3)
-      // + workspace file operation events (3) + file watchers (2)
+      // view provider (1) + config listener (1) + active editor listener (1)
       // + URI handler (1) + runtime bridge listener (1)
       // + 14 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode)
-      expect(mockContext.subscriptions.length).toBe(31);
-    });
-
-    it('should ignore workspace settings saves when deciding graph refresh', async () => {
-      vi.useFakeTimers();
-
-      activate(mockContext as unknown as Parameters<typeof activate>[0]);
-      const provider = (
-        vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
-      ).mock.calls[0]?.[1] as GraphViewProvider;
-      const refreshSpy = vi.spyOn(provider, 'refreshChangedFiles').mockResolvedValue();
-
-      const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
-        .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
-      expect(saveListener).toBeTypeOf('function');
-
-      saveListener({ uri: { fsPath: '/test/workspace/.vscode/settings.json' } });
-      vi.advanceTimersByTime(600);
-
-      expect(refreshSpy).not.toHaveBeenCalled();
-      vi.useRealTimers();
-    });
-
-    it('should refresh graph on regular file saves', async () => {
-      vi.useFakeTimers();
-
-      activate(mockContext as unknown as Parameters<typeof activate>[0]);
-      const provider = (
-        vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
-      ).mock.calls[0]?.[1] as GraphViewProvider;
-      vi.spyOn(provider, 'isGraphOpen').mockReturnValue(true);
-      const refreshChangedFilesSpy = vi.spyOn(provider, 'refreshChangedFiles').mockResolvedValue();
-
-      const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
-        .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
-      expect(saveListener).toBeTypeOf('function');
-
-      saveListener({ uri: { fsPath: '/test/workspace/src/app.ts' } });
-      vi.advanceTimersByTime(600);
-
-      expect(refreshChangedFilesSpy).toHaveBeenCalledTimes(1);
-      expect(refreshChangedFilesSpy).toHaveBeenCalledWith(['/test/workspace/src/app.ts']);
-      vi.useRealTimers();
+      expect(mockContext.subscriptions.length).toBe(19);
     });
   });
 
