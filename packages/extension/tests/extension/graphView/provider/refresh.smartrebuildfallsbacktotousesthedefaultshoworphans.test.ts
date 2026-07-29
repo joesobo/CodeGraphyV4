@@ -49,6 +49,7 @@ function createSource(
     _loadDisabledRulesAndPlugins: vi.fn(() => true),
     _loadGroupsAndFilterPatterns: vi.fn(),
     _loadAndSendData: vi.fn(async () => undefined),
+    _refreshAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
     _sendFavorites: vi.fn(),
     _computeMergedGroups: vi.fn(),
@@ -117,7 +118,7 @@ describe('graphView/provider/refresh', () => {
 
 
 
-    it('clearCacheAndRefresh clears analyzer cache before a cache-only reload', async () => {
+    it('clearCacheAndRefresh clears analyzer cache before explicit indexing', async () => {
       const clearCache = vi.fn();
       const source = createSource({
         _analyzer: { clearCache, hasIndex: vi.fn(() => true) },
@@ -133,7 +134,7 @@ describe('graphView/provider/refresh', () => {
       methods.refreshSettings();
 
       expect(clearCache).toHaveBeenCalledOnce();
-      expect(source._loadAndSendData).toHaveBeenCalledOnce();
+      expect(source._refreshAndSendData).toHaveBeenCalledOnce();
       expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
       expect(source._sendSettings).toHaveBeenCalledOnce();
     });
