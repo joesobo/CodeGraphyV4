@@ -18,6 +18,7 @@ const requireFromExtension = createRequire(
   path.join(repoRoot, 'packages', 'extension', 'package.json'),
 );
 const { runTests, runVSCodeCommand } = requireFromExtension('@vscode/test-electron');
+const vscodeVersion = process.env.CODEGRAPHY_VSCODE_TEST_VERSION ?? '1.125.1';
 
 const hostTargetByPlatform = {
   linux: {
@@ -102,9 +103,10 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       '--install-extension',
       vsixPath,
       '--force',
-    ]);
+    ], { version: vscodeVersion });
 
     await runTests({
+      version: vscodeVersion,
       extensionDevelopmentPath: harnessPath,
       extensionTestsPath,
       extensionTestsEnv: {
