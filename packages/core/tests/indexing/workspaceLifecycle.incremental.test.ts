@@ -55,12 +55,12 @@ describe('indexCodeGraphyWorkspace indexing lifecycle', () => {
       reusedFiles: 1,
     });
     expect(gitignoreToggle.indexing).toEqual({
-      mode: 'incremental',
-      analyzedFiles: 0,
+      mode: 'full',
+      analyzedFiles: 2,
       deletedFiles: 0,
-      reusedFiles: 2,
+      reusedFiles: 0,
     });
-    expect(calls.analyzeFile).toHaveBeenCalledTimes(3);
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(5);
   });
 
   it('performs a full rebuild when a previously failed plugin recovers', async () => {

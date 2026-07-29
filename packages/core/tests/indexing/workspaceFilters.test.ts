@@ -264,7 +264,7 @@ describe('indexCodeGraphyWorkspace filters', () => {
 
     expect(
       readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath),
-    ).toContain('.claude/a.txt');
+    ).toEqual(['source.txt', 'target.txt']);
     expect(ignoredAgain.graph.nodes.map(node => node.id)).not.toContain('.claude/a.txt');
   });
 });
