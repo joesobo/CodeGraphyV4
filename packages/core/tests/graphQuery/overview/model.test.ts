@@ -71,8 +71,15 @@ describe('core/graphQuery target overview', () => {
         page: { returned: 1, total: 1, nextOffset: null },
       },
       outgoing: {
-        edges: [{ from: 'src/command.ts', to: 'src/settings.ts', edgeTypes: ['import'] }],
-        page: { returned: 1, total: 1, nextOffset: null },
+        edges: [
+          {
+            from: 'src/command.ts',
+            to: 'src/command.ts#runCommand:function',
+            edgeTypes: ['contains'],
+          },
+          { from: 'src/command.ts', to: 'src/settings.ts', edgeTypes: ['import'] },
+        ],
+        page: { returned: 2, total: 2, nextOffset: null },
       },
       incoming: {
         edges: [{ from: 'tests/command.test.ts', to: 'src/command.ts', edgeTypes: ['import'] }],
@@ -80,6 +87,23 @@ describe('core/graphQuery target overview', () => {
       },
       limits: { declaredSymbols: 25, relationshipsPerDirection: 25 },
     });
+  });
+
+  it('includes containment Relationships unless an Edge projection excludes them', () => {
+    const complete = inspectGraphTarget({ graphData, symbols, relations }, { target: 'src/command.ts' });
+    const importsOnly = inspectGraphTarget(
+      { graphData, symbols, relations },
+      { target: 'src/command.ts', projectedEdgeTypes: ['import'] },
+    );
+
+    expect('outgoing' in complete ? complete.outgoing.edges : []).toEqual(expect.arrayContaining([{
+      from: 'src/command.ts',
+      to: 'src/command.ts#runCommand:function',
+      edgeTypes: ['contains'],
+    }]));
+    expect('outgoing' in importsOnly ? importsOnly.outgoing.edges : []).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ edgeTypes: expect.arrayContaining(['contains']) }),
+    ]));
   });
 
   it('prioritizes callable and type declarations over local constants', () => {

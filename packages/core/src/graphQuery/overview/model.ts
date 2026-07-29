@@ -73,6 +73,24 @@ function listOverviewSymbols(data: GraphQueryData, filePath: string): GraphQuery
   };
 }
 
+function selectOverviewRelationshipData(
+  data: GraphQueryData,
+  targetPath: string,
+  includeContains: boolean,
+  direction: 'incoming' | 'outgoing',
+): GraphQueryData {
+  const endpoint = direction === 'outgoing' ? 'from' : 'to';
+  return {
+    ...data,
+    graphData: {
+      nodes: data.graphData.nodes,
+      edges: data.graphData.edges.filter(edge => (
+        edge.kind !== 'contains' || (includeContains && edge[endpoint] === targetPath)
+      )),
+    },
+  };
+}
+
 export function inspectGraphTarget(
   data: GraphQueryData,
   config: GraphQueryOverviewConfig,
@@ -85,16 +103,10 @@ export function inspectGraphTarget(
     };
   }
 
-  const includeContains = config.projectedEdgeTypes?.includes('contains') ?? false;
-  const relationshipData = {
-    ...data,
-    graphData: {
-      nodes: data.graphData.nodes,
-      edges: includeContains
-        ? data.graphData.edges
-        : data.graphData.edges.filter(edge => edge.kind !== 'contains'),
-    },
-  };
+  const includeContains = config.projectedEdgeTypes === undefined
+    || config.projectedEdgeTypes.includes('contains');
+  const outgoingData = selectOverviewRelationshipData(data, target.path, includeContains, 'outgoing');
+  const incomingData = selectOverviewRelationshipData(data, target.path, includeContains, 'incoming');
   const completeScope = {
     nodes: Object.fromEntries(data.graphData.nodes.map(node => [getNodeType(node), true])),
     edges: Object.fromEntries(data.graphData.edges.map(edge => [edge.kind, true])),
@@ -106,14 +118,14 @@ export function inspectGraphTarget(
     declaredSymbols: target.symbol
       ? listGraphSymbols(data, { filePath: '__symbol-target__', limit: DECLARED_SYMBOL_LIMIT })
       : listOverviewSymbols(data, filePath),
-    outgoing: listGraphEdges(relationshipData.graphData, {
+    outgoing: listGraphEdges(outgoingData.graphData, {
       from: target.path,
       scope: completeScope,
       expandFileSelectors: !target.symbol,
       projectFileEndpoints: !target.symbol && !includeContains,
       limit: RELATIONSHIP_LIMIT,
     }),
-    incoming: listGraphEdges(relationshipData.graphData, {
+    incoming: listGraphEdges(incomingData.graphData, {
       to: target.path,
       scope: completeScope,
       expandFileSelectors: !target.symbol,
