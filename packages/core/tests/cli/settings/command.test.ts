@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { runCli } from '../../../src/cli/run';
+import { requestCodeGraphyIndexWorkspace } from '../../../src/workspace/requestIndexing';
 
 async function createWorkspace(settings: unknown): Promise<string> {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-settings-'));
@@ -62,6 +63,42 @@ describe('cli/settings command', () => {
     const raw = JSON.parse(await fs.readFile(path.join(workspace, '.codegraphy/settings.json'), 'utf8'));
     expect(raw).not.toHaveProperty('maxFiles');
     expect(raw.futureSetting).toBe('preserved');
+  });
+
+  it('requires Indexing when a changed discovery setting invalidates a fresh cache', async () => {
+    const workspace = await createWorkspace({ version: 1, respectGitignore: true });
+    await fs.writeFile(path.join(workspace, 'entry.ts'), 'export const value = 1;\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    const stdout = vi.fn();
+
+    await expect(runCli([
+      '-C', workspace, 'settings', 'set', 'respectGitignore', 'false',
+    ], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: { key: 'respectGitignore', previous: true, value: false, indexRequired: true },
+    });
+  });
+
+  it('does not blame an unrelated stale cache on a query-only setting change', async () => {
+    const workspace = await createWorkspace({ version: 1, filterPatterns: [] });
+    const entryPath = path.join(workspace, 'entry.ts');
+    await fs.writeFile(entryPath, 'export const before = 1;\n');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspace });
+    await fs.writeFile(entryPath, 'export const after = 2;\n');
+    await fs.writeFile(
+      path.join(workspace, '.codegraphy/settings.json'),
+      JSON.stringify({ version: 1, include: ['other/**'], filterPatterns: [] }),
+    );
+    const stdout = vi.fn();
+
+    await expect(runCli([
+      '-C', workspace, 'settings', 'set', 'filterPatterns', '["generated/**"]',
+    ], { stdout })).resolves.toBe(0);
+
+    expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+      data: { key: 'filterPatterns', indexRequired: false },
+    });
   });
 
   it('rejects invalid values and leaves the persisted bytes unchanged', async () => {

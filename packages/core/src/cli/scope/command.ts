@@ -1,13 +1,9 @@
 import { CORE_GRAPH_NODE_TYPES } from '../../graphControls/defaults/definitions';
-import {
-  hasRequiredAnalysisCacheTiers,
-  requiresSymbolAnalysisCacheTier,
-  SYMBOLS_ANALYSIS_CACHE_TIER,
-} from '../../analysis/fileAnalysis';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
 import { CORE_GRAPH_EDGE_TYPES } from '../../graphScope/defaults';
 import { resolveSavedGraphScope } from '../../workspace/graphScopeSettings';
+import { requiresSymbolAnalysisIndex } from '../../workspace/indexRequirement';
 import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
@@ -111,14 +107,11 @@ function createScopeOutput(
   const observedEdgeTypes = new Set<string>(snapshot.relations.map(relation => relation.kind));
   for (const definition of declaredPluginEdgeTypes) observedEdgeTypes.add(definition.id);
   const edgeTypes = [...new Set([...CORE_GRAPH_EDGE_TYPES, ...Object.keys(edgeVisibility), ...observedEdgeTypes])].sort();
-  const requiresSymbols = requiresSymbolAnalysisCacheTier(nodeVisibility);
-  const indexRequired = requiresSymbols && (
-    !status.hasGraphCache
-    || snapshot.files.some(file => !hasRequiredAnalysisCacheTiers(
-      file.analysis,
-      [SYMBOLS_ANALYSIS_CACHE_TIER],
-    ))
-  );
+  const indexRequired = requiresSymbolAnalysisIndex({
+    files: snapshot.files,
+    hasGraphCache: status.hasGraphCache,
+    nodeVisibility,
+  });
   return JSON.stringify({
     complete: selection === undefined,
     nodes: nodeTypes

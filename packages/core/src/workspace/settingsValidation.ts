@@ -74,6 +74,7 @@ function requireStringArray(key: string): ValueValidator {
 }
 
 const WORKSPACE_SETTING_VALIDATORS: Readonly<Record<string, ValueValidator>> = {
+  version: value => value === 1 ? undefined : 'version must be 1',
   include: requireStringArray('include'),
   filterPatterns: requireStringArray('filterPatterns'),
   disabledCustomFilterPatterns: requireStringArray('disabledCustomFilterPatterns'),

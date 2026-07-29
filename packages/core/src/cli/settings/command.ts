@@ -5,7 +5,7 @@ import {
   readCodeGraphyWorkspaceSettingsOrInitial,
   removeCodeGraphyWorkspaceSetting,
 } from '../../workspace/settings';
-import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
+import { workspaceSettingChangeRequiresIndex } from '../../workspace/indexRequirement';
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parseTypes';
 
@@ -40,7 +40,12 @@ export function runSettingsCommand(command: CliCommand): CommandExecutionResult 
     removeCodeGraphyWorkspaceSetting(workspaceRoot, key);
   }
   const updated = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
-  const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
+  const indexRequired = workspaceSettingChangeRequiresIndex({
+    key,
+    previous,
+    settings: updated,
+    workspaceRoot,
+  });
   return {
     exitCode: 0,
     output: JSON.stringify({
@@ -49,8 +54,8 @@ export function runSettingsCommand(command: CliCommand): CommandExecutionResult 
       key,
       previous,
       value: settingValue(updated, key),
-      indexRequired: status.state !== 'fresh',
-      ...(status.state === 'fresh' ? {} : { action: 'Run `codegraphy index` before querying cached AST or Relationships.' }),
+      indexRequired,
+      ...(indexRequired ? { action: 'Run `codegraphy index` before querying cached AST or Relationships.' } : {}),
     }),
   };
 }

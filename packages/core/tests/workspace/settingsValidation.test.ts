@@ -17,6 +17,9 @@ describe('workspace/settingsValidation', () => {
   });
 
   it('rejects malformed known settings', () => {
+    expect(() => validateWorkspaceSettingsRecord({ version: 999, maxFiles: 1000 })).toThrow(
+      'version must be 1',
+    );
     expect(() => validateWorkspaceSettingsRecord({ maxFiles: 0 })).toThrow(
       'maxFiles must be a positive integer',
     );
