@@ -70,7 +70,7 @@ describe('cli/help/command', () => {
   });
 
   it('documents one-off query projections without implying settings changes', () => {
-    for (const command of ['nodes', 'edges', 'dependencies', 'dependents', 'path']) {
+    for (const command of ['nodes', 'search', 'map', 'query', 'edges', 'dependencies', 'dependents', 'path']) {
       const output = createHelpResult([command]).output;
       expect(output).toContain('--filter <glob[,glob...]>');
       expect(output).toContain('--node-type <type[,type...]>');

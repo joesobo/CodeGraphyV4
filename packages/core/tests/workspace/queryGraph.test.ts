@@ -12,17 +12,27 @@ import {
 describe('workspace/queryGraph', () => {
   it('projects independent Filters without mutating the shared query source', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-source-'));
-    await fs.writeFile(path.join(workspaceRoot, 'entry.txt'), 'entry\n');
-    await fs.writeFile(path.join(workspaceRoot, 'model.txt'), 'model\n');
+    await fs.writeFile(
+      path.join(workspaceRoot, 'entry.ts'),
+      "import { modelValue } from './model';\nexport const entryValue = modelValue;\n",
+    );
+    await fs.writeFile(path.join(workspaceRoot, 'model.ts'), 'export const modelValue = 1;\n');
     await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
     const source = readWorkspaceQuerySource(workspaceRoot, { version: 3, plugins: [] });
 
-    const filtered = projectWorkspaceQueryGraph(source, { filterPatterns: ['model.txt'] });
+    const filtered = projectWorkspaceQueryGraph(source, { filterPatterns: ['model.ts'] });
     const complete = projectWorkspaceQueryGraph(source);
 
-    expect(filtered.graphData.nodes.map(node => node.id)).toEqual(['entry.txt']);
-    expect(complete.graphData.nodes.map(node => node.id)).toEqual(['entry.txt', 'model.txt']);
-    expect(source.graphData.nodes.map(node => node.id)).toEqual(['entry.txt', 'model.txt']);
+    expect(filtered.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts']));
+    expect(filtered.graphData.nodes.map(node => node.id)).not.toEqual(expect.arrayContaining([
+      expect.stringContaining('model.ts'),
+    ]));
+    expect(filtered.snapshotFacts.symbols.map(symbol => symbol.filePath)).not.toContain('model.ts');
+    expect(filtered.snapshotFacts.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ toFilePath: 'model.ts' }),
+    ]));
+    expect(complete.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts', 'model.ts']));
+    expect(source.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts', 'model.ts']));
   });
 
   it('skips binary, oversized, unreadable, and outside-workspace source files', async () => {

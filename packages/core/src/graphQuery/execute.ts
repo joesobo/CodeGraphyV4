@@ -1,3 +1,4 @@
+import { getNodeType } from '../visibleGraph/model';
 import type { GraphQueryData } from './data';
 import type {
   GraphQueryConfig,
@@ -35,18 +36,42 @@ type GraphQueryHandlers = {
   overview: GraphQueryHandler<GraphQueryOverviewConfig>;
 };
 
+function deriveScopedQueryData(
+  data: GraphQueryData,
+  config: GraphQueryConfig,
+): GraphQueryData {
+  const graphData = deriveScopedGraphQueryData(data.graphData, config);
+  const nodeIds = new Set(graphData.nodes.map(node => node.id));
+  const filePaths = new Set(
+    graphData.nodes.filter(node => getNodeType(node) === 'file').map(node => node.id),
+  );
+  const sourceFiles = data.sourceText?.files.filter(file => filePaths.has(file.filePath));
+
+  return {
+    ...data,
+    graphData,
+    symbols: data.symbols?.filter(symbol => nodeIds.has(symbol.id)),
+    ...(data.sourceText && sourceFiles
+      ? {
+          sourceText: {
+            ...data.sourceText,
+            files: sourceFiles,
+            filesScanned: sourceFiles.length,
+          },
+        }
+      : {}),
+  };
+}
+
 const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
   nodes: (data, args) => listGraphNodes(data.graphData, args),
   edges: (data, args) => listGraphEdges(data.graphData, args),
   relationships: (data, args) => listGraphRelationships(data, args),
   symbols: (data, args) => listGraphSymbols(data, args),
   paths: (data, args) => findGraphPaths(deriveScopedGraphQueryData(data.graphData, args), args),
-  search: (data, args) => searchGraph(data, args),
-  'task-map': (data, args) => mapGraphTask({
-    ...data,
-    graphData: deriveScopedGraphQueryData(data.graphData, args),
-  }, args),
-  overview: (data, args) => inspectGraphTarget(data, args),
+  search: (data, args) => searchGraph(deriveScopedQueryData(data, args), args),
+  'task-map': (data, args) => mapGraphTask(deriveScopedQueryData(data, args), args),
+  overview: (data, args) => inspectGraphTarget(deriveScopedQueryData(data, args), args),
 };
 
 export function executeGraphQuery(

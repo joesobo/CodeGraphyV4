@@ -166,6 +166,35 @@ describe('core/graphQuery paths report', () => {
     });
   });
 
+  it('stops after an exact File route instead of adding Symbol-expanded routes', () => {
+    const mixedGraph: IGraphData = {
+      nodes: [
+        { id: 'a.ts', label: 'a.ts', nodeType: 'file' },
+        { id: 'middle.ts', label: 'middle.ts', nodeType: 'file' },
+        { id: 'b.ts', label: 'b.ts', nodeType: 'file' },
+        { id: 'a.ts#start:function', label: 'start', nodeType: 'symbol:function', symbol: {
+          id: 'a.ts#start:function', filePath: 'a.ts', name: 'start', kind: 'function',
+        } },
+        { id: 'b.ts#finish:function', label: 'finish', nodeType: 'symbol:function', symbol: {
+          id: 'b.ts#finish:function', filePath: 'b.ts', name: 'finish', kind: 'function',
+        } },
+      ],
+      edges: [
+        { id: 'a-b', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [] },
+        { id: 'start-middle', from: 'a.ts#start:function', to: 'middle.ts', kind: 'call', sources: [] },
+        { id: 'middle-finish', from: 'middle.ts', to: 'b.ts#finish:function', kind: 'call', sources: [] },
+      ],
+    };
+
+    expect(findGraphPaths(mixedGraph, {
+      from: 'a.ts',
+      to: 'b.ts',
+      expandFileSelectors: true,
+      projectFileEndpoints: true,
+      maxPaths: 3,
+    }).paths).toEqual([['a.ts', 'b.ts']]);
+  });
+
   it('keeps collecting raw symbol routes until projected file paths are unique', () => {
     const symbolNode = (id: string, filePath: string) => ({
       id,

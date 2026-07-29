@@ -69,7 +69,7 @@ export interface GraphQueryTaskMapConfig extends GraphQueryConfig {
   query: string;
 }
 
-export interface GraphQueryOverviewConfig {
+export interface GraphQueryOverviewConfig extends GraphQueryConfig {
   target: string;
 }
 

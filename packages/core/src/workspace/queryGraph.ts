@@ -82,6 +82,26 @@ function applyPathFilters(graphData: IGraphData, patterns: readonly string[]): I
   };
 }
 
+function filterSnapshotFactsToGraph(
+  snapshotFacts: ReturnType<typeof normalizeWorkspaceQueryFacts>,
+  graphData: IGraphData,
+) {
+  const allowedFilePaths = new Set(
+    graphData.nodes.filter(node => getNodeType(node) === 'file').map(node => node.id),
+  );
+  const symbols = snapshotFacts.symbols.filter(symbol => allowedFilePaths.has(symbol.filePath));
+  const symbolFilePaths = new Map(snapshotFacts.symbols.map(symbol => [symbol.id, symbol.filePath]));
+  const relations = snapshotFacts.relations.filter((relation) => {
+    if (!allowedFilePaths.has(relation.fromFilePath)) return false;
+    const targetFilePath = relation.toFilePath
+      ?? relation.resolvedPath
+      ?? (relation.toSymbolId ? symbolFilePaths.get(relation.toSymbolId) : undefined);
+    return !targetFilePath || allowedFilePaths.has(targetFilePath);
+  });
+
+  return { symbols, relations };
+}
+
 export function readWorkspaceQuerySource(
   workspaceRoot: string,
   installedPluginCache: CodeGraphyInstalledPluginCache,
@@ -147,7 +167,7 @@ export function projectWorkspaceQueryGraph(
     nodeTypes: source.declarations.nodes,
     scope,
     settings: source.settings,
-    snapshotFacts: source.snapshotFacts,
+    snapshotFacts: filterSnapshotFactsToGraph(source.snapshotFacts, graphData),
   };
 }
 

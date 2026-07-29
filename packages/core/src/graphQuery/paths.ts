@@ -75,6 +75,14 @@ function collectProjectedFilePaths(
   maxDepth: number,
   maxPaths: number,
 ): PathCollection {
+  const exact = collectDirectedPathResult(graphData, config, maxDepth, maxPaths);
+  if (exact.paths.length > 0) {
+    return {
+      paths: exact.paths.map(path => projectPathToFiles(graphData, path)),
+      truncated: exact.truncated,
+    };
+  }
+
   const fromIds = resolveSelectorNodeIds(graphData, config.from, true);
   const toIds = resolveSelectorNodeIds(graphData, config.to, true);
   const rawPathBudget = Math.min(MAX_RAW_PATH_BUDGET, maxPaths * RAW_PATHS_PER_PROJECTED_PATH);

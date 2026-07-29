@@ -135,6 +135,8 @@ const COMMAND_HELP: Record<string, string> = {
     '',
     'Effects: Read-only. Requires an existing Graph Cache and never performs Indexing.',
     'Output: JSON target overview with fixed per-section bounds and page totals.',
+    'Options:',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy query packages/core/src/cli/command.ts',
   ].join('\n'),
   nodes: [
@@ -166,6 +168,7 @@ const COMMAND_HELP: Record<string, string> = {
     'Options:',
     '  --limit <count>   Maximum combined matches to return (default: 20)',
     '  --offset <count>  Zero-based result offset (default: 0)',
+    ...QUERY_PROJECTION_OPTIONS,
     'Example: codegraphy search runIndexCommand',
     "Example: codegraphy search 'Indexing *workspace*'",
   ].join('\n'),
