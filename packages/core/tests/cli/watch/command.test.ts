@@ -78,6 +78,52 @@ describe('CLI watch command', () => {
     ]);
   });
 
+  it('captures shutdown and drains buffered changes during initial synchronization', async () => {
+    const notify = vi.fn();
+    let finishStart!: () => void;
+    let stop!: () => void;
+    let forwardFileEvents!: (events: Array<{ path: string; type: 'update' }>) => void;
+    let markStartEntered!: () => void;
+    let markSubscribed!: () => void;
+    const startGate = new Promise<void>(resolve => { finishStart = resolve; });
+    const stopGate = new Promise<void>(resolve => { stop = resolve; });
+    const startEntered = new Promise<void>(resolve => { markStartEntered = resolve; });
+    const subscribed = new Promise<void>(resolve => { markSubscribed = resolve; });
+
+    const running = runWatchCommand('/workspace', {
+      cwd: () => '/cwd',
+      createUpdater() {
+        return {
+          async start() {
+            markStartEntered();
+            await startGate;
+            return {} as never;
+          },
+          notify,
+          async dispose() {},
+        };
+      },
+      async subscribe(options) {
+        forwardFileEvents = options.onEvents as typeof forwardFileEvents;
+        markSubscribed();
+        return { async dispose() {} };
+      },
+      waitForStop: () => stopGate,
+    });
+    await subscribed;
+    await startEntered;
+
+    forwardFileEvents([{
+      path: '/workspace/.codegraphy/settings.json',
+      type: 'update',
+    }]);
+    stop();
+    finishStart();
+    await running;
+
+    expect(notify).toHaveBeenCalledWith(['/workspace/.codegraphy/settings.json']);
+  });
+
   it('serializes bounded updater and subscription events', async () => {
     const events: Array<Record<string, unknown>> = [];
     const filePaths = Array.from({ length: 21 }, (_, index) => `/workspace/src/${index}.ts`);
