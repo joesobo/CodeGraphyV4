@@ -7,6 +7,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import Database from 'libsql';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   withWorkspaceCacheWriteLock,
@@ -119,6 +120,24 @@ describe('Graph Cache write coordination', () => {
 
     expect(order).toEqual(['first-start', 'first-end', 'second']);
     expect(statSync(`${databasePath}.write-lock.sqlite`).isFile()).toBe(true);
+  });
+
+  it('waits for an external SQLite coordinator transaction', async () => {
+    const databasePath = createDatabasePath();
+    const coordinator = new Database(`${databasePath}.write-lock.sqlite`);
+    coordinator.exec('BEGIN EXCLUSIVE');
+    let entered = false;
+    const contender = withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      entered = true;
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+    expect(entered).toBe(false);
+    coordinator.exec('COMMIT');
+    coordinator.close();
+    await contender;
+
+    expect(entered).toBe(true);
   });
 
   it('serializes contenders after the active writer process terminates', async () => {
