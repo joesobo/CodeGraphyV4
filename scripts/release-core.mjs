@@ -64,11 +64,12 @@ export function collectCoreReleaseBuildFilters(rootManifest, baseDir = repoRoot)
   const filters = ['@codegraphy-dev/extension...'];
 
   for (const entry of collectCoreReleaseEntries(rootManifest)) {
-    if (!/^packages\/[^/]+\/dist$/.test(entry)) {
+    const packageDirectory = entry.match(/^(packages\/[^/]+)(?:\/|$)/)?.[1];
+    if (!packageDirectory) {
       continue;
     }
 
-    const packageManifestPath = path.join(baseDir, path.dirname(entry), 'package.json');
+    const packageManifestPath = path.join(baseDir, packageDirectory, 'package.json');
     if (!existsSync(packageManifestPath)) {
       continue;
     }
