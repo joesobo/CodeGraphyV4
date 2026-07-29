@@ -4,7 +4,6 @@ import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import type { IGraphData } from '../graph/contracts';
 import {
-  saveWorkspaceAnalysisDatabaseCache,
   withWorkspaceAnalysisDatabaseWriter,
 } from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
@@ -115,17 +114,6 @@ function createWorkspaceEngineDatabaseReplacement(runtime: WorkspaceEngineRuntim
     graph: buildCompleteEngineGraph(runtime),
     nodeTypes: runtime.state.registry?.listNodeTypes(disabledPlugins),
   };
-}
-
-export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
-  const replacement = createWorkspaceEngineDatabaseReplacement(runtime);
-  saveWorkspaceAnalysisDatabaseCache(
-    runtime.workspaceRoot,
-    replacement.cache,
-    replacement.graph,
-    replacement.nodeTypes,
-  );
-  persistMetadata(runtime);
 }
 
 export function replaceWorkspaceEngineCache(
