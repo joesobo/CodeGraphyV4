@@ -33,6 +33,6 @@ The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language and
 ## Documentation Policy
 
 - Describe current behavior and important constraints in the closest product, package, or developer reference.
-- Keep implementation plans, investigation notes, decisions, and handoffs in the task, Trello card, or PR. Do not commit plan documents or a separate decision archive.
+- Keep implementation plans, investigation notes, and handoffs in the task, Trello card, or PR. Do not commit plan documents.
 - Use package changelogs for shipped release history.
 - Remove superseded guidance instead of labeling it historical and leaving it in the main navigation.

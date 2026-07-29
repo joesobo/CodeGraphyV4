@@ -51,7 +51,7 @@ Settings reads and mutations validate known fields and preserve unknown fields. 
 
 ## Keep the cache current
 
-`codegraphy watch` is an optional foreground process for long-running terminal sessions. It synchronizes first, then batches create, update, delete, rename, Git ignore, and settings events into serialized updates. It skips cache artifacts and active Filter matches, coordinates simultaneous writers, retains changes that arrive during active work, and flushes pending work on shutdown. The VS Code Extension does not start this process.
+`codegraphy watch` is an optional foreground process for long-running terminal sessions. It synchronizes first, then batches create, update, delete, rename, Git ignore, and settings events into serialized updates. It skips cache artifacts and active Filter matches, coordinates simultaneous writers, retains changes that arrive during active work, and flushes pending work on shutdown. Full and incremental updates verify discovery and source inputs under writer ownership before replacing cached facts; a corrupt cache encountered during an incremental update is rebuilt completely under the same ownership. The VS Code Extension does not start this process.
 
 ## Output contract
 
@@ -76,7 +76,7 @@ Run `codegraphy --help` for the command list and `codegraphy <command> --help` f
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Workspace status: report fresh, stale, or missing Graph Cache state with inspectable stale reasons.
 - Graph Cache storage: load, save, clear, and inspect normalized File, Node, Symbol, and Edge rows in the SQLite-backed Graph Cache at `<workspace-root>/.codegraphy/graph.sqlite`.
-- Workspace Search: merge bounded exact evidence with deterministic all-term File fallback candidates for natural multi-term phrases.
+- Workspace Search: merge bounded exact evidence with deterministic all-term File fallback candidates for natural multi-term phrases, limiting source extraction to 1 MiB per file and streaming freshness hashes for oversized files.
 - Task Map: rank task-relevant Files from live terms and cached Relationships, with selected declarations and typed connections.
 - Target Query: inspect one exact File or Symbol with prioritized declarations and bounded Relationships.
 - Graph Query: list scoped Nodes and Edges, then use complete cached types by default for exact targeted relationships and bounded paths unless an invocation explicitly projects Node or Edge Types.
