@@ -346,4 +346,3 @@ export const PLUGINS_HELP = [
   '',
   'Run `codegraphy plugins <command> --help` for details.',
 ].join('\n');
-
