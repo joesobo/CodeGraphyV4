@@ -1,9 +1,9 @@
-import { parseFilterCommand, parseScopeCommand } from './parseGraphControls';
 import { isHelpCommandName } from './parseHelp';
-import { isPluginCommand, parsePluginsCommand } from './parsePlugins';
-import { isGraphQueryReport, parseQueryCommand } from './parseQuery';
-import { parseWorkspaceCommand } from './parseWorkspace';
-import { parseSettingsCommand } from './parseSettings';
+import { isPluginCommand } from './parsePlugins';
+import {
+  isRegisteredCommandName,
+  parseRegisteredCommand,
+} from './registry';
 import type { CliCommand } from './parseTypes';
 
 export type {
@@ -70,19 +70,6 @@ function nestedHelpPath(name: string, rest: string[]): string[] | undefined {
   return [name];
 }
 
-function isKnownCommandName(name: string): boolean {
-  return name === 'doctor'
-    || name === 'filter'
-    || name === 'index'
-    || name === 'plugins'
-    || name === 'scope'
-    || name === 'settings'
-    || name === 'status'
-    || name === 'watch'
-    || name === 'query'
-    || isGraphQueryReport(name);
-}
-
 function parseArgumentFreeCommand(name: 'version', args: string[]): CliCommand {
   const [extra] = args;
   return extra ? { name, parseError: `Unexpected argument for ${name}: ${extra}` } : { name };
@@ -91,7 +78,7 @@ function parseArgumentFreeCommand(name: 'version', args: string[]): CliCommand {
 function parseHelp(rest: string[]): CliCommand {
   const [topic, action, extra] = rest;
   if (!topic) return { name: 'help' };
-  if (!isKnownCommandName(topic)) return { name: 'help', parseError: `Unknown help topic: ${topic}` };
+  if (!isRegisteredCommandName(topic)) return { name: 'help', parseError: `Unknown help topic: ${topic}` };
   if (topic === 'plugins' && action && !isPluginCommand(action)) {
     return { name: 'help', parseError: `Unknown plugin help topic: ${action}` };
   }
@@ -113,35 +100,13 @@ export function parseCliCommand(argv: string[]): CliCommand {
   }
 
   const helpPath = name ? nestedHelpPath(name, rest) : undefined;
-  if (helpPath && name && isKnownCommandName(name)) {
+  if (helpPath && name && isRegisteredCommandName(name)) {
     return withGlobalFlags({ name: 'help', helpPath }, flags);
   }
 
-  let command: CliCommand;
-  switch (name) {
-    case 'doctor':
-    case 'index':
-    case 'status':
-    case 'watch':
-      command = parseWorkspaceCommand(name, rest);
-      break;
-    case 'scope':
-      command = parseScopeCommand(rest);
-      break;
-    case 'settings':
-      command = parseSettingsCommand(rest);
-      break;
-    case 'filter':
-      command = parseFilterCommand(rest);
-      break;
-    case 'plugins':
-      command = parsePluginsCommand(rest);
-      break;
-    default:
-      command = isGraphQueryReport(name)
-        ? parseQueryCommand([name, ...rest])
-        : { name: 'help', invokedCommand: name, parseError: `Unknown command: ${name}` };
-  }
-
-  return withGlobalFlags(command, flags);
+  const command = name ? parseRegisteredCommand(name, rest) : undefined;
+  return withGlobalFlags(
+    command ?? { name: 'help', invokedCommand: name, parseError: `Unknown command: ${name}` },
+    flags,
+  );
 }

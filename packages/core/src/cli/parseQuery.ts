@@ -1,7 +1,7 @@
 import type { GraphQueryReport, WorkspaceGraphQueryProjection } from '../workspace/requestTypes';
 import type { CliCommand } from './parseTypes';
 
-const QUERY_COMMANDS = new Set([
+export const GRAPH_QUERY_COMMAND_NAMES = [
   'dependencies',
   'dependents',
   'edges',
@@ -10,7 +10,9 @@ const QUERY_COMMANDS = new Set([
   'path',
   'query',
   'search',
-]);
+] as const;
+
+const QUERY_COMMANDS = new Set<string>(GRAPH_QUERY_COMMAND_NAMES);
 
 const DEFAULT_LIMIT = 100;
 const DEFAULT_SEARCH_LIMIT = 20;
