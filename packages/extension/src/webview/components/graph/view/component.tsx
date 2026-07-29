@@ -4,7 +4,7 @@
  * @module webview/components/Graph
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
@@ -81,7 +81,10 @@ export default function Graph({
     showLabels: viewState.showLabels,
     theme,
   });
-  const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
+  const graphDataLayoutKey = useMemo(
+    () => buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode),
+    [graphRuntime.renderer.graphData, viewState.nodeSizeMode],
+  );
   const isMacPlatform = detectMacPlatform(globalThis.navigator);
 
   const interactions = useGraphInteractionRuntime({

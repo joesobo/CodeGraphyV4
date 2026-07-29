@@ -1,54 +1,39 @@
 # Graph Cache Lifecycle
 
-The Graph View should prefer a readable **Graph Cache** over a blank loading screen. A stale cache is still useful: it means the cached graph needs **Graph Cache Sync**, not that the graph should be hidden.
+The VS Code extension changes workspace source facts only after an explicit **Index Workspace** or **Re-index Workspace** action. This keeps repository analysis off the shared extension host until the user requests it.
 
 ## Startup
 
-`Loading graph...` is a webview-page startup state only. It is allowed while the extension has not yet delivered the first graph payload for that page.
+Opening the Graph View reads the last **Graph Cache** without analyzing source files, initializing source-processing plugins, querying current Git state, or synchronizing stale inputs.
 
 ```mermaid
 flowchart TD
-  A["Webview page opens"] --> B["Startup shell shows Loading graph..."]
-  B --> C{"Readable Graph Cache exists?"}
-  C -->|"yes"| D["Render cached Relationship Graph"]
-  C -->|"no"| E["Run initial Indexing"]
-  E --> D
-  D --> F["Initial loading is finished"]
+  A["Graph View opens"] --> B{"Readable Graph Cache exists?"}
+  B -->|"yes"| C["Render cached Relationship Graph"]
+  B -->|"no"| D["Render the unindexed workspace state"]
+  C --> E["Wait for an explicit Re-index Workspace action"]
+  D --> F["Wait for an explicit Index Workspace action"]
+  E --> G["Run Indexing and replace the graph"]
+  F --> G
 ```
 
-Once `Initial loading is finished`, the shell should not return to `Loading graph...` for that page. Later graph work belongs in graph-local progress UI while the current graph remains rendered.
+A stale Graph Cache remains visible and useful. Freshness can tell the user that cached facts differ from the workspace, but it does not authorize background Indexing.
 
-## Graph Cache Sync
+## Workspace changes
 
-**Graph Cache Sync** is the background catch-up pass after a readable cached graph has already been shown. It checks the current runtime inputs against the saved Graph Cache, then updates the cache and the **Visible Graph** when new data is ready.
+Saving, creating, changing, deleting, or renaming files does not process source files or alter the cached Relationship Graph. Settings and display actions may re-project already indexed facts; they must not analyze changed source files.
 
-Inputs that can require sync include:
+Users choose **Re-index Workspace** when they want the Extension to rediscover files, run built-in and Extension-host plugin analysis, project the complete Relationship Graph, and replace the Graph Cache.
 
-- enabled plugin packages changing
-- plugin signatures or available plugin ids changing
-- settings signatures changing
-- Graph Cache schema metadata changing
-- pending changed files from workspace file events
-
-Sync should be incremental whenever the changed scope is known. Plugin enablement should reprocess plugin-owned files. File saves, creates, renames, and deletes should update the affected file paths. Full Indexing is the fallback for no cache, unreadable cache, incompatible cache, or explicit user re-index.
-
-After the first Graph Cache exists, the Extension's workspace watchers remain cache-active while the Graph View is closed. They do not implicitly perform a workspace's first Index; that first full Index naturally subsumes earlier workspace events. Closed-view event batches are serialized through the Extension's long-lived Workspace Pipeline so Extension-host plugins, the visible graph, and the complete persisted graph retain one analysis owner. The Extension awaits queued persistence before the Graph View's visible refresh resumes and drains it during teardown. It does not construct a second default Core plugin host. Operation-scoped Graph Cache write coordination also prevents an independent CLI watcher from racing the Extension's SQLite persistence.
-
-## Plugin Changes
-
-Package plugin enablement updates workspace settings, reloads workspace plugins, sends the refreshed plugin/control state, then reprocesses files owned by the enabled plugin. This lets the plugin add its nodes, relationships, edge types, decorations, filters, or webview contributions without blocking the whole **Graph View**.
-
-Package plugin disablement updates workspace settings and reloads workspace plugins, but it does not delete plugin-owned data from the Graph Cache. The **Visible Graph** filters disabled or unregistered plugin contributions out at projection time. Keeping the data lets re-enabling the plugin reuse cached work.
-
-Late external plugin registration follows the same rule: initialize the plugin, replay readiness when needed, then reprocess plugin-owned files. It must not clear the Graph Cache.
+The separate foreground `codegraphy watch` command belongs to the Core CLI. It can maintain the same workspace cache during an explicit terminal session, but the Extension does not launch or own that process.
 
 ## Progress UI
 
-The whole-view loading state is only for the first render. After that:
+The whole-view loading state is only for the first graph payload. During an explicit Index or Re-index Workspace action:
 
-- **Graph Cache Sync** may show graph-local progress.
-- **Live Updates** may show graph-local progress.
-- **Re-index Workspace** may show graph-local progress.
-- Keep the current **Visible Graph**, tool rail, search, panels, and plugin list usable. Disable a specific command only while its work is active.
+- keep the current graph visible when one exists;
+- show graph-local Indexing progress;
+- disable only actions that cannot run safely during Indexing;
+- replace the graph payload when the new data is ready.
 
-During a refresh or plugin toggle, users can continue to use the cached graph while CodeGraphy updates it in the background. CodeGraphy replaces the graph payload when the new data is ready.
+See [ADR 0006](../../../docs/adr/0006-vscode-indexing-requires-explicit-user-action.md) for the decision and its performance rationale.

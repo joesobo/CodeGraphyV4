@@ -190,7 +190,6 @@ describe('graphView/provider/runtime', () => {
     expect(typeof context.subscriptions[0]?.dispose).toBe('function');
 
     context.subscriptions[0]?.dispose();
-    await provider.dispose();
 
     expect(disposeSpy).toHaveBeenCalledOnce();
   });

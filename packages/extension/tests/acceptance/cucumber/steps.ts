@@ -16,6 +16,7 @@ Step("the workspace has no Graph Cache");
 Step("the workspace still has no Graph Cache");
 Step("I see folder nodes and Nests containment edges before indexing");
 Step("I index the workspace");
+Step("I re-index the workspace");
 Step("I have indexed the workspace");
 Step("I see indexing progress");
 Step("I see indexing progress disappear");

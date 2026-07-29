@@ -26,7 +26,6 @@ export async function applySettingsToggleMessage(
         },
       );
       await handlers.updateConfig('plugins', plan.plugins);
-      await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
       if (message.payload.enabled) {
         replaySavedPluginData(message.payload.pluginId, handlers);
         handlers.sendPluginWebviewInjections?.();
@@ -59,8 +58,7 @@ async function applyPluginToggleGraphWorkPlan(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<void> {
   await applyPluginGraphWorkPlan(plan, pluginId, {
-    analyzeAndSendData: () => handlers.analyzeAndSendData(),
-    reprocessPluginFiles: pluginIds => handlers.reprocessPluginFiles(pluginIds),
+    reloadCachedGraph: () => handlers.reloadCachedGraph(),
     smartRebuild: id => handlers.smartRebuild(id),
   });
 }

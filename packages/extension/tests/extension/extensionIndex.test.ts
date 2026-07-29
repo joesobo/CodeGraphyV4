@@ -72,18 +72,6 @@ describe('extension activate API', () => {
     expect(vscode.window.onDidChangeActiveTextEditor).toHaveBeenCalled();
   });
 
-  it('registers save document listener', () => {
-    activate(mockContext as never);
-
-    expect(vscode.workspace.onDidSaveTextDocument).toHaveBeenCalled();
-  });
-
-  it('creates a file system watcher', () => {
-    activate(mockContext as never);
-
-    expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/*');
-  });
-
   it('registers multiple commands', () => {
     activate(mockContext as never);
 
@@ -102,7 +90,11 @@ describe('extension deactivate', () => {
     expect(typeof deactivate).toBe('function');
   });
 
-  it('resolves after cleanup', async () => {
-    await expect(deactivate()).resolves.toBeUndefined();
+  it('does not throw when called', () => {
+    expect(() => deactivate()).not.toThrow();
+  });
+
+  it('returns undefined', () => {
+    expect(deactivate()).toBeUndefined();
   });
 });

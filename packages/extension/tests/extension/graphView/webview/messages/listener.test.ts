@@ -61,7 +61,7 @@ describe('graph view webview message listener', () => {
     });
 
     expect(context.setFilterPatterns).toHaveBeenCalledWith(['dist/**']);
-    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(context.reloadCachedGraph).not.toHaveBeenCalled();
     expect(context.setUserGroups).not.toHaveBeenCalled();
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
   });
@@ -82,7 +82,7 @@ describe('graph view webview message listener', () => {
       payload: { showOrphans: false },
     });
 
-    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(context.reloadCachedGraph).not.toHaveBeenCalled();
     expect(context.setFilterPatterns).not.toHaveBeenCalled();
   });
 

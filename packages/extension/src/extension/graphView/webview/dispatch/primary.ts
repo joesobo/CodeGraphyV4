@@ -39,10 +39,8 @@ export interface GraphViewPrimaryMessageContext {
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
   indexAndSendData(): Promise<void>;
-  analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
   hydrateGraphScope(): Promise<boolean>;
-  refreshAnalysisScope(): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
@@ -81,13 +79,10 @@ export interface GraphViewPrimaryMessageContext {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginUpdateImpact?(pluginId: string): IPluginUpdateImpactPolicy | undefined;
-  reloadWorkspacePlugins(): Promise<void>;
-  syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendGraphControls(): void;
-  reprocessGraphScope(): Promise<void>;
-  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
+  reloadCachedGraph(): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];
   sendMessage(message: unknown): void;

@@ -59,7 +59,7 @@ describe('GraphViewProvider error handling', () => {
       },
     };
 
-    await internals._analysisMethods._analyzeAndSendData();
+    await internals._analysisMethods._indexAndSendData();
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', expect.any(Error));
     expect((provider as unknown as { _analysisController?: AbortController })._analysisController).toBeUndefined();
@@ -113,7 +113,7 @@ describe('GraphViewProvider error handling', () => {
       .spyOn(internals._analysisMethods, '_markWorkspaceReady')
       .mockImplementation(() => {});
 
-    await internals._analysisMethods._doAnalyzeAndSendData(new AbortController().signal, 1);
+    await internals._analysisMethods._doLoadAndSendData(new AbortController().signal, 1);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', expect.any(Error));
     expect((provider as unknown as { _graphData: IGraphData })._graphData).toEqual({ nodes: [], edges: [] });

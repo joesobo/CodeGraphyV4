@@ -10,10 +10,9 @@ describe('graph view plugin graph work scheduler', () => {
 
   it('coalesces plugin-file refresh bursts into one debounced latest-state job', async () => {
     vi.useFakeTimers();
-    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const reloadCachedGraph = vi.fn(() => Promise.resolve());
     const scheduler = createPluginGraphWorkScheduler({
-      analyzeAndSendData: vi.fn(() => Promise.resolve()),
-      reprocessPluginFiles,
+      reloadCachedGraph,
       smartRebuild: vi.fn(),
     }, { delayMs: 50 });
 
@@ -24,28 +23,21 @@ describe('graph view plugin graph work scheduler', () => {
       });
     }
 
-    expect(reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(reloadCachedGraph).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(49);
-    expect(reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(reloadCachedGraph).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(1);
 
-    expect(reprocessPluginFiles).toHaveBeenCalledOnce();
-    expect(reprocessPluginFiles).toHaveBeenCalledWith([
-      'plugin-0',
-      'plugin-1',
-      'plugin-2',
-    ]);
+    expect(reloadCachedGraph).toHaveBeenCalledOnce();
   });
 
-  it('lets full workspace analysis supersede queued plugin-file refresh work', async () => {
+  it('coalesces mixed source-processing plans into one cached graph reload', async () => {
     vi.useFakeTimers();
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
-    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const reloadCachedGraph = vi.fn(() => Promise.resolve());
     const scheduler = createPluginGraphWorkScheduler({
-      analyzeAndSendData,
-      reprocessPluginFiles,
+      reloadCachedGraph,
       smartRebuild: vi.fn(),
     }, { delayMs: 50 });
 
@@ -54,8 +46,7 @@ describe('graph view plugin graph work scheduler', () => {
 
     await vi.advanceTimersByTimeAsync(50);
 
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(reloadCachedGraph).toHaveBeenCalledOnce();
   });
 
   it('reports a rejected scheduled refresh without leaving an unhandled promise', async () => {
@@ -63,8 +54,7 @@ describe('graph view plugin graph work scheduler', () => {
     const error = new Error('refresh failed');
     const logError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const scheduler = createPluginGraphWorkScheduler({
-      analyzeAndSendData: vi.fn(() => Promise.reject(error)),
-      reprocessPluginFiles: vi.fn(() => Promise.resolve()),
+      reloadCachedGraph: vi.fn(() => Promise.reject(error)),
       smartRebuild: vi.fn(),
     }, { delayMs: 50 });
 

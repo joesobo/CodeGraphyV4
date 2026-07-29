@@ -90,14 +90,16 @@ Interaction rules:
 | **Plugin Analysis** | Enabled plugins adding project or ecosystem-specific facts. |
 | **Graph Projection** | Turn discovered files and analysis facts into graph Nodes and Edges. |
 | **Graph Cache** | Workspace-local SQLite data at `.codegraphy/graph.sqlite`. |
-| **Live Update** | Debounce workspace events into serialized Graph Cache patches, retaining changes that arrive while Indexing is active. |
-| **Graph Cache Sync** | Show readable cached data first, then update stale inputs in the background. |
+| **Cached Graph Load** | Read and show the last explicitly indexed Relationship Graph without processing workspace source files. |
+| **Live Cache Watch** | An explicit foreground CLI workflow that keeps the Graph Cache current until the process stops. |
 | **Refresh Graph** | Restart layout physics without processing source data. |
 | **Re-index Workspace** | Run Indexing, save the Graph Cache, and refresh the graph. |
 
 Indexing runs File Discovery, Tree-sitter Analysis, Plugin Analysis, and Graph Projection. JavaScript-family reexports are explicit Relationships; renamed exports are Alias Symbol Nodes, so calls can resolve through barrels to implementation Symbols across full and incremental Indexing. The Graph Cache stores unscoped analysis facts so Graph Scope can hide data without deleting it. Active Filters and Git ignored state exclude files from fresh analysis and the file budget; facts cached while those files were eligible remain reusable but stay out of the current graph. Expensive facts such as Symbol or plugin-owned tiers can load when their scope needs them and remain cached for reuse.
 
-The Graph View can use a whole-view loading state before its first graph payload. Graph Cache Sync, Live Update, plugin changes, and Re-index keep the current graph visible after that first render and use graph-local progress. After the first Graph Cache exists, the Extension continues feeding workspace events into its plugin-aware Workspace Pipeline while the Graph View is closed; it does not implicitly perform the workspace's first Index; that first full Index naturally subsumes earlier workspace events. The foreground CLI watcher uses Parcel events and the Core-owned updater, batches changes for 500 ms with a two-second maximum batch age, preserves arrivals during active work, skips cache artifacts and paths excluded by active Filters, and flushes pending changes during shutdown. Graph Cache writers coordinate through an operation-scoped cross-process lock with terminated-owner recovery; no long-lived watcher ownership or heartbeat is required.
+The VS Code extension runs Indexing only after an explicit Index or Re-index Workspace action. Saving, creating, deleting, or renaming a workspace file does not process source files or change the cached Relationship Graph. Opening the Graph View reads the last Graph Cache without warming analysis or updating stale inputs in the background. The Graph View keeps the current graph visible during an explicit Re-index and uses graph-local progress.
+
+The separate `codegraphy watch` CLI command is an explicit foreground workflow for sessions that need a continuously current Graph Cache. It subscribes before initial synchronization, batches workspace changes for 500 ms with a two-second maximum batch age, preserves arrivals during active work, skips cache artifacts and paths excluded by active Filters, and flushes pending changes during shutdown. Graph Cache writers coordinate through an operation-scoped cross-process lock with terminated-owner recovery; no long-lived watcher ownership or heartbeat is required.
 
 ## Interfaces and Ownership
 

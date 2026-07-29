@@ -17,7 +17,7 @@ describe('graph view provider listener settings context controls', () => {
     } as never);
 
     const sendGraphControls = vi.fn();
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const reloadCachedGraph = vi.fn(() => Promise.resolve());
 
     const context = createGraphViewProviderMessageSettingsContext(
       {
@@ -34,7 +34,7 @@ describe('graph view provider listener settings context controls', () => {
         _sendGraphControls: sendGraphControls,
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: analyzeAndSendData,
+        _loadAndSendData: reloadCachedGraph,
       } as never,
       {
         workspace: {
@@ -50,10 +50,10 @@ describe('graph view provider listener settings context controls', () => {
     );
 
     context.sendGraphControls();
-    await context.analyzeAndSendData();
+    await context.reloadCachedGraph();
 
     expect(sendGraphControls).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reloadCachedGraph).toHaveBeenCalledOnce();
     expect(context.getDepthMode()).toBe('focused');
     expect(context.getNodeSizeMode()).toBe('files');
 
@@ -71,7 +71,7 @@ describe('graph view provider listener settings context controls', () => {
         })),
         _sendMessage: vi.fn(),
         _sendAllSettings: vi.fn(),
-        _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+        _loadAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
       {
         workspace: {

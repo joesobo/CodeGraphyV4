@@ -35,7 +35,7 @@ test('the CodeGraphy skill explains the tool without prescribing an agent workfl
     'stdout',
     'stale',
     'JSON Lines',
-    'Graph View is closed',
+    'explicit Index or Re-index Workspace',
   ]) {
     assert.match(skill, new RegExp(concept, 'i'));
   }

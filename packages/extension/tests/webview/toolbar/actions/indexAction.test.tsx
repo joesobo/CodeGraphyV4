@@ -40,9 +40,9 @@ describe('webview/toolbar/IndexAction', () => {
     buttonProps.length = 0;
     createRefreshConfig.mockImplementation((graphHasIndex: boolean, freshness: 'fresh' | 'stale' | 'missing') => (
       freshness === 'stale'
-        ? { phase: 'Refreshing Index', title: 'Reindex Workspace', type: 'REFRESH_GRAPH' }
+        ? { phase: 'Refreshing Index', title: 'Re-index Workspace', type: 'REFRESH_GRAPH' }
         : graphHasIndex
-        ? { phase: 'Refreshing Index', title: 'Refresh', type: 'REFRESH_GRAPH' }
+        ? { phase: 'Refreshing Index', title: 'Re-index Workspace', type: 'REFRESH_GRAPH' }
         : { phase: 'Indexing Workspace', title: 'Index Workspace', type: 'INDEX_GRAPH' }
     ));
   });
@@ -58,7 +58,7 @@ describe('webview/toolbar/IndexAction', () => {
     );
 
     expect(createRefreshConfig).toHaveBeenCalledWith(true, 'fresh');
-    expect(screen.getByTitle('Refresh')).toBeDisabled();
+    expect(screen.getByTitle('Re-index Workspace')).toBeDisabled();
   });
 
   it('requests a graph index with the current graphHasIndex flag when clicked', () => {

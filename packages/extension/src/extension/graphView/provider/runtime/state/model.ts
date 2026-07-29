@@ -28,43 +28,12 @@ import {
 } from '../../runtimeDefaults';
 import { defineGraphViewProviderMethodAccessors } from '../methodAccessors';
 import {
-  getWorkspaceRoot,
   initializeRuntimeStateServices,
   restorePersistedRuntimeState,
 } from './bootstrap';
 import { createGraphViewProviderRuntimeDataState } from './data';
 import { createGraphViewProviderRuntimeFlagState } from './flags';
-import {
-  invalidatePluginFiles,
-  invalidateWorkspaceFiles,
-  mergePendingWorkspaceRefresh,
-} from './refresh';
 import { isGraphViewVisible } from './visibility';
-import {
-  createExtensionWorkspaceCacheUpdater,
-  hasWorkspaceGraphCache,
-  type ExtensionWorkspaceCacheUpdater,
-} from '../../../../workspaceFiles/cache/model';
-import { isCodeGraphyWorkspaceSettingsPath } from '../../../../workspaceFiles/ignore';
-import {
-  loadPersistedWorkspaceRefresh,
-  persistPendingWorkspaceRefresh,
-  type PendingWorkspaceRefreshState,
-} from '../workspaceRefreshPersistence';
-
-type PersistedWorkspaceCacheUpdateKind = 'files' | 'gitignore' | 'settings';
-
-function classifyPersistedWorkspaceCacheUpdate(
-  filePaths: readonly string[],
-): PersistedWorkspaceCacheUpdateKind {
-  const normalizedPaths = filePaths.map(filePath => filePath.replace(/\\/g, '/'));
-  if (normalizedPaths.some(isCodeGraphyWorkspaceSettingsPath)) {
-    return 'settings';
-  }
-  return normalizedPaths.some(filePath => filePath.endsWith('/.gitignore'))
-    ? 'gitignore'
-    : 'files';
-}
 
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
@@ -75,8 +44,6 @@ export class GraphViewProviderRuntime {
   protected _analyzerInitPromise?: Promise<void>;
   protected _analysisController?: AbortController;
   protected _analysisRequestId!: number;
-  protected _changedFilePaths!: string[];
-  private readonly _graphCacheWarmPromise: Promise<void>;
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode!: boolean;
   protected _nodeSizeMode!: NodeSizeMode;
@@ -93,13 +60,10 @@ export class GraphViewProviderRuntime {
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
   protected _webviewReadyNotified!: boolean;
   protected _indexingController?: AbortController;
-  protected _pendingWorkspaceRefresh?: PendingWorkspaceRefreshState;
   protected readonly _pluginExtensionUris = createPluginExtensionUris();
   protected _installedPluginActivationPromise!: Promise<void>;
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
-  private readonly _workspaceCacheUpdater: ExtensionWorkspaceCacheUpdater;
-  private _disposePromise: Promise<void> | undefined;
 
   declare protected readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   declare protected readonly _commandMethods: GraphViewProviderMethodContainers['command'];
@@ -128,19 +92,19 @@ export class GraphViewProviderRuntime {
     Object.assign(this, createGraphViewProviderRuntimeFlagState());
 
     this._analyzer = new WorkspacePipeline(_context);
-    this._graphCacheWarmPromise = this._analyzer.warmGraphCache().catch(error => {
-      console.warn('[CodeGraphy] Failed to warm repo-local Graph Cache.', error);
-    });
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
-    this._workspaceCacheUpdater = createExtensionWorkspaceCacheUpdater({
-      updateWorkspaceCache: (workspaceRoot, filePaths) => (
-        this._updatePersistedWorkspaceCache(workspaceRoot, filePaths)
-      ),
-    });
     this._context.subscriptions.push({
-      dispose: () => { void this.dispose(); },
+      dispose: () => {
+        this._analysisController?.abort();
+        this._indexingController?.abort();
+        try {
+          this._analyzer?.dispose();
+        } finally {
+          this._extensionMessageEmitter.dispose();
+        }
+      },
     });
 
     this.initializeCoreServices();
@@ -164,154 +128,12 @@ export class GraphViewProviderRuntime {
     return this._viewRegistry;
   }
 
-  public dispose(): Promise<void> {
-    this._disposePromise ??= (async () => {
-      this._analysisController?.abort();
-      this._indexingController?.abort();
-      await this._workspaceCacheUpdater.dispose();
-      this._analyzer?.dispose();
-      this._extensionMessageEmitter.dispose();
-    })();
-    return this._disposePromise;
-  }
-
   public setInstalledPluginActivationPromise(promise: Promise<void>): void {
     this._installedPluginActivationPromise = promise;
   }
 
   public isGraphOpen(): boolean {
     return isGraphViewVisible(this._view, this._panels);
-  }
-
-  public hasPersistedWorkspaceCache(): boolean {
-    const workspaceRoot = this._getWorkspaceRoot();
-    return Boolean(workspaceRoot && hasWorkspaceGraphCache(workspaceRoot));
-  }
-
-  public async refreshPersistedWorkspaceCache(filePaths: readonly string[]): Promise<boolean> {
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot) return false;
-    return this._workspaceCacheUpdater.update(workspaceRoot, filePaths);
-  }
-
-  private async _updatePersistedWorkspaceCache(
-    workspaceRoot: string,
-    filePaths: readonly string[],
-  ): Promise<void> {
-    await Promise.all([
-      this._graphCacheWarmPromise,
-      this._installedPluginActivationPromise,
-    ]);
-    if (workspaceRoot !== this._getWorkspaceRoot()) return;
-    const updateKind = classifyPersistedWorkspaceCacheUpdate(filePaths);
-    if (this._view || this._panels.length > 0) {
-      await this._updateResolvedGraphViewCache(updateKind, filePaths);
-      return;
-    }
-    await this._updateHeadlessGraphViewCache(updateKind, filePaths);
-  }
-
-  private async _updateResolvedGraphViewCache(
-    updateKind: PersistedWorkspaceCacheUpdateKind,
-    filePaths: readonly string[],
-  ): Promise<void> {
-    if (updateKind === 'settings') {
-      this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
-      await this._methodContainers.refresh.refreshIndex();
-      return;
-    }
-    if (updateKind === 'gitignore') {
-      await this._methodContainers.refresh.refreshGitignoreMetadata();
-      return;
-    }
-    await this._methodContainers.refresh.refreshChangedFiles(filePaths);
-  }
-
-  private async _updateHeadlessGraphViewCache(
-    updateKind: PersistedWorkspaceCacheUpdateKind,
-    filePaths: readonly string[],
-  ): Promise<void> {
-    const analyzer = this._analyzer;
-    if (!analyzer) return;
-    if (updateKind === 'settings') {
-      this._methodContainers.settingsState._loadDisabledRulesAndPlugins();
-      await analyzer.refreshIndex(this._filterPatterns, this._disabledPlugins);
-      return;
-    }
-    if (updateKind === 'gitignore') {
-      await analyzer.refreshGitignoreMetadata(this._filterPatterns, this._disabledPlugins);
-      return;
-    }
-    await analyzer.refreshChangedFiles(filePaths, this._filterPatterns, this._disabledPlugins);
-  }
-
-  public releasePersistedWorkspaceCacheUpdater(): Promise<void> {
-    return this._workspaceCacheUpdater.release();
-  }
-
-  public invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
-    return invalidateWorkspaceFiles(this._analyzer, filePaths);
-  }
-
-  public invalidatePluginFiles(pluginIds: readonly string[]): string[] {
-    return invalidatePluginFiles(this._analyzer, pluginIds);
-  }
-
-  public markWorkspaceRefreshPending(
-    logMessage: string,
-    filePaths: readonly string[] = [],
-    options: { gitignoreRefresh?: boolean } = {},
-  ): void {
-    this._pendingWorkspaceRefresh = mergePendingWorkspaceRefresh(
-      this._pendingWorkspaceRefresh,
-      logMessage,
-      filePaths,
-      options,
-    );
-    persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), [
-      ...this._pendingWorkspaceRefresh.filePaths,
-    ]);
-  }
-
-  public flushPendingWorkspaceRefresh(): void {
-    if (!this.isGraphOpen()) {
-      return;
-    }
-
-    const pending = this._pendingWorkspaceRefresh ?? this._loadPersistedWorkspaceRefresh();
-    if (!pending) {
-      return;
-    }
-
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot || !hasWorkspaceGraphCache(workspaceRoot)) {
-      this._pendingWorkspaceRefresh = undefined;
-      persistPendingWorkspaceRefresh(workspaceRoot, []);
-      return;
-    }
-
-    this._pendingWorkspaceRefresh = undefined;
-    persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), []);
-    console.log(pending.logMessage);
-    if ([...pending.filePaths].some(isCodeGraphyWorkspaceSettingsPath)) {
-      void this._methodContainers.refresh.refreshIndex();
-      return;
-    }
-    if (
-      pending.gitignoreRefresh
-      && this._methodContainers.refresh.refreshGitignoreMetadata
-    ) {
-      void this._methodContainers.refresh.refreshGitignoreMetadata();
-      return;
-    }
-
-    if (this._methodContainers.refresh.refreshChangedFiles) {
-      void this._methodContainers.refresh.refreshChangedFiles([...pending.filePaths]);
-      return;
-    }
-
-    this.invalidateWorkspaceFiles([...pending.filePaths]);
-    void this._methodContainers.refresh.refresh();
   }
 
   private initializeCoreServices(): void {
@@ -336,14 +158,6 @@ export class GraphViewProviderRuntime {
 
     this._depthMode = restoredState.depthMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
-  }
-
-  private _getWorkspaceRoot(): string | undefined {
-    return getWorkspaceRoot(vscode.workspace.workspaceFolders);
-  }
-
-  private _loadPersistedWorkspaceRefresh(): PendingWorkspaceRefreshState | undefined {
-    return loadPersistedWorkspaceRefresh(this._getWorkspaceRoot());
   }
 
   protected _notifyExtensionMessage(message: unknown): void {

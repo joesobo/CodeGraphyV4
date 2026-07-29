@@ -20,8 +20,6 @@ function createSource(
   _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
   _loadAndSendData?: ReturnType<typeof vi.fn>;
   _refreshAndSendData?: ReturnType<typeof vi.fn>;
-  _incrementalAnalyzeAndSendData?: ReturnType<typeof vi.fn>;
-  _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
   _sendFavorites: ReturnType<typeof vi.fn>;
   _computeMergedGroups: ReturnType<typeof vi.fn>;
@@ -51,8 +49,6 @@ function createSource(
     _loadDisabledRulesAndPlugins: vi.fn(() => true),
     _loadGroupsAndFilterPatterns: vi.fn(),
     _loadAndSendData: vi.fn(async () => undefined),
-    _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
-    _analyzeAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
     _sendFavorites: vi.fn(),
     _computeMergedGroups: vi.fn(),
@@ -121,7 +117,7 @@ describe('graphView/provider/refresh', () => {
 
 
 
-    it('clearCacheAndRefresh clears analyzer cache before re-analysis', async () => {
+    it('clearCacheAndRefresh clears analyzer cache before a cache-only reload', async () => {
       const clearCache = vi.fn();
       const source = createSource({
         _analyzer: { clearCache, hasIndex: vi.fn(() => true) },
@@ -137,7 +133,7 @@ describe('graphView/provider/refresh', () => {
       methods.refreshSettings();
 
       expect(clearCache).toHaveBeenCalledOnce();
-      expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+      expect(source._loadAndSendData).toHaveBeenCalledOnce();
       expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
       expect(source._sendSettings).toHaveBeenCalledOnce();
     });

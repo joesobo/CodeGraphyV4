@@ -197,6 +197,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
       >
         <GraphSurface
           graphData={graphData}
+          hasIndex={graphHasIndex}
           coloredData={coloredData}
           showOrphans={effectiveShowOrphans}
           depthMode={depthMode}

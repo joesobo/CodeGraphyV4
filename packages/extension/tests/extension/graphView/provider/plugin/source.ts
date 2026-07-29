@@ -42,9 +42,8 @@ export function createPluginSource(
     _resolveWebviewAssetPath: vi.fn(() => 'asset://icon.svg'),
     _refreshWebviewResourceRoots: vi.fn(),
     _sendMessage: vi.fn(),
-    _analyzeAndSendData: vi.fn(async () => undefined),
+    _loadAndSendData: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),
-    refreshChangedFiles: vi.fn(async () => undefined),
     ...overrides,
   };
 

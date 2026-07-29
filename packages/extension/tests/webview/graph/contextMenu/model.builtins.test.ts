@@ -14,7 +14,12 @@ describe('built-in graph context menus', () => {
       selection,
       favorites: new Set(),
     });
-    expect(menuLabels(liveEntries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual([
+      'New File',
+      'New Folder',
+      'Re-index Workspace',
+      'Fit All Nodes',
+    ]);
     selection.targets.push('src/late.ts');
     expect(menuItems(liveEntries).map(entry => entry.contextSelection)).toEqual([
       { kind: 'background', targets: [] },

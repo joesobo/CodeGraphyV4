@@ -3,7 +3,7 @@ import { createGraphViewProviderFileActionMethods } from '../../../../../src/ext
 import type { IUndoableAction } from '../../../../../src/extension/undoManager';
 
 type MockUndoableAction = IUndoableAction & {
-  analyzeAndSendData?: () => Promise<void>;
+  reloadCachedGraph?: () => Promise<void>;
   sendFavorites?: () => void;
   type?: string;
 };
@@ -38,7 +38,7 @@ describe('graphView/provider/file/actions', () => {
     const revealFile = vi.fn(async () => undefined);
     const copyText = vi.fn(async () => undefined);
     const source = {
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
       _setFocusedFile: vi.fn(),
     };
@@ -99,7 +99,7 @@ describe('graphView/provider/file/actions', () => {
       await handlers.executeCreateFolderAction('src/components', { fsPath: '/workspace' });
     });
     const source = {
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
       _setFocusedFile: vi.fn(),
     };
@@ -167,7 +167,7 @@ describe('graphView/provider/file/actions', () => {
       await handlers.executeToggleFavoritesAction(['src/app.ts']);
     });
     const source = {
-      _analyzeAndSendData: vi.fn(async () => undefined),
+      _loadAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
       _setFocusedFile: vi.fn(),
     };
@@ -247,7 +247,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
   });
 
   it('uses vscode input and error defaults for rename actions', async () => {
@@ -265,7 +265,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
   });
 
   it('uses vscode input and error defaults for create actions', async () => {
@@ -283,7 +283,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
   });
 
   it('uses vscode input and error defaults for create folder actions', async () => {
@@ -301,7 +301,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
   });
 
   it('passes workspace-root create contexts through to the file create helper', async () => {
@@ -399,53 +399,53 @@ async function createDefaultDependencyHarness(
   const showInputBox = vi.fn(async () => 'result');
   const showErrorMessage = vi.fn();
   const execute = vi.fn(async (action: MockUndoableAction) => {
-    await action.analyzeAndSendData?.();
+    await action.reloadCachedGraph?.();
     action.sendFavorites?.();
   });
   const DeleteFilesAction = vi.fn(function (
     this: MockUndoableAction,
     _paths: string[],
     _workspaceFolderUri: { fsPath: string },
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ) {
     Object.defineProperty(this, 'description', { value: 'delete files', configurable: true });
     this.execute = vi.fn(async () => undefined);
     this.undo = vi.fn(async () => undefined);
-    this.analyzeAndSendData = analyzeAndSendData;
+    this.reloadCachedGraph = reloadCachedGraph;
   });
   const RenameFileAction = vi.fn(function (
     this: MockUndoableAction,
     _oldPath: string,
     _newPath: string,
     _workspaceFolderUri: { fsPath: string },
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ) {
     Object.defineProperty(this, 'description', { value: 'rename file', configurable: true });
     this.execute = vi.fn(async () => undefined);
     this.undo = vi.fn(async () => undefined);
-    this.analyzeAndSendData = analyzeAndSendData;
+    this.reloadCachedGraph = reloadCachedGraph;
   });
   const CreateFileAction = vi.fn(function (
     this: MockUndoableAction,
     _filePath: string,
     _workspaceFolderUri: { fsPath: string },
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ) {
     Object.defineProperty(this, 'description', { value: 'create file', configurable: true });
     this.execute = vi.fn(async () => undefined);
     this.undo = vi.fn(async () => undefined);
-    this.analyzeAndSendData = analyzeAndSendData;
+    this.reloadCachedGraph = reloadCachedGraph;
   });
   const CreateFolderAction = vi.fn(function (
     this: MockUndoableAction,
     _folderPath: string,
     _workspaceFolderUri: { fsPath: string },
-    analyzeAndSendData: () => Promise<void>,
+    reloadCachedGraph: () => Promise<void>,
   ) {
     Object.defineProperty(this, 'description', { value: 'create folder', configurable: true });
     this.execute = vi.fn(async () => undefined);
     this.undo = vi.fn(async () => undefined);
-    this.analyzeAndSendData = analyzeAndSendData;
+    this.reloadCachedGraph = reloadCachedGraph;
   });
   const ToggleFavoriteAction = vi.fn(function (
     this: MockUndoableAction,
@@ -509,7 +509,7 @@ async function createDefaultDependencyHarness(
   );
 
   const source = {
-    _analyzeAndSendData: vi.fn(async () => undefined),
+    _loadAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
     _setFocusedFile: vi.fn(),
   };

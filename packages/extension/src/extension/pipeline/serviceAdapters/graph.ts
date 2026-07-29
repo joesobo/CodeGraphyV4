@@ -66,8 +66,10 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   directoryPaths: readonly string[] = [],
   graphScope: WorkspacePipelineGraphScopeOptions = {},
   gitIgnoredPaths: readonly string[] = [],
+  activeAnalysisPluginIds?: ReadonlySet<string>,
 ): IGraphData {
-  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const activePluginIds = activeAnalysisPluginIds
+    ?? new Set(registry.list().map(info => info.plugin.id));
   const source = createGraphSource(cache, registry, directoryPaths, gitIgnoredPaths);
   return buildWorkspacePipelineGraphFromAnalysis({
     cacheFiles: source._cache.files,
@@ -91,8 +93,10 @@ export function buildWorkspacePipelineCompleteGraphDataFromAnalysis(
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
   gitIgnoredPaths: readonly string[] = [],
+  activeAnalysisPluginIds?: ReadonlySet<string>,
 ): IGraphData {
-  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const activePluginIds = activeAnalysisPluginIds
+    ?? new Set(registry.list().map(info => info.plugin.id));
   const source = createGraphSource(cache, registry, directoryPaths, gitIgnoredPaths);
   return buildCompleteWorkspaceGraphData({
     cacheFiles: source._cache.files,

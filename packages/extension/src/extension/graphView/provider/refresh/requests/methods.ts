@@ -2,12 +2,8 @@ import type {
   GraphViewProviderRefreshMethodsSource,
   RefreshCoordinatorState,
 } from '../contracts';
+import { prepareRefreshInputs } from '../coordinator';
 import {
-  canRunIndexedChangedFileRefresh,
-  prepareRefreshInputs,
-} from '../coordinator';
-import {
-  runChangedFileRefresh,
   runIndexRefresh,
   runPrimaryRefresh,
   sendRefreshState,
@@ -32,7 +28,6 @@ export function createRefreshMethod(
 export function createRefreshIndexMethod(
   source: GraphViewProviderRefreshMethodsSource,
   state: RefreshCoordinatorState,
-  refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>,
   beforeRefreshIndex?: () => void,
 ): () => Promise<void> {
   return async (): Promise<void> => {
@@ -48,35 +43,6 @@ export function createRefreshIndexMethod(
       await state.indexRefreshPromise;
     } finally {
       state.indexRefreshPromise = undefined;
-    }
-
-    const queuedFilePaths = [...state.queuedChangedFilePaths];
-    state.queuedChangedFilePaths = new Set<string>();
-    if (queuedFilePaths.length > 0) {
-      await refreshChangedFiles(queuedFilePaths);
-    }
-  };
-}
-
-export function createRefreshChangedFilesMethod(
-  source: GraphViewProviderRefreshMethodsSource,
-  state: RefreshCoordinatorState,
-): (filePaths: readonly string[]) => Promise<void> {
-  return async (filePaths: readonly string[]): Promise<void> => {
-    if (state.indexRefreshPromise) {
-      state.queuedChangedFilePaths = new Set([
-        ...state.queuedChangedFilePaths,
-        ...filePaths,
-      ]);
-      return;
-    }
-
-    if (!canRunIndexedChangedFileRefresh(source)) {
-      prepareRefreshInputs(source);
-    }
-    const refreshMode = await runChangedFileRefresh(source, filePaths);
-    if (refreshMode !== 'incremental') {
-      sendRefreshState(source);
     }
   };
 }

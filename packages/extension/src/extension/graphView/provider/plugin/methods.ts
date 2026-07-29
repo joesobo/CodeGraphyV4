@@ -41,7 +41,6 @@ export interface GraphViewProviderPluginMethodsSource {
   _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string;
   _refreshWebviewResourceRoots(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _analyzeAndSendData(): Promise<void>;
 }
 
 export interface GraphViewProviderPluginMethods {

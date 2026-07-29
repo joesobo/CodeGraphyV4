@@ -125,15 +125,15 @@ describe('GraphViewProvider lifecycle', () => {
     expect(rebuildSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('clearCacheAndRefresh clears analyzer cache before analyzing', async () => {
+  it('clearCacheAndRefresh clears analyzer cache before a cache-only reload', async () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
     const clearCache = vi.fn();
     const internals = getGraphViewProviderInternals(provider);
-    const refreshSpy = vi
-      .spyOn(internals._analysisMethods, '_refreshAndSendData')
+    const loadSpy = vi
+      .spyOn(internals._analysisMethods, '_loadAndSendData')
       .mockResolvedValue();
     vi.spyOn(internals._settingsStateMethods, '_sendAllSettings').mockImplementation(() => {});
     vi.spyOn(internals._fileInfoMethods, '_sendFavorites').mockImplementation(() => {});
@@ -145,7 +145,7 @@ describe('GraphViewProvider lifecycle', () => {
     await provider.clearCacheAndRefresh();
 
     expect(clearCache).toHaveBeenCalledTimes(1);
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('recreates the Graph Cache and Tree-sitter edges after a deleted cache is refreshed then indexed', async () => {
@@ -178,7 +178,7 @@ describe('GraphViewProvider lifecycle', () => {
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
   });
 
-  it('sends empty graph data when _doAnalyzeAndSendData runs without an analyzer', async () => {
+  it('sends empty graph data when _doLoadAndSendData runs without an analyzer', async () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
@@ -194,7 +194,7 @@ describe('GraphViewProvider lifecycle', () => {
     (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
     (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
 
-    await internals._analysisMethods._doAnalyzeAndSendData(new AbortController().signal, 1);
+    await internals._analysisMethods._doLoadAndSendData(new AbortController().signal, 1);
 
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual({
       nodes: [],
@@ -211,7 +211,7 @@ describe('GraphViewProvider lifecycle', () => {
     expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('sends empty graph data when _doAnalyzeAndSendData has no workspace', async () => {
+  it('sends empty graph data when _doLoadAndSendData has no workspace', async () => {
     workspaceFoldersValue = undefined;
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -234,7 +234,7 @@ describe('GraphViewProvider lifecycle', () => {
     (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
     (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
 
-    await internals._analysisMethods._doAnalyzeAndSendData(new AbortController().signal, 1);
+    await internals._analysisMethods._doLoadAndSendData(new AbortController().signal, 1);
 
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual({
       nodes: [],
@@ -247,20 +247,20 @@ describe('GraphViewProvider lifecycle', () => {
     expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('clearCacheAndRefresh still analyzes when there is no analyzer cache to clear', async () => {
+  it('clearCacheAndRefresh still publishes a cache-only reload without an analyzer', async () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    const refreshSpy = vi
-      .spyOn(internals._analysisMethods, '_refreshAndSendData')
+    const loadSpy = vi
+      .spyOn(internals._analysisMethods, '_loadAndSendData')
       .mockResolvedValue();
 
     (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
 
     await provider.clearCacheAndRefresh();
 
-    expect(refreshSpy).toHaveBeenCalledTimes(1);
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 });

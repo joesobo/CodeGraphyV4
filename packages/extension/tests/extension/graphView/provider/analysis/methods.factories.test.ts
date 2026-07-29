@@ -18,7 +18,6 @@ function createSource(
   return {
     _analysisController: undefined,
     _analysisRequestId: 1,
-    _changedFilePaths: undefined,
     _analyzer: undefined,
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
@@ -49,24 +48,28 @@ describe('graphView/provider/analysis/methods factories', () => {
   it('builds the expected request and execution handlers for each analysis mode', async () => {
     const doRunners = {
       load: vi.fn(async () => undefined),
-      analyze: vi.fn(async () => undefined),
       index: vi.fn(async () => undefined),
       refresh: vi.fn(async () => undefined),
-      incremental: vi.fn(async () => undefined),
     };
     const requestRunners = {
       load: vi.fn(async () => undefined),
-      analyze: vi.fn(async () => undefined),
       index: vi.fn(async () => undefined),
       refresh: vi.fn(async () => undefined),
-      incremental: vi.fn(async () => undefined),
     };
 
     vi.mocked(createGraphViewProviderDoAnalyzeAndSendData).mockImplementation(
-      (_source, _dependencies, _delegates, mode) => doRunners[mode],
+      (_source, _dependencies, _delegates, mode) => {
+        if (mode !== 'load' && mode !== 'index' && mode !== 'refresh') {
+          throw new Error(`Unexpected analysis mode: ${mode}`);
+        }
+        return doRunners[mode];
+      },
     );
     vi.mocked(createGraphViewProviderAnalyzeAndSendData).mockImplementation(
       (_source, _dependencies, _delegates, doAnalyzeAndSendData, mode) => {
+        if (mode !== 'load' && mode !== 'index' && mode !== 'refresh') {
+          throw new Error(`Unexpected analysis mode: ${mode}`);
+        }
         expect(doAnalyzeAndSendData).toBe(doRunners[mode]);
         return requestRunners[mode];
       },
@@ -76,30 +79,21 @@ describe('graphView/provider/analysis/methods factories', () => {
     const methods = createGraphViewProviderAnalysisMethods(source);
 
     await methods._loadAndSendData();
-    await methods._analyzeAndSendData();
     await methods._indexAndSendData();
     await methods._refreshAndSendData();
-    await methods._incrementalAnalyzeAndSendData(['src/app.ts', 'src/lib.ts']);
 
-    expect(source._changedFilePaths).toEqual(['src/app.ts', 'src/lib.ts']);
     expect(vi.mocked(createGraphViewProviderDoAnalyzeAndSendData).mock.calls.map(call => call[3])).toEqual([
       'load',
-      'analyze',
       'index',
       'refresh',
-      'incremental',
     ]);
     expect(vi.mocked(createGraphViewProviderAnalyzeAndSendData).mock.calls.map(call => call[4])).toEqual([
       'load',
-      'analyze',
       'index',
       'refresh',
-      'incremental',
     ]);
     expect(requestRunners.load).toHaveBeenCalledOnce();
-    expect(requestRunners.analyze).toHaveBeenCalledOnce();
     expect(requestRunners.index).toHaveBeenCalledOnce();
     expect(requestRunners.refresh).toHaveBeenCalledOnce();
-    expect(requestRunners.incremental).toHaveBeenCalledOnce();
   });
 });

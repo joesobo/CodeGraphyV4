@@ -21,8 +21,6 @@ export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginUpdateImpact?(pluginId: string): IPluginUpdateImpactPolicy | undefined;
-  reloadWorkspacePlugins(): Promise<void>;
-  syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
   sendPluginWebviewInjections?(): void;
   recomputeGroups(): void;
@@ -33,11 +31,9 @@ export interface GraphViewSettingsMessageHandlers {
   sendGraphControls(): void;
   hydrateGraphScope(): Promise<boolean>;
   hydratePluginGraphScope?(pluginIds: readonly string[]): Promise<boolean>;
-  reprocessGraphScope(): Promise<void>;
-  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
+  reloadCachedGraph(): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];
-  analyzeAndSendData(): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
   resetAllSettings(): Promise<void>;
 }

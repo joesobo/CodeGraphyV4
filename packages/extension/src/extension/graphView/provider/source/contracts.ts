@@ -99,7 +99,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _analyzerInitPromise?: Promise<void>;
   _analysisController?: AbortController;
   _analysisRequestId: number;
-  _changedFilePaths?: string[];
   _viewRegistry: ViewRegistry;
   _depthMode: boolean;
   _nodeSizeMode: NodeSizeMode;
@@ -122,7 +121,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _extensionUri: vscode.Uri;
   _context: vscode.ExtensionContext;
   _methodContainers: GraphViewProviderMethodContainers;
-  invalidatePluginFiles(pluginIds: readonly string[]): string[];
   readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   readonly _commandMethods: GraphViewProviderMethodContainers['command'];
   readonly _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];

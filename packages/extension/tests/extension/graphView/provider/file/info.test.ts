@@ -22,7 +22,7 @@ function createSource() {
     _analyzerInitialized: false,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _sendMessage: vi.fn(),
-    _analyzeAndSendData: vi.fn(async () => undefined),
+    _loadAndSendData: vi.fn(async () => undefined),
   };
 }
 
@@ -46,14 +46,13 @@ function createDependencies(overrides: Partial<Parameters<typeof createGraphView
 }
 
 describe('graphView/provider/file/info', () => {
-  it('loads file info and syncs analyzer initialization state', async () => {
+  it('loads file info without changing analyzer initialization state', async () => {
     const source = createSource();
     const dependencies = createDependencies({
       sendFileInfoMessage: vi.fn(async (_filePath, state, handlers) => {
         await handlers.statFile({ fsPath: '/workspace/src/index.ts' } as never);
         handlers.sendMessage({ type: 'FILE_INFO_UPDATED' });
         handlers.logError('file info failed', 'boom');
-        state.analyzerInitialized = true;
       }),
     });
     const methods = createGraphViewProviderFileInfoMethods(source as never, dependencies);
@@ -63,7 +62,7 @@ describe('graphView/provider/file/info', () => {
     expect(dependencies.sendFileInfoMessage).toHaveBeenCalledOnce();
     expect(dependencies.statFile).toHaveBeenCalledWith({ fsPath: '/workspace/src/index.ts' });
     expect(dependencies.logError).toHaveBeenCalledWith('file info failed', 'boom');
-    expect(source._analyzerInitialized).toBe(true);
+    expect(source._analyzerInitialized).toBe(false);
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'FILE_INFO_UPDATED' });
   });
 
@@ -72,7 +71,7 @@ describe('graphView/provider/file/info', () => {
     const action = createUndoableAction();
     const dependencies = createDependencies({
       addExcludeWithUndo: vi.fn(async (patterns, handlers) => {
-        const createdAction = handlers.createAction(patterns, handlers.analyzeAndSendData);
+        const createdAction = handlers.createAction(patterns, handlers.reloadCachedGraph);
         await handlers.executeAction(createdAction);
       }),
       createAddToExcludeAction: vi.fn(() => action),

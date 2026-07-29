@@ -21,7 +21,7 @@ describe('graph view analysis execution publish entry points', () => {
     });
 
     publishAnalyzedGraph(
-      createExecutionState({ mode: 'analyze' }),
+      createExecutionState({ mode: 'load' }),
       handlers,
       rawGraphData,
       true,

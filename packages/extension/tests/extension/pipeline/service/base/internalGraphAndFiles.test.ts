@@ -138,6 +138,7 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
       disabledPlugins,
       discoveredDirectories,
       gitIgnoredPaths,
+      undefined,
     );
     expect(buildWorkspacePipelineGraphFromAnalysis).toHaveBeenCalledWith(
       source._cache,
@@ -149,6 +150,7 @@ describe('extension/pipeline/service/internalBase graph and files', () => {
       discoveredDirectories,
       { nodeVisibility: { file: true, symbol: false } },
       gitIgnoredPaths,
+      undefined,
     );
   });
 

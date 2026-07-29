@@ -33,16 +33,24 @@ export function getDepthGraphEffectiveDepthLimit(
 
 export function filterDepthGraph(data: IGraphData, context: IViewContext): IGraphData {
   const adjacencyList = buildUndirectedAdjacencyList(data);
-  const depths = walkDepthFromNode(
+  const reachableDepths = walkDepthFromNode(
     context.focusedFile,
-    getDepthGraphEffectiveDepthLimit(data, context),
+    MAX_DEPTH_LIMIT,
     adjacencyList,
   );
 
-  if (depths.size === 0) {
+  if (reachableDepths.size === 0) {
     return data;
   }
 
+  const maxReachableDepth = Math.max(...reachableDepths.values());
+  const effectiveDepthLimit = clampDepthLimit(
+    context.depthLimit,
+    clampDepthLimit(maxReachableDepth, MAX_DEPTH_LIMIT),
+  );
+  const depths = new Map(
+    [...reachableDepths].filter(([, depth]) => depth <= effectiveDepthLimit),
+  );
   const includedNodeIds = new Set(depths.keys());
   const nodes = data.nodes
     .filter(node => includedNodeIds.has(node.id))

@@ -132,7 +132,7 @@ describe('GraphViewProvider file info', () => {
       (call: unknown[]) => (call[0] as { type?: string }).type === 'FILE_INFO'
     )?.[0] as { payload: Record<string, unknown> } | undefined;
 
-    expect(initialize).toHaveBeenCalledTimes(1);
+    expect(initialize).not.toHaveBeenCalled();
     expect(fileInfoMessage?.payload).toMatchObject({
       path: 'src/main.py',
       size: 456,

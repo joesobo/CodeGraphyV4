@@ -4,7 +4,7 @@
 
 ## Context
 
-Cached Symbols and Relationships become stale while an agent or editor changes source. Explicit `codegraphy index` repairs them, but long coding sessions and multi-agent handoffs can query a cache after many edits. The VS Code Extension already observed workspace events, yet it deferred analysis while the Graph View was closed and therefore did not keep the persisted Graph Cache current.
+Cached Symbols and Relationships become stale while an agent changes source. Explicit `codegraphy index` repairs them, but long terminal sessions and multi-agent handoffs can query a cache after many edits. The VS Code Extension deliberately indexes only after an explicit user action under ADR 0006; a terminal workflow needs its own opt-in lifecycle when continuous freshness is useful.
 
 ADR 0013 initially rejected watcher-assisted impact because a resident process appeared to conflict with ADR 0003's one-shot CLI and no-server boundary. That premise was too broad. A foreground process which only updates the same SQLite cache is not a query server: queries remain independent, one-shot, read-only CLI processes with no transport or session protocol.
 
@@ -24,15 +24,13 @@ Core owns a serialized workspace Graph Cache updater. It:
 
 The CLI exposes that updater as foreground `codegraphy watch [-C workspace]`. It subscribes before initial synchronization, uses Parcel's native recursive watcher, ignores cache artifacts at every `.codegraphy` path segment except the root settings file, emits bounded JSON Lines envelopes, and drains pending changes on `SIGINT` or `SIGTERM`. Query commands remain separate one-shot processes.
 
-The Extension feeds save, create, change, delete, rename, settings, and Git-ignore events into its long-lived, plugin-aware Workspace Pipeline while the Graph View is closed **after a Graph Cache exists**. Its existing scheduler coalesces events, and a serialized persistence adapter awaits the same Pipeline refresh methods used while the view is open. This preserves Extension-host plugin registrations and complete-cache persistence rather than constructing a second default Core plugin host. It does not implicitly index a workspace before the user's first Index operation; that first full Index naturally subsumes events received before a cache exists. When the view opens, the Extension waits for queued closed-view persistence before its visible refresh resumes ownership. Extension teardown also drains pending persistence.
+The VS Code Extension does not run this updater. In accordance with ADR 0006, it loads the last explicit Graph Cache and changes cached source facts only after Index or Re-index Workspace. Keeping the CLI watcher at the Core seam avoids a second Extension-specific event and persistence path.
 
-An earlier adapter instantiated the CLI's default Core workspace engine inside the Extension. CI exposed the invalid assumption: closed updates added hidden Core `reexport` capabilities while losing Extension-host relationships and plugin-owned nodes. The adapter was replaced rather than adding translation or compatibility logic. Core still owns the CLI updater, shared indexing and persistence primitives, and cross-process write coordination; the Extension retains its required plugin-host boundary.
-
-Graph Cache writes use operation-scoped cross-process coordination beside `graph.sqlite`. An atomic lock directory records the writer PID and a unique token, is removed after each write, and can recover when its owner process has terminated. SQLite connections also wait up to five seconds for short-lived contention. Incremental analyses verify source content immediately before commit and retry if another writer's newer edit superseded them. This supports simultaneous CLI watchers and Extension writers without an exclusive long-lived watcher owner or heartbeat.
+Graph Cache writes use operation-scoped cross-process coordination beside `graph.sqlite`. An atomic lock directory records the writer PID and a unique token, is removed after each write, and can recover when its owner process has terminated. SQLite connections also wait up to five seconds for short-lived contention. Incremental analyses verify source content immediately before commit and retry if another writer's newer edit superseded them. This supports simultaneous CLI watchers and independent readers without an exclusive long-lived watcher owner or heartbeat.
 
 ## Evidence
 
-Fake-time Core tests cover trailing debounce, the maximum batch age, edits during indexing, serialized writes, recoverable failures, and shutdown draining. Equivalence tests compare persisted nodes and edges after changed, created, deleted, and renamed referenced files with a fresh full index. Additional regressions cover stale concurrent commits, lifecycle-file rediscovery, eligible and ineligible creations, active Filters, nested cache artifacts, macOS root spelling, startup failure, and closed-view Extension persistence.
+Fake-time Core tests cover trailing debounce, the maximum batch age, edits during indexing, serialized writes, recoverable failures, and shutdown draining. Equivalence tests compare persisted nodes and edges after changed, created, deleted, and renamed referenced files with a fresh full index. Additional regressions cover stale concurrent commits, lifecycle-file rediscovery, eligible and ineligible creations, active Filters, nested cache artifacts, macOS root spelling, and startup failure.
 
 A real-filesystem probe exercised rapid writes, create, rename, delete, settings, thirty concurrent one-shot readers, and two simultaneous watcher processes. The final run had no reader or watcher errors and a fresh healthy cache. Observed update latency, including the 500 ms debounce, was 0.53–0.61 seconds. Five rapid writes produced one update. Separate simultaneous cold starts and a later shared edit also completed from both watcher processes with a healthy final cache.
 
@@ -55,7 +53,7 @@ This does not establish a retrieval benefit: those agents navigated the graph be
 ## Consequences
 
 - ADR 0013's watcher rejection is superseded. ADR 0003 still excludes MCP and persistent query servers; a user-invoked foreground cache updater is allowed.
-- The Extension keeps an existing complete persisted graph current through its plugin-aware Pipeline while the Graph View is closed without changing the explicit first-Index lifecycle.
+- ADR 0006 remains authoritative for the VS Code Extension: editor events do not invoke this updater or alter cached source facts.
 - Multiple local updaters are supported without heartbeat traffic or permanent ownership files.
 - Event delivery is a hint, not correctness proof. Full rediscovery remains the recovery path for lifecycle changes and incomplete path evidence; Parcel snapshots remain a future recovery option if event-loss evidence requires them.
 - Watcher startup and resident memory are explicit costs. Short tasks can use one-shot `index`, and agents retain full discretion because the skill describes semantics rather than prescribing when to watch.
@@ -64,6 +62,7 @@ This does not establish a retrieval benefit: those agents navigated the graph be
 ## References
 
 - ADR 0003, CLI and Agent Skill replace MCP
+- ADR 0006, VS Code indexing requires explicit user action
 - ADR 0011, agents choose their CodeGraphy strategy
 - ADR 0012, structural work and adoption requirements
 - ADR 0013, Task Map and the superseded watcher disposition

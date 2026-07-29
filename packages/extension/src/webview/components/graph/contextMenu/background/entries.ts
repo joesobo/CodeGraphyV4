@@ -6,7 +6,7 @@ export function buildBackgroundEntries(): GraphContextMenuEntry[] {
     builtInItem('background-create-file', 'New File', 'createFile', { disabled: false }),
     builtInItem('background-create-folder', 'New Folder', 'createFolder', { disabled: false }),
     separator('background-separator-primary'),
-    builtInItem('background-refresh', 'Refresh', 'refresh'),
+    builtInItem('background-refresh', 'Re-index Workspace', 'refresh'),
     builtInItem('background-fit', 'Fit All Nodes', 'fitView'),
   ];
 }

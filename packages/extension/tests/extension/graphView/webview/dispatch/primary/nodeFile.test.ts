@@ -29,7 +29,7 @@ function createContext(
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     indexAndSendData: vi.fn(() => Promise.resolve()),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    reloadCachedGraph: vi.fn(() => Promise.resolve()),
     refreshIndex: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),

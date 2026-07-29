@@ -27,7 +27,7 @@ describe('settingsMessages/updates/filterPatterns', () => {
         disabledPluginPatterns: [],
       },
     });
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reloadCachedGraph).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 });

@@ -5,15 +5,10 @@ import {
   type IGraphViewFileInfoPayload,
 } from './payload';
 
-interface GraphViewFileInfoAnalyzer {
-  getPluginNameForFile(filePath: string): string | undefined;
-  getPluginNamesForIds(pluginIds: readonly string[]): string[];
-}
-
 interface GraphViewFileInfoOptions {
   workspaceFolder: { uri: vscode.Uri } | undefined;
   statFile(uri: vscode.Uri): PromiseLike<{ size: number; mtime: number }>;
-  ensureAnalyzerReady(): PromiseLike<GraphViewFileInfoAnalyzer | undefined>;
+  getPluginNamesForIds?(pluginIds: readonly string[]): readonly string[];
   graphData: IGraphData;
 }
 
@@ -26,11 +21,11 @@ export async function loadGraphViewFileInfo(
   const fileUri = vscode.Uri.joinPath(options.workspaceFolder.uri, filePath);
   const stat = await options.statFile(fileUri);
   const pluginIds = getGraphViewFileInfoPluginIds(filePath, options.graphData);
-  const analyzer = pluginIds.length > 0
-    ? await options.ensureAnalyzerReady()
-    : undefined;
-  const pluginNames = analyzer?.getPluginNamesForIds(pluginIds) ?? [];
-  const plugin = pluginNames.length > 0 ? pluginNames.join(', ') : undefined;
+  const pluginNames = pluginIds.length > 0
+    ? options.getPluginNamesForIds?.(pluginIds) ?? []
+    : [];
+  const pluginLabels = pluginNames.length > 0 ? pluginNames : pluginIds;
+  const plugin = pluginLabels.length > 0 ? pluginLabels.join(', ') : undefined;
 
   return buildGraphViewFileInfoPayload(
     filePath,

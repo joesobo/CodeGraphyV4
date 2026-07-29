@@ -4,21 +4,18 @@ import { loadGraphViewFileInfo } from './loader';
 import { sendGraphViewFileInfoMessage } from './message';
 
 interface GraphViewFileInfoAnalyzerLike {
-  initialize(): Promise<void>;
-  getPluginNameForFile(filePath: string): string | undefined;
   getPluginNamesForIds(pluginIds: readonly string[]): string[];
 }
 
 interface GraphViewFileInfoRequestState {
   analyzer: GraphViewFileInfoAnalyzerLike | undefined;
-  analyzerInitialized: boolean;
   graphData: IGraphData;
 }
 
 interface GraphViewFileInfoLoaderOptions {
   workspaceFolder: vscode.WorkspaceFolder | undefined;
   statFile: (fileUri: vscode.Uri) => PromiseLike<{ size: number; mtime: number }>;
-  ensureAnalyzerReady: () => Promise<GraphViewFileInfoAnalyzerLike | undefined>;
+  getPluginNamesForIds: (pluginIds: readonly string[]) => readonly string[];
   graphData: IGraphData;
 }
 
@@ -52,14 +49,8 @@ export async function sendGraphViewProviderFileInfoMessage<TPayload>(
       loadFileInfo(nextFilePath, {
         workspaceFolder,
         statFile,
-        ensureAnalyzerReady: async () => {
-          if (state.analyzer && !state.analyzerInitialized) {
-            await state.analyzer.initialize();
-            state.analyzerInitialized = true;
-          }
-
-          return state.analyzer;
-        },
+        getPluginNamesForIds: pluginIds =>
+          state.analyzer?.getPluginNamesForIds(pluginIds) ?? [],
         graphData: state.graphData,
       }),
     sendMessage,

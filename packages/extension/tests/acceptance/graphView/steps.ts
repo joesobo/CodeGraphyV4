@@ -335,6 +335,10 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await indexWorkspace(context);
   },
 
+  'I re-index the workspace': async (context) => {
+    await reindexWorkspace(context);
+  },
+
   'I have indexed the workspace': async (context, step) => {
     await indexWorkspace(context);
     await waitForIndexingToFinish(context);
@@ -1197,10 +1201,24 @@ async function applyPostIndexScenarioStartingUiState(
 }
 
 export async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
+  await runWorkspaceIndexAction(context, 'Index Workspace');
+}
+
+async function reindexWorkspace(context: GraphAcceptanceContext): Promise<void> {
+  await runWorkspaceIndexAction(context, 'Re-index Workspace');
+}
+
+async function runWorkspaceIndexAction(
+  context: GraphAcceptanceContext,
+  actionName: 'Index Workspace' | 'Re-index Workspace',
+): Promise<void> {
   const frame = requireGraphFrame(context);
   await closePanelIfOpen(frame);
-  context.beforeIndexStageImage = await graphStage(frame).screenshot();
-  const indexButton = frame.getByRole('button', { name: 'Index Workspace' });
+  const stage = graphStage(frame);
+  if (await stage.count()) {
+    context.beforeIndexStageImage = await stage.screenshot();
+  }
+  const indexButton = frame.getByRole('button', { name: actionName });
   if (await indexButton.count()) {
     await indexButton.click();
   }

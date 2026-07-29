@@ -88,10 +88,10 @@ describe('GraphViewProvider public API', () => {
       createContext() as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    const analyzeSpy = vi.spyOn(
+    const indexSpy = vi.spyOn(
       internals._analysisMethods,
-      '_analyzeAndSendData'
-    ).mockResolvedValue();
+      '_indexAndSendData'
+    );
 
     let visibilityHandler: (() => void) | undefined;
     const mockView = {
@@ -127,7 +127,7 @@ describe('GraphViewProvider public API', () => {
     visibilityHandler?.();
 
     expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', true);
-    expect(analyzeSpy).not.toHaveBeenCalled();
+    expect(indexSpy).not.toHaveBeenCalled();
   });
 
   it('does not re-analyze when a resolved webview stays hidden', () => {
@@ -139,10 +139,10 @@ describe('GraphViewProvider public API', () => {
       createContext() as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    const analyzeSpy = vi.spyOn(
+    const indexSpy = vi.spyOn(
       internals._analysisMethods,
-      '_analyzeAndSendData'
-    ).mockResolvedValue();
+      '_indexAndSendData'
+    );
 
     let visibilityHandler: (() => void) | undefined;
     const mockView = {
@@ -172,7 +172,7 @@ describe('GraphViewProvider public API', () => {
     visibilityHandler?.();
 
     expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', false);
-    expect(analyzeSpy).not.toHaveBeenCalled();
+    expect(indexSpy).not.toHaveBeenCalled();
   });
 
 });

@@ -7,7 +7,6 @@ describe('graphView/provider/runtime/state/data', () => {
 
     expect(state._panels).toEqual([]);
     expect(state._graphData).toEqual({ nodes: [], edges: [] });
-    expect(state._changedFilePaths).toEqual([]);
     expect(state._rawGraphData).toEqual({ nodes: [], edges: [] });
     expect(state._viewContext.depthLimit).toBe(1);
     expect(state._groups).toEqual([]);

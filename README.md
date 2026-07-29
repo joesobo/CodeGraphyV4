@@ -159,7 +159,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, live Graph Cache updating, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View, and continues updating the shared Graph Cache when the Graph View is closed. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, optional foreground Graph Cache watching, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View; it changes cached source facts only after an explicit Index or Re-index Workspace action. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|

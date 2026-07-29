@@ -18,10 +18,8 @@ export function createGraphViewProviderAnalysisMethodDelegates(
   | '_sendPluginWebviewInjections'
   | '_loadAndSendData'
   | '_indexAndSendData'
-  | '_analyzeAndSendData'
   | '_refreshAndSendData'
-  | '_incrementalAnalyzeAndSendData'
-  | '_doAnalyzeAndSendData'
+  | '_doLoadAndSendData'
   | '_markWorkspaceReady'
   | '_isAnalysisStale'
   | '_isAbortError'
@@ -38,12 +36,9 @@ export function createGraphViewProviderAnalysisMethodDelegates(
     _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
     _loadAndSendData: () => owner._methodContainers.analysis._loadAndSendData(),
     _indexAndSendData: () => owner._methodContainers.analysis._indexAndSendData(),
-    _analyzeAndSendData: () => owner._methodContainers.analysis._analyzeAndSendData(),
     _refreshAndSendData: () => owner._methodContainers.analysis._refreshAndSendData(),
-    _incrementalAnalyzeAndSendData: filePaths =>
-      owner._methodContainers.analysis._incrementalAnalyzeAndSendData(filePaths),
-    _doAnalyzeAndSendData: (signal, requestId) =>
-      owner._methodContainers.analysis._doAnalyzeAndSendData(signal, requestId),
+    _doLoadAndSendData: (signal, requestId) =>
+      owner._methodContainers.analysis._doLoadAndSendData(signal, requestId),
     _markWorkspaceReady: graph => owner._methodContainers.analysis._markWorkspaceReady(graph),
     _isAnalysisStale: (signal, requestId) =>
       owner._methodContainers.analysis._isAnalysisStale(signal, requestId),

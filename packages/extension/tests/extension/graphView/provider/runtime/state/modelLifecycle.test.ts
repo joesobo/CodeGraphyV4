@@ -39,7 +39,6 @@ describe('graphView/provider/runtime/state/model', () => {
     ];
 
     expect(stateHarness.analyzerInstances).toHaveLength(1);
-    expect(stateHarness.analyzerInstances[0]?.warmGraphCache).toHaveBeenCalledOnce();
     expect(stateHarness.initializeRuntimeStateServices).toHaveBeenCalledOnce();
     expect(stateHarness.restorePersistedRuntimeState).toHaveBeenCalledWith(
       context,
@@ -71,7 +70,7 @@ describe('graphView/provider/runtime/state/model', () => {
     expect(initializeArgs[2]()).toBe(runtime._methodContainers);
   });
 
-  it('delegates graph visibility and invalidation helpers', () => {
+  it('delegates graph visibility', () => {
     const runtime = new TestRuntimeState(
       vscode.Uri.file('/extension'),
       createContext() as never,
@@ -79,13 +78,9 @@ describe('graphView/provider/runtime/state/model', () => {
     stateHarness.isGraphViewVisible.mockReturnValue(true);
 
     expect(runtime.isGraphOpen()).toBe(true);
-    expect(runtime.invalidateWorkspaceFiles(['/workspace/src/a.ts'])).toEqual(['/workspace/src/a.ts']);
-    expect(runtime.invalidatePluginFiles(['plugin.markdown'])).toEqual(['plugin.markdown']);
-    expect(stateHarness.invalidateWorkspaceFiles).toHaveBeenCalledWith(expect.anything(), ['/workspace/src/a.ts']);
-    expect(stateHarness.invalidatePluginFiles).toHaveBeenCalledWith(expect.anything(), ['plugin.markdown']);
   });
 
-  it('disposes the pipeline and emitter from the registered host subscription', async () => {
+  it('disposes the pipeline and emitter from the registered host subscription', () => {
     const context = createContext();
     const runtime = new TestRuntimeState(
       vscode.Uri.file('/extension'),
@@ -94,7 +89,6 @@ describe('graphView/provider/runtime/state/model', () => {
 
     runtime.notify({ type: 'EXTENSION_MESSAGE' });
     context.subscriptions[0]?.dispose();
-    await runtime.dispose();
 
     expect(stateHarness.extensionMessageEmitter.fire).toHaveBeenCalledWith({
       type: 'EXTENSION_MESSAGE',

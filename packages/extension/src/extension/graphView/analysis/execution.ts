@@ -1,35 +1,28 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
-import type { IGraphNodeMetricsUpdate } from '../../../shared/protocol/extensionToWebview';
-import type { DiagnosticEventInput } from '@codegraphy-dev/core';
+import type { AnalysisCacheTier, DiagnosticEventInput } from '@codegraphy-dev/core';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
 import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 
-export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
+export type GraphViewAnalysisMode = 'load' | 'index' | 'refresh';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
-
-export interface GraphViewCachedGraphLoadOptions {
-  warmAnalysis?: boolean;
-}
 
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
+  syncWorkspacePlugins(): Promise<void>;
   hasIndex(): boolean;
   getIndexStatus?(): {
     freshness: CodeGraphyIndexFreshness;
     detail: string;
   };
-  discoverGraph(
-    filterPatterns?: string[],
-    disabledPlugins?: Set<string>,
-    signal?: AbortSignal,
-  ): Promise<IGraphData>;
   loadCachedGraph?(
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
-    options?: GraphViewCachedGraphLoadOptions,
+    options?: {
+      requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+    },
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
@@ -38,13 +31,6 @@ interface GraphViewAnalyzerLike {
     onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   refreshIndex?(
-    filterPatterns?: string[],
-    disabledPlugins?: Set<string>,
-    signal?: AbortSignal,
-    onProgress?: (progress: GraphViewIndexingProgress) => void,
-  ): Promise<IGraphData>;
-  refreshChangedFiles?(
-    filePaths: readonly string[],
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
@@ -64,7 +50,6 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
   mode: GraphViewAnalysisMode;
-  changedFilePaths?: readonly string[];
   filterPatterns: string[];
   disabledPlugins: Set<string>;
 }
@@ -77,7 +62,6 @@ export interface GraphViewAnalysisExecutionHandlers {
   getRawGraphData?(): IGraphData;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
-  sendGraphNodeMetricsUpdated?(updates: IGraphNodeMetricsUpdate[]): void;
   sendDepthState(): void;
   computeMergedGroups(): void;
   sendGroupsUpdated(): void;

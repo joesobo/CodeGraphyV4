@@ -73,7 +73,7 @@ describe('graphView/provider/analysis/request', () => {
       dependencies,
       delegates,
       doAnalyzeAndSendData,
-      'analyze',
+      'index',
     )();
 
     expect(doAnalyzeAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 4);
@@ -85,7 +85,7 @@ describe('graphView/provider/analysis/request', () => {
 
   it('keeps load-mode requests bound to the provided load implementation', async () => {
     const source = createSource({
-      _doAnalyzeAndSendData: vi.fn(async () => undefined),
+      _doLoadAndSendData: vi.fn(async () => undefined),
     });
     const loadAndSendData = vi.fn(async () => undefined);
     const dependencies = createDependencies({
@@ -105,6 +105,6 @@ describe('graphView/provider/analysis/request', () => {
     )();
 
     expect(loadAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 7);
-    expect(source._doAnalyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._doLoadAndSendData).not.toHaveBeenCalled();
   });
 });

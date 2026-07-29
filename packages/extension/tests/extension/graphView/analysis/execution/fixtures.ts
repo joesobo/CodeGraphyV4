@@ -12,7 +12,7 @@ export function createExecutionState(
     analyzer: undefined,
     analyzerInitialized: false,
     analyzerInitPromise: undefined,
-    mode: 'analyze',
+    mode: 'index',
     filterPatterns: [],
     disabledPlugins: new Set<string>(),
     ...overrides,
@@ -24,11 +24,10 @@ export function createExecutionAnalyzer(
 ) {
   return {
     initialize: vi.fn(async () => undefined),
+    syncWorkspacePlugins: vi.fn(async () => undefined),
     hasIndex: vi.fn(() => true),
-    discoverGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),
-    refreshChangedFiles: vi.fn(async () => ({ nodes: [], edges: [] })),
     registry: {
       notifyPostAnalyze: vi.fn(),
     },

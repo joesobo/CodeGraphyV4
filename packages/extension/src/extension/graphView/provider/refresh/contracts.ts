@@ -22,7 +22,6 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     signal?: AbortSignal,
     options?: {
       requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
-      warmAnalysis?: boolean;
     },
   ): Promise<IGraphData>;
   registry: {
@@ -32,30 +31,11 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     ): void;
   };
   clearCache(): void;
-  refreshAnalysisScope?(
-    filterPatterns?: string[],
-    disabledPlugins?: Set<string>,
-    signal?: AbortSignal,
-    onProgress?: (progress: GraphViewScopedRefreshProgress) => void,
-  ): Promise<IGraphData>;
-  refreshPluginFiles?(
-    pluginIds: readonly string[],
-    filterPatterns?: string[],
-    disabledPlugins?: Set<string>,
-    signal?: AbortSignal,
-    onProgress?: (progress: GraphViewScopedRefreshProgress) => void,
-  ): Promise<IGraphData>;
-  refreshGitignoreMetadata?(
-    filterPatterns?: string[],
-    disabledPlugins?: Set<string>,
-    signal?: AbortSignal,
-  ): Promise<IGraphData>;
 }
 
 export interface RefreshCoordinatorState {
   hydratedAnalysisCacheTiers: Set<AnalysisCacheTier>;
   indexRefreshPromise: Promise<void> | undefined;
-  queuedChangedFilePaths: Set<string>;
 }
 
 export interface ScopedRefreshLifecycle {
@@ -74,10 +54,8 @@ export interface GraphViewProviderRefreshMethodsSource {
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins(): boolean;
   _loadGroupsAndFilterPatterns(): void;
-  _loadAndSendData?(): Promise<void>;
-  _analyzeAndSendData(): Promise<void>;
-  _refreshAndSendData?(): Promise<void>;
-  _incrementalAnalyzeAndSendData?(filePaths: readonly string[]): Promise<void>;
+  _loadAndSendData(): Promise<void>;
+  _refreshAndSendData(): Promise<void>;
   _sendAllSettings(): void;
   _sendFavorites(favorites?: string[]): void;
   _computeMergedGroups(): void;
@@ -97,12 +75,8 @@ export interface GraphViewProviderRefreshMethodsSource {
 export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
   refreshIndex(): Promise<void>;
-  refreshGitignoreMetadata(): Promise<void>;
   hydrateGraphScope(): Promise<boolean>;
   hydratePluginGraphScope(pluginIds: readonly string[]): Promise<boolean>;
-  refreshAnalysisScope(): Promise<void>;
-  refreshPluginFiles(pluginIds: readonly string[]): Promise<void>;
-  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   refreshGroupSettings(): void;
   refreshPhysicsSettings(): void;
   refreshSettings(): void;

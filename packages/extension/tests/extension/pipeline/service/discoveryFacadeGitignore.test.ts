@@ -60,10 +60,10 @@ import {
   setUpDiscoveryFacade,
 } from './discoveryFacadeFixture';
 
-describe('pipeline/service/discoveryFacade gitignore replay', () => {
+describe('pipeline/service/discoveryFacade cache replay', () => {
   beforeEach(setUpDiscoveryFacade);
 
-  it('applies current gitignore metadata when replaying cached graph data', async () => {
+  it('does not query live gitignore metadata when replaying cached graph data', async () => {
     const facade = new TestDiscoveryFacade();
     const cachedAnalysis = {
       filePath: '/workspace/example-python/src/main.py',
@@ -78,11 +78,6 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
         },
       },
     } as never;
-    vi.mocked(spawnSync).mockReturnValueOnce({
-      error: undefined,
-      status: 0,
-      stdout: 'example-python/src/main.py\n',
-    } as never);
     vi.spyOn(
       facade as unknown as {
         _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
@@ -96,19 +91,11 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
     await facade.loadCachedGraph();
 
     expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
-    expect(spawnSync).toHaveBeenCalledWith(
-      'git',
-      ['-C', '/workspace', 'check-ignore', '--stdin'],
-      {
-        encoding: 'utf8',
-        input: 'example-python\nexample-python/src\nexample-python/src/main.py\n',
-        maxBuffer: 4 * 1024 * 1024,
-      },
-    );
-    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
+    expect(spawnSync).not.toHaveBeenCalled();
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
   });
 
-  it('applies current gitignore metadata while replaying stale cached graph data', async () => {
+  it('does not query live gitignore metadata while replaying stale cached graph data', async () => {
     const facade = new TestDiscoveryFacade();
     const cachedAnalysis = {
       filePath: '/workspace/example-python/src/main.py',
@@ -123,11 +110,6 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
         },
       },
     } as never;
-    vi.mocked(spawnSync).mockReturnValueOnce({
-      error: undefined,
-      status: 0,
-      stdout: 'example-python/src/main.py\n',
-    } as never);
     const buildGraph = vi.spyOn(
       facade as unknown as {
         _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
@@ -139,15 +121,13 @@ describe('pipeline/service/discoveryFacade gitignore replay', () => {
       [],
       new Set<string>(),
       undefined,
-      { warmAnalysis: false },
+      {},
     );
 
-    expect(spawnSync).toHaveBeenCalledOnce();
-    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([
-      'example-python/src/main.py',
-    ]);
+    expect(spawnSync).not.toHaveBeenCalled();
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
     expect(buildGraph).toHaveBeenCalledWith(
-      new Map(),
+      new Map([['example-python/src/main.py', cachedAnalysis]]),
       '/workspace',
       true,
       new Set<string>(),

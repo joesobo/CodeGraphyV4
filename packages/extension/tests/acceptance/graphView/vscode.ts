@@ -113,6 +113,12 @@ export async function waitForGraphFrame(
 }
 
 async function isReadyGraphFrame(frame: Frame): Promise<boolean> {
+  const indexButtonCount = await frame.getByRole('button', { name: 'Index Workspace' }).count()
+    .catch(() => 0);
+  if (indexButtonCount > 0) {
+    return true;
+  }
+
   const graphStageCount = await frame.getByLabel('Graph Stage').count().catch(() => 0);
   const fitButtonCount = await frame.getByTitle('Fit to Screen').count().catch(() => 0);
   const wasmPhysicsCount = await frame.locator('[data-codegraphy-physics="wasm"]').count()

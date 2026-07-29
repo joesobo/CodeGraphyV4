@@ -1,5 +1,11 @@
 # @codegraphy-dev/extension
 
+## 5.15.2
+
+### Patch Changes
+
+- [#324](https://github.com/joesobo/CodeGraphyV4/pull/324) [`e933c5a`](https://github.com/joesobo/CodeGraphyV4/commit/e933c5a42ac1c3d1267e87cbac5d3edd39e53f64) Thanks [@joesobo](https://github.com/joesobo)! - Stop background workspace indexing so CodeGraphy processes source files only after an explicit Index or Re-index action. Reduce graph-selection delays by avoiding repeated Depth Mode projection and layout-key work.
+
 ## 5.15.1
 
 ### Patch Changes

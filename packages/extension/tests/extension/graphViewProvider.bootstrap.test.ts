@@ -26,9 +26,7 @@ async function loadSubject(
     | undefined,
 ) {
   vi.doMock('../../src/extension/pipeline/service/lifecycleFacade', () => ({
-    WorkspacePipeline: class WorkspacePipeline {
-      warmGraphCache = vi.fn(async () => undefined);
-    },
+    WorkspacePipeline: class WorkspacePipeline {},
   }));
   vi.doMock('../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {
@@ -185,10 +183,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect((provider as unknown as { _userGroups: unknown[] })._userGroups).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
 
-    expect(
-      (provider as unknown as { _getWorkspaceRoot(): string | undefined })._getWorkspaceRoot(),
-    ).toBe('/test/workspace');
-
     initArgs.onDecorationsChanged();
 
     expect(sendDecorationsSpy).toHaveBeenCalledOnce();
@@ -201,47 +195,4 @@ describe('GraphViewProvider bootstrap wiring', () => {
     );
   }, 15000);
 
-  it('passes an empty workspace root to provider services when no folder is open', async () => {
-    const initializeGraphViewProviderServices = vi.fn();
-    const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
-
-    vi.doMock('../../src/extension/graphView/provider/wiring/bootstrap', () => ({
-      initializeGraphViewProviderServices,
-      restoreGraphViewProviderState,
-    }));
-
-    const { GraphViewProvider, vscodeModule } = await loadSubject(undefined);
-
-    const provider = new GraphViewProvider(
-      vscodeModule.Uri.file('/test/extension'),
-      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
-    );
-
-    expect(initializeGraphViewProviderServices).toHaveBeenCalledOnce();
-    expect(
-      (provider as unknown as { _getWorkspaceRoot(): string | undefined })._getWorkspaceRoot(),
-    ).toBeUndefined();
-  });
-
-  it('passes an empty workspace root to provider services when the folder list is empty', async () => {
-    const initializeGraphViewProviderServices = vi.fn();
-    const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
-
-    vi.doMock('../../src/extension/graphView/provider/wiring/bootstrap', () => ({
-      initializeGraphViewProviderServices,
-      restoreGraphViewProviderState,
-    }));
-
-    const { GraphViewProvider, vscodeModule } = await loadSubject([]);
-
-    const provider = new GraphViewProvider(
-      vscodeModule.Uri.file('/test/extension'),
-      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
-    );
-
-    expect(initializeGraphViewProviderServices).toHaveBeenCalledOnce();
-    expect(
-      (provider as unknown as { _getWorkspaceRoot(): string | undefined })._getWorkspaceRoot(),
-    ).toBeUndefined();
-  });
 });

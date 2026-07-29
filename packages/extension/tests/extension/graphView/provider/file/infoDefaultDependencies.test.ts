@@ -6,17 +6,17 @@ const mocks = vi.hoisted(() => {
   const configuration = { get: vi.fn((_: string, fallback: unknown) => fallback) };
   const undoExecute = vi.fn(async () => undefined);
   const addExcludeWithUndo = vi.fn(async (patterns, handlers) => {
-    await handlers.analyzeAndSendData();
-    const action = handlers.createAction(patterns, handlers.analyzeAndSendData);
+    await handlers.reloadCachedGraph();
+    const action = handlers.createAction(patterns, handlers.reloadCachedGraph);
     await handlers.executeAction(action);
   });
   const addToExcludeAction = vi.fn(function MockAddToExcludeAction(
     this: Record<string, unknown>,
     patterns,
-    analyzeAndSendData,
+    reloadCachedGraph,
   ) {
     this.patterns = patterns;
-    this.analyzeAndSendData = analyzeAndSendData;
+    this.reloadCachedGraph = reloadCachedGraph;
   });
 
   return {
@@ -79,7 +79,7 @@ function createSource() {
     _analyzerInitialized: false,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _sendMessage: vi.fn(),
-    _analyzeAndSendData: vi.fn(async () => undefined),
+    _loadAndSendData: vi.fn(async () => undefined),
   };
 }
 
@@ -143,12 +143,12 @@ describe('graphView/provider/file/info default dependencies', () => {
     await methods._addToExclude(['dist/**']);
 
     expect(mocks.addExcludeWithUndo).toHaveBeenCalledOnce();
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
     expect(mocks.addToExcludeAction).toHaveBeenCalledWith(['dist/**'], expect.any(Function));
     expect(mocks.undoExecute).toHaveBeenCalledWith(
       expect.objectContaining({
         patterns: ['dist/**'],
-        analyzeAndSendData: expect.any(Function),
+        reloadCachedGraph: expect.any(Function),
       }),
     );
   });
