@@ -166,7 +166,7 @@ describe('cli doctor', () => {
         details: {
           healthy: false,
           checks: {
-            runtime: { supported: expect.any(String) },
+            runtime: { ok: true, supported: '>=20' },
             settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
             cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
             plugins: { ok: true, warnings: [] },

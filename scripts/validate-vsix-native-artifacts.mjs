@@ -17,10 +17,16 @@ const libsqlNativeBinaryPathByTarget = {
   'win32-x64': 'extension/dist/node_modules/@libsql/win32-x64-msvc/index.node',
 };
 
+const treeSitterNativeBinaryPathByTarget = {
+  'linux-x64': 'extension/dist/node_modules/tree-sitter/prebuilds/linux-x64/tree-sitter.node',
+  'darwin-arm64': 'extension/dist/node_modules/tree-sitter/prebuilds/darwin-arm64/tree-sitter.node',
+  'win32-x64': 'extension/dist/node_modules/tree-sitter/prebuilds/win32-x64/tree-sitter.node',
+};
+
 function nativeBinaryPathsForTarget(target) {
   return [
     libsqlNativeBinaryPathByTarget[target],
-    'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
+    treeSitterNativeBinaryPathByTarget[target],
   ];
 }
 

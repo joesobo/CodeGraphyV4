@@ -66,7 +66,7 @@ test('rejects a linux x64 VSIX with a macOS Apple Silicon Tree-sitter binding', 
 
   assert.throws(
     () => validateVsixNativeArtifacts({ artifactsDir, version }),
-    /linux-x64\.vsix contains Mach-O arm64 at extension\/dist\/node_modules\/tree-sitter\/build\/Release\/tree_sitter_runtime_binding\.node; expected ELF x86-64\./,
+    /linux-x64\.vsix contains Mach-O arm64 at extension\/dist\/node_modules\/tree-sitter\/prebuilds\/linux-x64\/tree-sitter\.node; expected ELF x86-64\./,
   );
 });
 
@@ -103,7 +103,7 @@ function writeVsixFixture({
   );
   writeFixtureBinary(
     fixtureRoot,
-    'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
+    treeSitterNativeBinaryPath(target),
     treeSitterBinary,
   );
 
@@ -126,6 +126,15 @@ function libsqlNativeBinaryPath(target) {
     'win32-x64': 'win32-x64-msvc',
   };
   return `extension/dist/node_modules/@libsql/${packageByTarget[target]}/index.node`;
+}
+
+function treeSitterNativeBinaryPath(target) {
+  const prebuildByTarget = {
+    'linux-x64': 'linux-x64',
+    'darwin-arm64': 'darwin-arm64',
+    'win32-x64': 'win32-x64',
+  };
+  return `extension/dist/node_modules/tree-sitter/prebuilds/${prebuildByTarget[target]}/tree-sitter.node`;
 }
 
 function writeFixtureBinary(rootDir, relativePath, binary) {

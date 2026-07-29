@@ -18,7 +18,7 @@ Current extension behavior to keep in mind while reading the package docs:
 - The extension loads workspace-local CSS Snippets listed under `cssSnippets` in `.codegraphy/settings.json`. They can style stable `data-codegraphy-*` hooks without rebuilding a VS Code theme.
 - the language plugins in `packages/plugin-*` are now mostly for ecosystem filters and optional semantic enrichment rather than baseline file coloring
 
-The published CLI supports Node 20 through 22. Local tooling and CI use the repository-pinned Node runtime.
+The published CLI supports Node 20 and newer. Local tooling and CI use the repository-pinned Node runtime.
 
 The source tree is split by runtime boundary:
 

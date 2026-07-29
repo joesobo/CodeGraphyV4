@@ -93,7 +93,7 @@ function readSettingsCheck(workspaceRoot: string): Record<string, unknown> {
 export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
   const workspaceRoot = resolveCodeGraphyWorkspacePath(command.workspacePath, process.cwd());
   const runtimeMajor = Number(process.versions.node.split('.')[0]);
-  const runtimeOk = runtimeMajor >= 20 && runtimeMajor < 23;
+  const runtimeOk = runtimeMajor >= 20;
   const settingsCheck = readSettingsCheck(workspaceRoot);
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
@@ -108,8 +108,8 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
     runtime: {
       ok: runtimeOk,
       version: process.version,
-      supported: '>=20 <23',
-      ...(runtimeOk ? {} : { action: 'Use Node.js 20, 21, or 22.' }),
+      supported: '>=20',
+      ...(runtimeOk ? {} : { action: 'Use Node.js 20 or newer.' }),
     },
     settings: settingsCheck,
     cache: createDoctorCacheCheck({

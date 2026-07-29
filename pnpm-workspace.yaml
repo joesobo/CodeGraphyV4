@@ -68,5 +68,3 @@ packageExtensions:
   "react-force-graph-3d@*":
     dependencies:
       "@types/react": "^18.2.48"
-patchedDependencies:
-  tree-sitter@0.25.0: patches/tree-sitter@0.25.0.patch
