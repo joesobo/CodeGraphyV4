@@ -5,6 +5,7 @@ import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
   runStatementSync,
   withConnection,
+  withOwnedConnection,
   withRecreatedConnection,
 } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
@@ -126,15 +127,10 @@ export function saveWorkspaceAnalysisDatabaseCache(
   });
 }
 
-export function patchWorkspaceAnalysisDatabaseCache(
-  workspaceRoot: string,
+function writeWorkspaceAnalysisDatabasePatch(
+  connection: Parameters<typeof runStatementSync>[0],
   patch: WorkspaceAnalysisDatabasePatch,
 ): void {
-  ensureDatabaseDirectory(workspaceRoot);
-  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
-  if (!fs.existsSync(path.dirname(databasePath))) {
-    return;
-  }
   const upsertFiles = patch.upsertFiles ?? {};
   const upsertFilePaths = Object.keys(upsertFiles);
   const deleteFilePaths = [...new Set(patch.deleteFilePaths ?? [])]
@@ -143,23 +139,45 @@ export function patchWorkspaceAnalysisDatabaseCache(
   const affectedFilePaths = new Set([...deleteFilePaths, ...upsertFilePaths]);
   const graph = selectGraphPatch(patch.graph, affectedFilePaths);
 
-  withConnection(databasePath, connection => {
-    runTransactionSync(connection, () => {
-      const writer = createWorkspaceAnalysisCachePatchWriter(connection);
-      for (const filePath of upsertFilePaths.sort()) {
-        deleteAnalysisEntryNodes(writer, filePath);
-      }
-      for (const filePath of deleteFilePaths) {
-        deleteAnalysisEntry(writer, filePath);
-      }
-      const patchCache = { version: '', files: upsertFiles };
-      if (patch.nodeTypes) {
-        persistWorkspaceCachePatch(writer, patchCache, graph, patch.nodeTypes);
-      } else {
-        persistWorkspaceCachePatch(writer, patchCache, graph);
-      }
-    });
+  runTransactionSync(connection, () => {
+    const writer = createWorkspaceAnalysisCachePatchWriter(connection);
+    for (const filePath of upsertFilePaths.sort()) {
+      deleteAnalysisEntryNodes(writer, filePath);
+    }
+    for (const filePath of deleteFilePaths) {
+      deleteAnalysisEntry(writer, filePath);
+    }
+    const patchCache = { version: '', files: upsertFiles };
+    if (patch.nodeTypes) {
+      persistWorkspaceCachePatch(writer, patchCache, graph, patch.nodeTypes);
+    } else {
+      persistWorkspaceCachePatch(writer, patchCache, graph);
+    }
   });
+}
+
+function prepareWorkspaceAnalysisDatabasePatch(workspaceRoot: string): string | undefined {
+  ensureDatabaseDirectory(workspaceRoot);
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  return fs.existsSync(path.dirname(databasePath)) ? databasePath : undefined;
+}
+
+export function patchWorkspaceAnalysisDatabaseCache(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): void {
+  const databasePath = prepareWorkspaceAnalysisDatabasePatch(workspaceRoot);
+  if (!databasePath) return;
+  withConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
+}
+
+export function patchOwnedWorkspaceAnalysisDatabaseCache(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): void {
+  const databasePath = prepareWorkspaceAnalysisDatabasePatch(workspaceRoot);
+  if (!databasePath) return;
+  withOwnedConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void {

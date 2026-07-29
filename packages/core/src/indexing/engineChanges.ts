@@ -103,22 +103,34 @@ export async function applyWorkspaceEngineChangedFiles(
   invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, files.map(file => file.absolutePath));
   const analysis = await analyzeWorkspaceEngineChangedFiles(runtime, files, disabledPlugins);
   assertWorkspaceEngineActive(runtime);
-  const supersededFiles = await findChangedWorkspaceIndexFiles({
-    cache: state.cache,
-    files,
-    readContent: createWorkspaceIndexFileContentReader(runtime.discovery),
-  });
-  if (supersededFiles.length > 0) {
+  let graph: ReturnType<typeof buildWorkspaceEngineGraph> | undefined;
+  let supersededFiles: typeof files = [];
+  const committed = await patchWorkspaceEngineCache(
+    runtime,
+    files.map(file => file.relativePath),
+    async () => {
+      assertWorkspaceEngineActive(runtime);
+      supersededFiles = await findChangedWorkspaceIndexFiles({
+        cache: state.cache,
+        files,
+        readContent: createWorkspaceIndexFileContentReader(runtime.discovery),
+      });
+      assertWorkspaceEngineActive(runtime);
+      if (supersededFiles.length > 0) return false;
+      applyWorkspaceEngineAnalysisResult(state, analysis);
+      graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+      state.registry!.notifyPostAnalyze(graph, disabledPlugins);
+      return true;
+    },
+  );
+  if (!committed) {
     return applyWorkspaceEngineChangedFiles(
       runtime,
       supersededFiles.map(file => file.absolutePath),
       fullIndex,
     );
   }
-  applyWorkspaceEngineAnalysisResult(state, analysis);
-  const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
-  state.registry!.notifyPostAnalyze(graph, disabledPlugins);
-  patchWorkspaceEngineCache(runtime, files.map(file => file.relativePath));
+  if (!graph) throw new Error('Workspace Graph Cache commit completed without a Graph');
   return {
     ...createWorkspaceEngineIndexResult(runtime, graph),
     indexing: {

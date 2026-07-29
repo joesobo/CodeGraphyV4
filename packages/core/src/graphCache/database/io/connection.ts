@@ -143,13 +143,20 @@ async function useConnectionAsync<T>(
   }
 }
 
+export function withOwnedConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+): T {
+  return useConnection(databasePath, callback);
+}
+
 export function withConnection<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => T,
 ): T {
   return withWorkspaceCacheWriteLock(
     databasePath,
-    () => useConnection(databasePath, callback),
+    () => withOwnedConnection(databasePath, callback),
   );
 }
 
@@ -163,19 +170,28 @@ export function withConnectionAsync<T>(
   );
 }
 
+export function withOwnedRecreatedConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+  reset: (path: string) => void = resetInvalidDatabase,
+): T {
+  try {
+    return useConnection(databasePath, callback);
+  } catch (error) {
+    resetDatabaseOrThrowOriginal(databasePath, error, reset);
+    return useConnection(databasePath, callback);
+  }
+}
+
 export function withRecreatedConnection<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => T,
   reset: (path: string) => void = resetInvalidDatabase,
 ): T {
-  return withWorkspaceCacheWriteLock(databasePath, () => {
-    try {
-      return useConnection(databasePath, callback);
-    } catch (error) {
-      resetDatabaseOrThrowOriginal(databasePath, error, reset);
-      return useConnection(databasePath, callback);
-    }
-  });
+  return withWorkspaceCacheWriteLock(
+    databasePath,
+    () => withOwnedRecreatedConnection(databasePath, callback, reset),
+  );
 }
 
 export function withRecreatedConnectionAsync<T>(

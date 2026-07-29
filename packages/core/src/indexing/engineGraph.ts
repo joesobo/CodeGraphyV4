@@ -3,7 +3,10 @@ import type { IDiscoveryResult } from '../discovery/contracts';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import type { IGraphData } from '../graph/contracts';
-import { patchWorkspaceAnalysisDatabaseCache, saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
+import {
+  saveWorkspaceAnalysisDatabaseCache,
+  withWorkspaceAnalysisDatabaseWriter,
+} from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { getGraphCachePath } from '../workspace/paths';
 import type { IndexCodeGraphyWorkspaceResult } from './contracts';
@@ -119,21 +122,26 @@ export function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
 export function patchWorkspaceEngineCache(
   runtime: WorkspaceEngineRuntime,
   upsertFilePaths: readonly string[],
-): void {
-  const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
-  for (const filePath of upsertFilePaths) {
-    const entry = runtime.state.cache.files[filePath];
-    if (entry) upsertFiles[filePath] = entry;
-  }
-  patchWorkspaceAnalysisDatabaseCache(runtime.workspaceRoot, {
-    deleteFilePaths: [],
-    upsertFiles,
-    graph: buildCompleteEngineGraph(runtime),
-    nodeTypes: runtime.state.registry?.listNodeTypes(
-      runtime.state.settings
-        ? createDisabledPluginSet(runtime.state.settings)
-        : new Set<string>(),
-    ),
+  prepare: () => Promise<boolean>,
+): Promise<boolean> {
+  return withWorkspaceAnalysisDatabaseWriter(runtime.workspaceRoot, async (writer) => {
+    if (!await prepare()) return false;
+    const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
+    for (const filePath of upsertFilePaths) {
+      const entry = runtime.state.cache.files[filePath];
+      if (entry) upsertFiles[filePath] = entry;
+    }
+    writer.patch({
+      deleteFilePaths: [],
+      upsertFiles,
+      graph: buildCompleteEngineGraph(runtime),
+      nodeTypes: runtime.state.registry?.listNodeTypes(
+        runtime.state.settings
+          ? createDisabledPluginSet(runtime.state.settings)
+          : new Set<string>(),
+      ),
+    });
+    persistMetadata(runtime);
+    return true;
   });
-  persistMetadata(runtime);
 }
