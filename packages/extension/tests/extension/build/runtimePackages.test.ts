@@ -6,9 +6,10 @@ import {
   copyRuntimePackage,
   EXTENSION_EXTERNAL_PACKAGE_NAMES,
   EXTENSION_RUNTIME_PACKAGE_NAMES,
+  getExtensionRuntimePackageNames,
   getVendoredPackageRootPath,
+  resolveExtensionRuntimeTarget,
   resolveRuntimePackageRootPath,
-  syncExtensionRuntimePackages,
 } from '../../../scripts/externalPackages';
 
 const EXTENSION_PACKAGE_ROOT = path.resolve(
@@ -24,18 +25,23 @@ describe('runtime package build support', () => {
     expect(fs.existsSync(path.join(packageRootPath, 'package.json'))).toBe(true);
   });
 
-  it('copies a scoped runtime package into dist/node_modules', () => {
+  it('copies only selected runtime files and clears stale package output', () => {
     const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-build-'));
     const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
     const sourcePackageRootPath = path.join(tempDirectoryPath, 'vendor', 'libsql');
     const sourcePackageJsonPath = path.join(sourcePackageRootPath, 'package.json');
+    const targetPackageRootPath = getVendoredPackageRootPath(outputFilePath, 'libsql');
 
     fs.mkdirSync(sourcePackageRootPath, { recursive: true });
     fs.writeFileSync(sourcePackageJsonPath, '{"name":"libsql"}');
+    fs.writeFileSync(path.join(sourcePackageRootPath, 'README.md'), 'not runtime');
+    fs.mkdirSync(targetPackageRootPath, { recursive: true });
+    fs.writeFileSync(path.join(targetPackageRootPath, 'stale.node'), 'stale');
 
     const copiedPackageRootPath = copyRuntimePackage(
       outputFilePath,
       'libsql',
+      ['package.json'],
       () => sourcePackageRootPath,
     );
 
@@ -43,6 +49,8 @@ describe('runtime package build support', () => {
     expect(fs.readFileSync(path.join(copiedPackageRootPath, 'package.json'), 'utf8')).toBe(
       '{"name":"libsql"}',
     );
+    expect(fs.existsSync(path.join(copiedPackageRootPath, 'README.md'))).toBe(false);
+    expect(fs.existsSync(path.join(copiedPackageRootPath, 'stale.node'))).toBe(false);
   });
 
   it('normalizes copied package entrypoints that point at extensionless directories', () => {
@@ -66,6 +74,7 @@ describe('runtime package build support', () => {
     const copiedPackageRootPath = copyRuntimePackage(
       outputFilePath,
       '@tree-sitter-grammars/tree-sitter-lua',
+      ['package.json', 'bindings/node/index.js'],
       () => sourcePackageRootPath,
     );
     const copiedPackageJson = JSON.parse(
@@ -75,28 +84,36 @@ describe('runtime package build support', () => {
     expect(copiedPackageJson.main).toBe('bindings/node/index.js');
   });
 
-  it('syncs every requested runtime package', () => {
-    const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-sync-'));
-    const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
-    const copiedPackages: string[] = [];
+  it('selects target-specific native runtime packages', () => {
+    expect(getExtensionRuntimePackageNames('darwin-arm64')).toEqual(
+      expect.arrayContaining([
+        '@libsql/darwin-arm64',
+        '@esbuild/darwin-arm64',
+        'tree-sitter',
+      ]),
+    );
+    expect(getExtensionRuntimePackageNames('darwin-arm64')).not.toContain(
+      '@libsql/linux-x64-gnu',
+    );
+  });
 
-    const targetPaths = syncExtensionRuntimePackages(outputFilePath, ['tree-sitter'],);
-    copiedPackages.push(...targetPaths);
-
-    expect(copiedPackages).toEqual([
-      getVendoredPackageRootPath(outputFilePath, 'tree-sitter'),
-    ]);
-    expect(fs.existsSync(path.join(copiedPackages[0], 'package.json'))).toBe(true);
+  it('uses one explicit VSIX target when the build provides it', () => {
+    expect(resolveExtensionRuntimeTarget({
+      environment: { CODEGRAPHY_VSIX_TARGETS: 'darwin-arm64' },
+      platform: 'darwin',
+      arch: 'arm64',
+    })).toBe('darwin-arm64');
   });
 
   it('vendors every Tree-sitter grammar needed by the core runtime', () => {
-    expect(EXTENSION_RUNTIME_PACKAGE_NAMES).toEqual(
+    expect(getExtensionRuntimePackageNames('darwin-arm64')).toEqual(
       expect.arrayContaining([
         'libsql',
         '@neon-rs/load',
         'detect-libc',
         'esbuild',
-        expect.stringMatching(/^@libsql\//),
+        '@libsql/darwin-arm64',
+        '@esbuild/darwin-arm64',
         'material-icon-theme',
         'tree-sitter',
         'tree-sitter-c',
