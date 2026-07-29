@@ -11,8 +11,13 @@ import {
   SYMBOLS_ANALYSIS_CACHE_TIER,
   type AnalysisCacheTier,
 } from '../../../analysis/fileAnalysis/cacheTiers';
-import { readRowsAsync, readRowsSync, withConnection, withConnectionAsync } from './connection';
-import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
+import {
+  readRowsAsync,
+  readRowsSync,
+  withRecreatedConnection,
+  withRecreatedConnectionAsync,
+} from './connection';
+import { getWorkspaceAnalysisDatabasePath } from './paths';
 import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from '../records/types';
 import { parseDatabaseRecords } from '../records/parser';
 import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY, SYMBOL_ROWS_QUERY } from '../query/read';
@@ -54,9 +59,8 @@ function createCache(
   return cache;
 }
 
-function recoverUnreadableDatabase(databasePath: string, error: unknown): IWorkspaceAnalysisCache {
+function reportUnreadableDatabase(error: unknown): IWorkspaceAnalysisCache {
   console.warn('[CodeGraphy] Failed to read persisted analysis database. Rebuilding cache.', error);
-  clearDatabaseArtifacts(databasePath);
   return createEmptyWorkspaceAnalysisCache();
 }
 
@@ -67,7 +71,7 @@ export function loadWorkspaceAnalysisDatabaseCache(
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return withConnection(databasePath, connection => createCache(
+    return withRecreatedConnection(databasePath, connection => createCache(
       readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
       readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
       readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
@@ -76,7 +80,7 @@ export function loadWorkspaceAnalysisDatabaseCache(
       workspaceRoot,
     ));
   } catch (error) {
-    return recoverUnreadableDatabase(databasePath, error);
+    return reportUnreadableDatabase(error);
   }
 }
 
@@ -87,7 +91,7 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return await withConnectionAsync(databasePath, async connection => {
+    return await withRecreatedConnectionAsync(databasePath, async connection => {
       const [fileRows, nodeRows, symbolRows, edgeRows] = await Promise.all([
         readRowsAsync(connection, FILE_ROWS_QUERY),
         readRowsAsync(connection, NODE_ROWS_QUERY),
@@ -104,7 +108,7 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
       );
     });
   } catch (error) {
-    return recoverUnreadableDatabase(databasePath, error);
+    return reportUnreadableDatabase(error);
   }
 }
 

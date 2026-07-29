@@ -3,9 +3,9 @@ import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
-  recreateInvalidDatabase,
   runStatementSync,
   withConnection,
+  withRecreatedConnection,
 } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
@@ -109,32 +109,21 @@ export function saveWorkspaceAnalysisDatabaseCache(
   if (!fs.existsSync(path.dirname(databasePath))) {
     return;
   }
-  const persist = (): void => {
-    withConnection(databasePath, (connection) => {
-      runTransactionSync(connection, () => {
-        runStatementSync(connection, 'DELETE FROM Edge');
-        runStatementSync(connection, 'DELETE FROM Symbol');
-        runStatementSync(connection, 'DELETE FROM Node');
-        runStatementSync(connection, 'DELETE FROM File');
+  withRecreatedConnection(databasePath, (connection) => {
+    runTransactionSync(connection, () => {
+      runStatementSync(connection, 'DELETE FROM Edge');
+      runStatementSync(connection, 'DELETE FROM Symbol');
+      runStatementSync(connection, 'DELETE FROM Node');
+      runStatementSync(connection, 'DELETE FROM File');
 
-        const writer = createWorkspaceAnalysisCacheWriter(connection);
-        if (nodeTypes) {
-          persistWorkspaceCache(writer, cache, graph, nodeTypes);
-        } else {
-          persistWorkspaceCache(writer, cache, graph);
-        }
-      });
+      const writer = createWorkspaceAnalysisCacheWriter(connection);
+      if (nodeTypes) {
+        persistWorkspaceCache(writer, cache, graph, nodeTypes);
+      } else {
+        persistWorkspaceCache(writer, cache, graph);
+      }
     });
-  };
-
-  try {
-    persist();
-  } catch (error) {
-    if (!recreateInvalidDatabase(databasePath, error)) {
-      throw error;
-    }
-    persist();
-  }
+  });
 }
 
 export function patchWorkspaceAnalysisDatabaseCache(

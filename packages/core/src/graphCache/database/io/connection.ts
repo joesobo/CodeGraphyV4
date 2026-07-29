@@ -81,20 +81,17 @@ function resetInvalidDatabase(databasePath: string): void {
   }
 }
 
-export function recreateInvalidDatabase(
+function resetDatabaseOrThrowOriginal(
   databasePath: string,
   error: unknown,
-  reset: (path: string) => void = resetInvalidDatabase,
-): boolean {
-  if (!isInvalidDatabaseError(error)) {
-    return false;
-  }
+  reset: (path: string) => void,
+): void {
+  if (!isInvalidDatabaseError(error)) throw error;
   try {
     reset(databasePath);
   } catch {
     throw error;
   }
-  return true;
 }
 
 function openConnection(databasePath: string): SQLiteConnection {
@@ -122,30 +119,76 @@ function openReadOnlyConnection(databasePath: string): SQLiteConnection {
   return connection;
 }
 
+function useConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+): T {
+  const connection = openConnection(databasePath);
+  try {
+    return callback(connection);
+  } finally {
+    connection.close();
+  }
+}
+
+async function useConnectionAsync<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => Promise<T>,
+): Promise<T> {
+  const connection = openConnection(databasePath);
+  try {
+    return await callback(connection);
+  } finally {
+    connection.close();
+  }
+}
+
 export function withConnection<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => T,
 ): T {
-  return withWorkspaceCacheWriteLock(databasePath, () => {
-    const connection = openConnection(databasePath);
-    try {
-      return callback(connection);
-    } finally {
-      connection.close();
-    }
-  });
+  return withWorkspaceCacheWriteLock(
+    databasePath,
+    () => useConnection(databasePath, callback),
+  );
 }
 
 export function withConnectionAsync<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => Promise<T>,
 ): Promise<T> {
-  return withWorkspaceCacheWriteLockAsync(databasePath, async () => {
-    const connection = openConnection(databasePath);
+  return withWorkspaceCacheWriteLockAsync(
+    databasePath,
+    () => useConnectionAsync(databasePath, callback),
+  );
+}
+
+export function withRecreatedConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+  reset: (path: string) => void = resetInvalidDatabase,
+): T {
+  return withWorkspaceCacheWriteLock(databasePath, () => {
     try {
-      return await callback(connection);
-    } finally {
-      connection.close();
+      return useConnection(databasePath, callback);
+    } catch (error) {
+      resetDatabaseOrThrowOriginal(databasePath, error, reset);
+      return useConnection(databasePath, callback);
+    }
+  });
+}
+
+export function withRecreatedConnectionAsync<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => Promise<T>,
+  reset: (path: string) => void = resetInvalidDatabase,
+): Promise<T> {
+  return withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+    try {
+      return await useConnectionAsync(databasePath, callback);
+    } catch (error) {
+      resetDatabaseOrThrowOriginal(databasePath, error, reset);
+      return useConnectionAsync(databasePath, callback);
     }
   });
 }

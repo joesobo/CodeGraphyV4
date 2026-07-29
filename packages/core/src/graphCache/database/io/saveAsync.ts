@@ -3,9 +3,8 @@ import * as path from 'node:path';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import {
-  recreateInvalidDatabase,
   runStatementAsync,
-  withConnectionAsync,
+  withRecreatedConnectionAsync,
 } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
@@ -30,7 +29,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
   let reportedProgress = 0;
   options.onProgress?.({ current: 0, total });
 
-  const persist = (): Promise<void> => withConnectionAsync(
+  await withRecreatedConnectionAsync(
     databasePath,
     async (connection) => {
       await runStatementAsync(connection, 'BEGIN TRANSACTION');
@@ -92,13 +91,4 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       }
     },
   );
-
-  try {
-    await persist();
-  } catch (error) {
-    if (!recreateInvalidDatabase(databasePath, error)) {
-      throw error;
-    }
-    await persist();
-  }
 }
