@@ -27,6 +27,13 @@ function isBooleanRecord(value: unknown): boolean {
   return isRecord(value) && Object.values(value).every(entry => typeof entry === 'boolean');
 }
 
+export function isSupportedNodeRuntime(version: string): boolean {
+  const [majorText, minorText] = version.split('.');
+  const major = Number(majorText);
+  const minor = Number(minorText);
+  return major > 22 || (major === 22 && minor >= 14);
+}
+
 function validateKnownSettings(value: Record<string, unknown>): string | undefined {
   const stringArrays = ['include', 'filterPatterns', 'disabledCustomFilterPatterns'] as const;
   for (const key of stringArrays) {
@@ -92,8 +99,7 @@ function readSettingsCheck(workspaceRoot: string): Record<string, unknown> {
 
 export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
   const workspaceRoot = resolveCodeGraphyWorkspacePath(command.workspacePath, process.cwd());
-  const runtimeMajor = Number(process.versions.node.split('.')[0]);
-  const runtimeOk = runtimeMajor >= 20;
+  const runtimeOk = isSupportedNodeRuntime(process.versions.node);
   const settingsCheck = readSettingsCheck(workspaceRoot);
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
@@ -108,8 +114,8 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
     runtime: {
       ok: runtimeOk,
       version: process.version,
-      supported: '>=20',
-      ...(runtimeOk ? {} : { action: 'Use Node.js 20 or newer.' }),
+      supported: '>=22.14.0',
+      ...(runtimeOk ? {} : { action: 'Use Node.js 22.14.0 or newer.' }),
     },
     settings: settingsCheck,
     cache: createDoctorCacheCheck({

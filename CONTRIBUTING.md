@@ -6,16 +6,15 @@ CodeGraphy accepts focused changes through pull requests against `main`.
 
 ### Prerequisites
 
-- Node.js 20 or newer; use the repository-pinned Node 22 runtime
+- Node.js 22.14.0 or newer; use an active LTS release
 - pnpm 10+
-- VS Code 1.85+
+- VS Code 1.101+
 
 ### Getting started
 
 1. Fork and clone the repository.
 2. Install dependencies:
    ```bash
-   nvm use
    pnpm install
    ```
 3. Build the project:
@@ -112,7 +111,7 @@ pnpm --filter @codegraphy-dev/extension exec playwright install chromium  # Brow
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```
 
-The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
+Use an active Node.js LTS release for repository development, release, and quality-tool commands. Published packages require Node.js 22.14.0 or newer and do not set a maximum version.
 
 ## Reporting bugs
 

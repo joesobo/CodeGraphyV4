@@ -27,5 +27,5 @@ await build({
   format: 'esm',
   platform: 'node',
   sourcemap: true,
-  target: 'node20',
+  target: 'node22',
 });

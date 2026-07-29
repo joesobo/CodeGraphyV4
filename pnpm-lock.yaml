@@ -39,7 +39,7 @@ importers:
         specifier: ^20.11.0
         version: 20.19.37
       '@types/vscode':
-        specifier: ^1.85.0
+        specifier: ^1.101.0
         version: 1.110.0
       '@vitest/coverage-istanbul':
         specifier: ^3.2.4

@@ -52,7 +52,7 @@ Implementation now lives in the external `@poleski/quality-tools` package.
 
 Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
 
-Run these commands with the repository-pinned Node runtime from [`.nvmrc`](../../.nvmrc). `@poleski/quality-tools` uses `path.matchesGlob` and requires Node 20 or newer.
+Run these commands with an active Node.js LTS release. `@poleski/quality-tools` requires Node 22.22.0 or newer.
 
 ## Workflow
 

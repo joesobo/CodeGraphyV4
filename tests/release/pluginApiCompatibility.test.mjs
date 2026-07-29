@@ -67,7 +67,7 @@ test('public plugin API packages include publish and support metadata', () => {
   for (const packageName of ['plugin-api', 'extension-plugin-api']) {
     const packageManifest = readJson(`packages/${packageName}/package.json`);
 
-    assert.equal(packageManifest.engines?.node, '>=20', `${packageName} Node.js engine`);
+    assert.equal(packageManifest.engines?.node, '>=22.14.0', `${packageName} Node.js engine`);
     assert.equal(
       packageManifest.repository?.url,
       'https://github.com/joesobo/CodeGraphyV4.git',

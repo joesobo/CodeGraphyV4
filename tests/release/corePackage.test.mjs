@@ -31,7 +31,7 @@ test('Core package declares the Node range supported by its native dependencies'
     fs.readFileSync(path.join(repoRoot, 'packages', 'core', 'package.json'), 'utf8'),
   );
 
-  assert.equal(manifest.engines.node, '>=20');
+  assert.equal(manifest.engines.node, '>=22.14.0');
 });
 
 test('Core publishes dependency-free Graph Scope defaults as a focused subpath', () => {

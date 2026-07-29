@@ -231,7 +231,7 @@ Keep one package-owned `build` command. A small Core plugin can use:
 ```json
 {
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/plugin.js"
+    "build": "tsc -p tsconfig.build.json && esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/plugin.js"
   }
 }
 ```

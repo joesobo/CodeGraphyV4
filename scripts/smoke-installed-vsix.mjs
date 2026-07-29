@@ -258,7 +258,7 @@ async function writeHarnessExtension(harnessPath) {
       publisher: 'codegraphy',
       version: '0.0.0',
       engines: {
-        vscode: '^1.85.0',
+        vscode: '^1.101.0',
       },
       activationEvents: [],
       main: './extension.js',

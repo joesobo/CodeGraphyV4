@@ -72,7 +72,7 @@ The extension publishes native runtime targets for Linux x64, macOS Apple Silico
 
 ### CLI and Plugins
 
-The terminal CLI supports Node.js 20 through 22. Node 22 LTS is recommended.
+The terminal CLI supports Node.js 22.14.0 and newer. An active LTS release is recommended.
 
 ```bash
 npm install -g @codegraphy-dev/core
@@ -98,8 +98,8 @@ codegraphy -C /path/to/workspace index
 
 ### tldraw Offline
 
-The first tldraw interface supports macOS and Node.js 20 through 22. Node.js 22
-LTS is recommended. Install the
+The first tldraw interface supports macOS and Node.js 22.14.0 and newer. An active
+LTS release is recommended. Install the
 [tldraw offline desktop app](https://www.tldraw.com/), Core, and the interface.
 Then run the launcher from the workspace to index:
 
