@@ -26,6 +26,24 @@ const data: GraphQueryData = {
 };
 
 describe('core/graphQuery task map projection', () => {
+  it('selects declarations that match task terms before alphabetical fallbacks', () => {
+    const symbols = indexTaskMapSymbols({
+      ...data,
+      symbols: [
+        { id: 'src/file-0.ts#alpha:function', filePath: 'src/file-0.ts', name: 'alpha', kind: 'function' },
+        { id: 'src/file-0.ts#runtimeFailure:function', filePath: 'src/file-0.ts', name: 'runtimeFailure', kind: 'function' },
+        { id: 'src/file-0.ts#beta:function', filePath: 'src/file-0.ts', name: 'beta', kind: 'function' },
+        { id: 'src/file-0.ts#gamma:function', filePath: 'src/file-0.ts', name: 'gamma', kind: 'function' },
+      ],
+    }, ['runtime', 'failure']);
+
+    expect(symbols.get('src/file-0.ts')?.map(symbol => symbol.name)).toEqual([
+      'runtimeFailure',
+      'alpha',
+      'beta',
+    ]);
+  });
+
   it('bounds declarations and typed relationships with truthful completeness', () => {
     const symbols = indexTaskMapSymbols(data);
     const relationships = selectTaskMapRelationships(data, new Set(filePaths), 12);

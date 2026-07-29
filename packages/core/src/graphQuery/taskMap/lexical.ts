@@ -73,6 +73,11 @@ function includesTerm(value: string, queryTerm: string): boolean {
   return termVariants(queryTerm).some(term => value.includes(` ${term} `));
 }
 
+export function countTaskMapTermMatches(value: string, queryTerms: readonly string[]): number {
+  const normalized = normalizeSearchText(value);
+  return queryTerms.filter(term => includesTerm(normalized, term)).length;
+}
+
 export function createTaskMapDocuments(data: GraphQueryData): TaskMapDocument[] {
   const files = new Map(data.graphData.nodes
     .filter(node => node.nodeType === 'file' && !node.symbol)

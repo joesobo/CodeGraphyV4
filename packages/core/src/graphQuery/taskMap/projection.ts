@@ -5,6 +5,7 @@ import type {
 } from '../../graph/contracts';
 import type { GraphQueryData } from '../data';
 import type { GraphQueryTaskMapFile, GraphQueryTaskMapReport } from '../model';
+import { countTaskMapTermMatches } from './lexical';
 
 const MAX_SYMBOLS_PER_FILE = 3;
 const RELATIONSHIP_KEY_SEPARATOR = '\u0000';
@@ -78,13 +79,23 @@ function taskMapSymbol(
   };
 }
 
-function limitTaskMapSymbols(symbols: GraphQueryTaskMapFile['symbols']): GraphQueryTaskMapFile['symbols'] {
+function limitTaskMapSymbols(
+  symbols: GraphQueryTaskMapFile['symbols'],
+  taskTerms: readonly string[],
+): GraphQueryTaskMapFile['symbols'] {
   return symbols
-    .sort((left, right) => left.name.localeCompare(right.name) || (left.id ?? '').localeCompare(right.id ?? ''))
+    .sort((left, right) => (
+      countTaskMapTermMatches(right.name, taskTerms) - countTaskMapTermMatches(left.name, taskTerms)
+      || left.name.localeCompare(right.name)
+      || (left.id ?? '').localeCompare(right.id ?? '')
+    ))
     .slice(0, MAX_SYMBOLS_PER_FILE);
 }
 
-export function indexTaskMapSymbols(data: GraphQueryData): Map<string, GraphQueryTaskMapFile['symbols']> {
+export function indexTaskMapSymbols(
+  data: GraphQueryData,
+  taskTerms: readonly string[] = [],
+): Map<string, GraphQueryTaskMapFile['symbols']> {
   const symbols = new Map<string, GraphQueryTaskMapFile['symbols']>();
   for (const symbol of data.symbols ?? []) {
     const fileSymbols = symbols.get(symbol.filePath) ?? [];
@@ -92,7 +103,7 @@ export function indexTaskMapSymbols(data: GraphQueryData): Map<string, GraphQuer
     symbols.set(symbol.filePath, fileSymbols);
   }
   for (const [filePath, fileSymbols] of symbols) {
-    symbols.set(filePath, limitTaskMapSymbols(fileSymbols));
+    symbols.set(filePath, limitTaskMapSymbols(fileSymbols, taskTerms));
   }
   return symbols;
 }

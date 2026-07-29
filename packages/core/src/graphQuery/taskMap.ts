@@ -88,7 +88,7 @@ function createTaskMapRanking(
     lexical,
     maxGraphScore: maximum(graphRanks.values(), 1 / Math.max(documents.length, 1)),
     maxLexicalScore: maximum([...lexical.values()].map(rank => rank.score), 1),
-    symbols: indexTaskMapSymbols(data),
+    symbols: indexTaskMapSymbols(data, terms),
   };
 }
 
