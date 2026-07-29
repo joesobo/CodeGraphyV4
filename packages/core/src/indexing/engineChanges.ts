@@ -18,6 +18,14 @@ function isWorkspaceDiscoveryLifecyclePath(workspaceRoot: string, filePath: stri
   return relativePath === '.codegraphy/settings.json' || path.basename(relativePath) === '.gitignore';
 }
 
+function shouldFullyReconcileWorkspaceChanges(
+  runtime: WorkspaceEngineRuntime,
+  filePaths: readonly string[],
+): boolean {
+  return runtime.state.discoveryResult!.limitReached
+    || filePaths.some(filePath => isWorkspaceDiscoveryLifecyclePath(runtime.workspaceRoot, filePath));
+}
+
 async function unmatchedPathCanAffectIndex(
   runtime: WorkspaceEngineRuntime,
   filePath: string,
@@ -35,6 +43,36 @@ async function unmatchedPathCanAffectIndex(
   }
 }
 
+async function commitWorkspaceEngineAnalysis(
+  runtime: WorkspaceEngineRuntime,
+  files: NonNullable<WorkspaceEngineRuntime['state']['discoveryResult']>['files'],
+  analysis: Awaited<ReturnType<typeof analyzeWorkspaceEngineChangedFiles>>,
+  disabledPlugins: Set<string>,
+) {
+  const { state } = runtime;
+  let graph: ReturnType<typeof buildWorkspaceEngineGraph> | undefined;
+  let supersededFiles: typeof files = [];
+  const committed = await patchWorkspaceEngineCache(
+    runtime,
+    files.map(file => file.relativePath),
+    async () => {
+      assertWorkspaceEngineActive(runtime);
+      supersededFiles = await findChangedWorkspaceIndexFiles({
+        cache: state.cache,
+        files,
+        readContent: createWorkspaceIndexFileContentReader(runtime.discovery),
+      });
+      assertWorkspaceEngineActive(runtime);
+      if (supersededFiles.length > 0) return false;
+      applyWorkspaceEngineAnalysisResult(state, analysis);
+      graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+      state.registry!.notifyPostAnalyze(graph, disabledPlugins);
+      return true;
+    },
+  );
+  return { committed, graph, supersededFiles };
+}
+
 export async function applyWorkspaceEngineChangedFiles(
   runtime: WorkspaceEngineRuntime,
   filePaths: readonly string[],
@@ -45,12 +83,7 @@ export async function applyWorkspaceEngineChangedFiles(
   const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
   await discoverWorkspaceEngineFiles(runtime);
   assertWorkspaceEngineActive(runtime);
-  if (filePaths.some(filePath => isWorkspaceDiscoveryLifecyclePath(workspaceRoot, filePath))) {
-    return fullIndex();
-  }
-  if (state.discoveryResult!.limitReached) {
-    return fullIndex();
-  }
+  if (shouldFullyReconcileWorkspaceChanges(runtime, filePaths)) return fullIndex();
   const discoveredByPath = mapDiscoveredWorkspaceIndexFilesByRelativePath(state.discoveryResult!.files);
   const changes = selectDiscoveredWorkspaceIndexFileChanges(workspaceRoot, filePaths, discoveredByPath);
 
@@ -103,36 +136,17 @@ export async function applyWorkspaceEngineChangedFiles(
   invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, files.map(file => file.absolutePath));
   const analysis = await analyzeWorkspaceEngineChangedFiles(runtime, files, disabledPlugins);
   assertWorkspaceEngineActive(runtime);
-  let graph: ReturnType<typeof buildWorkspaceEngineGraph> | undefined;
-  let supersededFiles: typeof files = [];
-  const committed = await patchWorkspaceEngineCache(
-    runtime,
-    files.map(file => file.relativePath),
-    async () => {
-      assertWorkspaceEngineActive(runtime);
-      supersededFiles = await findChangedWorkspaceIndexFiles({
-        cache: state.cache,
-        files,
-        readContent: createWorkspaceIndexFileContentReader(runtime.discovery),
-      });
-      assertWorkspaceEngineActive(runtime);
-      if (supersededFiles.length > 0) return false;
-      applyWorkspaceEngineAnalysisResult(state, analysis);
-      graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
-      state.registry!.notifyPostAnalyze(graph, disabledPlugins);
-      return true;
-    },
-  );
-  if (!committed) {
+  const commit = await commitWorkspaceEngineAnalysis(runtime, files, analysis, disabledPlugins);
+  if (!commit.committed) {
     return applyWorkspaceEngineChangedFiles(
       runtime,
-      supersededFiles.map(file => file.absolutePath),
+      commit.supersededFiles.map(file => file.absolutePath),
       fullIndex,
     );
   }
-  if (!graph) throw new Error('Workspace Graph Cache commit completed without a Graph');
+  if (!commit.graph) throw new Error('Workspace Graph Cache commit completed without a Graph');
   return {
-    ...createWorkspaceEngineIndexResult(runtime, graph),
+    ...createWorkspaceEngineIndexResult(runtime, commit.graph),
     indexing: {
       mode: 'incremental',
       analyzedFiles: files.length,

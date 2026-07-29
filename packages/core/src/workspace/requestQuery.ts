@@ -50,22 +50,54 @@ function createCacheMissingResult(workspaceRoot: string): WorkspaceGraphQueryRes
 }
 
 function shouldApplyWorkspaceGraphScope(input: WorkspaceGraphQueryInput): boolean {
-  switch (input.report) {
-    case 'nodes':
-    case 'relationships':
-      return true;
-    case 'edges':
-      return !input.arguments?.from && !input.arguments?.to;
-    case 'symbols':
-      return !input.arguments?.filePath
-        && !input.arguments?.relatedFrom
-        && !input.arguments?.relatedTo;
-    case 'paths':
-    case 'search':
-    case 'task-map':
-    case 'overview':
-      return false;
+  if (input.report === 'edges') {
+    return !input.arguments?.from && !input.arguments?.to;
   }
+  if (input.report === 'symbols') {
+    return !input.arguments?.filePath
+      && !input.arguments?.relatedFrom
+      && !input.arguments?.relatedTo;
+  }
+  return input.report === 'nodes' || input.report === 'relationships';
+}
+
+function resolveWorkspaceGraphQueryScope(
+  input: WorkspaceGraphQueryInput,
+  graphData: ReturnType<typeof projectWorkspaceQueryGraph>['graphData'],
+  scope: ReturnType<typeof projectWorkspaceQueryGraph>['scope'],
+) {
+  if (shouldApplyWorkspaceGraphScope(input)) return scope;
+  const completeScope = {
+    nodes: Object.fromEntries(graphData.nodes.map(node => [getNodeType(node), true])),
+    edges: Object.fromEntries(graphData.edges.map(edge => [edge.kind, true])),
+  };
+  return {
+    nodes: input.projection?.nodeTypes ? scope.nodes : completeScope.nodes,
+    edges: input.projection?.edgeTypes ? scope.edges : completeScope.edges,
+  };
+}
+
+function createWorkspaceGraphQueryRequest(
+  input: WorkspaceGraphQueryInput,
+  queryScope: ReturnType<typeof resolveWorkspaceGraphQueryScope>,
+  nodeTypes: ReturnType<typeof projectWorkspaceQueryGraph>['nodeTypes'],
+): GraphQueryRequest {
+  return {
+    report: input.report,
+    arguments: {
+      scope: queryScope,
+      ...(input.projection?.nodeTypes
+        ? {
+            nodeTypeDefinitions: nodeTypes,
+            projectedNodeTypes: input.projection.nodeTypes,
+          }
+        : {}),
+      ...(input.projection?.edgeTypes
+        ? { projectedEdgeTypes: input.projection.edgeTypes }
+        : {}),
+      ...input.arguments,
+    },
+  } as GraphQueryRequest;
 }
 
 function executeWorkspaceGraphQuery(
@@ -84,38 +116,14 @@ function executeWorkspaceGraphQuery(
   const sourceText = input.report === 'search' || input.report === 'task-map'
     ? readWorkspaceQuerySourceText(workspaceRoot, graphData, source.indexedContentHashes)
     : undefined;
-  const completeScope = {
-    nodes: Object.fromEntries(graphData.nodes.map(node => [getNodeType(node), true])),
-    edges: Object.fromEntries(graphData.edges.map(edge => [edge.kind, true])),
-  };
-  const queryScope = shouldApplyWorkspaceGraphScope(input)
-    ? { nodes: scope.nodes, edges: scope.edges }
-    : {
-        nodes: input.projection?.nodeTypes ? scope.nodes : completeScope.nodes,
-        edges: input.projection?.edgeTypes ? scope.edges : completeScope.edges,
-      };
+  const queryScope = resolveWorkspaceGraphQueryScope(input, graphData, scope);
   const queryResult = executeGraphQuery({
     graphData,
     symbols: snapshotFacts.symbols,
     relations: snapshotFacts.relations,
     ...(sourceText ? { sourceText } : {}),
     cacheState: status.state === 'stale' || sourceText?.hasChangedFiles ? 'stale' : 'fresh',
-  }, {
-    report: input.report,
-    arguments: {
-      scope: queryScope,
-      ...(input.projection?.nodeTypes
-        ? {
-            nodeTypeDefinitions: nodeTypes,
-            projectedNodeTypes: input.projection.nodeTypes,
-          }
-        : {}),
-      ...(input.projection?.edgeTypes
-        ? { projectedEdgeTypes: input.projection.edgeTypes }
-        : {}),
-      ...input.arguments,
-    },
-  } as GraphQueryRequest);
+  }, createWorkspaceGraphQueryRequest(input, queryScope, nodeTypes));
   emitGraphQueryCompleted({
     diagnostics: input.diagnostics,
     durationMs: Math.round(performance.now() - startedAt),
