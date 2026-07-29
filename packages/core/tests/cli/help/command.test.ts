@@ -95,6 +95,7 @@ describe('cli/help/command', () => {
 
     const filterHelp = createHelpResult(['filter']).output;
     expect(filterHelp).toContain('Filters are persisted in .codegraphy/settings.json');
+    expect(filterHelp).toContain('Removing or disabling an active Filter requires Indexing');
     expect(filterHelp).toContain("codegraphy filter add '**/generated/**'");
 
     const pluginHelp = createHelpResult(['plugins', 'enable']).output;

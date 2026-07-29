@@ -16,6 +16,10 @@ const INDEXED_SETTING_KEYS = new Set([
   'plugins',
   'respectGitignore',
 ]);
+const FILTER_SETTING_KEYS = new Set([
+  'filterPatterns',
+  'disabledCustomFilterPatterns',
+]);
 
 interface SymbolAnalysisIndexInput {
   files: ReturnType<typeof readWorkspaceAnalysisDatabaseSnapshot>['files'];
@@ -50,6 +54,33 @@ function workspaceRequiresSymbolAnalysisIndex(
   });
 }
 
+function activeFilterPatterns(
+  filterPatterns: readonly string[],
+  disabledPatterns: readonly string[],
+): Set<string> {
+  const disabled = new Set(disabledPatterns);
+  return new Set(filterPatterns.filter(pattern => !disabled.has(pattern)));
+}
+
+function filterChangeBroadensDiscovery(input: {
+  key: string;
+  previous: unknown;
+  settings: CodeGraphyWorkspaceSettings;
+}): boolean {
+  const previousFilterPatterns = input.key === 'filterPatterns'
+    ? input.previous as string[]
+    : input.settings.filterPatterns;
+  const previousDisabledPatterns = input.key === 'disabledCustomFilterPatterns'
+    ? input.previous as string[]
+    : input.settings.disabledCustomFilterPatterns;
+  const previousActive = activeFilterPatterns(previousFilterPatterns, previousDisabledPatterns);
+  const currentActive = activeFilterPatterns(
+    input.settings.filterPatterns,
+    input.settings.disabledCustomFilterPatterns,
+  );
+  return [...previousActive].some(pattern => !currentActive.has(pattern));
+}
+
 export function workspaceSettingChangeRequiresIndex(input: {
   key: string;
   previous: unknown;
@@ -59,6 +90,7 @@ export function workspaceSettingChangeRequiresIndex(input: {
   const value = Reflect.get(input.settings, input.key) as unknown;
   if (isDeepStrictEqual(input.previous, value)) return false;
   if (INDEXED_SETTING_KEYS.has(input.key)) return true;
+  if (FILTER_SETTING_KEYS.has(input.key)) return filterChangeBroadensDiscovery(input);
   return input.key === 'nodeVisibility'
     && workspaceRequiresSymbolAnalysisIndex(input.workspaceRoot, input.settings);
 }

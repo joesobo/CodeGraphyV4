@@ -101,6 +101,28 @@ describe('cli/settings command', () => {
     });
   });
 
+  it('requires Indexing when removing or disabling an active Filter broadens discovery', async () => {
+    for (const [key, value] of [
+      ['filterPatterns', '[]'],
+      ['disabledCustomFilterPatterns', '["excluded/**"]'],
+    ] as const) {
+      const workspace = await createWorkspace({
+        version: 1,
+        filterPatterns: ['excluded/**'],
+        disabledCustomFilterPatterns: [],
+      });
+      const stdout = vi.fn();
+
+      await expect(runCli([
+        '-C', workspace, 'settings', 'set', key, value,
+      ], { stdout })).resolves.toBe(0);
+
+      expect(JSON.parse(stdout.mock.calls[0][0])).toMatchObject({
+        data: { key, indexRequired: true },
+      });
+    }
+  });
+
   it('reuses Scope hydration checks for Symbol visibility settings', async () => {
     const workspace = await createWorkspace({ version: 1 });
     const stdout = vi.fn();
