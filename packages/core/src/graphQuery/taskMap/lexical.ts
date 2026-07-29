@@ -24,34 +24,43 @@ function tokenize(value: string): string[] {
     .filter(term => term.length > 2 && !STOP_WORDS.has(term)) ?? [];
 }
 
-function termVariants(term: string): string[] {
+function addPresentParticipleRoot(roots: Set<string>, term: string): void {
+  if (!term.endsWith('ing') || term.length <= 5) return;
+  const root = term.slice(0, -3);
+  roots.add(root);
+  if (root.at(-1) === root.at(-2)) roots.add(root.slice(0, -1));
+}
+
+function termRoots(term: string): Set<string> {
   const roots = new Set([term]);
-  if (term.endsWith('ing') && term.length > 5) {
-    const root = term.slice(0, -3);
-    roots.add(root);
-    if (root.at(-1) === root.at(-2)) roots.add(root.slice(0, -1));
-  }
+  addPresentParticipleRoot(roots, term);
   if (term.endsWith('ed') && term.length > 4) {
     roots.add(term.slice(0, -2));
     roots.add(term.slice(0, -1));
   }
   if (term.endsWith('s') && term.length > 4) roots.add(term.slice(0, -1));
+  return roots;
+}
 
-  const variants = new Set(roots);
-  for (const root of roots) {
-    variants.add(`${root}s`);
-    if (root.endsWith('e')) {
-      variants.add(`${root}d`);
-      variants.add(`${root.slice(0, -1)}ing`);
-    } else {
-      variants.add(`${root}ed`);
-      variants.add(`${root}ing`);
-      if (/[^aeiou]$/u.test(root)) {
-        variants.add(`${root}${root.at(-1)}ed`);
-        variants.add(`${root}${root.at(-1)}ing`);
-      }
-    }
+function addInflectedVariants(variants: Set<string>, root: string): void {
+  variants.add(`${root}s`);
+  if (root.endsWith('e')) {
+    variants.add(`${root}d`);
+    variants.add(`${root.slice(0, -1)}ing`);
+    return;
   }
+  variants.add(`${root}ed`);
+  variants.add(`${root}ing`);
+  if (/[^aeiou]$/u.test(root)) {
+    variants.add(`${root}${root.at(-1)}ed`);
+    variants.add(`${root}${root.at(-1)}ing`);
+  }
+}
+
+function termVariants(term: string): string[] {
+  const roots = termRoots(term);
+  const variants = new Set(roots);
+  for (const root of roots) addInflectedVariants(variants, root);
   return [...variants];
 }
 

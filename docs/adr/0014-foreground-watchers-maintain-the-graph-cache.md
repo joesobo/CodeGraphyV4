@@ -4,7 +4,7 @@
 
 ## Context
 
-Cached Symbols and Relationships become stale while an agent changes source. Explicit `codegraphy index` repairs them, but long terminal sessions and multi-agent handoffs can query a cache after many edits. The VS Code Extension deliberately indexes only after an explicit user action under ADR 0006; a terminal workflow needs its own opt-in lifecycle when continuous freshness is useful.
+Cached Symbols and Relationships become stale while an agent changes source. Explicit `codegraphy index` repairs them, but long terminal sessions and multi-agent handoffs can query a cache after many edits. The VS Code Extension deliberately indexes only after an explicit user action under ADR 0015; a terminal workflow needs its own opt-in lifecycle when continuous freshness is useful.
 
 ADR 0013 initially rejected watcher-assisted impact because a resident process appeared to conflict with ADR 0003's one-shot CLI and no-server boundary. That premise was too broad. A foreground process which only updates the same SQLite cache is not a query server: queries remain independent, one-shot, read-only CLI processes with no transport or session protocol.
 
@@ -24,7 +24,7 @@ Core owns a serialized workspace Graph Cache updater. It:
 
 The CLI exposes that updater as foreground `codegraphy watch [-C workspace]`. It subscribes before initial synchronization, uses Parcel's native recursive watcher, ignores cache artifacts at every `.codegraphy` path segment except the root settings file, emits bounded JSON Lines envelopes, and drains pending changes on `SIGINT` or `SIGTERM`. Query commands remain separate one-shot processes.
 
-The VS Code Extension does not run this updater. In accordance with ADR 0006, it loads the last explicit Graph Cache and changes cached source facts only after Index or Re-index Workspace. Keeping the CLI watcher at the Core seam avoids a second Extension-specific event and persistence path.
+The VS Code Extension does not run this updater. In accordance with ADR 0015, it loads the last explicit Graph Cache and changes cached source facts only after Index or Re-index Workspace. Keeping the CLI watcher at the Core seam avoids a second Extension-specific event and persistence path.
 
 Graph Cache writes use operation-scoped cross-process coordination beside `graph.sqlite`. An atomic lock directory records the writer PID and a unique token, is removed after each write, and can recover when its owner process has terminated. SQLite connections also wait up to five seconds for short-lived contention. Incremental analyses verify source content immediately before commit and retry if another writer's newer edit superseded them. This supports simultaneous CLI watchers and independent readers without an exclusive long-lived watcher owner or heartbeat.
 
@@ -53,7 +53,7 @@ This does not establish a retrieval benefit: those agents navigated the graph be
 ## Consequences
 
 - ADR 0013's watcher rejection is superseded. ADR 0003 still excludes MCP and persistent query servers; a user-invoked foreground cache updater is allowed.
-- ADR 0006 remains authoritative for the VS Code Extension: editor events do not invoke this updater or alter cached source facts.
+- ADR 0015 remains authoritative for the VS Code Extension: editor events do not invoke this updater or alter cached source facts.
 - Multiple local updaters are supported without heartbeat traffic or permanent ownership files.
 - Event delivery is a hint, not correctness proof. Full rediscovery remains the recovery path for lifecycle changes and incomplete path evidence; Parcel snapshots remain a future recovery option if event-loss evidence requires them.
 - Watcher startup and resident memory are explicit costs. Short tasks can use one-shot `index`, and agents retain full discretion because the skill describes semantics rather than prescribing when to watch.
@@ -62,7 +62,7 @@ This does not establish a retrieval benefit: those agents navigated the graph be
 ## References
 
 - ADR 0003, CLI and Agent Skill replace MCP
-- ADR 0006, VS Code indexing requires explicit user action
+- ADR 0015, VS Code indexing requires explicit user action
 - ADR 0011, agents choose their CodeGraphy strategy
 - ADR 0012, structural work and adoption requirements
 - ADR 0013, Task Map and the superseded watcher disposition

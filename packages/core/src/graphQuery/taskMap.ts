@@ -23,11 +23,23 @@ const DEFAULT_FILES = 8;
 const MAX_FILES = 20;
 const MAX_RELATIONSHIPS = 12;
 
+type TaskMapDocument = ReturnType<typeof createTaskMapDocuments>[number];
+type TaskMapLexicalRank = ReturnType<typeof rankTaskMapDocument>;
+
 interface RankedTaskFile {
   file: GraphQueryTaskMapFile;
   lexicalScore: number;
   graphScore: number;
   score: number;
+}
+
+interface TaskMapRanking {
+  connected: ReadonlySet<string>;
+  graphRanks: ReadonlyMap<string, number>;
+  lexical: ReadonlyMap<string, TaskMapLexicalRank>;
+  maxGraphScore: number;
+  maxLexicalScore: number;
+  symbols: ReturnType<typeof indexTaskMapSymbols>;
 }
 
 function requestedFileLimit(config: GraphQueryTaskMapConfig): number {
@@ -48,13 +60,17 @@ function connectedTaskMapFiles(
   return connected;
 }
 
-export function mapGraphTask(
+function maximum(values: Iterable<number>, fallback: number): number {
+  let result = fallback;
+  for (const value of values) result = Math.max(result, value);
+  return result;
+}
+
+function createTaskMapRanking(
   data: GraphQueryData,
-  config: GraphQueryTaskMapConfig,
-): GraphQueryTaskMapReport {
-  const query = typeof config.query === 'string' ? config.query : '';
-  const documents = createTaskMapDocuments(data);
-  const terms = selectTaskMapTerms(query, documents);
+  documents: readonly TaskMapDocument[],
+  terms: readonly string[],
+): TaskMapRanking {
   const frequencies = taskMapTermFrequencies(terms, documents);
   const lexical = new Map(documents.map(document => [
     document.node.id,
@@ -66,34 +82,65 @@ export function mapGraphTask(
     links,
     new Map([...lexical].map(([path, rank]) => [path, rank.score])),
   );
-  const connected = connectedTaskMapFiles(lexical, links);
-  const maxLexicalScore = [...lexical.values()]
-    .reduce((maximum, rank) => Math.max(maximum, rank.score), 1);
-  const maxGraphScore = [...graphRanks.values()]
-    .reduce((maximum, rank) => Math.max(maximum, rank), 1 / Math.max(documents.length, 1));
-  const symbols = indexTaskMapSymbols(data);
-  const ranked: RankedTaskFile[] = documents.flatMap((document) => {
-    const lexicalRanked = lexical.get(document.node.id) ?? { matchedTerms: [], score: 0 };
-    if (lexicalRanked.score <= 0 && !connected.has(document.node.id)) return [];
-    const graphScore = graphRanks.get(document.node.id) ?? 0;
-    return [{
-      file: {
-        path: document.node.id,
-        nodeType: 'file' as const,
-        matchedTerms: lexicalRanked.matchedTerms,
-        symbols: symbols.get(document.node.id) ?? [],
-      },
-      lexicalScore: lexicalRanked.score,
-      graphScore,
-      score: lexicalRanked.score / maxLexicalScore * 0.85 + graphScore / maxGraphScore * 0.15,
-    }];
-  }).sort((left, right) => (
-    Number(right.lexicalScore > 0) - Number(left.lexicalScore > 0)
+  return {
+    connected: connectedTaskMapFiles(lexical, links),
+    graphRanks,
+    lexical,
+    maxGraphScore: maximum(graphRanks.values(), 1 / Math.max(documents.length, 1)),
+    maxLexicalScore: maximum([...lexical.values()].map(rank => rank.score), 1),
+    symbols: indexTaskMapSymbols(data),
+  };
+}
+
+function rankTaskMapFile(
+  document: TaskMapDocument,
+  ranking: TaskMapRanking,
+): RankedTaskFile | undefined {
+  const lexicalRank = ranking.lexical.get(document.node.id) ?? { matchedTerms: [], score: 0 };
+  if (lexicalRank.score <= 0 && !ranking.connected.has(document.node.id)) return undefined;
+  const graphScore = ranking.graphRanks.get(document.node.id) ?? 0;
+  return {
+    file: {
+      path: document.node.id,
+      nodeType: 'file',
+      matchedTerms: lexicalRank.matchedTerms,
+      symbols: ranking.symbols.get(document.node.id) ?? [],
+    },
+    lexicalScore: lexicalRank.score,
+    graphScore,
+    score: lexicalRank.score / ranking.maxLexicalScore * 0.85
+      + graphScore / ranking.maxGraphScore * 0.15,
+  };
+}
+
+function compareRankedTaskFiles(left: RankedTaskFile, right: RankedTaskFile): number {
+  return Number(right.lexicalScore > 0) - Number(left.lexicalScore > 0)
     || right.score - left.score
     || right.lexicalScore - left.lexicalScore
-    || left.file.path.localeCompare(right.file.path)
-  ));
+    || left.file.path.localeCompare(right.file.path);
+}
+
+function rankTaskMapFiles(
+  data: GraphQueryData,
+  documents: readonly TaskMapDocument[],
+  terms: readonly string[],
+): RankedTaskFile[] {
+  const ranking = createTaskMapRanking(data, documents, terms);
+  return documents
+    .map(document => rankTaskMapFile(document, ranking))
+    .filter((ranked): ranked is RankedTaskFile => Boolean(ranked))
+    .sort(compareRankedTaskFiles);
+}
+
+export function mapGraphTask(
+  data: GraphQueryData,
+  config: GraphQueryTaskMapConfig,
+): GraphQueryTaskMapReport {
+  const query = typeof config.query === 'string' ? config.query : '';
+  const documents = createTaskMapDocuments(data);
+  const terms = selectTaskMapTerms(query, documents);
   const effectiveConfig = { ...config, limit: requestedFileLimit(config) };
+  const ranked = rankTaskMapFiles(data, documents, terms);
   const balanced = balanceTaskMapSourceAreas(ranked);
   const page = paginate(balanced.map(item => item.file), effectiveConfig);
   const relationships = selectTaskMapRelationships(

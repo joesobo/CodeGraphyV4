@@ -47,6 +47,7 @@ describe('cli/help/command', () => {
     expect(createHelpResult(['watch']).output).toContain('Usage: codegraphy watch');
     expect(createHelpResult(['watch']).output).toContain('JSON Lines');
     expect(createHelpResult(['watch']).output).toContain('cached Symbols and Relationships');
+    expect(createHelpResult(['watch']).output).toContain('VS Code Extension does not start this process');
     expect(createHelpResult(['query']).output).toContain('Usage: codegraphy query <node>');
     expect(createHelpResult(['query']).output).toContain('declared AST Symbols');
     expect(createHelpResult(['query']).output).toContain('incoming and outgoing Relationships');

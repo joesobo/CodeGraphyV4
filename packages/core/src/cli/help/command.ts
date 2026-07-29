@@ -81,7 +81,7 @@ const COMMAND_HELP: Record<string, string> = {
     '',
     'Synchronize the Graph Cache, then keep cached Symbols and Relationships current as workspace files change.',
     'Source changes are debounced into incremental Indexing batches. Git ignore and workspace settings changes are rediscovered.',
-    'The process remains in the foreground until interrupted.',
+    'The process remains in the foreground until interrupted. The VS Code Extension does not start this process.',
     '',
     'Effects: Writes .codegraphy/graph.sqlite and workspace index metadata.',
     'Output: JSON Lines readiness, update, error, and shutdown events.',

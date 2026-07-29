@@ -1,5 +1,14 @@
 import { hasSupportedRawPluginIdentity } from './settingsPlugins';
 
+type ValidationResult = string | undefined;
+type ValueValidator = (value: unknown) => ValidationResult;
+
+interface FieldRule {
+  error: string;
+  key: string;
+  accepts(value: unknown): boolean;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -12,66 +21,80 @@ function isBooleanRecord(value: unknown): boolean {
   return isRecord(value) && Object.values(value).every(entry => typeof entry === 'boolean');
 }
 
-function validatePluginSettings(value: unknown): string | undefined {
+const PLUGIN_FIELD_RULES: readonly FieldRule[] = [
+  { key: 'id', accepts: value => typeof value === 'string', error: 'plugin id must be a string' },
+  { key: 'package', accepts: value => typeof value === 'string', error: 'plugin package must be a string' },
+  {
+    key: 'activation',
+    accepts: value => value === 'inherit' || value === 'enabled' || value === 'disabled',
+    error: 'plugin activation must be inherit, enabled, or disabled',
+  },
+  { key: 'enabled', accepts: value => typeof value === 'boolean', error: 'plugin enabled must be a boolean' },
+  { key: 'options', accepts: isRecord, error: 'plugin options must be an object' },
+  {
+    key: 'disabledFilterPatterns',
+    accepts: isStringArray,
+    error: 'plugin disabledFilterPatterns must be an array of strings',
+  },
+];
+
+function validatePluginEntry(value: unknown): ValidationResult {
+  if (!isRecord(value)) return 'plugins entries must be objects';
+  for (const rule of PLUGIN_FIELD_RULES) {
+    if (rule.key in value && !rule.accepts(value[rule.key])) return rule.error;
+  }
+  return hasSupportedRawPluginIdentity(value)
+    ? undefined
+    : 'plugin entry must have a nonblank id with activation, or a nonblank package';
+}
+
+function validatePluginSettings(value: unknown): ValidationResult {
   if (!Array.isArray(value)) return 'plugins must be an array';
   for (const entry of value) {
-    if (!isRecord(entry)) return 'plugins entries must be objects';
-    if ('id' in entry && typeof entry.id !== 'string') return 'plugin id must be a string';
-    if ('package' in entry && typeof entry.package !== 'string') return 'plugin package must be a string';
-    if ('activation' in entry && !['inherit', 'enabled', 'disabled'].includes(String(entry.activation))) {
-      return 'plugin activation must be inherit, enabled, or disabled';
-    }
-    if ('enabled' in entry && typeof entry.enabled !== 'boolean') return 'plugin enabled must be a boolean';
-    if ('options' in entry && !isRecord(entry.options)) return 'plugin options must be an object';
-    if ('disabledFilterPatterns' in entry && !isStringArray(entry.disabledFilterPatterns)) {
-      return 'plugin disabledFilterPatterns must be an array of strings';
-    }
-    if (!hasSupportedRawPluginIdentity(entry)) {
-      return 'plugin entry must have a nonblank id with activation, or a nonblank package';
-    }
+    const error = validatePluginEntry(entry);
+    if (error) return error;
   }
   return undefined;
 }
 
-function validateInterfaceSettings(value: unknown): string | undefined {
-  if (!Array.isArray(value)) return 'interfaces must be an array';
-  for (const entry of value) {
-    if (!isRecord(entry) || typeof entry.id !== 'string' || !entry.id.trim() || !('data' in entry)) {
-      return 'interface entries must have a nonblank id and data';
-    }
-  }
-  return undefined;
+function isInterfaceEntry(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return typeof value.id === 'string' && Boolean(value.id.trim()) && 'data' in value;
 }
+
+function validateInterfaceSettings(value: unknown): ValidationResult {
+  if (!Array.isArray(value)) return 'interfaces must be an array';
+  return value.every(isInterfaceEntry)
+    ? undefined
+    : 'interface entries must have a nonblank id and data';
+}
+
+function requireStringArray(key: string): ValueValidator {
+  return value => isStringArray(value) ? undefined : `${key} must be an array of strings`;
+}
+
+const WORKSPACE_SETTING_VALIDATORS: Readonly<Record<string, ValueValidator>> = {
+  include: requireStringArray('include'),
+  filterPatterns: requireStringArray('filterPatterns'),
+  disabledCustomFilterPatterns: requireStringArray('disabledCustomFilterPatterns'),
+  respectGitignore: value => typeof value === 'boolean' ? undefined : 'respectGitignore must be a boolean',
+  maxFiles: value => (
+    typeof value === 'number' && Number.isSafeInteger(value) && value >= 1
+      ? undefined
+      : 'maxFiles must be a positive integer'
+  ),
+  nodeVisibility: value => isBooleanRecord(value) ? undefined : 'nodeVisibility must be an object of boolean values',
+  edgeVisibility: value => isBooleanRecord(value) ? undefined : 'edgeVisibility must be an object of boolean values',
+  pluginData: value => isRecord(value) ? undefined : 'pluginData must be an object',
+  plugins: validatePluginSettings,
+  interfaces: validateInterfaceSettings,
+};
 
 export function validateWorkspaceSettingsRecord(value: unknown): Record<string, unknown> {
   if (!isRecord(value)) throw new Error('workspace settings must be a JSON object');
-  const stringArrays = ['include', 'filterPatterns', 'disabledCustomFilterPatterns'] as const;
-  for (const key of stringArrays) {
-    if (key in value && !isStringArray(value[key])) throw new Error(`${key} must be an array of strings`);
-  }
-  if ('respectGitignore' in value && typeof value.respectGitignore !== 'boolean') {
-    throw new Error('respectGitignore must be a boolean');
-  }
-  if ('maxFiles' in value && (
-    typeof value.maxFiles !== 'number'
-    || !Number.isSafeInteger(value.maxFiles)
-    || value.maxFiles < 1
-  )) {
-    throw new Error('maxFiles must be a positive integer');
-  }
-  if ('nodeVisibility' in value && !isBooleanRecord(value.nodeVisibility)) {
-    throw new Error('nodeVisibility must be an object of boolean values');
-  }
-  if ('edgeVisibility' in value && !isBooleanRecord(value.edgeVisibility)) {
-    throw new Error('edgeVisibility must be an object of boolean values');
-  }
-  if ('pluginData' in value && !isRecord(value.pluginData)) throw new Error('pluginData must be an object');
-  if ('plugins' in value) {
-    const error = validatePluginSettings(value.plugins);
-    if (error) throw new Error(error);
-  }
-  if ('interfaces' in value) {
-    const error = validateInterfaceSettings(value.interfaces);
+  for (const [key, validate] of Object.entries(WORKSPACE_SETTING_VALIDATORS)) {
+    if (!(key in value)) continue;
+    const error = validate(value[key]);
     if (error) throw new Error(error);
   }
   return { ...value };

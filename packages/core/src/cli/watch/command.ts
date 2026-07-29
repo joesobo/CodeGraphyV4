@@ -100,31 +100,34 @@ export async function runWatchCommand(
     workspaceRoot,
     onEvent: event => emit(toWatchCommandEvent(event)),
   });
-  const subscription = await dependencies.subscribe({
-    workspaceRoot,
-    onEvents: (events) => {
-      const filePaths = events.map(event => event.path);
-      if (ready) {
-        updater.notify(filePaths);
-        return;
-      }
-      for (const filePath of filePaths) startupFilePaths.add(filePath);
-    },
-    onError: error => emit({
-      event: 'error',
-      code: 'watch_subscription_failed',
-      message: error.message,
-    }),
-  });
-
   try {
-    await updater.start();
-    ready = true;
-    startupFilePaths.delete(getWorkspaceSettingsPath(workspaceRoot));
-    updater.notify([...startupFilePaths]);
-    await dependencies.waitForStop();
+    const subscription = await dependencies.subscribe({
+      workspaceRoot,
+      onEvents: (events) => {
+        const filePaths = events.map(event => event.path);
+        if (ready) {
+          updater.notify(filePaths);
+          return;
+        }
+        for (const filePath of filePaths) startupFilePaths.add(filePath);
+      },
+      onError: error => emit({
+        event: 'error',
+        code: 'watch_subscription_failed',
+        message: error.message,
+      }),
+    });
+
+    try {
+      await updater.start();
+      ready = true;
+      startupFilePaths.delete(getWorkspaceSettingsPath(workspaceRoot));
+      updater.notify([...startupFilePaths]);
+      await dependencies.waitForStop();
+    } finally {
+      await subscription.dispose();
+    }
   } finally {
-    await subscription.dispose();
     await updater.dispose();
   }
   emit({ event: 'stopped', workspaceRoot });

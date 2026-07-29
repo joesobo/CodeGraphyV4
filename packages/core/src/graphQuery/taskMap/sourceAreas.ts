@@ -16,7 +16,7 @@ function rankingGroup(filePath: string): string {
   return segments.slice(0, sourceIndex + 1 + areaDepth).join('/');
 }
 
-export function balanceTaskMapSourceAreas<T extends TaskMapSourceAreaItem>(ranked: readonly T[]): T[] {
+function groupBySourceArea<T extends TaskMapSourceAreaItem>(ranked: readonly T[]): Map<string, T[]> {
   const groups = new Map<string, T[]>();
   for (const item of ranked) {
     const group = rankingGroup(item.file.path);
@@ -24,21 +24,34 @@ export function balanceTaskMapSourceAreas<T extends TaskMapSourceAreaItem>(ranke
     items.push(item);
     groups.set(group, items);
   }
-  const ordered = [...groups.entries()].sort((left, right) => {
-    const leftRank = left[1][0];
-    const rightRank = right[1][0];
-    if (!leftRank || !rightRank) return left[0].localeCompare(right[0]);
-    return Number(rightRank.lexicalScore > 0) - Number(leftRank.lexicalScore > 0)
-      || rightRank.score - leftRank.score
-      || rightRank.lexicalScore - leftRank.lexicalScore
-      || left[0].localeCompare(right[0]);
-  });
+  return groups;
+}
+
+function compareSourceAreas<T extends TaskMapSourceAreaItem>(
+  left: [string, T[]],
+  right: [string, T[]],
+): number {
+  const leftRank = left[1][0];
+  const rightRank = right[1][0];
+  if (!leftRank || !rightRank) return left[0].localeCompare(right[0]);
+  return Number(rightRank.lexicalScore > 0) - Number(leftRank.lexicalScore > 0)
+    || rightRank.score - leftRank.score
+    || rightRank.lexicalScore - leftRank.lexicalScore
+    || left[0].localeCompare(right[0]);
+}
+
+function interleaveSourceAreas<T>(groups: readonly [string, T[]][], totalItems: number): T[] {
   const balanced: T[] = [];
-  for (let index = 0; balanced.length < ranked.length; index += 1) {
-    for (const [, items] of ordered) {
+  for (let index = 0; balanced.length < totalItems; index += 1) {
+    for (const [, items] of groups) {
       const item = items[index];
       if (item) balanced.push(item);
     }
   }
   return balanced;
+}
+
+export function balanceTaskMapSourceAreas<T extends TaskMapSourceAreaItem>(ranked: readonly T[]): T[] {
+  const groups = [...groupBySourceArea(ranked)].sort(compareSourceAreas);
+  return interleaveSourceAreas(groups, ranked.length);
 }

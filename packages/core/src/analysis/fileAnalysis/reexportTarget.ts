@@ -31,6 +31,36 @@ function persistedReexportTargetName(
     ?.name;
 }
 
+function isPersistedFileReexport(reexport: IAnalysisRelation): boolean {
+  return reexport.kind === 'reexport'
+    && !reexport.toSymbolId
+    && !isMetadataTrue(reexport, 'reexport');
+}
+
+function reexportMatchesSymbol(
+  reexport: IAnalysisRelation,
+  symbolName: string,
+  persistedTargetName: string | undefined,
+): boolean {
+  if (isMetadataTrue(reexport, 'reexportAll')) return true;
+  if (isPersistedFileReexport(reexport)) return true;
+  if (persistedTargetName === symbolName) return true;
+  return isMetadataTrue(reexport, 'reexport')
+    && readMetadataString(reexport, 'exportedName') === symbolName;
+}
+
+function forwardedImportedName(
+  reexport: IAnalysisRelation,
+  symbolName: string,
+  persistedTargetName: string | undefined,
+): string {
+  const preserveSymbolName = isMetadataTrue(reexport, 'reexportAll')
+    || isPersistedFileReexport(reexport);
+  return preserveSymbolName
+    ? symbolName
+    : readMetadataString(reexport, 'importedName') ?? persistedTargetName ?? symbolName;
+}
+
 function forwardedReexportRelation(
   relation: IAnalysisRelation,
   reexport: IAnalysisRelation,
@@ -38,18 +68,9 @@ function forwardedReexportRelation(
   symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
 ): IAnalysisRelation | undefined {
   if (!reexport.toFilePath) return undefined;
-  const reexportAll = isMetadataTrue(reexport, 'reexportAll');
-  const exportedName = readMetadataString(reexport, 'exportedName');
   const persistedTargetName = persistedReexportTargetName(reexport, symbolsByFilePath);
-  const namedReexport = isMetadataTrue(reexport, 'reexport') && exportedName === symbolName;
-  const persistedFileReexport = reexport.kind === 'reexport'
-    && !reexport.toSymbolId
-    && !isMetadataTrue(reexport, 'reexport');
-  if (!reexportAll && !namedReexport && !persistedFileReexport
-    && persistedTargetName !== symbolName) return undefined;
-  const importedName = reexportAll || persistedFileReexport
-    ? symbolName
-    : readMetadataString(reexport, 'importedName') ?? persistedTargetName ?? symbolName;
+  if (!reexportMatchesSymbol(reexport, symbolName, persistedTargetName)) return undefined;
+  const importedName = forwardedImportedName(reexport, symbolName, persistedTargetName);
   return {
     ...relation,
     toFilePath: reexport.toFilePath,
@@ -65,40 +86,54 @@ function followsReexportedTargets(relation: IAnalysisRelation): boolean {
   return ['call', 'event', 'inherit', 'reference'].includes(relation.kind);
 }
 
-export function resolveRelationTargetSymbols(
+function directTargetSymbol(
   relation: IAnalysisRelation,
-  symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
-  relationsByFilePath: ReadonlyMap<string, readonly IAnalysisRelation[]>,
-  visitedFiles: ReadonlySet<string> = new Set(),
-): ResolvedTargetSymbol[] {
-  if (!relation.toFilePath || visitedFiles.has(relation.toFilePath)) return [];
-  const targetSymbols = symbolsByFilePath.get(relation.toFilePath) ?? [];
+  targetSymbols: readonly IAnalysisSymbol[],
+): IAnalysisSymbol | undefined {
   const persistedTarget = relation.toSymbolId
     ? targetSymbols.find(symbol => symbol.id === relation.toSymbolId)
     : undefined;
-  const directSymbolId = persistedTarget?.id ?? (targetSymbols.length > 0
+  const symbolId = persistedTarget?.id ?? (targetSymbols.length > 0
     ? resolveTargetSymbolId(relation, targetSymbols)
     : undefined);
-  const directSymbol = targetSymbols.find(symbol => symbol.id === directSymbolId);
-  if (directSymbol && directSymbol.kind !== 'alias') {
-    return [{ filePath: relation.toFilePath, symbolId: directSymbol.id }];
-  }
-  if (directSymbol) {
-    const nextVisited = new Set([...visitedFiles, relation.toFilePath]);
-    return (relationsByFilePath.get(relation.toFilePath) ?? [])
-      .filter(aliasRelation => aliasRelation.fromSymbolId === directSymbol.id)
-      .flatMap(aliasRelation => resolveRelationTargetSymbols(
-        aliasRelation,
-        symbolsByFilePath,
-        relationsByFilePath,
-        nextVisited,
-      ));
-  }
-  if (!followsReexportedTargets(relation)) return [];
+  return targetSymbols.find(symbol => symbol.id === symbolId);
+}
 
+function nextVisitedFiles(
+  visitedFiles: ReadonlySet<string>,
+  filePath: string,
+): ReadonlySet<string> {
+  return new Set([...visitedFiles, filePath]);
+}
+
+function resolveAliasTargetSymbols(
+  directSymbol: IAnalysisSymbol,
+  filePath: string,
+  symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
+  relationsByFilePath: ReadonlyMap<string, readonly IAnalysisRelation[]>,
+  visitedFiles: ReadonlySet<string>,
+): ResolvedTargetSymbol[] {
+  const nextVisited = nextVisitedFiles(visitedFiles, filePath);
+  return (relationsByFilePath.get(filePath) ?? [])
+    .filter(aliasRelation => aliasRelation.fromSymbolId === directSymbol.id)
+    .flatMap(aliasRelation => resolveRelationTargetSymbols(
+      aliasRelation,
+      symbolsByFilePath,
+      relationsByFilePath,
+      nextVisited,
+    ));
+}
+
+function resolveReexportTargetSymbols(
+  relation: IAnalysisRelation,
+  symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
+  relationsByFilePath: ReadonlyMap<string, readonly IAnalysisRelation[]>,
+  visitedFiles: ReadonlySet<string>,
+): ResolvedTargetSymbol[] {
+  if (!relation.toFilePath || !followsReexportedTargets(relation)) return [];
   const symbolName = readRelationSymbolName(relation);
   if (!symbolName) return [];
-  const nextVisited = new Set([...visitedFiles, relation.toFilePath]);
+  const nextVisited = nextVisitedFiles(visitedFiles, relation.toFilePath);
   return (relationsByFilePath.get(relation.toFilePath) ?? []).flatMap((reexport) => {
     const forwarded = forwardedReexportRelation(
       relation,
@@ -115,4 +150,33 @@ export function resolveRelationTargetSymbols(
         )
       : [];
   });
+}
+
+export function resolveRelationTargetSymbols(
+  relation: IAnalysisRelation,
+  symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
+  relationsByFilePath: ReadonlyMap<string, readonly IAnalysisRelation[]>,
+  visitedFiles: ReadonlySet<string> = new Set(),
+): ResolvedTargetSymbol[] {
+  if (!relation.toFilePath || visitedFiles.has(relation.toFilePath)) return [];
+  const targetSymbols = symbolsByFilePath.get(relation.toFilePath) ?? [];
+  const directSymbol = directTargetSymbol(relation, targetSymbols);
+  if (directSymbol && directSymbol.kind !== 'alias') {
+    return [{ filePath: relation.toFilePath, symbolId: directSymbol.id }];
+  }
+  if (directSymbol) {
+    return resolveAliasTargetSymbols(
+      directSymbol,
+      relation.toFilePath,
+      symbolsByFilePath,
+      relationsByFilePath,
+      visitedFiles,
+    );
+  }
+  return resolveReexportTargetSymbols(
+    relation,
+    symbolsByFilePath,
+    relationsByFilePath,
+    visitedFiles,
+  );
 }
