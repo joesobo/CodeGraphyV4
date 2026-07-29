@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { createWorkspaceFileContentHash } from '../../src/analysis/cache';
 import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
 import {
   projectWorkspaceQueryGraph,
@@ -33,6 +34,32 @@ describe('workspace/queryGraph', () => {
     ]));
     expect(complete.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts', 'model.ts']));
     expect(source.graphData.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['entry.ts', 'model.ts']));
+  });
+
+  it('keeps unchanged indexed binary and oversized files fresh while skipping their source', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-skipped-freshness-'));
+    const binaryContent = 'before\0after';
+    const largeContent = 'x'.repeat(1024 * 1024 + 1);
+    await fs.writeFile(path.join(workspaceRoot, 'binary.dat'), binaryContent);
+    await fs.writeFile(path.join(workspaceRoot, 'large.ts'), largeContent);
+    const graph = {
+      nodes: [
+        { id: 'binary.dat', label: 'binary.dat', nodeType: 'file' as const },
+        { id: 'large.ts', label: 'large.ts', nodeType: 'file' as const },
+      ],
+      edges: [],
+    };
+    const indexedHashes = new Map([
+      ['binary.dat', createWorkspaceFileContentHash(binaryContent)],
+      ['large.ts', createWorkspaceFileContentHash(largeContent)],
+    ]);
+
+    const unchanged = readWorkspaceQuerySourceText(workspaceRoot, graph, indexedHashes);
+    await fs.writeFile(path.join(workspaceRoot, 'large.ts'), `y${largeContent.slice(1)}`);
+    const changed = readWorkspaceQuerySourceText(workspaceRoot, graph, indexedHashes);
+
+    expect(unchanged).toMatchObject({ filesSkipped: 2, hasChangedFiles: false });
+    expect(changed).toMatchObject({ filesSkipped: 2, hasChangedFiles: true });
   });
 
   it('skips binary, oversized, unreadable, and outside-workspace source files', async () => {
