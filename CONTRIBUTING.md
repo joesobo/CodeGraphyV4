@@ -6,7 +6,7 @@ CodeGraphy accepts focused changes through pull requests against `main`.
 
 ### Prerequisites
 
-- Node.js 20 through 22; use the repository-pinned Node 22 runtime
+- Node.js 20 or newer; use the repository-pinned Node 22 runtime
 - pnpm 10+
 - VS Code 1.85+
 

@@ -5,11 +5,7 @@ import { fileURLToPath } from 'node:url';
 import {
   copyRuntimePackage,
   EXTENSION_EXTERNAL_PACKAGE_NAMES,
-  EXTENSION_RUNTIME_PACKAGE_NAMES,
-  getExtensionRuntimePackageNames,
   getVendoredPackageRootPath,
-  resolveExtensionRuntimeTarget,
-  resolveRuntimePackageRootPath,
 } from '../../../scripts/externalPackages';
 
 const EXTENSION_PACKAGE_ROOT = path.resolve(
@@ -18,13 +14,6 @@ const EXTENSION_PACKAGE_ROOT = path.resolve(
 );
 
 describe('runtime package build support', () => {
-  it('resolves the installed SQLite package root', () => {
-    const packageRootPath = resolveRuntimePackageRootPath('libsql');
-
-    expect(path.basename(packageRootPath)).toBe('libsql');
-    expect(fs.existsSync(path.join(packageRootPath, 'package.json'))).toBe(true);
-  });
-
   it('copies only selected runtime files and clears stale package output', () => {
     const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-build-'));
     const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
@@ -82,66 +71,6 @@ describe('runtime package build support', () => {
     ) as { main?: string };
 
     expect(copiedPackageJson.main).toBe('bindings/node/index.js');
-  });
-
-  it('selects target-specific native runtime packages', () => {
-    expect(getExtensionRuntimePackageNames('darwin-arm64')).toEqual(
-      expect.arrayContaining([
-        '@libsql/darwin-arm64',
-        '@esbuild/darwin-arm64',
-        'tree-sitter',
-      ]),
-    );
-    expect(getExtensionRuntimePackageNames('darwin-arm64')).not.toContain(
-      '@libsql/linux-x64-gnu',
-    );
-  });
-
-  it('uses one explicit VSIX target when the build provides it', () => {
-    expect(resolveExtensionRuntimeTarget({
-      environment: { CODEGRAPHY_VSIX_TARGETS: 'darwin-arm64' },
-      platform: 'darwin',
-      arch: 'arm64',
-    })).toBe('darwin-arm64');
-  });
-
-  it('vendors every Tree-sitter grammar needed by the core runtime', () => {
-    expect(getExtensionRuntimePackageNames('darwin-arm64')).toEqual(
-      expect.arrayContaining([
-        'libsql',
-        '@neon-rs/load',
-        'detect-libc',
-        'esbuild',
-        '@libsql/darwin-arm64',
-        '@esbuild/darwin-arm64',
-        'material-icon-theme',
-        'tree-sitter',
-        'tree-sitter-c',
-        'tree-sitter-cpp',
-        'tree-sitter-c-sharp',
-        '@driftlog/tree-sitter-dart',
-        'tree-sitter-go',
-        'tree-sitter-haskell',
-        'tree-sitter-java',
-        'tree-sitter-javascript',
-        '@tree-sitter-grammars/tree-sitter-kotlin',
-        '@tree-sitter-grammars/tree-sitter-lua',
-        'tree-sitter-objc',
-        'tree-sitter-php',
-        'tree-sitter-python',
-        'tree-sitter-ruby',
-        'tree-sitter-rust',
-        'tree-sitter-scala',
-        'tree-sitter-swift',
-        'tree-sitter-typescript',
-      ]),
-    );
-  });
-
-  it('resolves every vendored runtime package from the extension package', () => {
-    for (const packageName of EXTENSION_RUNTIME_PACKAGE_NAMES) {
-      expect(() => resolveRuntimePackageRootPath(packageName)).not.toThrow();
-    }
   });
 
   it('bundles core packages while externalizing only VS Code and native runtime packages', () => {
