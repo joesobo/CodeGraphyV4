@@ -1,23 +1,23 @@
-import type { GraphQueryData } from './data';
+import type { GraphQueryData } from '../data';
 import type {
   GraphQueryTaskMapConfig,
   GraphQueryTaskMapFile,
   GraphQueryTaskMapReport,
-} from './model';
-import { paginate } from './pagination';
+} from '../model';
+import { paginate } from '../pagination';
 import {
   createTaskMapDocuments,
   rankTaskMapDocument,
   selectTaskMapTerms,
   taskMapTermFrequencies,
-} from './taskMap/lexical';
-import { rankTaskMapGraph } from './taskMap/pagerank';
+} from './lexical';
+import { rankTaskMapGraph } from './pagerank';
 import {
   createTaskMapFileLinks,
   indexTaskMapSymbols,
   selectTaskMapRelationships,
-} from './taskMap/projection';
-import { balanceTaskMapSourceAreas } from './taskMap/sourceAreas';
+} from './projection';
+import { balanceTaskMapSourceAreas } from './sourceAreas';
 
 const DEFAULT_FILES = 8;
 const MAX_FILES = 20;

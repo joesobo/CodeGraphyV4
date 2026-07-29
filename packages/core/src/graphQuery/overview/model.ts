@@ -1,18 +1,18 @@
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
-import type { NodeType } from '../graph/contracts';
-import { getNodeType } from '../visibleGraph/model';
-import type { GraphQueryData } from './data';
+import type { NodeType } from '../../graph/contracts';
+import { getNodeType } from '../../visibleGraph/model';
+import type { GraphQueryData } from '../data';
 import type {
   GraphQueryNodeReportItem,
   GraphQueryOverviewConfig,
   GraphQueryOverviewReport,
   GraphQuerySymbolReport,
   GraphQueryTargetNotFoundReport,
-} from './model';
-import { toNodeReportItem } from './nodeReport';
-import { listGraphEdges } from './reports';
-import { listGraphSymbols } from './symbols';
-import { toSymbolReportBase } from './symbols/metadata';
+} from '../model';
+import { toNodeReportItem } from '../nodeReport';
+import { listGraphEdges } from '../reports';
+import { listGraphSymbols } from '../symbols';
+import { toSymbolReportBase } from '../symbols/metadata';
 
 const DECLARED_SYMBOL_LIMIT = 25;
 const RELATIONSHIP_LIMIT = 25;

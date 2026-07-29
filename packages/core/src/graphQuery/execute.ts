@@ -11,13 +11,13 @@ import type {
   GraphQuerySymbolsConfig,
   GraphQueryTaskMapConfig,
 } from './model';
-import { inspectGraphTarget } from './overview';
+import { inspectGraphTarget } from './overview/model';
 import { findGraphPaths } from './paths';
 import { listGraphEdges, listGraphNodes } from './reports';
 import { listGraphRelationships } from './relationships';
-import { searchGraph } from './search';
+import { searchGraph } from './search/model';
 import { listGraphSymbols } from './symbols';
-import { mapGraphTask } from './taskMap';
+import { mapGraphTask } from './taskMap/model';
 import { deriveScopedGraphQueryData } from './visible';
 
 type GraphQueryHandler<TArguments> = (

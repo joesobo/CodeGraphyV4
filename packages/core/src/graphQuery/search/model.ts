@@ -1,16 +1,16 @@
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
-import type { IGraphNode } from '../graph/contracts';
-import type { GraphQueryData } from './data';
+import type { IGraphNode } from '../../graph/contracts';
+import type { GraphQueryData } from '../data';
 import type {
   GraphQuerySearchConfig,
   GraphQuerySearchMatch,
   GraphQuerySearchReport,
   GraphQuerySymbolReportItem,
-} from './model';
-import { toNodeReportItem } from './nodeReport';
-import { paginate } from './pagination';
-import { toSymbolReportBase } from './symbols/metadata';
-import { rankSearchDocuments } from './search/ranking';
+} from '../model';
+import { toNodeReportItem } from '../nodeReport';
+import { paginate } from '../pagination';
+import { toSymbolReportBase } from '../symbols/metadata';
+import { rankSearchDocuments } from './ranking';
 
 const MAX_EXCERPT_LENGTH = 240;
 const SOURCE_FILE_EXTENSION = /\.(?:[cm]?[jt]sx?|py|go|rs|java|kt|kts|swift|dart|cs|c|cc|cpp|cxx|h|hh|hpp|hxx|m|mm|php|rb|lua|scala|sc|hs|lhs|pas|pp)$/iu;

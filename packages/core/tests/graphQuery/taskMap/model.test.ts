@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { GraphQueryData } from '../../src/graphQuery/data';
-import { mapGraphTask } from '../../src/graphQuery/taskMap';
+import type { GraphQueryData } from '../../../src/graphQuery/data';
+import { mapGraphTask } from '../../../src/graphQuery/taskMap/model';
 
 const data: GraphQueryData = {
   graphData: {

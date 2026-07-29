@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
-import type { IGraphData } from '../../src/graph/contracts';
-import { inspectGraphTarget } from '../../src/graphQuery/overview';
+import type { IGraphData } from '../../../src/graph/contracts';
+import { inspectGraphTarget } from '../../../src/graphQuery/overview/model';
 
 const graphData: IGraphData = {
   nodes: [

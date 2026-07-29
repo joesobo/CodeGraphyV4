@@ -34,10 +34,10 @@ export type {
 } from './model';
 export type { GraphQueryData } from './data';
 export { executeGraphQuery } from './execute';
-export { inspectGraphTarget } from './overview';
+export { inspectGraphTarget } from './overview/model';
 export { findGraphPaths } from './paths';
 export { listGraphEdges, listGraphNodes } from './reports';
 export { listGraphRelationships } from './relationships';
-export { searchGraph } from './search';
+export { searchGraph } from './search/model';
 export { listGraphSymbols } from './symbols';
-export { mapGraphTask } from './taskMap';
+export { mapGraphTask } from './taskMap/model';

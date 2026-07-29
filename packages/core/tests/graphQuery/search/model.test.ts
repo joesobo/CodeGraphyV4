@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
-import type { IGraphData } from '../../src/graph/contracts';
-import { searchGraph } from '../../src/graphQuery/search';
+import type { IGraphData } from '../../../src/graph/contracts';
+import { searchGraph } from '../../../src/graphQuery/search/model';
 
 const graphData: IGraphData = {
   nodes: [
