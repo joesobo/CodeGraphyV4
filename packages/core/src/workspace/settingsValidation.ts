@@ -73,8 +73,12 @@ function requireStringArray(key: string): ValueValidator {
   return value => isStringArray(value) ? undefined : `${key} must be an array of strings`;
 }
 
+const SUPPORTED_SETTINGS_VERSIONS = new Set([1, 2, 3, 4]);
+
 const WORKSPACE_SETTING_VALIDATORS: Readonly<Record<string, ValueValidator>> = {
-  version: value => value === 1 ? undefined : 'version must be 1',
+  version: value => typeof value === 'number' && SUPPORTED_SETTINGS_VERSIONS.has(value)
+    ? undefined
+    : 'version must be a supported integer from 1 through 4',
   include: requireStringArray('include'),
   filterPatterns: requireStringArray('filterPatterns'),
   disabledCustomFilterPatterns: requireStringArray('disabledCustomFilterPatterns'),
