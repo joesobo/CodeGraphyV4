@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseQueryCommand } from '../../src/cli/parseQuery';
+import { parseQueryCommand } from '../../../src/cli/parser/query';
 
-describe('cli/parseQuery', () => {
+describe('cli/parser/query', () => {
   it('uses fixed bounded defaults for node and edge reports', () => {
     expect(parseQueryCommand(['nodes'])).toEqual({
       name: 'query',

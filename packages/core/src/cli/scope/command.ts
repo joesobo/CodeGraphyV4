@@ -10,7 +10,7 @@ import {
   patchCodeGraphyWorkspaceSettingRecord,
 } from '../../workspace/settings';
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parseTypes';
+import type { CliCommand } from '../parser/protocol';
 
 interface ScopeCommandDependencies {
   cwd(): string;

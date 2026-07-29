@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseCliCommand } from '../../src/cli/parse';
+import { parseCliCommand } from '../../../src/cli/parser/command';
 
-describe('cli/parse', () => {
+describe('cli/parser/command', () => {
   it('parses global help and version commands', () => {
     expect(parseCliCommand([])).toEqual({ name: 'help' });
     expect(parseCliCommand(['help'])).toEqual({ name: 'help' });

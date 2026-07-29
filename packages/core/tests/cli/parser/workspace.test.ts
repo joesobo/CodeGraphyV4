@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseWorkspaceCommand } from '../../src/cli/parseWorkspace';
+import { parseWorkspaceCommand } from '../../../src/cli/parser/workspace';
 
-describe('cli/parseWorkspace', () => {
+describe('cli/parser/workspace', () => {
   it('uses the global workspace and rejects command-local arguments', () => {
     expect(parseWorkspaceCommand('index', [])).toEqual({ name: 'index' });
     expect(parseWorkspaceCommand('status', ['/workspace/project'])).toEqual({

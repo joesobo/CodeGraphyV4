@@ -11,7 +11,7 @@ import {
 import { getWorkspaceSettingsPath } from '../../workspace/paths';
 import { readCodeGraphyWorkspaceStatus } from '../../workspace/status';
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parseTypes';
+import type { CliCommand } from '../parser/protocol';
 import { inspectWorkspaceAnalysisDatabase } from '../../graphCache/database/storage';
 import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
 import { createDoctorCacheCheck } from './cacheCheck/model';

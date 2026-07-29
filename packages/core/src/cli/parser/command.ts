@@ -1,17 +1,20 @@
-import { isHelpCommandName } from './parseHelp';
-import { isPluginCommand } from './parsePlugins';
+import { isPluginCommand } from './plugins';
 import {
   isRegisteredCommandName,
   parseRegisteredCommand,
-} from './registry';
-import type { CliCommand } from './parseTypes';
+} from '../registry';
+import type { CliCommand } from './protocol';
 
 export type {
   CliCommand,
   CliCommandName,
   PluginsCommandAction,
   WorkspaceSettingsCommandAction,
-} from './parseTypes';
+} from './protocol';
+
+function isHelpCommandName(name: string | undefined): boolean {
+  return name === undefined || name === 'help' || name === '--help' || name === '-h';
+}
 
 interface GlobalFlags {
   argv: string[];

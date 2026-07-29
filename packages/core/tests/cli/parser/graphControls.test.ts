@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { runCli } from '../../src/cli/run';
+import { runCli } from '../../../src/cli/run';
 
 async function createWorkspace(): Promise<string> {
   const workspace = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-cli-controls-'));

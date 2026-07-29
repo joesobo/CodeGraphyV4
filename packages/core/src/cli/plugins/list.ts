@@ -2,7 +2,7 @@ import { readCodeGraphyWorkspaceSettingsOrInitial } from '../../workspace/settin
 import { createPluginActivityState } from '../../plugins/activityState/model';
 import type { CodeGraphyInstalledPluginRecord } from '../../plugins/installedCache';
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parse';
+import type { CliCommand } from '../parser/protocol';
 import type { PluginsCommandDependencies } from './dependencies';
 import {
   getRegisteredPluginId,

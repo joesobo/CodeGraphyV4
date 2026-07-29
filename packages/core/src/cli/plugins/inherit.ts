@@ -1,5 +1,5 @@
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parse';
+import type { CliCommand } from '../parser/protocol';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
 import { findRegisteredPlugins } from './installed';

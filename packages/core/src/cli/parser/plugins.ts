@@ -1,4 +1,4 @@
-import type { CliCommand } from './parseTypes';
+import type { CliCommand } from './protocol';
 
 const PLUGIN_COMMANDS = new Set(['register', 'link', 'disable', 'enable', 'inherit', 'list']);
 

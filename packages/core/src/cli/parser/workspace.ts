@@ -1,4 +1,4 @@
-import type { CliCommand } from './parseTypes';
+import type { CliCommand } from './protocol';
 
 export function parseWorkspaceCommand(
   name: 'doctor' | 'filter' | 'index' | 'scope' | 'status' | 'watch',

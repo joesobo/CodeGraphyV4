@@ -1,8 +1,8 @@
 export { CODEGRAPHY_CORE_PACKAGE_NAME } from './packageIdentity';
 export type { CommandExecutionResult } from './cli/command';
 export { runCliCommand } from './cli/command';
-export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
-export { parseCliCommand } from './cli/parse';
+export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parser/command';
+export { parseCliCommand } from './cli/parser/command';
 export {
   CORE_GRAPH_EDGE_DEFAULT_VISIBILITY,
   CORE_GRAPH_EDGE_TYPES,

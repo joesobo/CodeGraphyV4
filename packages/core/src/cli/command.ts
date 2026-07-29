@@ -1,7 +1,7 @@
 import { runRegisteredCommand } from './registry';
 import { runWatchCommand, type WatchCommandEvent } from './watch/command';
 import { formatCliResult } from './result/serializer';
-import type { CliCommand } from './parse';
+import type { CliCommand } from './parser/command';
 import { createDiagnosticEvent, formatDiagnosticEventLine } from '../diagnostics/events';
 
 export interface CommandExecutionResult {

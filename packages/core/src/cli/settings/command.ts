@@ -7,7 +7,7 @@ import {
 } from '../../workspace/settings';
 import { workspaceSettingChangeRequiresIndex } from '../../workspace/indexRequirement';
 import type { CommandExecutionResult } from '../command';
-import type { SettingsCliCommand } from '../parseTypes';
+import type { SettingsCliCommand } from '../parser/protocol';
 
 function settingValue(settings: object, key: string): unknown {
   return Reflect.get(settings, key) as unknown;

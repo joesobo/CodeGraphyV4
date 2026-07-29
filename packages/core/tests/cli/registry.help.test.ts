@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createHelpResult } from '../../../src/cli/help/command';
+import { createRegisteredHelpResult as createHelpResult } from '../../src/cli/registry';
 
-describe('cli/help/command', () => {
+describe('cli/registry help', () => {
   it('lists the minimal public command surface and global workspace selector', () => {
     const result = createHelpResult();
 

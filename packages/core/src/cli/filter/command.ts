@@ -4,7 +4,7 @@ import {
   patchCodeGraphyWorkspaceSettings,
 } from '../../workspace/settings';
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parseTypes';
+import type { CliCommand } from '../parser/protocol';
 
 interface FilterCommandDependencies {
   cwd(): string;

@@ -1,5 +1,5 @@
 import type { CommandExecutionResult } from '../command';
-import type { CliCommand } from '../parse';
+import type { CliCommand } from '../parser/protocol';
 import type { PluginsCommandDependencies } from './dependencies';
 
 export async function runLinkCommand(

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseSettingsCommand } from '../../src/cli/parseSettings';
+import { parseSettingsCommand } from '../../../src/cli/parser/settings';
 
-describe('cli/parseSettings', () => {
+describe('cli/parser/settings', () => {
   it('parses reads and JSON mutations', () => {
     expect(parseSettingsCommand([])).toEqual({
       name: 'settings', settings: { action: 'list' },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { isPluginCommand, parsePluginsCommand } from '../../src/cli/parsePlugins';
+import { isPluginCommand, parsePluginsCommand } from '../../../src/cli/parser/plugins';
 
-describe('cli/parsePlugins', () => {
+describe('cli/parser/plugins', () => {
   it('identifies public plugin subcommands', () => {
     expect(isPluginCommand('enable')).toBe(true);
     expect(isPluginCommand('wat')).toBe(false);

@@ -1,5 +1,5 @@
-import type { GraphQueryReport, WorkspaceGraphQueryProjection } from '../workspace/requestTypes';
-import type { CliCommand } from './parseTypes';
+import type { GraphQueryReport, WorkspaceGraphQueryProjection } from '../../workspace/requestTypes';
+import type { CliCommand } from './protocol';
 
 export const GRAPH_QUERY_COMMAND_NAMES = [
   'dependencies',

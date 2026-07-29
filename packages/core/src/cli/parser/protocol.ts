@@ -1,7 +1,7 @@
 import type {
   GraphQueryReport,
   WorkspaceGraphQueryProjection,
-} from '../workspace/requestTypes';
+} from '../../workspace/requestTypes';
 
 export type CliCommandName =
   | 'doctor'

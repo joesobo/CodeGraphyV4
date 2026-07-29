@@ -1,4 +1,4 @@
-import type { CliCommand } from './parseTypes';
+import type { CliCommand } from './protocol';
 
 const WORKSPACE_SETTING_KEYS = new Set([
   'maxFiles',

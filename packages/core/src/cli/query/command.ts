@@ -5,7 +5,7 @@ import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
 import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from '../../workspace/requestTypes';
 import type { DiagnosticEvent, DiagnosticEventSink } from '../../diagnostics/events';
 import { formatDiagnosticEventLine } from '../../diagnostics/events';
-import type { CliCommand } from '../parseTypes';
+import type { CliCommand } from '../parser/protocol';
 import type { CommandExecutionResult } from '../command';
 
 interface QueryCommandDependencies {

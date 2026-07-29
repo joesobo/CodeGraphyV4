@@ -1,4 +1,4 @@
-import type { CliCommand } from './parseTypes';
+import type { CliCommand } from './protocol';
 
 function error(name: 'filter' | 'scope', message: string): CliCommand {
   return { name, parseError: message };

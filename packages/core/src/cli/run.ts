@@ -1,6 +1,6 @@
 import { runCliCommand, type CommandExecutionResult } from './command';
-import { parseCliCommand } from './parse';
-import type { CliCommand } from './parseTypes';
+import { parseCliCommand } from './parser/command';
+import type { CliCommand } from './parser/protocol';
 import { formatCliResult } from './result/serializer';
 import { WorkspaceSettingsError } from '../workspace/settings';
 
