@@ -16,11 +16,15 @@ import { inspectWorkspaceAnalysisDatabase } from '../../graphCache/database/stor
 import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
 import { createDoctorCacheCheck } from './cacheCheck/model';
 
+export const SUPPORTED_NODE_RUNTIME_RANGE = '^22.14.0 || >=23.6.0';
+
 export function isSupportedNodeRuntime(version: string): boolean {
   const [majorText, minorText] = version.split('.');
   const major = Number(majorText);
   const minor = Number(minorText);
-  return major > 22 || (major === 22 && minor >= 14);
+  return (major === 22 && minor >= 14)
+    || (major === 23 && minor >= 6)
+    || major >= 24;
 }
 
 function readSettingsCheck(workspaceRoot: string): Record<string, unknown> {
@@ -66,8 +70,10 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
     runtime: {
       ok: runtimeOk,
       version: process.version,
-      supported: '>=22.14.0',
-      ...(runtimeOk ? {} : { action: 'Use Node.js 22.14.0 or newer.' }),
+      supported: SUPPORTED_NODE_RUNTIME_RANGE,
+      ...(runtimeOk ? {} : {
+        action: `Use a Node.js version matching ${SUPPORTED_NODE_RUNTIME_RANGE}.`,
+      }),
     },
     settings: settingsCheck,
     cache: createDoctorCacheCheck({

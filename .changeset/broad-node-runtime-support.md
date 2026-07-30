@@ -14,7 +14,7 @@
 "@codegraphy-dev/tldraw": minor
 ---
 
-Node.js 20 is no longer supported. Upgrade to Node.js 22.14.0 or newer before
+Node.js 20 is no longer supported. Upgrade to Node.js `^22.14.0 || >=23.6.0` before
 updating CodeGraphy Core, interfaces, APIs, or plugins. Newer Node.js releases
 remain supported because these packages do not set a maximum version.
 

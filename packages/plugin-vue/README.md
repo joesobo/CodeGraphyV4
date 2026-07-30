@@ -7,7 +7,7 @@ Adds Vue Single-File Component script import analysis to [CodeGraphy](https://ma
 
 ## Install
 
-This package requires Node.js 22.14.0 or newer. Node.js 20 is not supported.
+This package requires Node.js `^22.14.0 || >=23.6.0`. Node.js 20 is not supported.
 
 Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 

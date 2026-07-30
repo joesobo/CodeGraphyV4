@@ -2,7 +2,7 @@
   "name": "codegraphy-javascript-example",
   "private": true,
   "engines": {
-    "node": ">=22.14.0"
+    "node": "^22.14.0 || >=23.6.0"
   },
   "type": "module"
 }

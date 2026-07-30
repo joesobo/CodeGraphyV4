@@ -6,7 +6,7 @@ The built-in presets are Synapse, Rain, Constellations, Perlin Flow, Leaves, Spa
 
 ## Install
 
-This package requires Node.js 22.14.0 or newer. Node.js 20 is not supported.
+This package requires Node.js `^22.14.0 || >=23.6.0`. Node.js 20 is not supported.
 
 ```bash
 npm install -g @codegraphy-dev/plugin-particles

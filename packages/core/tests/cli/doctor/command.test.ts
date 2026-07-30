@@ -6,17 +6,26 @@ import { describe, expect, it, vi } from 'vitest';
 import { runCli } from '../../../src/cli/run';
 import { requestCodeGraphyIndexWorkspace } from '../../../src/workspace/requestIndexing';
 import { getWorkspaceAnalysisDatabasePath } from '../../../src/graphCache/database/storage';
-import { isSupportedNodeRuntime } from '../../../src/cli/doctor/command';
+import {
+  isSupportedNodeRuntime,
+  SUPPORTED_NODE_RUNTIME_RANGE,
+} from '../../../src/cli/doctor/command';
 
 describe('isSupportedNodeRuntime', () => {
   it.each([
-    ['20.20.1', false],
-    ['22.13.1', false],
+    ['22.13.0', false],
     ['22.14.0', true],
-    ['22.22.0', true],
+    ['23.0.0', false],
+    ['23.5.0', false],
+    ['23.6.0', true],
     ['24.0.0', true],
+    ['25.0.0', true],
   ])('reports whether Node.js %s satisfies the runtime contract', (version, expected) => {
     expect(isSupportedNodeRuntime(version)).toBe(expected);
+  });
+
+  it('publishes the same range used by package manifests', () => {
+    expect(SUPPORTED_NODE_RUNTIME_RANGE).toBe('^22.14.0 || >=23.6.0');
   });
 });
 
@@ -179,7 +188,7 @@ describe('cli doctor', () => {
         details: {
           healthy: false,
           checks: {
-            runtime: { ok: true, supported: '>=22.14.0' },
+            runtime: { ok: true, supported: '^22.14.0 || >=23.6.0' },
             settings: { ok: false, action: 'Run `codegraphy index` to create workspace settings.' },
             cache: { ok: false, state: 'missing', action: 'Run `codegraphy index`.' },
             plugins: { ok: true, warnings: [] },

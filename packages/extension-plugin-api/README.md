@@ -20,7 +20,7 @@ runtimes separate and let each host load its own descriptor.
 
 ## Install
 
-Installing this package requires Node.js 22.14.0 or newer. Node.js 20 is not
+Installing this package requires Node.js `^22.14.0 || >=23.6.0`. Node.js 20 is not
 supported.
 
 ```bash

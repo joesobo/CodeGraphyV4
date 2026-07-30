@@ -77,7 +77,7 @@ The extension publishes native runtime targets for Linux x64, macOS Apple Silico
 
 ### CLI and Plugins
 
-The CLI, plugins, and interface packages require Node.js 22.14.0 or newer.
+The CLI, plugins, and interface packages require Node.js `^22.14.0 || >=23.6.0`.
 Node.js 20 is not supported. Upgrade Node.js before you update these npm
 packages. An active LTS release is recommended, and CodeGraphy does not set a
 maximum Node.js version.
@@ -110,7 +110,7 @@ codegraphy -C /path/to/workspace index
 
 ### tldraw Offline
 
-The first tldraw interface supports macOS and Node.js 22.14.0 and newer. An active
+The first tldraw interface supports macOS and Node.js `^22.14.0 || >=23.6.0`. An active
 LTS release is recommended. Install the
 [tldraw offline desktop app](https://www.tldraw.com/), Core, and the interface.
 Then run the launcher from the workspace to index:

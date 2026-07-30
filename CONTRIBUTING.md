@@ -6,7 +6,7 @@ CodeGraphy accepts focused changes through pull requests against `main`.
 
 ### Prerequisites
 
-- Node.js 22.14.0 or newer; use an active LTS release
+- Node.js `^22.14.0 || >=23.6.0`; use an active LTS release
 - pnpm 10+
 - VS Code 1.101+
 
@@ -110,7 +110,7 @@ pnpm --filter @codegraphy-dev/extension exec playwright install chromium  # Brow
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```
 
-Use an active Node.js LTS release for repository development, release, and quality-tool commands. Published packages require Node.js 22.14.0 or newer and do not set a maximum version.
+Use an active Node.js LTS release for repository development, release, and quality-tool commands. Published packages require Node.js `^22.14.0 || >=23.6.0` and do not set a maximum version.
 
 ## Reporting bugs
 
