@@ -263,6 +263,41 @@ describe('graphView/provider/analysis/methods', () => {
     ]);
   });
 
+  it('cancels an active saved-file update when its caller is disposed', async () => {
+    const source = createSource();
+    let analysisSignal: AbortSignal | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      const controller = new AbortController();
+      state.analysisController = controller;
+      source._analysisController = controller;
+      analysisSignal = controller.signal;
+      await new Promise<void>(resolve => {
+        controller.signal.addEventListener('abort', () => resolve(), { once: true });
+      });
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+    const owner = new AbortController();
+
+    const update = methods._updateChangedFilesAndSendData(
+      ['/workspace/src/saved.ts'],
+      owner.signal,
+    );
+    await Promise.resolve();
+
+    owner.abort();
+    await update;
+
+    expect(analysisSignal?.aborted).toBe(true);
+  });
+
   it('keeps webview-ready loading from interrupting an active first index', async () => {
     const source = createSource();
     let finishIndex: (() => void) | undefined;

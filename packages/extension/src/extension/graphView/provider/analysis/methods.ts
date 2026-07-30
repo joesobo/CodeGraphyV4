@@ -69,7 +69,10 @@ export interface GraphViewProviderAnalysisMethodsSource {
 export interface GraphViewProviderAnalysisMethods {
   _loadAndSendData(): Promise<void>;
   _indexAndSendData(): Promise<void>;
-  _updateChangedFilesAndSendData(filePaths: readonly string[]): Promise<void>;
+  _updateChangedFilesAndSendData(
+    filePaths: readonly string[],
+    signal?: AbortSignal,
+  ): Promise<void>;
   _refreshAndSendData(): Promise<void>;
   _doLoadAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
@@ -171,9 +174,25 @@ export function createGraphViewProviderAnalysisMethods(
       await _loadAndSendData();
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
-    _updateChangedFilesAndSendData: async filePaths => {
+    _updateChangedFilesAndSendData: async (filePaths, signal) => {
       await fullIndexAnalysis.waitForFullIndexAnalysis();
-      await _updateChangedFilesAndSendData(filePaths);
+      if (signal?.aborted) {
+        return;
+      }
+
+      const abortUpdate = (): void => {
+        source._analysisController?.abort();
+      };
+      signal?.addEventListener('abort', abortUpdate, { once: true });
+      try {
+        const update = _updateChangedFilesAndSendData(filePaths);
+        if (signal?.aborted) {
+          abortUpdate();
+        }
+        await update;
+      } finally {
+        signal?.removeEventListener('abort', abortUpdate);
+      }
     },
     _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
     _doLoadAndSendData,

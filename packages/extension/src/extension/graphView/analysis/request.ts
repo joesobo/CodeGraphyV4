@@ -3,6 +3,7 @@ import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 export interface GraphViewAnalysisRequestState {
   analysisController: AbortController | undefined;
   analysisRequestId: number;
+  propagateErrors?: boolean;
 }
 
 export interface GraphViewAnalysisRequestHandlers {
@@ -74,6 +75,9 @@ export async function runGraphViewAnalysisRequest(
         },
       });
       handlers.logError('[CodeGraphy] Analysis failed:', error);
+      if (state.propagateErrors) {
+        throw error;
+      }
     }
   } finally {
     if (state.analysisController === controller) {
