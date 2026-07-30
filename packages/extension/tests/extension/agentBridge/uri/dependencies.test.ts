@@ -64,13 +64,13 @@ describe('agentBridge/uri/dependencies', () => {
     });
 
     await DEFAULT_DEPENDENCIES.writeResponseFile(responsePath, {
+      error: 'request failed',
       repo: '/workspace/project',
       requestId: 'request-1',
-      status: 'indexed',
     });
 
     await expect(fs.readFile(responsePath, 'utf8')).resolves.toBe(
-      '{\n  "repo": "/workspace/project",\n  "requestId": "request-1",\n  "status": "indexed"\n}\n',
+      '{\n  "error": "request failed",\n  "repo": "/workspace/project",\n  "requestId": "request-1"\n}\n',
     );
   });
 

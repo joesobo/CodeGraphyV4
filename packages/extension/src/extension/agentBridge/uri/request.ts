@@ -17,6 +17,9 @@ export function readAgentAction(uriPath: string): CodeGraphyAgentAction | undefi
   if (uriPath === '/query') {
     return 'query';
   }
+  if (uriPath === '/status') {
+    return 'status';
+  }
   return undefined;
 }
 

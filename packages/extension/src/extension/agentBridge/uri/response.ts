@@ -11,7 +11,6 @@ export async function writeFailureResponse(
   await dependencies.writeResponseFile(request.responsePath, {
     requestId: request.requestId,
     repo: request.repo,
-    status: 'failed',
     error,
   });
 }

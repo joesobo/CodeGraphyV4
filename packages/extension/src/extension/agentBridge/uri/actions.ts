@@ -1,67 +1,64 @@
+import {
+  executeCodeGraphyWorkspaceCommand,
+  type CodeGraphyWorkspaceCommand,
+} from '@codegraphy-dev/core';
 import type {
   CodeGraphyAgentAction,
   CodeGraphyAgentBridgeProvider,
-  CodeGraphyAgentGraphQueryRequest,
   CodeGraphyAgentRequest,
   CodeGraphyAgentUriDependencies,
   CodeGraphyAgentUriResult,
 } from './types';
-import { writeFailureResponse } from './response';
 
-export function formatErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
-async function handleIndexRequest(
+function createWorkspaceCommand(
+  action: CodeGraphyAgentAction,
   request: CodeGraphyAgentRequest,
-  provider: CodeGraphyAgentBridgeProvider,
-  dependencies: CodeGraphyAgentUriDependencies,
-): Promise<CodeGraphyAgentUriResult> {
-  try {
-    await provider.refreshIndex();
-    await dependencies.writeResponseFile(request.responsePath, {
-      requestId: request.requestId,
-      repo: request.repo,
-      status: 'indexed',
-    });
-    return { status: 'indexed' };
-  } catch (error) {
-    const message = formatErrorMessage(error);
-    await writeFailureResponse(request, message, dependencies);
-    dependencies.showErrorMessage(`CodeGraphy failed to index ${request.repo}: ${message}`);
-    return { status: 'failed' };
+): CodeGraphyWorkspaceCommand {
+  if (action === 'query') {
+    if (!request.query) {
+      throw new Error('CodeGraphy query request did not include a Graph Query.');
+    }
+    return {
+      command: action,
+      workspacePath: request.repo,
+      query: request.query,
+    };
   }
+  return {
+    command: action,
+    workspacePath: request.repo,
+  };
 }
 
-async function handleQueryRequest(
-  request: CodeGraphyAgentRequest,
-  provider: CodeGraphyAgentBridgeProvider,
-  dependencies: CodeGraphyAgentUriDependencies,
-): Promise<CodeGraphyAgentUriResult> {
-  try {
-    const result = provider.queryGraph((request as CodeGraphyAgentGraphQueryRequest).query);
-    await dependencies.writeResponseFile(request.responsePath, {
-      requestId: request.requestId,
-      repo: request.repo,
-      status: 'ok',
-      result,
-    });
-    return { status: 'queried' };
-  } catch (error) {
-    const message = formatErrorMessage(error);
-    await writeFailureResponse(request, message, dependencies);
-    dependencies.showErrorMessage(`CodeGraphy failed to query ${request.repo}: ${message}`);
-    return { status: 'failed' };
-  }
+function successStatus(action: CodeGraphyAgentAction): CodeGraphyAgentUriResult {
+  if (action === 'index') return { status: 'indexed' };
+  if (action === 'query') return { status: 'queried' };
+  return { status: 'status-read' };
 }
 
-export function dispatchAgentAction(
+export async function dispatchAgentAction(
   action: CodeGraphyAgentAction,
   request: CodeGraphyAgentRequest,
   provider: CodeGraphyAgentBridgeProvider,
   dependencies: CodeGraphyAgentUriDependencies,
 ): Promise<CodeGraphyAgentUriResult> {
-  return action === 'index'
-    ? handleIndexRequest(request, provider, dependencies)
-    : handleQueryRequest(request, provider, dependencies);
+  const execute = dependencies.executeWorkspaceCommand ?? executeCodeGraphyWorkspaceCommand;
+  const response = await execute(createWorkspaceCommand(action, request));
+  await dependencies.writeResponseFile(request.responsePath, {
+    requestId: request.requestId,
+    repo: request.repo,
+    response,
+  });
+
+  if (!response.ok) {
+    dependencies.showErrorMessage(
+      `CodeGraphy ${action} failed for ${request.repo}: ${response.error.message}`,
+    );
+    return { status: 'failed' };
+  }
+
+  if (action === 'index') {
+    await provider.refresh();
+  }
+  return successStatus(action);
 }

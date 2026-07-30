@@ -31,6 +31,7 @@ describe('agentBridge/uri/request', () => {
   it('maps supported URI paths to agent actions', () => {
     expect(readAgentAction('/index')).toBe('index');
     expect(readAgentAction('/query')).toBe('query');
+    expect(readAgentAction('/status')).toBe('status');
     expect(readAgentAction('/unknown')).toBeUndefined();
   });
 

@@ -50,7 +50,6 @@ describe('agentBridge/uri/workspace', () => {
         error: 'CodeGraphy agent request for /workspace/project needs a VS Code window opened on that repo.',
         repo: '/workspace/project',
         requestId: 'request-2',
-        status: 'failed',
       },
     );
   });
@@ -74,7 +73,6 @@ describe('agentBridge/uri/workspace', () => {
         error: message,
         repo: '/workspace/project',
         requestId: 'request-3',
-        status: 'failed',
       },
     );
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(message);

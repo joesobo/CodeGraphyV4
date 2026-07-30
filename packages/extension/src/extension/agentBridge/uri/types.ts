@@ -1,4 +1,8 @@
-import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
+import type {
+  CodeGraphyWorkspaceCommand,
+  CodeGraphyWorkspaceCommandResponse,
+  GraphQueryRequest,
+} from '@codegraphy-dev/core';
 
 export type CodeGraphyAgentUriStatus =
   | 'failed'
@@ -6,6 +10,7 @@ export type CodeGraphyAgentUriStatus =
   | 'missing-request'
   | 'missing-workspace'
   | 'queried'
+  | 'status-read'
   | 'unsupported-action'
   | 'wrong-workspace';
 
@@ -22,39 +27,35 @@ export interface CodeGraphyAgentRequest {
   repo: string;
   requestId?: string;
   responsePath: string;
+  query?: GraphQueryRequest;
 }
 
-export interface CodeGraphyAgentGraphQueryRequest extends CodeGraphyAgentRequest {
+export type CodeGraphyAgentGraphQueryRequest = CodeGraphyAgentRequest & {
   query: GraphQueryRequest;
-}
+};
 
-export type CodeGraphyAgentAction = 'index' | 'query';
+export type CodeGraphyAgentAction = 'index' | 'query' | 'status';
 
 export type CodeGraphyAgentResponse =
   | {
     requestId?: string;
     repo: string;
-    status: 'failed';
     error: string;
   }
   | {
     requestId?: string;
     repo: string;
-    status: 'indexed';
-  }
-  | {
-    requestId?: string;
-    repo: string;
-    status: 'ok';
-    result: GraphQueryResult;
+    response: CodeGraphyWorkspaceCommandResponse;
   };
 
 export interface CodeGraphyAgentBridgeProvider {
-  refreshIndex(): Promise<void>;
-  queryGraph(request: GraphQueryRequest): GraphQueryResult;
+  refresh(): Promise<void>;
 }
 
 export interface CodeGraphyAgentUriDependencies {
+  executeWorkspaceCommand?(
+    command: CodeGraphyWorkspaceCommand,
+  ): Promise<CodeGraphyWorkspaceCommandResponse>;
   getWorkspaceRoot(): string | undefined;
   readRequestFile(filePath: string): Promise<CodeGraphyAgentRequest>;
   showErrorMessage(message: string): unknown;

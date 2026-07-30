@@ -9,8 +9,7 @@ describe('agentBridge/uri/handler', () => {
 
   it('adapts VS Code URI handling to the agent URI flow', async () => {
     const handler = createCodeGraphyAgentUriHandler({
-      refreshIndex: vi.fn(),
-      queryGraph: vi.fn(),
+      refresh: vi.fn(),
     });
 
     await handler.handleUri({ path: '/unsupported', query: '' } as vscode.Uri);

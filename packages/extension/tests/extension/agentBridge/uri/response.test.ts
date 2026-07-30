@@ -27,7 +27,6 @@ describe('agentBridge/uri/response', () => {
         error: 'failure text',
         repo: '/workspace/project',
         requestId: 'request-1',
-        status: 'failed',
       },
     );
   });

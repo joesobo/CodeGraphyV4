@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { CodeGraphyWorkspaceCommandResponse } from '@codegraphy-dev/core';
 import { handleCodeGraphyAgentUri } from '../../../../src/extension/agentBridge/uri/handle';
 import type {
   CodeGraphyAgentRequest,
@@ -10,7 +11,39 @@ function createDependencies(
   request: CodeGraphyAgentRequest,
   workspaceRoot?: string,
 ): CodeGraphyAgentUriDependencies {
+  const response: CodeGraphyWorkspaceCommandResponse = {
+    ok: true,
+    command: 'index',
+    data: {
+      workspaceRoot: '/workspace/project',
+      graphCache: '.codegraphy/graph.sqlite',
+      message: 'Indexing completed.',
+      discovery: {
+        indexedFiles: 1,
+        totalFound: 1,
+        limitReached: false,
+      },
+      indexing: {
+        mode: 'incremental',
+        analyzedFiles: 1,
+        deletedFiles: 0,
+        reusedFiles: 0,
+      },
+    },
+    metadata: {
+      workspaceRoot: '/workspace/project',
+      cache: {
+        state: 'fresh',
+        staleReasons: [],
+      },
+      result: {
+        complete: true,
+        reasons: [],
+      },
+    },
+  };
   return {
+    executeWorkspaceCommand: vi.fn(async () => response),
     getWorkspaceRoot: vi.fn(() => workspaceRoot),
     readRequestFile: vi.fn(async () => request),
     showErrorMessage: vi.fn(),
@@ -32,7 +65,7 @@ describe('agentBridge/uri/handle', () => {
 
     const result = await handleCodeGraphyAgentUri(
       createUri('/unsupported'),
-      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
+      { refresh: vi.fn() },
       dependencies,
     );
 
@@ -48,7 +81,7 @@ describe('agentBridge/uri/handle', () => {
 
     const result = await handleCodeGraphyAgentUri(
       createUri('/index', ''),
-      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
+      { refresh: vi.fn() },
       dependencies,
     );
 
@@ -57,7 +90,7 @@ describe('agentBridge/uri/handle', () => {
   });
 
   it('returns workspace guard failures before dispatching the action', async () => {
-    const refreshIndex = vi.fn();
+    const refresh = vi.fn();
     const dependencies = createDependencies({
       repo: '/workspace/project',
       responsePath: '/tmp/response.json',
@@ -65,16 +98,16 @@ describe('agentBridge/uri/handle', () => {
 
     const result = await handleCodeGraphyAgentUri(
       createUri('/index'),
-      { refreshIndex, queryGraph: vi.fn() },
+      { refresh },
       dependencies,
     );
 
     expect(result.status).toBe('missing-workspace');
-    expect(refreshIndex).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('dispatches valid requests after action, request, and workspace checks pass', async () => {
-    const refreshIndex = vi.fn(async () => undefined);
+    const refresh = vi.fn(async () => undefined);
     const dependencies = createDependencies({
       repo: '/workspace/project',
       responsePath: '/tmp/response.json',
@@ -82,11 +115,11 @@ describe('agentBridge/uri/handle', () => {
 
     const result = await handleCodeGraphyAgentUri(
       createUri('/index'),
-      { refreshIndex, queryGraph: vi.fn() },
+      { refresh },
       dependencies,
     );
 
     expect(result.status).toBe('indexed');
-    expect(refreshIndex).toHaveBeenCalledTimes(1);
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,15 +1,31 @@
+import type {
+  CodeGraphyWorkspaceCommand,
+  CodeGraphyWorkspaceCommandResponse,
+} from '@codegraphy-dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  dispatchAgentAction,
-  formatErrorMessage,
-} from '../../../../src/extension/agentBridge/uri/actions';
+import { dispatchAgentAction } from '../../../../src/extension/agentBridge/uri/actions';
 import type {
   CodeGraphyAgentRequest,
   CodeGraphyAgentUriDependencies,
 } from '../../../../src/extension/agentBridge/uri/types';
 
-function createDependencies(): CodeGraphyAgentUriDependencies {
+const freshMetadata: CodeGraphyWorkspaceCommandResponse['metadata'] = {
+  workspaceRoot: '/workspace/project',
+  cache: {
+    state: 'fresh',
+    staleReasons: [],
+  },
+  result: {
+    complete: true,
+    reasons: [],
+  },
+};
+
+function createDependencies(
+  response: CodeGraphyWorkspaceCommandResponse,
+): CodeGraphyAgentUriDependencies {
   return {
+    executeWorkspaceCommand: vi.fn(async (_command: CodeGraphyWorkspaceCommand) => response),
     getWorkspaceRoot: () => '/workspace/project',
     readRequestFile: vi.fn(),
     showErrorMessage: vi.fn(),
@@ -18,7 +34,7 @@ function createDependencies(): CodeGraphyAgentUriDependencies {
   };
 }
 
-function createRequest(query?: unknown): CodeGraphyAgentRequest {
+function createRequest(query?: CodeGraphyAgentRequest['query']): CodeGraphyAgentRequest {
   return {
     repo: '/workspace/project',
     requestId: 'request-1',
@@ -28,106 +44,165 @@ function createRequest(query?: unknown): CodeGraphyAgentRequest {
 }
 
 describe('agentBridge/uri/actions', () => {
-  it('formats non-error failures without losing the value', () => {
-    expect(formatErrorMessage('plain failure')).toBe('plain failure');
-  });
-
-  it('dispatches indexing requests through the provider', async () => {
-    const dependencies = createDependencies();
-    const refreshIndex = vi.fn(async () => undefined);
+  it('runs Indexing through Core and reloads the VS Code Graph View from the Graph Cache', async () => {
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: true,
+      command: 'index',
+      data: {
+        workspaceRoot: '/workspace/project',
+        graphCache: '.codegraphy/graph.sqlite',
+        message: 'Indexing completed.',
+        discovery: {
+          indexedFiles: 1,
+          totalFound: 1,
+          limitReached: false,
+        },
+        indexing: {
+          mode: 'incremental',
+          analyzedFiles: 1,
+          deletedFiles: 0,
+          reusedFiles: 0,
+        },
+      },
+      metadata: freshMetadata,
+    };
+    const dependencies = createDependencies(response);
+    const refresh = vi.fn(async () => undefined);
 
     const result = await dispatchAgentAction(
       'index',
       createRequest(),
-      { refreshIndex, queryGraph: vi.fn() },
+      { refresh },
       dependencies,
     );
 
     expect(result.status).toBe('indexed');
-    expect(refreshIndex).toHaveBeenCalledTimes(1);
+    expect(dependencies.executeWorkspaceCommand).toHaveBeenCalledWith({
+      command: 'index',
+      workspacePath: '/workspace/project',
+    });
+    expect(refresh).toHaveBeenCalledOnce();
     expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
       '/tmp/codegraphy-response.json',
       {
         repo: '/workspace/project',
         requestId: 'request-1',
-        status: 'indexed',
+        response,
       },
     );
   });
 
-  it('writes failed index responses with error messages', async () => {
-    const dependencies = createDependencies();
-
-    const result = await dispatchAgentAction(
-      'index',
-      createRequest(),
-      {
-        refreshIndex: vi.fn(async () => {
-          throw new Error('index exploded');
-        }),
-        queryGraph: vi.fn(),
+  it('runs every Graph Query report through the Core workspace command seam', async () => {
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: true,
+      command: 'query',
+      data: {
+        pattern: 'settings',
+        matches: [],
+        page: {
+          offset: 0,
+          limit: 20,
+          returned: 0,
+          total: 0,
+          nextOffset: null,
+        },
+        sources: {
+          text: {
+            freshness: 'live',
+            filesScanned: 1,
+            filesSkipped: 0,
+          },
+          symbols: {
+            freshness: 'cached',
+            cacheState: 'fresh',
+          },
+        },
       },
-      dependencies,
-    );
-
-    expect(result.status).toBe('failed');
-    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
-      '/tmp/codegraphy-response.json',
-      {
-        error: 'index exploded',
-        repo: '/workspace/project',
-        requestId: 'request-1',
-        status: 'failed',
-      },
-    );
-    expect(dependencies.showErrorMessage).toHaveBeenCalledWith(
-      'CodeGraphy failed to index /workspace/project: index exploded',
-    );
-  });
-
-  it('dispatches query requests through the provider', async () => {
-    const dependencies = createDependencies();
-    const query = { report: 'nodes' as const, arguments: {} };
-    const queryGraph = vi.fn(() => ({
-      nodes: [{ path: 'src/app.ts', nodeType: 'file' as const }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
-    }));
+      metadata: freshMetadata,
+    };
+    const dependencies = createDependencies(response);
+    const query = {
+      report: 'search' as const,
+      arguments: { pattern: 'settings' },
+    };
 
     const result = await dispatchAgentAction(
       'query',
       createRequest(query),
-      { refreshIndex: vi.fn(), queryGraph },
+      { refresh: vi.fn() },
       dependencies,
     );
 
     expect(result.status).toBe('queried');
-    expect(queryGraph).toHaveBeenCalledWith(query);
-    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
-      '/tmp/codegraphy-response.json',
-      {
-        repo: '/workspace/project',
-        requestId: 'request-1',
-        result: {
-          nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-          page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
-        },
-        status: 'ok',
-      },
-    );
+    expect(dependencies.executeWorkspaceCommand).toHaveBeenCalledWith({
+      command: 'query',
+      workspacePath: '/workspace/project',
+      query,
+    });
   });
 
-  it('writes failed query responses with string errors', async () => {
-    const dependencies = createDependencies();
+  it('exposes Core workspace status without opening the Graph View', async () => {
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: true,
+      command: 'status',
+      data: {
+        workspaceRoot: '/workspace/project',
+        graphCache: '.codegraphy/graph.sqlite',
+        state: 'fresh',
+        hasGraphCache: true,
+        staleReasons: [],
+        enabledPlugins: [],
+        message: 'Graph Cache is fresh.',
+      },
+      metadata: freshMetadata,
+    };
+    const dependencies = createDependencies(response);
+    const refresh = vi.fn();
+
+    const result = await dispatchAgentAction(
+      'status',
+      createRequest(),
+      { refresh },
+      dependencies,
+    );
+
+    expect(result.status).toBe('status-read');
+    expect(dependencies.executeWorkspaceCommand).toHaveBeenCalledWith({
+      command: 'status',
+      workspacePath: '/workspace/project',
+    });
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('writes Core command failures and shows the Core error message', async () => {
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: false,
+      command: 'query',
+      error: {
+        code: 'graph_cache_not_found',
+        message: 'Run Indexing first.',
+      },
+      metadata: {
+        ...freshMetadata,
+        cache: {
+          state: 'missing',
+          staleReasons: ['never-indexed'],
+        },
+        result: {
+          complete: false,
+          reasons: ['cache-missing'],
+        },
+      },
+    };
+    const dependencies = createDependencies(response);
 
     const result = await dispatchAgentAction(
       'query',
-      createRequest({ report: 'nodes', arguments: {} }),
-      {
-        refreshIndex: vi.fn(),
-        queryGraph: vi.fn(() => {
-          throw 'query exploded';
-        }),
-      },
+      createRequest({
+        report: 'nodes',
+        arguments: {},
+      }),
+      { refresh: vi.fn() },
       dependencies,
     );
 
@@ -135,14 +210,13 @@ describe('agentBridge/uri/actions', () => {
     expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
       '/tmp/codegraphy-response.json',
       {
-        error: 'query exploded',
         repo: '/workspace/project',
         requestId: 'request-1',
-        status: 'failed',
+        response,
       },
     );
     expect(dependencies.showErrorMessage).toHaveBeenCalledWith(
-      'CodeGraphy failed to query /workspace/project: query exploded',
+      'CodeGraphy query failed for /workspace/project: Run Indexing first.',
     );
   });
 });

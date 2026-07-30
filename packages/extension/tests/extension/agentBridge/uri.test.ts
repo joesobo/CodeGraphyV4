@@ -1,7 +1,25 @@
+import type {
+  CodeGraphyWorkspaceCommand,
+  CodeGraphyWorkspaceCommandResponse,
+  GraphQueryRequest,
+} from '@codegraphy-dev/core';
 import * as path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphQueryRequest } from '@codegraphy-dev/core';
+import { describe, expect, it, vi } from 'vitest';
 import { handleCodeGraphyAgentUri } from '../../../src/extension/agentBridge/uri';
+
+const workspaceRoot = path.resolve('/workspace/project');
+
+const freshMetadata: CodeGraphyWorkspaceCommandResponse['metadata'] = {
+  workspaceRoot,
+  cache: {
+    state: 'fresh',
+    staleReasons: [],
+  },
+  result: {
+    complete: true,
+    reasons: [],
+  },
+};
 
 function createDependencies(
   request: {
@@ -10,10 +28,12 @@ function createDependencies(
     responsePath: string;
     query?: GraphQueryRequest;
   },
-  workspaceRoot?: string,
+  response: CodeGraphyWorkspaceCommandResponse,
+  activeWorkspace?: string,
 ) {
   return {
-    getWorkspaceRoot: () => workspaceRoot,
+    executeWorkspaceCommand: vi.fn(async (_command: CodeGraphyWorkspaceCommand) => response),
+    getWorkspaceRoot: () => activeWorkspace,
     readRequestFile: vi.fn(async () => request),
     showErrorMessage: vi.fn(),
     showWarningMessage: vi.fn(),
@@ -21,247 +41,233 @@ function createDependencies(
   };
 }
 
-function createUri(action: string) {
+function createUri(action: string, withRequest = true) {
   return {
     path: action,
-    query: 'request=/tmp/codegraphy-request.json',
-  };
-}
-
-function createUriWithoutRequest(action: string) {
-  return {
-    path: action,
-    query: '',
+    query: withRequest ? 'request=/tmp/codegraphy-request.json' : '',
   };
 }
 
 describe('agentBridge/uri', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('runs Indexing and writes an indexed response for the active workspace', async () => {
-    const workspaceRoot = path.resolve('/workspace/project');
-    const refreshIndex = vi.fn(async () => {});
+  it('runs Core Indexing and reloads the Graph View for the active workspace', async () => {
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: true,
+      command: 'index',
+      data: {
+        workspaceRoot,
+        graphCache: '.codegraphy/graph.sqlite',
+        message: 'Indexing completed.',
+        discovery: {
+          indexedFiles: 1,
+          totalFound: 1,
+          limitReached: false,
+        },
+        indexing: {
+          mode: 'incremental',
+          analyzedFiles: 1,
+          deletedFiles: 0,
+          reusedFiles: 0,
+        },
+      },
+      metadata: freshMetadata,
+    };
     const dependencies = createDependencies({
       repo: workspaceRoot,
       requestId: 'request-1',
       responsePath: '/tmp/codegraphy-response.json',
-    }, workspaceRoot);
+    }, response, workspaceRoot);
+    const refresh = vi.fn(async () => undefined);
 
     const result = await handleCodeGraphyAgentUri(
       createUri('/index'),
-      { refreshIndex, queryGraph: vi.fn() },
+      { refresh },
       dependencies,
     );
 
     expect(result.status).toBe('indexed');
-    expect(refreshIndex).toHaveBeenCalledTimes(1);
+    expect(refresh).toHaveBeenCalledOnce();
     expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
       '/tmp/codegraphy-response.json',
       {
         repo: workspaceRoot,
         requestId: 'request-1',
-        status: 'indexed',
+        response,
       },
     );
   });
 
-  it('runs Graph Query through the provider and writes the query response', async () => {
-    const workspaceRoot = path.resolve('/workspace/project');
-    const query: GraphQueryRequest = { report: 'nodes', arguments: {} };
-    const queryGraph = vi.fn(() => ({
-      nodes: [{ path: 'src/app.ts', nodeType: 'file' as const }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
-    }));
+  it('runs live search through Core instead of the rendered Graph View', async () => {
+    const query: GraphQueryRequest = {
+      report: 'search',
+      arguments: { pattern: 'settings' },
+    };
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: true,
+      command: 'query',
+      data: {
+        pattern: 'settings',
+        matches: [],
+        page: {
+          offset: 0,
+          limit: 20,
+          returned: 0,
+          total: 0,
+          nextOffset: null,
+        },
+        sources: {
+          text: {
+            freshness: 'live',
+            filesScanned: 1,
+            filesSkipped: 0,
+          },
+          symbols: {
+            freshness: 'cached',
+            cacheState: 'fresh',
+          },
+        },
+      },
+      metadata: freshMetadata,
+    };
     const dependencies = createDependencies({
       repo: workspaceRoot,
       requestId: 'request-2',
       responsePath: '/tmp/codegraphy-response.json',
       query,
-    }, workspaceRoot);
+    }, response, workspaceRoot);
 
     const result = await handleCodeGraphyAgentUri(
       createUri('/query'),
-      { refreshIndex: vi.fn(), queryGraph },
+      { refresh: vi.fn() },
       dependencies,
     );
 
     expect(result.status).toBe('queried');
-    expect(queryGraph).toHaveBeenCalledWith(query);
-    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
-      '/tmp/codegraphy-response.json',
-      {
-        repo: workspaceRoot,
-        requestId: 'request-2',
-        status: 'ok',
-        result: {
-          nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-          page: { offset: 0, limit: 500, returned: 1, total: 1, nextOffset: null },
-        },
-      },
-    );
+    expect(dependencies.executeWorkspaceCommand).toHaveBeenCalledWith({
+      command: 'query',
+      query,
+      workspacePath: workspaceRoot,
+    });
   });
 
-  it('writes a failure when the receiving VS Code window is for another repo', async () => {
-    const requestedRepo = path.resolve('/workspace/project');
+  it('reads Core freshness status through the URI bridge', async () => {
+    const response: CodeGraphyWorkspaceCommandResponse = {
+      ok: true,
+      command: 'status',
+      data: {
+        workspaceRoot,
+        graphCache: '.codegraphy/graph.sqlite',
+        state: 'stale',
+        hasGraphCache: true,
+        staleReasons: ['pending-changed-files'],
+        enabledPlugins: [],
+        message: 'Graph Cache is stale.',
+      },
+      metadata: {
+        ...freshMetadata,
+        cache: {
+          state: 'stale',
+          staleReasons: ['pending-changed-files'],
+        },
+      },
+    };
     const dependencies = createDependencies({
-      repo: requestedRepo,
+      repo: workspaceRoot,
       requestId: 'request-3',
       responsePath: '/tmp/codegraphy-response.json',
-    }, path.resolve('/workspace/other'));
+    }, response, workspaceRoot);
+
+    await expect(handleCodeGraphyAgentUri(
+      createUri('/status'),
+      { refresh: vi.fn() },
+      dependencies,
+    )).resolves.toEqual({ status: 'status-read' });
+  });
+
+  it('blocks a request received by the wrong VS Code workspace', async () => {
+    const response = {
+      ok: false,
+      command: 'status',
+      error: {
+        code: 'unused',
+        message: 'unused',
+      },
+      metadata: freshMetadata,
+    } satisfies CodeGraphyWorkspaceCommandResponse;
+    const dependencies = createDependencies({
+      repo: workspaceRoot,
+      requestId: 'request-4',
+      responsePath: '/tmp/codegraphy-response.json',
+    }, response, path.resolve('/workspace/other'));
 
     const result = await handleCodeGraphyAgentUri(
-      createUri('/index'),
-      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
+      createUri('/status'),
+      { refresh: vi.fn() },
       dependencies,
     );
 
     expect(result.status).toBe('wrong-workspace');
-    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
-      '/tmp/codegraphy-response.json',
-      expect.objectContaining({
-        repo: requestedRepo,
-        requestId: 'request-3',
-        status: 'failed',
-      }),
-    );
-    expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
-      expect.stringContaining('targeted'),
-    );
-  });
-
-  it('writes a failure when there is no workspace folder open', async () => {
-    const requestedRepo = path.resolve('/workspace/project');
-    const dependencies = createDependencies({
-      repo: requestedRepo,
-      requestId: 'request-4',
-      responsePath: '/tmp/codegraphy-response.json',
-    });
-
-    const result = await handleCodeGraphyAgentUri(
-      createUri('/index'),
-      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
-      dependencies,
-    );
-
-    expect(result.status).toBe('missing-workspace');
+    expect(dependencies.executeWorkspaceCommand).not.toHaveBeenCalled();
     expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
       '/tmp/codegraphy-response.json',
       {
-        error: `CodeGraphy agent request for ${requestedRepo} needs a VS Code window opened on that repo.`,
-        repo: requestedRepo,
+        error: expect.stringContaining('targeted'),
+        repo: workspaceRoot,
         requestId: 'request-4',
-        status: 'failed',
       },
     );
   });
 
-  it('ignores supported actions when no request file is provided', async () => {
-    const dependencies = createDependencies({
-      repo: path.resolve('/workspace/project'),
-      responsePath: '/tmp/codegraphy-response.json',
-    }, path.resolve('/workspace/project'));
-
-    const result = await handleCodeGraphyAgentUri(
-      createUriWithoutRequest('/index'),
-      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
-      dependencies,
-    );
-
-    expect(result.status).toBe('missing-request');
-    expect(dependencies.readRequestFile).not.toHaveBeenCalled();
-    expect(dependencies.writeResponseFile).not.toHaveBeenCalled();
-    expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
-      expect.stringContaining('request file'),
-    );
-  });
-
-  it('writes a failure response when indexing throws', async () => {
-    const workspaceRoot = path.resolve('/workspace/project');
+  it('blocks a request when no VS Code workspace is open', async () => {
+    const response = {
+      ok: false,
+      command: 'status',
+      error: {
+        code: 'unused',
+        message: 'unused',
+      },
+      metadata: freshMetadata,
+    } satisfies CodeGraphyWorkspaceCommandResponse;
     const dependencies = createDependencies({
       repo: workspaceRoot,
       requestId: 'request-5',
       responsePath: '/tmp/codegraphy-response.json',
-    }, workspaceRoot);
+    }, response);
 
     const result = await handleCodeGraphyAgentUri(
-      createUri('/index'),
-      {
-        refreshIndex: vi.fn(async () => {
-          throw new Error('index failed');
-        }),
-        queryGraph: vi.fn(),
-      },
+      createUri('/status'),
+      { refresh: vi.fn() },
       dependencies,
     );
 
-    expect(result.status).toBe('failed');
-    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
-      '/tmp/codegraphy-response.json',
-      expect.objectContaining({
-        error: 'index failed',
-        repo: workspaceRoot,
-        requestId: 'request-5',
-        status: 'failed',
-      }),
-    );
-    expect(dependencies.showErrorMessage).toHaveBeenCalledWith(
-      expect.stringContaining('index failed'),
-    );
+    expect(result.status).toBe('missing-workspace');
+    expect(dependencies.executeWorkspaceCommand).not.toHaveBeenCalled();
   });
 
-  it('writes a failure response when querying throws', async () => {
-    const workspaceRoot = path.resolve('/workspace/project');
+  it('does not read files for unsupported actions or missing request paths', async () => {
+    const response = {
+      ok: false,
+      command: 'status',
+      error: {
+        code: 'unused',
+        message: 'unused',
+      },
+      metadata: freshMetadata,
+    } satisfies CodeGraphyWorkspaceCommandResponse;
     const dependencies = createDependencies({
       repo: workspaceRoot,
-      requestId: 'request-6',
       responsePath: '/tmp/codegraphy-response.json',
-      query: { report: 'nodes', arguments: {} },
-    }, workspaceRoot);
+    }, response, workspaceRoot);
 
-    const result = await handleCodeGraphyAgentUri(
-      createUri('/query'),
-      {
-        refreshIndex: vi.fn(),
-        queryGraph: vi.fn(() => {
-          throw new Error('query failed');
-        }),
-      },
-      dependencies,
-    );
-
-    expect(result.status).toBe('failed');
-    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
-      '/tmp/codegraphy-response.json',
-      expect.objectContaining({
-        error: 'query failed',
-        repo: workspaceRoot,
-        requestId: 'request-6',
-        status: 'failed',
-      }),
-    );
-    expect(dependencies.showErrorMessage).toHaveBeenCalledWith(
-      expect.stringContaining('query failed'),
-    );
-  });
-
-  it('ignores unsupported actions', async () => {
-    const dependencies = createDependencies({
-      repo: path.resolve('/workspace/project'),
-      responsePath: '/tmp/codegraphy-response.json',
-    }, path.resolve('/workspace/project'));
-
-    const result = await handleCodeGraphyAgentUri(
+    await expect(handleCodeGraphyAgentUri(
       createUri('/unknown'),
-      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
+      { refresh: vi.fn() },
       dependencies,
-    );
-
-    expect(result.status).toBe('unsupported-action');
-    expect(dependencies.writeResponseFile).not.toHaveBeenCalled();
-    expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
-      'CodeGraphy ignored unsupported agent request: /unknown.',
-    );
+    )).resolves.toEqual({ status: 'unsupported-action' });
+    await expect(handleCodeGraphyAgentUri(
+      createUri('/status', false),
+      { refresh: vi.fn() },
+      dependencies,
+    )).resolves.toEqual({ status: 'missing-request' });
+    expect(dependencies.readRequestFile).not.toHaveBeenCalled();
   });
 });
