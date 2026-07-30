@@ -3,7 +3,6 @@ import * as path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const requireFromCore = createRequire(require.resolve('@codegraphy-dev/core'));
 
 export const EXTENSION_RUNTIME_TARGETS = [
   'linux-x64',
@@ -171,6 +170,7 @@ function resolveEsbuildBinaryPackageRootPath(packageName: string): string {
 }
 
 function resolveParcelWatcherBinaryPackageRootPath(packageName: string): string {
+  const requireFromCore = createRequire(require.resolve('@codegraphy-dev/core'));
   const watcherEntryPath = requireFromCore.resolve('@parcel/watcher');
   const manifestPath = requireFromCore.resolve(`${packageName}/package.json`, {
     paths: [path.dirname(watcherEntryPath)],
