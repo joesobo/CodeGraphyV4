@@ -442,6 +442,13 @@ export type {
 export { readCodeGraphyWorkspaceStatus } from './workspace/status';
 export { filterWorkspaceStatusPendingChangedFiles } from './workspace/statusPendingFiles';
 export type {
+  GraphQueryChangeImpactAffectedFile,
+  GraphQueryChangeImpactConfig,
+  GraphQueryChangeImpactEvidence,
+  GraphQueryChangeImpactPackageBoundary,
+  GraphQueryChangeImpactRelationship,
+  GraphQueryChangeImpactReport,
+  GraphQueryChangeImpactTarget,
   GraphQueryConfig,
   GraphQueryConnectionConfig,
   GraphQueryData,
@@ -477,6 +484,7 @@ export type {
   GraphQueryTaskMapReport,
 } from './graphQuery';
 export {
+  analyzeGraphChangeImpact,
   executeGraphQuery,
   findGraphPaths,
   inspectGraphTarget,

@@ -76,4 +76,22 @@ describe('core/graphQuery executeGraphQuery', () => {
       paths: [['a.ts', 'b.ts']],
     });
   });
+
+  it('dispatches change-impact reports through the public graph query request', () => {
+    expect(executeGraphQuery(queryData, {
+      report: 'change-impact',
+      arguments: { targets: ['b.ts'], limit: 5, maxDepth: 2 },
+    })).toMatchObject({
+      targets: [{ path: 'b.ts' }],
+      affected: [{
+        path: 'a.ts',
+        distance: 1,
+        evidence: {
+          relationships: [{ from: 'a.ts', to: 'b.ts', edgeType: 'import' }],
+        },
+      }],
+      limits: { maxDepth: 2, affectedFiles: 5, complete: true },
+      sources: { graph: { freshness: 'cached', cacheState: 'fresh' } },
+    });
+  });
 });

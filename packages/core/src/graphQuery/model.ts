@@ -74,6 +74,11 @@ export interface GraphQueryOverviewConfig extends GraphQueryConfig {
   projectedEdgeTypes?: readonly GraphEdgeKind[];
 }
 
+export interface GraphQueryChangeImpactConfig extends GraphQueryConfig {
+  targets: readonly string[];
+  maxDepth?: number;
+}
+
 export interface GraphQueryPage {
   offset: number;
   limit: number;
@@ -235,6 +240,70 @@ export interface GraphQueryOverviewReport {
   };
 }
 
+export interface GraphQueryChangeImpactTarget {
+  path: string;
+  nodeType: NodeType;
+  filePath: string;
+  symbol?: IGraphNodeSymbolMetadata;
+}
+
+export interface GraphQueryChangeImpactRelationship {
+  from: string;
+  to: string;
+  edgeType: GraphEdgeKind;
+}
+
+export interface GraphQueryChangeImpactEvidence {
+  nodes: string[];
+  relationships: GraphQueryChangeImpactRelationship[];
+}
+
+export interface GraphQueryChangeImpactAffectedFile {
+  path: string;
+  category: 'source' | 'test';
+  distance: number;
+  symbols: GraphQueryRelationshipSymbol[];
+  evidence: GraphQueryChangeImpactEvidence;
+}
+
+export interface GraphQueryChangeImpactPackageBoundary {
+  from: string;
+  to: string;
+}
+
+export interface GraphQueryChangeImpactReport {
+  targets: GraphQueryChangeImpactTarget[];
+  affected: GraphQueryChangeImpactAffectedFile[];
+  tests: Array<{
+    path: string;
+    distance: number;
+    evidence: GraphQueryChangeImpactEvidence;
+  }>;
+  boundaries: {
+    packages: GraphQueryChangeImpactPackageBoundary[];
+    public: GraphQueryChangeImpactRelationship[];
+  };
+  limits: {
+    maxDepth: number;
+    affectedFiles: number;
+    visitedNodes: number;
+    complete: boolean;
+    truncationReasons: Array<'affected-files' | 'max-depth' | 'visited-nodes'>;
+  };
+  sources: {
+    graph: {
+      freshness: 'cached';
+      cacheState: 'fresh' | 'stale';
+    };
+    ranking: {
+      method: 'shortest incoming typed Relationship path, then source before test, then path';
+    };
+  };
+  error?: 'change_impact_target_not_found';
+  message?: string;
+  missingTargets?: string[];
+}
+
 export interface GraphQueryTargetNotFoundReport {
   error: 'query_target_not_found';
   message: string;
@@ -248,6 +317,7 @@ export type GraphQueryReport =
   | 'paths'
   | 'search'
   | 'task-map'
+  | 'change-impact'
   | 'overview';
 
 export type GraphQueryRequest =
@@ -258,6 +328,7 @@ export type GraphQueryRequest =
   | { report: 'paths'; arguments: GraphQueryPathConfig }
   | { report: 'search'; arguments: GraphQuerySearchConfig }
   | { report: 'task-map'; arguments: GraphQueryTaskMapConfig }
+  | { report: 'change-impact'; arguments: GraphQueryChangeImpactConfig }
   | { report: 'overview'; arguments: GraphQueryOverviewConfig };
 
 export type GraphQueryResult =
@@ -268,5 +339,6 @@ export type GraphQueryResult =
   | GraphQueryPathReport
   | GraphQuerySearchReport
   | GraphQueryTaskMapReport
+  | GraphQueryChangeImpactReport
   | GraphQueryOverviewReport
   | GraphQueryTargetNotFoundReport;

@@ -1,4 +1,11 @@
 export type {
+  GraphQueryChangeImpactAffectedFile,
+  GraphQueryChangeImpactConfig,
+  GraphQueryChangeImpactEvidence,
+  GraphQueryChangeImpactPackageBoundary,
+  GraphQueryChangeImpactRelationship,
+  GraphQueryChangeImpactReport,
+  GraphQueryChangeImpactTarget,
   GraphQueryConfig,
   GraphQueryConnectionConfig,
   GraphQueryEdgeReport,
@@ -33,6 +40,7 @@ export type {
   GraphQueryTaskMapReport,
 } from './model';
 export type { GraphQueryData } from './data';
+export { analyzeGraphChangeImpact } from './changeImpact/model';
 export { executeGraphQuery } from './execute';
 export { inspectGraphTarget } from './overview/model';
 export { findGraphPaths } from './paths';

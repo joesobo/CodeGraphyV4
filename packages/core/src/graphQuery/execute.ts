@@ -1,6 +1,7 @@
 import { getNodeType } from '../visibleGraph/model';
 import type { GraphQueryData } from './data';
 import type {
+  GraphQueryChangeImpactConfig,
   GraphQueryConfig,
   GraphQueryConnectionConfig,
   GraphQueryOverviewConfig,
@@ -11,6 +12,7 @@ import type {
   GraphQuerySymbolsConfig,
   GraphQueryTaskMapConfig,
 } from './model';
+import { analyzeGraphChangeImpact } from './changeImpact/model';
 import { inspectGraphTarget } from './overview/model';
 import { findGraphPaths } from './paths';
 import { listGraphEdges, listGraphNodes } from './reports';
@@ -33,6 +35,7 @@ type GraphQueryHandlers = {
   paths: GraphQueryHandler<GraphQueryPathConfig>;
   search: GraphQueryHandler<GraphQuerySearchConfig>;
   'task-map': GraphQueryHandler<GraphQueryTaskMapConfig>;
+  'change-impact': GraphQueryHandler<GraphQueryChangeImpactConfig>;
   overview: GraphQueryHandler<GraphQueryOverviewConfig>;
 };
 
@@ -71,6 +74,7 @@ const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
   paths: (data, args) => findGraphPaths(deriveScopedGraphQueryData(data.graphData, args), args),
   search: (data, args) => searchGraph(deriveScopedQueryData(data, args), args),
   'task-map': (data, args) => mapGraphTask(deriveScopedQueryData(data, args), args),
+  'change-impact': (data, args) => analyzeGraphChangeImpact(deriveScopedQueryData(data, args), args),
   overview: (data, args) => inspectGraphTarget(deriveScopedQueryData(data, args), args),
 };
 
