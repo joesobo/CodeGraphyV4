@@ -3,21 +3,21 @@ import * as path from 'node:path';
 import {
   createRuntimePackagePlans,
   resolveRuntimePackageRootPath,
-} from './runtimePackagePlan';
+} from './runtimeStaging/model';
 import {
   resolveExtensionRuntimeTarget,
   type ExtensionRuntimeTarget,
-} from './runtimeTarget';
+} from './runtimeStaging/types';
 
 export {
   EXTENSION_RUNTIME_PACKAGE_NAMES,
   getExtensionRuntimePackageNames,
   resolveRuntimePackageRootPath,
-} from './runtimePackagePlan';
+} from './runtimeStaging/model';
 export {
   EXTENSION_RUNTIME_TARGETS,
   resolveExtensionRuntimeTarget,
-} from './runtimeTarget';
+} from './runtimeStaging/types';
 
 export function getVendoredPackageRootPath(
   outputFilePath: string,

@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import {
   RUNTIME_TARGET_CONFIG,
   type ExtensionRuntimeTarget,
-} from './runtimeTarget';
+} from './types';
 
 const require = createRequire(import.meta.url);
 const requireFromCore = createRequire(require.resolve('@codegraphy-dev/core'));

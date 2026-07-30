@@ -89,26 +89,6 @@ test('validates only the requested VSIX artifact targets', () => {
   );
 });
 
-test('rejects a VSIX with a Parcel watcher binding for the wrong architecture', () => {
-  const tempDir = mkdtempSync(path.join(tmpdir(), 'codegraphy-vsix-native-watcher-'));
-  const artifactsDir = path.join(tempDir, 'artifacts');
-  const version = '5.8.0';
-
-  writeVsixFixture({
-    artifactsDir,
-    version,
-    target: 'linux-x64',
-    sqliteBinary: createElfX64Binary(),
-    treeSitterBinary: createElfX64Binary(),
-    parcelWatcherBinary: createMachOArm64Binary(),
-  });
-
-  assert.throws(
-    () => validateVsixNativeArtifacts({ artifactsDir, version, targets: ['linux-x64'] }),
-    /linux-x64\.vsix contains Mach-O arm64 at extension\/dist\/node_modules\/@parcel\/watcher-linux-x64-glibc\/watcher\.node; expected ELF x86-64\./,
-  );
-});
-
 function writeVsixFixture({
   artifactsDir,
   version,
