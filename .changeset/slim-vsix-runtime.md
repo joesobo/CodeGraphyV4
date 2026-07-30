@@ -2,4 +2,6 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Reduce the installed extension size by shipping only the runtime files and native binaries needed by each platform-specific VSIX.
+Reduce the platform-specific extension install size by approximately 85%
+without removing supported languages, built-in plugins, Graph View assets, or
+native runtime capabilities.

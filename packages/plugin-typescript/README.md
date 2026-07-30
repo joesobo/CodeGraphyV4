@@ -7,6 +7,8 @@ Adds TypeScript project-aware alias import relationships and TypeScript/JavaScri
 
 ## Install
 
+This package requires Node.js 22.14.0 or newer. Node.js 20 is not supported.
+
 Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 
 ```bash

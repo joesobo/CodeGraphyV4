@@ -18,7 +18,10 @@ Current extension behavior to keep in mind while reading the package docs:
 - The extension loads workspace-local CSS Snippets listed under `cssSnippets` in `.codegraphy/settings.json`. They can style stable `data-codegraphy-*` hooks without rebuilding a VS Code theme.
 - the language plugins in `packages/plugin-*` are now mostly for ecosystem filters and optional semantic enrichment rather than baseline file coloring
 
-The published CLI supports Node.js 22.14.0 and newer. Local tooling and CI use an active Node.js LTS release.
+The Marketplace extension requires VS Code 1.101 or newer and uses the Node.js
+runtime supplied by VS Code. Extension users do not install Node.js separately.
+The published CLI and npm packages require Node.js 22.14.0 or newer. Local
+tooling and CI use an active Node.js LTS release.
 
 The source tree is split by runtime boundary:
 

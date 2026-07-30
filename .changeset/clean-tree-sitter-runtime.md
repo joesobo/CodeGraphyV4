@@ -4,4 +4,6 @@
 "@codegraphy-dev/tldraw": patch
 ---
 
-Use the upstream Tree-sitter release with Node 23 and newer support instead of the temporary local native-build patch.
+Use Tree-sitter's upstream prebuilt runtime on Node.js 22.14.0 and newer.
+Language analysis is unchanged, and CodeGraphy no longer needs its temporary
+native-build patch.

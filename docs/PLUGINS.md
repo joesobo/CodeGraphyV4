@@ -8,6 +8,10 @@ has a small API for the behavior that it owns.
 - [`@codegraphy-dev/extension-plugin-api`](../packages/extension-plugin-api/README.md)
   extends the VS Code extension and Graph View.
 
+Core, Core plugins, Extension plugins, and interface packages require Node.js
+22.14.0 or newer. Node.js 20 is not supported. Upgrade Node.js before you
+update these npm packages. CodeGraphy does not set a maximum Node.js version.
+
 ## The basic model
 
 There are three separate steps:

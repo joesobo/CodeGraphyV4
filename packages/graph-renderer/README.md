@@ -10,6 +10,10 @@ The package owns graph rendering and graph physics only. Your application owns i
 
 ## Install
 
+Installing this package requires Node.js 22.14.0 or newer. The renderer still
+runs in a browser with WebAssembly and WebGPU; the Node.js requirement applies
+to package installation and tooling.
+
 ```bash
 pnpm add @codegraphy-dev/graph-renderer
 ```
