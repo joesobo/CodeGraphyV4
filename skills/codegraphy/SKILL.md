@@ -28,13 +28,14 @@ Most Symbols and Relationships are cached. Search also reads current source text
 | `search <pattern>` | One ranked result set merging live source locations, cached AST Symbols, and indexed Nodes. |
 | `map <task>` | A compact task-personalized File map with matched terms, selected declarations, and typed connecting Relationships. |
 | `query <node>` | A bounded overview of one exact File or Symbol Node, with prioritized declarations and incoming and outgoing Relationships. |
+| `impact <node...>` | Bounded likely affected Files, Symbols, graph-linked tests, typed evidence paths, and reexport or workspace Package boundary crossings for one or more exact targets. |
 | `nodes` | A paginated Node inventory from the shaped graph. |
 | `edges` | A paginated Relationship inventory from the shaped graph. |
 | `dependencies <node>` | Outgoing Relationships from a File path or exact Node ID. |
 | `dependents <node>` | Incoming Relationships to a File path or exact Node ID. |
 | `path <from> <to>` | A bounded Relationship route between two File paths or exact Node IDs. |
 
-Inventory reports reflect persisted Graph Scope. Search, Map, exact Target Query, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
+Inventory reports reflect persisted Graph Scope. Search, Map, exact Target Query, Change Impact, Path, and targeted relationship selectors use complete cached Node and Edge Types unless an invocation explicitly projects a dimension with `--node-type` or `--edge-type`. Path Filters still apply.
 
 `--filter`, `--node-type`, and `--edge-type` are one-off query projections and do not modify `.codegraphy/settings.json`. Persisted Filter and Scope changes affect later commands without deleting the complete cached facts.
 
@@ -45,6 +46,8 @@ Search literal matching is case-insensitive. `*` is a line-local wildcard over s
 Source matches include File path, line, column, excerpt, and live freshness. Symbol matches include an exact Symbol ID and source location. Node matches include exact Node identity. An exact File path or Symbol ID from these results can address Target Query and relationship commands; a display label is not necessarily a Node ID.
 
 Search, inventories, overviews, and relationship reports are bounded. Pagination uses `page` metadata recording offset, limit, returned count, total count, and `nextOffset` when another page exists. Target Query reports independent declaration and relationship bounds. Path reports include traversal limits and a `complete` boolean; `complete: false` means the configured search bound was reached before the entire search space was exhausted.
+
+Change Impact accepts one or more exact File paths or Symbol IDs. It follows incoming typed Relationships for at most three hops and visits at most 2,000 Nodes. It ranks shortest paths first, then source Files before tests, then File path. Test labels use path patterns, public-boundary labels require an explicit `reexport` Relationship, and Package crossings compare the nearest indexed `package.json` roots. The response states these heuristics, cache freshness, limits, and completeness. Treat the result as possible impact evidence, not runtime proof or a confidence score.
 
 ## Machine-readable contract
 
@@ -61,6 +64,7 @@ Common error codes distinguish invalid arguments, missing or stale workspace sta
 - Live text and cached structural facts can have different freshness in the same result.
 - Imports, calls, references, and inferred or plugin-defined Edges have different semantics; an Edge Type should be interpreted rather than treated as generic proximity.
 - Incoming Relationships suggest consumers or possible impact, while outgoing Relationships suggest dependencies; neither alone defines the complete edit set.
+- Change Impact cannot infer consumers that the indexed analyzers did not record. Its multi-target input is a clean adapter boundary for changed File lists; it does not read Git state.
 - Hubs, barrels, generated files, tests, and shared utilities can have many legitimate Relationships and can dominate broad graph results.
 - Bounded or paginated output is not evidence that omitted results do not exist.
 

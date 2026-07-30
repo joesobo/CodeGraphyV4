@@ -33,6 +33,22 @@ describe('cli/parser/query', () => {
       report: 'overview',
       arguments: { target: 'src/cli/command.ts' },
     });
+    expect(parseQueryCommand([
+      'impact',
+      'src/model.ts',
+      'src/config.ts#readConfig:function',
+      '--limit',
+      '12',
+    ])).toEqual({
+      name: 'query',
+      invokedCommand: 'impact',
+      report: 'change-impact',
+      arguments: {
+        targets: ['src/model.ts', 'src/config.ts#readConfig:function'],
+        maxDepth: 3,
+        limit: 12,
+      },
+    });
     expect(parseQueryCommand(['dependencies', 'src/app.ts'])).toEqual({
       name: 'query',
       invokedCommand: 'dependencies',
@@ -136,6 +152,18 @@ describe('cli/parser/query', () => {
     expect(parseQueryCommand(['query'])).toMatchObject({
       invokedCommand: 'query',
       parseError: 'query requires <node>',
+    });
+    expect(parseQueryCommand(['impact'])).toMatchObject({
+      invokedCommand: 'impact',
+      parseError: 'impact requires <node...>',
+    });
+    expect(parseQueryCommand(['impact', 'a.ts', '--offset', '1'])).toMatchObject({
+      invokedCommand: 'impact',
+      parseError: 'impact does not support --offset',
+    });
+    expect(parseQueryCommand(['impact', 'a.ts', '--limit', '101'])).toMatchObject({
+      invokedCommand: 'impact',
+      parseError: 'impact --limit must be between 1 and 100',
     });
     expect(parseQueryCommand(['dependencies', 'a.ts', 'b.ts'])).toMatchObject({
       parseError: 'Unexpected argument for dependencies: b.ts',

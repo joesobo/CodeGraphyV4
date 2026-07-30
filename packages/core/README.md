@@ -17,6 +17,7 @@ cd /path/to/workspace
 codegraphy index
 codegraphy search SettingsPanel
 codegraphy query src/settingsPanel/view.tsx
+codegraphy impact src/settingsPanel/view.tsx
 codegraphy dependencies src/settingsPanel/view.tsx
 ```
 
@@ -29,11 +30,14 @@ Indexing chooses the cheapest safe full or incremental refresh and persists the 
 | `search <pattern>` | Merge exact live source, cached AST Symbols, and indexed Nodes; sparse natural phrases add deterministic all-term File candidates. |
 | `map <task>` | Return a bounded task-personalized File map with matched terms, selected declarations, and typed connecting Relationships. |
 | `query <node>` | Inspect one exact File path or Symbol ID with prioritized declarations and incoming/outgoing Relationships. |
+| `impact <node...>` | Explain bounded likely affected Files, Symbols, graph-linked tests, and typed evidence paths for one or more exact targets. |
 | `nodes`, `edges` | Page through the shaped graph inventory. |
 | `dependencies`, `dependents` | Read outgoing or incoming Relationships for an exact target. |
 | `path <from> <to>` | Find bounded directed routes between exact targets. |
 
-`nodes` and `edges` use saved Graph Scope. Search, Map, Target Query, Path, and targeted Relationship commands read complete cached types by default. Repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options narrow one command without changing workspace settings. JavaScript and TypeScript reexports are stored explicitly, so calls through barrels can resolve to implementation Symbols.
+`nodes` and `edges` use saved Graph Scope. Search, Map, Target Query, Change Impact, Path, and targeted Relationship commands read complete cached types by default. Repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options narrow one command without changing workspace settings. JavaScript and TypeScript reexports are stored explicitly, so calls through barrels can resolve to implementation Symbols.
+
+Change Impact accepts several exact targets so a caller can pass an already-resolved changed File list without putting Git behavior in Core. It follows incoming Relationships for at most three hops, visits at most 2,000 Nodes, and returns at most 20 affected Files by default. Every result includes cache freshness, bounds, completeness, typed paths, and the deterministic heuristics used for test and boundary labels. It does not calculate runtime reachability or a confidence score.
 
 ## Maintain a workspace
 
@@ -79,6 +83,7 @@ Run `codegraphy --help` for the command list and `codegraphy <command> --help` f
 - Workspace Search: merge bounded exact evidence with deterministic all-term File fallback candidates for natural multi-term phrases, limiting source extraction to 1 MiB per file and streaming freshness hashes for oversized files.
 - Task Map: rank task-relevant Files from live terms and cached Relationships, with selected declarations and typed connections.
 - Target Query: inspect one exact File or Symbol with prioritized declarations and bounded Relationships.
+- Change Impact: follow bounded incoming typed Relationships from exact File or Symbol targets and explain affected Files, Symbols, graph-linked tests, and boundary crossings.
 - Graph Query: list scoped Nodes and Edges, then use complete cached types by default for exact targeted relationships and bounded paths unless an invocation explicitly projects Node or Edge Types.
 
 The core package exposes `indexCodeGraphyWorkspace` for one-shot Indexing and composes `createCodeGraphyWorkspaceCacheUpdater` with `subscribeCodeGraphyWorkspaceChanges` for the explicit foreground CLI watcher. The VS Code Extension uses Core only after an explicit Index or Re-index Workspace action; it does not subscribe to source-file changes.

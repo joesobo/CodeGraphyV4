@@ -17,6 +17,7 @@ const publicCommands = [
   'dependencies',
   'dependents',
   'edges',
+  'impact',
   'map',
   'nodes',
   'path',

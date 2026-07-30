@@ -1,4 +1,4 @@
-import type { IGraphData } from '../graph/contracts';
+import type { IGraphData, IGraphEdge } from '../graph/contracts';
 import type { GraphQueryPathConfig } from './model';
 
 export function createPathAdjacency(graphData: IGraphData): Map<string, string[]> {
@@ -41,6 +41,75 @@ export function collectDirectedPaths(
 export interface DirectedPathResult {
   paths: string[][];
   truncated: boolean;
+}
+
+export interface IncomingDirectedPath {
+  nodes: string[];
+  edges: IGraphEdge[];
+}
+
+export interface IncomingDirectedPathResult {
+  paths: ReadonlyMap<string, IncomingDirectedPath>;
+  depthTruncated: boolean;
+  visitedTruncated: boolean;
+}
+
+function createIncomingAdjacency(graphData: IGraphData): Map<string, IGraphEdge[]> {
+  const incoming = new Map<string, IGraphEdge[]>();
+  for (const edge of graphData.edges) {
+    const edges = incoming.get(edge.to) ?? [];
+    edges.push(edge);
+    incoming.set(edge.to, edges);
+  }
+  for (const edges of incoming.values()) {
+    edges.sort((left, right) => (
+      left.from.localeCompare(right.from)
+      || left.kind.localeCompare(right.kind)
+      || left.to.localeCompare(right.to)
+    ));
+  }
+  return incoming;
+}
+
+export function collectIncomingDirectedPathResult(
+  graphData: IGraphData,
+  startIds: readonly string[],
+  maxDepth: number,
+  maxVisitedNodes: number,
+): IncomingDirectedPathResult {
+  const incoming = createIncomingAdjacency(graphData);
+  const paths = new Map<string, IncomingDirectedPath>();
+  const queue: string[] = [];
+  for (const startId of [...new Set(startIds)].sort()) {
+    paths.set(startId, { nodes: [startId], edges: [] });
+    queue.push(startId);
+  }
+  let depthTruncated = false;
+  let visitedTruncated = false;
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const currentPath = paths.get(current)!;
+    const candidates = incoming.get(current) ?? [];
+    if (currentPath.edges.length >= maxDepth) {
+      depthTruncated ||= candidates.some(edge => !paths.has(edge.from));
+      continue;
+    }
+    for (const edge of candidates) {
+      if (paths.has(edge.from)) continue;
+      if (paths.size >= maxVisitedNodes) {
+        visitedTruncated = true;
+        continue;
+      }
+      paths.set(edge.from, {
+        nodes: [edge.from, ...currentPath.nodes],
+        edges: [edge, ...currentPath.edges],
+      });
+      queue.push(edge.from);
+    }
+  }
+
+  return { paths, depthTruncated, visitedTruncated };
 }
 
 export function collectDirectedPathResult(

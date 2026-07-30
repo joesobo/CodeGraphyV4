@@ -113,7 +113,9 @@ function executeWorkspaceGraphQuery(
     source,
     input.projection,
   );
-  const sourceText = input.report === 'search' || input.report === 'task-map'
+  const sourceText = input.report === 'search'
+    || input.report === 'task-map'
+    || input.report === 'change-impact'
     ? readWorkspaceQuerySourceText(workspaceRoot, graphData, source.indexedContentHashes)
     : undefined;
   const queryScope = resolveWorkspaceGraphQueryScope(input, graphData, scope);

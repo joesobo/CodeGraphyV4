@@ -54,6 +54,40 @@ describe('cli/query/command', () => {
     expect(receivedInput).toMatchObject({ arguments: { target: 'src/command.ts' } });
   });
 
+  it('normalizes every change-impact target without changing exact Symbol suffixes', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-impact-targets-'));
+    const firstPath = path.join(workspaceRoot, 'src', 'model.ts');
+    const secondPath = path.join(workspaceRoot, 'src', 'config.ts');
+    await fs.mkdir(path.dirname(firstPath));
+    await fs.writeFile(firstPath, 'export const model = true;\n');
+    await fs.writeFile(secondPath, 'export function readConfig(): void {}\n');
+    let receivedInput: unknown;
+
+    await runQueryCommand({
+      name: 'query',
+      invokedCommand: 'impact',
+      report: 'change-impact',
+      workspacePath: workspaceRoot,
+      arguments: {
+        targets: [firstPath, `${secondPath}#readConfig:function`],
+        limit: 20,
+        maxDepth: 3,
+      },
+    }, {
+      cwd: () => workspaceRoot,
+      query: async (input) => {
+        receivedInput = input;
+        return {};
+      },
+    });
+
+    expect(receivedInput).toMatchObject({
+      arguments: {
+        targets: ['src/model.ts', 'src/config.ts#readConfig:function'],
+      },
+    });
+  });
+
   it('accepts an in-workspace path whose segment starts with two dots', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-segment-'));
     const selector = path.join(workspaceRoot, '..cache', 'entry.ts');

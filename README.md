@@ -88,6 +88,7 @@ cd /path/to/workspace
 codegraphy index
 codegraphy search SettingsPanel
 codegraphy query packages/extension/src/webview/app/shell/view.tsx
+codegraphy impact packages/extension/src/webview/app/shell/view.tsx
 codegraphy dependencies packages/extension/src/webview/app/shell/view.tsx
 ```
 
@@ -144,6 +145,7 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 | `codegraphy search <pattern>` | Finds exact evidence and uses deterministic all-term File ranking for sparse natural multi-term phrases. |
 | `codegraphy map <task>` | Builds a compact task-personalized File map with declarations and typed connecting Relationships. |
 | `codegraphy query <node>` | Inspects one exact File or Symbol with prioritized declarations and incoming/outgoing Relationships. |
+| `codegraphy impact <node...>` | Explains bounded likely affected Files, Symbols, graph-linked tests, and typed evidence paths for one or more exact targets. |
 | `codegraphy edges` | Lists bounded Edges. |
 | `codegraphy dependencies <node>` | Lists outgoing Relationships for a file or exact Symbol Node. |
 | `codegraphy dependents <node>` | Lists incoming Relationships for a file or exact Symbol Node. |
@@ -155,10 +157,11 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 ### Query behavior
 
 - `nodes` and `edges` use saved Graph Scope.
-- Search, Map, Target Query, Path, and targeted Relationship commands read complete cached Node and Edge Types unless `--node-type` or `--edge-type` explicitly narrows them.
+- Search, Map, Target Query, Change Impact, Path, and targeted Relationship commands read complete cached Node and Edge Types unless `--node-type` or `--edge-type` explicitly narrows them.
 - `--filter`, `--node-type`, and `--edge-type` are one-command projections; they do not change workspace settings.
 - JavaScript and TypeScript reexports remain structural Relationships, so calls through barrels can resolve to implementation Symbols.
 - Results are bounded. Use returned pagination and completeness fields instead of assuming omitted results do not exist.
+- Change Impact ranks shortest incoming paths first. Its test labels use File paths, public boundaries use explicit `reexport` Relationships, and Package crossings use nearest indexed `package.json` roots. These are deterministic graph heuristics, not runtime proof or confidence scores.
 
 ### Live updates and output
 

@@ -298,6 +298,11 @@ export interface GraphQueryChangeImpactReport {
     ranking: {
       method: 'shortest incoming typed Relationship path, then source before test, then path';
     };
+    heuristics: {
+      tests: 'File path uses a tests directory or .test/.spec suffix';
+      publicBoundaries: 'reexport Relationships only';
+      packageBoundaries: 'nearest indexed package.json roots differ';
+    };
   };
   error?: 'change_impact_target_not_found';
   message?: string;

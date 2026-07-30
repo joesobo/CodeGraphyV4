@@ -5,6 +5,7 @@ export const GRAPH_QUERY_COMMAND_NAMES = [
   'dependencies',
   'dependents',
   'edges',
+  'impact',
   'map',
   'nodes',
   'path',
@@ -16,6 +17,8 @@ const QUERY_COMMANDS = new Set<string>(GRAPH_QUERY_COMMAND_NAMES);
 
 const DEFAULT_LIMIT = 100;
 const DEFAULT_SEARCH_LIMIT = 20;
+const DEFAULT_IMPACT_LIMIT = 20;
+const MAX_IMPACT_LIMIT = 100;
 const DEFAULT_TASK_MAP_LIMIT = 8;
 const MAX_TASK_MAP_LIMIT = 20;
 const DEFAULT_MAX_DEPTH = 6;
@@ -212,6 +215,23 @@ function buildOverview(input: QueryBuilderInput): CliCommand {
   return invalid ?? query(input.command, 'overview', { target: input.operands[0] }, input.projection);
 }
 
+function buildChangeImpact(input: QueryBuilderInput): CliCommand {
+  if (input.operands.length === 0) {
+    return parseError(input.command, 'impact requires <node...>');
+  }
+  if (input.page.offset !== undefined) {
+    return parseError(input.command, 'impact does not support --offset');
+  }
+  if (input.page.limit > MAX_IMPACT_LIMIT) {
+    return parseError(input.command, `impact --limit must be between 1 and ${MAX_IMPACT_LIMIT}`);
+  }
+  return query(input.command, 'change-impact', {
+    targets: input.operands,
+    maxDepth: 3,
+    limit: input.page.limit,
+  }, input.projection);
+}
+
 function buildConnection(input: QueryBuilderInput, endpoint: 'from' | 'to'): CliCommand {
   const invalid = requireOperands(input.command, input.operands, 1, '<node>');
   return invalid ?? query(input.command, 'edges', {
@@ -238,6 +258,7 @@ const QUERY_BUILDERS: Record<string, (input: QueryBuilderInput) => CliCommand> =
   nodes: buildList,
   edges: buildList,
   search: buildSearch,
+  impact: buildChangeImpact,
   map: buildTaskMap,
   query: buildOverview,
   dependencies: input => buildConnection(input, 'from'),
@@ -255,7 +276,9 @@ export function parseQueryCommand(argv: string[]): CliCommand {
     command !== 'path' && command !== 'query',
     command === 'search'
       ? DEFAULT_SEARCH_LIMIT
-      : command === 'map' ? DEFAULT_TASK_MAP_LIMIT : DEFAULT_LIMIT,
+      : command === 'map'
+        ? DEFAULT_TASK_MAP_LIMIT
+        : command === 'impact' ? DEFAULT_IMPACT_LIMIT : DEFAULT_LIMIT,
   );
   if (parsed.parseError) return parseError(command, parsed.parseError);
   return builder({

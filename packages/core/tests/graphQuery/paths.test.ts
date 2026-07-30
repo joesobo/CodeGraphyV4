@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../src/graph/contracts';
 import { findGraphPaths } from '../../src/graphQuery';
+import { collectIncomingDirectedPathResult } from '../../src/graphQuery/pathTraversal';
 
 const graphData: IGraphData = {
   nodes: [
@@ -240,5 +241,17 @@ describe('core/graphQuery paths report', () => {
       ['a.ts', 'shared.ts', 'z.ts'],
       ['a.ts', 'distinct.ts', 'z.ts'],
     ]);
+  });
+
+  it('reports incoming traversal depth and visited-node bounds', () => {
+    expect(collectIncomingDirectedPathResult(graphData, ['d.ts'], 1, 10)).toMatchObject({
+      depthTruncated: true,
+      visitedTruncated: false,
+    });
+
+    expect(collectIncomingDirectedPathResult(graphData, ['d.ts'], 10, 2)).toMatchObject({
+      depthTruncated: false,
+      visitedTruncated: true,
+    });
   });
 });

@@ -18,6 +18,7 @@ test('the CodeGraphy skill covers the shipped CLI capabilities and machine contr
     'search',
     'map',
     'query',
+    'impact',
     'edges',
     'dependencies',
     'dependents',

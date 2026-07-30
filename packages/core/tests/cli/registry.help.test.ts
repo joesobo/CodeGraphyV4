@@ -13,6 +13,7 @@ describe('cli/registry help', () => {
     expect(result.output).toContain('codegraphy search <pattern>');
     expect(result.output).toContain('codegraphy map <task>');
     expect(result.output).toContain('codegraphy query <node>');
+    expect(result.output).toContain('codegraphy impact <node...>');
     expect(result.output).toContain('codegraphy dependencies <node>');
     expect(result.output).toContain('codegraphy path <from> <to>');
     expect(result.output).toContain('codegraphy scope node <type> <on|off>');
@@ -63,6 +64,10 @@ describe('cli/registry help', () => {
     expect(createHelpResult(['map']).output).toContain('Usage: codegraphy map');
     expect(createHelpResult(['map']).output).toContain('personalized File map');
     expect(createHelpResult(['map']).output).toContain('typed Relationships');
+    expect(createHelpResult(['impact']).output).toContain('Usage: codegraphy impact <node...>');
+    expect(createHelpResult(['impact']).output).toContain('likely affected Files and Symbols');
+    expect(createHelpResult(['impact']).output).toContain('reexport and workspace Package boundary crossings');
+    expect(createHelpResult(['impact']).output).toContain('freshness and completeness');
     expect(createHelpResult(['dependencies']).output).toContain('Usage: codegraphy dependencies');
     expect(createHelpResult(['dependencies']).output).toContain('--limit <count>');
     expect(createHelpResult(['dependencies']).output).toContain('--offset <count>');
@@ -70,7 +75,7 @@ describe('cli/registry help', () => {
   });
 
   it('documents one-off query projections without implying settings changes', () => {
-    for (const command of ['nodes', 'search', 'map', 'query', 'edges', 'dependencies', 'dependents', 'path']) {
+    for (const command of ['nodes', 'search', 'map', 'query', 'impact', 'edges', 'dependencies', 'dependents', 'path']) {
       const output = createHelpResult([command]).output;
       expect(output).toContain('--filter <glob[,glob...]>');
       expect(output).toContain('--node-type <type[,type...]>');

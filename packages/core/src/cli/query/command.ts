@@ -24,6 +24,7 @@ const DEFAULT_DEPENDENCIES: QueryCommandDependencies = {
 };
 
 const PATH_ARGUMENTS = ['from', 'to', 'target', 'filePath', 'relatedFrom', 'relatedTo'] as const;
+const PATH_ARRAY_ARGUMENTS = ['targets'] as const;
 
 function canonicalizeExistingPathPrefix(inputPath: string): string {
   let existingPath = inputPath;
@@ -71,6 +72,17 @@ export function normalizeQueryArguments(
     const value = normalized[key];
     if (typeof value === 'string') {
       normalized[key] = normalizeWorkspaceSelector(value, workspaceRoot);
+    }
+  }
+  for (const key of PATH_ARRAY_ARGUMENTS) {
+    const value = normalized[key];
+    if (Array.isArray(value)) {
+      const selectors: unknown[] = value;
+      normalized[key] = selectors.map((selector: unknown): unknown => (
+        typeof selector === 'string'
+          ? normalizeWorkspaceSelector(selector, workspaceRoot)
+          : selector
+      ));
     }
   }
   return normalized;
