@@ -82,6 +82,10 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
     this._disposeWorkspacePluginHost();
   }
 
+  setLoadedGraphState(workspaceRoot: string): void {
+    this._lastWorkspaceRoot = workspaceRoot;
+  }
+
   protected override _getPluginSignature(): string | null {
     return 'plugin-signature';
   }
@@ -243,5 +247,15 @@ describe('extension/pipeline/service/pluginFacade', () => {
     expect(statusInput.workspaceRoot).toBe('/workspace');
     expect(statusInput.hasIndex()).toBe(true);
     expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace');
+  });
+
+  it('reports whether graph state has been loaded for the current workspace', () => {
+    const facade = new TestPluginFacade();
+
+    expect(facade.hasLoadedGraphState()).toBe(false);
+
+    facade.setLoadedGraphState('/workspace');
+
+    expect(facade.hasLoadedGraphState()).toBe(true);
   });
 });

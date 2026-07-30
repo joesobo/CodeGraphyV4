@@ -224,6 +224,45 @@ describe('graphView/provider/analysis/methods', () => {
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
   });
 
+  it('runs saved-file updates after an active reindex completes', async () => {
+    const source = createSource();
+    let finishRefresh: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      if (state.mode !== 'refresh') {
+        return;
+      }
+
+      await new Promise<void>(resolve => {
+        finishRefresh = resolve;
+      });
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    const refresh = methods._refreshAndSendData();
+    await Promise.resolve();
+    const update = methods._updateChangedFilesAndSendData(['/workspace/src/saved.ts']);
+
+    expect(runAnalysisRequest).toHaveBeenCalledOnce();
+
+    finishRefresh?.();
+    await refresh;
+    await update;
+
+    expect(runAnalysisRequest).toHaveBeenCalledTimes(2);
+    expect(runAnalysisRequest.mock.calls.map(([state]) => state.mode)).toEqual([
+      'refresh',
+      'incremental',
+    ]);
+  });
+
   it('keeps webview-ready loading from interrupting an active first index', async () => {
     const source = createSource();
     let finishIndex: (() => void) | undefined;

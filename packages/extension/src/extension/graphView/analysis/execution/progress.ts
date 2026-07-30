@@ -11,6 +11,7 @@ export { createGraphViewIndexProgressCoalescer } from './progress/coalescer';
 const ANALYSIS_PHASE_BY_MODE: Record<GraphViewAnalysisMode, string> = {
   load: 'Loading Graph',
   index: 'Indexing Workspace',
+  incremental: 'Updating Graph Cache',
   refresh: 'Refreshing Index',
 };
 export function createGraphViewAnalysisProgressForwarder(

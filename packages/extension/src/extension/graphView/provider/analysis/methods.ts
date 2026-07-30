@@ -69,6 +69,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
 export interface GraphViewProviderAnalysisMethods {
   _loadAndSendData(): Promise<void>;
   _indexAndSendData(): Promise<void>;
+  _updateChangedFilesAndSendData(filePaths: readonly string[]): Promise<void>;
   _refreshAndSendData(): Promise<void>;
   _doLoadAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
@@ -135,6 +136,19 @@ export function createGraphViewProviderAnalysisMethods(
     _doIndexAndSendData,
     'index',
   );
+  const _doUpdateChangedFilesAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    'incremental',
+  );
+  const _updateChangedFilesAndSendData = createGraphViewProviderAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    _doUpdateChangedFilesAndSendData,
+    'incremental',
+  );
   const _doRefreshAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
     source,
     dependencies,
@@ -157,6 +171,10 @@ export function createGraphViewProviderAnalysisMethods(
       await _loadAndSendData();
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
+    _updateChangedFilesAndSendData: async filePaths => {
+      await fullIndexAnalysis.waitForFullIndexAnalysis();
+      await _updateChangedFilesAndSendData(filePaths);
+    },
     _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
     _doLoadAndSendData,
     _markWorkspaceReady,

@@ -5,7 +5,7 @@ import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
 import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 
-export type GraphViewAnalysisMode = 'load' | 'index' | 'refresh';
+export type GraphViewAnalysisMode = 'load' | 'index' | 'incremental' | 'refresh';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
 
 interface GraphViewAnalyzerLike {
@@ -23,6 +23,14 @@ interface GraphViewAnalyzerLike {
     options?: {
       requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
     },
+  ): Promise<IGraphData>;
+  hasLoadedGraphState?(): boolean;
+  refreshChangedFiles?(
+    filePaths: readonly string[],
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
@@ -50,6 +58,7 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
   mode: GraphViewAnalysisMode;
+  changedFilePaths?: readonly string[];
   filterPatterns: string[];
   disabledPlugins: Set<string>;
 }

@@ -106,6 +106,32 @@ describe('graph view analysis execution load', () => {
     expect(refreshIndex).toHaveBeenCalledOnce();
   });
 
+  it('uses the bounded changed-file refresh for an incremental update', async () => {
+    const graph = {
+      nodes: [{ id: 'src/changed.ts', label: 'changed.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const refreshChangedFiles = vi.fn(async () => graph);
+    const refreshIndex = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const state = createExecutionState({
+      changedFilePaths: ['/workspace/src/changed.ts'],
+      mode: 'incremental',
+      analyzer: createExecutionAnalyzer({
+        hasLoadedGraphState: vi.fn(() => true),
+        refreshChangedFiles,
+        refreshIndex,
+      }),
+    });
+    const { handlers } = createExecutionHandlers();
+
+    await expect(
+      loadGraphViewRawData(new AbortController().signal, state, handlers),
+    ).resolves.toEqual(graph);
+
+    expect(refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(refreshIndex).not.toHaveBeenCalled();
+  });
+
   it('returns an empty graph when no analyzer is available', async () => {
     const state = createExecutionState({ mode: 'load', analyzer: undefined });
     const { handlers } = createExecutionHandlers();
