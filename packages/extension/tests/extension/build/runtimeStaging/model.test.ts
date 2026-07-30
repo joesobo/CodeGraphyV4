@@ -9,7 +9,7 @@ import {
   EXTENSION_EXTERNAL_PACKAGE_NAMES,
   getVendoredPackageRootPath,
   resolveExtensionRuntimeTarget,
-  syncExtensionRuntimePackages,
+  syncParticlesRuntimePackages,
 } from '../../../../scripts/externalPackages';
 
 const EXTENSION_PACKAGE_ROOT = path.resolve(
@@ -111,8 +111,8 @@ describe('runtime package build support', () => {
     fs.mkdirSync(path.dirname(effectSourcePath), { recursive: true });
     fs.writeFileSync(effectSourcePath, 'export default function customEffect() {}\n');
 
-    syncExtensionRuntimePackages(
-      path.join(stageRootPath, 'dist', 'extension.js'),
+    syncParticlesRuntimePackages(
+      packagedPluginEntryPath,
       resolveExtensionRuntimeTarget(),
     );
     expect(fs.existsSync(path.join(stageRootPath, 'dist', 'node_modules', 'esbuild'))).toBe(false);

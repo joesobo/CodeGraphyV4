@@ -405,6 +405,16 @@ function copyRuntimePackagePlans(
   ));
 }
 
+export function syncParticlesRuntimePackages(
+  particlesPluginOutputFilePath: string,
+  target: ExtensionRuntimeTarget = resolveExtensionRuntimeTarget(),
+): string[] {
+  return copyRuntimePackagePlans(
+    particlesPluginOutputFilePath,
+    createEsbuildRuntimePackagePlans(target),
+  );
+}
+
 export function syncExtensionRuntimePackages(
   outputFilePath: string,
   target: ExtensionRuntimeTarget = resolveExtensionRuntimeTarget(),
@@ -420,9 +430,6 @@ export function syncExtensionRuntimePackages(
 
   return [
     ...copyRuntimePackagePlans(outputFilePath, createRuntimePackagePlans(target)),
-    ...copyRuntimePackagePlans(
-      particlesPluginOutputFilePath,
-      createEsbuildRuntimePackagePlans(target),
-    ),
+    ...syncParticlesRuntimePackages(particlesPluginOutputFilePath, target),
   ];
 }

@@ -13,14 +13,17 @@ import {
 
 describe('isSupportedNodeRuntime', () => {
   it.each([
-    ['22.13.0', false],
+    ['22.13.99', false],
     ['22.14.0', true],
-    ['23.0.0', false],
-    ['23.5.0', false],
+    ['22.99.99', true],
+    ['23.5.99', false],
     ['23.6.0', true],
     ['24.0.0', true],
     ['25.0.0', true],
-  ])('reports whether Node.js %s satisfies the runtime contract', (version, expected) => {
+    ['22.14', false],
+    ['23.6.0-rc.1', false],
+    ['not-a-version', false],
+  ])('reports whether stable Node.js %s satisfies the runtime contract', (version, expected) => {
     expect(isSupportedNodeRuntime(version)).toBe(expected);
   });
 

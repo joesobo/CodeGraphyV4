@@ -9,6 +9,7 @@ export {
   resolveExtensionRuntimeTarget,
   resolveRuntimePackageRootPath,
   syncExtensionRuntimePackages,
+  syncParticlesRuntimePackages,
 } from './runtimeStaging/model';
 
 export const EXTENSION_EXTERNAL_PACKAGE_NAMES = [

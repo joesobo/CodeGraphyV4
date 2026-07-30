@@ -19,9 +19,13 @@ import { createDoctorCacheCheck } from './cacheCheck/model';
 export const SUPPORTED_NODE_RUNTIME_RANGE = '^22.14.0 || >=23.6.0';
 
 export function isSupportedNodeRuntime(version: string): boolean {
-  const [majorText, minorText] = version.split('.');
-  const major = Number(majorText);
-  const minor = Number(minorText);
+  const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(version);
+  if (!stableVersion) {
+    return false;
+  }
+
+  const major = Number(stableVersion[1]);
+  const minor = Number(stableVersion[2]);
   return (major === 22 && minor >= 14)
     || (major === 23 && minor >= 6)
     || major >= 24;
