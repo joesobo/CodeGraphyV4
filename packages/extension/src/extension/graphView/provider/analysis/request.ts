@@ -14,16 +14,22 @@ export function createGraphViewProviderAnalyzeAndSendData(
   source: GraphViewProviderAnalysisMethodsSource,
   dependencies: GraphViewProviderAnalysisMethodDependencies,
   delegates: Pick<GraphViewProviderAnalysisDelegateCalls, 'callIsAbortError'>,
-  doAnalyzeAndSendData: (signal: AbortSignal, requestId: number) => Promise<void>,
+  doAnalyzeAndSendData: (
+    signal: AbortSignal,
+    requestId: number,
+    changedFilePaths?: readonly string[],
+  ) => Promise<void>,
   mode: GraphViewAnalysisMode,
-): () => Promise<void> {
-  return async (): Promise<void> => {
-    const state = createGraphViewProviderAnalysisState(source, mode);
+): (changedFilePaths?: readonly string[]) => Promise<void> {
+  return async (changedFilePaths?: readonly string[]): Promise<void> => {
+    const state = createGraphViewProviderAnalysisState(source, mode, changedFilePaths);
 
     await dependencies.runAnalysisRequest(
       state,
       createGraphViewProviderAnalysisRequestHandlers(source, dependencies, {
-        executeAnalysis: (signal, requestId) => doAnalyzeAndSendData(signal, requestId),
+        executeAnalysis: (signal, requestId) => changedFilePaths
+          ? doAnalyzeAndSendData(signal, requestId, changedFilePaths)
+          : doAnalyzeAndSendData(signal, requestId),
         isAbortError: error => delegates.callIsAbortError(error),
       }),
     );

@@ -15,9 +15,17 @@ export function createGraphViewProviderDoAnalyzeAndSendData(
   dependencies: GraphViewProviderAnalysisMethodDependencies,
   delegates: GraphViewProviderAnalysisDelegateCalls,
   mode: GraphViewAnalysisMode,
-): (signal: AbortSignal, requestId: number) => Promise<void> {
-  return async (signal: AbortSignal, requestId: number): Promise<void> => {
-    const state = createGraphViewProviderAnalysisState(source, mode);
+): (
+  signal: AbortSignal,
+  requestId: number,
+  changedFilePaths?: readonly string[],
+) => Promise<void> {
+  return async (
+    signal: AbortSignal,
+    requestId: number,
+    changedFilePaths?: readonly string[],
+  ): Promise<void> => {
+    const state = createGraphViewProviderAnalysisState(source, mode, changedFilePaths);
 
     await dependencies.executeAnalysis(
       signal,

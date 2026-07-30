@@ -11,6 +11,7 @@ interface GraphViewProviderWorkspaceReadyState {
 export function createGraphViewProviderAnalysisState(
   source: GraphViewProviderAnalysisMethodsSource,
   mode: GraphViewAnalysisMode,
+  changedFilePaths?: readonly string[],
 ): GraphViewProviderAnalysisState {
   return {
     get analysisController() {
@@ -47,6 +48,7 @@ export function createGraphViewProviderAnalysisState(
       return source._installedPluginActivationPromise;
     },
     mode,
+    ...(changedFilePaths ? { changedFilePaths } : {}),
     get filterPatterns() {
       return source._filterPatterns;
     },

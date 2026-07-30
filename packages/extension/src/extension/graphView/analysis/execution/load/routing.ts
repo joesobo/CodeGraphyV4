@@ -4,6 +4,7 @@ import type { GraphViewAnalysisExecutionState } from '../../execution';
 export type GraphViewRawDataLoadRoute =
   | 'cached'
   | 'empty'
+  | 'incremental'
   | 'refresh';
 
 export interface GraphViewRawDataLoadDecision {
@@ -19,6 +20,10 @@ export function selectGraphViewRawDataLoadDecision(
     return {
       route: freshness !== 'missing' && canLoadCachedGraph ? 'cached' : 'empty',
     };
+  }
+
+  if (mode === 'incremental') {
+    return { route: 'incremental' };
   }
 
   return { route: 'refresh' };

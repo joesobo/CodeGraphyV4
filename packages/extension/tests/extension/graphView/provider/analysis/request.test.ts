@@ -107,4 +107,36 @@ describe('graphView/provider/analysis/request', () => {
     expect(loadAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 7);
     expect(source._doLoadAndSendData).not.toHaveBeenCalled();
   });
+
+  it('keeps the coalesced paths on an incremental analysis request', async () => {
+    const source = createSource();
+    const updateChangedFiles = vi.fn(async () => undefined);
+    const dependencies = createDependencies({
+      runAnalysisRequest: vi.fn(async (state, handlers) => {
+        expect(state.mode).toBe('incremental');
+        expect(state.changedFilePaths).toEqual([
+          '/workspace/src/a.ts',
+          '/workspace/src/b.ts',
+        ]);
+        await handlers.executeAnalysis(new AbortController().signal, 9);
+      }),
+    });
+    const filePaths = ['/workspace/src/a.ts', '/workspace/src/b.ts'];
+
+    await createGraphViewProviderAnalyzeAndSendData(
+      source,
+      dependencies,
+      {
+        callIsAbortError: vi.fn(() => false),
+      },
+      updateChangedFiles,
+      'incremental',
+    )(filePaths);
+
+    expect(updateChangedFiles).toHaveBeenCalledWith(
+      expect.any(AbortSignal),
+      9,
+      filePaths,
+    );
+  });
 });
