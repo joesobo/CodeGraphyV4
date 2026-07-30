@@ -1,4 +1,4 @@
-import { EXTENSION_RUNTIME_PACKAGE_NAMES } from './runtimePackages';
+import { EXTENSION_RUNTIME_PACKAGE_NAMES } from './runtimeStaging/model';
 
 export {
   copyRuntimePackage,
@@ -9,7 +9,7 @@ export {
   resolveExtensionRuntimeTarget,
   resolveRuntimePackageRootPath,
   syncExtensionRuntimePackages,
-} from './runtimePackages';
+} from './runtimeStaging/model';
 
 export const EXTENSION_EXTERNAL_PACKAGE_NAMES = [
   'vscode',

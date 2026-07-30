@@ -6,11 +6,11 @@ import {
   copyRuntimePackage,
   EXTENSION_EXTERNAL_PACKAGE_NAMES,
   getVendoredPackageRootPath,
-} from '../../../scripts/externalPackages';
+} from '../../../../scripts/externalPackages';
 
 const EXTENSION_PACKAGE_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../../..',
+  '../../../..',
 );
 
 describe('runtime package build support', () => {
