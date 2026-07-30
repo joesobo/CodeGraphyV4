@@ -47,7 +47,7 @@ CodeGraphy indexes a folder and projects its files and declarations into Nodes. 
 | Graph Cache | Workspace-local SQLite storage shared by the extension and CLI. |
 | tldraw interface | A native, editable tldraw canvas with shared force physics and live refresh. |
 | Plugins | Headless npm packages for deeper analysis and Graph View contributions. |
-| Agent access | Bounded JSON queries through the Core CLI and a reusable Agent Skill source. |
+| Agent access | Bounded Core queries through the CLI, Agent Skill, optional MCP server, and VS Code URI bridge. |
 
 ## Gallery
 
@@ -176,15 +176,36 @@ npx skills@latest add ./skills/codegraphy
 
 A public `codegraphy/skills` repository will host the skill once published.
 
+### MCP Server
+
+Install the optional MCP server when an agent client benefits from tool discovery,
+validated input schemas, structured results, and a persistent stdio connection:
+
+```bash
+npm install -g @codegraphy-dev/mcp
+```
+
+Configure the client to launch `codegraphy-mcp` from the CodeGraphy Workspace.
+The server exposes status, explicit Indexing, discovery, inventory, and navigation
+tools as thin adapters over the same Core operations as the CLI. Every response
+includes Graph Cache freshness and result completeness metadata.
+
+Use the [Agent Skill](./skills/codegraphy/SKILL.md) plus the Core CLI when an
+agent already has a shell or needs the full CLI surface. MCP adds client
+integration, not new analysis. See the
+[`@codegraphy-dev/mcp` guide](./packages/mcp/README.md) for the exact tools and
+tradeoffs.
+
 ## Architecture
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, optional foreground Graph Cache watching, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View; it changes cached source facts only after an explicit Index or Re-index Workspace action. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, optional foreground Graph Cache watching, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, the transport-neutral workspace command contract, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View; it changes cached source facts only after an explicit Index or Re-index Workspace action. The optional MCP server and VS Code URI bridge adapt the Core command contract without defining parallel graph behavior. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|
 | [`@codegraphy-dev/core`](./packages/core/README.md) | Shared indexing, cache, plugin, query, and CLI engine. |
+| [`@codegraphy-dev/mcp`](./packages/mcp/README.md) | Optional MCP transport over Core status, Indexing, and Graph Query operations. |
 | [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
 | [`@codegraphy-dev/tldraw`](./packages/tldraw/README.md) | macOS launcher and native tldraw offline canvas integration. |
 | [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | WebGPU graph renderer and WebAssembly physics. |

@@ -25,6 +25,8 @@ Saving, creating, changing, deleting, or renaming files does not process source 
 
 Users choose **Re-index Workspace** when they want the Extension to rediscover files, run built-in and Extension-host plugin analysis, project the complete Relationship Graph, and replace the Graph Cache.
 
+A local agent can also send an explicit Index request through the VS Code URI bridge. The bridge validates the open Workspace, delegates Indexing to Core, and reloads the Graph View from the updated cache. Status and Graph Query requests through the bridge do not perform Indexing.
+
 The separate foreground `codegraphy watch` command belongs to the Core CLI. It can maintain the same workspace cache during an explicit terminal session, but the Extension does not launch or own that process.
 
 ## Progress UI

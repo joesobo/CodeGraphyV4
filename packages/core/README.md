@@ -2,7 +2,8 @@
 
 Shared CodeGraphy engine package for workspace indexing, Graph Cache access, plugin management, Graph Query behavior, and the terminal `codegraphy` command.
 
-This package is the headless core used by the VS Code extension and CLI.
+This package is the headless core used by the VS Code extension, CLI, and
+optional MCP server.
 
 The published CLI supports Node.js `^22.14.0 || >=23.6.0`. An active Long-Term Support release is recommended.
 
@@ -80,8 +81,14 @@ Run `codegraphy --help` for the command list and `codegraphy <command> --help` f
 - Task Map: rank task-relevant Files from live terms and cached Relationships, with selected declarations and typed connections.
 - Target Query: inspect one exact File or Symbol with prioritized declarations and bounded Relationships.
 - Graph Query: list scoped Nodes and Edges, then use complete cached types by default for exact targeted relationships and bounded paths unless an invocation explicitly projects Node or Edge Types.
+- Workspace Commands: execute status, explicit Indexing, and Graph Query through one transport-neutral response contract with Graph Cache freshness and result completeness metadata.
 
-The core package exposes `indexCodeGraphyWorkspace` for one-shot Indexing and composes `createCodeGraphyWorkspaceCacheUpdater` with `subscribeCodeGraphyWorkspaceChanges` for the explicit foreground CLI watcher. The VS Code Extension uses Core only after an explicit Index or Re-index Workspace action; it does not subscribe to source-file changes.
+The core package exposes `executeCodeGraphyWorkspaceCommand` for interface
+adapters, `indexCodeGraphyWorkspace` for one-shot Indexing, and
+`createCodeGraphyWorkspaceCacheUpdater` with
+`subscribeCodeGraphyWorkspaceChanges` for the explicit foreground CLI watcher.
+The VS Code Extension uses Core only after an explicit Index or Re-index
+Workspace action; it does not subscribe to source-file changes.
 
 ## Built-In Language Coverage
 

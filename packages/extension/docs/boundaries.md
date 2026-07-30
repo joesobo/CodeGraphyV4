@@ -18,7 +18,7 @@ The extension host is still the VS Code composition root. It wires the graph pro
 
 The extension source tree is intentionally feature-first inside each runtime boundary:
 
-- `src/extension/agentBridge/` owns VS Code URI request handling for local agent tooling.
+- `src/extension/agentBridge/` owns the local VS Code URI transport, open-Workspace validation, request and response files, user notifications, and Graph View reload after explicit Indexing. Core owns the status, Indexing, Graph Query, freshness, completeness, and error response behavior behind that adapter.
 - `src/extension/graphView/` and `src/extension/graphViewProvider.ts` own VS Code host orchestration for the Graph View.
 - `src/extension/pipeline/` owns extension-facing adapters over `@codegraphy-dev/core` pipeline APIs and extension-only orchestration.
 - `src/extension/repoSettings/` owns repo-local settings, freshness decisions, and Graph Cache trust state.

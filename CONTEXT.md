@@ -114,6 +114,8 @@ The separate `codegraphy watch` CLI command is an explicit foreground workflow f
 | **CodeGraphy Settings CLI** | `settings`, `settings get`, `settings set`, and `settings unset` read or safely mutate supported workspace settings without silently repairing corrupt persisted input. |
 | **Graph Query CLI** | `nodes`, `edges`, `dependencies`, `dependents`, and `path`, all with bounded JSON output over the shaped Relationship Graph. |
 | **CodeGraphy Agent Skill** | Generalized instructions that explain the Relationship Graph, lifecycle, query surfaces, machine-readable output, freshness, shaping, and limits so a shell-capable agent can choose its own navigation strategy. |
+| **CodeGraphy MCP Server** | `@codegraphy-dev/mcp` is an optional stdio transport. It maps discoverable typed tools one-to-one onto Core status, Indexing, and Graph Query operations. It does not own analysis or a separate graph contract. |
+| **VS Code URI Bridge** | A local request and response file transport for agent calls into an open VS Code Workspace. It validates the open Workspace and delegates status, Indexing, and Graph Query behavior to the Core workspace command contract. |
 | **Core Plugin API** | `@codegraphy-dev/plugin-api` contracts for headless Core analysis and semantic graph extensions. |
 | **Extension Plugin API** | `@codegraphy-dev/extension-plugin-api` contracts for VS Code Extension and Graph View extensions. |
 
@@ -161,6 +163,7 @@ Extension chrome inherits the active VS Code theme. Graph Data Color may encode 
 ## Package Boundaries
 
 - `packages/core` owns shared engine behavior and the CLI.
+- `packages/mcp` owns the optional MCP stdio adapter over Core workspace commands.
 - `packages/extension` owns the VS Code product surface.
 - `packages/tldraw` owns the tldraw offline product surface and launcher.
 - `packages/graph-renderer` owns graph drawing and physics.
