@@ -41,7 +41,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     expect(statuses.at(-1)).toEqual({
       state: 'queued',
       fileCount: 2,
-      detail: '2 saved workspace files are queued for Graph Cache update.',
+      detail: '2 workspace file changes are queued for Graph Cache update.',
     });
 
     await vi.advanceTimersByTimeAsync(1);

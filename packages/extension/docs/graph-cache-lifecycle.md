@@ -1,6 +1,6 @@
 # Graph Cache Lifecycle
 
-The VS Code extension changes workspace source facts only after an explicit **Index Workspace** or **Re-index Workspace** action. This keeps repository analysis off the shared extension host until the user requests it.
+The VS Code extension creates workspace source facts only after an explicit **Index Workspace** action. After the first Graph Cache exists, native VS Code file events keep it current through targeted updates.
 
 ## Startup
 
@@ -11,21 +11,23 @@ flowchart TD
   A["Graph View opens"] --> B{"Readable Graph Cache exists?"}
   B -->|"yes"| C["Render cached Relationship Graph"]
   B -->|"no"| D["Render the unindexed workspace state"]
-  C --> E["Wait for an explicit Re-index Workspace action"]
+  C --> E["Wait for VS Code file events or an explicit Re-index"]
   D --> F["Wait for an explicit Index Workspace action"]
-  E --> G["Run Indexing and replace the graph"]
+  E --> G["Update the Graph Cache and replace the graph"]
   F --> G
 ```
 
-A stale Graph Cache remains visible and useful. Freshness can tell the user that cached facts differ from the workspace, but it does not authorize background Indexing.
+A stale Graph Cache remains visible and useful. Opening the Graph View does not authorize source analysis. A later native file event can update the existing cache.
 
 ## Workspace changes
 
-Saving, creating, changing, deleting, or renaming files does not process source files or alter the cached Relationship Graph. Settings and display actions may re-project already indexed facts; they must not analyze changed source files.
+After the first Graph Cache exists, the Extension responds to native VS Code save, create, delete, and rename events. It deduplicates paths, waits 500 ms after the latest event, and starts a batch after at most two seconds. It processes one batch at a time and retains events that arrive during active work.
 
-Users choose **Re-index Workspace** when they want the Extension to rediscover files, run built-in and Extension-host plugin analysis, project the complete Relationship Graph, and replace the Graph Cache.
+Each batch uses the targeted Core refresh path through the existing Extension plugin host. A source-file event refreshes only the affected files. A `.gitignore` or `.codegraphy/settings.json` event can refresh discovery metadata. Generated `.codegraphy` cache files do not trigger another update.
 
-The separate foreground `codegraphy watch` command belongs to the Core CLI. It can maintain the same workspace cache during an explicit terminal session, but the Extension does not launch or own that process.
+Users can still choose **Re-index Workspace** to rediscover and analyze the complete workspace. A queued file batch waits for an active Re-index to finish before it runs.
+
+The separate foreground `codegraphy watch` command belongs to the Core CLI. The Extension does not launch that process, subscribe through Core watch mode, or poll the workspace.
 
 ## Progress UI
 
@@ -36,4 +38,4 @@ The whole-view loading state is only for the first graph payload. During an expl
 - disable only actions that cannot run safely during Indexing;
 - replace the graph payload when the new data is ready.
 
-This explicit lifecycle prevents source analysis from competing with editor work or changing the graph before the user requests it.
+The Extension status bar reports queued, updating, and failed cache updates. An idle Extension does not run source analysis or retain update timers.

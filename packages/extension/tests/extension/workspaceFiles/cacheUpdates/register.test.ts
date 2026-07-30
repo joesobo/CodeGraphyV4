@@ -155,4 +155,27 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     });
     expect(harness.statusBarItem.hide).toHaveBeenCalledOnce();
   });
+
+  it('passes scheduler cancellation to the graph update', async () => {
+    const harness = createHarness();
+    const updateWorkspaceFiles = vi.fn(async () => undefined);
+    const controller = new AbortController();
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      { updateWorkspaceFiles },
+      harness.dependencies,
+    );
+
+    await harness.schedulerOptions()?.update(
+      ['/workspace/src/saved.ts'],
+      controller.signal,
+      vi.fn(),
+    );
+
+    expect(updateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/src/saved.ts'],
+      controller.signal,
+    );
+  });
 });

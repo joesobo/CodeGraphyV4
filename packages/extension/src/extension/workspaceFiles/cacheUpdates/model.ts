@@ -154,8 +154,8 @@ function createQueuedStatus(fileCount: number): WorkspaceCacheUpdateStatus {
     state: 'queued',
     fileCount,
     detail: fileCount === 1
-      ? '1 saved workspace file is queued for Graph Cache update.'
-      : `${fileCount} saved workspace files are queued for Graph Cache update.`,
+      ? '1 workspace file change is queued for Graph Cache update.'
+      : `${fileCount} workspace file changes are queued for Graph Cache update.`,
   };
 }
 

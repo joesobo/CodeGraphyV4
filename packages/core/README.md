@@ -81,7 +81,7 @@ Run `codegraphy --help` for the command list and `codegraphy <command> --help` f
 - Target Query: inspect one exact File or Symbol with prioritized declarations and bounded Relationships.
 - Graph Query: list scoped Nodes and Edges, then use complete cached types by default for exact targeted relationships and bounded paths unless an invocation explicitly projects Node or Edge Types.
 
-The core package exposes `indexCodeGraphyWorkspace` for one-shot Indexing and composes `createCodeGraphyWorkspaceCacheUpdater` with `subscribeCodeGraphyWorkspaceChanges` for the explicit foreground CLI watcher. The VS Code Extension uses Core only after an explicit Index or Re-index Workspace action; it does not subscribe to source-file changes.
+The core package exposes `indexCodeGraphyWorkspace` for one-shot Indexing and composes `createCodeGraphyWorkspaceCacheUpdater` with `subscribeCodeGraphyWorkspaceChanges` for the explicit foreground CLI watcher. The VS Code Extension creates the first cache only after an explicit Index Workspace action. It then maps native VS Code file events to Core targeted refresh APIs through its Extension-host plugin pipeline; it does not start the Core watcher.
 
 ## Built-In Language Coverage
 

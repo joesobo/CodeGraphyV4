@@ -1,4 +1,5 @@
-import { readCodeGraphyWorkspaceStatus } from '@codegraphy-dev/core';
+import { existsSync } from 'node:fs';
+import { getGraphCachePath } from '@codegraphy-dev/core';
 import * as vscode from 'vscode';
 import {
   createWorkspaceCacheUpdateScheduler,
@@ -32,7 +33,10 @@ interface WorkspaceCacheUpdateContext {
 }
 
 interface WorkspaceCacheUpdateProvider {
-  updateWorkspaceFiles(filePaths: readonly string[]): Promise<void>;
+  updateWorkspaceFiles(
+    filePaths: readonly string[],
+    signal?: AbortSignal,
+  ): Promise<void>;
 }
 
 export interface WorkspaceCacheUpdateRegistrationDependencies {
@@ -64,8 +68,7 @@ const defaultDependencies: WorkspaceCacheUpdateRegistrationDependencies = {
   createScheduler: createWorkspaceCacheUpdateScheduler,
   createStatusBarItem: () =>
     vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 20),
-  hasGraphCache: workspaceRoot =>
-    readCodeGraphyWorkspaceStatus(workspaceRoot).hasGraphCache,
+  hasGraphCache: workspaceRoot => existsSync(getGraphCachePath(workspaceRoot)),
   onDidCreateFiles: listener => vscode.workspace.onDidCreateFiles(listener),
   onDidDeleteFiles: listener => vscode.workspace.onDidDeleteFiles(listener),
   onDidRenameFiles: listener => vscode.workspace.onDidRenameFiles(listener),
@@ -91,7 +94,7 @@ export function registerWorkspaceCacheUpdates(
     onStatus: status => renderStatus(statusBarItem, status),
     update: async (filePaths, signal) => {
       if (!signal.aborted) {
-        await provider.updateWorkspaceFiles(filePaths);
+        await provider.updateWorkspaceFiles(filePaths, signal);
       }
     },
   });
