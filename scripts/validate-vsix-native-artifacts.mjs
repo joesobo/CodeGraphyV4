@@ -17,10 +17,43 @@ const libsqlNativeBinaryPathByTarget = {
   'win32-x64': 'extension/dist/node_modules/@libsql/win32-x64-msvc/index.node',
 };
 
+const treeSitterNativeBinaryPathByTarget = {
+  'linux-x64': 'extension/dist/node_modules/tree-sitter/prebuilds/linux-x64/tree-sitter.node',
+  'darwin-arm64': 'extension/dist/node_modules/tree-sitter/prebuilds/darwin-arm64/tree-sitter.node',
+  'win32-x64': 'extension/dist/node_modules/tree-sitter/prebuilds/win32-x64/tree-sitter.node',
+};
+
+const parcelWatcherNativeBinaryPathByTarget = {
+  'linux-x64': 'extension/dist/node_modules/@parcel/watcher-linux-x64-glibc/watcher.node',
+  'darwin-arm64': 'extension/dist/node_modules/@parcel/watcher-darwin-arm64/watcher.node',
+  'win32-x64': 'extension/dist/node_modules/@parcel/watcher-win32-x64/watcher.node',
+};
+
+const particlesEsbuildNativeBinaryPathByTarget = {
+  'linux-x64': 'extension/packages/plugin-particles/dist/node_modules/@esbuild/linux-x64/bin/esbuild',
+  'darwin-arm64': 'extension/packages/plugin-particles/dist/node_modules/@esbuild/darwin-arm64/bin/esbuild',
+  'win32-x64': 'extension/packages/plugin-particles/dist/node_modules/@esbuild/win32-x64/esbuild.exe',
+};
+
+const rootEsbuildNativePackagePathByTarget = {
+  'linux-x64': 'extension/dist/node_modules/@esbuild/linux-x64/',
+  'darwin-arm64': 'extension/dist/node_modules/@esbuild/darwin-arm64/',
+  'win32-x64': 'extension/dist/node_modules/@esbuild/win32-x64/',
+};
+
 function nativeBinaryPathsForTarget(target) {
   return [
     libsqlNativeBinaryPathByTarget[target],
-    'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
+    treeSitterNativeBinaryPathByTarget[target],
+    parcelWatcherNativeBinaryPathByTarget[target],
+    particlesEsbuildNativeBinaryPathByTarget[target],
+  ];
+}
+
+function forbiddenRootEsbuildPathPrefixesForTarget(target) {
+  return [
+    'extension/dist/node_modules/esbuild/',
+    rootEsbuildNativePackagePathByTarget[target],
   ];
 }
 
@@ -115,6 +148,21 @@ function findVsixForTarget({ artifactsDir, version, target }) {
     .at(0);
 }
 
+function listVsixPaths(vsixPath) {
+  const result = spawnSync('unzip', ['-Z1', vsixPath], {
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  if (result.status !== 0) {
+    const errorMessage = result.error ? `${result.error.message}\n` : '';
+    throw new Error(`Unable to list ${vsixPath}.\n${errorMessage}${result.stderr}`);
+  }
+
+  return result.stdout.split('\n').filter(Boolean);
+}
+
 function extractNativeBinaryFromVsix(vsixPath, nativeBinaryPath) {
   const result = spawnSync('unzip', ['-p', vsixPath, nativeBinaryPath], {
     encoding: 'buffer',
@@ -152,6 +200,16 @@ export function validateVsixNativeArtifacts({
     const vsixPath = findVsixForTarget({ artifactsDir, version, target });
     if (!vsixPath) {
       throw new Error(`Missing VSIX artifact for ${target} in ${artifactsDir}.`);
+    }
+
+    const vsixPaths = listVsixPaths(vsixPath);
+    for (const forbiddenPrefix of forbiddenRootEsbuildPathPrefixesForTarget(target)) {
+      const oldRootEsbuildPath = vsixPaths.find(entry => entry.startsWith(forbiddenPrefix));
+      if (oldRootEsbuildPath) {
+        throw new Error(
+          `${path.basename(vsixPath)} must not contain old root esbuild path ${oldRootEsbuildPath}.`,
+        );
+      }
     }
 
     for (const nativeBinaryPath of nativeBinaryPathsForTarget(target)) {

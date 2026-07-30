@@ -1,6 +1,9 @@
 {
   "name": "codegraphy-typescript-example",
   "private": true,
+  "engines": {
+    "node": "^22.14.0 || >=23.6.0"
+  },
   "scripts": {
     "start": "tsx src/index.ts",
     "build": "tsc --noEmit"

@@ -17,7 +17,7 @@ The root package version stays pinned as monorepo workspace metadata. `scripts/r
 
 ## Prepare a Release
 
-Use a clean checkout of `main` with the repository-pinned Node and pnpm versions.
+Use a clean checkout of `main` with an active Node.js LTS release and the repository-pinned pnpm version.
 
 ```bash
 pnpm install --frozen-lockfile

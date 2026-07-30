@@ -68,11 +68,19 @@ CodeGraphy indexes a folder and projects its files and declarations into Nodes. 
 3. Open CodeGraphy from the Activity Bar.
 4. Select **Index Workspace** to add semantic Relationships to the initial file graph.
 
+CodeGraphy requires VS Code 1.101 or newer. Extension users do not need to
+install Node.js separately because VS Code provides the Extension host runtime.
+If you use an older VS Code release, update VS Code before you update
+CodeGraphy.
+
 The extension publishes native runtime targets for Linux x64, macOS Apple Silicon, and Windows x64. It bundles Core plus baseline analysis for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Markdown analysis ships as a bundled plugin that starts enabled in new workspaces.
 
 ### CLI and Plugins
 
-The terminal CLI supports Node.js 20 through 22. Node 22 LTS is recommended.
+The CLI, plugins, and interface packages require Node.js `^22.14.0 || >=23.6.0`.
+Node.js 20 is not supported. Upgrade Node.js before you update these npm
+packages. An active LTS release is recommended, and CodeGraphy does not set a
+maximum Node.js version.
 
 ```bash
 npm install -g @codegraphy-dev/core
@@ -102,8 +110,8 @@ codegraphy -C /path/to/workspace index
 
 ### tldraw Offline
 
-The first tldraw interface supports macOS and Node.js 20 through 22. Node.js 22
-LTS is recommended. Install the
+The first tldraw interface supports macOS and Node.js `^22.14.0 || >=23.6.0`. An active
+LTS release is recommended. Install the
 [tldraw offline desktop app](https://www.tldraw.com/), Core, and the interface.
 Then run the launcher from the workspace to index:
 

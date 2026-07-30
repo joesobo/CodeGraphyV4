@@ -8,6 +8,9 @@ VS Code Extension and Graph View behavior.
 
 ## Install
 
+Installing this package requires Node.js `^22.14.0 || >=23.6.0`. Node.js 20 is not
+supported.
+
 ```bash
 npm install -D @codegraphy-dev/plugin-api
 ```

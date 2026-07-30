@@ -16,6 +16,21 @@ import { inspectWorkspaceAnalysisDatabase } from '../../graphCache/database/stor
 import { readCodeGraphyWorkspaceMeta } from '../../workspace/meta';
 import { createDoctorCacheCheck } from './cacheCheck/model';
 
+export const SUPPORTED_NODE_RUNTIME_RANGE = '^22.14.0 || >=23.6.0';
+
+export function isSupportedNodeRuntime(version: string): boolean {
+  const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(version);
+  if (!stableVersion) {
+    return false;
+  }
+
+  const major = Number(stableVersion[1]);
+  const minor = Number(stableVersion[2]);
+  return (major === 22 && minor >= 14)
+    || (major === 23 && minor >= 6)
+    || major >= 24;
+}
+
 function readSettingsCheck(workspaceRoot: string): Record<string, unknown> {
   const settingsPath = getWorkspaceSettingsPath(workspaceRoot);
   if (!fs.existsSync(settingsPath)) {
@@ -42,8 +57,7 @@ function readSettingsCheck(workspaceRoot: string): Record<string, unknown> {
 
 export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
   const workspaceRoot = resolveCodeGraphyWorkspacePath(command.workspacePath, process.cwd());
-  const runtimeMajor = Number(process.versions.node.split('.')[0]);
-  const runtimeOk = runtimeMajor >= 20 && runtimeMajor < 23;
+  const runtimeOk = isSupportedNodeRuntime(process.versions.node);
   const settingsCheck = readSettingsCheck(workspaceRoot);
   const settings = settingsCheck.ok
     ? readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
@@ -60,8 +74,10 @@ export function runDoctorCommand(command: CliCommand): CommandExecutionResult {
     runtime: {
       ok: runtimeOk,
       version: process.version,
-      supported: '>=20 <23',
-      ...(runtimeOk ? {} : { action: 'Use Node.js 20, 21, or 22.' }),
+      supported: SUPPORTED_NODE_RUNTIME_RANGE,
+      ...(runtimeOk ? {} : {
+        action: `Use a Node.js version matching ${SUPPORTED_NODE_RUNTIME_RANGE}.`,
+      }),
     },
     settings: settingsCheck,
     cache: createDoctorCacheCheck({

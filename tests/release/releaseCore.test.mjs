@@ -12,11 +12,11 @@ test('core extension release includes built-in Extension plugin icon assets', ()
   );
 
   assert.ok(
-    releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-unity/assets'),
+    releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-unity/assets/unity.svg'),
     'Unity plugin icon assets must be staged so plugin legend and graph node image URLs resolve in packaged webviews.',
   );
   assert.ok(
-    releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-godot/assets'),
+    releaseCore.collectCoreReleaseEntries(rootManifest).includes('packages/plugin-godot/assets/godot.svg'),
     'Godot plugin icon assets must be staged so plugin legend and graph node image URLs resolve in packaged webviews.',
   );
 });
@@ -27,23 +27,27 @@ test('core extension release includes every bundled plugin runtime and package d
   );
   const entries = releaseCore.collectCoreReleaseEntries(rootManifest);
 
-  for (const plugin of [
-    'godot',
-    'markdown',
-    'particles',
-    'svelte',
-    'typescript',
-    'unity',
-    'vue',
-  ]) {
+  const runtimeFilesByPlugin = {
+    godot: ['plugin.js', 'extension.js'],
+    markdown: ['plugin.js'],
+    particles: ['plugin.js', 'webview.js'],
+    svelte: ['plugin.js'],
+    typescript: ['plugin.js'],
+    unity: ['plugin.js', 'extension.js'],
+    vue: ['plugin.js'],
+  };
+
+  for (const [plugin, runtimeFiles] of Object.entries(runtimeFilesByPlugin)) {
     assert.ok(
       entries.includes(`packages/plugin-${plugin}/package.json`),
       `${plugin} package manifest must be staged so the host-neutral loader can discover it.`,
     );
-    assert.ok(
-      entries.includes(`packages/plugin-${plugin}/dist`),
-      `${plugin} runtime must be staged so packaged extensions can load it.`,
-    );
+    for (const runtimeFile of runtimeFiles) {
+      assert.ok(
+        entries.includes(`packages/plugin-${plugin}/dist/${runtimeFile}`),
+        `${plugin} runtime must be staged so packaged extensions can load it.`,
+      );
+    }
   }
 });
 
@@ -123,7 +127,7 @@ test('release preparation builds bundled workspace plugin packages before stagin
     JSON.stringify({
       files: [
         'dist/**',
-        'packages/plugin-example/dist/**',
+        'packages/plugin-example/dist/plugin.js',
       ],
     }),
   );

@@ -43,5 +43,5 @@ await build({
     },
   }],
   sourcemap: true,
-  target: 'node20',
+  target: 'node22',
 });

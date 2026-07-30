@@ -16,6 +16,7 @@ const buildOptions: esbuild.BuildOptions = {
   external: [...EXTENSION_EXTERNAL_PACKAGE_NAMES],
   format: 'cjs',
   platform: 'node',
+  target: 'node22',
 };
 
 function syncRuntimePackages(): void {

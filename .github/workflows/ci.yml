@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -124,7 +124,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -161,7 +161,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -202,7 +202,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -377,7 +377,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -467,7 +467,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -515,7 +515,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -559,7 +559,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.0
+          node-version: 'lts/*'
           cache: 'pnpm'
 
       - name: Install dependencies

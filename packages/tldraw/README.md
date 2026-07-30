@@ -9,7 +9,7 @@ force physics inside the saved `.tldraw` document.
 ## Requirements
 
 - macOS
-- Node.js 20 through 22. Node.js 22 LTS is recommended.
+- Node.js `^22.14.0 || >=23.6.0`. An active LTS release is recommended.
 - [tldraw offline](https://offline.tldraw.com/) installed in `/Applications`
 
 The first launcher release supports macOS because it opens documents through

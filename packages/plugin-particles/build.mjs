@@ -19,7 +19,7 @@ await Promise.all([
     format: 'esm',
     platform: 'node',
     sourcemap: true,
-    target: 'node20',
+    target: 'node22',
   }),
   build({
     entryPoints: {
