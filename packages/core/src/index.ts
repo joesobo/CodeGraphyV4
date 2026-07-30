@@ -434,6 +434,15 @@ export { requestCodeGraphyIndexWorkspace } from './workspace/requestIndexing';
 export { requestWorkspaceGraphQuery } from './workspace/requestQuery';
 export { readCodeGraphyWorkspaceStatusForCli } from './workspace/requestStatus';
 export type {
+  CodeGraphyWorkspaceCommand,
+  CodeGraphyWorkspaceCommandDependencies,
+  CodeGraphyWorkspaceCommandMetadata,
+  CodeGraphyWorkspaceCommandName,
+  CodeGraphyWorkspaceCommandResponse,
+  CodeGraphyWorkspaceIncompleteReason,
+} from './workspace/command';
+export { executeCodeGraphyWorkspaceCommand } from './workspace/command';
+export type {
   CodeGraphyWorkspaceStaleReason,
   CodeGraphyWorkspaceStatus,
   CodeGraphyWorkspaceStatusState,
