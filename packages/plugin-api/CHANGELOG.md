@@ -1,5 +1,23 @@
 # @codegraphy-dev/plugin-api
 
+## 8.0.0
+
+### Major Changes
+
+- [#326](https://github.com/joesobo/CodeGraphyV4/pull/326) [`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a) Thanks [@joesobo](https://github.com/joesobo)! - Node.js 20 is no longer supported. Upgrade to Node.js `^22.14.0 || >=23.6.0` before
+  updating CodeGraphy Core, interfaces, APIs, or plugins. Newer Node.js releases
+  remain supported because these packages do not set a maximum version.
+
+  The VS Code extension now requires VS Code 1.101 or newer. Extension users do
+  not need to install Node.js separately because VS Code supplies the Extension
+  host runtime.
+
+### Minor Changes
+
+- [#323](https://github.com/joesobo/CodeGraphyV4/pull/323) [`bb228f1`](https://github.com/joesobo/CodeGraphyV4/commit/bb228f1115c76804330c58e7ab4f9ca18a983faa) Thanks [@joesobo](https://github.com/joesobo)! - Improve terminal and agent workflows with live source and Symbol Search, task-personalized File maps, exact File and Symbol overviews, safe workspace settings commands, actionable Indexing limits, structured Plugin state, and an optional foreground watcher that keeps the Graph Cache current during long-running sessions.
+
+  Query complete cached Relationships by default for exact targets, preserve JavaScript and TypeScript reexports so calls resolve through barrels, and expose `reexport` as a Plugin API Edge Type. Remove the experimental public Batch command in favor of adaptive queries.
+
 ## 7.0.0
 
 ### Major Changes

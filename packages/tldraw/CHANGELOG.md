@@ -1,5 +1,25 @@
 # @codegraphy-dev/tldraw
 
+## 0.2.0
+
+### Minor Changes
+
+- [#326](https://github.com/joesobo/CodeGraphyV4/pull/326) [`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a) Thanks [@joesobo](https://github.com/joesobo)! - Node.js 20 is no longer supported. Upgrade to Node.js `^22.14.0 || >=23.6.0` before
+  updating CodeGraphy Core, interfaces, APIs, or plugins. Newer Node.js releases
+  remain supported because these packages do not set a maximum version.
+
+  The VS Code extension now requires VS Code 1.101 or newer. Extension users do
+  not need to install Node.js separately because VS Code supplies the Extension
+  host runtime.
+
+### Patch Changes
+
+- [#326](https://github.com/joesobo/CodeGraphyV4/pull/326) [`7fe3eaa`](https://github.com/joesobo/CodeGraphyV4/commit/7fe3eaa19a856458873f31cfd9b26b3ed4e92dae) Thanks [@joesobo](https://github.com/joesobo)! - Use Tree-sitter's upstream prebuilt runtime on Node.js `^22.14.0 || >=23.6.0`.
+  Language analysis is unchanged, and CodeGraphy no longer needs its temporary
+  native-build patch.
+- Updated dependencies [[`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a), [`7fe3eaa`](https://github.com/joesobo/CodeGraphyV4/commit/7fe3eaa19a856458873f31cfd9b26b3ed4e92dae), [`bb228f1`](https://github.com/joesobo/CodeGraphyV4/commit/bb228f1115c76804330c58e7ab4f9ca18a983faa)]:
+  - @codegraphy-dev/core@5.0.0
+
 ## 0.1.1
 
 ### Patch Changes

@@ -1,5 +1,23 @@
 # @codegraphy-dev/plugin-godot
 
+## 3.0.0
+
+### Major Changes
+
+- [#326](https://github.com/joesobo/CodeGraphyV4/pull/326) [`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a) Thanks [@joesobo](https://github.com/joesobo)! - Node.js 20 is no longer supported. Upgrade to Node.js `^22.14.0 || >=23.6.0` before
+  updating CodeGraphy Core, interfaces, APIs, or plugins. Newer Node.js releases
+  remain supported because these packages do not set a maximum version.
+
+  The VS Code extension now requires VS Code 1.101 or newer. Extension users do
+  not need to install Node.js separately because VS Code supplies the Extension
+  host runtime.
+
+### Patch Changes
+
+- Updated dependencies [[`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a), [`bb228f1`](https://github.com/joesobo/CodeGraphyV4/commit/bb228f1115c76804330c58e7ab4f9ca18a983faa)]:
+  - @codegraphy-dev/extension-plugin-api@2.0.0
+  - @codegraphy-dev/plugin-api@8.0.0
+
 ## 2.3.4
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @codegraphy/web
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a)]:
+  - @codegraphy-dev/graph-renderer@0.4.0
+
 ## 0.1.2
 
 ### Patch Changes

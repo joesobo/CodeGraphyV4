@@ -1,5 +1,22 @@
 # @codegraphy-dev/plugin-particles
 
+## 0.3.0
+
+### Minor Changes
+
+- [#326](https://github.com/joesobo/CodeGraphyV4/pull/326) [`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a) Thanks [@joesobo](https://github.com/joesobo)! - Node.js 20 is no longer supported. Upgrade to Node.js `^22.14.0 || >=23.6.0` before
+  updating CodeGraphy Core, interfaces, APIs, or plugins. Newer Node.js releases
+  remain supported because these packages do not set a maximum version.
+
+  The VS Code extension now requires VS Code 1.101 or newer. Extension users do
+  not need to install Node.js separately because VS Code supplies the Extension
+  host runtime.
+
+### Patch Changes
+
+- Updated dependencies [[`c468e11`](https://github.com/joesobo/CodeGraphyV4/commit/c468e117a06f66ae801edef867823ac9b92d005a)]:
+  - @codegraphy-dev/extension-plugin-api@2.0.0
+
 ## 0.2.5
 
 ### Patch Changes
