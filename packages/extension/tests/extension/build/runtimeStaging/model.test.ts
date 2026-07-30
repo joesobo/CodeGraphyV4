@@ -1,11 +1,15 @@
+import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { buildSync } from 'esbuild';
 import {
   copyRuntimePackage,
   EXTENSION_EXTERNAL_PACKAGE_NAMES,
   getVendoredPackageRootPath,
+  resolveExtensionRuntimeTarget,
+  syncExtensionRuntimePackages,
 } from '../../../../scripts/externalPackages';
 
 const EXTENSION_PACKAGE_ROOT = path.resolve(
@@ -71,6 +75,65 @@ describe('runtime package build support', () => {
     ) as { main?: string };
 
     expect(copiedPackageJson.main).toBe('bindings/node/index.js');
+  });
+
+  it('initializes packaged Particles custom effects from its staged runtime', () => {
+    const stageRootPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-particles-package-'));
+    const packagedPluginRootPath = path.join(stageRootPath, 'packages', 'plugin-particles');
+    const packagedPluginEntryPath = path.join(packagedPluginRootPath, 'dist', 'plugin.js');
+    const workspaceRootPath = path.join(stageRootPath, 'workspace');
+    const effectSourcePath = path.join(
+      workspaceRootPath,
+      '.codegraphy',
+      'particles',
+      'custom-effect.ts',
+    );
+
+    buildSync({
+      entryPoints: [path.join(
+        EXTENSION_PACKAGE_ROOT,
+        '..',
+        'plugin-particles',
+        'src',
+        'plugin.ts',
+      )],
+      outfile: packagedPluginEntryPath,
+      bundle: true,
+      external: ['esbuild'],
+      format: 'esm',
+      platform: 'node',
+      target: 'node22',
+    });
+    fs.copyFileSync(
+      path.join(EXTENSION_PACKAGE_ROOT, '..', 'plugin-particles', 'package.json'),
+      path.join(packagedPluginRootPath, 'package.json'),
+    );
+    fs.mkdirSync(path.dirname(effectSourcePath), { recursive: true });
+    fs.writeFileSync(effectSourcePath, 'export default function customEffect() {}\n');
+
+    syncExtensionRuntimePackages(
+      path.join(stageRootPath, 'dist', 'extension.js'),
+      resolveExtensionRuntimeTarget(),
+    );
+    expect(fs.existsSync(path.join(stageRootPath, 'dist', 'node_modules', 'esbuild'))).toBe(false);
+    expect(fs.existsSync(
+      path.join(packagedPluginRootPath, 'dist', 'node_modules', 'esbuild'),
+    )).toBe(true);
+
+    execFileSync(process.execPath, [
+      '--input-type=module',
+      '--eval',
+      `
+        const packagedModule = await import(${JSON.stringify(pathToFileURL(packagedPluginEntryPath).href)});
+        const plugin = packagedModule.default();
+        await plugin.initialize(${JSON.stringify(workspaceRootPath)});
+      `,
+    ]);
+
+    expect(fs.readFileSync(
+      path.join(workspaceRootPath, '.codegraphy', 'cache', 'particles', 'custom-effect.js'),
+      'utf8',
+    )).toContain('customEffect');
   });
 
   it('bundles core packages while externalizing only VS Code and native runtime packages', () => {

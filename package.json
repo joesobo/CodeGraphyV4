@@ -70,6 +70,7 @@
 		"packages/plugin-markdown/LICENSE",
 		"packages/plugin-markdown/package.json",
 		"packages/plugin-particles/dist/plugin.js",
+		"packages/plugin-particles/dist/node_modules/**",
 		"packages/plugin-particles/dist/webview.js",
 		"packages/plugin-particles/LICENSE",
 		"packages/plugin-particles/package.json",

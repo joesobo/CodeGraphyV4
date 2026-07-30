@@ -128,7 +128,6 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'libsql',
   '@neon-rs/load',
   'detect-libc',
-  'esbuild',
   'material-icon-theme',
   'node-gyp-build',
   'tree-sitter',
@@ -260,6 +259,22 @@ export function getExtensionRuntimePackageNames(
   ];
 }
 
+function createEsbuildRuntimePackagePlans(
+  target: ExtensionRuntimeTarget,
+): RuntimePackagePlan[] {
+  const config = RUNTIME_TARGET_CONFIG[target];
+  return [
+    staticPackagePlan('esbuild', [
+      'package.json',
+      'lib/main.js',
+    ]),
+    staticPackagePlan(config.esbuildPackageName, [
+      'package.json',
+      config.platform === 'win32' ? 'esbuild.exe' : 'bin/esbuild',
+    ], resolveEsbuildBinaryPackageRootPath),
+  ];
+}
+
 export function createRuntimePackagePlans(
   target: ExtensionRuntimeTarget,
 ): RuntimePackagePlan[] {
@@ -281,14 +296,6 @@ export function createRuntimePackagePlans(
       'lib/filesystem.js',
       'lib/process.js',
     ]),
-    staticPackagePlan('esbuild', [
-      'package.json',
-      'lib/main.js',
-    ]),
-    staticPackagePlan(config.esbuildPackageName, [
-      'package.json',
-      config.platform === 'win32' ? 'esbuild.exe' : 'bin/esbuild',
-    ], resolveEsbuildBinaryPackageRootPath),
     staticPackagePlan(config.libsqlPackageName, ['package.json', 'index.node']),
     staticPackagePlan(
       config.parcelWatcherPackageName,
@@ -381,19 +388,41 @@ export function copyRuntimePackage(
   return targetPath;
 }
 
-export function syncExtensionRuntimePackages(
+function copyRuntimePackagePlans(
   outputFilePath: string,
-  target: ExtensionRuntimeTarget = resolveExtensionRuntimeTarget(),
+  plans: readonly RuntimePackagePlan[],
 ): string[] {
   fs.rmSync(path.join(path.dirname(outputFilePath), 'node_modules'), {
     recursive: true,
     force: true,
   });
 
-  return createRuntimePackagePlans(target).map(plan => copyRuntimePackage(
+  return plans.map(plan => copyRuntimePackage(
     outputFilePath,
     plan.packageName,
     plan.relativeFilePaths,
     plan.resolvePackageRootPath,
   ));
+}
+
+export function syncExtensionRuntimePackages(
+  outputFilePath: string,
+  target: ExtensionRuntimeTarget = resolveExtensionRuntimeTarget(),
+): string[] {
+  const stageRootPath = path.dirname(path.dirname(outputFilePath));
+  const particlesPluginOutputFilePath = path.join(
+    stageRootPath,
+    'packages',
+    'plugin-particles',
+    'dist',
+    'plugin.js',
+  );
+
+  return [
+    ...copyRuntimePackagePlans(outputFilePath, createRuntimePackagePlans(target)),
+    ...copyRuntimePackagePlans(
+      particlesPluginOutputFilePath,
+      createEsbuildRuntimePackagePlans(target),
+    ),
+  ];
 }
