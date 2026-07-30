@@ -67,8 +67,9 @@ describe('Extension', () => {
 
       // view provider (1) + config listener (1) + active editor listener (1)
       // + URI handler (1) + runtime bridge listener (1)
+      // + cache update file events (4) + scheduler (1) + status bar (1)
       // + 14 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode)
-      expect(mockContext.subscriptions.length).toBe(19);
+      expect(mockContext.subscriptions.length).toBe(25);
     });
   });
 
