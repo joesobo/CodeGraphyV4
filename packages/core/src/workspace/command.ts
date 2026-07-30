@@ -39,6 +39,7 @@ export type CodeGraphyWorkspaceIncompleteReason =
   | 'file-budget-reached'
   | 'page-truncated'
   | 'path-limit-reached'
+  | 'query-target-not-found'
   | 'relationship-limit-reached'
   | 'source-files-skipped';
 
@@ -143,6 +144,16 @@ function readError(result: WorkspaceGraphQueryResult): { code: string; message: 
     : undefined;
 }
 
+function readErrorIncompleteReason(errorCode: string): CodeGraphyWorkspaceIncompleteReason {
+  if (errorCode === 'graph_cache_not_found') {
+    return 'cache-missing';
+  }
+  if (errorCode === 'query_target_not_found') {
+    return 'query-target-not-found';
+  }
+  return 'command-failed';
+}
+
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -195,7 +206,7 @@ export async function executeCodeGraphyWorkspaceCommand(
         ok: false,
         command: input.command,
         error,
-        metadata: createMetadata(workspaceRoot, status, ['cache-missing']),
+        metadata: createMetadata(workspaceRoot, status, [readErrorIncompleteReason(error.code)]),
       };
     }
     return {

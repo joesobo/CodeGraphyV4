@@ -1,0 +1,46 @@
+{
+  "name": "@codegraphy-dev/mcp",
+  "version": "0.1.0",
+  "description": "Optional CodeGraphy MCP stdio server",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "codegraphy-mcp": "./bin/codegraphy-mcp.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/mcp/server.d.ts",
+      "default": "./dist/mcp/server.js"
+    }
+  },
+  "engines": {
+    "node": "^22.14.0 || >=23.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && esbuild src/mcp/server.ts --bundle --platform=node --format=esm --target=node22 --packages=external --external:@codegraphy-dev/core --outfile=dist/mcp/server.js",
+    "lint": "eslint src tests bin vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/core": "workspace:*",
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
+    "@types/node": "^20.11.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3",
+    "vitest": "^3.0.0"
+  }
+}

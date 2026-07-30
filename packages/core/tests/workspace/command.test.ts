@@ -208,6 +208,40 @@ describe('workspace/command', () => {
     });
   });
 
+  it('does not report a missing query target as a missing Graph Cache', async () => {
+    const dependencies = createDependencies({
+      query: {
+        error: 'query_target_not_found',
+        message: 'No exact File or Symbol matched src/missing.ts.',
+        workspaceRoot: '/workspace/project',
+      },
+    });
+
+    const result = await executeCodeGraphyWorkspaceCommand({
+      command: 'query',
+      query: {
+        report: 'overview',
+        arguments: { target: 'src/missing.ts' },
+      },
+    }, dependencies);
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        code: 'query_target_not_found',
+      },
+      metadata: {
+        cache: {
+          state: 'fresh',
+        },
+        result: {
+          complete: false,
+          reasons: ['query-target-not-found'],
+        },
+      },
+    });
+  });
+
   it('returns thrown failures without leaking transport-specific errors', async () => {
     const dependencies = createDependencies();
     vi.mocked(dependencies.indexWorkspace).mockRejectedValueOnce(new Error('Indexing failed'));

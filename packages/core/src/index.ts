@@ -426,6 +426,7 @@ export type {
   GraphQueryReport as WorkspaceGraphQueryReport,
   IndexWorkspaceResult,
   WorkspaceGraphQueryInput,
+  WorkspaceGraphQueryProjection,
   WorkspaceGraphQueryResult,
   WorkspacePathInput,
   WorkspaceStatusResult,
