@@ -1,5 +1,5 @@
 import { realpath } from 'node:fs/promises';
-import { join, relative, sep } from 'node:path';
+import { join } from 'node:path';
 import {
   subscribe,
   type AsyncSubscription,
@@ -7,6 +7,7 @@ import {
 } from '@parcel/watcher';
 import { DEFAULT_EXCLUDE } from '../../../discovery/pathExclusions';
 import { resolveWorkspaceRoot } from '../../../workspace/paths';
+import { filterEligibleWorkspaceEvents, toWorkspacePath } from './eligibility';
 
 const CODEGRAPHY_DIRECTORY = '.codegraphy';
 const SETTINGS_PATH = `${CODEGRAPHY_DIRECTORY}/settings.json`;
@@ -24,10 +25,6 @@ export interface SubscribeCodeGraphyWorkspaceChangesOptions {
   workspaceRoot: string;
   onError?: (error: Error) => void;
   onEvents(events: readonly CodeGraphyWorkspaceFileEvent[]): void;
-}
-
-function toWorkspacePath(workspaceRoot: string, filePath: string): string {
-  return relative(workspaceRoot, filePath).split(sep).join('/');
 }
 
 function isCodeGraphyCacheArtifact(workspaceRoot: string, filePath: string): boolean {
@@ -59,12 +56,20 @@ export async function subscribeCodeGraphyWorkspaceChanges(
         options.onError?.(error);
         return;
       }
-      const sourceEvents = events
+      let eligibleEvents = events;
+      try {
+        eligibleEvents = filterEligibleWorkspaceEvents(watchRoot, events);
+      } catch (settingsError) {
+        options.onError?.(
+          settingsError instanceof Error ? settingsError : new Error(String(settingsError)),
+        );
+      }
+      const sourceEvents = eligibleEvents
         .filter(event => event.path !== watchRoot)
         .filter(event => !isCodeGraphyCacheArtifact(watchRoot, event.path))
         .map(event => ({
           ...event,
-          path: join(workspaceRoot, relative(watchRoot, event.path)),
+          path: join(workspaceRoot, toWorkspacePath(watchRoot, event.path)),
         }));
       if (sourceEvents.length > 0) options.onEvents(sourceEvents);
     },

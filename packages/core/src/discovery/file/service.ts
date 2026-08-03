@@ -62,7 +62,7 @@ function createGitPathBatches(gitPaths: readonly string[]): string[][] {
   return batches;
 }
 
-function collectGitIgnoredPathsFromGit(
+export function collectGitIgnoredPathsFromGit(
   rootPath: string,
   relativePaths: readonly string[],
 ): Set<string> | undefined {

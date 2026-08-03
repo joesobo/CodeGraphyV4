@@ -1,7 +1,12 @@
+import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { subscribeCodeGraphyWorkspaceChanges } from '../../../../src';
+import {
+  readCodeGraphyWorkspaceSettings,
+  subscribeCodeGraphyWorkspaceChanges,
+  writeCodeGraphyWorkspaceSettings,
+} from '../../../../src';
 import { createWorkspace } from '../../workspaceFixture';
 
 describe('Parcel workspace change subscription', () => {
@@ -32,6 +37,81 @@ describe('Parcel workspace change subscription', () => {
     expect(paths).toContain(sourcePath);
     expect(paths).not.toContain(join(workspaceRoot, '.codegraphy', 'graph.sqlite-journal'));
     expect(paths).not.toContain(nestedCachePath);
+    await subscription.dispose();
+  }, 10_000);
+
+  it('reports only changes eligible under Git ignored state and active Filters', async () => {
+    const workspaceRoot = await createWorkspace();
+    execFileSync('git', ['init', '-q'], { cwd: workspaceRoot });
+    await writeFile(join(workspaceRoot, '.gitignore'), 'ignored/**\n', 'utf-8');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      filterPatterns: ['filtered/**'],
+    });
+    const includedPath = join(workspaceRoot, 'src', 'included.ts');
+    const ignoredPath = join(workspaceRoot, 'ignored', 'generated.ts');
+    const filteredPath = join(workspaceRoot, 'filtered', 'generated.ts');
+    const gitignorePath = join(workspaceRoot, '.gitignore');
+    const settingsPath = join(workspaceRoot, '.codegraphy', 'settings.json');
+    const observedPaths = new Set<string>();
+    let expectedPaths = new Set<string>();
+    let resolveExpectedPaths: (() => void) | undefined;
+    const waitForPaths = (paths: readonly string[]): Promise<void> => {
+      expectedPaths = new Set(paths);
+      return new Promise<void>((resolve) => {
+        resolveExpectedPaths = resolve;
+      });
+    };
+    const subscription = await subscribeCodeGraphyWorkspaceChanges({
+      workspaceRoot,
+      onEvents(events) {
+        for (const event of events) observedPaths.add(event.path);
+        if ([...expectedPaths].every(filePath => observedPaths.has(filePath))) {
+          resolveExpectedPaths?.();
+        }
+      },
+    });
+    await mkdir(join(workspaceRoot, 'src'), { recursive: true });
+    await mkdir(join(workspaceRoot, 'ignored'), { recursive: true });
+    await mkdir(join(workspaceRoot, 'filtered'), { recursive: true });
+    const includedPathObserved = waitForPaths([includedPath]);
+    await writeFile(ignoredPath, 'ignored\n', 'utf-8');
+    await writeFile(filteredPath, 'filtered\n', 'utf-8');
+    await writeFile(includedPath, 'included\n', 'utf-8');
+
+    await includedPathObserved;
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(observedPaths).toContain(includedPath);
+    expect(observedPaths).not.toContain(ignoredPath);
+    expect(observedPaths).not.toContain(filteredPath);
+
+    observedPaths.clear();
+    const gitignoreChanged = waitForPaths([gitignorePath]);
+    await writeFile(gitignorePath, '', 'utf-8');
+    await gitignoreChanged;
+    observedPaths.clear();
+    const newlyUnignoredPathChanged = waitForPaths([ignoredPath]);
+    await writeFile(ignoredPath, 'now unignored\n', 'utf-8');
+    await newlyUnignoredPathChanged;
+
+    expect(observedPaths).toEqual(new Set([ignoredPath]));
+
+    observedPaths.clear();
+    const settingsChanged = waitForPaths([settingsPath]);
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      respectGitignore: false,
+      filterPatterns: [],
+    });
+    await settingsChanged;
+    observedPaths.clear();
+    const newlyEligiblePathsChanged = waitForPaths([ignoredPath, filteredPath]);
+    await writeFile(ignoredPath, 'now included\n', 'utf-8');
+    await writeFile(filteredPath, 'now included\n', 'utf-8');
+    await newlyEligiblePathsChanged;
+
+    expect(observedPaths).toEqual(new Set([ignoredPath, filteredPath]));
     await subscription.dispose();
   }, 10_000);
 });
