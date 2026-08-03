@@ -8,7 +8,7 @@ Plugins move through three broad phases:
 
 ## Registration
 
-External plugins are registered through the Graph View provider and forwarded into the plugin registry. Registration may happen before the workspace is fully ready.
+The Graph View provider registers external plugins and forwards them to the plugin registry. Registration can happen before the workspace is ready.
 
 ## Readiness
 

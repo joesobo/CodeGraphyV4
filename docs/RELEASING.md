@@ -11,7 +11,7 @@ CodeGraphy publishes one VS Code extension plus Core and plugin npm packages. Th
 | Graph renderer | `packages/graph-renderer/package.json` |
 | Plugin API | `packages/plugin-api/package.json` |
 | Plugins | Each `packages/plugin-*/package.json` |
-| Agent Skill | `skills/codegraphy/` in this repo, copied to the separate `codegraphy/skills` repository when that repository is published. |
+| Agent Skill | `skills/codegraphy/` in this repo. Copy it to the separate `codegraphy/skills` repository after publishing that repository. |
 
 The root package version stays pinned as monorepo workspace metadata. `scripts/release-core.mjs` builds the Marketplace manifest with the extension package version.
 

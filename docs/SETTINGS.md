@@ -111,7 +111,7 @@ The Settings > Forces controls apply these values to the live WebAssembly layout
 }
 ```
 
-`filterPatterns` removes recurring noise after Graph Scope. During Indexing, active custom and plugin Filters also keep matching files out of fresh analysis and the `maxFiles` budget. Analysis cached while a Filter was disabled remains reusable when that Filter is enabled again. Patterns support basename matching, so `*.png` matches at any depth.
+`filterPatterns` removes recurring noise after Graph Scope. During Indexing, active custom and plugin Filters also keep matching files out of fresh analysis and the `maxFiles` budget. CodeGraphy retains cached analysis after you disable a Filter and reuses it after you enable the Filter. Patterns support basename matching, so `*.png` matches at any depth.
 
 ```json
 {
@@ -269,7 +269,7 @@ Old `.codegraphy/graph.lbug` files are obsolete generated caches. Run Indexing t
 **Missing Relationships**
 
 - Run Indexing after relevant workspace changes.
-- Confirm the language has Core coverage or its plugin is registered and enabled.
+- Confirm that Core covers the language or enable its registered plugin.
 - Check Edge Type scope and plugin options.
 
 **Unexpected plugin behavior**

@@ -24,6 +24,7 @@ reports/
 /examples/CodeGraphy.tldraw
 
 .claude/
+.pi-subagents/
 
 /docs/plans/
 /docs/handoff/

@@ -18,7 +18,7 @@
 
 Fit to Screen animates graph center and zoom. Pointer input interrupts a running camera animation so panning and wheel zoom stay responsive.
 
-When **Respect Gitignore** is enabled, Git-ignored files and folders stay out of the current graph and do not consume the indexing file limit. Analysis cached while those paths were eligible is retained for reuse.
+Enable **Respect Gitignore** to keep Git-ignored files and folders out of the current graph and indexing file limit. CodeGraphy retains cached analysis for reuse when those paths become eligible again.
 
 ## Minimap
 

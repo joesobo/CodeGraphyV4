@@ -62,7 +62,7 @@ Current scope:
 - fixture-heavy examples are tracked as a separate duplication channel so filesystem and temp-resource setup does not disappear into generic setup noise
 - subject cohesion highlights files that touch many unrelated production subjects with little overlap
 - nested `describe` and `context` paths are summarized so hotspots can be localized inside a larger spec file
-- malformed structure is reported when hooks, nested tests, or suite builders appear inside a test body
+- the analyzer reports malformed structure when hooks, nested tests, or suite builders appear inside a test body
 - output supports human-readable summaries, JSON, verbose detail, policy presets (`advisory`, `review`, `split`, `strict`), and baseline comparison for tooling
 - recommendations currently include table-drive, extract-setup, strengthen-assertions, and structure-review guidance with block and helper-group context
 

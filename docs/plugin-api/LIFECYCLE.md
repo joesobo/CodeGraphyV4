@@ -2,7 +2,7 @@
 
 Installation, activation, and runtime loading are separate.
 
-1. A package is registered in `~/.codegraphy/plugins.json`.
+1. Register a package in `~/.codegraphy/plugins.json`.
 2. Global and workspace activation values select active descriptors.
 3. Each runtime host imports only its active descriptors.
 
@@ -38,7 +38,7 @@ event listeners, animation loops, and injected styles.
 
 ## Example
 
-If particles is enabled globally:
+If you enable particles globally:
 
 - `codegraphy query ...` resolves it as active but does not import it;
 - opening the VS Code extension loads it because its host is

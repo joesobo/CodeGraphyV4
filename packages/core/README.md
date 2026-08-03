@@ -33,7 +33,7 @@ Indexing chooses the cheapest safe full or incremental refresh and persists the 
 | `dependencies`, `dependents` | Read outgoing or incoming Relationships for an exact target. |
 | `path <from> <to>` | Find bounded directed routes between exact targets. |
 
-`nodes` and `edges` use saved Graph Scope. Search, Map, Target Query, Path, and targeted Relationship commands read complete cached types by default. Repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options narrow one command without changing workspace settings. JavaScript and TypeScript reexports are stored explicitly, so calls through barrels can resolve to implementation Symbols.
+`nodes` and `edges` use saved Graph Scope. Search, Map, Target Query, Path, and targeted Relationship commands read complete cached types by default. Repeatable, comma-separated `--filter`, `--node-type`, and `--edge-type` options narrow one command without changing workspace settings. Core stores JavaScript and TypeScript reexports as explicit Relationships so calls through barrels can resolve to implementation Symbols.
 
 ## Maintain a workspace
 

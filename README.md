@@ -21,6 +21,8 @@
 ·
   <a href="./docs/README.md">Docs</a>
 ·
+  <a href="./docs/PHILOSOPHY.md">Philosophy</a>
+·
   <a href="./docs/PLUGINS.md">Build a plugin</a>
 ·
   <a href="./CONTRIBUTING.md">Contribute</a>
@@ -28,7 +30,9 @@
   <a href="https://trello.com/b/wG65Lfrb/codegraphy">Roadmap</a>
 </p>
 
-CodeGraphy indexes a folder and projects its files and declarations into Nodes. It renders imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships. Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view. The same Core engine supports both interfaces, the terminal CLI, and agent queries.
+CodeGraphy indexes a folder and projects its files and declarations into Nodes. It renders imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships.
+
+Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view. The Core engine also supports the terminal CLI and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
 
@@ -73,7 +77,9 @@ install Node.js separately because VS Code provides the Extension host runtime.
 If you use an older VS Code release, update VS Code before you update
 CodeGraphy.
 
-The extension publishes native runtime targets for Linux x64, macOS Apple Silicon, and Windows x64. It bundles Core plus baseline analysis for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Markdown analysis ships as a bundled plugin that starts enabled in new workspaces.
+The extension publishes native runtime targets for Linux x64, macOS Apple Silicon, and Windows x64. It bundles Core and baseline analysis for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal.
+
+Markdown analysis ships as a bundled plugin. New workspaces enable it by default.
 
 ### CLI and Plugins
 
@@ -131,7 +137,9 @@ Run the same command after workspace changes. An open canvas updates in place an
 
 ## CLI Reference
 
-All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data commands return `{ "ok": true, "command": "...", "data": ... }` on stdout. Failures return `{ "ok": false, "command": "...", "error": ... }` on stderr and use a nonzero exit code. An unhealthy `doctor` result keeps every completed check in `error.details`. Help and version output stay plain text.
+`@codegraphy-dev/core` publishes all `codegraphy ...` commands. Data commands return `{ "ok": true, "command": "...", "data": ... }` on stdout. Failures return `{ "ok": false, "command": "...", "error": ... }` on stderr with a nonzero exit code.
+
+An unhealthy `doctor` result keeps completed checks in `error.details`. Help and version output use plain text.
 
 | Command | Result |
 |---|---|
@@ -162,7 +170,9 @@ All `codegraphy ...` commands are published by `@codegraphy-dev/core`. Data comm
 
 ### Live updates and output
 
-`codegraphy watch` performs initial synchronization, stays in the foreground, and writes one JSON envelope per lifecycle event. It batches workspace changes, skips cache artifacts and active Filter matches, serializes cache writes, and flushes pending work when interrupted. The VS Code Extension does not start this process; it changes cached source facts only after **Index Workspace** or **Re-index Workspace**.
+`codegraphy watch` performs an initial synchronization and stays in the foreground. It writes one JSON envelope per lifecycle event. It batches workspace changes, skips cache artifacts and active Filter matches, serializes cache writes, and flushes pending work when interrupted.
+
+The VS Code Extension does not start this process. It changes cached source facts only after **Index Workspace** or **Re-index Workspace**.
 
 Other data commands write one JSON envelope to stdout. Failures use stderr and a nonzero exit code; `--verbose` adds diagnostics to stderr. Run `codegraphy <command> --help` for exact arguments, bounds, and examples.
 
@@ -180,7 +190,11 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 ![CodeGraphy package and data flow](./docs/media/readme/codegraphy-architecture.png)
 
-`@codegraphy-dev/core` owns File Discovery, built-in analysis, optional foreground Graph Cache watching, plugin discovery and activation, SQLite Graph Cache storage, Graph Query, and the CLI. It does not own rendering. The VS Code extension connects Core to the editor lifecycle and React Graph View; it changes cached source facts only after an explicit Index or Re-index Workspace action. The tldraw interface connects Core data and shared physics to native tldraw shapes. `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/core` owns File Discovery, built-in analysis, Graph Cache watching, plugin activation, SQLite storage, Graph Query, and the CLI. It does not own rendering.
+
+The VS Code extension connects Core to the editor lifecycle and React Graph View. It changes cached source facts only after an explicit Index or Re-index Workspace action. The tldraw interface connects Core data and shared physics to native tldraw shapes.
+
+`@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|

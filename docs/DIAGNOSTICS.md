@@ -18,7 +18,7 @@ Example:
 
 Open Settings, expand **Performance**, and turn on **Verbose Diagnostics**.
 
-The setting is saved in the current CodeGraphy Workspace:
+The extension saves the setting in the current CodeGraphy Workspace:
 
 ```json
 {

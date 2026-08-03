@@ -48,7 +48,7 @@ Search, inventories, overviews, and relationship reports are bounded. Pagination
 
 ## Machine-readable contract
 
-Normal command results are JSON envelopes. Successful data is written to stdout. Operational and invalid-invocation failures use structured error envelopes on stderr and nonzero exit statuses. `--verbose` adds lifecycle diagnostics to stderr without changing the data envelope.
+Normal command results are JSON envelopes. Commands write successful data to stdout. Operational and invalid-invocation failures use structured error envelopes on stderr and nonzero exit statuses. `--verbose` adds lifecycle diagnostics to stderr without changing the data envelope.
 
 The foreground watcher streams JSON Lines envelopes for readiness, updating, updated, recoverable error, and stopped events. Event batches report bounded file paths, totals, completeness, update duration, and full-versus-incremental Indexing metrics.
 

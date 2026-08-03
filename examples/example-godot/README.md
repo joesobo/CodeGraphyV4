@@ -7,7 +7,7 @@ Project shape:
 - `project.godot` boots into `scenes/main.tscn`
 - `project.godot` registers `scripts/game_manager.gd` as an autoload singleton
 - `scenes/player.tscn`, `scenes/enemy.tscn`, `scenes/projectile.tscn`, and `scenes/ui/game_ui.tscn` make the project feel like a real Godot workspace instead of isolated fixture files
-- `scenes/main.tscn` starts the player and enemy on a visible `StaticBody2D` platform with collision shapes, so the example can be run directly in Godot
+- `scenes/main.tscn` starts the player and enemy on a visible `StaticBody2D` platform with collision shapes, so you can run the example in Godot
 - `resources/enemy_spawn_config.tres` is a real data resource backed by `scripts/data/spawn_config.gd`
 - `scripts/player.gd` and `scripts/enemy.gd` extend `scripts/base/entity.gd`, giving the Godot plugin file-backed inheritance edges distinct from built-in engine class inheritance
 - `scripts/base/entity.gd` owns shared `HealthComponent` plumbing while `scripts/player.gd`, `scripts/enemy.gd`, `scripts/projectile.gd`, and `scripts/spawning/enemy_spawner.gd` keep input, chase, projectile, and spawning behavior separated

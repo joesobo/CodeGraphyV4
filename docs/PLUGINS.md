@@ -161,8 +161,8 @@ const createPlugin: IExtensionPluginFactory = () => ({
 export default createPlugin;
 ```
 
-The Extension host imports this runtime. Core only reports that the descriptor
-is installed and active.
+The Extension host imports this runtime. Core reports the descriptor's
+installation and activity state without importing it.
 
 Interface-specific static metadata also belongs to the interface descriptor.
 For example, a Unity package can contain one runtime for analysis and a second

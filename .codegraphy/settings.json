@@ -366,12 +366,12 @@
     "inherit": true,
     "load": true,
     "overrides": true,
+    "reexport": true,
     "reference": true,
     "type": true,
     "type-import": true,
     "codegraphy.gdscript:signal-connection": true,
     "test": true,
-    "reexport": true,
     "codegraphy.typescript:alias-import": true
   },
   "filterPatterns": [

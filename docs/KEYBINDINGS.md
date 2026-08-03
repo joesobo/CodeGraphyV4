@@ -19,7 +19,7 @@ These shortcuts work when the Graph View is focused and no text input is active.
 
 ## VS Code commands
 
-These are registered as VS Code commands and appear in the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). You can rebind them in **File > Preferences > Keyboard Shortcuts** by searching for "CodeGraphy".
+VS Code registers these actions as commands and shows them in the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). To rebind one, open **File > Preferences > Keyboard Shortcuts** and search for "CodeGraphy".
 
 | Default Shortcut | Command | When |
 |-----------------|---------|------|

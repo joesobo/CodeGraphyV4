@@ -28,8 +28,8 @@ The code is intentionally small, but it behaves like a real project:
 - `src/palette.ts`, `src/harmony.ts`, and `src/swatches.ts` build hex colors from a seed mood, complementary harmony, analogous neighbors, and triadic accents.
 - `src/types.ts` owns the enum, type alias, interface, and mood normalization helper.
 - `src/paletteRunner.ts` extends `BaseGenerator` and implements `PaletteExporter`.
-- `src/seedSettings.ts` is loaded with `require()` to keep a CommonJS compatibility edge visible.
-- `src/lazyPreview.ts` is loaded with dynamic `import()` to show lazy module relationships.
+- `src/index.ts` loads `src/seedSettings.ts` with `require()` to keep a CommonJS compatibility edge visible.
+- `src/index.ts` loads `src/lazyPreview.ts` with dynamic `import()` to show lazy module relationships.
 - The `#example/*` TypeScript path alias resolves `src/alias/themePack.ts`.
 - `src/scratchpad.ts` is intentionally disconnected so Orphan Node behavior stays obvious.
 

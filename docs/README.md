@@ -13,6 +13,7 @@ Start with the root [README](../README.md) for installation, the product overvie
 | [Verbose Diagnostics](./DIAGNOSTICS.md) | Extension and CLI support logging. |
 | [Plugin Guide](./PLUGINS.md) | Plugin packaging, registration, enablement, analysis, and Graph View contributions. |
 | [Philosophy](./PHILOSOPHY.md) | The product idea and design principles. |
+| [Editable system map](./media/codegraphy-system.tldraw) | Offline tldraw diagram of Core, interfaces, renderers, plugins, examples, and future boundaries. |
 
 The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language and ownership. Current behavior and constraints live in the closest product or package reference.
 
