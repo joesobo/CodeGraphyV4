@@ -44,7 +44,9 @@ Current command expectations:
 - `mutate` requires one source module at a time; a bare repository or package run is invalid
 - `scrap` works best on package roots and test files/directories
 
-Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
+Quality tools are diagnostics, not a required checklist for every change. Select a tool when its signal matches the current risk, then use the narrowest target that can answer the question. Repository-wide reports and mutation runs are expensive and should not block a faster relevant feedback loop.
+
+Mutation is the most expensive quality tool. Run it only when test effectiveness needs deeper inspection, and target one changed source module. Use the survivors to improve that module or its tests, then repeat the same scoped run until the result is clean. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
 
 CRAP coverage and tool reports live under `reports/quality-tools/`.
 
@@ -56,12 +58,12 @@ Run these commands with an active Node.js LTS release. `@poleski/quality-tools` 
 
 ## Workflow
 
-For a behavior change:
+Choose the steps that fit the change:
 
-1. Run `organize`, `boundaries`, and `reachability` on the owning package or feature seam.
-2. Add or update behavior tests.
-3. Run mutation testing on the changed source module.
-4. Run CRAP on the changed package or subtree and SCRAP on the affected tests.
-5. Run `pnpm run organize -- .` as an advisory repository scan.
+1. Add or update the smallest behavior test that proves the change.
+2. Run the relevant quality tool against the changed file, tests, or feature seam.
+3. Inspect its report and make one focused correction.
+4. Repeat the same scoped command until it reports a clean result or identifies a deliberate exception.
+5. Use a broader advisory scan only when the change or investigation needs repository-wide context.
 
 CodeGraphy keeps thin monorepo wrappers and configuration. The reusable analyzers stay in `@poleski/quality-tools`.

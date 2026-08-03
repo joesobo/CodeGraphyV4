@@ -23,6 +23,8 @@ pnpm --filter @codegraphy-dev/extension run build:vscode
 pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "Vue example"
 ```
 
+The complete Playwright suite takes long enough to interrupt normal iteration. Prefer focused Vitest coverage when it proves the changed behavior. Run one focused Playwright scenario when the change depends on the built browser or VS Code host. Push checkpoints so CI can run the complete suite while other useful work continues; do not wait for CI when the branch still has independent work available. Check the pull request periodically and correct failures before later changes drift far from the last green checkpoint.
+
 Do not debug Graph View acceptance behavior from a raw Playwright command against stale output. `test:vscode` regenerates acceptance specs and rebuilds the extension first; a direct `playwright test --config playwright.vscode.config.ts` does not. If you need to use the direct command while iterating, run `build:vscode` immediately before it.
 
 On macOS, the acceptance launcher must use the mock keychain path. The launcher in `tests/acceptance/graphView/vscode.ts` owns the VS Code arguments, including `--use-inmemory-secretstorage`, `--use-mock-keychain`, and a short `/tmp` temp base for VS Code IPC sockets. If a "Keychain Not Found" / "Code Key" modal appears, fix the launcher path instead of continuing through the modal.

@@ -23,6 +23,7 @@ The root [quality.config.json](../../quality.config.json) defines mutation scope
 
 Operational notes:
 
+- Mutation testing is not a routine completion gate. Use it when a changed module needs stronger evidence that its tests detect faults.
 - Mutation testing is a local development tool and does not run in CI. Local mutation commands require one explicit source file.
 - Root `pnpm run mutate` is a CodeGraphy wrapper that resolves package and test scope, then delegates to the generic `@poleski/quality-tools` mutation runner.
 - Stryker stores incremental reports under `reports/quality-tools/mutation/` in the current checkout. Repeated runs of the same target can reuse unaffected mutant results from that local report.
@@ -31,4 +32,4 @@ Operational notes:
 - The mutation runner prints a progress heartbeat every 60 seconds while Stryker is still running.
 - Extension mutation defaults to two Stryker workers and reuses Vitest runners instead of restarting one after every mutant. Override with `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` when debugging runner isolation.
 - Mutation targets run directly through Stryker incremental mode without a separate typecheck preflight. Pass `--force` to rerun the mutants in scope.
-- Run mutation only for the changed source module.
+- Run mutation only for one changed source module. Inspect its survivors, improve the code or tests, then rerun that same target until the result is clean.
