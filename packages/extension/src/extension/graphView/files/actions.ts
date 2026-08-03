@@ -58,7 +58,8 @@ export async function createGraphViewFile(
   if (!handlers.workspaceFolder) return undefined;
 
   const fileName = await handlers.showInputBox({
-    prompt: 'Enter file name',
+    title: 'New File',
+    prompt: directory === '.' ? '/' : `${directory}/`,
     placeHolder: 'newfile.ts',
     ignoreFocusOut: true,
   });
@@ -87,7 +88,8 @@ export async function createGraphViewFolder(
   if (!handlers.workspaceFolder) return undefined;
 
   const folderName = await handlers.showInputBox({
-    prompt: 'Enter folder name',
+    title: 'New Folder',
+    prompt: directory === '.' ? '/' : `${directory}/`,
     placeHolder: 'new-folder',
     ignoreFocusOut: true,
   });
