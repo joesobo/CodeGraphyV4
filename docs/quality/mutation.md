@@ -1,34 +1,36 @@
 # Mutation
 
-Mutation testing measures whether tests detect intentional small faults.
+Mutation testing injects small faults into one source file and measures whether the tests detect them.
 
-Current standards:
+CodeGraphy uses these thresholds:
 
 - overall score `>= 90%`
 - warning below `80%`
-- per-file mutation sites `<= 50`
+- mutation sites per file `<= 50`
 
-Examples:
+## Run one file
+
+Pass a repository-relative path:
 
 ```bash
-pnpm run mutate -- extension src/webview/components/nodeTooltip/formatters.ts
 pnpm run mutate -- extension/src/webview/components/nodeTooltip/formatters.ts
 ```
 
-Mutation requires one source module. Bare repository, package, and directory targets are intentionally invalid.
+You can also pass a package and a package-relative path:
 
-Scoped file calls can either use a repo-relative path or `PACKAGE FILE`. The `PACKAGE FILE` form resolves the file inside the package before delegating to the generic mutation runner.
+```bash
+pnpm run mutate -- extension src/webview/components/nodeTooltip/formatters.ts
+```
 
-The root [quality.config.json](../../quality.config.json) defines mutation scope. `@poleski/quality-tools` provides generic Stryker orchestration. CodeGraphy keeps the monorepo wrapper and Vitest scope wiring in `scripts/mutation/`, `stryker.config.cjs`, `stryker.extension.config.cjs`, and `packages/extension/vitest.config.ts`.
+The command rejects repository, package, and directory targets.
 
-Operational notes:
+## Use the report
 
-- Mutation testing is a local development tool and does not run in CI. Local mutation commands require one explicit source file.
-- Root `pnpm run mutate` is a CodeGraphy wrapper that resolves package and test scope, then delegates to the generic `@poleski/quality-tools` mutation runner.
-- Stryker stores incremental reports under `reports/quality-tools/mutation/` in the current checkout. Repeated runs of the same target can reuse unaffected mutant results from that local report.
-- The extension package uses a longer Stryker dry-run timeout because its initial instrumented Vitest startup is materially slower than a normal test run.
-- The CI unit-test matrix does not automatically speed up mutation runs. Stryker launches its own Vitest runner, so local mutation speed comes from scoped targets, focused test includes, and target-specific incremental reports under `reports/quality-tools/mutation/`.
-- The mutation runner prints a progress heartbeat every 60 seconds while Stryker is still running.
-- Extension mutation defaults to two Stryker workers and reuses Vitest runners instead of restarting one after every mutant. Override with `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` when debugging runner isolation.
-- Mutation targets run directly through Stryker incremental mode without a separate typecheck preflight. Pass `--force` to rerun the mutants in scope.
-- Run mutation only for the changed source module.
+1. Run mutation against one changed source file.
+2. Inspect each survivor.
+3. Improve the source code or its tests.
+4. Run the same file again until the report is clean.
+
+Mutation runs on a developer machine and does not run in CI. Stryker stores incremental reports under `reports/quality-tools/mutation/`, so another run can reuse results that the change did not affect. Pass `--force` to rerun all mutants for the file.
+
+Stryker uses its own Vitest runner. CI test groups do not shorten a mutation run. The command prints a progress update every 60 seconds.

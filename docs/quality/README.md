@@ -1,67 +1,44 @@
 # Quality Tools
 
-CodeGraphy uses six complementary quality checks:
+Use a quality tool when its signal matches the risk in the change.
 
-- `Organize`: directory structure, file naming, and cohesion analysis
-- `Boundaries`: dependency-layer sources and runtime/package boundary enforcement
-- `Reachability`: dead surfaces and dead ends inside a configured file graph
-- `CRAP`: production-code complexity and coverage risk
-- `Mutation`: test effectiveness against injected faults
-- `SCRAP`: test-structure quality and refactor guidance
+| Tool | Signal |
+|---|---|
+| `organize` | Directory structure, file naming, and cohesion |
+| `boundaries` | Dependency layers and package boundaries |
+| `reachability` | Dead surfaces and dead ends |
+| `crap` | Complexity and coverage risk |
+| `scrap` | Test structure and refactor opportunities |
+| `mutate` | Whether tests detect injected faults |
 
-The root commands are path-first:
+## Run a scoped check
+
+Pass the narrowest path that can answer the question:
 
 ```bash
-pnpm run organize -- .
-pnpm run boundaries -- . --strict
-pnpm run reachability -- . --strict
-pnpm run crap -- .
-pnpm run scrap -- .
+pnpm run organize -- extension/src/webview/
+pnpm run boundaries -- extension/src/webview/ --strict
+pnpm run reachability -- extension/src/webview/ --strict
+pnpm run crap -- extension/src/webview/
+pnpm run scrap -- extension/tests/webview/
+```
 
-pnpm run boundaries -- extension/
-pnpm run reachability -- extension/ --strict
-pnpm run organize -- extension/
-pnpm run crap -- extension/
-pnpm run scrap -- extension/
+`organize` accepts a repository, package, or directory. `boundaries`, `reachability`, and `crap` also accept a file. `scrap` accepts a package, test directory, or test file.
 
-# Mutation must target one source module at a time.
+Repository scans can interrupt the development loop. Use them when the change needs repository-wide context.
+
+## Mutation
+
+Mutation testing has the highest run cost. Use it when a changed source file needs stronger evidence that its tests detect faults. The command requires one source file:
+
+```bash
 pnpm run mutate -- extension/src/extension/repoSettings/freshness/model.ts
 ```
 
-Targets can be:
+See the [mutation guide](./mutation.md) for the run loop.
 
-- the repo root `.` for a monorepo-wide configured-source sweep
-- a package shorthand like `extension/` or `extension/src/webview/`
-- a package-relative file or directory under `packages/...`
-- a specific file path
-
-Current command expectations:
-
-- `organize` can inspect the repo root, a package root, or a narrower directory with `pnpm run organize -- <target>`
-- `boundaries` can inspect the repo root, a package root, or a specific file or directory
-- `reachability` can inspect the repo root, a package root, or a specific file or directory
-- `crap` can inspect the repo root, a package root, or a specific file or directory
-- `mutate` requires one source module at a time; a bare repository or package run is invalid
-- `scrap` works best on package roots and test files/directories
-
-Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
+## Reports and runtime
 
 CRAP coverage and tool reports live under `reports/quality-tools/`.
 
-Implementation now lives in the external `@poleski/quality-tools` package.
-
-Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
-
-Run these commands with an active Node.js LTS release. `@poleski/quality-tools` requires Node 22.22.0 or newer.
-
-## Workflow
-
-For a behavior change:
-
-1. Run `organize`, `boundaries`, and `reachability` on the owning package or feature seam.
-2. Add or update behavior tests.
-3. Run mutation testing on the changed source module.
-4. Run CRAP on the changed package or subtree and SCRAP on the affected tests.
-5. Run `pnpm run organize -- .` as an advisory repository scan.
-
-CodeGraphy keeps thin monorepo wrappers and configuration. The reusable analyzers stay in `@poleski/quality-tools`.
+Use Node.js 22.22.0 or newer. The external `@poleski/quality-tools` package owns the analyzers; CodeGraphy owns the monorepo commands and configuration.
