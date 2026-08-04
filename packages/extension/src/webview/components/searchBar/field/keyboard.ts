@@ -14,6 +14,12 @@ export interface SearchKeyboardContext {
   toggleOption: (key: keyof SearchOptions) => void;
 }
 
+interface SearchKeyEvent {
+  key: string;
+  preventDefault(): void;
+  stopPropagation(): void;
+}
+
 /** Handles Ctrl/Cmd+F to focus and select the search input. */
 export function handleFocusShortcut(
   event: KeyboardEvent,
@@ -30,12 +36,13 @@ export function handleFocusShortcut(
 
 /** Handles Escape to clear search and blur the input. */
 export function handleEscapeKey(
-  event: KeyboardEvent,
+  event: SearchKeyEvent,
   inputRef: RefObject<HTMLInputElement | null>,
   onChange: (value: string) => void
 ): boolean {
   if (event.key === 'Escape' && document.activeElement === inputRef.current) {
     event.preventDefault();
+    event.stopPropagation();
     onChange('');
     inputRef.current?.blur();
     return true;

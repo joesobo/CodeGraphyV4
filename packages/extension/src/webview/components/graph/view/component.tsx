@@ -26,6 +26,7 @@ import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphViewContributions } from '../../../pluginHost/useGraphViewContributions';
 import { useGraphAppearance } from '../appearance/use';
+import type { GraphStageEscapeBridge } from '../../../app/shell/escape/graphStage';
 
 interface GraphProps {
   data: IGraphData;
@@ -36,6 +37,7 @@ interface GraphProps {
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
   workspaceName?: string;
+  graphStageEscapeBridge?: GraphStageEscapeBridge;
 }
 
 function hasGraphViewContributions(
@@ -62,6 +64,7 @@ export default function Graph({
   onAddLegendRequested = () => {},
   pluginHost,
   workspaceName = readGraphWorkspaceName(globalThis.document),
+  graphStageEscapeBridge,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const legends = useGraphLegends();
@@ -138,6 +141,7 @@ export default function Graph({
       graphDataLayoutKey={graphDataLayoutKey}
       graphState={graphRuntime}
       graphViewContributions={graphViewContributions}
+      graphStageEscapeBridge={graphStageEscapeBridge}
       handleEngineStop={handleEngineStop}
       interactions={interactions}
       pluginHost={pluginHost}

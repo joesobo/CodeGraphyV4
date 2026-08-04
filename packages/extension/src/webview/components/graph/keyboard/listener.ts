@@ -19,7 +19,10 @@ export interface GraphKeyboardListenerOptions {
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
-  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+  if (!(target instanceof HTMLElement)) return false;
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return true;
+  const contentEditable = target.closest<HTMLElement>('[contenteditable]');
+  return contentEditable?.getAttribute('contenteditable') !== 'false' && contentEditable !== null;
 }
 
 export function createGraphKeyboardListener({
