@@ -76,7 +76,8 @@ describe('graphView/files/actions', () => {
     });
 
     expect(showInputBox).toHaveBeenCalledWith({
-      prompt: 'Enter file name',
+      title: 'New File',
+      prompt: 'src/',
       placeHolder: 'newfile.ts',
       ignoreFocusOut: true,
     });
@@ -99,6 +100,19 @@ describe('graphView/files/actions', () => {
     });
 
     expect(showErrorMessage).toHaveBeenCalledWith('Failed to create file: disk full');
+  });
+
+  it('shows the workspace-root breadcrumb when creating a file', async () => {
+    const showInputBox = vi.fn(async () => undefined);
+
+    await createGraphViewFile('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeCreateAction: vi.fn(),
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).toHaveBeenCalledWith(expect.objectContaining({ prompt: '/' }));
   });
 
   it('creates files in the workspace root without prefixing the current directory', async () => {
@@ -214,7 +228,8 @@ describe('graphView/files/actions', () => {
     });
 
     expect(showInputBox).toHaveBeenCalledWith({
-      prompt: 'Enter folder name',
+      title: 'New Folder',
+      prompt: 'src/',
       placeHolder: 'new-folder',
       ignoreFocusOut: true,
     });
@@ -222,6 +237,19 @@ describe('graphView/files/actions', () => {
       'src/components',
       vscode.Uri.file('/workspace'),
     );
+  });
+
+  it('shows the workspace-root breadcrumb when creating a folder', async () => {
+    const showInputBox = vi.fn(async () => undefined);
+
+    await createGraphViewFolder('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeCreateFolderAction: vi.fn(),
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).toHaveBeenCalledWith(expect.objectContaining({ prompt: '/' }));
   });
 
   it('creates nested folders below the selected directory', async () => {
