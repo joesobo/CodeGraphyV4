@@ -26,44 +26,77 @@ export async function refreshChangedFilesForFacade(
     return EMPTY_REFRESH_GRAPH;
   }
 
-  const discoveryResult = await getChangedFileDiscoveryState(facade, input, workspaceRoot);
-  return refreshWorkspacePipelineChangedFiles(createWorkspaceIndexRefreshSource(
-    facade,
-    input.disabledPlugins,
-  ), {
-    deferMetricOnlyIndexMetadata: true,
-    disabledPlugins: input.disabledPlugins,
-    discoveredDirectories: discoveryResult.directories,
-    discoveredFiles: discoveryResult.files,
-    filePaths: input.filePaths,
-    filterPatterns: input.filterPatterns,
-    fullRefreshFallback: 'reject',
-    notifyFilesChanged: (
-      files,
-      root,
-      analysisContext,
-      nextDisabledPlugins = input.disabledPlugins,
-    ) =>
-      facade._registry.notifyFilesChanged(
+  const snapshot = captureRefreshFacadeState(facade);
+  try {
+    const discoveryResult = await getChangedFileDiscoveryState(facade, input, workspaceRoot);
+    return await refreshWorkspacePipelineChangedFiles(createWorkspaceIndexRefreshSource(
+      facade,
+      input.disabledPlugins,
+    ), {
+      deferMetricOnlyIndexMetadata: true,
+      disabledPlugins: input.disabledPlugins,
+      discoveredDirectories: discoveryResult.directories,
+      discoveredFiles: discoveryResult.files,
+      filePaths: input.filePaths,
+      filterPatterns: input.filterPatterns,
+      fullRefreshFallback: 'reject',
+      notifyFilesChanged: (
         files,
         root,
         analysisContext,
-        nextDisabledPlugins,
-      ),
-    onDeferredIndexMetadataError: error => {
-      console.warn('[CodeGraphy] Failed to persist metric-only refresh metadata.', error);
-    },
-    onProgress: input.onProgress,
-    persistCache: () => {
-      facade._persistCache();
-    },
-    persistCachePatch: patch => facade._persistCachePatch(patch),
-    persistIndexMetadata: async () => {
-      await facade._persistIndexMetadata();
-    },
-    signal: input.signal,
-    workspaceRoot,
+        nextDisabledPlugins = input.disabledPlugins,
+      ) =>
+        facade._registry.notifyFilesChanged(
+          files,
+          root,
+          analysisContext,
+          nextDisabledPlugins,
+        ),
+      onDeferredIndexMetadataError: error => {
+        console.warn('[CodeGraphy] Failed to persist metric-only refresh metadata.', error);
+      },
+      onProgress: input.onProgress,
+      persistCache: () => {
+        facade._persistCache();
+      },
+      persistCachePatch: patch => facade._persistCachePatch(patch),
+      persistIndexMetadata: async resolvedChangedFilePaths => {
+        await facade._persistIndexMetadata(resolvedChangedFilePaths);
+      },
+      signal: input.signal,
+      workspaceRoot,
+    });
+  } catch (error) {
+    restoreRefreshFacadeState(facade, snapshot);
+    throw error;
+  }
+}
+
+function captureRefreshFacadeState(facade: RefreshFacadeContext) {
+  return structuredClone({
+    cache: facade._cache,
+    discoveredDirectories: facade._lastDiscoveredDirectories,
+    discoveredFiles: facade._lastDiscoveredFiles,
+    fileAnalysis: facade._lastFileAnalysis,
+    fileConnections: facade._lastFileConnections,
+    gitIgnoredPaths: facade._lastGitIgnoredPaths,
+    graphData: facade._lastGraphData,
+    workspaceRoot: facade._lastWorkspaceRoot,
   });
+}
+
+function restoreRefreshFacadeState(
+  facade: RefreshFacadeContext,
+  snapshot: ReturnType<typeof captureRefreshFacadeState>,
+): void {
+  facade._cache = snapshot.cache;
+  facade._lastDiscoveredDirectories = snapshot.discoveredDirectories;
+  facade._lastDiscoveredFiles = snapshot.discoveredFiles;
+  facade._lastFileAnalysis = snapshot.fileAnalysis;
+  facade._lastFileConnections = snapshot.fileConnections;
+  facade._lastGitIgnoredPaths = snapshot.gitIgnoredPaths;
+  facade._lastGraphData = snapshot.graphData;
+  facade._lastWorkspaceRoot = snapshot.workspaceRoot;
 }
 
 async function getChangedFileDiscoveryState(

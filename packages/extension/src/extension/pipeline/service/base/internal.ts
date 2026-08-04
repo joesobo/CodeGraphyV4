@@ -242,9 +242,11 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     );
   }
 
-  protected async _persistIndexMetadata(): Promise<void> {
+  protected async _persistIndexMetadata(
+    resolvedChangedFilePaths?: readonly string[],
+  ): Promise<void> {
     const workspaceRoot = this._getWorkspaceRoot();
-    await persistWorkspacePipelineIndexMetadata(workspaceRoot, {
+    const dependencies = {
       getCurrentCommitSha: () =>
         workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
       getPluginSignature: () => this._getPluginSignature(),
@@ -253,7 +255,16 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       warn: (message: string, error: unknown) => {
         console.warn(message, error);
       },
-    });
+    };
+    if (resolvedChangedFilePaths === undefined) {
+      await persistWorkspacePipelineIndexMetadata(workspaceRoot, dependencies);
+    } else {
+      await persistWorkspacePipelineIndexMetadata(
+        workspaceRoot,
+        dependencies,
+        resolvedChangedFilePaths,
+      );
+    }
   }
 
   protected _persistCache(): void {

@@ -17,7 +17,9 @@ export interface WorkspaceIndexFileAnalysisOptions {
 
 export interface WorkspaceIndexCachePatch {
   deleteFilePaths: readonly string[];
+  deleteNodeIds?: readonly string[];
   upsertFilePaths: readonly string[];
+  upsertNodeIds?: readonly string[];
   graph?: IGraphData;
 }
 
@@ -91,7 +93,7 @@ export interface WorkspaceIndexRefreshDependencies {
   onDeferredIndexMetadataError?(error: unknown): void;
   persistCache(): void | Promise<void>;
   persistCachePatch?(patch: WorkspaceIndexCachePatch): void | Promise<void>;
-  persistIndexMetadata(): Promise<void>;
+  persistIndexMetadata(resolvedChangedFilePaths?: readonly string[]): Promise<void>;
   signal?: AbortSignal;
   workspaceRoot: string;
 }
@@ -102,7 +104,7 @@ export interface WorkspaceIndexAnalysisScopeRefreshDependencies {
   discoveredFiles: IDiscoveredFile[];
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   persistCache(): void | Promise<void>;
-  persistIndexMetadata(): Promise<void>;
+  persistIndexMetadata(resolvedChangedFilePaths?: readonly string[]): Promise<void>;
   signal?: AbortSignal;
   workspaceRoot: string;
 }

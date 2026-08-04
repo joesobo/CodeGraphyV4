@@ -45,6 +45,9 @@ export class GraphViewProviderRuntime {
   protected _analysisController?: AbortController;
   protected _analysisRequestId!: number;
   private readonly _viewRegistry: ViewRegistry;
+  private _workspaceFileUpdateHandler?: (
+    filePaths: readonly string[],
+  ) => Promise<void>;
   protected _depthMode!: boolean;
   protected _nodeSizeMode!: NodeSizeMode;
   protected _rawGraphData!: IGraphData;
@@ -130,6 +133,22 @@ export class GraphViewProviderRuntime {
 
   public setInstalledPluginActivationPromise(promise: Promise<void>): void {
     this._installedPluginActivationPromise = promise;
+  }
+
+  public setWorkspaceFileUpdateHandler(
+    handler: (filePaths: readonly string[]) => Promise<void>,
+  ): void {
+    this._workspaceFileUpdateHandler = handler;
+  }
+
+  public updateWorkspaceFilesImmediately(filePaths: readonly string[]): Promise<void> {
+    return this._workspaceFileUpdateHandler
+      ? this._workspaceFileUpdateHandler(filePaths)
+      : this._methodContainers.analysis._updateChangedFilesAndSendData(filePaths);
+  }
+
+  public shouldObserveWorkspacePath(filePath: string): boolean {
+    return this._analyzer?.shouldObserveWorkspacePath(filePath, this._disabledPlugins) ?? true;
   }
 
   public isGraphOpen(): boolean {

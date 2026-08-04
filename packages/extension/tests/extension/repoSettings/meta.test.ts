@@ -3,6 +3,11 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  createDefaultCodeGraphyWorkspaceMeta,
+  readCodeGraphyWorkspaceMeta,
+  writeCodeGraphyWorkspaceMeta,
+} from '@codegraphy-dev/core';
+import {
   createDefaultCodeGraphyRepoMeta,
   getCodeGraphyRepoMetaPath,
   readCodeGraphyRepoMeta,
@@ -65,10 +70,32 @@ describe('extension/repoSettings/meta', () => {
     writeCodeGraphyRepoMeta(workspaceRoot, meta);
 
     expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(true);
-    expect(fs.readFileSync(getCodeGraphyRepoMetaPath(workspaceRoot), 'utf8')).toBe(
-      `${JSON.stringify(meta, null, 2)}\n`,
-    );
+    expect(JSON.parse(fs.readFileSync(
+      getCodeGraphyRepoMetaPath(workspaceRoot),
+      'utf8',
+    ))).toMatchObject(meta);
     expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual(meta);
+  });
+
+  it('preserves Core-owned fields when extension metadata is updated', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...createDefaultCodeGraphyWorkspaceMeta(),
+      analysisVersion: 'analysis-v2',
+      failedPluginIds: ['acme.failed'],
+    });
+
+    writeCodeGraphyRepoMeta(workspaceRoot, {
+      ...createDefaultCodeGraphyRepoMeta(),
+      lastIndexedCommit: 'abc123',
+    });
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toMatchObject({
+      analysisVersion: 'analysis-v2',
+      failedPluginIds: ['acme.failed'],
+      lastIndexedCommit: 'abc123',
+    });
   });
 
   it('merges partial persisted meta with the default fields', () => {

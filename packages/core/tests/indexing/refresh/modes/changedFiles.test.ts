@@ -156,12 +156,15 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(source._lastDiscoveredDirectories).toEqual(['src', 'src/new-folder']);
     expect(persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: [],
+      deleteNodeIds: [],
       upsertFilePaths: [],
+      upsertNodeIds: ['src/new-folder'],
       graph: result,
     });
   });
 
   it('removes structural directory facts without running full analysis', async () => {
+    const persistCachePatch = vi.fn();
     const source = createSource({
       _lastDiscoveredDirectories: ['src', 'src/old-folder'],
       _lastFileAnalysis: new Map(),
@@ -178,12 +181,20 @@ describe('indexing/refresh/modes/changedFiles', () => {
       discoveredFiles: [createDiscoveredFile('src/app.ts')],
       filePaths: ['/workspace/src/old-folder'],
       fullRefreshFallback: 'reject',
+      persistCachePatch,
     }));
 
     expect(result.nodes).not.toContainEqual(createGraphNode('src/old-folder'));
     expect(source.analyze).not.toHaveBeenCalled();
     expect(source._analyzeFiles).not.toHaveBeenCalled();
     expect(source._lastDiscoveredDirectories).toEqual(['src']);
+    expect(persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: [],
+      deleteNodeIds: ['src/old-folder'],
+      upsertFilePaths: [],
+      upsertNodeIds: [],
+      graph: result,
+    });
   });
 
   it('does not require an incremental progress callback', async () => {
@@ -260,7 +271,9 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(persistCachePatch).toHaveBeenCalledOnce();
     expect(persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: [],
+      deleteNodeIds: [],
       upsertFilePaths: ['src/app.ts'],
+      upsertNodeIds: [],
       graph: expect.any(Object),
     });
     expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts'], {
@@ -326,7 +339,9 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(persistCachePatch).toHaveBeenCalledOnce();
     expect(persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: ['src/deleted.ts'],
+      deleteNodeIds: [],
       upsertFilePaths: [],
+      upsertNodeIds: [],
       graph: expect.any(Object),
     });
     expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/deleted.ts'], {

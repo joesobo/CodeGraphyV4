@@ -116,6 +116,7 @@ export { createAbortError, throwIfAborted } from './discovery/abort';
 export { FileDiscovery } from './discovery/file/service';
 export {
   DEFAULT_EXCLUDE,
+  isDefaultExcludedPath,
   matchesAnyPattern,
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,

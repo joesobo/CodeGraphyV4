@@ -26,6 +26,7 @@ export interface WorkspaceCacheUpdateSchedulerOptions {
 export interface WorkspaceCacheUpdateScheduler {
   dispose(): void;
   notify(filePaths: readonly string[]): void;
+  notifyImmediately(filePaths: readonly string[]): Promise<void>;
 }
 
 class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateScheduler {
@@ -34,22 +35,41 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
   private debounceTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
   private maxBatchAgeTimer: ReturnType<typeof setTimeout> | undefined;
+  private nextRevision = 0;
+  private pendingRevision = 0;
+  private pendingImmediateUpdate = false;
+  private readonly immediateFilePathRevisions = new Map<string, number>();
   private readonly pendingFilePaths = new Set<string>();
+  private readonly revisionWaiters: Array<{
+    reject(error: unknown): void;
+    resolve(): void;
+    revision: number;
+  }> = [];
 
   constructor(private readonly options: WorkspaceCacheUpdateSchedulerOptions) {}
 
   notify(filePaths: readonly string[]): void {
-    if (this.disposed || !this.options.hasGraphCache()) {
-      return;
-    }
-    for (const filePath of filePaths) {
-      this.pendingFilePaths.add(filePath);
-    }
-    if (this.pendingFilePaths.size === 0) {
-      return;
-    }
+    const ambientPaths = filePaths.filter(
+      filePath => !this.immediateFilePathRevisions.has(filePath),
+    );
+    if (this.enqueue(ambientPaths) === undefined) return;
     this.options.onStatus(createQueuedStatus(this.pendingFilePaths.size));
     this.schedule();
+  }
+
+  notifyImmediately(filePaths: readonly string[]): Promise<void> {
+    const revision = this.enqueue(filePaths);
+    if (revision === undefined) return Promise.resolve();
+    this.pendingImmediateUpdate = true;
+    for (const filePath of filePaths) {
+      this.immediateFilePathRevisions.set(filePath, revision);
+    }
+    this.options.onStatus(createQueuedStatus(this.pendingFilePaths.size));
+    this.clearTimers();
+    this.startUpdate();
+    return new Promise<void>((resolve, reject) => {
+      this.revisionWaiters.push({ reject, resolve, revision });
+    });
   }
 
   dispose(): void {
@@ -58,8 +78,22 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
     }
     this.disposed = true;
     this.pendingFilePaths.clear();
+    this.immediateFilePathRevisions.clear();
     this.clearTimers();
     this.activeController?.abort();
+    this.rejectWaiters(Number.POSITIVE_INFINITY, new Error('Workspace cache updater disposed.'));
+  }
+
+  private enqueue(filePaths: readonly string[]): number | undefined {
+    if (this.disposed || !this.options.hasGraphCache() || filePaths.length === 0) {
+      return undefined;
+    }
+    const revision = ++this.nextRevision;
+    this.pendingRevision = revision;
+    for (const filePath of filePaths) {
+      this.pendingFilePaths.add(filePath);
+    }
+    return revision;
   }
 
   private schedule(): void {
@@ -82,7 +116,9 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
     }
     this.clearTimers();
     const filePaths: string[] = [...this.pendingFilePaths];
+    const revision = this.pendingRevision;
     this.pendingFilePaths.clear();
+    this.pendingImmediateUpdate = false;
     const controller = new AbortController();
     this.activeController = controller;
     this.options.onStatus(createUpdatingStatus(filePaths.length));
@@ -93,6 +129,8 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
     );
     void this.activeUpdate
       .then(() => {
+        this.resolveWaiters(revision);
+        this.releaseImmediatePaths(revision);
         if (!this.disposed && this.pendingFilePaths.size === 0) {
           this.options.onStatus({
             state: 'idle',
@@ -103,6 +141,8 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
       })
       .catch((error: unknown) => {
         if (!this.disposed && !controller.signal.aborted) {
+          this.rejectWaiters(revision, error);
+          this.releaseImmediatePaths(revision);
           this.options.onError?.(error, filePaths);
           this.options.onStatus({
             state: 'error',
@@ -118,9 +158,41 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
         }
         if (!this.disposed && this.pendingFilePaths.size > 0) {
           this.options.onStatus(createQueuedStatus(this.pendingFilePaths.size));
-          this.schedule();
+          if (this.pendingImmediateUpdate) {
+            this.startUpdate();
+          } else {
+            this.schedule();
+          }
         }
       });
+  }
+
+  private resolveWaiters(revision: number): void {
+    for (let index = this.revisionWaiters.length - 1; index >= 0; index -= 1) {
+      const waiter = this.revisionWaiters[index];
+      if (waiter && waiter.revision <= revision) {
+        this.revisionWaiters.splice(index, 1);
+        waiter.resolve();
+      }
+    }
+  }
+
+  private rejectWaiters(revision: number, error: unknown): void {
+    for (let index = this.revisionWaiters.length - 1; index >= 0; index -= 1) {
+      const waiter = this.revisionWaiters[index];
+      if (waiter && waiter.revision <= revision) {
+        this.revisionWaiters.splice(index, 1);
+        waiter.reject(error);
+      }
+    }
+  }
+
+  private releaseImmediatePaths(revision: number): void {
+    setTimeout(() => {
+      for (const [filePath, pathRevision] of this.immediateFilePathRevisions) {
+        if (pathRevision <= revision) this.immediateFilePathRevisions.delete(filePath);
+      }
+    }, this.options.debounceMs);
   }
 
   private reportProgress(

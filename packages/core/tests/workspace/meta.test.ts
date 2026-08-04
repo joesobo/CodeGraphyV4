@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   createDefaultCodeGraphyWorkspaceMeta,
   markCodeGraphyWorkspaceChangesPending,
+  persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
   writeCodeGraphyWorkspaceMeta,
 } from '../../src/workspace/meta';
@@ -34,6 +35,7 @@ describe('workspace/meta', () => {
     const meta = {
       version: 1 as const,
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
+      lastIndexedCommit: 'abc123',
       pluginSignature: 'codegraphy.markdown@1.0.0',
       pluginBuildSignature: 'plugin-build-sha',
       settingsSignature: 'settings-sha',
@@ -54,6 +56,7 @@ describe('workspace/meta', () => {
       analysisVersion: 'analysis-v2',
       failedPluginIds: ['acme.failed'],
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
+      lastIndexedCommit: 'abc123',
       pendingChangedFiles: ['src/existing.ts'],
       pluginBuildSignature: 'plugin-build-sha',
     };
@@ -67,6 +70,28 @@ describe('workspace/meta', () => {
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual({
       ...meta,
       pendingChangedFiles: ['src/existing.ts', 'src/changed.ts'],
+    });
+  });
+
+  it('clears only resolved pending paths while preserving shared metadata fields', () => {
+    const workspaceRoot = createTempWorkspace();
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...createDefaultCodeGraphyWorkspaceMeta(),
+      failedPluginIds: ['acme.failed'],
+      lastIndexedCommit: 'abc123',
+      pendingChangedFiles: ['src/failed.ts', 'src/resolved.ts'],
+    });
+
+    persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
+      pluginSignature: 'plugins-sha',
+      settingsSignature: 'settings-sha',
+      resolvedChangedFilePaths: ['src/resolved.ts'],
+    });
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toMatchObject({
+      failedPluginIds: ['acme.failed'],
+      lastIndexedCommit: 'abc123',
+      pendingChangedFiles: ['src/failed.ts'],
     });
   });
 

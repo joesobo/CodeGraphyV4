@@ -74,6 +74,7 @@ export function persistWorkspaceIndexMetadata(input: {
   pluginBuildSignature: string | null;
   failedPluginIds: ReadonlySet<string>;
   settings: CodeGraphyWorkspaceSettings;
+  resolvedChangedFilePaths?: readonly string[];
   settingsPluginIds: ReadonlySet<string>;
   workspaceRoot: string;
 }): void {
@@ -81,6 +82,7 @@ export function persistWorkspaceIndexMetadata(input: {
     pluginSignature: input.pluginSignature,
     pluginBuildSignature: input.pluginBuildSignature,
     failedPluginIds: [...input.failedPluginIds].sort((left, right) => left.localeCompare(right)),
+    resolvedChangedFilePaths: input.resolvedChangedFilePaths,
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(
       input.settings,
       input.settingsPluginIds,

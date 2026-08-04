@@ -194,6 +194,41 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
   });
 
+  it('restores the last consistent facade state when a strict targeted refresh fails', async () => {
+    const originalCache = {
+      version: '1',
+      files: { 'src/a.ts': { mtime: 1 } },
+    } as never;
+    const facade = createFacade({ _cache: originalCache });
+    vi.mocked(getReusableChangedFileDiscoveryState).mockReturnValue(undefined);
+    vi.mocked(discoverRefreshWorkspaceFiles).mockResolvedValue({
+      config: {},
+      discoveryResult: {
+        directories: ['src', 'src/new'],
+        files: [createFile('src/new.ts')],
+        gitIgnoredPaths: ['new-ignore'],
+      },
+    } as never);
+    vi.mocked(refreshWorkspacePipelineChangedFiles).mockImplementation(async () => {
+      facade._cache = { version: 'mutated', files: {} } as never;
+      facade._lastFileAnalysis.set('src/new.ts', {} as never);
+      facade._lastGraphData = createGraph('mutated');
+      throw new Error('plugin requested full refresh');
+    });
+
+    await expect(refreshChangedFilesForFacade(facade, {
+      disabledPlugins: new Set(),
+      filePaths: ['src/new.ts'],
+      filterPatterns: [],
+    })).rejects.toThrow('plugin requested full refresh');
+
+    expect(facade._cache).toEqual(originalCache);
+    expect(facade._lastDiscoveredDirectories).toEqual(['src']);
+    expect(facade._lastFileAnalysis).toEqual(new Map());
+    expect(facade._lastGitIgnoredPaths).toEqual(['old-ignore']);
+    expect(facade._lastGraphData).toEqual(createGraph('last'));
+  });
+
   it('discovers workspace files when previous changed-file discovery cannot be reused', async () => {
     const graph = createGraph('discovered');
     const files = [createFile('src/new.ts')];

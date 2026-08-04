@@ -4,6 +4,8 @@ import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
   isInvalidDatabaseError,
+  executeStatementSync,
+  prepareStatementSync,
   runStatementSync,
   withConnection,
   withOwnedConnection,
@@ -42,7 +44,9 @@ export interface WorkspaceAnalysisDatabaseReplacement {
 
 export interface WorkspaceAnalysisDatabasePatch {
   deleteFilePaths?: readonly string[];
+  deleteNodeIds?: readonly string[];
   upsertFiles?: IWorkspaceAnalysisCache['files'];
+  upsertNodeIds?: readonly string[];
   graph?: IGraphData;
   nodeTypes?: readonly IPluginNodeType[];
 }
@@ -64,10 +68,12 @@ function pathBelongsToPatch(value: unknown, filePaths: ReadonlySet<string>): boo
 function selectGraphPatch(
   graph: IGraphData | undefined,
   filePaths: ReadonlySet<string>,
+  explicitNodeIds: ReadonlySet<string>,
 ): IGraphData | undefined {
   if (!graph) return undefined;
   const affectedNodeIds = new Set(graph.nodes.flatMap(node => (
-    pathBelongsToPatch(node.id, filePaths)
+    explicitNodeIds.has(node.id)
+    || pathBelongsToPatch(node.id, filePaths)
     || pathBelongsToPatch(node.symbol?.filePath, filePaths)
     || pathBelongsToPatch(node.metadata?.filePath, filePaths)
       ? [node.id]
@@ -167,11 +173,22 @@ function writeWorkspaceAnalysisDatabasePatch(
   const deleteFilePaths = [...new Set(patch.deleteFilePaths ?? [])]
     .filter(filePath => !(filePath in upsertFiles))
     .sort();
+  const deleteNodeIds = [...new Set(patch.deleteNodeIds ?? [])].sort();
+  const upsertNodeIds = new Set(patch.upsertNodeIds ?? []);
   const affectedFilePaths = new Set([...deleteFilePaths, ...upsertFilePaths]);
-  const graph = selectGraphPatch(patch.graph, affectedFilePaths);
+  const graph = selectGraphPatch(patch.graph, affectedFilePaths, upsertNodeIds);
 
   runTransactionSync(connection, () => {
     const writer = createWorkspaceAnalysisCachePatchWriter(connection);
+    if (deleteNodeIds.length > 0) {
+      const deleteNodeStatement = prepareStatementSync(
+        connection,
+        'DELETE FROM Node WHERE key = @nodeId',
+      );
+      for (const nodeId of deleteNodeIds) {
+        executeStatementSync(connection, deleteNodeStatement, { nodeId });
+      }
+    }
     for (const filePath of upsertFilePaths.sort()) {
       deleteAnalysisEntryNodes(writer, filePath);
     }

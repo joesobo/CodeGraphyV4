@@ -96,6 +96,55 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     scheduler.dispose();
   });
 
+  it('flushes direct Graph View mutations immediately and suppresses matching ambient events', async () => {
+    vi.useFakeTimers();
+    const update = vi.fn<WorkspaceCacheUpdateSchedulerOptions['update']>(async () => undefined);
+    const scheduler = createWorkspaceCacheUpdateScheduler({
+      debounceMs: 250,
+      hasGraphCache: () => true,
+      maxBatchAgeMs: 2_000,
+      onStatus: vi.fn(),
+      update,
+    });
+
+    const immediateUpdate = scheduler.notifyImmediately(['/workspace/src/new.ts']);
+    scheduler.notify(['/workspace/src/new.ts']);
+    await immediateUpdate;
+    await vi.advanceTimersByTimeAsync(250);
+
+    expect(update).toHaveBeenCalledOnce();
+    expect(update.mock.calls[0]?.[0]).toEqual(['/workspace/src/new.ts']);
+    scheduler.dispose();
+  });
+
+  it('starts an awaited direct update as soon as active work completes', async () => {
+    vi.useFakeTimers();
+    let finishFirstUpdate!: () => void;
+    const firstUpdateGate = new Promise<void>(resolve => {
+      finishFirstUpdate = resolve;
+    });
+    const update = vi.fn<WorkspaceCacheUpdateSchedulerOptions['update']>(async () => {
+      if (update.mock.calls.length === 1) await firstUpdateGate;
+    });
+    const scheduler = createWorkspaceCacheUpdateScheduler({
+      debounceMs: 250,
+      hasGraphCache: () => true,
+      maxBatchAgeMs: 2_000,
+      onStatus: vi.fn(),
+      update,
+    });
+
+    scheduler.notify(['/workspace/src/ambient.ts']);
+    await vi.advanceTimersByTimeAsync(250);
+    const immediateUpdate = scheduler.notifyImmediately(['/workspace/src/direct.ts']);
+    finishFirstUpdate();
+    await immediateUpdate;
+
+    expect(update).toHaveBeenCalledTimes(2);
+    expect(update.mock.calls[1]?.[0]).toEqual(['/workspace/src/direct.ts']);
+    scheduler.dispose();
+  });
+
   it('forces a continuously changing batch at its maximum age', async () => {
     vi.useFakeTimers();
     const update = vi.fn(async () => undefined);

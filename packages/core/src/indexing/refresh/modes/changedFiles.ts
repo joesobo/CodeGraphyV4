@@ -30,6 +30,10 @@ export async function refreshWorkspaceIndexChangedFiles(
   source: WorkspaceIndexRefreshSource,
   dependencies: WorkspaceIndexRefreshDependencies,
 ): Promise<IGraphData> {
+  const structuralPatch = selectWorkspaceDirectoryChanges(
+    source._lastDiscoveredDirectories,
+    dependencies.discoveredDirectories ?? [],
+  );
   const discoveredByRelativePath = mapDiscoveredWorkspaceIndexFilesByRelativePath(
     dependencies.discoveredFiles,
   );
@@ -88,7 +92,12 @@ export async function refreshWorkspaceIndexChangedFiles(
   retainWorkspaceIndexDiscoveredFileConnections(source, dependencies.discoveredFiles);
 
   if (filesToAnalyze.length === 0) {
-    return buildGraphWithoutChangedFileAnalysis(source, dependencies, deleteFilePaths);
+    return buildGraphWithoutChangedFileAnalysis(
+      source,
+      dependencies,
+      deleteFilePaths,
+      structuralPatch,
+    );
   }
 
   const graphSnapshot = captureWorkspaceIndexRefreshGraphSnapshot(source, filesToAnalyze);
@@ -119,11 +128,13 @@ export async function refreshWorkspaceIndexChangedFiles(
 
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
-  const canPatchMetrics = canPatchWorkspaceIndexRefreshGraphData(
-    graphSnapshot,
-    analysisResult,
-    filesToAnalyze,
-  ) && source._patchGraphDataNodeMetrics;
+  const canPatchMetrics = structuralPatch.deleteNodeIds.length === 0
+    && structuralPatch.upsertNodeIds.length === 0
+    && canPatchWorkspaceIndexRefreshGraphData(
+      graphSnapshot,
+      analysisResult,
+      filesToAnalyze,
+    ) && source._patchGraphDataNodeMetrics;
   const graphData = canPatchMetrics
     ? source._patchGraphDataNodeMetrics!(
         source._lastGraphData,
@@ -137,16 +148,30 @@ export async function refreshWorkspaceIndexChangedFiles(
   source._lastGraphData = graphData;
   await persistChangedFilesCachePatch(dependencies, {
     deleteFilePaths,
+    deleteNodeIds: structuralPatch.deleteNodeIds,
     upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
+    upsertNodeIds: structuralPatch.upsertNodeIds,
     graph: graphData,
   });
   if (canPatchMetrics) {
     await persistMetricOnlyIndexMetadata(dependencies);
   } else {
-    await dependencies.persistIndexMetadata();
+    await dependencies.persistIndexMetadata(dependencies.filePaths);
   }
 
   return graphData;
+}
+
+function selectWorkspaceDirectoryChanges(
+  previousDirectories: readonly string[],
+  nextDirectories: readonly string[],
+): { deleteNodeIds: string[]; upsertNodeIds: string[] } {
+  const previous = new Set(previousDirectories);
+  const next = new Set(nextDirectories);
+  return {
+    deleteNodeIds: [...previous].filter(directory => !next.has(directory)),
+    upsertNodeIds: [...next].filter(directory => !previous.has(directory)),
+  };
 }
 
 function analyzeWorkspaceIndexFromRefresh(

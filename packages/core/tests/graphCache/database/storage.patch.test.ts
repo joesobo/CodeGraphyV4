@@ -130,6 +130,55 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     });
   });
 
+  it('persists structural Folder Node creation and deletion without file patches', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const emptyCache = createEmptyWorkspaceAnalysisCache();
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, emptyCache, {
+      nodes: [
+        { id: 'src', label: 'src', nodeType: 'folder' },
+        { id: 'src/old-empty', label: 'old-empty', nodeType: 'folder' },
+      ],
+      edges: [{
+        id: 'src->src/old-empty#nests',
+        from: 'src',
+        to: 'src/old-empty',
+        kind: 'nests',
+        sources: [],
+      }],
+    });
+
+    patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      deleteNodeIds: ['src/old-empty'],
+      upsertNodeIds: ['src/new-empty'],
+      graph: {
+        nodes: [
+          { id: 'src', label: 'src', nodeType: 'folder' },
+          { id: 'src/new-empty', label: 'new-empty', nodeType: 'folder' },
+        ],
+        edges: [{
+          id: 'src->src/new-empty#nests',
+          from: 'src',
+          to: 'src/new-empty',
+          kind: 'nests',
+          sources: [],
+        }],
+      },
+    });
+
+    const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshot.graph.nodes.map(node => node.id).sort()).toEqual([
+      'src',
+      'src/new-empty',
+    ]);
+    expect(snapshot.graph.edges).toEqual([
+      expect.objectContaining({
+        from: 'src',
+        kind: 'nests',
+        to: 'src/new-empty',
+      }),
+    ]);
+  });
+
   it('falls back to an empty cache when the persisted database is unreadable', () => {
     const workspaceRoot = createWorkspaceRoot();
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);

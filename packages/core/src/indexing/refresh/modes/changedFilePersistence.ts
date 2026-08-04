@@ -6,7 +6,9 @@ export async function persistChangedFilesCachePatch(
   dependencies: WorkspaceIndexRefreshDependencies,
   patch: {
     deleteFilePaths: readonly string[];
+    deleteNodeIds?: readonly string[];
     upsertFilePaths: readonly string[];
+    upsertNodeIds?: readonly string[];
     graph: IGraphData;
   },
 ): Promise<void> {
@@ -21,6 +23,10 @@ export async function buildGraphWithoutChangedFileAnalysis(
   source: WorkspaceIndexRefreshSource,
   dependencies: WorkspaceIndexRefreshDependencies,
   deleteFilePaths: readonly string[],
+  structuralPatch: {
+    deleteNodeIds: readonly string[];
+    upsertNodeIds: readonly string[];
+  },
 ): Promise<IGraphData> {
   const graph = buildWorkspaceIndexGraphFromRefreshState(
     source,
@@ -29,17 +35,19 @@ export async function buildGraphWithoutChangedFileAnalysis(
   );
   await persistChangedFilesCachePatch(dependencies, {
     deleteFilePaths,
+    deleteNodeIds: structuralPatch.deleteNodeIds,
     upsertFilePaths: [],
+    upsertNodeIds: structuralPatch.upsertNodeIds,
     graph,
   });
-  await dependencies.persistIndexMetadata();
+  await dependencies.persistIndexMetadata(dependencies.filePaths);
   return graph;
 }
 
 export function persistMetricOnlyIndexMetadata(
   dependencies: WorkspaceIndexRefreshDependencies,
 ): Promise<void> | void {
-  const persistence = dependencies.persistIndexMetadata();
+  const persistence = dependencies.persistIndexMetadata(dependencies.filePaths);
   if (!dependencies.deferMetricOnlyIndexMetadata) return persistence;
   void persistence.catch(error => dependencies.onDeferredIndexMetadataError?.(error));
 }

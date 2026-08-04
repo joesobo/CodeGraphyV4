@@ -113,11 +113,28 @@ test('external workspace changes stay current while the Graph View is hidden', a
       { timeout: 15_000 },
     ).toEqual(expect.arrayContaining(['external-created.ts', 'external-folder']));
 
+    fs.renameSync(
+      path.join(context.workspacePath, 'external-created.ts'),
+      path.join(context.workspacePath, 'external-renamed.ts'),
+    );
+    fs.rmSync(path.join(context.workspacePath, 'external-folder'), { recursive: true });
+    await expect.poll(
+      () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
+        .map((node: { id: string }) => node.id),
+      { timeout: 15_000 },
+    ).toEqual(expect.not.arrayContaining(['external-created.ts', 'external-folder']));
+    await expect.poll(
+      () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
+        .map((node: { id: string }) => node.id),
+      { timeout: 15_000 },
+    ).toEqual(expect.arrayContaining(['external-renamed.ts']));
+
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);
     frame = requireGraphFrame(context);
-    await expect(graphNode(frame, 'external-created.ts')).toBeAttached({ timeout: 15_000 });
-    await expect(graphNode(frame, 'external-folder')).toBeAttached({ timeout: 15_000 });
+    await expect(graphNode(frame, 'external-renamed.ts')).toBeAttached({ timeout: 15_000 });
+    await expect(graphNode(frame, 'external-created.ts')).toHaveCount(0);
+    await expect(graphNode(frame, 'external-folder')).toHaveCount(0);
   } finally {
     await context.cleanup();
   }

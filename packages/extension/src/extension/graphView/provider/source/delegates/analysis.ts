@@ -39,7 +39,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
     _loadAndSendData: () => owner._methodContainers.analysis._loadAndSendData(),
     _refreshIndexStatus: () => owner._methodContainers.analysis._refreshIndexStatus(),
     _updateChangedFilesAndSendData: filePaths =>
-      owner._methodContainers.analysis._updateChangedFilesAndSendData(filePaths),
+      owner.updateWorkspaceFilesImmediately(filePaths),
     _indexAndSendData: () => owner._methodContainers.analysis._indexAndSendData(),
     _refreshAndSendData: () => owner._methodContainers.analysis._refreshAndSendData(),
     _doLoadAndSendData: (signal, requestId) =>

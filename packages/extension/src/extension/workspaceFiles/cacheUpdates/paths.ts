@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { isDefaultExcludedPath } from '@codegraphy-dev/core';
 
 export function collectWorkspaceCacheUpdatePaths(
   workspaceRoot: string,
@@ -18,6 +19,8 @@ export function collectWorkspaceCacheUpdatePaths(
       || normalizedPath.startsWith('../')
       || path.isAbsolute(relativePath)
       || isCodeGraphyGeneratedPath(normalizedPath)
+      || (normalizedPath !== '.codegraphy/settings.json'
+        && isDefaultExcludedPath(normalizedPath))
       || seenPaths.has(absolutePath)
     ) {
       continue;

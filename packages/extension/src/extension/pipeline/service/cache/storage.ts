@@ -12,7 +12,9 @@ import type { IPluginNodeType } from '@codegraphy-dev/plugin-api';
 
 export interface WorkspacePipelineCachePatch {
   deleteFilePaths: readonly string[];
+  deleteNodeIds?: readonly string[];
   upsertFilePaths: readonly string[];
+  upsertNodeIds?: readonly string[];
   graph?: IGraphData;
 }
 
@@ -71,7 +73,9 @@ export async function patchWorkspacePipelineCache(
   try {
     await patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
       deleteFilePaths: patch.deleteFilePaths,
+      ...(patch.deleteNodeIds ? { deleteNodeIds: patch.deleteNodeIds } : {}),
       upsertFiles,
+      ...(patch.upsertNodeIds ? { upsertNodeIds: patch.upsertNodeIds } : {}),
       ...(patch.graph ? { graph: patch.graph } : {}),
       ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
     });

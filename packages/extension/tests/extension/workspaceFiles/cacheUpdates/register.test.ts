@@ -30,6 +30,7 @@ function createHarness() {
   let watcherDeleteListener: ((uri: FileUri) => void) | undefined;
   let schedulerOptions: WorkspaceCacheUpdateSchedulerOptions | undefined;
   const notify = vi.fn();
+  const notifyImmediately = vi.fn(() => Promise.resolve());
   const statusBarItem = {
     text: '',
     tooltip: '',
@@ -41,7 +42,7 @@ function createHarness() {
   const dependencies: WorkspaceCacheUpdateRegistrationDependencies = {
     createScheduler: vi.fn((options) => {
       schedulerOptions = options;
-      return { dispose: vi.fn(), notify };
+      return { dispose: vi.fn(), notify, notifyImmediately };
     }),
     createStatusBarItem: vi.fn(() => statusBarItem),
     createFileSystemWatcher: vi.fn(() => ({
@@ -92,6 +93,7 @@ function createHarness() {
       watcherDelete: () => watcherDeleteListener,
     },
     notify,
+    notifyImmediately,
     schedulerOptions: () => schedulerOptions,
     statusBarItem,
   };
@@ -147,6 +149,27 @@ describe('workspaceFiles/cacheUpdates/register', () => {
       [['/workspace/src/terminal-deleted.ts']],
     ]);
     expect(context.subscriptions).toHaveLength(10);
+  });
+
+  it('routes immediate Graph View paths through the shared normalized scheduler', async () => {
+    const harness = createHarness();
+    let immediateUpdate: ((filePaths: readonly string[]) => Promise<void>) | undefined;
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus: vi.fn(),
+        setWorkspaceFileUpdateHandler: handler => {
+          immediateUpdate = handler;
+        },
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    await immediateUpdate?.(['src/new.ts']);
+
+    expect(harness.notifyImmediately).toHaveBeenCalledWith(['/workspace/src/new.ts']);
   });
 
   it('shows queued, updating, and failed cache state in the VS Code status bar', () => {

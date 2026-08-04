@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import * as path from 'node:path';
 import { getGraphCachePath } from '@codegraphy-dev/core';
 import * as vscode from 'vscode';
 import {
@@ -7,6 +8,7 @@ import {
   type WorkspaceCacheUpdateSchedulerOptions,
   type WorkspaceCacheUpdateStatus,
 } from './model';
+import { WorkspaceCacheUpdateHandledError } from './error';
 import { collectWorkspaceCacheUpdatePaths } from './paths';
 import { markWorkspaceCacheUpdateStale } from './stale';
 
@@ -41,6 +43,10 @@ interface WorkspaceCacheUpdateContext {
 
 interface WorkspaceCacheUpdateProvider {
   refreshIndexStatus(): void;
+  shouldObserveWorkspacePath?(filePath: string): boolean;
+  setWorkspaceFileUpdateHandler?(
+    handler: (filePaths: readonly string[]) => Promise<void>,
+  ): void;
   updateWorkspaceFiles(
     filePaths: readonly string[],
     signal?: AbortSignal,
@@ -117,6 +123,20 @@ export function registerWorkspaceCacheUpdates(
     },
   });
 
+  provider.setWorkspaceFileUpdateHandler?.(async filePaths => {
+    const workspaceRoot = dependencies.workspaceRoot();
+    if (!workspaceRoot) return;
+    const absolutePaths = filePaths.map(filePath => (
+      path.isAbsolute(filePath) ? filePath : path.resolve(workspaceRoot, filePath)
+    ));
+    const updatePaths = collectWorkspaceCacheUpdatePaths(workspaceRoot, absolutePaths);
+    try {
+      await scheduler.notifyImmediately(updatePaths);
+    } catch (error) {
+      throw new WorkspaceCacheUpdateHandledError(error);
+    }
+  });
+
   const notify = (uris: readonly FileUri[]): void => {
     const workspaceRoot = dependencies.workspaceRoot();
     if (!workspaceRoot) {
@@ -124,7 +144,10 @@ export function registerWorkspaceCacheUpdates(
     }
     const filePaths: string[] = collectWorkspaceCacheUpdatePaths(
       workspaceRoot,
-      uris.filter(uri => uri.scheme === 'file').map(uri => uri.fsPath),
+      uris
+        .filter(uri => uri.scheme === 'file')
+        .map(uri => uri.fsPath)
+        .filter(filePath => provider.shouldObserveWorkspacePath?.(filePath) ?? true),
     );
     if (filePaths.length > 0) {
       scheduler.notify(filePaths);

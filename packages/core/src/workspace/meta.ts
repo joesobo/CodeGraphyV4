@@ -8,6 +8,7 @@ import { getWorkspaceMetaPath } from './paths';
 export interface CodeGraphyWorkspaceMeta {
   version: 1;
   lastIndexedAt: string | null;
+  lastIndexedCommit?: string | null;
   pluginSignature: string | null;
   pluginBuildSignature: string | null;
   settingsSignature: string | null;
@@ -21,6 +22,7 @@ const optionalNullableStringSchema = z.union([z.string(), z.null()]).optional().
 const codeGraphyWorkspaceMetaSchema = z.looseObject({
   analysisVersion: optionalNullableStringSchema,
   lastIndexedAt: optionalNullableStringSchema,
+  lastIndexedCommit: optionalNullableStringSchema,
   pendingChangedFiles: looseStringArraySchema,
   failedPluginIds: looseStringArraySchema,
   pluginSignature: optionalNullableStringSchema,
@@ -30,6 +32,7 @@ const codeGraphyWorkspaceMetaSchema = z.looseObject({
   ...createDefaultCodeGraphyWorkspaceMeta(),
   ...(meta.analysisVersion !== undefined ? { analysisVersion: meta.analysisVersion } : {}),
   ...(meta.lastIndexedAt !== undefined ? { lastIndexedAt: meta.lastIndexedAt } : {}),
+  ...(meta.lastIndexedCommit !== undefined ? { lastIndexedCommit: meta.lastIndexedCommit } : {}),
   ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
   ...(meta.pluginBuildSignature !== undefined ? { pluginBuildSignature: meta.pluginBuildSignature } : {}),
   ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
@@ -42,6 +45,7 @@ export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta 
   return {
     version: 1,
     lastIndexedAt: null,
+    lastIndexedCommit: null,
     pluginSignature: null,
     pluginBuildSignature: null,
     settingsSignature: null,
@@ -91,6 +95,7 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
     pluginBuildSignature?: string | null;
     settingsSignature: string;
     failedPluginIds?: readonly string[];
+    resolvedChangedFilePaths?: readonly string[];
   },
 ): void {
   const previous = readCodeGraphyWorkspaceMeta(workspaceRoot);
@@ -103,7 +108,13 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
       : metadata.pluginBuildSignature,
     settingsSignature: metadata.settingsSignature,
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
-    pendingChangedFiles: [],
-    failedPluginIds: [...(metadata.failedPluginIds ?? [])],
+    pendingChangedFiles: metadata.resolvedChangedFilePaths === undefined
+      ? []
+      : previous.pendingChangedFiles.filter(
+          filePath => !metadata.resolvedChangedFilePaths!.includes(filePath),
+        ),
+    failedPluginIds: metadata.failedPluginIds === undefined
+      ? previous.failedPluginIds
+      : [...metadata.failedPluginIds],
   });
 }

@@ -12,6 +12,9 @@ describe('workspaceFiles/cacheUpdates/paths', () => {
       '/workspace/.codegraphy/settings.json',
       '/workspace/.codegraphy/graph.sqlite',
       '/workspace/.codegraphy/graph.sqlite-wal',
+      '/workspace/node_modules/package/index.js',
+      '/workspace/dist/generated.js',
+      '/workspace/src/app.js.map',
       '/other/src/app.ts',
       '/workspace',
     ])).toEqual([

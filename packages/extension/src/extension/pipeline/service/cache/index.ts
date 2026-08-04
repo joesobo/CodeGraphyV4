@@ -34,6 +34,7 @@ export function hasWorkspacePipelineIndex(
 export async function persistWorkspacePipelineIndexMetadata(
   workspaceRoot: string | undefined,
   dependencies: WorkspacePipelinePersistIndexDependencies,
+  resolvedChangedFilePaths?: readonly string[],
 ): Promise<void> {
   if (!workspaceRoot) {
     return;
@@ -45,6 +46,9 @@ export async function persistWorkspacePipelineIndexMetadata(
       pluginBuildSignature: dependencies.getPluginBuildSignature(),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
+      ...(resolvedChangedFilePaths === undefined
+        ? {}
+        : { resolvedChangedFilePaths }),
     });
     if (dependencies.getCurrentCommitSha) {
       writeCodeGraphyRepoMeta(workspaceRoot, {
