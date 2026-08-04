@@ -15,12 +15,16 @@ export async function refreshGraphViewChangedFiles(
     return EMPTY_GRAPH_DATA;
   }
 
-  if (!analyzer.hasLoadedGraphState?.()) {
+  if (!analyzer.hasLoadedGraphState?.() || !analyzer.hasRecoverableGraphState()) {
     await analyzer.loadCachedGraph?.(
       state.filterPatterns,
       state.disabledPlugins,
       signal,
     );
+  }
+
+  if (!analyzer.hasRecoverableGraphState()) {
+    throw new Error('Graph Cache became unavailable before targeted Indexing could start.');
   }
 
   return analyzer.refreshChangedFiles(

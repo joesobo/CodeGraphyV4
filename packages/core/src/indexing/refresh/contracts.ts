@@ -82,6 +82,7 @@ export interface WorkspaceIndexRefreshDependencies {
   disabledPlugins: Set<string>;
   discoveredDirectories?: string[];
   discoveredFiles: IDiscoveredFile[];
+  discoveryLimitReached?: boolean;
   filePaths: readonly string[];
   filterPatterns: string[];
   fullRefreshFallback?: 'allow' | 'reject';

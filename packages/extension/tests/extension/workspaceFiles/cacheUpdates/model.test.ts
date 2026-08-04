@@ -41,7 +41,6 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     expect(statuses.at(-1)).toEqual({
       state: 'queued',
       fileCount: 2,
-      detail: '2 workspace file changes are queued for Graph Cache update.',
     });
 
     await vi.advanceTimersByTimeAsync(1);
@@ -55,7 +54,6 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     expect(statuses.at(-1)).toEqual({
       state: 'idle',
       fileCount: 0,
-      detail: 'Graph Cache is current.',
     });
 
     scheduler.dispose();
@@ -173,12 +171,13 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     vi.useFakeTimers();
     const error = new Error('targeted update requires explicit Re-index');
     const onError = vi.fn();
+    const onStatus = vi.fn();
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 250,
       canUpdate: () => true,
       maxBatchAgeMs: 2_000,
       onError,
-      onStatus: vi.fn(),
+      onStatus,
       update: vi.fn(async () => Promise.reject(error)),
     });
 
@@ -186,6 +185,35 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     await vi.advanceTimersByTimeAsync(250);
 
     expect(onError).toHaveBeenCalledWith(error, ['/workspace/src/app.ts']);
+    expect(onStatus).toHaveBeenLastCalledWith({
+      state: 'error',
+      fileCount: 1,
+      error,
+    });
+    scheduler.dispose();
+  });
+
+  it('reports normalized progress as structural scheduler data', async () => {
+    vi.useFakeTimers();
+    const statuses: WorkspaceCacheUpdateStatus[] = [];
+    const scheduler = createWorkspaceCacheUpdateScheduler({
+      debounceMs: 250,
+      canUpdate: () => true,
+      maxBatchAgeMs: 2_000,
+      onStatus: status => statuses.push(status),
+      update: vi.fn(async (_filePaths, _signal, onProgress) => {
+        onProgress({ phase: 'Applying Changes', current: 4, total: 3 });
+      }),
+    });
+
+    scheduler.notify(['/workspace/src/app.ts']);
+    await vi.advanceTimersByTimeAsync(250);
+
+    expect(statuses).toContainEqual({
+      state: 'updating',
+      fileCount: 1,
+      progress: { phase: 'Applying Changes', current: 3, total: 3 },
+    });
     scheduler.dispose();
   });
 

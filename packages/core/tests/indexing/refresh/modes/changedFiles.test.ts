@@ -376,6 +376,38 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
   });
 
+  it('rejects targeted membership churn when a new file displaces an indexed file at maxFiles', async () => {
+    const previousFiles = [
+      createDiscoveredFile('src/b.ts'),
+      createDiscoveredFile('src/c.ts'),
+    ];
+    const source = createSource({
+      _lastDiscoveredFiles: previousFiles,
+      _lastFileAnalysis: new Map(previousFiles.map(file => [
+        file.relativePath,
+        createFileAnalysis(file.absolutePath),
+      ])),
+      _lastFileConnections: new Map(previousFiles.map(file => [file.relativePath, []])),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [
+        createDiscoveredFile('src/a.ts'),
+        createDiscoveredFile('src/b.ts'),
+      ],
+      discoveryLimitReached: true,
+      filePaths: ['/workspace/src/a.ts'],
+      fullRefreshFallback: 'reject',
+    }))).rejects.toMatchObject({
+      name: 'WorkspaceIndexFullRefreshRequiredError',
+      reason: 'discovery-membership',
+    });
+
+    expect(source._lastDiscoveredFiles).toBe(previousFiles);
+    expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).not.toHaveBeenCalled();
+  });
+
   it('patches deleted file evidence without falling back to full cache persistence', async () => {
     const persistCache = vi.fn();
     const persistCachePatch = vi.fn();

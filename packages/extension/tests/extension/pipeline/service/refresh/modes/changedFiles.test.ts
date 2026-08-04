@@ -258,6 +258,7 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
         directories: undefined,
         files,
         gitIgnoredPaths: undefined,
+        limitReached: true,
       },
     } as never);
     vi.mocked(refreshWorkspacePipelineChangedFiles).mockImplementation(async (_source, options) => {
@@ -295,6 +296,7 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     expect(refreshWorkspacePipelineChangedFiles).toHaveBeenCalledWith('refresh-source', expect.objectContaining({
       discoveredDirectories: [],
       discoveredFiles: files,
+      discoveryLimitReached: true,
       workspaceRoot: '/workspace',
     }));
   });

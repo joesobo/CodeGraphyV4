@@ -54,6 +54,7 @@ export async function refreshChangedFilesForFacade(
           disabledPlugins: input.disabledPlugins,
           discoveredDirectories: discoveryResult.directories,
           discoveredFiles: discoveryResult.files,
+          discoveryLimitReached: discoveryResult.limitReached,
           filePaths: input.filePaths,
           filterPatterns: input.filterPatterns,
           fullRefreshFallback: 'reject',
@@ -133,6 +134,7 @@ async function getChangedFileDiscoveryState(
   const discoveryResult = {
     directories: discovered.discoveryResult.directories ?? [],
     files: discovered.discoveryResult.files,
+    limitReached: discovered.discoveryResult.limitReached,
   };
   facade._lastGitIgnoredPaths = discovered.discoveryResult.gitIgnoredPaths ?? [];
   return discoveryResult;

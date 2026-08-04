@@ -38,6 +38,13 @@ export async function refreshWorkspaceIndexChangedFiles(
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
+  if (hasUnboundedWorkspaceDiscoveryMembershipChange(source, dependencies)) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('discovery-membership');
+    }
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
+  }
+
   const structuralPatch = selectWorkspaceDirectoryChanges(
     source._lastDiscoveredDirectories,
     dependencies.discoveredDirectories ?? [],
@@ -201,6 +208,39 @@ function containsWorkspaceDiscoveryLifecyclePath(
     const relativePath = toWorkspaceRelativePath(dependencies.workspaceRoot, filePath);
     return relativePath !== undefined && isWorkspaceDiscoveryLifecyclePath(relativePath);
   });
+}
+
+function hasUnboundedWorkspaceDiscoveryMembershipChange(
+  source: WorkspaceIndexRefreshSource,
+  dependencies: WorkspaceIndexRefreshDependencies,
+): boolean {
+  if (!dependencies.discoveryLimitReached) {
+    return false;
+  }
+  const nextFilePaths = new Set(
+    dependencies.discoveredFiles.map(file => file.relativePath),
+  );
+  const previousFilePaths = new Set(
+    source._lastDiscoveredFiles.map(file => file.relativePath),
+  );
+  const changedRelativePaths = dependencies.filePaths
+    .map(filePath => toWorkspaceRelativePath(dependencies.workspaceRoot, filePath))
+    .filter((filePath): filePath is string => filePath !== undefined);
+
+  const isCoveredByChangedPath = (relativePath: string): boolean => (
+    changedRelativePaths.some(changedPath => (
+      relativePath === changedPath
+      || relativePath.startsWith(`${changedPath}/`)
+    ))
+  );
+
+  return source._lastDiscoveredFiles.some(file => (
+    !nextFilePaths.has(file.relativePath)
+    && !isCoveredByChangedPath(file.relativePath)
+  )) || dependencies.discoveredFiles.some(file => (
+    !previousFilePaths.has(file.relativePath)
+    && !isCoveredByChangedPath(file.relativePath)
+  ));
 }
 
 function toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined {

@@ -1,8 +1,8 @@
 export type WorkspaceCacheUpdateStatus =
-  | { state: 'queued'; fileCount: number; detail: string }
-  | { state: 'updating'; fileCount: number; detail: string }
-  | { state: 'idle'; fileCount: 0; detail: string }
-  | { state: 'error'; fileCount: number; detail: string };
+  | { state: 'queued'; fileCount: number }
+  | { state: 'updating'; fileCount: number; progress?: WorkspaceCacheUpdateProgress }
+  | { state: 'idle'; fileCount: 0 }
+  | { state: 'error'; fileCount: number; error: unknown };
 
 export interface WorkspaceCacheUpdateProgress {
   phase: string;
@@ -126,7 +126,6 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
           this.options.onStatus({
             state: 'idle',
             fileCount: 0,
-            detail: 'Graph Cache is current.',
           });
         }
       })
@@ -137,7 +136,7 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
           this.options.onStatus({
             state: 'error',
             fileCount: filePaths.length,
-            detail: `Graph Cache update failed: ${formatError(error)}`,
+            error,
           });
         }
       })
@@ -189,7 +188,7 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
     this.options.onStatus({
       state: 'updating',
       fileCount,
-      detail: `${progress.phase}: ${current} of ${total}.`,
+      progress: { phase: progress.phase, current, total },
     });
   }
 
@@ -209,9 +208,6 @@ function createQueuedStatus(fileCount: number): WorkspaceCacheUpdateStatus {
   return {
     state: 'queued',
     fileCount,
-    detail: fileCount === 1
-      ? '1 workspace file change is queued for Graph Cache update.'
-      : `${fileCount} workspace file changes are queued for Graph Cache update.`,
   };
 }
 
@@ -219,14 +215,7 @@ function createUpdatingStatus(fileCount: number): WorkspaceCacheUpdateStatus {
   return {
     state: 'updating',
     fileCount,
-    detail: fileCount === 1
-      ? 'Updating the Graph Cache for 1 workspace file.'
-      : `Updating the Graph Cache for ${fileCount} workspace files.`,
   };
-}
-
-function formatError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
 
 export function createWorkspaceCacheUpdateScheduler(

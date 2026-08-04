@@ -16,6 +16,7 @@ interface GraphViewAnalyzerLike {
     freshness: CodeGraphyIndexFreshness;
     detail: string;
   };
+  hasRecoverableGraphState(): boolean;
   loadCachedGraph?(
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,

@@ -1,4 +1,7 @@
-export type WorkspaceIndexFullRefreshReason = 'discovery-lifecycle' | 'plugin-request';
+export type WorkspaceIndexFullRefreshReason =
+  | 'discovery-lifecycle'
+  | 'discovery-membership'
+  | 'plugin-request';
 
 export class WorkspaceIndexFullRefreshRequiredError extends Error {
   readonly name = 'WorkspaceIndexFullRefreshRequiredError';

@@ -11,6 +11,7 @@ import {
 } from '../../../src/extension/pipeline/database/cache/storage';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
+import { refreshGraphViewChangedFiles } from '../../../src/extension/graphView/analysis/execution/incremental';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
 const tempWorkspaceRoots: string[] = [];
@@ -292,6 +293,55 @@ describe('WorkspacePipeline analysis', () => {
     expect(indexedGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
     expect(await pathExists(databasePath)).toBe(true);
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
+  });
+
+  it('refuses partial recovery when the Graph Cache disappears before the first cache load', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const indexingAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    await indexingAnalyzer.initialize();
+    await indexingAnalyzer.analyze();
+
+    const coldAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    await coldAnalyzer.initialize();
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    expect(coldAnalyzer.hasIndex()).toBe(true);
+
+    await fs.unlink(databasePath);
+    await fs.writeFile(
+      path.join(workspaceRoot, 'src/utils.ts'),
+      'export const value = 2;\n',
+      'utf8',
+    );
+    const refreshChangedFiles = vi.spyOn(coldAnalyzer, 'refreshChangedFiles');
+
+    await expect(refreshGraphViewChangedFiles(
+      new AbortController().signal,
+      {
+        analyzer: coldAnalyzer,
+        analyzerInitialized: true,
+        analyzerInitPromise: undefined,
+        changedFilePaths: [path.join(workspaceRoot, 'src/utils.ts')],
+        disabledPlugins: new Set<string>(),
+        filterPatterns: [],
+        mode: 'incremental',
+      },
+      vi.fn(),
+    )).rejects.toThrow(
+      'Graph Cache became unavailable before targeted Indexing could start.',
+    );
+
+    expect(refreshChangedFiles).not.toHaveBeenCalled();
+    expect(await pathExists(databasePath)).toBe(false);
   });
 
   it('replays warm Graph Cache nodes and edges after a cold index', async () => {

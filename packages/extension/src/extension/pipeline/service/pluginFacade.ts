@@ -91,8 +91,12 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
     const workspaceRoot = this._getWorkspaceRoot();
     return hasWorkspacePipelineIndex(
       workspaceRoot,
-      this._hasRecoverableGraphState(workspaceRoot),
+      this.hasRecoverableGraphState(),
     );
+  }
+
+  hasRecoverableGraphState(): boolean {
+    return this._hasRecoverableGraphState(this._getWorkspaceRoot());
   }
 
   hasLoadedGraphState(): boolean {
