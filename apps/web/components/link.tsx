@@ -3,7 +3,7 @@ import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Icon } from '@/components/icon';
 import { cn } from '@/lib/utils';
 
-export type LinkIcon = 'github' | 'vscode';
+export type LinkIcon = 'discord' | 'github' | 'vscode';
 
 interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'children' | 'href'> {
   href: string;
@@ -13,6 +13,7 @@ interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'child
 }
 
 const linkIconSrc: Record<LinkIcon, string> = {
+  discord: '/icons/discord.svg',
   github: '/icons/github.svg',
   vscode: '/icons/vscode.svg',
 };

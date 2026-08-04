@@ -58,6 +58,16 @@ export function Navbar(): React.ReactElement {
         <Link
           className={cn(
             buttonVariants({ size: 'sm', variant: 'ghost' }),
+            'hidden px-3 text-white/92 hover:bg-white/8 hover:text-white xl:inline-flex',
+          )}
+          href={siteNavigation.discord.href}
+          icon="discord"
+        >
+          {siteNavigation.discord.label}
+        </Link>
+        <Link
+          className={cn(
+            buttonVariants({ size: 'sm', variant: 'ghost' }),
             'hidden border border-white/22 px-4 text-white/92 hover:bg-white/8 hover:text-white sm:inline-flex',
           )}
           href={siteNavigation.github.href}

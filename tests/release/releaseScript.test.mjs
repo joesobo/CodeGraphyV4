@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { collectReleaseTargets } from '../../scripts/release.mjs';
+import { collectReleaseTargets, runRelease } from '../../scripts/release.mjs';
 
 const repoRoot = process.cwd();
 
@@ -89,4 +89,40 @@ test('all releases finish npm publishing before Marketplace publishing', () => {
   );
   assert.match(workflow, /needs\.release-npm\.result == 'success'/);
   assert.match(workflow, /needs\.release-npm\.result == 'skipped'/);
+});
+
+test('release reporting includes only newly published npm package versions', () => {
+  const repoDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-release-report-'));
+  fs.mkdirSync(path.join(repoDir, 'packages', 'new-package'), { recursive: true });
+  fs.mkdirSync(path.join(repoDir, 'packages', 'existing-package'), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, 'package.json'),
+    JSON.stringify({ workspaces: ['packages/*'] }),
+  );
+  const packages = [
+    ['new-package', '@codegraphy-dev/new-package'],
+    ['existing-package', '@codegraphy-dev/existing-package'],
+  ];
+  for (const [directory, name] of packages) {
+    fs.writeFileSync(
+      path.join(repoDir, 'packages', directory, 'package.json'),
+      JSON.stringify({ name, version: '1.2.3', publishConfig: { access: 'public' } }),
+    );
+  }
+
+  const runCommand = (command, args) => {
+    if (command === 'npm') {
+      return { status: args[1].includes('existing-package') ? 0 : 1 };
+    }
+    return { status: 0 };
+  };
+
+  assert.deepEqual(runRelease('publish', 'npm', repoDir, runCommand), [
+    {
+      id: 'new-package',
+      kind: 'npm',
+      packageName: '@codegraphy-dev/new-package',
+      version: '1.2.3',
+    },
+  ]);
 });

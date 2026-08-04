@@ -40,6 +40,8 @@ jobs:
     timeout-minutes: 30
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    outputs:
+      published: ${{ steps.publish.outputs.published }}
 
     steps:
       - name: Checkout
@@ -61,6 +63,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Publish selected target
+        id: publish
         shell: bash
         run: |
           if [[ "${{ inputs.target }}" == "all" ]]; then
@@ -110,3 +113,36 @@ jobs:
 
       - name: Publish VSIX target
         run: pnpm run release:publish vsce
+
+  announce-discord:
+    needs: [release-npm, release-vsix]
+    if: ${{ always() && (needs.release-npm.result == 'success' || needs.release-npm.result == 'skipped') && (needs.release-vsix.result == 'success' || needs.release-vsix.result == 'skipped') && (needs.release-npm.outputs.published != '[]' || needs.release-vsix.result == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      PUBLISHED_NPM: ${{ needs.release-npm.outputs.published }}
+      PUBLISHED_VSIX: ${{ needs.release-vsix.result == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Announce published packages
+        shell: bash
+        run: |
+          published="${PUBLISHED_NPM:-[]}"
+
+          if [[ "$PUBLISHED_VSIX" == "true" ]]; then
+            extension_version="$(jq -r '.version' packages/extension/package.json)"
+            published="$(jq --arg version "$extension_version" '. + [{id: "extension", kind: "extension", packageName: "CodeGraphy for VS Code", version: $version}]' <<< "$published")"
+          fi
+
+          lines="$(jq -r '.[] | if .kind == "extension" then "- **\(.packageName)** `v\(.version)` — <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>" else "- **\(.packageName)** `v\(.version)` — <https://www.npmjs.com/package/\(.packageName)>" end' <<< "$published")"
+          content="🚀 **CodeGraphy release published**\n\n${lines}"
+
+          jq -n --arg content "$content" '{content: $content, allowed_mentions: {parse: []}}' \
+            | curl --fail-with-body --silent --show-error \
+                -H 'Content-Type: application/json' \
+                --data-binary @- \
+                "$DISCORD_WEBHOOK_URL"

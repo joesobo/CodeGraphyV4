@@ -27,7 +27,7 @@ const footerColumns: readonly {
     title: 'Project',
     links: [
       { href: marketplaceHref, label: 'Marketplace' },
-      { href: discordHref, label: 'Discord community' },
+      { href: discordHref, icon: 'discord', label: 'Discord' },
       { href: githubHref, icon: 'github', label: 'GitHub' },
       { href: vscodeExtensionHref, icon: 'vscode', label: 'VS Code' },
     ],
