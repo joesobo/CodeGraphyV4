@@ -60,6 +60,8 @@ export {
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
+  WorkspaceIndexFullRefreshRequiredError,
+  type WorkspaceIndexFullRefreshReason,
   type WorkspaceIndexRefreshDependencies,
   type WorkspaceIndexRefreshSource,
   type WorkspaceIndexAnalysisScopeRefreshDependencies,

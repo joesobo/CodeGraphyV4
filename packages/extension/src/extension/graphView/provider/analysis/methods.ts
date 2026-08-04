@@ -74,6 +74,7 @@ export interface GraphViewProviderAnalysisMethods {
     signal?: AbortSignal,
   ): Promise<void>;
   _refreshAndSendData(): Promise<void>;
+  _refreshIndexStatus(): void;
   _doLoadAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
@@ -165,6 +166,35 @@ export function createGraphViewProviderAnalysisMethods(
     _doRefreshAndSendData,
     'refresh',
   );
+  let incrementalUpdateTail: Promise<void> = Promise.resolve();
+  const enqueueChangedFilesUpdate = (
+    filePaths: readonly string[],
+    signal?: AbortSignal,
+  ): Promise<void> => {
+    if (source._analyzer?.hasIndex?.() === false) {
+      return Promise.resolve();
+    }
+
+    const update = incrementalUpdateTail.then(async () => {
+      await fullIndexAnalysis.waitForFullIndexAnalysis();
+      if (signal?.aborted) return;
+
+      const abortUpdate = (): void => {
+        source._analysisController?.abort();
+      };
+      signal?.addEventListener('abort', abortUpdate, { once: true });
+      try {
+        const activeUpdate = _updateChangedFilesAndSendData(filePaths);
+        if (signal?.aborted) abortUpdate();
+        await activeUpdate;
+      } finally {
+        signal?.removeEventListener('abort', abortUpdate);
+      }
+    });
+    incrementalUpdateTail = update.catch(() => undefined);
+    return update;
+  };
+
   const methods: GraphViewProviderAnalysisMethods = {
     _loadAndSendData: async () => {
       if (await fullIndexAnalysis.waitForFullIndexAnalysis()) {
@@ -174,27 +204,21 @@ export function createGraphViewProviderAnalysisMethods(
       await _loadAndSendData();
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
-    _updateChangedFilesAndSendData: async (filePaths, signal) => {
-      await fullIndexAnalysis.waitForFullIndexAnalysis();
-      if (signal?.aborted) {
-        return;
-      }
-
-      const abortUpdate = (): void => {
-        source._analysisController?.abort();
-      };
-      signal?.addEventListener('abort', abortUpdate, { once: true });
-      try {
-        const update = _updateChangedFilesAndSendData(filePaths);
-        if (signal?.aborted) {
-          abortUpdate();
-        }
-        await update;
-      } finally {
-        signal?.removeEventListener('abort', abortUpdate);
-      }
-    },
+    _updateChangedFilesAndSendData: enqueueChangedFilesUpdate,
     _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
+    _refreshIndexStatus: () => {
+      const hasIndex = source._analyzer?.hasIndex() ?? false;
+      const status = source._analyzer?.getIndexStatus?.() ?? {
+        freshness: hasIndex ? 'fresh' as const : 'missing' as const,
+        detail: hasIndex
+          ? 'CodeGraphy index is fresh.'
+          : 'CodeGraphy index is missing. Index the workspace to build the graph.',
+      };
+      source._sendMessage({
+        type: 'GRAPH_INDEX_STATUS_UPDATED',
+        payload: { hasIndex, freshness: status.freshness, detail: status.detail },
+      });
+    },
     _doLoadAndSendData,
     _markWorkspaceReady,
     _isAnalysisStale,

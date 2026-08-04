@@ -8,8 +8,9 @@ import {
   type WorkspaceCacheUpdateStatus,
 } from './model';
 import { collectWorkspaceCacheUpdatePaths } from './paths';
+import { markWorkspaceCacheUpdateStale } from './stale';
 
-const CACHE_UPDATE_DEBOUNCE_MS = 500;
+const CACHE_UPDATE_DEBOUNCE_MS = 250;
 const CACHE_UPDATE_MAX_BATCH_AGE_MS = 2_000;
 
 interface FileUri {
@@ -19,6 +20,12 @@ interface FileUri {
 
 interface Disposable {
   dispose(): void;
+}
+
+interface FileSystemWatcher extends Disposable {
+  onDidChange(listener: (uri: FileUri) => void): Disposable;
+  onDidCreate(listener: (uri: FileUri) => void): Disposable;
+  onDidDelete(listener: (uri: FileUri) => void): Disposable;
 }
 
 interface StatusBarItem extends Disposable {
@@ -33,6 +40,7 @@ interface WorkspaceCacheUpdateContext {
 }
 
 interface WorkspaceCacheUpdateProvider {
+  refreshIndexStatus(): void;
   updateWorkspaceFiles(
     filePaths: readonly string[],
     signal?: AbortSignal,
@@ -44,7 +52,9 @@ export interface WorkspaceCacheUpdateRegistrationDependencies {
     options: WorkspaceCacheUpdateSchedulerOptions,
   ): WorkspaceCacheUpdateScheduler;
   createStatusBarItem(): StatusBarItem;
+  createFileSystemWatcher(pattern: string): FileSystemWatcher;
   hasGraphCache(workspaceRoot: string): boolean;
+  markGraphCacheStale(workspaceRoot: string, filePaths: readonly string[]): void;
   onDidCreateFiles(
     listener: (event: { files: readonly FileUri[] }) => void,
   ): Disposable;
@@ -68,7 +78,9 @@ const defaultDependencies: WorkspaceCacheUpdateRegistrationDependencies = {
   createScheduler: createWorkspaceCacheUpdateScheduler,
   createStatusBarItem: () =>
     vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 20),
+  createFileSystemWatcher: pattern => vscode.workspace.createFileSystemWatcher(pattern),
   hasGraphCache: workspaceRoot => existsSync(getGraphCachePath(workspaceRoot)),
+  markGraphCacheStale: markWorkspaceCacheUpdateStale,
   onDidCreateFiles: listener => vscode.workspace.onDidCreateFiles(listener),
   onDidDeleteFiles: listener => vscode.workspace.onDidDeleteFiles(listener),
   onDidRenameFiles: listener => vscode.workspace.onDidRenameFiles(listener),
@@ -91,6 +103,12 @@ export function registerWorkspaceCacheUpdates(
         && dependencies.hasGraphCache(workspaceRoot);
     },
     maxBatchAgeMs: CACHE_UPDATE_MAX_BATCH_AGE_MS,
+    onError: (_error, filePaths) => {
+      const workspaceRoot = dependencies.workspaceRoot();
+      if (!workspaceRoot) return;
+      dependencies.markGraphCacheStale(workspaceRoot, filePaths);
+      provider.refreshIndexStatus();
+    },
     onStatus: status => renderStatus(statusBarItem, status),
     update: async (filePaths, signal) => {
       if (!signal.aborted) {
@@ -113,14 +131,23 @@ export function registerWorkspaceCacheUpdates(
     }
   };
 
+  const fileSystemWatcher = dependencies.createFileSystemWatcher('**/*');
   const eventDisposables: Disposable[] = [
     dependencies.onDidSaveTextDocument(document => notify([document.uri])),
     dependencies.onDidCreateFiles(event => notify(event.files)),
     dependencies.onDidDeleteFiles(event => notify(event.files)),
     dependencies.onDidRenameFiles(event =>
       notify(event.files.flatMap(file => [file.oldUri, file.newUri]))),
+    fileSystemWatcher.onDidCreate(uri => notify([uri])),
+    fileSystemWatcher.onDidChange(uri => notify([uri])),
+    fileSystemWatcher.onDidDelete(uri => notify([uri])),
   ];
-  context.subscriptions.push(...eventDisposables, scheduler, statusBarItem);
+  context.subscriptions.push(
+    ...eventDisposables,
+    fileSystemWatcher,
+    scheduler,
+    statusBarItem,
+  );
 }
 
 function renderStatus(

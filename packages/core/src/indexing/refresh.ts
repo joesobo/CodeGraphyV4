@@ -9,6 +9,9 @@ import { refreshWorkspaceIndexAnalysisScope as refreshWorkspaceIndexAnalysisScop
 import { refreshWorkspaceIndexChangedFiles as refreshWorkspaceIndexChangedFilesImpl } from './refresh/modes/changedFiles';
 import { refreshWorkspaceIndexPluginFiles as refreshWorkspaceIndexPluginFilesImpl } from './refresh/modes/pluginFiles';
 
+export { WorkspaceIndexFullRefreshRequiredError } from './refresh/fullRefreshRequired';
+export type { WorkspaceIndexFullRefreshReason } from './refresh/fullRefreshRequired';
+
 export type {
   WorkspaceIndexAnalysisScopeRefreshDependencies,
   WorkspaceIndexPluginInfo,

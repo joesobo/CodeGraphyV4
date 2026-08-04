@@ -38,6 +38,19 @@ export function createGraphViewProviderFileActionMethods(
     await dependencies.copyText(text);
   };
 
+  const updateChangedFiles = async (
+    filePaths: readonly string[],
+    workspaceFolderUri: { fsPath: string },
+  ): Promise<void> => {
+    try {
+      await source._updateChangedFilesAndSendData(filePaths);
+    } catch (error) {
+      dependencies.markGraphCacheStale?.(workspaceFolderUri.fsPath, filePaths);
+      source._refreshIndexStatus?.();
+      dependencies.logWorkspaceUpdateError?.(error, filePaths);
+    }
+  };
+
   const _deleteFiles = async (paths: string[]): Promise<void> => {
     const workspaceFolder = dependencies.getWorkspaceFolder();
     await dependencies.deleteFiles(paths, {
@@ -50,7 +63,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createDeleteAction(
           nextPaths,
           workspaceFolderUri,
-          () => source._updateChangedFilesAndSendData(nextPaths),
+          () => updateChangedFiles(nextPaths, workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -66,7 +79,7 @@ export function createGraphViewProviderFileActionMethods(
           oldPath,
           newPath,
           workspaceFolderUri,
-          () => source._updateChangedFilesAndSendData([oldPath, newPath]),
+          () => updateChangedFiles([oldPath, newPath], workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -84,7 +97,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createCreateAction(
           filePath,
           workspaceFolderUri,
-          () => source._updateChangedFilesAndSendData([filePath]),
+          () => updateChangedFiles([filePath], workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -102,7 +115,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createCreateFolderAction(
           folderPath,
           workspaceFolderUri,
-          () => source._updateChangedFilesAndSendData([folderPath]),
+          () => updateChangedFiles([folderPath], workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },

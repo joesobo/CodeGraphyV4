@@ -40,6 +40,7 @@ function createTarget() {
   };
   const pluginMethods = {};
   const analysisMethods = {
+    _refreshIndexStatus: vi.fn(),
     _updateChangedFilesAndSendData: vi.fn(async () => undefined),
   };
   const queryMethods = {
@@ -59,6 +60,7 @@ function createTarget() {
     getDepthLimit: vi.fn(() => 7),
   };
   const webviewMethods = {
+    _sendMessage: vi.fn(),
     resolveWebviewView: vi.fn(),
     openInEditor: vi.fn(),
     sendToWebview: vi.fn(),
@@ -70,6 +72,7 @@ function createTarget() {
       extensionUri: { fsPath: '/test/extension' },
     },
     refresh: vi.fn(async () => undefined),
+    refreshIndexStatus: vi.fn(),
     refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
     refreshSettings: vi.fn(),
@@ -125,6 +128,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     target.refreshToggleSettings();
     await target.clearCacheAndRefresh();
     await target.updateWorkspaceFiles(['/workspace/src/app.ts']);
+    target.refreshIndexStatus();
     target.sendCommand('FIT_VIEW');
     expect(await target.undo()).toBe('undo');
     expect(await target.redo()).toBe('redo');
@@ -149,6 +153,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(
       target._methodContainers.analysis._updateChangedFilesAndSendData,
     ).toHaveBeenCalledWith(['/workspace/src/app.ts']);
+    expect(target._methodContainers.analysis._refreshIndexStatus).toHaveBeenCalledOnce();
     expect(target._methodContainers.command.sendCommand).toHaveBeenCalledWith('FIT_VIEW');
     expect(target._methodContainers.command.undo).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.command.redo).toHaveBeenCalledTimes(1);

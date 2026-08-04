@@ -157,6 +157,51 @@ describe('graphView/provider/file/actions', () => {
     expect(executeUndoAction).toHaveBeenCalledTimes(4);
   });
 
+  it('keeps a completed file action successful when its targeted update marks the index stale', async () => {
+    const updateError = new Error('plugin requires explicit Re-index');
+    const markGraphCacheStale = vi.fn();
+    const logWorkspaceUpdateError = vi.fn();
+    const source = {
+      _refreshIndexStatus: vi.fn(),
+      _sendFavorites: vi.fn(),
+      _setFocusedFile: vi.fn(),
+      _updateChangedFilesAndSendData: vi.fn(async () => Promise.reject(updateError)),
+    };
+    const methods = createGraphViewProviderFileActionMethods(source as never, {
+      openFile: vi.fn(async () => undefined),
+      revealFile: vi.fn(async () => undefined),
+      copyText: vi.fn(async () => undefined),
+      deleteFiles: vi.fn(async () => undefined),
+      renameFile: vi.fn(async () => undefined),
+      createFile: vi.fn(async (_directory, handlers) => {
+        await handlers.executeCreateAction('src/new.ts', { fsPath: '/workspace' } as never);
+      }),
+      createFolder: vi.fn(async () => undefined),
+      toggleFavorites: vi.fn(async () => undefined),
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never)),
+      showWarningMessage: vi.fn(),
+      showInputBox: vi.fn(),
+      showErrorMessage: vi.fn(),
+      markGraphCacheStale,
+      logWorkspaceUpdateError,
+      createDeleteAction: vi.fn(() => createUndoableAction()),
+      createRenameAction: vi.fn(() => createUndoableAction()),
+      createCreateAction: vi.fn((_path, _workspace, refreshGraph) => ({
+        ...createUndoableAction(),
+        execute: refreshGraph,
+      })),
+      createCreateFolderAction: vi.fn(() => createUndoableAction()),
+      createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
+      executeUndoAction: vi.fn(async action => action.execute()),
+    });
+
+    await expect(methods._createFile('src')).resolves.toBeUndefined();
+
+    expect(markGraphCacheStale).toHaveBeenCalledWith('/workspace', ['src/new.ts']);
+    expect(source._refreshIndexStatus).toHaveBeenCalledOnce();
+    expect(logWorkspaceUpdateError).toHaveBeenCalledWith(updateError, ['src/new.ts']);
+  });
+
   it('creates undoable favorite toggles that send the explicit post-action favorites', async () => {
     const executeUndoAction = vi.fn(async () => undefined);
     const createToggleFavoriteAction = vi.fn((_paths, sendFavorites) => {
@@ -513,6 +558,7 @@ async function createDefaultDependencyHarness(
 
   const source = {
     _loadAndSendData: vi.fn(async () => undefined),
+    _refreshIndexStatus: vi.fn(),
     _updateChangedFilesAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
     _setFocusedFile: vi.fn(),

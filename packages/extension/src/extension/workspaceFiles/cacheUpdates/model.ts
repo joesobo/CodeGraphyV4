@@ -14,6 +14,7 @@ export interface WorkspaceCacheUpdateSchedulerOptions {
   debounceMs: number;
   hasGraphCache(): boolean;
   maxBatchAgeMs: number;
+  onError?(error: unknown, filePaths: readonly string[]): void;
   onStatus(status: WorkspaceCacheUpdateStatus): void;
   update(
     filePaths: readonly string[],
@@ -102,6 +103,7 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
       })
       .catch((error: unknown) => {
         if (!this.disposed && !controller.signal.aborted) {
+          this.options.onError?.(error, filePaths);
           this.options.onStatus({
             state: 'error',
             fileCount: filePaths.length,

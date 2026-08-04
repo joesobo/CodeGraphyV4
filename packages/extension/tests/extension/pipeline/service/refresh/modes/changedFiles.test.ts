@@ -143,6 +143,7 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
       discoveredFiles: files,
       filePaths: ['src/a.ts'],
       filterPatterns: ['src/**'],
+      fullRefreshFallback: 'reject',
       notifyFilesChanged: expect.any(Function),
       onDeferredIndexMetadataError: expect.any(Function),
       onProgress,

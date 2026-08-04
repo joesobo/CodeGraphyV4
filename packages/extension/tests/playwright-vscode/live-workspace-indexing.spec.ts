@@ -1,0 +1,72 @@
+import { expect, test } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import { clickToolbarButton, findNodeProbe, graphNode, requireGraphFrame, rightClickNode } from '../acceptance/graphView/canvas';
+import { createGraphViewAcceptanceContext } from '../acceptance/graphView/context';
+import { openGraphScopeSection, setPanelSwitch } from '../acceptance/graphView/steps';
+import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from '../acceptance/graphView/vscode';
+import { copyExampleTypescriptWorkspace, createWorkspaceTempRoot } from '../acceptance/graphView/workspace';
+
+for (const kind of ['File', 'Folder'] as const) {
+  test(`Folder Node New ${kind} publishes the child Node without Re-index`, async () => {
+    const context = await createGraphViewAcceptanceContext(undefined);
+    try {
+      context.workspaceTempRoot = createWorkspaceTempRoot();
+      context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, { includeImportEdges: false, includeNestsEdges: true });
+      context.vscode = await launchVSCodeWithWorkspace(context.workspacePath);
+      await openGraphView(context.vscode.page);
+      context.graphFrame = await waitForGraphFrame(context.vscode.page);
+      let frame = requireGraphFrame(context);
+      await frame.getByRole('button', { name: 'Index Workspace' }).click();
+      await expect(frame.getByRole('progressbar', { name: 'Indexing progress' })).toBeHidden({ timeout: 30_000 });
+      await openGraphScopeSection(context, 'Node Types');
+      await setPanelSwitch(context, 'Folder', true);
+      await clickToolbarButton(frame, 'Graph Scope');
+      await findNodeProbe(context, 'src');
+      await rightClickNode(context, 'src');
+      await frame.getByText(`New ${kind}`, { exact: true }).last().click();
+      const name = kind === 'File' ? 'bug-247-child.ts' : 'bug-247-child';
+      const input = context.vscode.page.locator('.quick-input-widget input').first();
+      await input.fill(name);
+      await input.press('Enter');
+      const relativePath = `src/${name}`;
+      await expect.poll(() => fs.existsSync(path.join(context.workspacePath!, relativePath)), { timeout: 10_000 }).toBe(true);
+      context.graphFrame = await waitForGraphFrame(context.vscode.page);
+      frame = requireGraphFrame(context);
+      await expect(graphNode(frame, relativePath)).toBeAttached({ timeout: 15_000 });
+    } finally {
+      await context.cleanup();
+    }
+  });
+}
+
+test('external workspace changes stay current while the Graph View is hidden', async () => {
+  const context = await createGraphViewAcceptanceContext(undefined);
+  try {
+    context.workspaceTempRoot = createWorkspaceTempRoot();
+    context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, { includeImportEdges: false, includeNestsEdges: true });
+    context.vscode = await launchVSCodeWithWorkspace(context.workspacePath);
+    await openGraphView(context.vscode.page);
+    context.graphFrame = await waitForGraphFrame(context.vscode.page);
+    let frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: 'Index Workspace' }).click();
+    await expect(frame.getByRole('progressbar', { name: 'Indexing progress' })).toBeHidden({ timeout: 30_000 });
+    await openGraphScopeSection(context, 'Node Types');
+    await setPanelSwitch(context, 'Folder', true);
+    await clickToolbarButton(frame, 'Graph Scope');
+    await context.vscode.page.keyboard.press('Meta+Shift+E');
+    await expect(context.vscode.page.getByRole('tree', { name: 'Files Explorer' })).toBeVisible();
+
+    fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), 'export const created = true;\n');
+    fs.mkdirSync(path.join(context.workspacePath, 'external-folder'));
+    await context.vscode.page.waitForTimeout(1_000);
+
+    await openGraphView(context.vscode.page);
+    context.graphFrame = await waitForGraphFrame(context.vscode.page);
+    frame = requireGraphFrame(context);
+    await expect(graphNode(frame, 'external-created.ts')).toBeAttached({ timeout: 15_000 });
+    await expect(graphNode(frame, 'external-folder')).toBeAttached({ timeout: 15_000 });
+  } finally {
+    await context.cleanup();
+  }
+});

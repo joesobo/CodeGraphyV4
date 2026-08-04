@@ -210,6 +210,7 @@ export {
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
   subscribeCodeGraphyWorkspaceChanges,
+  WorkspaceIndexFullRefreshRequiredError,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceCacheUpdater,
@@ -225,6 +226,7 @@ export type {
   SubscribeCodeGraphyWorkspaceChangesOptions,
   WorkspaceIndexAnalysisScopeRefreshDependencies,
   WorkspaceIndexPluginRefreshDependencies,
+  WorkspaceIndexFullRefreshReason,
   WorkspaceIndexRefreshDependencies,
   WorkspaceIndexRefreshSource,
 } from './indexing/workspace';

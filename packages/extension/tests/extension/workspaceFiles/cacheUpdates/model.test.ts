@@ -119,6 +119,26 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     scheduler.dispose();
   });
 
+  it('reports failed paths so the index can be marked stale', async () => {
+    vi.useFakeTimers();
+    const error = new Error('targeted update requires explicit Re-index');
+    const onError = vi.fn();
+    const scheduler = createWorkspaceCacheUpdateScheduler({
+      debounceMs: 250,
+      hasGraphCache: () => true,
+      maxBatchAgeMs: 2_000,
+      onError,
+      onStatus: vi.fn(),
+      update: vi.fn(async () => Promise.reject(error)),
+    });
+
+    scheduler.notify(['/workspace/src/app.ts']);
+    await vi.advanceTimersByTimeAsync(250);
+
+    expect(onError).toHaveBeenCalledWith(error, ['/workspace/src/app.ts']);
+    scheduler.dispose();
+  });
+
   it('cancels active work and drops pending saves when disposed', async () => {
     vi.useFakeTimers();
     let updateSignal: AbortSignal | undefined;

@@ -79,6 +79,7 @@ export interface WorkspaceIndexRefreshDependencies {
   discoveredFiles: IDiscoveredFile[];
   filePaths: readonly string[];
   filterPatterns: string[];
+  fullRefreshFallback?: 'allow' | 'reject';
   notifyFilesChanged(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string,

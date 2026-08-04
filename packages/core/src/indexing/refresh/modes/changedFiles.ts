@@ -24,6 +24,7 @@ import {
   persistChangedFilesCachePatch,
   persistMetricOnlyIndexMetadata,
 } from './changedFilePersistence';
+import { WorkspaceIndexFullRefreshRequiredError } from '../fullRefreshRequired';
 
 export async function refreshWorkspaceIndexChangedFiles(
   source: WorkspaceIndexRefreshSource,
@@ -44,10 +45,6 @@ export async function refreshWorkspaceIndexChangedFiles(
   const deleteFilePaths = deletionSelection.deleteFilePaths;
   const changedFiles = changeSelection.files;
 
-  if (deletionSelection.unmatchedFilePaths.length > 0) {
-    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
-  }
-
   const incrementalLifecycle = changedFiles.length > 0
     ? await dependencies.notifyFilesChanged(
         await source._readAnalysisFiles(changedFiles),
@@ -58,6 +55,9 @@ export async function refreshWorkspaceIndexChangedFiles(
     : { additionalFilePaths: [], requiresFullRefresh: false };
 
   if (incrementalLifecycle.requiresFullRefresh) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('plugin-request');
+    }
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 

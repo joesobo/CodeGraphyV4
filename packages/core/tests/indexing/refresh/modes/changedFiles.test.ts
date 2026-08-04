@@ -130,6 +130,55 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(persistCache).not.toHaveBeenCalled();
   });
 
+  it('updates structural directory facts without running full analysis', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/new-folder')],
+      edges: [],
+    };
+    const source = createSource({
+      _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastFileAnalysis: new Map(),
+      _lastFileConnections: new Map(),
+      analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+    });
+
+    const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredDirectories: ['src', 'src/new-folder'],
+      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      filePaths: ['/workspace/src/new-folder'],
+    }));
+
+    expect(result.nodes).toContainEqual(createGraphNode('src/new-folder'));
+    expect(source.analyze).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).not.toHaveBeenCalled();
+    expect(source._lastDiscoveredDirectories).toEqual(['src', 'src/new-folder']);
+  });
+
+  it('removes structural directory facts without running full analysis', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts')],
+      edges: [],
+    };
+    const source = createSource({
+      _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastDiscoveredDirectories: ['src', 'src/old-folder'],
+      _lastFileAnalysis: new Map(),
+      _lastFileConnections: new Map(),
+      analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+    });
+
+    const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredDirectories: ['src'],
+      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      filePaths: ['/workspace/src/old-folder'],
+    }));
+
+    expect(result.nodes).not.toContainEqual(createGraphNode('src/old-folder'));
+    expect(source.analyze).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).not.toHaveBeenCalled();
+    expect(source._lastDiscoveredDirectories).toEqual(['src']);
+  });
+
   it('does not require an incremental progress callback', async () => {
     const source = createSource({
       _analyzeFiles: vi.fn(async (files: IDiscoveredFile[], _workspaceRoot, onFileProgress) => {
@@ -176,6 +225,23 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts'], {
       persist: false,
     });
+  });
+
+  it('rejects plugin requests for full analysis when fallback is disabled', async () => {
+    const source = createSource();
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      fullRefreshFallback: 'reject',
+      notifyFilesChanged: vi.fn(async () => ({
+        additionalFilePaths: [],
+        requiresFullRefresh: true,
+      })),
+    }))).rejects.toMatchObject({
+      name: 'WorkspaceIndexFullRefreshRequiredError',
+      reason: 'plugin-request',
+    });
+
+    expect(source.analyze).not.toHaveBeenCalled();
   });
 
   it('patches deleted file evidence without falling back to full cache persistence', async () => {

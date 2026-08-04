@@ -17,6 +17,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
   | '_sendDecorations'
   | '_sendPluginWebviewInjections'
   | '_loadAndSendData'
+  | '_refreshIndexStatus'
   | '_updateChangedFilesAndSendData'
   | '_indexAndSendData'
   | '_refreshAndSendData'
@@ -36,6 +37,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
     _sendDecorations: () => owner._methodContainers.plugin._sendDecorations(),
     _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
     _loadAndSendData: () => owner._methodContainers.analysis._loadAndSendData(),
+    _refreshIndexStatus: () => owner._methodContainers.analysis._refreshIndexStatus(),
     _updateChangedFilesAndSendData: filePaths =>
       owner._methodContainers.analysis._updateChangedFilesAndSendData(filePaths),
     _indexAndSendData: () => owner._methodContainers.analysis._indexAndSendData(),

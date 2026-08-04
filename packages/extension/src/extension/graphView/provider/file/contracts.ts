@@ -6,6 +6,7 @@ export type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' 
 export interface GraphViewProviderFileActionMethodsSource {
   _getFocusedFile(): string | undefined;
   _loadAndSendData(): Promise<void>;
+  _refreshIndexStatus?(): void;
   _updateChangedFilesAndSendData(filePaths: readonly string[]): Promise<void>;
   _sendFavorites(favorites?: string[]): void;
   _setFocusedFile(filePath: string | undefined): void;
@@ -41,6 +42,8 @@ export interface GraphViewProviderFileActionMethodDependencies {
   ): Thenable<'Delete' | undefined>;
   showInputBox: typeof vscode.window.showInputBox;
   showErrorMessage(message: string): void;
+  markGraphCacheStale?(workspaceRoot: string, filePaths: readonly string[]): void;
+  logWorkspaceUpdateError?(error: unknown, filePaths: readonly string[]): void;
   createDeleteAction(
     paths: string[],
     workspaceFolderUri: vscode.Uri,

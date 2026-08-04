@@ -37,6 +37,7 @@ export async function refreshChangedFilesForFacade(
     discoveredFiles: discoveryResult.files,
     filePaths: input.filePaths,
     filterPatterns: input.filterPatterns,
+    fullRefreshFallback: 'reject',
     notifyFilesChanged: (
       files,
       root,

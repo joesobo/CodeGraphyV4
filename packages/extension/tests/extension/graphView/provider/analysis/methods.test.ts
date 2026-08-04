@@ -224,6 +224,29 @@ describe('graphView/provider/analysis/methods', () => {
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
   });
 
+  it('does not start incremental Indexing before the initial Graph Cache exists', async () => {
+    const source = createSource({
+      _analyzer: {
+        hasIndex: vi.fn(() => false),
+        registry: { notifyWorkspaceReady: vi.fn() },
+      },
+    });
+    const runAnalysisRequest = vi.fn(async () => undefined);
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    await methods._updateChangedFilesAndSendData(['/workspace/src/new.ts']);
+
+    expect(runAnalysisRequest).not.toHaveBeenCalled();
+  });
+
   it('runs saved-file updates after an active reindex completes', async () => {
     const source = createSource();
     let finishRefresh: (() => void) | undefined;
@@ -263,6 +286,42 @@ describe('graphView/provider/analysis/methods', () => {
     ]);
   });
 
+  it('serializes saved-file updates from direct actions and ambient events', async () => {
+    const source = createSource();
+    let finishFirstUpdate: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      if (runAnalysisRequest.mock.calls.length !== 1) return;
+      await new Promise<void>(resolve => {
+        finishFirstUpdate = resolve;
+      });
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    const first = methods._updateChangedFilesAndSendData(['/workspace/src/direct.ts']);
+    await Promise.resolve();
+    const second = methods._updateChangedFilesAndSendData(['/workspace/src/ambient.ts']);
+    await Promise.resolve();
+
+    expect(runAnalysisRequest).toHaveBeenCalledOnce();
+    finishFirstUpdate?.();
+    await first;
+    await second;
+
+    expect(runAnalysisRequest).toHaveBeenCalledTimes(2);
+    expect(runAnalysisRequest.mock.calls.map(([state]) => state.changedFilePaths)).toEqual([
+      ['/workspace/src/direct.ts'],
+      ['/workspace/src/ambient.ts'],
+    ]);
+  });
+
   it('cancels an active saved-file update when its caller is disposed', async () => {
     const source = createSource();
     let analysisSignal: AbortSignal | undefined;
@@ -290,6 +349,7 @@ describe('graphView/provider/analysis/methods', () => {
       ['/workspace/src/saved.ts'],
       owner.signal,
     );
+    await Promise.resolve();
     await Promise.resolve();
 
     owner.abort();

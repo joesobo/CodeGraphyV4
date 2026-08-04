@@ -24,6 +24,9 @@ function createHarness() {
   let renameListener: (
     (event: { files: ReadonlyArray<{ oldUri: FileUri; newUri: FileUri }> }) => void
   ) | undefined;
+  let watcherCreateListener: ((uri: FileUri) => void) | undefined;
+  let watcherChangeListener: ((uri: FileUri) => void) | undefined;
+  let watcherDeleteListener: ((uri: FileUri) => void) | undefined;
   let schedulerOptions: WorkspaceCacheUpdateSchedulerOptions | undefined;
   const notify = vi.fn();
   const statusBarItem = {
@@ -40,7 +43,23 @@ function createHarness() {
       return { dispose: vi.fn(), notify };
     }),
     createStatusBarItem: vi.fn(() => statusBarItem),
+    createFileSystemWatcher: vi.fn(() => ({
+      dispose: vi.fn(),
+      onDidChange: vi.fn((listener) => {
+        watcherChangeListener = listener;
+        return disposable;
+      }),
+      onDidCreate: vi.fn((listener) => {
+        watcherCreateListener = listener;
+        return disposable;
+      }),
+      onDidDelete: vi.fn((listener) => {
+        watcherDeleteListener = listener;
+        return disposable;
+      }),
+    })),
     hasGraphCache: vi.fn(() => true),
+    markGraphCacheStale: vi.fn(),
     onDidCreateFiles: vi.fn((listener) => {
       createListener = listener;
       return disposable;
@@ -67,6 +86,9 @@ function createHarness() {
       delete: () => deleteListener,
       rename: () => renameListener,
       save: () => saveListener,
+      watcherChange: () => watcherChangeListener,
+      watcherCreate: () => watcherCreateListener,
+      watcherDelete: () => watcherDeleteListener,
     },
     notify,
     schedulerOptions: () => schedulerOptions,
@@ -85,7 +107,10 @@ describe('workspaceFiles/cacheUpdates/register', () => {
 
     registerWorkspaceCacheUpdates(
       context,
-      { updateWorkspaceFiles: vi.fn(async () => undefined) },
+      {
+        refreshIndexStatus: vi.fn(),
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
       harness.dependencies,
     );
 
@@ -103,14 +128,20 @@ describe('workspaceFiles/cacheUpdates/register', () => {
         newUri: fileUri('/workspace/src/new.ts'),
       }],
     });
+    harness.listeners.watcherCreate()?.(fileUri('/workspace/src/terminal-created.ts'));
+    harness.listeners.watcherChange()?.(fileUri('/workspace/src/terminal-changed.ts'));
+    harness.listeners.watcherDelete()?.(fileUri('/workspace/src/terminal-deleted.ts'));
 
     expect(harness.notify.mock.calls).toEqual([
       [['/workspace/src/saved.ts']],
       [['/workspace/src/created.ts']],
       [['/workspace/src/deleted.ts']],
       [['/workspace/src/old.ts', '/workspace/src/new.ts']],
+      [['/workspace/src/terminal-created.ts']],
+      [['/workspace/src/terminal-changed.ts']],
+      [['/workspace/src/terminal-deleted.ts']],
     ]);
-    expect(context.subscriptions).toHaveLength(6);
+    expect(context.subscriptions).toHaveLength(10);
   });
 
   it('shows queued, updating, and failed cache state in the VS Code status bar', () => {
@@ -118,7 +149,10 @@ describe('workspaceFiles/cacheUpdates/register', () => {
 
     registerWorkspaceCacheUpdates(
       { subscriptions: [] },
-      { updateWorkspaceFiles: vi.fn(async () => undefined) },
+      {
+        refreshIndexStatus: vi.fn(),
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
       harness.dependencies,
     );
 
@@ -156,6 +190,31 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     expect(harness.statusBarItem.hide).toHaveBeenCalledOnce();
   });
 
+  it('marks the Graph Cache stale when a targeted update cannot complete', () => {
+    const harness = createHarness();
+    const refreshIndexStatus = vi.fn();
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus,
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    harness.schedulerOptions()?.onError?.(
+      new Error('requires explicit Re-index'),
+      ['/workspace/src/app.ts'],
+    );
+
+    expect(harness.dependencies.markGraphCacheStale).toHaveBeenCalledWith(
+      '/workspace',
+      ['/workspace/src/app.ts'],
+    );
+    expect(refreshIndexStatus).toHaveBeenCalledOnce();
+  });
+
   it('passes scheduler cancellation to the graph update', async () => {
     const harness = createHarness();
     const updateWorkspaceFiles = vi.fn(async () => undefined);
@@ -163,7 +222,7 @@ describe('workspaceFiles/cacheUpdates/register', () => {
 
     registerWorkspaceCacheUpdates(
       { subscriptions: [] },
-      { updateWorkspaceFiles },
+      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
       harness.dependencies,
     );
 
