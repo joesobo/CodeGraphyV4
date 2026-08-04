@@ -13,6 +13,7 @@ When I click and drag on the background I can select multiple nodes at once
 Then I see all the selected nodes outlined in white
 
 When I right click one of the selected nodes to open its Graph Context Menu
+And I see "2 Nodes selected" in the Graph Context Menu header
 And I see the "Open x Files" entry, where x is the number of selected nodes
 And I see the "Copy Relative Paths" entry
 And I see the "Add All to Favorites" entry

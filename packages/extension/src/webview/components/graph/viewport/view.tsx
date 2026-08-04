@@ -8,6 +8,7 @@ import { NodeTooltip } from '../../nodeTooltip/view';
 import { GraphAccessibilityOverlay } from './accessibilityLayer/overlay';
 import {
   createMenuEntriesSignature,
+  graphContextMenuName,
   ViewportContextMenuItems,
 } from './contextMenu/view';
 import type { GraphAccessibilityItems } from './accessibility';
@@ -50,6 +51,7 @@ export function Viewport({
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
+  const menuName = graphContextMenuName(menuEntries);
 
   return (
     <ContextMenu>
@@ -92,7 +94,12 @@ export function Viewport({
         </div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent key={menuEntriesSignature} data-menu-entries-signature={menuEntriesSignature} className="w-64">
+      <ContextMenuContent
+        aria-label={menuName}
+        key={menuEntriesSignature}
+        data-menu-entries-signature={menuEntriesSignature}
+        className="w-64"
+      >
         <ViewportContextMenuItems
           handleMenuAction={handleMenuAction}
           menuEntries={menuEntries}

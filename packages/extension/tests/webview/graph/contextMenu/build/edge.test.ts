@@ -11,8 +11,16 @@ describe('graph/contextMenu/build/edge', () => {
       favorites: new Set(),
     });
 
-    expect(entries).toHaveLength(5);
     expect(entries).toMatchObject([
+      {
+        kind: 'header',
+        header: {
+          kind: 'edge',
+          source: { label: 'src/a.ts' },
+          target: { label: 'src/b.ts' },
+        },
+      },
+      { kind: 'separator' },
       { kind: 'item', label: 'Open Source' },
       { kind: 'item', label: 'Open Target' },
       { kind: 'item', label: 'Copy Source Path' },

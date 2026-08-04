@@ -65,6 +65,33 @@ describe('Graph context menu (edge)', () => {
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
   });
 
+  it('shows both endpoint names and the relationship above edge actions', async () => {
+    render(<Graph data={menuData} />);
+
+    await act(async () => {
+      OwnedGraphSurface.simulateLinkRightClick(edge);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toHaveAccessibleName(
+        'app.ts, src/app.ts to utils.ts, src/utils.ts, import',
+      );
+    });
+    const sourceEndpoint = document.querySelector('[data-edge-header-endpoint="source"]');
+    const targetEndpoint = document.querySelector('[data-edge-header-endpoint="target"]');
+    expect(sourceEndpoint).toHaveClass(
+      'inline-grid',
+      'max-w-[calc(50%_-_0.75rem)]',
+    );
+    expect(targetEndpoint).toHaveClass(
+      'inline-grid',
+      'max-w-[calc(50%_-_0.75rem)]',
+    );
+    expect(sourceEndpoint?.querySelector('.w-full')).toHaveTextContent('app.ts');
+    expect(targetEndpoint?.querySelector('.w-full')).toHaveTextContent('utils.ts');
+    expect(screen.getByText('import')).toBeInTheDocument();
+  });
+
   it('shows edge menu items from mac ctrl+click in 2d (same as right-click)', async () => {
     const platformSpy = mockMacPlatform();
     try {

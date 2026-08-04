@@ -81,6 +81,8 @@ Step(/^I right click the (.+) node to open its Graph Context Menu$/);
 Step(/^I right click the graph background to open its Graph Context Menu$/);
 Step(/^I right click one of the folder nodes to open its Graph Context Menu$/);
 Step(/^I right click one of the selected nodes to open its Graph Context Menu$/);
+Step(/^I see "(.+)" in the Graph Context Menu header$/);
+Step(/^the Graph Context Menu accessible name includes "(.+)"$/);
 Step(/^I see the "(.+)" entry$/);
 Step(/^I see the "Open x Files" entry, where x is the number of selected nodes$/);
 Step(/^I see the "Delete x Files" entry, where x is the number of selected nodes$/);

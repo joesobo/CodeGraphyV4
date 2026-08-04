@@ -68,6 +68,20 @@ describe('Graph context menu (background)', () => {
     });
   });
 
+  it('shows the workspace name and root context above background actions', async () => {
+    render(<Graph data={menuData} workspaceName="example-typescript" />);
+
+    await act(async () => {
+      OwnedGraphSurface.simulateBackgroundRightClick();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('example-typescript/')).toBeInTheDocument();
+    });
+    expect(screen.getByText('(root)')).toBeInTheDocument();
+    expect(screen.getByRole('menu')).toHaveAccessibleName('example-typescript/ root');
+  });
+
   it('falls back to background menu when only container contextmenu event fires', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);

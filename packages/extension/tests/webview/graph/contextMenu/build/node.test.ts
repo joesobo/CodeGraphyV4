@@ -53,8 +53,18 @@ describe('graph/contextMenu/build/node', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set()),
       favorites: new Set(),
+      nodes: [{ id: 'src/app.ts', label: 'App' }],
     });
 
+    expect(entries[0]).toEqual({
+      kind: 'header',
+      id: 'context-target-header',
+      header: {
+        kind: 'node',
+        target: { label: 'App', exactId: 'src/app.ts' },
+      },
+    });
+    expect(entries[1]).toMatchObject({ kind: 'separator' });
     expect(itemLabels(entries)).toContain('Open File');
     expect(itemLabels(entries)).toContain('Delete File');
   });
@@ -76,6 +86,10 @@ describe('graph/contextMenu/build/node', () => {
       favorites: new Set(),
     });
 
+    expect(entries[0]).toMatchObject({
+      kind: 'header',
+      header: { kind: 'multiNode', count: 2 },
+    });
     expect(itemLabels(entries)).toHaveLength(5);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',

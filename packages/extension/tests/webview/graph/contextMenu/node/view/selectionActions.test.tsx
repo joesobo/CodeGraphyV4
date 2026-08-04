@@ -26,6 +26,8 @@ describe('Graph node context menu selection actions', () => {
       expect(screen.getByText('Open 2 Files')).toBeInTheDocument();
     });
 
+    expect(screen.getByText('2 Nodes selected')).toBeInTheDocument();
+    expect(screen.getByRole('menu')).toHaveAccessibleName('2 Nodes selected');
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();

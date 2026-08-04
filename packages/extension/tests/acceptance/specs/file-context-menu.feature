@@ -10,6 +10,8 @@ And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
 When I right click the src/index.ts node to open its Graph Context Menu
+And I see "index.ts" in the Graph Context Menu header
+And I see "src/index.ts" in the Graph Context Menu header
 And I see the "Open File" entry
 And I see the "Reveal in Explorer" entry
 And I see the "Copy Relative Path" entry

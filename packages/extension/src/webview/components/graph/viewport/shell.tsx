@@ -38,6 +38,7 @@ export interface GraphViewportShellProps {
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
   viewState: GraphViewStoreState;
+  workspaceName?: string;
 }
 
 export function GraphViewportShell({
@@ -51,6 +52,7 @@ export function GraphViewportShell({
   pluginHost,
   theme,
   viewState,
+  workspaceName,
 }: GraphViewportShellProps): ReactElement {
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const lastAccessibilitySignatureRef = useRef('');
@@ -96,6 +98,7 @@ export function GraphViewportShell({
     interactions,
     viewportRuntime,
     viewState,
+    workspaceName,
   });
 
   const publishGraphViewportScale = (globalScale: number): void => {
