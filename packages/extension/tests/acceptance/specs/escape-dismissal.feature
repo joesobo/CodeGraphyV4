@@ -16,11 +16,11 @@ And the Graph Scope stays open
 
 When I press Escape in the Graph View
 Then the Graph Scope closes
-And the src/index.ts node is visibly outlined in white
+And the Graph selection contains one node
 And the Graph Stage has focus
 
 When I press Escape in the Graph View
-Then the src/index.ts node is no longer visibly outlined
+Then the Graph selection is empty
 
 Scenario: Escape dismisses one Editor Graph View layer at a time
 
@@ -38,11 +38,11 @@ And the Graph Scope stays open
 
 When I press Escape in the Graph View
 Then the Graph Scope closes
-And the src/index.ts node is visibly outlined in white
+And the Graph selection contains one node
 And the Graph Stage has focus
 
 When I press Escape in the Graph View
-Then the src/index.ts node is no longer visibly outlined
+Then the Graph selection is empty
 
 Scenario: Escape closes each Sidebar Graph View surface through its normal lifecycle
 

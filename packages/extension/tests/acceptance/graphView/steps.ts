@@ -660,6 +660,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(graphStage(requireGraphFrame(context))).toBeFocused();
   }),
 
+  step(/^the Graph selection contains one node$/, async (context) => {
+    await expect(graphStage(requireGraphFrame(context))).toHaveAttribute('data-selected-node-count', '1');
+  }),
+
+  step(/^the Graph selection is empty$/, async (context) => {
+    await expect(graphStage(requireGraphFrame(context))).toHaveAttribute('data-selected-node-count', '0');
+  }),
+
   step(/^the (.+) node is no longer visibly outlined$/, async (context, _step, match) => {
     await expectNodeIsNotOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
   }),

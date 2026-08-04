@@ -191,6 +191,7 @@ export function GraphViewportShell({
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
       surface2dProps={surfaceProps.surface2dProps}
+      selectedNodeCount={graphState.selection.selectedNodeIds.length}
       tooltipData={interactions.tooltipData}
       pluginHost={pluginHost}
     />

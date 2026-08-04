@@ -46,6 +46,7 @@ export function Viewport({
   handleNodeHover = ignoreGraphInteraction,
   marqueeSelection,
   menuEntries,
+  selectedNodeCount,
   surface2dProps,
   tooltipData,
   pluginHost,
@@ -59,6 +60,7 @@ export function Viewport({
         <div
           ref={containerRef}
           data-codegraphy-surface="graph-stage"
+          data-selected-node-count={selectedNodeCount}
           onContextMenu={handleContextMenu}
           onMouseLeave={handleMouseLeave}
           onMouseDownCapture={handleMouseDownCapture}

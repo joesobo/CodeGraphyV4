@@ -80,6 +80,8 @@ Step(/^the Graph Context Menu closes$/);
 Step(/^the Graph Scope stays open$/);
 Step(/^the Graph Scope closes$/);
 Step(/^the Graph Stage has focus$/);
+Step(/^the Graph selection contains one node$/);
+Step(/^the Graph selection is empty$/);
 Step(/^the (.+) node is no longer visibly outlined$/);
 Step(/^Escape closes each built-in panel and focuses the Graph Stage$/);
 Step(/^I open Filters$/);
