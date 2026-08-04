@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   createWorkspaceCacheUpdateScheduler,
+  type WorkspaceCacheUpdateProgress,
   type WorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateSchedulerOptions,
 } from './model';
