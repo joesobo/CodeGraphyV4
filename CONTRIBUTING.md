@@ -49,6 +49,12 @@ CodeGraphy accepts focused changes through pull requests against `main`.
    pnpm test
    ```
 
+6. Commit coherent checkpoints using Conventional Commits and push them frequently.
+
+7. Open or update a draft pull request against `main`, link the task, and inspect CI while work continues.
+
+Implementation authorization includes this standard delivery workflow. Do not ask separately for permission to commit, push, create or update the pull request, interact with the task tracker, or inspect CI unless the user explicitly limits the task.
+
 ## Code style
 
 - Follow the package and feature boundaries described in [`AGENTS.md`](./AGENTS.md).
@@ -82,9 +88,11 @@ docs: update README with installation instructions
 
 ## Pull requests
 
-1. Create PRs against `main`.
-2. Explain the behavior change and the checks you ran.
-3. Request review after CI passes.
+1. Create draft PRs against `main` early enough for CI to provide feedback during implementation.
+2. Keep the branch pushed and the PR description current.
+3. Explain the behavior change and the checks you ran.
+4. Link the relevant Trello card or issue.
+5. Request review after CI passes.
 
 ### PR checklist
 

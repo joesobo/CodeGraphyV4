@@ -24,6 +24,12 @@ The graph renderer draws Nodes with WebGPU and runs force and collision physics 
 
 Use the focused workspaces in `examples/` to inspect and validate language and plugin behavior end to end. Keep each example small enough that a person can understand the expected files, Nodes, and Relationships.
 
+## Deliver through pull requests
+
+Authorization to implement a task includes authorization to use the complete repository workflow. Do not ask separately for permission to commit, push, create or update a pull request, interact with Trello or GitHub, or inspect CI. The user has already granted full development permissions for these actions.
+
+Work on a branch or isolated worktree. Commit coherent checkpoints and push them frequently. Open or update a draft pull request early, link the Trello card or issue, and keep checking CI while useful work continues. Before ending a coding task, ensure the latest task changes are committed and pushed and that a draft pull request exists. Do not leave completed work only local, uncommitted, or unpushed unless the user explicitly asks you to.
+
 ## Keep feedback loops short
 
 Use the smallest check that can disprove a change. Prefer focused unit tests while iterating. Run a focused Playwright scenario when the behavior needs a real browser or extension host; let CI run the complete Playwright suite in parallel. Push checkpoints and check the pull request periodically while useful work continues so failures appear before the branch drifts far from a green state.
