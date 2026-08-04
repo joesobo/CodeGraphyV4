@@ -30,6 +30,7 @@ describe('workspaceFiles/cacheUpdates/statusBar', () => {
       fileCount: 2,
       progress: { phase: 'Applying Changes', current: 1, total: 2 },
     });
+    expect(statusBarItem.text).toBe('$(sync~spin) CodeGraphy: Applying Changes 1/2');
     expect(statusBarItem.tooltip).toBe('Applying Changes: 1 of 2.');
 
     renderWorkspaceCacheUpdateStatus(statusBarItem, {

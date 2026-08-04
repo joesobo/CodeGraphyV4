@@ -127,7 +127,8 @@ describe('assignGraphViewProviderPublicMethods', () => {
     target.refreshSettings();
     target.refreshToggleSettings();
     await target.clearCacheAndRefresh();
-    await target.updateWorkspaceFiles(['/workspace/src/app.ts']);
+    const onProgress = vi.fn();
+    await target.updateWorkspaceFiles(['/workspace/src/app.ts'], undefined, onProgress);
     target.refreshIndexStatus();
     target.sendCommand('FIT_VIEW');
     expect(await target.undo()).toBe('undo');
@@ -152,7 +153,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(target._methodContainers.refresh.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
     expect(
       target._methodContainers.analysis._updateChangedFilesAndSendData,
-    ).toHaveBeenCalledWith(['/workspace/src/app.ts']);
+    ).toHaveBeenCalledWith(['/workspace/src/app.ts'], undefined, onProgress);
     expect(target._methodContainers.analysis._refreshIndexStatus).toHaveBeenCalledOnce();
     expect(target._methodContainers.command.sendCommand).toHaveBeenCalledWith('FIT_VIEW');
     expect(target._methodContainers.command.undo).toHaveBeenCalledTimes(1);

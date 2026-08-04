@@ -176,6 +176,10 @@ export class FileDiscovery {
           gitignore: null,
         })) {
           candidateFiles.push({ absolutePath, relativePath });
+          const current = candidateFiles.length;
+          if (current === 1 || current % 25 === 0) {
+            options.onProgress?.({ current });
+          }
         }
         return true;
       },

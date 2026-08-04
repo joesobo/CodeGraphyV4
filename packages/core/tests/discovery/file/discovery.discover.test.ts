@@ -54,6 +54,17 @@ describe('FileDiscovery discover', () => {
     );
   });
 
+  it('reports candidate file counts while discovery is still running', async () => {
+    for (let index = 0; index < 26; index += 1) {
+      createFile(`src/file-${index}.ts`);
+    }
+    const onProgress = vi.fn();
+
+    await discovery.discover({ rootPath: tempDir, onProgress });
+
+    expect(onProgress.mock.calls.map(([progress]) => progress.current)).toEqual([1, 25]);
+  });
+
   it('includes file metadata', async () => {
     createFile('src/app.ts');
 

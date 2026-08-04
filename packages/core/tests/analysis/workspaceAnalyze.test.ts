@@ -104,6 +104,7 @@ describe('pipeline/analysis/analyze', () => {
       filter: ['**/*.user.ts', '**/*.generated.ts'],
       respectGitignore: true,
       signal: undefined,
+      onProgress: expect.any(Function),
     });
   });
 
@@ -195,7 +196,7 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(1, {
       phase: 'Discovering Files',
       current: 0,
-      total: 1,
+      total: 0,
     });
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(2, {
       phase: 'Discovering Files',

@@ -49,6 +49,9 @@ function statusBarText(
         ? '$(clock) CodeGraphy: 1 change queued'
         : `$(clock) CodeGraphy: ${status.fileCount} changes queued`;
     case 'updating':
+      if (status.progress) {
+        return `$(sync~spin) CodeGraphy: ${status.progress.phase} ${status.progress.current}/${status.progress.total}`;
+      }
       return status.fileCount === 1
         ? '$(sync~spin) CodeGraphy: Updating 1 file'
         : `$(sync~spin) CodeGraphy: Updating ${status.fileCount} files`;

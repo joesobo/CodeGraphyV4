@@ -18,18 +18,29 @@ export function createGraphViewProviderAnalyzeAndSendData(
     signal: AbortSignal,
     requestId: number,
     changedFilePaths?: readonly string[],
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ) => Promise<void>,
   mode: GraphViewAnalysisMode,
-): (changedFilePaths?: readonly string[]) => Promise<void> {
-  return async (changedFilePaths?: readonly string[]): Promise<void> => {
+): (
+  changedFilePaths?: readonly string[],
+  onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+) => Promise<void> {
+  return async (changedFilePaths, onProgress): Promise<void> => {
     const state = createGraphViewProviderAnalysisState(source, mode, changedFilePaths);
 
     await dependencies.runAnalysisRequest(
       state,
       createGraphViewProviderAnalysisRequestHandlers(source, dependencies, {
-        executeAnalysis: (signal, requestId) => changedFilePaths
-          ? doAnalyzeAndSendData(signal, requestId, changedFilePaths)
-          : doAnalyzeAndSendData(signal, requestId),
+        executeAnalysis: (signal, requestId) => {
+          if (changedFilePaths) {
+            return onProgress
+              ? doAnalyzeAndSendData(signal, requestId, changedFilePaths, onProgress)
+              : doAnalyzeAndSendData(signal, requestId, changedFilePaths);
+          }
+          return onProgress
+            ? doAnalyzeAndSendData(signal, requestId, undefined, onProgress)
+            : doAnalyzeAndSendData(signal, requestId);
+        },
         isAbortError: error => delegates.callIsAbortError(error),
       }),
     );

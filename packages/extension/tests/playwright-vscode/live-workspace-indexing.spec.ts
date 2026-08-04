@@ -17,6 +17,80 @@ import { copyExampleTypescriptWorkspace, createWorkspaceTempRoot } from '../acce
 
 const EXPLORER_SHORTCUT = process.platform === 'darwin' ? 'Meta+Shift+E' : 'Control+Shift+E';
 
+test('Re-index streams live progress and drains workspace changes queued during the run', async () => {
+  const context = await createGraphViewAcceptanceContext(undefined);
+  try {
+    context.workspaceTempRoot = createWorkspaceTempRoot();
+    context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
+      includeImportEdges: false,
+      includeNestsEdges: true,
+    });
+    const bulkPath = path.join(context.workspacePath, 'bulk');
+    fs.mkdirSync(bulkPath);
+    for (let index = 0; index < 800; index += 1) {
+      fs.writeFileSync(
+        path.join(bulkPath, `file-${index}.ts`),
+        `export const value${index} = ${index};\n`,
+      );
+    }
+
+    context.vscode = await launchVSCodeWithWorkspace(context.workspacePath);
+    await openGraphView(context.vscode.page);
+    context.graphFrame = await waitForGraphFrame(context.vscode.page);
+    const frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: 'Index Workspace' }).click();
+    await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toBeHidden({ timeout: 60_000 });
+    await context.vscode.page.evaluate(() => {
+      const statusHistory: string[] = [];
+      const captureStatus = (): void => {
+        const statusText = [...document.querySelectorAll('.statusbar-item')]
+          .map(item => item.textContent?.trim() ?? '')
+          .find(text => text.includes('CodeGraphy:'));
+        if (statusText && statusHistory.at(-1) !== statusText) {
+          statusHistory.push(statusText);
+        }
+      };
+      (globalThis as typeof globalThis & { codegraphyStatusHistory?: string[] })
+        .codegraphyStatusHistory = statusHistory;
+      new MutationObserver(captureStatus).observe(document.body, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+      captureStatus();
+    });
+
+    await frame.getByRole('button', { name: 'Re-index Workspace' }).click();
+    await expect(frame.getByText(/\d+ files found/)).toBeVisible({ timeout: 15_000 });
+    for (let index = 0; index < 58; index += 1) {
+      fs.appendFileSync(
+        path.join(bulkPath, `file-${index}.ts`),
+        `// changed during re-index ${'x'.repeat(100_000)}\n`,
+      );
+    }
+
+    const cacheUpdateStatus = context.vscode.page.getByText(
+      /CodeGraphy: (?:\d+ changes? queued|Updating \d+ files?|.+ \d+\/\d+)/,
+    );
+    await expect(cacheUpdateStatus).toBeVisible({ timeout: 15_000 });
+    await expect(context.vscode.page.getByText(/CodeGraphy: .+ \d+\/\d+/))
+      .toBeVisible({ timeout: 15_000 });
+    await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toBeHidden({ timeout: 60_000 });
+    await expect(cacheUpdateStatus).toBeHidden({ timeout: 30_000 });
+    const statusHistory = await context.vscode.page.evaluate(() => (
+      (globalThis as typeof globalThis & { codegraphyStatusHistory?: string[] })
+        .codegraphyStatusHistory ?? []
+    ));
+    expect(statusHistory).toEqual(expect.arrayContaining([
+      expect.stringMatching(/CodeGraphy: .+ \d+\/\d+/),
+    ]));
+  } finally {
+    await context.cleanup();
+  }
+});
+
 for (const { kind, name } of [
   { kind: 'File', name: 'bug-247-child.ts' },
   { kind: 'Folder', name: 'bug-247-child' },

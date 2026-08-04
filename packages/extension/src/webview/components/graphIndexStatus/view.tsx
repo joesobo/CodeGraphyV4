@@ -22,9 +22,15 @@ export function GraphIndexStatus({
     return null;
   }
 
-  const percent = progress.total > 0
+  const isIndeterminate = progress.total <= 0;
+  const percent = !isIndeterminate
     ? Math.round((progress.current / progress.total) * 100)
     : 0;
+  const progressText = isIndeterminate
+    ? progress.current === 1
+      ? '1 file found'
+      : `${progress.current} files found`
+    : `${percent}%`;
 
   return (
     <div
@@ -35,7 +41,7 @@ export function GraphIndexStatus({
     >
       <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
         <span>{progress.phase}</span>
-        <span>{percent}%</span>
+        <span>{progressText}</span>
       </div>
       <div
         className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
@@ -45,14 +51,19 @@ export function GraphIndexStatus({
         aria-label="Indexing progress"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={percent}
-        aria-valuetext={`${progress.phase} ${percent}%`}
+        aria-valuenow={isIndeterminate ? undefined : percent}
+        aria-valuetext={isIndeterminate
+          ? `${progress.phase} ${progressText}`
+          : `${progress.phase} ${percent}%`}
       >
         <div
-          className="h-full rounded-full bg-primary transition-all duration-200"
+          className={isIndeterminate
+            ? 'h-full w-1/3 animate-pulse rounded-full bg-primary'
+            : 'h-full rounded-full bg-primary transition-all duration-200'}
           data-codegraphy-region="graph-index-progress-fill"
+          data-codegraphy-progress={isIndeterminate ? 'indeterminate' : 'determinate'}
           data-testid="graph-index-status-fill"
-          style={{ width: `${percent}%` }}
+          style={isIndeterminate ? undefined : { width: `${percent}%` }}
         />
       </div>
     </div>

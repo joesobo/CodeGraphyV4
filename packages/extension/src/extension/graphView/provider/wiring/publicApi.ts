@@ -33,6 +33,7 @@ export interface GraphViewProviderPublicMethods {
   updateWorkspaceFiles: (
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ) => Promise<void>;
   refreshIndex: () => Promise<void>;
   hydrateGraphScope: () => Promise<boolean>;
@@ -90,9 +91,12 @@ export function assignGraphViewProviderPublicMethods(
   target.refresh = () => target._methodContainers.refresh.refresh();
   target.refreshIndexStatus = () =>
     target._methodContainers.analysis._refreshIndexStatus();
-  target.updateWorkspaceFiles = (filePaths, signal) => signal
-    ? target._methodContainers.analysis._updateChangedFilesAndSendData(filePaths, signal)
-    : target._methodContainers.analysis._updateChangedFilesAndSendData(filePaths);
+  target.updateWorkspaceFiles = (filePaths, signal, onProgress) =>
+    target._methodContainers.analysis._updateChangedFilesAndSendData(
+      filePaths,
+      signal,
+      onProgress,
+    );
   target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
   target.hydrateGraphScope = () => target._methodContainers.refresh.hydrateGraphScope();
   target.hydratePluginGraphScope = pluginIds =>

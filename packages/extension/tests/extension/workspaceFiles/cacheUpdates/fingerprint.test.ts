@@ -49,7 +49,30 @@ describe('workspaceFiles/cacheUpdates/fingerprint', () => {
     await update(paths, new AbortController().signal);
 
     expect(maxActiveReads).toBe(8);
-    expect(updateWorkspaceFiles).toHaveBeenCalledWith(paths, expect.any(AbortSignal));
+    expect(updateWorkspaceFiles).toHaveBeenCalledWith(paths, expect.any(AbortSignal), undefined);
+  });
+
+  it('forwards active update progress through the fingerprinting boundary', async () => {
+    const onProgress = vi.fn();
+    const updateWorkspaceFiles = vi.fn(async (
+      _filePaths: readonly string[],
+      _signal: AbortSignal,
+      report?: (progress: { phase: string; current: number; total: number }) => void,
+    ) => {
+      report?.({ phase: 'Analyzing Files', current: 25, total: 58 });
+    });
+    const update = createFingerprintingWorkspaceCacheUpdate({
+      pathSignature: vi.fn(async () => 'signature'),
+      update: updateWorkspaceFiles,
+    });
+
+    await update(['/workspace/src/app.ts'], new AbortController().signal, onProgress);
+
+    expect(onProgress).toHaveBeenCalledWith({
+      phase: 'Analyzing Files',
+      current: 25,
+      total: 58,
+    });
   });
 
   it('does not coalesce paths whose signature read failed', async () => {

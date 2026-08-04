@@ -72,6 +72,7 @@ export interface GraphViewProviderAnalysisMethods {
   _updateChangedFilesAndSendData(
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<void>;
   _refreshAndSendData(): Promise<void>;
   _refreshIndexStatus(): void;
@@ -170,6 +171,7 @@ export function createGraphViewProviderAnalysisMethods(
   const enqueueChangedFilesUpdate = (
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<void> => {
     if (source._analyzer?.hasIndex?.() === false) {
       return Promise.resolve();
@@ -184,7 +186,7 @@ export function createGraphViewProviderAnalysisMethods(
       };
       signal?.addEventListener('abort', abortUpdate, { once: true });
       try {
-        const activeUpdate = _updateChangedFilesAndSendData(filePaths);
+        const activeUpdate = _updateChangedFilesAndSendData(filePaths, onProgress);
         if (signal?.aborted) abortUpdate();
         await activeUpdate;
       } finally {

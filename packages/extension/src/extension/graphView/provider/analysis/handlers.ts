@@ -21,6 +21,7 @@ interface GraphViewProviderAnalysisHandlerCallbacks {
   isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   isAbortError(error: unknown): boolean;
   markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
+  onProgress?(progress: { phase: string; current: number; total: number }): void;
 }
 
 export function createGraphViewProviderAnalysisHandlers(
@@ -51,6 +52,7 @@ export function createGraphViewProviderAnalysisHandlers(
       sendGraphIndexStatusUpdated(source, hasIndex, freshness, detail),
     sendIndexProgress: progress => {
       source._sendMessage({ type: 'GRAPH_INDEX_PROGRESS', payload: progress });
+      callbacks.onProgress?.(progress);
     },
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections?.(),
     markWorkspaceReady: (graphData, disabledPlugins) =>

@@ -19,11 +19,13 @@ export function createGraphViewProviderDoAnalyzeAndSendData(
   signal: AbortSignal,
   requestId: number,
   changedFilePaths?: readonly string[],
+  onProgress?: (progress: { phase: string; current: number; total: number }) => void,
 ) => Promise<void> {
   return async (
     signal: AbortSignal,
     requestId: number,
     changedFilePaths?: readonly string[],
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<void> => {
     const state = createGraphViewProviderAnalysisState(source, mode, changedFilePaths);
 
@@ -37,6 +39,7 @@ export function createGraphViewProviderDoAnalyzeAndSendData(
         isAbortError: error => delegates.callIsAbortError(error),
         markWorkspaceReady: (graphData, disabledPlugins) =>
           delegates.callMarkWorkspaceReady(graphData, disabledPlugins),
+        onProgress,
       }),
     );
 
