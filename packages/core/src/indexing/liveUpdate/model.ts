@@ -1,9 +1,12 @@
 import path from 'node:path';
-import { matchesAnyPattern } from '../../discovery/pathMatching';
 import { resolveWorkspaceRoot } from '../../workspace/paths';
 import { readCodeGraphyWorkspaceSettings } from '../../workspace/settings';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from '../contracts';
 import { createCodeGraphyWorkspaceEngine } from '../engine';
+import {
+  createActiveWorkspaceFilterPatterns,
+  isWorkspaceLiveUpdatePathEligible,
+} from './eligibility';
 
 const DEFAULT_DEBOUNCE_MS = 500;
 const DEFAULT_MAX_BATCH_AGE_MS = 2_000;
@@ -86,8 +89,7 @@ class WorkspaceCacheUpdater implements CodeGraphyWorkspaceCacheUpdater {
     try {
       const settings = this.options.settings
         ?? readCodeGraphyWorkspaceSettings(this.workspaceRoot);
-      const disabledPatterns = new Set(settings.disabledCustomFilterPatterns);
-      return settings.filterPatterns.filter(pattern => !disabledPatterns.has(pattern));
+      return createActiveWorkspaceFilterPatterns(settings);
     } catch {
       // The update operation reports malformed settings through the event stream.
       return [];
@@ -100,9 +102,7 @@ class WorkspaceCacheUpdater implements CodeGraphyWorkspaceCacheUpdater {
       path.resolve(this.workspaceRoot, filePath),
     );
     const normalizedPath = relativePath.split(path.sep).join('/');
-    const lifecyclePath = normalizedPath === '.codegraphy/settings.json'
-      || path.basename(normalizedPath) === '.gitignore';
-    return lifecyclePath || !matchesAnyPattern(normalizedPath, activePatterns);
+    return isWorkspaceLiveUpdatePathEligible(normalizedPath, activePatterns);
   }
 
   private clearBatchTimers(): void {

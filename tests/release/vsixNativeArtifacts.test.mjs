@@ -82,7 +82,6 @@ test('validates target-specific plugin-local esbuild executables for every VSIX 
       target,
       sqliteBinary: nativeBinaryForTarget(target),
       treeSitterBinary: nativeBinaryForTarget(target),
-      parcelWatcherBinary: nativeBinaryForTarget(target),
       pluginEsbuildBinary: nativeBinaryForTarget(target),
     });
   }
@@ -103,7 +102,6 @@ test('rejects a VSIX with the wrong plugin-local esbuild executable', () => {
     target: 'linux-x64',
     sqliteBinary: createElfX64Binary(),
     treeSitterBinary: createElfX64Binary(),
-    parcelWatcherBinary: createElfX64Binary(),
     pluginEsbuildBinary: createMachOArm64Binary(),
   });
 
@@ -134,7 +132,6 @@ test('rejects old root esbuild wrapper and native package paths', () => {
       target: 'linux-x64',
       sqliteBinary: createElfX64Binary(),
       treeSitterBinary: createElfX64Binary(),
-      parcelWatcherBinary: createElfX64Binary(),
       pluginEsbuildBinary: createElfX64Binary(),
       oldRootEsbuildPath,
     });
@@ -152,7 +149,6 @@ function writeVsixFixture({
   target,
   sqliteBinary,
   treeSitterBinary,
-  parcelWatcherBinary,
   pluginEsbuildBinary,
   oldRootEsbuildPath,
 }) {
@@ -166,11 +162,6 @@ function writeVsixFixture({
     fixtureRoot,
     treeSitterNativeBinaryPath(target),
     treeSitterBinary,
-  );
-  writeFixtureBinary(
-    fixtureRoot,
-    parcelWatcherNativeBinaryPath(target),
-    parcelWatcherBinary ?? nativeBinaryForTarget(target),
   );
   writeFixtureBinary(
     fixtureRoot,
@@ -209,15 +200,6 @@ function treeSitterNativeBinaryPath(target) {
     'win32-x64': 'win32-x64',
   };
   return `extension/dist/node_modules/tree-sitter/prebuilds/${prebuildByTarget[target]}/tree-sitter.node`;
-}
-
-function parcelWatcherNativeBinaryPath(target) {
-  const packageByTarget = {
-    'linux-x64': 'watcher-linux-x64-glibc',
-    'darwin-arm64': 'watcher-darwin-arm64',
-    'win32-x64': 'watcher-win32-x64',
-  };
-  return `extension/dist/node_modules/@parcel/${packageByTarget[target]}/watcher.node`;
 }
 
 function pluginEsbuildNativeBinaryPath(target) {
