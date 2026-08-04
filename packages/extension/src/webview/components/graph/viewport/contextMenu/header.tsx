@@ -33,21 +33,40 @@ function IdentityHeader({ header }: { header: Extract<GraphContextMenuHeader, { 
   );
 }
 
+function EdgeEndpoint({
+  endpoint,
+  identity,
+}: {
+  endpoint: 'source' | 'target';
+  identity: Extract<GraphContextMenuHeader, { kind: 'edge' }>['source'];
+}): ReactElement {
+  return (
+    <span
+      className="inline-grid min-w-0 max-w-[calc(50%_-_0.75rem)] overflow-hidden"
+      data-edge-header-endpoint={endpoint}
+    >
+      <span
+        aria-hidden="true"
+        className="invisible col-start-1 row-start-1 whitespace-nowrap"
+      >
+        {identity.label}
+      </span>
+      <MiddleTruncatedText
+        className="col-start-1 row-start-1 w-full"
+        text={identity.label}
+        tooltipText={identity.exactId ? `${identity.label} — ${identity.exactId}` : identity.label}
+      />
+    </span>
+  );
+}
+
 function EdgeHeader({ header }: { header: Extract<GraphContextMenuHeader, { kind: 'edge' }> }): ReactElement {
   return (
     <>
       <div className="flex min-w-0 items-center gap-1 font-semibold text-[var(--cg-menu-foreground)]">
-        <MiddleTruncatedText
-          className="min-w-0 w-max max-w-[calc(50%_-_0.75rem)] shrink-0"
-          text={header.source.label}
-          tooltipText={header.source.exactId ? `${header.source.label} — ${header.source.exactId}` : header.source.label}
-        />
+        <EdgeEndpoint endpoint="source" identity={header.source} />
         <span aria-hidden="true" className="shrink-0">→</span>
-        <MiddleTruncatedText
-          className="min-w-0 w-max max-w-[calc(50%_-_0.75rem)] shrink-0"
-          text={header.target.label}
-          tooltipText={header.target.exactId ? `${header.target.label} — ${header.target.exactId}` : header.target.label}
-        />
+        <EdgeEndpoint endpoint="target" identity={header.target} />
       </div>
       {header.relationship ? (
         <MiddleTruncatedText className="pt-0.5 text-[11px] font-mono font-normal text-muted-foreground" text={header.relationship} />

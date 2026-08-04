@@ -77,18 +77,18 @@ describe('Graph context menu (edge)', () => {
         'app.ts, src/app.ts to utils.ts, src/utils.ts, import',
       );
     });
-    expect(screen.getByText('app.ts')).toBeInTheDocument();
-    expect(screen.getByText('app.ts')).not.toHaveClass('text-right', 'flex-1');
-    expect(screen.getByText('app.ts')).toHaveClass(
-      'w-max',
+    const sourceEndpoint = document.querySelector('[data-edge-header-endpoint="source"]');
+    const targetEndpoint = document.querySelector('[data-edge-header-endpoint="target"]');
+    expect(sourceEndpoint).toHaveClass(
+      'inline-grid',
       'max-w-[calc(50%_-_0.75rem)]',
-      'shrink-0',
     );
-    expect(screen.getByText('utils.ts')).toHaveClass(
-      'w-max',
+    expect(targetEndpoint).toHaveClass(
+      'inline-grid',
       'max-w-[calc(50%_-_0.75rem)]',
-      'shrink-0',
     );
+    expect(sourceEndpoint?.querySelector('.w-full')).toHaveTextContent('app.ts');
+    expect(targetEndpoint?.querySelector('.w-full')).toHaveTextContent('utils.ts');
     expect(screen.getByText('import')).toBeInTheDocument();
   });
 
