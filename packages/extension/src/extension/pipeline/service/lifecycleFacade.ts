@@ -86,6 +86,7 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
   }
 
   override clearCache(): void {
+    this._clearRecoverableGraphState();
     this._replayAnalysisPluginIds = new Set<string>();
     this._cache = clearWorkspacePipelineStoredCache(
       this._getWorkspaceRoot(),

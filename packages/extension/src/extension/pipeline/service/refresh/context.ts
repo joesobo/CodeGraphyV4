@@ -4,7 +4,7 @@ import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import type { WorkspacePipelineCachePatch } from '../cache/storage';
-import type { WorkspacePipelineRefreshState } from '../base/internal';
+import type { WorkspacePipelineRefreshState } from '../base/state';
 import type { AnalysisScopeRefreshFacade } from './scope';
 import type { RefreshSourceFacade } from './source';
 

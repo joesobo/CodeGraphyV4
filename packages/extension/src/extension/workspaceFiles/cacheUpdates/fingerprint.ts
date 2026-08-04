@@ -4,7 +4,35 @@ import { stat } from 'node:fs/promises';
 
 const PATH_SIGNATURE_CONCURRENCY = 8;
 
-export async function collectPathSignatures(
+interface FingerprintingWorkspaceCacheUpdateOptions {
+  pathSignature(filePath: string): Promise<string>;
+  update(filePaths: readonly string[], signal: AbortSignal): Promise<void>;
+}
+
+export function createFingerprintingWorkspaceCacheUpdate(
+  options: FingerprintingWorkspaceCacheUpdateOptions,
+): (filePaths: readonly string[], signal: AbortSignal) => Promise<void> {
+  const appliedPathSignatures = new Map<string, string>();
+
+  return async (filePaths, signal) => {
+    if (signal.aborted) return;
+    const startingSignatures = await collectPathSignatures(
+      filePaths,
+      filePath => options.pathSignature(filePath),
+    );
+    const changedPaths = filePaths.filter(filePath => (
+      appliedPathSignatures.get(filePath) !== startingSignatures.get(filePath)
+    ));
+    if (changedPaths.length === 0) return;
+    await options.update(changedPaths, signal);
+    for (const filePath of changedPaths) {
+      const signature = startingSignatures.get(filePath);
+      if (signature !== undefined) appliedPathSignatures.set(filePath, signature);
+    }
+  };
+}
+
+async function collectPathSignatures(
   filePaths: readonly string[],
   pathSignature: (filePath: string) => Promise<string>,
 ): Promise<Map<string, string>> {

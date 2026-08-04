@@ -78,7 +78,7 @@ describe('pipeline/service/cache/index', () => {
     expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(false);
   });
 
-  it('reports a recoverable index when loaded graph state exists without the database', () => {
+  it('reports a recoverable index only when complete graph state has explicit provenance', () => {
     const workspaceRoot = createWorkspaceRootWithoutDatabase();
 
     expect(hasWorkspacePipelineIndex(workspaceRoot, true)).toBe(true);

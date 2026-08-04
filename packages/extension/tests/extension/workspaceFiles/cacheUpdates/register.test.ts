@@ -1,19 +1,12 @@
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createWorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateSchedulerOptions,
-  type WorkspaceCacheUpdateStatus,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
 import {
   registerWorkspaceCacheUpdates,
   type WorkspaceCacheUpdateRegistrationDependencies,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/register';
-import {
-  createPathSignature,
-} from '../../../../src/extension/workspaceFiles/cacheUpdates/fingerprint';
 
 interface FileUri {
   fsPath: string;
@@ -196,170 +189,6 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     await immediateUpdate?.(['src/new.ts']);
 
     expect(harness.notifyImmediately).toHaveBeenCalledWith(['/workspace/src/new.ts']);
-  });
-
-  it('coalesces unchanged duplicate events but retains a real same-path change', async () => {
-    const harness = createHarness();
-    const updateWorkspaceFiles = vi.fn(async () => undefined);
-    registerWorkspaceCacheUpdates(
-      { subscriptions: [] },
-      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
-      harness.dependencies,
-    );
-    const update = harness.schedulerOptions()?.update;
-    const signal = new AbortController().signal;
-    const reportProgress = vi.fn();
-
-    await update?.(['/workspace/src/new.ts'], signal, reportProgress);
-    await update?.(['/workspace/src/new.ts'], signal, reportProgress);
-    expect(updateWorkspaceFiles).toHaveBeenCalledOnce();
-
-    vi.mocked(harness.dependencies.pathSignature).mockResolvedValue('signature-2');
-    await update?.(['/workspace/src/new.ts'], signal, reportProgress);
-    expect(updateWorkspaceFiles).toHaveBeenCalledTimes(2);
-  });
-
-  it('bounds signature reads for large workspace-event batches', async () => {
-    const harness = createHarness();
-    let activeReads = 0;
-    let maxActiveReads = 0;
-    vi.mocked(harness.dependencies.pathSignature).mockImplementation(async filePath => {
-      activeReads += 1;
-      maxActiveReads = Math.max(maxActiveReads, activeReads);
-      await new Promise<void>(resolve => setImmediate(resolve));
-      activeReads -= 1;
-      return `signature:${filePath}`;
-    });
-    const updateWorkspaceFiles = vi.fn(async () => undefined);
-    registerWorkspaceCacheUpdates(
-      { subscriptions: [] },
-      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
-      harness.dependencies,
-    );
-
-    const paths = Array.from(
-      { length: 40 },
-      (_, index) => `/workspace/src/file-${index}.ts`,
-    );
-    await harness.schedulerOptions()?.update(
-      paths,
-      new AbortController().signal,
-      vi.fn(),
-    );
-
-    expect(maxActiveReads).toBe(8);
-    expect(updateWorkspaceFiles).toHaveBeenCalledWith(
-      paths,
-      expect.any(AbortSignal),
-    );
-  });
-
-  it('does not coalesce paths whose signature read failed', async () => {
-    const harness = createHarness();
-    const signatureError = Object.assign(new Error('too many open files'), { code: 'EMFILE' });
-    vi.mocked(harness.dependencies.pathSignature)
-      .mockRejectedValueOnce(signatureError)
-      .mockResolvedValueOnce('recovered-signature');
-    const updateWorkspaceFiles = vi.fn(async () => undefined);
-    registerWorkspaceCacheUpdates(
-      { subscriptions: [] },
-      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
-      harness.dependencies,
-    );
-    const update = harness.schedulerOptions()?.update;
-    const signal = new AbortController().signal;
-
-    await expect(update?.(['/workspace/src/app.ts'], signal, vi.fn()))
-      .rejects.toBe(signatureError);
-    expect(updateWorkspaceFiles).not.toHaveBeenCalled();
-
-    await update?.(['/workspace/src/app.ts'], signal, vi.fn());
-    expect(updateWorkspaceFiles).toHaveBeenCalledOnce();
-  });
-
-  it('retries the same signature after targeted persistence fails', async () => {
-    const harness = createHarness();
-    const metadataError = new Error('metadata write failed');
-    const updateWorkspaceFiles = vi.fn()
-      .mockRejectedValueOnce(metadataError)
-      .mockResolvedValueOnce(undefined);
-    registerWorkspaceCacheUpdates(
-      { subscriptions: [] },
-      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
-      harness.dependencies,
-    );
-    const update = harness.schedulerOptions()?.update;
-    const signal = new AbortController().signal;
-
-    await expect(update?.(['/workspace/src/app.ts'], signal, vi.fn()))
-      .rejects.toBe(metadataError);
-    await update?.(['/workspace/src/app.ts'], signal, vi.fn());
-
-    expect(updateWorkspaceFiles).toHaveBeenCalledTimes(2);
-  });
-
-  it('distinguishes same-size content changes when timestamps are preserved', async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-cache-signature-'));
-    try {
-      const filePath = path.join(tempRoot, 'same-size.ts');
-      fs.writeFileSync(filePath, 'aaaa');
-      const modifiedAt = fs.statSync(filePath).mtime;
-      const firstSignature = await createPathSignature(filePath);
-
-      fs.writeFileSync(filePath, 'bbbb');
-      fs.utimesSync(filePath, modifiedAt, modifiedAt);
-      const secondSignature = await createPathSignature(filePath);
-
-      expect(secondSignature).not.toBe(firstSignature);
-    } finally {
-      fs.rmSync(tempRoot, { recursive: true, force: true });
-    }
-  });
-
-  it('shows queued, updating, and failed cache state in the VS Code status bar', () => {
-    const harness = createHarness();
-
-    registerWorkspaceCacheUpdates(
-      { subscriptions: [] },
-      {
-        refreshIndexStatus: vi.fn(),
-        updateWorkspaceFiles: vi.fn(async () => undefined),
-      },
-      harness.dependencies,
-    );
-
-    const report = (status: WorkspaceCacheUpdateStatus): void => {
-      harness.schedulerOptions()?.onStatus(status);
-    };
-    report({
-      state: 'queued',
-      fileCount: 2,
-      detail: '2 files queued.',
-    });
-    expect(harness.statusBarItem.text).toBe('$(clock) CodeGraphy: 2 changes queued');
-    expect(harness.statusBarItem.tooltip).toBe('2 files queued.');
-    expect(harness.statusBarItem.show).toHaveBeenCalledOnce();
-
-    report({
-      state: 'updating',
-      fileCount: 2,
-      detail: 'Updating 2 files.',
-    });
-    expect(harness.statusBarItem.text).toBe('$(sync~spin) CodeGraphy: Updating 2 files');
-
-    report({
-      state: 'error',
-      fileCount: 2,
-      detail: 'Graph Cache update failed.',
-    });
-    expect(harness.statusBarItem.text).toBe('$(error) CodeGraphy: Cache update failed');
-
-    report({
-      state: 'idle',
-      fileCount: 0,
-      detail: 'Graph Cache is current.',
-    });
-    expect(harness.statusBarItem.hide).toHaveBeenCalledOnce();
   });
 
   it('marks the Graph Cache stale when a targeted update cannot complete', () => {

@@ -19,6 +19,7 @@ import {
 } from './analysisFacade';
 import type { IWorkspaceAnalysisCache } from '../cache';
 import type { IPluginInfo } from '../../../core/plugins/types/contracts';
+import { hasWorkspacePipelineIndex } from './cache/index';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
   forceReloadGraphCache?: boolean;
@@ -103,6 +104,9 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       config.showOrphans,
       disabledPlugins,
     );
+    if (hasWorkspacePipelineIndex(workspaceRoot)) {
+      this._markRecoverableGraphState(workspaceRoot);
+    }
 
     return graphData;
   }

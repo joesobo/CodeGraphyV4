@@ -76,6 +76,14 @@ class TestAnalysisFacade extends WorkspacePipelineAnalysisFacade {
   protected override async _persistIndexMetadata(): Promise<void> {
     await this.persistIndexMetadata();
   }
+
+  setAnalyzedWorkspaceRoot(workspaceRoot: string): void {
+    this._lastWorkspaceRoot = workspaceRoot;
+  }
+
+  hasRecoverableGraphState(workspaceRoot = '/workspace'): boolean {
+    return this._hasRecoverableGraphState(workspaceRoot);
+  }
 }
 
 describe('extension/pipeline/service/analysisFacade', () => {
@@ -137,6 +145,55 @@ describe('extension/pipeline/service/analysisFacade', () => {
       disabledPlugins,
       false,
     );
+  });
+
+  it('marks only a completed workspace analysis as recoverable graph state', async () => {
+    const facade = new TestAnalysisFacade();
+    vi.mocked(analyzeWorkspacePipeline).mockImplementationOnce(async (
+      _source,
+      _cache,
+      _config,
+      _discovery,
+      _getWorkspaceRoot,
+      _filterPatterns,
+      _disabledPlugins,
+      _onProgress,
+      _signal,
+      persistIndexMetadata,
+    ) => {
+      facade.setAnalyzedWorkspaceRoot('/workspace');
+      await persistIndexMetadata();
+      return { nodes: [], edges: [] };
+    });
+
+    await facade.analyze();
+
+    expect(facade.hasRecoverableGraphState()).toBe(true);
+  });
+
+  it('does not mark incomplete analysis when metadata persistence fails', async () => {
+    const facade = new TestAnalysisFacade();
+    facade.persistIndexMetadata.mockRejectedValueOnce(new Error('metadata write failed'));
+    vi.mocked(analyzeWorkspacePipeline).mockImplementationOnce(async (
+      _source,
+      _cache,
+      _config,
+      _discovery,
+      _getWorkspaceRoot,
+      _filterPatterns,
+      _disabledPlugins,
+      _onProgress,
+      _signal,
+      persistIndexMetadata,
+    ) => {
+      facade.setAnalyzedWorkspaceRoot('/workspace');
+      await persistIndexMetadata();
+      return { nodes: [], edges: [] };
+    });
+
+    await expect(facade.analyze()).rejects.toThrow('metadata write failed');
+
+    expect(facade.hasRecoverableGraphState()).toBe(false);
   });
 
   it('refreshes without dropping reusable filtered cache entries and forwards fallback phases', async () => {

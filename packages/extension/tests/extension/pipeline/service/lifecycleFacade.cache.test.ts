@@ -38,6 +38,7 @@ describe('pipeline/service/lifecycleFacade', () => {
   it('replaces the cache through the stored-cache helper and logs its messages', () => {
     const facade = new TestLifecycleFacade();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    facade.markRecoverableGraphState();
 
     facade.clearCache();
 
@@ -49,6 +50,7 @@ describe('pipeline/service/lifecycleFacade', () => {
     onMessage('cache cleared');
     expect(logSpy).toHaveBeenCalledWith('cache cleared');
     expect(facade._cache).toEqual({ files: { 'src/a.ts': { cached: true } } });
+    expect(facade.hasRecoverableGraphState()).toBe(false);
   });
 
   it('short-circuits file invalidation when no workspace root exists or no files are provided', () => {

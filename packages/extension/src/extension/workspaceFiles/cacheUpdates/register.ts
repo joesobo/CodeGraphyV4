@@ -6,7 +6,10 @@ import {
   type WorkspaceCacheUpdateSchedulerOptions,
 } from './model';
 import { WorkspaceCacheUpdateHandledError } from './error';
-import { collectPathSignatures, createPathSignature } from './fingerprint';
+import {
+  createFingerprintingWorkspaceCacheUpdate,
+  createPathSignature,
+} from './fingerprint';
 import { collectWorkspaceCacheUpdatePaths } from './paths';
 import { markWorkspaceCacheUpdateStale } from './stale';
 import {
@@ -99,7 +102,6 @@ export function registerWorkspaceCacheUpdates(
   dependencies: WorkspaceCacheUpdateRegistrationDependencies = defaultDependencies,
 ): void {
   const statusBarItem = dependencies.createStatusBarItem();
-  const appliedPathSignatures = new Map<string, string>();
   const scheduler = dependencies.createScheduler({
     debounceMs: CACHE_UPDATE_DEBOUNCE_MS,
     canUpdate: () => provider.canUpdateWorkspaceFiles?.() ?? true,
@@ -111,22 +113,10 @@ export function registerWorkspaceCacheUpdates(
       provider.refreshIndexStatus();
     },
     onStatus: status => renderWorkspaceCacheUpdateStatus(statusBarItem, status),
-    update: async (filePaths, signal) => {
-      if (signal.aborted) return;
-      const startingSignatures = await collectPathSignatures(
-        filePaths,
-        filePath => dependencies.pathSignature(filePath),
-      );
-      const changedPaths = filePaths.filter(filePath => (
-        appliedPathSignatures.get(filePath) !== startingSignatures.get(filePath)
-      ));
-      if (changedPaths.length === 0) return;
-      await provider.updateWorkspaceFiles(changedPaths, signal);
-      for (const filePath of changedPaths) {
-        const signature = startingSignatures.get(filePath);
-        if (signature !== undefined) appliedPathSignatures.set(filePath, signature);
-      }
-    },
+    update: createFingerprintingWorkspaceCacheUpdate({
+      pathSignature: filePath => dependencies.pathSignature(filePath),
+      update: (filePaths, signal) => provider.updateWorkspaceFiles(filePaths, signal),
+    }),
   });
 
   provider.setWorkspaceFileUpdateHandler?.(async filePaths => {

@@ -98,6 +98,14 @@ export class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
   protected override _persistCache(): void {
     this.persistCache();
   }
+
+  markRecoverableGraphState(): void {
+    this._markRecoverableGraphState('/workspace');
+  }
+
+  hasRecoverableGraphState(): boolean {
+    return this._hasRecoverableGraphState('/workspace');
+  }
 }
 
 export function lifecycleState(

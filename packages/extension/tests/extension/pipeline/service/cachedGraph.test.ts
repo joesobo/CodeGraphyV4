@@ -11,6 +11,7 @@ import type { WorkspacePluginRegistry } from '../../../../src/extension/pipeline
 import type { Configuration } from '../../../../src/extension/config/reader';
 import { WorkspacePipelineCachedGraphFacade } from '../../../../src/extension/pipeline/service/cachedGraph';
 import { createCachedWorkspaceDiscoveryState } from '../../../../src/extension/pipeline/service/cache/cachedDiscovery';
+import { hasWorkspacePipelineIndex } from '../../../../src/extension/pipeline/service/cache/index';
 
 vi.mock('@codegraphy-dev/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@codegraphy-dev/core')>();
@@ -25,6 +26,9 @@ vi.mock('@codegraphy-dev/core', async (importOriginal) => {
 vi.mock('../../../../src/extension/pipeline/service/cache/cachedDiscovery', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../../../src/extension/pipeline/service/cache/cachedDiscovery')>()),
   createCachedWorkspaceDiscoveryState: vi.fn(),
+}));
+vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
+  hasWorkspacePipelineIndex: vi.fn(),
 }));
 vi.mock('vscode', () => ({
   workspace: {
@@ -128,6 +132,10 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
       activeAnalysisPluginIds,
     );
   }
+
+  hasRecoverableGraphState(): boolean {
+    return this._hasRecoverableGraphState('/workspace');
+  }
 }
 
 interface CachedGraphState {
@@ -165,6 +173,7 @@ function setupCachedDiscovery(files: readonly IDiscoveredFile[] = cachedFiles): 
 describe('extension/pipeline/service/cachedGraph', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(hasWorkspacePipelineIndex).mockReturnValue(false);
     vi.mocked(hasRequiredAnalysisCacheTiers).mockReturnValue(true);
     setupCachedDiscovery();
   });
@@ -221,6 +230,19 @@ describe('extension/pipeline/service/cachedGraph', () => {
       undefined,
     );
 
+  });
+
+  it('marks replayed state recoverable only when it came from a persisted index', async () => {
+    const facade = new TestCachedGraphFacade();
+
+    await facade.loadCachedGraph();
+    expect(facade.hasRecoverableGraphState()).toBe(false);
+
+    vi.mocked(hasWorkspacePipelineIndex).mockReturnValue(true);
+    await facade.loadCachedGraph();
+
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace');
+    expect(facade.hasRecoverableGraphState()).toBe(true);
   });
 
   it('returns an empty graph without mutating retained graph state when required cache tiers are missing', async () => {

@@ -86,6 +86,10 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
     this._lastWorkspaceRoot = workspaceRoot;
   }
 
+  markRecoverableGraphState(): void {
+    this._markRecoverableGraphState('/workspace');
+  }
+
   protected override _getPluginSignature(): string | null {
     return 'plugin-signature';
   }
@@ -249,7 +253,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', false);
   });
 
-  it('reports whether graph state has been loaded for the current workspace', () => {
+  it('does not treat an assigned workspace root as recoverable graph state', () => {
     const facade = new TestPluginFacade();
 
     expect(facade.hasLoadedGraphState()).toBe(false);
@@ -258,6 +262,14 @@ describe('extension/pipeline/service/pluginFacade', () => {
 
     expect(facade.hasLoadedGraphState()).toBe(true);
     expect(facade.hasIndex()).toBe(true);
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', false);
+
+    facade.markRecoverableGraphState();
+    expect(facade.hasIndex()).toBe(true);
     expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', true);
+
+    facade.getWorkspaceRoot.mockReturnValue('/other-workspace');
+    expect(facade.hasIndex()).toBe(true);
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/other-workspace', false);
   });
 });

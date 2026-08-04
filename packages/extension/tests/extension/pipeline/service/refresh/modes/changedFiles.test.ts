@@ -48,6 +48,11 @@ function createFile(relativePath = 'src/a.ts') {
 function createFacade(
   overrides: Partial<RefreshFacadeContext> = {},
 ): RefreshFacadeContext {
+  const refreshSnapshot = {
+    completeGraphData: createGraph('snapshot'),
+    engineState: { snapshot: true },
+    recoverableGraphStateWorkspaceRoot: '/workspace',
+  } as never;
   const facade = {
     _analyzeFiles: vi.fn(),
     _buildGraphData: vi.fn(),
@@ -59,7 +64,7 @@ function createFacade(
     },
     _discovery: { discover: vi.fn() },
     _getActiveAnalysisPluginIds: vi.fn(() => []),
-    _captureRefreshState: vi.fn(),
+    _captureRefreshState: vi.fn(() => refreshSnapshot),
     _getWorkspaceRoot: vi.fn(() => '/workspace'),
     _lastDiscoveredDirectories: ['src'],
     _lastDiscoveredFiles: [createFile()],
@@ -87,30 +92,6 @@ function createFacade(
     loadCachedGraph: vi.fn(),
     ...overrides,
   } as unknown as RefreshFacadeContext;
-  vi.mocked(facade._captureRefreshState).mockImplementation(() => structuredClone({
-    completeGraphData: facade._completeGraphData,
-    engineState: {
-      cache: facade._cache,
-      discoveredDirectories: facade._lastDiscoveredDirectories,
-      discoveredFiles: facade._lastDiscoveredFiles,
-      fileAnalysis: facade._lastFileAnalysis,
-      fileConnections: facade._lastFileConnections,
-      gitIgnoredPaths: facade._lastGitIgnoredPaths,
-      graph: facade._lastGraphData,
-      workspaceRoot: facade._lastWorkspaceRoot,
-    },
-  }));
-  vi.mocked(facade._restoreRefreshState).mockImplementation(snapshot => {
-    facade._cache = snapshot.engineState.cache;
-    facade._completeGraphData = snapshot.completeGraphData;
-    facade._lastDiscoveredDirectories = snapshot.engineState.discoveredDirectories;
-    facade._lastDiscoveredFiles = snapshot.engineState.discoveredFiles;
-    facade._lastFileAnalysis = snapshot.engineState.fileAnalysis;
-    facade._lastFileConnections = snapshot.engineState.fileConnections;
-    facade._lastGitIgnoredPaths = snapshot.engineState.gitIgnoredPaths;
-    facade._lastGraphData = snapshot.engineState.graph;
-    facade._lastWorkspaceRoot = snapshot.engineState.workspaceRoot;
-  });
   return facade;
 }
 
@@ -233,11 +214,9 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
   });
 
   it('restores the last consistent facade state when a strict targeted refresh fails', async () => {
-    const originalCache = {
-      version: '1',
-      files: { 'src/a.ts': { mtime: 1 } },
-    } as never;
-    const facade = createFacade({ _cache: originalCache });
+    const facade = createFacade();
+    const snapshot = facade._captureRefreshState();
+    vi.mocked(facade._captureRefreshState).mockClear();
     vi.mocked(getReusableChangedFileDiscoveryState).mockReturnValue(undefined);
     vi.mocked(discoverRefreshWorkspaceFiles).mockResolvedValue({
       config: {},
@@ -261,12 +240,9 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
       filterPatterns: [],
     })).rejects.toThrow('plugin requested full refresh');
 
-    expect(facade._cache).toEqual(originalCache);
-    expect(facade._completeGraphData).toEqual(createGraph('complete'));
-    expect(facade._lastDiscoveredDirectories).toEqual(['src']);
-    expect(facade._lastFileAnalysis).toEqual(new Map());
-    expect(facade._lastGitIgnoredPaths).toEqual(['old-ignore']);
-    expect(facade._lastGraphData).toEqual(createGraph('last'));
+    expect(facade._captureRefreshState).toHaveBeenCalledOnce();
+    expect(facade._restoreRefreshState).toHaveBeenCalledOnce();
+    expect(facade._restoreRefreshState).toHaveBeenCalledWith(snapshot);
   });
 
   it('discovers workspace files when previous changed-file discovery cannot be reused', async () => {

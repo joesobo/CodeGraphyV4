@@ -21,7 +21,7 @@ interface WorkspacePipelinePersistIndexDependencies
 
 export function hasWorkspacePipelineIndex(
   workspaceRoot: string | undefined,
-  hasLoadedGraphState = false,
+  hasRecoverableGraphState = false,
 ): boolean {
   if (!workspaceRoot) {
     return false;
@@ -32,7 +32,7 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  return hasLoadedGraphState
+  return hasRecoverableGraphState
     || fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
 }
 
