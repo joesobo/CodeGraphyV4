@@ -16,6 +16,7 @@ import { markWorkspaceCacheUpdateStale } from './stale';
 
 const CACHE_UPDATE_DEBOUNCE_MS = 250;
 const CACHE_UPDATE_MAX_BATCH_AGE_MS = 2_000;
+const PATH_SIGNATURE_CONCURRENCY = 8;
 
 interface FileUri {
   fsPath: string;
@@ -123,10 +124,10 @@ export function registerWorkspaceCacheUpdates(
     onStatus: status => renderStatus(statusBarItem, status),
     update: async (filePaths, signal) => {
       if (signal.aborted) return;
-      const startingSignatures = new Map(await Promise.all(filePaths.map(async filePath => [
-        filePath,
-        await dependencies.pathSignature(filePath),
-      ] as const)));
+      const startingSignatures = await collectPathSignatures(
+        filePaths,
+        filePath => dependencies.pathSignature(filePath),
+      );
       const changedPaths = filePaths.filter(filePath => (
         appliedPathSignatures.get(filePath) !== startingSignatures.get(filePath)
       ));
@@ -189,6 +190,25 @@ export function registerWorkspaceCacheUpdates(
   );
 }
 
+async function collectPathSignatures(
+  filePaths: readonly string[],
+  pathSignature: (filePath: string) => Promise<string>,
+): Promise<Map<string, string>> {
+  const signatures = new Map<string, string>();
+  let nextIndex = 0;
+  const workerCount = Math.min(PATH_SIGNATURE_CONCURRENCY, filePaths.length);
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < filePaths.length) {
+      const filePath = filePaths[nextIndex];
+      nextIndex += 1;
+      if (filePath !== undefined) {
+        signatures.set(filePath, await pathSignature(filePath));
+      }
+    }
+  }));
+  return signatures;
+}
+
 export async function createPathSignature(filePath: string): Promise<string> {
   try {
     const fileStat = await stat(filePath);
@@ -197,9 +217,16 @@ export async function createPathSignature(filePath: string): Promise<string> {
     }
     const contentHash = await hashFile(filePath);
     return `file:${fileStat.size}:${fileStat.mode}:${contentHash}`;
-  } catch {
-    return 'missing';
+  } catch (error) {
+    if (isMissingPathError(error)) return 'missing';
+    throw error;
   }
+}
+
+function isMissingPathError(error: unknown): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && (error as NodeJS.ErrnoException).code === 'ENOENT';
 }
 
 function hashFile(filePath: string): Promise<string> {

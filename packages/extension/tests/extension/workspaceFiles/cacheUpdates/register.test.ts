@@ -198,6 +198,64 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     expect(updateWorkspaceFiles).toHaveBeenCalledTimes(2);
   });
 
+  it('bounds signature reads for large workspace-event batches', async () => {
+    const harness = createHarness();
+    let activeReads = 0;
+    let maxActiveReads = 0;
+    vi.mocked(harness.dependencies.pathSignature).mockImplementation(async filePath => {
+      activeReads += 1;
+      maxActiveReads = Math.max(maxActiveReads, activeReads);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      activeReads -= 1;
+      return `signature:${filePath}`;
+    });
+    const updateWorkspaceFiles = vi.fn(async () => undefined);
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
+      harness.dependencies,
+    );
+
+    const paths = Array.from(
+      { length: 40 },
+      (_, index) => `/workspace/src/file-${index}.ts`,
+    );
+    await harness.schedulerOptions()?.update(
+      paths,
+      new AbortController().signal,
+      vi.fn(),
+    );
+
+    expect(maxActiveReads).toBe(8);
+    expect(updateWorkspaceFiles).toHaveBeenCalledWith(
+      paths,
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('does not coalesce paths whose signature read failed', async () => {
+    const harness = createHarness();
+    const signatureError = Object.assign(new Error('too many open files'), { code: 'EMFILE' });
+    vi.mocked(harness.dependencies.pathSignature)
+      .mockRejectedValueOnce(signatureError)
+      .mockResolvedValueOnce('recovered-signature');
+    const updateWorkspaceFiles = vi.fn(async () => undefined);
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
+      harness.dependencies,
+    );
+    const update = harness.schedulerOptions()?.update;
+    const signal = new AbortController().signal;
+
+    await expect(update?.(['/workspace/src/app.ts'], signal, vi.fn()))
+      .rejects.toBe(signatureError);
+    expect(updateWorkspaceFiles).not.toHaveBeenCalled();
+
+    await update?.(['/workspace/src/app.ts'], signal, vi.fn());
+    expect(updateWorkspaceFiles).toHaveBeenCalledOnce();
+  });
+
   it('distinguishes same-size content changes when timestamps are preserved', async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-cache-signature-'));
     try {
