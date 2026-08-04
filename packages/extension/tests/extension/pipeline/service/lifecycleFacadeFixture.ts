@@ -130,7 +130,7 @@ export function lifecycleState(
 
 export function setUpLifecycleFacade(): void {
   vi.clearAllMocks();
-  vi.mocked(clearWorkspacePipelineStoredCache).mockReturnValue({
+  vi.mocked(clearWorkspacePipelineStoredCache).mockResolvedValue({
     files: { 'src/a.ts': { cached: true } },
   } as never);
   vi.mocked(getWorkspacePipelineStatusList).mockReturnValue([{ id: 'plugin.a' }] as never);

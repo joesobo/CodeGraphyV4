@@ -31,7 +31,7 @@ export interface GraphViewProviderRefreshAnalyzerLike {
       disabledPlugins?: ReadonlySet<string>,
     ): void;
   };
-  clearCache(): void;
+  clearCache(): Promise<void>;
 }
 
 export interface RefreshCoordinatorState {

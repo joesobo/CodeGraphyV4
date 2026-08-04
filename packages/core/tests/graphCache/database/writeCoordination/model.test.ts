@@ -7,6 +7,7 @@ import {
   rmSync,
   statSync,
   symlinkSync,
+  writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -16,6 +17,11 @@ import {
   markCodeGraphyWorkspaceChangesPending,
   readCodeGraphyWorkspaceMeta,
 } from '../../../../src/workspace/meta';
+import {
+  getWorkspaceAnalysisDatabasePath,
+  patchWorkspaceAnalysisDatabaseCacheAsync,
+  saveWorkspaceAnalysisDatabaseCache,
+} from '../../../../src/graphCache/database/storage';
 import {
   hasWorkspaceCacheWriteOwnership,
   getWorkspaceCacheWriteLockPath,
@@ -108,6 +114,43 @@ async function startHoldingWriter(databasePath: string): Promise<ReturnType<type
   return child;
 }
 
+async function startTimedHoldingWriter(
+  databasePath: string,
+  holdMilliseconds: number,
+): Promise<{ completion: Promise<{ code: number | null; stderr: string }> }> {
+  const moduleUrl = writeCoordinationModuleUrl();
+  const program = [
+    'const [moduleUrl, databasePath, holdMilliseconds] = process.argv.slice(1);',
+    'const { withWorkspaceCacheWriteLockAsync } = await import(moduleUrl);',
+    'await withWorkspaceCacheWriteLockAsync(databasePath, async () => {',
+    "  process.stdout.write('locked\\n');",
+    '  await new Promise(resolve => setTimeout(resolve, Number(holdMilliseconds)));',
+    '});',
+  ].join('\n');
+  const child = spawn(process.execPath, [
+    '--import', 'tsx', '--input-type=module', '--eval', program,
+    moduleUrl, databasePath, String(holdMilliseconds),
+  ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  let stderr = '';
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', chunk => { stderr += chunk; });
+  const completion = new Promise<{ code: number | null; stderr: string }>((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', code => resolve({ code, stderr }));
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', chunk => {
+      if (String(chunk).includes('locked')) resolve();
+    });
+    child.on('error', reject);
+    child.on('close', code => reject(
+      new Error(`Timed writer exited before locking (${code}): ${stderr}`),
+    ));
+  });
+  return { completion };
+}
+
 async function startReleasableHoldingWriter(
   databasePath: string,
   workspaceRoot: string,
@@ -170,7 +213,10 @@ async function startReleasableHoldingWriter(
   };
 }
 
-async function startReleasableLockWriter(databasePath: string): Promise<{
+async function startReleasableLockWriter(
+  databasePath: string,
+  environment?: NodeJS.ProcessEnv,
+): Promise<{
   completion: Promise<{ code: number | null; stderr: string }>;
   lockPath: string;
   release(): void;
@@ -188,7 +234,10 @@ async function startReleasableLockWriter(databasePath: string): Promise<{
   const child = spawn(process.execPath, [
     '--import', 'tsx', '--input-type=module', '--eval', program,
     moduleUrl, databasePath,
-  ], { stdio: ['pipe', 'pipe', 'pipe'] });
+  ], {
+    env: environment ? { ...process.env, ...environment } : process.env,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
   let stderr = '';
   child.stderr.setEncoding('utf8');
   child.stderr.on('data', chunk => { stderr += chunk; });
@@ -221,7 +270,7 @@ async function startReleasableLockWriter(databasePath: string): Promise<{
 
 async function startDurableWriteThenWait(databasePath: string, markerPath: string): Promise<{
   child: ReturnType<typeof spawn>;
-  revision: number;
+  revision: string;
 }> {
   const moduleUrl = writeCoordinationModuleUrl();
   const program = [
@@ -238,14 +287,14 @@ async function startDurableWriteThenWait(databasePath: string, markerPath: strin
     '--import', 'tsx', '--input-type=module', '--eval', program,
     moduleUrl, databasePath, markerPath,
   ], { stdio: ['ignore', 'pipe', 'pipe'] });
-  const revision = await new Promise<number>((resolve, reject) => {
+  const revision = await new Promise<string>((resolve, reject) => {
     let stderr = '';
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', chunk => { stderr += chunk; });
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', chunk => {
       const line = String(chunk).split('\n').find(value => value.startsWith('written:'));
-      if (line) resolve(Number(line.slice('written:'.length)));
+      if (line) resolve(line.slice('written:'.length));
     });
     child.on('error', reject);
     child.on('close', code => reject(
@@ -355,6 +404,10 @@ afterEach(() => {
       `${lockPath}.revision.sqlite-journal`,
       `${lockPath}.revision.sqlite-shm`,
       `${lockPath}.revision.sqlite-wal`,
+      `${lockPath}.recovery.sqlite`,
+      `${lockPath}.recovery.sqlite-journal`,
+      `${lockPath}.recovery.sqlite-shm`,
+      `${lockPath}.recovery.sqlite-wal`,
       `${lockPath}.lock`,
       `${lockPath}.owner`,
     ]) {
@@ -416,17 +469,96 @@ describe('Graph Cache write coordination', () => {
   it('reserves every writer revision before its callback runs', async () => {
     const databasePath = createDatabasePath();
 
-    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(0);
+    const initialRevision = await readWorkspaceCacheWriteRevisionAsync(databasePath);
     await withWorkspaceCacheWriteLockAsync(databasePath, async revision => {
-      expect(revision).toBe(0);
+      expect(revision).toBe(initialRevision);
     });
-    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(1);
+    const successfulRevision = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    expect(successfulRevision).not.toBe(initialRevision);
     await expect(withWorkspaceCacheWriteLockAsync(databasePath, async revision => {
-      expect(revision).toBe(1);
+      expect(revision).toBe(successfulRevision);
       throw new Error('write failed');
     })).rejects.toThrow('write failed');
-    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(2);
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath))
+      .not.toBe(successfulRevision);
   });
+
+  it('recovers a corrupt ownership coordinator across real child contenders', async () => {
+    const databasePath = createDatabasePath();
+    const lockPath = getWorkspaceCacheWriteLockPath(databasePath);
+    mkdirSync(dirname(lockPath), { recursive: true });
+    writeFileSync(lockPath, 'not a sqlite database');
+    const markerPath = `${databasePath}.writer`;
+
+    await Promise.all(Array.from(
+      { length: 8 },
+      () => runContendingWriter(databasePath, markerPath),
+    ));
+    await expect(withWorkspaceCacheWriteLockAsync(
+      databasePath,
+      async () => undefined,
+    )).resolves.toBeUndefined();
+
+    expect(existsSync(markerPath)).toBe(false);
+  }, 15_000);
+
+  it('recovers a corrupt revision database and invalidates prepared work', async () => {
+    const databasePath = createDatabasePath();
+    const lockPath = getWorkspaceCacheWriteLockPath(databasePath);
+    const preparedRevision = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    writeFileSync(`${lockPath}.revision.sqlite`, 'not a sqlite database');
+    const markerPath = `${databasePath}.writer`;
+
+    await Promise.all(Array.from(
+      { length: 8 },
+      () => runContendingWriter(databasePath, markerPath),
+    ));
+    let recoveredRevision: unknown;
+    await withWorkspaceCacheWriteLockAsync(databasePath, async revision => {
+      recoveredRevision = revision;
+    });
+
+    expect(recoveredRevision).not.toBe(preparedRevision);
+    expect(existsSync(markerPath)).toBe(false);
+  }, 15_000);
+
+  it('recreates revision state that does not contain opaque epochs', async () => {
+    const databasePath = createDatabasePath();
+    const revisionPath = `${getWorkspaceCacheWriteLockPath(databasePath)}.revision.sqlite`;
+    const obsoleteRevision = new Database(revisionPath);
+    obsoleteRevision.exec(`
+      CREATE TABLE CacheWriteState (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        revision INTEGER NOT NULL
+      ) STRICT;
+      INSERT INTO CacheWriteState (id, revision) VALUES (1, 42);
+    `);
+    obsoleteRevision.close();
+
+    const recoveredRevision = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    await expect(withWorkspaceCacheWriteLockAsync(
+      databasePath,
+      async () => undefined,
+    )).resolves.toBeUndefined();
+
+    expect(recoveredRevision).toEqual(expect.any(String));
+  });
+
+  it('recovers when both disposable coordinator databases are corrupt', async () => {
+    const databasePath = createDatabasePath();
+    const lockPath = getWorkspaceCacheWriteLockPath(databasePath);
+    mkdirSync(dirname(lockPath), { recursive: true });
+    writeFileSync(lockPath, 'corrupt ownership');
+    writeFileSync(`${lockPath}.revision.sqlite`, 'corrupt revision');
+    const markerPath = `${databasePath}.writer`;
+
+    await Promise.all(Array.from(
+      { length: 8 },
+      () => runContendingWriter(databasePath, markerPath),
+    ));
+
+    expect(existsSync(markerPath)).toBe(false);
+  }, 15_000);
 
   it('keeps a pre-write revision reservation after a writer is killed', async () => {
     const databasePath = createDatabasePath();
@@ -445,7 +577,7 @@ describe('Graph Cache write coordination', () => {
       if (revision === preparedRevision) staleAttemptCommitted = true;
     });
 
-    expect(observedRevision).toBeGreaterThan(preparedRevision);
+    expect(observedRevision).not.toBe(preparedRevision);
     expect(staleAttemptCommitted).toBe(false);
   }, 15_000);
 
@@ -464,6 +596,57 @@ describe('Graph Cache write coordination', () => {
 
     expect(contenderEnteredBeforeRelease).toBe(false);
     expect(contenderEntered).toBe(true);
+  });
+
+  it('keeps the event loop responsive while async ownership waits', async () => {
+    const databasePath = createDatabasePath();
+    const holder = await startTimedHoldingWriter(databasePath, 700);
+    let timerFired = false;
+    let timerFiredBeforeEntry = false;
+    setTimeout(() => { timerFired = true; }, 50);
+
+    await withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      timerFiredBeforeEntry = timerFired;
+    });
+
+    expect(timerFiredBeforeEntry).toBe(true);
+    expect(await holder.completion).toEqual({ code: 0, stderr: '' });
+  });
+
+  it('keeps Extension-facing async patches responsive during real contention', async () => {
+    const workspaceRoot = mkdtempSync(join(tmpdir(), 'codegraphy-async-patch-'));
+    temporaryDirectories.add(workspaceRoot);
+    saveWorkspaceAnalysisDatabaseCache(
+      workspaceRoot,
+      { version: 'test', files: {} },
+      { nodes: [], edges: [] },
+    );
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    trackLockPath(databasePath);
+    const holder = await startTimedHoldingWriter(databasePath, 700);
+    let timerFired = false;
+    setTimeout(() => { timerFired = true; }, 50);
+
+    await patchWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, {
+      deleteFilePaths: [],
+      upsertFiles: {},
+    });
+
+    expect(timerFired).toBe(true);
+    expect(await holder.completion).toEqual({ code: 0, stderr: '' });
+  });
+
+  it('fails synchronous ownership fast when another process owns the coordinator', async () => {
+    const databasePath = createDatabasePath();
+    const holder = await startTimedHoldingWriter(databasePath, 700);
+    const startedAt = Date.now();
+
+    expect(() => withWorkspaceCacheWriteLock(databasePath, () => undefined))
+      .toThrow(/already active|another Graph Cache writer/i);
+    const elapsedMilliseconds = Date.now() - startedAt;
+
+    expect(elapsedMilliseconds).toBeLessThan(200);
+    expect(await holder.completion).toEqual({ code: 0, stderr: '' });
   });
 
   it('proves BEGIN EXCLUSIVE excludes a second real process', async () => {
@@ -536,6 +719,29 @@ describe('Graph Cache write coordination', () => {
     await contender;
 
     expect(holder.lockPath).toBe(getWorkspaceCacheWriteLockPath(aliasDatabasePath));
+    expect(contenderEnteredBeforeRelease).toBe(false);
+    expect(holderResult).toEqual({ code: 0, stderr: '' });
+    expect(contenderEntered).toBe(true);
+  }, 10_000);
+
+  it('serializes writers when child HOME differs for the same effective user', async () => {
+    const databasePath = createDatabasePath();
+    const alternateHome = mkdtempSync(join(tmpdir(), 'codegraphy-alternate-home-'));
+    temporaryDirectories.add(alternateHome);
+    const holder = await startReleasableLockWriter(databasePath, { HOME: alternateHome });
+    temporaryLockPaths.add(holder.lockPath);
+    let contenderEntered = false;
+    const contender = withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      contenderEntered = true;
+    });
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const contenderEnteredBeforeRelease = contenderEntered;
+
+    holder.release();
+    const holderResult = await holder.completion;
+    await contender;
+
+    expect(holder.lockPath).toBe(getWorkspaceCacheWriteLockPath(databasePath));
     expect(contenderEnteredBeforeRelease).toBe(false);
     expect(holderResult).toEqual({ code: 0, stderr: '' });
     expect(contenderEntered).toBe(true);
@@ -614,7 +820,7 @@ describe('Graph Cache write coordination', () => {
     rmSync(workspaceRoot, { recursive: true });
     mkdirSync(workspaceRoot);
     let contenderEntered = false;
-    let contenderRevision: number | undefined;
+    let contenderRevision: string | undefined;
     const contender = withWorkspaceCacheWriteLockIfParentExistsAsync(
       databasePath,
       async revision => {
@@ -636,7 +842,7 @@ describe('Graph Cache write coordination', () => {
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot).pendingChangedFiles)
       .toEqual(['src/new.ts']);
     expect(contenderEntered).toBe(true);
-    expect(contenderRevision).toBe(1);
+    expect(contenderRevision).toEqual(expect.any(String));
   }, 10_000);
 
   it('serializes contenders after the active writer process terminates', async () => {

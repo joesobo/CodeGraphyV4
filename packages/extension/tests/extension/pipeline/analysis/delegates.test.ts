@@ -282,7 +282,7 @@ describe('WorkspacePipeline delegates', () => {
     expect(resolveSpy).toHaveBeenCalledOnce();
   });
 
-  it('delegates cache clearing and replaces the cached analysis state', () => {
+  it('delegates cache clearing and replaces the cached analysis state', async () => {
     const context = createContext();
     const analyzer = new WorkspacePipeline(
       context as unknown as vscode.ExtensionContext,
@@ -291,13 +291,13 @@ describe('WorkspacePipeline delegates', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const clearSpy = vi
       .spyOn(cacheStorageModule, 'clearWorkspacePipelineStoredCache')
-      .mockImplementation((workspaceRoot, logInfo: (message: string) => void) => {
+      .mockImplementation(async (workspaceRoot, logInfo: (message: string) => void) => {
         expect(workspaceRoot).toBe('/test/workspace');
         logInfo('[CodeGraphy] Cache cleared');
         return replacementCache as never;
       });
 
-    analyzer.clearCache();
+    await analyzer.clearCache();
 
     expect(clearSpy).toHaveBeenCalledOnce();
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');

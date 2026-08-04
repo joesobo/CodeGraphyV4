@@ -85,10 +85,10 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
     });
   }
 
-  override clearCache(): void {
+  override async clearCache(): Promise<void> {
     this._clearRecoverableGraphState();
     this._replayAnalysisPluginIds = new Set<string>();
-    this._cache = clearWorkspacePipelineStoredCache(
+    this._cache = await clearWorkspacePipelineStoredCache(
       this._getWorkspaceRoot(),
       (message: string) => {
         console.log(message);

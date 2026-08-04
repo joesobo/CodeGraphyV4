@@ -78,7 +78,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     return workspaceRoot;
   }
 
-  it('clears the cache and persists the empty state', () => {
+  it('clears the cache and persists the empty state', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const context = {
       subscriptions: [],
@@ -111,7 +111,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
     };
 
-    analyzer.clearCache();
+    await analyzer.clearCache();
 
     expect(analyzerPrivate._cache).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
@@ -407,7 +407,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     expect(analyzer.hasIndex()).toBe(false);
   });
 
-  it('clears the repo-local database cache alongside the legacy workspace mirror', () => {
+  it('clears the repo-local database cache alongside the legacy workspace mirror', async () => {
     const workspaceRoot = createWorkspaceRoot();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
@@ -434,7 +434,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
     } as unknown as vscode.ExtensionContext);
 
-    analyzer.clearCache();
+    await analyzer.clearCache();
 
     expect(fs.existsSync(path.join(workspaceRoot, '.codegraphy', 'graph.sqlite'))).toBe(true);
     expect(

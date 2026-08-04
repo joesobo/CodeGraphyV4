@@ -18,8 +18,10 @@ import {
 } from './snapshot';
 import {
   clearWorkspaceAnalysisDatabaseCache as clearWorkspaceAnalysisDatabaseCacheImpl,
+  clearWorkspaceAnalysisDatabaseCacheAsync as clearWorkspaceAnalysisDatabaseCacheAsyncImpl,
   patchOwnedWorkspaceAnalysisDatabaseCache as patchOwnedWorkspaceAnalysisDatabaseCacheImpl,
   patchWorkspaceAnalysisDatabaseCache as patchWorkspaceAnalysisDatabaseCacheImpl,
+  patchWorkspaceAnalysisDatabaseCacheAsync as patchWorkspaceAnalysisDatabaseCacheAsyncImpl,
   replaceOwnedWorkspaceAnalysisDatabaseCache as replaceOwnedWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCache as saveWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncImpl,
@@ -76,6 +78,12 @@ export function clearWorkspaceAnalysisDatabaseCache(
   clearWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot);
 }
 
+export function clearWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+): Promise<void> {
+  return clearWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot);
+}
+
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
@@ -92,8 +100,15 @@ export function patchWorkspaceAnalysisDatabaseCache(
   patchWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch);
 }
 
+export function patchWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): Promise<void> {
+  return patchWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot, patch);
+}
+
 interface WorkspaceAnalysisDatabaseWriter {
-  readonly revision: number;
+  readonly revision: string;
   patch(
     patch: WorkspaceAnalysisDatabasePatch,
     recovery: WorkspaceAnalysisDatabaseReplacement,

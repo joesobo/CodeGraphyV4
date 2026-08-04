@@ -7,8 +7,8 @@ import {
 import {
   readRowsAsync,
   readRowsSync,
-  withRecreatedConnection,
-  withRecreatedConnectionAsync,
+  withReadOrRecreatedConnection,
+  withReadOrRecreatedConnectionAsync,
 } from '../../../../src/graphCache/database/io/connection';
 import { getWorkspaceAnalysisDatabasePath } from '../../../../src/graphCache/database/io/paths';
 import { parseDatabaseRecords } from '../../../../src/graphCache/database/records/parser';
@@ -26,8 +26,8 @@ vi.mock('../../../../src/analysis/cache', () => ({
 vi.mock('../../../../src/graphCache/database/io/connection', () => ({
   readRowsSync: vi.fn(),
   readRowsAsync: vi.fn(),
-  withRecreatedConnection: vi.fn(),
-  withRecreatedConnectionAsync: vi.fn(),
+  withReadOrRecreatedConnection: vi.fn(),
+  withReadOrRecreatedConnectionAsync: vi.fn(),
 }));
 
 vi.mock('../../../../src/graphCache/database/io/paths', () => ({
@@ -63,12 +63,12 @@ describe('graphCache/database/load', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(false);
 
     expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({ version: '0.0.0', files: {} });
-    expect(withRecreatedConnection).not.toHaveBeenCalled();
+    expect(withReadOrRecreatedConnection).not.toHaveBeenCalled();
   });
 
   it('loads and hydrates all relational tables', () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withRecreatedConnection).mockImplementation((_databasePath, callback) => callback('connection' as never));
+    vi.mocked(withReadOrRecreatedConnection).mockImplementation((_databasePath, callback) => callback('connection' as never));
     vi.mocked(readRowsSync)
       .mockReturnValueOnce(['file-row'] as never)
       .mockReturnValueOnce(['node-row'] as never)
@@ -101,7 +101,7 @@ describe('graphCache/database/load', () => {
   it('reports an unreadable database after coordinated recovery fails', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withRecreatedConnection).mockImplementation(() => { throw new Error('sqlite error'); });
+    vi.mocked(withReadOrRecreatedConnection).mockImplementation(() => { throw new Error('sqlite error'); });
 
     expect(loadWorkspaceAnalysisDatabaseCache('/workspace')).toEqual({ version: '0.0.0', files: {} });
     expect(warn).toHaveBeenCalledWith(
@@ -112,7 +112,7 @@ describe('graphCache/database/load', () => {
 
   it('loads all relational tables asynchronously', async () => {
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withRecreatedConnectionAsync).mockImplementation(async (_path, callback) => callback('connection' as never));
+    vi.mocked(withReadOrRecreatedConnectionAsync).mockImplementation(async (_path, callback) => callback('connection' as never));
     vi.mocked(readRowsAsync)
       .mockResolvedValueOnce(['file-row'] as never)
       .mockResolvedValueOnce(['node-row'] as never)
@@ -130,7 +130,7 @@ describe('graphCache/database/load', () => {
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toEqual({ version: '0.0.0', files: {} });
 
     vi.mocked(fsModule.existsSync).mockReturnValue(true);
-    vi.mocked(withRecreatedConnectionAsync).mockRejectedValue(new Error('database error'));
+    vi.mocked(withReadOrRecreatedConnectionAsync).mockRejectedValue(new Error('database error'));
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     await expect(loadWorkspaceAnalysisDatabaseCacheAsync('/workspace')).resolves.toEqual({ version: '0.0.0', files: {} });
   });

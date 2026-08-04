@@ -8,6 +8,7 @@ import {
   prepareStatementSync,
   runStatementSync,
   withConnection,
+  withConnectionAsync,
   withOwnedConnection,
   withOwnedRecreatedConnection,
   withRecreatedConnection,
@@ -213,6 +214,17 @@ export function patchWorkspaceAnalysisDatabaseCache(
   withConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
 }
 
+export async function patchWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): Promise<void> {
+  const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
+  if (!databasePath) return;
+  await withConnectionAsync(databasePath, async connection => {
+    writeWorkspaceAnalysisDatabasePatch(connection, patch);
+  });
+}
+
 export function patchOwnedWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   patch: WorkspaceAnalysisDatabasePatch,
@@ -241,6 +253,19 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   }
 
   withConnection(databasePath, (connection) => {
+    runStatementSync(connection, 'DELETE FROM Edge');
+    runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Node');
+    runStatementSync(connection, 'DELETE FROM File');
+  });
+}
+
+export async function clearWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+): Promise<void> {
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  if (!fs.existsSync(databasePath)) return;
+  await withConnectionAsync(databasePath, async connection => {
     runStatementSync(connection, 'DELETE FROM Edge');
     runStatementSync(connection, 'DELETE FROM Symbol');
     runStatementSync(connection, 'DELETE FROM Node');

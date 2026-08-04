@@ -26,12 +26,12 @@ describe('pipeline/service/cache/storage', () => {
     vi.clearAllMocks();
   });
 
-  it('returns an empty cache immediately and queues repo-local clearing', () => {
+  it('returns an empty cache after clearing the repo-local cache', async () => {
     const cache = { files: {} };
     vi.mocked(createEmptyWorkspaceAnalysisCache).mockReturnValue(cache as never);
     const logInfo = vi.fn();
 
-    expect(clearWorkspacePipelineStoredCache('/workspace', logInfo)).toBe(cache);
+    await expect(clearWorkspacePipelineStoredCache('/workspace', logInfo)).resolves.toBe(cache);
     expect(clearWorkspaceAnalysisDatabaseCacheQueued).toHaveBeenCalledWith('/workspace');
     expect(logInfo).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
   });

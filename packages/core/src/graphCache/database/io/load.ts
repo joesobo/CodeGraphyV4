@@ -15,8 +15,8 @@ import {
   readRowsAsync,
   readRowsSync,
   withReadOnlyConnection,
-  withRecreatedConnection,
-  withRecreatedConnectionAsync,
+  withReadOrRecreatedConnection,
+  withReadOrRecreatedConnectionAsync,
 } from './connection';
 import { getWorkspaceAnalysisDatabasePath } from './paths';
 import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from '../records/types';
@@ -83,7 +83,7 @@ export function loadWorkspaceAnalysisDatabaseCache(
   try {
     const load = options.unreadable === 'throw'
       ? withReadOnlyConnection
-      : withRecreatedConnection;
+      : withReadOrRecreatedConnection;
     return load(databasePath, connection => createCache(
       readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
       readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
@@ -110,7 +110,7 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
     return loadWorkspaceAnalysisDatabaseCache(workspaceRoot, options);
   }
   try {
-    return await withRecreatedConnectionAsync(databasePath, async connection => {
+    return await withReadOrRecreatedConnectionAsync(databasePath, async connection => {
       const [fileRows, nodeRows, symbolRows, edgeRows] = await Promise.all([
         readRowsAsync(connection, FILE_ROWS_QUERY),
         readRowsAsync(connection, NODE_ROWS_QUERY),

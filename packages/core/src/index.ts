@@ -124,10 +124,12 @@ export {
 export type { WorkspaceAnalysisDatabaseSnapshot } from './graphCache/database/storage';
 export {
   clearWorkspaceAnalysisDatabaseCache,
+  clearWorkspaceAnalysisDatabaseCacheAsync,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
   loadWorkspaceAnalysisDatabaseCacheAsync,
   patchWorkspaceAnalysisDatabaseCache,
+  patchWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,

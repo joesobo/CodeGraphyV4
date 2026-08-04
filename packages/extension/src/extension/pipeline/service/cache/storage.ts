@@ -14,16 +14,13 @@ export type {
   WorkspaceIndexCachePatch as WorkspacePipelineCachePatch,
 } from '@codegraphy-dev/core';
 
-export function clearWorkspacePipelineStoredCache(
+export async function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,
   logInfo: (message: string) => void,
-): IWorkspaceAnalysisCache {
+): Promise<IWorkspaceAnalysisCache> {
   const cache = createEmptyWorkspaceAnalysisCache();
   if (workspaceRoot) {
-    void clearWorkspaceAnalysisDatabaseCacheQueued(workspaceRoot)
-      .catch((error: unknown) => {
-        console.warn('[CodeGraphy] Failed to clear repo-local analysis cache.', error);
-      });
+    await clearWorkspaceAnalysisDatabaseCacheQueued(workspaceRoot);
   }
   logInfo('[CodeGraphy] Cache cleared');
   return cache;

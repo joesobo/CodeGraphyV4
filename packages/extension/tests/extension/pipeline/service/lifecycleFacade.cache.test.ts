@@ -35,12 +35,12 @@ import {
 describe('pipeline/service/lifecycleFacade', () => {
   beforeEach(setUpLifecycleFacade);
 
-  it('replaces the cache through the stored-cache helper and logs its messages', () => {
+  it('replaces the cache through the stored-cache helper and logs its messages', async () => {
     const facade = new TestLifecycleFacade();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     facade.markRecoverableGraphState();
 
-    facade.clearCache();
+    await facade.clearCache();
 
     expect(clearWorkspacePipelineStoredCache).toHaveBeenCalledWith(
       '/workspace',

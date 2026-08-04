@@ -1,7 +1,8 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
   mkdirSync,
   realpathSync,
+  rmSync,
   statSync,
 } from 'node:fs';
 import os from 'node:os';
@@ -13,7 +14,6 @@ import { setTimeout as wait } from 'node:timers/promises';
 const LOCK_DIRECTORY_NAME = 'write-locks';
 const RETRY_DELAY_MS = 25;
 const ACQUIRE_TIMEOUT_MS = 60_000;
-const syncWaitState = new Int32Array(new SharedArrayBuffer(4));
 const processLocks = new Set<string>();
 interface WorkspaceDirectoryIdentity {
   birthtimeNs: bigint;
@@ -34,7 +34,7 @@ type LockConnection = Database.Database;
 
 interface WorkspaceCacheWriteOwnership {
   release(): void;
-  revision: number;
+  revision: string;
 }
 
 function canonicalDatabaseIdentity(databasePath: string): string {
@@ -70,11 +70,19 @@ export function getWorkspaceCacheWriteLockPath(databasePath: string): string {
     .update(canonicalDatabaseIdentity(databasePath))
     .digest('hex');
   return path.join(
-    os.homedir(),
+    stableEffectiveUserHome(),
     '.codegraphy',
     LOCK_DIRECTORY_NAME,
     `${databaseIdentity}.sqlite`,
   );
+}
+
+function stableEffectiveUserHome(): string {
+  try {
+    return os.userInfo().homedir;
+  } catch {
+    return os.homedir();
+  }
 }
 
 function isFileSystemError(error: unknown, code: string): boolean {
@@ -129,20 +137,32 @@ function ensureRevisionState(connection: LockConnection): void {
   connection.exec(`
     CREATE TABLE IF NOT EXISTS CacheWriteState (
       id INTEGER PRIMARY KEY CHECK (id = 1),
-      revision INTEGER NOT NULL
+      revision TEXT NOT NULL
     ) STRICT;
-    INSERT OR IGNORE INTO CacheWriteState (id, revision) VALUES (1, 0);
   `);
+  const revisionColumn = (connection.prepare(
+    'PRAGMA table_info(CacheWriteState)',
+  ).all() as Array<{ name?: string; type?: string }>)
+    .find(column => column.name === 'revision');
+  if (revisionColumn?.type !== 'TEXT') {
+    throw new InvalidWorkspaceCacheWriterEpochError();
+  }
+  connection.prepare(
+    'INSERT OR IGNORE INTO CacheWriteState (id, revision) VALUES (1, $revision)',
+  ).run({ revision: randomUUID() });
 }
 
-function readRevision(connection: LockConnection): number {
+function readRevision(connection: LockConnection): string {
   const row = connection.prepare(
     'SELECT revision FROM CacheWriteState WHERE id = 1',
-  ).get() as { revision?: number | bigint } | undefined;
-  return Number(row?.revision ?? 0);
+  ).get() as { revision?: string } | undefined;
+  if (typeof row?.revision !== 'string') {
+    throw new InvalidWorkspaceCacheWriterEpochError();
+  }
+  return row.revision;
 }
 
-function readOrReserveRevision(writeLockPath: string, reserve: boolean): number {
+function readOrReserveRevision(writeLockPath: string, reserve: boolean): string {
   const connection = new Database(`${writeLockPath}.revision.sqlite`);
   try {
     ensureRevisionState(connection);
@@ -150,8 +170,8 @@ function readOrReserveRevision(writeLockPath: string, reserve: boolean): number 
     const revision = readRevision(connection);
     if (reserve) {
       connection.prepare(
-        'UPDATE CacheWriteState SET revision = revision + 1 WHERE id = 1',
-      ).run();
+        'UPDATE CacheWriteState SET revision = $revision WHERE id = 1',
+      ).run({ revision: randomUUID() });
     }
     connection.exec('COMMIT;');
     return revision;
@@ -167,10 +187,73 @@ function readOrReserveRevision(writeLockPath: string, reserve: boolean): number 
   }
 }
 
+const SQLITE_SIDECAR_SUFFIXES = ['', '-journal', '-shm', '-wal'] as const;
+
+class InvalidWorkspaceCacheWriterEpochError extends Error {}
+
+function isInvalidSqliteDatabaseError(error: unknown): boolean {
+  return error instanceof InvalidWorkspaceCacheWriterEpochError
+    || error instanceof Error
+    && 'code' in error
+    && (error.code === 'SQLITE_NOTADB' || error.code === 'SQLITE_CORRUPT');
+}
+
+function removeDisposableCoordinatorDatabase(databasePath: string): void {
+  for (const suffix of SQLITE_SIDECAR_SUFFIXES) {
+    rmSync(`${databasePath}${suffix}`, { force: true });
+  }
+}
+
+function readOrReserveRevisionWithRecovery(
+  writeLockPath: string,
+  reserve: boolean,
+): string {
+  try {
+    return readOrReserveRevision(writeLockPath, reserve);
+  } catch (error) {
+    if (!isInvalidSqliteDatabaseError(error)) throw error;
+    removeDisposableCoordinatorDatabase(`${writeLockPath}.revision.sqlite`);
+    return readOrReserveRevision(writeLockPath, reserve);
+  }
+}
+
 function isSqliteBusyError(error: unknown): boolean {
   return error instanceof Error
     && 'code' in error
     && (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_BUSY_SNAPSHOT');
+}
+
+function tryOpenExclusive(databasePath: string): LockConnection | undefined {
+  let connection: LockConnection | undefined;
+  try {
+    connection = new Database(databasePath);
+    connection.exec('PRAGMA busy_timeout = 0; BEGIN EXCLUSIVE;');
+    return connection;
+  } catch (error) {
+    connection?.close();
+    if (isSqliteBusyError(error)) return undefined;
+    throw error;
+  }
+}
+
+function tryOpenOwnershipWithRecovery(
+  writeLockPath: string,
+): LockConnection | undefined {
+  try {
+    return tryOpenExclusive(writeLockPath);
+  } catch (error) {
+    if (!isInvalidSqliteDatabaseError(error)) throw error;
+    removeDisposableCoordinatorDatabase(writeLockPath);
+    return tryOpenExclusive(writeLockPath);
+  }
+}
+
+function releaseExclusive(connection: LockConnection): void {
+  try {
+    connection.exec('ROLLBACK;');
+  } finally {
+    connection.close();
+  }
 }
 
 function tryAcquire(
@@ -179,28 +262,30 @@ function tryAcquire(
 ): WorkspaceCacheWriteOwnership | undefined {
   const writeLockPath = getWorkspaceCacheWriteLockPath(databasePath);
   mkdirSync(path.dirname(writeLockPath), { recursive: true, mode: 0o700 });
-  let connection: LockConnection | undefined;
+  const recoveryConnection = tryOpenExclusive(`${writeLockPath}.recovery.sqlite`);
+  if (!recoveryConnection) return undefined;
+  let ownershipConnection: LockConnection | undefined;
   try {
-    connection = new Database(writeLockPath);
-    connection.exec('PRAGMA busy_timeout = 0; BEGIN EXCLUSIVE;');
-    const revision = readOrReserveRevision(writeLockPath, reserveRevision);
-    const acquiredConnection = connection;
+    ownershipConnection = tryOpenOwnershipWithRecovery(writeLockPath);
+    if (!ownershipConnection) return undefined;
+    const revision = readOrReserveRevisionWithRecovery(writeLockPath, reserveRevision);
+    const acquiredConnection = ownershipConnection;
     processLocks.add(writeLockPath);
     return {
       revision,
       release: () => {
         try {
-          acquiredConnection.exec('ROLLBACK;');
+          releaseExclusive(acquiredConnection);
         } finally {
-          acquiredConnection.close();
           processLocks.delete(writeLockPath);
         }
       },
     };
   } catch (error) {
-    connection?.close();
-    if (isSqliteBusyError(error)) return undefined;
+    if (ownershipConnection) releaseExclusive(ownershipConnection);
     throw error;
+  } finally {
+    releaseExclusive(recoveryConnection);
   }
 }
 
@@ -216,12 +301,8 @@ function acquireSync(
   if (processLocks.has(writeLockPath)) {
     throw new Error(`Graph Cache writing is already active in this process: ${databasePath}`);
   }
-  const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    const ownership = tryAcquire(databasePath, reserveRevision);
-    if (ownership) return ownership;
-    Atomics.wait(syncWaitState, 0, 0, RETRY_DELAY_MS);
-  }
+  const ownership = tryAcquire(databasePath, reserveRevision);
+  if (ownership) return ownership;
   throw timeoutError(databasePath);
 }
 
@@ -243,7 +324,7 @@ async function acquireAsync(
 
 export async function readWorkspaceCacheWriteRevisionAsync(
   databasePath: string,
-): Promise<number> {
+): Promise<string> {
   const ownership = await acquireAsync(databasePath, false);
   try {
     return ownership.revision;
@@ -254,7 +335,7 @@ export async function readWorkspaceCacheWriteRevisionAsync(
 
 export interface WorkspaceCacheWriteContext {
   assertCurrent(): void;
-  revision: number;
+  revision: string;
 }
 
 export function hasWorkspaceCacheWriteOwnership(databasePath: string): boolean {
@@ -310,7 +391,7 @@ export async function withWorkspaceCacheWriteOwnershipAsync<T>(
 
 export function withWorkspaceCacheWriteLock<T>(
   databasePath: string,
-  write: (revision: number) => T,
+  write: (revision: string) => T,
 ): T {
   const ownership = acquireSync(databasePath, true);
   try {
@@ -335,7 +416,7 @@ export function withWorkspaceCacheWriteLock<T>(
 
 export async function withWorkspaceCacheWriteLockAsync<T>(
   databasePath: string,
-  write: (revision: number) => Promise<T>,
+  write: (revision: string) => Promise<T>,
 ): Promise<T> {
   const ownership = await acquireAsync(databasePath, true);
   try {
@@ -360,7 +441,7 @@ export async function withWorkspaceCacheWriteLockAsync<T>(
 
 export async function withWorkspaceCacheWriteLockIfParentExistsAsync<T>(
   databasePath: string,
-  write: (revision: number) => Promise<T>,
+  write: (revision: string) => Promise<T>,
 ): Promise<T | undefined> {
   const ownership = await acquireAsync(databasePath, true);
   try {

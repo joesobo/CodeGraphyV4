@@ -39,6 +39,46 @@ function createGraph(filePaths: readonly string[]) {
 }
 
 describe('owned workspace Index refresh', () => {
+  it('does not self-supersede when prepare loads the valid Graph Cache', async () => {
+    const workspaceRoot = await createWorkspace();
+    const relativePath = 'src/app.ts';
+    const absolutePath = path.join(workspaceRoot, relativePath);
+    const content = 'export const app = true;\n';
+    await mkdir(path.dirname(absolutePath), { recursive: true });
+    await writeFile(absolutePath, content, 'utf8');
+    const cache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        [relativePath]: createCacheEntry(absolutePath, content, Buffer.byteLength(content)),
+      },
+    };
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache, createGraph([relativePath]));
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    const revisionBeforeLoad = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+    const revisionAfterLoad = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    let prepareCount = 0;
+
+    await runOwnedWorkspaceIndexRefresh({
+      workspaceRoot,
+      prepare: async () => {
+        prepareCount += 1;
+        const loadedCache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+        return {
+          cache: loadedCache,
+          completeGraph: createGraph([relativePath]),
+          patch: { deleteFilePaths: [], upsertFilePaths: [relativePath] },
+          persistIndexMetadata: async () => undefined,
+          result: undefined,
+          rollback: vi.fn(),
+        };
+      },
+    });
+
+    expect(prepareCount).toBe(1);
+    expect(revisionAfterLoad).toBe(revisionBeforeLoad);
+  });
+
   it('retries when analyzed source is superseded before writer ownership', async () => {
     const workspaceRoot = await createWorkspace();
     const relativePath = 'src/app.ts';
@@ -195,7 +235,7 @@ describe('owned workspace Index refresh', () => {
       }),
     })).rejects.toThrow('metadata failed');
 
-    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(revisionBefore + 1);
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).not.toBe(revisionBefore);
   });
 
   it('rebuilds a missing Graph Cache instead of applying a partial patch', async () => {
@@ -249,6 +289,24 @@ describe('owned workspace Index refresh', () => {
       name: 'WorkspaceAnalysisDatabaseUnreadableError',
     }));
     await expect(readFile(databasePath, 'utf8')).resolves.toBe('not a database');
+  });
+
+  it('advances the writer epoch only when a corrupt read repairs the Graph Cache', async () => {
+    const workspaceRoot = await createWorkspace();
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    await mkdir(path.dirname(databasePath), { recursive: true });
+    saveWorkspaceAnalysisDatabaseCache(
+      workspaceRoot,
+      { version: WORKSPACE_ANALYSIS_CACHE_VERSION, files: {} },
+      createGraph([]),
+    );
+    const revisionBeforeRepair = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    await writeFile(databasePath, 'not a database', 'utf8');
+
+    loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
+
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath))
+      .not.toBe(revisionBeforeRepair);
   });
 
   it('rebuilds a corrupt Graph Cache from complete refresh state under ownership', async () => {
