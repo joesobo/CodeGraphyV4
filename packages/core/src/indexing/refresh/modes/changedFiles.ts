@@ -38,13 +38,6 @@ export async function refreshWorkspaceIndexChangedFiles(
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
-  if (hasUnboundedWorkspaceDiscoveryMembershipChange(source, dependencies)) {
-    if (dependencies.fullRefreshFallback === 'reject') {
-      throw new WorkspaceIndexFullRefreshRequiredError('discovery-membership');
-    }
-    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
-  }
-
   const structuralPatch = selectWorkspaceDirectoryChanges(
     source._lastDiscoveredDirectories,
     dependencies.discoveredDirectories ?? [],
@@ -79,6 +72,17 @@ export async function refreshWorkspaceIndexChangedFiles(
   if (incrementalLifecycle.requiresFullRefresh) {
     if (dependencies.fullRefreshFallback === 'reject') {
       throw new WorkspaceIndexFullRefreshRequiredError('plugin-request');
+    }
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
+  }
+
+  if (hasUnboundedWorkspaceDiscoveryMembershipChange(
+    source,
+    dependencies,
+    [...changedFilePaths, ...incrementalLifecycle.additionalFilePaths],
+  )) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('discovery-membership');
     }
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
@@ -213,17 +217,15 @@ function containsWorkspaceDiscoveryLifecyclePath(
 function hasUnboundedWorkspaceDiscoveryMembershipChange(
   source: WorkspaceIndexRefreshSource,
   dependencies: WorkspaceIndexRefreshDependencies,
+  boundedFilePaths: readonly string[],
 ): boolean {
-  if (!dependencies.discoveryLimitReached) {
-    return false;
-  }
   const nextFilePaths = new Set(
     dependencies.discoveredFiles.map(file => file.relativePath),
   );
   const previousFilePaths = new Set(
     source._lastDiscoveredFiles.map(file => file.relativePath),
   );
-  const changedRelativePaths = dependencies.filePaths
+  const changedRelativePaths = boundedFilePaths
     .map(filePath => toWorkspaceRelativePath(dependencies.workspaceRoot, filePath))
     .filter((filePath): filePath is string => filePath !== undefined);
 
@@ -234,13 +236,18 @@ function hasUnboundedWorkspaceDiscoveryMembershipChange(
     ))
   );
 
-  return source._lastDiscoveredFiles.some(file => (
-    !nextFilePaths.has(file.relativePath)
-    && !isCoveredByChangedPath(file.relativePath)
-  )) || dependencies.discoveredFiles.some(file => (
+  const hasUnexplainedArrival = dependencies.discoveredFiles.some(file => (
     !previousFilePaths.has(file.relativePath)
+    && !source._lastFileAnalysis.has(file.relativePath)
     && !isCoveredByChangedPath(file.relativePath)
   ));
+  const hasUnexplainedDepartureAtLimit = dependencies.discoveryLimitReached === true
+    && source._lastDiscoveredFiles.some(file => (
+      !nextFilePaths.has(file.relativePath)
+      && !isCoveredByChangedPath(file.relativePath)
+    ));
+
+  return hasUnexplainedArrival || hasUnexplainedDepartureAtLimit;
 }
 
 function toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined {

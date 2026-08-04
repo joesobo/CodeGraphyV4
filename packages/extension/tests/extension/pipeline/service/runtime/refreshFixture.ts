@@ -16,7 +16,11 @@ export function createSource() {
       edges: [{ from: 'src/a.ts', to: 'src/b.ts', kind: 'import' }],
     },
     _lastDiscoveredDirectories: [] as string[],
-    _lastDiscoveredFiles: [] as Array<{ absolutePath: string; relativePath: string }>,
+    _lastDiscoveredFiles: [
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+      { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
+      { absolutePath: '/workspace/src/c.ts', relativePath: 'src/c.ts' },
+    ],
     _lastFileAnalysis: new Map<string, IFileAnalysisResult>(),
     _lastFileConnections: new Map<string, unknown[]>(),
     _lastWorkspaceRoot: '',

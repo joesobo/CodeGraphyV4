@@ -132,7 +132,9 @@ describe('indexing/refresh/modes/changedFiles', () => {
 
   it('updates structural directory facts without running full analysis', async () => {
     const persistCachePatch = vi.fn();
+    const discoveredFiles = [createDiscoveredFile('src/app.ts')];
     const source = createSource({
+      _lastDiscoveredFiles: discoveredFiles,
       _lastFileAnalysis: new Map(),
       _lastFileConnections: new Map(),
       analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
@@ -144,7 +146,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
 
     const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredDirectories: ['src', 'src/new-folder'],
-      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      discoveredFiles,
       fullRefreshFallback: 'reject',
       filePaths: ['/workspace/src/new-folder'],
       persistCachePatch,
@@ -165,8 +167,10 @@ describe('indexing/refresh/modes/changedFiles', () => {
 
   it('removes structural directory facts without running full analysis', async () => {
     const persistCachePatch = vi.fn();
+    const discoveredFiles = [createDiscoveredFile('src/app.ts')];
     const source = createSource({
       _lastDiscoveredDirectories: ['src', 'src/old-folder'],
+      _lastDiscoveredFiles: discoveredFiles,
       _lastFileAnalysis: new Map(),
       _lastFileConnections: new Map(),
       analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
@@ -178,7 +182,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
 
     const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredDirectories: ['src'],
-      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      discoveredFiles,
       filePaths: ['/workspace/src/old-folder'],
       fullRefreshFallback: 'reject',
       persistCachePatch,
@@ -396,6 +400,75 @@ describe('indexing/refresh/modes/changedFiles', () => {
         createDiscoveredFile('src/b.ts'),
       ],
       discoveryLimitReached: true,
+      filePaths: ['/workspace/src/a.ts'],
+      fullRefreshFallback: 'reject',
+    }))).rejects.toMatchObject({
+      name: 'WorkspaceIndexFullRefreshRequiredError',
+      reason: 'discovery-membership',
+    });
+
+    expect(source._lastDiscoveredFiles).toBe(previousFiles);
+    expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).not.toHaveBeenCalled();
+  });
+
+  it('accepts a bounded membership replacement when both file paths are notified', async () => {
+    const previousFile = createDiscoveredFile('src/a.ts');
+    const nextFile = createDiscoveredFile('src/b.ts');
+    const lastFileAnalysis = new Map([
+      [previousFile.relativePath, createFileAnalysis(previousFile.absolutePath)],
+    ]);
+    const lastFileConnections = new Map([[previousFile.relativePath, []]]);
+    const source = createSource({
+      _lastDiscoveredFiles: [previousFile],
+      _lastFileAnalysis: lastFileAnalysis,
+      _lastFileConnections: lastFileConnections,
+      invalidateWorkspaceFiles: vi.fn(() => {
+        lastFileAnalysis.delete(previousFile.relativePath);
+        lastFileConnections.delete(previousFile.relativePath);
+        return [previousFile.relativePath];
+      }),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [nextFile],
+      discoveryLimitReached: false,
+      filePaths: [previousFile.absolutePath, nextFile.absolutePath],
+      fullRefreshFallback: 'reject',
+    }))).resolves.toEqual(expect.objectContaining({
+      nodes: [expect.objectContaining({ id: nextFile.relativePath })],
+    }));
+
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      [nextFile],
+      '/workspace',
+      expect.any(Function),
+      undefined,
+      undefined,
+      new Set(),
+    );
+  });
+
+  it('rejects an unexplained file admitted when capped discovery falls to exactly maxFiles', async () => {
+    const previousFiles = [
+      createDiscoveredFile('src/a.ts'),
+      createDiscoveredFile('src/b.ts'),
+    ];
+    const source = createSource({
+      _lastDiscoveredFiles: previousFiles,
+      _lastFileAnalysis: new Map(previousFiles.map(file => [
+        file.relativePath,
+        createFileAnalysis(file.absolutePath),
+      ])),
+      _lastFileConnections: new Map(previousFiles.map(file => [file.relativePath, []])),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [
+        createDiscoveredFile('src/b.ts'),
+        createDiscoveredFile('src/c.ts'),
+      ],
+      discoveryLimitReached: false,
       filePaths: ['/workspace/src/a.ts'],
       fullRefreshFallback: 'reject',
     }))).rejects.toMatchObject({
