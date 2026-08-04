@@ -78,8 +78,9 @@ describe('Graph context menu (edge)', () => {
       );
     });
     expect(screen.getByText('app.ts')).toBeInTheDocument();
-    expect(screen.getByText('app.ts')).not.toHaveClass('text-right');
-    expect(screen.getByText('utils.ts')).toBeInTheDocument();
+    expect(screen.getByText('app.ts')).not.toHaveClass('text-right', 'flex-1');
+    expect(screen.getByText('app.ts')).toHaveClass('max-w-[calc(50%-0.75rem)]');
+    expect(screen.getByText('utils.ts')).toHaveClass('max-w-[calc(50%-0.75rem)]');
     expect(screen.getByText('import')).toBeInTheDocument();
   });
 

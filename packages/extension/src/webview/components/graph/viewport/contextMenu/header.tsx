@@ -38,13 +38,13 @@ function EdgeHeader({ header }: { header: Extract<GraphContextMenuHeader, { kind
     <>
       <div className="flex min-w-0 items-center gap-1 font-semibold text-[var(--cg-menu-foreground)]">
         <MiddleTruncatedText
-          className="min-w-0 flex-1"
+          className="min-w-0 max-w-[calc(50%-0.75rem)]"
           text={header.source.label}
           tooltipText={header.source.exactId ? `${header.source.label} — ${header.source.exactId}` : header.source.label}
         />
         <span aria-hidden="true" className="shrink-0">→</span>
         <MiddleTruncatedText
-          className="min-w-0 flex-1"
+          className="min-w-0 max-w-[calc(50%-0.75rem)]"
           text={header.target.label}
           tooltipText={header.target.exactId ? `${header.target.label} — ${header.target.exactId}` : header.target.label}
         />
