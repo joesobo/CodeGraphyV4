@@ -311,6 +311,42 @@ describe('pipeline/analysis/analyze', () => {
     });
   });
 
+  it('forwards live file discovery counts before discovery completes', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    let finishDiscovery!: () => void;
+    const discoveryGate = new Promise<void>(resolve => {
+      finishDiscovery = resolve;
+    });
+
+    dependencies.discover.mockImplementation(async options => {
+      const onProgress = (
+        options as typeof options & { onProgress?: (progress: { current: number }) => void }
+      ).onProgress;
+      onProgress?.({ current: 25 });
+      await discoveryGate;
+      return {
+        directories: [],
+        durationMs: 4,
+        files: [] as IDiscoveredFile[],
+        limitReached: false,
+        totalFound: 0,
+      };
+    });
+
+    const analysis = analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
+    await vi.waitFor(() => {
+      expect(dependencies.sendProgress).toHaveBeenCalledWith({
+        phase: 'Discovering Files',
+        current: 25,
+        total: 0,
+      });
+    });
+
+    finishDiscovery();
+    await analysis;
+  });
+
   it('keeps analyzing when progress reporting and the event bus are unavailable', async () => {
     const source = createSource();
     const dependencies = createDependencies();

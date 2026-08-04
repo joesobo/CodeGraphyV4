@@ -85,16 +85,22 @@ describe('GraphIndexStatus', () => {
     expect(status.className).not.toContain('left-2');
   });
 
-  it('shows zero progress when the total is zero', () => {
+  it('shows live discovery counts as indeterminate progress when the total is unknown', () => {
     render(
       <GraphIndexStatus
         isIndexing={true}
-        progress={{ phase: 'Indexing Workspace', current: 3, total: 0 }}
+        progress={{ phase: 'Discovering Files', current: 25, total: 0 }}
         showMinimap={false}
       />,
     );
 
-    expect(screen.getByText('0%')).toBeInTheDocument();
-    expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '0%' });
+    expect(screen.getByText('25 files found')).toBeInTheDocument();
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' }))
+      .not.toHaveAttribute('aria-valuenow');
+    expect(screen.getByTestId('graph-index-status-fill')).toHaveAttribute(
+      'data-codegraphy-progress',
+      'indeterminate',
+    );
   });
 });
