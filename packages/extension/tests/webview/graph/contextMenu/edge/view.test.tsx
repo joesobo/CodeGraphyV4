@@ -80,10 +80,12 @@ describe('Graph context menu (edge)', () => {
     expect(screen.getByText('app.ts')).toBeInTheDocument();
     expect(screen.getByText('app.ts')).not.toHaveClass('text-right', 'flex-1');
     expect(screen.getByText('app.ts')).toHaveClass(
+      'w-max',
       'max-w-[calc(50%_-_0.75rem)]',
       'shrink-0',
     );
     expect(screen.getByText('utils.ts')).toHaveClass(
+      'w-max',
       'max-w-[calc(50%_-_0.75rem)]',
       'shrink-0',
     );
