@@ -10,6 +10,8 @@ interface EntryFingerprint {
 
 interface DirectoryObservation {
   entries: Map<string, EntryFingerprint>;
+  refreshing: boolean;
+  refreshRequested: boolean;
   refreshTimer?: ReturnType<typeof setTimeout>;
   watcher: FSWatcher;
 }
@@ -104,7 +106,14 @@ export class ShallowWatchForest {
   ): Promise<ShallowWatchForest> {
     const forest = new ShallowWatchForest(options);
     try {
-      for (const directoryPath of directories) await forest.attach(directoryPath);
+      for (let index = 0; index < directories.length; index += 1) {
+        try {
+          await forest.attach(directories[index]);
+        } catch (error) {
+          if (index === 0) throw error;
+          options.onError(error instanceof Error ? error : new Error(String(error)));
+        }
+      }
       return forest;
     } catch (error) {
       await forest.stop();
@@ -136,6 +145,8 @@ export class ShallowWatchForest {
     watcher.on('error', error => this.options.onError(error));
     const observation: DirectoryObservation = {
       entries: await readDirectorySnapshot(directoryPath),
+      refreshing: false,
+      refreshRequested: false,
       watcher,
     };
     if (this.stopped) {
@@ -150,7 +161,12 @@ export class ShallowWatchForest {
     directoryPath: string,
     observation: DirectoryObservation,
   ): void {
-    if (this.stopped || observation.refreshTimer) return;
+    if (this.stopped) return;
+    if (observation.refreshing) {
+      observation.refreshRequested = true;
+      return;
+    }
+    if (observation.refreshTimer) return;
     observation.refreshTimer = setTimeout(() => {
       observation.refreshTimer = undefined;
       void this.refresh(directoryPath, observation);
@@ -161,10 +177,17 @@ export class ShallowWatchForest {
     directoryPath: string,
     observation: DirectoryObservation,
   ): Promise<void> {
+    observation.refreshing = true;
     const current = await readDirectorySnapshot(directoryPath);
-    if (this.stopped || this.observations.get(directoryPath) !== observation) return;
-    const events = createSnapshotEvents(directoryPath, observation.entries, current);
-    observation.entries = current;
-    if (events.length > 0) this.options.onEvents(events);
+    if (!this.stopped && this.observations.get(directoryPath) === observation) {
+      const events = createSnapshotEvents(directoryPath, observation.entries, current);
+      observation.entries = current;
+      if (events.length > 0) this.options.onEvents(events);
+    }
+    observation.refreshing = false;
+    if (observation.refreshRequested) {
+      observation.refreshRequested = false;
+      this.scheduleRefresh(directoryPath, observation);
+    }
   }
 }
