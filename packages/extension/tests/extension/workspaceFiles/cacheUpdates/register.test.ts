@@ -1,3 +1,6 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createWorkspaceCacheUpdateScheduler,
@@ -5,6 +8,7 @@ import {
   type WorkspaceCacheUpdateStatus,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
 import {
+  createPathSignature,
   registerWorkspaceCacheUpdates,
   type WorkspaceCacheUpdateRegistrationDependencies,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/register';
@@ -62,7 +66,7 @@ function createHarness() {
     })),
     hasGraphCache: vi.fn(() => true),
     markGraphCacheStale: vi.fn(),
-    pathSignature: vi.fn(() => 'signature-1'),
+    pathSignature: vi.fn(async () => 'signature-1'),
     onDidCreateFiles: vi.fn((listener) => {
       createListener = listener;
       return disposable;
@@ -189,9 +193,27 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     await update?.(['/workspace/src/new.ts'], signal, reportProgress);
     expect(updateWorkspaceFiles).toHaveBeenCalledOnce();
 
-    vi.mocked(harness.dependencies.pathSignature).mockReturnValue('signature-2');
+    vi.mocked(harness.dependencies.pathSignature).mockResolvedValue('signature-2');
     await update?.(['/workspace/src/new.ts'], signal, reportProgress);
     expect(updateWorkspaceFiles).toHaveBeenCalledTimes(2);
+  });
+
+  it('distinguishes same-size content changes when timestamps are preserved', async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-cache-signature-'));
+    try {
+      const filePath = path.join(tempRoot, 'same-size.ts');
+      fs.writeFileSync(filePath, 'aaaa');
+      const modifiedAt = fs.statSync(filePath).mtime;
+      const firstSignature = await createPathSignature(filePath);
+
+      fs.writeFileSync(filePath, 'bbbb');
+      fs.utimesSync(filePath, modifiedAt, modifiedAt);
+      const secondSignature = await createPathSignature(filePath);
+
+      expect(secondSignature).not.toBe(firstSignature);
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
   });
 
   it('shows queued, updating, and failed cache state in the VS Code status bar', () => {

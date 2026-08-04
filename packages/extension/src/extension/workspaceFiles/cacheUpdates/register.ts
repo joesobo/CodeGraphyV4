@@ -1,4 +1,6 @@
-import { existsSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { createReadStream, existsSync } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import * as path from 'node:path';
 import { getGraphCachePath } from '@codegraphy-dev/core';
 import * as vscode from 'vscode';
@@ -61,7 +63,7 @@ export interface WorkspaceCacheUpdateRegistrationDependencies {
   createFileSystemWatcher(pattern: string): FileSystemWatcher;
   hasGraphCache(workspaceRoot: string): boolean;
   markGraphCacheStale(workspaceRoot: string, filePaths: readonly string[]): void;
-  pathSignature(filePath: string): string;
+  pathSignature(filePath: string): Promise<string>;
   onDidCreateFiles(
     listener: (event: { files: readonly FileUri[] }) => void,
   ): Disposable;
@@ -88,14 +90,7 @@ const defaultDependencies: WorkspaceCacheUpdateRegistrationDependencies = {
   createFileSystemWatcher: pattern => vscode.workspace.createFileSystemWatcher(pattern),
   hasGraphCache: workspaceRoot => existsSync(getGraphCachePath(workspaceRoot)),
   markGraphCacheStale: markWorkspaceCacheUpdateStale,
-  pathSignature: filePath => {
-    try {
-      const stat = statSync(filePath);
-      return `${stat.mtimeMs}:${stat.ctimeMs}:${stat.size}:${stat.mode}:${stat.isDirectory()}`;
-    } catch {
-      return 'missing';
-    }
-  },
+  pathSignature: createPathSignature,
   onDidCreateFiles: listener => vscode.workspace.onDidCreateFiles(listener),
   onDidDeleteFiles: listener => vscode.workspace.onDidDeleteFiles(listener),
   onDidRenameFiles: listener => vscode.workspace.onDidRenameFiles(listener),
@@ -128,10 +123,10 @@ export function registerWorkspaceCacheUpdates(
     onStatus: status => renderStatus(statusBarItem, status),
     update: async (filePaths, signal) => {
       if (signal.aborted) return;
-      const startingSignatures = new Map(filePaths.map(filePath => [
+      const startingSignatures = new Map(await Promise.all(filePaths.map(async filePath => [
         filePath,
-        dependencies.pathSignature(filePath),
-      ]));
+        await dependencies.pathSignature(filePath),
+      ] as const)));
       const changedPaths = filePaths.filter(filePath => (
         appliedPathSignatures.get(filePath) !== startingSignatures.get(filePath)
       ));
@@ -192,6 +187,29 @@ export function registerWorkspaceCacheUpdates(
     scheduler,
     statusBarItem,
   );
+}
+
+export async function createPathSignature(filePath: string): Promise<string> {
+  try {
+    const fileStat = await stat(filePath);
+    if (fileStat.isDirectory()) {
+      return `directory:${fileStat.mtimeMs}:${fileStat.ctimeMs}:${fileStat.mode}`;
+    }
+    const contentHash = await hashFile(filePath);
+    return `file:${fileStat.size}:${fileStat.mode}:${contentHash}`;
+  } catch {
+    return 'missing';
+  }
+}
+
+function hashFile(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256');
+    const input = createReadStream(filePath);
+    input.on('data', chunk => hash.update(chunk));
+    input.on('error', reject);
+    input.on('end', () => resolve(hash.digest('hex')));
+  });
 }
 
 function renderStatus(
