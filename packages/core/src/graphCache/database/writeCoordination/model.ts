@@ -1,15 +1,38 @@
-import { existsSync, mkdirSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import {
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import Database from 'libsql';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { setTimeout as wait } from 'node:timers/promises';
 
-const LOCK_SUFFIX = '.write-lock.sqlite';
+const LOCK_DIRECTORY_NAME = 'write-locks';
 const RETRY_DELAY_MS = 25;
 const ACQUIRE_TIMEOUT_MS = 60_000;
+const INCOMPLETE_OWNER_GRACE_MS = 1_000;
 const syncWaitState = new Int32Array(new SharedArrayBuffer(4));
 const processLocks = new Set<string>();
-const ownershipContext = new AsyncLocalStorage<ReadonlyMap<string, { active: boolean }>>();
+interface WorkspaceDirectoryIdentity {
+  birthtimeNs: bigint;
+  device: bigint;
+  inode: bigint;
+}
+
+interface ActiveWorkspaceCacheWriteOwnership {
+  active: boolean;
+  directoryIdentity: WorkspaceDirectoryIdentity;
+}
+
+const ownershipContext = new AsyncLocalStorage<
+  ReadonlyMap<string, ActiveWorkspaceCacheWriteOwnership>
+>();
 
 type LockConnection = Database.Database;
 
@@ -18,21 +41,30 @@ interface WorkspaceCacheWriteOwnership {
   revision: number;
 }
 
-const MISSING_PARENT_DIRECTORY = Symbol('missing-parent-directory');
-type ParentDirectoryMode = 'create' | 'if-parent-exists';
-type WorkspaceCacheWriteOwnershipAttempt =
-  | WorkspaceCacheWriteOwnership
-  | typeof MISSING_PARENT_DIRECTORY
-  | undefined;
-
-function lockPath(databasePath: string): string {
-  return `${databasePath}${LOCK_SUFFIX}`;
+interface ProcessLockOwner {
+  pid: number;
+  token: string;
 }
 
-function isBusyError(error: unknown): boolean {
-  return error instanceof Error
-    && 'code' in error
-    && (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_LOCKED');
+interface ProcessLockOwnership {
+  release(): void;
+}
+
+function canonicalDatabaseIdentity(databasePath: string): string {
+  const resolvedPath = path.resolve(databasePath);
+  return process.platform === 'win32' ? resolvedPath.toLowerCase() : resolvedPath;
+}
+
+export function getWorkspaceCacheWriteLockPath(databasePath: string): string {
+  const databaseIdentity = createHash('sha256')
+    .update(canonicalDatabaseIdentity(databasePath))
+    .digest('hex');
+  return path.join(
+    os.homedir(),
+    '.codegraphy',
+    LOCK_DIRECTORY_NAME,
+    `${databaseIdentity}.sqlite`,
+  );
 }
 
 function isFileSystemError(error: unknown, code: string): boolean {
@@ -41,22 +73,121 @@ function isFileSystemError(error: unknown, code: string): boolean {
     && error.code === code;
 }
 
-function prepareLockDirectory(
-  writeLockPath: string,
-  mode: ParentDirectoryMode,
-): boolean {
-  const directoryPath = path.dirname(writeLockPath);
-  if (mode === 'create') {
-    mkdirSync(directoryPath, { recursive: true });
-    return true;
+function processLockDirectoryPath(writeLockPath: string): string {
+  return `${writeLockPath}.owner`;
+}
+
+function readProcessLockOwner(directoryPath: string): ProcessLockOwner | undefined {
+  try {
+    const value = JSON.parse(
+      readFileSync(path.join(directoryPath, 'owner.json'), 'utf8'),
+    ) as Partial<ProcessLockOwner>;
+    return Number.isInteger(value.pid) && typeof value.token === 'string'
+      ? { pid: value.pid!, token: value.token }
+      : undefined;
+  } catch {
+    return undefined;
   }
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return !isFileSystemError(error, 'ESRCH');
+  }
+}
+
+function removeAbandonedProcessLock(directoryPath: string): void {
+  const owner = readProcessLockOwner(directoryPath);
+  let incompleteOwnerIsRecent = false;
+  if (!owner) {
+    try {
+      incompleteOwnerIsRecent = Date.now() - statSync(directoryPath).mtimeMs
+        < INCOMPLETE_OWNER_GRACE_MS;
+    } catch (error) {
+      if (isFileSystemError(error, 'ENOENT')) return;
+      throw error;
+    }
+  }
+  if (owner ? isProcessAlive(owner.pid) : incompleteOwnerIsRecent) {
+    return;
+  }
+  const abandonedPath = `${directoryPath}.abandoned.${randomUUID()}`;
+  try {
+    renameSync(directoryPath, abandonedPath);
+  } catch (error) {
+    if (isFileSystemError(error, 'ENOENT')) return;
+    throw error;
+  }
+  rmSync(abandonedPath, { recursive: true, force: true });
+}
+
+function tryAcquireProcessLock(writeLockPath: string): ProcessLockOwnership | undefined {
+  const directoryPath = processLockDirectoryPath(writeLockPath);
   try {
     mkdirSync(directoryPath);
+  } catch (error) {
+    if (!isFileSystemError(error, 'EEXIST')) throw error;
+    removeAbandonedProcessLock(directoryPath);
+    return undefined;
+  }
+  const owner = { pid: process.pid, token: randomUUID() };
+  try {
+    writeFileSync(
+      path.join(directoryPath, 'owner.json'),
+      JSON.stringify(owner),
+      { encoding: 'utf8', flag: 'wx' },
+    );
+  } catch (error) {
+    rmSync(directoryPath, { recursive: true, force: true });
+    throw error;
+  }
+  return {
+    release: () => {
+      if (readProcessLockOwner(directoryPath)?.token === owner.token) {
+        rmSync(directoryPath, { recursive: true, force: true });
+      }
+    },
+  };
+}
+
+function prepareDatabaseDirectoryIfParentExists(databasePath: string): boolean {
+  try {
+    mkdirSync(path.dirname(databasePath));
     return true;
   } catch (error) {
     if (isFileSystemError(error, 'EEXIST')) return true;
     if (isFileSystemError(error, 'ENOENT')) return false;
     throw error;
+  }
+}
+
+function readDatabaseDirectoryIdentity(
+  databasePath: string,
+): WorkspaceDirectoryIdentity {
+  const stats = statSync(path.dirname(databasePath), { bigint: true });
+  return {
+    birthtimeNs: stats.birthtimeNs,
+    device: stats.dev,
+    inode: stats.ino,
+  };
+}
+
+function sameDirectoryIdentity(
+  left: WorkspaceDirectoryIdentity,
+  right: WorkspaceDirectoryIdentity,
+): boolean {
+  return left.device === right.device
+    && left.inode === right.inode
+    && left.birthtimeNs === right.birthtimeNs;
+}
+
+export class WorkspaceCacheWriteIdentityChangedError extends Error {
+  constructor(databasePath: string) {
+    super(`The Graph Cache workspace changed while writing: ${databasePath}`);
+    this.name = 'WorkspaceCacheWriteIdentityChangedError';
   }
 }
 
@@ -77,53 +208,37 @@ function readRevision(connection: LockConnection): number {
   return Number(row?.revision ?? 0);
 }
 
-function tryAcquire(
-  databasePath: string,
-  parentDirectoryMode: ParentDirectoryMode = 'create',
-): WorkspaceCacheWriteOwnershipAttempt {
-  const writeLockPath = lockPath(databasePath);
-  if (!prepareLockDirectory(writeLockPath, parentDirectoryMode)) {
-    return MISSING_PARENT_DIRECTORY;
-  }
-  let connection: LockConnection;
+function tryAcquire(databasePath: string): WorkspaceCacheWriteOwnership | undefined {
+  const writeLockPath = getWorkspaceCacheWriteLockPath(databasePath);
+  mkdirSync(path.dirname(writeLockPath), { recursive: true, mode: 0o700 });
+  const processLock = tryAcquireProcessLock(writeLockPath);
+  if (!processLock) return undefined;
+  let connection: LockConnection | undefined;
   try {
     connection = new Database(writeLockPath);
-  } catch (error) {
-    if (
-      parentDirectoryMode === 'if-parent-exists'
-      && !existsSync(path.dirname(writeLockPath))
-    ) {
-      return MISSING_PARENT_DIRECTORY;
-    }
-    throw error;
-  }
-  try {
-    connection.pragma('busy_timeout = 0');
     ensureRevisionState(connection);
-    connection.exec('BEGIN EXCLUSIVE');
     const revision = readRevision(connection);
+    const acquiredConnection = connection;
     processLocks.add(writeLockPath);
     return {
       revision,
       release: (advanceRevision) => {
         try {
           if (advanceRevision) {
-            connection.prepare(
+            acquiredConnection.prepare(
               'UPDATE CacheWriteState SET revision = revision + 1 WHERE id = 1',
             ).run();
-            connection.exec('COMMIT');
-          } else {
-            connection.exec('ROLLBACK');
           }
         } finally {
-          connection.close();
+          acquiredConnection.close();
           processLocks.delete(writeLockPath);
+          processLock.release();
         }
       },
     };
   } catch (error) {
-    connection.close();
-    if (isBusyError(error)) return undefined;
+    connection?.close();
+    processLock.release();
     throw error;
   }
 }
@@ -133,41 +248,25 @@ function timeoutError(databasePath: string): Error {
 }
 
 function acquireSync(databasePath: string): WorkspaceCacheWriteOwnership {
-  const writeLockPath = lockPath(databasePath);
+  const writeLockPath = getWorkspaceCacheWriteLockPath(databasePath);
   if (processLocks.has(writeLockPath)) {
     throw new Error(`Graph Cache writing is already active in this process: ${databasePath}`);
   }
   const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
   while (Date.now() < deadline) {
     const ownership = tryAcquire(databasePath);
-    if (ownership && ownership !== MISSING_PARENT_DIRECTORY) return ownership;
+    if (ownership) return ownership;
     Atomics.wait(syncWaitState, 0, 0, RETRY_DELAY_MS);
   }
   throw timeoutError(databasePath);
 }
 
 async function acquireAsync(databasePath: string): Promise<WorkspaceCacheWriteOwnership> {
-  const writeLockPath = lockPath(databasePath);
+  const writeLockPath = getWorkspaceCacheWriteLockPath(databasePath);
   const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
   while (Date.now() < deadline) {
     if (!processLocks.has(writeLockPath)) {
       const ownership = tryAcquire(databasePath);
-      if (ownership && ownership !== MISSING_PARENT_DIRECTORY) return ownership;
-    }
-    await wait(RETRY_DELAY_MS);
-  }
-  throw timeoutError(databasePath);
-}
-
-async function acquireAsyncIfParentExists(
-  databasePath: string,
-): Promise<WorkspaceCacheWriteOwnership | undefined> {
-  const writeLockPath = lockPath(databasePath);
-  const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    if (!processLocks.has(writeLockPath)) {
-      const ownership = tryAcquire(databasePath, 'if-parent-exists');
-      if (ownership === MISSING_PARENT_DIRECTORY) return undefined;
       if (ownership) return ownership;
     }
     await wait(RETRY_DELAY_MS);
@@ -187,12 +286,33 @@ export async function readWorkspaceCacheWriteRevisionAsync(
 }
 
 export interface WorkspaceCacheWriteContext {
+  assertCurrent(): void;
   markCommitted(): void;
   revision: number;
 }
 
 export function hasWorkspaceCacheWriteOwnership(databasePath: string): boolean {
-  return ownershipContext.getStore()?.get(lockPath(databasePath))?.active ?? false;
+  return ownershipContext.getStore()
+    ?.get(getWorkspaceCacheWriteLockPath(databasePath))?.active ?? false;
+}
+
+export function assertWorkspaceCacheWriteOwnershipCurrent(
+  databasePath: string,
+): void {
+  const ownership = ownershipContext.getStore()
+    ?.get(getWorkspaceCacheWriteLockPath(databasePath));
+  let currentIdentity: WorkspaceDirectoryIdentity | undefined;
+  try {
+    currentIdentity = readDatabaseDirectoryIdentity(databasePath);
+  } catch {
+    currentIdentity = undefined;
+  }
+  if (!ownership?.active || !currentIdentity || !sameDirectoryIdentity(
+    ownership.directoryIdentity,
+    currentIdentity,
+  )) {
+    throw new WorkspaceCacheWriteIdentityChangedError(databasePath);
+  }
 }
 
 export async function withWorkspaceCacheWriteOwnershipAsync<T>(
@@ -200,14 +320,34 @@ export async function withWorkspaceCacheWriteOwnershipAsync<T>(
   write: (context: WorkspaceCacheWriteContext) => Promise<T>,
 ): Promise<T> {
   const ownership = await acquireAsync(databasePath);
-  let cacheCommitted = false;
+  let operationCommitted = false;
+  let releaseCommitted = false;
+  let directoryIdentity: WorkspaceDirectoryIdentity | undefined;
   try {
-    return await runWithOwnershipContext(databasePath, () => write({
-      revision: ownership.revision,
-      markCommitted: () => { cacheCommitted = true; },
-    }));
+    if (!prepareDatabaseDirectoryIfParentExists(databasePath)) {
+      throw new WorkspaceCacheWriteIdentityChangedError(databasePath);
+    }
+    directoryIdentity = readDatabaseDirectoryIdentity(databasePath);
+    const result = await runWithOwnershipContext(
+      databasePath,
+      directoryIdentity,
+      () => write({
+        revision: ownership.revision,
+        assertCurrent: () => assertWorkspaceCacheWriteOwnershipCurrent(databasePath),
+        markCommitted: () => { operationCommitted = true; },
+      }),
+    );
+    assertDirectoryIdentityCurrent(databasePath, directoryIdentity);
+    return result;
   } finally {
-    ownership.release(cacheCommitted);
+    try {
+      if (operationCommitted && directoryIdentity) {
+        assertDirectoryIdentityCurrent(databasePath, directoryIdentity);
+        releaseCommitted = true;
+      }
+    } finally {
+      ownership.release(releaseCommitted);
+    }
   }
 }
 
@@ -218,7 +358,16 @@ export function withWorkspaceCacheWriteLock<T>(
   const ownership = acquireSync(databasePath);
   let advanceRevision = false;
   try {
-    const result = write(ownership.revision);
+    if (!prepareDatabaseDirectoryIfParentExists(databasePath)) {
+      throw new WorkspaceCacheWriteIdentityChangedError(databasePath);
+    }
+    const directoryIdentity = readDatabaseDirectoryIdentity(databasePath);
+    const result = runWithOwnershipContextSync(
+      databasePath,
+      directoryIdentity,
+      () => write(ownership.revision),
+    );
+    assertDirectoryIdentityCurrent(databasePath, directoryIdentity);
     advanceRevision = true;
     return result;
   } finally {
@@ -233,10 +382,16 @@ export async function withWorkspaceCacheWriteLockAsync<T>(
   const ownership = await acquireAsync(databasePath);
   let advanceRevision = false;
   try {
+    if (!prepareDatabaseDirectoryIfParentExists(databasePath)) {
+      throw new WorkspaceCacheWriteIdentityChangedError(databasePath);
+    }
+    const directoryIdentity = readDatabaseDirectoryIdentity(databasePath);
     const result = await runWithOwnershipContext(
       databasePath,
+      directoryIdentity,
       () => write(ownership.revision),
     );
+    assertDirectoryIdentityCurrent(databasePath, directoryIdentity);
     advanceRevision = true;
     return result;
   } finally {
@@ -248,14 +403,17 @@ export async function withWorkspaceCacheWriteLockIfParentExistsAsync<T>(
   databasePath: string,
   write: (revision: number) => Promise<T>,
 ): Promise<T | undefined> {
-  const ownership = await acquireAsyncIfParentExists(databasePath);
-  if (!ownership) return undefined;
+  const ownership = await acquireAsync(databasePath);
   let advanceRevision = false;
   try {
+    if (!prepareDatabaseDirectoryIfParentExists(databasePath)) return undefined;
+    const directoryIdentity = readDatabaseDirectoryIdentity(databasePath);
     const result = await runWithOwnershipContext(
       databasePath,
+      directoryIdentity,
       () => write(ownership.revision),
     );
+    assertDirectoryIdentityCurrent(databasePath, directoryIdentity);
     advanceRevision = true;
     return result;
   } finally {
@@ -263,16 +421,49 @@ export async function withWorkspaceCacheWriteLockIfParentExistsAsync<T>(
   }
 }
 
+function assertDirectoryIdentityCurrent(
+  databasePath: string,
+  expectedIdentity: WorkspaceDirectoryIdentity,
+): void {
+  let currentIdentity: WorkspaceDirectoryIdentity | undefined;
+  try {
+    currentIdentity = readDatabaseDirectoryIdentity(databasePath);
+  } catch {
+    currentIdentity = undefined;
+  }
+  if (!currentIdentity || !sameDirectoryIdentity(expectedIdentity, currentIdentity)) {
+    throw new WorkspaceCacheWriteIdentityChangedError(databasePath);
+  }
+}
+
 function runWithOwnershipContext<T>(
   databasePath: string,
+  directoryIdentity: WorkspaceDirectoryIdentity,
   operation: () => Promise<T>,
 ): Promise<T> {
-  const ownership = { active: true };
+  const ownership = { active: true, directoryIdentity };
   const ownedPaths = new Map(ownershipContext.getStore());
-  ownedPaths.set(lockPath(databasePath), ownership);
+  ownedPaths.set(getWorkspaceCacheWriteLockPath(databasePath), ownership);
   return ownershipContext.run(ownedPaths, async () => {
     try {
       return await operation();
+    } finally {
+      ownership.active = false;
+    }
+  });
+}
+
+function runWithOwnershipContextSync<T>(
+  databasePath: string,
+  directoryIdentity: WorkspaceDirectoryIdentity,
+  operation: () => T,
+): T {
+  const ownership = { active: true, directoryIdentity };
+  const ownedPaths = new Map(ownershipContext.getStore());
+  ownedPaths.set(getWorkspaceCacheWriteLockPath(databasePath), ownership);
+  return ownershipContext.run(ownedPaths, () => {
+    try {
+      return operation();
     } finally {
       ownership.active = false;
     }

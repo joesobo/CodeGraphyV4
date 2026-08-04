@@ -7,6 +7,7 @@ import { looseStringArraySchema } from '../values';
 import { getWorkspaceMetaPath } from './paths';
 import { getWorkspaceAnalysisDatabasePath } from '../graphCache/database/storage';
 import {
+  assertWorkspaceCacheWriteOwnershipCurrent,
   hasWorkspaceCacheWriteOwnership,
   withWorkspaceCacheWriteLockIfParentExistsAsync,
 } from '../graphCache/database/writeCoordination/model';
@@ -124,6 +125,7 @@ async function updateCodeGraphyWorkspaceMeta(
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   const applyUpdate = () => {
     if (!fs.existsSync(workspaceRoot)) return;
+    assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
     writeCodeGraphyWorkspaceMeta(
       workspaceRoot,
       update(readCodeGraphyWorkspaceMeta(workspaceRoot)),

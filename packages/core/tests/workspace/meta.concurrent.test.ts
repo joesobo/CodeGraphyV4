@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { withWorkspaceAnalysisDatabaseWriter } from '../../src/graphCache/database/storage';
+import { WorkspaceCacheWriteIdentityChangedError } from '../../src/graphCache/database/writeCoordination/model';
 import {
   createDefaultCodeGraphyWorkspaceMeta,
   markCodeGraphyWorkspaceChangesPending,
@@ -43,7 +44,10 @@ describe('workspace metadata concurrency', () => {
     const activeWriter = withWorkspaceAnalysisDatabaseWriter(workspaceRoot, async () => {
       reportOwnership?.();
       await writerGate;
-    });
+    }).then(
+      () => undefined,
+      error => error,
+    );
     await ownershipAcquired;
 
     let pendingMarkSettled = false;
@@ -59,8 +63,9 @@ describe('workspace metadata concurrency', () => {
     fs.rmSync(workspaceRoot, { recursive: true });
     expect(fs.existsSync(workspaceRoot)).toBe(false);
     releaseWriter?.();
-    await Promise.all([activeWriter, pendingMark]);
+    const [activeWriterError] = await Promise.all([activeWriter, pendingMark]);
 
+    expect(activeWriterError).toBeInstanceOf(WorkspaceCacheWriteIdentityChangedError);
     expect(fs.existsSync(workspaceRoot)).toBe(false);
   });
 
