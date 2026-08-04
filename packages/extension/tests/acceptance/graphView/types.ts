@@ -36,6 +36,7 @@ export interface GraphAcceptanceContext {
   workspacePath?: string;
   vscode?: VSCodeFixture;
   graphFrame?: Frame;
+  graphViewHost?: 'Editor' | 'Sidebar';
   activeGraphScopeSection?: 'Edge Types' | 'Node Types';
   beforeIndexNodeCount?: number;
   beforeIndexStageImage?: Buffer;

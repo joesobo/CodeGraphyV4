@@ -15,6 +15,7 @@ import {
   expectNodeHasLabel,
   expectNodeHasWhiteCenterSymbol,
   expectNodeIsOutlined,
+  expectNodeIsNotOutlined,
   expectNodeLooksBlue,
   expectNodeStaysDropped,
   expectVisibleEdgeBetween,
@@ -46,11 +47,18 @@ import {
 import {
   launchVSCodeWithWorkspace,
   openGraphView,
+  openGraphViewInEditor,
   VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
   waitForGraphFrame,
 } from './vscode';
 
 const TARGET_NODE = 'src/index.ts';
+const BUILT_IN_ESCAPE_PANELS = [
+  { button: 'Graph Scope', panel: 'graph-scope' },
+  { button: 'Themes', panel: 'themes' },
+  { button: 'Plugins', panel: 'plugins' },
+  { button: 'Settings', panel: 'settings' },
+] as const;
 const CORE_EDGE_TYPE_LABELS = [
   'Include',
   'Imports',
@@ -616,6 +624,96 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await clickToolbarButton(requireGraphFrame(context), 'Plugins');
   }),
 
+  step(/^I open CodeGraphy in the (Sidebar|Editor) Graph View$/, async (context, stepDefinition, match) => {
+    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    context.vscode = await launchVSCodeWithWorkspace(workspacePath, {
+      pluginPackageRelativePaths: acceptancePluginPackageRelativePathsForExample(context.exampleName),
+    });
+    await openGraphView(context.vscode.page);
+    const sidebarFrame = await waitForGraphFrame(context.vscode.page);
+    context.graphViewHost = match[1] as 'Editor' | 'Sidebar';
+    context.graphFrame = context.graphViewHost === 'Editor'
+      ? await openGraphViewInEditor(context.vscode.page, sidebarFrame)
+      : sidebarFrame;
+    await applyExampleScenarioStartingUiState(context, stepDefinition.sourcePath, {
+      requireCoreNodeTypes: true,
+    });
+  }),
+
+  step(/^I press Escape in the Graph View$/, async (context) => {
+    await requireGraphFrame(context).page().keyboard.press('Escape');
+  }),
+
+  step(/^the Graph Context Menu closes$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('menu')).toBeHidden();
+  }),
+
+  step(/^the Graph Scope stays open$/, async (context) => {
+    await expect(requireGraphFrame(context).locator('[data-codegraphy-panel="graph-scope"]')).toBeVisible();
+  }),
+
+  step(/^the Graph Scope closes$/, async (context) => {
+    await expect(requireGraphFrame(context).locator('[data-codegraphy-panel="graph-scope"]')).toBeHidden();
+  }),
+
+  step(/^the Graph Stage has focus$/, async (context) => {
+    await expect(graphStage(requireGraphFrame(context))).toBeFocused();
+  }),
+
+  step(/^the (.+) node is no longer visibly outlined$/, async (context, _step, match) => {
+    await expectNodeIsNotOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+  }),
+
+  step(/^Escape closes each built-in panel and focuses the Graph Stage$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    for (const { button, panel } of BUILT_IN_ESCAPE_PANELS) {
+      await clickToolbarButton(frame, button);
+      const panelElement = frame.locator(`[data-codegraphy-panel="${panel}"]`);
+      await expect(panelElement).toBeVisible();
+      await frame.page().keyboard.press('Escape');
+      await expect(panelElement).toBeHidden();
+      await expect(graphStage(frame)).toBeFocused();
+    }
+  }),
+
+  step(/^I open Filters$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: /^Filters,/ }).click();
+    await expect(frame.getByTestId('filters-inline-surface')).toBeVisible();
+    await frame.locator('#new-filter-pattern').focus();
+  }),
+
+  step(/^the focused Filters input blurs and Filters stays open$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    await expect(frame.locator('#new-filter-pattern')).not.toBeFocused();
+    await expect(frame.getByTestId('filters-inline-surface')).toBeVisible();
+  }),
+
+  step(/^Filters closes and its button has focus$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    await expect(frame.getByTestId('filters-inline-surface')).toBeHidden();
+    await expect(frame.getByRole('button', { name: /^Filters,/ })).toBeFocused();
+  }),
+
+  step(/^I open an Add Legend Group prompt for (.+)$/, async (context, _step, match) => {
+    await rightClickNode(context, match[1]);
+    await clickContextMenuEntry(context, 'Add Legend Group');
+    await expect(requireGraphFrame(context).getByRole('dialog', { name: 'Add Legend Group' })).toBeVisible();
+  }),
+
+  step(/^I replace its draft with "(.+)"$/, async (context, _step, match) => {
+    const dialog = requireGraphFrame(context).getByRole('dialog', { name: 'Add Legend Group' });
+    await dialog.getByRole('textbox', { name: 'Add Legend Group pattern' }).fill(match[1]);
+  }),
+
+  step(/^the Add Legend Group prompt closes without saving$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    await expect(frame.getByRole('dialog', { name: 'Add Legend Group' })).toBeHidden();
+    await clickToolbarButton(frame, 'Themes');
+    await expect(frame.getByText('unsaved-pattern', { exact: true })).toHaveCount(0);
+    await frame.page().keyboard.press('Escape');
+  }),
+
   step(/^I see a list of plugins with toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByRole('switch').first()).toBeVisible();
   }),
@@ -684,6 +782,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click the (.+) node to select it$/, async (context, _step, match) => {
     await clickNode(context, match[1]);
+    if (context.graphViewHost === 'Editor') {
+      const page = requireValue(context.vscode, 'Expected VS Code to be launched').page;
+      await page.locator('.tab').filter({ hasText: /^CodeGraphy$/ }).click();
+      await expect(graphStage(requireGraphFrame(context))).toBeVisible();
+    }
   }),
 
   step(/^I double click the (.+) node$/, async (context, _step, match) => {

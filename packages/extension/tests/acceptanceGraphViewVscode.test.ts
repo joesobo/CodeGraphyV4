@@ -4,6 +4,7 @@ import {
   createVSCodeLaunchArgs,
   OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS,
   resolveRefocusAppName,
+  resolveDownloadedVSCodeExecutablePath,
   selectVSCodeTempBaseDir,
   VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
 } from './acceptance/graphView/vscode';
@@ -39,6 +40,21 @@ describe('createVSCodeLaunchArgs', () => {
 
   it('uses a short temp base for macOS VS Code IPC sockets', () => {
     expect(selectVSCodeTempBaseDir('darwin', '/var/folders/very/long/T')).toBe('/tmp');
+  });
+
+  it('uses the current macOS Code executable when the downloader returns the old Electron name', () => {
+    const downloadedPath = '/cache/Visual Studio Code.app/Contents/MacOS/Electron';
+    const existingPaths = new Set(['/cache/Visual Studio Code.app/Contents/MacOS/Code']);
+
+    expect(resolveDownloadedVSCodeExecutablePath(
+      downloadedPath,
+      'darwin',
+      candidate => existingPaths.has(candidate),
+    )).toBe('/cache/Visual Studio Code.app/Contents/MacOS/Code');
+  });
+
+  it('keeps the downloader path on other platforms', () => {
+    expect(resolveDownloadedVSCodeExecutablePath('/cache/code', 'linux', () => false)).toBe('/cache/code');
   });
 
   it('allows twenty seconds for VS Code Playwright readiness waits', () => {
