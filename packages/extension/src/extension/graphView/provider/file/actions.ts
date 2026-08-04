@@ -50,7 +50,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createDeleteAction(
           nextPaths,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => source._updateChangedFilesAndSendData(nextPaths),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -66,7 +66,7 @@ export function createGraphViewProviderFileActionMethods(
           oldPath,
           newPath,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => source._updateChangedFilesAndSendData([oldPath, newPath]),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -84,7 +84,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createCreateAction(
           filePath,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => source._updateChangedFilesAndSendData([filePath]),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -102,7 +102,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createCreateFolderAction(
           folderPath,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => source._updateChangedFilesAndSendData([folderPath]),
         );
         await dependencies.executeUndoAction(action);
       },

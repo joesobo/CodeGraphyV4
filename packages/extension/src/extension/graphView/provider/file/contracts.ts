@@ -6,6 +6,7 @@ export type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' 
 export interface GraphViewProviderFileActionMethodsSource {
   _getFocusedFile(): string | undefined;
   _loadAndSendData(): Promise<void>;
+  _updateChangedFilesAndSendData(filePaths: readonly string[]): Promise<void>;
   _sendFavorites(favorites?: string[]): void;
   _setFocusedFile(filePath: string | undefined): void;
 }

@@ -247,7 +247,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith(['src/app.ts']);
   });
 
   it('uses vscode input and error defaults for rename actions', async () => {
@@ -265,7 +265,10 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith([
+      'src/app.ts',
+      'src/main.ts',
+    ]);
   });
 
   it('uses vscode input and error defaults for create actions', async () => {
@@ -283,7 +286,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith(['src/new.ts']);
   });
 
   it('uses vscode input and error defaults for create folder actions', async () => {
@@ -301,7 +304,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith(['src/components']);
   });
 
   it('passes workspace-root create contexts through to the file create helper', async () => {
@@ -510,6 +513,7 @@ async function createDefaultDependencyHarness(
 
   const source = {
     _loadAndSendData: vi.fn(async () => undefined),
+    _updateChangedFilesAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
     _setFocusedFile: vi.fn(),
   };
