@@ -414,6 +414,7 @@ export {
 export type { CodeGraphyWorkspaceMeta } from './workspace/meta';
 export {
   createDefaultCodeGraphyWorkspaceMeta,
+  markCodeGraphyWorkspaceChangesPending,
   persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
   writeCodeGraphyWorkspaceMeta,

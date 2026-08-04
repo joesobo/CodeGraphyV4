@@ -71,6 +71,19 @@ export function writeCodeGraphyWorkspaceMeta(
   fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`);
 }
 
+export function markCodeGraphyWorkspaceChangesPending(
+  workspaceRoot: string,
+  filePaths: readonly string[],
+): void {
+  const previous = readCodeGraphyWorkspaceMeta(workspaceRoot);
+  writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    ...previous,
+    pendingChangedFiles: [
+      ...new Set([...previous.pendingChangedFiles, ...filePaths]),
+    ],
+  });
+}
+
 export function persistCodeGraphyWorkspaceIndexMetadata(
   workspaceRoot: string,
   metadata: {

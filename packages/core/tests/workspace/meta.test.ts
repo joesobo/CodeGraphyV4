@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   createDefaultCodeGraphyWorkspaceMeta,
+  markCodeGraphyWorkspaceChangesPending,
   readCodeGraphyWorkspaceMeta,
   writeCodeGraphyWorkspaceMeta,
 } from '../../src/workspace/meta';
@@ -44,6 +45,29 @@ describe('workspace/meta', () => {
     writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
 
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual(meta);
+  });
+
+  it('marks changed paths pending without dropping Core-owned metadata', () => {
+    const workspaceRoot = createTempWorkspace();
+    const meta = {
+      ...createDefaultCodeGraphyWorkspaceMeta(),
+      analysisVersion: 'analysis-v2',
+      failedPluginIds: ['acme.failed'],
+      lastIndexedAt: '2026-04-08T19:00:00.000Z',
+      pendingChangedFiles: ['src/existing.ts'],
+      pluginBuildSignature: 'plugin-build-sha',
+    };
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
+
+    markCodeGraphyWorkspaceChangesPending(workspaceRoot, [
+      'src/existing.ts',
+      'src/changed.ts',
+    ]);
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual({
+      ...meta,
+      pendingChangedFiles: ['src/existing.ts', 'src/changed.ts'],
+    });
   });
 
   it('filters invalid persisted metadata fields through the workspace meta schema', () => {

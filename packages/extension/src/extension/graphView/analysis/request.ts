@@ -63,6 +63,7 @@ export async function runGraphViewAnalysisRequest(
     });
   } catch (error) {
     if (handlers.isAbortError(error)) {
+      if (state.propagateErrors) throw error;
       return;
     } else {
       handlers.emitDiagnostic?.({

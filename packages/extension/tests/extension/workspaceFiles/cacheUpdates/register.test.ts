@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type {
-  WorkspaceCacheUpdateSchedulerOptions,
-  WorkspaceCacheUpdateStatus,
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createWorkspaceCacheUpdateScheduler,
+  type WorkspaceCacheUpdateSchedulerOptions,
+  type WorkspaceCacheUpdateStatus,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
 import {
   registerWorkspaceCacheUpdates,
@@ -99,6 +100,10 @@ function createHarness() {
 describe('workspaceFiles/cacheUpdates/register', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('maps VS Code save, create, delete, and rename events to workspace cache paths', () => {
@@ -207,6 +212,33 @@ describe('workspaceFiles/cacheUpdates/register', () => {
       new Error('requires explicit Re-index'),
       ['/workspace/src/app.ts'],
     );
+
+    expect(harness.dependencies.markGraphCacheStale).toHaveBeenCalledWith(
+      '/workspace',
+      ['/workspace/src/app.ts'],
+    );
+    expect(refreshIndexStatus).toHaveBeenCalledOnce();
+  });
+
+  it('marks the index stale when the real scheduler receives an update failure', async () => {
+    vi.useFakeTimers();
+    const harness = createHarness();
+    const refreshIndexStatus = vi.fn();
+    harness.dependencies.createScheduler = createWorkspaceCacheUpdateScheduler;
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus,
+        updateWorkspaceFiles: vi.fn(async () => {
+          throw new Error('plugin requires explicit Re-index');
+        }),
+      },
+      harness.dependencies,
+    );
+
+    harness.listeners.watcherChange()?.(fileUri('/workspace/src/app.ts'));
+    await vi.advanceTimersByTimeAsync(250);
 
     expect(harness.dependencies.markGraphCacheStale).toHaveBeenCalledWith(
       '/workspace',

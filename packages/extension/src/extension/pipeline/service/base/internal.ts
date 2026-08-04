@@ -268,8 +268,8 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     );
   }
 
-  protected _persistCachePatch(patch: WorkspacePipelineCachePatch): void {
-    patchWorkspacePipelineCache(
+  protected _persistCachePatch(patch: WorkspacePipelineCachePatch): Promise<void> {
+    return patchWorkspacePipelineCache(
       this._getWorkspaceRoot(),
       this._cache,
       patch,

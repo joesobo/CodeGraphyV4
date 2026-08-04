@@ -38,17 +38,12 @@ export async function refreshWorkspaceIndexChangedFiles(
     dependencies.filePaths,
     discoveredByRelativePath,
   );
-  const deletionSelection = invalidateDeletedWorkspaceIndexFiles(
-    source,
-    changeSelection.unmatchedFilePaths,
-  );
-  const deleteFilePaths = deletionSelection.deleteFilePaths;
   const changedFiles = changeSelection.files;
+  let deletionSelection = dependencies.fullRefreshFallback === 'reject'
+    ? undefined
+    : invalidateDeletedWorkspaceIndexFiles(source, changeSelection.unmatchedFilePaths);
 
-  if (
-    deletionSelection.unmatchedFilePaths.length > 0
-    && dependencies.fullRefreshFallback !== 'reject'
-  ) {
+  if (deletionSelection?.unmatchedFilePaths.length) {
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
@@ -68,6 +63,11 @@ export async function refreshWorkspaceIndexChangedFiles(
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
+  deletionSelection ??= invalidateDeletedWorkspaceIndexFiles(
+    source,
+    changeSelection.unmatchedFilePaths,
+  );
+  const deleteFilePaths = deletionSelection.deleteFilePaths;
   const affectedDependents = findAffectedWorkspaceIndexAnalysisDependents({
     fileAnalysis: source._lastFileAnalysis,
     invalidatedFilePaths: [
@@ -119,29 +119,32 @@ export async function refreshWorkspaceIndexChangedFiles(
 
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
-  persistChangedFilesCachePatch(dependencies, {
+  const canPatchMetrics = canPatchWorkspaceIndexRefreshGraphData(
+    graphSnapshot,
+    analysisResult,
+    filesToAnalyze,
+  ) && source._patchGraphDataNodeMetrics;
+  const graphData = canPatchMetrics
+    ? source._patchGraphDataNodeMetrics!(
+        source._lastGraphData,
+        filesToAnalyze.map(file => file.relativePath),
+      )
+    : buildWorkspaceIndexGraphFromRefreshState(
+        source,
+        dependencies.workspaceRoot,
+        dependencies.disabledPlugins,
+      );
+  source._lastGraphData = graphData;
+  await persistChangedFilesCachePatch(dependencies, {
     deleteFilePaths,
     upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
+    graph: graphData,
   });
-  if (
-    canPatchWorkspaceIndexRefreshGraphData(graphSnapshot, analysisResult, filesToAnalyze)
-    && source._patchGraphDataNodeMetrics
-  ) {
-    const graphData = source._patchGraphDataNodeMetrics(
-      source._lastGraphData,
-      filesToAnalyze.map(file => file.relativePath),
-    );
-    source._lastGraphData = graphData;
+  if (canPatchMetrics) {
     await persistMetricOnlyIndexMetadata(dependencies);
-    return graphData;
+  } else {
+    await dependencies.persistIndexMetadata();
   }
-
-  const graphData = buildWorkspaceIndexGraphFromRefreshState(
-    source,
-    dependencies.workspaceRoot,
-    dependencies.disabledPlugins,
-  );
-  await dependencies.persistIndexMetadata();
 
   return graphData;
 }

@@ -263,6 +263,10 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
     expect(analyzerPrivate._persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: ['src/remove.ts'],
       upsertFilePaths: [],
+      graph: {
+        nodes: [{ id: 'src/keep.ts', label: 'keep.ts', fileSize: undefined }],
+        edges: [],
+      },
     });
     expect(analyzerPrivate._persistIndexMetadata).toHaveBeenCalledOnce();
   });

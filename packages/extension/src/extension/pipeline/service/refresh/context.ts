@@ -25,7 +25,7 @@ export interface RefreshFacadeContext
   _getWorkspaceRoot(): string | undefined;
   _lastGitIgnoredPaths: string[];
   _persistCache(): void;
-  _persistCachePatch(patch: WorkspacePipelineCachePatch): void;
+  _persistCachePatch(patch: WorkspacePipelineCachePatch): Promise<void>;
   _persistIndexMetadata(): Promise<void>;
   _registry: Pick<PluginRegistry, 'list' | 'notifyFilesChanged'>;
   _toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined;

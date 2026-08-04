@@ -131,42 +131,47 @@ describe('indexing/refresh/modes/changedFiles', () => {
   });
 
   it('updates structural directory facts without running full analysis', async () => {
-    const graph: IGraphData = {
-      nodes: [createGraphNode('src/new-folder')],
-      edges: [],
-    };
+    const persistCachePatch = vi.fn();
     const source = createSource({
-      _buildGraphDataFromAnalysis: vi.fn(() => graph),
       _lastFileAnalysis: new Map(),
       _lastFileConnections: new Map(),
       analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     });
+    source._buildGraphDataFromAnalysis = vi.fn(() => ({
+      nodes: source._lastDiscoveredDirectories.map(createGraphNode),
+      edges: [],
+    }));
 
     const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredDirectories: ['src', 'src/new-folder'],
       discoveredFiles: [createDiscoveredFile('src/app.ts')],
       fullRefreshFallback: 'reject',
       filePaths: ['/workspace/src/new-folder'],
+      persistCachePatch,
     }));
 
     expect(result.nodes).toContainEqual(createGraphNode('src/new-folder'));
     expect(source.analyze).not.toHaveBeenCalled();
     expect(source._analyzeFiles).not.toHaveBeenCalled();
     expect(source._lastDiscoveredDirectories).toEqual(['src', 'src/new-folder']);
+    expect(persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: [],
+      upsertFilePaths: [],
+      graph: result,
+    });
   });
 
   it('removes structural directory facts without running full analysis', async () => {
-    const graph: IGraphData = {
-      nodes: [createGraphNode('src/app.ts')],
-      edges: [],
-    };
     const source = createSource({
-      _buildGraphDataFromAnalysis: vi.fn(() => graph),
       _lastDiscoveredDirectories: ['src', 'src/old-folder'],
       _lastFileAnalysis: new Map(),
       _lastFileConnections: new Map(),
       analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     });
+    source._buildGraphDataFromAnalysis = vi.fn(() => ({
+      nodes: source._lastDiscoveredDirectories.map(createGraphNode),
+      edges: [],
+    }));
 
     const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredDirectories: ['src'],
@@ -199,6 +204,39 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(source._analyzeFiles).toHaveBeenCalledOnce();
   });
 
+  it('waits for the Graph Cache patch before marking an incremental update current', async () => {
+    let reportPatchStarted: (() => void) | undefined;
+    let finishPatch: (() => void) | undefined;
+    const patchStarted = new Promise<void>(resolve => {
+      reportPatchStarted = resolve;
+    });
+    const persistCachePatch = vi.fn(() => {
+      reportPatchStarted?.();
+      return new Promise<void>(resolve => {
+        finishPatch = resolve;
+      });
+    });
+    const persistIndexMetadata = vi.fn(async () => undefined);
+    const source = createSource({
+      _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => (
+        createAnalysisResult(files.map(file => file.relativePath))
+      )),
+      invalidateWorkspaceFiles: vi.fn(() => ['src/app.ts']),
+    });
+
+    const refresh = refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      persistCachePatch,
+      persistIndexMetadata,
+    }));
+    await patchStarted;
+
+    expect(persistIndexMetadata).not.toHaveBeenCalled();
+    finishPatch?.();
+    await refresh;
+
+    expect(persistIndexMetadata).toHaveBeenCalledOnce();
+  });
+
   it('persists changed files through a targeted Graph Cache patch instead of a full cache save', async () => {
     const persistCache = vi.fn();
     const persistCachePatch = vi.fn();
@@ -223,6 +261,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: [],
       upsertFilePaths: ['src/app.ts'],
+      graph: expect.any(Object),
     });
     expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts'], {
       persist: false,
@@ -233,6 +272,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
     const source = createSource();
 
     await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      filePaths: ['/workspace/src/app.ts', '/workspace/src/deleted.ts'],
       fullRefreshFallback: 'reject',
       notifyFilesChanged: vi.fn(async () => ({
         additionalFilePaths: [],
@@ -244,6 +284,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
     });
 
     expect(source.analyze).not.toHaveBeenCalled();
+    expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
   });
 
   it('patches deleted file evidence without falling back to full cache persistence', async () => {
@@ -286,6 +327,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: ['src/deleted.ts'],
       upsertFilePaths: [],
+      graph: expect.any(Object),
     });
     expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/deleted.ts'], {
       persist: false,

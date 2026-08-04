@@ -322,6 +322,42 @@ describe('graphView/provider/analysis/methods', () => {
     ]);
   });
 
+  it('waits for an active incremental update before loading a Graph View', async () => {
+    const source = createSource();
+    let finishUpdate: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      if (state.mode !== 'incremental') return;
+      await new Promise<void>(resolve => {
+        finishUpdate = resolve;
+      });
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    const update = methods._updateChangedFilesAndSendData(['/workspace/src/app.ts']);
+    await Promise.resolve();
+    await Promise.resolve();
+    const load = methods._loadAndSendData();
+    await Promise.resolve();
+
+    expect(runAnalysisRequest).toHaveBeenCalledOnce();
+    finishUpdate?.();
+    await update;
+    await load;
+
+    expect(runAnalysisRequest.mock.calls.map(([state]) => state.mode)).toEqual([
+      'incremental',
+      'load',
+    ]);
+  });
+
   it('cancels an active saved-file update when its caller is disposed', async () => {
     const source = createSource();
     let analysisSignal: AbortSignal | undefined;

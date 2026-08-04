@@ -1,7 +1,15 @@
 import { expect, test } from '@playwright/test';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '@codegraphy-dev/core';
 import fs from 'node:fs';
 import path from 'node:path';
-import { clickToolbarButton, findNodeProbe, graphNode, requireGraphFrame, rightClickNode } from '../acceptance/graphView/canvas';
+import {
+  clickToolbarButton,
+  findNodeProbe,
+  graphNode,
+  requireGraphFrame,
+  rightClickGraphBackground,
+  rightClickNode,
+} from '../acceptance/graphView/canvas';
 import { createGraphViewAcceptanceContext } from '../acceptance/graphView/context';
 import { openGraphScopeSection, setPanelSwitch } from '../acceptance/graphView/steps';
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from '../acceptance/graphView/vscode';
@@ -42,6 +50,44 @@ for (const { kind, name } of [
   });
 }
 
+test('background and toolbar creation publish root Nodes without Re-index', async () => {
+  const context = await createGraphViewAcceptanceContext(undefined);
+  try {
+    context.workspaceTempRoot = createWorkspaceTempRoot();
+    context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
+      includeImportEdges: false,
+      includeNestsEdges: true,
+    });
+    context.vscode = await launchVSCodeWithWorkspace(context.workspacePath);
+    await openGraphView(context.vscode.page);
+    context.graphFrame = await waitForGraphFrame(context.vscode.page);
+    let frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: 'Index Workspace' }).click();
+    await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toBeHidden({ timeout: 30_000 });
+    await openGraphScopeSection(context, 'Node Types');
+    await setPanelSwitch(context, 'Folder', true);
+    await clickToolbarButton(frame, 'Graph Scope');
+
+    await rightClickGraphBackground(context);
+    await frame.getByText('New File', { exact: true }).last().click();
+    const input = context.vscode.page.locator('.quick-input-widget input').first();
+    await input.fill('background-created.ts');
+    await input.press('Enter');
+    await expect(graphNode(frame, 'background-created.ts')).toBeAttached({ timeout: 15_000 });
+
+    context.graphFrame = await waitForGraphFrame(context.vscode.page);
+    frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: 'New...', exact: true }).click();
+    await frame.getByText('New Folder...', { exact: true }).last().click();
+    await input.fill('toolbar-created-folder');
+    await input.press('Enter');
+    await expect(graphNode(frame, 'toolbar-created-folder')).toBeAttached({ timeout: 15_000 });
+  } finally {
+    await context.cleanup();
+  }
+});
+
 test('external workspace changes stay current while the Graph View is hidden', async () => {
   const context = await createGraphViewAcceptanceContext(undefined);
   try {
@@ -59,12 +105,13 @@ test('external workspace changes stay current while the Graph View is hidden', a
     await context.vscode.page.keyboard.press('Meta+Shift+E');
     await expect(context.vscode.page.getByRole('tree', { name: 'Files Explorer' })).toBeVisible();
 
-    const graphCachePath = path.join(context.workspacePath, '.codegraphy', 'graph.sqlite');
-    const previousCacheMtime = fs.statSync(graphCachePath).mtimeMs;
     fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), 'export const created = true;\n');
     fs.mkdirSync(path.join(context.workspacePath, 'external-folder'));
-    await expect.poll(() => fs.statSync(graphCachePath).mtimeMs, { timeout: 15_000 })
-      .toBeGreaterThan(previousCacheMtime);
+    await expect.poll(
+      () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
+        .map((node: { id: string }) => node.id),
+      { timeout: 15_000 },
+    ).toEqual(expect.arrayContaining(['external-created.ts', 'external-folder']));
 
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);

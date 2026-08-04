@@ -2,12 +2,19 @@ import type { IGraphData } from '../../../graph/contracts';
 import { buildWorkspaceIndexGraphFromRefreshState } from '../graph';
 import type { WorkspaceIndexRefreshDependencies, WorkspaceIndexRefreshSource } from '../contracts';
 
-export function persistChangedFilesCachePatch(
+export async function persistChangedFilesCachePatch(
   dependencies: WorkspaceIndexRefreshDependencies,
-  patch: { deleteFilePaths: readonly string[]; upsertFilePaths: readonly string[] },
-): void {
-  if (dependencies.persistCachePatch) dependencies.persistCachePatch(patch);
-  else dependencies.persistCache();
+  patch: {
+    deleteFilePaths: readonly string[];
+    upsertFilePaths: readonly string[];
+    graph: IGraphData;
+  },
+): Promise<void> {
+  if (dependencies.persistCachePatch) {
+    await dependencies.persistCachePatch(patch);
+  } else if (patch.deleteFilePaths.length > 0 || patch.upsertFilePaths.length > 0) {
+    await dependencies.persistCache();
+  }
 }
 
 export async function buildGraphWithoutChangedFileAnalysis(
@@ -15,15 +22,18 @@ export async function buildGraphWithoutChangedFileAnalysis(
   dependencies: WorkspaceIndexRefreshDependencies,
   deleteFilePaths: readonly string[],
 ): Promise<IGraphData> {
-  if (deleteFilePaths.length > 0) {
-    persistChangedFilesCachePatch(dependencies, { deleteFilePaths, upsertFilePaths: [] });
-    await dependencies.persistIndexMetadata();
-  }
-  return buildWorkspaceIndexGraphFromRefreshState(
+  const graph = buildWorkspaceIndexGraphFromRefreshState(
     source,
     dependencies.workspaceRoot,
     dependencies.disabledPlugins,
   );
+  await persistChangedFilesCachePatch(dependencies, {
+    deleteFilePaths,
+    upsertFilePaths: [],
+    graph,
+  });
+  await dependencies.persistIndexMetadata();
+  return graph;
 }
 
 export function persistMetricOnlyIndexMetadata(

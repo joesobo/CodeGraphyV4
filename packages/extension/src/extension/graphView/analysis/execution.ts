@@ -101,10 +101,12 @@ export async function executeGraphViewAnalysis(
     await runGraphViewAnalysis(signal, requestId, state, handlers);
   } catch (error) {
     if (handlers.isAbortError(error) || handlers.isAnalysisStale(signal, requestId)) {
+      if (state.mode === 'incremental') throw error;
       return;
     }
 
     handlers.logError('[CodeGraphy] Analysis failed:', error);
+    if (state.mode === 'incremental') throw error;
     publishAnalysisFailure(handlers);
   }
 }

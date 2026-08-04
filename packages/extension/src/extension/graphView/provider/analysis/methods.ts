@@ -197,6 +197,7 @@ export function createGraphViewProviderAnalysisMethods(
 
   const methods: GraphViewProviderAnalysisMethods = {
     _loadAndSendData: async () => {
+      await incrementalUpdateTail;
       if (await fullIndexAnalysis.waitForFullIndexAnalysis()) {
         return;
       }

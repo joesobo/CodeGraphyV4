@@ -131,6 +131,21 @@ describe('graph view analysis request', () => {
     expect(state.analysisController).toBeUndefined();
   });
 
+  it('reports abort failures to incremental update owners', async () => {
+    const state = createState({ propagateErrors: true });
+    const error = new Error('cancelled');
+
+    await expect(runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.reject(error)),
+      isAbortError: vi.fn(() => true),
+      logError: vi.fn(),
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
+    })).rejects.toBe(error);
+
+    expect(state.analysisController).toBeUndefined();
+  });
+
   it('does not clear the active controller when a newer request replaced it', async () => {
     const state = createState();
     const replacementController = new AbortController();
