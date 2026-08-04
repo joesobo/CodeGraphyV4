@@ -82,6 +82,15 @@ describe('workspace/meta', () => {
     });
   });
 
+  it('creates first-time metadata when the workspace still exists', async () => {
+    const workspaceRoot = createTempWorkspace();
+
+    await markCodeGraphyWorkspaceChangesPending(workspaceRoot, ['src/first.ts']);
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot).pendingChangedFiles)
+      .toEqual(['src/first.ts']);
+  });
+
   it('does not recreate a workspace that was removed before a pending mark', async () => {
     const workspaceRoot = createTempWorkspace();
     fs.rmSync(workspaceRoot, { recursive: true });

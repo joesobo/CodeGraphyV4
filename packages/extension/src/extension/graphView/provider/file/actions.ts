@@ -7,7 +7,10 @@ import type {
   GraphViewProviderFileActionMethods,
   GraphViewProviderFileActionMethodsSource,
 } from './contracts';
-import { WorkspaceCacheUpdateHandledError } from '../../../workspaceFiles/cacheUpdates/error';
+import {
+  WorkspaceCacheUpdateHandledError,
+  WorkspaceCacheUpdateUnrecordedError,
+} from '../../../workspaceFiles/cacheUpdates/error';
 import { DEFAULT_GRAPH_VIEW_FILE_ACTION_DEPENDENCIES } from './dependencies';
 
 export type {
@@ -47,7 +50,15 @@ export function createGraphViewProviderFileActionMethods(
       await source._updateChangedFilesAndSendData(filePaths);
     } catch (error) {
       if (error instanceof WorkspaceCacheUpdateHandledError) return;
-      await dependencies.markGraphCacheStale?.(workspaceFolderUri.fsPath, filePaths);
+      try {
+        await dependencies.markGraphCacheStale?.(workspaceFolderUri.fsPath, filePaths);
+      } catch (fallbackError) {
+        dependencies.logWorkspaceUpdateError?.(
+          new WorkspaceCacheUpdateUnrecordedError(error, fallbackError),
+          filePaths,
+        );
+        return;
+      }
       source._refreshIndexStatus?.();
       dependencies.logWorkspaceUpdateError?.(error, filePaths);
     }

@@ -1,4 +1,4 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import Database from 'libsql';
 import { AsyncLocalStorage } from 'node:async_hooks';
@@ -18,6 +18,13 @@ interface WorkspaceCacheWriteOwnership {
   revision: number;
 }
 
+const MISSING_PARENT_DIRECTORY = Symbol('missing-parent-directory');
+type ParentDirectoryMode = 'create' | 'if-parent-exists';
+type WorkspaceCacheWriteOwnershipAttempt =
+  | WorkspaceCacheWriteOwnership
+  | typeof MISSING_PARENT_DIRECTORY
+  | undefined;
+
 function lockPath(databasePath: string): string {
   return `${databasePath}${LOCK_SUFFIX}`;
 }
@@ -26,6 +33,31 @@ function isBusyError(error: unknown): boolean {
   return error instanceof Error
     && 'code' in error
     && (error.code === 'SQLITE_BUSY' || error.code === 'SQLITE_LOCKED');
+}
+
+function isFileSystemError(error: unknown, code: string): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && error.code === code;
+}
+
+function prepareLockDirectory(
+  writeLockPath: string,
+  mode: ParentDirectoryMode,
+): boolean {
+  const directoryPath = path.dirname(writeLockPath);
+  if (mode === 'create') {
+    mkdirSync(directoryPath, { recursive: true });
+    return true;
+  }
+  try {
+    mkdirSync(directoryPath);
+    return true;
+  } catch (error) {
+    if (isFileSystemError(error, 'EEXIST')) return true;
+    if (isFileSystemError(error, 'ENOENT')) return false;
+    throw error;
+  }
 }
 
 function ensureRevisionState(connection: LockConnection): void {
@@ -45,10 +77,26 @@ function readRevision(connection: LockConnection): number {
   return Number(row?.revision ?? 0);
 }
 
-function tryAcquire(databasePath: string): WorkspaceCacheWriteOwnership | undefined {
+function tryAcquire(
+  databasePath: string,
+  parentDirectoryMode: ParentDirectoryMode = 'create',
+): WorkspaceCacheWriteOwnershipAttempt {
   const writeLockPath = lockPath(databasePath);
-  mkdirSync(path.dirname(writeLockPath), { recursive: true });
-  const connection: LockConnection = new Database(writeLockPath);
+  if (!prepareLockDirectory(writeLockPath, parentDirectoryMode)) {
+    return MISSING_PARENT_DIRECTORY;
+  }
+  let connection: LockConnection;
+  try {
+    connection = new Database(writeLockPath);
+  } catch (error) {
+    if (
+      parentDirectoryMode === 'if-parent-exists'
+      && !existsSync(path.dirname(writeLockPath))
+    ) {
+      return MISSING_PARENT_DIRECTORY;
+    }
+    throw error;
+  }
   try {
     connection.pragma('busy_timeout = 0');
     ensureRevisionState(connection);
@@ -92,7 +140,7 @@ function acquireSync(databasePath: string): WorkspaceCacheWriteOwnership {
   const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
   while (Date.now() < deadline) {
     const ownership = tryAcquire(databasePath);
-    if (ownership) return ownership;
+    if (ownership && ownership !== MISSING_PARENT_DIRECTORY) return ownership;
     Atomics.wait(syncWaitState, 0, 0, RETRY_DELAY_MS);
   }
   throw timeoutError(databasePath);
@@ -104,6 +152,22 @@ async function acquireAsync(databasePath: string): Promise<WorkspaceCacheWriteOw
   while (Date.now() < deadline) {
     if (!processLocks.has(writeLockPath)) {
       const ownership = tryAcquire(databasePath);
+      if (ownership && ownership !== MISSING_PARENT_DIRECTORY) return ownership;
+    }
+    await wait(RETRY_DELAY_MS);
+  }
+  throw timeoutError(databasePath);
+}
+
+async function acquireAsyncIfParentExists(
+  databasePath: string,
+): Promise<WorkspaceCacheWriteOwnership | undefined> {
+  const writeLockPath = lockPath(databasePath);
+  const deadline = Date.now() + ACQUIRE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (!processLocks.has(writeLockPath)) {
+      const ownership = tryAcquire(databasePath, 'if-parent-exists');
+      if (ownership === MISSING_PARENT_DIRECTORY) return undefined;
       if (ownership) return ownership;
     }
     await wait(RETRY_DELAY_MS);
@@ -167,6 +231,25 @@ export async function withWorkspaceCacheWriteLockAsync<T>(
   write: (revision: number) => Promise<T>,
 ): Promise<T> {
   const ownership = await acquireAsync(databasePath);
+  let advanceRevision = false;
+  try {
+    const result = await runWithOwnershipContext(
+      databasePath,
+      () => write(ownership.revision),
+    );
+    advanceRevision = true;
+    return result;
+  } finally {
+    ownership.release(advanceRevision);
+  }
+}
+
+export async function withWorkspaceCacheWriteLockIfParentExistsAsync<T>(
+  databasePath: string,
+  write: (revision: number) => Promise<T>,
+): Promise<T | undefined> {
+  const ownership = await acquireAsyncIfParentExists(databasePath);
+  if (!ownership) return undefined;
   let advanceRevision = false;
   try {
     const result = await runWithOwnershipContext(

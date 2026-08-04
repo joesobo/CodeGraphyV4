@@ -29,6 +29,41 @@ afterEach(() => {
 });
 
 describe('workspace metadata concurrency', () => {
+  it('does not recreate a workspace removed while a pending mark waits for ownership', async () => {
+    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-meta-deleted-'));
+    tempDirectories.push(workspaceRoot);
+    let releaseWriter: (() => void) | undefined;
+    const writerGate = new Promise<void>(resolve => {
+      releaseWriter = resolve;
+    });
+    let reportOwnership: (() => void) | undefined;
+    const ownershipAcquired = new Promise<void>(resolve => {
+      reportOwnership = resolve;
+    });
+    const activeWriter = withWorkspaceAnalysisDatabaseWriter(workspaceRoot, async () => {
+      reportOwnership?.();
+      await writerGate;
+    });
+    await ownershipAcquired;
+
+    let pendingMarkSettled = false;
+    const pendingMark = markCodeGraphyWorkspaceChangesPending(
+      workspaceRoot,
+      ['src/late.ts'],
+    ).then(() => {
+      pendingMarkSettled = true;
+    });
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(pendingMarkSettled).toBe(false);
+
+    fs.rmSync(workspaceRoot, { recursive: true });
+    expect(fs.existsSync(workspaceRoot)).toBe(false);
+    releaseWriter?.();
+    await Promise.all([activeWriter, pendingMark]);
+
+    expect(fs.existsSync(workspaceRoot)).toBe(false);
+  });
+
   it('does not let an unrelated metadata commit erase a concurrently marked pending path', async () => {
     const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-meta-race-'));
     tempDirectories.push(workspaceRoot);

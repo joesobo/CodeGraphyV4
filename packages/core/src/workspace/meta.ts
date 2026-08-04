@@ -8,7 +8,7 @@ import { getWorkspaceMetaPath } from './paths';
 import { getWorkspaceAnalysisDatabasePath } from '../graphCache/database/storage';
 import {
   hasWorkspaceCacheWriteOwnership,
-  withWorkspaceCacheWriteLockAsync,
+  withWorkspaceCacheWriteLockIfParentExistsAsync,
 } from '../graphCache/database/writeCoordination/model';
 
 export interface CodeGraphyWorkspaceMeta {
@@ -77,7 +77,14 @@ function writeCodeGraphyWorkspaceMeta(
   meta: CodeGraphyWorkspaceMeta,
 ): void {
   const metaPath = getWorkspaceMetaPath(workspaceRoot);
-  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+  try {
+    fs.mkdirSync(path.dirname(metaPath));
+  } catch (error) {
+    if (!isFileSystemError(error, 'EEXIST')) {
+      if (isFileSystemError(error, 'ENOENT') && !fs.existsSync(workspaceRoot)) return;
+      throw error;
+    }
+  }
   const temporaryPath = `${metaPath}.${process.pid}.${randomUUID()}.tmp`;
   try {
     fs.writeFileSync(temporaryPath, `${JSON.stringify(meta, null, 2)}\n`, {
@@ -85,9 +92,18 @@ function writeCodeGraphyWorkspaceMeta(
       flag: 'wx',
     });
     fs.renameSync(temporaryPath, metaPath);
+  } catch (error) {
+    if (isFileSystemError(error, 'ENOENT') && !fs.existsSync(workspaceRoot)) return;
+    throw error;
   } finally {
     fs.rmSync(temporaryPath, { force: true });
   }
+}
+
+function isFileSystemError(error: unknown, code: string): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && error.code === code;
 }
 
 export async function markCodeGraphyWorkspaceChangesPending(
@@ -107,6 +123,7 @@ async function updateCodeGraphyWorkspaceMeta(
   if (!fs.existsSync(workspaceRoot)) return;
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   const applyUpdate = () => {
+    if (!fs.existsSync(workspaceRoot)) return;
     writeCodeGraphyWorkspaceMeta(
       workspaceRoot,
       update(readCodeGraphyWorkspaceMeta(workspaceRoot)),
@@ -116,7 +133,7 @@ async function updateCodeGraphyWorkspaceMeta(
     applyUpdate();
     return;
   }
-  await withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+  await withWorkspaceCacheWriteLockIfParentExistsAsync(databasePath, async () => {
     applyUpdate();
   });
 }
