@@ -9,10 +9,16 @@ describe('graph/contextMenu/build/background', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       favorites: new Set(),
+      workspaceName: 'example-typescript',
     });
 
-    expect(entries).toHaveLength(5);
+    expect(entries).toHaveLength(7);
     expect(entries).toMatchObject([
+      {
+        kind: 'header',
+        header: { kind: 'background', workspaceName: 'example-typescript' },
+      },
+      { kind: 'separator' },
       { kind: 'item', label: 'New File', disabled: false },
       { kind: 'item', label: 'New Folder', disabled: false },
       { kind: 'separator' },

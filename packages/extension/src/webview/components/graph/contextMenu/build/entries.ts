@@ -4,6 +4,8 @@ import {
 } from '../contracts';
 import { decideGraphContextMenu } from '../decision/model';
 import { buildGraphViewContextMenuEntries } from '../graphView/entries';
+import { buildGraphContextMenuHeader } from '../header/model';
+import { separator } from '../common/entryFactories';
 import { buildBaseGraphContextMenuEntries } from './baseEntries';
 import { captureContextSelection, insertCreateMenuEntries } from './selectionEntries';
 
@@ -14,6 +16,7 @@ export function buildGraphContextMenuEntries(
     selection,
     favorites,
     graphViewContributions,
+    workspaceName,
     nodes,
     edges,
   } = options;
@@ -31,7 +34,7 @@ export function buildGraphContextMenuEntries(
     })
     : [];
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
-  return captureContextSelection([
+  const actionEntries = captureContextSelection([
     ...positionedBaseEntries,
     ...buildGraphViewContextMenuEntries({
       decision,
@@ -41,4 +44,11 @@ export function buildGraphContextMenuEntries(
       selection,
     }),
   ], selection);
+  const header = buildGraphContextMenuHeader(selection, { edges, nodes, workspaceName });
+  if (!header) return actionEntries;
+  return [
+    { kind: 'header', id: 'context-target-header', header },
+    separator('context-target-header-separator'),
+    ...actionEntries,
+  ];
 }

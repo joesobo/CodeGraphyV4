@@ -245,10 +245,41 @@ describe('graph/contextMenuHandlers', () => {
 
     expect(dependencies.setContextSelection).toHaveBeenCalledWith({
       edgeId: 'src/app.ts->src/utils.ts',
+      visibleEdgeId: 'src/app.ts->src/utils.ts',
       kind: 'edge',
       targets: ['src/app.ts', 'src/utils.ts'],
     });
     expect(dispatchEvent).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the visible Edge id when combined Edge actions target a raw Relationship', () => {
+    const dependencies = createInteractionDependencies();
+    dependencies.dataRef.current.edges = [
+      { id: 'a->b#import', from: 'a', to: 'b', kind: 'import', sources: [] },
+      { id: 'b->a#import', from: 'b', to: 'a', kind: 'import', sources: [] },
+    ];
+    const handlers = createContextMenuHandlers(
+      dependencies,
+      createContextMenuSelectionHandlers(dependencies),
+    );
+
+    handlers.openEdgeContextMenu(
+      {
+        id: 'a<->b#import',
+        from: 'a',
+        to: 'b',
+        source: 'a',
+        target: 'b',
+      } as unknown as FGLink,
+      new MouseEvent('contextmenu', { button: 2, buttons: 2 }),
+    );
+
+    expect(dependencies.setContextSelection).toHaveBeenCalledWith({
+      edgeId: 'a->b#import',
+      visibleEdgeId: 'a<->b#import',
+      kind: 'edge',
+      targets: ['a', 'b'],
+    });
   });
 
   it.each([

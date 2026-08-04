@@ -16,6 +16,7 @@ import { useGraphDebugApi } from '../debug/api';
 import { buildGraphDebugOptions } from '../debug/options';
 import { buildGraphDataLayoutKey } from './layoutKey';
 import { detectMacPlatform } from '../environment/platform';
+import { readGraphWorkspaceName } from '../environment/workspace';
 import { useGraphLegends, useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
 import { useGraphInteractionRuntime } from '../runtime/use/interaction';
@@ -34,6 +35,7 @@ interface GraphProps {
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
+  workspaceName?: string;
 }
 
 function hasGraphViewContributions(
@@ -59,6 +61,7 @@ export default function Graph({
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
+  workspaceName = readGraphWorkspaceName(globalThis.document),
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const legends = useGraphLegends();
@@ -140,6 +143,7 @@ export default function Graph({
       pluginHost={pluginHost}
       theme={theme}
       viewState={viewState}
+      workspaceName={workspaceName}
     />
   );
 }

@@ -30,6 +30,20 @@ describe('Graph node context menu opening', () => {
     });
   });
 
+  it('shows the node name and exact id above node actions', async () => {
+    render(<Graph data={menuData} />);
+
+    await act(async () => {
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'src/app.ts' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toHaveAccessibleName('app.ts, src/app.ts');
+    });
+    expect(screen.getByText('app.ts')).toBeInTheDocument();
+    expect(screen.getByText('src/app.ts')).toBeInTheDocument();
+  });
+
   it('treats mac ctrl+click as right-click in 2d', async () => {
     const platformSpy = mockMacPlatform();
     try {

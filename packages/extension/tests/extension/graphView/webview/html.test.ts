@@ -37,6 +37,22 @@ describe('graphView/webview/html', () => {
     expect(html).toContain('<div id="root"></div>');
   });
 
+  it('exposes an escaped workspace name to the webview', () => {
+    const html = createGraphViewHtml(
+      vscode.Uri.file('/test/extension'),
+      {
+        cspSource: 'vscode-webview://test',
+        asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
+      } as unknown as vscode.Webview,
+      'nonce-value',
+      'dark',
+      false,
+      'Code & "Graph"',
+    );
+
+    expect(html).toContain('data-codegraphy-workspace-name="Code &amp; &quot;Graph&quot;"');
+  });
+
   it('marks the graph debug bridge as enabled when requested', () => {
     const html = createGraphViewHtml(
       vscode.Uri.file('/test/extension'),

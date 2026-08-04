@@ -28,7 +28,8 @@ export function makeBackgroundContextSelection(
 export function makeEdgeContextSelection(
   edgeId: string,
   sourceId: string,
-  targetId: string
+  targetId: string,
+  visibleEdgeId: string = edgeId,
 ): GraphContextSelection {
-  return { kind: 'edge', edgeId, targets: [sourceId, targetId] };
+  return { kind: 'edge', edgeId, visibleEdgeId, targets: [sourceId, targetId] };
 }

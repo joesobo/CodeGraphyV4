@@ -69,6 +69,7 @@ export function createDefaultGraphViewProviderWebviewMethodDependencies(): Graph
         createGraphViewNonce(),
         getActiveGraphViewThemeKind(),
         process.env.CODEGRAPHY_ACCEPTANCE === '1',
+        vscode.workspace.workspaceFolders?.[0]?.name,
       ),
     resolveWebviewView: resolveGraphViewWebviewView,
     openInEditor: openGraphViewInEditor,

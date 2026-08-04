@@ -83,6 +83,7 @@ Interaction rules:
 - A single click selects and focuses a Node. File Nodes also preview their file.
 - A double-click opens a File Node as a persistent editor tab.
 - Right-click captures Context Selection without previewing or opening a file.
+- Every Graph Context Menu identifies that captured Node, Edge, multi-node selection, or workspace root above its actions.
 - Multi-node context actions apply only when the action supports the complete Context Selection.
 - Delete actions require confirmation and move files or empty created folders to trash.
 - Collapse follows Edge Direction and preserves Boundary Paths to shared visible targets.

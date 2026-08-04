@@ -9,6 +9,10 @@ import {
 } from '../../../ui/context/menu';
 import type { GraphContextMenuEntry } from '../../contextMenu/contracts';
 import type { ViewportProps } from '../contracts';
+import {
+  graphContextMenuAccessibleName,
+  ViewportContextMenuHeader,
+} from './header';
 
 export function ViewportContextMenuItems({
   handleMenuAction,
@@ -17,6 +21,9 @@ export function ViewportContextMenuItems({
   return (
     <>
       {menuEntries.map(entry => {
+        if (entry.kind === 'header') {
+          return <ViewportContextMenuHeader key={entry.id} header={entry.header} />;
+        }
         if (entry.kind === 'separator') {
           return <ContextMenuSeparator key={entry.id} />;
         }
@@ -33,9 +40,19 @@ export function ViewportContextMenuItems({
   );
 }
 
+export function graphContextMenuName(menuEntries: readonly GraphContextMenuEntry[]): string | undefined {
+  const headerEntry = menuEntries.find(
+    (entry): entry is Extract<GraphContextMenuEntry, { kind: 'header' }> => entry.kind === 'header',
+  );
+  return headerEntry ? graphContextMenuAccessibleName(headerEntry.header) : undefined;
+}
+
 export function createMenuEntriesSignature(menuEntries: readonly GraphContextMenuEntry[]): string {
   return menuEntries
-    .map(entry => entry.kind === 'separator' ? `${entry.id}:separator` : `${entry.id}:${entry.label}`)
+    .map(entry => {
+      if (entry.kind === 'header') return `${entry.id}:header:${JSON.stringify(entry.header)}`;
+      return entry.kind === 'separator' ? `${entry.id}:separator` : `${entry.id}:${entry.label}`;
+    })
     .join('|');
 }
 

@@ -31,6 +31,7 @@ export interface GraphViewportModelOptions {
   appearance?: GraphAppearance;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
   viewState: Pick<GraphViewStoreState, 'favorites'>;
+  workspaceName?: string;
 }
 
 export function useGraphViewportModel({
@@ -41,6 +42,7 @@ export function useGraphViewportModel({
   appearance,
   viewportRuntime,
   viewState,
+  workspaceName,
 }: GraphViewportModelOptions): GraphViewportModel {
   const sharedProps = useMemo(
     () => buildSharedGraphProps({
@@ -69,6 +71,7 @@ export function useGraphViewportModel({
     selection: graphState.contextSelection,
     favorites: viewState.favorites,
     graphViewContributions,
+    workspaceName,
     nodes: graphState.graphData.nodes,
     edges: graphState.graphData.links,
   });

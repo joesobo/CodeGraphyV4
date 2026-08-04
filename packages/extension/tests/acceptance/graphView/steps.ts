@@ -646,6 +646,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await rightClickNode(context, TARGET_NODE);
   }),
 
+  step(/^I see "(.+)" in the Graph Context Menu header$/, async (context, _step, match) => {
+    await expectContextMenuHeaderText(context, match[1]);
+  }),
+
+  step(/^the Graph Context Menu accessible name includes "(.+)"$/, async (context, _step, match) => {
+    await expectContextMenuAccessibleName(context, match[1]);
+  }),
+
   step(/^I see the "(.+)" entry$/, async (context, _step, match) => {
     await expectContextMenuEntry(context, match[1]);
   }),
@@ -1233,6 +1241,25 @@ async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise
 async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
   return await readGraphDebugZoom(requireGraphFrame(context))
     ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/palette.ts');
+}
+
+async function expectContextMenuHeaderText(
+  context: GraphAcceptanceContext,
+  text: string,
+): Promise<void> {
+  const header = requireGraphFrame(context).locator('[data-context-menu-header]');
+  await expect(header).toBeVisible();
+  await expect(header).toContainText(text);
+}
+
+async function expectContextMenuAccessibleName(
+  context: GraphAcceptanceContext,
+  text: string,
+): Promise<void> {
+  const menu = requireGraphFrame(context).getByRole('menu', {
+    name: new RegExp(escapeRegExp(text), 'i'),
+  });
+  await expect(menu).toBeVisible();
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {

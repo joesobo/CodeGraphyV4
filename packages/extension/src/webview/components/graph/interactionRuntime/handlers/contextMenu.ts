@@ -119,7 +119,7 @@ export function createContextMenuHandlers(
 
     flushSync(() => {
       dependencies.setContextSelection(
-        makeEdgeContextSelection(edgeId, sourceId, targetId),
+        makeEdgeContextSelection(edgeId, sourceId, targetId, link.id),
       );
     });
     dependencies.lastGraphContextEventRef.current = Date.now();

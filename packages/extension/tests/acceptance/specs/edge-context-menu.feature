@@ -10,6 +10,11 @@ And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
 When I right click the edge going from src/index.ts node to src/types.ts node to open its Graph Context Menu
+And I see "index.ts" in the Graph Context Menu header
+And I see "types.ts" in the Graph Context Menu header
+And I see "import" in the Graph Context Menu header
+And the Graph Context Menu accessible name includes "src/index.ts"
+And the Graph Context Menu accessible name includes "src/types.ts"
 And I see the "Open Source" entry
 And I see the "Open Target" entry
 And I see the "Copy Source Path" entry

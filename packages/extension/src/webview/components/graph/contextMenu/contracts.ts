@@ -41,7 +41,23 @@ export interface GraphContextMenuActionInvocation {
   contextSelection: GraphContextSelection;
 }
 
+export interface GraphContextMenuIdentity {
+  label: string;
+  exactId?: string;
+}
+
+export type GraphContextMenuHeader =
+  | { kind: 'background'; workspaceName: string }
+  | { kind: 'edge'; source: GraphContextMenuIdentity; target: GraphContextMenuIdentity; relationship?: string }
+  | { kind: 'multiNode'; count: number }
+  | { kind: 'node'; target: GraphContextMenuIdentity };
+
 export type GraphContextMenuEntry =
+  | {
+      kind: 'header';
+      id: string;
+      header: GraphContextMenuHeader;
+    }
   | {
       kind: 'item';
       id: string;
@@ -61,6 +77,7 @@ export interface GraphContextSelection {
   kind: GraphContextTargetKind;
   targets: string[];
   edgeId?: string;
+  visibleEdgeId?: string;
   graphPosition?: { x: number; y: number };
 }
 
@@ -92,6 +109,7 @@ export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
   favorites: ReadonlySet<string>;
   graphViewContributions?: ExtensionGraphViewContributionSet;
+  workspaceName?: string;
   nodes?: readonly GraphContextMenuNode[];
   edges?: readonly GraphContextMenuEdge[];
 }
