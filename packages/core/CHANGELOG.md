@@ -1,5 +1,11 @@
 # @codegraphy-dev/core
 
+## 5.0.2
+
+### Patch Changes
+
+- [#333](https://github.com/joesobo/CodeGraphyV4/pull/333) [`1b64e94`](https://github.com/joesobo/CodeGraphyV4/commit/1b64e94e5c85396525458ed9671b66140866d48e) Thanks [@joesobo](https://github.com/joesobo)! - Keep an existing Graph Cache current with targeted Indexing when files and folders are saved, created, deleted, or renamed in VS Code.
+
 ## 5.0.1
 
 ### Patch Changes
