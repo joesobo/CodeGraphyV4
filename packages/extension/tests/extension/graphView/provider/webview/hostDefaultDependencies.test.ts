@@ -122,6 +122,7 @@ describe('graphView/provider/webview/host default dependencies', () => {
       'nonce-123',
       'light',
       false,
+      undefined,
     );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(
       nextWebview,
@@ -178,6 +179,7 @@ describe('graphView/provider/webview/host default dependencies', () => {
       'nonce-123',
       'light',
       false,
+      undefined,
     );
   });
 });
