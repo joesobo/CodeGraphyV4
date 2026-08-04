@@ -348,6 +348,42 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
     ]);
   });
 
+  it('does not crash when a short-var declaration has fewer values than names', () => {
+    const symbols: unknown[] = [];
+    const receiverBindings = new Map();
+    const leftExpressionList = createNode({
+      namedChildren: [createNode({ type: 'identifier' }), createNode({ type: 'identifier' })],
+    });
+    const valueExpressionList = createNode({
+      namedChildren: [],
+    });
+
+    vi.mocked(getIdentifierText)
+      .mockReturnValueOnce('first')
+      .mockReturnValueOnce('second');
+    vi.mocked(createSymbol).mockImplementation((filePath: string, kind: string, name: string) => ({
+      id: `${filePath}:${kind}:${name}`,
+      kind,
+      name,
+    }) as never);
+
+    expect(() => handleGoShortVarDeclaration(
+      createNode({
+        namedChildren: [leftExpressionList, valueExpressionList],
+      }) as never,
+      '/workspace/app.go',
+      symbols as never[],
+      new Map(),
+      receiverBindings,
+    )).not.toThrow();
+
+    expect(receiverBindings.size).toBe(0);
+    expect(symbols).toEqual([
+      expect.objectContaining({ kind: 'local', name: 'first' }),
+      expect.objectContaining({ kind: 'local', name: 'second' }),
+    ]);
+  });
+
   it('remembers short-var constructor bindings for receiver method calls', () => {
     const symbols: unknown[] = [];
     const receiverBindings = new Map();
@@ -359,11 +395,17 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
     const leftExpressionList = createNode({
       namedChildren: [createNode({ type: 'identifier' })],
     });
-    const constructorCall = createNode({ type: 'call_expression' });
+    const constructorCall = createNode({
+      type: 'call_expression',
+      namedChildren: [createNode({ type: 'selector_expression' })],
+    });
     const valueExpressionList = createNode({
       namedChildren: [constructorCall],
     });
-    const receiverCall = createNode({ type: 'call_expression' });
+    const receiverCall = createNode({
+      type: 'call_expression',
+      namedChildren: [createNode({ type: 'selector_expression' })],
+    });
     const receiverCallBinding = {
       ...serviceBinding,
       memberName: 'Run',
