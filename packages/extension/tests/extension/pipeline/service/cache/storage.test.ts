@@ -61,9 +61,10 @@ describe('pipeline/service/cache/storage', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('waits for targeted Graph Cache patches and includes the updated graph', async () => {
+  it('waits for targeted Graph Cache patches and persists Core-selected complete graph data', async () => {
     const cache = { files: { 'src/a.ts': { size: 1 } } };
     const graph = { nodes: [{ id: 'src/a.ts' }], edges: [] };
+    const completeGraph = { nodes: [{ id: 'src/a.ts' }, { id: 'hidden' }], edges: [] };
     let finishPatch: (() => void) | undefined;
     vi.mocked(patchWorkspaceAnalysisDatabaseCache).mockReturnValue(
       new Promise<void>(resolve => {
@@ -72,6 +73,7 @@ describe('pipeline/service/cache/storage', () => {
     );
 
     const persistence = patchWorkspacePipelineCache('/workspace', cache as never, {
+      completeGraph: completeGraph as never,
       deleteFilePaths: [],
       upsertFilePaths: ['src/a.ts'],
       graph: graph as never,
@@ -86,7 +88,7 @@ describe('pipeline/service/cache/storage', () => {
     expect(patchWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace', {
       deleteFilePaths: [],
       upsertFiles: { 'src/a.ts': { size: 1 } },
-      graph,
+      graph: completeGraph,
     });
     finishPatch?.();
     await persistence;

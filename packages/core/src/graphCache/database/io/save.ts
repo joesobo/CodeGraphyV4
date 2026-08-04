@@ -218,8 +218,14 @@ export function patchOwnedWorkspaceAnalysisDatabaseCache(
   patch: WorkspaceAnalysisDatabasePatch,
   recovery: WorkspaceAnalysisDatabaseReplacement,
 ): void {
+  const existingDatabasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  const databaseExists = fs.existsSync(existingDatabasePath);
   const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
   if (!databasePath) return;
+  if (!databaseExists) {
+    replaceOwnedWorkspaceAnalysisDatabaseCache(workspaceRoot, recovery);
+    return;
+  }
   try {
     withOwnedConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
   } catch (error) {

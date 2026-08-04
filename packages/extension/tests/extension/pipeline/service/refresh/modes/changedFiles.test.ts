@@ -4,13 +4,17 @@ import {
   refreshChangedFilesForFacade,
 } from '../../../../../../src/extension/pipeline/service/refresh/modes/changedFiles';
 import type { RefreshFacadeContext } from '../../../../../../src/extension/pipeline/service/refresh/context';
-import { refreshWorkspacePipelineChangedFiles } from '../../../../../../src/extension/pipeline/service/runtime/refresh';
+import {
+  refreshWorkspacePipelineChangedFiles,
+  runOwnedWorkspacePipelineRefresh,
+} from '../../../../../../src/extension/pipeline/service/runtime/refresh';
 import { getReusableChangedFileDiscoveryState } from '../../../../../../src/extension/pipeline/service/refresh/discovery/changed';
 import { discoverRefreshWorkspaceFiles } from '../../../../../../src/extension/pipeline/service/refresh/discovery/workspace';
 import { createWorkspaceIndexRefreshSource } from '../../../../../../src/extension/pipeline/service/refresh/source';
 
 vi.mock('../../../../../../src/extension/pipeline/service/runtime/refresh', () => ({
   refreshWorkspacePipelineChangedFiles: vi.fn(),
+  runOwnedWorkspacePipelineRefresh: vi.fn(),
 }));
 
 vi.mock('../../../../../../src/extension/pipeline/service/refresh/discovery/changed', () => ({
@@ -71,12 +75,14 @@ function createFacade(
     _readAnalysisFiles: vi.fn(),
     _registry: {
       list: vi.fn(() => []),
+      listNodeTypes: vi.fn(() => []),
       notifyFilesChanged: vi.fn(),
     },
     _toWorkspaceRelativePath: vi.fn((_root, filePath) => filePath.replace('/workspace/', '')),
     analyze: vi.fn(),
     getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
     invalidateWorkspaceFiles: vi.fn(),
+    loadCachedGraph: vi.fn(),
     ...overrides,
   } as unknown as RefreshFacadeContext;
 }
@@ -85,6 +91,11 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(createWorkspaceIndexRefreshSource).mockReturnValue('refresh-source' as never);
+    vi.mocked(runOwnedWorkspacePipelineRefresh).mockImplementation(async options => {
+      const attempt = await options.prepare();
+      await attempt.persistIndexMetadata();
+      return attempt.result;
+    });
   });
 
   it('returns an empty graph without changed-file discovery when no workspace is open', async () => {
@@ -112,7 +123,14 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     const onProgress = vi.fn();
     const facade = createFacade();
     vi.mocked(getReusableChangedFileDiscoveryState).mockReturnValue({ directories, files });
-    vi.mocked(refreshWorkspacePipelineChangedFiles).mockResolvedValue(graph);
+    vi.mocked(refreshWorkspacePipelineChangedFiles).mockImplementation(async (_source, options) => {
+      await options.persistCachePatch?.({
+        deleteFilePaths: [],
+        upsertFilePaths: ['src/a.ts'],
+      });
+      await options.persistIndexMetadata(['src/a.ts']);
+      return graph;
+    });
 
     await expect(
       refreshChangedFilesForFacade(facade, {
@@ -138,7 +156,6 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     expect(discoverRefreshWorkspaceFiles).not.toHaveBeenCalled();
     expect(createWorkspaceIndexRefreshSource).toHaveBeenCalledWith(facade, disabledPlugins);
     expect(refreshWorkspacePipelineChangedFiles).toHaveBeenCalledWith('refresh-source', {
-      deferMetricOnlyIndexMetadata: true,
       disabledPlugins,
       discoveredDirectories: directories,
       discoveredFiles: files,
@@ -146,7 +163,6 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
       filterPatterns: ['src/**'],
       fullRefreshFallback: 'reject',
       notifyFilesChanged: expect.any(Function),
-      onDeferredIndexMetadataError: expect.any(Function),
       onProgress,
       persistCache: expect.any(Function),
       persistCachePatch: expect.any(Function),
@@ -171,28 +187,22 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
       explicitDisabledPlugins,
     );
 
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const error = new Error('persist failed');
-    expect(refreshOptions.onDeferredIndexMetadataError).toBeDefined();
-    refreshOptions.onDeferredIndexMetadataError?.(error);
-    expect(warn).toHaveBeenCalledWith(
-      '[CodeGraphy] Failed to persist metric-only refresh metadata.',
-      error,
+    expect(runOwnedWorkspacePipelineRefresh).toHaveBeenCalledWith({
+      prepare: expect.any(Function),
+      rebase: expect.any(Function),
+      workspaceRoot: '/workspace',
+    });
+    const ownedRefreshOptions = vi.mocked(runOwnedWorkspacePipelineRefresh).mock.calls[0][0];
+    await ownedRefreshOptions.rebase?.();
+    expect(facade.loadCachedGraph).toHaveBeenCalledWith(
+      ['src/**'],
+      disabledPlugins,
+      signal,
+      { forceReloadGraphCache: true },
     );
-    warn.mockRestore();
-
-    refreshOptions.persistCache();
-    refreshOptions.persistCachePatch?.({
-      deleteFilePaths: ['src/deleted.ts'],
-      upsertFilePaths: ['src/a.ts'],
-    });
-    await refreshOptions.persistIndexMetadata();
-    expect(facade._persistCache).toHaveBeenCalledOnce();
-    expect(facade._persistCachePatch).toHaveBeenCalledWith({
-      deleteFilePaths: ['src/deleted.ts'],
-      upsertFilePaths: ['src/a.ts'],
-    });
-    expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
+    expect(facade._persistCache).not.toHaveBeenCalled();
+    expect(facade._persistCachePatch).not.toHaveBeenCalled();
+    expect(facade._persistIndexMetadata).toHaveBeenCalledWith(['src/a.ts']);
   });
 
   it('restores the last consistent facade state when a strict targeted refresh fails', async () => {
@@ -247,7 +257,14 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
         gitIgnoredPaths: undefined,
       },
     } as never);
-    vi.mocked(refreshWorkspacePipelineChangedFiles).mockResolvedValue(graph);
+    vi.mocked(refreshWorkspacePipelineChangedFiles).mockImplementation(async (_source, options) => {
+      await options.persistCachePatch?.({
+        deleteFilePaths: [],
+        upsertFilePaths: ['src/new.ts'],
+      });
+      await options.persistIndexMetadata(['src/new.ts']);
+      return graph;
+    });
 
     await expect(
       refreshChangedFilesForFacade(facade, {

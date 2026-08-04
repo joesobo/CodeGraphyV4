@@ -18,6 +18,7 @@ import {
   retainWorkspaceIndexDiscoveredFileConnections,
 } from '../state';
 import { findAffectedWorkspaceIndexAnalysisDependents } from '../../workspace/changes';
+import { isWorkspaceDiscoveryLifecyclePath } from '../../../workspace/discoveryLifecycle';
 import { invalidateDeletedWorkspaceIndexFiles } from './changedFileDeletion';
 import {
   buildGraphWithoutChangedFileAnalysis,
@@ -30,6 +31,13 @@ export async function refreshWorkspaceIndexChangedFiles(
   source: WorkspaceIndexRefreshSource,
   dependencies: WorkspaceIndexRefreshDependencies,
 ): Promise<IGraphData> {
+  if (containsWorkspaceDiscoveryLifecyclePath(dependencies)) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('discovery-lifecycle');
+    }
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
+  }
+
   const structuralPatch = selectWorkspaceDirectoryChanges(
     source._lastDiscoveredDirectories,
     dependencies.discoveredDirectories ?? [],
@@ -148,6 +156,9 @@ export async function refreshWorkspaceIndexChangedFiles(
       );
   source._lastGraphData = graphData;
   await persistChangedFilesCachePatch(dependencies, {
+    ...(source._getCompleteGraphData
+      ? { completeGraph: source._getCompleteGraphData() }
+      : {}),
     deleteFilePaths,
     deleteNodeIds: structuralPatch.deleteNodeIds,
     upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
@@ -181,6 +192,15 @@ function expandWorkspaceDirectoryChangePaths(
       .filter(file => file.relativePath.startsWith(`${relativePath}/`))
       .map(file => file.absolutePath);
   }))];
+}
+
+function containsWorkspaceDiscoveryLifecyclePath(
+  dependencies: WorkspaceIndexRefreshDependencies,
+): boolean {
+  return dependencies.filePaths.some(filePath => {
+    const relativePath = toWorkspaceRelativePath(dependencies.workspaceRoot, filePath);
+    return relativePath !== undefined && isWorkspaceDiscoveryLifecyclePath(relativePath);
+  });
 }
 
 function toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined {

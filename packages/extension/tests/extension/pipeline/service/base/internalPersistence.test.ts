@@ -116,7 +116,7 @@ describe('extension/pipeline/service/internalBase persistence', () => {
     expect(warnSpy).toHaveBeenCalledWith('failed to persist', expect.any(Error));
   });
 
-  it('persists targeted patches with the unscoped complete graph', async () => {
+  it('forwards Core-selected complete graph data without substituting facade state', async () => {
     const source = new TestInternalBase();
     const completeGraphData = { nodes: [{ id: 'complete' }], edges: [] };
     const scopedGraphData = { nodes: [{ id: 'scoped' }], edges: [] };
@@ -127,6 +127,7 @@ describe('extension/pipeline/service/internalBase persistence', () => {
     source.buildGraphDataFromAnalysis(new Map(), '/workspace', true);
 
     await source.persistCachePatch({
+      completeGraph: completeGraphData as never,
       deleteFilePaths: [],
       upsertFilePaths: ['src/a.ts'],
       graph: scopedGraphData as never,
@@ -136,9 +137,10 @@ describe('extension/pipeline/service/internalBase persistence', () => {
       '/workspace',
       source._cache,
       {
+        completeGraph: completeGraphData,
         deleteFilePaths: [],
         upsertFilePaths: ['src/a.ts'],
-        graph: completeGraphData,
+        graph: scopedGraphData,
       },
       expect.any(Function),
       [],

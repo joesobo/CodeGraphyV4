@@ -3,6 +3,15 @@ import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
+vi.mock('@codegraphy-dev/core', async importOriginal => ({
+  ...(await importOriginal<typeof import('@codegraphy-dev/core')>()),
+  runOwnedWorkspaceIndexRefresh: vi.fn(async options => {
+    const attempt = await options.prepare();
+    await attempt.persistIndexMetadata();
+    return attempt.result;
+  }),
+}));
+
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
   configurable: true,
@@ -260,16 +269,7 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
     );
     expect(analyzerPrivate._registry.notifyFilesChanged).not.toHaveBeenCalled();
     expect(analyzer.analyze).not.toHaveBeenCalled();
-    expect(analyzerPrivate._persistCachePatch).toHaveBeenCalledWith({
-      deleteFilePaths: ['src/remove.ts'],
-      deleteNodeIds: [],
-      upsertFilePaths: [],
-      upsertNodeIds: [],
-      graph: {
-        nodes: [{ id: 'src/keep.ts', label: 'keep.ts', fileSize: undefined }],
-        edges: [],
-      },
-    });
+    expect(analyzerPrivate._persistCachePatch).not.toHaveBeenCalled();
     expect(analyzerPrivate._persistIndexMetadata).toHaveBeenCalledOnce();
   });
 

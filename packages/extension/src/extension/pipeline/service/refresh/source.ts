@@ -1,5 +1,8 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { WorkspacePipelineRefreshSource } from '../runtime/refresh';
+import {
+  mergeWorkspacePipelineGraphData,
+  type WorkspacePipelineRefreshSource,
+} from '../runtime/refresh';
 
 type RefreshSourceBuildGraphData = WorkspacePipelineRefreshSource['_buildGraphData'];
 type RefreshSourceBuildGraphDataFromAnalysis =
@@ -72,13 +75,22 @@ export function createWorkspaceIndexRefreshSource(
         true,
         selectedPlugins,
       );
-      facade._completeGraphData = mergeGraphData(completeAnalysisGraph, fallbackGraph);
+      facade._completeGraphData = mergeWorkspacePipelineGraphData(
+        completeAnalysisGraph,
+        fallbackGraph,
+      );
       return fallbackGraph;
     },
     _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
       facade._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
-    _patchGraphDataNodeMetrics: (graphData, filePaths) =>
-      facade._patchGraphDataNodeMetrics(graphData, filePaths),
+    _getCompleteGraphData: () => facade._completeGraphData,
+    _patchGraphDataNodeMetrics: (graphData, filePaths) => {
+      facade._completeGraphData = facade._patchGraphDataNodeMetrics(
+        facade._completeGraphData,
+        filePaths,
+      );
+      return facade._patchGraphDataNodeMetrics(graphData, filePaths);
+    },
     _preAnalyzePlugins: (files, root, abortSignal, nextDisabledPlugins = disabledPlugins) =>
       facade._preAnalyzePlugins(files, root, abortSignal, nextDisabledPlugins),
     _readAnalysisFiles: files => facade._readAnalysisFiles(files),
@@ -130,23 +142,4 @@ export function createWorkspaceIndexRefreshSource(
   });
 
   return source;
-}
-
-function mergeGraphData(primary: IGraphData, fallback: IGraphData): IGraphData {
-  const nodeIds = new Set(primary.nodes.map(node => node.id));
-  const edgeIds = new Set(primary.edges.map(edge => (
-    edge.id ?? `${edge.from}\0${edge.to}\0${edge.kind}`
-  )));
-  return {
-    nodes: [
-      ...primary.nodes,
-      ...fallback.nodes.filter(node => !nodeIds.has(node.id)),
-    ],
-    edges: [
-      ...primary.edges,
-      ...fallback.edges.filter(edge => !edgeIds.has(
-        edge.id ?? `${edge.from}\0${edge.to}\0${edge.kind}`,
-      )),
-    ],
-  };
 }

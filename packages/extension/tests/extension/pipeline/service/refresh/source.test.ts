@@ -154,6 +154,36 @@ describe('extension/pipeline/service/refresh/source', () => {
     ]);
   });
 
+  it('patches metric-only changes into both visible and complete graph data', () => {
+    const facade = createRefreshFacade();
+    const completeGraph = createGraph('complete');
+    const visibleGraph = createGraph('visible');
+    facade._completeGraphData = completeGraph;
+    vi.mocked(facade._patchGraphDataNodeMetrics).mockImplementation((graphData) => ({
+      ...graphData,
+      nodes: graphData.nodes.map(node => ({ ...node, fileSize: 42 })),
+    }));
+    const source = createWorkspaceIndexRefreshSource(facade);
+
+    const patchedVisibleGraph = source._patchGraphDataNodeMetrics?.(
+      visibleGraph,
+      ['src/a.ts'],
+    );
+
+    expect(patchedVisibleGraph?.nodes[0]?.fileSize).toBe(42);
+    expect(facade._completeGraphData.nodes[0]?.fileSize).toBe(42);
+    expect(facade._patchGraphDataNodeMetrics).toHaveBeenNthCalledWith(
+      1,
+      completeGraph,
+      ['src/a.ts'],
+    );
+    expect(facade._patchGraphDataNodeMetrics).toHaveBeenNthCalledWith(
+      2,
+      visibleGraph,
+      ['src/a.ts'],
+    );
+  });
+
   it('mirrors refresh source retained state through live accessors', () => {
     const facade = createRefreshFacade();
     const source = createWorkspaceIndexRefreshSource(facade);

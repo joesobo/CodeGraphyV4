@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import Database from 'libsql';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  readWorkspaceCacheWriteRevisionAsync,
   withWorkspaceCacheWriteLock,
   withWorkspaceCacheWriteLockAsync,
 } from '../../../../src/graphCache/database/writeCoordination/model';
@@ -120,6 +121,18 @@ describe('Graph Cache write coordination', () => {
 
     expect(order).toEqual(['first-start', 'first-end', 'second']);
     expect(statSync(`${databasePath}.write-lock.sqlite`).isFile()).toBe(true);
+  });
+
+  it('advances the committed writer revision without advancing failed ownership', async () => {
+    const databasePath = createDatabasePath();
+
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(0);
+    await withWorkspaceCacheWriteLockAsync(databasePath, async () => undefined);
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(1);
+    await expect(withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      throw new Error('write failed');
+    })).rejects.toThrow('write failed');
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(1);
   });
 
   it('waits for an external SQLite coordinator transaction', async () => {

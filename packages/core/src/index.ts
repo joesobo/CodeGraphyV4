@@ -131,6 +131,7 @@ export {
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
+  WorkspaceAnalysisDatabaseUnreadableError,
 } from './graphCache/database/storage';
 export type {
   CoreEdgeKind,
@@ -207,11 +208,14 @@ export {
   createCodeGraphyWorkspaceCacheUpdater,
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  mergeWorkspaceIndexGraphData,
   refreshWorkspaceIndexAnalysisScope,
+  runOwnedWorkspaceIndexRefresh,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
   subscribeCodeGraphyWorkspaceChanges,
   WorkspaceIndexFullRefreshRequiredError,
+  WorkspaceIndexRefreshSupersededError,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceCacheUpdater,
@@ -226,6 +230,8 @@ export type {
   CodeGraphyWorkspaceFileEvent,
   SubscribeCodeGraphyWorkspaceChangesOptions,
   WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexOwnedRefreshAttempt,
+  WorkspaceIndexOwnedRefreshOptions,
   WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexFullRefreshReason,
   WorkspaceIndexRefreshDependencies,

@@ -40,6 +40,7 @@ export class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
   _discovery = { kind: 'discovery' } as never;
   _registry = {
     list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
+    listNodeTypes: vi.fn(() => []),
     notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
   } as never;
 
@@ -134,10 +135,17 @@ export function setUpRefreshFacade(): void {
       files: [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }],
       gitIgnoredPaths: ['example-python/app.py'],
     } as never);
-    vi.mocked(refreshWorkspacePipelineChangedFiles).mockResolvedValue({
-      nodes: [{ id: 'refresh' }],
-      edges: [],
-    } as never);
+    vi.mocked(refreshWorkspacePipelineChangedFiles).mockImplementation(async (_source, options) => {
+      await options.persistCachePatch?.({
+        deleteFilePaths: [],
+        upsertFilePaths: ['src/a.ts'],
+      });
+      await options.persistIndexMetadata(['src/a.ts']);
+      return {
+        nodes: [{ id: 'refresh' }],
+        edges: [],
+      } as never;
+    });
     vi.mocked(refreshWorkspacePipelineAnalysisScope).mockResolvedValue({
       nodes: [{ id: 'scope-refresh' }],
       edges: [],

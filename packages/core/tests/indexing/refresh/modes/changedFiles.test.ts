@@ -334,6 +334,29 @@ describe('indexing/refresh/modes/changedFiles', () => {
     });
   });
 
+  it('rejects discovery-lifecycle settings changes when full fallback is disabled', async () => {
+    const persistCachePatch = vi.fn();
+    const persistIndexMetadata = vi.fn(async () => undefined);
+    const source = createSource({
+      invalidateWorkspaceFiles: vi.fn(() => []),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      filePaths: ['/workspace/.codegraphy/settings.json'],
+      fullRefreshFallback: 'reject',
+      persistCachePatch,
+      persistIndexMetadata,
+    }))).rejects.toMatchObject({
+      name: 'WorkspaceIndexFullRefreshRequiredError',
+      reason: 'discovery-lifecycle',
+    });
+
+    expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(persistCachePatch).not.toHaveBeenCalled();
+    expect(persistIndexMetadata).not.toHaveBeenCalled();
+  });
+
   it('rejects plugin requests for full analysis when fallback is disabled', async () => {
     const source = createSource();
 

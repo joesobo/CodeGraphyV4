@@ -1,13 +1,13 @@
 import path from 'node:path';
 import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
 import { createWorkspaceIndexAnalysisCacheTiers } from '../analysis/fileAnalysis';
+import type { IFileDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { buildCompleteWorkspaceGraphData } from '../graph/completion/model';
 import {
   loadWorkspaceAnalysisDatabaseCache,
-  patchWorkspaceAnalysisDatabaseCache,
-  saveWorkspaceAnalysisDatabaseCache,
+  withWorkspaceAnalysisDatabaseWriter,
 } from '../graphCache/database/storage';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { createWorkspacePluginAnalysisContext } from '../plugins/context/workspace';
@@ -27,6 +27,7 @@ import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
 import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing';
 import { resolveSavedGraphScope } from '../workspace/graphScopeSettings';
+import { createCodeGraphyWorkspaceSettingsSignature } from '../workspace/signatures';
 import {
   createDefaultStatusCorePluginIds,
   createDefaultStatusPluginSignature,
@@ -57,11 +58,16 @@ export {
   type SubscribeCodeGraphyWorkspaceChangesOptions,
 } from './liveUpdate/observation/coordinator';
 export {
+  mergeWorkspaceIndexGraphData,
   refreshWorkspaceIndexAnalysisScope,
+  runOwnedWorkspaceIndexRefresh,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
   WorkspaceIndexFullRefreshRequiredError,
+  WorkspaceIndexRefreshSupersededError,
   type WorkspaceIndexFullRefreshReason,
+  type WorkspaceIndexOwnedRefreshAttempt,
+  type WorkspaceIndexOwnedRefreshOptions,
   type WorkspaceIndexRefreshDependencies,
   type WorkspaceIndexRefreshSource,
   type WorkspaceIndexAnalysisScopeRefreshDependencies,
@@ -74,6 +80,30 @@ export type {
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
 } from './contracts';
+
+function hasSameWorkspaceDiscovery(
+  before: IFileDiscoveryResult,
+  after: IFileDiscoveryResult,
+): boolean {
+  return before.limitReached === after.limitReached
+    && haveSameWorkspacePaths(before.files, after.files)
+    && haveSameWorkspacePaths(before.directories, after.directories)
+    && haveSameWorkspacePaths(before.cacheFilePaths, after.cacheFilePaths)
+    && haveSameWorkspacePaths(before.gitIgnoredPaths ?? [], after.gitIgnoredPaths ?? []);
+}
+
+function haveSameWorkspacePaths(
+  before: readonly (string | { relativePath: string })[],
+  after: readonly (string | { relativePath: string })[],
+): boolean {
+  if (before.length !== after.length) return false;
+  const beforePaths = new Set(before.map(value => (
+    typeof value === 'string' ? value : value.relativePath
+  )));
+  return after.every(value => beforePaths.has(
+    typeof value === 'string' ? value : value.relativePath,
+  ));
+}
 
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,
@@ -297,35 +327,64 @@ export async function indexCodeGraphyWorkspace(
     workspaceRoot,
   });
 
-  registry.notifyPostAnalyze(graph, disabledPlugins);
-  registry.notifyWorkspaceReady(graph, disabledPlugins);
   const indexingMode = canReusePersistedCache ? 'incremental' : 'full';
-  timeIndexPhaseSync(
+  const nodeTypes = registry.listNodeTypes(disabledPlugins);
+  const recovery = { cache, graph: completeGraph, nodeTypes };
+  const upsertFiles = Object.fromEntries(
+    Object.entries(cache.files).filter(([filePath, entry]) => (
+      previousCacheFingerprints.get(filePath) !== JSON.stringify(entry)
+    )),
+  );
+  const committed = await timeIndexPhase(
     options,
     'save-graph-cache',
-    () => {
-      if (indexingMode === 'full') {
-        saveWorkspaceAnalysisDatabaseCache(
-          workspaceRoot,
-          cache,
-          completeGraph,
-          registry.listNodeTypes(disabledPlugins),
-        );
-        return;
+    () => withWorkspaceAnalysisDatabaseWriter(workspaceRoot, async writer => {
+      const verificationDiscovery = new FileDiscovery();
+      const nextSettings = createEffectiveIndexSettings(workspaceRoot, options);
+      if (
+        createCodeGraphyWorkspaceSettingsSignature(nextSettings)
+        !== createCodeGraphyWorkspaceSettingsSignature(settings)
+      ) {
+        return false;
       }
-
-      const upsertFiles = Object.fromEntries(
-        Object.entries(cache.files).filter(([filePath, entry]) => (
-          previousCacheFingerprints.get(filePath) !== JSON.stringify(entry)
-        )),
-      );
-      patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
-        deleteFilePaths: deletedFilePaths,
-        upsertFiles,
-        graph: completeGraph,
-        nodeTypes: registry.listNodeTypes(disabledPlugins),
+      const verifiedDiscoveryResult = await discoverWorkspaceIndexFiles({
+        discovery: verificationDiscovery,
+        options,
+        pluginFilterPatterns,
+        settings,
+        workspaceRoot,
       });
-    },
+      if (!hasSameWorkspaceDiscovery(discoveryResult, verifiedDiscoveryResult)) return false;
+      const supersededFiles = await findChangedWorkspaceIndexFiles({
+        cache,
+        files: verifiedDiscoveryResult.files,
+        readContent: file => verificationDiscovery.readContent(file),
+      });
+      if (supersededFiles.length > 0) return false;
+
+      registry.notifyPostAnalyze(graph, disabledPlugins);
+      if (indexingMode === 'full') {
+        writer.replace(recovery);
+      } else {
+        writer.patch({
+          deleteFilePaths: deletedFilePaths,
+          upsertFiles,
+          graph: completeGraph,
+          nodeTypes,
+        }, recovery);
+      }
+      persistWorkspaceIndexMetadata({
+        pluginBuildSignature,
+        pluginSignature,
+        failedPluginIds,
+        settings,
+        settingsPluginIds: options.plugins === undefined
+          ? createDefaultStatusCorePluginIds(settings, options.userHomeDir)
+          : registeredPluginIds,
+        workspaceRoot,
+      });
+      return true;
+    }),
     () => ({
       analyzedFiles: analysisResult.cacheMisses,
       deletedFiles: deletedFilePaths.length,
@@ -334,20 +393,9 @@ export async function indexCodeGraphyWorkspace(
       reusedFiles: analysisResult.cacheHits,
     }),
   );
-  timeIndexPhaseSync(
-    options,
-    'persist-metadata',
-    () => persistWorkspaceIndexMetadata({
-      pluginBuildSignature,
-      pluginSignature,
-      failedPluginIds,
-      settings,
-      settingsPluginIds: options.plugins === undefined
-        ? createDefaultStatusCorePluginIds(settings, options.userHomeDir)
-        : registeredPluginIds,
-      workspaceRoot,
-    }),
-  );
+  if (!committed) return indexCodeGraphyWorkspace(options);
+
+  registry.notifyWorkspaceReady(graph, disabledPlugins);
   options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
 
   return {

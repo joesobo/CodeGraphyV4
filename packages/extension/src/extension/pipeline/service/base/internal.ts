@@ -283,7 +283,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     return patchWorkspacePipelineCache(
       this._getWorkspaceRoot(),
       this._cache,
-      patch.graph ? { ...patch, graph: this._completeGraphData } : patch,
+      patch,
       (message: string, error: unknown) => {
         console.warn(message, error);
       },

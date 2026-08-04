@@ -11,6 +11,7 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IPluginNodeType } from '@codegraphy-dev/plugin-api';
 
 export interface WorkspacePipelineCachePatch {
+  completeGraph?: IGraphData;
   deleteFilePaths: readonly string[];
   deleteNodeIds?: readonly string[];
   upsertFilePaths: readonly string[];
@@ -76,7 +77,9 @@ export async function patchWorkspacePipelineCache(
       ...(patch.deleteNodeIds ? { deleteNodeIds: patch.deleteNodeIds } : {}),
       upsertFiles,
       ...(patch.upsertNodeIds ? { upsertNodeIds: patch.upsertNodeIds } : {}),
-      ...(patch.graph ? { graph: patch.graph } : {}),
+      ...(patch.completeGraph
+        ? { graph: patch.completeGraph }
+        : patch.graph ? { graph: patch.graph } : {}),
       ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
     });
   } catch (error) {

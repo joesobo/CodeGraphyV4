@@ -196,6 +196,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
     expect(throwIfWorkspaceAnalysisAborted).toHaveBeenCalledWith(signal);
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
       preserveAllAnalysisFacts: true,
+      rejectUnreadable: true,
     });
     expect(createCachedWorkspaceDiscoveryState).toHaveBeenCalledWith(
       '/workspace',
@@ -296,6 +297,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
 
     expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
       preserveAllAnalysisFacts: true,
+      rejectUnreadable: true,
     });
   });
 

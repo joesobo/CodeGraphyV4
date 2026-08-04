@@ -21,6 +21,7 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
     options?: {
+      forceReloadGraphCache?: boolean;
       requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
     },
   ): Promise<IGraphData>;

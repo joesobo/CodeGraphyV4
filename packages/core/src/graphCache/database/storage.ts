@@ -1,6 +1,7 @@
 import {
   loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl,
   loadWorkspaceAnalysisDatabaseCacheAsync as loadWorkspaceAnalysisDatabaseCacheAsyncImpl,
+  WorkspaceAnalysisDatabaseUnreadableError,
   type WorkspaceAnalysisDatabaseLoadOptions,
 } from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
@@ -26,10 +27,11 @@ import {
   type WorkspaceAnalysisDatabaseReplacement,
   type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
-import { withWorkspaceCacheWriteLockAsync } from './writeCoordination/model';
+import { withWorkspaceCacheWriteOwnershipAsync } from './writeCoordination/model';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
 export type WorkspaceAnalysisDatabaseInspection = WorkspaceAnalysisDatabaseInspectionImpl;
+export { WorkspaceAnalysisDatabaseUnreadableError };
 export type { WorkspaceAnalysisDatabaseLoadOptions };
 
 export function getWorkspaceAnalysisDatabasePath(
@@ -91,6 +93,7 @@ export function patchWorkspaceAnalysisDatabaseCache(
 }
 
 interface WorkspaceAnalysisDatabaseWriter {
+  readonly revision: number;
   patch(
     patch: WorkspaceAnalysisDatabasePatch,
     recovery: WorkspaceAnalysisDatabaseReplacement,
@@ -102,18 +105,18 @@ export function withWorkspaceAnalysisDatabaseWriter<T>(
   workspaceRoot: string,
   write: (writer: WorkspaceAnalysisDatabaseWriter) => Promise<T>,
 ): Promise<T> {
-  return withWorkspaceCacheWriteLockAsync(
+  return withWorkspaceCacheWriteOwnershipAsync(
     getWorkspaceAnalysisDatabasePathImpl(workspaceRoot),
-    () => write({
-      patch: (patch, recovery) => patchOwnedWorkspaceAnalysisDatabaseCacheImpl(
-        workspaceRoot,
-        patch,
-        recovery,
-      ),
-      replace: replacement => replaceOwnedWorkspaceAnalysisDatabaseCacheImpl(
-        workspaceRoot,
-        replacement,
-      ),
+    context => write({
+      revision: context.revision,
+      patch: (patch, recovery) => {
+        patchOwnedWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch, recovery);
+        context.markCommitted();
+      },
+      replace: replacement => {
+        replaceOwnedWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, replacement);
+        context.markCommitted();
+      },
     }),
   );
 }

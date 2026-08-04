@@ -21,6 +21,7 @@ import type { IWorkspaceAnalysisCache } from '../cache';
 import type { IPluginInfo } from '../../../core/plugins/types/contracts';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
+  forceReloadGraphCache?: boolean;
   requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
 }
 
@@ -33,7 +34,11 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
   ): Promise<IGraphData> {
     throwIfWorkspaceAnalysisAborted(signal);
     const workspaceRoot = this._getWorkspaceRoot();
-    await this._hydrateCacheFromGraphCache({ preserveAllAnalysisFacts: true });
+    await this._hydrateCacheFromGraphCache({
+      ...(options.forceReloadGraphCache ? { forceReload: true } : {}),
+      preserveAllAnalysisFacts: true,
+      rejectUnreadable: true,
+    });
     throwIfWorkspaceAnalysisAborted(signal);
 
     if (!workspaceRoot) {

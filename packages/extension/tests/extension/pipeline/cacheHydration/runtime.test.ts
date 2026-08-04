@@ -76,6 +76,39 @@ describe('Graph Cache hydration runtime', () => {
     expect(current).toBe(liveCache);
   });
 
+  it('loads all facts through the non-destructive unreadable-cache mode when required', async () => {
+    hydrationHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValue(populatedCache());
+    let current = emptyCache();
+    const access = { get: () => current, set: (cache: typeof current) => { current = cache; } };
+    const hydrator = new WorkspacePipelineCacheHydrator();
+
+    await hydrator.hydrateAll('/workspace', access, { rejectUnreadable: true });
+
+    expect(hydrationHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
+      '/workspace',
+      { unreadable: 'throw' },
+    );
+    expect(current).toEqual(populatedCache());
+  });
+
+  it('force reloads complete facts after a competing writer empties the cache', async () => {
+    hydrationHarness.loadWorkspaceAnalysisDatabaseCache
+      .mockReturnValueOnce(populatedCache('src/stale.ts'))
+      .mockReturnValueOnce(emptyCache());
+    let current = emptyCache();
+    const access = { get: () => current, set: (cache: typeof current) => { current = cache; } };
+    const hydrator = new WorkspacePipelineCacheHydrator();
+
+    await hydrator.hydrateAll('/workspace', access, { rejectUnreadable: true });
+    await hydrator.hydrateAll('/workspace', access, {
+      forceReload: true,
+      rejectUnreadable: true,
+    });
+
+    expect(hydrationHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledTimes(2);
+    expect(current).toEqual(emptyCache());
+  });
+
   it('clears a completed empty load so a later request can retry', async () => {
     hydrationHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValue(emptyCache());
     let current = emptyCache();

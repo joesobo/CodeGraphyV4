@@ -10,7 +10,9 @@ import { WorkspacePipelineCacheHydrator } from '../../cacheHydration/runtime';
 
 export interface WorkspacePipelineGraphCacheHydrationOptions {
   activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+  forceReload?: boolean;
   preserveAllAnalysisFacts?: boolean;
+  rejectUnreadable?: boolean;
 }
 
 export abstract class WorkspacePipelineStateBase extends WorkspacePipelineEngineStateBase {
@@ -36,6 +38,9 @@ export abstract class WorkspacePipelineStateBase extends WorkspacePipelineEngine
       await this.cacheHydrator.hydrateAll(workspaceRoot, {
         get: () => this._cache,
         set: cache => { this._cache = cache; },
+      }, {
+        forceReload: options.forceReload,
+        rejectUnreadable: options.rejectUnreadable,
       });
       return;
     }

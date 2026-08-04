@@ -5,6 +5,7 @@ import type { WorkspaceIndexRefreshDependencies, WorkspaceIndexRefreshSource } f
 export async function persistChangedFilesCachePatch(
   dependencies: WorkspaceIndexRefreshDependencies,
   patch: {
+    completeGraph?: IGraphData;
     deleteFilePaths: readonly string[];
     deleteNodeIds?: readonly string[];
     upsertFilePaths: readonly string[];
@@ -34,6 +35,9 @@ export async function buildGraphWithoutChangedFileAnalysis(
     dependencies.disabledPlugins,
   );
   await persistChangedFilesCachePatch(dependencies, {
+    ...(source._getCompleteGraphData
+      ? { completeGraph: source._getCompleteGraphData() }
+      : {}),
     deleteFilePaths,
     deleteNodeIds: structuralPatch.deleteNodeIds,
     upsertFilePaths: [],

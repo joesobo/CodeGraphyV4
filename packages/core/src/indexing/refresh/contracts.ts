@@ -16,6 +16,7 @@ export interface WorkspaceIndexFileAnalysisOptions {
 }
 
 export interface WorkspaceIndexCachePatch {
+  completeGraph?: IGraphData;
   deleteFilePaths: readonly string[];
   deleteNodeIds?: readonly string[];
   upsertFilePaths: readonly string[];
@@ -49,6 +50,7 @@ export interface WorkspaceIndexRefreshSource {
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastGraphData: IGraphData;
   _lastWorkspaceRoot: string;
+  _getCompleteGraphData?(): IGraphData;
   _patchGraphDataNodeMetrics?(
     this: void,
     graphData: IGraphData,

@@ -148,6 +148,33 @@ describe('CodeGraphy Workspace status', () => {
     });
   });
 
+  it('keeps discovery-lifecycle changes stale until a full Index resolves them', async () => {
+    const workspaceRoot = await createWorkspace();
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...meta,
+      pendingChangedFiles: [
+        path.join(workspaceRoot, '.codegraphy/settings.json'),
+      ],
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+    })).toMatchObject({
+      state: 'stale',
+      staleReasons: ['pending-changed-files'],
+    });
+  });
+
   it('does not mark the Graph Cache stale for pending files already covered by the last index', async () => {
     const workspaceRoot = await createWorkspace();
     await indexCodeGraphyWorkspace({
