@@ -9,12 +9,12 @@
 </p>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/visual-studio-marketplace/v/codegraphy.codegraphy?label=extension" alt="VS Code Marketplace version" /></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/visual-studio-marketplace/i/codegraphy.codegraphy?label=installs" alt="VS Code Marketplace installs" /></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://badgen.net/vs-marketplace/v/codegraphy.codegraphy?label=extension" alt="VS Code Marketplace version" /></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://badgen.net/vs-marketplace/i/codegraphy.codegraphy?label=installs" alt="VS Code Marketplace installs" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/core"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Fcore?label=core%20CLI" alt="Core CLI version" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/tldraw"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Ftldraw?label=tldraw" alt="tldraw interface version" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-api"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Fplugin-api?label=plugin%20API" alt="Plugin API version" /></a>
-  <a href="https://discord.gg/Z75vbkt4Ry"><img src="https://img.shields.io/discord/1534289518977486849?label=Discord&logo=discord&logoColor=white" alt="Join the CodeGraphy Discord community" /></a>
+  <a href="https://discord.gg/Z75vbkt4Ry"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdiscord.com%2Fapi%2Fv10%2Finvites%2FZ75vbkt4Ry%3Fwith_counts%3Dtrue&amp;query=%24.approximate_member_count&amp;label=Discord&amp;logo=discord&amp;logoColor=white&amp;color=5865F2" alt="CodeGraphy Discord members" /></a>
 </p>
 
 <p align="center">
