@@ -23,7 +23,10 @@ describe('indexing/refresh/modes/changedFiles', () => {
     });
 
     await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
-      filePaths: ['/workspace/src/deleted.ts'],
+      notifyFilesChanged: vi.fn(async () => ({
+        additionalFilePaths: [],
+        requiresFullRefresh: true,
+      })),
       onProgress,
     }))).resolves.toBe(graph);
 
@@ -49,7 +52,10 @@ describe('indexing/refresh/modes/changedFiles', () => {
     });
 
     await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
-      filePaths: ['/workspace/src/deleted.ts'],
+      notifyFilesChanged: vi.fn(async () => ({
+        additionalFilePaths: [],
+        requiresFullRefresh: true,
+      })),
       onProgress: undefined,
     }))).resolves.toBe(graph);
   });

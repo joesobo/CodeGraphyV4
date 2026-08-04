@@ -21,6 +21,7 @@ function createRefreshFacade(): RefreshSourceFacade {
     })) as unknown as RefreshSourceFacade['_analyzeFiles'],
     _buildGraphData: vi.fn(() => graphData) as unknown as RefreshSourceFacade['_buildGraphData'],
     _buildGraphDataFromAnalysis: vi.fn(() => graphData) as unknown as RefreshSourceFacade['_buildGraphDataFromAnalysis'],
+    _completeGraphData: graphData,
     _lastDiscoveredDirectories: ['src'],
     _lastDiscoveredFiles: [{ absolutePath: '/workspace/src/a.ts', extension: '.ts', name: 'a.ts', relativePath: 'src/a.ts' }],
     _lastFileAnalysis: new Map(),
@@ -137,6 +138,50 @@ describe('extension/pipeline/service/refresh/source', () => {
 
     source.invalidateWorkspaceFiles(['src/a.ts']);
     expect(facade.invalidateWorkspaceFiles).toHaveBeenCalledWith(['src/a.ts']);
+  });
+
+  it('preserves complete analysis facts when connection fallback data is merged', () => {
+    const facade = createRefreshFacade();
+    facade._completeGraphData = createGraph('complete-folder');
+    vi.mocked(facade._buildGraphData).mockReturnValue(createGraph('fallback-file'));
+    const source = createWorkspaceIndexRefreshSource(facade);
+
+    source._buildGraphData(new Map(), '/workspace', new Set());
+
+    expect(facade._completeGraphData.nodes.map(node => node.id)).toEqual([
+      'complete-folder',
+      'fallback-file',
+    ]);
+  });
+
+  it('patches metric-only changes into both visible and complete graph data', () => {
+    const facade = createRefreshFacade();
+    const completeGraph = createGraph('complete');
+    const visibleGraph = createGraph('visible');
+    facade._completeGraphData = completeGraph;
+    vi.mocked(facade._patchGraphDataNodeMetrics).mockImplementation((graphData) => ({
+      ...graphData,
+      nodes: graphData.nodes.map(node => ({ ...node, fileSize: 42 })),
+    }));
+    const source = createWorkspaceIndexRefreshSource(facade);
+
+    const patchedVisibleGraph = source._patchGraphDataNodeMetrics?.(
+      visibleGraph,
+      ['src/a.ts'],
+    );
+
+    expect(patchedVisibleGraph?.nodes[0]?.fileSize).toBe(42);
+    expect(facade._completeGraphData.nodes[0]?.fileSize).toBe(42);
+    expect(facade._patchGraphDataNodeMetrics).toHaveBeenNthCalledWith(
+      1,
+      completeGraph,
+      ['src/a.ts'],
+    );
+    expect(facade._patchGraphDataNodeMetrics).toHaveBeenNthCalledWith(
+      2,
+      visibleGraph,
+      ['src/a.ts'],
+    );
   });
 
   it('mirrors refresh source retained state through live accessors', () => {

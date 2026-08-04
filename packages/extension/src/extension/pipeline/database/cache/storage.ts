@@ -1,6 +1,6 @@
 import {
-  clearWorkspaceAnalysisDatabaseCache,
-  patchWorkspaceAnalysisDatabaseCache as patchWorkspaceAnalysisDatabaseCacheCore,
+  clearWorkspaceAnalysisDatabaseCacheAsync,
+  patchWorkspaceAnalysisDatabaseCacheAsync as patchWorkspaceAnalysisDatabaseCacheCore,
   saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncCore,
 } from '@codegraphy-dev/core';
 import { enqueueWorkspaceCacheWrite } from './writeQueue';
@@ -16,7 +16,7 @@ export {
 
 export function clearWorkspaceAnalysisDatabaseCacheQueued(workspaceRoot: string): Promise<void> {
   return enqueueWorkspaceCacheWrite(workspaceRoot, 'clear', async () => {
-    clearWorkspaceAnalysisDatabaseCache(workspaceRoot);
+    await clearWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot);
   });
 }
 
@@ -25,7 +25,7 @@ export function patchWorkspaceAnalysisDatabaseCache(
   patch: Parameters<typeof patchWorkspaceAnalysisDatabaseCacheCore>[1],
 ): Promise<void> {
   return enqueueWorkspaceCacheWrite(workspaceRoot, 'patch', async () => {
-    patchWorkspaceAnalysisDatabaseCacheCore(workspaceRoot, patch);
+    await patchWorkspaceAnalysisDatabaseCacheCore(workspaceRoot, patch);
   });
 }
 

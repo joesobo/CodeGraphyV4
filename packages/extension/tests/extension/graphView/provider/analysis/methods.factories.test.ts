@@ -49,17 +49,19 @@ describe('graphView/provider/analysis/methods factories', () => {
     const doRunners = {
       load: vi.fn(async () => undefined),
       index: vi.fn(async () => undefined),
+      incremental: vi.fn(async () => undefined),
       refresh: vi.fn(async () => undefined),
     };
     const requestRunners = {
       load: vi.fn(async () => undefined),
       index: vi.fn(async () => undefined),
+      incremental: vi.fn(async () => undefined),
       refresh: vi.fn(async () => undefined),
     };
 
     vi.mocked(createGraphViewProviderDoAnalyzeAndSendData).mockImplementation(
       (_source, _dependencies, _delegates, mode) => {
-        if (mode !== 'load' && mode !== 'index' && mode !== 'refresh') {
+        if (mode !== 'load' && mode !== 'index' && mode !== 'incremental' && mode !== 'refresh') {
           throw new Error(`Unexpected analysis mode: ${mode}`);
         }
         return doRunners[mode];
@@ -67,7 +69,7 @@ describe('graphView/provider/analysis/methods factories', () => {
     );
     vi.mocked(createGraphViewProviderAnalyzeAndSendData).mockImplementation(
       (_source, _dependencies, _delegates, doAnalyzeAndSendData, mode) => {
-        if (mode !== 'load' && mode !== 'index' && mode !== 'refresh') {
+        if (mode !== 'load' && mode !== 'index' && mode !== 'incremental' && mode !== 'refresh') {
           throw new Error(`Unexpected analysis mode: ${mode}`);
         }
         expect(doAnalyzeAndSendData).toBe(doRunners[mode]);
@@ -80,20 +82,24 @@ describe('graphView/provider/analysis/methods factories', () => {
 
     await methods._loadAndSendData();
     await methods._indexAndSendData();
+    await methods._updateChangedFilesAndSendData(['/workspace/src/app.ts']);
     await methods._refreshAndSendData();
 
     expect(vi.mocked(createGraphViewProviderDoAnalyzeAndSendData).mock.calls.map(call => call[3])).toEqual([
       'load',
       'index',
+      'incremental',
       'refresh',
     ]);
     expect(vi.mocked(createGraphViewProviderAnalyzeAndSendData).mock.calls.map(call => call[4])).toEqual([
       'load',
       'index',
+      'incremental',
       'refresh',
     ]);
     expect(requestRunners.load).toHaveBeenCalledOnce();
     expect(requestRunners.index).toHaveBeenCalledOnce();
+    expect(requestRunners.incremental).toHaveBeenCalledOnce();
     expect(requestRunners.refresh).toHaveBeenCalledOnce();
   });
 });

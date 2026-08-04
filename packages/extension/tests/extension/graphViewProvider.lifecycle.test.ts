@@ -148,7 +148,7 @@ describe('GraphViewProvider lifecycle', () => {
     expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('recreates the Graph Cache and Tree-sitter edges after a deleted cache is refreshed then indexed', async () => {
+  it('keeps loaded graph state and recreates the Graph Cache after explicit indexing', async () => {
     const workspaceRoot = await createWorkspace({
       'src/utils.ts': 'export const value = 1;\n',
       'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
@@ -168,7 +168,8 @@ describe('GraphViewProvider lifecycle', () => {
 
     await fs.unlink(databasePath);
     await provider.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
-    expect(provider.getGraphData().edges).toEqual([]);
+    expect(provider.getGraphData().edges.map(edge => edge.id))
+      .toContain('src/index.ts->src/utils.ts#import');
     expect(await pathExists(databasePath)).toBe(false);
 
     await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });

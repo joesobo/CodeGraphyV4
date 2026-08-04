@@ -8,7 +8,6 @@ import * as pluginModule from '../../../../src/extension/pipeline/plugins/querie
 import * as runModule from '../../../../src/extension/pipeline/analysis/run';
 import * as stateModule from '../../../../src/extension/pipeline/analysis/state';
 import * as cacheStorageModule from '../../../../src/extension/pipeline/service/cache/storage';
-import * as repoMetaModule from '../../../../src/extension/repoSettings/meta';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -43,10 +42,6 @@ describe('WorkspacePipeline delegates', () => {
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
     vi.clearAllMocks();
-    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue(
-      repoMetaModule.createDefaultCodeGraphyRepoMeta(),
-    );
-    vi.spyOn(repoMetaModule, 'writeCodeGraphyRepoMeta').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -120,6 +115,9 @@ describe('WorkspacePipeline delegates', () => {
         relativePath: 'src/index.ts',
       },
     ];
+    vi.spyOn(analyzer as unknown as {
+      _persistIndexMetadata(): Promise<void>;
+    }, '_persistIndexMetadata').mockResolvedValue();
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
       source._lastDiscoveredFiles = discoveredFiles;
@@ -154,6 +152,9 @@ describe('WorkspacePipeline delegates', () => {
         ],
       ],
     ]);
+    vi.spyOn(analyzer as unknown as {
+      _persistIndexMetadata(): Promise<void>;
+    }, '_persistIndexMetadata').mockResolvedValue();
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
       source._lastFileAnalysis = fileAnalysis;
@@ -176,6 +177,9 @@ describe('WorkspacePipeline delegates', () => {
       createContext() as unknown as vscode.ExtensionContext,
     );
     const workspaceRoot = '/test/workspace';
+    vi.spyOn(analyzer as unknown as {
+      _persistIndexMetadata(): Promise<void>;
+    }, '_persistIndexMetadata').mockResolvedValue();
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
       source._lastWorkspaceRoot = workspaceRoot;
@@ -278,7 +282,7 @@ describe('WorkspacePipeline delegates', () => {
     expect(resolveSpy).toHaveBeenCalledOnce();
   });
 
-  it('delegates cache clearing and replaces the cached analysis state', () => {
+  it('delegates cache clearing and replaces the cached analysis state', async () => {
     const context = createContext();
     const analyzer = new WorkspacePipeline(
       context as unknown as vscode.ExtensionContext,
@@ -287,13 +291,13 @@ describe('WorkspacePipeline delegates', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const clearSpy = vi
       .spyOn(cacheStorageModule, 'clearWorkspacePipelineStoredCache')
-      .mockImplementation((workspaceRoot, logInfo: (message: string) => void) => {
+      .mockImplementation(async (workspaceRoot, logInfo: (message: string) => void) => {
         expect(workspaceRoot).toBe('/test/workspace');
         logInfo('[CodeGraphy] Cache cleared');
         return replacementCache as never;
       });
 
-    analyzer.clearCache();
+    await analyzer.clearCache();
 
     expect(clearSpy).toHaveBeenCalledOnce();
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');

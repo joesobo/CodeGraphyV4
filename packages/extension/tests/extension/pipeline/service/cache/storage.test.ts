@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEmptyWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
 import {
   clearWorkspaceAnalysisDatabaseCacheQueued,
+  patchWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../../../../src/extension/pipeline/database/cache/storage.ts';
 import {
   clearWorkspacePipelineStoredCache,
+  patchWorkspacePipelineCache,
   persistWorkspacePipelineCache,
 } from '../../../../../src/extension/pipeline/service/cache/storage';
 
@@ -15,6 +17,7 @@ vi.mock('../../../../../src/extension/pipeline/cache', () => ({
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
   clearWorkspaceAnalysisDatabaseCacheQueued: vi.fn(async () => undefined),
+  patchWorkspaceAnalysisDatabaseCache: vi.fn(async () => undefined),
   saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
 }));
 
@@ -23,12 +26,12 @@ describe('pipeline/service/cache/storage', () => {
     vi.clearAllMocks();
   });
 
-  it('returns an empty cache immediately and queues repo-local clearing', () => {
+  it('returns an empty cache after clearing the repo-local cache', async () => {
     const cache = { files: {} };
     vi.mocked(createEmptyWorkspaceAnalysisCache).mockReturnValue(cache as never);
     const logInfo = vi.fn();
 
-    expect(clearWorkspacePipelineStoredCache('/workspace', logInfo)).toBe(cache);
+    await expect(clearWorkspacePipelineStoredCache('/workspace', logInfo)).resolves.toBe(cache);
     expect(clearWorkspaceAnalysisDatabaseCacheQueued).toHaveBeenCalledWith('/workspace');
     expect(logInfo).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
   });
@@ -56,6 +59,57 @@ describe('pipeline/service/cache/storage', () => {
 
     expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache, { graph });
     expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('waits for targeted Graph Cache patches and persists Core-selected complete graph data', async () => {
+    const cache = { files: { 'src/a.ts': { size: 1 } } };
+    const graph = { nodes: [{ id: 'src/a.ts' }], edges: [] };
+    const completeGraph = { nodes: [{ id: 'src/a.ts' }, { id: 'hidden' }], edges: [] };
+    let finishPatch: (() => void) | undefined;
+    vi.mocked(patchWorkspaceAnalysisDatabaseCache).mockReturnValue(
+      new Promise<void>(resolve => {
+        finishPatch = resolve;
+      }),
+    );
+
+    const persistence = patchWorkspacePipelineCache('/workspace', cache as never, {
+      completeGraph: completeGraph as never,
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/a.ts'],
+      graph: graph as never,
+    }, vi.fn());
+    let settled = false;
+    void persistence.then(() => {
+      settled = true;
+    });
+    await Promise.resolve();
+
+    expect(settled).toBe(false);
+    expect(patchWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace', {
+      deleteFilePaths: [],
+      upsertFiles: { 'src/a.ts': { size: 1 } },
+      graph: completeGraph,
+    });
+    finishPatch?.();
+    await persistence;
+    expect(settled).toBe(true);
+  });
+
+  it('reports targeted Graph Cache patch failures to the update owner', async () => {
+    const error = new Error('patch failed');
+    const warn = vi.fn();
+    vi.mocked(patchWorkspaceAnalysisDatabaseCache).mockRejectedValue(error);
+
+    await expect(patchWorkspacePipelineCache('/workspace', { files: {} } as never, {
+      deleteFilePaths: [],
+      upsertFilePaths: [],
+      graph: { nodes: [], edges: [] },
+    }, warn)).rejects.toBe(error);
+
+    expect(warn).toHaveBeenCalledWith(
+      '[CodeGraphy] Failed to patch repo-local analysis cache.',
+      error,
+    );
   });
 
   it('returns before repo-local cache persistence settles', async () => {

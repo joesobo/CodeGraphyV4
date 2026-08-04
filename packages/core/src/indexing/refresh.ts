@@ -9,8 +9,21 @@ import { refreshWorkspaceIndexAnalysisScope as refreshWorkspaceIndexAnalysisScop
 import { refreshWorkspaceIndexChangedFiles as refreshWorkspaceIndexChangedFilesImpl } from './refresh/modes/changedFiles';
 import { refreshWorkspaceIndexPluginFiles as refreshWorkspaceIndexPluginFilesImpl } from './refresh/modes/pluginFiles';
 
+export { WorkspaceIndexFullRefreshRequiredError } from './refresh/fullRefreshRequired';
+export { mergeWorkspaceIndexGraphData } from './refresh/graph';
+export {
+  runOwnedWorkspaceIndexRefresh,
+  WorkspaceIndexRefreshSupersededError,
+} from './refresh/owned';
+export type {
+  WorkspaceIndexOwnedRefreshAttempt,
+  WorkspaceIndexOwnedRefreshOptions,
+} from './refresh/owned';
+export type { WorkspaceIndexFullRefreshReason } from './refresh/fullRefreshRequired';
+
 export type {
   WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexCachePatch,
   WorkspaceIndexPluginInfo,
   WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexRefreshDependencies,

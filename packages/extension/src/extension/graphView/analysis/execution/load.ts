@@ -12,6 +12,9 @@ import {
   refreshGraphViewRawData,
 } from './refresh';
 import {
+  refreshGraphViewChangedFiles,
+} from './incremental';
+import {
   loadCachedGraphViewRawData,
 } from './load/analyzerData';
 import {
@@ -39,6 +42,11 @@ const GRAPH_VIEW_RAW_DATA_LOADERS: Record<GraphViewRawDataRoute, (
 ) => Promise<IGraphData>> = {
   cached: loadCachedGraphViewRawDataOnly,
   empty: async () => EMPTY_GRAPH_DATA,
+  incremental: context => refreshGraphViewChangedFiles(
+    context.signal,
+    context.state,
+    context.forwardProgress,
+  ),
   refresh: loadRefreshedGraphViewRawData,
 };
 

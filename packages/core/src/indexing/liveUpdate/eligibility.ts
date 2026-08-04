@@ -1,18 +1,14 @@
 import { matchesAnyPattern } from '../../discovery/pathMatching';
+import { isWorkspaceDiscoveryLifecyclePath } from '../../workspace/discoveryLifecycle';
 import type { CodeGraphyWorkspaceSettings } from '../../workspace/settings';
+
+export { isWorkspaceDiscoveryLifecyclePath } from '../../workspace/discoveryLifecycle';
 
 export function createActiveWorkspaceFilterPatterns(
   settings: CodeGraphyWorkspaceSettings,
 ): string[] {
   const disabledPatterns = new Set(settings.disabledCustomFilterPatterns);
   return settings.filterPatterns.filter(pattern => !disabledPatterns.has(pattern));
-}
-
-export function isWorkspaceDiscoveryLifecyclePath(workspacePath: string): boolean {
-  return workspacePath === '.codegraphy/settings.json'
-    || workspacePath === '.git/index'
-    || workspacePath === '.git/info/exclude'
-    || workspacePath.split('/').at(-1) === '.gitignore';
 }
 
 export function isWorkspaceLiveUpdatePathEligible(

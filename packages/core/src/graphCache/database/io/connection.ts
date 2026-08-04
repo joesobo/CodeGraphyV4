@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import Database from 'libsql';
 import { ensureSchema } from './schema';
 import {
+  assertWorkspaceCacheWriteOwnershipCurrent,
   withWorkspaceCacheWriteLock,
   withWorkspaceCacheWriteLockAsync,
 } from '../writeCoordination/model';
@@ -147,6 +148,7 @@ export function withOwnedConnection<T>(
   databasePath: string,
   callback: (connection: SQLiteConnection) => T,
 ): T {
+  assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
   return useConnection(databasePath, callback);
 }
 
@@ -166,7 +168,10 @@ export function withConnectionAsync<T>(
 ): Promise<T> {
   return withWorkspaceCacheWriteLockAsync(
     databasePath,
-    () => useConnectionAsync(databasePath, callback),
+    () => {
+      assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
+      return useConnectionAsync(databasePath, callback);
+    },
   );
 }
 
@@ -176,9 +181,12 @@ export function withOwnedRecreatedConnection<T>(
   reset: (path: string) => void = resetInvalidDatabase,
 ): T {
   try {
+    assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
     return useConnection(databasePath, callback);
   } catch (error) {
+    assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
     resetDatabaseOrThrowOriginal(databasePath, error, reset);
+    assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
     return useConnection(databasePath, callback);
   }
 }
@@ -201,12 +209,59 @@ export function withRecreatedConnectionAsync<T>(
 ): Promise<T> {
   return withWorkspaceCacheWriteLockAsync(databasePath, async () => {
     try {
+      assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
       return await useConnectionAsync(databasePath, callback);
     } catch (error) {
+      assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
       resetDatabaseOrThrowOriginal(databasePath, error, reset);
+      assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
       return useConnectionAsync(databasePath, callback);
     }
   });
+}
+
+export function withReadOrRecreatedConnection<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => T,
+  reset: (path: string) => void = resetInvalidDatabase,
+): T {
+  try {
+    return withReadOnlyConnection(databasePath, callback);
+  } catch (error) {
+    if (!isInvalidDatabaseError(error)) throw error;
+    return withWorkspaceCacheWriteLock(
+      databasePath,
+      () => withOwnedRecreatedConnection(databasePath, callback, reset),
+    );
+  }
+}
+
+export async function withReadOrRecreatedConnectionAsync<T>(
+  databasePath: string,
+  callback: (connection: SQLiteConnection) => Promise<T>,
+  reset: (path: string) => void = resetInvalidDatabase,
+): Promise<T> {
+  try {
+    const connection = openReadOnlyConnection(databasePath);
+    try {
+      return await callback(connection);
+    } finally {
+      connection.close();
+    }
+  } catch (error) {
+    if (!isInvalidDatabaseError(error)) throw error;
+    return withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      try {
+        assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
+        return await useConnectionAsync(databasePath, callback);
+      } catch (ownedError) {
+        assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
+        resetDatabaseOrThrowOriginal(databasePath, ownedError, reset);
+        assertWorkspaceCacheWriteOwnershipCurrent(databasePath);
+        return useConnectionAsync(databasePath, callback);
+      }
+    });
+  }
 }
 
 export function withReadOnlyConnection<T>(

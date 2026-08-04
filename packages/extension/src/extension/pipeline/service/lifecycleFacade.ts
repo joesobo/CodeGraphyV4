@@ -1,4 +1,9 @@
 import * as vscode from 'vscode';
+import {
+  isDefaultExcludedPath,
+  isWorkspaceDiscoveryLifecyclePath,
+  matchesAnyPattern,
+} from '@codegraphy-dev/core';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import { WorkspacePipelineRefreshFacade } from './refreshFacade';
 import { clearWorkspacePipelineStoredCache } from './cache/storage';
@@ -57,9 +62,33 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
       .filter((pluginName): pluginName is string => Boolean(pluginName));
   }
 
-  override clearCache(): void {
+  shouldObserveWorkspacePath(
+    filePath: string,
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): boolean {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) return false;
+    const relativePath = this._toWorkspaceRelativePath(workspaceRoot, filePath);
+    if (!relativePath) return false;
+    if (isWorkspaceDiscoveryLifecyclePath(relativePath)) return true;
+    if (isDefaultExcludedPath(relativePath)) return false;
+    const filterPatterns = [
+      ...this._getEffectiveCustomFilterPatterns([]),
+      ...this._getEffectivePluginFilterPatterns(disabledPlugins),
+    ];
+    if (matchesAnyPattern(relativePath, filterPatterns)) return false;
+    return !this._lastGitIgnoredPaths.some(ignoredPath => {
+      const relativeIgnoredPath = this._toWorkspaceRelativePath(workspaceRoot, ignoredPath)
+        ?? ignoredPath.replace(/\\/g, '/');
+      return relativePath === relativeIgnoredPath
+        || relativePath.startsWith(`${relativeIgnoredPath}/`);
+    });
+  }
+
+  override async clearCache(): Promise<void> {
+    this._clearRecoverableGraphState();
     this._replayAnalysisPluginIds = new Set<string>();
-    this._cache = clearWorkspacePipelineStoredCache(
+    this._cache = await clearWorkspacePipelineStoredCache(
       this._getWorkspaceRoot(),
       (message: string) => {
         console.log(message);

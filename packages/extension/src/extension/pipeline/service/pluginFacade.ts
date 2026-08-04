@@ -88,7 +88,23 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
   }
 
   hasIndex(): boolean {
-    return hasWorkspacePipelineIndex(this._getWorkspaceRoot());
+    const workspaceRoot = this._getWorkspaceRoot();
+    return hasWorkspacePipelineIndex(
+      workspaceRoot,
+      this.hasRecoverableGraphState(),
+    );
+  }
+
+  hasRecoverableGraphState(): boolean {
+    return this._hasRecoverableGraphState(this._getWorkspaceRoot());
+  }
+
+  hasLoadedGraphState(): boolean {
+    const workspaceRoot = this._getWorkspaceRoot();
+    return Boolean(
+      workspaceRoot
+      && this._lastWorkspaceRoot === workspaceRoot,
+    );
   }
 
   getIndexStatus(): { freshness: 'fresh' | 'stale' | 'missing'; detail: string } {

@@ -35,11 +35,12 @@ import {
 describe('pipeline/service/lifecycleFacade', () => {
   beforeEach(setUpLifecycleFacade);
 
-  it('replaces the cache through the stored-cache helper and logs its messages', () => {
+  it('replaces the cache through the stored-cache helper and logs its messages', async () => {
     const facade = new TestLifecycleFacade();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    facade.markRecoverableGraphState();
 
-    facade.clearCache();
+    await facade.clearCache();
 
     expect(clearWorkspacePipelineStoredCache).toHaveBeenCalledWith(
       '/workspace',
@@ -49,6 +50,7 @@ describe('pipeline/service/lifecycleFacade', () => {
     onMessage('cache cleared');
     expect(logSpy).toHaveBeenCalledWith('cache cleared');
     expect(facade._cache).toEqual({ files: { 'src/a.ts': { cached: true } } });
+    expect(facade.hasRecoverableGraphState()).toBe(false);
   });
 
   it('short-circuits file invalidation when no workspace root exists or no files are provided', () => {

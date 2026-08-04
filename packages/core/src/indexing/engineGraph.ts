@@ -66,7 +66,7 @@ export function createWorkspaceEngineIndexResult(
   };
 }
 
-function persistMetadata(runtime: WorkspaceEngineRuntime): void {
+async function persistMetadata(runtime: WorkspaceEngineRuntime): Promise<void> {
   const { state, workspaceRoot } = runtime;
   if (!state.registry || !state.settings) return;
   const pluginSignature = runtime.options.plugins === undefined
@@ -76,7 +76,7 @@ function persistMetadata(runtime: WorkspaceEngineRuntime): void {
       loadedPackagePlugins: state.loadedPackagePlugins,
       registry: state.registry,
     });
-  persistWorkspaceIndexMetadata({
+  await persistWorkspaceIndexMetadata({
     pluginBuildSignature: createWorkspaceIndexPluginBuildSignature(state.loadedPackagePlugins),
     pluginSignature,
     failedPluginIds: state.failedPluginIds,
@@ -123,7 +123,7 @@ export function replaceWorkspaceEngineCache(
   return withWorkspaceAnalysisDatabaseWriter(runtime.workspaceRoot, async (writer) => {
     if (!await prepare()) return false;
     writer.replace(createWorkspaceEngineDatabaseReplacement(runtime));
-    persistMetadata(runtime);
+    await persistMetadata(runtime);
     return true;
   });
 }
@@ -147,7 +147,7 @@ export function patchWorkspaceEngineCache(
       graph: recovery.graph,
       nodeTypes: recovery.nodeTypes,
     }, recovery);
-    persistMetadata(runtime);
+    await persistMetadata(runtime);
     return true;
   });
 }

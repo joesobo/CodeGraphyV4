@@ -6,5 +6,5 @@ import {
 export type { WorkspacePipelineCachedGraphLoadOptions };
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineCachedGraphFacade {
-  abstract clearCache(): void;
+  abstract clearCache(): Promise<void>;
 }

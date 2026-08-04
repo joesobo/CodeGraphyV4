@@ -116,6 +116,7 @@ export { createAbortError, throwIfAborted } from './discovery/abort';
 export { FileDiscovery } from './discovery/file/service';
 export {
   DEFAULT_EXCLUDE,
+  isDefaultExcludedPath,
   matchesAnyPattern,
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
@@ -123,13 +124,16 @@ export {
 export type { WorkspaceAnalysisDatabaseSnapshot } from './graphCache/database/storage';
 export {
   clearWorkspaceAnalysisDatabaseCache,
+  clearWorkspaceAnalysisDatabaseCacheAsync,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
   loadWorkspaceAnalysisDatabaseCacheAsync,
   patchWorkspaceAnalysisDatabaseCache,
+  patchWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
+  WorkspaceAnalysisDatabaseUnreadableError,
 } from './graphCache/database/storage';
 export type {
   CoreEdgeKind,
@@ -206,10 +210,15 @@ export {
   createCodeGraphyWorkspaceCacheUpdater,
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  isWorkspaceDiscoveryLifecyclePath,
+  mergeWorkspaceIndexGraphData,
   refreshWorkspaceIndexAnalysisScope,
+  runOwnedWorkspaceIndexRefresh,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
   subscribeCodeGraphyWorkspaceChanges,
+  WorkspaceIndexFullRefreshRequiredError,
+  WorkspaceIndexRefreshSupersededError,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceCacheUpdater,
@@ -224,7 +233,11 @@ export type {
   CodeGraphyWorkspaceFileEvent,
   SubscribeCodeGraphyWorkspaceChangesOptions,
   WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexCachePatch,
+  WorkspaceIndexOwnedRefreshAttempt,
+  WorkspaceIndexOwnedRefreshOptions,
   WorkspaceIndexPluginRefreshDependencies,
+  WorkspaceIndexFullRefreshReason,
   WorkspaceIndexRefreshDependencies,
   WorkspaceIndexRefreshSource,
 } from './indexing/workspace';
@@ -412,9 +425,9 @@ export {
 export type { CodeGraphyWorkspaceMeta } from './workspace/meta';
 export {
   createDefaultCodeGraphyWorkspaceMeta,
+  markCodeGraphyWorkspaceChangesPending,
   persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
 } from './workspace/meta';
 export {
   createCodeGraphyWorkspacePluginBuildSignature,

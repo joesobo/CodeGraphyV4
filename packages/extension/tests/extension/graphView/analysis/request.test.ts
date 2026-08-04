@@ -97,6 +97,23 @@ describe('graph view analysis request', () => {
     expect(state.analysisController).toBeUndefined();
   });
 
+  it('reports unexpected failures to callers that own visible status', async () => {
+    const state = createState({ propagateErrors: true });
+    const error = new Error('cache write failed');
+    const logError = vi.fn();
+
+    await expect(runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.reject(error)),
+      isAbortError: vi.fn(() => false),
+      logError,
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
+    })).rejects.toBe(error);
+
+    expect(logError).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', error);
+    expect(state.analysisController).toBeUndefined();
+  });
+
   it('does not log abort failures and still clears the active request', async () => {
     const state = createState();
     const error = new Error('cancelled');
@@ -111,6 +128,21 @@ describe('graph view analysis request', () => {
     });
 
     expect(logError).not.toHaveBeenCalled();
+    expect(state.analysisController).toBeUndefined();
+  });
+
+  it('reports abort failures to incremental update owners', async () => {
+    const state = createState({ propagateErrors: true });
+    const error = new Error('cancelled');
+
+    await expect(runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.reject(error)),
+      isAbortError: vi.fn(() => true),
+      logError: vi.fn(),
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
+    })).rejects.toBe(error);
+
     expect(state.analysisController).toBeUndefined();
   });
 

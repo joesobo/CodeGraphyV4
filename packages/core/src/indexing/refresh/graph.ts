@@ -31,7 +31,7 @@ export function buildWorkspaceIndexGraphFromRefreshState(
   return graphData;
 }
 
-function mergeWorkspaceIndexGraphData(
+export function mergeWorkspaceIndexGraphData(
   primaryGraphData: IGraphData,
   fallbackGraphData: IGraphData,
 ): IGraphData {

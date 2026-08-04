@@ -4,7 +4,6 @@ import {
   type ICodeGraphyConfigurationLike,
   type ICodeGraphySettingsChangeEvent,
 } from './store';
-import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from './meta';
 
 let currentCodeGraphySettingsStore: CodeGraphyRepoSettingsStore | undefined;
 
@@ -56,7 +55,6 @@ export function initializeCurrentCodeGraphyConfiguration(
   }
 
   currentCodeGraphySettingsStore = new CodeGraphyRepoSettingsStore(workspaceRoot);
-  writeCodeGraphyRepoMeta(workspaceRoot, readCodeGraphyRepoMeta(workspaceRoot));
 
   const watcher = vscode.workspace.createFileSystemWatcher('**/.codegraphy/settings.json');
   context.subscriptions.push(

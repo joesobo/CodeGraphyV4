@@ -142,6 +142,7 @@ describe('indexing/refresh/modes/pluginFiles', () => {
     expect(persistCachePatch).toHaveBeenCalledWith({
       deleteFilePaths: [],
       upsertFilePaths: ['src/app.ts', 'src/extra.ts'],
+      graph: expect.any(Object),
     });
     expect(persistCache).not.toHaveBeenCalled();
   });

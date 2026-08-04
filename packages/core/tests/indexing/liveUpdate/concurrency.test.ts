@@ -3,6 +3,7 @@ import { basename, join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
   createCodeGraphyWorkspaceEngine,
+  indexCodeGraphyWorkspace,
   readWorkspaceAnalysisDatabaseSnapshot,
 } from '../../../src';
 import { createTextPlugin, createWorkspace } from '../workspaceFixture';
@@ -78,6 +79,63 @@ describe('concurrent workspace cache updaters', () => {
     const freshEngine = createCodeGraphyWorkspaceEngine({
       workspaceRoot,
       maxFiles: 3,
+      plugins: [textPlugin()],
+      includeCorePlugins: false,
+    });
+    await freshEngine.index();
+    freshEngine.dispose();
+
+    expect(concurrentEdges).toContain('source.txt->next.txt#import');
+    expect(concurrentEdges).toEqual(edgeIdentities(workspaceRoot));
+  });
+
+  it('does not let an older one-shot Index overwrite a newer engine commit', async () => {
+    const workspaceRoot = await createWorkspace();
+    const sourcePath = join(workspaceRoot, 'source.txt');
+    await writeFile(join(workspaceRoot, 'next.txt'), 'next\n', 'utf-8');
+    let markOlderAnalysisStarted!: () => void;
+    let finishOlderAnalysis!: () => void;
+    const olderAnalysisStarted = new Promise<void>((resolve) => {
+      markOlderAnalysisStarted = resolve;
+    });
+    const olderAnalysisGate = new Promise<void>((resolve) => {
+      finishOlderAnalysis = resolve;
+    });
+    let pauseOlderAnalysis = true;
+    const olderPlugin = textPlugin();
+
+    await writeFile(sourcePath, 'target.txt\n', 'utf-8');
+    const olderIndex = indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [{
+        ...olderPlugin,
+        async analyzeFile(filePath, content, rootPath, context) {
+          if (pauseOlderAnalysis && basename(filePath) === 'source.txt') {
+            pauseOlderAnalysis = false;
+            markOlderAnalysisStarted();
+            await olderAnalysisGate;
+          }
+          return olderPlugin.analyzeFile!(filePath, content, rootPath, context);
+        },
+      }],
+      includeCorePlugins: false,
+    });
+    await olderAnalysisStarted;
+
+    await writeFile(sourcePath, 'next.txt\n', 'utf-8');
+    const newerEngine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [textPlugin()],
+      includeCorePlugins: false,
+    });
+    await newerEngine.index();
+    newerEngine.dispose();
+    finishOlderAnalysis();
+    await olderIndex;
+    const concurrentEdges = edgeIdentities(workspaceRoot);
+
+    const freshEngine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
       plugins: [textPlugin()],
       includeCorePlugins: false,
     });

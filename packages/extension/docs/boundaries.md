@@ -21,9 +21,9 @@ The extension source tree is intentionally feature-first inside each runtime bou
 - `src/extension/agentBridge/` owns VS Code URI request handling for local agent tooling.
 - `src/extension/graphView/` and `src/extension/graphViewProvider.ts` own VS Code host orchestration for the Graph View.
 - `src/extension/pipeline/` owns extension-facing adapters over `@codegraphy-dev/core` pipeline APIs and extension-only orchestration.
-- `src/extension/repoSettings/` owns repo-local settings, freshness decisions, and Graph Cache trust state.
-- `src/extension/workspaceFiles/` owns workspace file watching and refresh scheduling.
-- `@codegraphy-dev/core` owns File Discovery, Tree-sitter Analysis, headless plugin analysis, cache reads/writes, Graph Projection inputs, and agent-readable Graph Query.
+- `src/extension/repoSettings/` adapts workspace settings and Core freshness results for VS Code. Core owns Graph Cache trust state.
+- `src/extension/workspaceFiles/` owns native VS Code file-event adapters and bounded refresh scheduling.
+- `@codegraphy-dev/core` owns File Discovery, Tree-sitter Analysis, headless plugin analysis, Graph Projection inputs, Graph Cache reads/writes, writer-revision verification, supersession retry, and missing/corrupt cache recovery. The Extension stages VS Code host state and rollback through that Core-owned commit interface.
 - `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics/layout. The extension owns how users configure and interact with it, including settings, persistence, plugins, selection, hover, picking, and context menus.
 - `src/shared/visibleGraph/` owns the host/webview shared projection that turns scoped, filtered, and searched graph data into the Visible Graph.
 

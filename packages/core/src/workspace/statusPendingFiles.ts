@@ -5,6 +5,7 @@ import {
   isDefaultExcludedPath,
   matchesAnyPattern,
 } from '../discovery/pathMatching';
+import { isWorkspaceDiscoveryLifecyclePath } from './discoveryLifecycle';
 
 function normalizePendingPath(filePath: string): string {
   return filePath.replace(/\\/g, '/').replace(/\/+$/, '');
@@ -16,6 +17,17 @@ function resolvePendingPath(filePath: string, workspaceRoot: string | undefined)
   }
 
   return path.join(workspaceRoot, filePath);
+}
+
+function pendingWorkspaceRelativePath(
+  filePath: string,
+  workspaceRoot: string | undefined,
+): string {
+  if (!workspaceRoot) return normalizePendingPath(filePath);
+  return normalizePendingPath(path.relative(
+    workspaceRoot,
+    resolvePendingPath(filePath, workspaceRoot),
+  ));
 }
 
 function parseIndexedAt(indexedAt: string | null | undefined): number | undefined {
@@ -67,6 +79,12 @@ export function filterWorkspaceStatusPendingChangedFiles(
       && normalizePendingPath(filePath) === normalizedWorkspaceRoot
     ) {
       return false;
+    }
+
+    if (isWorkspaceDiscoveryLifecyclePath(
+      pendingWorkspaceRelativePath(filePath, options.workspaceRoot),
+    )) {
+      return true;
     }
 
     if (isDefaultExcludedPath(filePath) || matchesAnyPattern(filePath, DEFAULT_EXCLUDE)) {

@@ -18,8 +18,6 @@ const currentHarness = vi.hoisted(() => {
     update: vi.fn(() => Promise.resolve()),
   };
   const onDidChangeConfiguration = vi.fn(() => ({ dispose: vi.fn() }));
-  const readCodeGraphyRepoMeta = vi.fn(() => ({ version: 1, pendingChangedFiles: [] }));
-  const writeCodeGraphyRepoMeta = vi.fn();
   let lastStore: Record<string, unknown> | undefined;
   const CodeGraphyRepoSettingsStore = vi.fn().mockImplementation((workspaceRoot: string) => {
     const store = {
@@ -40,8 +38,6 @@ const currentHarness = vi.hoisted(() => {
     watcherDisposables,
     workspaceConfiguration,
     onDidChangeConfiguration,
-    readCodeGraphyRepoMeta,
-    writeCodeGraphyRepoMeta,
     CodeGraphyRepoSettingsStore,
     getLastStore: () => lastStore as {
       updateSilently: ReturnType<typeof vi.fn>;
@@ -68,11 +64,6 @@ vi.mock('vscode', () => ({
 
 vi.mock('../../../src/extension/repoSettings/store', () => ({
   CodeGraphyRepoSettingsStore: currentHarness.CodeGraphyRepoSettingsStore,
-}));
-
-vi.mock('../../../src/extension/repoSettings/meta', () => ({
-  readCodeGraphyRepoMeta: currentHarness.readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta: currentHarness.writeCodeGraphyRepoMeta,
 }));
 
 import * as vscode from 'vscode';
@@ -119,18 +110,13 @@ describe('extension/repoSettings/current', () => {
     expect(context.subscriptions).toEqual([]);
   });
 
-  it('initializes the repo-local settings store, seeds meta, and registers watcher disposables', () => {
+  it('initializes the repo-local settings store and registers watcher disposables', () => {
     const context = createContext();
 
     const store = initializeCurrentCodeGraphyConfiguration(context as never);
 
     expect(store).toBe(currentHarness.getLastStore());
     expect(currentHarness.CodeGraphyRepoSettingsStore).toHaveBeenCalledWith('/workspace');
-    expect(currentHarness.readCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace');
-    expect(currentHarness.writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
-      version: 1,
-      pendingChangedFiles: [],
-    });
     expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/.codegraphy/settings.json');
     expect(context.subscriptions).toHaveLength(2);
 

@@ -1,0 +1,302 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  createWorkspaceCacheUpdateScheduler,
+  type WorkspaceCacheUpdateSchedulerOptions,
+} from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
+import { WorkspaceCacheUpdateUnrecordedError } from '../../../../src/extension/workspaceFiles/cacheUpdates/error';
+import {
+  registerWorkspaceCacheUpdates,
+  type WorkspaceCacheUpdateRegistrationDependencies,
+} from '../../../../src/extension/workspaceFiles/cacheUpdates/register';
+
+interface FileUri {
+  fsPath: string;
+  scheme: string;
+}
+
+function fileUri(fsPath: string): FileUri {
+  return { fsPath, scheme: 'file' };
+}
+
+function createHarness() {
+  let saveListener: ((document: { uri: FileUri }) => void) | undefined;
+  let createListener: ((event: { files: readonly FileUri[] }) => void) | undefined;
+  let deleteListener: ((event: { files: readonly FileUri[] }) => void) | undefined;
+  let renameListener: (
+    (event: { files: ReadonlyArray<{ oldUri: FileUri; newUri: FileUri }> }) => void
+  ) | undefined;
+  let watcherCreateListener: ((uri: FileUri) => void) | undefined;
+  let watcherChangeListener: ((uri: FileUri) => void) | undefined;
+  let watcherDeleteListener: ((uri: FileUri) => void) | undefined;
+  let schedulerOptions: WorkspaceCacheUpdateSchedulerOptions | undefined;
+  const notify = vi.fn();
+  const notifyImmediately = vi.fn(() => Promise.resolve());
+  const statusBarItem = {
+    text: '',
+    tooltip: '',
+    show: vi.fn(),
+    hide: vi.fn(),
+    dispose: vi.fn(),
+  };
+  const disposable = { dispose: vi.fn() };
+  const dependencies: WorkspaceCacheUpdateRegistrationDependencies = {
+    createScheduler: vi.fn((options) => {
+      schedulerOptions = options;
+      return { dispose: vi.fn(), notify, notifyImmediately };
+    }),
+    createStatusBarItem: vi.fn(() => statusBarItem),
+    createFileSystemWatcher: vi.fn(() => ({
+      dispose: vi.fn(),
+      onDidChange: vi.fn((listener) => {
+        watcherChangeListener = listener;
+        return disposable;
+      }),
+      onDidCreate: vi.fn((listener) => {
+        watcherCreateListener = listener;
+        return disposable;
+      }),
+      onDidDelete: vi.fn((listener) => {
+        watcherDeleteListener = listener;
+        return disposable;
+      }),
+    })),
+    markGraphCacheStale: vi.fn(async () => undefined),
+    pathSignature: vi.fn(async () => 'signature-1'),
+    onDidCreateFiles: vi.fn((listener) => {
+      createListener = listener;
+      return disposable;
+    }),
+    onDidDeleteFiles: vi.fn((listener) => {
+      deleteListener = listener;
+      return disposable;
+    }),
+    onDidRenameFiles: vi.fn((listener) => {
+      renameListener = listener;
+      return disposable;
+    }),
+    onDidSaveTextDocument: vi.fn((listener) => {
+      saveListener = listener;
+      return disposable;
+    }),
+    workspaceRoot: vi.fn(() => '/workspace'),
+  };
+
+  return {
+    dependencies,
+    listeners: {
+      create: () => createListener,
+      delete: () => deleteListener,
+      rename: () => renameListener,
+      save: () => saveListener,
+      watcherChange: () => watcherChangeListener,
+      watcherCreate: () => watcherCreateListener,
+      watcherDelete: () => watcherDeleteListener,
+    },
+    notify,
+    notifyImmediately,
+    schedulerOptions: () => schedulerOptions,
+    statusBarItem,
+  };
+}
+
+describe('workspaceFiles/cacheUpdates/register', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('maps VS Code save, create, delete, and rename events to workspace cache paths', () => {
+    const harness = createHarness();
+    const context = { subscriptions: [] as Array<{ dispose(): void }> };
+
+    registerWorkspaceCacheUpdates(
+      context,
+      {
+        canUpdateWorkspaceFiles: () => true,
+        refreshIndexStatus: vi.fn(),
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    harness.listeners.save()?.({ uri: fileUri('/workspace/src/saved.ts') });
+    harness.listeners.save()?.({ uri: fileUri('/workspace/.codegraphy/graph.sqlite') });
+    harness.listeners.create()?.({
+      files: [fileUri('/workspace/src/created.ts')],
+    });
+    harness.listeners.delete()?.({
+      files: [fileUri('/workspace/src/deleted.ts')],
+    });
+    harness.listeners.rename()?.({
+      files: [{
+        oldUri: fileUri('/workspace/src/old.ts'),
+        newUri: fileUri('/workspace/src/new.ts'),
+      }],
+    });
+    harness.listeners.watcherCreate()?.(fileUri('/workspace/src/terminal-created.ts'));
+    harness.listeners.watcherChange()?.(fileUri('/workspace/src/terminal-changed.ts'));
+    harness.listeners.watcherDelete()?.(fileUri('/workspace/src/terminal-deleted.ts'));
+
+    expect(harness.notify.mock.calls).toEqual([
+      [['/workspace/src/saved.ts']],
+      [['/workspace/src/created.ts']],
+      [['/workspace/src/deleted.ts']],
+      [['/workspace/src/old.ts', '/workspace/src/new.ts']],
+      [['/workspace/src/terminal-created.ts']],
+      [['/workspace/src/terminal-changed.ts']],
+      [['/workspace/src/terminal-deleted.ts']],
+    ]);
+    expect(context.subscriptions).toHaveLength(10);
+  });
+
+  it('delivers changes when loaded state can recover a missing Graph Cache', () => {
+    const harness = createHarness();
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        canUpdateWorkspaceFiles: () => true,
+        refreshIndexStatus: vi.fn(),
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    harness.listeners.watcherChange()?.(fileUri('/workspace/src/recover.ts'));
+
+    expect(harness.schedulerOptions()?.canUpdate()).toBe(true);
+    expect(harness.notify).toHaveBeenCalledWith(['/workspace/src/recover.ts']);
+  });
+
+  it('routes immediate Graph View paths through the shared normalized scheduler', async () => {
+    const harness = createHarness();
+    let immediateUpdate: ((filePaths: readonly string[]) => Promise<void>) | undefined;
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus: vi.fn(),
+        setWorkspaceFileUpdateHandler: handler => {
+          immediateUpdate = handler;
+        },
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    await immediateUpdate?.(['src/new.ts']);
+
+    expect(harness.notifyImmediately).toHaveBeenCalledWith(['/workspace/src/new.ts']);
+  });
+
+  it('does not classify an unrecorded scheduler failure as safely handled', async () => {
+    const harness = createHarness();
+    const failure = new WorkspaceCacheUpdateUnrecordedError(
+      new Error('targeted update failed'),
+      new Error('stale mark failed'),
+    );
+    harness.notifyImmediately.mockRejectedValueOnce(failure);
+    let immediateUpdate: ((filePaths: readonly string[]) => Promise<void>) | undefined;
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus: vi.fn(),
+        setWorkspaceFileUpdateHandler: handler => {
+          immediateUpdate = handler;
+        },
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    await expect(immediateUpdate?.(['src/new.ts'])).rejects.toBe(failure);
+  });
+
+  it('marks the Graph Cache stale before refreshing index status', async () => {
+    const harness = createHarness();
+    const refreshIndexStatus = vi.fn();
+    let finishStaleMark: (() => void) | undefined;
+    harness.dependencies.markGraphCacheStale = vi.fn(() => new Promise<void>(resolve => {
+      finishStaleMark = resolve;
+    }));
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus,
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    const errorHandling = harness.schedulerOptions()?.onError?.(
+      new Error('requires explicit Re-index'),
+      ['/workspace/src/app.ts'],
+    );
+
+    expect(harness.dependencies.markGraphCacheStale).toHaveBeenCalledWith(
+      '/workspace',
+      ['/workspace/src/app.ts'],
+    );
+    expect(refreshIndexStatus).not.toHaveBeenCalled();
+
+    finishStaleMark?.();
+    await errorHandling;
+
+    expect(refreshIndexStatus).toHaveBeenCalledOnce();
+  });
+
+  it('marks the index stale when the real scheduler receives an update failure', async () => {
+    vi.useFakeTimers();
+    const harness = createHarness();
+    const refreshIndexStatus = vi.fn();
+    harness.dependencies.createScheduler = createWorkspaceCacheUpdateScheduler;
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus,
+        updateWorkspaceFiles: vi.fn(async () => {
+          throw new Error('plugin requires explicit Re-index');
+        }),
+      },
+      harness.dependencies,
+    );
+
+    harness.listeners.watcherChange()?.(fileUri('/workspace/src/app.ts'));
+    await vi.advanceTimersByTimeAsync(250);
+
+    expect(harness.dependencies.markGraphCacheStale).toHaveBeenCalledWith(
+      '/workspace',
+      ['/workspace/src/app.ts'],
+    );
+    expect(refreshIndexStatus).toHaveBeenCalledOnce();
+  });
+
+  it('passes scheduler cancellation to the graph update', async () => {
+    const harness = createHarness();
+    const updateWorkspaceFiles = vi.fn(async () => undefined);
+    const controller = new AbortController();
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
+      harness.dependencies,
+    );
+
+    await harness.schedulerOptions()?.update(
+      ['/workspace/src/saved.ts'],
+      controller.signal,
+      vi.fn(),
+    );
+
+    expect(updateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/src/saved.ts'],
+      controller.signal,
+    );
+  });
+});

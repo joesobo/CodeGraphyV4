@@ -5,9 +5,18 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
 }));
 
 vi.mock('../../../../src/extension/pipeline/service/runtime/refresh', () => ({
+  mergeWorkspacePipelineGraphData: vi.fn((primary, fallback) => ({
+    nodes: [...primary.nodes, ...fallback.nodes],
+    edges: [...primary.edges, ...fallback.edges],
+  })),
   refreshWorkspacePipelineAnalysisScope: vi.fn(),
   refreshWorkspacePipelineChangedFiles: vi.fn(),
   refreshWorkspacePipelinePluginFiles: vi.fn(),
+  runOwnedWorkspacePipelineRefresh: vi.fn(async options => {
+    const attempt = await options.prepare();
+    await attempt.persistIndexMetadata();
+    return attempt.result;
+  }),
 }));
 
 vi.mock('vscode', () => ({
@@ -108,10 +117,8 @@ describe('pipeline/service/refreshFacade changed files', () => {
     );
 
     refreshDependencies.persistCache();
-    expect(facade._persistCache).toHaveBeenCalledOnce();
-
-    await refreshDependencies.persistIndexMetadata();
-    expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
+    expect(facade._persistCache).not.toHaveBeenCalled();
+    expect(facade._persistIndexMetadata).toHaveBeenCalledWith(['src/a.ts']);
 
     await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
     expect(facade._analyzeFiles).toHaveBeenCalledWith(
@@ -216,6 +223,7 @@ describe('pipeline/service/refreshFacade changed files', () => {
     facade._registry = {
       notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
       list: vi.fn(() => [{ plugin: { id: 'plugin.a', version: '1.0.0' } }]),
+      listNodeTypes: vi.fn(() => []),
     } as never;
     await facade.refreshChangedFiles(['/workspace/src/a.ts']);
 

@@ -44,9 +44,7 @@ export async function refreshPluginFilesForFacade(
     persistCache: () => {
       facade._persistCache();
     },
-    persistCachePatch: patch => {
-      facade._persistCachePatch(patch);
-    },
+    persistCachePatch: patch => facade._persistCachePatch(patch),
     persistIndexMetadata: async () => {
       await facade._persistIndexMetadata();
     },

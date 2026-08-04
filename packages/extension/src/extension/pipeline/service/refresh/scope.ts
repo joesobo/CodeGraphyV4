@@ -39,7 +39,7 @@ export interface AnalysisScopeRefreshFacade {
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: WorkspacePipelineRefreshSource['_lastFileAnalysis'];
   _lastWorkspaceRoot: string;
-  _persistIndexMetadata(): Promise<void>;
+  _persistIndexMetadata(resolvedChangedFilePaths?: readonly string[]): Promise<void>;
 }
 
 interface RebuildAnalysisScopeInput {

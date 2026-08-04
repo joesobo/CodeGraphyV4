@@ -13,7 +13,8 @@ export abstract class WorkspacePipelineAnalysisFacade extends WorkspacePipelineG
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    return analyzeWorkspacePipeline(
+    const workspaceRoot = this._getWorkspaceRoot();
+    const graphData = await analyzeWorkspacePipeline(
       this as unknown as WorkspacePipelineSourceOwner,
       this._cache,
       this._config,
@@ -25,6 +26,10 @@ export abstract class WorkspacePipelineAnalysisFacade extends WorkspacePipelineG
       signal,
       async () => this._persistIndexMetadata(),
     );
+    if (workspaceRoot && this._lastWorkspaceRoot === workspaceRoot) {
+      this._markRecoverableGraphState(workspaceRoot);
+    }
+    return graphData;
   }
 
   rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {

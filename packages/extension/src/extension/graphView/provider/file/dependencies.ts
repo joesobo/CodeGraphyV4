@@ -14,6 +14,7 @@ import {
   revealGraphViewProviderFileInExplorer,
 } from './navigation';
 import type { GraphViewProviderFileActionMethodDependencies } from './contracts';
+import { markWorkspaceCacheUpdateStale } from '../../../workspaceFiles/cacheUpdates/stale';
 
 function getCurrentWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
   return vscode.workspace.workspaceFolders?.[0]
@@ -43,6 +44,13 @@ export const DEFAULT_GRAPH_VIEW_FILE_ACTION_DEPENDENCIES: GraphViewProviderFileA
       >,
   showInputBox: options => vscode.window.showInputBox(options),
   showErrorMessage: message => { vscode.window.showErrorMessage(message); },
+  markGraphCacheStale: markWorkspaceCacheUpdateStale,
+  logWorkspaceUpdateError: (error, filePaths) => {
+    console.error(
+      `[CodeGraphy] Failed to update Graph Cache for ${filePaths.join(', ')}:`,
+      error,
+    );
+  },
   createDeleteAction: (paths, workspaceFolderUri, analyzeAndSendData) =>
     new DeleteFilesAction(paths, workspaceFolderUri, analyzeAndSendData),
   createRenameAction: (oldPath, newPath, workspaceFolderUri, analyzeAndSendData) =>

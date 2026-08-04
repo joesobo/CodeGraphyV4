@@ -8,6 +8,13 @@ export const Uri = {
 };
 
 export const window = {
+  createStatusBarItem: vi.fn(() => ({
+    text: '',
+    tooltip: '',
+    show: vi.fn(),
+    hide: vi.fn(),
+    dispose: vi.fn(),
+  })),
   registerWebviewViewProvider: vi.fn(),
   registerUriHandler: vi.fn(),
   showInformationMessage: vi.fn(),
@@ -73,4 +80,9 @@ export enum ConfigurationTarget {
   Global = 1,
   Workspace = 2,
   WorkspaceFolder = 3,
+}
+
+export enum StatusBarAlignment {
+  Left = 1,
+  Right = 2,
 }

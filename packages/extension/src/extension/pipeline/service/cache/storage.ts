@@ -2,6 +2,7 @@ import {
   createEmptyWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../../cache';
+import type { WorkspaceIndexCachePatch as WorkspacePipelineCachePatch } from '@codegraphy-dev/core';
 import {
   clearWorkspaceAnalysisDatabaseCacheQueued,
   patchWorkspaceAnalysisDatabaseCache,
@@ -9,22 +10,17 @@ import {
 } from '../../database/cache/storage';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IPluginNodeType } from '@codegraphy-dev/plugin-api';
+export type {
+  WorkspaceIndexCachePatch as WorkspacePipelineCachePatch,
+} from '@codegraphy-dev/core';
 
-export interface WorkspacePipelineCachePatch {
-  deleteFilePaths: readonly string[];
-  upsertFilePaths: readonly string[];
-}
-
-export function clearWorkspacePipelineStoredCache(
+export async function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,
   logInfo: (message: string) => void,
-): IWorkspaceAnalysisCache {
+): Promise<IWorkspaceAnalysisCache> {
   const cache = createEmptyWorkspaceAnalysisCache();
   if (workspaceRoot) {
-    void clearWorkspaceAnalysisDatabaseCacheQueued(workspaceRoot)
-      .catch((error: unknown) => {
-        console.warn('[CodeGraphy] Failed to clear repo-local analysis cache.', error);
-      });
+    await clearWorkspaceAnalysisDatabaseCacheQueued(workspaceRoot);
   }
   logInfo('[CodeGraphy] Cache cleared');
   return cache;
@@ -50,16 +46,14 @@ export function persistWorkspacePipelineCache(
     });
 }
 
-export function patchWorkspacePipelineCache(
+export async function patchWorkspacePipelineCache(
   workspaceRoot: string | undefined,
   cache: IWorkspaceAnalysisCache,
   patch: WorkspacePipelineCachePatch,
   warn: (message: string, error: unknown) => void,
   nodeTypes: readonly IPluginNodeType[] = [],
-): void {
-  if (!workspaceRoot) {
-    return;
-  }
+): Promise<void> {
+  if (!workspaceRoot) return;
 
   const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
   for (const filePath of patch.upsertFilePaths) {
@@ -69,12 +63,19 @@ export function patchWorkspacePipelineCache(
     }
   }
 
-  void patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
-    deleteFilePaths: patch.deleteFilePaths,
-    upsertFiles,
-    ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
-  })
-    .catch((error: unknown) => {
-      warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);
+  try {
+    await patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      deleteFilePaths: patch.deleteFilePaths,
+      ...(patch.deleteNodeIds ? { deleteNodeIds: patch.deleteNodeIds } : {}),
+      upsertFiles,
+      ...(patch.upsertNodeIds ? { upsertNodeIds: patch.upsertNodeIds } : {}),
+      ...(patch.completeGraph
+        ? { graph: patch.completeGraph }
+        : patch.graph ? { graph: patch.graph } : {}),
+      ...(nodeTypes.length > 0 ? { nodeTypes } : {}),
     });
+  } catch (error) {
+    warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);
+    throw error;
+  }
 }

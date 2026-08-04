@@ -5,13 +5,23 @@ import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
 
 import {
+  type CodeGraphyWorkspaceMeta,
+  getWorkspaceMetaPath,
   indexCodeGraphyWorkspace,
   readCodeGraphyWorkspaceMeta,
   readCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceStatus,
-  writeCodeGraphyWorkspaceMeta,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src';
+
+async function writeWorkspaceMetaFixture(
+  workspaceRoot: string,
+  meta: CodeGraphyWorkspaceMeta,
+): Promise<void> {
+  const metaPath = getWorkspaceMetaPath(workspaceRoot);
+  await fs.mkdir(path.dirname(metaPath), { recursive: true });
+  await fs.writeFile(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
+}
 
 async function createWorkspace(): Promise<string> {
   const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-status-'));
@@ -107,7 +117,7 @@ describe('CodeGraphy Workspace status', () => {
       plugins: [textPlugin],
     });
     const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    await writeWorkspaceMetaFixture(workspaceRoot, {
       ...meta,
       pluginBuildSignature: 'build-a',
     });
@@ -132,7 +142,7 @@ describe('CodeGraphy Workspace status', () => {
       plugins: [textPlugin],
     });
     const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    await writeWorkspaceMetaFixture(workspaceRoot, {
       ...meta,
       pendingChangedFiles: [
         path.join(workspaceRoot, 'packages/plugin-typescript/.turbo'),
@@ -148,6 +158,33 @@ describe('CodeGraphy Workspace status', () => {
     });
   });
 
+  it('keeps discovery-lifecycle changes stale until a full Index resolves them', async () => {
+    const workspaceRoot = await createWorkspace();
+    writeCodeGraphyWorkspaceSettings(
+      workspaceRoot,
+      readCodeGraphyWorkspaceSettings(workspaceRoot),
+    );
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+    await writeWorkspaceMetaFixture(workspaceRoot, {
+      ...meta,
+      pendingChangedFiles: [
+        path.join(workspaceRoot, '.codegraphy/settings.json'),
+      ],
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+    })).toMatchObject({
+      state: 'stale',
+      staleReasons: ['pending-changed-files'],
+    });
+  });
+
   it('does not mark the Graph Cache stale for pending files already covered by the last index', async () => {
     const workspaceRoot = await createWorkspace();
     await indexCodeGraphyWorkspace({
@@ -156,7 +193,7 @@ describe('CodeGraphy Workspace status', () => {
       plugins: [textPlugin],
     });
     const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    await writeWorkspaceMetaFixture(workspaceRoot, {
       ...meta,
       pendingChangedFiles: [
         path.join(workspaceRoot, 'source.txt'),
