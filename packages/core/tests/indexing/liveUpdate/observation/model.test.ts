@@ -9,7 +9,7 @@ import {
 } from '../../../../src';
 import { createWorkspace } from '../../workspaceFixture';
 
-describe('Parcel workspace change subscription', () => {
+describe('workspace change subscription', () => {
   it('reports source changes without reporting Graph Cache writes', async () => {
     const workspaceRoot = await createWorkspace();
     const sourcePath = join(workspaceRoot, 'created.txt');
@@ -112,6 +112,38 @@ describe('Parcel workspace change subscription', () => {
     await newlyEligiblePathsChanged;
 
     expect(observedPaths).toEqual(new Set([ignoredPath, filteredPath]));
+    await subscription.dispose();
+  }, 10_000);
+
+  it('keeps default-excluded directory storms outside native observation', async () => {
+    const workspaceRoot = await createWorkspace();
+    const ignoredDirectory = join(workspaceRoot, 'node_modules');
+    const includedDirectory = join(workspaceRoot, 'src');
+    const includedPath = join(includedDirectory, 'sentinel.ts');
+    await mkdir(ignoredDirectory);
+    await mkdir(includedDirectory);
+    const observedPaths = new Set<string>();
+    const errors: Error[] = [];
+    let resolveIncluded!: () => void;
+    const includedObserved = new Promise<void>(resolve => { resolveIncluded = resolve; });
+    const subscription = await subscribeCodeGraphyWorkspaceChanges({
+      workspaceRoot,
+      onError: error => errors.push(error),
+      onEvents(events) {
+        for (const event of events) observedPaths.add(event.path);
+        if (observedPaths.has(includedPath)) resolveIncluded();
+      },
+    });
+
+    await Promise.all(Array.from({ length: 1_000 }, (_, index) => (
+      writeFile(join(ignoredDirectory, `package-${index}.js`), 'ignored\n', 'utf-8')
+    )));
+    await writeFile(includedPath, 'export {};\n', 'utf-8');
+    await includedObserved;
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(errors).toEqual([]);
+    expect(observedPaths).toEqual(new Set([includedPath]));
     await subscription.dispose();
   }, 10_000);
 });

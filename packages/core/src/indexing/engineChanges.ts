@@ -12,10 +12,11 @@ import {
   findAffectedWorkspaceIndexAnalysisDependents,
   findChangedWorkspaceIndexFiles,
 } from './workspace/changes';
+import { isWorkspaceDiscoveryLifecyclePath } from './liveUpdate/eligibility';
 
-function isWorkspaceDiscoveryLifecyclePath(workspaceRoot: string, filePath: string): boolean {
+function isWorkspaceDiscoveryLifecycleFilePath(workspaceRoot: string, filePath: string): boolean {
   const relativePath = path.relative(workspaceRoot, path.resolve(workspaceRoot, filePath));
-  return relativePath === '.codegraphy/settings.json' || path.basename(relativePath) === '.gitignore';
+  return isWorkspaceDiscoveryLifecyclePath(relativePath.split(path.sep).join('/'));
 }
 
 function shouldFullyReconcileWorkspaceChanges(
@@ -23,7 +24,7 @@ function shouldFullyReconcileWorkspaceChanges(
   filePaths: readonly string[],
 ): boolean {
   return runtime.state.discoveryResult!.limitReached
-    || filePaths.some(filePath => isWorkspaceDiscoveryLifecyclePath(runtime.workspaceRoot, filePath));
+    || filePaths.some(filePath => isWorkspaceDiscoveryLifecycleFilePath(runtime.workspaceRoot, filePath));
 }
 
 async function unmatchedPathCanAffectIndex(

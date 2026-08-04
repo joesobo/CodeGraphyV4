@@ -2,4 +2,4 @@
 "@codegraphy-dev/core": patch
 ---
 
-Filter live watcher events with the current Git ignored state and active workspace Filters.
+Watch only eligible workspace directories, and rebuild the live watcher after Git ignore or Filter settings change.

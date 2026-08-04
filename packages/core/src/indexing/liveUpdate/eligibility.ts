@@ -8,14 +8,19 @@ export function createActiveWorkspaceFilterPatterns(
   return settings.filterPatterns.filter(pattern => !disabledPatterns.has(pattern));
 }
 
+export function isWorkspaceDiscoveryLifecyclePath(workspacePath: string): boolean {
+  return workspacePath === '.codegraphy/settings.json'
+    || workspacePath === '.git/index'
+    || workspacePath === '.git/info/exclude'
+    || workspacePath.split('/').at(-1) === '.gitignore';
+}
+
 export function isWorkspaceLiveUpdatePathEligible(
   workspacePath: string,
   activeFilterPatterns: readonly string[],
   gitIgnoredPaths: ReadonlySet<string> = new Set<string>(),
 ): boolean {
-  const lifecyclePath = workspacePath === '.codegraphy/settings.json'
-    || workspacePath.split('/').at(-1) === '.gitignore';
-  return lifecyclePath || (
+  return isWorkspaceDiscoveryLifecyclePath(workspacePath) || (
     !matchesAnyPattern(workspacePath, activeFilterPatterns)
     && !gitIgnoredPaths.has(workspacePath)
   );
