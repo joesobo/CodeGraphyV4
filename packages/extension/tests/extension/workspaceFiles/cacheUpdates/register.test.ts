@@ -62,6 +62,7 @@ function createHarness() {
     })),
     hasGraphCache: vi.fn(() => true),
     markGraphCacheStale: vi.fn(),
+    pathSignature: vi.fn(() => 'signature-1'),
     onDidCreateFiles: vi.fn((listener) => {
       createListener = listener;
       return disposable;
@@ -170,6 +171,27 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     await immediateUpdate?.(['src/new.ts']);
 
     expect(harness.notifyImmediately).toHaveBeenCalledWith(['/workspace/src/new.ts']);
+  });
+
+  it('coalesces unchanged duplicate events but retains a real same-path change', async () => {
+    const harness = createHarness();
+    const updateWorkspaceFiles = vi.fn(async () => undefined);
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
+      harness.dependencies,
+    );
+    const update = harness.schedulerOptions()?.update;
+    const signal = new AbortController().signal;
+    const reportProgress = vi.fn();
+
+    await update?.(['/workspace/src/new.ts'], signal, reportProgress);
+    await update?.(['/workspace/src/new.ts'], signal, reportProgress);
+    expect(updateWorkspaceFiles).toHaveBeenCalledOnce();
+
+    vi.mocked(harness.dependencies.pathSignature).mockReturnValue('signature-2');
+    await update?.(['/workspace/src/new.ts'], signal, reportProgress);
+    expect(updateWorkspaceFiles).toHaveBeenCalledTimes(2);
   });
 
   it('shows queued, updating, and failed cache state in the VS Code status bar', () => {

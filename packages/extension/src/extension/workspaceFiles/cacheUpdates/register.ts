@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import * as path from 'node:path';
 import { getGraphCachePath } from '@codegraphy-dev/core';
 import * as vscode from 'vscode';
@@ -61,6 +61,7 @@ export interface WorkspaceCacheUpdateRegistrationDependencies {
   createFileSystemWatcher(pattern: string): FileSystemWatcher;
   hasGraphCache(workspaceRoot: string): boolean;
   markGraphCacheStale(workspaceRoot: string, filePaths: readonly string[]): void;
+  pathSignature(filePath: string): string;
   onDidCreateFiles(
     listener: (event: { files: readonly FileUri[] }) => void,
   ): Disposable;
@@ -87,6 +88,14 @@ const defaultDependencies: WorkspaceCacheUpdateRegistrationDependencies = {
   createFileSystemWatcher: pattern => vscode.workspace.createFileSystemWatcher(pattern),
   hasGraphCache: workspaceRoot => existsSync(getGraphCachePath(workspaceRoot)),
   markGraphCacheStale: markWorkspaceCacheUpdateStale,
+  pathSignature: filePath => {
+    try {
+      const stat = statSync(filePath);
+      return `${stat.mtimeMs}:${stat.ctimeMs}:${stat.size}:${stat.mode}:${stat.isDirectory()}`;
+    } catch {
+      return 'missing';
+    }
+  },
   onDidCreateFiles: listener => vscode.workspace.onDidCreateFiles(listener),
   onDidDeleteFiles: listener => vscode.workspace.onDidDeleteFiles(listener),
   onDidRenameFiles: listener => vscode.workspace.onDidRenameFiles(listener),
@@ -101,6 +110,7 @@ export function registerWorkspaceCacheUpdates(
   dependencies: WorkspaceCacheUpdateRegistrationDependencies = defaultDependencies,
 ): void {
   const statusBarItem = dependencies.createStatusBarItem();
+  const appliedPathSignatures = new Map<string, string>();
   const scheduler = dependencies.createScheduler({
     debounceMs: CACHE_UPDATE_DEBOUNCE_MS,
     hasGraphCache: () => {
@@ -117,8 +127,19 @@ export function registerWorkspaceCacheUpdates(
     },
     onStatus: status => renderStatus(statusBarItem, status),
     update: async (filePaths, signal) => {
-      if (!signal.aborted) {
-        await provider.updateWorkspaceFiles(filePaths, signal);
+      if (signal.aborted) return;
+      const startingSignatures = new Map(filePaths.map(filePath => [
+        filePath,
+        dependencies.pathSignature(filePath),
+      ]));
+      const changedPaths = filePaths.filter(filePath => (
+        appliedPathSignatures.get(filePath) !== startingSignatures.get(filePath)
+      ));
+      if (changedPaths.length === 0) return;
+      await provider.updateWorkspaceFiles(changedPaths, signal);
+      for (const filePath of changedPaths) {
+        const signature = startingSignatures.get(filePath);
+        if (signature !== undefined) appliedPathSignatures.set(filePath, signature);
       }
     },
   });

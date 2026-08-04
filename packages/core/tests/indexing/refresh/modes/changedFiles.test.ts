@@ -197,6 +197,59 @@ describe('indexing/refresh/modes/changedFiles', () => {
     });
   });
 
+  it('deletes and reindexes descendant files when a non-empty directory is renamed', async () => {
+    const persistCachePatch = vi.fn();
+    const lastFileAnalysis = new Map([
+      ['src/old/app.ts', createFileAnalysis('/workspace/src/old/app.ts')],
+    ]);
+    const lastFileConnections = new Map([['src/old/app.ts', []]]);
+    const invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => {
+      for (const filePath of filePaths) {
+        const relativePath = filePath.replace('/workspace/', '');
+        lastFileAnalysis.delete(relativePath);
+        lastFileConnections.delete(relativePath);
+      }
+      return filePaths.map(filePath => filePath.replace('/workspace/', ''));
+    });
+    const source = createSource({
+      _lastDiscoveredDirectories: ['src', 'src/old'],
+      _lastDiscoveredFiles: [createDiscoveredFile('src/old/app.ts')],
+      _lastFileAnalysis: lastFileAnalysis,
+      _lastFileConnections: lastFileConnections,
+      _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => createAnalysisResult(
+        files.map(file => file.relativePath),
+      )),
+      invalidateWorkspaceFiles,
+    });
+
+    await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredDirectories: ['src', 'src/new'],
+      discoveredFiles: [createDiscoveredFile('src/new/app.ts')],
+      filePaths: ['/workspace/src/old', '/workspace/src/new'],
+      fullRefreshFallback: 'reject',
+      persistCachePatch,
+    }));
+
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/src/old/app.ts'],
+      { persist: false },
+    );
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      [createDiscoveredFile('src/new/app.ts')],
+      '/workspace',
+      expect.any(Function),
+      undefined,
+      undefined,
+      new Set(),
+    );
+    expect(persistCachePatch).toHaveBeenCalledWith(expect.objectContaining({
+      deleteFilePaths: ['src/old/app.ts'],
+      deleteNodeIds: ['src/old'],
+      upsertFilePaths: ['src/new/app.ts'],
+      upsertNodeIds: ['src/new'],
+    }));
+  });
+
   it('does not require an incremental progress callback', async () => {
     const source = createSource({
       _analyzeFiles: vi.fn(async (files: IDiscoveredFile[], _workspaceRoot, onFileProgress) => {

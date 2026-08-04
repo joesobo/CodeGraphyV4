@@ -96,7 +96,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     scheduler.dispose();
   });
 
-  it('flushes direct Graph View mutations immediately and suppresses matching ambient events', async () => {
+  it('flushes direct Graph View mutations immediately without dropping matching ambient events', async () => {
     vi.useFakeTimers();
     const update = vi.fn<WorkspaceCacheUpdateSchedulerOptions['update']>(async () => undefined);
     const scheduler = createWorkspaceCacheUpdateScheduler({
@@ -112,8 +112,9 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     await immediateUpdate;
     await vi.advanceTimersByTimeAsync(250);
 
-    expect(update).toHaveBeenCalledOnce();
+    expect(update).toHaveBeenCalledTimes(2);
     expect(update.mock.calls[0]?.[0]).toEqual(['/workspace/src/new.ts']);
+    expect(update.mock.calls[1]?.[0]).toEqual(['/workspace/src/new.ts']);
     scheduler.dispose();
   });
 

@@ -100,41 +100,86 @@ test('external workspace changes stay current while the Graph View is hidden', a
     await frame.getByRole('button', { name: 'Index Workspace' }).click();
     await expect(frame.getByRole('progressbar', { name: 'Indexing progress' })).toBeHidden({ timeout: 30_000 });
     await openGraphScopeSection(context, 'Node Types');
-    await setPanelSwitch(context, 'Folder', true);
+    await setPanelSwitch(context, 'Folder', false);
     await clickToolbarButton(frame, 'Graph Scope');
     await context.vscode.page.keyboard.press('Meta+Shift+E');
     await expect(context.vscode.page.getByRole('tree', { name: 'Files Explorer' })).toBeVisible();
 
     fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), 'export const created = true;\n');
     fs.mkdirSync(path.join(context.workspacePath, 'external-folder'));
+    fs.writeFileSync(
+      path.join(context.workspacePath, 'external-folder', 'nested.ts'),
+      'export const nested = true;\n',
+    );
+    fs.mkdirSync(path.join(context.workspacePath, 'external-empty-folder'));
     await expect.poll(
       () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
         .map((node: { id: string }) => node.id),
       { timeout: 15_000 },
-    ).toEqual(expect.arrayContaining(['external-created.ts', 'external-folder']));
+    ).toEqual(expect.arrayContaining([
+      'external-created.ts',
+      'external-empty-folder',
+      'external-folder/nested.ts',
+    ]));
+
+    const changedContents = 'export const created = "saved again";\n';
+    fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), changedContents);
+    await expect.poll(
+      () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).files
+        .find(file => file.filePath === 'external-created.ts')?.size,
+      { timeout: 15_000 },
+    ).toBe(Buffer.byteLength(changedContents));
 
     fs.renameSync(
       path.join(context.workspacePath, 'external-created.ts'),
       path.join(context.workspacePath, 'external-renamed.ts'),
     );
-    fs.rmSync(path.join(context.workspacePath, 'external-folder'), { recursive: true });
+    fs.renameSync(
+      path.join(context.workspacePath, 'external-folder'),
+      path.join(context.workspacePath, 'external-renamed-folder'),
+    );
+    fs.renameSync(
+      path.join(context.workspacePath, 'external-empty-folder'),
+      path.join(context.workspacePath, 'external-renamed-empty-folder'),
+    );
     await expect.poll(
       () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
         .map((node: { id: string }) => node.id),
       { timeout: 15_000 },
-    ).toEqual(expect.not.arrayContaining(['external-created.ts', 'external-folder']));
+    ).toEqual(expect.arrayContaining([
+      'external-renamed.ts',
+      'external-renamed-empty-folder',
+      'external-renamed-folder/nested.ts',
+    ]));
     await expect.poll(
       () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
         .map((node: { id: string }) => node.id),
       { timeout: 15_000 },
-    ).toEqual(expect.arrayContaining(['external-renamed.ts']));
+    ).toEqual(expect.not.arrayContaining([
+      'external-created.ts',
+      'external-empty-folder',
+      'external-folder/nested.ts',
+    ]));
+
+    fs.rmSync(path.join(context.workspacePath, 'external-renamed-folder'), { recursive: true });
+    fs.rmSync(path.join(context.workspacePath, 'external-renamed-empty-folder'), { recursive: true });
+    await expect.poll(
+      () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).graph.nodes
+        .map((node: { id: string }) => node.id),
+      { timeout: 15_000 },
+    ).toEqual(expect.not.arrayContaining([
+      'external-renamed-empty-folder',
+      'external-renamed-folder/nested.ts',
+    ]));
 
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);
     frame = requireGraphFrame(context);
     await expect(graphNode(frame, 'external-renamed.ts')).toBeAttached({ timeout: 15_000 });
     await expect(graphNode(frame, 'external-created.ts')).toHaveCount(0);
-    await expect(graphNode(frame, 'external-folder')).toHaveCount(0);
+    await expect(graphNode(frame, 'external-empty-folder')).toHaveCount(0);
+    await expect(graphNode(frame, 'external-renamed-empty-folder')).toHaveCount(0);
+    await expect(graphNode(frame, 'external-renamed-folder/nested.ts')).toHaveCount(0);
   } finally {
     await context.cleanup();
   }

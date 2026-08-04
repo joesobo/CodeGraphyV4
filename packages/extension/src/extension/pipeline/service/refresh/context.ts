@@ -16,6 +16,7 @@ export type RefreshProgress = {
 export interface RefreshFacadeContext
   extends AnalysisScopeRefreshFacade, RefreshSourceFacade {
   _cache: IWorkspaceAnalysisCache;
+  _completeGraphData: IGraphData;
   _config: Pick<Configuration, 'get' | 'getAll'>;
   _discovery: Pick<FileDiscovery, 'discover'>;
   _getActiveAnalysisPluginIds(

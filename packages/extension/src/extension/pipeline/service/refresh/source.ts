@@ -19,6 +19,7 @@ export interface RefreshSourceFacade {
     showOrphans: boolean,
     disabledPlugins: Set<string>,
   ): IGraphData;
+  _completeGraphData: IGraphData;
   _lastDiscoveredDirectories: WorkspacePipelineRefreshSource['_lastDiscoveredDirectories'];
   _lastDiscoveredFiles: WorkspacePipelineRefreshSource['_lastDiscoveredFiles'];
   _lastFileAnalysis: WorkspacePipelineRefreshSource['_lastFileAnalysis'];
@@ -63,8 +64,17 @@ export function createWorkspaceIndexRefreshSource(
           pluginIds,
           nextDisabledPlugins,
         ),
-    _buildGraphData: (fileConnections, root, selectedPlugins) =>
-      facade._buildGraphData(fileConnections, root, true, selectedPlugins),
+    _buildGraphData: (fileConnections, root, selectedPlugins) => {
+      const completeAnalysisGraph = facade._completeGraphData;
+      const fallbackGraph = facade._buildGraphData(
+        fileConnections,
+        root,
+        true,
+        selectedPlugins,
+      );
+      facade._completeGraphData = mergeGraphData(completeAnalysisGraph, fallbackGraph);
+      return fallbackGraph;
+    },
     _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
       facade._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
     _patchGraphDataNodeMetrics: (graphData, filePaths) =>
@@ -120,4 +130,23 @@ export function createWorkspaceIndexRefreshSource(
   });
 
   return source;
+}
+
+function mergeGraphData(primary: IGraphData, fallback: IGraphData): IGraphData {
+  const nodeIds = new Set(primary.nodes.map(node => node.id));
+  const edgeIds = new Set(primary.edges.map(edge => (
+    edge.id ?? `${edge.from}\0${edge.to}\0${edge.kind}`
+  )));
+  return {
+    nodes: [
+      ...primary.nodes,
+      ...fallback.nodes.filter(node => !nodeIds.has(node.id)),
+    ],
+    edges: [
+      ...primary.edges,
+      ...fallback.edges.filter(edge => !edgeIds.has(
+        edge.id ?? `${edge.from}\0${edge.to}\0${edge.kind}`,
+      )),
+    ],
+  };
 }

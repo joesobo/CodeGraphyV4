@@ -75,6 +75,7 @@ export async function refreshChangedFilesForFacade(
 function captureRefreshFacadeState(facade: RefreshFacadeContext) {
   return structuredClone({
     cache: facade._cache,
+    completeGraphData: facade._completeGraphData,
     discoveredDirectories: facade._lastDiscoveredDirectories,
     discoveredFiles: facade._lastDiscoveredFiles,
     fileAnalysis: facade._lastFileAnalysis,
@@ -90,6 +91,7 @@ function restoreRefreshFacadeState(
   snapshot: ReturnType<typeof captureRefreshFacadeState>,
 ): void {
   facade._cache = snapshot.cache;
+  facade._completeGraphData = snapshot.completeGraphData;
   facade._lastDiscoveredDirectories = snapshot.discoveredDirectories;
   facade._lastDiscoveredFiles = snapshot.discoveredFiles;
   facade._lastFileAnalysis = snapshot.fileAnalysis;
@@ -131,7 +133,6 @@ async function getChangedFileDiscoveryState(
     directories: discovered.discoveryResult.directories ?? [],
     files: discovered.discoveryResult.files,
   };
-  facade._lastDiscoveredDirectories = discoveryResult.directories;
   facade._lastGitIgnoredPaths = discovered.discoveryResult.gitIgnoredPaths ?? [];
   return discoveryResult;
 }

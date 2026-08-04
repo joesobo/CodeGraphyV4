@@ -10,6 +10,7 @@ vi.mock('../../../../../src/extension/pipeline/service/runtime/analysis', () => 
 }));
 
 vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
+  patchWorkspacePipelineCache: vi.fn(async () => undefined),
   persistWorkspacePipelineCache: vi.fn(),
 }));
 
@@ -71,6 +72,7 @@ vi.mock('vscode', () => ({
 import {
   TestInternalBase,
   buildWorkspacePipelineCompleteGraphDataFromAnalysis,
+  patchWorkspacePipelineCache,
   buildWorkspacePipelineGraphFromAnalysis,
   persistWorkspacePipelineCache,
   persistWorkspacePipelineIndexMetadata,
@@ -112,6 +114,35 @@ describe('extension/pipeline/service/internalBase persistence', () => {
     expect(readWorkspacePipelineCurrentCommitShaSync).toHaveBeenCalledWith('/workspace');
     dependencies.warn('failed to persist', new Error('boom'));
     expect(warnSpy).toHaveBeenCalledWith('failed to persist', expect.any(Error));
+  });
+
+  it('persists targeted patches with the unscoped complete graph', async () => {
+    const source = new TestInternalBase();
+    const completeGraphData = { nodes: [{ id: 'complete' }], edges: [] };
+    const scopedGraphData = { nodes: [{ id: 'scoped' }], edges: [] };
+    vi.mocked(buildWorkspacePipelineCompleteGraphDataFromAnalysis)
+      .mockReturnValue(completeGraphData as never);
+    vi.mocked(buildWorkspacePipelineGraphFromAnalysis)
+      .mockReturnValue(scopedGraphData as never);
+    source.buildGraphDataFromAnalysis(new Map(), '/workspace', true);
+
+    await source.persistCachePatch({
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/a.ts'],
+      graph: scopedGraphData as never,
+    });
+
+    expect(patchWorkspacePipelineCache).toHaveBeenCalledWith(
+      '/workspace',
+      source._cache,
+      {
+        deleteFilePaths: [],
+        upsertFilePaths: ['src/a.ts'],
+        graph: completeGraphData,
+      },
+      expect.any(Function),
+      [],
+    );
   });
 
   it('persists the cache through the shared helper and warning logger', () => {

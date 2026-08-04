@@ -48,6 +48,7 @@ function createFacade(
     _analyzeFiles: vi.fn(),
     _buildGraphData: vi.fn(),
     _buildGraphDataFromAnalysis: vi.fn(),
+    _completeGraphData: createGraph('complete'),
     _config: {
       get: vi.fn(),
       getAll: vi.fn(),
@@ -211,6 +212,7 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     } as never);
     vi.mocked(refreshWorkspacePipelineChangedFiles).mockImplementation(async () => {
       facade._cache = { version: 'mutated', files: {} } as never;
+      facade._completeGraphData = createGraph('mutated-complete');
       facade._lastFileAnalysis.set('src/new.ts', {} as never);
       facade._lastGraphData = createGraph('mutated');
       throw new Error('plugin requested full refresh');
@@ -223,6 +225,7 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     })).rejects.toThrow('plugin requested full refresh');
 
     expect(facade._cache).toEqual(originalCache);
+    expect(facade._completeGraphData).toEqual(createGraph('complete'));
     expect(facade._lastDiscoveredDirectories).toEqual(['src']);
     expect(facade._lastFileAnalysis).toEqual(new Map());
     expect(facade._lastGitIgnoredPaths).toEqual(['old-ignore']);
@@ -267,7 +270,7 @@ describe('extension/pipeline/service/refresh/modes/changedFiles', () => {
     const getPluginFilterPatterns = vi.mocked(discoverRefreshWorkspaceFiles).mock.calls[0][0].getPluginFilterPatterns;
     expect(getPluginFilterPatterns(disabledPlugins)).toEqual(['plugin/**']);
     expect(facade.getPluginFilterPatterns).toHaveBeenCalledWith(disabledPlugins);
-    expect(facade._lastDiscoveredDirectories).toEqual([]);
+    expect(facade._lastDiscoveredDirectories).toEqual(['src']);
     expect(facade._lastGitIgnoredPaths).toEqual([]);
     expect(refreshWorkspacePipelineChangedFiles).toHaveBeenCalledWith('refresh-source', expect.objectContaining({
       discoveredDirectories: [],

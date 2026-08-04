@@ -37,9 +37,10 @@ export async function refreshWorkspaceIndexChangedFiles(
   const discoveredByRelativePath = mapDiscoveredWorkspaceIndexFilesByRelativePath(
     dependencies.discoveredFiles,
   );
+  const changedFilePaths = expandWorkspaceDirectoryChangePaths(source, dependencies);
   const changeSelection = selectDiscoveredWorkspaceIndexFileChanges(
     dependencies.workspaceRoot,
-    dependencies.filePaths,
+    changedFilePaths,
     discoveredByRelativePath,
   );
   const changedFiles = changeSelection.files;
@@ -160,6 +161,36 @@ export async function refreshWorkspaceIndexChangedFiles(
   }
 
   return graphData;
+}
+
+function expandWorkspaceDirectoryChangePaths(
+  source: WorkspaceIndexRefreshSource,
+  dependencies: WorkspaceIndexRefreshDependencies,
+): string[] {
+  const previousDirectories = new Set(source._lastDiscoveredDirectories);
+  const nextDirectories = new Set(dependencies.discoveredDirectories ?? []);
+  const previousFiles = source._lastDiscoveredFiles;
+  const nextFiles = dependencies.discoveredFiles;
+  return [...new Set(dependencies.filePaths.flatMap(filePath => {
+    const relativePath = toWorkspaceRelativePath(dependencies.workspaceRoot, filePath);
+    if (!relativePath
+      || (!previousDirectories.has(relativePath) && !nextDirectories.has(relativePath))) {
+      return [filePath];
+    }
+    return [...previousFiles, ...nextFiles]
+      .filter(file => file.relativePath.startsWith(`${relativePath}/`))
+      .map(file => file.absolutePath);
+  }))];
+}
+
+function toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined {
+  const normalizedRoot = workspaceRoot.replace(/\\/g, '/').replace(/\/$/, '');
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  if (normalizedPath === normalizedRoot) return '';
+  if (normalizedPath.startsWith(`${normalizedRoot}/`)) {
+    return normalizedPath.slice(normalizedRoot.length + 1);
+  }
+  return normalizedPath.startsWith('../') ? undefined : normalizedPath;
 }
 
 function selectWorkspaceDirectoryChanges(
