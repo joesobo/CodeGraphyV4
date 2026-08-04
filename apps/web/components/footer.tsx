@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { Link, type LinkIcon } from '@/components/link';
 import {
   docsHref,
+  discordHref,
   examplesHref,
   githubHref,
   homeHref,
@@ -26,6 +27,7 @@ const footerColumns: readonly {
     title: 'Project',
     links: [
       { href: marketplaceHref, label: 'Marketplace' },
+      { href: discordHref, icon: 'discord', label: 'Discord' },
       { href: githubHref, icon: 'github', label: 'GitHub' },
       { href: vscodeExtensionHref, icon: 'vscode', label: 'VS Code' },
     ],

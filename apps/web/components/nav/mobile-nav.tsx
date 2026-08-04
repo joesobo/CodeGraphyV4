@@ -71,6 +71,14 @@ export function MobileNav(): React.ReactElement {
         <div className="grid gap-2 border-t border-white/10 p-3">
           <Link
             className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
+            href={siteNavigation.discord.href}
+            icon="discord"
+            onClick={closeMenu}
+          >
+            {siteNavigation.discord.label}
+          </Link>
+          <Link
+            className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
             href={siteNavigation.github.href}
             icon="github"
             onClick={closeMenu}

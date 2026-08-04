@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -239,9 +239,10 @@ function npmVersionExists(target, baseDir, runCommand) {
 }
 
 function runCoreRelease(mode, baseDir, runCommand) {
-  return runCommand('pnpm', ['run', mode === 'package' ? 'package:vsix' : 'publish:vsce'], {
+  const result = runCommand('pnpm', ['run', mode === 'package' ? 'package:vsix' : 'publish:vsce'], {
     cwd: baseDir,
   });
+  return { ...result, published: result.status === 0 };
 }
 
 function runNpmRelease(mode, target, baseDir, runCommand) {
@@ -250,35 +251,38 @@ function runNpmRelease(mode, target, baseDir, runCommand) {
     : { status: 0 };
 
   if (buildResult.status !== 0) {
-    return buildResult;
+    return { ...buildResult, published: false };
   }
 
   if (mode === 'publish' && npmVersionExists(target, baseDir, runCommand)) {
     console.log(`${target.packageName}@${target.version} already exists on npm; skipping.`);
-    return { status: 0 };
+    return { status: 0, published: false };
   }
 
   if (mode === 'package') {
     const artifactDir = path.join(baseDir, 'artifacts', 'npm');
     mkdirSync(artifactDir, { recursive: true });
-    return runCommand('pnpm', ['--filter', target.packageName, 'pack', '--pack-destination', artifactDir], {
+    const result = runCommand('pnpm', ['--filter', target.packageName, 'pack', '--pack-destination', artifactDir], {
       cwd: baseDir,
     });
+    return { ...result, published: false };
   }
 
-  return runCommand(
+  const result = runCommand(
     'pnpm',
     ['--filter', target.packageName, 'publish', '--access', target.access, '--no-git-checks'],
     { cwd: baseDir },
   );
+  return { ...result, published: result.status === 0 };
 }
 
 function runVsceRelease(mode, target, baseDir, runCommand) {
-  return runCommand(
+  const result = runCommand(
     'pnpm',
     ['--filter', target.packageName, 'run', mode === 'package' ? 'package:vsix' : 'publish:vsce'],
     { cwd: baseDir },
   );
+  return { ...result, published: result.status === 0 };
 }
 
 function runReleaseTarget(mode, target, baseDir, runCommand) {
@@ -307,9 +311,21 @@ export function runRelease(mode, requestedTarget, baseDir = repoRoot, runCommand
     process.exit(1);
   }
 
+  const publishedTargets = [];
   for (const target of targets) {
-    requireSuccess(runReleaseTarget(mode, target, baseDir, runCommand));
+    const result = runReleaseTarget(mode, target, baseDir, runCommand);
+    requireSuccess(result);
+    if (result.published) {
+      publishedTargets.push({
+        id: target.id,
+        kind: target.kind,
+        packageName: target.packageName,
+        version: target.version,
+      });
+    }
   }
+
+  return publishedTargets;
 }
 
 const [, , mode, target] = process.argv;
@@ -320,5 +336,8 @@ if (mode || target) {
     process.exit(1);
   }
 
-  runRelease(mode, target);
+  const publishedTargets = runRelease(mode, target);
+  if (process.env.GITHUB_OUTPUT) {
+    appendFileSync(process.env.GITHUB_OUTPUT, `published=${JSON.stringify(publishedTargets)}\n`);
+  }
 }
