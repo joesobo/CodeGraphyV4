@@ -48,7 +48,7 @@ function createFile(relativePath = 'src/a.ts') {
 function createFacade(
   overrides: Partial<RefreshFacadeContext> = {},
 ): RefreshFacadeContext {
-  return {
+  const facade = {
     _analyzeFiles: vi.fn(),
     _buildGraphData: vi.fn(),
     _buildGraphDataFromAnalysis: vi.fn(),
@@ -59,6 +59,7 @@ function createFacade(
     },
     _discovery: { discover: vi.fn() },
     _getActiveAnalysisPluginIds: vi.fn(() => []),
+    _captureRefreshState: vi.fn(),
     _getWorkspaceRoot: vi.fn(() => '/workspace'),
     _lastDiscoveredDirectories: ['src'],
     _lastDiscoveredFiles: [createFile()],
@@ -71,6 +72,7 @@ function createFacade(
     _persistCache: vi.fn(),
     _persistCachePatch: vi.fn(),
     _persistIndexMetadata: vi.fn(async () => undefined),
+    _restoreRefreshState: vi.fn(),
     _preAnalyzePlugins: vi.fn(),
     _readAnalysisFiles: vi.fn(),
     _registry: {
@@ -85,6 +87,31 @@ function createFacade(
     loadCachedGraph: vi.fn(),
     ...overrides,
   } as unknown as RefreshFacadeContext;
+  vi.mocked(facade._captureRefreshState).mockImplementation(() => structuredClone({
+    completeGraphData: facade._completeGraphData,
+    engineState: {
+      cache: facade._cache,
+      discoveredDirectories: facade._lastDiscoveredDirectories,
+      discoveredFiles: facade._lastDiscoveredFiles,
+      fileAnalysis: facade._lastFileAnalysis,
+      fileConnections: facade._lastFileConnections,
+      gitIgnoredPaths: facade._lastGitIgnoredPaths,
+      graph: facade._lastGraphData,
+      workspaceRoot: facade._lastWorkspaceRoot,
+    },
+  }));
+  vi.mocked(facade._restoreRefreshState).mockImplementation(snapshot => {
+    facade._cache = snapshot.engineState.cache;
+    facade._completeGraphData = snapshot.completeGraphData;
+    facade._lastDiscoveredDirectories = snapshot.engineState.discoveredDirectories;
+    facade._lastDiscoveredFiles = snapshot.engineState.discoveredFiles;
+    facade._lastFileAnalysis = snapshot.engineState.fileAnalysis;
+    facade._lastFileConnections = snapshot.engineState.fileConnections;
+    facade._lastGitIgnoredPaths = snapshot.engineState.gitIgnoredPaths;
+    facade._lastGraphData = snapshot.engineState.graph;
+    facade._lastWorkspaceRoot = snapshot.engineState.workspaceRoot;
+  });
+  return facade;
 }
 
 describe('extension/pipeline/service/refresh/modes/changedFiles', () => {

@@ -9,6 +9,8 @@ describe('workspaceFiles/cacheUpdates/paths', () => {
       '/workspace/src/app.ts',
       '/workspace/.gitignore',
       '/workspace/packages/example/.gitignore',
+      '/workspace/.git/index',
+      '/workspace/.git/info/exclude',
       '/workspace/.codegraphy/settings.json',
       '/workspace/.codegraphy/graph.sqlite',
       '/workspace/.codegraphy/graph.sqlite-wal',
@@ -21,6 +23,8 @@ describe('workspaceFiles/cacheUpdates/paths', () => {
       '/workspace/src/app.ts',
       '/workspace/.gitignore',
       '/workspace/packages/example/.gitignore',
+      '/workspace/.git/index',
+      '/workspace/.git/info/exclude',
       '/workspace/.codegraphy/settings.json',
     ]);
   });

@@ -233,7 +233,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     const facade = new TestPluginFacade();
 
     expect(facade.hasIndex()).toBe(true);
-    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace');
+    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace', false);
 
     expect(facade.getIndexStatus()).toEqual({
       freshness: 'fresh',
@@ -246,7 +246,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     expect(statusInput.settingsSignature).toBe('settings-signature');
     expect(statusInput.workspaceRoot).toBe('/workspace');
     expect(statusInput.hasIndex()).toBe(true);
-    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace');
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', false);
   });
 
   it('reports whether graph state has been loaded for the current workspace', () => {
@@ -257,5 +257,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     facade.setLoadedGraphState('/workspace');
 
     expect(facade.hasLoadedGraphState()).toBe(true);
+    expect(facade.hasIndex()).toBe(true);
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', true);
   });
 });

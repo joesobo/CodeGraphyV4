@@ -1,22 +1,21 @@
-import { createHash } from 'node:crypto';
-import { createReadStream, existsSync } from 'node:fs';
-import { stat } from 'node:fs/promises';
 import * as path from 'node:path';
-import { getGraphCachePath } from '@codegraphy-dev/core';
 import * as vscode from 'vscode';
 import {
   createWorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateSchedulerOptions,
-  type WorkspaceCacheUpdateStatus,
 } from './model';
 import { WorkspaceCacheUpdateHandledError } from './error';
+import { collectPathSignatures, createPathSignature } from './fingerprint';
 import { collectWorkspaceCacheUpdatePaths } from './paths';
 import { markWorkspaceCacheUpdateStale } from './stale';
+import {
+  renderWorkspaceCacheUpdateStatus,
+  type WorkspaceCacheUpdateStatusBarItem,
+} from './statusBar';
 
 const CACHE_UPDATE_DEBOUNCE_MS = 250;
 const CACHE_UPDATE_MAX_BATCH_AGE_MS = 2_000;
-const PATH_SIGNATURE_CONCURRENCY = 8;
 
 interface FileUri {
   fsPath: string;
@@ -33,18 +32,14 @@ interface FileSystemWatcher extends Disposable {
   onDidDelete(listener: (uri: FileUri) => void): Disposable;
 }
 
-interface StatusBarItem extends Disposable {
-  text: string;
-  tooltip: unknown;
-  hide(): void;
-  show(): void;
-}
+interface StatusBarItem extends Disposable, WorkspaceCacheUpdateStatusBarItem {}
 
 interface WorkspaceCacheUpdateContext {
   subscriptions: Disposable[];
 }
 
 interface WorkspaceCacheUpdateProvider {
+  canUpdateWorkspaceFiles?(): boolean;
   refreshIndexStatus(): void;
   shouldObserveWorkspacePath?(filePath: string): boolean;
   setWorkspaceFileUpdateHandler?(
@@ -62,7 +57,6 @@ export interface WorkspaceCacheUpdateRegistrationDependencies {
   ): WorkspaceCacheUpdateScheduler;
   createStatusBarItem(): StatusBarItem;
   createFileSystemWatcher(pattern: string): FileSystemWatcher;
-  hasGraphCache(workspaceRoot: string): boolean;
   markGraphCacheStale(workspaceRoot: string, filePaths: readonly string[]): void;
   pathSignature(filePath: string): Promise<string>;
   onDidCreateFiles(
@@ -89,7 +83,6 @@ const defaultDependencies: WorkspaceCacheUpdateRegistrationDependencies = {
   createStatusBarItem: () =>
     vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 20),
   createFileSystemWatcher: pattern => vscode.workspace.createFileSystemWatcher(pattern),
-  hasGraphCache: workspaceRoot => existsSync(getGraphCachePath(workspaceRoot)),
   markGraphCacheStale: markWorkspaceCacheUpdateStale,
   pathSignature: createPathSignature,
   onDidCreateFiles: listener => vscode.workspace.onDidCreateFiles(listener),
@@ -109,11 +102,7 @@ export function registerWorkspaceCacheUpdates(
   const appliedPathSignatures = new Map<string, string>();
   const scheduler = dependencies.createScheduler({
     debounceMs: CACHE_UPDATE_DEBOUNCE_MS,
-    hasGraphCache: () => {
-      const workspaceRoot = dependencies.workspaceRoot();
-      return workspaceRoot !== undefined
-        && dependencies.hasGraphCache(workspaceRoot);
-    },
+    canUpdate: () => provider.canUpdateWorkspaceFiles?.() ?? true,
     maxBatchAgeMs: CACHE_UPDATE_MAX_BATCH_AGE_MS,
     onError: (_error, filePaths) => {
       const workspaceRoot = dependencies.workspaceRoot();
@@ -121,7 +110,7 @@ export function registerWorkspaceCacheUpdates(
       dependencies.markGraphCacheStale(workspaceRoot, filePaths);
       provider.refreshIndexStatus();
     },
-    onStatus: status => renderStatus(statusBarItem, status),
+    onStatus: status => renderWorkspaceCacheUpdateStatus(statusBarItem, status),
     update: async (filePaths, signal) => {
       if (signal.aborted) return;
       const startingSignatures = await collectPathSignatures(
@@ -188,82 +177,4 @@ export function registerWorkspaceCacheUpdates(
     scheduler,
     statusBarItem,
   );
-}
-
-async function collectPathSignatures(
-  filePaths: readonly string[],
-  pathSignature: (filePath: string) => Promise<string>,
-): Promise<Map<string, string>> {
-  const signatures = new Map<string, string>();
-  let nextIndex = 0;
-  const workerCount = Math.min(PATH_SIGNATURE_CONCURRENCY, filePaths.length);
-  await Promise.all(Array.from({ length: workerCount }, async () => {
-    while (nextIndex < filePaths.length) {
-      const filePath = filePaths[nextIndex];
-      nextIndex += 1;
-      if (filePath !== undefined) {
-        signatures.set(filePath, await pathSignature(filePath));
-      }
-    }
-  }));
-  return signatures;
-}
-
-export async function createPathSignature(filePath: string): Promise<string> {
-  try {
-    const fileStat = await stat(filePath);
-    if (fileStat.isDirectory()) {
-      return `directory:${fileStat.mtimeMs}:${fileStat.ctimeMs}:${fileStat.mode}`;
-    }
-    const contentHash = await hashFile(filePath);
-    return `file:${fileStat.size}:${fileStat.mode}:${contentHash}`;
-  } catch (error) {
-    if (isMissingPathError(error)) return 'missing';
-    throw error;
-  }
-}
-
-function isMissingPathError(error: unknown): boolean {
-  return error instanceof Error
-    && 'code' in error
-    && (error as NodeJS.ErrnoException).code === 'ENOENT';
-}
-
-function hashFile(filePath: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = createHash('sha256');
-    const input = createReadStream(filePath);
-    input.on('data', chunk => hash.update(chunk));
-    input.on('error', reject);
-    input.on('end', () => resolve(hash.digest('hex')));
-  });
-}
-
-function renderStatus(
-  statusBarItem: StatusBarItem,
-  status: WorkspaceCacheUpdateStatus,
-): void {
-  if (status.state === 'idle') {
-    statusBarItem.hide();
-    return;
-  }
-
-  statusBarItem.text = statusBarText(status);
-  statusBarItem.tooltip = status.detail;
-  statusBarItem.show();
-}
-
-function statusBarText(status: Exclude<WorkspaceCacheUpdateStatus, { state: 'idle' }>): string {
-  switch (status.state) {
-    case 'queued':
-      return status.fileCount === 1
-        ? '$(clock) CodeGraphy: 1 change queued'
-        : `$(clock) CodeGraphy: ${status.fileCount} changes queued`;
-    case 'updating':
-      return status.fileCount === 1
-        ? '$(sync~spin) CodeGraphy: Updating 1 file'
-        : `$(sync~spin) CodeGraphy: Updating ${status.fileCount} files`;
-    case 'error':
-      return '$(error) CodeGraphy: Cache update failed';
-  }
 }

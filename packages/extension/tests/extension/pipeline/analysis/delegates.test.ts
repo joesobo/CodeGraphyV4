@@ -120,6 +120,9 @@ describe('WorkspacePipeline delegates', () => {
         relativePath: 'src/index.ts',
       },
     ];
+    vi.spyOn(analyzer as unknown as {
+      _persistIndexMetadata(): Promise<void>;
+    }, '_persistIndexMetadata').mockResolvedValue();
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
       source._lastDiscoveredFiles = discoveredFiles;
@@ -154,6 +157,9 @@ describe('WorkspacePipeline delegates', () => {
         ],
       ],
     ]);
+    vi.spyOn(analyzer as unknown as {
+      _persistIndexMetadata(): Promise<void>;
+    }, '_persistIndexMetadata').mockResolvedValue();
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
       source._lastFileAnalysis = fileAnalysis;
@@ -176,6 +182,9 @@ describe('WorkspacePipeline delegates', () => {
       createContext() as unknown as vscode.ExtensionContext,
     );
     const workspaceRoot = '/test/workspace';
+    vi.spyOn(analyzer as unknown as {
+      _persistIndexMetadata(): Promise<void>;
+    }, '_persistIndexMetadata').mockResolvedValue();
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
       source._lastWorkspaceRoot = workspaceRoot;

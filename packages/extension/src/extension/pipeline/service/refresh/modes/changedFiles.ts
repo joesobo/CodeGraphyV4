@@ -42,7 +42,7 @@ export async function refreshChangedFilesForFacade(
       );
     },
     prepare: async (): Promise<WorkspacePipelineOwnedRefreshAttempt<IGraphData>> => {
-      const snapshot = captureRefreshFacadeState(facade);
+      const snapshot = facade._captureRefreshState();
       let cachePatch: WorkspacePipelineCachePatch | undefined;
       let resolvedChangedFilePaths: readonly string[] | undefined;
       try {
@@ -92,43 +92,14 @@ export async function refreshChangedFilesForFacade(
           persistIndexMetadata: () =>
             facade._persistIndexMetadata(resolvedChangedFilePaths),
           result: graph,
-          rollback: () => restoreRefreshFacadeState(facade, snapshot),
+          rollback: () => facade._restoreRefreshState(snapshot),
         };
       } catch (error) {
-        restoreRefreshFacadeState(facade, snapshot);
+        facade._restoreRefreshState(snapshot);
         throw error;
       }
     },
   });
-}
-
-function captureRefreshFacadeState(facade: RefreshFacadeContext) {
-  return structuredClone({
-    cache: facade._cache,
-    completeGraphData: facade._completeGraphData,
-    discoveredDirectories: facade._lastDiscoveredDirectories,
-    discoveredFiles: facade._lastDiscoveredFiles,
-    fileAnalysis: facade._lastFileAnalysis,
-    fileConnections: facade._lastFileConnections,
-    gitIgnoredPaths: facade._lastGitIgnoredPaths,
-    graphData: facade._lastGraphData,
-    workspaceRoot: facade._lastWorkspaceRoot,
-  });
-}
-
-function restoreRefreshFacadeState(
-  facade: RefreshFacadeContext,
-  snapshot: ReturnType<typeof captureRefreshFacadeState>,
-): void {
-  facade._cache = snapshot.cache;
-  facade._completeGraphData = snapshot.completeGraphData;
-  facade._lastDiscoveredDirectories = snapshot.discoveredDirectories;
-  facade._lastDiscoveredFiles = snapshot.discoveredFiles;
-  facade._lastFileAnalysis = snapshot.fileAnalysis;
-  facade._lastFileConnections = snapshot.fileConnections;
-  facade._lastGitIgnoredPaths = snapshot.gitIgnoredPaths;
-  facade._lastGraphData = snapshot.graphData;
-  facade._lastWorkspaceRoot = snapshot.workspaceRoot;
 }
 
 async function getChangedFileDiscoveryState(

@@ -4,6 +4,7 @@ import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import type { WorkspacePipelineCachePatch } from '../cache/storage';
+import type { WorkspacePipelineRefreshState } from '../base/internal';
 import type { AnalysisScopeRefreshFacade } from './scope';
 import type { RefreshSourceFacade } from './source';
 
@@ -23,11 +24,13 @@ export interface RefreshFacadeContext
     pluginIds: readonly string[] | undefined,
     disabledPlugins: ReadonlySet<string>,
   ): string[];
+  _captureRefreshState(): WorkspacePipelineRefreshState;
   _getWorkspaceRoot(): string | undefined;
   _lastGitIgnoredPaths: string[];
   _persistCache(): void;
   _persistCachePatch(patch: WorkspacePipelineCachePatch): Promise<void>;
   _persistIndexMetadata(resolvedChangedFilePaths?: readonly string[]): Promise<void>;
+  _restoreRefreshState(snapshot: WorkspacePipelineRefreshState): void;
   _registry: Pick<PluginRegistry, 'list' | 'listNodeTypes' | 'notifyFilesChanged'>;
   _toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined;
   getPluginFilterPatterns(disabledPlugins: Set<string>): string[];

@@ -12,7 +12,7 @@ export interface WorkspaceCacheUpdateProgress {
 
 export interface WorkspaceCacheUpdateSchedulerOptions {
   debounceMs: number;
-  hasGraphCache(): boolean;
+  canUpdate(): boolean;
   maxBatchAgeMs: number;
   onError?(error: unknown, filePaths: readonly string[]): void;
   onStatus(status: WorkspaceCacheUpdateStatus): void;
@@ -77,7 +77,7 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
   }
 
   private enqueue(filePaths: readonly string[]): number | undefined {
-    if (this.disposed || !this.options.hasGraphCache() || filePaths.length === 0) {
+    if (this.disposed || !this.options.canUpdate() || filePaths.length === 0) {
       return undefined;
     }
     const revision = ++this.nextRevision;

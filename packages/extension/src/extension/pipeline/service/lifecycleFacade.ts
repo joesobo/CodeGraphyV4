@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
-import { isDefaultExcludedPath, matchesAnyPattern } from '@codegraphy-dev/core';
+import {
+  isDefaultExcludedPath,
+  isWorkspaceDiscoveryLifecyclePath,
+  matchesAnyPattern,
+} from '@codegraphy-dev/core';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import { WorkspacePipelineRefreshFacade } from './refreshFacade';
 import { clearWorkspacePipelineStoredCache } from './cache/storage';
@@ -66,7 +70,7 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
     if (!workspaceRoot) return false;
     const relativePath = this._toWorkspaceRelativePath(workspaceRoot, filePath);
     if (!relativePath) return false;
-    if (relativePath === '.codegraphy/settings.json') return true;
+    if (isWorkspaceDiscoveryLifecyclePath(relativePath)) return true;
     if (isDefaultExcludedPath(relativePath)) return false;
     const filterPatterns = [
       ...this._getEffectiveCustomFilterPatterns([]),

@@ -266,6 +266,20 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     })._getWorkspaceRoot()).toBeUndefined();
   });
 
+  it('observes Git discovery lifecycle files before default exclusions', () => {
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+
+    expect(analyzer.shouldObserveWorkspacePath('/test/workspace/.git/index')).toBe(true);
+    expect(analyzer.shouldObserveWorkspacePath('/test/workspace/.git/info/exclude')).toBe(true);
+  });
+
   it('defers repo-local Graph Cache hydration until cached graph replay', async () => {
     const workspaceRoot = createWorkspaceRoot();
     workspaceFoldersValue = [

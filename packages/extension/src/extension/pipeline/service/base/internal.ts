@@ -5,7 +5,10 @@ import type {
   IPluginNodeType,
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { IDiscoveredFile } from '@codegraphy-dev/core';
+import type {
+  IDiscoveredFile,
+  WorkspaceIndexEngineState,
+} from '@codegraphy-dev/core';
 import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
@@ -41,9 +44,26 @@ import {
 import { WorkspacePipelineStateBase } from './state';
 import { listActiveAnalysisPluginIds } from '../../pluginAnalysis/selection';
 
+export interface WorkspacePipelineRefreshState {
+  completeGraphData: IGraphData;
+  engineState: WorkspaceIndexEngineState;
+}
+
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected _completeGraphData: IGraphData = { nodes: [], edges: [] };
 
+  protected _captureRefreshState(): WorkspacePipelineRefreshState {
+    return structuredClone({
+      completeGraphData: this._completeGraphData,
+      engineState: this._engineState,
+    });
+  }
+
+  protected _restoreRefreshState(snapshot: WorkspacePipelineRefreshState): void {
+    const restored = structuredClone(snapshot);
+    this._completeGraphData = restored.completeGraphData;
+    Object.assign(this._engineState, restored.engineState);
+  }
   protected _listPluginNodeTypes(
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): readonly IPluginNodeType[] {

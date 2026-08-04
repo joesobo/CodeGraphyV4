@@ -88,7 +88,10 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
   }
 
   hasIndex(): boolean {
-    return hasWorkspacePipelineIndex(this._getWorkspaceRoot());
+    return hasWorkspacePipelineIndex(
+      this._getWorkspaceRoot(),
+      this.hasLoadedGraphState(),
+    );
   }
 
   hasLoadedGraphState(): boolean {

@@ -57,6 +57,7 @@ export {
   type CodeGraphyWorkspaceFileEvent,
   type SubscribeCodeGraphyWorkspaceChangesOptions,
 } from './liveUpdate/observation/coordinator';
+export { isWorkspaceDiscoveryLifecyclePath } from './liveUpdate/eligibility';
 export {
   mergeWorkspaceIndexGraphData,
   refreshWorkspaceIndexAnalysisScope,
@@ -71,6 +72,7 @@ export {
   type WorkspaceIndexRefreshDependencies,
   type WorkspaceIndexRefreshSource,
   type WorkspaceIndexAnalysisScopeRefreshDependencies,
+  type WorkspaceIndexCachePatch,
   type WorkspaceIndexPluginRefreshDependencies,
 } from './refresh';
 

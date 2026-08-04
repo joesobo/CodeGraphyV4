@@ -2,6 +2,7 @@ import {
   createEmptyWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../../cache';
+import type { WorkspaceIndexCachePatch as WorkspacePipelineCachePatch } from '@codegraphy-dev/core';
 import {
   clearWorkspaceAnalysisDatabaseCacheQueued,
   patchWorkspaceAnalysisDatabaseCache,
@@ -9,15 +10,9 @@ import {
 } from '../../database/cache/storage';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IPluginNodeType } from '@codegraphy-dev/plugin-api';
-
-export interface WorkspacePipelineCachePatch {
-  completeGraph?: IGraphData;
-  deleteFilePaths: readonly string[];
-  deleteNodeIds?: readonly string[];
-  upsertFilePaths: readonly string[];
-  upsertNodeIds?: readonly string[];
-  graph?: IGraphData;
-}
+export type {
+  WorkspaceIndexCachePatch as WorkspacePipelineCachePatch,
+} from '@codegraphy-dev/core';
 
 export function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,

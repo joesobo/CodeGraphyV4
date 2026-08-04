@@ -8,10 +8,12 @@ import {
   type WorkspaceCacheUpdateStatus,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
 import {
-  createPathSignature,
   registerWorkspaceCacheUpdates,
   type WorkspaceCacheUpdateRegistrationDependencies,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/register';
+import {
+  createPathSignature,
+} from '../../../../src/extension/workspaceFiles/cacheUpdates/fingerprint';
 
 interface FileUri {
   fsPath: string;
@@ -64,7 +66,6 @@ function createHarness() {
         return disposable;
       }),
     })),
-    hasGraphCache: vi.fn(() => true),
     markGraphCacheStale: vi.fn(),
     pathSignature: vi.fn(async () => 'signature-1'),
     onDidCreateFiles: vi.fn((listener) => {
@@ -120,6 +121,7 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     registerWorkspaceCacheUpdates(
       context,
       {
+        canUpdateWorkspaceFiles: () => true,
         refreshIndexStatus: vi.fn(),
         updateWorkspaceFiles: vi.fn(async () => undefined),
       },
@@ -154,6 +156,25 @@ describe('workspaceFiles/cacheUpdates/register', () => {
       [['/workspace/src/terminal-deleted.ts']],
     ]);
     expect(context.subscriptions).toHaveLength(10);
+  });
+
+  it('delivers changes when loaded state can recover a missing Graph Cache', () => {
+    const harness = createHarness();
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        canUpdateWorkspaceFiles: () => true,
+        refreshIndexStatus: vi.fn(),
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    harness.listeners.watcherChange()?.(fileUri('/workspace/src/recover.ts'));
+
+    expect(harness.schedulerOptions()?.canUpdate()).toBe(true);
+    expect(harness.notify).toHaveBeenCalledWith(['/workspace/src/recover.ts']);
   });
 
   it('routes immediate Graph View paths through the shared normalized scheduler', async () => {
@@ -254,6 +275,27 @@ describe('workspaceFiles/cacheUpdates/register', () => {
 
     await update?.(['/workspace/src/app.ts'], signal, vi.fn());
     expect(updateWorkspaceFiles).toHaveBeenCalledOnce();
+  });
+
+  it('retries the same signature after targeted persistence fails', async () => {
+    const harness = createHarness();
+    const metadataError = new Error('metadata write failed');
+    const updateWorkspaceFiles = vi.fn()
+      .mockRejectedValueOnce(metadataError)
+      .mockResolvedValueOnce(undefined);
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      { refreshIndexStatus: vi.fn(), updateWorkspaceFiles },
+      harness.dependencies,
+    );
+    const update = harness.schedulerOptions()?.update;
+    const signal = new AbortController().signal;
+
+    await expect(update?.(['/workspace/src/app.ts'], signal, vi.fn()))
+      .rejects.toBe(metadataError);
+    await update?.(['/workspace/src/app.ts'], signal, vi.fn());
+
+    expect(updateWorkspaceFiles).toHaveBeenCalledTimes(2);
   });
 
   it('distinguishes same-size content changes when timestamps are preserved', async () => {

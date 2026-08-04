@@ -23,6 +23,7 @@ export type { WorkspaceIndexFullRefreshReason } from './refresh/fullRefreshRequi
 
 export type {
   WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexCachePatch,
   WorkspaceIndexPluginInfo,
   WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexRefreshDependencies,

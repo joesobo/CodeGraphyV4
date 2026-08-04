@@ -10,14 +10,14 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     vi.useRealTimers();
   });
 
-  it('waits for an existing Graph Cache and coalesces saved paths', async () => {
+  it('waits until targeted updates are eligible and coalesces saved paths', async () => {
     vi.useFakeTimers();
     const update = vi.fn(async () => undefined);
     const statuses: WorkspaceCacheUpdateStatus[] = [];
-    let hasGraphCache = false;
+    let canUpdate = false;
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 500,
-      hasGraphCache: () => hasGraphCache,
+      canUpdate: () => canUpdate,
       maxBatchAgeMs: 2_000,
       onStatus: status => statuses.push(status),
       update,
@@ -29,7 +29,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     expect(update).not.toHaveBeenCalled();
     expect(statuses).toEqual([]);
 
-    hasGraphCache = true;
+    canUpdate = true;
     scheduler.notify([
       '/workspace/src/a.ts',
       '/workspace/src/b.ts',
@@ -74,7 +74,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     });
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 500,
-      hasGraphCache: () => true,
+      canUpdate: () => true,
       maxBatchAgeMs: 2_000,
       onStatus: vi.fn(),
       update,
@@ -101,7 +101,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     const update = vi.fn<WorkspaceCacheUpdateSchedulerOptions['update']>(async () => undefined);
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 250,
-      hasGraphCache: () => true,
+      canUpdate: () => true,
       maxBatchAgeMs: 2_000,
       onStatus: vi.fn(),
       update,
@@ -129,7 +129,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     });
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 250,
-      hasGraphCache: () => true,
+      canUpdate: () => true,
       maxBatchAgeMs: 2_000,
       onStatus: vi.fn(),
       update,
@@ -151,7 +151,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     const update = vi.fn(async () => undefined);
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 500,
-      hasGraphCache: () => true,
+      canUpdate: () => true,
       maxBatchAgeMs: 1_000,
       onStatus: vi.fn(),
       update,
@@ -175,7 +175,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     const onError = vi.fn();
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 250,
-      hasGraphCache: () => true,
+      canUpdate: () => true,
       maxBatchAgeMs: 2_000,
       onError,
       onStatus: vi.fn(),
@@ -202,7 +202,7 @@ describe('workspaceFiles/cacheUpdates/model', () => {
     const onStatus = vi.fn();
     const scheduler = createWorkspaceCacheUpdateScheduler({
       debounceMs: 500,
-      hasGraphCache: () => true,
+      canUpdate: () => true,
       maxBatchAgeMs: 2_000,
       onStatus,
       update,

@@ -12,12 +12,16 @@ interface WorkspacePipelineSignatureDependencies {
 interface WorkspacePipelinePersistIndexDependencies
   extends WorkspacePipelineSignatureDependencies {
   getCurrentCommitSha?: () => Promise<string | null> | string | null;
-  persistIndexMetadata?: typeof persistCodeGraphyWorkspaceIndexMetadata;
+  persistIndexMetadata?: (
+    workspaceRoot: string,
+    metadata: Parameters<typeof persistCodeGraphyWorkspaceIndexMetadata>[1],
+  ) => Promise<void> | void;
   warn(message: string, error: unknown): void;
 }
 
 export function hasWorkspacePipelineIndex(
   workspaceRoot: string | undefined,
+  hasLoadedGraphState = false,
 ): boolean {
   if (!workspaceRoot) {
     return false;
@@ -28,7 +32,8 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  return fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
+  return hasLoadedGraphState
+    || fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
 }
 
 export async function persistWorkspacePipelineIndexMetadata(
@@ -42,7 +47,7 @@ export async function persistWorkspacePipelineIndexMetadata(
 
   try {
     const currentCommitSha = await dependencies.getCurrentCommitSha?.();
-    (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
+    await (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
       pluginBuildSignature: dependencies.getPluginBuildSignature(),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
@@ -58,5 +63,6 @@ export async function persistWorkspacePipelineIndexMetadata(
     }
   } catch (error) {
     dependencies.warn('[CodeGraphy] Failed to update repo index metadata.', error);
+    throw error;
   }
 }

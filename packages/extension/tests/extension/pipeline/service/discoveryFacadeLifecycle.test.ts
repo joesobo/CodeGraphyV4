@@ -112,6 +112,6 @@ describe('pipeline/service/discoveryFacade lifecycle', () => {
     expect(getWorkspacePipelinePluginFilterPatterns).toHaveBeenCalledWith(facade._registry, disabledPlugins);
 
     expect(facade.hasIndex()).toBe(true);
-    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace');
+    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace', false);
   });
 });

@@ -151,6 +151,10 @@ export class GraphViewProviderRuntime {
     return this._analyzer?.shouldObserveWorkspacePath(filePath, this._disabledPlugins) ?? true;
   }
 
+  public canUpdateWorkspaceFiles(): boolean {
+    return this._analyzer?.hasIndex() ?? false;
+  }
+
   public isGraphOpen(): boolean {
     return isGraphViewVisible(this._view, this._panels);
   }
