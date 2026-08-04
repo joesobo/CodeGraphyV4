@@ -55,7 +55,7 @@ export {
   type CodeGraphyWorkspaceChangeSubscription,
   type CodeGraphyWorkspaceFileEvent,
   type SubscribeCodeGraphyWorkspaceChangesOptions,
-} from './liveUpdate/observation/model';
+} from './liveUpdate/observation/coordinator';
 export {
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,

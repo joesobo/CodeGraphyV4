@@ -51,7 +51,6 @@
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
     "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
-    "chokidar": "4.0.3",
     "libsql": "0.5.29",
     "minimatch": "^10.2.5",
     "tree-sitter": "^0.25.1",

@@ -210,9 +210,6 @@ importers:
       '@tree-sitter-grammars/tree-sitter-lua':
         specifier: 0.4.1
         version: 0.4.1(tree-sitter@0.25.1)
-      chokidar:
-        specifier: 4.0.3
-        version: 4.0.3
       libsql:
         specifier: 0.5.29
         version: 0.5.29

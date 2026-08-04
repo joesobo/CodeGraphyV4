@@ -1,8 +1,8 @@
 import { realpath } from 'node:fs/promises';
 import path from 'node:path';
-import { watch, type FSWatcher } from 'chokidar';
 import { resolveWorkspaceRoot } from '../../../workspace/paths';
 import { isWorkspaceDiscoveryLifecyclePath } from '../eligibility';
+import { ShallowWatchForest, type ShallowFileSystemEvent } from './forest';
 import {
   buildWorkspaceObservationPlan,
   resolveGitPolicyDependencyPaths,
@@ -37,15 +37,8 @@ interface WatchGeneration {
   readonly events: RawObservationEvent[];
   readonly id: number;
   readonly plan: WorkspaceObservationPlan;
+  readonly forest: ShallowWatchForest;
   flushTimer?: ReturnType<typeof setTimeout>;
-  watcher: FSWatcher;
-}
-
-function toEventType(eventName: string): CodeGraphyWorkspaceFileEvent['type'] | undefined {
-  if (eventName === 'add' || eventName === 'addDir') return 'create';
-  if (eventName === 'change') return 'update';
-  if (eventName === 'unlink' || eventName === 'unlinkDir') return 'delete';
-  return undefined;
 }
 
 function toWorkspacePath(workspaceRoot: string, filePath: string): string {
@@ -95,7 +88,7 @@ class WorkspaceWatchCoordinator implements CodeGraphyWorkspaceChangeSubscription
     this.current = undefined;
     if (current) {
       if (current.flushTimer) clearTimeout(current.flushTimer);
-      await current.watcher.close();
+      await current.forest.stop();
     }
   }
 
@@ -126,23 +119,18 @@ class WorkspaceWatchCoordinator implements CodeGraphyWorkspaceChangeSubscription
     if (this.disposed) return;
     this.lifecycleEvents.set(event.path, event);
     this.rebuildRevision += 1;
-    if (!this.initialized || this.rebuildPromise) return;
-    this.rebuildPromise = this.rebuildUntilStable()
-      .catch(error => this.reportError(error))
-      .finally(() => {
-        this.rebuildPromise = undefined;
-        if (this.lifecycleEvents.size > 0 && !this.disposed) {
-          this.requestRebuildTask();
-        }
-      });
+    this.startRebuildTask();
   }
 
-  private requestRebuildTask(): void {
-    if (this.rebuildPromise || this.disposed) return;
+  private startRebuildTask(): void {
+    if (!this.initialized || this.rebuildPromise || this.disposed) return;
+    let succeeded = false;
     this.rebuildPromise = this.rebuildUntilStable()
+      .then(() => { succeeded = true; })
       .catch(error => this.reportError(error))
       .finally(() => {
         this.rebuildPromise = undefined;
+        if (succeeded && this.lifecycleEvents.size > 0) this.startRebuildTask();
       });
   }
 
@@ -151,7 +139,7 @@ class WorkspaceWatchCoordinator implements CodeGraphyWorkspaceChangeSubscription
       const revision = this.rebuildRevision;
       const candidate = await this.createGeneration();
       if (this.disposed) {
-        await candidate.watcher.close();
+        await candidate.forest.stop();
         return;
       }
       const invalidatingEvents = candidate.events.filter(event => (
@@ -162,7 +150,7 @@ class WorkspaceWatchCoordinator implements CodeGraphyWorkspaceChangeSubscription
           this.lifecycleEvents.set(event.path, event);
           this.rebuildRevision += 1;
         }
-        await candidate.watcher.close();
+        await candidate.forest.stop();
         continue;
       }
 
@@ -175,7 +163,7 @@ class WorkspaceWatchCoordinator implements CodeGraphyWorkspaceChangeSubscription
       candidate.events.length = 0;
       if (previous) {
         if (previous.flushTimer) clearTimeout(previous.flushTimer);
-        await previous.watcher.close();
+        await previous.forest.stop();
       }
       this.publish([...lifecycleEvents, ...fileChanges]);
       await this.processEvents(candidate, bufferedEvents);
@@ -186,40 +174,33 @@ class WorkspaceWatchCoordinator implements CodeGraphyWorkspaceChangeSubscription
   private async createGeneration(): Promise<WatchGeneration> {
     const physicalRoot = await this.physicalRootPromise;
     const plan = await buildWorkspaceObservationPlan(physicalRoot);
-    const watcher = watch([...plan.directories], {
-      depth: 0,
-      ignoreInitial: true,
-      persistent: true,
+    const events: RawObservationEvent[] = [];
+    const generationId = ++this.generationId;
+    const receive = (event: ShallowFileSystemEvent): void => {
+      if (this.disposed) return;
+      const workspacePath = toWorkspacePath(physicalRoot, event.path);
+      if (!workspacePath || workspacePath.startsWith('../')) return;
+      events.push({
+        ...event,
+        path: path.join(this.logicalRoot, workspacePath),
+        workspacePath,
+      });
+      if (this.current?.id === generationId) {
+        this.scheduleEventFlush(generation);
+      }
+    };
+    const forest = await ShallowWatchForest.start(plan.directories, {
+      onError: error => this.reportError(error),
+      onEvents: receivedEvents => {
+        for (const event of receivedEvents) receive(event);
+      },
     });
     const generation: WatchGeneration = {
-      events: [],
-      id: ++this.generationId,
+      events,
+      forest,
+      id: generationId,
       plan,
-      watcher,
     };
-    watcher.on('all', (eventName, filePath) => {
-      const type = toEventType(eventName);
-      if (!type || this.disposed) return;
-      const workspacePath = toWorkspacePath(physicalRoot, filePath);
-      if (!workspacePath || workspacePath.startsWith('../')) return;
-      const event: RawObservationEvent = {
-        directory: eventName === 'addDir' || eventName === 'unlinkDir',
-        path: path.join(this.logicalRoot, workspacePath),
-        type,
-        workspacePath,
-      };
-      generation.events.push(event);
-      if (this.current?.id === generation.id) this.scheduleEventFlush(generation);
-    });
-    await new Promise<void>((resolve, reject) => {
-      const ready = (): void => {
-        watcher.off('error', reject);
-        resolve();
-      };
-      watcher.once('ready', ready);
-      watcher.once('error', reject);
-    });
-    watcher.on('error', error => this.reportError(error));
     return generation;
   }
 

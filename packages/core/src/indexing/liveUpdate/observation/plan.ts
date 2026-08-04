@@ -3,11 +3,12 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { minimatch } from 'minimatch';
 import { collectGitIgnoredPathsFromGit } from '../../../discovery/file/service';
-import { isDefaultExcludedPath, matchesAnyPattern } from '../../../discovery/pathMatching';
+import { isDefaultExcludedPath } from '../../../discovery/pathMatching';
 import { readCodeGraphyWorkspaceSettings } from '../../../workspace/settings';
 import {
   createActiveWorkspaceFilterPatterns,
   isWorkspaceDiscoveryLifecyclePath,
+  isWorkspaceLiveUpdatePathEligible,
 } from '../eligibility';
 
 export interface WorkspaceObservationPlan {
@@ -43,9 +44,19 @@ function collectTrackedDirectoryPaths(workspaceRoot: string): Set<string> {
 }
 
 function createPrunableFilterPatterns(patterns: readonly string[]): string[] {
-  return patterns
-    .filter(pattern => !pattern.startsWith('!') && pattern.endsWith('/**'))
-    .map(pattern => pattern.slice(0, -3));
+  return patterns.flatMap((pattern) => {
+    if (pattern.startsWith('!')) return [];
+    if (pattern.endsWith('/**/*')) return [pattern.slice(0, -5)];
+    if (pattern.endsWith('/**')) return [pattern.slice(0, -3)];
+    return [];
+  });
+}
+
+function isGitIgnoredPath(
+  gitIgnoredPaths: ReadonlySet<string>,
+  workspacePath: string,
+): boolean {
+  return gitIgnoredPaths.has(workspacePath) || gitIgnoredPaths.has(`${workspacePath}/`);
 }
 
 export class WorkspaceObservationPolicy {
@@ -82,10 +93,14 @@ export class WorkspaceObservationPolicy {
   }
 
   isEligiblePath(workspacePath: string, gitIgnoredPaths: ReadonlySet<string>): boolean {
-    if (isWorkspaceDiscoveryLifecyclePath(workspacePath)) return true;
-    return !isDefaultExcludedPath(workspacePath)
-      && !matchesAnyPattern(workspacePath, this.activeFilterPatterns)
-      && !gitIgnoredPaths.has(workspacePath);
+    return isWorkspaceLiveUpdatePathEligible(
+      workspacePath,
+      this.activeFilterPatterns,
+      gitIgnoredPaths,
+    ) && (
+      isWorkspaceDiscoveryLifecyclePath(workspacePath)
+      || !isDefaultExcludedPath(workspacePath)
+    );
   }
 
   canObserveDirectory(
@@ -94,7 +109,7 @@ export class WorkspaceObservationPolicy {
   ): boolean {
     if (isDefaultExcludedPath(workspacePath)) return false;
     if (
-      gitIgnoredPaths.has(workspacePath)
+      isGitIgnoredPath(gitIgnoredPaths, workspacePath)
       && !this.trackedDirectoryPaths.has(workspacePath)
     ) return false;
     return !this.prunableFilterPatterns.some(pattern => minimatch(
@@ -151,7 +166,7 @@ export async function buildWorkspaceObservationPlan(
   const candidates: WorkspaceObservationCandidates = { directories: [], files: [] };
   await walkObservationCandidates(physicalRoot, '', policy, candidates);
   const gitIgnoredPaths = policy.gitIgnoredPaths([
-    ...candidates.directories,
+    ...candidates.directories.map(directory => `${directory}/`),
     ...candidates.files,
   ]);
   const directories = [
