@@ -375,7 +375,7 @@ export async function indexCodeGraphyWorkspace(
           nodeTypes,
         }, recovery);
       }
-      persistWorkspaceIndexMetadata({
+      await persistWorkspaceIndexMetadata({
         pluginBuildSignature,
         pluginSignature,
         failedPluginIds,

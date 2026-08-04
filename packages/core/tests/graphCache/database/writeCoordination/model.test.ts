@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import Database from 'libsql';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  hasWorkspaceCacheWriteOwnership,
   readWorkspaceCacheWriteRevisionAsync,
   withWorkspaceCacheWriteLock,
   withWorkspaceCacheWriteLockAsync,
@@ -95,6 +96,25 @@ afterEach(() => {
 });
 
 describe('Graph Cache write coordination', () => {
+  it('exposes ownership only while the async writer is active', async () => {
+    const databasePath = createDatabasePath();
+    let detachedOwnership: boolean | undefined;
+    let finishDetachedCheck!: () => void;
+    const detachedCheck = new Promise<void>(resolve => { finishDetachedCheck = resolve; });
+
+    await withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      expect(hasWorkspaceCacheWriteOwnership(databasePath)).toBe(true);
+      setImmediate(() => {
+        detachedOwnership = hasWorkspaceCacheWriteOwnership(databasePath);
+        finishDetachedCheck();
+      });
+    });
+    await detachedCheck;
+
+    expect(detachedOwnership).toBe(false);
+    expect(hasWorkspaceCacheWriteOwnership(databasePath)).toBe(false);
+  });
+
   it('serializes asynchronous writers through a persistent SQLite coordinator', async () => {
     const databasePath = createDatabasePath();
     const order: string[] = [];

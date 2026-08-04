@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { persistCodeGraphyWorkspaceIndexMetadata } from '@codegraphy-dev/core';
-import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
+import { readCodeGraphyRepoMeta } from '../../../repoSettings/meta';
 import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 
 interface WorkspacePipelineSignatureDependencies {
@@ -48,6 +48,9 @@ export async function persistWorkspacePipelineIndexMetadata(
   try {
     const currentCommitSha = await dependencies.getCurrentCommitSha?.();
     await (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
+      ...(dependencies.getCurrentCommitSha
+        ? { lastIndexedCommit: currentCommitSha ?? null }
+        : {}),
       pluginBuildSignature: dependencies.getPluginBuildSignature(),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
@@ -55,12 +58,6 @@ export async function persistWorkspacePipelineIndexMetadata(
         ? {}
         : { resolvedChangedFilePaths }),
     });
-    if (dependencies.getCurrentCommitSha) {
-      writeCodeGraphyRepoMeta(workspaceRoot, {
-        ...readCodeGraphyRepoMeta(workspaceRoot),
-        lastIndexedCommit: currentCommitSha ?? null,
-      });
-    }
   } catch (error) {
     dependencies.warn('[CodeGraphy] Failed to update repo index metadata.', error);
     throw error;

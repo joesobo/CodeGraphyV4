@@ -1,9 +1,7 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
   createDefaultCodeGraphyWorkspaceMeta,
   readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
 } from '@codegraphy-dev/core';
 
 export interface ICodeGraphyRepoMeta {
@@ -26,20 +24,6 @@ export function getCodeGraphyRepoMetaPath(workspaceRoot: string): string {
 
 export function readCodeGraphyRepoMeta(workspaceRoot: string): ICodeGraphyRepoMeta {
   return toRepoMeta(readCodeGraphyWorkspaceMeta(workspaceRoot));
-}
-
-export function writeCodeGraphyRepoMeta(
-  workspaceRoot: string,
-  meta: ICodeGraphyRepoMeta,
-): void {
-  if (!fs.existsSync(workspaceRoot)) {
-    return;
-  }
-
-  writeCodeGraphyWorkspaceMeta(workspaceRoot, {
-    ...readCodeGraphyWorkspaceMeta(workspaceRoot),
-    ...meta,
-  });
 }
 
 function toRepoMeta(meta: ReturnType<typeof readCodeGraphyWorkspaceMeta>): ICodeGraphyRepoMeta {

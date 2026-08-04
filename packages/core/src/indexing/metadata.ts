@@ -69,7 +69,7 @@ export function createWorkspaceIndexPluginBuildSignature(
   );
 }
 
-export function persistWorkspaceIndexMetadata(input: {
+export async function persistWorkspaceIndexMetadata(input: {
   pluginSignature: string | null;
   pluginBuildSignature: string | null;
   failedPluginIds: ReadonlySet<string>;
@@ -77,8 +77,8 @@ export function persistWorkspaceIndexMetadata(input: {
   resolvedChangedFilePaths?: readonly string[];
   settingsPluginIds: ReadonlySet<string>;
   workspaceRoot: string;
-}): void {
-  persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
+}): Promise<void> {
+  await persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
     pluginSignature: input.pluginSignature,
     pluginBuildSignature: input.pluginBuildSignature,
     failedPluginIds: [...input.failedPluginIds].sort((left, right) => left.localeCompare(right)),

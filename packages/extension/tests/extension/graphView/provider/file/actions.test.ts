@@ -159,7 +159,7 @@ describe('graphView/provider/file/actions', () => {
 
   it('keeps a completed file action successful when its targeted update marks the index stale', async () => {
     const updateError = new Error('plugin requires explicit Re-index');
-    const markGraphCacheStale = vi.fn();
+    const markGraphCacheStale = vi.fn(async () => undefined);
     const logWorkspaceUpdateError = vi.fn();
     const source = {
       _refreshIndexStatus: vi.fn(),

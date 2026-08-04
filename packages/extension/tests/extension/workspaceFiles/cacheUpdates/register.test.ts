@@ -59,7 +59,7 @@ function createHarness() {
         return disposable;
       }),
     })),
-    markGraphCacheStale: vi.fn(),
+    markGraphCacheStale: vi.fn(async () => undefined),
     pathSignature: vi.fn(async () => 'signature-1'),
     onDidCreateFiles: vi.fn((listener) => {
       createListener = listener;
@@ -191,9 +191,13 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     expect(harness.notifyImmediately).toHaveBeenCalledWith(['/workspace/src/new.ts']);
   });
 
-  it('marks the Graph Cache stale when a targeted update cannot complete', () => {
+  it('marks the Graph Cache stale before refreshing index status', async () => {
     const harness = createHarness();
     const refreshIndexStatus = vi.fn();
+    let finishStaleMark: (() => void) | undefined;
+    harness.dependencies.markGraphCacheStale = vi.fn(() => new Promise<void>(resolve => {
+      finishStaleMark = resolve;
+    }));
 
     registerWorkspaceCacheUpdates(
       { subscriptions: [] },
@@ -204,7 +208,7 @@ describe('workspaceFiles/cacheUpdates/register', () => {
       harness.dependencies,
     );
 
-    harness.schedulerOptions()?.onError?.(
+    const errorHandling = harness.schedulerOptions()?.onError?.(
       new Error('requires explicit Re-index'),
       ['/workspace/src/app.ts'],
     );
@@ -213,6 +217,11 @@ describe('workspaceFiles/cacheUpdates/register', () => {
       '/workspace',
       ['/workspace/src/app.ts'],
     );
+    expect(refreshIndexStatus).not.toHaveBeenCalled();
+
+    finishStaleMark?.();
+    await errorHandling;
+
     expect(refreshIndexStatus).toHaveBeenCalledOnce();
   });
 

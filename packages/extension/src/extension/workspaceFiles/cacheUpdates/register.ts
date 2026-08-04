@@ -60,7 +60,7 @@ export interface WorkspaceCacheUpdateRegistrationDependencies {
   ): WorkspaceCacheUpdateScheduler;
   createStatusBarItem(): StatusBarItem;
   createFileSystemWatcher(pattern: string): FileSystemWatcher;
-  markGraphCacheStale(workspaceRoot: string, filePaths: readonly string[]): void;
+  markGraphCacheStale(workspaceRoot: string, filePaths: readonly string[]): Promise<void>;
   pathSignature(filePath: string): Promise<string>;
   onDidCreateFiles(
     listener: (event: { files: readonly FileUri[] }) => void,
@@ -106,10 +106,10 @@ export function registerWorkspaceCacheUpdates(
     debounceMs: CACHE_UPDATE_DEBOUNCE_MS,
     canUpdate: () => provider.canUpdateWorkspaceFiles?.() ?? true,
     maxBatchAgeMs: CACHE_UPDATE_MAX_BATCH_AGE_MS,
-    onError: (_error, filePaths) => {
+    onError: async (_error, filePaths) => {
       const workspaceRoot = dependencies.workspaceRoot();
       if (!workspaceRoot) return;
-      dependencies.markGraphCacheStale(workspaceRoot, filePaths);
+      await dependencies.markGraphCacheStale(workspaceRoot, filePaths);
       provider.refreshIndexStatus();
     },
     onStatus: status => renderWorkspaceCacheUpdateStatus(statusBarItem, status),

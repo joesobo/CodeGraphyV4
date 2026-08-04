@@ -6,15 +6,11 @@ import {
   hasWorkspacePipelineIndex,
   persistWorkspacePipelineIndexMetadata,
 } from '../../../../../src/extension/pipeline/service/cache/index';
-import {
-  readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta,
-} from '../../../../../src/extension/repoSettings/meta';
+import { readCodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 import type { ICodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 
 vi.mock('../../../../../src/extension/repoSettings/meta', () => ({
   readCodeGraphyRepoMeta: vi.fn(),
-  writeCodeGraphyRepoMeta: vi.fn(),
 }));
 
 describe('pipeline/service/cache/index', () => {
@@ -138,7 +134,6 @@ describe('pipeline/service/cache/index', () => {
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
     });
-    expect(writeCodeGraphyRepoMeta).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
   });
 
@@ -156,13 +151,10 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      lastIndexedCommit: 'def456',
       pluginBuildSignature: 'next-plugin-build-signature',
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
-    });
-    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
-      ...meta(),
-      lastIndexedCommit: 'def456',
     });
   });
 

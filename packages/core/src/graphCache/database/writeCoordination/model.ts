@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import Database from 'libsql';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { setTimeout as wait } from 'node:timers/promises';
 
 const LOCK_SUFFIX = '.write-lock.sqlite';
@@ -8,6 +9,7 @@ const RETRY_DELAY_MS = 25;
 const ACQUIRE_TIMEOUT_MS = 60_000;
 const syncWaitState = new Int32Array(new SharedArrayBuffer(4));
 const processLocks = new Set<string>();
+const ownershipContext = new AsyncLocalStorage<ReadonlyMap<string, { active: boolean }>>();
 
 type LockConnection = Database.Database;
 
@@ -125,6 +127,10 @@ export interface WorkspaceCacheWriteContext {
   revision: number;
 }
 
+export function hasWorkspaceCacheWriteOwnership(databasePath: string): boolean {
+  return ownershipContext.getStore()?.get(lockPath(databasePath))?.active ?? false;
+}
+
 export async function withWorkspaceCacheWriteOwnershipAsync<T>(
   databasePath: string,
   write: (context: WorkspaceCacheWriteContext) => Promise<T>,
@@ -132,10 +138,10 @@ export async function withWorkspaceCacheWriteOwnershipAsync<T>(
   const ownership = await acquireAsync(databasePath);
   let cacheCommitted = false;
   try {
-    return await write({
+    return await runWithOwnershipContext(databasePath, () => write({
       revision: ownership.revision,
       markCommitted: () => { cacheCommitted = true; },
-    });
+    }));
   } finally {
     ownership.release(cacheCommitted);
   }
@@ -163,10 +169,29 @@ export async function withWorkspaceCacheWriteLockAsync<T>(
   const ownership = await acquireAsync(databasePath);
   let advanceRevision = false;
   try {
-    const result = await write(ownership.revision);
+    const result = await runWithOwnershipContext(
+      databasePath,
+      () => write(ownership.revision),
+    );
     advanceRevision = true;
     return result;
   } finally {
     ownership.release(advanceRevision);
   }
+}
+
+function runWithOwnershipContext<T>(
+  databasePath: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const ownership = { active: true };
+  const ownedPaths = new Map(ownershipContext.getStore());
+  ownedPaths.set(lockPath(databasePath), ownership);
+  return ownershipContext.run(ownedPaths, async () => {
+    try {
+      return await operation();
+    } finally {
+      ownership.active = false;
+    }
+  });
 }

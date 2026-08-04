@@ -8,7 +8,6 @@ import * as pluginModule from '../../../../src/extension/pipeline/plugins/querie
 import * as runModule from '../../../../src/extension/pipeline/analysis/run';
 import * as stateModule from '../../../../src/extension/pipeline/analysis/state';
 import * as cacheStorageModule from '../../../../src/extension/pipeline/service/cache/storage';
-import * as repoMetaModule from '../../../../src/extension/repoSettings/meta';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -43,10 +42,6 @@ describe('WorkspacePipeline delegates', () => {
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
     vi.clearAllMocks();
-    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue(
-      repoMetaModule.createDefaultCodeGraphyRepoMeta(),
-    );
-    vi.spyOn(repoMetaModule, 'writeCodeGraphyRepoMeta').mockImplementation(() => {});
   });
 
   afterEach(() => {

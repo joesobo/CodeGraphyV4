@@ -42,7 +42,7 @@ export interface GraphViewProviderFileActionMethodDependencies {
   ): Thenable<'Delete' | undefined>;
   showInputBox: typeof vscode.window.showInputBox;
   showErrorMessage(message: string): void;
-  markGraphCacheStale?(workspaceRoot: string, filePaths: readonly string[]): void;
+  markGraphCacheStale?(workspaceRoot: string, filePaths: readonly string[]): Promise<void>;
   logWorkspaceUpdateError?(error: unknown, filePaths: readonly string[]): void;
   createDeleteAction(
     paths: string[],

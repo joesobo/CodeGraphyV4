@@ -3,15 +3,9 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
-  createDefaultCodeGraphyWorkspaceMeta,
-  readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
-} from '@codegraphy-dev/core';
-import {
   createDefaultCodeGraphyRepoMeta,
   getCodeGraphyRepoMetaPath,
   readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta,
 } from '../../../src/extension/repoSettings/meta';
 
 function createTempWorkspace(): string {
@@ -51,51 +45,6 @@ describe('extension/repoSettings/meta', () => {
 
   it('always uses meta.json as the persisted metadata filename', () => {
     expect(path.basename(getCodeGraphyRepoMetaPath('/workspace/project'))).toBe('meta.json');
-  });
-
-  it('writes and reads .codegraphy/meta.json', () => {
-    const workspaceRoot = createTempWorkspace();
-    tempDirectories.push(workspaceRoot);
-    const meta = {
-      version: 1 as const,
-      lastIndexedAt: '2026-04-08T19:00:00.000Z',
-      lastIndexedCommit: 'abc123',
-      pluginBuildSignature: 'plugin-build-sha',
-      pluginSignature: 'codegraphy.markdown@1.0.0',
-      settingsSignature: 'settings-sha',
-      pendingChangedFiles: ['src/index.ts'],
-    };
-
-    writeCodeGraphyRepoMeta(workspaceRoot, meta);
-    writeCodeGraphyRepoMeta(workspaceRoot, meta);
-
-    expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(true);
-    expect(JSON.parse(fs.readFileSync(
-      getCodeGraphyRepoMetaPath(workspaceRoot),
-      'utf8',
-    ))).toMatchObject(meta);
-    expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual(meta);
-  });
-
-  it('preserves Core-owned fields when extension metadata is updated', () => {
-    const workspaceRoot = createTempWorkspace();
-    tempDirectories.push(workspaceRoot);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
-      ...createDefaultCodeGraphyWorkspaceMeta(),
-      analysisVersion: 'analysis-v2',
-      failedPluginIds: ['acme.failed'],
-    });
-
-    writeCodeGraphyRepoMeta(workspaceRoot, {
-      ...createDefaultCodeGraphyRepoMeta(),
-      lastIndexedCommit: 'abc123',
-    });
-
-    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toMatchObject({
-      analysisVersion: 'analysis-v2',
-      failedPluginIds: ['acme.failed'],
-      lastIndexedCommit: 'abc123',
-    });
   });
 
   it('merges partial persisted meta with the default fields', () => {
@@ -182,23 +131,4 @@ describe('extension/repoSettings/meta', () => {
     expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual(createDefaultCodeGraphyRepoMeta());
   });
 
-  it('skips writes when the workspace root does not exist', () => {
-    const workspaceRoot = createTempWorkspace();
-    tempDirectories.push(workspaceRoot);
-    fs.rmSync(workspaceRoot, { recursive: true, force: true });
-    const meta = {
-      version: 1 as const,
-      lastIndexedAt: '2026-04-08T19:00:00.000Z',
-      lastIndexedCommit: 'abc123',
-      pluginBuildSignature: 'plugin-build-sha',
-      pluginSignature: 'codegraphy.markdown@1.0.0',
-      settingsSignature: 'settings-sha',
-      pendingChangedFiles: ['src/index.ts'],
-    };
-
-    expect(fs.existsSync(workspaceRoot)).toBe(false);
-    writeCodeGraphyRepoMeta(workspaceRoot, meta);
-
-    expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(false);
-  });
 });

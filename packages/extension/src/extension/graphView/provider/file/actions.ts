@@ -47,7 +47,7 @@ export function createGraphViewProviderFileActionMethods(
       await source._updateChangedFilesAndSendData(filePaths);
     } catch (error) {
       if (error instanceof WorkspaceCacheUpdateHandledError) return;
-      dependencies.markGraphCacheStale?.(workspaceFolderUri.fsPath, filePaths);
+      await dependencies.markGraphCacheStale?.(workspaceFolderUri.fsPath, filePaths);
       source._refreshIndexStatus?.();
       dependencies.logWorkspaceUpdateError?.(error, filePaths);
     }

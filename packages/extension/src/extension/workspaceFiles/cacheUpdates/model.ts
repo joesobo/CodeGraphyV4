@@ -14,7 +14,7 @@ export interface WorkspaceCacheUpdateSchedulerOptions {
   debounceMs: number;
   canUpdate(): boolean;
   maxBatchAgeMs: number;
-  onError?(error: unknown, filePaths: readonly string[]): void;
+  onError?(error: unknown, filePaths: readonly string[]): Promise<void> | void;
   onStatus(status: WorkspaceCacheUpdateStatus): void;
   update(
     filePaths: readonly string[],
@@ -129,10 +129,10 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
           });
         }
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!this.disposed && !controller.signal.aborted) {
           this.rejectWaiters(revision, error);
-          this.options.onError?.(error, filePaths);
+          await this.options.onError?.(error, filePaths);
           this.options.onStatus({
             state: 'error',
             fileCount: filePaths.length,

@@ -49,7 +49,7 @@ describe('workspace/meta', () => {
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual(meta);
   });
 
-  it('marks changed paths pending without dropping Core-owned metadata', () => {
+  it('marks changed paths pending without dropping Core-owned metadata', async () => {
     const workspaceRoot = createTempWorkspace();
     const meta = {
       ...createDefaultCodeGraphyWorkspaceMeta(),
@@ -62,7 +62,7 @@ describe('workspace/meta', () => {
     };
     writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
 
-    markCodeGraphyWorkspaceChangesPending(workspaceRoot, [
+    await markCodeGraphyWorkspaceChangesPending(workspaceRoot, [
       'src/existing.ts',
       'src/changed.ts',
     ]);
@@ -73,7 +73,7 @@ describe('workspace/meta', () => {
     });
   });
 
-  it('clears only resolved pending paths while preserving shared metadata fields', () => {
+  it('clears only resolved pending paths while preserving shared metadata fields', async () => {
     const workspaceRoot = createTempWorkspace();
     writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       ...createDefaultCodeGraphyWorkspaceMeta(),
@@ -82,7 +82,7 @@ describe('workspace/meta', () => {
       pendingChangedFiles: ['src/failed.ts', 'src/resolved.ts'],
     });
 
-    persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
+    await persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
       pluginSignature: 'plugins-sha',
       settingsSignature: 'settings-sha',
       resolvedChangedFilePaths: ['src/resolved.ts'],

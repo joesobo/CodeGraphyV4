@@ -1,9 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
 import { looseStringArraySchema } from '../values';
 import { getWorkspaceMetaPath } from './paths';
+import { getWorkspaceAnalysisDatabasePath } from '../graphCache/database/storage';
+import {
+  hasWorkspaceCacheWriteOwnership,
+  withWorkspaceCacheWriteLockAsync,
+} from '../graphCache/database/writeCoordination/model';
 
 export interface CodeGraphyWorkspaceMeta {
   version: 1;
@@ -72,36 +78,65 @@ export function writeCodeGraphyWorkspaceMeta(
 ): void {
   const metaPath = getWorkspaceMetaPath(workspaceRoot);
   fs.mkdirSync(path.dirname(metaPath), { recursive: true });
-  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`);
+  const temporaryPath = `${metaPath}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    fs.writeFileSync(temporaryPath, `${JSON.stringify(meta, null, 2)}\n`, {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+    fs.renameSync(temporaryPath, metaPath);
+  } finally {
+    fs.rmSync(temporaryPath, { force: true });
+  }
 }
 
-export function markCodeGraphyWorkspaceChangesPending(
+export async function markCodeGraphyWorkspaceChangesPending(
   workspaceRoot: string,
   filePaths: readonly string[],
-): void {
-  const previous = readCodeGraphyWorkspaceMeta(workspaceRoot);
-  writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+): Promise<void> {
+  await updateCodeGraphyWorkspaceMeta(workspaceRoot, previous => ({
     ...previous,
-    pendingChangedFiles: [
-      ...new Set([...previous.pendingChangedFiles, ...filePaths]),
-    ],
+    pendingChangedFiles: [...new Set([...previous.pendingChangedFiles, ...filePaths])],
+  }));
+}
+
+async function updateCodeGraphyWorkspaceMeta(
+  workspaceRoot: string,
+  update: (previous: CodeGraphyWorkspaceMeta) => CodeGraphyWorkspaceMeta,
+): Promise<void> {
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  const applyUpdate = () => {
+    writeCodeGraphyWorkspaceMeta(
+      workspaceRoot,
+      update(readCodeGraphyWorkspaceMeta(workspaceRoot)),
+    );
+  };
+  if (hasWorkspaceCacheWriteOwnership(databasePath)) {
+    applyUpdate();
+    return;
+  }
+  await withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+    applyUpdate();
   });
 }
 
-export function persistCodeGraphyWorkspaceIndexMetadata(
+export async function persistCodeGraphyWorkspaceIndexMetadata(
   workspaceRoot: string,
   metadata: {
+    lastIndexedCommit?: string | null;
     pluginSignature: string | null;
     pluginBuildSignature?: string | null;
     settingsSignature: string;
     failedPluginIds?: readonly string[];
     resolvedChangedFilePaths?: readonly string[];
   },
-): void {
-  const previous = readCodeGraphyWorkspaceMeta(workspaceRoot);
-  writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+): Promise<void> {
+  await updateCodeGraphyWorkspaceMeta(workspaceRoot, previous => ({
     ...previous,
     lastIndexedAt: new Date().toISOString(),
+    lastIndexedCommit: metadata.lastIndexedCommit === undefined
+      ? previous.lastIndexedCommit
+      : metadata.lastIndexedCommit,
     pluginSignature: metadata.pluginSignature,
     pluginBuildSignature: metadata.pluginBuildSignature === undefined
       ? previous.pluginBuildSignature
@@ -116,5 +151,5 @@ export function persistCodeGraphyWorkspaceIndexMetadata(
     failedPluginIds: metadata.failedPluginIds === undefined
       ? previous.failedPluginIds
       : [...metadata.failedPluginIds],
-  });
+  }));
 }
