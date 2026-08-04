@@ -6,7 +6,6 @@ import {
   createDefaultCodeGraphyRepoMeta,
   getCodeGraphyRepoMetaPath,
   readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta,
 } from '../../../src/extension/repoSettings/meta';
 
 function createTempWorkspace(): string {
@@ -46,29 +45,6 @@ describe('extension/repoSettings/meta', () => {
 
   it('always uses meta.json as the persisted metadata filename', () => {
     expect(path.basename(getCodeGraphyRepoMetaPath('/workspace/project'))).toBe('meta.json');
-  });
-
-  it('writes and reads .codegraphy/meta.json', () => {
-    const workspaceRoot = createTempWorkspace();
-    tempDirectories.push(workspaceRoot);
-    const meta = {
-      version: 1 as const,
-      lastIndexedAt: '2026-04-08T19:00:00.000Z',
-      lastIndexedCommit: 'abc123',
-      pluginBuildSignature: 'plugin-build-sha',
-      pluginSignature: 'codegraphy.markdown@1.0.0',
-      settingsSignature: 'settings-sha',
-      pendingChangedFiles: ['src/index.ts'],
-    };
-
-    writeCodeGraphyRepoMeta(workspaceRoot, meta);
-    writeCodeGraphyRepoMeta(workspaceRoot, meta);
-
-    expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(true);
-    expect(fs.readFileSync(getCodeGraphyRepoMetaPath(workspaceRoot), 'utf8')).toBe(
-      `${JSON.stringify(meta, null, 2)}\n`,
-    );
-    expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual(meta);
   });
 
   it('merges partial persisted meta with the default fields', () => {
@@ -155,23 +131,4 @@ describe('extension/repoSettings/meta', () => {
     expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual(createDefaultCodeGraphyRepoMeta());
   });
 
-  it('skips writes when the workspace root does not exist', () => {
-    const workspaceRoot = createTempWorkspace();
-    tempDirectories.push(workspaceRoot);
-    fs.rmSync(workspaceRoot, { recursive: true, force: true });
-    const meta = {
-      version: 1 as const,
-      lastIndexedAt: '2026-04-08T19:00:00.000Z',
-      lastIndexedCommit: 'abc123',
-      pluginBuildSignature: 'plugin-build-sha',
-      pluginSignature: 'codegraphy.markdown@1.0.0',
-      settingsSignature: 'settings-sha',
-      pendingChangedFiles: ['src/index.ts'],
-    };
-
-    expect(fs.existsSync(workspaceRoot)).toBe(false);
-    writeCodeGraphyRepoMeta(workspaceRoot, meta);
-
-    expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(false);
-  });
 });

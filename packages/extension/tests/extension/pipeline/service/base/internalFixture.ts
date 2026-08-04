@@ -10,7 +10,10 @@ import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
 } from '../../../../../src/extension/pipeline/service/runtime/analysis';
-import { persistWorkspacePipelineCache } from '../../../../../src/extension/pipeline/service/cache/storage';
+import {
+  patchWorkspacePipelineCache,
+  persistWorkspacePipelineCache,
+} from '../../../../../src/extension/pipeline/service/cache/storage';
 import {
   buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,
@@ -172,6 +175,10 @@ export class TestInternalBase extends WorkspacePipelineInternalBase {
     this._persistCache();
   }
 
+  public persistCachePatch(patch: Parameters<typeof patchWorkspacePipelineCache>[2]): Promise<void> {
+    return this._persistCachePatch(patch);
+  }
+
   public get completeGraphData() {
     return this._completeGraphData;
   }
@@ -227,6 +234,7 @@ export {
   readWorkspacePipelineFileStat,
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
+  patchWorkspacePipelineCache,
   persistWorkspacePipelineCache,
   buildWorkspacePipelineCompleteGraphDataFromAnalysis,
   buildWorkspacePipelineGraph,

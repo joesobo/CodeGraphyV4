@@ -28,6 +28,12 @@ export async function refreshWorkspaceIndexPluginFiles(
   const registeredPluginIds = pluginInfos.map(({ plugin }) => plugin.id);
 
   const pluginFiles = selectWorkspaceIndexPluginFiles(pluginInfos, dependencies.discoveredFiles);
+  const cachePatch = pluginFiles.length > 0
+    ? {
+        deleteFilePaths: [] as const,
+        upsertFilePaths: pluginFiles.map(file => file.relativePath),
+      }
+    : undefined;
   if (pluginFiles.length > 0) {
     dependencies.onProgress?.({
       phase: 'Applying Plugin',
@@ -51,14 +57,6 @@ export async function refreshWorkspaceIndexPluginFiles(
     );
 
     applyWorkspaceIndexAnalysisResult(source, analysisResult);
-    if (dependencies.persistCachePatch) {
-      dependencies.persistCachePatch({
-        deleteFilePaths: [],
-        upsertFilePaths: pluginFiles.map(file => file.relativePath),
-      });
-    } else {
-      dependencies.persistCache();
-    }
   }
 
   const graphData = buildWorkspaceIndexGraphFromRefreshState(
@@ -66,6 +64,11 @@ export async function refreshWorkspaceIndexPluginFiles(
     dependencies.workspaceRoot,
     dependencies.disabledPlugins,
   );
+  if (cachePatch && dependencies.persistCachePatch) {
+    await dependencies.persistCachePatch({ ...cachePatch, graph: graphData });
+  } else if (cachePatch) {
+    await dependencies.persistCache();
+  }
   await dependencies.persistIndexMetadata();
 
   return graphData;

@@ -43,22 +43,38 @@ export class WorkspacePipelineCacheHydrator {
   async hydrateAll(
     workspaceRoot: string,
     cache: WorkspacePipelineCacheAccess,
+    options: { forceReload?: boolean; rejectUnreadable?: boolean } = {},
   ): Promise<void> {
-    if (this.allFactsWorkspaceRoot === workspaceRoot && hasCacheFiles(cache.get())) {
+    if (
+      !options.forceReload
+      && this.allFactsWorkspaceRoot === workspaceRoot
+      && hasCacheFiles(cache.get())
+    ) {
       return;
     }
     if (this.pending) {
       await this.pending;
-      if (this.allFactsWorkspaceRoot === workspaceRoot && hasCacheFiles(cache.get())) {
+      if (
+        !options.forceReload
+        && this.allFactsWorkspaceRoot === workspaceRoot
+        && hasCacheFiles(cache.get())
+      ) {
         return;
       }
     }
 
     const cacheWasEmptyAtStart = !hasCacheFiles(cache.get());
     const hydration = Promise.resolve()
-      .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot))
+      .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+        ...(options.rejectUnreadable ? { unreadable: 'throw' as const } : {}),
+      }))
       .then((loaded) => {
-        if (shouldReplaceCache(cache.get(), loaded, cacheWasEmptyAtStart)) cache.set(loaded);
+        if (
+          options.forceReload
+          || shouldReplaceCache(cache.get(), loaded, cacheWasEmptyAtStart)
+        ) {
+          cache.set(loaded);
+        }
         this.allFactsWorkspaceRoot = workspaceRoot;
       })
       .finally(() => {

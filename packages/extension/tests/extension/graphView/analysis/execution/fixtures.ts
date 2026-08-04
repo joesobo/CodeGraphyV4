@@ -26,6 +26,7 @@ export function createExecutionAnalyzer(
     initialize: vi.fn(async () => undefined),
     syncWorkspacePlugins: vi.fn(async () => undefined),
     hasIndex: vi.fn(() => true),
+    hasRecoverableGraphState: vi.fn(() => true),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),
     registry: {

@@ -1,5 +1,9 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
-import { refreshWorkspacePipelineChangedFiles } from '../../runtime/refresh';
+import {
+  refreshWorkspacePipelineChangedFiles,
+  runOwnedWorkspacePipelineRefresh,
+  type WorkspacePipelineOwnedRefreshAttempt,
+} from '../../runtime/refresh';
 import {
   getReusableChangedFileDiscoveryState,
   type ChangedFileDiscoveryState,
@@ -7,6 +11,7 @@ import {
 import type { RefreshFacadeContext, RefreshProgress } from '../context';
 import { EMPTY_REFRESH_GRAPH } from '../context';
 import { discoverRefreshWorkspaceFiles } from '../discovery/workspace';
+import type { WorkspacePipelineCachePatch } from '../../cache/storage';
 import { createWorkspaceIndexRefreshSource } from '../source';
 
 interface RefreshChangedFilesInput {
@@ -26,44 +31,75 @@ export async function refreshChangedFilesForFacade(
     return EMPTY_REFRESH_GRAPH;
   }
 
-  const discoveryResult = await getChangedFileDiscoveryState(facade, input, workspaceRoot);
-  return refreshWorkspacePipelineChangedFiles(createWorkspaceIndexRefreshSource(
-    facade,
-    input.disabledPlugins,
-  ), {
-    deferMetricOnlyIndexMetadata: true,
-    disabledPlugins: input.disabledPlugins,
-    discoveredDirectories: discoveryResult.directories,
-    discoveredFiles: discoveryResult.files,
-    filePaths: input.filePaths,
-    filterPatterns: input.filterPatterns,
-    notifyFilesChanged: (
-      files,
-      root,
-      analysisContext,
-      nextDisabledPlugins = input.disabledPlugins,
-    ) =>
-      facade._registry.notifyFilesChanged(
-        files,
-        root,
-        analysisContext,
-        nextDisabledPlugins,
-      ),
-    onDeferredIndexMetadataError: error => {
-      console.warn('[CodeGraphy] Failed to persist metric-only refresh metadata.', error);
-    },
-    onProgress: input.onProgress,
-    persistCache: () => {
-      facade._persistCache();
-    },
-    persistCachePatch: patch => {
-      facade._persistCachePatch(patch);
-    },
-    persistIndexMetadata: async () => {
-      await facade._persistIndexMetadata();
-    },
-    signal: input.signal,
+  return runOwnedWorkspacePipelineRefresh({
     workspaceRoot,
+    rebase: async () => {
+      await facade.loadCachedGraph(
+        input.filterPatterns,
+        input.disabledPlugins,
+        input.signal,
+        { forceReloadGraphCache: true },
+      );
+    },
+    prepare: async (): Promise<WorkspacePipelineOwnedRefreshAttempt<IGraphData>> => {
+      const snapshot = facade._captureRefreshState();
+      let cachePatch: WorkspacePipelineCachePatch | undefined;
+      let resolvedChangedFilePaths: readonly string[] | undefined;
+      try {
+        const discoveryResult = await getChangedFileDiscoveryState(facade, input, workspaceRoot);
+        const graph = await refreshWorkspacePipelineChangedFiles(createWorkspaceIndexRefreshSource(
+          facade,
+          input.disabledPlugins,
+        ), {
+          disabledPlugins: input.disabledPlugins,
+          discoveredDirectories: discoveryResult.directories,
+          discoveredFiles: discoveryResult.files,
+          discoveryLimitReached: discoveryResult.limitReached,
+          filePaths: input.filePaths,
+          filterPatterns: input.filterPatterns,
+          fullRefreshFallback: 'reject',
+          notifyFilesChanged: (
+            files,
+            root,
+            analysisContext,
+            nextDisabledPlugins = input.disabledPlugins,
+          ) =>
+            facade._registry.notifyFilesChanged(
+              files,
+              root,
+              analysisContext,
+              nextDisabledPlugins,
+            ),
+          onProgress: input.onProgress,
+          persistCache: () => undefined,
+          persistCachePatch: patch => {
+            cachePatch = patch;
+          },
+          persistIndexMetadata: async nextResolvedChangedFilePaths => {
+            resolvedChangedFilePaths = nextResolvedChangedFilePaths;
+          },
+          signal: input.signal,
+          workspaceRoot,
+        });
+        if (!cachePatch) {
+          throw new Error('Targeted Indexing completed without a Graph Cache patch.');
+        }
+
+        return {
+          cache: facade._cache,
+          completeGraph: cachePatch.completeGraph ?? facade._completeGraphData,
+          nodeTypes: facade._registry.listNodeTypes(input.disabledPlugins),
+          patch: cachePatch,
+          persistIndexMetadata: () =>
+            facade._persistIndexMetadata(resolvedChangedFilePaths),
+          result: graph,
+          rollback: () => facade._restoreRefreshState(snapshot),
+        };
+      } catch (error) {
+        facade._restoreRefreshState(snapshot);
+        throw error;
+      }
+    },
   });
 }
 
@@ -98,8 +134,8 @@ async function getChangedFileDiscoveryState(
   const discoveryResult = {
     directories: discovered.discoveryResult.directories ?? [],
     files: discovered.discoveryResult.files,
+    limitReached: discovered.discoveryResult.limitReached,
   };
-  facade._lastDiscoveredDirectories = discoveryResult.directories;
   facade._lastGitIgnoredPaths = discovered.discoveryResult.gitIgnoredPaths ?? [];
   return discoveryResult;
 }

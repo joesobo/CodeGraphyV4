@@ -10,6 +10,7 @@ import {
 } from '@codegraphy-dev/core';
 import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
 import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
+import type { WorkspacePipelineRefreshState } from '../../../../../src/extension/pipeline/service/base/state';
 
 const stateBaseHarness = vi.hoisted(() => ({
   loadWorkspaceAnalysisDatabaseCache: vi.fn(),
@@ -37,6 +38,26 @@ class TestWorkspacePipelineState extends WorkspacePipelineStateBase {
 
   hydrateCacheFromGraphCache(options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] }): Promise<void> {
     return this._hydrateCacheFromGraphCache(options);
+  }
+
+  captureRefreshState(): WorkspacePipelineRefreshState {
+    return this._captureRefreshState();
+  }
+
+  restoreRefreshState(snapshot: WorkspacePipelineRefreshState): void {
+    this._restoreRefreshState(snapshot);
+  }
+
+  markRecoverableGraphState(): void {
+    this._markRecoverableGraphState('/workspace');
+  }
+
+  clearRecoverableGraphState(): void {
+    this._clearRecoverableGraphState();
+  }
+
+  hasRecoverableGraphState(workspaceRoot = '/workspace'): boolean {
+    return this._hasRecoverableGraphState(workspaceRoot);
   }
 }
 
@@ -116,6 +137,35 @@ describe('extension/pipeline/service/stateBase', () => {
     };
 
     expect(state._discovery).toBeInstanceOf(FileDiscovery);
+  });
+
+  it('owns complete refresh rollback state and recoverable-state provenance', () => {
+    const state = new TestWorkspacePipelineState(createContext()) as TestWorkspacePipelineState & {
+      _cache: unknown;
+      _completeGraphData: unknown;
+      _lastWorkspaceRoot: string;
+    };
+    state._cache = { version: 'before', files: {} };
+    state._completeGraphData = { nodes: [{ id: 'before', label: 'Before' }], edges: [] };
+    state._lastWorkspaceRoot = '/workspace';
+    state.markRecoverableGraphState();
+    const snapshot = state.captureRefreshState();
+
+    state._cache = { version: 'after', files: {} };
+    state._completeGraphData = { nodes: [{ id: 'after', label: 'After' }], edges: [] };
+    state._lastWorkspaceRoot = '/other';
+    state.clearRecoverableGraphState();
+    expect(state.hasRecoverableGraphState()).toBe(false);
+    state.restoreRefreshState(snapshot);
+
+    expect(state._cache).toEqual({ version: 'before', files: {} });
+    expect(state._completeGraphData).toEqual({
+      nodes: [{ id: 'before', label: 'Before' }],
+      edges: [],
+    });
+    expect(state._lastWorkspaceRoot).toBe('/workspace');
+    expect(state.hasRecoverableGraphState()).toBe(true);
+    expect(state.hasRecoverableGraphState('/other')).toBe(false);
   });
 
   it('reloads Graph Cache when later hydration needs tiers missing from warm baseline memory', async () => {

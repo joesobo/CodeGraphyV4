@@ -5,6 +5,7 @@ import type { IDiscoveredFile } from '@codegraphy-dev/core';
 export interface ChangedFileDiscoveryState {
   directories: string[];
   files: IDiscoveredFile[];
+  limitReached?: boolean;
 }
 
 interface ReusableChangedFileDiscoveryInput {

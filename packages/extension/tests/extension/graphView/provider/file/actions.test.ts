@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createGraphViewProviderFileActionMethods } from '../../../../../src/extension/graphView/provider/file/actions';
-import type { IUndoableAction } from '../../../../../src/extension/undoManager';
+import { UndoManager, type IUndoableAction } from '../../../../../src/extension/undoManager';
+import { WorkspaceCacheUpdateUnrecordedError } from '../../../../../src/extension/workspaceFiles/cacheUpdates/error';
 
 type MockUndoableAction = IUndoableAction & {
   reloadCachedGraph?: () => Promise<void>;
@@ -157,6 +158,112 @@ describe('graphView/provider/file/actions', () => {
     expect(executeUndoAction).toHaveBeenCalledTimes(4);
   });
 
+  it('keeps a completed file action successful when its targeted update marks the index stale', async () => {
+    const updateError = new Error('plugin requires explicit Re-index');
+    const markGraphCacheStale = vi.fn(async () => undefined);
+    const logWorkspaceUpdateError = vi.fn();
+    const source = {
+      _refreshIndexStatus: vi.fn(),
+      _sendFavorites: vi.fn(),
+      _setFocusedFile: vi.fn(),
+      _updateChangedFilesAndSendData: vi.fn(async () => Promise.reject(updateError)),
+    };
+    const methods = createGraphViewProviderFileActionMethods(source as never, {
+      openFile: vi.fn(async () => undefined),
+      revealFile: vi.fn(async () => undefined),
+      copyText: vi.fn(async () => undefined),
+      deleteFiles: vi.fn(async () => undefined),
+      renameFile: vi.fn(async () => undefined),
+      createFile: vi.fn(async (_directory, handlers) => {
+        await handlers.executeCreateAction('src/new.ts', { fsPath: '/workspace' } as never);
+      }),
+      createFolder: vi.fn(async () => undefined),
+      toggleFavorites: vi.fn(async () => undefined),
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never)),
+      showWarningMessage: vi.fn(),
+      showInputBox: vi.fn(),
+      showErrorMessage: vi.fn(),
+      markGraphCacheStale,
+      logWorkspaceUpdateError,
+      createDeleteAction: vi.fn(() => createUndoableAction()),
+      createRenameAction: vi.fn(() => createUndoableAction()),
+      createCreateAction: vi.fn((_path, _workspace, refreshGraph) => ({
+        ...createUndoableAction(),
+        execute: refreshGraph,
+      })),
+      createCreateFolderAction: vi.fn(() => createUndoableAction()),
+      createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
+      executeUndoAction: vi.fn(async action => action.execute()),
+    });
+
+    await expect(methods._createFile('src')).resolves.toBeUndefined();
+
+    expect(markGraphCacheStale).toHaveBeenCalledWith('/workspace', ['src/new.ts']);
+    expect(source._refreshIndexStatus).toHaveBeenCalledOnce();
+    expect(logWorkspaceUpdateError).toHaveBeenCalledWith(updateError, ['src/new.ts']);
+  });
+
+  it('records a completed file action when the fallback stale mark also fails', async () => {
+    const updateError = new Error('targeted update failed');
+    const firstStaleError = new Error('scheduler stale mark failed');
+    const retryStaleError = new Error('fallback stale mark failed');
+    const updateFailure = new WorkspaceCacheUpdateUnrecordedError(
+      updateError,
+      firstStaleError,
+    );
+    const undoManager = new UndoManager();
+    let fileMutationCompleted = false;
+    const logWorkspaceUpdateError = vi.fn();
+    const source = {
+      _refreshIndexStatus: vi.fn(),
+      _sendFavorites: vi.fn(),
+      _setFocusedFile: vi.fn(),
+      _updateChangedFilesAndSendData: vi.fn(async () => Promise.reject(updateFailure)),
+    };
+    const methods = createGraphViewProviderFileActionMethods(source as never, {
+      openFile: vi.fn(async () => undefined),
+      revealFile: vi.fn(async () => undefined),
+      copyText: vi.fn(async () => undefined),
+      deleteFiles: vi.fn(async () => undefined),
+      renameFile: vi.fn(async () => undefined),
+      createFile: vi.fn(async (_directory, handlers) => {
+        await handlers.executeCreateAction('src/new.ts', { fsPath: '/workspace' } as never);
+      }),
+      createFolder: vi.fn(async () => undefined),
+      toggleFavorites: vi.fn(async () => undefined),
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never)),
+      showWarningMessage: vi.fn(),
+      showInputBox: vi.fn(),
+      showErrorMessage: vi.fn(),
+      markGraphCacheStale: vi.fn(async () => Promise.reject(retryStaleError)),
+      logWorkspaceUpdateError,
+      createDeleteAction: vi.fn(() => createUndoableAction()),
+      createRenameAction: vi.fn(() => createUndoableAction()),
+      createCreateAction: vi.fn((_path, _workspace, refreshGraph) => ({
+        ...createUndoableAction(),
+        execute: async () => {
+          fileMutationCompleted = true;
+          await refreshGraph();
+        },
+      })),
+      createCreateFolderAction: vi.fn(() => createUndoableAction()),
+      createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
+      executeUndoAction: action => undoManager.execute(action),
+    });
+
+    await expect(methods._createFile('src')).resolves.toBeUndefined();
+
+    expect(fileMutationCompleted).toBe(true);
+    expect(undoManager.canUndo()).toBe(true);
+    expect(source._refreshIndexStatus).not.toHaveBeenCalled();
+    const loggedError = logWorkspaceUpdateError.mock.calls[0]?.[0];
+    expect(loggedError).toBeInstanceOf(WorkspaceCacheUpdateUnrecordedError);
+    expect((loggedError as WorkspaceCacheUpdateUnrecordedError).errors)
+      .toEqual([updateFailure, retryStaleError]);
+    expect(updateFailure.errors).toEqual([updateError, firstStaleError]);
+    expect(logWorkspaceUpdateError).toHaveBeenCalledWith(loggedError, ['src/new.ts']);
+  });
+
   it('creates undoable favorite toggles that send the explicit post-action favorites', async () => {
     const executeUndoAction = vi.fn(async () => undefined);
     const createToggleFavoriteAction = vi.fn((_paths, sendFavorites) => {
@@ -247,7 +354,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith(['src/app.ts']);
   });
 
   it('uses vscode input and error defaults for rename actions', async () => {
@@ -265,7 +372,10 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith([
+      'src/app.ts',
+      'src/main.ts',
+    ]);
   });
 
   it('uses vscode input and error defaults for create actions', async () => {
@@ -283,7 +393,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith(['src/new.ts']);
   });
 
   it('uses vscode input and error defaults for create folder actions', async () => {
@@ -301,7 +411,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._updateChangedFilesAndSendData).toHaveBeenCalledWith(['src/components']);
   });
 
   it('passes workspace-root create contexts through to the file create helper', async () => {
@@ -510,6 +620,8 @@ async function createDefaultDependencyHarness(
 
   const source = {
     _loadAndSendData: vi.fn(async () => undefined),
+    _refreshIndexStatus: vi.fn(),
+    _updateChangedFilesAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
     _setFocusedFile: vi.fn(),
   };

@@ -8,6 +8,7 @@ import {
   withConnection,
   withRecreatedConnection,
 } from '../../../../src/graphCache/database/io/connection';
+import { getWorkspaceCacheWriteLockPath } from '../../../../src/graphCache/database/writeCoordination/model';
 
 const temporaryDirectories = new Set<string>();
 
@@ -68,7 +69,8 @@ describe('graphCache/database/io/connection', () => {
     fs.writeFileSync(databasePath, 'not a database');
 
     withRecreatedConnection(databasePath, (connection) => {
-      expect(fs.existsSync(`${databasePath}.write-lock.sqlite`)).toBe(true);
+      expect(fs.existsSync(getWorkspaceCacheWriteLockPath(databasePath))).toBe(true);
+      expect(fs.existsSync(`${databasePath}.write-lock.sqlite`)).toBe(false);
       runStatementSync(
         connection,
         "INSERT INTO File(path, mtime, size, contentHash) VALUES ('src/app.ts', 123.5, 2, 'sha256:app')",

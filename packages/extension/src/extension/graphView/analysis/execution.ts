@@ -5,7 +5,7 @@ import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
 import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 
-export type GraphViewAnalysisMode = 'load' | 'index' | 'refresh';
+export type GraphViewAnalysisMode = 'load' | 'index' | 'incremental' | 'refresh';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
 
 interface GraphViewAnalyzerLike {
@@ -16,13 +16,23 @@ interface GraphViewAnalyzerLike {
     freshness: CodeGraphyIndexFreshness;
     detail: string;
   };
+  hasRecoverableGraphState(): boolean;
   loadCachedGraph?(
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
     options?: {
+      forceReloadGraphCache?: boolean;
       requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
     },
+  ): Promise<IGraphData>;
+  hasLoadedGraphState?(): boolean;
+  refreshChangedFiles?(
+    filePaths: readonly string[],
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
@@ -50,6 +60,7 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
   mode: GraphViewAnalysisMode;
+  changedFilePaths?: readonly string[];
   filterPatterns: string[];
   disabledPlugins: Set<string>;
 }
@@ -92,10 +103,12 @@ export async function executeGraphViewAnalysis(
     await runGraphViewAnalysis(signal, requestId, state, handlers);
   } catch (error) {
     if (handlers.isAbortError(error) || handlers.isAnalysisStale(signal, requestId)) {
+      if (state.mode === 'incremental') throw error;
       return;
     }
 
     handlers.logError('[CodeGraphy] Analysis failed:', error);
+    if (state.mode === 'incremental') throw error;
     publishAnalysisFailure(handlers);
   }
 }

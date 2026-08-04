@@ -1,6 +1,7 @@
 import {
   loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl,
   loadWorkspaceAnalysisDatabaseCacheAsync as loadWorkspaceAnalysisDatabaseCacheAsyncImpl,
+  WorkspaceAnalysisDatabaseUnreadableError,
   type WorkspaceAnalysisDatabaseLoadOptions,
 } from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
@@ -17,8 +18,10 @@ import {
 } from './snapshot';
 import {
   clearWorkspaceAnalysisDatabaseCache as clearWorkspaceAnalysisDatabaseCacheImpl,
+  clearWorkspaceAnalysisDatabaseCacheAsync as clearWorkspaceAnalysisDatabaseCacheAsyncImpl,
   patchOwnedWorkspaceAnalysisDatabaseCache as patchOwnedWorkspaceAnalysisDatabaseCacheImpl,
   patchWorkspaceAnalysisDatabaseCache as patchWorkspaceAnalysisDatabaseCacheImpl,
+  patchWorkspaceAnalysisDatabaseCacheAsync as patchWorkspaceAnalysisDatabaseCacheAsyncImpl,
   replaceOwnedWorkspaceAnalysisDatabaseCache as replaceOwnedWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCache as saveWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncImpl,
@@ -26,10 +29,11 @@ import {
   type WorkspaceAnalysisDatabaseReplacement,
   type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
-import { withWorkspaceCacheWriteLockAsync } from './writeCoordination/model';
+import { withWorkspaceCacheWriteOwnershipAsync } from './writeCoordination/model';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
 export type WorkspaceAnalysisDatabaseInspection = WorkspaceAnalysisDatabaseInspectionImpl;
+export { WorkspaceAnalysisDatabaseUnreadableError };
 export type { WorkspaceAnalysisDatabaseLoadOptions };
 
 export function getWorkspaceAnalysisDatabasePath(
@@ -74,6 +78,12 @@ export function clearWorkspaceAnalysisDatabaseCache(
   clearWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot);
 }
 
+export function clearWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+): Promise<void> {
+  return clearWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot);
+}
+
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
@@ -90,7 +100,15 @@ export function patchWorkspaceAnalysisDatabaseCache(
   patchWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch);
 }
 
+export function patchWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): Promise<void> {
+  return patchWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot, patch);
+}
+
 interface WorkspaceAnalysisDatabaseWriter {
+  readonly revision: string;
   patch(
     patch: WorkspaceAnalysisDatabasePatch,
     recovery: WorkspaceAnalysisDatabaseReplacement,
@@ -102,18 +120,18 @@ export function withWorkspaceAnalysisDatabaseWriter<T>(
   workspaceRoot: string,
   write: (writer: WorkspaceAnalysisDatabaseWriter) => Promise<T>,
 ): Promise<T> {
-  return withWorkspaceCacheWriteLockAsync(
+  return withWorkspaceCacheWriteOwnershipAsync(
     getWorkspaceAnalysisDatabasePathImpl(workspaceRoot),
-    () => write({
-      patch: (patch, recovery) => patchOwnedWorkspaceAnalysisDatabaseCacheImpl(
-        workspaceRoot,
-        patch,
-        recovery,
-      ),
-      replace: replacement => replaceOwnedWorkspaceAnalysisDatabaseCacheImpl(
-        workspaceRoot,
-        replacement,
-      ),
+    context => write({
+      revision: context.revision,
+      patch: (patch, recovery) => {
+        context.assertCurrent();
+        patchOwnedWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch, recovery);
+      },
+      replace: replacement => {
+        context.assertCurrent();
+        replaceOwnedWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, replacement);
+      },
     }),
   );
 }

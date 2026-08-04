@@ -98,6 +98,14 @@ export class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
   protected override _persistCache(): void {
     this.persistCache();
   }
+
+  markRecoverableGraphState(): void {
+    this._markRecoverableGraphState('/workspace');
+  }
+
+  hasRecoverableGraphState(): boolean {
+    return this._hasRecoverableGraphState('/workspace');
+  }
 }
 
 export function lifecycleState(
@@ -122,7 +130,7 @@ export function lifecycleState(
 
 export function setUpLifecycleFacade(): void {
   vi.clearAllMocks();
-  vi.mocked(clearWorkspacePipelineStoredCache).mockReturnValue({
+  vi.mocked(clearWorkspacePipelineStoredCache).mockResolvedValue({
     files: { 'src/a.ts': { cached: true } },
   } as never);
   vi.mocked(getWorkspacePipelineStatusList).mockReturnValue([{ id: 'plugin.a' }] as never);

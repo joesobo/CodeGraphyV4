@@ -4,8 +4,11 @@ import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import type { IGraphData, IPluginNodeType } from '@codegraphy-dev/plugin-api';
 import {
   isInvalidDatabaseError,
+  executeStatementSync,
+  prepareStatementSync,
   runStatementSync,
   withConnection,
+  withConnectionAsync,
   withOwnedConnection,
   withOwnedRecreatedConnection,
   withRecreatedConnection,
@@ -42,7 +45,9 @@ export interface WorkspaceAnalysisDatabaseReplacement {
 
 export interface WorkspaceAnalysisDatabasePatch {
   deleteFilePaths?: readonly string[];
+  deleteNodeIds?: readonly string[];
   upsertFiles?: IWorkspaceAnalysisCache['files'];
+  upsertNodeIds?: readonly string[];
   graph?: IGraphData;
   nodeTypes?: readonly IPluginNodeType[];
 }
@@ -64,10 +69,12 @@ function pathBelongsToPatch(value: unknown, filePaths: ReadonlySet<string>): boo
 function selectGraphPatch(
   graph: IGraphData | undefined,
   filePaths: ReadonlySet<string>,
+  explicitNodeIds: ReadonlySet<string>,
 ): IGraphData | undefined {
   if (!graph) return undefined;
   const affectedNodeIds = new Set(graph.nodes.flatMap(node => (
-    pathBelongsToPatch(node.id, filePaths)
+    explicitNodeIds.has(node.id)
+    || pathBelongsToPatch(node.id, filePaths)
     || pathBelongsToPatch(node.symbol?.filePath, filePaths)
     || pathBelongsToPatch(node.metadata?.filePath, filePaths)
       ? [node.id]
@@ -167,11 +174,22 @@ function writeWorkspaceAnalysisDatabasePatch(
   const deleteFilePaths = [...new Set(patch.deleteFilePaths ?? [])]
     .filter(filePath => !(filePath in upsertFiles))
     .sort();
+  const deleteNodeIds = [...new Set(patch.deleteNodeIds ?? [])].sort();
+  const upsertNodeIds = new Set(patch.upsertNodeIds ?? []);
   const affectedFilePaths = new Set([...deleteFilePaths, ...upsertFilePaths]);
-  const graph = selectGraphPatch(patch.graph, affectedFilePaths);
+  const graph = selectGraphPatch(patch.graph, affectedFilePaths, upsertNodeIds);
 
   runTransactionSync(connection, () => {
     const writer = createWorkspaceAnalysisCachePatchWriter(connection);
+    if (deleteNodeIds.length > 0) {
+      const deleteNodeStatement = prepareStatementSync(
+        connection,
+        'DELETE FROM Node WHERE key = @nodeId',
+      );
+      for (const nodeId of deleteNodeIds) {
+        executeStatementSync(connection, deleteNodeStatement, { nodeId });
+      }
+    }
     for (const filePath of upsertFilePaths.sort()) {
       deleteAnalysisEntryNodes(writer, filePath);
     }
@@ -196,13 +214,30 @@ export function patchWorkspaceAnalysisDatabaseCache(
   withConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
 }
 
+export async function patchWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): Promise<void> {
+  const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
+  if (!databasePath) return;
+  await withConnectionAsync(databasePath, async connection => {
+    writeWorkspaceAnalysisDatabasePatch(connection, patch);
+  });
+}
+
 export function patchOwnedWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   patch: WorkspaceAnalysisDatabasePatch,
   recovery: WorkspaceAnalysisDatabaseReplacement,
 ): void {
+  const existingDatabasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  const databaseExists = fs.existsSync(existingDatabasePath);
   const databasePath = prepareWorkspaceAnalysisDatabase(workspaceRoot);
   if (!databasePath) return;
+  if (!databaseExists) {
+    replaceOwnedWorkspaceAnalysisDatabaseCache(workspaceRoot, recovery);
+    return;
+  }
   try {
     withOwnedConnection(databasePath, connection => writeWorkspaceAnalysisDatabasePatch(connection, patch));
   } catch (error) {
@@ -218,6 +253,19 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   }
 
   withConnection(databasePath, (connection) => {
+    runStatementSync(connection, 'DELETE FROM Edge');
+    runStatementSync(connection, 'DELETE FROM Symbol');
+    runStatementSync(connection, 'DELETE FROM Node');
+    runStatementSync(connection, 'DELETE FROM File');
+  });
+}
+
+export async function clearWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+): Promise<void> {
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  if (!fs.existsSync(databasePath)) return;
+  await withConnectionAsync(databasePath, async connection => {
     runStatementSync(connection, 'DELETE FROM Edge');
     runStatementSync(connection, 'DELETE FROM Symbol');
     runStatementSync(connection, 'DELETE FROM Node');

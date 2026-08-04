@@ -7,6 +7,10 @@ import type {
   GraphViewProviderFileActionMethods,
   GraphViewProviderFileActionMethodsSource,
 } from './contracts';
+import {
+  WorkspaceCacheUpdateHandledError,
+  WorkspaceCacheUpdateUnrecordedError,
+} from '../../../workspaceFiles/cacheUpdates/error';
 import { DEFAULT_GRAPH_VIEW_FILE_ACTION_DEPENDENCIES } from './dependencies';
 
 export type {
@@ -38,6 +42,28 @@ export function createGraphViewProviderFileActionMethods(
     await dependencies.copyText(text);
   };
 
+  const updateChangedFiles = async (
+    filePaths: readonly string[],
+    workspaceFolderUri: { fsPath: string },
+  ): Promise<void> => {
+    try {
+      await source._updateChangedFilesAndSendData(filePaths);
+    } catch (error) {
+      if (error instanceof WorkspaceCacheUpdateHandledError) return;
+      try {
+        await dependencies.markGraphCacheStale?.(workspaceFolderUri.fsPath, filePaths);
+      } catch (fallbackError) {
+        dependencies.logWorkspaceUpdateError?.(
+          new WorkspaceCacheUpdateUnrecordedError(error, fallbackError),
+          filePaths,
+        );
+        return;
+      }
+      source._refreshIndexStatus?.();
+      dependencies.logWorkspaceUpdateError?.(error, filePaths);
+    }
+  };
+
   const _deleteFiles = async (paths: string[]): Promise<void> => {
     const workspaceFolder = dependencies.getWorkspaceFolder();
     await dependencies.deleteFiles(paths, {
@@ -50,7 +76,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createDeleteAction(
           nextPaths,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => updateChangedFiles(nextPaths, workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -66,7 +92,7 @@ export function createGraphViewProviderFileActionMethods(
           oldPath,
           newPath,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => updateChangedFiles([oldPath, newPath], workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -84,7 +110,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createCreateAction(
           filePath,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => updateChangedFiles([filePath], workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },
@@ -102,7 +128,7 @@ export function createGraphViewProviderFileActionMethods(
         const action = dependencies.createCreateFolderAction(
           folderPath,
           workspaceFolderUri,
-          () => source._loadAndSendData(),
+          () => updateChangedFiles([folderPath], workspaceFolderUri),
         );
         await dependencies.executeUndoAction(action);
       },

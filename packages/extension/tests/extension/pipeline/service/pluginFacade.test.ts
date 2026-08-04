@@ -82,6 +82,14 @@ class TestPluginFacade extends WorkspacePipelinePluginFacade {
     this._disposeWorkspacePluginHost();
   }
 
+  setLoadedGraphState(workspaceRoot: string): void {
+    this._lastWorkspaceRoot = workspaceRoot;
+  }
+
+  markRecoverableGraphState(): void {
+    this._markRecoverableGraphState('/workspace');
+  }
+
   protected override _getPluginSignature(): string | null {
     return 'plugin-signature';
   }
@@ -229,7 +237,7 @@ describe('extension/pipeline/service/pluginFacade', () => {
     const facade = new TestPluginFacade();
 
     expect(facade.hasIndex()).toBe(true);
-    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace');
+    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace', false);
 
     expect(facade.getIndexStatus()).toEqual({
       freshness: 'fresh',
@@ -242,6 +250,26 @@ describe('extension/pipeline/service/pluginFacade', () => {
     expect(statusInput.settingsSignature).toBe('settings-signature');
     expect(statusInput.workspaceRoot).toBe('/workspace');
     expect(statusInput.hasIndex()).toBe(true);
-    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace');
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', false);
+  });
+
+  it('does not treat an assigned workspace root as recoverable graph state', () => {
+    const facade = new TestPluginFacade();
+
+    expect(facade.hasLoadedGraphState()).toBe(false);
+
+    facade.setLoadedGraphState('/workspace');
+
+    expect(facade.hasLoadedGraphState()).toBe(true);
+    expect(facade.hasIndex()).toBe(true);
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', false);
+
+    facade.markRecoverableGraphState();
+    expect(facade.hasIndex()).toBe(true);
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/workspace', true);
+
+    facade.getWorkspaceRoot.mockReturnValue('/other-workspace');
+    expect(facade.hasIndex()).toBe(true);
+    expect(hasWorkspacePipelineIndex).toHaveBeenLastCalledWith('/other-workspace', false);
   });
 });

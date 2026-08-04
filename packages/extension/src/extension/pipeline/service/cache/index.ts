@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { persistCodeGraphyWorkspaceIndexMetadata } from '@codegraphy-dev/core';
-import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
+import { readCodeGraphyRepoMeta } from '../../../repoSettings/meta';
 import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 
 interface WorkspacePipelineSignatureDependencies {
@@ -12,12 +12,16 @@ interface WorkspacePipelineSignatureDependencies {
 interface WorkspacePipelinePersistIndexDependencies
   extends WorkspacePipelineSignatureDependencies {
   getCurrentCommitSha?: () => Promise<string | null> | string | null;
-  persistIndexMetadata?: typeof persistCodeGraphyWorkspaceIndexMetadata;
+  persistIndexMetadata?: (
+    workspaceRoot: string,
+    metadata: Parameters<typeof persistCodeGraphyWorkspaceIndexMetadata>[1],
+  ) => Promise<void> | void;
   warn(message: string, error: unknown): void;
 }
 
 export function hasWorkspacePipelineIndex(
   workspaceRoot: string | undefined,
+  hasRecoverableGraphState = false,
 ): boolean {
   if (!workspaceRoot) {
     return false;
@@ -28,12 +32,14 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  return fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
+  return hasRecoverableGraphState
+    || fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
 }
 
 export async function persistWorkspacePipelineIndexMetadata(
   workspaceRoot: string | undefined,
   dependencies: WorkspacePipelinePersistIndexDependencies,
+  resolvedChangedFilePaths?: readonly string[],
 ): Promise<void> {
   if (!workspaceRoot) {
     return;
@@ -41,18 +47,19 @@ export async function persistWorkspacePipelineIndexMetadata(
 
   try {
     const currentCommitSha = await dependencies.getCurrentCommitSha?.();
-    (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
+    await (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
+      ...(dependencies.getCurrentCommitSha
+        ? { lastIndexedCommit: currentCommitSha ?? null }
+        : {}),
       pluginBuildSignature: dependencies.getPluginBuildSignature(),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
+      ...(resolvedChangedFilePaths === undefined
+        ? {}
+        : { resolvedChangedFilePaths }),
     });
-    if (dependencies.getCurrentCommitSha) {
-      writeCodeGraphyRepoMeta(workspaceRoot, {
-        ...readCodeGraphyRepoMeta(workspaceRoot),
-        lastIndexedCommit: currentCommitSha ?? null,
-      });
-    }
   } catch (error) {
     dependencies.warn('[CodeGraphy] Failed to update repo index metadata.', error);
+    throw error;
   }
 }

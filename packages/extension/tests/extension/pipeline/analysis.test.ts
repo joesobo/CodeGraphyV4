@@ -11,6 +11,7 @@ import {
 } from '../../../src/extension/pipeline/database/cache/storage';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
+import { refreshGraphViewChangedFiles } from '../../../src/extension/graphView/analysis/execution/incremental';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
 const tempWorkspaceRoots: string[] = [];
@@ -258,7 +259,7 @@ describe('WorkspacePipeline analysis', () => {
     );
   });
 
-  it('recreates a deleted Graph Cache when indexing the workspace', async () => {
+  it('recovers a deleted Graph Cache during a targeted update', async () => {
     const workspaceRoot = await createWorkspace({
       'src/utils.ts': 'export const value = 1;\n',
       'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
@@ -278,13 +279,69 @@ describe('WorkspacePipeline analysis', () => {
     expect(await pathExists(databasePath)).toBe(true);
 
     await fs.unlink(databasePath);
-    expect(analyzer.hasIndex()).toBe(false);
+    expect(analyzer.hasIndex()).toBe(true);
+    await fs.writeFile(
+      path.join(workspaceRoot, 'src/utils.ts'),
+      'export const value = 2;\n',
+      'utf8',
+    );
 
-    const indexedGraph = await analyzer.refreshIndex();
+    const indexedGraph = await analyzer.refreshChangedFiles([
+      path.join(workspaceRoot, 'src/utils.ts'),
+    ]);
 
     expect(indexedGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
     expect(await pathExists(databasePath)).toBe(true);
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
+  });
+
+  it('refuses partial recovery when the Graph Cache disappears before the first cache load', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const indexingAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    await indexingAnalyzer.initialize();
+    await indexingAnalyzer.analyze();
+
+    const coldAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    await coldAnalyzer.initialize();
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    expect(coldAnalyzer.hasIndex()).toBe(true);
+
+    await fs.unlink(databasePath);
+    await fs.writeFile(
+      path.join(workspaceRoot, 'src/utils.ts'),
+      'export const value = 2;\n',
+      'utf8',
+    );
+    const refreshChangedFiles = vi.spyOn(coldAnalyzer, 'refreshChangedFiles');
+
+    await expect(refreshGraphViewChangedFiles(
+      new AbortController().signal,
+      {
+        analyzer: coldAnalyzer,
+        analyzerInitialized: true,
+        analyzerInitPromise: undefined,
+        changedFilePaths: [path.join(workspaceRoot, 'src/utils.ts')],
+        disabledPlugins: new Set<string>(),
+        filterPatterns: [],
+        mode: 'incremental',
+      },
+      vi.fn(),
+    )).rejects.toThrow(
+      'Graph Cache became unavailable before targeted Indexing could start.',
+    );
+
+    expect(refreshChangedFiles).not.toHaveBeenCalled();
+    expect(await pathExists(databasePath)).toBe(false);
   });
 
   it('replays warm Graph Cache nodes and edges after a cold index', async () => {
@@ -453,6 +510,7 @@ describe('WorkspacePipeline analysis', () => {
       _buildGraphDataFromAnalysis: (
         fileAnalysis: Map<string, IFileAnalysisResult>,
       ) => { nodes: []; edges: [] };
+      _persistIndexMetadata: () => Promise<void>;
     };
 
     const getPluginFilterPatterns = vi.spyOn(analyzer, 'getPluginFilterPatterns')
@@ -481,6 +539,7 @@ describe('WorkspacePipeline analysis', () => {
       nodes: [],
       edges: [],
     });
+    vi.spyOn(analyzerPrivate, '_persistIndexMetadata').mockResolvedValue();
     const signal = new AbortController().signal;
 
     await expect(analyzer.analyze(undefined, undefined, signal)).resolves.toEqual({
@@ -534,6 +593,7 @@ describe('WorkspacePipeline analysis', () => {
       _buildGraphDataFromAnalysis: (
         fileAnalysis: Map<string, IFileAnalysisResult>,
       ) => { nodes: []; edges: [] };
+      _persistIndexMetadata: () => Promise<void>;
     };
 
     vi.spyOn(analyzerPrivate._config, 'getAll').mockReturnValue({
@@ -560,6 +620,7 @@ describe('WorkspacePipeline analysis', () => {
       nodes: [],
       edges: [],
     });
+    vi.spyOn(analyzerPrivate, '_persistIndexMetadata').mockResolvedValue();
 
     await analyzer.analyze();
 
@@ -607,6 +668,7 @@ describe('WorkspacePipeline analysis', () => {
         edges: [{ id: string }];
         nodes: [{ id: string }, { id: string }];
       };
+      _persistIndexMetadata: () => Promise<void>;
     };
     const eventBus = { emit: vi.fn() };
     const fileAnalysis = new Map<string, IFileAnalysisResult>([
@@ -643,6 +705,7 @@ describe('WorkspacePipeline analysis', () => {
         { id: 'src/index.ts->src/utils.ts' },
       ],
     });
+    vi.spyOn(analyzerPrivate, '_persistIndexMetadata').mockResolvedValue();
 
     await analyzer.analyze();
 

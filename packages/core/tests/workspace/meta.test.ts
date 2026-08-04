@@ -4,8 +4,10 @@ import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   createDefaultCodeGraphyWorkspaceMeta,
+  markCodeGraphyWorkspaceChangesPending,
+  persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
+  type CodeGraphyWorkspaceMeta,
 } from '../../src/workspace/meta';
 import { getWorkspaceMetaPath } from '../../src/workspace/paths';
 
@@ -15,6 +17,15 @@ function createTempWorkspace(): string {
   const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-meta-'));
   tempDirectories.push(workspaceRoot);
   return workspaceRoot;
+}
+
+function writeWorkspaceMetaFixture(
+  workspaceRoot: string,
+  meta: CodeGraphyWorkspaceMeta,
+): void {
+  const metaPath = getWorkspaceMetaPath(workspaceRoot);
+  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
 }
 
 afterEach(() => {
@@ -33,6 +44,7 @@ describe('workspace/meta', () => {
     const meta = {
       version: 1 as const,
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
+      lastIndexedCommit: 'abc123',
       pluginSignature: 'codegraphy.markdown@1.0.0',
       pluginBuildSignature: 'plugin-build-sha',
       settingsSignature: 'settings-sha',
@@ -41,9 +53,73 @@ describe('workspace/meta', () => {
       failedPluginIds: ['acme.failed'],
     };
 
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
+    writeWorkspaceMetaFixture(workspaceRoot, meta);
 
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual(meta);
+  });
+
+  it('marks changed paths pending without dropping Core-owned metadata', async () => {
+    const workspaceRoot = createTempWorkspace();
+    const meta = {
+      ...createDefaultCodeGraphyWorkspaceMeta(),
+      analysisVersion: 'analysis-v2',
+      failedPluginIds: ['acme.failed'],
+      lastIndexedAt: '2026-04-08T19:00:00.000Z',
+      lastIndexedCommit: 'abc123',
+      pendingChangedFiles: ['src/existing.ts'],
+      pluginBuildSignature: 'plugin-build-sha',
+    };
+    writeWorkspaceMetaFixture(workspaceRoot, meta);
+
+    await markCodeGraphyWorkspaceChangesPending(workspaceRoot, [
+      'src/existing.ts',
+      'src/changed.ts',
+    ]);
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual({
+      ...meta,
+      pendingChangedFiles: ['src/existing.ts', 'src/changed.ts'],
+    });
+  });
+
+  it('creates first-time metadata when the workspace still exists', async () => {
+    const workspaceRoot = createTempWorkspace();
+
+    await markCodeGraphyWorkspaceChangesPending(workspaceRoot, ['src/first.ts']);
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot).pendingChangedFiles)
+      .toEqual(['src/first.ts']);
+  });
+
+  it('does not recreate a workspace that was removed before a pending mark', async () => {
+    const workspaceRoot = createTempWorkspace();
+    fs.rmSync(workspaceRoot, { recursive: true });
+
+    await markCodeGraphyWorkspaceChangesPending(workspaceRoot, ['src/late.ts']);
+
+    expect(fs.existsSync(workspaceRoot)).toBe(false);
+  });
+
+  it('clears only resolved pending paths while preserving shared metadata fields', async () => {
+    const workspaceRoot = createTempWorkspace();
+    writeWorkspaceMetaFixture(workspaceRoot, {
+      ...createDefaultCodeGraphyWorkspaceMeta(),
+      failedPluginIds: ['acme.failed'],
+      lastIndexedCommit: 'abc123',
+      pendingChangedFiles: ['src/failed.ts', 'src/resolved.ts'],
+    });
+
+    await persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
+      pluginSignature: 'plugins-sha',
+      settingsSignature: 'settings-sha',
+      resolvedChangedFilePaths: ['src/resolved.ts'],
+    });
+
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toMatchObject({
+      failedPluginIds: ['acme.failed'],
+      lastIndexedCommit: 'abc123',
+      pendingChangedFiles: ['src/failed.ts'],
+    });
   });
 
   it('filters invalid persisted metadata fields through the workspace meta schema', () => {

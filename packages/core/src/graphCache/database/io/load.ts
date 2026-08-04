@@ -14,8 +14,9 @@ import {
 import {
   readRowsAsync,
   readRowsSync,
-  withRecreatedConnection,
-  withRecreatedConnectionAsync,
+  withReadOnlyConnection,
+  withReadOrRecreatedConnection,
+  withReadOrRecreatedConnectionAsync,
 } from './connection';
 import { getWorkspaceAnalysisDatabasePath } from './paths';
 import type { FileRow, GraphEdgeRow, GraphNodeRow, SymbolRow } from '../records/types';
@@ -24,6 +25,15 @@ import { EDGE_ROWS_QUERY, FILE_ROWS_QUERY, NODE_ROWS_QUERY, SYMBOL_ROWS_QUERY } 
 
 export interface WorkspaceAnalysisDatabaseLoadOptions {
   activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+  unreadable?: 'empty' | 'throw';
+}
+
+export class WorkspaceAnalysisDatabaseUnreadableError extends Error {
+  readonly name = 'WorkspaceAnalysisDatabaseUnreadableError';
+
+  constructor(readonly cause: unknown) {
+    super('The Graph Cache could not be read safely.');
+  }
 }
 
 function createCache(
@@ -71,7 +81,10 @@ export function loadWorkspaceAnalysisDatabaseCache(
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
   try {
-    return withRecreatedConnection(databasePath, connection => createCache(
+    const load = options.unreadable === 'throw'
+      ? withReadOnlyConnection
+      : withReadOrRecreatedConnection;
+    return load(databasePath, connection => createCache(
       readRowsSync(connection, FILE_ROWS_QUERY) as FileRow[],
       readRowsSync(connection, NODE_ROWS_QUERY) as GraphNodeRow[],
       readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[],
@@ -80,6 +93,9 @@ export function loadWorkspaceAnalysisDatabaseCache(
       workspaceRoot,
     ));
   } catch (error) {
+    if (options.unreadable === 'throw') {
+      throw new WorkspaceAnalysisDatabaseUnreadableError(error);
+    }
     return reportUnreadableDatabase(error);
   }
 }
@@ -90,8 +106,11 @@ export async function loadWorkspaceAnalysisDatabaseCacheAsync(
 ): Promise<IWorkspaceAnalysisCache> {
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(databasePath)) return createEmptyWorkspaceAnalysisCache();
+  if (options.unreadable === 'throw') {
+    return loadWorkspaceAnalysisDatabaseCache(workspaceRoot, options);
+  }
   try {
-    return await withRecreatedConnectionAsync(databasePath, async connection => {
+    return await withReadOrRecreatedConnectionAsync(databasePath, async connection => {
       const [fileRows, nodeRows, symbolRows, edgeRows] = await Promise.all([
         readRowsAsync(connection, FILE_ROWS_QUERY),
         readRowsAsync(connection, NODE_ROWS_QUERY),

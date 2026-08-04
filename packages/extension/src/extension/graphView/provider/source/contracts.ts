@@ -121,6 +121,7 @@ export interface GraphViewProviderMethodSourceOwner {
   _extensionUri: vscode.Uri;
   _context: vscode.ExtensionContext;
   _methodContainers: GraphViewProviderMethodContainers;
+  updateWorkspaceFilesImmediately(filePaths: readonly string[]): Promise<void>;
   readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   readonly _commandMethods: GraphViewProviderMethodContainers['command'];
   readonly _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];

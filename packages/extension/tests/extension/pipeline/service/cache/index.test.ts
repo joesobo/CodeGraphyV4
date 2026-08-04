@@ -6,15 +6,11 @@ import {
   hasWorkspacePipelineIndex,
   persistWorkspacePipelineIndexMetadata,
 } from '../../../../../src/extension/pipeline/service/cache/index';
-import {
-  readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta,
-} from '../../../../../src/extension/repoSettings/meta';
+import { readCodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 import type { ICodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 
 vi.mock('../../../../../src/extension/repoSettings/meta', () => ({
   readCodeGraphyRepoMeta: vi.fn(),
-  writeCodeGraphyRepoMeta: vi.fn(),
 }));
 
 describe('pipeline/service/cache/index', () => {
@@ -78,6 +74,12 @@ describe('pipeline/service/cache/index', () => {
     expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(false);
   });
 
+  it('reports a recoverable index only when complete graph state has explicit provenance', () => {
+    const workspaceRoot = createWorkspaceRootWithoutDatabase();
+
+    expect(hasWorkspacePipelineIndex(workspaceRoot, true)).toBe(true);
+  });
+
   it('still reports a saved index when persisted signatures do not match the current signatures', () => {
     const workspaceRoot = createWorkspaceRootWithDatabase();
 
@@ -132,7 +134,6 @@ describe('pipeline/service/cache/index', () => {
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
     });
-    expect(writeCodeGraphyRepoMeta).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
   });
 
@@ -150,13 +151,10 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      lastIndexedCommit: 'def456',
       pluginBuildSignature: 'next-plugin-build-signature',
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
-    });
-    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
-      ...meta(),
-      lastIndexedCommit: 'def456',
     });
   });
 
@@ -184,7 +182,7 @@ describe('pipeline/service/cache/index', () => {
     });
   });
 
-  it('skips writes without a workspace root and warns on persistence failures', async () => {
+  it('skips writes without a workspace root and rejects persistence failures', async () => {
     const warn = vi.fn();
     const error = new Error('disk full');
     const persistIndexMetadata = vi.fn(() => {
@@ -201,7 +199,27 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata(undefined, dependencies);
     expect(persistIndexMetadata).not.toHaveBeenCalled();
 
-    await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
+    await expect(
+      persistWorkspacePipelineIndexMetadata('/workspace', dependencies),
+    ).rejects.toBe(error);
+
+    expect(warn).toHaveBeenCalledWith(
+      '[CodeGraphy] Failed to update repo index metadata.',
+      error,
+    );
+  });
+
+  it('rejects asynchronous metadata persistence failures', async () => {
+    const error = new Error('async disk full');
+    const warn = vi.fn();
+
+    await expect(persistWorkspacePipelineIndexMetadata('/workspace', {
+      getPluginBuildSignature: vi.fn(() => null),
+      getPluginSignature: vi.fn(() => null),
+      getSettingsSignature: vi.fn(() => 'settings-signature'),
+      persistIndexMetadata: vi.fn(async () => Promise.reject(error)),
+      warn,
+    })).rejects.toBe(error);
 
     expect(warn).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to update repo index metadata.',

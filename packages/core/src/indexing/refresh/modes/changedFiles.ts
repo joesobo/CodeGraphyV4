@@ -18,33 +18,45 @@ import {
   retainWorkspaceIndexDiscoveredFileConnections,
 } from '../state';
 import { findAffectedWorkspaceIndexAnalysisDependents } from '../../workspace/changes';
+import { isWorkspaceDiscoveryLifecyclePath } from '../../../workspace/discoveryLifecycle';
 import { invalidateDeletedWorkspaceIndexFiles } from './changedFileDeletion';
 import {
   buildGraphWithoutChangedFileAnalysis,
   persistChangedFilesCachePatch,
   persistMetricOnlyIndexMetadata,
 } from './changedFilePersistence';
+import { WorkspaceIndexFullRefreshRequiredError } from '../fullRefreshRequired';
 
 export async function refreshWorkspaceIndexChangedFiles(
   source: WorkspaceIndexRefreshSource,
   dependencies: WorkspaceIndexRefreshDependencies,
 ): Promise<IGraphData> {
+  if (containsWorkspaceDiscoveryLifecyclePath(dependencies)) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('discovery-lifecycle');
+    }
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
+  }
+
+  const structuralPatch = selectWorkspaceDirectoryChanges(
+    source._lastDiscoveredDirectories,
+    dependencies.discoveredDirectories ?? [],
+  );
   const discoveredByRelativePath = mapDiscoveredWorkspaceIndexFilesByRelativePath(
     dependencies.discoveredFiles,
   );
+  const changedFilePaths = expandWorkspaceDirectoryChangePaths(source, dependencies);
   const changeSelection = selectDiscoveredWorkspaceIndexFileChanges(
     dependencies.workspaceRoot,
-    dependencies.filePaths,
+    changedFilePaths,
     discoveredByRelativePath,
   );
-  const deletionSelection = invalidateDeletedWorkspaceIndexFiles(
-    source,
-    changeSelection.unmatchedFilePaths,
-  );
-  const deleteFilePaths = deletionSelection.deleteFilePaths;
   const changedFiles = changeSelection.files;
+  let deletionSelection = dependencies.fullRefreshFallback === 'reject'
+    ? undefined
+    : invalidateDeletedWorkspaceIndexFiles(source, changeSelection.unmatchedFilePaths);
 
-  if (deletionSelection.unmatchedFilePaths.length > 0) {
+  if (deletionSelection?.unmatchedFilePaths.length) {
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
@@ -58,9 +70,28 @@ export async function refreshWorkspaceIndexChangedFiles(
     : { additionalFilePaths: [], requiresFullRefresh: false };
 
   if (incrementalLifecycle.requiresFullRefresh) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('plugin-request');
+    }
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
+  if (hasUnboundedWorkspaceDiscoveryMembershipChange(
+    source,
+    dependencies,
+    [...changedFilePaths, ...incrementalLifecycle.additionalFilePaths],
+  )) {
+    if (dependencies.fullRefreshFallback === 'reject') {
+      throw new WorkspaceIndexFullRefreshRequiredError('discovery-membership');
+    }
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
+  }
+
+  deletionSelection ??= invalidateDeletedWorkspaceIndexFiles(
+    source,
+    changeSelection.unmatchedFilePaths,
+  );
+  const deleteFilePaths = deletionSelection.deleteFilePaths;
   const affectedDependents = findAffectedWorkspaceIndexAnalysisDependents({
     fileAnalysis: source._lastFileAnalysis,
     invalidatedFilePaths: [
@@ -81,7 +112,12 @@ export async function refreshWorkspaceIndexChangedFiles(
   retainWorkspaceIndexDiscoveredFileConnections(source, dependencies.discoveredFiles);
 
   if (filesToAnalyze.length === 0) {
-    return buildGraphWithoutChangedFileAnalysis(source, dependencies, deleteFilePaths);
+    return buildGraphWithoutChangedFileAnalysis(
+      source,
+      dependencies,
+      deleteFilePaths,
+      structuralPatch,
+    );
   }
 
   const graphSnapshot = captureWorkspaceIndexRefreshGraphSnapshot(source, filesToAnalyze);
@@ -112,31 +148,127 @@ export async function refreshWorkspaceIndexChangedFiles(
 
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
-  persistChangedFilesCachePatch(dependencies, {
+  const canPatchMetrics = structuralPatch.deleteNodeIds.length === 0
+    && structuralPatch.upsertNodeIds.length === 0
+    && canPatchWorkspaceIndexRefreshGraphData(
+      graphSnapshot,
+      analysisResult,
+      filesToAnalyze,
+    ) && source._patchGraphDataNodeMetrics;
+  const graphData = canPatchMetrics
+    ? source._patchGraphDataNodeMetrics!(
+        source._lastGraphData,
+        filesToAnalyze.map(file => file.relativePath),
+      )
+    : buildWorkspaceIndexGraphFromRefreshState(
+        source,
+        dependencies.workspaceRoot,
+        dependencies.disabledPlugins,
+      );
+  source._lastGraphData = graphData;
+  await persistChangedFilesCachePatch(dependencies, {
+    ...(source._getCompleteGraphData
+      ? { completeGraph: source._getCompleteGraphData() }
+      : {}),
     deleteFilePaths,
+    deleteNodeIds: structuralPatch.deleteNodeIds,
     upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
+    upsertNodeIds: structuralPatch.upsertNodeIds,
+    graph: graphData,
   });
-  if (
-    canPatchWorkspaceIndexRefreshGraphData(graphSnapshot, analysisResult, filesToAnalyze)
-    && source._patchGraphDataNodeMetrics
-  ) {
-    const graphData = source._patchGraphDataNodeMetrics(
-      source._lastGraphData,
-      filesToAnalyze.map(file => file.relativePath),
-    );
-    source._lastGraphData = graphData;
+  if (canPatchMetrics) {
     await persistMetricOnlyIndexMetadata(dependencies);
-    return graphData;
+  } else {
+    await dependencies.persistIndexMetadata(dependencies.filePaths);
   }
 
-  const graphData = buildWorkspaceIndexGraphFromRefreshState(
-    source,
-    dependencies.workspaceRoot,
-    dependencies.disabledPlugins,
-  );
-  await dependencies.persistIndexMetadata();
-
   return graphData;
+}
+
+function expandWorkspaceDirectoryChangePaths(
+  source: WorkspaceIndexRefreshSource,
+  dependencies: WorkspaceIndexRefreshDependencies,
+): string[] {
+  const previousDirectories = new Set(source._lastDiscoveredDirectories);
+  const nextDirectories = new Set(dependencies.discoveredDirectories ?? []);
+  const previousFiles = source._lastDiscoveredFiles;
+  const nextFiles = dependencies.discoveredFiles;
+  return [...new Set(dependencies.filePaths.flatMap(filePath => {
+    const relativePath = toWorkspaceRelativePath(dependencies.workspaceRoot, filePath);
+    if (!relativePath
+      || (!previousDirectories.has(relativePath) && !nextDirectories.has(relativePath))) {
+      return [filePath];
+    }
+    return [...previousFiles, ...nextFiles]
+      .filter(file => file.relativePath.startsWith(`${relativePath}/`))
+      .map(file => file.absolutePath);
+  }))];
+}
+
+function containsWorkspaceDiscoveryLifecyclePath(
+  dependencies: WorkspaceIndexRefreshDependencies,
+): boolean {
+  return dependencies.filePaths.some(filePath => {
+    const relativePath = toWorkspaceRelativePath(dependencies.workspaceRoot, filePath);
+    return relativePath !== undefined && isWorkspaceDiscoveryLifecyclePath(relativePath);
+  });
+}
+
+function hasUnboundedWorkspaceDiscoveryMembershipChange(
+  source: WorkspaceIndexRefreshSource,
+  dependencies: WorkspaceIndexRefreshDependencies,
+  boundedFilePaths: readonly string[],
+): boolean {
+  const nextFilePaths = new Set(
+    dependencies.discoveredFiles.map(file => file.relativePath),
+  );
+  const previousFilePaths = new Set(
+    source._lastDiscoveredFiles.map(file => file.relativePath),
+  );
+  const changedRelativePaths = boundedFilePaths
+    .map(filePath => toWorkspaceRelativePath(dependencies.workspaceRoot, filePath))
+    .filter((filePath): filePath is string => filePath !== undefined);
+
+  const isCoveredByChangedPath = (relativePath: string): boolean => (
+    changedRelativePaths.some(changedPath => (
+      relativePath === changedPath
+      || relativePath.startsWith(`${changedPath}/`)
+    ))
+  );
+
+  const hasUnexplainedArrival = dependencies.discoveredFiles.some(file => (
+    !previousFilePaths.has(file.relativePath)
+    && !isCoveredByChangedPath(file.relativePath)
+  ));
+  const hasUnexplainedDepartureAtLimit = dependencies.discoveryLimitReached === true
+    && source._lastDiscoveredFiles.some(file => (
+      !nextFilePaths.has(file.relativePath)
+      && !isCoveredByChangedPath(file.relativePath)
+    ));
+
+  return hasUnexplainedArrival || hasUnexplainedDepartureAtLimit;
+}
+
+function toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined {
+  const normalizedRoot = workspaceRoot.replace(/\\/g, '/').replace(/\/$/, '');
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  if (normalizedPath === normalizedRoot) return '';
+  if (normalizedPath.startsWith(`${normalizedRoot}/`)) {
+    return normalizedPath.slice(normalizedRoot.length + 1);
+  }
+  return normalizedPath.startsWith('../') ? undefined : normalizedPath;
+}
+
+function selectWorkspaceDirectoryChanges(
+  previousDirectories: readonly string[],
+  nextDirectories: readonly string[],
+): { deleteNodeIds: string[]; upsertNodeIds: string[] } {
+  const previous = new Set(previousDirectories);
+  const next = new Set(nextDirectories);
+  return {
+    deleteNodeIds: [...previous].filter(directory => !next.has(directory)),
+    upsertNodeIds: [...next].filter(directory => !previous.has(directory)),
+  };
 }
 
 function analyzeWorkspaceIndexFromRefresh(

@@ -1,9 +1,12 @@
 export {
+  mergeWorkspaceIndexGraphData as mergeWorkspacePipelineGraphData,
   refreshWorkspaceIndexAnalysisScope as refreshWorkspacePipelineAnalysisScope,
   refreshWorkspaceIndexChangedFiles as refreshWorkspacePipelineChangedFiles,
   refreshWorkspaceIndexPluginFiles as refreshWorkspacePipelinePluginFiles,
+  runOwnedWorkspaceIndexRefresh as runOwnedWorkspacePipelineRefresh,
   type WorkspaceIndexAnalysisScopeRefreshDependencies as WorkspacePipelineAnalysisScopeRefreshDependencies,
   type WorkspaceIndexRefreshDependencies as WorkspacePipelineRefreshDependencies,
   type WorkspaceIndexRefreshSource as WorkspacePipelineRefreshSource,
+  type WorkspaceIndexOwnedRefreshAttempt as WorkspacePipelineOwnedRefreshAttempt,
   type WorkspaceIndexPluginRefreshDependencies as WorkspacePipelinePluginRefreshDependencies,
 } from '@codegraphy-dev/core';

@@ -29,6 +29,31 @@ describe('graph view analysis execution', () => {
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 
+  it('propagates incremental failures without replacing the last consistent graph', async () => {
+    const error = new Error('targeted update requires explicit Re-index');
+    const state = createExecutionState({
+      analyzer: createExecutionAnalyzer({
+        refreshChangedFiles: vi.fn(async () => Promise.reject(error)),
+      }),
+      analyzerInitialized: true,
+      changedFilePaths: ['/workspace/src/app.ts'],
+      mode: 'incremental',
+    });
+    const { handlers } = createExecutionHandlers();
+
+    await expect(executeGraphViewAnalysis(
+      new AbortController().signal,
+      1,
+      state,
+      handlers,
+    )).rejects.toBe(error);
+
+    expect(handlers.logError).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', error);
+    expect(handlers.setRawGraphData).not.toHaveBeenCalled();
+    expect(handlers.setGraphData).not.toHaveBeenCalled();
+    expect(handlers.sendGraphDataUpdated).not.toHaveBeenCalled();
+  });
+
   it('returns quietly for abort errors raised during analysis', async () => {
     const error = Object.assign(new Error('aborted'), { name: 'AbortError' });
     const state = createExecutionState({

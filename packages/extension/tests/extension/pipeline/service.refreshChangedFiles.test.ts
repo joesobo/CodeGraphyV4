@@ -3,6 +3,15 @@ import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
+vi.mock('@codegraphy-dev/core', async importOriginal => ({
+  ...(await importOriginal<typeof import('@codegraphy-dev/core')>()),
+  runOwnedWorkspaceIndexRefresh: vi.fn(async options => {
+    const attempt = await options.prepare();
+    await attempt.persistIndexMetadata();
+    return attempt.result;
+  }),
+}));
+
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
   configurable: true,
@@ -69,6 +78,12 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       limitReached: false,
       totalFound: 3,
     }));
+    analyzerPrivate._lastDiscoveredFiles = [
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+      { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
+      { absolutePath: '/workspace/src/c.ts', relativePath: 'src/c.ts' },
+    ];
+    analyzerPrivate._lastWorkspaceRoot = '/workspace';
     analyzerPrivate._registry.notifyFilesChanged = vi.fn(async () => ({
       additionalFilePaths: ['src/b.ts'],
       requiresFullRefresh: false,
@@ -217,6 +232,10 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       _readAnalysisFiles?: ReturnType<typeof vi.fn>;
       _persistIndexMetadata?: ReturnType<typeof vi.fn>;
       _persistCachePatch?: ReturnType<typeof vi.fn>;
+      _lastDiscoveredFiles: Array<{ absolutePath: string; relativePath: string }>;
+      _lastFileAnalysis: Map<string, IFileAnalysisResult>;
+      _lastFileConnections: Map<string, unknown[]>;
+      _lastWorkspaceRoot: string;
     };
     const invalidateWorkspaceFiles = vi.spyOn(analyzer, 'invalidateWorkspaceFiles');
 
@@ -237,6 +256,19 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       limitReached: false,
       totalFound: 1,
     }));
+    analyzerPrivate._lastDiscoveredFiles = [
+      { absolutePath: '/workspace/src/keep.ts', relativePath: 'src/keep.ts' },
+      { absolutePath: '/workspace/src/remove.ts', relativePath: 'src/remove.ts' },
+    ];
+    analyzerPrivate._lastFileAnalysis = new Map([
+      ['src/keep.ts', { filePath: '/workspace/src/keep.ts', relations: [] }],
+      ['src/remove.ts', { filePath: '/workspace/src/remove.ts', relations: [] }],
+    ]);
+    analyzerPrivate._lastFileConnections = new Map([
+      ['src/keep.ts', []],
+      ['src/remove.ts', []],
+    ]);
+    analyzerPrivate._lastWorkspaceRoot = '/workspace';
     analyzerPrivate._registry.notifyFilesChanged = vi.fn(async () => ({
       additionalFilePaths: [],
       requiresFullRefresh: false,
@@ -260,10 +292,7 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
     );
     expect(analyzerPrivate._registry.notifyFilesChanged).not.toHaveBeenCalled();
     expect(analyzer.analyze).not.toHaveBeenCalled();
-    expect(analyzerPrivate._persistCachePatch).toHaveBeenCalledWith({
-      deleteFilePaths: ['src/remove.ts'],
-      upsertFilePaths: [],
-    });
+    expect(analyzerPrivate._persistCachePatch).not.toHaveBeenCalled();
     expect(analyzerPrivate._persistIndexMetadata).toHaveBeenCalledOnce();
   });
 

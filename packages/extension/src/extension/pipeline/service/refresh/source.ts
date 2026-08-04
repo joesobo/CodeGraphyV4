@@ -1,5 +1,8 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { WorkspacePipelineRefreshSource } from '../runtime/refresh';
+import {
+  mergeWorkspacePipelineGraphData,
+  type WorkspacePipelineRefreshSource,
+} from '../runtime/refresh';
 
 type RefreshSourceBuildGraphData = WorkspacePipelineRefreshSource['_buildGraphData'];
 type RefreshSourceBuildGraphDataFromAnalysis =
@@ -19,6 +22,7 @@ export interface RefreshSourceFacade {
     showOrphans: boolean,
     disabledPlugins: Set<string>,
   ): IGraphData;
+  _completeGraphData: IGraphData;
   _lastDiscoveredDirectories: WorkspacePipelineRefreshSource['_lastDiscoveredDirectories'];
   _lastDiscoveredFiles: WorkspacePipelineRefreshSource['_lastDiscoveredFiles'];
   _lastFileAnalysis: WorkspacePipelineRefreshSource['_lastFileAnalysis'];
@@ -63,12 +67,30 @@ export function createWorkspaceIndexRefreshSource(
           pluginIds,
           nextDisabledPlugins,
         ),
-    _buildGraphData: (fileConnections, root, selectedPlugins) =>
-      facade._buildGraphData(fileConnections, root, true, selectedPlugins),
+    _buildGraphData: (fileConnections, root, selectedPlugins) => {
+      const completeAnalysisGraph = facade._completeGraphData;
+      const fallbackGraph = facade._buildGraphData(
+        fileConnections,
+        root,
+        true,
+        selectedPlugins,
+      );
+      facade._completeGraphData = mergeWorkspacePipelineGraphData(
+        completeAnalysisGraph,
+        fallbackGraph,
+      );
+      return fallbackGraph;
+    },
     _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
       facade._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
-    _patchGraphDataNodeMetrics: (graphData, filePaths) =>
-      facade._patchGraphDataNodeMetrics(graphData, filePaths),
+    _getCompleteGraphData: () => facade._completeGraphData,
+    _patchGraphDataNodeMetrics: (graphData, filePaths) => {
+      facade._completeGraphData = facade._patchGraphDataNodeMetrics(
+        facade._completeGraphData,
+        filePaths,
+      );
+      return facade._patchGraphDataNodeMetrics(graphData, filePaths);
+    },
     _preAnalyzePlugins: (files, root, abortSignal, nextDisabledPlugins = disabledPlugins) =>
       facade._preAnalyzePlugins(files, root, abortSignal, nextDisabledPlugins),
     _readAnalysisFiles: files => facade._readAnalysisFiles(files),
