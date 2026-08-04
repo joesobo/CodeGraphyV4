@@ -112,12 +112,10 @@ export function withWorkspaceAnalysisDatabaseWriter<T>(
       patch: (patch, recovery) => {
         context.assertCurrent();
         patchOwnedWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch, recovery);
-        context.markCommitted();
       },
       replace: replacement => {
         context.assertCurrent();
         replaceOwnedWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, replacement);
-        context.markCommitted();
       },
     }),
   );

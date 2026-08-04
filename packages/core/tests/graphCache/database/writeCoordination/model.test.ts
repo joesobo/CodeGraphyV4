@@ -3,11 +3,14 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  realpathSync,
   rmSync,
   statSync,
+  symlinkSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import Database from 'libsql';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   markCodeGraphyWorkspaceChangesPending,
@@ -167,6 +170,176 @@ async function startReleasableHoldingWriter(
   };
 }
 
+async function startReleasableLockWriter(databasePath: string): Promise<{
+  completion: Promise<{ code: number | null; stderr: string }>;
+  lockPath: string;
+  release(): void;
+}> {
+  const moduleUrl = writeCoordinationModuleUrl();
+  const program = [
+    'const [moduleUrl, databasePath] = process.argv.slice(1);',
+    'const { getWorkspaceCacheWriteLockPath, withWorkspaceCacheWriteLockAsync } = await import(moduleUrl);',
+    'await withWorkspaceCacheWriteLockAsync(databasePath, async () => {',
+    "  process.stdout.write(`locked:${getWorkspaceCacheWriteLockPath(databasePath)}\\n`);",
+    '  process.stdin.resume();',
+    "  await new Promise(resolve => process.stdin.once('end', resolve));",
+    '});',
+  ].join('\n');
+  const child = spawn(process.execPath, [
+    '--import', 'tsx', '--input-type=module', '--eval', program,
+    moduleUrl, databasePath,
+  ], { stdio: ['pipe', 'pipe', 'pipe'] });
+  let stderr = '';
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', chunk => { stderr += chunk; });
+  const completion = new Promise<{ code: number | null; stderr: string }>((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', code => resolve({ code, stderr }));
+  });
+  let childLockPath = '';
+  await new Promise<void>((resolve, reject) => {
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', chunk => {
+      const lockedLine = String(chunk).split('\n')
+        .find(line => line.startsWith('locked:'));
+      if (lockedLine) {
+        childLockPath = lockedLine.slice('locked:'.length);
+        resolve();
+      }
+    });
+    child.on('error', reject);
+    child.on('close', code => reject(
+      new Error(`Releasable lock writer exited before acquiring ownership (${code}): ${stderr}`),
+    ));
+  });
+  return {
+    completion,
+    lockPath: childLockPath,
+    release: () => child.stdin.end(),
+  };
+}
+
+async function startDurableWriteThenWait(databasePath: string, markerPath: string): Promise<{
+  child: ReturnType<typeof spawn>;
+  revision: number;
+}> {
+  const moduleUrl = writeCoordinationModuleUrl();
+  const program = [
+    "import { writeFileSync } from 'node:fs';",
+    'const [moduleUrl, databasePath, markerPath] = process.argv.slice(1);',
+    'const { withWorkspaceCacheWriteLockAsync } = await import(moduleUrl);',
+    'await withWorkspaceCacheWriteLockAsync(databasePath, async revision => {',
+    "  writeFileSync(markerPath, 'durable');",
+    "  process.stdout.write(`written:${revision}\\n`);",
+    '  await new Promise(() => setInterval(() => {}, 1_000));',
+    '});',
+  ].join('\n');
+  const child = spawn(process.execPath, [
+    '--import', 'tsx', '--input-type=module', '--eval', program,
+    moduleUrl, databasePath, markerPath,
+  ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const revision = await new Promise<number>((resolve, reject) => {
+    let stderr = '';
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', chunk => {
+      const line = String(chunk).split('\n').find(value => value.startsWith('written:'));
+      if (line) resolve(Number(line.slice('written:'.length)));
+    });
+    child.on('error', reject);
+    child.on('close', code => reject(
+      new Error(`Durable writer exited before its marker (${code}): ${stderr}`),
+    ));
+  });
+  return { child, revision };
+}
+
+async function startPausedLockContender(databasePath: string): Promise<{
+  child: ReturnType<typeof spawn>;
+  completion: Promise<{ code: number | null; stderr: string }>;
+  release(): void;
+  resume(): void;
+}> {
+  const moduleUrl = writeCoordinationModuleUrl();
+  const program = [
+    'const [moduleUrl, databasePath] = process.argv.slice(1);',
+    'const { withWorkspaceCacheWriteLockAsync } = await import(moduleUrl);',
+    'await withWorkspaceCacheWriteLockAsync(databasePath, async () => {',
+    "  process.stdout.write('paused\\n');",
+    "  process.kill(process.pid, 'SIGSTOP');",
+    '  process.stdin.resume();',
+    "  await new Promise(resolve => process.stdin.once('end', resolve));",
+    '});',
+  ].join('\n');
+  const child = spawn(process.execPath, [
+    '--import', 'tsx', '--input-type=module', '--eval', program,
+    moduleUrl, databasePath,
+  ], { stdio: ['pipe', 'pipe', 'pipe'] });
+  let stderr = '';
+  let markPaused!: () => void;
+  const pausedPromise = new Promise<void>(resolve => { markPaused = resolve; });
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', chunk => { stderr += chunk; });
+  child.stdout.setEncoding('utf8');
+  child.stdout.on('data', chunk => {
+    const output = String(chunk);
+    if (output.includes('paused')) markPaused();
+  });
+  const completion = new Promise<{ code: number | null; stderr: string }>((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', code => resolve({ code, stderr }));
+  });
+  await pausedPromise;
+  return {
+    child,
+    completion,
+    release: () => child.stdin.end(),
+    resume: () => process.kill(child.pid!, 'SIGCONT'),
+  };
+}
+
+async function startExclusiveSqliteOwner(databasePath: string): Promise<{
+  completion: Promise<{ code: number | null; stderr: string }>;
+  release(): void;
+}> {
+  const program = [
+    "import Database from 'libsql';",
+    'const [databasePath] = process.argv.slice(1);',
+    'const connection = new Database(databasePath);',
+    "connection.exec('PRAGMA busy_timeout = 0; BEGIN EXCLUSIVE;');",
+    "process.stdout.write('locked\\n');",
+    'process.stdin.resume();',
+    "await new Promise(resolve => process.stdin.once('end', resolve));",
+    "connection.exec('ROLLBACK;');",
+    'connection.close();',
+  ].join('\n');
+  const child = spawn(process.execPath, [
+    '--import', 'tsx', '--input-type=module', '--eval', program, databasePath,
+  ], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+    cwd: join(import.meta.dirname, '../../../..'),
+  });
+  let stderr = '';
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', chunk => { stderr += chunk; });
+  const completion = new Promise<{ code: number | null; stderr: string }>((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', code => resolve({ code, stderr }));
+  });
+  await new Promise<void>((resolve, reject) => {
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', chunk => {
+      if (String(chunk).includes('locked')) resolve();
+    });
+    child.on('error', reject);
+    child.on('close', code => reject(
+      new Error(`Exclusive SQLite owner exited before locking (${code}): ${stderr}`),
+    ));
+  });
+  return { completion, release: () => child.stdin.end() };
+}
+
 afterEach(() => {
   for (const directory of temporaryDirectories) {
     rmSync(directory, { recursive: true, force: true });
@@ -178,6 +351,11 @@ afterEach(() => {
       `${lockPath}-journal`,
       `${lockPath}-shm`,
       `${lockPath}-wal`,
+      `${lockPath}.revision.sqlite`,
+      `${lockPath}.revision.sqlite-journal`,
+      `${lockPath}.revision.sqlite-shm`,
+      `${lockPath}.revision.sqlite-wal`,
+      `${lockPath}.lock`,
       `${lockPath}.owner`,
     ]) {
       rmSync(artifactPath, { recursive: true, force: true });
@@ -235,17 +413,41 @@ describe('Graph Cache write coordination', () => {
     expect(existsSync(`${databasePath}.write-lock.sqlite`)).toBe(false);
   });
 
-  it('advances the committed writer revision without advancing failed ownership', async () => {
+  it('reserves every writer revision before its callback runs', async () => {
     const databasePath = createDatabasePath();
 
     expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(0);
-    await withWorkspaceCacheWriteLockAsync(databasePath, async () => undefined);
+    await withWorkspaceCacheWriteLockAsync(databasePath, async revision => {
+      expect(revision).toBe(0);
+    });
     expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(1);
-    await expect(withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+    await expect(withWorkspaceCacheWriteLockAsync(databasePath, async revision => {
+      expect(revision).toBe(1);
       throw new Error('write failed');
     })).rejects.toThrow('write failed');
-    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(1);
+    expect(await readWorkspaceCacheWriteRevisionAsync(databasePath)).toBe(2);
   });
+
+  it('keeps a pre-write revision reservation after a writer is killed', async () => {
+    const databasePath = createDatabasePath();
+    const markerPath = `${databasePath}.durable`;
+    const preparedRevision = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    const writer = await startDurableWriteThenWait(databasePath, markerPath);
+
+    expect(writer.revision).toBe(preparedRevision);
+    expect(existsSync(markerPath)).toBe(true);
+    writer.child.kill('SIGKILL');
+    await new Promise<void>(resolve => writer.child.once('close', () => resolve()));
+
+    const observedRevision = await readWorkspaceCacheWriteRevisionAsync(databasePath);
+    let staleAttemptCommitted = false;
+    await withWorkspaceCacheWriteLockAsync(databasePath, async revision => {
+      if (revision === preparedRevision) staleAttemptCommitted = true;
+    });
+
+    expect(observedRevision).toBeGreaterThan(preparedRevision);
+    expect(staleAttemptCommitted).toBe(false);
+  }, 15_000);
 
   it('waits while another process owns the same coordinator', async () => {
     const databasePath = createDatabasePath();
@@ -262,6 +464,140 @@ describe('Graph Cache write coordination', () => {
 
     expect(contenderEnteredBeforeRelease).toBe(false);
     expect(contenderEntered).toBe(true);
+  });
+
+  it('proves BEGIN EXCLUSIVE excludes a second real process', async () => {
+    const databasePath = createDatabasePath();
+    const lockPath = getWorkspaceCacheWriteLockPath(databasePath);
+    mkdirSync(dirname(lockPath), { recursive: true });
+    const holder = await startExclusiveSqliteOwner(lockPath);
+    const contender = new Database(lockPath);
+
+    expect(() => contender.exec('PRAGMA busy_timeout = 0; BEGIN EXCLUSIVE;'))
+      .toThrow(expect.objectContaining({ code: 'SQLITE_BUSY' }));
+
+    contender.close();
+    holder.release();
+    expect(await holder.completion).toEqual({ code: 0, stderr: '' });
+  });
+
+  it('does not let a paused owner erase a successor owned by another process', async () => {
+    const databasePath = createDatabasePath();
+    const paused = await startPausedLockContender(databasePath);
+    let successorEntered = false;
+    const successorPromise = startReleasableLockWriter(databasePath).then(successor => {
+      successorEntered = true;
+      return successor;
+    });
+    let thirdEntered = false;
+    const third = withWorkspaceCacheWriteLockAsync(databasePath, async () => {
+      thirdEntered = true;
+    });
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const successorEnteredBeforeRelease = successorEntered;
+    const thirdEnteredBeforeRelease = thirdEntered;
+
+    paused.resume();
+    paused.release();
+    const pausedResult = await paused.completion;
+    const successor = await successorPromise;
+    successor.release();
+    const successorResult = await successor.completion;
+    await third;
+
+    expect(successorEnteredBeforeRelease).toBe(false);
+    expect(thirdEnteredBeforeRelease).toBe(false);
+    expect(successorResult).toEqual({ code: 0, stderr: '' });
+    expect(pausedResult).toEqual({ code: 0, stderr: '' });
+    expect(thirdEntered).toBe(true);
+  }, 10_000);
+
+  it('serializes real-path and symlink-alias writers through one coordinator', async () => {
+    const container = mkdtempSync(join(tmpdir(), 'codegraphy-symlink-lock-'));
+    temporaryDirectories.add(container);
+    const workspaceRoot = join(container, 'workspace');
+    const aliasRoot = join(container, 'workspace-alias');
+    mkdirSync(join(workspaceRoot, '.codegraphy'), { recursive: true });
+    symlinkSync(workspaceRoot, aliasRoot, 'dir');
+    const databasePath = join(workspaceRoot, '.codegraphy', 'graph.sqlite');
+    const aliasDatabasePath = join(aliasRoot, '.codegraphy', 'graph.sqlite');
+    trackLockPath(databasePath);
+    trackLockPath(aliasDatabasePath);
+    const holder = await startReleasableLockWriter(databasePath);
+    let contenderEntered = false;
+    const contender = withWorkspaceCacheWriteLockAsync(aliasDatabasePath, async () => {
+      contenderEntered = true;
+    });
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const contenderEnteredBeforeRelease = contenderEntered;
+
+    holder.release();
+    const holderResult = await holder.completion;
+    await contender;
+
+    expect(holder.lockPath).toBe(getWorkspaceCacheWriteLockPath(aliasDatabasePath));
+    expect(contenderEnteredBeforeRelease).toBe(false);
+    expect(holderResult).toEqual({ code: 0, stderr: '' });
+    expect(contenderEntered).toBe(true);
+  }, 10_000);
+
+  it('serializes case aliases when the filesystem proves case-insensitive', async () => {
+    const container = mkdtempSync(join(tmpdir(), 'codegraphy-case-lock-'));
+    temporaryDirectories.add(container);
+    const workspaceRoot = join(container, 'CaseWorkspace');
+    const aliasRoot = join(container, 'caseworkspace');
+    mkdirSync(join(workspaceRoot, '.codegraphy'), { recursive: true });
+    if (!existsSync(aliasRoot)
+      || realpathSync.native(aliasRoot) !== realpathSync.native(workspaceRoot)) return;
+    const databasePath = join(workspaceRoot, '.codegraphy', 'graph.sqlite');
+    const aliasDatabasePath = join(aliasRoot, '.codegraphy', 'graph.sqlite');
+    trackLockPath(databasePath);
+    trackLockPath(aliasDatabasePath);
+    const holder = await startReleasableLockWriter(databasePath);
+    let contenderEntered = false;
+    const contender = withWorkspaceCacheWriteLockAsync(aliasDatabasePath, async () => {
+      contenderEntered = true;
+    });
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const contenderEnteredBeforeRelease = contenderEntered;
+
+    holder.release();
+    const holderResult = await holder.completion;
+    await contender;
+
+    expect(holder.lockPath).toBe(getWorkspaceCacheWriteLockPath(aliasDatabasePath));
+    expect(contenderEnteredBeforeRelease).toBe(false);
+    expect(holderResult).toEqual({ code: 0, stderr: '' });
+    expect(contenderEntered).toBe(true);
+  }, 10_000);
+
+  it('keeps distinct physical workspaces on distinct coordinators', () => {
+    const firstDatabasePath = createDatabasePath();
+    const secondDatabasePath = createDatabasePath();
+
+    expect(getWorkspaceCacheWriteLockPath(firstDatabasePath))
+      .not.toBe(getWorkspaceCacheWriteLockPath(secondDatabasePath));
+  });
+
+  it('rejects an old owner after its symlink workspace is retargeted', async () => {
+    const container = mkdtempSync(join(tmpdir(), 'codegraphy-retarget-lock-'));
+    temporaryDirectories.add(container);
+    const oldWorkspaceRoot = join(container, 'old-workspace');
+    const newWorkspaceRoot = join(container, 'new-workspace');
+    const aliasRoot = join(container, 'workspace-alias');
+    mkdirSync(join(oldWorkspaceRoot, '.codegraphy'), { recursive: true });
+    mkdirSync(join(newWorkspaceRoot, '.codegraphy'), { recursive: true });
+    symlinkSync(oldWorkspaceRoot, aliasRoot, 'dir');
+    const aliasDatabasePath = join(aliasRoot, '.codegraphy', 'graph.sqlite');
+    trackLockPath(aliasDatabasePath);
+
+    await expect(withWorkspaceCacheWriteLockAsync(aliasDatabasePath, async () => {
+      rmSync(aliasRoot);
+      symlinkSync(newWorkspaceRoot, aliasRoot, 'dir');
+      await markCodeGraphyWorkspaceChangesPending(aliasRoot, ['src/old.ts']);
+    })).rejects.toMatchObject({ name: 'WorkspaceCacheWriteIdentityChangedError' });
+
+    expect(readCodeGraphyWorkspaceMeta(newWorkspaceRoot).pendingChangedFiles).toEqual([]);
   });
 
   it('keeps one cross-process owner when the workspace root is replaced', async () => {
@@ -300,7 +636,7 @@ describe('Graph Cache write coordination', () => {
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot).pendingChangedFiles)
       .toEqual(['src/new.ts']);
     expect(contenderEntered).toBe(true);
-    expect(contenderRevision).toBe(0);
+    expect(contenderRevision).toBe(1);
   }, 10_000);
 
   it('serializes contenders after the active writer process terminates', async () => {
