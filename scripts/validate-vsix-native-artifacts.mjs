@@ -23,12 +23,6 @@ const treeSitterNativeBinaryPathByTarget = {
   'win32-x64': 'extension/dist/node_modules/tree-sitter/prebuilds/win32-x64/tree-sitter.node',
 };
 
-const parcelWatcherNativeBinaryPathByTarget = {
-  'linux-x64': 'extension/dist/node_modules/@parcel/watcher-linux-x64-glibc/watcher.node',
-  'darwin-arm64': 'extension/dist/node_modules/@parcel/watcher-darwin-arm64/watcher.node',
-  'win32-x64': 'extension/dist/node_modules/@parcel/watcher-win32-x64/watcher.node',
-};
-
 const particlesEsbuildNativeBinaryPathByTarget = {
   'linux-x64': 'extension/packages/plugin-particles/dist/node_modules/@esbuild/linux-x64/bin/esbuild',
   'darwin-arm64': 'extension/packages/plugin-particles/dist/node_modules/@esbuild/darwin-arm64/bin/esbuild',
@@ -45,7 +39,6 @@ function nativeBinaryPathsForTarget(target) {
   return [
     libsqlNativeBinaryPathByTarget[target],
     treeSitterNativeBinaryPathByTarget[target],
-    parcelWatcherNativeBinaryPathByTarget[target],
     particlesEsbuildNativeBinaryPathByTarget[target],
   ];
 }
