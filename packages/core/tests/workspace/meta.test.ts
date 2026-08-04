@@ -7,7 +7,7 @@ import {
   markCodeGraphyWorkspaceChangesPending,
   persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
+  type CodeGraphyWorkspaceMeta,
 } from '../../src/workspace/meta';
 import { getWorkspaceMetaPath } from '../../src/workspace/paths';
 
@@ -17,6 +17,15 @@ function createTempWorkspace(): string {
   const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-meta-'));
   tempDirectories.push(workspaceRoot);
   return workspaceRoot;
+}
+
+function writeWorkspaceMetaFixture(
+  workspaceRoot: string,
+  meta: CodeGraphyWorkspaceMeta,
+): void {
+  const metaPath = getWorkspaceMetaPath(workspaceRoot);
+  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
 }
 
 afterEach(() => {
@@ -44,7 +53,7 @@ describe('workspace/meta', () => {
       failedPluginIds: ['acme.failed'],
     };
 
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
+    writeWorkspaceMetaFixture(workspaceRoot, meta);
 
     expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual(meta);
   });
@@ -60,7 +69,7 @@ describe('workspace/meta', () => {
       pendingChangedFiles: ['src/existing.ts'],
       pluginBuildSignature: 'plugin-build-sha',
     };
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, meta);
+    writeWorkspaceMetaFixture(workspaceRoot, meta);
 
     await markCodeGraphyWorkspaceChangesPending(workspaceRoot, [
       'src/existing.ts',
@@ -73,9 +82,18 @@ describe('workspace/meta', () => {
     });
   });
 
+  it('does not recreate a workspace that was removed before a pending mark', async () => {
+    const workspaceRoot = createTempWorkspace();
+    fs.rmSync(workspaceRoot, { recursive: true });
+
+    await markCodeGraphyWorkspaceChangesPending(workspaceRoot, ['src/late.ts']);
+
+    expect(fs.existsSync(workspaceRoot)).toBe(false);
+  });
+
   it('clears only resolved pending paths while preserving shared metadata fields', async () => {
     const workspaceRoot = createTempWorkspace();
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    writeWorkspaceMetaFixture(workspaceRoot, {
       ...createDefaultCodeGraphyWorkspaceMeta(),
       failedPluginIds: ['acme.failed'],
       lastIndexedCommit: 'abc123',

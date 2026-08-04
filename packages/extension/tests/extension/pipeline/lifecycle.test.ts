@@ -3,7 +3,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { writeCodeGraphyWorkspaceMeta } from '@codegraphy-dev/core';
+import {
+  getWorkspaceMetaPath,
+  type CodeGraphyWorkspaceMeta,
+} from '@codegraphy-dev/core';
 import {
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../src/extension/pipeline/cache';
@@ -18,6 +21,15 @@ let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
   | undefined;
 const tempWorkspaceRoots = new Set<string>();
+
+function writeWorkspaceMetaFixture(
+  workspaceRoot: string,
+  meta: CodeGraphyWorkspaceMeta,
+): void {
+  const metaPath = getWorkspaceMetaPath(workspaceRoot);
+  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
+}
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
@@ -530,7 +542,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    writeWorkspaceMetaFixture(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       pluginBuildSignature: null,
@@ -571,7 +583,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    writeWorkspaceMetaFixture(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       pluginBuildSignature: null,
@@ -612,7 +624,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    writeWorkspaceMetaFixture(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       pluginBuildSignature: null,

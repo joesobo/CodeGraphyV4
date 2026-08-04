@@ -426,7 +426,6 @@ export {
   markCodeGraphyWorkspaceChangesPending,
   persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
 } from './workspace/meta';
 export {
   createCodeGraphyWorkspacePluginBuildSignature,

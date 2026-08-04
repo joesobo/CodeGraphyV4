@@ -4,6 +4,7 @@ import {
   type WorkspaceCacheUpdateSchedulerOptions,
   type WorkspaceCacheUpdateStatus,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
+import { WorkspaceCacheUpdateUnrecordedError } from '../../../../src/extension/workspaceFiles/cacheUpdates/error';
 
 describe('workspaceFiles/cacheUpdates/model', () => {
   afterEach(() => {
@@ -191,6 +192,66 @@ describe('workspaceFiles/cacheUpdates/model', () => {
       error,
     });
     scheduler.dispose();
+  });
+
+  it('settles immediate callers only after async failure handling completes', async () => {
+    const updateError = new Error('targeted update failed');
+    const staleError = new Error('stale mark failed');
+    let rejectStaleMark!: (error: unknown) => void;
+    const staleMark = new Promise<void>((_resolve, reject) => {
+      rejectStaleMark = reject;
+    });
+    const statuses: WorkspaceCacheUpdateStatus[] = [];
+    const unhandledRejections: unknown[] = [];
+    const onUnhandledRejection = (error: unknown): void => {
+      unhandledRejections.push(error);
+    };
+    process.on('unhandledRejection', onUnhandledRejection);
+
+    const scheduler = createWorkspaceCacheUpdateScheduler({
+      debounceMs: 250,
+      canUpdate: () => true,
+      maxBatchAgeMs: 2_000,
+      onError: async () => staleMark,
+      onStatus: status => statuses.push(status),
+      update: vi.fn(async () => Promise.reject(updateError)),
+    });
+
+    try {
+      let callerSettled = false;
+      const callerOutcome = scheduler
+        .notifyImmediately(['/workspace/src/app.ts'])
+        .then(
+          () => undefined,
+          error => error,
+        )
+        .then(error => {
+          callerSettled = true;
+          return error;
+        });
+
+      await vi.waitFor(() => {
+        expect(statuses.map(status => status.state)).toEqual(['queued', 'updating']);
+      });
+      expect(callerSettled).toBe(false);
+
+      rejectStaleMark(staleError);
+      const callerError = await callerOutcome;
+      await new Promise<void>(resolve => setImmediate(resolve));
+
+      expect(callerError).toBeInstanceOf(WorkspaceCacheUpdateUnrecordedError);
+      expect((callerError as WorkspaceCacheUpdateUnrecordedError).errors)
+        .toEqual([updateError, staleError]);
+      expect(statuses).toContainEqual({
+        state: 'error',
+        fileCount: 1,
+        error: callerError,
+      });
+      expect(unhandledRejections).toEqual([]);
+    } finally {
+      scheduler.dispose();
+      process.off('unhandledRejection', onUnhandledRejection);
+    }
   });
 
   it('reports normalized progress as structural scheduler data', async () => {

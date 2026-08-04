@@ -5,7 +5,10 @@ import {
   type WorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateSchedulerOptions,
 } from './model';
-import { WorkspaceCacheUpdateHandledError } from './error';
+import {
+  WorkspaceCacheUpdateHandledError,
+  WorkspaceCacheUpdateUnrecordedError,
+} from './error';
 import {
   createFingerprintingWorkspaceCacheUpdate,
   createPathSignature,
@@ -129,6 +132,7 @@ export function registerWorkspaceCacheUpdates(
     try {
       await scheduler.notifyImmediately(updatePaths);
     } catch (error) {
+      if (error instanceof WorkspaceCacheUpdateUnrecordedError) throw error;
       throw new WorkspaceCacheUpdateHandledError(error);
     }
   });

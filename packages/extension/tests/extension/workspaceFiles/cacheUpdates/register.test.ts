@@ -3,6 +3,7 @@ import {
   createWorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateSchedulerOptions,
 } from '../../../../src/extension/workspaceFiles/cacheUpdates/model';
+import { WorkspaceCacheUpdateUnrecordedError } from '../../../../src/extension/workspaceFiles/cacheUpdates/error';
 import {
   registerWorkspaceCacheUpdates,
   type WorkspaceCacheUpdateRegistrationDependencies,
@@ -189,6 +190,30 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     await immediateUpdate?.(['src/new.ts']);
 
     expect(harness.notifyImmediately).toHaveBeenCalledWith(['/workspace/src/new.ts']);
+  });
+
+  it('does not classify an unrecorded scheduler failure as safely handled', async () => {
+    const harness = createHarness();
+    const failure = new WorkspaceCacheUpdateUnrecordedError(
+      new Error('targeted update failed'),
+      new Error('stale mark failed'),
+    );
+    harness.notifyImmediately.mockRejectedValueOnce(failure);
+    let immediateUpdate: ((filePaths: readonly string[]) => Promise<void>) | undefined;
+
+    registerWorkspaceCacheUpdates(
+      { subscriptions: [] },
+      {
+        refreshIndexStatus: vi.fn(),
+        setWorkspaceFileUpdateHandler: handler => {
+          immediateUpdate = handler;
+        },
+        updateWorkspaceFiles: vi.fn(async () => undefined),
+      },
+      harness.dependencies,
+    );
+
+    await expect(immediateUpdate?.(['src/new.ts'])).rejects.toBe(failure);
   });
 
   it('marks the Graph Cache stale before refreshing index status', async () => {

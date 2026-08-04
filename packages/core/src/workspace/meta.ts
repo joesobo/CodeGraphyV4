@@ -72,7 +72,7 @@ export function readCodeGraphyWorkspaceMeta(workspaceRoot: string): CodeGraphyWo
   }
 }
 
-export function writeCodeGraphyWorkspaceMeta(
+function writeCodeGraphyWorkspaceMeta(
   workspaceRoot: string,
   meta: CodeGraphyWorkspaceMeta,
 ): void {
@@ -104,6 +104,7 @@ async function updateCodeGraphyWorkspaceMeta(
   workspaceRoot: string,
   update: (previous: CodeGraphyWorkspaceMeta) => CodeGraphyWorkspaceMeta,
 ): Promise<void> {
+  if (!fs.existsSync(workspaceRoot)) return;
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   const applyUpdate = () => {
     writeCodeGraphyWorkspaceMeta(

@@ -1,3 +1,5 @@
+import { WorkspaceCacheUpdateUnrecordedError } from './error';
+
 export type WorkspaceCacheUpdateStatus =
   | { state: 'queued'; fileCount: number }
   | { state: 'updating'; fileCount: number; progress?: WorkspaceCacheUpdateProgress }
@@ -114,46 +116,61 @@ class WorkspaceCacheUpdateSchedulerState implements WorkspaceCacheUpdateSchedule
     const controller = new AbortController();
     this.activeController = controller;
     this.options.onStatus(createUpdatingStatus(filePaths.length));
-    this.activeUpdate = this.options.update(
-      filePaths,
-      controller.signal,
-      progress => this.reportProgress(filePaths.length, progress),
-    );
-    void this.activeUpdate
-      .then(() => {
-        this.resolveWaiters(revision);
-        if (!this.disposed && this.pendingFilePaths.size === 0) {
-          this.options.onStatus({
-            state: 'idle',
-            fileCount: 0,
-          });
+    this.activeUpdate = this.runUpdate(filePaths, revision, controller);
+  }
+
+  private async runUpdate(
+    filePaths: readonly string[],
+    revision: number,
+    controller: AbortController,
+  ): Promise<void> {
+    try {
+      await this.options.update(
+        filePaths,
+        controller.signal,
+        progress => this.reportProgress(filePaths.length, progress),
+      );
+      this.resolveWaiters(revision);
+      if (!this.disposed && this.pendingFilePaths.size === 0) {
+        this.options.onStatus({
+          state: 'idle',
+          fileCount: 0,
+        });
+      }
+    } catch (updateError: unknown) {
+      if (!this.disposed && !controller.signal.aborted) {
+        let reportedError = updateError;
+        try {
+          await this.options.onError?.(updateError, filePaths);
+        } catch (staleMarkError: unknown) {
+          reportedError = new WorkspaceCacheUpdateUnrecordedError(
+            updateError,
+            staleMarkError,
+          );
         }
-      })
-      .catch(async (error: unknown) => {
         if (!this.disposed && !controller.signal.aborted) {
-          this.rejectWaiters(revision, error);
-          await this.options.onError?.(error, filePaths);
           this.options.onStatus({
             state: 'error',
             fileCount: filePaths.length,
-            error,
+            error: reportedError,
           });
+          this.rejectWaiters(revision, reportedError);
         }
-      })
-      .finally(() => {
-        if (this.activeController === controller) {
-          this.activeController = undefined;
-          this.activeUpdate = undefined;
+      }
+    } finally {
+      if (this.activeController === controller) {
+        this.activeController = undefined;
+        this.activeUpdate = undefined;
+      }
+      if (!this.disposed && this.pendingFilePaths.size > 0) {
+        this.options.onStatus(createQueuedStatus(this.pendingFilePaths.size));
+        if (this.pendingImmediateUpdate) {
+          this.startUpdate();
+        } else {
+          this.schedule();
         }
-        if (!this.disposed && this.pendingFilePaths.size > 0) {
-          this.options.onStatus(createQueuedStatus(this.pendingFilePaths.size));
-          if (this.pendingImmediateUpdate) {
-            this.startUpdate();
-          } else {
-            this.schedule();
-          }
-        }
-      });
+      }
+    }
   }
 
   private resolveWaiters(revision: number): void {

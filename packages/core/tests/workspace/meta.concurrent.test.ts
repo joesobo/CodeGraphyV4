@@ -8,10 +8,19 @@ import {
   markCodeGraphyWorkspaceChangesPending,
   persistCodeGraphyWorkspaceIndexMetadata,
   readCodeGraphyWorkspaceMeta,
-  writeCodeGraphyWorkspaceMeta,
 } from '../../src/workspace/meta';
+import { getWorkspaceMetaPath } from '../../src/workspace/paths';
 
 const tempDirectories: string[] = [];
+
+function writeWorkspaceMetaFixture(
+  workspaceRoot: string,
+  meta: ReturnType<typeof createDefaultCodeGraphyWorkspaceMeta>,
+): void {
+  const metaPath = getWorkspaceMetaPath(workspaceRoot);
+  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
+}
 
 afterEach(() => {
   for (const directory of tempDirectories.splice(0)) {
@@ -23,7 +32,7 @@ describe('workspace metadata concurrency', () => {
   it('does not let an unrelated metadata commit erase a concurrently marked pending path', async () => {
     const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-meta-race-'));
     tempDirectories.push(workspaceRoot);
-    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+    writeWorkspaceMetaFixture(workspaceRoot, {
       ...createDefaultCodeGraphyWorkspaceMeta(),
       pendingChangedFiles: ['src/resolved.ts'],
     });
