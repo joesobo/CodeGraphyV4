@@ -46,7 +46,7 @@ export function Viewport({
   handleNodeHover = ignoreGraphInteraction,
   marqueeSelection,
   menuEntries,
-  selectedNodeCount,
+  selectedNodeCount = 0,
   surface2dProps,
   tooltipData,
   pluginHost,
