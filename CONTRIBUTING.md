@@ -2,6 +2,8 @@
 
 CodeGraphy accepts focused changes through pull requests against `main`.
 
+Join the [CodeGraphy Discord](https://discord.gg/Z75vbkt4Ry) to discuss contributor workflows, architecture, and early ideas. Keep decisions and actionable work in GitHub issues or pull requests so they remain reviewable.
+
 ## Setup
 
 ### Prerequisites

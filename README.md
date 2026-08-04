@@ -14,6 +14,7 @@
   <a href="https://www.npmjs.com/package/@codegraphy-dev/core"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Fcore?label=core%20CLI" alt="Core CLI version" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/tldraw"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Ftldraw?label=tldraw" alt="tldraw interface version" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-api"><img src="https://img.shields.io/npm/v/%40codegraphy-dev%2Fplugin-api?label=plugin%20API" alt="Plugin API version" /></a>
+  <a href="https://discord.gg/Z75vbkt4Ry"><img src="https://img.shields.io/discord/1534289518977486849?label=Discord&logo=discord&logoColor=white" alt="Join the CodeGraphy Discord community" /></a>
 </p>
 
 <p align="center">
@@ -27,6 +28,8 @@
 ·
   <a href="./CONTRIBUTING.md">Contribute</a>
 ·
+  <a href="https://discord.gg/Z75vbkt4Ry">Discord</a>
+·
   <a href="https://trello.com/b/wG65Lfrb/codegraphy">Roadmap</a>
 </p>
 
@@ -35,6 +38,10 @@ CodeGraphy indexes a folder and projects its files and declarations into Nodes. 
 Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view. The Core engine also supports the terminal CLI and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
+
+## Community
+
+Join the [CodeGraphy Discord](https://discord.gg/Z75vbkt4Ry) for installation help, product feedback, release announcements, contributor discussion, and community showcases. Use GitHub issues for bugs and work that needs durable tracking.
 
 ## Features
 

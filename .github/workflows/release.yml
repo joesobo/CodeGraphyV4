@@ -110,3 +110,20 @@ jobs:
 
       - name: Publish VSIX target
         run: pnpm run release:publish vsce
+
+  announce-discord:
+    needs:
+      - release-npm
+      - release-vsix
+    if: ${{ always() && (needs.release-npm.result == 'success' || needs.release-npm.result == 'skipped') && (needs.release-vsix.result == 'success' || needs.release-vsix.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Announce released packages
+        run: node scripts/announce-discord-release.mjs "${{ inputs.target }}"

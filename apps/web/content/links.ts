@@ -4,6 +4,7 @@ export const pluginsHref = '/plugins';
 export const examplesHref = '/examples';
 
 export const githubHref = 'https://github.com/joesobo/CodeGraphyV4';
+export const discordHref = 'https://discord.gg/Z75vbkt4Ry';
 export const githubBlobHref = `${githubHref}/blob/main`;
 export const githubTreeHref = `${githubHref}/tree/main`;
 

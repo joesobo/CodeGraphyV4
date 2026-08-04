@@ -1,6 +1,7 @@
 import { exampleContent, type ExampleContent } from './examples';
 import {
   docsHref,
+  discordHref,
   examplesHref,
   githubHref,
   homeHref,
@@ -86,6 +87,7 @@ export const siteNavigation = {
     { href: docsHref, label: 'Docs' },
     { href: pluginsHref, label: 'Plugins', nav: pluginNavGroups },
     { href: examplesHref, label: 'Examples', nav: exampleNavGroups },
+    { href: discordHref, label: 'Community' },
   ],
   github: { href: githubHref, label: 'GitHub' },
   install: { href: vscodeExtensionHref, label: 'Install' },
