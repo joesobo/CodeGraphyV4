@@ -126,7 +126,9 @@ test('external workspace changes stay current while the Graph View is hidden', a
     fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), changedContents);
     await expect.poll(
       () => readWorkspaceAnalysisDatabaseSnapshot(context.workspacePath!).files
-        .find(file => file.filePath === 'external-created.ts')?.size,
+        .find((file: { filePath: string; size?: number }) => (
+          file.filePath === 'external-created.ts'
+        ))?.size,
       { timeout: 15_000 },
     ).toBe(Buffer.byteLength(changedContents));
 
