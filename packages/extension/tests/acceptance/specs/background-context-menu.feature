@@ -10,7 +10,7 @@ And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
 When I right click the graph background to open its Graph Context Menu
-And I see "example-typescript" in the Graph Context Menu header
+And I see "example-typescript/" in the Graph Context Menu header
 And I see "(root)" in the Graph Context Menu header
 And I see the "New File" entry
 And I see the "New Folder" entry

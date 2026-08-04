@@ -24,7 +24,7 @@ And the Nests edge is toggled on
 And I can see there are 21 nodes and 31 connections displayed
 
 And I right click one of the folder nodes to open its Graph Context Menu
-And I see "src" in the Graph Context Menu header
+And I see "src/" in the Graph Context Menu header
 And I see the "New File" entry
 And I see the "New Folder" entry
 And I see the "Reveal in explorer" entry

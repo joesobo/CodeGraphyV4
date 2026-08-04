@@ -78,6 +78,7 @@ describe('Graph context menu (edge)', () => {
       );
     });
     expect(screen.getByText('app.ts')).toBeInTheDocument();
+    expect(screen.getByText('app.ts')).not.toHaveClass('text-right');
     expect(screen.getByText('utils.ts')).toBeInTheDocument();
     expect(screen.getByText('import')).toBeInTheDocument();
   });

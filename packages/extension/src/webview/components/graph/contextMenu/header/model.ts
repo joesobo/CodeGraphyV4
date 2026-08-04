@@ -9,6 +9,10 @@ import { readGraphContextMenuRelationship } from './relationship';
 
 const FALLBACK_WORKSPACE_NAME = 'Workspace';
 
+function withTrailingSlash(value: string): string {
+  return value.endsWith('/') ? value : `${value}/`;
+}
+
 export function buildGraphContextMenuHeader(
   selection: GraphContextSelection,
   options: {
@@ -20,7 +24,9 @@ export function buildGraphContextMenuHeader(
   if (selection.kind === 'background') {
     return {
       kind: 'background',
-      workspaceName: options.workspaceName?.trim() || FALLBACK_WORKSPACE_NAME,
+      workspaceName: withTrailingSlash(
+        options.workspaceName?.trim() || FALLBACK_WORKSPACE_NAME,
+      ),
     };
   }
 

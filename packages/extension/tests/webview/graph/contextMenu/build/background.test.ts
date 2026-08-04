@@ -16,7 +16,7 @@ describe('graph/contextMenu/build/background', () => {
     expect(entries).toMatchObject([
       {
         kind: 'header',
-        header: { kind: 'background', workspaceName: 'example-typescript' },
+        header: { kind: 'background', workspaceName: 'example-typescript/' },
       },
       { kind: 'separator' },
       { kind: 'item', label: 'New File', disabled: false },

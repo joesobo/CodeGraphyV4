@@ -25,6 +25,20 @@ describe('graph/contextMenu/header/model', () => {
     )).toEqual({ kind: 'node', target: { label: 'src/app.ts' } });
   });
 
+  it('ends folder identities with one slash', () => {
+    expect(buildGraphContextMenuHeader(
+      { kind: 'node', targets: ['src'] },
+      { nodes: [{ id: 'src', label: 'src', nodeType: 'folder' }] },
+    )).toEqual({ kind: 'node', target: { label: 'src/' } });
+    expect(buildGraphContextMenuHeader(
+      { kind: 'node', targets: ['src/components/'] },
+      { nodes: [{ id: 'src/components/', label: 'Components/', nodeType: 'folder' }] },
+    )).toEqual({
+      kind: 'node',
+      target: { label: 'Components/', exactId: 'src/components/' },
+    });
+  });
+
   it('falls back to the exact id when node metadata or a usable label is unavailable', () => {
     expect(buildGraphContextMenuHeader(
       { kind: 'node', targets: ['src/missing.ts'] },
@@ -136,11 +150,11 @@ describe('graph/contextMenu/header/model', () => {
   it('uses the workspace name for background context and falls back safely', () => {
     expect(buildGraphContextMenuHeader(
       { kind: 'background', targets: [] },
-      { workspaceName: 'CodeGraphyV4' },
-    )).toEqual({ kind: 'background', workspaceName: 'CodeGraphyV4' });
+      { workspaceName: 'CodeGraphyV4/' },
+    )).toEqual({ kind: 'background', workspaceName: 'CodeGraphyV4/' });
     expect(buildGraphContextMenuHeader(
       { kind: 'background', targets: [] },
       { workspaceName: '  ' },
-    )).toEqual({ kind: 'background', workspaceName: 'Workspace' });
+    )).toEqual({ kind: 'background', workspaceName: 'Workspace/' });
   });
 });

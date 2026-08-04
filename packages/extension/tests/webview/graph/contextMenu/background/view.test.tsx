@@ -76,10 +76,10 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('example-typescript')).toBeInTheDocument();
+      expect(screen.getByText('example-typescript/')).toBeInTheDocument();
     });
     expect(screen.getByText('(root)')).toBeInTheDocument();
-    expect(screen.getByRole('menu')).toHaveAccessibleName('example-typescript root');
+    expect(screen.getByRole('menu')).toHaveAccessibleName('example-typescript/ root');
   });
 
   it('falls back to background menu when only container contextmenu event fires', async () => {
