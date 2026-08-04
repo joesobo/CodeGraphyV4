@@ -7,7 +7,10 @@ import { openGraphScopeSection, setPanelSwitch } from '../acceptance/graphView/s
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from '../acceptance/graphView/vscode';
 import { copyExampleTypescriptWorkspace, createWorkspaceTempRoot } from '../acceptance/graphView/workspace';
 
-for (const kind of ['File', 'Folder'] as const) {
+for (const { kind, name } of [
+  { kind: 'File', name: 'bug-247-child.ts' },
+  { kind: 'Folder', name: 'bug-247-child' },
+] as const) {
   test(`Folder Node New ${kind} publishes the child Node without Re-index`, async () => {
     const context = await createGraphViewAcceptanceContext(undefined);
     try {
@@ -25,7 +28,6 @@ for (const kind of ['File', 'Folder'] as const) {
       await findNodeProbe(context, 'src');
       await rightClickNode(context, 'src');
       await frame.getByText(`New ${kind}`, { exact: true }).last().click();
-      const name = kind === 'File' ? 'bug-247-child.ts' : 'bug-247-child';
       const input = context.vscode.page.locator('.quick-input-widget input').first();
       await input.fill(name);
       await input.press('Enter');
@@ -57,9 +59,12 @@ test('external workspace changes stay current while the Graph View is hidden', a
     await context.vscode.page.keyboard.press('Meta+Shift+E');
     await expect(context.vscode.page.getByRole('tree', { name: 'Files Explorer' })).toBeVisible();
 
+    const graphCachePath = path.join(context.workspacePath, '.codegraphy', 'graph.sqlite');
+    const previousCacheMtime = fs.statSync(graphCachePath).mtimeMs;
     fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), 'export const created = true;\n');
     fs.mkdirSync(path.join(context.workspacePath, 'external-folder'));
-    await context.vscode.page.waitForTimeout(1_000);
+    await expect.poll(() => fs.statSync(graphCachePath).mtimeMs, { timeout: 15_000 })
+      .toBeGreaterThan(previousCacheMtime);
 
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);

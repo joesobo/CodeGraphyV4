@@ -145,6 +145,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
     const result = await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredDirectories: ['src', 'src/new-folder'],
       discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      fullRefreshFallback: 'reject',
       filePaths: ['/workspace/src/new-folder'],
     }));
 
@@ -171,6 +172,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
       discoveredDirectories: ['src'],
       discoveredFiles: [createDiscoveredFile('src/app.ts')],
       filePaths: ['/workspace/src/old-folder'],
+      fullRefreshFallback: 'reject',
     }));
 
     expect(result.nodes).not.toContainEqual(createGraphNode('src/old-folder'));

@@ -289,7 +289,7 @@ describe('graphView/provider/analysis/methods', () => {
   it('serializes saved-file updates from direct actions and ambient events', async () => {
     const source = createSource();
     let finishFirstUpdate: (() => void) | undefined;
-    const runAnalysisRequest = vi.fn(async state => {
+    const runAnalysisRequest = vi.fn(async _state => {
       if (runAnalysisRequest.mock.calls.length !== 1) return;
       await new Promise<void>(resolve => {
         finishFirstUpdate = resolve;

@@ -45,6 +45,13 @@ export async function refreshWorkspaceIndexChangedFiles(
   const deleteFilePaths = deletionSelection.deleteFilePaths;
   const changedFiles = changeSelection.files;
 
+  if (
+    deletionSelection.unmatchedFilePaths.length > 0
+    && dependencies.fullRefreshFallback !== 'reject'
+  ) {
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
+  }
+
   const incrementalLifecycle = changedFiles.length > 0
     ? await dependencies.notifyFilesChanged(
         await source._readAnalysisFiles(changedFiles),
