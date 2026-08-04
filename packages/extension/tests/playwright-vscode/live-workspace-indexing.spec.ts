@@ -15,6 +15,8 @@ import { openGraphScopeSection, setPanelSwitch } from '../acceptance/graphView/s
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from '../acceptance/graphView/vscode';
 import { copyExampleTypescriptWorkspace, createWorkspaceTempRoot } from '../acceptance/graphView/workspace';
 
+const EXPLORER_SHORTCUT = process.platform === 'darwin' ? 'Meta+Shift+E' : 'Control+Shift+E';
+
 for (const { kind, name } of [
   { kind: 'File', name: 'bug-247-child.ts' },
   { kind: 'Folder', name: 'bug-247-child' },
@@ -102,7 +104,7 @@ test('external workspace changes stay current while the Graph View is hidden', a
     await openGraphScopeSection(context, 'Node Types');
     await setPanelSwitch(context, 'Folder', false);
     await clickToolbarButton(frame, 'Graph Scope');
-    await context.vscode.page.keyboard.press('Meta+Shift+E');
+    await context.vscode.page.keyboard.press(EXPLORER_SHORTCUT);
     await expect(context.vscode.page.getByRole('tree', { name: 'Files Explorer' })).toBeVisible();
 
     fs.writeFileSync(path.join(context.workspacePath, 'external-created.ts'), 'export const created = true;\n');

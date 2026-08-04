@@ -35,7 +35,7 @@ export async function refreshWorkspaceIndexAnalysisScope(
 
   source._lastFileAnalysis = analysisResult.fileAnalysis;
   source._lastFileConnections = analysisResult.fileConnections;
-  dependencies.persistCache();
+  await dependencies.persistCache();
 
   const graphData = buildWorkspaceIndexGraphFromRefreshState(
     source,
