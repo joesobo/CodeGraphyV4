@@ -16,6 +16,8 @@ import type {
   RingOptions,
   LabelOptions,
   CodeGraphyWebviewAPI,
+  PluginPanelContribution,
+  PluginPanelHandle,
 } from './api/contracts/webview';
 import { toWebviewDisposable, type WebviewDisposable } from './disposable';
 import { drawBadge, drawProgressRing, drawLabel } from './api/drawing';
@@ -51,6 +53,11 @@ import {
   type GraphViewViewportStateListener,
   type GraphViewViewportStateListenerEntry,
 } from './manager/viewportState';
+import {
+  PluginPanelRegistry,
+  type ActivePluginPanel,
+  type PluginPanelEscapeResult,
+} from './panels/registry';
 
 export class WebviewPluginHost {
   private readonly _nodeRenderers: NodeRendererRegistry = new Map();
@@ -64,6 +71,7 @@ export class WebviewPluginHost {
   private readonly _graphViewContributions = new GraphViewContributionRegistry();
   private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListenerEntry>();
   private _graphViewViewportState: GraphViewViewportState | null = null;
+  private readonly _pluginPanels = new PluginPanelRegistry();
 
   createAPI(
     pluginId: string,
@@ -80,6 +88,7 @@ export class WebviewPluginHost {
       (pid, slot) => getOrCreateSlotContainer(pid, slot, this._slotContainers, this._slotHosts),
       (pid, slot, contribution, context) =>
         registerSlotContribution(pid, slot, contribution, context, this._slotContributions, this._slotHosts),
+      (pid, contribution, context) => this._pluginPanels.register(pid, contribution, context.api),
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),
       (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
@@ -146,6 +155,42 @@ export class WebviewPluginHost {
     detachSlotHost(slot, this._slotHosts);
   }
 
+  attachPanelHost(host: HTMLDivElement): void {
+    this._pluginPanels.attachHost(host);
+  }
+
+  closeActivePluginPanel(): boolean {
+    return this._pluginPanels.closeActive();
+  }
+
+  detachPanelHost(): void {
+    this._pluginPanels.detachHost();
+  }
+
+  getActivePluginPanel(): ActivePluginPanel | null {
+    return this._pluginPanels.getActive();
+  }
+
+  handleActivePluginPanelEscape(): PluginPanelEscapeResult {
+    return this._pluginPanels.handleEscape();
+  }
+
+  registerPanelContribution(
+    pluginId: string,
+    contribution: PluginPanelContribution,
+    api: CodeGraphyWebviewAPI,
+  ): PluginPanelHandle {
+    return this._pluginPanels.register(pluginId, contribution, api);
+  }
+
+  setBeforePluginPanelOpen(listener: () => void): void {
+    this._pluginPanels.setBeforeOpen(listener);
+  }
+
+  subscribeActivePluginPanel(listener: () => void): WebviewDisposable {
+    return this._pluginPanels.subscribe(listener);
+  }
+
   removePlugin(pluginId: string): void {
     removePluginRegistrations(
       pluginId,
@@ -159,6 +204,7 @@ export class WebviewPluginHost {
       this._slotContributions,
     );
     this._graphViewContributions.removePlugin(pluginId);
+    this._pluginPanels.removePlugin(pluginId);
     removeGraphViewViewportStateListenersForPlugin(this._graphViewViewportStateListeners, pluginId);
   }
 

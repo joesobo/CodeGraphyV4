@@ -7,6 +7,8 @@ import type {
   LabelOptions,
   NodeRenderFn,
   OverlayRenderFn,
+  PluginPanelContribution,
+  PluginPanelHandle,
   RingOptions,
   TooltipProviderFn,
 } from '../src/index';
@@ -35,6 +37,10 @@ describe('CodeGraphyWebviewAPI', () => {
     expectTypeOf<CodeGraphyWebviewAPI['helpers']['drawLabel']>()
       .parameter(1).toEqualTypeOf<LabelOptions>();
     expectTypeOf<Parameters<NodeRenderFn>[0]>().toHaveProperty('canvasContext');
+    expectTypeOf<CodeGraphyWebviewAPI['registerPanelContribution']>()
+      .parameter(0).toEqualTypeOf<PluginPanelContribution>();
+    expectTypeOf<CodeGraphyWebviewAPI['registerPanelContribution']>()
+      .returns.toEqualTypeOf<PluginPanelHandle>();
   });
 
   it('does not claim unsupported generic host messaging', () => {
@@ -43,6 +49,10 @@ describe('CodeGraphyWebviewAPI', () => {
       api.sendMessage({ type: 'PING', data: null });
       // @ts-expect-error Raw host messages are not part of the public API.
       api.postHostMessage({ type: 'PING' });
+      // @ts-expect-error graph.panelSlot uses registerPanelContribution so panel state stays host-owned.
+      api.getSlotContainer('graph.panelSlot');
+      // @ts-expect-error graph.panelSlot cannot bypass the exclusive panel registry.
+      api.registerSlotContribution('graph.panelSlot', { id: 'legacy', render: () => undefined });
     };
 
     expectTypeOf(verifyUnsupportedMessaging)

@@ -163,4 +163,108 @@ describe('WebviewPluginHost slots',()=>{
       expect(slotHost.contains(secondContainer)).toBe(false);
       expect(secondContainer.style.display).toBe('none');
     });
+
+  it('rejects legacy graph.panelSlot access through generic runtime paths', () => {
+    const api = new WebviewPluginHost().createAPI('acme.plugin', vi.fn());
+
+    expect(() => Reflect.apply(api.getSlotContainer, api, ['graph.panelSlot']))
+      .toThrow(/registerPanelContribution/);
+    expect(() => Reflect.apply(api.registerSlotContribution, api, [
+      'graph.panelSlot',
+      { id: 'legacy', render: () => undefined },
+    ])).toThrow(/registerPanelContribution/);
+  });
+
+  it('registers plugin panels closed until their handle opens them', () => {
+    const host = new WebviewPluginHost();
+    const panelHost = document.createElement('div');
+    host.attachPanelHost(panelHost);
+    const handle = host.createAPI('acme.plugin').registerPanelContribution({
+      id: 'inspector',
+      render(container) {
+        container.textContent = 'Inspector';
+      },
+    });
+
+    expect(handle.isOpen()).toBe(false);
+    expect(panelHost).toBeEmptyDOMElement();
+
+    handle.open();
+
+    expect(handle.isOpen()).toBe(true);
+    expect(panelHost).toHaveTextContent('Inspector');
+  });
+
+  it('closes the built-in panel through the host seam before a plugin panel opens', () => {
+    const host = new WebviewPluginHost();
+    const closeBuiltInPanel = vi.fn();
+    host.setBeforePluginPanelOpen(closeBuiltInPanel);
+    const handle = host.createAPI('acme.plugin').registerPanelContribution({
+      id: 'inspector',
+      render: () => undefined,
+    });
+
+    handle.open();
+
+    expect(closeBuiltInPanel).toHaveBeenCalledOnce();
+    expect(handle.isOpen()).toBe(true);
+  });
+
+  it('keeps one active plugin panel and allows a dismissed panel to reopen', () => {
+    const host = new WebviewPluginHost();
+    const panelHost = document.createElement('div');
+    host.attachPanelHost(panelHost);
+    const first = host.createAPI('plugin.first').registerPanelContribution({
+      id: 'panel',
+      render: container => { container.textContent = 'First'; },
+    });
+    const second = host.createAPI('plugin.second').registerPanelContribution({
+      id: 'panel',
+      render: container => { container.textContent = 'Second'; },
+    });
+
+    first.open();
+    second.open();
+
+    expect(first.isOpen()).toBe(false);
+    expect(second.isOpen()).toBe(true);
+    expect(panelHost).toHaveTextContent('Second');
+    expect(panelHost).not.toHaveTextContent('First');
+
+    expect(host.handleActivePluginPanelEscape()).toBe('dismissed');
+    expect(second.isOpen()).toBe(false);
+    second.open();
+    expect(second.isOpen()).toBe(true);
+  });
+
+  it('lets an active plugin panel prevent host dismissal for one Escape press', () => {
+    const host = new WebviewPluginHost();
+    const onEscape = vi.fn(event => event.preventDefault());
+    const handle = host.createAPI('acme.plugin').registerPanelContribution({
+      id: 'inspector',
+      render: () => undefined,
+      onEscape,
+    });
+    handle.open();
+
+    expect(host.handleActivePluginPanelEscape()).toBe('prevented');
+    expect(onEscape).toHaveBeenCalledOnce();
+    expect(handle.isOpen()).toBe(true);
+  });
+
+  it('disposes panel rendering and clears active panel state on plugin removal', () => {
+    const host = new WebviewPluginHost();
+    const cleanup = vi.fn();
+    const handle = host.createAPI('acme.plugin').registerPanelContribution({
+      id: 'inspector',
+      render: () => cleanup,
+    });
+    handle.open();
+
+    host.removePlugin('acme.plugin');
+
+    expect(cleanup).toHaveBeenCalledOnce();
+    expect(handle.isOpen()).toBe(false);
+    expect(host.getActivePluginPanel()).toBeNull();
+  });
 });

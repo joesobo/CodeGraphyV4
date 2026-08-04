@@ -9,8 +9,15 @@ const harness = vi.hoisted(() => ({
   searchBarProps: null as null | Record<string, unknown>,
   setupMessageListener: vi.fn(),
   pluginHost: {
+    attachPanelHost: vi.fn(),
     attachSlotHost: vi.fn(),
+    closeActivePluginPanel: vi.fn(),
+    detachPanelHost: vi.fn(),
     detachSlotHost: vi.fn(),
+    getActivePluginPanel: vi.fn(() => null),
+    handleActivePluginPanelEscape: vi.fn(() => 'none'),
+    setBeforePluginPanelOpen: vi.fn(),
+    subscribeActivePluginPanel: vi.fn(() => ({ dispose() {} })),
   },
   injectPluginAssets: vi.fn(),
 }));
@@ -125,8 +132,15 @@ describe('App runtime mutations', () => {
     harness.setupMessageListener.mockReset();
     harness.setupMessageListener.mockReturnValue(vi.fn());
     harness.pluginHost = {
+      attachPanelHost: vi.fn(),
       attachSlotHost: vi.fn(),
+      closeActivePluginPanel: vi.fn(),
+      detachPanelHost: vi.fn(),
       detachSlotHost: vi.fn(),
+      getActivePluginPanel: vi.fn(() => null),
+      handleActivePluginPanelEscape: vi.fn(() => 'none'),
+      setBeforePluginPanelOpen: vi.fn(),
+      subscribeActivePluginPanel: vi.fn(() => ({ dispose() {} })),
     };
     harness.injectPluginAssets.mockReset();
   });
@@ -156,8 +170,15 @@ describe('App runtime mutations', () => {
     expect(harness.setupMessageListener).toHaveBeenCalledTimes(1);
 
     harness.pluginHost = {
+      attachPanelHost: vi.fn(),
       attachSlotHost: vi.fn(),
+      closeActivePluginPanel: vi.fn(),
+      detachPanelHost: vi.fn(),
       detachSlotHost: vi.fn(),
+      getActivePluginPanel: vi.fn(() => null),
+      handleActivePluginPanelEscape: vi.fn(() => 'none'),
+      setBeforePluginPanelOpen: vi.fn(),
+      subscribeActivePluginPanel: vi.fn(() => ({ dispose() {} })),
     };
     harness.injectPluginAssets.mockImplementationOnce(() => undefined);
     rerender(<App />);

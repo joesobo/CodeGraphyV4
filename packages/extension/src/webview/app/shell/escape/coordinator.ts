@@ -8,7 +8,7 @@ export interface GraphStageEscapeAdapter {
 
 export interface EscapeCoordinatorOptions {
   closeFilters(): void;
-  closePanel(): void;
+  closePanel(): boolean;
   closeRulePrompt(): void;
   filterOpen: boolean;
   focusFiltersButton(): void;
@@ -79,8 +79,7 @@ export function createEscapeCoordinatorHandlers(
           options.focusFiltersButton();
           return;
         case 'closePanel':
-          options.closePanel();
-          options.graphStage.focus();
+          if (options.closePanel()) options.graphStage.focus();
           return;
         case 'clearSelection':
           options.graphStage.clearSelection();

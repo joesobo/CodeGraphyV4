@@ -24,6 +24,7 @@ import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 import { renderGraphStartupState, useGraphPhysicsPreparation } from './physicsPreparation';
 import { createGraphStageEscapeBridge } from './escape/graphStage';
 import { useEscapeCoordinator } from './escape/useCoordinator';
+import { useActivePluginPanel } from '../../pluginHost/panels/useActive';
 
 export interface AppShellProps {
   graphPhysicsPreparation?: Promise<void>;
@@ -34,6 +35,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
   const graphStageEscapeBridge = useMemo(createGraphStageEscapeBridge, []);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
+  const activePluginPanel = useActivePluginPanel(pluginHost);
   const {
     graphData,
     isLoading,
@@ -135,7 +137,13 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
     setOptimisticUserLegends,
     setRulePrompt,
   });
-  const closeActivePanel = () => setActivePanel('none');
+  const closeActivePanel = (): boolean => {
+    if (activePluginPanel) {
+      return pluginHost.handleActivePluginPanelEscape() === 'dismissed';
+    }
+    setActivePanel('none');
+    return true;
+  };
 
   useEscapeCoordinator({
     closeFilters: () => handleFilterPopoverOpenChange(false),
@@ -144,9 +152,14 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
     filterOpen: filterPopoverOpen,
     focusFiltersButton: () => filterButtonRef.current?.focus(),
     graphStage: graphStageEscapeBridge,
-    panelOpen: activePanel !== 'none',
+    panelOpen: activePanel !== 'none' || activePluginPanel !== null,
     rulePromptOpen: rulePrompt !== null,
   });
+
+  useEffect(() => {
+    pluginHost.setBeforePluginPanelOpen(() => setActivePanel('none'));
+    return () => pluginHost.setBeforePluginPanelOpen(() => undefined);
+  }, [pluginHost, setActivePanel]);
 
   useEffect(() => {
     return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData);
@@ -231,6 +244,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
           activePanel={activePanel}
           hasGraphNodes={Boolean(graphData.nodes.length)}
           pluginHost={pluginHost}
+          pluginPanelOpen={activePluginPanel !== null}
           onClosePanel={closeActivePanel}
         />
         <GraphIndexStatus

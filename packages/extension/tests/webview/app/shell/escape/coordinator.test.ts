@@ -7,7 +7,7 @@ import {
 function createOptions(overrides = {}) {
   return {
     closeFilters: vi.fn(),
-    closePanel: vi.fn(),
+    closePanel: vi.fn(() => true),
     closeRulePrompt: vi.fn(),
     filterOpen: false,
     focusFiltersButton: vi.fn(),
@@ -98,6 +98,17 @@ describe('app/shell Escape coordinator', () => {
     expect(options.closePanel).toHaveBeenCalledOnce();
     expect(options.graphStage.clearSelection).not.toHaveBeenCalled();
     expect(options.graphStage.focus).toHaveBeenCalledOnce();
+  });
+
+  it('does not move focus when a plugin owns the Escape press', () => {
+    const options = createOptions({ panelOpen: true, closePanel: vi.fn(() => false) });
+
+    createEscapeCoordinatorHandlers(options).onKeyDown(
+      new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }),
+    );
+
+    expect(options.closePanel).toHaveBeenCalledOnce();
+    expect(options.graphStage.focus).not.toHaveBeenCalled();
   });
 
   it('clears selection only on the bare graph fallback', () => {

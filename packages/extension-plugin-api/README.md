@@ -107,6 +107,49 @@ The webview API supports:
 
 Each registration returns a disposable cleanup handle.
 
+### Graph View panels
+
+Use `registerPanelContribution` for UI that occupies the Graph View panel
+region. Registration renders the panel once but leaves it closed. Open or
+toggle it from a plugin toolbar control or another explicit user action:
+
+```ts
+const panel = api.registerPanelContribution({
+  id: 'inspector',
+  render(container) {
+    container.textContent = 'Acme inspector';
+  },
+  onEscape(event) {
+    if (closeNestedPluginPopover()) event.preventDefault();
+  },
+});
+
+const button = document.createElement('button');
+button.textContent = 'Inspector';
+button.addEventListener('click', panel.toggle);
+api.getSlotContainer('graph.toolbar').appendChild(button);
+```
+
+The returned `PluginPanelHandle` provides `open`, `close`, `toggle`, `isOpen`,
+and `dispose`. The host keeps one active built-in or plugin panel. Unhandled
+Escape closes the active plugin panel and focuses the Graph Stage. A synchronous
+`onEscape` hook can call `preventDefault()` to own one press. Closing does not
+dispose the panel, so it can reopen with its state intact.
+
+### Panel migration
+
+`graph.panelSlot` is no longer a generic slot. Replace both legacy paths:
+
+- replace `getSlotContainer('graph.panelSlot')` with
+  `registerPanelContribution({ id, render })`;
+- replace `registerSlotContribution('graph.panelSlot', contribution)` with
+  `registerPanelContribution(contribution)`.
+
+The host rejects legacy runtime calls with a migration error. The declarative
+`{ kind: 'panel', panelId }` Graph View UI variant is also removed. Keep a
+plugin panel's returned handle and open it from plugin UI. Other slots keep
+their existing generic registration lifecycle.
+
 The webview API does not support:
 
 - Core file analysis or changes to the persisted Relationship Graph;

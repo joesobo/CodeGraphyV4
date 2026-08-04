@@ -86,6 +86,8 @@ Interaction rules:
 - Every Graph Context Menu identifies that captured Node, Edge, multi-node selection, or workspace root above its actions.
 - Multi-node context actions apply only when the action supports the complete Context Selection.
 - Delete actions require confirmation and move files or empty created folders to trash.
+- Escape dismisses one Graph View layer at a time: a local popup, the Legend prompt, an active edit, Filters, or the active built-in or plugin panel. Only bare-graph Escape clears Node selection.
+- Built-in and plugin panels share one exclusive panel region. Closing a panel preserves graph state and focuses the Graph Stage.
 - Collapse follows Edge Direction and preserves Boundary Paths to shared visible targets.
 - The VS Code extension owns Collapse Projection. The renderer displays the resulting Visible Graph.
 

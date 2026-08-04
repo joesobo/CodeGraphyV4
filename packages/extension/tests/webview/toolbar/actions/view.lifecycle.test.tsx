@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { graphStore } from '../../../../src/webview/store/state';
+import { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
 
 vi.mock('../../../../src/webview/vscodeApi', () => ({ postMessage: vi.fn() }));
 
@@ -95,6 +96,21 @@ describe('ToolbarActions', () => {
 
     clickToolbarAction('Settings');
     expect(graphStore.getState().activePanel).toBe('settings');
+  });
+
+  it('replaces an active plugin panel when a built-in panel opens', () => {
+    const pluginHost = new WebviewPluginHost();
+    const pluginPanel = pluginHost.createAPI('acme.plugin').registerPanelContribution({
+      id: 'inspector',
+      render: () => undefined,
+    });
+    pluginPanel.open();
+    renderToolbar({ pluginHost });
+
+    clickToolbarAction('Graph Scope');
+
+    expect(pluginPanel.isOpen()).toBe(false);
+    expect(graphStore.getState().activePanel).toBe('graphScope');
   });
 
   it('renders the core toolbar buttons in the expected top-to-bottom order', () => {

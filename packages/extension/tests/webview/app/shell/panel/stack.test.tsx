@@ -4,9 +4,17 @@ import { render, screen } from '@testing-library/react';
 import { PanelStack } from '../../../../../src/webview/app/shell/panel/stack';
 
 const slotHostSpy = vi.fn();
+const pluginPanelHostSpy = vi.fn();
 vi.mock('../../../../../src/webview/pluginHost/slotHost/view', () => ({
   SlotHost: (props: Record<string, unknown>) => {
     slotHostSpy(props);
+    return <div data-testid={String(props['data-testid'])} />;
+  },
+}));
+
+vi.mock('../../../../../src/webview/pluginHost/panels/view', () => ({
+  PluginPanelHost: (props: Record<string, unknown>) => {
+    pluginPanelHostSpy(props);
     return <div data-testid={String(props['data-testid'])} />;
   },
 }));
@@ -70,7 +78,7 @@ describe('app/PanelStack', () => {
     expect(shell?.className).toContain('z-30');
   });
 
-  it('hosts Graph View panel slot contributions under graph.panelSlot', () => {
+  it('hosts registered plugin panels in the exclusive Graph View panel region', () => {
     const pluginHost = { kind: 'host' };
     render(
       <PanelStack
@@ -82,9 +90,8 @@ describe('app/PanelStack', () => {
     );
 
     expect(screen.getByTestId('graph-panel-slot')).toBeInTheDocument();
-    expect(slotHostSpy).toHaveBeenCalledWith(expect.objectContaining({
+    expect(pluginPanelHostSpy).toHaveBeenCalledWith(expect.objectContaining({
       pluginHost,
-      slot: 'graph.panelSlot',
       'data-testid': 'graph-panel-slot',
     }));
   });

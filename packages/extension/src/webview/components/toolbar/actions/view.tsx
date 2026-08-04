@@ -20,6 +20,10 @@ export function ToolbarActions({
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
+  const setExclusivePanel = (panel: Parameters<typeof setActivePanel>[0]): void => {
+    if (panel !== 'none') pluginHost?.closeActivePluginPanel();
+    setActivePanel(panel);
+  };
 
   return (
     <div className="flex flex-col items-center gap-2" data-codegraphy-region="toolbar-actions" data-testid="toolbar-actions">
@@ -40,7 +44,7 @@ export function ToolbarActions({
         <ToolbarPanelButtons
           activePanel={activePanel}
           buttons={GRAPH_TOOL_PANEL_BUTTONS}
-          setActivePanel={setActivePanel}
+          setActivePanel={setExclusivePanel}
         />
       </div>
       <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
@@ -48,7 +52,7 @@ export function ToolbarActions({
         <ToolbarPanelButtons
           activePanel={activePanel}
           buttons={SYSTEM_PANEL_BUTTONS}
-          setActivePanel={setActivePanel}
+          setActivePanel={setExclusivePanel}
         />
       </div>
     </div>

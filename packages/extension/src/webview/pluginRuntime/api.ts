@@ -6,6 +6,13 @@ import { postMessage } from '../vscodeApi';
 import type { PluginManagerRefs } from './types';
 
 const INACTIVE_DISPOSABLE: WebviewDisposable = { dispose: () => undefined };
+const INACTIVE_PANEL_HANDLE = {
+  ...INACTIVE_DISPOSABLE,
+  close: () => undefined,
+  isOpen: () => false,
+  open: () => undefined,
+  toggle: () => undefined,
+};
 
 function createVersionedPluginApi(
   api: CodeGraphyWebviewAPI,
@@ -17,6 +24,9 @@ function createVersionedPluginApi(
     registerSlotContribution: (slot, contribution) => isCurrent()
       ? api.registerSlotContribution(slot, contribution)
       : INACTIVE_DISPOSABLE,
+    registerPanelContribution: contribution => isCurrent()
+      ? api.registerPanelContribution(contribution)
+      : INACTIVE_PANEL_HANDLE,
     getHostState: () => isCurrent() ? api.getHostState() : {},
     getPluginData: () => isCurrent() ? api.getPluginData() : undefined,
     setPluginData: data => {

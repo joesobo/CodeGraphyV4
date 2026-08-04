@@ -28,7 +28,7 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
-  it('clears the selection for Escape', () => {
+  it('leaves Escape to the shell coordinator', () => {
     expect(getGraphKeyboardCommand({
       key: 'Escape',
       isMod: false,
@@ -36,11 +36,7 @@ describe('graph/keyboard/effects', () => {
       selectedNodeIds: ['src/app.ts'],
       allNodeIds: ['src/app.ts'],
       targetIsEditable: false,
-    })).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'clearSelection' }],
-    });
+    })).toBeNull();
   });
 
   it('opens all selected nodes for Enter', () => {
