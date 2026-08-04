@@ -1,5 +1,11 @@
 # @codegraphy-dev/core
 
+## 5.0.1
+
+### Patch Changes
+
+- [#330](https://github.com/joesobo/CodeGraphyV4/pull/330) [`1fe4a26`](https://github.com/joesobo/CodeGraphyV4/commit/1fe4a269e7d60cd9ffc6d9004193e086062fe701) Thanks [@joesobo](https://github.com/joesobo)! - Watch only eligible workspace directories, and rebuild the live watcher after Git ignore or Filter settings change.
+
 ## 5.0.0
 
 ### Major Changes

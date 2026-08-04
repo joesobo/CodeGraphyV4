@@ -1,5 +1,14 @@
 # @codegraphy-dev/extension
 
+## 5.16.1
+
+### Patch Changes
+
+- [#332](https://github.com/joesobo/CodeGraphyV4/pull/332) [`e28d6c4`](https://github.com/joesobo/CodeGraphyV4/commit/e28d6c42545bb7729062c83103a1aa838bef96dd) Thanks [@joesobo](https://github.com/joesobo)! - Show the target directory when creating a file or folder from the Graph View.
+
+- Updated dependencies [[`1fe4a26`](https://github.com/joesobo/CodeGraphyV4/commit/1fe4a269e7d60cd9ffc6d9004193e086062fe701)]:
+  - @codegraphy-dev/core@5.0.1
+
 ## 5.16.0
 
 ### Minor Changes
