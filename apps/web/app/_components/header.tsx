@@ -5,7 +5,7 @@ import { Liquid } from '@/components/canvasui/Liquid';
 import { Link } from '@/components/link';
 import { ThemeHeroImage } from '@/components/theme-hero-image';
 import { buttonVariants } from '@/components/ui/button';
-import { discordHref, examplesHref, githubHref, vscodeExtensionHref } from '@/content/links';
+import { examplesHref, githubHref, vscodeExtensionHref } from '@/content/links';
 import { cn } from '@/lib/utils';
 import { useRef } from 'react';
 import { HeroGraph } from './hero-graph';
@@ -84,10 +84,7 @@ export function Header(): React.ReactElement {
                 text="npm i -g @codegraphy-dev/core"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-              <Link href={examplesHref}>View examples <span aria-hidden="true">↗</span></Link>
-              <Link href={discordHref}>Join the Discord <span aria-hidden="true">↗</span></Link>
-            </div>
+            <Link href={examplesHref}>View examples <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
       </div>
