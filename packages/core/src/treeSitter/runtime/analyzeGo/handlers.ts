@@ -20,10 +20,6 @@ function getGoCallBinding(
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
   const calleeNode = callExpression?.childForFieldName('function') ?? callExpression?.namedChildren[0];
-  if (!calleeNode) {
-    return null;
-  }
-
   return (
     getImportedBindingByIdentifier(calleeNode, importedBindings)
     ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'selector_expression', 'operand', 'field')

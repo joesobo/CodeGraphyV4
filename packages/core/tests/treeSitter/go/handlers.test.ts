@@ -348,19 +348,32 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
     ]);
   });
 
-  it('does not crash when a short-var declaration has fewer values than names', () => {
+  it('creates both symbols and preserves the constructor binding for a multi-name short-var declaration', () => {
     const symbols: unknown[] = [];
     const receiverBindings = new Map();
+    const packageBinding = {
+      importedName: 'example-go/pkg',
+      resolvedPath: '/workspace/pkg/client.go',
+      specifier: 'example-go/pkg',
+    };
     const leftExpressionList = createNode({
       namedChildren: [createNode({ type: 'identifier' }), createNode({ type: 'identifier' })],
     });
+    const constructorCall = createNode({
+      type: 'call_expression',
+      namedChildren: [createNode({ type: 'selector_expression' })],
+    });
     const valueExpressionList = createNode({
-      namedChildren: [],
+      namedChildren: [constructorCall],
     });
 
     vi.mocked(getIdentifierText)
-      .mockReturnValueOnce('first')
-      .mockReturnValueOnce('second');
+      .mockReturnValueOnce('client')
+      .mockReturnValueOnce('err');
+    vi.mocked(getImportedBindingByIdentifier).mockReturnValue(null);
+    vi.mocked(getImportedBindingByPropertyAccess)
+      .mockReturnValueOnce(packageBinding as never)
+      .mockReturnValueOnce(null);
     vi.mocked(createSymbol).mockImplementation((filePath: string, kind: string, name: string) => ({
       id: `${filePath}:${kind}:${name}`,
       kind,
@@ -373,14 +386,14 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
       }) as never,
       '/workspace/app.go',
       symbols as never[],
-      new Map(),
+      new Map([['pkg', packageBinding as never]]),
       receiverBindings,
     )).not.toThrow();
 
-    expect(receiverBindings.size).toBe(0);
+    expect(receiverBindings).toEqual(new Map([['client', packageBinding]]));
     expect(symbols).toEqual([
-      expect.objectContaining({ kind: 'local', name: 'first' }),
-      expect.objectContaining({ kind: 'local', name: 'second' }),
+      expect.objectContaining({ kind: 'local', name: 'client' }),
+      expect.objectContaining({ kind: 'local', name: 'err' }),
     ]);
   });
 
