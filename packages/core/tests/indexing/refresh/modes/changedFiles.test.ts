@@ -66,6 +66,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
       createDiscoveredFile('src/unrelated.ts'),
     ];
     const source = createSource({
+      _lastDiscoveredFiles: discoveredFiles,
       _lastFileAnalysis: new Map([
         ['src/a.ts', createAnalysisWithTarget('src/a.ts', 'src/b.ts')],
         ['src/b.ts', createFileAnalysis('/workspace/src/b.ts')],
@@ -107,7 +108,9 @@ describe('indexing/refresh/modes/changedFiles', () => {
       edges: [],
     };
     const persistCache = vi.fn();
+    const discoveredFiles = [createDiscoveredFile('src/app.ts')];
     const source = createSource({
+      _lastDiscoveredFiles: discoveredFiles,
       _buildGraphDataFromAnalysis: vi.fn(() => graph),
       _lastFileAnalysis: new Map([
         ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
@@ -119,7 +122,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
 
     await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredDirectories: undefined,
-      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      discoveredFiles,
       filePaths: ['/outside/src/app.ts'],
       persistCache,
     }))).resolves.toBe(graph);
@@ -481,6 +484,37 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(source._analyzeFiles).not.toHaveBeenCalled();
   });
 
+  it('rejects an unexplained admission even when retained analysis exists for that file', async () => {
+    const previousFiles = [
+      createDiscoveredFile('src/a.ts'),
+      createDiscoveredFile('src/b.ts'),
+    ];
+    const retainedFile = createDiscoveredFile('src/c.ts');
+    const analyzedFiles = [...previousFiles, retainedFile];
+    const source = createSource({
+      _lastDiscoveredFiles: previousFiles,
+      _lastFileAnalysis: new Map(analyzedFiles.map(file => [
+        file.relativePath,
+        createFileAnalysis(file.absolutePath),
+      ])),
+      _lastFileConnections: new Map(analyzedFiles.map(file => [file.relativePath, []])),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [previousFiles[1], retainedFile],
+      discoveryLimitReached: false,
+      filePaths: [previousFiles[0].absolutePath],
+      fullRefreshFallback: 'reject',
+    }))).rejects.toMatchObject({
+      name: 'WorkspaceIndexFullRefreshRequiredError',
+      reason: 'discovery-membership',
+    });
+
+    expect(source._lastDiscoveredFiles).toBe(previousFiles);
+    expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).not.toHaveBeenCalled();
+  });
+
   it('patches deleted file evidence without falling back to full cache persistence', async () => {
     const persistCache = vi.fn();
     const persistCachePatch = vi.fn();
@@ -501,6 +535,10 @@ describe('indexing/refresh/modes/changedFiles', () => {
       return ['src/deleted.ts'];
     });
     const source = createSource({
+      _lastDiscoveredFiles: [
+        createDiscoveredFile('src/deleted.ts'),
+        createDiscoveredFile('src/app.ts'),
+      ],
       _lastFileAnalysis: lastFileAnalysis,
       _lastFileConnections: lastFileConnections,
       analyze: vi.fn(async () => ({ nodes: [], edges: [] })),

@@ -238,7 +238,6 @@ function hasUnboundedWorkspaceDiscoveryMembershipChange(
 
   const hasUnexplainedArrival = dependencies.discoveredFiles.some(file => (
     !previousFilePaths.has(file.relativePath)
-    && !source._lastFileAnalysis.has(file.relativePath)
     && !isCoveredByChangedPath(file.relativePath)
   ));
   const hasUnexplainedDepartureAtLimit = dependencies.discoveryLimitReached === true
