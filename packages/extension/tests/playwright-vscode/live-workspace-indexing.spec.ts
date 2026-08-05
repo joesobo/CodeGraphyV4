@@ -60,9 +60,37 @@ test('Re-index streams live progress and drains workspace changes queued during 
       });
       captureStatus();
     });
+    await frame.locator('body').evaluate(() => {
+      const progressHistory: string[] = [];
+      const captureProgress = (): void => {
+        const value = document.querySelector('[data-testid="graph-index-status-track"]')
+          ?.getAttribute('aria-valuetext');
+        if (value && progressHistory.at(-1) !== value) {
+          progressHistory.push(value);
+        }
+      };
+      (globalThis as typeof globalThis & { codegraphyIndexProgressHistory?: string[] })
+        .codegraphyIndexProgressHistory = progressHistory;
+      new MutationObserver(captureProgress).observe(document.body, {
+        attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true,
+      });
+      captureProgress();
+    });
 
     await frame.getByRole('button', { name: 'Re-index Workspace' }).click();
-    await expect(frame.getByText(/\d+ files found/)).toBeVisible({ timeout: 15_000 });
+    await expect.poll(async () => frame.locator('body').evaluate(() => {
+      const history = (
+        globalThis as typeof globalThis & { codegraphyIndexProgressHistory?: string[] }
+      ).codegraphyIndexProgressHistory ?? [];
+      const progressIsVisible = document.querySelector(
+        '[data-testid="graph-index-status-track"]',
+      ) !== null;
+      return progressIsVisible
+        && history.some(value => /^Discovering Files \d+ candidate files? found$/.test(value));
+    }), { timeout: 15_000 }).toBe(true);
     for (let index = 0; index < 58; index += 1) {
       fs.appendFileSync(
         path.join(bulkPath, `file-${index}.ts`),
@@ -74,18 +102,44 @@ test('Re-index streams live progress and drains workspace changes queued during 
       /CodeGraphy: (?:\d+ changes? queued|Updating \d+ files?|.+ \d+\/\d+)/,
     );
     await expect(cacheUpdateStatus).toBeVisible({ timeout: 15_000 });
-    await expect(context.vscode.page.getByText(/CodeGraphy: .+ \d+\/\d+/))
-      .toBeVisible({ timeout: 15_000 });
+    const vscodePage = context.vscode.page;
+    await expect.poll(() => vscodePage.evaluate(() => (
+      (globalThis as typeof globalThis & { codegraphyStatusHistory?: string[] })
+        .codegraphyStatusHistory?.some(value => /CodeGraphy: .+ \d+\/\d+/.test(value))
+        ?? false
+    )), { timeout: 15_000 }).toBe(true);
     await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
       .toBeHidden({ timeout: 60_000 });
     await expect(cacheUpdateStatus).toBeHidden({ timeout: 30_000 });
+    const indexProgressHistory = await frame.locator('body').evaluate(() => (
+      (globalThis as typeof globalThis & { codegraphyIndexProgressHistory?: string[] })
+        .codegraphyIndexProgressHistory ?? []
+    ));
+    const discoveryCounts = indexProgressHistory.flatMap((value) => {
+      const match = /^Discovering Files (\d+) candidate files? found$/.exec(value);
+      return match?.[1] ? [Number(match[1])] : [];
+    });
+    const analysisPercents = indexProgressHistory.flatMap((value) => {
+      const match = /^Analyzing Files (\d+)%$/.exec(value);
+      return match?.[1] ? [Number(match[1])] : [];
+    });
+    expect(new Set(discoveryCounts).size).toBeGreaterThanOrEqual(2);
+    expect(Math.max(...discoveryCounts)).toBeGreaterThan(Math.min(...discoveryCounts));
+    expect(new Set(analysisPercents).size).toBeGreaterThanOrEqual(2);
+    expect(Math.max(...analysisPercents)).toBeGreaterThan(Math.min(...analysisPercents));
     const statusHistory = await context.vscode.page.evaluate(() => (
       (globalThis as typeof globalThis & { codegraphyStatusHistory?: string[] })
         .codegraphyStatusHistory ?? []
     ));
-    expect(statusHistory).toEqual(expect.arrayContaining([
-      expect.stringMatching(/CodeGraphy: .+ \d+\/\d+/),
-    ]));
+    const applyingChanges = statusHistory.flatMap((value) => {
+      const match = /CodeGraphy: Applying Changes (\d+)\/(\d+)/.exec(value);
+      return match?.[1] && match[2]
+        ? [{ current: Number(match[1]), total: Number(match[2]) }]
+        : [];
+    });
+    expect(applyingChanges.length).toBeGreaterThanOrEqual(2);
+    expect(applyingChanges.some(({ current, total }) => current < total)).toBe(true);
+    expect(applyingChanges.at(-1)).toEqual({ current: 58, total: 58 });
   } finally {
     await context.cleanup();
   }

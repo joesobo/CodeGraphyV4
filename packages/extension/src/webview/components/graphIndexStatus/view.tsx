@@ -1,5 +1,6 @@
 import React from 'react';
 import { OWNED_GRAPH_MINIMAP_RESERVED_LEFT } from '../graph/rendering/surface/owned2d/minimap/layout';
+import { cn } from '../ui/cn';
 
 export interface GraphIndexStatusProgress {
   phase: string;
@@ -22,19 +23,23 @@ export function GraphIndexStatus({
     return null;
   }
 
+  const current = Math.max(0, progress.current);
   const isIndeterminate = progress.total <= 0;
   const percent = !isIndeterminate
-    ? Math.round((progress.current / progress.total) * 100)
+    ? Math.min(100, Math.round((current / progress.total) * 100))
     : 0;
   const progressText = isIndeterminate
-    ? progress.current === 1
-      ? '1 file found'
-      : `${progress.current} files found`
+    ? current === 1
+      ? '1 candidate file found'
+      : `${current} candidate files found`
     : `${percent}%`;
 
   return (
     <div
-      className={`pointer-events-none absolute ${showMinimap ? '' : 'left-2'} right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm`}
+      className={cn(
+        'pointer-events-none absolute right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm',
+        !showMinimap && 'left-2',
+      )}
       data-codegraphy-state="graph-indexing"
       data-testid="graph-index-status"
       style={showMinimap ? { left: OWNED_GRAPH_MINIMAP_RESERVED_LEFT } : undefined}
@@ -58,7 +63,7 @@ export function GraphIndexStatus({
       >
         <div
           className={isIndeterminate
-            ? 'h-full w-1/3 animate-pulse rounded-full bg-primary'
+            ? 'h-full w-1/3 animate-index-progress rounded-full bg-primary'
             : 'h-full rounded-full bg-primary transition-all duration-200'}
           data-codegraphy-region="graph-index-progress-fill"
           data-codegraphy-progress={isIndeterminate ? 'indeterminate' : 'determinate'}

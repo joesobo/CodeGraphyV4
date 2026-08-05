@@ -4,7 +4,10 @@ import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
 } from './methods';
-import type { GraphViewAnalysisMode } from '../../analysis/execution';
+import type {
+  GraphViewAnalysisMode,
+  GraphViewIndexingProgress,
+} from '../../analysis/execution';
 import {
   createGraphViewProviderAnalysisState,
   syncGraphViewProviderAnalysisExecutionState,
@@ -19,13 +22,13 @@ export function createGraphViewProviderDoAnalyzeAndSendData(
   signal: AbortSignal,
   requestId: number,
   changedFilePaths?: readonly string[],
-  onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+  onProgress?: (progress: GraphViewIndexingProgress) => void,
 ) => Promise<void> {
   return async (
     signal: AbortSignal,
     requestId: number,
     changedFilePaths?: readonly string[],
-    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<void> => {
     const state = createGraphViewProviderAnalysisState(source, mode, changedFilePaths);
 

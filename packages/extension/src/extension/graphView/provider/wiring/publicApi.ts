@@ -3,6 +3,7 @@ import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
 import type { EventName, EventPayloads } from '../../../events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { GraphViewIndexingProgress } from '../../analysis/execution';
 import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/dispatch';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';
@@ -33,7 +34,7 @@ export interface GraphViewProviderPublicMethods {
   updateWorkspaceFiles: (
     filePaths: readonly string[],
     signal?: AbortSignal,
-    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ) => Promise<void>;
   refreshIndex: () => Promise<void>;
   hydrateGraphScope: () => Promise<boolean>;

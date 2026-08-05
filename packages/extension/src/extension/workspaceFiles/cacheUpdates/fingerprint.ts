@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
+import type { WorkspaceCacheUpdateProgress } from './model';
 
 const PATH_SIGNATURE_CONCURRENCY = 8;
 
@@ -9,7 +10,7 @@ interface FingerprintingWorkspaceCacheUpdateOptions {
   update(
     filePaths: readonly string[],
     signal: AbortSignal,
-    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+    onProgress?: (progress: WorkspaceCacheUpdateProgress) => void,
   ): Promise<void>;
 }
 
@@ -18,7 +19,7 @@ export function createFingerprintingWorkspaceCacheUpdate(
 ): (
   filePaths: readonly string[],
   signal: AbortSignal,
-  onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+  onProgress?: (progress: WorkspaceCacheUpdateProgress) => void,
 ) => Promise<void> {
   const appliedPathSignatures = new Map<string, string>();
 

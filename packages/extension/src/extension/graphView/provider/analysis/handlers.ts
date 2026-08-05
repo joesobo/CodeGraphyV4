@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { GraphViewIndexingProgress } from '../../analysis/execution';
 import type {
   GraphViewProviderAnalysisHandlers,
   GraphViewProviderAnalysisRequestHandlers,
@@ -21,7 +22,7 @@ interface GraphViewProviderAnalysisHandlerCallbacks {
   isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   isAbortError(error: unknown): boolean;
   markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
-  onProgress?(progress: { phase: string; current: number; total: number }): void;
+  onProgress?(progress: GraphViewIndexingProgress): void;
 }
 
 export function createGraphViewProviderAnalysisHandlers(

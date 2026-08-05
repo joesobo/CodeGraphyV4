@@ -28,6 +28,7 @@ import {
   createWorkspaceFileContentHash,
   hasAmbiguousWorkspaceFileTimestamp,
 } from '../cache';
+
 const ANALYSIS_PROGRESS_YIELD_INTERVAL = 25;
 
 function createWorkspaceFileAnalysisState(): IWorkspaceFileAnalysisState {
@@ -279,10 +280,11 @@ export async function analyzeWorkspaceFiles(
 
   for (const file of options.files) {
     await analyzeWorkspaceFile(options, state, file);
+    const currentFileCount = getCurrentFileCount(state);
     if (
       options.onProgress
-      && getCurrentFileCount(state) % ANALYSIS_PROGRESS_YIELD_INTERVAL === 0
-      && getCurrentFileCount(state) < options.files.length
+      && currentFileCount % ANALYSIS_PROGRESS_YIELD_INTERVAL === 0
+      && currentFileCount < options.files.length
     ) {
       await waitForImmediate();
     }
