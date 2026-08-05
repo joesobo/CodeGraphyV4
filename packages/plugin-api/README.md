@@ -82,4 +82,7 @@ The package descriptor uses host `core`:
 ```
 
 See the [Plugin Guide](../../docs/PLUGINS.md) for registration, global and
-workspace activation, multi-host packages, and settings ownership.
+workspace activation, multi-host packages, and settings ownership. The
+[Core Plugin API lifecycle](../../docs/plugin-api/LIFECYCLE.md) and
+[Core Plugin API types](../../docs/plugin-api/TYPES.md) references cover the
+headless contracts in more detail.

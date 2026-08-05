@@ -40,8 +40,11 @@ The CodeGraphy Agent Skill teaches shell-capable agents to use the narrowest use
 - [Settings](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/SETTINGS.md)
 - [Agent Skill](https://github.com/joesobo/CodeGraphyV4/blob/main/skills/codegraphy/SKILL.md)
 - [Plugin guide](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/PLUGINS.md)
-- [Plugin API lifecycle](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/LIFECYCLE.md)
-- [Plugin API types](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/TYPES.md)
+- [Core Plugin API lifecycle](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/LIFECYCLE.md)
+- [Core Plugin API types](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/TYPES.md)
+- [Extension Plugin API lifecycle](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/extension-plugin-api/LIFECYCLE.md)
+- [Extension Plugin API types](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/extension-plugin-api/TYPES.md)
+- [Extension Plugin API events](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/extension-plugin-api/EVENTS.md)
 - [Example workspaces](https://github.com/joesobo/CodeGraphyV4/blob/main/examples/README.md)
 
 ## Official Plugin packages

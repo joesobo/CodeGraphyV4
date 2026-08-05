@@ -24,7 +24,8 @@ The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language and
 | Core engine and CLI | [`packages/core/README.md`](../packages/core/README.md) |
 | VS Code extension | [`packages/extension/docs/README.md`](../packages/extension/docs/README.md) |
 | Graph renderer | [`packages/graph-renderer/README.md`](../packages/graph-renderer/README.md) |
-| Plugin APIs | [`packages/plugin-api/README.md`](../packages/plugin-api/README.md), [`packages/extension-plugin-api/README.md`](../packages/extension-plugin-api/README.md), and [`docs/plugin-api/`](./plugin-api/) |
+| Core Plugin API | [`packages/plugin-api/README.md`](../packages/plugin-api/README.md) and [`docs/plugin-api/`](./plugin-api/) |
+| Extension Plugin API | [`packages/extension-plugin-api/README.md`](../packages/extension-plugin-api/README.md) and [`docs/extension-plugin-api/`](./extension-plugin-api/) |
 | Language and feature plugins | `packages/plugin-*/README.md` |
 | Example workspaces | [`examples/README.md`](../examples/README.md) |
 | Quality tools | [`docs/quality/README.md`](./quality/README.md) |

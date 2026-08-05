@@ -250,4 +250,7 @@ arbitrary VS Code contributions, commands, editor menus, or workspace state.
 Use the runtime and webview APIs described above for supported behavior.
 
 See the [Plugin Guide](../../docs/PLUGINS.md) for the shared installation and
-activation model.
+activation model. The [Extension Plugin API lifecycle](../../docs/extension-plugin-api/LIFECYCLE.md),
+[types](../../docs/extension-plugin-api/TYPES.md), and
+[events](../../docs/extension-plugin-api/EVENTS.md) references cover the
+Extension-owned contracts in more detail.
