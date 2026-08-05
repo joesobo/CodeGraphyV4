@@ -1,11 +1,30 @@
-import { DEFAULT_NODE_COLOR } from '../../../../../shared/fileColors';
+import {
+  DEFAULT_FOLDER_NODE_COLOR,
+  DEFAULT_NODE_COLOR,
+} from '../../../../../shared/fileColors';
 import type { FGNode } from '../../model/build';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/view/surface/contracts';
+import { isFullyTransparentColor } from '../../../../colorParsing/transparent';
 import { normalizedNodeFillOpacity } from './canvasOpacity';
 
 function nodeColor(dependencies: NodeCanvasRendererDependencies, node: FGNode): string {
   return dependencies.resolveColor(node.color, DEFAULT_NODE_COLOR);
+}
+
+function minimapNodeColor(dependencies: NodeCanvasRendererDependencies, node: FGNode): string {
+  return node.nodeType === 'folder' && isFullyTransparentColor(node.color)
+    ? DEFAULT_FOLDER_NODE_COLOR
+    : nodeColor(dependencies, node);
+}
+
+function minimapNodeBorderColor(
+  dependencies: NodeCanvasRendererDependencies,
+  node: FGNode,
+): string {
+  return node.nodeType === 'folder' && isFullyTransparentColor(node.color)
+    ? DEFAULT_FOLDER_NODE_COLOR
+    : borderColor(dependencies, node, false);
 }
 
 function borderColor(dependencies: NodeCanvasRendererDependencies, node: FGNode, selected: boolean): string {
@@ -42,11 +61,12 @@ export function getBaseNodeCanvasStyle(
   dependencies: NodeCanvasRendererDependencies,
   node: FGNode,
 ): OwnedGraphNodeStyle {
+  const color = minimapNodeColor(dependencies, node);
   return {
-    borderColor: borderColor(dependencies, node, false),
+    borderColor: minimapNodeBorderColor(dependencies, node),
     borderWidth: node.borderWidth,
     cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
-    fillColor: nodeColor(dependencies, node),
+    fillColor: color,
     fillOpacity: normalizedNodeFillOpacity(node.fillOpacity2D),
     height: node.shapeSize2D?.height ?? node.size * 2,
     opacity: node.baseOpacity,
