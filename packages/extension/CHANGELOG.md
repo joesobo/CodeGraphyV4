@@ -1,5 +1,19 @@
 # @codegraphy-dev/extension
 
+## 5.16.3
+
+### Patch Changes
+
+- [#335](https://github.com/joesobo/CodeGraphyV4/pull/335) [`fa4ce6b`](https://github.com/joesobo/CodeGraphyV4/commit/fa4ce6bf60bb2691d589453633e78a31dec59574) Thanks [@joesobo](https://github.com/joesobo)! - Show the active Node, Edge, multi-selection, or workspace root above Graph Context Menu actions.
+
+- [#341](https://github.com/joesobo/CodeGraphyV4/pull/341) [`8a6530e`](https://github.com/joesobo/CodeGraphyV4/commit/8a6530ee6c96f21e69458bc18bc18bcf2aad7c44) Thanks [@joesobo](https://github.com/joesobo)! - Make Escape dismiss one Graph View layer per press. CodeGraphy now closes local menus and prompts first, then active edits, Filters, and the current panel. Escape clears Node selection only when no other layer is open. The behavior is the same in the Sidebar and Editor Graph Views.
+
+- [#340](https://github.com/joesobo/CodeGraphyV4/pull/340) [`04774da`](https://github.com/joesobo/CodeGraphyV4/commit/04774da8ddf164e4951593cb87c7bf9d12d559cd) Thanks [@joesobo](https://github.com/joesobo)! - Show live File Discovery, analysis, and queued Graph Cache update progress during Re-indexing.
+
+- Updated dependencies [[`8a6530e`](https://github.com/joesobo/CodeGraphyV4/commit/8a6530ee6c96f21e69458bc18bc18bcf2aad7c44), [`04774da`](https://github.com/joesobo/CodeGraphyV4/commit/04774da8ddf164e4951593cb87c7bf9d12d559cd), [`3be5af7`](https://github.com/joesobo/CodeGraphyV4/commit/3be5af7926be8235c651d1cb464205f304b17ef6)]:
+  - @codegraphy-dev/extension-plugin-api@3.0.0
+  - @codegraphy-dev/core@5.0.3
+
 ## 5.16.2
 
 ### Patch Changes

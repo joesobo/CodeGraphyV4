@@ -1,5 +1,13 @@
 # @codegraphy-dev/core
 
+## 5.0.3
+
+### Patch Changes
+
+- [#340](https://github.com/joesobo/CodeGraphyV4/pull/340) [`04774da`](https://github.com/joesobo/CodeGraphyV4/commit/04774da8ddf164e4951593cb87c7bf9d12d559cd) Thanks [@joesobo](https://github.com/joesobo)! - Show live File Discovery, analysis, and queued Graph Cache update progress during Re-indexing.
+
+- [#334](https://github.com/joesobo/CodeGraphyV4/pull/334) [`3be5af7`](https://github.com/joesobo/CodeGraphyV4/commit/3be5af7926be8235c651d1cb464205f304b17ef6) Thanks [@gpxsrz](https://github.com/gpxsrz)! - Prevent the Go analyzer from crashing on multi-name short variable declarations with one right-hand-side call.
+
 ## 5.0.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-godot",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "CodeGraphy Godot plugin",
   "license": "MIT",
   "type": "module",

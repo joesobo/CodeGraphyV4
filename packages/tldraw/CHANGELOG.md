@@ -1,5 +1,12 @@
 # @codegraphy-dev/tldraw
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`04774da`](https://github.com/joesobo/CodeGraphyV4/commit/04774da8ddf164e4951593cb87c7bf9d12d559cd), [`3be5af7`](https://github.com/joesobo/CodeGraphyV4/commit/3be5af7926be8235c651d1cb464205f304b17ef6)]:
+  - @codegraphy-dev/core@5.0.3
+
 ## 0.2.2
 
 ### Patch Changes
