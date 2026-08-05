@@ -8,7 +8,7 @@ import {
   waitForExtensionMessageWhere,
   waitForGraphIndexStatus,
 } from './messages';
-import { includesExpectedEdgeIds } from './readiness';
+import { includesExpectedEdgeIds, missingExpectedEdgeIds } from './readiness';
 
 export interface CodeGraphyAPI {
   refresh(): Promise<void>;
@@ -151,6 +151,13 @@ export async function ensureIndexedGraph(api: CodeGraphyAPI): Promise<void> {
           scenario.minimumExpectedEdgeIds,
         ),
       timeoutMs,
+      message => {
+        const edgeIds = message.payload.edges.map(edge => String(edge.id));
+        const missingIds = scenario.name === 'codegraphy-root'
+          ? []
+          : missingExpectedEdgeIds(edgeIds, scenario.minimumExpectedEdgeIds);
+        return `${message.payload.nodes.length} node(s), ${edgeIds.length} edge(s), missing ${missingIds.join(', ') || 'none'}`;
+      },
     );
     const indexUpdated = waitForGraphIndexStatus(api, true, timeoutMs);
     await api.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });

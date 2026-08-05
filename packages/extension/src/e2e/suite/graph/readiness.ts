@@ -6,7 +6,14 @@ export function includesExpectedEdgeIds(
   actualIds: readonly string[],
   expectedIds: readonly string[],
 ): boolean {
-  return expectedIds.every(
-    expectedId => actualIds.some(actualId => edgeIdMatchesExpected(actualId, expectedId)),
+  return missingExpectedEdgeIds(actualIds, expectedIds).length === 0;
+}
+
+export function missingExpectedEdgeIds(
+  actualIds: readonly string[],
+  expectedIds: readonly string[],
+): string[] {
+  return expectedIds.filter(
+    expectedId => !actualIds.some(actualId => edgeIdMatchesExpected(actualId, expectedId)),
   );
 }

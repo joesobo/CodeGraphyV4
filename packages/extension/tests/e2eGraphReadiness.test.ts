@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { includesExpectedEdgeIds } from '../src/e2e/suite/graph/readiness';
+import {
+  includesExpectedEdgeIds,
+  missingExpectedEdgeIds,
+} from '../src/e2e/suite/graph/readiness';
 
 const REQUIRED_EDGE_IDS = [
   'src/index.ts->src/palette.ts#import',
@@ -22,5 +25,13 @@ describe('E2E graph readiness', () => {
     expect(includesExpectedEdgeIds([
       'src/index.ts->src/palette.ts#import',
     ], REQUIRED_EDGE_IDS)).toBe(false);
+  });
+
+  it('reports the exact required Edges absent from the last graph publication', () => {
+    expect(missingExpectedEdgeIds([
+      'src/index.ts->src/palette.ts#import',
+    ], REQUIRED_EDGE_IDS)).toEqual([
+      'src/index.ts->src/types.ts#import',
+    ]);
   });
 });
