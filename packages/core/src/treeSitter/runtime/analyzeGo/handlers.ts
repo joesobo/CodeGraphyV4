@@ -16,10 +16,10 @@ import {
 import { walkSymbolBody } from '../analyze/walk';
 
 function getGoCallBinding(
-  callExpression: Parser.SyntaxNode,
+  callExpression: Parser.SyntaxNode | null | undefined,
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
-  const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
+  const calleeNode = callExpression?.childForFieldName('function') ?? callExpression?.namedChildren[0];
   return (
     getImportedBindingByIdentifier(calleeNode, importedBindings)
     ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'selector_expression', 'operand', 'field')

@@ -348,6 +348,55 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
     ]);
   });
 
+  it('creates both symbols and preserves the constructor binding for a multi-name short-var declaration', () => {
+    const symbols: unknown[] = [];
+    const receiverBindings = new Map();
+    const packageBinding = {
+      importedName: 'example-go/pkg',
+      resolvedPath: '/workspace/pkg/client.go',
+      specifier: 'example-go/pkg',
+    };
+    const leftExpressionList = createNode({
+      namedChildren: [createNode({ type: 'identifier' }), createNode({ type: 'identifier' })],
+    });
+    const constructorCall = createNode({
+      type: 'call_expression',
+      namedChildren: [createNode({ type: 'selector_expression' })],
+    });
+    const valueExpressionList = createNode({
+      namedChildren: [constructorCall],
+    });
+
+    vi.mocked(getIdentifierText)
+      .mockReturnValueOnce('client')
+      .mockReturnValueOnce('err');
+    vi.mocked(getImportedBindingByIdentifier).mockReturnValue(null);
+    vi.mocked(getImportedBindingByPropertyAccess)
+      .mockReturnValueOnce(packageBinding as never)
+      .mockReturnValueOnce(null);
+    vi.mocked(createSymbol).mockImplementation((filePath: string, kind: string, name: string) => ({
+      id: `${filePath}:${kind}:${name}`,
+      kind,
+      name,
+    }) as never);
+
+    expect(() => handleGoShortVarDeclaration(
+      createNode({
+        namedChildren: [leftExpressionList, valueExpressionList],
+      }) as never,
+      '/workspace/app.go',
+      symbols as never[],
+      new Map([['pkg', packageBinding as never]]),
+      receiverBindings,
+    )).not.toThrow();
+
+    expect(receiverBindings).toEqual(new Map([['client', packageBinding]]));
+    expect(symbols).toEqual([
+      expect.objectContaining({ kind: 'local', name: 'client' }),
+      expect.objectContaining({ kind: 'local', name: 'err' }),
+    ]);
+  });
+
   it('remembers short-var constructor bindings for receiver method calls', () => {
     const symbols: unknown[] = [];
     const receiverBindings = new Map();
@@ -359,11 +408,17 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
     const leftExpressionList = createNode({
       namedChildren: [createNode({ type: 'identifier' })],
     });
-    const constructorCall = createNode({ type: 'call_expression' });
+    const constructorCall = createNode({
+      type: 'call_expression',
+      namedChildren: [createNode({ type: 'selector_expression' })],
+    });
     const valueExpressionList = createNode({
       namedChildren: [constructorCall],
     });
-    const receiverCall = createNode({ type: 'call_expression' });
+    const receiverCall = createNode({
+      type: 'call_expression',
+      namedChildren: [createNode({ type: 'selector_expression' })],
+    });
     const receiverCallBinding = {
       ...serviceBinding,
       memberName: 'Run',
