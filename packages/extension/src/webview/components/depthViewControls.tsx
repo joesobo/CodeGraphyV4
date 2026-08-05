@@ -4,6 +4,7 @@ import { postMessage } from '../vscodeApi';
 import { useGraphStore } from '../store/state';
 import { Slider } from './ui/controls/slider';
 import { MdiIcon } from './icons/MdiIcon';
+import { Button } from './ui/button';
 
 const MIN_DEPTH = 1;
 
@@ -12,6 +13,7 @@ export function DepthViewControls(): React.ReactElement | null {
   const depthLimit = useGraphStore(state => state.depthLimit);
   const maxDepthLimit = useGraphStore(state => state.maxDepthLimit);
   const showMinimap = useGraphStore(state => state.showMinimap);
+  const activeFilePath = useGraphStore(state => state.activeFilePath);
   const effectiveDepthLimit = Math.min(depthLimit, maxDepthLimit);
   const isCompactControl = maxDepthLimit === MIN_DEPTH;
 
@@ -24,6 +26,10 @@ export function DepthViewControls(): React.ReactElement | null {
     postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: nextDepthLimit } });
   };
 
+  const showFullGraph = (): void => {
+    postMessage({ type: 'UPDATE_DEPTH_MODE', payload: { depthMode: false } });
+  };
+
   return (
     <div
       data-testid="depth-view-controls"
@@ -33,8 +39,18 @@ export function DepthViewControls(): React.ReactElement | null {
     >
       <div
         data-testid="depth-view-shell"
-        className="pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-md bg-[var(--cg-popover-translucent)] px-2 py-1 shadow-lg backdrop-blur-md"
+        className="pointer-events-auto flex w-full max-w-lg items-center gap-2 rounded-md bg-[var(--cg-popover-translucent)] px-2 py-1 shadow-lg backdrop-blur-md"
       >
+        <div className="min-w-0 shrink-0 px-0.5">
+          <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Focused graph
+          </div>
+          {activeFilePath ? (
+            <div className="max-w-40 truncate text-[10px] text-foreground" title={activeFilePath}>
+              {activeFilePath}
+            </div>
+          ) : null}
+        </div>
         {isCompactControl ? (
           <div
             data-testid="depth-view-compact"
@@ -52,9 +68,7 @@ export function DepthViewControls(): React.ReactElement | null {
           <>
             <div className="flex shrink-0 items-center gap-1.5 px-0.5">
               <MdiIcon path={mdiBullseye} size={13} className="text-[var(--cg-primary)]" />
-              <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Depth
-              </div>
+              <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Depth</div>
               <div
                 data-testid="depth-view-value"
                 className="inline-flex min-w-4 items-center justify-center text-[11px] font-semibold leading-none tabular-nums text-foreground"
@@ -84,6 +98,15 @@ export function DepthViewControls(): React.ReactElement | null {
             </div>
           </>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-6 shrink-0 px-2 text-[10px]"
+          onClick={showFullGraph}
+        >
+          Show full graph
+        </Button>
       </div>
     </div>
   );
