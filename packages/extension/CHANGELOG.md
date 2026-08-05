@@ -1,5 +1,12 @@
 # @codegraphy-dev/extension
 
+## 5.16.4
+
+### Patch Changes
+
+- Updated dependencies [[`b96bc2e`](https://github.com/joesobo/CodeGraphyV4/commit/b96bc2e21d5d361776767261e14a53340bb17b4f)]:
+  - @codegraphy-dev/core@5.0.4
+
 ## 5.16.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @codegraphy-dev/core
 
+## 5.0.4
+
+### Patch Changes
+
+- [#346](https://github.com/joesobo/CodeGraphyV4/pull/346) [`b96bc2e`](https://github.com/joesobo/CodeGraphyV4/commit/b96bc2e21d5d361776767261e14a53340bb17b4f) Thanks [@joesobo](https://github.com/joesobo)! - Speed up filtered and Git-ignored File discovery by enumerating eligible Git paths before Indexing, report accurate candidate counts, and keep packaged CLI version output working in Extension builds.
+
 ## 5.0.3
 
 ### Patch Changes
