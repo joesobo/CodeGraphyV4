@@ -514,7 +514,8 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'the src/index.ts node is visibly outlined': async (context) => {
-    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, TARGET_NODE));
+    await findNodeProbe(context, TARGET_NODE);
+    await expectNodeIsOutlined(requireGraphFrame(context), TARGET_NODE);
   },
 
   'src/index.ts opens in VS Code': async (context) => {
@@ -669,7 +670,8 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the (.+) node is no longer visibly outlined$/, async (context, _step, match) => {
-    await expectNodeIsNotOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+    await findNodeProbe(context, match[1]);
+    await expectNodeIsNotOutlined(requireGraphFrame(context), match[1]);
   }),
 
   step(/^Escape closes each built-in panel and focuses the Graph Stage$/, async (context) => {
@@ -806,11 +808,13 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the (.+) node is visibly outlined in white$/, async (context, _step, match) => {
-    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+    await findNodeProbe(context, match[1]);
+    await expectNodeIsOutlined(requireGraphFrame(context), match[1]);
   }),
 
   step(/^the (.+) node is visibly outlined in orange$/, async (context, _step, match) => {
-    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]), 'orange');
+    await findNodeProbe(context, match[1]);
+    await expectNodeIsOutlined(requireGraphFrame(context), match[1], 'orange');
   }),
 
   step(/^the (.+) node is no longer outlined$/, async (context, _step, match) => {
@@ -1154,7 +1158,8 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I see all the selected nodes outlined in white$/, async (context) => {
-    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, TARGET_NODE));
+    await findNodeProbe(context, TARGET_NODE);
+    await expectNodeIsOutlined(requireGraphFrame(context), TARGET_NODE);
   }),
 
   step(/^VS Code should navigate to the Explorer sidebar tab$/, async (context) => {

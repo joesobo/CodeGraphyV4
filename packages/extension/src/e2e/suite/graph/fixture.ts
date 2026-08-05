@@ -5,10 +5,10 @@ import * as vscode from 'vscode';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { getCurrentE2EScenario } from '../../scenarios';
 import {
-  waitForExtensionMessage,
   waitForExtensionMessageWhere,
   waitForGraphIndexStatus,
 } from './messages';
+import { includesExpectedEdgeIds } from './readiness';
 
 export interface CodeGraphyAPI {
   refresh(): Promise<void>;
@@ -68,17 +68,13 @@ export function assertIncludesAll(
   assert.deepStrictEqual(missingIds, [], `${label} missing from ${actualIds.join(', ')}`);
 }
 
-function edgeIdMatchesExpected(actualId: string, expectedId: string): boolean {
-  return actualId === expectedId || actualId.startsWith(`${expectedId}:`);
-}
-
 export function assertIncludesAllEdges(
   actualIds: readonly string[],
   expectedIds: readonly string[],
   label: string,
 ): void {
   const missingIds = expectedIds.filter(
-    expectedId => !actualIds.some(actualId => edgeIdMatchesExpected(actualId, expectedId)),
+    expectedId => !includesExpectedEdgeIds(actualIds, [expectedId]),
   );
   assert.deepStrictEqual(missingIds, [], `${label} missing from ${actualIds.join(', ')}`);
 }
@@ -142,17 +138,20 @@ export async function ensureIndexedGraph(api: CodeGraphyAPI): Promise<void> {
 
   indexedGraphPromise ??= (async () => {
     const timeoutMs = getIndexTimeoutMs();
-    const graphUpdated = scenario.name === 'codegraphy-root'
-      ? waitForExtensionMessageWhere<{
-        type: 'GRAPH_DATA_UPDATED';
-        payload: IGraphData;
-      }>(
-        api,
-        'GRAPH_DATA_UPDATED',
-        message => message.payload.edges.length > CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD,
-        timeoutMs,
-      )
-      : waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', timeoutMs);
+    const graphUpdated = waitForExtensionMessageWhere<{
+      type: 'GRAPH_DATA_UPDATED';
+      payload: IGraphData;
+    }>(
+      api,
+      'GRAPH_DATA_UPDATED',
+      message => scenario.name === 'codegraphy-root'
+        ? message.payload.edges.length > CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD
+        : includesExpectedEdgeIds(
+          message.payload.edges.map(edge => String(edge.id)),
+          scenario.minimumExpectedEdgeIds,
+        ),
+      timeoutMs,
+    );
     const indexUpdated = waitForGraphIndexStatus(api, true, timeoutMs);
     await api.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
     await Promise.all([graphUpdated, indexUpdated]);

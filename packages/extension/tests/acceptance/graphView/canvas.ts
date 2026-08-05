@@ -520,20 +520,26 @@ export async function expectNodeHasLabel(frame: Frame, probe: NodeProbe): Promis
 
 export async function expectNodeIsOutlined(
   frame: Frame,
-  probe: NodeProbe,
+  nodePath: string,
   color: NodeOutlineColor = 'white',
 ): Promise<void> {
   await expect.poll(
-    async () => (await analyzeNodePixels(frame, probe, NODE_OUTLINE_RGB[color])).outlinePixelCount,
+    async () => {
+      const currentProbe = await readNodeProbe(frame, nodePath);
+      return (await analyzeNodePixels(frame, currentProbe, NODE_OUTLINE_RGB[color])).outlinePixelCount;
+    },
   ).toBeGreaterThan(MIN_VISIBLE_PIXEL_COUNT);
 }
 
 export async function expectNodeIsNotOutlined(
   frame: Frame,
-  probe: NodeProbe,
+  nodePath: string,
 ): Promise<void> {
   await expect.poll(
-    async () => (await analyzeNodePixels(frame, probe, NODE_OUTLINE_RGB.white)).outlinePixelCount,
+    async () => {
+      const currentProbe = await readNodeProbe(frame, nodePath);
+      return (await analyzeNodePixels(frame, currentProbe, NODE_OUTLINE_RGB.white)).outlinePixelCount;
+    },
   ).toBeLessThanOrEqual(MIN_VISIBLE_PIXEL_COUNT);
 }
 
