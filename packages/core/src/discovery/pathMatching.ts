@@ -13,3 +13,17 @@ export function matchesAnyPattern(relativePath: string, patterns: readonly strin
     minimatch(normalizedPath, pattern, { dot: true, matchBase: true })
   );
 }
+
+export function matchesPathOrAncestor(
+  relativePath: string,
+  paths: ReadonlySet<string>,
+): boolean {
+  let candidate = normalizeDiscoveryPath(relativePath);
+  while (candidate) {
+    if (paths.has(candidate)) return true;
+    const separatorIndex = candidate.lastIndexOf('/');
+    if (separatorIndex < 0) return false;
+    candidate = candidate.slice(0, separatorIndex);
+  }
+  return false;
+}

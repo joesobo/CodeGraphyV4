@@ -1,5 +1,6 @@
 import * as path from 'path';
 import type { IGraphNode } from './contracts';
+import { matchesPathOrAncestor } from '../discovery/pathMatching';
 import {
   getExternalPackageLabelFromNodeId,
   isExternalPackageNodeId,
@@ -49,7 +50,7 @@ export function buildWorkspaceFileNodes(options: {
       : createWorkspaceFileNode(
           filePath,
           options.cacheFiles,
-          options.gitIgnoredPathSet.has(filePath),
+          matchesPathOrAncestor(filePath, options.gitIgnoredPathSet),
         ));
   }
 

@@ -1,4 +1,5 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import { matchesPathOrAncestor } from '../discovery/pathMatching';
 import type { IGraphEdge, IGraphNode } from './contracts';
 import { collectProjectableNamespaceSymbolIds } from './namespaceSymbols';
 import { createCanonicalSymbolIds } from './symbolIds';
@@ -48,7 +49,9 @@ export function buildSymbolNodesAndEdges(
   const symbolIds = createCanonicalSymbolIds(fileAnalysis, workspaceRoot);
   const projectableNamespaceSymbolIds = collectProjectableNamespaceSymbolIds(fileAnalysis);
   const explicitlyContainedSymbolIds = collectExplicitlyContainedSymbolIds(fileAnalysis);
-  const gitIgnoredPathSet = new Set(options.gitIgnoredPaths ?? []);
+  const gitIgnoredPathSet = new Set(
+    (options.gitIgnoredPaths ?? []).map(relativePath => relativePath.replace(/\\/g, '/')),
+  );
   const containingFileIds = new Set<string>();
   const nodes: IGraphNode[] = [];
   const edges: IGraphEdge[] = [];
@@ -89,6 +92,6 @@ function createContainingFileMetadata(
 ): { fileSize?: number; gitIgnored: boolean } {
   return {
     fileSize: options.cacheFiles?.[relativeFilePath]?.size,
-    gitIgnored: options.gitIgnoredPathSet.has(relativeFilePath),
+    gitIgnored: matchesPathOrAncestor(relativeFilePath, options.gitIgnoredPathSet),
   };
 }

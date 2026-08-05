@@ -23,7 +23,7 @@ export interface IDiscoveryOptions {
   extensions?: string[];
   /** Abort signal for cancelling long-running discovery */
   signal?: AbortSignal;
-  /** Reports candidate files while the workspace scan is still running. */
+  /** Reports files eligible for fresh indexing after Filters and Git ignored state apply. */
   onProgress?: (progress: { current: number }) => void;
 }
 
@@ -64,4 +64,6 @@ export interface IDiscoveryResult {
 /** Internal indexing result with paths allowed to remain in the Graph Cache. */
 export interface IFileDiscoveryResult extends IDiscoveryResult {
   cacheFilePaths: string[];
+  /** Directory roots whose cached descendants remain reusable without filesystem traversal. */
+  cachePathPrefixes: string[];
 }

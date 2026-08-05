@@ -17,7 +17,10 @@ import { readCodeGraphyWorkspaceStatus } from '../workspace/status';
 import { readCodeGraphyWorkspaceMeta } from '../workspace/meta';
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
-import { discoverWorkspaceIndexFiles } from './discovery';
+import {
+  discoverWorkspaceIndexFiles,
+  isRetainedWorkspaceIndexCachePath,
+} from './discovery';
 import {
   createWorkspaceIndexPluginBuildSignature,
   createWorkspaceIndexPluginSignature,
@@ -224,7 +227,11 @@ export async function indexCodeGraphyWorkspace(
   }
   const cacheFilePaths = new Set(discoveryResult.cacheFilePaths);
   const deletedFilePaths = Object.keys(cache.files)
-    .filter(filePath => !cacheFilePaths.has(filePath));
+    .filter(filePath => !isRetainedWorkspaceIndexCachePath(
+      filePath,
+      cacheFilePaths,
+      discoveryResult.cachePathPrefixes,
+    ));
   const readContent = createWorkspaceIndexFileContentReader(discovery);
 
   if (canReusePersistedCache) {

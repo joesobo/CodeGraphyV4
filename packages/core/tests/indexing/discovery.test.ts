@@ -1,10 +1,26 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_INCLUDE } from '../../src/discovery/file/defaults';
 import type { FileDiscovery } from '../../src/discovery/file/service';
-import { discoverWorkspaceIndexFiles } from '../../src/indexing/discovery';
+import {
+  discoverWorkspaceIndexFiles,
+  isRetainedWorkspaceIndexCachePath,
+} from '../../src/indexing/discovery';
 import { createDefaultCodeGraphyWorkspaceSettings } from '../../src/workspace/settingsDefaults';
 
 describe('indexing/discovery', () => {
+  it('retains cached descendants of compact ignored directory roots', () => {
+    const cacheFilePaths = new Set(['src/app.ts']);
+    expect(isRetainedWorkspaceIndexCachePath(
+      'ignored/deep/file.ts',
+      cacheFilePaths,
+      ['ignored'],
+    )).toBe(true);
+    expect(isRetainedWorkspaceIndexCachePath(
+      'ignored-sibling/file.ts',
+      cacheFilePaths,
+      ['ignored'],
+    )).toBe(false);
+  });
   it('excludes active custom filters from fresh indexing', async () => {
     const discover = vi.fn(async () => ({
       files: [],

@@ -26,7 +26,7 @@ describe('core/graph/data gitignored metadata', () => {
           relations: [],
         }],
       ]),
-      gitIgnoredPaths: ['example-python/app.py'],
+      gitIgnoredPaths: ['example-python'],
       showOrphans: true,
       nodeVisibility: SYMBOL_NODE_VISIBILITY,
       workspaceRoot: '/workspace',

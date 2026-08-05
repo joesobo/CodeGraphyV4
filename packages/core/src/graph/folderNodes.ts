@@ -1,5 +1,6 @@
 import type { IGraphNode } from './contracts';
 import { isExternalPackageNodeId } from './packageSpecifiers/nodeId';
+import { matchesPathOrAncestor } from '../discovery/pathMatching';
 
 const GIT_IGNORED_REASON = 'Git ignored';
 
@@ -46,7 +47,7 @@ export function buildDiscoveredDirectoryNodes(
 
   for (const directoryPath of directoryPaths) {
     const normalizedPath = normalizeDirectoryPath(directoryPath);
-    const isGitIgnoredDirectory = gitIgnoredPathSet.has(normalizedPath);
+    const isGitIgnoredDirectory = matchesPathOrAncestor(normalizedPath, gitIgnoredPathSet);
     const alreadyRepresented = !isGitIgnoredDirectory && fileFolderPaths.has(normalizedPath);
     if (!normalizedPath || alreadyRepresented || seen.has(normalizedPath)) {
       continue;
