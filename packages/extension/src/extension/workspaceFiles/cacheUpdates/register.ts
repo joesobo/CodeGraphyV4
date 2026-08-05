@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   createWorkspaceCacheUpdateScheduler,
+  type WorkspaceCacheUpdateProgress,
   type WorkspaceCacheUpdateScheduler,
   type WorkspaceCacheUpdateSchedulerOptions,
 } from './model';
@@ -54,6 +55,7 @@ interface WorkspaceCacheUpdateProvider {
   updateWorkspaceFiles(
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: WorkspaceCacheUpdateProgress) => void,
   ): Promise<void>;
 }
 
@@ -118,7 +120,8 @@ export function registerWorkspaceCacheUpdates(
     onStatus: status => renderWorkspaceCacheUpdateStatus(statusBarItem, status),
     update: createFingerprintingWorkspaceCacheUpdate({
       pathSignature: filePath => dependencies.pathSignature(filePath),
-      update: (filePaths, signal) => provider.updateWorkspaceFiles(filePaths, signal),
+      update: (filePaths, signal, onProgress) =>
+        provider.updateWorkspaceFiles(filePaths, signal, onProgress),
     }),
   });
 

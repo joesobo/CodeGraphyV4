@@ -555,6 +555,7 @@ describe('WorkspacePipeline analysis', () => {
       filter: ['**/*.generated.ts'],
       respectGitignore: false,
       signal,
+      onProgress: expect.any(Function),
     });
     expect(getPluginFilterPatterns).toHaveBeenCalledWith(new Set<string>());
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();

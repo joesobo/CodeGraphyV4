@@ -36,8 +36,14 @@ describe('GraphIndexStatus', () => {
     expect(screen.getByTestId('graph-index-status')).toBeInTheDocument();
     expect(screen.getByText('Indexing Workspace')).toBeInTheDocument();
     expect(screen.getByText('25%')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Indexing progress' })).toHaveAttribute('aria-valuenow', '25');
-    expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '25%' });
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toHaveAttribute('aria-valuenow', '25');
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toHaveAttribute('aria-valuetext', 'Indexing Workspace 25%');
+    const fill = screen.getByTestId('graph-index-status-fill');
+    expect(fill).toHaveStyle({ width: '25%' });
+    expect(fill.className).toContain('transition-all');
+    expect(fill).toHaveAttribute('data-codegraphy-progress', 'determinate');
   });
 
   it('does not capture pointer events from graph controls and popups', () => {
@@ -81,20 +87,60 @@ describe('GraphIndexStatus', () => {
 
     const status = screen.getByTestId('graph-index-status');
     expect(status).toHaveStyle({ left: '192px' });
+    expect(status.className).toBe(
+      'pointer-events-none absolute right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm',
+    );
     expect(status.className).not.toContain('left-44');
     expect(status.className).not.toContain('left-2');
   });
 
-  it('shows zero progress when the total is zero', () => {
+  it('shows live discovery counts as indeterminate progress when the total is unknown', () => {
     render(
       <GraphIndexStatus
         isIndexing={true}
-        progress={{ phase: 'Indexing Workspace', current: 3, total: 0 }}
+        progress={{ phase: 'Discovering Files', current: 25, total: 0 }}
         showMinimap={false}
       />,
     );
 
-    expect(screen.getByText('0%')).toBeInTheDocument();
-    expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '0%' });
+    expect(screen.getByText('25 candidate files found')).toBeInTheDocument();
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' }))
+      .not.toHaveAttribute('aria-valuenow');
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toHaveAttribute('aria-valuetext', 'Discovering Files 25 candidate files found');
+    expect(screen.getByTestId('graph-index-status-fill')).toHaveAttribute(
+      'data-codegraphy-progress',
+      'indeterminate',
+    );
+    expect(screen.getByTestId('graph-index-status-fill').className)
+      .toContain('animate-index-progress');
+  });
+
+  it('uses singular discovery wording for one candidate file', () => {
+    render(
+      <GraphIndexStatus
+        isIndexing={true}
+        progress={{ phase: 'Discovering Files', current: 1, total: 0 }}
+        showMinimap={false}
+      />,
+    );
+
+    expect(screen.getByText('1 candidate file found')).toBeInTheDocument();
+  });
+
+  it('keeps invalid determinate values inside the progress range', () => {
+    render(
+      <GraphIndexStatus
+        isIndexing={true}
+        progress={{ phase: 'Analyzing Files', current: 12, total: 10 }}
+        showMinimap={false}
+      />,
+    );
+
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' }))
+      .toHaveAttribute('aria-valuenow', '100');
+    expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '100%' });
   });
 });

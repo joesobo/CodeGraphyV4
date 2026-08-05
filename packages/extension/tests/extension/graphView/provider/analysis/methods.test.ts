@@ -286,6 +286,57 @@ describe('graphView/provider/analysis/methods', () => {
     ]);
   });
 
+  it('reports queued file progress only after the active reindex releases the pipeline', async () => {
+    const source = createSource();
+    let finishRefresh: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async (state, handlers) => {
+      if (state.mode === 'refresh') {
+        await new Promise<void>(resolve => {
+          finishRefresh = resolve;
+        });
+      }
+      await handlers.executeAnalysis(new AbortController().signal, 11);
+    });
+    const executeAnalysis = vi.fn(async (_signal, _requestId, state, handlers) => {
+      if (state.mode === 'incremental') {
+        handlers.sendIndexProgress({
+          phase: 'Analyzing Files',
+          current: 25,
+          total: 58,
+        });
+      }
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis,
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+    const onProgress = vi.fn();
+
+    const refresh = methods._refreshAndSendData();
+    await Promise.resolve();
+    const update = methods._updateChangedFilesAndSendData(
+      ['/workspace/src/saved.ts'],
+      undefined,
+      onProgress,
+    );
+
+    expect(onProgress).not.toHaveBeenCalled();
+    finishRefresh?.();
+    await refresh;
+    await update;
+
+    expect(onProgress).toHaveBeenCalledWith({
+      phase: 'Analyzing Files',
+      current: 25,
+      total: 58,
+    });
+  });
+
   it('serializes saved-file updates from direct actions and ambient events', async () => {
     const source = createSource();
     let finishFirstUpdate: (() => void) | undefined;

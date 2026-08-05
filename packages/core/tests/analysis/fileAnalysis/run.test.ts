@@ -101,6 +101,36 @@ function readCacheTiers(analysis: IFileAnalysisResult): string[] {
 }
 
 describe('pipeline/fileAnalysis', () => {
+  it('yields to the host while publishing progress for a large cached analysis', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const files = Array.from({ length: 50 }, (_, index) => {
+      const file = createFile(`src/file-${index}.ts`);
+      cache.files[file.relativePath] = {
+        mtime: 25,
+        analysis: createEmptyAnalysis(file.absolutePath),
+        size: 12,
+      };
+      return file;
+    });
+    const onProgress = vi.fn();
+
+    const analysis = analyzeWorkspaceFiles({
+      analyzeFile: vi.fn(async () => createEmptyAnalysis()),
+      cache,
+      files,
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
+      onProgress,
+      readContent: vi.fn(async () => 'ignored'),
+      workspaceRoot: '/workspace',
+    });
+
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(onProgress.mock.calls.length).toBeGreaterThan(0);
+    expect(onProgress.mock.calls.length).toBeLessThan(files.length);
+    await analysis;
+    expect(onProgress).toHaveBeenCalledTimes(files.length);
+  });
+
   it('reuses cached connections and backfills missing size on cache hits', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     const cachedConnections: IProjectedConnection[] = [

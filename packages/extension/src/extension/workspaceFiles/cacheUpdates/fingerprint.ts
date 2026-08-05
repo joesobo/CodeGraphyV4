@@ -1,20 +1,29 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
+import type { WorkspaceCacheUpdateProgress } from './model';
 
 const PATH_SIGNATURE_CONCURRENCY = 8;
 
 interface FingerprintingWorkspaceCacheUpdateOptions {
   pathSignature(filePath: string): Promise<string>;
-  update(filePaths: readonly string[], signal: AbortSignal): Promise<void>;
+  update(
+    filePaths: readonly string[],
+    signal: AbortSignal,
+    onProgress?: (progress: WorkspaceCacheUpdateProgress) => void,
+  ): Promise<void>;
 }
 
 export function createFingerprintingWorkspaceCacheUpdate(
   options: FingerprintingWorkspaceCacheUpdateOptions,
-): (filePaths: readonly string[], signal: AbortSignal) => Promise<void> {
+): (
+  filePaths: readonly string[],
+  signal: AbortSignal,
+  onProgress?: (progress: WorkspaceCacheUpdateProgress) => void,
+) => Promise<void> {
   const appliedPathSignatures = new Map<string, string>();
 
-  return async (filePaths, signal) => {
+  return async (filePaths, signal, onProgress) => {
     if (signal.aborted) return;
     const startingSignatures = await collectPathSignatures(
       filePaths,
@@ -24,7 +33,7 @@ export function createFingerprintingWorkspaceCacheUpdate(
       appliedPathSignatures.get(filePath) !== startingSignatures.get(filePath)
     ));
     if (changedPaths.length === 0) return;
-    await options.update(changedPaths, signal);
+    await options.update(changedPaths, signal, onProgress);
     for (const filePath of changedPaths) {
       const signature = startingSignatures.get(filePath);
       if (signature !== undefined) appliedPathSignatures.set(filePath, signature);

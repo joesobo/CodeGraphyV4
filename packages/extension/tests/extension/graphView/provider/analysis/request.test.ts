@@ -76,7 +76,12 @@ describe('graphView/provider/analysis/request', () => {
       'index',
     )();
 
-    expect(doAnalyzeAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 4);
+    expect(doAnalyzeAndSendData).toHaveBeenCalledWith(
+      expect.any(AbortSignal),
+      4,
+      undefined,
+      undefined,
+    );
     expect(source._analysisController).toBeInstanceOf(AbortController);
     expect(source._analysisRequestId).toBe(4);
     expect(source._analyzerInitialized).toBe(true);
@@ -104,7 +109,12 @@ describe('graphView/provider/analysis/request', () => {
       'load',
     )();
 
-    expect(loadAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 7);
+    expect(loadAndSendData).toHaveBeenCalledWith(
+      expect.any(AbortSignal),
+      7,
+      undefined,
+      undefined,
+    );
     expect(source._doLoadAndSendData).not.toHaveBeenCalled();
   });
 
@@ -137,6 +147,7 @@ describe('graphView/provider/analysis/request', () => {
       expect.any(AbortSignal),
       9,
       filePaths,
+      undefined,
     );
   });
 });

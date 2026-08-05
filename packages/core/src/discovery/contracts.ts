@@ -23,6 +23,8 @@ export interface IDiscoveryOptions {
   extensions?: string[];
   /** Abort signal for cancelling long-running discovery */
   signal?: AbortSignal;
+  /** Reports candidate files while the workspace scan is still running. */
+  onProgress?: (progress: { current: number }) => void;
 }
 
 /**

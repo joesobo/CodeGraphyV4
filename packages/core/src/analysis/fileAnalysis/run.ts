@@ -1,3 +1,4 @@
+import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../../discovery/contracts';
 import type { IProjectedConnection } from '../projectedConnection';
@@ -27,6 +28,8 @@ import {
   createWorkspaceFileContentHash,
   hasAmbiguousWorkspaceFileTimestamp,
 } from '../cache';
+
+const ANALYSIS_PROGRESS_YIELD_INTERVAL = 25;
 
 function createWorkspaceFileAnalysisState(): IWorkspaceFileAnalysisState {
   return {
@@ -277,6 +280,14 @@ export async function analyzeWorkspaceFiles(
 
   for (const file of options.files) {
     await analyzeWorkspaceFile(options, state, file);
+    const currentFileCount = getCurrentFileCount(state);
+    if (
+      options.onProgress
+      && currentFileCount % ANALYSIS_PROGRESS_YIELD_INTERVAL === 0
+      && currentFileCount < options.files.length
+    ) {
+      await waitForImmediate();
+    }
   }
 
   const enrichedFileAnalysis = enrichWorkspaceFileAnalysis(state.fileAnalysis);

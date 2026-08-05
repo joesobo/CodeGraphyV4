@@ -297,6 +297,7 @@ describe('workspaceFiles/cacheUpdates/register', () => {
     expect(updateWorkspaceFiles).toHaveBeenCalledWith(
       ['/workspace/src/saved.ts'],
       controller.signal,
+      expect.any(Function),
     );
   });
 });

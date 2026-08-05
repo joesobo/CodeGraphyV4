@@ -24,6 +24,7 @@ export interface WorkspacePipelineDiscoveryDependencies<TFile> {
     respectGitignore: boolean;
     rootPath: string;
     signal?: AbortSignal;
+    onProgress?: (progress: { current: number }) => void;
   }): Promise<WorkspacePipelineDiscoveryResult<TFile>>;
 }
 
@@ -33,6 +34,7 @@ export async function discoverWorkspacePipelineFiles<TFile>(
   config: WorkspacePipelineDiscoveryConfig,
   signal?: AbortSignal,
   filterPatterns: readonly string[] = [],
+  onProgress?: (progress: { current: number }) => void,
 ): Promise<WorkspacePipelineDiscoveryResult<TFile>> {
   return dependencies.discover({
     rootPath: workspaceRoot,
@@ -42,6 +44,7 @@ export async function discoverWorkspacePipelineFiles<TFile>(
     filter: [...filterPatterns],
     respectGitignore: config.respectGitignore,
     signal,
+    onProgress,
   });
 }
 

@@ -13,6 +13,8 @@ import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
+const DISCOVERY_PROGRESS_INTERVAL = 25;
+
 function getDiscoveryConfig(options: IDiscoveryOptions) {
   return {
     maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
@@ -176,6 +178,10 @@ export class FileDiscovery {
           gitignore: null,
         })) {
           candidateFiles.push({ absolutePath, relativePath });
+          const current = candidateFiles.length;
+          if (current === 1 || current % DISCOVERY_PROGRESS_INTERVAL === 0) {
+            options.onProgress?.({ current });
+          }
         }
         return true;
       },

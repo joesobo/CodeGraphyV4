@@ -93,7 +93,7 @@ export async function analyzeWorkspaceWithAnalyzer(
   dependencies.sendProgress?.({
     phase: 'Discovering Files',
     current: 0,
-    total: 1,
+    total: 0,
   });
   const disabledCustomFilterPatterns = new Set(config.disabledCustomFilterPatterns ?? []);
   const disabledPluginFilterPatterns = new Set(config.disabledPluginFilterPatterns ?? []);
@@ -108,6 +108,11 @@ export async function analyzeWorkspaceWithAnalyzer(
     config,
     signal,
     activeFilterPatterns,
+    progress => dependencies.sendProgress?.({
+      phase: 'Discovering Files',
+      current: progress.current,
+      total: 0,
+    }),
   );
   dependencies.sendProgress?.({
     phase: 'Discovering Files',

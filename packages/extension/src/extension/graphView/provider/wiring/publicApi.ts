@@ -3,6 +3,7 @@ import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
 import type { EventName, EventPayloads } from '../../../events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { GraphViewIndexingProgress } from '../../analysis/execution';
 import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/dispatch';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';
@@ -33,6 +34,7 @@ export interface GraphViewProviderPublicMethods {
   updateWorkspaceFiles: (
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ) => Promise<void>;
   refreshIndex: () => Promise<void>;
   hydrateGraphScope: () => Promise<boolean>;
@@ -90,9 +92,12 @@ export function assignGraphViewProviderPublicMethods(
   target.refresh = () => target._methodContainers.refresh.refresh();
   target.refreshIndexStatus = () =>
     target._methodContainers.analysis._refreshIndexStatus();
-  target.updateWorkspaceFiles = (filePaths, signal) => signal
-    ? target._methodContainers.analysis._updateChangedFilesAndSendData(filePaths, signal)
-    : target._methodContainers.analysis._updateChangedFilesAndSendData(filePaths);
+  target.updateWorkspaceFiles = (filePaths, signal, onProgress) =>
+    target._methodContainers.analysis._updateChangedFilesAndSendData(
+      filePaths,
+      signal,
+      onProgress,
+    );
   target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
   target.hydrateGraphScope = () => target._methodContainers.refresh.hydrateGraphScope();
   target.hydratePluginGraphScope = pluginIds =>

@@ -1,5 +1,6 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { GraphViewIndexingProgress } from '../../analysis/execution';
 import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
 import { createGraphViewProviderAnalysisDelegates } from './delegates';
 import {
@@ -72,6 +73,7 @@ export interface GraphViewProviderAnalysisMethods {
   _updateChangedFilesAndSendData(
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<void>;
   _refreshAndSendData(): Promise<void>;
   _refreshIndexStatus(): void;
@@ -170,6 +172,7 @@ export function createGraphViewProviderAnalysisMethods(
   const enqueueChangedFilesUpdate = (
     filePaths: readonly string[],
     signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<void> => {
     if (source._analyzer?.hasIndex?.() === false) {
       return Promise.resolve();
@@ -184,7 +187,7 @@ export function createGraphViewProviderAnalysisMethods(
       };
       signal?.addEventListener('abort', abortUpdate, { once: true });
       try {
-        const activeUpdate = _updateChangedFilesAndSendData(filePaths);
+        const activeUpdate = _updateChangedFilesAndSendData(filePaths, onProgress);
         if (signal?.aborted) abortUpdate();
         await activeUpdate;
       } finally {
