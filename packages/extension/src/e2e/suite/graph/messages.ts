@@ -26,15 +26,21 @@ export function waitForExtensionMessageWhere<TMessage>(
   type: string,
   predicate: (message: TMessage) => boolean,
   timeoutMs: number,
+  describeCandidate?: (message: TMessage) => string,
 ): Promise<TMessage> {
   return new Promise((resolve, reject) => {
+    let lastCandidateDescription = 'no message of this type was received';
     const timer = setTimeout(
-      () => reject(new Error(`Timed out waiting for webview message: ${type}`)),
+      () => reject(new Error(
+        `Timed out waiting for webview message: ${type}. Last candidate: ${lastCandidateDescription}`,
+      )),
       timeoutMs,
     );
     const disposable = api.onExtensionMessage((candidate: unknown) => {
       const message = candidate as TMessage & { type?: string };
-      if (message.type !== type || !predicate(message)) return;
+      if (message.type !== type) return;
+      lastCandidateDescription = describeCandidate?.(message) ?? 'message did not match the predicate';
+      if (!predicate(message)) return;
       clearTimeout(timer);
       disposable.dispose();
       resolve(message);
