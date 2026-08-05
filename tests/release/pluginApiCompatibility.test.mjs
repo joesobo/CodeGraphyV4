@@ -10,7 +10,7 @@ const PLUGIN_HOSTS = [
     plugins: ['godot', 'markdown', 'svelte', 'typescript', 'unity', 'vue'],
   },
   {
-    apiVersion: '^1.0.0',
+    apiVersion: '^2.0.0',
     id: 'codegraphy.extension',
     plugins: ['godot', 'particles', 'unity'],
   },
