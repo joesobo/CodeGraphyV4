@@ -64,4 +64,6 @@ export interface IDiscoveryResult {
 /** Internal indexing result with paths allowed to remain in the Graph Cache. */
 export interface IFileDiscoveryResult extends IDiscoveryResult {
   cacheFilePaths: string[];
+  /** Directory roots whose cached descendants remain reusable without filesystem traversal. */
+  cachePathPrefixes: string[];
 }

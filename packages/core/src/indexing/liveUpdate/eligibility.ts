@@ -1,4 +1,4 @@
-import { matchesAnyPattern } from '../../discovery/pathMatching';
+import { matchesAnyPattern, matchesPathOrAncestor } from '../../discovery/pathMatching';
 import { isWorkspaceDiscoveryLifecyclePath } from '../../workspace/discoveryLifecycle';
 import type { CodeGraphyWorkspaceSettings } from '../../workspace/settings';
 
@@ -18,6 +18,6 @@ export function isWorkspaceLiveUpdatePathEligible(
 ): boolean {
   return isWorkspaceDiscoveryLifecyclePath(workspacePath) || (
     !matchesAnyPattern(workspacePath, activeFilterPatterns)
-    && !gitIgnoredPaths.has(workspacePath)
+    && !matchesPathOrAncestor(workspacePath, gitIgnoredPaths)
   );
 }

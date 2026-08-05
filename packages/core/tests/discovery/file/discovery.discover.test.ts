@@ -86,6 +86,26 @@ describe('FileDiscovery discover', () => {
     expect(onProgress.mock.calls.map(([progress]) => progress.current)).toEqual([1]);
   });
 
+  it('uses Git paths without recursively reading ignored or filtered workspace trees', async () => {
+    initGitRepo();
+    createFile('.gitignore', 'ignored/**\n');
+    createFile('ignored/generated/deep.ts');
+    createFile('filtered/generated/deep.ts');
+    createFile('src/app.ts');
+    const readdir = vi.spyOn(fs.promises, 'readdir');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      include: ['**/*.ts'],
+      filter: ['filtered/**'],
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+    expect(result.cacheFilePaths).toContain(path.join('filtered', 'generated', 'deep.ts'));
+    expect(result.cachePathPrefixes).toContain('ignored');
+    expect(readdir).not.toHaveBeenCalled();
+  });
+
   it('includes file metadata', async () => {
     createFile('src/app.ts');
 
@@ -254,7 +274,7 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.name)).not.toContain('a.log');
   });
 
-  it('classifies Git-ignored paths when their combined output exceeds the process buffer', async () => {
+  it('compacts a large Git-ignored tree to its directory root', async () => {
     initGitRepo();
     createFile('.gitignore', 'ignored/\n');
     for (let index = 0; index < 5_000; index += 1) {
@@ -270,7 +290,7 @@ describe('FileDiscovery discover', () => {
     });
 
     expect(result.files.map(file => file.relativePath)).toEqual(['z.ts']);
-    expect(result.gitIgnoredPaths).toHaveLength(5_001);
+    expect(result.gitIgnoredPaths).toEqual(['ignored']);
   }, 15_000);
 
   it('does not infer gitignored state from .gitignore outside a Git repository', async () => {
@@ -309,10 +329,7 @@ describe('FileDiscovery discover', () => {
 
     expect(result.directories).not.toContain('generated');
     expect(result.files.map(file => file.relativePath)).not.toContain(path.join('generated', 'output.ts'));
-    expect(result.gitIgnoredPaths).toEqual(expect.arrayContaining([
-      'generated',
-      path.join('generated', 'output.ts'),
-    ]));
+    expect(result.gitIgnoredPaths).toEqual(['generated']);
   });
 
   it('does not mark tracked files as gitignored even when they match gitignore patterns', async () => {

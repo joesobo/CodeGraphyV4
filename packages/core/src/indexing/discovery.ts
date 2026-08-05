@@ -1,6 +1,7 @@
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
 import type { IFileDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
+import { normalizeDiscoveryPath } from '../discovery/pathMatching';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 
@@ -37,4 +38,17 @@ export async function discoverWorkspaceIndexFiles(input: {
   );
 
   return discoveryResult;
+}
+
+export function isRetainedWorkspaceIndexCachePath(
+  filePath: string,
+  cacheFilePaths: ReadonlySet<string>,
+  cachePathPrefixes: readonly string[],
+): boolean {
+  if (cacheFilePaths.has(filePath)) return true;
+  const normalizedFilePath = normalizeDiscoveryPath(filePath);
+  return cachePathPrefixes.some(prefix => (
+    normalizedFilePath === normalizeDiscoveryPath(prefix)
+    || normalizedFilePath.startsWith(`${normalizeDiscoveryPath(prefix)}/`)
+  ));
 }

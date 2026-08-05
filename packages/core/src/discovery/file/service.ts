@@ -15,6 +15,12 @@ import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
 const DISCOVERY_PROGRESS_INTERVAL = 25;
 
+interface GitWorkspacePaths {
+  candidatePaths: string[];
+  ignoredPaths: string[];
+  ignoredPathPrefixes: string[];
+}
+
 function reportEligibleFileProgress(
   eligibleFileCount: number,
   onProgress?: IDiscoveryOptions['onProgress'],
@@ -58,6 +64,52 @@ function createDiscoveredFile(
 
 function toGitPath(relativePath: string): string {
   return relativePath.split(path.sep).join('/');
+}
+
+function fromGitPath(gitPath: string): string {
+  return gitPath.split('/').join(path.sep);
+}
+
+function runGitPathQuery(rootPath: string, args: readonly string[]): string[] | undefined {
+  const result = spawnSync('git', ['-C', rootPath, ...args], {
+    encoding: 'utf8',
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  if (result.error || result.status !== 0) return undefined;
+  return result.stdout.split('\0').filter(Boolean);
+}
+
+function collectGitWorkspacePaths(rootPath: string): GitWorkspacePaths | undefined {
+  const candidateGitPaths = runGitPathQuery(rootPath, [
+    'ls-files',
+    '--cached',
+    '--others',
+    '--exclude-standard',
+    '--deduplicate',
+    '-z',
+  ]);
+  const ignoredGitPaths = runGitPathQuery(rootPath, [
+    'ls-files',
+    '--others',
+    '--ignored',
+    '--exclude-standard',
+    '--directory',
+    '-z',
+  ]);
+  if (!candidateGitPaths || !ignoredGitPaths) return undefined;
+
+  const ignoredPaths: string[] = [];
+  const ignoredPathPrefixes: string[] = [];
+  for (const gitPath of ignoredGitPaths) {
+    const directory = gitPath.endsWith('/');
+    const relativePath = fromGitPath(directory ? gitPath.slice(0, -1) : gitPath);
+    (directory ? ignoredPathPrefixes : ignoredPaths).push(relativePath);
+  }
+  return {
+    candidatePaths: candidateGitPaths.map(fromGitPath),
+    ignoredPaths,
+    ignoredPathPrefixes,
+  };
 }
 
 function createGitPathBatches(gitPaths: readonly string[]): string[][] {
@@ -143,6 +195,34 @@ function collectContainingDirectories(filePaths: readonly string[]): Set<string>
   return directories;
 }
 
+function collectGitCandidateFiles(
+  rootPath: string,
+  relativePaths: readonly string[],
+  includePatterns: string[],
+  excludePatterns: string[],
+  extensions: string[],
+): Array<{ absolutePath: string; relativePath: string }> {
+  const files: Array<{ absolutePath: string; relativePath: string }> = [];
+  for (const relativePath of relativePaths) {
+    const absolutePath = path.join(rootPath, relativePath);
+    let isFile = false;
+    try {
+      isFile = fs.lstatSync(absolutePath).isFile();
+    } catch {
+      continue;
+    }
+    if (isFile && shouldIncludeFile(relativePath, absolutePath, {
+      includePatterns,
+      excludePatterns,
+      extensions,
+      gitignore: null,
+    })) {
+      files.push({ absolutePath, relativePath });
+    }
+  }
+  return files;
+}
+
 function filterEligibleDirectories(
   directories: readonly string[],
   candidateFilePaths: readonly string[],
@@ -178,38 +258,53 @@ export class FileDiscovery {
     throwIfAborted(signal);
 
     const allExclude = [...DEFAULT_EXCLUDE, ...excludePatterns];
+    const gitWorkspacePaths = respectGitignore ? collectGitWorkspacePaths(rootPath) : undefined;
     const candidateFiles: Array<{ absolutePath: string; relativePath: string }> = [];
     const directories: string[] = [];
-
-    await walkDirectory(
-      rootPath,
-      rootPath,
-      (relativePath, absolutePath) => {
-        throwIfAborted(signal);
-
-        if (shouldIncludeFile(relativePath, absolutePath, {
-          includePatterns,
-          excludePatterns: allExclude,
-          extensions,
-          gitignore: null,
-        })) {
-          candidateFiles.push({ absolutePath, relativePath });
-        }
-        return true;
-      },
-      relativePath => {
-        directories.push(relativePath);
-      },
-      signal,
-    );
-
-    const gitIgnoredPaths = respectGitignore
-      ? collectGitIgnoredPaths(
+    if (gitWorkspacePaths) {
+      candidateFiles.push(...collectGitCandidateFiles(
         rootPath,
+        gitWorkspacePaths.candidatePaths,
+        includePatterns,
+        allExclude,
+        extensions,
+      ));
+      directories.push(...collectContainingDirectories(
         candidateFiles.map(file => file.relativePath),
-        directories,
-      )
-      : new Set<string>();
+      ));
+    } else {
+      await walkDirectory(
+        rootPath,
+        rootPath,
+        (relativePath, absolutePath) => {
+          throwIfAborted(signal);
+
+          if (shouldIncludeFile(relativePath, absolutePath, {
+            includePatterns,
+            excludePatterns: allExclude,
+            extensions,
+            gitignore: null,
+          })) {
+            candidateFiles.push({ absolutePath, relativePath });
+          }
+          return true;
+        },
+        relativePath => {
+          directories.push(relativePath);
+        },
+        signal,
+      );
+    }
+
+    const gitIgnoredPaths = gitWorkspacePaths
+      ? new Set(gitWorkspacePaths.ignoredPaths)
+      : respectGitignore
+        ? collectGitIgnoredPaths(
+          rootPath,
+          candidateFiles.map(file => file.relativePath),
+          directories,
+        )
+        : new Set<string>();
     const eligibleFiles = candidateFiles.filter(file => (
       !matchesAnyPattern(file.relativePath, filterPatterns)
       && !gitIgnoredPaths.has(file.relativePath)
@@ -219,12 +314,15 @@ export class FileDiscovery {
     const indexedFiles = eligibleFiles.slice(0, maxFiles);
     const indexedFilePaths = new Set(indexedFiles.map(file => file.relativePath));
     const eligibleFilePaths = new Set(eligibleFiles.map(file => file.relativePath));
-    const cacheFilePaths = candidateFiles
+    const cacheFilePaths = [
+      ...candidateFiles
       .filter(file => (
         !eligibleFilePaths.has(file.relativePath)
         || indexedFilePaths.has(file.relativePath)
       ))
-      .map(file => file.relativePath);
+      .map(file => file.relativePath),
+      ...gitIgnoredPaths,
+    ];
     const files = indexedFiles
       .map(file => createDiscoveredFile(file.relativePath, file.absolutePath, false));
     const eligibleDirectories = filterEligibleDirectories(
@@ -239,8 +337,12 @@ export class FileDiscovery {
     return {
       files,
       cacheFilePaths,
+      cachePathPrefixes: gitWorkspacePaths?.ignoredPathPrefixes ?? [],
       directories: eligibleDirectories,
-      gitIgnoredPaths: [...gitIgnoredPaths],
+      gitIgnoredPaths: [
+        ...gitIgnoredPaths,
+        ...(gitWorkspacePaths?.ignoredPathPrefixes ?? []),
+      ],
       limitReached,
       totalFound: limitReached ? eligibleFiles.length : undefined,
       durationMs,

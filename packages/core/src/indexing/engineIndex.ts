@@ -4,6 +4,7 @@ import { buildWorkspaceEngineGraph, createWorkspaceEngineIndexResult, replaceWor
 import { assertWorkspaceEngineActive, type WorkspaceEngineRuntime } from './engineRuntime';
 import { createWorkspaceEngineDisabledPlugins, discoverWorkspaceEngineFiles, initializeWorkspaceEngine } from './engineSetup';
 import { createWorkspaceIndexFileContentReader, findChangedWorkspaceIndexFiles } from './workspace/changes';
+import { isRetainedWorkspaceIndexCachePath } from './discovery';
 
 function sameDiscoveredFiles(
   before: readonly { relativePath: string }[],
@@ -26,7 +27,11 @@ export async function indexWorkspaceEngine(
   assertWorkspaceEngineActive(runtime);
   const cacheFilePaths = new Set(state.discoveryResult!.cacheFilePaths);
   for (const filePath of Object.keys(state.cache.files)) {
-    if (!cacheFilePaths.has(filePath)) {
+    if (!isRetainedWorkspaceIndexCachePath(
+      filePath,
+      cacheFilePaths,
+      state.discoveryResult!.cachePathPrefixes,
+    )) {
       delete state.cache.files[filePath];
     }
   }
