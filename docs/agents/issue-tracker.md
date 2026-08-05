@@ -36,9 +36,14 @@ Use Trello labels for package or area ownership:
 
 ## Conventions
 
+Read only open cards during normal triage. Trello's `cards=all` includes archived cards and can make completed work look active. Request all cards only for an explicit historical audit, and still inspect each card's `closed` field.
+
+Keep completed or superseded cards by archiving them. Do not delete cards during routine cleanup; permanent deletion is reserved for accidental duplicates, spam, or sensitive content.
+
 - Create a card: `curl -s -X POST "https://api.trello.com/1/cards?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "idList={listId}" --data-urlencode "name={title}" --data-urlencode "desc={body}"`
 - Read a card: `curl -s "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq`
-- List cards on a list: `curl -s "https://api.trello.com/1/lists/{listId}/cards?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq`
+- List the board's open cards: `curl -s "https://api.trello.com/1/boards/{boardId}/cards/open?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq '[.[] | select(.closed == false)]'`
+- List open cards on a list: `curl -s "https://api.trello.com/1/lists/{listId}/cards?filter=open&key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" | jq '[.[] | select(.closed == false)]'`
 - Comment on a card: `curl -s -X POST "https://api.trello.com/1/cards/{cardId}/actions/comments?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" --data-urlencode "text={comment}"`
 - Move a card: `curl -s -X PUT "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "idList={listId}"`
 - Archive a card: `curl -s -X PUT "https://api.trello.com/1/cards/{cardId}?key=$TRELLO_API_KEY&token=$TRELLO_TOKEN" -d "closed=true"`
