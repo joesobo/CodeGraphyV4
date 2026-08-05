@@ -53,6 +53,17 @@ async function refitGraphForVisualAssertion(page: Page, padding = 176): Promise<
   return getGraphDebugSnapshot(page);
 }
 
+async function openDisplaySettings(page: Page): Promise<void> {
+  await page.getByTitle('Settings').click();
+  await page.getByRole('button', { name: 'Display' }).click();
+  await expect(page.getByRole('switch', { name: 'Depth Mode' })).toBeVisible();
+}
+
+async function toggleDepthModeFromSettings(page: Page): Promise<void> {
+  await openDisplaySettings(page);
+  await page.getByRole('switch', { name: 'Depth Mode' }).click();
+}
+
 function expectNodesToFit(snapshot: GraphDebugSnapshot): void {
   expect(snapshot.zoom).not.toBeNull();
   const zoom = snapshot.zoom ?? 1;
@@ -219,7 +230,7 @@ test.describe('webview depth view', () => {
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('4');
     expectNodesToFit(await refitGraphForVisualAssertion(page));
 
-    await page.getByRole('button', { name: 'Show full graph' }).click();
+    await toggleDepthModeFromSettings(page);
 
     await expect(page.getByTestId('depth-harness-view')).toHaveText('depth:off');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('5');

@@ -55,7 +55,6 @@ describe('DepthViewControls', () => {
       depthLimit: 1,
       maxDepthLimit: 10,
       showMinimap: true,
-      activeFilePath: null,
     });
   });
 
@@ -81,32 +80,9 @@ describe('DepthViewControls', () => {
     expect(screen.getByTestId('depth-view-shell')).toBeInTheDocument();
     expect(screen.getByTestId('depth-view-value')).toBeInTheDocument();
     expect(screen.getByText('Depth')).toBeInTheDocument();
-    expect(screen.getByText('Focused graph')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Show full graph' })).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByTestId('depth-view-max')).toHaveTextContent('4');
     expect(screen.queryByText('1')).not.toBeInTheDocument();
-  });
-
-  it('explains the focused file and offers a full graph reset', () => {
-    graphStore.setState({
-      depthMode: true,
-      depthLimit: 1,
-      maxDepthLimit: 1,
-      activeFilePath: 'src/game/player.gd',
-    });
-
-    render(<DepthViewControls />);
-
-    expect(screen.getByText('Focused graph')).toBeInTheDocument();
-    expect(screen.getByText('src/game/player.gd')).toHaveAttribute('title', 'src/game/player.gd');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Show full graph' }));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'UPDATE_DEPTH_MODE',
-      payload: { depthMode: false },
-    });
   });
 
   it('reclaims the bottom-left space when the minimap is hidden', () => {
@@ -154,8 +130,6 @@ describe('DepthViewControls', () => {
     expect(screen.getByTestId('depth-view-value')).toHaveTextContent('1');
     expect(screen.queryByTestId('depth-view-slider')).not.toBeInTheDocument();
     expect(screen.queryByText('Depth')).not.toBeInTheDocument();
-    expect(screen.getByText('Focused graph')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Show full graph' })).toBeInTheDocument();
     expect(screen.queryByTestId('depth-view-max')).not.toBeInTheDocument();
   });
 
