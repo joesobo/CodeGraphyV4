@@ -54,7 +54,7 @@ describe('FileDiscovery discover', () => {
     );
   });
 
-  it('reports candidate file counts while discovery is still running', async () => {
+  it('reports eligible candidate file counts during discovery', async () => {
     for (let index = 0; index < 26; index += 1) {
       createFile(`src/file-${index}.ts`);
     }
@@ -63,6 +63,27 @@ describe('FileDiscovery discover', () => {
     await discovery.discover({ rootPath: tempDir, onProgress });
 
     expect(onProgress.mock.calls.map(([progress]) => progress.current)).toEqual([1, 25]);
+  });
+
+  it('does not report filtered or Git-ignored files as discovery candidates', async () => {
+    initGitRepo();
+    createFile('.gitignore', 'ignored/**\n');
+    for (let index = 0; index < 26; index += 1) {
+      createFile(`ignored/file-${index}.ts`);
+    }
+    createFile('filtered/one.ts');
+    createFile('src/app.ts');
+    const onProgress = vi.fn();
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      include: ['**/*.ts'],
+      filter: ['filtered/**'],
+      onProgress,
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+    expect(onProgress.mock.calls.map(([progress]) => progress.current)).toEqual([1]);
   });
 
   it('includes file metadata', async () => {

@@ -15,6 +15,22 @@ import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
 const DISCOVERY_PROGRESS_INTERVAL = 25;
 
+function reportEligibleFileProgress(
+  eligibleFileCount: number,
+  onProgress?: IDiscoveryOptions['onProgress'],
+): void {
+  if (eligibleFileCount === 0) return;
+
+  onProgress?.({ current: 1 });
+  for (
+    let current = DISCOVERY_PROGRESS_INTERVAL;
+    current <= eligibleFileCount;
+    current += DISCOVERY_PROGRESS_INTERVAL
+  ) {
+    onProgress?.({ current });
+  }
+}
+
 function getDiscoveryConfig(options: IDiscoveryOptions) {
   return {
     maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
@@ -178,10 +194,6 @@ export class FileDiscovery {
           gitignore: null,
         })) {
           candidateFiles.push({ absolutePath, relativePath });
-          const current = candidateFiles.length;
-          if (current === 1 || current % DISCOVERY_PROGRESS_INTERVAL === 0) {
-            options.onProgress?.({ current });
-          }
         }
         return true;
       },
@@ -202,6 +214,7 @@ export class FileDiscovery {
       !matchesAnyPattern(file.relativePath, filterPatterns)
       && !gitIgnoredPaths.has(file.relativePath)
     ));
+    reportEligibleFileProgress(eligibleFiles.length, options.onProgress);
     const limitReached = eligibleFiles.length > maxFiles;
     const indexedFiles = eligibleFiles.slice(0, maxFiles);
     const indexedFilePaths = new Set(indexedFiles.map(file => file.relativePath));
