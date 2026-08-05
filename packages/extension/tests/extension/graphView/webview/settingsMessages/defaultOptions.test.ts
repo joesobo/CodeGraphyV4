@@ -67,7 +67,7 @@ describe('graph view settings plugin defaults', () => {
       id: 'codegraphy.particles',
       host: 'codegraphy.extension',
       entry: './particles.js',
-      apiVersion: '^1.0.0',
+      apiVersion: '^2.0.0',
       data: { defaultOptions: { density: 0.5 } },
     }] satisfies CodeGraphyInstalledPluginRecord[];
     writeCodeGraphyInstalledPluginCache({ version: 3, plugins: records }, { homeDir });

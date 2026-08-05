@@ -36,6 +36,11 @@ extension can call:
 Extension webview scripts can return cleanup work. Cleanup must release timers,
 event listeners, animation loops, and injected styles.
 
+Panel registration has a separate open and dispose lifecycle. Registering a
+panel renders it once in a closed state. `open`, `close`, and `toggle` preserve
+that instance. `dispose` runs its render cleanup and removes the panel. The host
+also disposes a plugin's panels when it unloads the plugin.
+
 ## Example
 
 If you enable particles globally:

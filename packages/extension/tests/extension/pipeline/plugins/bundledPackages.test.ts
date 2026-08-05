@@ -60,7 +60,7 @@ describe('extension/pipeline/plugins/bootstrap/bundledPackages', () => {
       codegraphy: {
         plugins: [
           { id: 'acme.core', host: 'core', entry: './core.js', apiVersion: '^4.0.0' },
-          { id: 'acme.extension', host: 'codegraphy.extension', entry: './extension.js', apiVersion: '^1.0.0' },
+          { id: 'acme.extension', host: 'codegraphy.extension', entry: './extension.js', apiVersion: '^2.0.0' },
         ],
       },
     }));

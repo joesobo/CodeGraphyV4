@@ -16,6 +16,7 @@ export interface IExtensionPlugin {
   id: string;
   name: string;
   version: string;
+  /** Semver range of supported Extension host APIs. The current host API is 2.0.0. */
   apiVersion: string;
   webviewContributions?: IExtensionPluginWebviewContributions;
   initialize?(workspaceRoot: string): void | Promise<void>;

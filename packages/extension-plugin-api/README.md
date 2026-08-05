@@ -38,7 +38,7 @@ const createPlugin: IExtensionPluginFactory = ({ dataHost, options } = {}) => ({
   id: 'acme.graph-tools',
   name: 'Acme Graph Tools',
   version: '1.0.0',
-  apiVersion: '^1.0.0',
+  apiVersion: '^2.0.0',
   webviewContributions: {
     scripts: ['dist/webview.js'],
   },
@@ -107,6 +107,10 @@ The webview API supports:
 
 Each registration returns a disposable cleanup handle.
 
+The current Extension Plugin API version is `2.0.0`. Set Extension runtime and
+package descriptors to `apiVersion: '^2.0.0'`. This host API version is separate
+from the npm package version.
+
 ### Graph View panels
 
 Use `registerPanelContribution` for UI that occupies the Graph View panel
@@ -114,27 +118,37 @@ region. Registration renders the panel once but leaves it closed. Open or
 toggle it from a plugin toolbar control or another explicit user action:
 
 ```ts
-const panel = api.registerPanelContribution({
-  id: 'inspector',
-  render(container) {
-    container.textContent = 'Acme inspector';
-  },
-  onEscape(event) {
-    if (closeNestedPluginPopover()) event.preventDefault();
-  },
-});
+import type { WebviewPluginActivate } from '@codegraphy-dev/extension-plugin-api';
 
-const button = document.createElement('button');
-button.textContent = 'Inspector';
-button.addEventListener('click', panel.toggle);
-api.getSlotContainer('graph.toolbar').appendChild(button);
+const activate: WebviewPluginActivate = api => {
+  const panel = api.registerPanelContribution({
+    id: 'inspector',
+    render(container) {
+      container.textContent = 'Acme inspector';
+    },
+  });
+
+  const button = document.createElement('button');
+  button.textContent = 'Inspector';
+  button.addEventListener('click', panel.toggle);
+  const toolbar = api.getSlotContainer('graph.toolbar');
+  toolbar.appendChild(button);
+
+  return () => {
+    button.remove();
+    panel.dispose();
+  };
+};
+
+export default activate;
 ```
 
 The returned `PluginPanelHandle` provides `open`, `close`, `toggle`, `isOpen`,
 and `dispose`. The host keeps one active built-in or plugin panel. Unhandled
 Escape closes the active plugin panel and focuses the Graph Stage. A synchronous
-`onEscape` hook can call `preventDefault()` to own one press. Closing does not
-dispose the panel, so it can reopen with its state intact.
+`onEscape` hook can close one plugin-owned popup and call `preventDefault()` to
+keep the panel open for that press. Closing does not dispose the panel, so it
+can reopen with its state intact.
 
 ### Panel migration
 
@@ -148,7 +162,8 @@ dispose the panel, so it can reopen with its state intact.
 The host rejects legacy runtime calls with a migration error. The declarative
 `{ kind: 'panel', panelId }` Graph View UI variant is also removed. Keep a
 plugin panel's returned handle and open it from plugin UI. Other slots keep
-their existing generic registration lifecycle.
+their existing generic registration lifecycle. Extension Plugin API 1 plugins
+must migrate before they can load in a host that provides API 2.
 
 The webview API does not support:
 
@@ -172,7 +187,7 @@ The package descriptor uses host `codegraphy.extension`:
         "id": "acme.graph-tools",
         "host": "codegraphy.extension",
         "entry": "./dist/plugin.js",
-        "apiVersion": "^1.0.0"
+        "apiVersion": "^2.0.0"
       }
     ]
   }
@@ -194,7 +209,7 @@ entry can style files, semantic Nodes, or Edges:
   "id": "acme.graph-tools",
   "host": "codegraphy.extension",
   "entry": "./dist/plugin.js",
-  "apiVersion": "^1.0.0",
+  "apiVersion": "^2.0.0",
   "data": {
     "legendEntries": [
       {

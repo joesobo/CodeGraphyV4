@@ -12,7 +12,7 @@ describe('Extension Plugin API', () => {
       id: 'acme.particles',
       name: 'Particles',
       version: '1.0.0',
-      apiVersion: '^1.0.0',
+      apiVersion: '^2.0.0',
       webviewContributions: { scripts: ['./dist/webview.js'] },
     } satisfies IExtensionPlugin;
 

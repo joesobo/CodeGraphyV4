@@ -88,7 +88,7 @@ A package declares one or more plugin descriptors in
         "name": "Acme Graph Tools",
         "host": "codegraphy.extension",
         "entry": "./dist/extension.js",
-        "apiVersion": "^1.0.0"
+        "apiVersion": "^2.0.0"
       }
     ]
   }
@@ -143,6 +143,10 @@ rendering, color, webview, editor, toolbar, or Graph View contracts.
 Extension plugins add VS Code Extension or Graph View behavior. The particles
 plugin is an Extension plugin.
 
+The current Extension Plugin API version is `2.0.0`. Extension runtime and
+package descriptors must declare a compatible range such as `^2.0.0`. The host
+API version is separate from the npm package version.
+
 ```ts
 import type {
   IExtensionPluginFactory,
@@ -152,7 +156,7 @@ const createPlugin: IExtensionPluginFactory = () => ({
   id: 'acme.graph-tools',
   name: 'Acme Graph Tools',
   version: '1.2.3',
-  apiVersion: '^1.0.0',
+  apiVersion: '^2.0.0',
   webviewContributions: {
     scripts: ['dist/webview.js'],
   },
@@ -163,6 +167,25 @@ export default createPlugin;
 
 The Extension host imports this runtime. Core reports the descriptor's
 installation and activity state without importing it.
+
+### Graph View panels
+
+Use `registerPanelContribution` for plugin UI that belongs in the right-side
+Graph View panel region. Registration creates the panel in a closed state. The
+returned handle opens, closes, or toggles it from a plugin toolbar control or
+another user action.
+
+CodeGraphy keeps one built-in or plugin panel open at a time. Escape first lets
+the plugin close one nested layer through `onEscape`. If the plugin does not
+prevent the default action, CodeGraphy closes the panel and focuses the Graph
+Stage. Closing preserves the panel instance. Disposing removes it.
+
+Extension Plugin API 2 removed the generic `graph.panelSlot` and the
+declarative `{ kind: 'panel', panelId }` view. Replace legacy slot access with
+`registerPanelContribution`, keep its handle, and open the panel from explicit
+plugin UI. See the
+[Extension Plugin API panel migration](../packages/extension-plugin-api/README.md#panel-migration)
+for a complete example.
 
 Interface-specific static metadata also belongs to the interface descriptor.
 For example, a Unity package can contain one runtime for analysis and a second
@@ -180,7 +203,7 @@ runtime for Graph View presentation:
     "id": "acme.unity.graph-view",
     "host": "codegraphy.extension",
     "entry": "./dist/extension.js",
-    "apiVersion": "^1.0.0",
+    "apiVersion": "^2.0.0",
     "data": {
       "legendEntries": [
         {

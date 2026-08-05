@@ -75,7 +75,7 @@ export default function createPlugin() {
     id: 'acme.extension-linked',
     name: 'Linked Extension Plugin',
     version: ${JSON.stringify(version)},
-    apiVersion: '^1.0.0'${unloadMarkerPath ? `,
+    apiVersion: '^2.0.0'${unloadMarkerPath ? `,
     onUnload() {
       appendFileSync(${JSON.stringify(unloadMarkerPath)}, 'unload\\n');
     }` : ''}

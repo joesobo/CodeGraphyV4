@@ -125,7 +125,7 @@
         "name": "Godot Graph View",
         "host": "codegraphy.extension",
         "entry": "./dist/extension.js",
-        "apiVersion": "^1.0.0",
+        "apiVersion": "^2.0.0",
         "data": {
           "legendEntries": [
             {

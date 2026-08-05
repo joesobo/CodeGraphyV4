@@ -28,7 +28,7 @@ export default function createPlugin() {
     id: 'acme.extension-metadata',
     name: 'Extension Metadata',
     version: '1.0.0',
-    apiVersion: '^1.0.0'
+    apiVersion: '^2.0.0'
   };
 }
 `, 'utf8');
@@ -40,7 +40,7 @@ export default function createPlugin() {
         id: 'acme.extension-metadata',
         host: 'codegraphy.extension',
         entry: './plugin.js',
-        apiVersion: '^1.0.0',
+        apiVersion: '^2.0.0',
         packageRoot,
         globallyEnabled: true,
         data: {
@@ -103,7 +103,7 @@ export default function createPlugin() {
       plugins: [{
         package: '@acme/codegraphy-extension-rejected', version: '1.0.0',
         id: 'acme.extension-rejected', host: 'codegraphy.extension', entry: './plugin.js',
-        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+        apiVersion: '^2.0.0', packageRoot, globallyEnabled: true,
       }],
     }, { homeDir });
 
@@ -140,7 +140,7 @@ export default function createPlugin() {
     id: 'acme.extension-rebuild',
     name: 'Rebuilt Extension Plugin',
     version: runtimeVersion,
-    apiVersion: '^1.0.0'
+    apiVersion: '^2.0.0'
   };
 }
 `,
@@ -162,7 +162,7 @@ export default function createPlugin() {
         id: 'acme.extension-rebuild',
         host: 'codegraphy.extension',
         entry: './plugin.js',
-        apiVersion: '^1.0.0',
+        apiVersion: '^2.0.0',
         packageRoot,
         globallyEnabled: true,
       }],

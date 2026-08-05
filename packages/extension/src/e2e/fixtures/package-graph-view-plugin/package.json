@@ -12,7 +12,7 @@
       "name": "E2E Graph View Plugin",
       "host": "codegraphy.extension",
       "entry": "./plugin.js",
-      "apiVersion": "^1.0.0",
+      "apiVersion": "^2.0.0",
       "data": {
         "supportedExtensions": [],
         "defaultFilters": []

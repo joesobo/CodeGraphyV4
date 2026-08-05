@@ -52,7 +52,7 @@ export async function createExtensionPluginPackage(
           name: 'Particles',
           host: 'codegraphy.extension',
           entry: './plugin.js',
-          apiVersion: '^1.0.0',
+          apiVersion: '^2.0.0',
         }],
       },
     }, null, 2),
@@ -67,7 +67,7 @@ export default function createPlugin() {
     id: 'acme.particles',
     name: 'Particles',
     version: '1.0.0',
-    apiVersion: '^1.0.0',
+    apiVersion: '^2.0.0',
     webviewContributions: { scripts: ['./dist/webview.js'] }${unloadMarkerPath ? `,
     onUnload() {
       appendFileSync(${JSON.stringify(unloadMarkerPath)}, 'unload\\n');
@@ -92,7 +92,7 @@ export async function createExtensionDataHostPluginPackage(packageRoot: string):
           id: 'acme.extension-data-host',
           host: 'codegraphy.extension',
           entry: './plugin.js',
-          apiVersion: '^1.0.0',
+          apiVersion: '^2.0.0',
           data: {
             defaultOptions: {
               mode: 'default',
@@ -112,7 +112,7 @@ export default function createPlugin(factoryOptions = {}) {
     id: 'acme.extension-data-host',
     name: 'Extension Data Host',
     version: '1.0.0',
-    apiVersion: '^1.0.0',
+    apiVersion: '^2.0.0',
     async initialize() {
       if (!factoryOptions.dataHost) {
         throw new Error('Expected Extension plugin data host.');

@@ -67,7 +67,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
       plugins: [{
         package: '@acme/codegraphy-extension-particles', version: '1.0.0',
         id: 'acme.particles', host: 'codegraphy.extension', entry: './plugin.js',
-        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+        apiVersion: '^2.0.0', packageRoot, globallyEnabled: true,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(
@@ -125,7 +125,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
     });
 
     expect(warn).toHaveBeenCalledWith(
-      "CodeGraphy Extension plugin 'acme.extension-incompatible' could not be loaded: Extension plugin descriptor 'acme.extension-incompatible' requires API '^99.0.0', but the VS Code extension provides '1.0.0'.",
+      "CodeGraphy Extension plugin 'acme.extension-incompatible' could not be loaded: Extension plugin descriptor 'acme.extension-incompatible' requires API '^99.0.0', but the VS Code extension provides '2.0.0'.",
     );
     expect(registry.extensionPlugins.register).not.toHaveBeenCalled();
     await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
@@ -152,7 +152,7 @@ describe('pipeline/plugins/bootstrap packages', () => {
         id: 'acme.particles',
         host: 'codegraphy.extension',
         entry: './plugin.js',
-        apiVersion: '^1.0.0',
+        apiVersion: '^2.0.0',
         packageRoot,
         globallyEnabled: true,
       }],

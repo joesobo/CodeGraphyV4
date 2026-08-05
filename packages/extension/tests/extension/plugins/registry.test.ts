@@ -7,7 +7,7 @@ function createPlugin(overrides: Partial<IExtensionPlugin> = {}): IExtensionPlug
     id: 'acme.particles',
     name: 'Particles',
     version: '1.0.0',
-    apiVersion: '^1.0.0',
+    apiVersion: '^2.0.0',
     ...overrides,
   };
 }
@@ -287,8 +287,8 @@ describe('ExtensionPluginRegistry', () => {
   it('rejects a plugin for an incompatible Extension Plugin API', () => {
     const registry = new ExtensionPluginRegistry();
 
-    expect(() => registry.register(createPlugin({ apiVersion: '^2.0.0' }))).toThrow(
-      "Extension plugin 'acme.particles' requires API '^2.0.0', but the VS Code extension provides '1.0.0'.",
+    expect(() => registry.register(createPlugin({ apiVersion: '^1.0.0' }))).toThrow(
+      "Extension plugin 'acme.particles' requires API '^1.0.0', but the VS Code extension provides '2.0.0'.",
     );
   });
 });
