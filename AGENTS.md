@@ -26,6 +26,8 @@ Use the focused workspaces in `examples/` to inspect and validate language and p
 
 ## Keep feedback loops short
 
+After you change code, make sure the relevant TypeScript typecheck passes.
+
 Use the smallest check that can disprove a change. Prefer focused unit tests while iterating. Run a focused Playwright scenario when the behavior needs a real browser or extension host; let CI run the complete Playwright suite in parallel. Push checkpoints and check the pull request periodically while useful work continues so failures appear before the branch drifts far from a green state.
 
 Treat the quality tools as focused diagnostics, not a checklist to run after every change. Select the tool that fits the risk and scope it to the changed file or feature. Mutation testing is the most expensive: run it against one source file, use its survivors to improve the code or tests, then repeat that same scoped run until its output is clean.
