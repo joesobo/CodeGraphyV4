@@ -138,6 +138,23 @@ describe('graph/rendering/nodes/canvas2d', () => {
     });
   });
 
+  it('keeps transparent folder icon nodes visible in the minimap', () => {
+    const style = getBaseNodeCanvasStyle(
+      createDependencies(),
+      createNode({
+        borderColor: 'rgba(0, 0, 0, 0)',
+        color: 'rgba(0, 0, 0, 0)',
+        imageUrl: 'data:image/svg+xml;base64,folder',
+        nodeType: 'folder',
+      }),
+    );
+
+    expect(style).toMatchObject({
+      borderColor: '#A1A1AA',
+      fillColor: '#A1A1AA',
+    });
+  });
+
   it('resolves plugin CSS colors before sending them to WebGPU', () => {
     const style = getNodeCanvasStyle(
       createDependencies({
