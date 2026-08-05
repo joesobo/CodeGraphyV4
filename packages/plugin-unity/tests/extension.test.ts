@@ -7,7 +7,7 @@ describe('Unity Extension plugin', () => {
     expect(createUnityExtensionPlugin()).toMatchObject({
       id: 'codegraphy.unity.extension',
       name: 'Unity Graph View',
-      apiVersion: '^1.0.0',
+      apiVersion: '^2.0.0',
     });
   });
 

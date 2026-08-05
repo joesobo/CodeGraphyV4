@@ -89,6 +89,9 @@ vi.mock('../../../../../src/webview/pluginHost/manager', () => {
         registerNodeRenderer: () => ({ dispose() {} }),
         registerOverlay: () => ({ dispose() {} }),
         registerTooltipProvider: () => ({ dispose() {} }),
+        registerPanelContribution: () => ({
+          close() {}, dispose() {}, isOpen: () => false, open() {}, toggle() {},
+        }),
         helpers: {
           drawBadge() {},
           drawProgressRing() {},
@@ -106,6 +109,18 @@ vi.mock('../../../../../src/webview/pluginHost/manager', () => {
     }
 
     detachSlotHost(_slot: string) {}
+
+    attachPanelHost(host: HTMLDivElement) { host.style.display = 'none'; }
+
+    detachPanelHost() {}
+
+    getActivePluginPanel() { return null; }
+
+    handleActivePluginPanelEscape() { return 'none'; }
+
+    setBeforePluginPanelOpen() {}
+
+    subscribeActivePluginPanel() { return { dispose() {} }; }
 
     deliverMessage(pluginId: string, message: { type: string; data: unknown }) {
       harness.deliveries.push({ pluginId, message });

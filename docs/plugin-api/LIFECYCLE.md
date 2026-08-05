@@ -1,4 +1,4 @@
-# Plugin lifecycle
+# Core Plugin API lifecycle
 
 Installation, activation, and runtime loading are separate.
 
@@ -6,9 +6,7 @@ Installation, activation, and runtime loading are separate.
 2. Global and workspace activation values select active descriptors.
 3. Each runtime host imports only its active descriptors.
 
-An active descriptor stays dormant until its host opens it.
-
-## Core lifecycle
+An active Core descriptor stays dormant until Core opens it.
 
 Core plugins use `@codegraphy-dev/plugin-api`. Core can call these hooks:
 
@@ -24,24 +22,5 @@ Core plugins use `@codegraphy-dev/plugin-api`. Core can call these hooks:
 These hooks receive headless workspace and semantic graph data. They do not
 receive rendering, webview, or editor state.
 
-## Extension lifecycle
-
-Extension plugins use `@codegraphy-dev/extension-plugin-api`. The VS Code
-extension can call:
-
-- `initialize`
-- `onWebviewReady`
-- `onUnload`
-
-Extension webview scripts can return cleanup work. Cleanup must release timers,
-event listeners, animation loops, and injected styles.
-
-## Example
-
-If you enable particles globally:
-
-- `codegraphy query ...` resolves it as active but does not import it;
-- opening the VS Code extension loads it because its host is
-  `codegraphy.extension`;
-- disabling it in one workspace prevents the Extension host from loading it in
-  that workspace.
+See the [Extension Plugin API lifecycle](../extension-plugin-api/LIFECYCLE.md)
+for VS Code Extension, Graph View, and panel cleanup behavior.

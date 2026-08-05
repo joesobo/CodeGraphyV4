@@ -98,14 +98,12 @@ export interface IGraphViewNodeDragEndContribution extends IGraphViewContributio
 
 export type GraphViewUiSlot =
   | 'graph.toolbar'
-  | 'graph.panelSlot'
   | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay';
 
 export type GraphViewUiContributionView =
   | { kind: 'command'; command: string }
-  | { kind: 'panel'; panelId: string }
   | { kind: 'webview'; viewId: string };
 
 export interface IGraphViewUiSlotContribution extends IGraphViewContributionBase {

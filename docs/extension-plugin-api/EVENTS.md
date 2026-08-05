@@ -1,4 +1,4 @@
-# Extension plugin events
+# Extension Plugin API events
 
 Plugin events belong to the VS Code Extension host. They are not part of the
 Core Plugin API.

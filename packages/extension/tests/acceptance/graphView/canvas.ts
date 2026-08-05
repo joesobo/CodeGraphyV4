@@ -528,6 +528,15 @@ export async function expectNodeIsOutlined(
   ).toBeGreaterThan(MIN_VISIBLE_PIXEL_COUNT);
 }
 
+export async function expectNodeIsNotOutlined(
+  frame: Frame,
+  probe: NodeProbe,
+): Promise<void> {
+  await expect.poll(
+    async () => (await analyzeNodePixels(frame, probe, NODE_OUTLINE_RGB.white)).outlinePixelCount,
+  ).toBeLessThanOrEqual(MIN_VISIBLE_PIXEL_COUNT);
+}
+
 export async function expectVisibleEdgeBetween(
   context: GraphAcceptanceContext,
   sourcePath: string,

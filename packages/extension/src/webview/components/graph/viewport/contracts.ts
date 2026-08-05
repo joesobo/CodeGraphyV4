@@ -30,6 +30,7 @@ export interface ViewportProps {
   handleNodeHover?: (this: void, node: FGNode | null) => void;
   marqueeSelection?: GraphMarqueeSelectionState | null;
   menuEntries: GraphContextMenuEntry[];
+  selectedNodeCount?: number;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   tooltipData: GraphTooltipState;
   pluginHost?: WebviewPluginHost;

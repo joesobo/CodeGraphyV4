@@ -9,7 +9,6 @@ import type {
 export type GraphPluginSlot =
   | 'toolbar'
   | 'graph.toolbar'
-  | 'graph.panelSlot'
   | 'theme.panel'
   | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
@@ -37,6 +36,28 @@ export interface PluginSlotContribution {
     container: HTMLDivElement,
     context: PluginSlotRenderContext,
   ): PluginSlotRenderCleanup;
+}
+
+export interface PluginPanelEscapeEvent {
+  readonly defaultPrevented: boolean;
+  preventDefault(): void;
+}
+
+export interface PluginPanelContribution {
+  id: string;
+  order?: number;
+  render(
+    container: HTMLDivElement,
+    context: PluginSlotRenderContext,
+  ): PluginSlotRenderCleanup;
+  onEscape?(event: PluginPanelEscapeEvent): void;
+}
+
+export interface PluginPanelHandle extends Disposable {
+  close(): void;
+  isOpen(): boolean;
+  open(): void;
+  toggle(): void;
 }
 
 export type GraphNodeShape2D =
@@ -157,6 +178,7 @@ export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
   registerSlotContribution(slot: GraphPluginSlot, contribution: PluginSlotContribution): Disposable;
+  registerPanelContribution(contribution: PluginPanelContribution): PluginPanelHandle;
   getHostState(): Record<string, unknown>;
   getPluginData(): unknown;
   setPluginData(data: unknown): void;

@@ -24,7 +24,7 @@ export function SearchBar({
   value, onChange, options, onOptionsChange, placeholder = 'Search files...',
   className, resultCount, totalCount, regexError, countLabel, filterPopover,
 }: SearchBarProps): React.ReactElement {
-  const { inputRef, toggleOption, handleClear } = useSearchBarHandlers(options, onOptionsChange, onChange);
+  const { inputRef, toggleOption, handleClear, handleInputKeyDown } = useSearchBarHandlers(options, onOptionsChange, onChange);
   const showResults = Boolean(countLabel) || (value.length > 0 && resultCount !== undefined && totalCount !== undefined);
 
   return (
@@ -44,6 +44,7 @@ export function SearchBar({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
           className={cn(
             'w-full pl-10 pr-32 py-1.5 rounded-md text-sm',

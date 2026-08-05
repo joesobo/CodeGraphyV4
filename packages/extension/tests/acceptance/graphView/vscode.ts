@@ -33,10 +33,11 @@ export async function launchVSCodeWithWorkspace(
     version: VSCODE_TEST_VERSION,
     cachePath: path.join(extensionRoot(), '.vscode-test'),
   });
+  const executablePath = resolveDownloadedVSCodeExecutablePath(vscodeExecutablePath, process.platform);
 
   const { _electron } = await import('@playwright/test');
   const app = await _electron.launch({
-    executablePath: vscodeExecutablePath,
+    executablePath,
     args: createVSCodeLaunchArgs({
       ci: process.env.CODEGRAPHY_CI_SOFTWARE_WEBGPU === '1',
       extensionPath: repoRoot(),
@@ -60,6 +61,17 @@ export async function launchVSCodeWithWorkspace(
   refocusConfiguredLocalApp();
 
   return { app, page, tempRoot };
+}
+
+export function resolveDownloadedVSCodeExecutablePath(
+  downloadedPath: string,
+  platform: NodeJS.Platform,
+  pathExists: (candidate: string) => boolean = fs.existsSync,
+): string {
+  if (pathExists(downloadedPath) || platform !== 'darwin') return downloadedPath;
+
+  const codeExecutable = path.join(path.dirname(downloadedPath), 'Code');
+  return pathExists(codeExecutable) ? codeExecutable : downloadedPath;
 }
 
 export async function openGraphView(page: Page): Promise<void> {
@@ -87,6 +99,41 @@ export async function openGraphView(page: Page): Promise<void> {
   }
 
   throw lastError;
+}
+
+export async function openGraphViewInEditor(page: Page, sidebarFrame: Frame): Promise<Frame> {
+  await executeCommandPaletteCommand(page, 'CodeGraphy: Open in Editor');
+
+  await expect.poll(async () => {
+    const candidates = page.frames().filter(candidate =>
+      candidate !== sidebarFrame && candidate.url().includes('fake.html'),
+    );
+    for (const candidate of candidates) {
+      if (await isReadyGraphFrame(candidate)) return true;
+    }
+    return false;
+  }, { timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS }).toBe(true);
+
+  for (const candidate of page.frames().filter(frame =>
+    frame !== sidebarFrame && frame.url().includes('fake.html'),
+  )) {
+    if (await isReadyGraphFrame(candidate)) return candidate;
+  }
+
+  throw new Error('Expected Open in Editor to create a second ready Graph View frame');
+}
+
+async function executeCommandPaletteCommand(page: Page, command: string): Promise<void> {
+  const commandPaletteShortcut = process.platform === 'darwin' ? 'Meta+Shift+P' : 'Control+Shift+P';
+  await page.bringToFront();
+  await page.mouse.click(640, 450);
+  await page.keyboard.press(commandPaletteShortcut);
+  await page.keyboard.type(command);
+  await expect(page.getByText(command, { exact: true }).first()).toBeVisible({
+    timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
+  });
+  await page.keyboard.press('Enter');
+  refocusConfiguredLocalApp();
 }
 
 export async function waitForGraphFrame(

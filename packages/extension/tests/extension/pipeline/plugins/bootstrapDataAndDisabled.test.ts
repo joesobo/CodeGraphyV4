@@ -36,7 +36,7 @@ describe('pipeline/plugins/bootstrap plugin data and disabled plugins', () => {
         id: 'acme.extension-data-host',
         host: 'codegraphy.extension',
         entry: './plugin.js',
-        apiVersion: '^1.0.0',
+        apiVersion: '^2.0.0',
         data: {
           defaultOptions: {
             mode: 'default',

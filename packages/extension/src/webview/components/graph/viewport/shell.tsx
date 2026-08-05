@@ -26,6 +26,7 @@ import {
   type GraphAccessibilityItems,
   type GraphScreenProjector,
 } from './accessibility';
+import type { GraphStageEscapeBridge } from '../../../app/shell/escape/graphStage';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -39,6 +40,7 @@ export interface GraphViewportShellProps {
   theme: ThemeKind;
   viewState: GraphViewStoreState;
   workspaceName?: string;
+  graphStageEscapeBridge?: GraphStageEscapeBridge;
 }
 
 export function GraphViewportShell({
@@ -53,6 +55,7 @@ export function GraphViewportShell({
   theme,
   viewState,
   workspaceName,
+  graphStageEscapeBridge,
 }: GraphViewportShellProps): ReactElement {
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const lastAccessibilitySignatureRef = useRef('');
@@ -86,6 +89,12 @@ export function GraphViewportShell({
     themeRef: graphState.themeRef,
     tooltipPath: interactions.tooltipData.path,
   });
+
+  useEffect(() => graphStageEscapeBridge?.attach({
+    clearSelection: () => interactions.interactionHandlers.setSelection([]),
+    focus: () => graphState.renderer.containerRef.current?.focus(),
+    hasSelection: () => graphState.selection.selectedNodeIdsRef.current.size > 0,
+  }), [graphStageEscapeBridge, graphState.renderer.containerRef, graphState.selection.selectedNodeIdsRef, interactions.interactionHandlers]);
 
   const viewportModel = useGraphViewportModel({
     appearance,
@@ -182,6 +191,7 @@ export function GraphViewportShell({
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
       surface2dProps={surfaceProps.surface2dProps}
+      selectedNodeCount={graphState.selection.selectedNodeIds.length}
       tooltipData={interactions.tooltipData}
       pluginHost={pluginHost}
     />

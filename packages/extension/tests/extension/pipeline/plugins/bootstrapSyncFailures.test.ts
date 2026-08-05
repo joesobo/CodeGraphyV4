@@ -51,7 +51,7 @@ function installedRecord(fixture: RuntimeFixture) {
     id: fixture.id,
     host: fixture.host,
     entry: './plugin.js',
-    apiVersion: fixture.host === 'core' ? '^4.0.0' : '^1.0.0',
+    apiVersion: fixture.host === 'core' ? '^4.0.0' : '^2.0.0',
     packageRoot: fixture.packageRoot,
     globallyEnabled: true,
   };
@@ -125,7 +125,7 @@ describe('pipeline plugin sync failure isolation', () => {
     const healthy = await createRuntimeFixture(
       'codegraphy.extension',
       'acme.healthy-extension',
-      '^1.0.0',
+      '^2.0.0',
     );
     await enableFixtures(workspaceRoot, homeDir, [broken, healthy]);
     const registry = new WorkspacePluginRegistry();

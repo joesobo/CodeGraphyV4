@@ -73,6 +73,29 @@ describe('graph/keyboardListener', () => {
     expect(runEffects).not.toHaveBeenCalled();
   });
 
+  it('ignores shortcuts while focus is inside contenteditable content', () => {
+    const runEffects = vi.fn();
+    const editor = document.createElement('div');
+    editor.setAttribute('contenteditable', 'true');
+    const child = document.createElement('span');
+    editor.appendChild(child);
+    const handleKeyDown = createGraphKeyboardListener({
+      dispatchStoreMessage: vi.fn(),
+      fitView: vi.fn(),
+      getAllNodeIds: () => ['a.ts'],
+      openNode: vi.fn(),
+      postMessage: vi.fn(),
+      runEffects: runEffects as never,
+      selectedNodeIds: ['a.ts'],
+      setSelection: vi.fn(),
+      zoomGraphView: vi.fn(),
+    });
+
+    handleKeyDown(createKeyboardEvent('a', { ctrlKey: true, target: child }));
+
+    expect(runEffects).not.toHaveBeenCalled();
+  });
+
   it('opens selected nodes through the provided node opener', () => {
     const openNode = vi.fn();
     let effects: GraphKeyboardEffect[] | undefined;
@@ -151,9 +174,7 @@ describe('graph/keyboardListener', () => {
     expect(postMessage).toHaveBeenCalledWith({ type: 'UNDO' });
   });
 
-  it('clears selection when escape requests the clear-selection effect', () => {
-    let effects: GraphKeyboardEffect[] | undefined;
-    let handlers: GraphKeyboardEffectHandlers | undefined;
+  it('leaves Escape to the shell coordinator', () => {
     const setSelection = vi.fn();
     const handleKeyDown = createGraphKeyboardListener({
       dispatchStoreMessage: vi.fn(),
@@ -161,10 +182,7 @@ describe('graph/keyboardListener', () => {
       getAllNodeIds: () => ['a.ts'],
       openNode: vi.fn(),
       postMessage: vi.fn(),
-      runEffects: (nextEffects, nextHandlers) => {
-        effects = nextEffects;
-        handlers = nextHandlers;
-      },
+      runEffects: vi.fn(),
       selectedNodeIds: ['a.ts'],
       setSelection,
       zoomGraphView: vi.fn(),
@@ -173,11 +191,9 @@ describe('graph/keyboardListener', () => {
 
     handleKeyDown(event);
 
-    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(event.preventDefault).not.toHaveBeenCalled();
     expect(event.stopPropagation).not.toHaveBeenCalled();
-    expect(effects).toEqual([{ kind: 'clearSelection' }]);
-    applyKeyboardEffects(effects ?? [], handlers as GraphKeyboardEffectHandlers);
-    expect(setSelection).toHaveBeenCalledWith([]);
+    expect(setSelection).not.toHaveBeenCalled();
   });
 
   it('does not prevent default when the resolved command allows native behavior', () => {

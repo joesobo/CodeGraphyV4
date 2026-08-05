@@ -4,6 +4,7 @@ import { DepthViewControls } from '../../components/depthViewControls';
 import { EmptyState } from '../shell/states';
 import { getNoDataHint } from '../shell/messages';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import type { GraphStageEscapeBridge } from '../shell/escape/graphStage';
 
 type GraphComponentProps = React.ComponentProps<typeof Graph>;
 
@@ -19,6 +20,7 @@ export interface GraphSurfaceProps {
   pluginHost: GraphComponentProps['pluginHost'];
   onAddFilterRequested: GraphComponentProps['onAddFilterRequested'];
   onAddLegendRequested: GraphComponentProps['onAddLegendRequested'];
+  graphStageEscapeBridge?: GraphStageEscapeBridge;
 }
 
 export function GraphSurface({
@@ -33,6 +35,7 @@ export function GraphSurface({
   pluginHost,
   onAddFilterRequested,
   onAddLegendRequested,
+  graphStageEscapeBridge,
 }: GraphSurfaceProps): React.ReactElement {
   if (graphData.nodes.length === 0) {
     return (
@@ -54,6 +57,7 @@ export function GraphSurface({
         edgeDecorations={edgeDecorations}
         onAddFilterRequested={onAddFilterRequested}
         onAddLegendRequested={onAddLegendRequested}
+        graphStageEscapeBridge={graphStageEscapeBridge}
         pluginHost={pluginHost}
       />
       <DepthViewControls />

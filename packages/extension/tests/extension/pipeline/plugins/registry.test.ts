@@ -11,7 +11,7 @@ describe('WorkspacePluginRegistry', () => {
       id: 'acme.extension',
       name: 'Extension plugin',
       version: '1.0.0',
-      apiVersion: '^1.0.0',
+      apiVersion: '^2.0.0',
       onWebviewReady,
       onUnload,
     };

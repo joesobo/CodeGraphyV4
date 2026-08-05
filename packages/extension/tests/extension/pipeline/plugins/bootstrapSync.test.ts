@@ -40,7 +40,7 @@ describe('pipeline/plugins/bootstrap synchronization', () => {
         id: 'acme.particles',
         host: 'codegraphy.extension',
         entry: './plugin.js',
-        apiVersion: '^1.0.0',
+        apiVersion: '^2.0.0',
         packageRoot,
         globallyEnabled: true,
       }],

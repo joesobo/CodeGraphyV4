@@ -27,7 +27,12 @@ export function RulePromptDialog({
 }: RulePromptDialogProps): React.ReactElement {
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-[var(--cg-overlay-background)] px-4">
-      <div className="w-full max-w-sm rounded-lg border bg-[var(--cg-popover-translucent)] shadow-lg backdrop-blur-sm">
+      <div
+        aria-label={title}
+        aria-modal="true"
+        className="w-full max-w-sm rounded-lg border bg-[var(--cg-popover-translucent)] shadow-lg backdrop-blur-sm"
+        role="dialog"
+      >
         <div className="flex items-center justify-between border-b px-3 py-2">
           <span className="text-sm font-medium">{title}</span>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">

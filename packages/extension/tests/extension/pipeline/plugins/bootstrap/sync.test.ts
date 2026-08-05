@@ -77,7 +77,7 @@ describe('pipeline plugin sync identity', () => {
       plugins: [{
         package: '@acme/codegraphy-extension-rejected', version: '1.0.0',
         id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
-        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+        apiVersion: '^2.0.0', packageRoot, globallyEnabled: true,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(
@@ -162,7 +162,7 @@ describe('pipeline plugin sync identity', () => {
       plugins: [{
         package: '@acme/codegraphy-extension-linked', version: '1.0.0',
         id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
-        apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+        apiVersion: '^2.0.0', packageRoot, globallyEnabled: true,
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(
@@ -307,7 +307,7 @@ describe('pipeline plugin sync identity', () => {
         plugins: [{
           package: '@acme/codegraphy-extension-linked', version,
           id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
-          apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+          apiVersion: '^2.0.0', packageRoot, globallyEnabled: true,
         }],
       }, { homeDir });
     };

@@ -3,6 +3,7 @@
  * @module webview/components/searchBar/model
  */
 
+import type React from 'react';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 
 export interface SearchOptions {
@@ -23,6 +24,7 @@ export interface SearchBarProps {
   regexError?: string | null;
   countLabel?: string | null;
   filterPopover?: {
+    buttonRef?: React.Ref<HTMLButtonElement>;
     disabledCustomPatterns: string[];
     disabledPluginPatterns: string[];
     customPatterns: string[];

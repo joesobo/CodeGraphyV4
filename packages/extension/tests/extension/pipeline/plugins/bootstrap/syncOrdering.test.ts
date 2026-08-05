@@ -104,7 +104,7 @@ describe('pipeline plugin sync lifecycle order', () => {
     const record = {
       package: '@acme/codegraphy-extension-order', version: '1.0.0',
       id: 'acme.extension-linked', host: 'codegraphy.extension', entry: './plugin.js',
-      apiVersion: '^1.0.0', packageRoot, globallyEnabled: true,
+      apiVersion: '^2.0.0', packageRoot, globallyEnabled: true,
     } as const;
     await writeOrderedPluginRuntime({
       apiVersion: record.apiVersion,

@@ -4,6 +4,7 @@ import PluginsPanel from '../../../components/plugins/Panel';
 import LegendsPanel from '../../../components/legends/panel/view';
 import GraphScopePanel from '../../../components/graphScope/Panel';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
+import { PluginPanelHost } from '../../../pluginHost/panels/view';
 import { GraphCornerControls } from '../../../components/graphCornerControls/view';
 
 type SlotHostProps = React.ComponentProps<typeof SlotHost>;
@@ -13,6 +14,7 @@ export interface PanelStackProps {
   hasGraphNodes: boolean;
   pluginHost: SlotHostProps['pluginHost'];
   onClosePanel: () => void;
+  pluginPanelOpen?: boolean;
 }
 
 export function PanelStack({
@@ -20,15 +22,15 @@ export function PanelStack({
   hasGraphNodes,
   pluginHost,
   onClosePanel,
+  pluginPanelOpen = false,
 }: PanelStackProps): React.ReactElement {
   return (
     <aside
       className="absolute top-2 bottom-2 right-2 z-30 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto"
       data-codegraphy-region="graph-panel-stack"
     >
-      <SlotHost
+      <PluginPanelHost
         pluginHost={pluginHost}
-        slot="graph.panelSlot"
         data-codegraphy-slot="graph-panel"
         data-testid="graph-panel-slot"
         className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
@@ -44,7 +46,7 @@ export function PanelStack({
       <LegendsPanel isOpen={activePanel === 'legends'} onClose={onClosePanel} pluginHost={pluginHost} />
       <PluginsPanel isOpen={activePanel === 'plugins'} onClose={onClosePanel} />
       <SettingsPanel isOpen={activePanel === 'settings'} onClose={onClosePanel} />
-      {hasGraphNodes && activePanel === 'none' ? (
+      {hasGraphNodes && activePanel === 'none' && !pluginPanelOpen ? (
         <div className="mt-2 self-end" data-codegraphy-region="graph-corner-controls">
           <GraphCornerControls />
         </div>

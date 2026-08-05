@@ -67,7 +67,7 @@ The left rail groups lifecycle, graph tools, plugin actions, and system panels.
 | Plugins | Opens workspace plugin enablement and ordering. |
 | Settings | Opens Display, Forces, Performance, and Export sections. |
 
-Only one right-side panel is open at a time. Compact popovers such as Node Size stay attached to their rail button.
+Only one built-in or plugin panel is open at a time. Compact popovers such as Node Size stay attached to their rail button. Escape closes one popup or panel layer per press before it clears Node selection.
 
 ## Settings and Graph Scope
 

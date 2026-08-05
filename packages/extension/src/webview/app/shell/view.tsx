@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '../../theme/useTheme';
 import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
@@ -22,6 +22,9 @@ import { useVisibleGraphStateResponse } from './visibleGraphResponse';
 import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 import { renderGraphStartupState, useGraphPhysicsPreparation } from './physicsPreparation';
+import { createGraphStageEscapeBridge } from './escape/graphStage';
+import { useEscapeCoordinator } from './escape/useCoordinator';
+import { useActivePluginPanel } from '../../pluginHost/panels/useActive';
 
 export interface AppShellProps {
   graphPhysicsPreparation?: Promise<void>;
@@ -29,7 +32,10 @@ export interface AppShellProps {
 
 export default function App({ graphPhysicsPreparation }: AppShellProps): React.ReactElement {
   const graphPhysics = useGraphPhysicsPreparation(graphPhysicsPreparation);
+  const graphStageEscapeBridge = useMemo(createGraphStageEscapeBridge, []);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
+  const activePluginPanel = useActivePluginPanel(pluginHost);
   const {
     graphData,
     isLoading,
@@ -131,6 +137,29 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
     setOptimisticUserLegends,
     setRulePrompt,
   });
+  const closeActivePanel = (): boolean => {
+    if (activePluginPanel) {
+      return pluginHost.handleActivePluginPanelEscape() === 'dismissed';
+    }
+    setActivePanel('none');
+    return true;
+  };
+
+  useEscapeCoordinator({
+    closeFilters: () => handleFilterPopoverOpenChange(false),
+    closePanel: closeActivePanel,
+    closeRulePrompt,
+    filterOpen: filterPopoverOpen,
+    focusFiltersButton: () => filterButtonRef.current?.focus(),
+    graphStage: graphStageEscapeBridge,
+    panelOpen: activePanel !== 'none' || activePluginPanel !== null,
+    rulePromptOpen: rulePrompt !== null,
+  });
+
+  useEffect(() => {
+    pluginHost.setBeforePluginPanelOpen(() => setActivePanel('none'));
+    return () => pluginHost.setBeforePluginPanelOpen(() => undefined);
+  }, [pluginHost, setActivePanel]);
 
   useEffect(() => {
     return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData);
@@ -151,7 +180,6 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
     loadedDisplayGraphData.nodes.length,
     loadedDisplayGraphData.edges.length,
   );
-  const closeActivePanel = () => setActivePanel('none');
   const { countState, countTotal, excludedCount } = getShellGraphCountState({
     countBaseData,
     filterVisibleData,
@@ -180,6 +208,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
           excludedCount,
           onDisabledCustomPatternsChange: setDisabledCustomFilterPatterns,
           onDisabledPluginPatternsChange: setDisabledPluginFilterPatterns,
+          buttonRef: filterButtonRef,
           onOpenChange: handleFilterPopoverOpenChange,
           onPatternsChange: setFilterPatterns,
           open: filterPopoverOpen,
@@ -205,6 +234,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
           nodeDecorations={nodeDecorations}
           edgeDecorations={graphEdgeDecorations}
           pluginHost={pluginHost}
+          graphStageEscapeBridge={graphStageEscapeBridge}
           onAddFilterRequested={openFilterPopoverWithPatterns}
           onAddLegendRequested={openLegendPrompt}
         />
@@ -214,6 +244,7 @@ export default function App({ graphPhysicsPreparation }: AppShellProps): React.R
           activePanel={activePanel}
           hasGraphNodes={Boolean(graphData.nodes.length)}
           pluginHost={pluginHost}
+          pluginPanelOpen={activePluginPanel !== null}
           onClosePanel={closeActivePanel}
         />
         <GraphIndexStatus

@@ -19,6 +19,7 @@ import { useFilterSectionState } from './popover/sectionState';
 import type { FilterPopoverProps } from './popover/types';
 
 export function FilterPopover({
+  buttonRef,
   disabledCustomPatterns,
   disabledPluginPatterns,
   customPatterns,
@@ -99,6 +100,7 @@ export function FilterPopover({
   return (
     <>
       <Button
+        ref={buttonRef}
         variant={enabledCount > 0 ? 'secondary' : 'outline'}
         size="sm"
         className="h-7 px-2 text-xs"

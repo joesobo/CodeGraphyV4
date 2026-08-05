@@ -4,7 +4,7 @@ import type {
 } from '@codegraphy-dev/extension-plugin-api';
 import { satisfiesSemverRange } from '../../core/plugins/versioning/apiVersions';
 
-export const EXTENSION_PLUGIN_API_VERSION = '1.0.0';
+export const EXTENSION_PLUGIN_API_VERSION = '2.0.0';
 
 export interface ExtensionPluginInfo {
   plugin: IExtensionPlugin;

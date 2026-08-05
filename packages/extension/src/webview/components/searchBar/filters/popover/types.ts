@@ -2,6 +2,7 @@ import type React from 'react';
 import type { IPluginFilterPatternGroup } from '../../../../../shared/protocol/extensionToWebview';
 
 export interface FilterPopoverProps {
+  buttonRef?: React.Ref<HTMLButtonElement>;
   disabledCustomPatterns: string[];
   disabledPluginPatterns: string[];
   customPatterns: string[];

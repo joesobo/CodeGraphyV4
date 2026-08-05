@@ -72,6 +72,9 @@ vi.mock('../../../../../src/webview/pluginHost/manager', () => {
         registerNodeRenderer: () => ({ dispose() {} }),
         registerOverlay: () => ({ dispose() {} }),
         registerTooltipProvider: () => ({ dispose() {} }),
+        registerPanelContribution: () => ({
+          close() {}, dispose() {}, isOpen: () => false, open() {}, toggle() {},
+        }),
         helpers: { drawBadge() {}, drawProgressRing() {}, drawLabel() {} },
         sendMessage: () => {},
         onMessage: () => ({ dispose() {} }),
@@ -79,6 +82,12 @@ vi.mock('../../../../../src/webview/pluginHost/manager', () => {
     }
     attachSlotHost(_slot: string, host: HTMLDivElement) { host.style.display = 'none'; }
     detachSlotHost(_slot: string) {}
+    attachPanelHost(host: HTMLDivElement) { host.style.display = 'none'; }
+    detachPanelHost() {}
+    getActivePluginPanel() { return null; }
+    handleActivePluginPanelEscape() { return 'none'; }
+    setBeforePluginPanelOpen() {}
+    subscribeActivePluginPanel() { return { dispose() {} }; }
     deliverMessage() {}
   }
   return { WebviewPluginHost: MockWebviewPluginHost };

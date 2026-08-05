@@ -10,6 +10,8 @@ import type {
   NodeRenderFn,
   OverlayRenderFn,
   PluginSlotContribution,
+  PluginPanelContribution,
+  PluginPanelHandle,
   TooltipProviderFn,
   WebviewDisposable,
   CodeGraphyWebviewAPI,
@@ -21,6 +23,14 @@ type DrawingHelpers = {
   drawProgressRing: (canvasContext: CanvasRenderingContext2D, options: RingOptions) => void;
   drawLabel: (canvasContext: CanvasRenderingContext2D, options: LabelOptions) => void;
 };
+
+function rejectLegacyPanelSlot(slot: GraphPluginSlot): void {
+  if (String(slot) === 'graph.panelSlot') {
+    throw new Error(
+      "graph.panelSlot is host-managed. Use registerPanelContribution() to register a reopenable panel.",
+    );
+  }
+}
 
 /**
  * Create a scoped CodeGraphy Webview API for a plugin.
@@ -38,6 +48,11 @@ export function createPluginWebviewApi(
     contribution: PluginSlotContribution,
     context: { api: CodeGraphyWebviewAPI },
   ) => WebviewDisposable,
+  registerPanelContribution: (
+    pluginId: string,
+    contribution: PluginPanelContribution,
+    context: { api: CodeGraphyWebviewAPI },
+  ) => PluginPanelHandle,
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
   registerOverlay: (pluginId: string, id: string, fn: OverlayRenderFn) => WebviewDisposable,
   registerTooltipProvider: (pluginId: string, fn: TooltipProviderFn) => WebviewDisposable,
@@ -49,8 +64,19 @@ export function createPluginWebviewApi(
 ): CodeGraphyWebviewAPI {
   const api: CodeGraphyWebviewAPI = {
     getContainer: () => getOrCreateContainer(pluginId),
-    getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
-    registerSlotContribution: (slot, contribution) => registerSlotContribution(pluginId, slot, contribution, { api }),
+    getSlotContainer: (slot: GraphPluginSlot) => {
+      rejectLegacyPanelSlot(slot);
+      return getOrCreateSlotContainer(pluginId, slot);
+    },
+    registerSlotContribution: (slot, contribution) => {
+      rejectLegacyPanelSlot(slot);
+      return registerSlotContribution(pluginId, slot, contribution, { api });
+    },
+    registerPanelContribution: contribution => registerPanelContribution(
+      pluginId,
+      contribution,
+      { api },
+    ),
     getHostState,
     getPluginData: () => getPluginData(pluginId),
     setPluginData: (data: unknown) => {

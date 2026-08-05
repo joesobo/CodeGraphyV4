@@ -7,7 +7,7 @@ describe('Godot Extension plugin', () => {
     expect(createGodotExtensionPlugin()).toMatchObject({
       id: 'codegraphy.godot.extension',
       name: 'Godot Graph View',
-      apiVersion: '^1.0.0',
+      apiVersion: '^2.0.0',
     });
   });
 

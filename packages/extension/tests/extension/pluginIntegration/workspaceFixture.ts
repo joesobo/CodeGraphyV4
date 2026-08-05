@@ -101,7 +101,7 @@ export default function createPlugin() {
     apiVersion: '^4.0.0',
     supportedExtensions: ['.ts'],
     ${options.webviewContributions ? `
-    webviewApiVersion: '^1.0.0',
+    webviewApiVersion: '^2.0.0',
     webviewContributions: {
       scripts: ['webview.js'],
       styles: ['webview.css']

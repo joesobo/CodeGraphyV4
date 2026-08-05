@@ -3,9 +3,10 @@
  * @module webview/components/searchBar/handlers
  */
 
-import { useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import type { SearchOptions } from './model';
 import { useSearchKeyboard } from './useKeyboard';
+import { handleEscapeKey } from './keyboard';
 
 export function useSearchBarHandlers(
   options: SearchOptions,
@@ -18,12 +19,16 @@ export function useSearchBarHandlers(
     onOptionsChange({ ...options, [key]: !options[key] });
   }, [options, onOptionsChange]);
 
-  useSearchKeyboard({ inputRef, onChange, toggleOption });
+  useSearchKeyboard({ inputRef, toggleOption });
+
+  const handleInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    handleEscapeKey(event, inputRef, onChange);
+  }, [onChange]);
 
   const handleClear = useCallback(() => {
     onChange('');
     inputRef.current?.focus();
   }, [onChange]);
 
-  return { inputRef, toggleOption, handleClear };
+  return { inputRef, toggleOption, handleClear, handleInputKeyDown };
 }

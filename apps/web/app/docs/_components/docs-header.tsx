@@ -5,7 +5,8 @@ import { githubTreeHref } from '@/content/links';
 
 const docsSourceLinks: readonly { href: string; label: string }[] = [
   { href: `${githubTreeHref}/docs`, label: 'All docs' },
-  { href: `${githubTreeHref}/docs/plugin-api`, label: 'Plugin API docs' },
+  { href: `${githubTreeHref}/docs/plugin-api`, label: 'Core Plugin API docs' },
+  { href: `${githubTreeHref}/docs/extension-plugin-api`, label: 'Extension Plugin API docs' },
 ];
 
 export function DocsHeader(): React.ReactElement {

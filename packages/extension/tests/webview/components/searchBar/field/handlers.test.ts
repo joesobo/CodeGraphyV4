@@ -18,7 +18,7 @@ describe('useSearchBarHandlers', () => {
     useSearchKeyboardHarness.useSearchKeyboard.mockReset();
   });
 
-  it('passes the input ref and callbacks to useSearchKeyboard', () => {
+  it('passes only global search shortcuts to useSearchKeyboard', () => {
     const options: SearchOptions = { matchCase: false, wholeWord: true, regex: false };
     const onOptionsChange = vi.fn();
     const onChange = vi.fn();
@@ -29,7 +29,6 @@ describe('useSearchBarHandlers', () => {
     expect(useSearchKeyboardHarness.useSearchKeyboard).toHaveBeenCalledWith(
       expect.objectContaining({
         inputRef: result.current.inputRef,
-        onChange,
         toggleOption: expect.any(Function),
       }),
     );

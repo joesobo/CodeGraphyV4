@@ -67,7 +67,7 @@
         "name": "Particles",
         "host": "codegraphy.extension",
         "entry": "./dist/plugin.js",
-        "apiVersion": "^1.0.0"
+        "apiVersion": "^2.0.0"
       }
     ]
   }

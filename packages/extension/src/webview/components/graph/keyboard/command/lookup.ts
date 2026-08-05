@@ -1,6 +1,5 @@
 import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../effects';
 import {
-  createClearSelectionCommand,
   createFitViewCommand,
   createOpenSelectedNodesCommand,
   createSelectAllCommand,
@@ -35,7 +34,6 @@ function getDirectGraphKeyboardCommand(
 ): GraphKeyboardCommand | null | undefined {
   const directCommands: Partial<Record<string, GraphKeyboardCommand | null>> = {
     '0': createFitViewCommand(),
-    Escape: createClearSelectionCommand(),
     Delete: null,
     Backspace: null,
     'a': options.isMod ? createSelectAllCommand(options.allNodeIds) : null,
