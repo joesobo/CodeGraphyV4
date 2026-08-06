@@ -100,7 +100,11 @@ execFileSync('pnpm', [
 ], { cwd: repoRoot, stdio: 'inherit' });
 // Hoisted deploy can rewrite shared workspace linker metadata. Restore the
 // checked-in lockfile layout before any repository build or test continues.
-execFileSync('pnpm', ['install', '--frozen-lockfile'], { cwd: repoRoot, stdio: 'inherit' });
+execFileSync('pnpm', ['install', '--frozen-lockfile'], {
+  cwd: repoRoot,
+  env: { ...process.env, CI: 'true' },
+  stdio: 'inherit',
+});
 const pruned = pruneDeployedRuntime(path.join(runtimeRoot, 'core'), target);
 process.stdout.write(`Pruned ${pruned.directories} development directories and ${pruned.files} development files.\n`);
 copyFileSync(path.join(appRoot, 'scripts', 'core-sidecar.mjs'), path.join(runtimeRoot, 'sidecar.mjs'));
