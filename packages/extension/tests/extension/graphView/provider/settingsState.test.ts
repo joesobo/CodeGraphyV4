@@ -266,7 +266,11 @@ describe('graphView/provider/settingsState', () => {
   it('sends all settings with the current state, analyzer filters, and side-effect callbacks', () => {
     const source = createSource({
       _analyzer: {
-        getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+        getFilterAccounting: vi.fn(() => ({
+          kind: 'current' as const,
+          excludedFileCount: 4,
+          gitIgnoredPathCount: 2,
+        })),
         getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
       },
     });
@@ -306,6 +310,16 @@ describe('graphView/provider/settingsState', () => {
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith(message);
+    expect(source._sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'GRAPH_CONTROLS_UPDATED',
+      payload: expect.objectContaining({
+        filterAccounting: {
+          kind: 'current',
+          excludedFileCount: 4,
+          gitIgnoredPathCount: 2,
+        },
+      }),
+    }));
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);
     expect(source._filterPatterns).toEqual(['updated/**']);
   });
