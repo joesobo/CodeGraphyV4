@@ -28,19 +28,14 @@ export interface GraphViewClipboardHandlers {
   writeText(text: string): PromiseLike<void>;
 }
 
-export interface GraphViewExplorerHandlers {
-  workspaceFolder?: GraphViewWorkspaceFolderRef;
-  executeCommand(command: string, ...args: unknown[]): PromiseLike<unknown>;
-}
-
-export interface GraphViewCompareHandlers {
+export interface GraphViewCommandHandlers {
   workspaceFolder?: GraphViewWorkspaceFolderRef;
   executeCommand(command: string, ...args: unknown[]): PromiseLike<unknown>;
 }
 
 export async function compareGraphViewFiles(
   paths: readonly [string, string],
-  handlers: GraphViewCompareHandlers,
+  handlers: GraphViewCommandHandlers,
 ): Promise<void> {
   if (!handlers.workspaceFolder) return;
 
@@ -81,7 +76,7 @@ export async function openGraphViewFile(
 
 export async function revealGraphViewFileInExplorer(
   filePath: string,
-  handlers: GraphViewExplorerHandlers,
+  handlers: GraphViewCommandHandlers,
 ): Promise<void> {
   if (!handlers.workspaceFolder) return;
 

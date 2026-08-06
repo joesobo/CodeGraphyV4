@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import {
-  compareGraphViewFiles,
   copyGraphViewTextToClipboard,
   openGraphViewFile,
   revealGraphViewFileInExplorer,
@@ -26,7 +25,6 @@ export interface GraphViewProviderFileNavigationDependencies {
   revealFile: typeof revealGraphViewFileInExplorer;
   writeText(text: string): PromiseLike<void>;
   copyText: typeof copyGraphViewTextToClipboard;
-  compareFiles: typeof compareGraphViewFiles;
   logError(label: string, error: unknown): void;
 }
 
@@ -46,27 +44,10 @@ function createDefaultGraphViewProviderFileNavigationDependencies(): GraphViewPr
     revealFile: revealGraphViewFileInExplorer,
     writeText: text => vscode.env.clipboard.writeText(text),
     copyText: copyGraphViewTextToClipboard,
-    compareFiles: compareGraphViewFiles,
     logError: (label, error) => {
       console.error(label, error);
     },
   };
-}
-
-export async function compareGraphViewProviderFiles(
-  paths: readonly [string, string],
-  dependencies?: Pick<
-    GraphViewProviderFileNavigationDependencies,
-    'getWorkspaceFolder' | 'compareFiles'
-  >,
-): Promise<void> {
-  const resolvedDependencies =
-    dependencies ?? createDefaultGraphViewProviderFileNavigationDependencies();
-
-  await resolvedDependencies.compareFiles(paths, {
-    workspaceFolder: resolvedDependencies.getWorkspaceFolder(),
-    executeCommand: (command, ...args) => vscode.commands.executeCommand(command, ...args),
-  });
 }
 
 export async function openGraphViewProviderFile(

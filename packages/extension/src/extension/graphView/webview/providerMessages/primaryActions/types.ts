@@ -7,7 +7,6 @@ export type GraphViewProviderPrimaryActions = Pick<
   | 'canOpenPath'
   | 'setFocusedFile'
   | 'openFile'
-  | 'compareFiles'
   | 'openInEditor'
   | 'revealInExplorer'
   | 'copyToClipboard'

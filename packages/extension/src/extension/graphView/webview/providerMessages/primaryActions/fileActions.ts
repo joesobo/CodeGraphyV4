@@ -13,7 +13,6 @@ type FileActions = Pick<
   | 'canOpenPath'
   | 'setFocusedFile'
   | 'openFile'
-  | 'compareFiles'
   | 'revealInExplorer'
   | 'copyToClipboard'
   | 'deleteFiles'
@@ -32,10 +31,6 @@ export function createFileActions(source: GraphViewProviderMessageListenerSource
     canOpenPath: filePath => canOpenGraphPath(source, filePath),
     setFocusedFile: filePath => source.setFocusedFile(filePath),
     openFile: filePath => source._openFile(resolveGraphOpenPath(source, filePath)),
-    compareFiles: paths => source._compareFiles([
-      resolveGraphOpenPath(source, paths[0]),
-      resolveGraphOpenPath(source, paths[1]),
-    ]),
     revealInExplorer: filePath => source._revealInExplorer(resolveGraphOpenPath(source, filePath)),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),

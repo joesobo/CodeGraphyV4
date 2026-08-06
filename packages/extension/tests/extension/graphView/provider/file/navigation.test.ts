@@ -27,7 +27,6 @@ describe('graphView/provider/file/navigation', () => {
         openFile: vi.fn(async (_filePath, handlers) => {
           await handlers.didOpenFile?.('src/index.ts');
         }),
-        compareFiles: vi.fn(),
         revealFile: vi.fn(),
         writeText: vi.fn(() => Promise.resolve()),
         copyText: vi.fn(),
@@ -58,7 +57,6 @@ describe('graphView/provider/file/navigation', () => {
         openFile: vi.fn(async (_filePath, handlers) => {
           await handlers.didOpenFile?.('src/index.ts');
         }),
-        compareFiles: vi.fn(),
         revealFile: vi.fn(),
         writeText: vi.fn(() => Promise.resolve()),
         copyText: vi.fn(),
@@ -88,7 +86,6 @@ describe('graphView/provider/file/navigation', () => {
         openTextDocument: vi.fn(),
         showTextDocument: vi.fn(),
         openFile,
-        compareFiles: vi.fn(),
         logError: vi.fn(),
       } as never,
     );
@@ -132,7 +129,6 @@ describe('graphView/provider/file/navigation', () => {
           await handlers.showTextDocument(document, { preview: true, preserveFocus: false });
           handlers.logError('open failed', 'boom');
         }),
-        compareFiles: vi.fn(),
         revealFile: vi.fn(),
         writeText: vi.fn(() => Promise.resolve()),
         copyText: vi.fn(),

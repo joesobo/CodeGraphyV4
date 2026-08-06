@@ -29,7 +29,6 @@ export interface GraphViewPrimaryMessageContext {
   canOpenPath(filePath: string): boolean;
   setFocusedFile(filePath: string | undefined): void;
   openFile(filePath: string): Promise<void>;
-  compareFiles(paths: readonly [string, string]): Promise<void>;
   openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;

@@ -7,6 +7,7 @@ import {
   getGraphContainer,
   getSentMessages,
   Graph,
+  OwnedGraphSurface,
   render,
   screen,
   selectionData,
@@ -88,6 +89,32 @@ describe('Graph node context menu selection actions', () => {
       fireEvent.click(screen.getByText('Delete 2 Files'));
     });
     expect(findMessage('DELETE_FILES')?.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
+  });
+
+  it('keeps A then B selection order when the menu opens on B', async () => {
+    const graphContainer = renderSelectionGraph();
+
+    await act(async () => {
+      OwnedGraphSurface.simulateNodeClick({ id: 'nodeA.ts' });
+      OwnedGraphSurface.simulateNodeClick(
+        { id: 'nodeB.ts' },
+        { button: 0, ctrlKey: true },
+      );
+    });
+    await act(async () => {
+      OwnedGraphSurface.simulateNodeRightClick({ id: 'nodeB.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Compare Selected')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Compare Selected'));
+    });
+
+    expect(findMessage('COMPARE_FILES')?.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
   });
 });
 

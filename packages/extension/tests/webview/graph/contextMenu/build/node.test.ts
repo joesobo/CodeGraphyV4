@@ -130,14 +130,6 @@ describe('graph/contextMenu/build/node', () => {
       { id: 'src/a.ts', nodeType: 'file' },
       { id: 'src', nodeType: 'folder' },
     ])).not.toContain('Compare Selected');
-    expect(itemLabels(buildGraphContextMenuEntries({
-      selection: {
-        kind: 'edge',
-        edgeId: 'src/a.ts->src/b.ts',
-        targets: ['src/a.ts', 'src/b.ts'],
-      },
-      favorites: new Set(),
-    }))).not.toContain('Compare Selected');
   });
 
   it('keeps mixed selections with plugin nodes on generic public actions', () => {

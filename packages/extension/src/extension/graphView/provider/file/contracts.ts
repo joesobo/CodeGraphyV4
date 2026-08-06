@@ -16,7 +16,6 @@ export interface GraphViewProviderFileActionMethods {
   _openSelectedNode(nodeId: string): Promise<void>;
   _activateNode(nodeId: string): Promise<void>;
   _openFile(filePath: string, behavior?: EditorOpenBehavior): Promise<void>;
-  _compareFiles(paths: readonly [string, string]): Promise<void>;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;
@@ -28,7 +27,6 @@ export interface GraphViewProviderFileActionMethods {
 
 export interface GraphViewProviderFileActionMethodDependencies {
   openFile: typeof import('./navigation').openGraphViewProviderFile;
-  compareFiles: typeof import('./navigation').compareGraphViewProviderFiles;
   revealFile: typeof import('./navigation').revealGraphViewProviderFileInExplorer;
   copyText: typeof import('./navigation').copyGraphViewProviderTextToClipboard;
   deleteFiles: typeof import('../../files/actions').deleteGraphViewFiles;

@@ -16,7 +16,6 @@ export function createPrimaryMessageContext(
     activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
     openFile: vi.fn(() => Promise.resolve()),
-    compareFiles: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     deleteFiles: vi.fn(() => Promise.resolve()),
