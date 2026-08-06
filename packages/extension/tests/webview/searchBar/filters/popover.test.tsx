@@ -14,7 +14,7 @@ function renderPopover(overrides: Partial<React.ComponentProps<typeof FilterPopo
     disabledCustomPatterns: [],
     disabledPluginPatterns: [],
     customPatterns: ['existing/**'],
-    excludedFileCount: 4,
+    filterAccounting: { kind: 'current', excludedFileCount: 4, gitIgnoredPathCount: 2 },
     excludedNodeCount: 2,
     onDisabledCustomPatternsChange: vi.fn(),
     onDisabledPluginPatternsChange: vi.fn(),
@@ -49,11 +49,22 @@ describe('searchBar/filters/popover', () => {
   });
 
   it('reports pre-analysis File and Graph View Node exclusions without reconciling overlap', () => {
-    renderPopover({ excludedFileCount: 1, excludedNodeCount: 1 });
+    renderPopover({
+      filterAccounting: { kind: 'current', excludedFileCount: 1, gitIgnoredPathCount: 1 },
+      excludedNodeCount: 1,
+    });
 
     expect(screen.getByText('Before analysis: 1 workspace file excluded')).toBeInTheDocument();
     expect(screen.getByText('In Graph View: 1 Node excluded')).toBeInTheDocument();
     expect(screen.queryByText(/2 .*excluded/)).not.toBeInTheDocument();
+  });
+
+  it('does not report zero when persisted discovery accounting is unavailable', () => {
+    renderPopover({ filterAccounting: { kind: 'unavailable' } });
+
+    expect(screen.getByText(
+      'Before analysis: re-index to calculate excluded workspace files',
+    )).toBeInTheDocument();
   });
 
   it('opens and closes from its own trigger when uncontrolled', () => {

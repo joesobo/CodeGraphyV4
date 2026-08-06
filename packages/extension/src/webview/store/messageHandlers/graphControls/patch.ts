@@ -13,6 +13,7 @@ export function createGraphControlsStatePatch(
 ): PartialState {
   const next: PartialState = {};
 
+  assignChangedGraphControl(next, 'filterAccounting', state.filterAccounting, payload.filterAccounting);
   assignChangedGraphControl(next, 'graphNodeTypes', state.graphNodeTypes, payload.nodeTypes);
   assignChangedGraphControl(next, 'graphEdgeTypes', state.graphEdgeTypes, payload.edgeTypes);
   assignChangedGraphControl(next, 'nodeColors', state.nodeColors, payload.nodeColors);

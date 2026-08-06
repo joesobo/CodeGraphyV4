@@ -17,13 +17,14 @@ describe('pipeline/service/cache/index', () => {
   const tempRoots = new Set<string>();
 
   const meta = (overrides: Partial<ICodeGraphyRepoMeta> = {}): ICodeGraphyRepoMeta => ({
-    version: 1,
+    version: 2,
     lastIndexedAt: '2026-01-01T00:00:00.000Z',
     lastIndexedCommit: 'abc123',
     pluginBuildSignature: null,
     pluginSignature: 'plugin-signature',
     settingsSignature: 'settings-signature',
     pendingChangedFiles: [],
+    filterAccounting: { kind: 'unavailable' },
     ...overrides,
   });
 
@@ -120,6 +121,7 @@ describe('pipeline/service/cache/index', () => {
     const warn = vi.fn();
     const persistIndexMetadata = vi.fn();
     const dependencies = {
+      getFilterAccounting: vi.fn(() => ({ kind: 'current' as const, excludedFileCount: 3, gitIgnoredPathCount: 2 })),
       getPluginBuildSignature: vi.fn(() => 'next-plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
@@ -130,6 +132,7 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
       pluginBuildSignature: 'next-plugin-build-signature',
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
@@ -140,6 +143,7 @@ describe('pipeline/service/cache/index', () => {
   it('records the current commit when index metadata is persisted', async () => {
     const persistIndexMetadata = vi.fn();
     const dependencies = {
+      getFilterAccounting: vi.fn(() => ({ kind: 'current' as const, excludedFileCount: 3, gitIgnoredPathCount: 2 })),
       getCurrentCommitSha: vi.fn(() => 'def456'),
       getPluginBuildSignature: vi.fn(() => 'next-plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
@@ -151,6 +155,7 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
       lastIndexedCommit: 'def456',
       pluginBuildSignature: 'next-plugin-build-signature',
       pluginSignature: 'next-plugin-signature',
@@ -166,6 +171,7 @@ describe('pipeline/service/cache/index', () => {
     }));
     const persistIndexMetadata = vi.fn();
     const dependencies = {
+      getFilterAccounting: vi.fn(() => ({ kind: 'current' as const, excludedFileCount: 3, gitIgnoredPathCount: 2 })),
       getPluginBuildSignature: vi.fn(() => 'plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'plugin-signature'),
       getSettingsSignature: vi.fn(() => 'settings-signature'),
@@ -176,6 +182,7 @@ describe('pipeline/service/cache/index', () => {
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
     expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
       pluginBuildSignature: 'plugin-build-signature',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
@@ -189,6 +196,7 @@ describe('pipeline/service/cache/index', () => {
       throw error;
     });
     const dependencies = {
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
       getPluginBuildSignature: vi.fn(() => 'next-plugin-build-signature'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
@@ -214,6 +222,7 @@ describe('pipeline/service/cache/index', () => {
     const warn = vi.fn();
 
     await expect(persistWorkspacePipelineIndexMetadata('/workspace', {
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
       getPluginBuildSignature: vi.fn(() => null),
       getPluginSignature: vi.fn(() => null),
       getSettingsSignature: vi.fn(() => 'settings-signature'),

@@ -80,6 +80,7 @@ export async function discoverWorkspaceEngineFiles(
   });
   state.discoveredDirectories = state.discoveryResult.directories ?? [];
   state.discoveredFiles = state.discoveryResult.files;
+  state.filterAccounting = state.discoveryResult.filterAccounting;
 }
 
 export function createWorkspaceEngineDisabledPlugins(runtime: WorkspaceEngineRuntime): Set<string> {

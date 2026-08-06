@@ -18,12 +18,6 @@ export function sendGraphDataUpdated(
     source._disabledPlugins,
   );
   source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
-  source._sendMessage({
-    type: 'FILTER_ACCOUNTING_UPDATED',
-    payload: {
-      excludedFileCount: source._analyzer?.getFilterExcludedFileCount?.() ?? 0,
-    },
-  });
 }
 
 export const sendGraphIndexStatusUpdated: (

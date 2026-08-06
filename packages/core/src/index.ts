@@ -111,6 +111,7 @@ export type {
   IDiscoveredFile,
   IDiscoveryOptions,
   IDiscoveryResult,
+  WorkspaceFilterAccounting,
 } from './discovery/contracts';
 export { createAbortError, throwIfAborted } from './discovery/abort';
 export { FileDiscovery } from './discovery/file/service';

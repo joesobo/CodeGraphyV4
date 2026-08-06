@@ -80,9 +80,3 @@ export function handleFilterPatternsUpdated(
     disabledPluginFilterPatterns: message.payload.disabledPluginPatterns,
   };
 }
-
-export function handleFilterAccountingUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'FILTER_ACCOUNTING_UPDATED' }>,
-): PartialState {
-  return { filterExcludedFileCount: message.payload.excludedFileCount };
-}

@@ -3,4 +3,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Report Filter exclusions before analysis separately from Nodes excluded in the Graph View.
+Persist discovery-time Filter and Git-ignore accounting, restore it from the Graph Cache, and report Filter-excluded workspace files separately from Nodes excluded in the Graph View.

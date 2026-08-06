@@ -36,6 +36,7 @@ describe('graph message handlers: controls',()=>{
 
   it('maps graph controls and favorites payloads', () => {
       const controls: IGraphControlsSnapshot = {
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
         nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
         edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
         nodeColors: { file: '#A1A1AA' },
@@ -47,6 +48,7 @@ describe('graph message handlers: controls',()=>{
         type: 'GRAPH_CONTROLS_UPDATED',
         payload: controls,
       })).toEqual({
+        filterAccounting: controls.filterAccounting,
         graphNodeTypes: controls.nodeTypes,
         graphEdgeTypes: controls.edgeTypes,
         nodeColors: controls.nodeColors,
@@ -64,6 +66,7 @@ describe('graph message handlers: controls',()=>{
 
   it('skips graph controls updates when extension echoes the current controls', () => {
       const controls: IGraphControlsSnapshot = {
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
         nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
         edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
         nodeColors: { file: '#A1A1AA' },
@@ -71,6 +74,7 @@ describe('graph message handlers: controls',()=>{
         edgeVisibility: { import: false },
       };
       const state = createState({
+        filterAccounting: controls.filterAccounting,
         graphNodeTypes: controls.nodeTypes,
         graphEdgeTypes: controls.edgeTypes,
         nodeColors: controls.nodeColors,
@@ -78,6 +82,7 @@ describe('graph message handlers: controls',()=>{
         edgeVisibility: controls.edgeVisibility,
       });
       const echoedControls: IGraphControlsSnapshot = {
+        filterAccounting: { ...controls.filterAccounting },
         nodeTypes: [...controls.nodeTypes],
         edgeTypes: [...controls.edgeTypes],
         nodeColors: { ...controls.nodeColors },
@@ -93,6 +98,7 @@ describe('graph message handlers: controls',()=>{
 
   it('returns only changed graph control fields when extension echoes partial changes', () => {
       const controls: IGraphControlsSnapshot = {
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
         nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
         edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
         nodeColors: { file: '#A1A1AA' },
@@ -100,6 +106,7 @@ describe('graph message handlers: controls',()=>{
         edgeVisibility: { import: false },
       };
       const state = createState({
+        filterAccounting: controls.filterAccounting,
         graphNodeTypes: controls.nodeTypes,
         graphEdgeTypes: controls.edgeTypes,
         nodeColors: controls.nodeColors,
@@ -108,6 +115,7 @@ describe('graph message handlers: controls',()=>{
       });
       const nextEdgeVisibility = { import: true };
       const echoedControls: IGraphControlsSnapshot = {
+        filterAccounting: { kind: 'current', excludedFileCount: 4, gitIgnoredPathCount: 2 },
         nodeTypes: [...controls.nodeTypes],
         edgeTypes: [...controls.edgeTypes],
         nodeColors: { ...controls.nodeColors },
@@ -118,6 +126,9 @@ describe('graph message handlers: controls',()=>{
       expect(handleGraphControlsUpdated(
         { type: 'GRAPH_CONTROLS_UPDATED', payload: echoedControls },
         { getState: () => state },
-      )).toEqual({ edgeVisibility: nextEdgeVisibility });
+      )).toEqual({
+        edgeVisibility: nextEdgeVisibility,
+        filterAccounting: { kind: 'current', excludedFileCount: 4, gitIgnoredPathCount: 2 },
+      });
     });
 });

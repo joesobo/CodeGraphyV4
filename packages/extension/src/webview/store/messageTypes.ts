@@ -12,6 +12,7 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -52,7 +53,7 @@ export interface IStoreFields {
   optimisticLegendUpdates: PendingGroupUpdates;
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
-  filterExcludedFileCount: number;
+  filterAccounting: WorkspaceFilterAccounting;
   pluginFilterPatterns: string[];
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];

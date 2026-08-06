@@ -15,7 +15,7 @@ export function useAppState() {
   const searchOptions = useGraphStore(s => s.searchOptions);
   const legends = useGraphStore(s => s.legends);
   const filterPatterns = useGraphStore(s => s.filterPatterns);
-  const filterExcludedFileCount = useGraphStore(s => s.filterExcludedFileCount);
+  const filterAccounting = useGraphStore(s => s.filterAccounting);
   const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
   const pluginFilterGroups = useGraphStore(s => s.pluginFilterGroups);
   const disabledCustomFilterPatterns = useGraphStore(s => s.disabledCustomFilterPatterns);
@@ -41,7 +41,7 @@ export function useAppState() {
     searchOptions,
     legends,
     filterPatterns,
-    filterExcludedFileCount,
+    filterAccounting,
     pluginFilterPatterns,
     pluginFilterGroups,
     disabledCustomFilterPatterns,

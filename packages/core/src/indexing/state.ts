@@ -1,14 +1,14 @@
 import { createEmptyWorkspaceAnalysisCache, type IWorkspaceAnalysisCache } from '../analysis/cache';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import type { IDiscoveredFile } from '../discovery/contracts';
+import type { IDiscoveredFile, WorkspaceFilterAccounting } from '../discovery/contracts';
 import type { IGraphData } from '../graph/contracts';
 
 export interface WorkspaceIndexEngineState {
   cache: IWorkspaceAnalysisCache;
   discoveredDirectories: string[];
   discoveredFiles: IDiscoveredFile[];
-  filterExcludedPaths: string[];
+  filterAccounting: WorkspaceFilterAccounting;
   gitIgnoredPaths: string[];
   fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IProjectedConnection[]>;
@@ -23,7 +23,7 @@ export function createWorkspaceIndexEngineState(
     cache,
     discoveredDirectories: [],
     discoveredFiles: [],
-    filterExcludedPaths: [],
+    filterAccounting: { kind: 'unavailable' },
     gitIgnoredPaths: [],
     fileAnalysis: new Map(),
     fileConnections: new Map(),

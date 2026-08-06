@@ -383,6 +383,7 @@ export async function indexCodeGraphyWorkspace(
         }, recovery);
       }
       await persistWorkspaceIndexMetadata({
+        filterAccounting: discoveryResult.filterAccounting,
         pluginBuildSignature,
         pluginSignature,
         failedPluginIds,

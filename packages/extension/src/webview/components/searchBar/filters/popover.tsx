@@ -23,7 +23,7 @@ export function FilterPopover({
   disabledCustomPatterns,
   disabledPluginPatterns,
   customPatterns,
-  excludedFileCount,
+  filterAccounting,
   excludedNodeCount,
   onDisabledCustomPatternsChange,
   onDisabledPluginPatternsChange,
@@ -107,7 +107,7 @@ export function FilterPopover({
         className="h-7 px-2 text-xs"
         aria-expanded={isOpen}
         aria-label={`Filters, ${enabledCount} enabled`}
-        title={`${formatExcludedFileCount(excludedFileCount)}\n${formatExcludedNodeCount(excludedNodeCount)}`}
+        title={`${formatExcludedFileCount(filterAccounting)}\n${formatExcludedNodeCount(excludedNodeCount)}`}
         onClick={() => setOpen(!isOpen)}
       >
         <MdiIcon path={mdiFilterVariant} size={14} />
@@ -124,7 +124,7 @@ export function FilterPopover({
               <h2 className="text-sm font-medium">Filters</h2>
               <span className="text-xs text-muted-foreground">{enabledCount} enabled</span>
             </div>
-            <p className="text-[11px] text-muted-foreground">{formatExcludedFileCount(excludedFileCount)}</p>
+            <p className="text-[11px] text-muted-foreground">{formatExcludedFileCount(filterAccounting)}</p>
             <p className="text-[11px] text-muted-foreground">{formatExcludedNodeCount(excludedNodeCount)}</p>
           </header>
 

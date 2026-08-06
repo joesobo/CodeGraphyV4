@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
+import type { WorkspaceFilterAccounting } from '../discovery/contracts';
 import { looseStringArraySchema } from '../values';
 import { getWorkspaceMetaPath } from './paths';
 import { getWorkspaceAnalysisDatabasePath } from '../graphCache/database/storage';
@@ -13,7 +14,7 @@ import {
 } from '../graphCache/database/writeCoordination/model';
 
 export interface CodeGraphyWorkspaceMeta {
-  version: 1;
+  version: 2;
   lastIndexedAt: string | null;
   lastIndexedCommit?: string | null;
   pluginSignature: string | null;
@@ -22,11 +23,21 @@ export interface CodeGraphyWorkspaceMeta {
   analysisVersion: string | null;
   pendingChangedFiles: string[];
   failedPluginIds: string[];
+  filterAccounting: WorkspaceFilterAccounting;
 }
 
 const optionalNullableStringSchema = z.union([z.string(), z.null()]).optional().catch(undefined);
+const filterAccountingSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('current'),
+    excludedFileCount: z.number().int().nonnegative(),
+    gitIgnoredPathCount: z.number().int().nonnegative(),
+  }),
+  z.object({ kind: z.literal('unavailable') }),
+]);
 
 const codeGraphyWorkspaceMetaSchema = z.looseObject({
+  version: z.literal(2),
   analysisVersion: optionalNullableStringSchema,
   lastIndexedAt: optionalNullableStringSchema,
   lastIndexedCommit: optionalNullableStringSchema,
@@ -35,6 +46,7 @@ const codeGraphyWorkspaceMetaSchema = z.looseObject({
   pluginSignature: optionalNullableStringSchema,
   pluginBuildSignature: optionalNullableStringSchema,
   settingsSignature: optionalNullableStringSchema,
+  filterAccounting: filterAccountingSchema,
 }).transform((meta): CodeGraphyWorkspaceMeta => ({
   ...createDefaultCodeGraphyWorkspaceMeta(),
   ...(meta.analysisVersion !== undefined ? { analysisVersion: meta.analysisVersion } : {}),
@@ -45,12 +57,13 @@ const codeGraphyWorkspaceMetaSchema = z.looseObject({
   ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
   pendingChangedFiles: meta.pendingChangedFiles,
   failedPluginIds: meta.failedPluginIds,
-  version: 1,
+  filterAccounting: meta.filterAccounting,
+  version: 2,
 }));
 
 export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta {
   return {
-    version: 1,
+    version: 2,
     lastIndexedAt: null,
     lastIndexedCommit: null,
     pluginSignature: null,
@@ -59,6 +72,7 @@ export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta 
     analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
     pendingChangedFiles: [],
     failedPluginIds: [],
+    filterAccounting: { kind: 'unavailable' },
   };
 }
 
@@ -148,6 +162,7 @@ export async function persistCodeGraphyWorkspaceIndexMetadata(
     pluginBuildSignature?: string | null;
     settingsSignature: string;
     failedPluginIds?: readonly string[];
+    filterAccounting: WorkspaceFilterAccounting;
     resolvedChangedFilePaths?: readonly string[];
   },
 ): Promise<void> {
@@ -171,5 +186,6 @@ export async function persistCodeGraphyWorkspaceIndexMetadata(
     failedPluginIds: metadata.failedPluginIds === undefined
       ? previous.failedPluginIds
       : [...metadata.failedPluginIds],
+    filterAccounting: metadata.filterAccounting,
   }));
 }

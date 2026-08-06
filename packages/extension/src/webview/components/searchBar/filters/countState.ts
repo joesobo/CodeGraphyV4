@@ -1,3 +1,5 @@
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
+
 export interface FilterCountInput {
   excludedCount: number;
   filterVisibleCount: number;
@@ -43,7 +45,12 @@ export function getFilterCountState({
   return { kind: 'idle', label: null };
 }
 
-export function formatExcludedFileCount(count: number): string {
+export function formatExcludedFileCount(accounting: WorkspaceFilterAccounting): string {
+  if (accounting.kind === 'unavailable') {
+    return 'Before analysis: re-index to calculate excluded workspace files';
+  }
+
+  const count = accounting.excludedFileCount;
   if (count === 1) {
     return 'Before analysis: 1 workspace file excluded';
   }

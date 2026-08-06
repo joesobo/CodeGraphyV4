@@ -1,5 +1,6 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGraphControlsSnapshot } from '../../../../../shared/graphControls/contracts';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import { mergeEdgeTypes, mergeNodeTypes } from './merge';
 import {
   resolveNodeColors,
@@ -17,6 +18,7 @@ export function captureGraphControlsSnapshot(
   graphData: IGraphData,
   pluginNodeTypes: GraphNodeTypeLike[],
   pluginEdgeTypes: GraphEdgeTypeLike[],
+  filterAccounting: WorkspaceFilterAccounting,
   graphScopeCapabilities: GraphScopeCapabilitiesLike = { nodeTypes: [], edgeTypes: [] },
 ): IGraphControlsSnapshot {
   const configuredNodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
@@ -31,6 +33,7 @@ export function captureGraphControlsSnapshot(
   const edgeTypes = mergeEdgeTypes(graphData, pluginEdgeTypes, graphScopeCapabilities.edgeTypes);
 
   return {
+    filterAccounting,
     nodeTypes,
     edgeTypes,
     nodeColors: resolveNodeColors(nodeTypes, configuredNodeColors),

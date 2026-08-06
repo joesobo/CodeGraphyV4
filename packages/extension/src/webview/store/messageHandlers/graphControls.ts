@@ -35,6 +35,7 @@ export function handleGraphControlsUpdated(
   if (!state) {
     return {
       graphNodeTypes: message.payload.nodeTypes,
+      filterAccounting: message.payload.filterAccounting,
       graphEdgeTypes: message.payload.edgeTypes,
       nodeColors: message.payload.nodeColors,
       nodeVisibility: message.payload.nodeVisibility,

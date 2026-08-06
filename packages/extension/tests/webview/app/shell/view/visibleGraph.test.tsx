@@ -149,7 +149,7 @@ describe('App visible graph',()=>{
           { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['**/generated/**'] },
         ],
         pluginFilterPatterns: ['**/generated/**'],
-        filterExcludedFileCount: 3,
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 1 },
         disabledPluginFilterPatterns: [],
         showOrphans: true,
       });

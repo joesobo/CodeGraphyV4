@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { GraphViewIndexingProgress } from '../../analysis/execution';
 import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
@@ -31,7 +32,7 @@ export interface GraphViewProviderWorkspaceReadyRegistryLike {
 
 interface GraphViewProviderAnalysisAnalyzerLike {
   registry?: GraphViewProviderWorkspaceReadyRegistryLike;
-  getFilterExcludedFileCount?(): number;
+  getFilterAccounting(): WorkspaceFilterAccounting;
 }
 
 export interface GraphViewProviderAnalysisMethodsSource {

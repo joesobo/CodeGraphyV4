@@ -3,6 +3,7 @@ import {
   type AnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
   projectFileAnalysisConnections,
+  readCodeGraphyWorkspaceMeta,
   throwIfWorkspaceAnalysisAborted,
   type FileDiscovery,
   type IDiscoveredFile,
@@ -19,6 +20,7 @@ vi.mock('@codegraphy-dev/core', async (importOriginal) => {
     ...actual,
     hasRequiredAnalysisCacheTiers: vi.fn(),
     projectFileAnalysisConnections: vi.fn(),
+    readCodeGraphyWorkspaceMeta: vi.fn(actual.readCodeGraphyWorkspaceMeta),
     throwIfWorkspaceAnalysisAborted: vi.fn(),
   };
 });
@@ -146,6 +148,7 @@ interface CachedGraphState {
   _lastFileConnections: Map<string, unknown>;
   _lastGitIgnoredPaths: string[];
   _lastWorkspaceRoot: string;
+  _filterAccounting: import('@codegraphy-dev/core').WorkspaceFilterAccounting;
 }
 
 function cachedGraphState(facade: TestCachedGraphFacade): CachedGraphState {
@@ -175,6 +178,17 @@ describe('extension/pipeline/service/cachedGraph', () => {
     vi.clearAllMocks();
     vi.mocked(hasWorkspacePipelineIndex).mockReturnValue(false);
     vi.mocked(hasRequiredAnalysisCacheTiers).mockReturnValue(true);
+    vi.mocked(readCodeGraphyWorkspaceMeta).mockReturnValue({
+      version: 2,
+      lastIndexedAt: null,
+      pluginSignature: null,
+      pluginBuildSignature: null,
+      settingsSignature: null,
+      analysisVersion: null,
+      pendingChangedFiles: [],
+      failedPluginIds: [],
+      filterAccounting: { kind: 'unavailable' },
+    });
     setupCachedDiscovery();
   });
 
@@ -230,6 +244,33 @@ describe('extension/pipeline/service/cachedGraph', () => {
       undefined,
     );
 
+  });
+
+  it('restores authoritative discovery accounting when excluded files never entered the cache', async () => {
+    vi.mocked(readCodeGraphyWorkspaceMeta).mockReturnValue({
+      version: 2,
+      lastIndexedAt: '2026-08-06T12:00:00.000Z',
+      pluginSignature: 'plugins',
+      pluginBuildSignature: 'build',
+      settingsSignature: 'settings',
+      analysisVersion: 'analysis',
+      pendingChangedFiles: [],
+      failedPluginIds: [],
+      filterAccounting: { kind: 'current', excludedFileCount: 4, gitIgnoredPathCount: 2 },
+    });
+    const restartedFacade = new TestCachedGraphFacade();
+
+    await restartedFacade.loadCachedGraph();
+
+    expect(cachedGraphState(restartedFacade)._filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 4,
+      gitIgnoredPathCount: 2,
+    });
+    expect(createCachedWorkspaceDiscoveryState).toHaveBeenCalledWith(
+      '/workspace',
+      ['src/cached.ts'],
+    );
   });
 
   it('marks replayed state recoverable only when it came from a persisted index', async () => {

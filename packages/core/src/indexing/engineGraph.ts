@@ -77,6 +77,7 @@ async function persistMetadata(runtime: WorkspaceEngineRuntime): Promise<void> {
       registry: state.registry,
     });
   await persistWorkspaceIndexMetadata({
+    filterAccounting: state.filterAccounting,
     pluginBuildSignature: createWorkspaceIndexPluginBuildSignature(state.loadedPackagePlugins),
     pluginSignature,
     failedPluginIds: state.failedPluginIds,

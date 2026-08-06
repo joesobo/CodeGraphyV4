@@ -1,5 +1,9 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
-import type { AnalysisCacheTier, DiagnosticEventInput } from '@codegraphy-dev/core';
+import type {
+  AnalysisCacheTier,
+  DiagnosticEventInput,
+  WorkspaceFilterAccounting,
+} from '@codegraphy-dev/core';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
@@ -12,7 +16,7 @@ interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
   syncWorkspacePlugins(): Promise<void>;
   hasIndex(): boolean;
-  getFilterExcludedFileCount?(): number;
+  getFilterAccounting(): WorkspaceFilterAccounting;
   getIndexStatus?(): {
     freshness: CodeGraphyIndexFreshness;
     detail: string;

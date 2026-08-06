@@ -89,23 +89,26 @@ describe('plugin Filter accounting', () => {
         new Set(['codegraphy.gdscript', 'codegraphy.unity']),
       ),
     });
-    expect(typescriptOnly.filterExcludedPaths).toEqual(['.next/app.js']);
+    expect(typescriptOnly.filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 1,
+      gitIgnoredPathCount: 2,
+    });
 
     const allPlugins = await discovery.discover({
       rootPath: workspaceRoot,
       filter: getWorkspacePipelinePluginFilterPatterns(source),
     });
-    expect(allPlugins.filterExcludedPaths).toEqual([
-      '.next/app.js',
-      'Assets/Player.prefab.meta',
-      'scripts/player.gd.uid',
-    ]);
+    expect(allPlugins.filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 3,
+      gitIgnoredPathCount: 2,
+    });
     expect(allPlugins.files.map(file => file.relativePath)).toEqual(expect.arrayContaining([
       'Assets/Player.prefab',
       'scripts/player.gd',
       'src/app.ts',
     ]));
     expect(allPlugins.gitIgnoredPaths).toContain('ignored');
-    expect(allPlugins.filterExcludedPaths).not.toContain('ignored/ignored.meta');
   });
 });

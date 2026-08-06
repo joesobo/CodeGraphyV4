@@ -3,6 +3,7 @@ import {
   createWorkspaceIndexEngineState,
   FileDiscovery,
   type IDiscoveredFile,
+  type WorkspaceFilterAccounting,
   type WorkspaceIndexEngineState,
 } from '@codegraphy-dev/core';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../../core/plugins/types/contracts';
@@ -58,8 +59,12 @@ export abstract class WorkspacePipelineEngineStateBase {
   protected set _lastDiscoveredFiles(value: IDiscoveredFile[]) {
     this._engineState.discoveredFiles = value;
   }
-  protected get _lastFilterExcludedPaths(): string[] { return this._engineState.filterExcludedPaths; }
-  protected set _lastFilterExcludedPaths(value: string[]) { this._engineState.filterExcludedPaths = value; }
+  protected get _filterAccounting(): WorkspaceFilterAccounting {
+    return this._engineState.filterAccounting;
+  }
+  protected set _filterAccounting(value: WorkspaceFilterAccounting) {
+    this._engineState.filterAccounting = value;
+  }
   protected get _lastGitIgnoredPaths(): string[] { return this._engineState.gitIgnoredPaths; }
   protected set _lastGitIgnoredPaths(value: string[]) { this._engineState.gitIgnoredPaths = value; }
   protected get _lastWorkspaceRoot(): string { return this._engineState.workspaceRoot; }

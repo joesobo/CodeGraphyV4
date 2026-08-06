@@ -1,4 +1,5 @@
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import { hasWorkspacePipelineIndex } from './cache/index';
 import { WorkspacePipelineInternalBase } from './base/internal';
 import { getWorkspacePipelineIndexStatus } from './indexStatus';
@@ -79,8 +80,8 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
     return getPipelinePluginFilterGroups(this._registry, disabledPlugins);
   }
 
-  getFilterExcludedFileCount(): number {
-    return this._lastFilterExcludedPaths.length;
+  getFilterAccounting(): WorkspaceFilterAccounting {
+    return this._filterAccounting;
   }
 
   protected _getEffectiveCustomFilterPatterns(filterPatterns: string[]): string[] {

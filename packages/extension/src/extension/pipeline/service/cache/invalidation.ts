@@ -20,7 +20,7 @@ export function invalidateWorkspacePipelineFiles(
       cache: state.cache,
       discoveredDirectories: [],
       discoveredFiles: [],
-      filterExcludedPaths: [],
+      filterAccounting: { kind: 'unavailable' },
       gitIgnoredPaths: [],
       fileAnalysis: state.lastFileAnalysis,
       fileConnections: state.lastFileConnections,

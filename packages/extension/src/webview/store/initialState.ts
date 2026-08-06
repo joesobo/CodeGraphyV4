@@ -37,7 +37,7 @@ export const INITIAL_STATE: GraphStateFields = {
   optimisticLegendUpdates: {},
   optimisticUserLegends: null,
   filterPatterns: [],
-  filterExcludedFileCount: 0,
+  filterAccounting: { kind: 'unavailable' as const },
   pluginFilterPatterns: [],
   pluginFilterGroups: [],
   disabledCustomFilterPatterns: [],

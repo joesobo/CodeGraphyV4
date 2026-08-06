@@ -83,8 +83,11 @@ describe('FileDiscovery discover', () => {
     });
 
     expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
-    expect(result.filterExcludedPaths).toEqual([path.join('filtered', 'one.ts')]);
-    expect(result.filterExcludedPaths).not.toContain(path.join('ignored', 'file-0.ts'));
+    expect(result.filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 1,
+      gitIgnoredPathCount: 27,
+    });
     expect(onProgress.mock.calls.map(([progress]) => progress.current)).toEqual([1]);
   });
 
@@ -109,15 +112,14 @@ describe('FileDiscovery discover', () => {
       ],
     });
 
-    expect(result.filterExcludedPaths).toEqual([
-      '.godot/editor/project_metadata.cfg',
-      'Assets/Player.prefab.meta',
-      'ProjectSettings/ProjectSettings.asset',
-    ]);
+    expect(result.filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 3,
+      gitIgnoredPathCount: 2,
+    });
     expect(result.files.map(file => file.relativePath)).toContain('src/app.ts');
     expect(result.files.map(file => file.relativePath)).toContain('Assets/Player.prefab');
     expect(result.gitIgnoredPaths).toContain('ignored');
-    expect(result.filterExcludedPaths).not.toContain('ignored/generated.ts');
   });
 
   it('uses Git paths without recursively reading ignored or filtered workspace trees', async () => {

@@ -247,6 +247,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   ): Promise<void> {
     const workspaceRoot = this._getWorkspaceRoot();
     const dependencies = {
+      getFilterAccounting: () => this._filterAccounting,
       getCurrentCommitSha: () =>
         workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
       getPluginSignature: () => this._getPluginSignature(),

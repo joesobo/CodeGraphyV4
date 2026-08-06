@@ -265,7 +265,10 @@ describe('graphView/provider/settingsState', () => {
 
   it('sends all settings with the current state, analyzer filters, and side-effect callbacks', () => {
     const source = createSource({
-      _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
+      _analyzer: {
+        getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+        getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
+      },
     });
     const snapshot = { snapshot: true } as never;
     const message = {
@@ -311,7 +314,10 @@ describe('graphView/provider/settingsState', () => {
     const source = createSource({
       _userGroups: [{ id: 'group.current' } as never],
       _filterPatterns: ['current/**'],
-      _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
+      _analyzer: {
+        getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+        getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
+      },
     });
     const snapshotGroups = [{ id: 'group.snapshot' } as never];
     const snapshotFilterPatterns = ['snapshot/**'];

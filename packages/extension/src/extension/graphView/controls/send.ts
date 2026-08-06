@@ -55,6 +55,9 @@ export function sendGraphControlsUpdated(
   disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   const registry = analyzer?.registry;
+  const filterAccounting = analyzer
+    ? analyzer.getFilterAccounting()
+    : { kind: 'unavailable' as const };
   const controlsGraphData = filterDisabledPluginEdgesForControls(graphData, disabledPlugins);
   const filePaths = controlsGraphData.nodes
     .filter(isFileNode)
@@ -67,6 +70,7 @@ export function sendGraphControlsUpdated(
         controlsGraphData,
         readNodeTypes(registry, disabledPlugins),
         readEdgeTypes(registry, disabledPlugins),
+        filterAccounting,
         readGraphScopeCapabilities(registry, filePaths, disabledPlugins),
       ),
     ),

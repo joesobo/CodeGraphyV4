@@ -13,6 +13,7 @@ function createState(
     analyzer: {
       analyze: vi.fn(),
       hasIndex: vi.fn(() => true),
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
       hasRecoverableGraphState: vi.fn(() => true),
       initialize: vi.fn(),
       loadCachedGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
