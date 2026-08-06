@@ -8,6 +8,10 @@ dist/
 .DS_Store
 dist-e2e/
 /artifacts/
+apps/desktop/src-tauri/binaries/*
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/runtime/
+apps/desktop/src-tauri/target/
 .worktrees/
 .playwright-mcp/
 .playwright-cli/

@@ -444,6 +444,12 @@ export type {
   WorkspaceStatusResult,
 } from './workspace/requestTypes';
 export { requestCodeGraphyIndexWorkspace } from './workspace/requestIndexing';
+export type {
+  WorkspaceGraphDependencies,
+  WorkspaceGraphInput,
+  WorkspaceGraphResult,
+} from './workspace/requestGraph';
+export { requestCodeGraphyWorkspaceGraph } from './workspace/requestGraph';
 export { requestWorkspaceGraphQuery } from './workspace/requestQuery';
 export { readCodeGraphyWorkspaceStatusForCli } from './workspace/requestStatus';
 export type {

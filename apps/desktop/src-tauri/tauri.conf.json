@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CodeGraphy",
+  "version": "0.1.0",
+  "identifier": "dev.codegraphy.desktop",
+  "build": {
+    "beforeDevCommand": "pnpm run build:sidecar && pnpm exec vite",
+    "beforeBuildCommand": "pnpm run build:sidecar && pnpm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'"
+    },
+    "windows": [
+      {
+        "title": "CodeGraphy",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1040,
+        "minHeight": 680,
+        "center": true,
+        "decorations": true,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay"
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "category": "DeveloperTool",
+    "copyright": "Copyright © 2026 Joe Soboleski",
+    "externalBin": ["binaries/codegraphy-core"],
+    "icon": ["icons/icon.icns"],
+    "longDescription": "A fast local code navigator for Files, Symbols, and their Relationships.",
+    "macOS": {
+      "entitlements": "Entitlements.plist",
+      "hardenedRuntime": true,
+      "minimumSystemVersion": "26.0"
+    },
+    "resources": ["runtime/"],
+    "shortDescription": "Local Relationship Graph for code",
+    "targets": ["app", "dmg"]
+  }
+}

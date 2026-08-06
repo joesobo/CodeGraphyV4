@@ -1,0 +1,43 @@
+{
+  "name": "@codegraphy-dev/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CodeGraphy desktop app for macOS",
+  "type": "module",
+  "engines": {
+    "node": "^22.14.0 || >=23.6.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "build:bundle": "tauri build",
+    "build:sidecar": "node scripts/stage-sidecar.mjs",
+    "dev": "tauri dev --no-watch",
+    "lint": "eslint src scripts vite.config.ts vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.10.4",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/search": "^6.7.1",
+    "@codemirror/state": "^6.7.1",
+    "@codemirror/view": "^6.43.8",
+    "@codegraphy-dev/core": "workspace:*",
+    "@codegraphy-dev/graph-renderer": "workspace:*",
+    "@lezer/highlight": "^1.2.3",
+    "@tauri-apps/api": "^2.11.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "jsdom": "^25.0.0",
+    "typescript": "^5.3.3",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.0"
+  }
+}
