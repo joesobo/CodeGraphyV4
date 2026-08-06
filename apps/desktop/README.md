@@ -20,7 +20,7 @@ Intel is not a supported release target yet. The graph renderer has no non-WebGP
 - Save through an atomic replacement that preserves permissions and rejects an external edit conflict.
 - Read or rebuild the workspace-owned `.codegraphy/graph.sqlite` Graph Cache through Core.
 - Apply one-File incremental Indexing after a save.
-- Show File Nodes, optional Symbol Nodes, and Relationships with the existing WebGPU and WebAssembly graph renderer.
+- Show File and Folder Nodes with their Relationships through the existing WebGPU and WebAssembly graph renderer. The extension keeps its full Symbol support; the desktop Graph View is intentionally narrower for this release.
 
 Source Files and the Graph Cache stay in the workspace. The app does not upload them.
 

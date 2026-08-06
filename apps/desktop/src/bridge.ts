@@ -1,10 +1,25 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { parseWorkspaceGraphResult, type WorkspaceGraphResult } from './model';
 
 export interface FileDocument {
   path: string;
   content: string;
   revision: string;
+}
+
+export interface RecentWorkspace {
+  path: string;
+  name: string;
+  available: boolean;
+}
+
+export interface DesktopMenuHandlers {
+  closeWorkspace(this: void): void;
+  openRecent(this: void, path: string): void;
+  openWorkspace(this: void): void;
+  recentWorkspacesChanged(this: void): void;
+  save(this: void): void;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -19,6 +34,16 @@ function parseFileDocument(value: unknown): FileDocument {
     throw new Error('The desktop host returned an invalid File.');
   }
   return { path: value.path, content: value.content, revision: value.revision };
+}
+
+function parseRecentWorkspace(value: unknown): RecentWorkspace {
+  if (!isRecord(value)
+    || typeof value.path !== 'string'
+    || typeof value.name !== 'string'
+    || typeof value.available !== 'boolean') {
+    throw new Error('The desktop host returned an invalid recent workspace.');
+  }
+  return { path: value.path, name: value.name, available: value.available };
 }
 
 export async function chooseWorkspace(): Promise<string | undefined> {
@@ -38,11 +63,39 @@ export async function initialWorkspace(): Promise<string | undefined> {
 export async function loadWorkspaceGraph(input: {
   workspaceRoot: string;
   reindex: boolean;
-  includeSymbols: boolean;
   changedPath?: string;
 }): Promise<WorkspaceGraphResult> {
   const result = await invoke<unknown>('load_workspace_graph', input);
   return parseWorkspaceGraphResult(result);
+}
+
+export async function listRecentWorkspaces(): Promise<RecentWorkspace[]> {
+  const result = await invoke<unknown>('recent_workspaces');
+  if (!Array.isArray(result)) throw new Error('The desktop host returned invalid recent workspaces.');
+  return result.map(parseRecentWorkspace);
+}
+
+export async function clearRecentWorkspaces(): Promise<void> {
+  await invoke('clear_recent_workspaces');
+}
+
+export async function closeWorkspace(): Promise<void> {
+  await invoke('close_workspace');
+}
+
+export async function listenToDesktopMenu(handlers: DesktopMenuHandlers): Promise<UnlistenFn> {
+  const unlisten = await Promise.all([
+    listen('desktop-open-workspace', handlers.openWorkspace),
+    listen<unknown>('desktop-open-recent', (event) => {
+      if (typeof event.payload === 'string') handlers.openRecent(event.payload);
+    }),
+    listen('desktop-recent-workspaces-changed', handlers.recentWorkspacesChanged),
+    listen('desktop-close-workspace', handlers.closeWorkspace),
+    listen('desktop-save', handlers.save),
+  ]);
+  return () => {
+    for (const stop of unlisten) stop();
+  };
 }
 
 export async function readWorkspaceFile(relativePath: string): Promise<FileDocument> {

@@ -30,15 +30,16 @@ export function CodeEditor({
     let destroy: (() => void) | undefined;
     setLoadError(undefined);
     void import('./createCodeEditor')
-      .then(({ createCodeEditor }) => {
-        if (!active) return;
-        destroy = createCodeEditor({
-          content: document.content,
-          onChange: content => onChangeRef.current(content),
-          onSave: () => onSaveRef.current(),
-          parent: host,
-          path: document.path,
-        });
+      .then(({ createCodeEditor }) => createCodeEditor({
+        content: document.content,
+        onChange: content => onChangeRef.current(content),
+        onSave: () => onSaveRef.current(),
+        parent: host,
+        path: document.path,
+      }))
+      .then((created) => {
+        if (active) destroy = created;
+        else created();
       })
       .catch((error: unknown) => {
         if (active) setLoadError(error instanceof Error ? error.message : String(error));

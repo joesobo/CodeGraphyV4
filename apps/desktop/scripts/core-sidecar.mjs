@@ -33,7 +33,6 @@ function parseRequest(value) {
   }
   return {
     id: value.id,
-    includeSymbols: value.params.includeSymbols === true,
     method: value.method,
     relativePath: value.params.relativePath,
     workspaceRoot: value.params.workspaceRoot,
@@ -72,9 +71,7 @@ function warmWorkspaceEngine(workspaceRoot) {
 function graphRequest(request) {
   return {
     workspacePath: request.workspaceRoot,
-    ...(request.includeSymbols
-      ? { projection: { nodeTypes: ['file', 'folder', 'symbol'] } }
-      : {}),
+    projection: { nodeTypes: ['file', 'folder'] },
   };
 }
 

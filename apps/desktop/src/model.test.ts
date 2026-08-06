@@ -11,12 +11,7 @@ const graphResult = {
       { id: 'README.md', label: 'README.md' },
       { id: 'src/index.ts', label: 'index.ts' },
       { id: 'src/model/value.ts', label: 'value.ts' },
-      {
-        id: 'src/model/value.ts#value',
-        label: 'value',
-        nodeType: 'variable',
-        symbol: { id: 'value', name: 'value', kind: 'variable', filePath: 'src/model/value.ts' },
-      },
+      { id: 'src', label: 'src', nodeType: 'folder' },
     ],
     edges: [
       { id: 'src/index.ts->src/model/value.ts#import', from: 'src/index.ts', to: 'src/model/value.ts', kind: 'import' },
@@ -25,7 +20,7 @@ const graphResult = {
 } satisfies unknown;
 
 describe('desktop workspace graph model', () => {
-  it('parses Core data and builds a File hierarchy without treating Symbols as Files', () => {
+  it('parses a File and Folder-only graph and builds the File hierarchy', () => {
     const result = parseWorkspaceGraphResult(graphResult);
 
     expect(result.kind).toBe('ready');
@@ -61,5 +56,25 @@ describe('desktop workspace graph model', () => {
     };
 
     expect(() => parseWorkspaceGraphResult(malformed)).toThrow('invalid Relationship Graph');
+  });
+
+  it('rejects Symbol Nodes at the desktop boundary', () => {
+    const withSymbol: unknown = {
+      ...graphResult,
+      graph: {
+        ...graphResult.graph,
+        nodes: [
+          ...graphResult.graph.nodes,
+          {
+            id: 'src/model/value.ts#value',
+            label: 'value',
+            nodeType: 'variable',
+            symbol: { id: 'value', name: 'value', kind: 'variable', filePath: 'src/model/value.ts' },
+          },
+        ],
+      },
+    };
+
+    expect(() => parseWorkspaceGraphResult(withSymbol)).toThrow('invalid Relationship Graph');
   });
 });

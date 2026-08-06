@@ -36,7 +36,10 @@ describe('Core desktop sidecar', () => {
         limitReached: false,
         indexing: { mode: 'incremental', analyzedFiles, deletedFiles: 0, reusedFiles },
       });
-      export const requestCodeGraphyWorkspaceGraph = input => graph(input.workspacePath);
+      export const requestCodeGraphyWorkspaceGraph = input => {
+        log('projection:' + input.projection.nodeTypes.join(','));
+        return graph(input.workspacePath);
+      };
       export const indexCodeGraphyWorkspace = async input => result(input.workspaceRoot, 1, 0);
       export const createCodeGraphyWorkspaceEngine = options => ({
         index: async () => { log('index'); return result(options.workspaceRoot, 0, 1); },
@@ -45,8 +48,8 @@ describe('Core desktop sidecar', () => {
       });
     `);
     const input = [
-      { kind: 'request', id: 1, method: 'open', params: { workspaceRoot: temporaryDirectory, includeSymbols: false } },
-      { kind: 'request', id: 2, method: 'update', params: { workspaceRoot: temporaryDirectory, relativePath: 'src/index.ts', includeSymbols: false } },
+      { kind: 'request', id: 1, method: 'open', params: { workspaceRoot: temporaryDirectory } },
+      { kind: 'request', id: 2, method: 'update', params: { workspaceRoot: temporaryDirectory, relativePath: 'src/index.ts' } },
     ].map(request => JSON.stringify(request)).join('\n');
 
     const output = execFileSync(process.execPath, ['scripts/core-sidecar.mjs'], {
@@ -64,6 +67,13 @@ describe('Core desktop sidecar', () => {
       outcome: 'success',
       result: { indexing: { mode: 'incremental', analyzedFiles: 1 } },
     });
-    expect(readFileSync(logPath, 'utf8')).toBe('index\napply:src/index.ts\ndispose\n');
+    expect(readFileSync(logPath, 'utf8')).toBe([
+      'projection:file,folder',
+      'index',
+      'apply:src/index.ts',
+      'projection:file,folder',
+      'dispose',
+      '',
+    ].join('\n'));
   });
 });

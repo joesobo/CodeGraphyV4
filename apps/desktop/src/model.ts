@@ -1,13 +1,7 @@
 export interface DesktopGraphNode {
   id: string;
   label: string;
-  nodeType?: string;
-  symbol?: {
-    id: string;
-    name: string;
-    kind: string;
-    filePath: string;
-  };
+  nodeType?: 'file' | 'folder';
 }
 
 export interface DesktopGraphEdge {
@@ -73,13 +67,8 @@ function isStringArray(value: unknown): value is string[] {
 
 function isDesktopGraphNode(value: unknown): value is DesktopGraphNode {
   if (!isRecord(value) || typeof value.id !== 'string' || typeof value.label !== 'string') return false;
-  if (value.nodeType !== undefined && typeof value.nodeType !== 'string') return false;
-  if (value.symbol === undefined) return true;
-  return isRecord(value.symbol)
-    && typeof value.symbol.id === 'string'
-    && typeof value.symbol.name === 'string'
-    && typeof value.symbol.kind === 'string'
-    && typeof value.symbol.filePath === 'string';
+  return value.symbol === undefined
+    && (value.nodeType === undefined || value.nodeType === 'file' || value.nodeType === 'folder');
 }
 
 function isDesktopGraphEdge(value: unknown): value is DesktopGraphEdge {
@@ -175,7 +164,7 @@ function projectFolder(folder: MutableFolder): FileTreeEntry[] {
 export function buildFileTree(graph: DesktopGraph): FileTreeEntry[] {
   const root = createMutableFolder('');
   for (const node of graph.nodes) {
-    if (node.symbol || (node.nodeType !== undefined && node.nodeType !== 'file')) continue;
+    if (node.nodeType === 'folder') continue;
     const parts = node.id.split('/').filter(Boolean);
     const fileName = parts.pop();
     if (!fileName) continue;
@@ -192,4 +181,8 @@ export function buildFileTree(graph: DesktopGraph): FileTreeEntry[] {
     folder.files.set(fileName, node.id);
   }
   return projectFolder(root);
+}
+
+export function countFiles(graph: DesktopGraph): number {
+  return graph.nodes.filter(node => node.nodeType !== 'folder').length;
 }

@@ -1,34 +1,4 @@
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { javascript } from '@codemirror/lang-javascript';
-import {
-  bracketMatching,
-  defaultHighlightStyle,
-  indentOnInput,
-  syntaxHighlighting,
-} from '@codemirror/language';
-import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
-import { EditorState } from '@codemirror/state';
-import {
-  drawSelection,
-  dropCursor,
-  EditorView,
-  highlightActiveLine,
-  highlightActiveLineGutter,
-  keymap,
-  lineNumbers,
-} from '@codemirror/view';
-
-function languageForPath(path: string) {
-  if (/\.[cm]?[jt]sx?$/iu.test(path)) {
-    return javascript({
-      jsx: /x$/iu.test(path),
-      typescript: /\.[cm]?tsx?$/iu.test(path),
-    });
-  }
-  return [];
-}
-
-export function createCodeEditor({
+export async function createCodeEditor({
   content,
   onChange,
   onSave,
@@ -40,7 +10,41 @@ export function createCodeEditor({
   onSave: () => void;
   parent: HTMLElement;
   path: string;
-}): () => void {
+}): Promise<() => void> {
+  const [
+    { defaultKeymap, history, historyKeymap, indentWithTab },
+    { javascript },
+    {
+      bracketMatching,
+      defaultHighlightStyle,
+      indentOnInput,
+      syntaxHighlighting,
+    },
+    { highlightSelectionMatches, searchKeymap },
+    { EditorState },
+    {
+      drawSelection,
+      dropCursor,
+      EditorView,
+      highlightActiveLine,
+      highlightActiveLineGutter,
+      keymap,
+      lineNumbers,
+    },
+  ] = await Promise.all([
+    import('@codemirror/commands'),
+    import('@codemirror/lang-javascript'),
+    import('@codemirror/language'),
+    import('@codemirror/search'),
+    import('@codemirror/state'),
+    import('@codemirror/view'),
+  ]);
+  const language = /\.[cm]?[jt]sx?$/iu.test(path)
+    ? javascript({
+        jsx: /x$/iu.test(path),
+        typescript: /\.[cm]?tsx?$/iu.test(path),
+      })
+    : [];
   const view = new EditorView({
     parent,
     state: EditorState.create({
@@ -57,7 +61,7 @@ export function createCodeEditor({
         syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
         highlightSelectionMatches(),
         highlightActiveLine(),
-        languageForPath(path),
+        language,
         keymap.of([
           { key: 'Mod-s', run: () => { onSave(); return true; } },
           indentWithTab,

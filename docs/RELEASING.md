@@ -79,7 +79,7 @@ Run this check on the draft asset before you publish it:
 6. Launch the installed app through Finder. Confirm macOS shows no unsigned or damaged-app warning.
 7. Open a real CodeGraphy Workspace. Confirm the File and Folder hierarchy appears.
 8. Open a source File, edit it, save it, and confirm Core reports one-File incremental Indexing.
-9. Turn on Symbol Nodes and confirm the right pane draws the Core-owned Relationship Graph with WebGPU.
+9. Confirm the right pane draws the Core-owned File and Folder Relationship Graph with WebGPU.
 10. Change the open File outside CodeGraphy, then confirm the app rejects an overwrite until the File is reopened.
 11. Close the app and confirm its `codegraphy-core` child process exits.
 

@@ -10,19 +10,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DesktopGraph, DesktopGraphNode } from '../model';
 
 function nodeStyle(node: DesktopGraphNode, selectedId: string | undefined): GraphRendererNodeStyle {
-  const symbol = Boolean(node.symbol);
   const selected = node.id === selectedId;
   const folder = node.nodeType === 'folder';
-  const size = selected ? (symbol ? 13 : 18) : (symbol ? 7 : 11);
+  const size = selected ? 18 : 11;
   return {
-    borderColor: selected ? '#f3fbff' : (symbol ? '#bb9cff' : '#a6e7d7'),
+    borderColor: selected ? '#f3fbff' : '#a6e7d7',
     borderWidth: selected ? 2 : 1,
     cornerRadius: folder ? 2 : 6,
-    fillColor: selected ? '#55d9b8' : (symbol ? '#7758b8' : folder ? '#c59555' : '#197c84'),
+    fillColor: selected ? '#55d9b8' : folder ? '#c59555' : '#197c84',
     fillOpacity: 1,
     height: folder ? size * 0.72 : size,
     opacity: 1,
-    shape: folder ? 'rectangle' : symbol ? 'diamond' : 'circle',
+    shape: folder ? 'rectangle' : 'circle',
     width: folder ? size * 1.35 : size,
   };
 }
@@ -115,8 +114,8 @@ export function GraphPanel({
     }
     const layout = createGraphLayoutEngine({
       nodeIds: nodes.map(node => node.id),
-      radii: Float32Array.from(graph.nodes.map(node => node.symbol ? 4 : 7)),
-      chargeStrengthMultipliers: Float32Array.from(graph.nodes.map(node => node.symbol ? 0.75 : 1.2)),
+      radii: Float32Array.from(graph.nodes, () => 7),
+      chargeStrengthMultipliers: Float32Array.from(graph.nodes, () => 1.2),
       edgeSources: Uint32Array.from(sourceIndexes),
       edgeTargets: Uint32Array.from(targetIndexes),
     }, {
@@ -255,7 +254,7 @@ export function GraphPanel({
         {rendererError ? <div className="graph-error">{rendererError}</div> : null}
         <div className="graph-legend">
           <span><i className="legend-file" />Files</span>
-          <span><i className="legend-symbol" />Symbols</span>
+          <span><i className="legend-folder" />Folders</span>
         </div>
       </div>
       <div className="relationship-inspector">
@@ -271,9 +270,15 @@ export function GraphPanel({
                 const outgoing = edge.from === selectedId;
                 const target = outgoing ? edge.to : edge.from;
                 const targetNode = graph.nodes.find(node => node.id === target);
-                const targetFile = targetNode?.symbol?.filePath ?? target;
+                const targetIsFile = targetNode?.nodeType !== 'folder';
                 return (
-                  <button key={edge.id} onClick={() => onSelect(targetFile)} type="button">
+                  <button
+                    disabled={!targetIsFile}
+                    key={edge.id}
+                    onClick={() => onSelect(target)}
+                    title={targetIsFile ? `Open ${target}` : `${target} is a Folder`}
+                    type="button"
+                  >
                     <span className="relationship-kind">{edge.kind}</span>
                     <span className="relationship-direction">{outgoing ? '→' : '←'}</span>
                     <span>{target}</span>
