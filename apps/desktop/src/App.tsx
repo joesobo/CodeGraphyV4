@@ -39,17 +39,20 @@ export function App(): React.ReactElement {
 
   const openGraph = useCallback(async (
     root: string,
-    options: { reindex: boolean; symbols: boolean },
+    options: { reindex: boolean; symbols: boolean; changedPath?: string },
   ): Promise<void> => {
     setStatus({
       kind: 'busy',
-      message: options.reindex ? 'Core is re-indexing the workspace…' : 'Loading the Graph Cache…',
+      message: options.changedPath
+        ? `Core is updating ${options.changedPath}…`
+        : options.reindex ? 'Core is re-indexing the workspace…' : 'Loading the Graph Cache…',
     });
     try {
       const result = await loadWorkspaceGraph({
         workspaceRoot: root,
         reindex: options.reindex,
         includeSymbols: options.symbols,
+        changedPath: options.changedPath,
       });
       setWorkspaceRoot(result.workspaceRoot);
       setGraphResult(result);
@@ -110,7 +113,11 @@ export function App(): React.ReactElement {
       });
       setDocument(saved);
       setDraft(saved.content);
-      await openGraph(workspaceRoot, { reindex: true, symbols: includeSymbols });
+      await openGraph(workspaceRoot, {
+        reindex: false,
+        symbols: includeSymbols,
+        changedPath: saved.path,
+      });
     } catch (error) {
       setStatus({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
     } finally {

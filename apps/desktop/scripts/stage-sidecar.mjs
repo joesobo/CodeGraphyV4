@@ -1,15 +1,19 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
   chmodSync,
   copyFileSync,
   cpSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   rmSync,
+  writeFileSync,
 } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pruneDeployedRuntime } from './prune-sidecar-runtime.mjs';
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(appRoot, '../..');
@@ -24,6 +28,32 @@ const nodeDistributionArchitecture = {
   arm64: 'arm64',
   x64: 'x64',
 };
+const nodeArchiveChecksums = {
+  arm64: '61130f394c1630d211dd50aecc4353d379480f36d3ac913cd85dbba1aed585c6',
+  x64: '58e99022c2ff89395576cc7fd4d98cea24bb68081475d5f88b801ee8729fb026',
+};
+const nativeRuntimeModules = [
+  '@driftlog/tree-sitter-dart',
+  '@tree-sitter-grammars/tree-sitter-kotlin',
+  '@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js',
+  'libsql',
+  'tree-sitter',
+  'tree-sitter-c',
+  'tree-sitter-c-sharp',
+  'tree-sitter-cpp',
+  'tree-sitter-go',
+  'tree-sitter-haskell',
+  'tree-sitter-java',
+  'tree-sitter-javascript',
+  'tree-sitter-objc',
+  'tree-sitter-php',
+  'tree-sitter-python',
+  'tree-sitter-ruby',
+  'tree-sitter-rust',
+  'tree-sitter-scala',
+  'tree-sitter-swift',
+  'tree-sitter-typescript',
+];
 
 if (process.platform !== 'darwin') {
   throw new Error('CodeGraphy desktop sidecars must be staged on macOS.');
@@ -41,18 +71,31 @@ const runtimeCache = process.env.CODEGRAPHY_DESKTOP_RUNTIME_CACHE
 const nodeArchiveName = `node-v${nodeVersion}-darwin-${nodeDistributionArchitecture[process.arch]}.tar.gz`;
 const nodeDistributionRoot = path.join(runtimeCache, nodeArchiveName.replace(/\.tar\.gz$/u, ''));
 const nodeExecutable = path.join(nodeDistributionRoot, 'bin', 'node');
-if (!existsSync(nodeExecutable)) {
+const expectedArchiveChecksum = nodeArchiveChecksums[process.arch];
+if (!expectedArchiveChecksum) throw new Error(`No Node checksum for architecture: ${process.arch}`);
+const checksumMarker = path.join(nodeDistributionRoot, '.codegraphy-checksum');
+const cachedChecksum = existsSync(checksumMarker) ? readFileSync(checksumMarker, 'utf8').trim() : undefined;
+if (!existsSync(nodeExecutable) || cachedChecksum !== expectedArchiveChecksum) {
   mkdirSync(runtimeCache, { recursive: true });
   const archivePath = path.join(runtimeCache, nodeArchiveName);
-  execFileSync('curl', [
-    '--fail',
-    '--location',
-    '--output',
-    archivePath,
-    `https://nodejs.org/dist/v${nodeVersion}/${nodeArchiveName}`,
-  ], { stdio: 'inherit' });
+  if (!existsSync(archivePath)) {
+    execFileSync('curl', [
+      '--fail',
+      '--location',
+      '--output',
+      archivePath,
+      `https://nodejs.org/dist/v${nodeVersion}/${nodeArchiveName}`,
+    ], { stdio: 'inherit' });
+  }
+  const archiveChecksum = createHash('sha256').update(readFileSync(archivePath)).digest('hex');
+  if (archiveChecksum !== expectedArchiveChecksum) {
+    throw new Error(`Node archive checksum mismatch for ${nodeArchiveName}.`);
+  }
+  rmSync(nodeDistributionRoot, { force: true, recursive: true });
   execFileSync('tar', ['-xzf', archivePath, '-C', runtimeCache], { stdio: 'inherit' });
+  writeFileSync(checksumMarker, `${expectedArchiveChecksum}\n`);
 }
+execFileSync('codesign', ['--verify', '--strict', nodeExecutable], { stdio: 'inherit' });
 execFileSync(nodeExecutable, ['--version'], { stdio: 'inherit' });
 
 execFileSync('pnpm', [
@@ -78,17 +121,23 @@ execFileSync('pnpm', [
 // Hoisted deploy can rewrite shared workspace linker metadata. Restore the
 // checked-in lockfile layout before any repository build or test continues.
 execFileSync('pnpm', ['install', '--frozen-lockfile'], { cwd: repoRoot, stdio: 'inherit' });
+const pruned = pruneDeployedRuntime(path.join(runtimeRoot, 'core'), target);
+process.stdout.write(`Pruned ${pruned.directories} development directories and ${pruned.files} development files.\n`);
 copyFileSync(path.join(appRoot, 'scripts', 'core-sidecar.mjs'), path.join(runtimeRoot, 'sidecar.mjs'));
-execFileSync(nodeExecutable, [
-  '--input-type=module',
-  '--eval',
-  `await import(${JSON.stringify(pathToFileURL(path.join(runtimeRoot, 'core', 'dist', 'index.js')).href)})`,
-], { stdio: 'inherit' });
 
 mkdirSync(binaryRoot, { recursive: true });
 const sidecarPath = path.join(binaryRoot, `codegraphy-core-${target}`);
 copyFileSync(nodeExecutable, sidecarPath);
 chmodSync(sidecarPath, 0o755);
+execFileSync('strip', ['-x', sidecarPath], { stdio: 'inherit' });
+execFileSync('codesign', ['--force', '--sign', '-', '--timestamp=none', sidecarPath], { stdio: 'inherit' });
+execFileSync(sidecarPath, ['--version'], { stdio: 'inherit' });
+const coreModuleUrl = pathToFileURL(path.join(runtimeRoot, 'core', 'dist', 'index.js')).href;
+const runtimeProbe = `await Promise.all(${JSON.stringify(nativeRuntimeModules)}.map(module => import(module))); await import(${JSON.stringify(coreModuleUrl)});`;
+execFileSync(sidecarPath, ['--input-type=module', '--eval', runtimeProbe], {
+  cwd: path.join(runtimeRoot, 'core'),
+  stdio: 'inherit',
+});
 
 const licensesSource = path.join(repoRoot, 'LICENSE');
 cpSync(licensesSource, path.join(runtimeRoot, 'LICENSE'));

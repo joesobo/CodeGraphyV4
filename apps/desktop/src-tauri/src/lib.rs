@@ -34,6 +34,22 @@ struct CoreProcess {
     events: Receiver<CommandEvent>,
 }
 
+enum CoreRequestAction {
+    Open,
+    Index,
+    Update { relative_path: String },
+}
+
+impl CoreRequestAction {
+    fn method(&self) -> &'static str {
+        match self {
+            Self::Open => "open",
+            Self::Index => "index",
+            Self::Update { .. } => "update",
+        }
+    }
+}
+
 impl Drop for CoreProcess {
     fn drop(&mut self) {
         if let Some(child) = self.child.take() {
@@ -201,10 +217,31 @@ fn spawn_core_process(app: &AppHandle) -> Result<CoreProcess, String> {
     })
 }
 
+fn build_core_request(
+    request_id: u64,
+    action: &CoreRequestAction,
+    workspace_root: &Path,
+    include_symbols: bool,
+) -> Value {
+    let mut params = json!({
+        "workspaceRoot": workspace_root,
+        "includeSymbols": include_symbols,
+    });
+    if let CoreRequestAction::Update { relative_path } = action {
+        params["relativePath"] = Value::String(relative_path.clone());
+    }
+    json!({
+        "kind": "request",
+        "id": request_id,
+        "method": action.method(),
+        "params": params,
+    })
+}
+
 async fn request_core(
     app: &AppHandle,
     service: &CoreService,
-    method: &str,
+    action: &CoreRequestAction,
     workspace_root: &Path,
     include_symbols: bool,
 ) -> Result<Value, String> {
@@ -218,15 +255,7 @@ async fn request_core(
         .process
         .as_mut()
         .ok_or_else(|| "Core service is unavailable.".to_string())?;
-    let request = json!({
-        "kind": "request",
-        "id": request_id,
-        "method": method,
-        "params": {
-            "workspaceRoot": workspace_root,
-            "includeSymbols": include_symbols,
-        },
-    });
+    let request = build_core_request(request_id, action, workspace_root, include_symbols);
     let mut request_bytes = serde_json::to_vec(&request)
         .map_err(|error| format!("Unable to encode Core request: {error}"))?;
     request_bytes.push(b'\n');
@@ -312,6 +341,7 @@ async fn load_workspace_graph(
     workspace_root: String,
     reindex: bool,
     include_symbols: bool,
+    changed_path: Option<String>,
 ) -> Result<Value, String> {
     let root = canonical_workspace_root(Path::new(&workspace_root))?;
     {
@@ -321,14 +351,18 @@ async fn load_workspace_graph(
             .map_err(|_| "Workspace state is unavailable.".to_string())?;
         *active_root = Some(root.clone());
     }
-    request_core(
-        &app,
-        &core,
-        if reindex { "index" } else { "open" },
-        &root,
-        include_symbols,
-    )
-    .await
+    let action = match (reindex, changed_path) {
+        (true, Some(_)) => {
+            return Err("A graph request cannot re-index and update one File.".to_string());
+        }
+        (true, None) => CoreRequestAction::Index,
+        (false, Some(relative_path)) => {
+            resolve_workspace_file(&root, &relative_path)?;
+            CoreRequestAction::Update { relative_path }
+        }
+        (false, None) => CoreRequestAction::Open,
+    };
+    request_core(&app, &core, &action, &root, include_symbols).await
 }
 
 #[tauri::command]
@@ -417,5 +451,21 @@ mod tests {
             fs::read_to_string(file_path).expect("read File"),
             "export const value = 2;\n"
         );
+    }
+
+    #[test]
+    fn update_request_names_the_saved_file() {
+        let request = build_core_request(
+            7,
+            &CoreRequestAction::Update {
+                relative_path: "src/index.ts".to_string(),
+            },
+            Path::new("/tmp/example"),
+            true,
+        );
+
+        assert_eq!(request["method"], "update");
+        assert_eq!(request["params"]["relativePath"], "src/index.ts");
+        assert_eq!(request["params"]["includeSymbols"], true);
     }
 }

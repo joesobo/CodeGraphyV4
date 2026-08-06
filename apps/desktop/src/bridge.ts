@@ -39,6 +39,7 @@ export async function loadWorkspaceGraph(input: {
   workspaceRoot: string;
   reindex: boolean;
   includeSymbols: boolean;
+  changedPath?: string;
 }): Promise<WorkspaceGraphResult> {
   const result = await invoke<unknown>('load_workspace_graph', input);
   return parseWorkspaceGraphResult(result);
