@@ -54,15 +54,31 @@ test('stationary and hidden Node tooltips stop graph frame work in an Extension 
 			path: screenshotPath,
 		});
 
-    await resetFrameProbe(frame);
     await vscode.page.keyboard.press('Meta+Shift+E');
 		await expect(frame.locator('[data-codegraphy-view-visible="false"]')).toHaveCount(1, {
 			timeout: 10_000,
 		});
 		expect(await readDocumentVisibility(frame)).toBe('visible');
+		await expect(frame.getByText('src/index.ts', { exact: true })).toHaveCount(0);
+		await waitForFrameProbeIdle(frame);
+		await resetFrameProbe(frame);
 		const hiddenFrameRequests = await observeFrameRequests(frame, 1_500);
     expect(hiddenFrameRequests).toBe(0);
     expect(await readGraphFps(frame)).toBeNull();
+
+		await openGraphView(vscode.page);
+		await expect(frame.locator('[data-codegraphy-view-visible="true"]')).toHaveCount(1, {
+			timeout: 10_000,
+		});
+		await graphNode(frame, 'src/index.ts').dispatchEvent('mouseover', { bubbles: true });
+		await expect(frame.getByText('src/index.ts', { exact: true }).first()).toBeVisible();
+		await showFrameEvidence(frame, { hiddenFrameRequests, stationaryFrameRequests });
+		const lifecycleScreenshotPath = testInfo.outputPath('tooltip-frame-lifecycle.png');
+		await frame.locator('body').screenshot({ path: lifecycleScreenshotPath });
+		await testInfo.attach('tooltip frame lifecycle', {
+			contentType: 'image/png',
+			path: lifecycleScreenshotPath,
+		});
   } finally {
     await vscode.app.close().catch(() => {});
     fs.rmSync(vscode.tempRoot, { recursive: true, force: true });
@@ -157,6 +173,7 @@ async function readDocumentVisibility(frame: Frame): Promise<DocumentVisibilityS
 }
 
 async function showFrameEvidence(frame: Frame, evidence: {
+  hiddenFrameRequests?: number;
   stationaryFrameRequests: number;
 }): Promise<void> {
   await frame.evaluate((currentEvidence) => {
@@ -181,6 +198,9 @@ async function showFrameEvidence(frame: Frame, evidence: {
       'Stationary Node tooltip',
       `1.5 s graph RAF requests: ${currentEvidence.stationaryFrameRequests}`,
       'Physics/render FPS: idle',
+			...(currentEvidence.hiddenFrameRequests === undefined
+				? []
+				: [`Hidden Graph View RAF requests: ${currentEvidence.hiddenFrameRequests}`]),
     ].join('\n');
   }, evidence);
 }
