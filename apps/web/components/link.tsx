@@ -1,5 +1,5 @@
 import NextLink from 'next/link';
-import type { AnchorHTMLAttributes, ReactElement, ReactNode } from 'react';
+import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Icon } from '@/components/icon';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +27,7 @@ export function Link({
   target,
   variant,
   ...anchorProps
-}: LinkProps): ReactElement {
+}: LinkProps): React.ReactElement {
   const external = /^[a-z][a-z0-9+.-]*:/i.test(href);
   const opensInNewTab = href.startsWith('http://') || href.startsWith('https://');
   const classNames = cn(

@@ -63,13 +63,13 @@ export function GraphPanel({
   const redrawRef = useRef<(() => void) | undefined>(undefined);
   const [physicsReady, setPhysicsReady] = useState(false);
   const [rendererError, setRendererError] = useState<string>();
-  selectedIdRef.current = selectedId;
 
   const relationships = useMemo(() => graph.edges.filter(
     edge => edge.from === selectedId || edge.to === selectedId,
   ).slice(0, 8), [graph.edges, selectedId]);
 
   useEffect(() => {
+    selectedIdRef.current = selectedId;
     redrawRef.current?.();
   }, [selectedId]);
 
