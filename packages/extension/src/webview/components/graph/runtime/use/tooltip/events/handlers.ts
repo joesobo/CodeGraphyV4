@@ -1,6 +1,7 @@
 import {
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	type MutableRefObject,
 } from 'react';
@@ -46,7 +47,9 @@ export interface UseTooltipEventsResult {
 
 export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEventsResult {
 	const optionsRef = useRef(options);
-	optionsRef.current = options;
+	useLayoutEffect(() => {
+		optionsRef.current = options;
+	}, [options]);
 	const getNodeScreenRect = useCallback((node: FGNode) => {
 		const current = optionsRef.current;
 		return getTooltipNodeRect({
