@@ -1,9 +1,9 @@
 import type { IGroup } from './groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from './modes';
-import type { IPhysicsSettings } from './physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 export interface ISettingsSnapshot {
-  physics: IPhysicsSettings;
+  physics: GraphPhysicsSettings;
   legends: IGroup[];
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];

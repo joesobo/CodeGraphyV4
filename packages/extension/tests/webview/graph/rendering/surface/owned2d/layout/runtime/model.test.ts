@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../../../../../src/shared/settings/physics';
+import {
+  toGraphPhysicsLayoutConfig,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import type { FGLink, FGNode } from '../../../../../../../../src/webview/components/graph/model/build';
 import { ownedNodeCollisionRadius } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/collision/radius';
 import {
   createOwnedGraphLayout,
-  toOwnedPhysicsConfig,
   updateOwnedGraphLayout,
 } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/runtime/model';
 import {
@@ -16,7 +18,7 @@ import {
   GraphNodeFlag,
 } from '@codegraphy-dev/graph-renderer';
 
-const DEFAULT_SETTINGS: IPhysicsSettings = {
+const DEFAULT_SETTINGS: GraphPhysicsSettings = {
   centerForce: 0.1,
   damping: 0.4,
   linkDistance: 80,
@@ -56,7 +58,7 @@ function run(engine: ReturnType<typeof createGraphLayoutEngine>, ticks = 240): v
 
 describe('owned graph layout settings', () => {
   it('maps every existing force setting to its semantic engine value', () => {
-    expect(toOwnedPhysicsConfig({
+    expect(toGraphPhysicsLayoutConfig({
       centerForce: 1,
       damping: 0.4,
       linkDistance: 500,
@@ -70,7 +72,7 @@ describe('owned graph layout settings', () => {
       velocityDecay: 0.4,
     });
 
-    expect(toOwnedPhysicsConfig({
+    expect(toGraphPhysicsLayoutConfig({
       centerForce: Number.POSITIVE_INFINITY,
       damping: -1,
       linkDistance: 1,
@@ -87,19 +89,19 @@ describe('owned graph layout settings', () => {
 
   it('makes link distance and link force materially affect spring convergence', () => {
     const short = twoNodeEngine(300);
-    short.setConfig(toOwnedPhysicsConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 30, linkForce: 1 }));
+    short.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 30, linkForce: 1 }));
     run(short);
 
     const long = twoNodeEngine(300);
-    long.setConfig(toOwnedPhysicsConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 500, linkForce: 1 }));
+    long.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 500, linkForce: 1 }));
     run(long);
 
     const disabled = twoNodeEngine(300);
-    disabled.setConfig(toOwnedPhysicsConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 30, linkForce: 0 }));
+    disabled.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 30, linkForce: 0 }));
     run(disabled, 60);
 
     const strong = twoNodeEngine(300);
-    strong.setConfig(toOwnedPhysicsConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 30, linkForce: 1 }));
+    strong.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 30, linkForce: 1 }));
     run(strong, 60);
 
     const distance = (engine: ReturnType<typeof createGraphLayoutEngine>) => Math.abs(engine.x[1] - engine.x[0]);
@@ -117,7 +119,7 @@ describe('owned graph layout settings', () => {
         edgeSources: new Uint32Array(),
         edgeTargets: new Uint32Array(),
       });
-      engine.setConfig(toOwnedPhysicsConfig({ ...DEFAULT_SETTINGS, repelForce, centerForce }));
+      engine.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, repelForce, centerForce }));
       run(engine, 120);
       return engine;
     };

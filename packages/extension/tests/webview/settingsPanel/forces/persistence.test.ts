@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '@/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import {
   clearPhysicsTimerMap,
   flushPendingPhysicsValue,
@@ -28,7 +28,7 @@ describe('settingsPanel forces persistence', () => {
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
     const pendingValues: PendingPhysicsMap = { repelForce: 6 };
     const timers: PhysicsTimerMap = {};
-    const flushed: Array<{ key: keyof IPhysicsSettings; value: number }> = [];
+    const flushed: Array<{ key: keyof GraphPhysicsSettings; value: number }> = [];
 
     flushPendingPhysicsValue(pendingValues, timers, 'repelForce', (key, value) => {
       flushed.push({ key, value });
@@ -96,8 +96,8 @@ describe('settingsPanel forces persistence', () => {
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
     const pendingValues: PendingPhysicsMap = {};
     const timers: PhysicsTimerMap = {};
-    const flushed: Array<{ key: keyof IPhysicsSettings; value: number }> = [];
-    const flush = (key: keyof IPhysicsSettings) =>
+    const flushed: Array<{ key: keyof GraphPhysicsSettings; value: number }> = [];
+    const flush = (key: keyof GraphPhysicsSettings) =>
       flushPendingPhysicsValue(pendingValues, timers, key, (flushKey, value) => {
         flushed.push({ key: flushKey, value });
       });

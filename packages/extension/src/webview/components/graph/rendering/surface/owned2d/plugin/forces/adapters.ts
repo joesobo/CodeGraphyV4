@@ -1,7 +1,7 @@
 import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { MAX_GRAPH_COORDINATE, MAX_GRAPH_VELOCITY } from '@codegraphy-dev/graph-renderer';
 import type { IGraphViewForceAdapter } from '@codegraphy-dev/extension-plugin-api';
-import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { IGraphData } from '../../../../../../../../shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../../model/build';
 
@@ -143,7 +143,7 @@ export function syncForceContribution(
   data: { nodes: FGNode[]; links: FGLink[] },
   graph: IGraphData,
   signature: string,
-  settings: IPhysicsSettings | undefined,
+  settings: GraphPhysicsSettings | undefined,
 ): boolean {
   const current = installed.get(key);
   if (current?.contribution === entry.contribution && current.nodes === data.nodes

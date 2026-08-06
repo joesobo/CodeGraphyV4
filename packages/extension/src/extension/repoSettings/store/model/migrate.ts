@@ -1,4 +1,4 @@
-import { DEFAULT_PHYSICS_SETTINGS } from '../../../../shared/settings/physics';
+import { DEFAULT_GRAPH_PHYSICS_SETTINGS } from '@codegraphy-dev/graph-visuals';
 import { isPlainObject } from './plainObject';
 
 const CURRENT_SETTINGS_VERSION = 4;
@@ -17,10 +17,10 @@ export function migratePersistedSettings(value: unknown): unknown {
   if (value.version !== 1 || !isPlainObject(value.physics)) return migrated;
   const physics = { ...value.physics };
   if (physics.damping === HISTORICAL_DAMPING_DEFAULT) {
-    physics.damping = DEFAULT_PHYSICS_SETTINGS.damping;
+    physics.damping = DEFAULT_GRAPH_PHYSICS_SETTINGS.damping;
   }
   if (physics.linkForce === HISTORICAL_LINK_FORCE_DEFAULT) {
-    physics.linkForce = DEFAULT_PHYSICS_SETTINGS.linkForce;
+    physics.linkForce = DEFAULT_GRAPH_PHYSICS_SETTINGS.linkForce;
   }
   migrated.physics = physics;
   return migrated;

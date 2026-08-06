@@ -76,4 +76,67 @@ describe('Core desktop sidecar', () => {
       '',
     ].join('\n'));
   });
+
+  it('reads and writes only the desktop interface settings through Core', () => {
+    const temporaryDirectory = mkdtempSync(path.join(os.tmpdir(), 'codegraphy-sidecar-settings-'));
+    temporaryDirectories.push(temporaryDirectory);
+    const logPath = path.join(temporaryDirectory, 'settings.json');
+    const coreModulePath = path.join(temporaryDirectory, 'core.mjs');
+    writeFileSync(coreModulePath, `
+      import { writeFileSync } from 'node:fs';
+      let settings = {
+        version: 1,
+        maxFiles: 321,
+        interfaces: [
+          { id: 'codegraphy.extension', data: { showLabels: false } },
+          { id: 'codegraphy.desktop', data: { repelForce: 4 } },
+          { id: 'example.peer', data: { enabled: true } },
+        ],
+      };
+      export const readCodeGraphyWorkspaceSettingsOrInitial = () => settings;
+      export const writeCodeGraphyWorkspaceSettings = (_root, next) => {
+        settings = next;
+        writeFileSync(${JSON.stringify(logPath)}, JSON.stringify(next));
+      };
+    `);
+    const nextSettings = {
+      repelForce: 10,
+      linkDistance: 80,
+      linkForce: 1,
+      damping: 0.4,
+      centerForce: 0.1,
+    };
+    const input = [
+      { kind: 'request', id: 1, method: 'read-settings', params: { workspaceRoot: temporaryDirectory } },
+      { kind: 'request', id: 2, method: 'write-settings', params: { workspaceRoot: temporaryDirectory, settings: nextSettings } },
+      { kind: 'request', id: 3, method: 'read-settings', params: { workspaceRoot: temporaryDirectory } },
+    ].map(request => JSON.stringify(request)).join('\n');
+
+    const output = execFileSync(process.execPath, ['scripts/core-sidecar.mjs'], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: { ...process.env, CODEGRAPHY_DESKTOP_CORE_MODULE: coreModulePath },
+      input: `${input}\n`,
+    });
+    const responses = output.trim().split('\n').map(line => JSON.parse(line) as {
+      id: number;
+      result: unknown;
+    });
+    const stored = JSON.parse(readFileSync(logPath, 'utf8')) as {
+      interfaces: Array<{ id: string; data: unknown }>;
+      maxFiles: number;
+    };
+
+    expect(responses.map(response => response.result)).toEqual([
+      { repelForce: 4 },
+      nextSettings,
+      nextSettings,
+    ]);
+    expect(stored.maxFiles).toBe(321);
+    expect(stored.interfaces).toEqual([
+      { id: 'codegraphy.extension', data: { showLabels: false } },
+      { id: 'example.peer', data: { enabled: true } },
+      { id: 'codegraphy.desktop', data: nextSettings },
+    ]);
+  });
 });

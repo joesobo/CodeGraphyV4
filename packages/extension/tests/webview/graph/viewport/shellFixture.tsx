@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import type { GraphRuntime } from '../../../../src/webview/components/graph/runtime/use/state';
@@ -208,7 +208,7 @@ export function createViewState(): Pick<
   GraphViewStoreState,
   'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps' | 'showLabels' | 'showMinimap'
 > {
-  const physicsSettings: IPhysicsSettings = {
+  const physicsSettings: GraphPhysicsSettings = {
     centerForce: 0.1,
     damping: 0.42,
     linkDistance: 120,

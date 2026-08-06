@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type * as vscode from 'vscode';
-import type { IPhysicsSettings } from '../../../../../src/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import { readGraphViewPhysicsSettings } from '../../../../../src/extension/graphView/settings/physics/reader';
 
-const defaults: IPhysicsSettings = {
+const defaults: GraphPhysicsSettings = {
   repelForce: 10,
   linkDistance: 80,
   linkForce: 0.15,

@@ -1,19 +1,25 @@
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import { useMemo } from 'react';
 import type { DesktopGraph } from '../model';
 import { useDesktopGraphRenderer } from '../useDesktopGraphRenderer';
 
 export function GraphPanel({
   graph,
+  physicsSettings,
   selectedId,
   onSelect,
+  revision,
 }: {
   graph: DesktopGraph;
+  physicsSettings: GraphPhysicsSettings;
   selectedId?: string;
   onSelect: (id: string) => void;
+  revision: number;
 }): React.ReactElement {
   const { canvasRef, overlayRef, rendererError } = useDesktopGraphRenderer({
     graph,
     onSelect,
+    physicsSettings,
     selectedId,
   });
   const relationships = useMemo(() => graph.edges.filter(
@@ -26,10 +32,16 @@ export function GraphPanel({
         <canvas
           aria-label="Relationship Graph. Use arrow keys to pan, plus or minus to zoom, and zero to fit."
           className="graph-canvas"
+          key={`graph-${revision}`}
           ref={canvasRef}
           tabIndex={0}
         />
-        <canvas aria-hidden="true" className="graph-canvas-overlay" ref={overlayRef} />
+        <canvas
+          aria-hidden="true"
+          className="graph-canvas-overlay"
+          key={`overlay-${revision}`}
+          ref={overlayRef}
+        />
         {rendererError ? <div className="graph-error">{rendererError}</div> : null}
         <div className="graph-legend">
           <span><i className="legend-file" />Files</span>

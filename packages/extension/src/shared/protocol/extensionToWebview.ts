@@ -8,7 +8,7 @@ import type {
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
-import type { IPhysicsSettings } from '../settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { IGroup } from '../settings/groups';
 
 export interface IPluginFilterPatternGroup {
@@ -57,7 +57,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_MD' }
   | { type: 'REQUEST_OPEN_IN_EDITOR' }
   | { type: 'DEPTH_MODE_UPDATED'; payload: { depthMode: boolean } }
-  | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
+  | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: GraphPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'DEPTH_LIMIT_RANGE_UPDATED'; payload: { maxDepthLimit: number } }
   | { type: 'LEGENDS_UPDATED'; payload: { legends: IGroup[] } }

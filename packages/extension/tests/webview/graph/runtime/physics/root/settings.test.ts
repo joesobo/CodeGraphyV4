@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../src/shared/settings/physics';
+import {
+  DEFAULT_GRAPH_PHYSICS_SETTINGS,
+  applyGraphPhysicsSettings,
+  toGraphPhysicsLayoutConfig,
+} from '@codegraphy-dev/graph-visuals';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/collision/radius';
-import {
-  applyOwnedPhysicsSettings,
-  toOwnedPhysicsConfig,
-} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/runtime/model';
 import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
 
 function engine() {
@@ -21,7 +21,7 @@ function engine() {
 
 describe('owned physics settings', () => {
   it('maps every persisted force setting into the typed engine', () => {
-    expect(toOwnedPhysicsConfig(DEFAULT_PHYSICS_SETTINGS)).toEqual({
+    expect(toGraphPhysicsLayoutConfig(DEFAULT_GRAPH_PHYSICS_SETTINGS)).toEqual({
       centralGravity: 0.1,
       chargeStrength: -250,
       linkDistance: 80,
@@ -37,7 +37,7 @@ describe('owned physics settings', () => {
     ['linkForce', { linkForce: 0.4 }, 'linkStrength', 0.4],
     ['damping', { damping: 0.2 }, 'velocityDecay', 0.2],
   ] as const)('maps changed %s values', (_field, patch, mappedField, expected) => {
-    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, ...patch })[mappedField]).toBe(expected);
+    expect(toGraphPhysicsLayoutConfig({ ...DEFAULT_GRAPH_PHYSICS_SETTINGS, ...patch })[mappedField]).toBe(expected);
   });
 
   it('reheats typed physics when settings are applied', () => {
@@ -45,13 +45,13 @@ describe('owned physics settings', () => {
     for (let tick = 0; tick < 320; tick += 1) layout.tick();
     expect(layout.settled).toBe(true);
 
-    applyOwnedPhysicsSettings(layout, { ...DEFAULT_PHYSICS_SETTINGS, centerForce: 1 });
+    applyGraphPhysicsSettings(layout, { ...DEFAULT_GRAPH_PHYSICS_SETTINGS, centerForce: 1 });
 
     expect(layout.settled).toBe(false);
   });
 
   it('maps persisted damping to D3 velocity decay', () => {
-    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.7 }).velocityDecay)
+    expect(toGraphPhysicsLayoutConfig({ ...DEFAULT_GRAPH_PHYSICS_SETTINGS, damping: 0.7 }).velocityDecay)
       .toBe(0.7);
   });
 

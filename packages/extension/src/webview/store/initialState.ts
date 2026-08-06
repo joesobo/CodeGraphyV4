@@ -1,6 +1,9 @@
 import type { GraphStateFields } from './state';
-import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_SEARCH_OPTIONS } from './defaults';
+import {
+  DEFAULT_DIRECTION_COLOR,
+  DEFAULT_GRAPH_PHYSICS_SETTINGS,
+} from '@codegraphy-dev/graph-visuals';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 
 export const INITIAL_STATE: GraphStateFields = {
@@ -29,7 +32,7 @@ export const INITIAL_STATE: GraphStateFields = {
   cssSnippets: {},
   graphViewportScale: null,
   nodeSizeMode: 'connections' as const,
-  physicsSettings: DEFAULT_PHYSICS,
+  physicsSettings: DEFAULT_GRAPH_PHYSICS_SETTINGS,
   depthMode: false,
   depthLimit: 1,
   maxDepthLimit: 10,

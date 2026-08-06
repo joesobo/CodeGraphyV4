@@ -1,5 +1,5 @@
 import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
-import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import {
   disposeInstalledForces,
@@ -12,7 +12,7 @@ import { forceContextSignature, forceNamespace, visiblePluginForceGraph } from '
 
 export interface OwnedGraphPluginForces {
   active(): boolean;
-  sync(contributions: ExtensionGraphViewContributionSet | undefined, graphData: { nodes: FGNode[]; links: FGLink[] }, physicsSettings?: IPhysicsSettings): boolean;
+  sync(contributions: ExtensionGraphViewContributionSet | undefined, graphData: { nodes: FGNode[]; links: FGLink[] }, physicsSettings?: GraphPhysicsSettings): boolean;
   tick(alpha?: number): boolean;
   dispose(): void;
 }
@@ -21,7 +21,7 @@ class ActiveOwnedGraphPluginForces implements OwnedGraphPluginForces {
   private readonly installed: InstalledForceAdapters = new Map();
   active(): boolean { return this.installed.size > 0; }
 
-  sync(contributions: ExtensionGraphViewContributionSet | undefined, graphData: { nodes: FGNode[]; links: FGLink[] }, settings?: IPhysicsSettings): boolean {
+  sync(contributions: ExtensionGraphViewContributionSet | undefined, graphData: { nodes: FGNode[]; links: FGLink[] }, settings?: GraphPhysicsSettings): boolean {
     const active = new Set<string>();
     const signature = forceContextSignature(settings);
     let graph = undefined as ReturnType<typeof visiblePluginForceGraph> | undefined;

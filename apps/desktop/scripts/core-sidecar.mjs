@@ -7,6 +7,7 @@ const coreModuleUrl = process.env.CODEGRAPHY_DESKTOP_CORE_MODULE
   ? pathToFileURL(process.env.CODEGRAPHY_DESKTOP_CORE_MODULE)
   : new URL('./core/dist/index.js', import.meta.url);
 const core = await import(coreModuleUrl.href);
+const DESKTOP_INTERFACE_ID = 'codegraphy.desktop';
 
 function write(message) {
   process.stdout.write(`${JSON.stringify(message)}\n`);
@@ -20,8 +21,9 @@ function parseRequest(value) {
   if (!isObject(value) || value.kind !== 'request' || !Number.isSafeInteger(value.id) || value.id < 0) {
     throw new Error('Core request must have kind "request" and a non-negative safe integer id.');
   }
-  if (!['open', 'index', 'update'].includes(value.method) || !isObject(value.params)) {
-    throw new Error('Core request method must be "open", "index", or "update".');
+  if (!['open', 'index', 'update', 'read-settings', 'write-settings'].includes(value.method)
+    || !isObject(value.params)) {
+    throw new Error('Core request method is not supported.');
   }
   if (typeof value.params.workspaceRoot !== 'string' || value.params.workspaceRoot.length === 0) {
     throw new Error('Core request requires params.workspaceRoot.');
@@ -31,10 +33,14 @@ function parseRequest(value) {
   )) {
     throw new Error('Core update request requires params.relativePath.');
   }
+  if (value.method === 'write-settings' && !isObject(value.params.settings)) {
+    throw new Error('Core settings update requires params.settings.');
+  }
   return {
     id: value.id,
     method: value.method,
     relativePath: value.params.relativePath,
+    settings: value.params.settings,
     workspaceRoot: value.params.workspaceRoot,
   };
 }
@@ -90,7 +96,30 @@ function indexResult(result, graph) {
   };
 }
 
+function readDesktopGraphSettings(workspaceRoot) {
+  const workspaceSettings = core.readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  return workspaceSettings.interfaces.find(entry => entry.id === DESKTOP_INTERFACE_ID)?.data ?? null;
+}
+
+function writeDesktopGraphSettings(workspaceRoot, desktopSettings) {
+  const workspaceSettings = core.readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  core.writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+    ...workspaceSettings,
+    interfaces: [
+      ...workspaceSettings.interfaces.filter(entry => entry.id !== DESKTOP_INTERFACE_ID),
+      { id: DESKTOP_INTERFACE_ID, data: desktopSettings },
+    ],
+  });
+  return desktopSettings;
+}
+
 async function runRequest(request) {
+  if (request.method === 'read-settings') {
+    return readDesktopGraphSettings(request.workspaceRoot);
+  }
+  if (request.method === 'write-settings') {
+    return writeDesktopGraphSettings(request.workspaceRoot, request.settings);
+  }
   if (request.method === 'open') {
     const cached = core.requestCodeGraphyWorkspaceGraph(graphRequest(request));
     if (cached.kind === 'ready') {

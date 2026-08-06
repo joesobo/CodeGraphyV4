@@ -1,5 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import {
+  DEFAULT_GRAPH_PHYSICS_SETTINGS,
+  GRAPH_PHYSICS_CONTROL_LIMITS,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import { parseWorkspaceGraphResult, type WorkspaceGraphResult } from './model';
 
 export interface FileDocument {
@@ -46,6 +51,50 @@ function parseRecentWorkspace(value: unknown): RecentWorkspace {
   return { path: value.path, name: value.name, available: value.available };
 }
 
+function isNumberInRange(value: unknown, minimum: number, maximum: number): value is number {
+  return typeof value === 'number'
+    && Number.isFinite(value)
+    && value >= minimum
+    && value <= maximum;
+}
+
+export function parseDesktopGraphSettings(value: unknown): GraphPhysicsSettings {
+  if (value === null) return { ...DEFAULT_GRAPH_PHYSICS_SETTINGS };
+  const expectedKeys = ['centerForce', 'damping', 'linkDistance', 'linkForce', 'repelForce'];
+  if (!isRecord(value)
+    || Object.keys(value).sort().join(',') !== expectedKeys.join(',')
+    || !isNumberInRange(
+      value.repelForce,
+      GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.min,
+      GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.max,
+    )
+    || !isNumberInRange(
+      value.centerForce,
+      GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.min,
+      GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.max,
+    )
+    || !isNumberInRange(
+      value.linkDistance,
+      GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.min,
+      GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.max,
+    )
+    || !isNumberInRange(
+      value.linkForce,
+      GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.min,
+      GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.max,
+    )
+    || !isNumberInRange(value.damping, 0, 1)) {
+    throw new Error('Core returned invalid desktop Graph Settings.');
+  }
+  return {
+    repelForce: value.repelForce,
+    centerForce: value.centerForce,
+    linkDistance: value.linkDistance,
+    linkForce: value.linkForce,
+    damping: value.damping,
+  };
+}
+
 export async function chooseWorkspace(): Promise<string | undefined> {
   const result = await invoke<unknown>('choose_workspace');
   if (result === null) return undefined;
@@ -81,6 +130,16 @@ export async function clearRecentWorkspaces(): Promise<void> {
 
 export async function closeWorkspace(): Promise<void> {
   await invoke('close_workspace');
+}
+
+export async function readDesktopGraphSettings(): Promise<GraphPhysicsSettings> {
+  return parseDesktopGraphSettings(await invoke<unknown>('read_graph_settings'));
+}
+
+export async function writeDesktopGraphSettings(
+  settings: GraphPhysicsSettings,
+): Promise<GraphPhysicsSettings> {
+  return parseDesktopGraphSettings(await invoke<unknown>('write_graph_settings', { settings }));
 }
 
 export async function listenToDesktopMenu(handlers: DesktopMenuHandlers): Promise<UnlistenFn> {

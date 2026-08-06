@@ -4,7 +4,7 @@ import type {
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
-import type { IPhysicsSettings } from '../settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 export interface GraphItemCreatePayload {
   directory: string;
@@ -44,7 +44,7 @@ export type WebviewToExtensionMessage =
   | { type: 'EXPORT_JSON'; payload: { json: string; filename?: string } }
   | { type: 'EXPORT_MD'; payload: { markdown: string; filename?: string } }
   | { type: 'EXPORT_SYMBOLS_JSON' }
-  | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof IPhysicsSettings; value: number } }
+  | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof GraphPhysicsSettings; value: number } }
   | { type: 'RESET_PHYSICS_SETTINGS' }
   | { type: 'RESET_ALL_SETTINGS' }
   | { type: 'GET_PHYSICS_SETTINGS' }

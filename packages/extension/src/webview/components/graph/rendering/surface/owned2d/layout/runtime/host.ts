@@ -1,9 +1,9 @@
 import type { MutableRefObject } from 'react';
+import { applyGraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { OwnedGraphCamera } from '../../camera/runtime/model';
 import type { Surface2dProps } from '../../view/surface/contracts';
 import type { PointerSession } from '../../interaction/model';
 import {
-  applyOwnedPhysicsSettings,
   createOwnedGraphLayout,
   syncOwnedLayoutNodes,
   updateOwnedGraphLayout,
@@ -92,7 +92,7 @@ export function applyOwnedGraphRuntimePhysicsSettings(
   if (!layout) return;
   const currentProps = runtime.propsRef.current;
   const settings = currentProps.physicsSettings;
-  applyOwnedPhysicsSettings(layout.engine, settings);
+  applyGraphPhysicsSettings(layout.engine, settings);
   const changed = runtime.pluginForcesRef.current.sync(
     currentProps.graphViewContributions,
     { nodes: layout.nodes, links: layout.links },

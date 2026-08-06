@@ -1,9 +1,9 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 export interface GraphViewPhysicsMessageHandlers {
   sendPhysicsSettings(): void;
-  updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
+  updatePhysicsSetting(key: keyof GraphPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;
 }
 

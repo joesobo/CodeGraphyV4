@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../src/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import SettingsPanel from '../../../src/webview/components/settingsPanel/Drawer';
 import { graphStore } from '../../../src/webview/store/state';
@@ -11,7 +11,7 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));
 
-const DEFAULT_PHYSICS: IPhysicsSettings = {
+const DEFAULT_PHYSICS: GraphPhysicsSettings = {
   repelForce: 5,
   centerForce: 0.01,
   linkDistance: 100,

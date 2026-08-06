@@ -16,15 +16,22 @@ const rendererMocks = vi.hoisted(() => {
     dispose: vi.fn(),
     render,
   };
+  const layout = {
+    edgeSources: new Uint32Array(),
+    edgeTargets: new Uint32Array(),
+    pause: vi.fn(),
+    pin: vi.fn(),
+    release: vi.fn(),
+    setAlphaTarget: vi.fn(),
+    setConfig: vi.fn(),
+    setNodePosition: vi.fn(),
+    tick: vi.fn(() => tickResult),
+    x: new Float32Array([0]),
+    y: new Float32Array([0]),
+  };
   return {
-    createGraphLayoutEngine: vi.fn((_input: unknown) => ({
-      edgeSources: new Uint32Array(),
-      edgeTargets: new Uint32Array(),
-      pause: vi.fn(),
-      tick: vi.fn(() => tickResult),
-      x: new Float32Array([0]),
-      y: new Float32Array([0]),
-    })),
+    createGraphLayoutEngine: vi.fn((_input: unknown, _config?: unknown) => layout),
+    layout,
     prepareGraphPhysics,
     render,
     resolvePhysics: () => resolvePhysics?.(),
@@ -57,6 +64,14 @@ const graph: DesktopGraph = {
   nodes: [{ id: 'src/index.ts', label: 'index.ts', nodeType: 'file' }],
 };
 
+const physicsSettings = {
+  repelForce: 10,
+  linkDistance: 80,
+  linkForce: 1,
+  damping: 0.4,
+  centerForce: 0.1,
+};
+
 describe('GraphPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -68,6 +83,11 @@ describe('GraphPanel', () => {
       observe(): void {}
     });
     vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
+    Object.defineProperties(HTMLCanvasElement.prototype, {
+      hasPointerCapture: { configurable: true, value: vi.fn(() => true) },
+      releasePointerCapture: { configurable: true, value: vi.fn() },
+      setPointerCapture: { configurable: true, value: vi.fn() },
+    });
   });
 
   afterEach(() => {
@@ -82,7 +102,7 @@ describe('GraphPanel', () => {
     const root = createRoot(host);
 
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} />);
+      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
     });
 
     expect(rendererMocks.prepareGraphPhysics).toHaveBeenCalledOnce();
@@ -93,11 +113,161 @@ describe('GraphPanel', () => {
     });
 
     expect(rendererMocks.createGraphLayoutEngine).toHaveBeenCalledOnce();
-    expect(rendererMocks.createGraphLayoutEngine.mock.calls[0]).toHaveLength(1);
+    expect(rendererMocks.createGraphLayoutEngine.mock.calls[0]).toHaveLength(2);
     expect(rendererMocks.createGraphLayoutEngine.mock.calls[0]?.[0]).toMatchObject({
       chargeStrengthMultipliers: new Float32Array([1]),
       radii: new Float32Array([12]),
     });
+    expect(rendererMocks.createGraphLayoutEngine.mock.calls[0]?.[1]).toEqual({
+      centralGravity: 0.1,
+      chargeStrength: -250,
+      linkDistance: 80,
+      linkStrength: 1,
+      velocityDecay: 0.4,
+    });
+    await act(async () => root.unmount());
+  });
+
+  it('replaces both rendering surfaces for each Core graph revision', async () => {
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+
+    await act(async () => {
+      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
+    });
+    const firstCanvases = [...host.querySelectorAll('canvas')];
+
+    await act(async () => {
+      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={2} />);
+    });
+    const secondCanvases = [...host.querySelectorAll('canvas')];
+
+    expect(secondCanvases[0]).not.toBe(firstCanvases[0]);
+    expect(secondCanvases[1]).not.toBe(firstCanvases[1]);
+    await act(async () => root.unmount());
+  });
+
+  it('routes hover and Node drag through the shared renderer engine', async () => {
+    const animationFrames: FrameRequestCallback[] = [];
+    rendererMocks.setRendererEnabled(true);
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      animationFrames.push(callback);
+      return animationFrames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      clearRect: vi.fn(),
+      fillText: vi.fn(),
+      restore: vi.fn(),
+      save: vi.fn(),
+      scale: vi.fn(),
+      setTransform: vi.fn(),
+      translate: vi.fn(),
+    } as never);
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    const onSelect = vi.fn();
+
+    await act(async () => {
+      root.render(<GraphPanel graph={graph} onSelect={onSelect} physicsSettings={physicsSettings} revision={1} />);
+    });
+    await act(async () => {
+      rendererMocks.resolvePhysics();
+    });
+    await act(async () => animationFrames.shift()?.(0));
+    const canvas = host.querySelector<HTMLCanvasElement>('.graph-canvas');
+
+    await act(async () => {
+      canvas?.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 50, clientY: 50 }));
+    });
+    await act(async () => animationFrames.shift()?.(16));
+    expect(rendererMocks.render.mock.lastCall?.[0]).toMatchObject({
+      hoveredNodeIndex: 0,
+      hoveredNodeScale: 1.1,
+    });
+
+    await act(async () => {
+      canvas?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50, clientY: 50 }));
+      canvas?.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 50, clientY: 50 }));
+    });
+    expect(onSelect).toHaveBeenCalledWith('src/index.ts');
+
+    await act(async () => {
+      canvas?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 50, clientY: 50 }));
+      canvas?.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 58, clientY: 50 }));
+      canvas?.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 58, clientY: 50 }));
+    });
+    expect(rendererMocks.layout.pin).toHaveBeenCalledWith(0);
+    expect(rendererMocks.layout.setAlphaTarget).toHaveBeenNthCalledWith(1, 0.3);
+    expect(rendererMocks.layout.setNodePosition).toHaveBeenCalledWith(0, expect.any(Number), expect.any(Number));
+    expect(rendererMocks.layout.release).toHaveBeenCalledWith(0);
+    expect(rendererMocks.layout.setAlphaTarget).toHaveBeenLastCalledWith(0);
+    await act(async () => root.unmount());
+  });
+
+  it('applies force changes live without recreating Core graph or WebGPU state', async () => {
+    const animationFrames: FrameRequestCallback[] = [];
+    rendererMocks.setRendererEnabled(true);
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      animationFrames.push(callback);
+      return animationFrames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      clearRect: vi.fn(),
+      fillText: vi.fn(),
+      restore: vi.fn(),
+      save: vi.fn(),
+      scale: vi.fn(),
+      setTransform: vi.fn(),
+      translate: vi.fn(),
+    } as never);
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+
+    await act(async () => {
+      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
+    });
+    await act(async () => {
+      rendererMocks.resolvePhysics();
+    });
+    await act(async () => animationFrames.shift()?.(0));
+    const firstFrame = rendererMocks.render.mock.lastCall?.[0] as Record<string, unknown>;
+
+    await act(async () => {
+      root.render(
+        <GraphPanel
+          graph={graph}
+          onSelect={() => undefined}
+          physicsSettings={{ ...physicsSettings, repelForce: 20 }}
+          revision={1}
+          selectedId="src/index.ts"
+        />,
+      );
+    });
+    await act(async () => animationFrames.shift()?.(16));
+    const secondFrame = rendererMocks.render.mock.lastCall?.[0] as Record<string, unknown>;
+
+    expect(rendererMocks.layout.setConfig).toHaveBeenCalledWith(expect.objectContaining({
+      chargeStrength: -500,
+    }));
+    expect(rendererMocks.webGpuCreate).toHaveBeenCalledOnce();
+    expect(secondFrame.getLinkColor).toBe(firstFrame.getLinkColor);
+    expect(secondFrame.getNodeStyle).toBe(firstFrame.getNodeStyle);
     await act(async () => root.unmount());
   });
 
@@ -135,7 +305,7 @@ describe('GraphPanel', () => {
     document.body.append(host);
     const root = createRoot(host);
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} />);
+      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
     });
     await act(async () => {
       rendererMocks.resolvePhysics();

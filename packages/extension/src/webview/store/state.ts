@@ -16,7 +16,7 @@ import type {
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
-import type { IPhysicsSettings } from '../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -48,7 +48,7 @@ export interface GraphState {
   cssSnippets: Record<string, boolean>;
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
-  physicsSettings: IPhysicsSettings;
+  physicsSettings: GraphPhysicsSettings;
   depthMode: boolean;
   depthLimit: number;
   maxDepthLimit: number;
@@ -80,7 +80,7 @@ export interface GraphState {
   setActivePanel: (panel: GraphState['activePanel']) => void;
   setGraphViewportScale: (scale: number | null) => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
-  setPhysicsSettings: (settings: IPhysicsSettings) => void;
+  setPhysicsSettings: (settings: GraphPhysicsSettings) => void;
   setLegends: (legends: IGroup[]) => void;
   setOptimisticLegendUpdate: (legendId: string, updates: Partial<IGroup>) => void;
   setOptimisticLegendUpdates: (updatesByLegendId: Record<string, Partial<IGroup>>) => void;

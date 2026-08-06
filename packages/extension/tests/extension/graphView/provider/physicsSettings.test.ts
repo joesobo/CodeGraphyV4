@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import { createGraphViewProviderPhysicsSettingsMethods } from '../../../../src/extension/graphView/provider/physicsSettings';
 
 describe('graphView/provider/physicsSettings', () => {
   it('reads and sends current physics settings through the provider message bridge', () => {
-    const readPhysicsSettings = vi.fn(() => ({ damping: 1 } as IPhysicsSettings));
+    const readPhysicsSettings = vi.fn(() => ({ damping: 1 } as GraphPhysicsSettings));
     const source = { _sendMessage: vi.fn() };
     const configuration = {
       get: vi.fn((_, fallback) => fallback),
@@ -16,7 +16,7 @@ describe('graphView/provider/physicsSettings', () => {
       readPhysicsSettings,
       updatePhysicsSetting: vi.fn(),
       resetPhysicsSettings: vi.fn(),
-      defaultPhysics: {} as IPhysicsSettings,
+      defaultPhysics: {} as GraphPhysicsSettings,
     });
 
     expect(methods._getPhysicsSettings()).toEqual({ damping: 1 });
@@ -41,10 +41,10 @@ describe('graphView/provider/physicsSettings', () => {
       { _sendMessage: vi.fn() } as never,
       {
       getConfiguration,
-      readPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
+      readPhysicsSettings: vi.fn(() => ({ damping: 1 } as GraphPhysicsSettings)),
       updatePhysicsSetting,
       resetPhysicsSettings: vi.fn(async () => undefined),
-        defaultPhysics: {} as IPhysicsSettings,
+        defaultPhysics: {} as GraphPhysicsSettings,
       },
     );
 
@@ -73,10 +73,10 @@ describe('graphView/provider/physicsSettings', () => {
       { _sendMessage: vi.fn() } as never,
       {
         getConfiguration,
-        readPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
+        readPhysicsSettings: vi.fn(() => ({ damping: 1 } as GraphPhysicsSettings)),
         updatePhysicsSetting: vi.fn(async () => undefined),
         resetPhysicsSettings,
-        defaultPhysics: {} as IPhysicsSettings,
+        defaultPhysics: {} as GraphPhysicsSettings,
       },
     );
 

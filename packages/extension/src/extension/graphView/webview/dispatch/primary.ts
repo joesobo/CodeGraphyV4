@@ -5,7 +5,7 @@ import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/exte
 import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { NodeSizeMode } from '../../../../shared/settings/modes';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
 import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';
@@ -56,7 +56,7 @@ export interface GraphViewPrimaryMessageContext {
   getDepthMode(): boolean;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
   sendPhysicsSettings(): void;
-  updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
+  updatePhysicsSetting(key: keyof GraphPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;
   workspaceFolder: vscode.WorkspaceFolder | undefined;
   persistLegends(legends: IGroup[]): Promise<void>;

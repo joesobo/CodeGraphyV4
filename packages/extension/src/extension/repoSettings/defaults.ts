@@ -3,9 +3,9 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 import {
-  DEFAULT_PHYSICS_SETTINGS,
-  type IPhysicsSettings,
-} from '../../shared/settings/physics';
+  DEFAULT_GRAPH_PHYSICS_SETTINGS,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   type CodeGraphyWorkspaceInterfaceSettings,
@@ -38,7 +38,7 @@ export interface ICodeGraphyExtensionInterfaceSettings {
   depthMode: boolean;
   depthLimit: number;
   nodeSizeMode: NodeSizeMode;
-  physics: IPhysicsSettings;
+  physics: GraphPhysicsSettings;
 }
 
 export const CODEGRAPHY_EXTENSION_INTERFACE_SETTING_KEYS = [
@@ -99,7 +99,7 @@ function createDefaultExtensionInterfaceSettings(): ICodeGraphyExtensionInterfac
     depthMode: false,
     depthLimit: 1,
     nodeSizeMode: 'connections',
-    physics: { ...DEFAULT_PHYSICS_SETTINGS },
+    physics: { ...DEFAULT_GRAPH_PHYSICS_SETTINGS },
   };
 }
 

@@ -8,7 +8,7 @@ import type {
 } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { NodeSizeMode } from '../../../../shared/settings/modes';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { getUndoManager } from '../../../undoManager';
@@ -55,7 +55,7 @@ export interface GraphViewProviderMessageListenerDependencies {
   ): vscode.ConfigurationTarget;
   captureSettingsSnapshot(
     configuration: GraphViewConfigurationLike,
-    physicsSettings: IPhysicsSettings,
+    physicsSettings: GraphPhysicsSettings,
     nodeSizeMode: NodeSizeMode,
   ): ISettingsSnapshot;
   createResetSettingsAction(
@@ -104,7 +104,7 @@ export interface GraphViewProviderMessageListenerSource {
     emit(event: string, payload: unknown): void;
   };
   _firstWorkspaceReadyPromise: Promise<void>;
-  _getPhysicsSettings(): IPhysicsSettings;
+  _getPhysicsSettings(): GraphPhysicsSettings;
   _openSelectedNode(nodeId: string): Promise<void>;
   _activateNode(nodeId: string): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
@@ -129,7 +129,7 @@ export interface GraphViewProviderMessageListenerSource {
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   _sendPhysicsSettings(): void;
-  _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
+  _updatePhysicsSetting(key: keyof GraphPhysicsSettings, value: number): Promise<void>;
   _resetPhysicsSettings(): Promise<void>;
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;

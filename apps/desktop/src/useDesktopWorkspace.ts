@@ -1,3 +1,7 @@
+import {
+  DEFAULT_GRAPH_PHYSICS_SETTINGS,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import {
   chooseWorkspace,
@@ -7,8 +11,10 @@ import {
   listRecentWorkspaces,
   listenToDesktopMenu,
   loadWorkspaceGraph,
+  readDesktopGraphSettings,
   readWorkspaceFile,
   saveWorkspaceFile,
+  writeDesktopGraphSettings,
   type FileDocument,
   type RecentWorkspace,
 } from './bridge';
@@ -34,7 +40,9 @@ interface DesktopWorkspaceState {
   document?: FileDocument;
   draft: string;
   fileSwitchMetrics?: FileSwitchMetrics;
+  graphRevision: number;
   graphResult?: WorkspaceGraphResult;
+  graphSettings: GraphPhysicsSettings;
   pendingFilePath?: string;
   pendingWorkspaceAction?: WorkspaceAction;
   recentWorkspaces: RecentWorkspace[];
@@ -49,6 +57,7 @@ type DesktopWorkspaceEvent =
   | { type: 'file_opened'; document: FileDocument }
   | { type: 'file_pending'; path?: string }
   | { type: 'file_saved'; document: FileDocument }
+  | { type: 'graph_settings'; settings: GraphPhysicsSettings }
   | { type: 'recent_workspaces'; workspaces: RecentWorkspace[] }
   | { type: 'saving'; saving: boolean }
   | { type: 'set_draft'; draft: string }
@@ -58,6 +67,8 @@ type DesktopWorkspaceEvent =
 
 const initialState: DesktopWorkspaceState = {
   draft: '',
+  graphRevision: 0,
+  graphSettings: DEFAULT_GRAPH_PHYSICS_SETTINGS,
   recentWorkspaces: [],
   saving: false,
   status: { kind: 'idle', message: 'Open a local workspace to begin.' },
@@ -93,6 +104,8 @@ function desktopWorkspaceReducer(
       return { ...state, pendingFilePath: event.path };
     case 'file_saved':
       return { ...state, document: event.document, draft: event.document.content };
+    case 'graph_settings':
+      return { ...state, graphSettings: event.settings };
     case 'recent_workspaces':
       return { ...state, recentWorkspaces: event.workspaces };
     case 'saving':
@@ -106,6 +119,7 @@ function desktopWorkspaceReducer(
     case 'workspace_loaded':
       return {
         ...state,
+        graphRevision: state.graphRevision + 1,
         workspaceRoot: event.result.workspaceRoot,
         graphResult: event.result,
         ...(event.changed
@@ -113,6 +127,7 @@ function desktopWorkspaceReducer(
               document: undefined,
               draft: '',
               fileSwitchMetrics: undefined,
+              graphSettings: DEFAULT_GRAPH_PHYSICS_SETTINGS,
               pendingFilePath: undefined,
             }
           : {}),
@@ -142,6 +157,9 @@ export function useDesktopWorkspace() {
   const [state, dispatch] = useReducer(desktopWorkspaceReducer, initialState);
   const workspaceRequestRef = useRef(0);
   const fileRequestRef = useRef(0);
+  const graphSettingsDirtyRef = useRef(false);
+  const graphSettingsRef = useRef<GraphPhysicsSettings>(DEFAULT_GRAPH_PHYSICS_SETTINGS);
+  const graphSettingsTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const workspaceRootRef = useRef<string>();
   const graph = state.graphResult?.kind === 'ready' ? state.graphResult.graph : undefined;
   const tree = useMemo(() => graph ? buildFileTree(graph) : [], [graph]);
@@ -187,6 +205,13 @@ export function useDesktopWorkspace() {
       workspaceRootRef.current = result.workspaceRoot;
       if (changed) fileRequestRef.current += 1;
       dispatch({ type: 'workspace_loaded', changed, result });
+      if (changed) {
+        const settings = await readDesktopGraphSettings();
+        if (requestId !== workspaceRequestRef.current) return false;
+        graphSettingsRef.current = settings;
+        graphSettingsDirtyRef.current = false;
+        dispatch({ type: 'graph_settings', settings });
+      }
       void refreshRecentWorkspaces(false);
       if (result.kind === 'unreadable') {
         dispatch({ type: 'status', status: { kind: 'error', message: result.message } });
@@ -204,6 +229,47 @@ export function useDesktopWorkspace() {
       return false;
     }
   }, [refreshRecentWorkspaces, reportError]);
+
+  const persistGraphSettings = useCallback(async (): Promise<void> => {
+    if (!graphSettingsDirtyRef.current || !workspaceRootRef.current) return;
+    graphSettingsDirtyRef.current = false;
+    try {
+      await writeDesktopGraphSettings(graphSettingsRef.current);
+    } catch (error) {
+      graphSettingsDirtyRef.current = true;
+      reportError(error);
+    }
+  }, [reportError]);
+
+  const flushGraphSettings = useCallback(async (): Promise<void> => {
+    if (graphSettingsTimerRef.current) {
+      clearTimeout(graphSettingsTimerRef.current);
+      graphSettingsTimerRef.current = undefined;
+    }
+    await persistGraphSettings();
+  }, [persistGraphSettings]);
+
+  const updateGraphSetting = useCallback((
+    key: keyof GraphPhysicsSettings,
+    value: number,
+  ): void => {
+    const settings = { ...graphSettingsRef.current, [key]: value };
+    graphSettingsRef.current = settings;
+    graphSettingsDirtyRef.current = true;
+    dispatch({ type: 'graph_settings', settings });
+    if (graphSettingsTimerRef.current) clearTimeout(graphSettingsTimerRef.current);
+    graphSettingsTimerRef.current = setTimeout(() => {
+      graphSettingsTimerRef.current = undefined;
+      void persistGraphSettings();
+    }, 350);
+  }, [persistGraphSettings]);
+
+  const resetGraphSettings = useCallback((): void => {
+    graphSettingsRef.current = { ...DEFAULT_GRAPH_PHYSICS_SETTINGS };
+    graphSettingsDirtyRef.current = true;
+    dispatch({ type: 'graph_settings', settings: graphSettingsRef.current });
+    void flushGraphSettings();
+  }, [flushGraphSettings]);
 
   useEffect(() => {
     void refreshRecentWorkspaces();
@@ -255,18 +321,22 @@ export function useDesktopWorkspace() {
   }, [dirty, openGraph, reportError, state.document, state.draft, state.saving]);
 
   const closeCurrentWorkspace = useCallback(async (): Promise<void> => {
+    await flushGraphSettings();
     workspaceRequestRef.current += 1;
     fileRequestRef.current += 1;
     try {
       await closeWorkspace();
       workspaceRootRef.current = undefined;
+      graphSettingsRef.current = DEFAULT_GRAPH_PHYSICS_SETTINGS;
+      graphSettingsDirtyRef.current = false;
       dispatch({ type: 'close_workspace' });
     } catch (error) {
       reportError(error);
     }
-  }, [reportError]);
+  }, [flushGraphSettings, reportError]);
 
   const executeWorkspaceAction = useCallback(async (action: WorkspaceAction): Promise<void> => {
+    await flushGraphSettings();
     if (action.kind === 'close') {
       await closeCurrentWorkspace();
       return;
@@ -281,7 +351,7 @@ export function useDesktopWorkspace() {
     } catch (error) {
       reportError(error);
     }
-  }, [closeCurrentWorkspace, openGraph, reportError]);
+  }, [closeCurrentWorkspace, flushGraphSettings, openGraph, reportError]);
 
   const requestWorkspaceAction = useCallback((action: WorkspaceAction): void => {
     if (dirty) {
@@ -318,6 +388,10 @@ export function useDesktopWorkspace() {
     };
   }, [refreshRecentWorkspaces, reportError]);
 
+  useEffect(() => () => {
+    if (graphSettingsTimerRef.current) clearTimeout(graphSettingsTimerRef.current);
+  }, []);
+
   const clearRecent = useCallback(async (): Promise<void> => {
     try {
       await clearRecentWorkspaces();
@@ -346,11 +420,14 @@ export function useDesktopWorkspace() {
     cancelPendingWorkspaceAction: () => dispatch({ type: 'workspace_action' }),
     clearRecent,
     finishPendingWorkspaceAction,
+    flushGraphSettings,
     openRecentWorkspace: (path: string) => requestWorkspaceAction({ kind: 'open', path }),
     openWorkspace: () => requestWorkspaceAction({ kind: 'choose' }),
     reindex: () => state.workspaceRoot && void openGraph(state.workspaceRoot, { reindex: true }),
+    resetGraphSettings,
     saveCurrentDocument,
     selectFile,
     setDraft: (draft: string) => dispatch({ type: 'set_draft', draft }),
+    updateGraphSetting,
   };
 }

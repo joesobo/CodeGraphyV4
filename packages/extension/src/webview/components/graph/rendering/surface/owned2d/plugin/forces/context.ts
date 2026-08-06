@@ -1,4 +1,4 @@
-import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { GraphEdgeKind, IGraphData } from '../../../../../../../../shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../../model/build';
 
@@ -6,7 +6,7 @@ export function forceNamespace(pluginId: string, contributionId: string): string
   return `plugin:${pluginId}:${contributionId}`;
 }
 
-export function forceContextSignature(settings?: IPhysicsSettings): string {
+export function forceContextSignature(settings?: GraphPhysicsSettings): string {
   return [settings?.repelForce ?? '', settings?.linkDistance ?? '', settings?.linkForce ?? '',
     settings?.damping ?? '', settings?.centerForce ?? ''].join(':');
 }

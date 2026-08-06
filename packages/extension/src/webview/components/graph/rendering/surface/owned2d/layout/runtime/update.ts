@@ -1,9 +1,11 @@
-import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
+import {
+  applyGraphPhysicsSettings,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import type { OwnedGraphLayout } from './model';
 import { sameOwnedGraphShape } from './comparison';
 import { buildOwnedGraphLayoutData } from './data';
-import { applyOwnedPhysicsSettings } from './settings';
 
 function preserveNodeState(layout: OwnedGraphLayout, nodes: FGNode[]): void {
   const indexes = new Map(layout.engine.nodeIds.map((id, index) => [id, index]));
@@ -18,12 +20,12 @@ function preserveNodeState(layout: OwnedGraphLayout, nodes: FGNode[]): void {
   }
 }
 
-export function updateOwnedGraphLayout(layout: OwnedGraphLayout, nodes: FGNode[], links: FGLink[], settings: IPhysicsSettings): void {
+export function updateOwnedGraphLayout(layout: OwnedGraphLayout, nodes: FGNode[], links: FGLink[], settings: GraphPhysicsSettings): void {
   preserveNodeState(layout, nodes);
   const data = buildOwnedGraphLayoutData(nodes, links);
   if (!sameOwnedGraphShape(layout.engine, data.input)) {
     layout.engine.setGraph(data.input);
-    applyOwnedPhysicsSettings(layout.engine, settings);
+    applyGraphPhysicsSettings(layout.engine, settings);
     layout.membershipRevision += 1;
   }
   if (layout.nodes !== nodes || layout.links !== data.resolvedLinks) {

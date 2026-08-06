@@ -1,5 +1,8 @@
 import React, { useRef } from 'react';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import {
+  GRAPH_PHYSICS_CONTROL_LIMITS,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store/state';
 import { Label } from '../../ui/form/label';
@@ -25,7 +28,7 @@ export function ForcesSection(): React.ReactElement {
     }
   });
 
-  const flushPhysicsSetting = (key: keyof IPhysicsSettings) => {
+  const flushPhysicsSetting = (key: keyof GraphPhysicsSettings) => {
     flushPendingPhysicsValue(
       pendingPhysicsValuesRef.current,
       physicsPersistTimersRef.current,
@@ -36,7 +39,7 @@ export function ForcesSection(): React.ReactElement {
     );
   };
 
-  const schedulePhysicsSettingPersist = (key: keyof IPhysicsSettings, value: number) => {
+  const schedulePhysicsSettingPersist = (key: keyof GraphPhysicsSettings, value: number) => {
     schedulePendingPhysicsValue(
       pendingPhysicsValuesRef.current,
       physicsPersistTimersRef.current,
@@ -47,7 +50,7 @@ export function ForcesSection(): React.ReactElement {
     );
   };
 
-  const handlePhysicsChange = (key: keyof IPhysicsSettings, value: number) => {
+  const handlePhysicsChange = (key: keyof GraphPhysicsSettings, value: number) => {
     setPhysicsSettings({ ...settings, [key]: value });
     schedulePhysicsSettingPersist(key, value);
   };
@@ -65,9 +68,9 @@ export function ForcesSection(): React.ReactElement {
         </div>
         <Slider
           data-testid="repel-force-slider"
-          min={0}
-          max={20}
-          step={1}
+          min={GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.min}
+          max={GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.max}
+          step={GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.step}
           value={[settings.repelForce]}
           onValueChange={(values) => handlePhysicsChange('repelForce', values[0])}
           onValueCommit={() => flushPhysicsSetting('repelForce')}
@@ -85,9 +88,9 @@ export function ForcesSection(): React.ReactElement {
         </div>
         <Slider
           data-testid="center-force-slider"
-          min={0}
-          max={1}
-          step={0.01}
+          min={GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.min}
+          max={GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.max}
+          step={GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.step}
           value={[settings.centerForce]}
           onValueChange={(values) => handlePhysicsChange('centerForce', values[0])}
           onValueCommit={() => flushPhysicsSetting('centerForce')}
@@ -100,9 +103,9 @@ export function ForcesSection(): React.ReactElement {
         </div>
         <Slider
           data-testid="link-distance-slider"
-          min={30}
-          max={500}
-          step={10}
+          min={GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.min}
+          max={GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.max}
+          step={GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.step}
           value={[settings.linkDistance]}
           onValueChange={(values) => handlePhysicsChange('linkDistance', values[0])}
           onValueCommit={() => flushPhysicsSetting('linkDistance')}
@@ -115,9 +118,9 @@ export function ForcesSection(): React.ReactElement {
         </div>
         <Slider
           data-testid="link-force-slider"
-          min={0}
-          max={2}
-          step={0.01}
+          min={GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.min}
+          max={GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.max}
+          step={GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.step}
           value={[settings.linkForce]}
           onValueChange={(values) => handlePhysicsChange('linkForce', values[0])}
           onValueCommit={() => flushPhysicsSetting('linkForce')}

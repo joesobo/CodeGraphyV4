@@ -14,7 +14,7 @@ The current branch already has the right base:
 - Saves use atomic replacement, preserve permissions, reject external-change conflicts, and trigger bounded one-File Indexing.
 - The bundle has a narrow content security policy, a fixed sidecar, a macOS 26 floor, and a detailed signed-release acceptance gate.
 
-The largest missing product systems are recent workspace navigation, native menus, persistent recovery and session state, keyboard-first find and commands, local diagnostics, updates, and a complete accessibility path. Those belong in the host and app shell, not in Core or the renderer.
+This branch also adds recent workspace navigation, native File menus, stale-request guards, the shared Material File and Folder visuals, reduced-motion rendering, direct Node drag physics, and a focused Graph Settings surface. The largest remaining product systems are persistent recovery and session state, keyboard-first find and commands, local diagnostics, updates, and a complete accessibility path. Those belong in the host and app shell, not in Core or the renderer.
 
 ## Must-have MVP polish
 
@@ -173,12 +173,11 @@ Lapce shows the other edge of the scope decision. Its official project includes 
 
 ## Suggested delivery order
 
-1. Recent-workspace state, toolbar switcher, native File menu, and safe dirty-workspace transition.
-2. Stale-request protection, quick File open, keyboard tree navigation, and workspace text search.
-3. Recovery snapshots, conflict actions, and normal-quit session restoration.
-4. Material File and Folder icons, shared extension colors, light and dark themes, and searchable MVP settings.
-5. Accessibility pass, reduced motion, and a semantic graph inspector.
-6. Structured local logs, Core restart, diagnostic summary, and measured performance budgets.
-7. Signed first release. Add the signed updater only after that release path passes on a clean Mac.
+1. Quick File open, keyboard tree navigation, and workspace text search.
+2. Recovery snapshots, conflict actions, and normal-quit session restoration.
+3. Searchable app and editor settings beyond the current focused Graph Settings surface.
+4. Accessibility pass, including a keyboard-accessible Node list and Graph Stage pause control.
+5. Structured local logs, Core restart, diagnostic summary, and measured performance budgets.
+6. Signed first release. Add the signed updater only after that release path passes on a clean Mac.
 
 This order keeps each layer usable before the next one arrives and keeps Core and the renderer free of desktop product state.

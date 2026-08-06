@@ -1,8 +1,8 @@
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
-export type PendingPhysicsMap = Partial<Record<keyof IPhysicsSettings, number>>;
+export type PendingPhysicsMap = Partial<Record<keyof GraphPhysicsSettings, number>>;
 export type PhysicsTimerMap = Partial<
-  Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>
+  Record<keyof GraphPhysicsSettings, ReturnType<typeof setTimeout>>
 >;
 
 export function clearPhysicsTimerMap(timers: PhysicsTimerMap): void {
@@ -16,8 +16,8 @@ export function clearPhysicsTimerMap(timers: PhysicsTimerMap): void {
 export function flushPendingPhysicsValue(
   pendingValues: PendingPhysicsMap,
   timers: PhysicsTimerMap,
-  key: keyof IPhysicsSettings,
-  emit: (key: keyof IPhysicsSettings, value: number) => void,
+  key: keyof GraphPhysicsSettings,
+  emit: (key: keyof GraphPhysicsSettings, value: number) => void,
 ): void {
   const pendingValue = pendingValues[key];
   if (pendingValue === undefined) {
@@ -37,10 +37,10 @@ export function flushPendingPhysicsValue(
 export function schedulePendingPhysicsValue(
   pendingValues: PendingPhysicsMap,
   timers: PhysicsTimerMap,
-  key: keyof IPhysicsSettings,
+  key: keyof GraphPhysicsSettings,
   value: number,
   delayMs: number,
-  flush: (key: keyof IPhysicsSettings) => void,
+  flush: (key: keyof GraphPhysicsSettings) => void,
 ): void {
   pendingValues[key] = value;
 

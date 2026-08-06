@@ -4,12 +4,12 @@
  */
 
 import type { IUndoableAction } from '../undoManager';
-import type { IPhysicsSettings } from '../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { ISettingsSnapshot } from '../../shared/settings/snapshot';
 import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /** Physics keys live under `codegraphy.physics.*` */
-const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
+const PHYSICS_KEYS: (keyof GraphPhysicsSettings)[] = [
   'repelForce', 'linkDistance', 'linkForce', 'damping', 'centerForce',
 ];
 

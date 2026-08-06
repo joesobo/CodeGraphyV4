@@ -1,5 +1,5 @@
 import type { NodeSizeMode } from '../../../shared/settings/modes';
-import type { IPhysicsSettings } from '../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../../shared/settings/defaults';
 import { readGraphViewSettings } from './reader';
@@ -24,7 +24,7 @@ function readConfigList<T>(
 
 export function captureGraphViewSettingsSnapshot(
   config: GraphViewSettingsConfig,
-  physics: IPhysicsSettings,
+  physics: GraphPhysicsSettings,
   nodeSizeMode: NodeSizeMode,
 ): ISettingsSnapshot {
   const settings = readGraphViewSettings(config);

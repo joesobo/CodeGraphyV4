@@ -1,4 +1,4 @@
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 interface GraphViewPhysicsConfigurationLike {
   update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
@@ -9,13 +9,13 @@ interface GraphViewPhysicsConfigOptions {
   getConfigTarget?: () => unknown;
 }
 
-function getGraphViewPhysicsSettingKeys(): Array<keyof IPhysicsSettings> {
+function getGraphViewPhysicsSettingKeys(): Array<keyof GraphPhysicsSettings> {
   return ['repelForce', 'linkDistance', 'linkForce', 'damping', 'centerForce'];
 }
 
 async function updatePhysicsSetting(
   configuration: GraphViewPhysicsConfigurationLike,
-  key: keyof IPhysicsSettings,
+  key: keyof GraphPhysicsSettings,
   value: number | undefined,
   target: unknown,
 ): Promise<void> {
@@ -28,7 +28,7 @@ async function updatePhysicsSetting(
 }
 
 export async function updateGraphViewPhysicsSetting(
-  key: keyof IPhysicsSettings,
+  key: keyof GraphPhysicsSettings,
   value: number,
   { getConfiguration, getConfigTarget }: GraphViewPhysicsConfigOptions,
 ): Promise<void> {

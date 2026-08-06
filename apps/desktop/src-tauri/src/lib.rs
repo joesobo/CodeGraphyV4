@@ -330,7 +330,9 @@ struct CoreProcess {
 enum CoreRequestAction {
     Open,
     Index,
+    ReadSettings,
     Update { relative_path: String },
+    WriteSettings { settings: Value },
 }
 
 impl CoreRequestAction {
@@ -338,7 +340,9 @@ impl CoreRequestAction {
         match self {
             Self::Open => "open",
             Self::Index => "index",
+            Self::ReadSettings => "read-settings",
             Self::Update { .. } => "update",
+            Self::WriteSettings { .. } => "write-settings",
         }
     }
 }
@@ -516,6 +520,9 @@ fn build_core_request(request_id: u64, action: &CoreRequestAction, workspace_roo
     });
     if let CoreRequestAction::Update { relative_path } = action {
         params["relativePath"] = Value::String(relative_path.clone());
+    }
+    if let CoreRequestAction::WriteSettings { settings } = action {
+        params["settings"] = settings.clone();
     }
     json!({
         "kind": "request",
@@ -720,6 +727,33 @@ async fn save_workspace_file(
     .map_err(|error| format!("Unable to save File: {error}"))?
 }
 
+#[tauri::command]
+async fn read_graph_settings(
+    app: AppHandle,
+    core: State<'_, CoreService>,
+    workspace: State<'_, WorkspaceState>,
+) -> Result<Value, String> {
+    let root = active_workspace_root(&workspace)?;
+    request_core(&app, &core, &CoreRequestAction::ReadSettings, &root).await
+}
+
+#[tauri::command]
+async fn write_graph_settings(
+    app: AppHandle,
+    core: State<'_, CoreService>,
+    workspace: State<'_, WorkspaceState>,
+    settings: Value,
+) -> Result<Value, String> {
+    let root = active_workspace_root(&workspace)?;
+    request_core(
+        &app,
+        &core,
+        &CoreRequestAction::WriteSettings { settings },
+        &root,
+    )
+    .await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -746,9 +780,11 @@ pub fn run() {
             close_workspace,
             initial_workspace,
             load_workspace_graph,
+            read_graph_settings,
             read_workspace_file,
             recent_workspaces,
             save_workspace_file,
+            write_graph_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CodeGraphy desktop");
@@ -818,6 +854,49 @@ mod tests {
                     "relativePath": "src/index.ts",
                     "workspaceRoot": "/tmp/example",
                 },
+            })
+        );
+    }
+
+    #[test]
+    fn core_settings_requests_keep_the_active_workspace_boundary() {
+        let settings = json!({
+            "repelForce": 10,
+            "linkDistance": 80,
+            "linkForce": 1,
+            "damping": 0.4,
+            "centerForce": 0.1,
+        });
+
+        assert_eq!(
+            build_core_request(
+                8,
+                &CoreRequestAction::WriteSettings {
+                    settings: settings.clone(),
+                },
+                Path::new("/tmp/example"),
+            ),
+            json!({
+                "id": 8,
+                "kind": "request",
+                "method": "write-settings",
+                "params": {
+                    "settings": settings,
+                    "workspaceRoot": "/tmp/example",
+                },
+            })
+        );
+        assert_eq!(
+            build_core_request(
+                9,
+                &CoreRequestAction::ReadSettings,
+                Path::new("/tmp/example"),
+            ),
+            json!({
+                "id": 9,
+                "kind": "request",
+                "method": "read-settings",
+                "params": { "workspaceRoot": "/tmp/example" },
             })
         );
     }

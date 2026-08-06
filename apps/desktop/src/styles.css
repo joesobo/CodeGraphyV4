@@ -253,8 +253,62 @@ button:focus-visible,
   text-transform: uppercase;
 }
 
-.pane-heading > span:last-child { color: var(--cg-text-muted); font-family: var(--cg-font-mono); font-size: 8.5px; font-weight: 450; letter-spacing: 0; text-transform: none; }
+.pane-heading > span:last-child,
+.graph-heading-actions > span { color: var(--cg-text-muted); font-family: var(--cg-font-mono); font-size: 8.5px; font-weight: 450; letter-spacing: 0; text-transform: none; }
 .editor-heading > span:first-child { overflow: hidden; color: #c6d0d4; font-family: var(--cg-font-mono); font-size: 9.5px; font-weight: 450; letter-spacing: 0; text-overflow: ellipsis; text-transform: none; white-space: nowrap; }
+
+.graph-heading-actions { display: flex; align-items: center; gap: 7px; }
+.graph-settings { position: relative; }
+.graph-settings-trigger {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  padding: 0;
+}
+.graph-settings-trigger:hover,
+.graph-settings-trigger[aria-expanded="true"] { border-color: var(--cg-border); background: var(--cg-surface-hover); }
+.graph-settings-trigger[aria-expanded="true"] { color: var(--cg-accent); }
+.graph-settings-icon { display: grid; width: 12px; gap: 2px; }
+.graph-settings-icon i { position: relative; display: block; height: 1px; background: currentColor; }
+.graph-settings-icon i::after { position: absolute; top: -1.5px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; content: ""; }
+.graph-settings-icon i:nth-child(1)::after { left: 2px; }
+.graph-settings-icon i:nth-child(2)::after { right: 1px; }
+.graph-settings-icon i:nth-child(3)::after { left: 5px; }
+
+.graph-settings-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: -5px;
+  z-index: 55;
+  width: 278px;
+  border: 1px solid var(--cg-border-strong);
+  border-radius: 9px;
+  background: rgba(25, 29, 33, 0.98);
+  padding: 11px;
+  color: var(--cg-text);
+  box-shadow: var(--cg-shadow);
+  letter-spacing: 0;
+  text-transform: none;
+  -webkit-backdrop-filter: blur(22px) saturate(120%);
+  backdrop-filter: blur(22px) saturate(120%);
+}
+.graph-settings-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.graph-settings-heading > div { display: grid; gap: 2px; }
+.graph-settings-heading strong { font-size: 11px; font-weight: 620; }
+.graph-settings-heading span { color: var(--cg-text-muted); font-family: var(--cg-font-mono); font-size: 8px; }
+.graph-settings-reset { min-height: 22px; border: 0; border-radius: 4px; background: transparent; padding: 0 6px; color: var(--cg-text-secondary); font-size: 9px; }
+.graph-settings-reset:hover { background: var(--cg-surface-hover); color: var(--cg-text); }
+.graph-settings-controls { display: grid; gap: 12px; margin-top: 13px; }
+.graph-settings-control { display: grid; gap: 5px; }
+.graph-settings-control-heading { display: flex; align-items: baseline; justify-content: space-between; }
+.graph-settings-control label { color: var(--cg-text-secondary); font-size: 9.5px; font-weight: 560; }
+.graph-settings-control output { color: var(--cg-accent); font-family: var(--cg-font-mono); font-size: 8.5px; font-variant-numeric: tabular-nums; }
+.graph-settings-control input[type="range"] { width: 100%; height: 15px; margin: 0; accent-color: var(--cg-accent); }
+.graph-settings-control > span { color: var(--cg-text-quiet); font-size: 8.5px; line-height: 1.35; }
 
 .file-tree { min-height: 0; overflow: auto; padding: 6px 5px 30px; scrollbar-color: #3a4449 transparent; scrollbar-width: thin; }
 .tree-item { font-family: var(--cg-font-mono); }
@@ -425,6 +479,7 @@ button:focus-visible,
   .graph-pane,
   .relationship-inspector,
   .workspace-menu,
+  .graph-settings-popover,
   .workspace-switch-dialog { border-color: CanvasText; background: Canvas; color: CanvasText; }
   .tree-file.is-selected,
   .workspace-trigger[aria-expanded="true"] { background: Highlight; color: HighlightText; }

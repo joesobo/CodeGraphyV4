@@ -2,6 +2,7 @@ import brandIconUrl from '../../../assets/icon-dark.svg?url';
 import { CodeEditor } from './components/CodeEditor';
 import { FileTree } from './components/FileTree';
 import { GraphPanel } from './components/GraphPanel';
+import { GraphSettingsPopover } from './components/GraphSettingsPopover';
 import { WorkspaceSwitchDialog } from './components/WorkspaceSwitchDialog';
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
 import { useDesktopWorkspace } from './useDesktopWorkspace';
@@ -73,9 +74,23 @@ export function App(): React.ReactElement {
           <aside aria-label="Relationship Graph" className="graph-pane">
             <div className="pane-heading">
               <span>Relationship Graph</span>
-              <span>Files + Folders</span>
+              <div className="graph-heading-actions">
+                <span>Files + Folders</span>
+                <GraphSettingsPopover
+                  onChange={workspace.updateGraphSetting}
+                  onCommit={() => void workspace.flushGraphSettings()}
+                  onReset={workspace.resetGraphSettings}
+                  settings={workspace.graphSettings}
+                />
+              </div>
             </div>
-            <GraphPanel graph={workspace.graph} onSelect={id => void workspace.selectFile(id)} selectedId={workspace.selectedPath} />
+            <GraphPanel
+              graph={workspace.graph}
+              onSelect={id => void workspace.selectFile(id)}
+              physicsSettings={workspace.graphSettings}
+              revision={workspace.graphRevision}
+              selectedId={workspace.selectedPath}
+            />
           </aside>
         </div>
       ) : (

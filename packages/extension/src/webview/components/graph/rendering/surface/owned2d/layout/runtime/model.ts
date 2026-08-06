@@ -1,8 +1,10 @@
 import { createGraphLayoutEngine, type GraphLayoutEngine } from '@codegraphy-dev/graph-renderer';
-import type { IPhysicsSettings } from '../../../../../../../../shared/settings/physics';
+import {
+  toGraphPhysicsLayoutConfig,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import { buildOwnedGraphLayoutData } from './data';
-import { toOwnedPhysicsConfig } from './settings';
 
 export interface OwnedGraphLayout {
   baseStyleRevision: number;
@@ -12,14 +14,13 @@ export interface OwnedGraphLayout {
   nodes: FGNode[];
 }
 
-export { applyOwnedPhysicsSettings, toOwnedPhysicsConfig } from './settings';
 export { syncOwnedLayoutNodes, syncOwnedLayoutNodesAtVersion, updateOwnedGraphLayout } from './update';
 
-export function createOwnedGraphLayout(nodes: FGNode[], links: FGLink[], settings: IPhysicsSettings): OwnedGraphLayout {
+export function createOwnedGraphLayout(nodes: FGNode[], links: FGLink[], settings: GraphPhysicsSettings): OwnedGraphLayout {
   const data = buildOwnedGraphLayoutData(nodes, links);
   return {
     baseStyleRevision: 0,
-    engine: createGraphLayoutEngine(data.input, toOwnedPhysicsConfig(settings)),
+    engine: createGraphLayoutEngine(data.input, toGraphPhysicsLayoutConfig(settings)),
     links: data.resolvedLinks,
     membershipRevision: 0,
     nodes,

@@ -11,7 +11,7 @@ import type {
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
-import type { IPhysicsSettings } from '../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -44,7 +44,7 @@ export interface IStoreFields {
   cssSnippets: Record<string, boolean>;
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
-  physicsSettings: IPhysicsSettings;
+  physicsSettings: GraphPhysicsSettings;
   depthMode: boolean;
   depthLimit: number;
   maxDepthLimit: number;

@@ -1,10 +1,10 @@
 import type * as vscode from 'vscode';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 export function readGraphViewPhysicsSettings(
   config: Pick<vscode.WorkspaceConfiguration, 'get'>,
-  defaults: IPhysicsSettings
-): IPhysicsSettings {
+  defaults: GraphPhysicsSettings
+): GraphPhysicsSettings {
   return {
     repelForce: config.get<number>('physics.repelForce', defaults.repelForce),
     linkDistance: config.get<number>('physics.linkDistance', defaults.linkDistance),

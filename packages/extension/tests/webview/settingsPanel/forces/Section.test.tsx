@@ -2,11 +2,12 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForcesSection } from '../../../../src/webview/components/settingsPanel/forces/Section';
 import { graphStore } from '../../../../src/webview/store/state';
-import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
   Slider: ({
     'data-testid': testId,
+    min,
     max,
     step,
     value,
@@ -14,6 +15,7 @@ vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
     onValueCommit,
   }: {
     'data-testid'?: string;
+    min?: number;
     max?: number;
     step?: number;
     value?: number[];
@@ -26,7 +28,9 @@ vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
       <div>
         <button
           data-testid={`${testId}-change`}
+          data-minimum={min}
           data-maximum={max}
+          data-step={step}
           onClick={() => onValueChange?.([nextValue])}
         />
         <button data-testid={`${testId}-commit`} onClick={() => onValueCommit?.([nextValue])} />
@@ -41,7 +45,7 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));
 
-const DEFAULT_PHYSICS: IPhysicsSettings = {
+const DEFAULT_PHYSICS: GraphPhysicsSettings = {
   repelForce: 5,
   centerForce: 0.01,
   linkDistance: 100,
@@ -73,7 +77,16 @@ describe('ForcesSection', () => {
     expect(screen.getByText('Center Force')).toBeInTheDocument();
     expect(screen.getByText('Link Distance')).toBeInTheDocument();
     expect(screen.getByText('Link Force')).toBeInTheDocument();
+    expect(screen.getByTestId('repel-force-slider-change')).toHaveAttribute('data-minimum', '0');
+    expect(screen.getByTestId('repel-force-slider-change')).toHaveAttribute('data-maximum', '20');
+    expect(screen.getByTestId('repel-force-slider-change')).toHaveAttribute('data-step', '1');
+    expect(screen.getByTestId('center-force-slider-change')).toHaveAttribute('data-maximum', '1');
+    expect(screen.getByTestId('center-force-slider-change')).toHaveAttribute('data-step', '0.01');
+    expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-minimum', '30');
+    expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-maximum', '500');
+    expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-step', '10');
     expect(screen.getByTestId('link-force-slider-change')).toHaveAttribute('data-maximum', '2');
+    expect(screen.getByTestId('link-force-slider-change')).toHaveAttribute('data-step', '0.01');
   });
 
   it('persists repel force updates after debounce', () => {

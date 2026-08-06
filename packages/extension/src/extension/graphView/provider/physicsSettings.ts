@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { DEFAULT_PHYSICS_SETTINGS, type IPhysicsSettings } from '../../../shared/settings/physics';
+import { DEFAULT_GRAPH_PHYSICS_SETTINGS, type GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import { readGraphViewPhysicsSettings } from '../settings/physics/reader';
 import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from '../settings/physics/updates';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
@@ -14,9 +14,9 @@ export interface GraphViewProviderPhysicsSettingsMethodsSource {
 }
 
 export interface GraphViewProviderPhysicsSettingsMethods {
-  _getPhysicsSettings(): IPhysicsSettings;
+  _getPhysicsSettings(): GraphPhysicsSettings;
   _sendPhysicsSettings(): void;
-  _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
+  _updatePhysicsSetting(key: keyof GraphPhysicsSettings, value: number): Promise<void>;
   _resetPhysicsSettings(): Promise<void>;
 }
 
@@ -24,11 +24,11 @@ export interface GraphViewProviderPhysicsSettingsMethodDependencies {
   getConfiguration(): GraphViewProviderSettingsConfigLike;
   readPhysicsSettings(
     config: Pick<GraphViewProviderSettingsConfigLike, 'get'>,
-    defaults: IPhysicsSettings,
-  ): IPhysicsSettings;
+    defaults: GraphPhysicsSettings,
+  ): GraphPhysicsSettings;
   updatePhysicsSetting: typeof updateGraphViewPhysicsSetting;
   resetPhysicsSettings: typeof resetGraphViewPhysicsSettings;
-  defaultPhysics: IPhysicsSettings;
+  defaultPhysics: GraphPhysicsSettings;
 }
 
 function createDefaultGraphViewProviderPhysicsSettingsMethodDependencies(): GraphViewProviderPhysicsSettingsMethodDependencies {
@@ -37,7 +37,7 @@ function createDefaultGraphViewProviderPhysicsSettingsMethodDependencies(): Grap
     readPhysicsSettings: readGraphViewPhysicsSettings,
     updatePhysicsSetting: updateGraphViewPhysicsSetting,
     resetPhysicsSettings: resetGraphViewPhysicsSettings,
-    defaultPhysics: DEFAULT_PHYSICS_SETTINGS,
+    defaultPhysics: DEFAULT_GRAPH_PHYSICS_SETTINGS,
   };
 }
 
@@ -47,7 +47,7 @@ export function createGraphViewProviderPhysicsSettingsMethods(
 ): GraphViewProviderPhysicsSettingsMethods {
   const resolvedDependencies =
     dependencies ?? createDefaultGraphViewProviderPhysicsSettingsMethodDependencies();
-  const _getPhysicsSettings = (): IPhysicsSettings =>
+  const _getPhysicsSettings = (): GraphPhysicsSettings =>
     resolvedDependencies.readPhysicsSettings(
       resolvedDependencies.getConfiguration(),
       resolvedDependencies.defaultPhysics,
@@ -61,7 +61,7 @@ export function createGraphViewProviderPhysicsSettingsMethods(
   };
 
   const _updatePhysicsSetting = async (
-    key: keyof IPhysicsSettings,
+    key: keyof GraphPhysicsSettings,
     value: number,
   ): Promise<void> => {
     await resolvedDependencies.updatePhysicsSetting(key, value, {

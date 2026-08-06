@@ -4,7 +4,7 @@ import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
-import type { IPhysicsSettings } from '../../../shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
@@ -51,7 +51,7 @@ export interface GraphViewProviderSettingsStateMethodsSource {
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _getPhysicsSettings(): IPhysicsSettings;
+  _getPhysicsSettings(): GraphPhysicsSettings;
 }
 
 function getActiveWebview(source: GraphViewProviderSettingsStateMethodsSource): vscode.Webview | undefined {
@@ -97,7 +97,7 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
   sendProviderAllSettings: typeof sendGraphViewProviderAllSettings;
   captureSettingsSnapshot(
     configuration: GraphViewProviderSettingsConfigLike,
-    physicsSettings: IPhysicsSettings,
+    physicsSettings: GraphPhysicsSettings,
     nodeSizeMode: NodeSizeMode,
   ): ReturnType<typeof captureGraphViewSettingsSnapshot>;
 }

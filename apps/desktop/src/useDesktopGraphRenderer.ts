@@ -12,14 +12,26 @@ import {
   type GraphRendererNodeStyle,
 } from '@codegraphy-dev/graph-renderer';
 import {
+  applyGraphPhysicsSettings,
   DEFAULT_NODE_SIZE,
   GRAPH_NODE_LABEL_FONT,
   OWNED_GRAPH_COLLISION_RADIUS_PADDING,
   fileIconSize,
   folderIconSize,
   graphNodeLabelTop,
+  toGraphPhysicsLayoutConfig,
+  type GraphPhysicsSettings,
 } from '@codegraphy-dev/graph-visuals';
 import { useEffect, useRef, useState } from 'react';
+import {
+  DESKTOP_GRAPH_HOVER_SCALE,
+  DESKTOP_GRAPH_MAX_ZOOM,
+  DESKTOP_GRAPH_MIN_ZOOM,
+  passedDesktopGraphDragThreshold,
+  pickDesktopGraphNode,
+  screenToDesktopGraph,
+  zoomDesktopGraphAtPointer,
+} from './desktopGraphInteraction';
 import {
   createDesktopGraphNodeVisual,
   desktopGraphLinkColor,
@@ -38,6 +50,7 @@ interface ResolvedMaterialIcons {
 }
 
 interface PointerState {
+  nodeIndex?: number;
   originX: number;
   originY: number;
   moved: boolean;
@@ -168,10 +181,12 @@ function resizeOverlayCanvas(
 
 export function useDesktopGraphRenderer({
   graph,
+  physicsSettings,
   selectedId,
   onSelect,
 }: {
   graph: DesktopGraph;
+  physicsSettings: GraphPhysicsSettings;
   selectedId?: string;
   onSelect: (id: string) => void;
 }): {
@@ -182,7 +197,9 @@ export function useDesktopGraphRenderer({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const onSelectRef = useRef(onSelect);
+  const physicsSettingsRef = useRef(physicsSettings);
   const selectedIdRef = useRef(selectedId);
+  const applyPhysicsSettingsRef = useRef<((settings: GraphPhysicsSettings) => void) | undefined>();
   const redrawRef = useRef<(() => void) | undefined>(undefined);
   const [materialIcons, setMaterialIcons] = useState<ResolvedMaterialIcons>();
   const [physicsReady, setPhysicsReady] = useState(false);
@@ -196,6 +213,11 @@ export function useDesktopGraphRenderer({
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  useEffect(() => {
+    physicsSettingsRef.current = physicsSettings;
+    applyPhysicsSettingsRef.current?.(physicsSettings);
+  }, [physicsSettings]);
 
   useEffect(() => {
     let active = true;
@@ -246,9 +268,10 @@ export function useDesktopGraphRenderer({
     let continueAfterFrame = false;
     let renderer: WebGpuGraphRenderer | undefined;
     let fitFrames = 90;
+    let hoveredNodeIndex = -1;
     let positionVersion = 0;
     let styleVersion = 0;
-    let reducedMotionInitialFrameRendered = false;
+    let visibleFrameRequested = true;
     let camera: GraphRendererCamera = { centerX: 0, centerY: 0, zoom: 1 };
     let pointer: PointerState | undefined;
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -256,6 +279,7 @@ export function useDesktopGraphRenderer({
     const appearance = readGraphAppearance(canvas, forcedColors);
     const neighbors = graphNeighbors(graph);
     const sizes = desktopGraphNodeSizes(graph);
+    const nodeSizes = graph.nodes.map(node => sizes.get(node.id) ?? DEFAULT_NODE_SIZE);
     const imageCache = new Map<string, HTMLImageElement>();
     const nodes: GraphRendererNode[] = graph.nodes.map(node => ({ id: node.id }));
     const nodeById = new Map(nodes.map(node => [node.id, node]));
@@ -274,15 +298,18 @@ export function useDesktopGraphRenderer({
       targetIndexes.push(targetIndex);
       links.push({ source, target });
     }
-    const layout = createGraphLayoutEngine({
-      nodeIds: nodes.map(node => node.id),
-      radii: Float32Array.from(graph.nodes, node =>
-        (sizes.get(node.id) ?? DEFAULT_NODE_SIZE) + OWNED_GRAPH_COLLISION_RADIUS_PADDING),
-      chargeStrengthMultipliers: Float32Array.from(graph.nodes, node =>
-        graphNodeSizeChargeMultiplier(sizes.get(node.id), DEFAULT_NODE_SIZE)),
-      edgeSources: Uint32Array.from(sourceIndexes),
-      edgeTargets: Uint32Array.from(targetIndexes),
-    });
+    const layout = createGraphLayoutEngine(
+      {
+        nodeIds: nodes.map(node => node.id),
+        radii: Float32Array.from(nodeSizes, size =>
+          size + OWNED_GRAPH_COLLISION_RADIUS_PADDING),
+        chargeStrengthMultipliers: Float32Array.from(nodeSizes, size =>
+          graphNodeSizeChargeMultiplier(size, DEFAULT_NODE_SIZE)),
+        edgeSources: Uint32Array.from(sourceIndexes),
+        edgeTargets: Uint32Array.from(targetIndexes),
+      },
+      toGraphPhysicsLayoutConfig(physicsSettingsRef.current),
+    );
     const visualsById = new Map<string, DesktopGraphNodeVisuals>(graph.nodes.map(node => {
       const size = sizes.get(node.id) ?? DEFAULT_NODE_SIZE;
       const icon = resolvedIcons.get(node.id);
@@ -305,6 +332,13 @@ export function useDesktopGraphRenderer({
       if (!source) throw new Error(`Missing desktop graph Node ${node.id}.`);
       return nodeVisual(source).style;
     };
+    const getArrowColor = (): string => appearance.linkHighlight;
+    const getLinkColor = (link: GraphRendererLink): string =>
+      desktopGraphLinkColor(link, selectedIdRef.current, appearance);
+    const getLinkOpacity = (link: GraphRendererLink): number =>
+      desktopGraphLinkOpacity(link, selectedIdRef.current);
+    const getLinkWidth = (link: GraphRendererLink): number =>
+      desktopGraphLinkWidth(link, selectedIdRef.current);
     const schedule = (): void => {
       if (!active || framePending) return;
       framePending = true;
@@ -312,6 +346,10 @@ export function useDesktopGraphRenderer({
         framePending = false;
         draw();
       });
+    };
+    const scheduleVisible = (): void => {
+      visibleFrameRequested = true;
+      schedule();
     };
     const drawOverlay = (): void => {
       const cssWidth = Math.max(1, canvas.clientWidth);
@@ -325,23 +363,24 @@ export function useDesktopGraphRenderer({
       context.translate(cssWidth / 2, cssHeight / 2);
       context.scale(camera.zoom, camera.zoom);
       context.translate(-camera.centerX, -camera.centerY);
-      for (let index = 0; index < nodes.length; index += 1) {
+      const drawNodeIcon = (index: number): void => {
         const node = nodes[index];
         const source = node ? sourceNodeById.get(node.id) : undefined;
         const nodeX = layout.x[index];
         const nodeY = layout.y[index];
-        if (!node || !source || nodeX === undefined || nodeY === undefined) continue;
+        if (!node || !source || nodeX === undefined || nodeY === undefined) return;
         const visual = nodeVisual(source);
-        if (!visual.imageUrl) continue;
+        if (!visual.imageUrl) return;
         const image = imageFromCache(imageCache, visual.imageUrl, schedule);
-        if (!image) continue;
+        if (!image) return;
 
         context.save();
         context.globalAlpha = isHighlightedNode(node.id, selectedIdRef.current, neighbors)
           ? 1
           : 0.15;
         context.translate(nodeX, nodeY);
-        context.scale(visualScale, visualScale);
+        const hoverScale = index === hoveredNodeIndex ? DESKTOP_GRAPH_HOVER_SCALE : 1;
+        context.scale(visualScale * hoverScale, visualScale * hoverScale);
         if (source.nodeType !== 'folder') {
           context.beginPath();
           context.arc(0, 0, visual.size * 0.8, 0, Math.PI * 2);
@@ -352,7 +391,11 @@ export function useDesktopGraphRenderer({
           : fileIconSize(visual.size);
         context.drawImage(image, -imageSize / 2, -imageSize / 2, imageSize, imageSize);
         context.restore();
+      };
+      for (let index = 0; index < nodes.length; index += 1) {
+        if (index !== hoveredNodeIndex) drawNodeIcon(index);
       }
+      if (hoveredNodeIndex >= 0) drawNodeIcon(hoveredNodeIndex);
       context.restore();
 
       if (!shouldRenderGraphDetails(camera.zoom)) return;
@@ -394,14 +437,14 @@ export function useDesktopGraphRenderer({
         directionMode: 'arrows',
         edgeSources: layout.edgeSources,
         edgeTargets: layout.edgeTargets,
-        getArrowColor: () => appearance.linkHighlight,
-        getLinkColor: link => desktopGraphLinkColor(link, selectedIdRef.current, appearance),
-        getLinkOpacity: link => desktopGraphLinkOpacity(link, selectedIdRef.current),
-        getLinkWidth: link => desktopGraphLinkWidth(link, selectedIdRef.current),
+        getArrowColor,
+        getLinkColor,
+        getLinkOpacity,
+        getLinkWidth,
         getNodeStyle,
         hoveredLink: null,
-        hoveredNodeIndex: -1,
-        hoveredNodeScale: 1,
+        hoveredNodeIndex,
+        hoveredNodeScale: hoveredNodeIndex >= 0 ? DESKTOP_GRAPH_HOVER_SCALE : 1,
         links,
         nodes,
         nodeX: layout.x,
@@ -426,8 +469,8 @@ export function useDesktopGraphRenderer({
         fitFrames -= 1;
       }
       if (reduceMotion && !tick.settled) {
-        if (!reducedMotionInitialFrameRendered) {
-          reducedMotionInitialFrameRendered = true;
+        if (visibleFrameRequested) {
+          visibleFrameRequested = false;
           continueAfterFrame = true;
           renderFrame();
         } else {
@@ -436,23 +479,47 @@ export function useDesktopGraphRenderer({
         return;
       }
       continueAfterFrame = !tick.settled;
+      visibleFrameRequested = false;
       renderFrame();
     };
-    const redraw = (): void => {
+    const restyle = (): void => {
       styleVersion += 1;
-      schedule();
+      scheduleVisible();
     };
-    redrawRef.current = redraw;
-    const resize = new ResizeObserver(redraw);
+    redrawRef.current = restyle;
+    applyPhysicsSettingsRef.current = (settings): void => {
+      applyGraphPhysicsSettings(layout, settings);
+      continueAfterFrame = true;
+      scheduleVisible();
+    };
+    const resize = new ResizeObserver(scheduleVisible);
     resize.observe(canvas);
     const onWheel = (event: WheelEvent): void => {
       event.preventDefault();
       fitFrames = 0;
-      camera.zoom = Math.max(0.05, Math.min(5, camera.zoom * Math.exp(-event.deltaY * 0.001)));
-      redraw();
+      const bounds = canvas.getBoundingClientRect();
+      camera = zoomDesktopGraphAtPointer(
+        camera,
+        bounds.width,
+        bounds.height,
+        event.clientX - bounds.left,
+        event.clientY - bounds.top,
+        event.deltaY,
+      );
+      scheduleVisible();
     };
     const onPointerDown = (event: PointerEvent): void => {
+      if (event.button !== 0) return;
+      const bounds = canvas.getBoundingClientRect();
+      const world = screenToDesktopGraph(
+        camera,
+        bounds.width,
+        bounds.height,
+        event.clientX - bounds.left,
+        event.clientY - bounds.top,
+      );
       pointer = {
+        nodeIndex: pickDesktopGraphNode(layout.x, layout.y, nodeSizes, world, camera.zoom),
         moved: false,
         originX: event.clientX,
         originY: event.clientY,
@@ -461,51 +528,110 @@ export function useDesktopGraphRenderer({
       };
       canvas.setPointerCapture(event.pointerId);
       fitFrames = 0;
+      scheduleVisible();
     };
     const onPointerMove = (event: PointerEvent): void => {
-      if (!pointer) return;
+      const bounds = canvas.getBoundingClientRect();
+      const world = screenToDesktopGraph(
+        camera,
+        bounds.width,
+        bounds.height,
+        event.clientX - bounds.left,
+        event.clientY - bounds.top,
+      );
+      if (!pointer) {
+        const nextHovered = pickDesktopGraphNode(
+          layout.x,
+          layout.y,
+          nodeSizes,
+          world,
+          camera.zoom,
+        ) ?? -1;
+        if (nextHovered !== hoveredNodeIndex) {
+          hoveredNodeIndex = nextHovered;
+          scheduleVisible();
+        }
+        return;
+      }
+
+      if (pointer.nodeIndex !== undefined) {
+        if (!pointer.moved && passedDesktopGraphDragThreshold(
+          pointer.originX,
+          pointer.originY,
+          event.clientX,
+          event.clientY,
+        )) {
+          pointer.moved = true;
+          layout.pin(pointer.nodeIndex);
+          layout.setAlphaTarget(0.3);
+          continueAfterFrame = true;
+        }
+        if (!pointer.moved) return;
+        layout.setNodePosition(pointer.nodeIndex, world.x, world.y);
+        positionVersion += 1;
+        hoveredNodeIndex = pointer.nodeIndex;
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+        scheduleVisible();
+        return;
+      }
+
       const deltaX = event.clientX - pointer.x;
       const deltaY = event.clientY - pointer.y;
-      pointer.moved ||= Math.hypot(
-        event.clientX - pointer.originX,
-        event.clientY - pointer.originY,
-      ) > 2;
+      pointer.moved ||= passedDesktopGraphDragThreshold(
+        pointer.originX,
+        pointer.originY,
+        event.clientX,
+        event.clientY,
+      );
       camera.centerX -= deltaX / camera.zoom;
       camera.centerY -= deltaY / camera.zoom;
       pointer.x = event.clientX;
       pointer.y = event.clientY;
-      redraw();
+      scheduleVisible();
     };
     const onPointerUp = (event: PointerEvent): void => {
       const currentPointer = pointer;
       pointer = undefined;
-      if (!currentPointer || currentPointer.moved) return;
-      const bounds = canvas.getBoundingClientRect();
-      const graphX = (event.clientX - bounds.left - bounds.width / 2) / camera.zoom + camera.centerX;
-      const graphY = (event.clientY - bounds.top - bounds.height / 2) / camera.zoom + camera.centerY;
-      const visualScale = graphNodeWorldScale(camera.zoom);
-      let match: { distance: number; node: DesktopGraphNode } | undefined;
-      for (let index = 0; index < graph.nodes.length; index += 1) {
-        const node = graph.nodes[index];
-        const nodeX = layout.x[index];
-        const nodeY = layout.y[index];
-        if (!node || node.nodeType === 'folder' || nodeX === undefined || nodeY === undefined) continue;
-        const distance = Math.hypot(graphX - nodeX, graphY - nodeY);
-        const radius = (sizes.get(node.id) ?? DEFAULT_NODE_SIZE) * visualScale;
-        if (distance <= radius && (!match || distance < match.distance)) match = { distance, node };
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      if (!currentPointer || currentPointer.nodeIndex === undefined) return;
+      const source = graph.nodes[currentPointer.nodeIndex];
+      if (currentPointer.moved) {
+        layout.release(currentPointer.nodeIndex);
+        layout.setAlphaTarget(0);
+        continueAfterFrame = true;
+      } else if (source?.nodeType !== 'folder' && source) {
+        onSelectRef.current(source.id);
       }
-      if (match) onSelectRef.current(match.node.id);
+      scheduleVisible();
     };
-    const onPointerCancel = (): void => { pointer = undefined; };
+    const onPointerCancel = (event: PointerEvent): void => {
+      const currentPointer = pointer;
+      pointer = undefined;
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+      if (currentPointer?.nodeIndex !== undefined && currentPointer.moved) {
+        layout.release(currentPointer.nodeIndex);
+        layout.setAlphaTarget(0);
+        continueAfterFrame = true;
+        scheduleVisible();
+      }
+    };
+    const onPointerLeave = (): void => {
+      if (pointer || hoveredNodeIndex < 0) return;
+      hoveredNodeIndex = -1;
+      scheduleVisible();
+    };
     const onKeyDown = (event: KeyboardEvent): void => {
       const panDistance = 40 / camera.zoom;
       if (event.key === 'ArrowLeft') camera.centerX -= panDistance;
       else if (event.key === 'ArrowRight') camera.centerX += panDistance;
       else if (event.key === 'ArrowUp') camera.centerY -= panDistance;
       else if (event.key === 'ArrowDown') camera.centerY += panDistance;
-      else if (event.key === '+' || event.key === '=') camera.zoom = Math.min(5, camera.zoom * 1.2);
-      else if (event.key === '-' || event.key === '_') camera.zoom = Math.max(0.05, camera.zoom / 1.2);
-      else if (event.key === '0') camera = fitCamera(
+      else if (event.key === '+' || event.key === '=') {
+        camera.zoom = Math.min(DESKTOP_GRAPH_MAX_ZOOM, camera.zoom * 1.2);
+      } else if (event.key === '-' || event.key === '_') {
+        camera.zoom = Math.max(DESKTOP_GRAPH_MIN_ZOOM, camera.zoom / 1.2);
+      } else if (event.key === '0') camera = fitCamera(
         layout.x,
         layout.y,
         canvas.clientWidth,
@@ -514,13 +640,14 @@ export function useDesktopGraphRenderer({
       else return;
       event.preventDefault();
       fitFrames = 0;
-      redraw();
+      scheduleVisible();
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('pointercancel', onPointerCancel);
+    canvas.addEventListener('pointerleave', onPointerLeave);
     canvas.addEventListener('keydown', onKeyDown);
 
     void WebGpuGraphRenderer.create(canvas, {
@@ -538,11 +665,14 @@ export function useDesktopGraphRenderer({
         if (!renderer) setRendererError('WebGPU is unavailable in this macOS webview.');
         else schedule();
       })
-      .catch(error => setRendererError(error instanceof Error ? error.message : String(error)));
+      .catch(error => {
+        if (active) setRendererError(error instanceof Error ? error.message : String(error));
+      });
 
     return () => {
       active = false;
       redrawRef.current = undefined;
+      applyPhysicsSettingsRef.current = undefined;
       if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
       resize.disconnect();
       canvas.removeEventListener('wheel', onWheel);
@@ -550,6 +680,7 @@ export function useDesktopGraphRenderer({
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerCancel);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('keydown', onKeyDown);
       renderer?.dispose();
       layout.pause();

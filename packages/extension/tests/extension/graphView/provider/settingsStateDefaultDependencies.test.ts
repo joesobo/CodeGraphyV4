@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WorkspaceFolder } from 'vscode';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
 
 const mocks = vi.hoisted(() => {
   let workspaceFolders: WorkspaceFolder[] | undefined = undefined;
@@ -96,7 +96,7 @@ function createSource(
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _sendMessage: vi.fn(),
-    _getPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
+    _getPhysicsSettings: vi.fn(() => ({ damping: 1 } as GraphPhysicsSettings)),
     ...overrides,
   };
 

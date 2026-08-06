@@ -101,6 +101,30 @@ Edge colors come from Edge Type definitions and Legend layers. There is no curre
 
 The Settings > Forces controls apply these values to the live WebAssembly layout.
 
+The macOS desktop app uses the same defaults, ranges, and force mapping. Its first
+Graph Settings surface exposes Repel Force, Center Force, and Link Distance and
+keeps the remaining shared values at their current values. Desktop writes one
+interface-owned record:
+
+```json
+{
+  "interfaces": [{
+    "id": "codegraphy.desktop",
+    "data": {
+      "repelForce": 10,
+      "linkDistance": 80,
+      "linkForce": 1,
+      "damping": 0.4,
+      "centerForce": 0.1
+    }
+  }]
+}
+```
+
+Changing this record updates the live renderer. It does not restart Core or
+schedule Indexing. Core preserves the extension and other interface records when
+desktop settings change.
+
 ## Discovery and Filters
 
 `include` limits File Discovery before analysis:
@@ -174,8 +198,9 @@ Plugins store their own state under `pluginData[pluginId]`. Plugin Data does not
 Interfaces store their own state in the open `interfaces` list. The VS Code
 Extension stores its display, theme, favorite, depth, size, and physics choices
 in the `codegraphy.extension` entry. Core preserves the interface ID and data
-without defining its keys. Store durable user intent, such as pinned Node
-positions. Do not store temporary physics positions.
+without defining its keys. The macOS app stores its live force values in the
+`codegraphy.desktop` entry. Store durable user intent, such as force controls and
+pinned Node positions. Do not store temporary physics positions.
 
 See the [Plugin Guide](./PLUGINS.md) for installation, registration, and package metadata.
 

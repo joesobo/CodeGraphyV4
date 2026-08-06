@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../../../src/shared/settings/physics';
+import { DEFAULT_GRAPH_PHYSICS_SETTINGS } from '@codegraphy-dev/graph-visuals';
 import type { Surface2dProps } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/contracts';
 
 export function createDefaultSurfaceProps(): Surface2dProps {
@@ -44,7 +44,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
     onRenderFramePost: vi.fn(),
     particleSize: 4,
     particleSpeed: 0.005,
-    physicsSettings: DEFAULT_PHYSICS_SETTINGS,
+    physicsSettings: DEFAULT_GRAPH_PHYSICS_SETTINGS,
     showFps: false,
     showMinimap: true,
     sharedProps: {
