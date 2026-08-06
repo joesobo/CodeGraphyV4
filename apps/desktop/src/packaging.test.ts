@@ -16,6 +16,11 @@ describe('desktop packaging contracts', () => {
     expect(configuration.app?.security?.csp).toContain("connect-src 'self'");
   });
 
+  it('allows the bundled Material SVG data URLs', async () => {
+    const configuration = await readTauriConfiguration();
+    expect(configuration.app?.security?.csp).toContain("img-src 'self' data:");
+  });
+
   it('preserves the deployed Core runtime hierarchy', async () => {
     const configuration = await readTauriConfiguration();
     expect(configuration.bundle?.resources).toEqual(['runtime/']);
