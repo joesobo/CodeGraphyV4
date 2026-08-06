@@ -293,8 +293,11 @@ export function useDesktopWorkspace() {
 
   const requestWorkspaceActionRef = useRef(requestWorkspaceAction);
   const saveCurrentDocumentRef = useRef(saveCurrentDocument);
-  requestWorkspaceActionRef.current = requestWorkspaceAction;
-  saveCurrentDocumentRef.current = saveCurrentDocument;
+
+  useEffect(() => {
+    requestWorkspaceActionRef.current = requestWorkspaceAction;
+    saveCurrentDocumentRef.current = saveCurrentDocument;
+  }, [requestWorkspaceAction, saveCurrentDocument]);
 
   useEffect(() => {
     let active = true;
