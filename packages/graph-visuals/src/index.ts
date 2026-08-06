@@ -1,2 +1,2 @@
-export * from './graph';
-export * from './materialTheme';
+export * from './graph.js';
+export * from './materialTheme.js';
