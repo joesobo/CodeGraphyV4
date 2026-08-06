@@ -1,0 +1,174 @@
+name: Desktop release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Exact desktop tag, for example desktop-v0.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build-verify-draft:
+    name: Build, verify, and draft Apple Silicon release
+    runs-on: macos-26
+    timeout-minutes: 60
+    environment: desktop-release
+    env:
+      CODEGRAPHY_DESKTOP_TARGET: aarch64-apple-darwin
+      CODEGRAPHY_DESKTOP_REQUIRE_RELEASE_SIGNATURE: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate release request
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/desktop/package.json').version")"
+          expected_tag="desktop-v${version}"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$RELEASE_TAG" = "$expected_tag"
+          test "$(uname -m)" = "arm64"
+          xcodebuild -version | grep -q '^Xcode 26\.'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.8
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.23.2
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.96.0
+        with:
+          components: clippy,rustfmt
+          targets: aarch64-apple-darwin
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test desktop release inputs
+        run: |
+          pnpm --filter @codegraphy-dev/desktop test
+          pnpm --filter @codegraphy-dev/desktop typecheck
+          cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --lib
+
+      - name: Import Developer ID certificate
+        id: signing
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_P8 }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          keychain="$RUNNER_TEMP/codegraphy-signing.keychain-db"
+          certificate="$RUNNER_TEMP/codegraphy-developer-id.p12"
+          api_key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+          keychain_password="$(openssl rand -hex 24)"
+
+          printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > "$certificate"
+          printf '%s' "$APPLE_API_KEY_CONTENT" > "$api_key_path"
+          chmod 600 "$certificate" "$api_key_path"
+
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain"
+
+          signing_identity="$(security find-identity -v -p codesigning "$keychain" | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -n 1)"
+          test -n "$signing_identity"
+          printf 'APPLE_SIGNING_IDENTITY=%s\n' "$signing_identity" >> "$GITHUB_ENV"
+          printf 'APPLE_API_KEY_PATH=%s\n' "$api_key_path" >> "$GITHUB_ENV"
+          printf 'KEYCHAIN_PATH=%s\n' "$keychain" >> "$GITHUB_ENV"
+
+      - name: Build signed and notarized app
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: pnpm --filter @codegraphy-dev/desktop exec tauri build --target "$CODEGRAPHY_DESKTOP_TARGET" --bundles app,dmg
+
+      - name: Sign, notarize, and staple final DMG
+        env:
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle_root="apps/desktop/src-tauri/target/${CODEGRAPHY_DESKTOP_TARGET}/release/bundle/dmg"
+          dmg="$(find "$bundle_root" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          test -n "$dmg"
+          codesign --force --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$dmg"
+          xcrun notarytool submit "$dmg" --key "$APPLE_API_KEY_PATH" --key-id "$APPLE_API_KEY" --issuer "$APPLE_API_ISSUER" --wait
+          xcrun stapler staple "$dmg"
+
+      - name: Verify release bundle
+        run: pnpm --filter @codegraphy-dev/desktop check:bundle
+
+      - name: Prepare release assets
+        id: assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/desktop/package.json').version")"
+          bundle_root="apps/desktop/src-tauri/target/${CODEGRAPHY_DESKTOP_TARGET}/release/bundle/dmg"
+          dmg="$(find "$bundle_root" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          test -n "$dmg"
+          asset="$RUNNER_TEMP/CodeGraphy_${version}_aarch64.dmg"
+          cp "$dmg" "$asset"
+          (
+            cd "$RUNNER_TEMP"
+            shasum -a 256 "$(basename "$asset")" > "$(basename "$asset").sha256"
+          )
+          printf 'dmg=%s\n' "$asset" >> "$GITHUB_OUTPUT"
+          printf 'checksum=%s.sha256\n' "$asset" >> "$GITHUB_OUTPUT"
+
+      - name: Upload verified assets to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          DMG_PATH: ${{ steps.assets.outputs.dmg }}
+          CHECKSUM_PATH: ${{ steps.assets.outputs.checksum }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/desktop/package.json').version")"
+          notes="$RUNNER_TEMP/desktop-release-notes.md"
+          cat > "$notes" <<EOF
+          CodeGraphy ${version} for Apple Silicon Macs running macOS 26 or later.
+
+          This draft contains the Developer ID signed, notarized, stapled, and runtime-verified DMG plus its SHA-256 checksum. Keep the release as a draft until a maintainer completes the installed-app acceptance check documented in docs/RELEASING.md.
+          EOF
+
+          if release_json="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" 2>/dev/null)"; then
+            test "$(jq -r '.draft' <<< "$release_json")" = "true"
+          else
+            gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" --title "CodeGraphy ${version} for macOS" --notes-file "$notes"
+          fi
+          gh release upload "$RELEASE_TAG" "$DMG_PATH" "$CHECKSUM_PATH" --clobber
+
+      - name: Remove signing keychain
+        if: always() && steps.signing.outcome != 'skipped'
+        shell: bash
+        run: |
+          if [[ -n "${KEYCHAIN_PATH:-}" && -f "$KEYCHAIN_PATH" ]]; then
+            security delete-keychain "$KEYCHAIN_PATH"
+          fi

@@ -30,4 +30,5 @@ codegen-units = 1
 lto = true
 opt-level = "s"
 panic = "abort"
-strip = true
+# Do not strip the complete Cargo profile. On macOS that also strips host
+# proc-macro dylibs, which makes the next release build unable to load them.

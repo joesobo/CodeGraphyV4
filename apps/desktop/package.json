@@ -10,7 +10,9 @@
   "scripts": {
     "build": "vite build",
     "build:bundle": "tauri build",
+    "build:bundle:ad-hoc": "tauri build --target aarch64-apple-darwin --bundles app,dmg --config src-tauri/tauri.ad-hoc.conf.json",
     "build:sidecar": "node scripts/stage-sidecar.mjs",
+    "check:bundle": "node scripts/verify-release-bundle.mjs",
     "dev": "tauri dev --no-watch",
     "lint": "eslint src scripts vite.config.ts vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",

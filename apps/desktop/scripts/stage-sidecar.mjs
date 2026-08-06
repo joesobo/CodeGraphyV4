@@ -14,12 +14,18 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { pruneDeployedRuntime } from './prune-sidecar-runtime.mjs';
+import {
+  bundledNodeVersion,
+  nativeRuntimeModules,
+  nodeArchiveChecksums,
+} from './runtime-contract.mjs';
+import { signNativeRuntimeCode } from './sign-native-runtime.mjs';
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(appRoot, '../..');
 const runtimeRoot = path.join(appRoot, 'src-tauri', 'runtime');
 const binaryRoot = path.join(appRoot, 'src-tauri', 'binaries');
-const nodeVersion = '22.23.2';
+const nodeVersion = bundledNodeVersion;
 const hostTargetByArchitecture = {
   arm64: 'aarch64-apple-darwin',
   x64: 'x86_64-apple-darwin',
@@ -28,32 +34,6 @@ const nodeDistributionArchitecture = {
   arm64: 'arm64',
   x64: 'x64',
 };
-const nodeArchiveChecksums = {
-  arm64: '61130f394c1630d211dd50aecc4353d379480f36d3ac913cd85dbba1aed585c6',
-  x64: '58e99022c2ff89395576cc7fd4d98cea24bb68081475d5f88b801ee8729fb026',
-};
-const nativeRuntimeModules = [
-  '@driftlog/tree-sitter-dart',
-  '@tree-sitter-grammars/tree-sitter-kotlin',
-  '@tree-sitter-grammars/tree-sitter-lua/bindings/node/index.js',
-  'libsql',
-  'tree-sitter',
-  'tree-sitter-c',
-  'tree-sitter-c-sharp',
-  'tree-sitter-cpp',
-  'tree-sitter-go',
-  'tree-sitter-haskell',
-  'tree-sitter-java',
-  'tree-sitter-javascript',
-  'tree-sitter-objc',
-  'tree-sitter-php',
-  'tree-sitter-python',
-  'tree-sitter-ruby',
-  'tree-sitter-rust',
-  'tree-sitter-scala',
-  'tree-sitter-swift',
-  'tree-sitter-typescript',
-];
 
 if (process.platform !== 'darwin') {
   throw new Error('CodeGraphy desktop sidecars must be staged on macOS.');
@@ -125,12 +105,26 @@ const pruned = pruneDeployedRuntime(path.join(runtimeRoot, 'core'), target);
 process.stdout.write(`Pruned ${pruned.directories} development directories and ${pruned.files} development files.\n`);
 copyFileSync(path.join(appRoot, 'scripts', 'core-sidecar.mjs'), path.join(runtimeRoot, 'sidecar.mjs'));
 
+const signingIdentity = process.env.APPLE_SIGNING_IDENTITY ?? '-';
+const signedNativeCode = signNativeRuntimeCode(path.join(runtimeRoot, 'core'), signingIdentity);
+process.stdout.write(`Signed ${signedNativeCode.length} native Core modules with the bundle identity.\n`);
+
 mkdirSync(binaryRoot, { recursive: true });
 const sidecarPath = path.join(binaryRoot, `codegraphy-core-${target}`);
 copyFileSync(nodeExecutable, sidecarPath);
 chmodSync(sidecarPath, 0o755);
 execFileSync('strip', ['-x', sidecarPath], { stdio: 'inherit' });
-execFileSync('codesign', ['--force', '--sign', '-', '--timestamp=none', sidecarPath], { stdio: 'inherit' });
+const sidecarSigningArguments = signingIdentity === '-'
+  ? ['--force', '--sign', '-', '--timestamp=none', sidecarPath]
+  : [
+      '--force',
+      '--sign', signingIdentity,
+      '--timestamp',
+      '--options', 'runtime',
+      '--entitlements', path.join(appRoot, 'src-tauri', 'Entitlements.plist'),
+      sidecarPath,
+    ];
+execFileSync('codesign', sidecarSigningArguments, { stdio: 'inherit' });
 execFileSync(sidecarPath, ['--version'], { stdio: 'inherit' });
 const coreModuleUrl = pathToFileURL(path.join(runtimeRoot, 'core', 'dist', 'index.js')).href;
 const runtimeProbe = `await Promise.all(${JSON.stringify(nativeRuntimeModules)}.map(module => import(module))); await import(${JSON.stringify(coreModuleUrl)});`;
