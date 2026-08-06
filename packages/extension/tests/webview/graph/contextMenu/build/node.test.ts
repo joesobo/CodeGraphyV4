@@ -118,6 +118,10 @@ describe('graph/contextMenu/build/node', () => {
       { id: 'src', nodeType: 'folder' },
       { id: 'tests', nodeType: 'folder' },
     ])).not.toContain('Compare Selected');
+    expect(labelsFor(['pkg:react', 'pkg:vitest'], [
+      { id: 'pkg:react', nodeType: 'package' },
+      { id: 'pkg:vitest', nodeType: 'package' },
+    ])).not.toContain('Compare Selected');
     expect(labelsFor(['src/a.ts#run', 'src/b.ts#run'], [
       { id: 'src/a.ts#run', nodeType: 'symbol' },
       { id: 'src/b.ts#run', nodeType: 'symbol' },
@@ -126,6 +130,14 @@ describe('graph/contextMenu/build/node', () => {
       { id: 'src/a.ts', nodeType: 'file' },
       { id: 'src', nodeType: 'folder' },
     ])).not.toContain('Compare Selected');
+    expect(itemLabels(buildGraphContextMenuEntries({
+      selection: {
+        kind: 'edge',
+        edgeId: 'src/a.ts->src/b.ts',
+        targets: ['src/a.ts', 'src/b.ts'],
+      },
+      favorites: new Set(),
+    }))).not.toContain('Compare Selected');
   });
 
   it('keeps mixed selections with plugin nodes on generic public actions', () => {

@@ -455,6 +455,7 @@ async function createDefaultDependencyHarness(
   vi.resetModules();
 
   const openFile = vi.fn(async () => undefined);
+  const compareFiles = vi.fn(async () => undefined);
   const revealFile = vi.fn(async () => undefined);
   const copyText = vi.fn(async () => undefined);
   const deleteFiles = vi.fn(async (_paths: string[], handlers: {
@@ -589,6 +590,7 @@ async function createDefaultDependencyHarness(
   }));
   vi.doMock('../../../../../src/extension/graphView/provider/file/navigation', () => ({
     openGraphViewProviderFile: openFile,
+    compareGraphViewProviderFiles: compareFiles,
     revealGraphViewProviderFileInExplorer: revealFile,
     copyGraphViewProviderTextToClipboard: copyText,
   }));
@@ -638,6 +640,7 @@ async function createDefaultDependencyHarness(
     source,
     methods: createMethods(source as never),
     openFile,
+    compareFiles,
     revealFile,
     copyText,
     deleteFiles,
