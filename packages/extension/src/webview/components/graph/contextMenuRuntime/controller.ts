@@ -55,7 +55,7 @@ export interface GraphContextMenuRuntimeDependencies<THoveredNode = unknown> {
   refreshContextSelection?(): void;
   setContextSelection(selection: GraphContextSelection): void;
   setTooltipData(updater: (previousState: GraphTooltipState) => GraphTooltipState): void;
-  stopTooltipTracking(): void;
+  clearTooltipAnchor(): void;
   toggleFavoritesOptimistically?(paths: readonly string[]): void;
   now?(): number;
   fallbackDelayMs?: number;

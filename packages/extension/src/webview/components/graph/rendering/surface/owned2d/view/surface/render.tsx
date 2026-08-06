@@ -155,6 +155,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     createOwnedGraphPerformanceMonitor,
   );
   const requestFrameRef = useRef<() => void>(NOOP);
+  const frameLoopRef = useRef<ReturnType<typeof startOwnedGraphFrameLoop> | null>(null);
   const contextGestureSessionRef = useRef<ContextGestureSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
@@ -254,7 +255,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       },
     };
     const frameLoop = startOwnedGraphFrameLoop(frameLoopRuntime, canvas, props.fg2dRef);
-    return () => frameLoop.dispose();
+    frameLoopRef.current = frameLoop;
+    return () => {
+      frameLoopRef.current = null;
+      frameLoop.dispose();
+    };
   }, [
     cameraRef,
     clearLinkHover,
@@ -265,6 +270,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     props.fg2dRef,
     simulationClockRef,
   ]);
+
+  useEffect(() => {
+    frameLoopRef.current?.setHostVisible(props.graphViewVisible);
+  }, [props.graphViewVisible]);
 
   useEffect(() => {
     clearLinkHover();
@@ -349,6 +358,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       className="absolute inset-0"
       data-codegraphy-physics="wasm"
       data-codegraphy-renderer={rendererStatus}
+      data-codegraphy-view-visible={String(props.graphViewVisible)}
       style={{ backgroundColor: props.backgroundColor }}
     >
       <canvas

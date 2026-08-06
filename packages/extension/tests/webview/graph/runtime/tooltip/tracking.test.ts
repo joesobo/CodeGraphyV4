@@ -3,16 +3,16 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import type { GraphTooltipState } from '../../../../../src/webview/components/graph/tooltip/model';
 import {
-  startTooltipTracking,
-  stopTooltipTracking,
-  updateTooltipTracking,
+  clearTooltipAnchorSnapshot,
+  initializeTooltipAnchorSnapshot,
+  updateTooltipAnchorSnapshot,
 } from '../../../../../src/webview/components/graph/runtime/tooltip/tracking';
 
 describe('tooltipTracking', () => {
   it('clears the tracked anchor', () => {
     const tooltipRectRef = { current: { x: 10, y: 20, radius: 30 } };
 
-    stopTooltipTracking(tooltipRectRef);
+    clearTooltipAnchorSnapshot(tooltipRectRef);
 
     expect(tooltipRectRef.current).toBeNull();
   });
@@ -22,7 +22,7 @@ describe('tooltipTracking', () => {
     vi.stubGlobal('requestAnimationFrame', requestAnimationFrameSpy);
     const tooltipRectRef = { current: null };
 
-    startTooltipTracking({
+    initializeTooltipAnchorSnapshot({
       getNodeRect: () => ({ x: 10, y: 20, radius: 30 }),
       hoveredNodeRef: { current: { id: 'node' } as FGNode },
       tooltipRectRef,
@@ -50,7 +50,7 @@ describe('tooltipTracking', () => {
     ) as Dispatch<SetStateAction<GraphTooltipState>>;
     const tooltipRectRef = { current: { x: 1, y: 2, radius: 3 } };
 
-    updateTooltipTracking({
+    updateTooltipAnchorSnapshot({
       getNodeRect: () => ({ x: 10, y: 20, radius: 30 }),
       hoveredNodeRef: { current: { id: 'node' } as FGNode },
       setTooltipData,
@@ -73,8 +73,8 @@ describe('tooltipTracking', () => {
       tooltipRectRef: { current: rect },
     };
 
-    updateTooltipTracking(options);
-    updateTooltipTracking(options);
+    updateTooltipAnchorSnapshot(options);
+    updateTooltipAnchorSnapshot(options);
 
     expect(getNodeRect).toHaveBeenCalledTimes(2);
     expect(setTooltipData).not.toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe('tooltipTracking', () => {
     const setTooltipData = vi.fn();
     const tooltipRectRef = { current: { x: 10, y: 20, radius: 30 } };
 
-    updateTooltipTracking({
+    updateTooltipAnchorSnapshot({
       getNodeRect: vi.fn(),
       hoveredNodeRef: { current: null },
       setTooltipData,
@@ -93,7 +93,7 @@ describe('tooltipTracking', () => {
     expect(tooltipRectRef.current).toBeNull();
 
     tooltipRectRef.current = { x: 10, y: 20, radius: 30 };
-    updateTooltipTracking({
+    updateTooltipAnchorSnapshot({
       getNodeRect: () => null,
       hoveredNodeRef: { current: { id: 'node' } as FGNode },
       setTooltipData,

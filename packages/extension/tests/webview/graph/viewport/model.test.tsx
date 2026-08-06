@@ -82,7 +82,7 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
       zoomGraphView: vi.fn(),
     },
     setTooltipData: vi.fn(),
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     tooltipData: {
       visible: false,
       nodeRect: { x: 0, y: 0, radius: 0 },

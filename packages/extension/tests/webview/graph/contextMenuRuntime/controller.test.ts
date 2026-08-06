@@ -42,7 +42,7 @@ function createDependencies(
     setTooltipData: vi.fn((updater) => {
       tooltipState = updater(tooltipState);
     }),
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     ...overrides,
   };
 

@@ -5,6 +5,7 @@ import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/d
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
+  graphViewVisible: true,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,
   graphIndexDetail: null,

@@ -6,6 +6,7 @@ export type GraphViewStoreState = Pick<
   | 'bidirectionalMode'
   | 'directionMode'
   | 'favorites'
+  | 'graphViewVisible'
   | 'nodeSizeMode'
   | 'particleSize'
   | 'particleSpeed'
@@ -22,6 +23,7 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     depthMode: useGraphStore(state => state.depthMode),
     directionMode: useGraphStore(state => state.directionMode),
     favorites: useGraphStore(state => state.favorites),
+    graphViewVisible: useGraphStore(state => state.graphViewVisible),
     nodeSizeMode: useGraphStore(state => state.nodeSizeMode),
     particleSize: useGraphStore(state => state.particleSize),
     particleSpeed: useGraphStore(state => state.particleSpeed),

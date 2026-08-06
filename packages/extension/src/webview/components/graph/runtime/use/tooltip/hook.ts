@@ -24,6 +24,7 @@ export interface UseGraphTooltipOptions {
 	legends?: readonly IGroup[];
 	pluginHost?: WebviewPluginHost;
 	postMessage: (this: void, message: WebviewToExtensionMessage) => void;
+	visible: boolean;
 }
 
 export interface UseGraphTooltipResult {
@@ -31,7 +32,7 @@ export interface UseGraphTooltipResult {
 	handleNodeHover: (this: void, node: FGNode | null) => void;
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
-	stopTooltipTracking: (this: void) => void;
+	clearTooltipAnchor: (this: void) => void;
 	tooltipData: GraphTooltipState;
 	tooltipTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
 	updateTooltipAnchor: (this: void) => void;
@@ -46,6 +47,7 @@ export function useGraphTooltip({
 	legends,
 	pluginHost,
 	postMessage,
+	visible,
 }: UseGraphTooltipOptions): UseGraphTooltipResult {
 	const {
 		hoveredNodeRef,
@@ -57,7 +59,7 @@ export function useGraphTooltip({
 	const {
 		handleMouseLeave,
 		handleNodeHover,
-		stopTooltipTracking,
+		clearTooltipAnchor,
 		updateTooltipAnchor,
 	} = useTooltipEvents({
 		containerRef,
@@ -72,6 +74,7 @@ export function useGraphTooltip({
 		setTooltipData,
 		tooltipRectRef,
 		tooltipTimeoutRef,
+		visible,
 	});
 
 	return {
@@ -79,7 +82,7 @@ export function useGraphTooltip({
 		handleNodeHover,
 		hoveredNodeRef,
 		setTooltipData,
-		stopTooltipTracking,
+		clearTooltipAnchor,
 		tooltipData,
 		tooltipTimeoutRef,
 		updateTooltipAnchor,

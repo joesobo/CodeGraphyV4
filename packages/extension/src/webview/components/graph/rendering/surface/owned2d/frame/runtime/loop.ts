@@ -21,6 +21,7 @@ export type OwnedGraphFrameLoopRuntime = Omit<
 
 export interface OwnedGraphFrameLoop {
   dispose(): void;
+  setHostVisible(visible: boolean): void;
 }
 
 function canScheduleFrame(
@@ -41,7 +42,9 @@ export function startOwnedGraphFrameLoop(
   controlsRef: MutableRefObject<OwnedGraph2dControls | undefined>,
 ): OwnedGraphFrameLoop {
   let active = true;
-  let visible = document.visibilityState !== 'hidden';
+  let hostVisible = runtime.propsRef.current.graphViewVisible;
+  let documentVisible = document.visibilityState !== 'hidden';
+  const isVisible = (): boolean => hostVisible && documentVisible;
   const frameRuntime: OwnedGraphFrameRuntime = {
     ...runtime,
     recordRenderedFrame(submissionId, timestamp, simulationMs, renderMs) {
@@ -60,13 +63,13 @@ export function startOwnedGraphFrameLoop(
 
   const renderFrame = (timestamp: number): void => {
     runtime.animationFrameRef.current = null;
-    if (!active || !visible) return;
+    if (!active || !isVisible()) return;
     runtime.frameRequestedRef.current = false;
     renderOwnedGraphFrame(frameRuntime, canvas, timestamp);
   };
 
   const scheduleRequestedFrame = (): void => {
-    if (canScheduleFrame(runtime, active, visible)) {
+    if (canScheduleFrame(runtime, active, isVisible())) {
       runtime.animationFrameRef.current = window.requestAnimationFrame(renderFrame);
     }
   };
@@ -76,13 +79,16 @@ export function startOwnedGraphFrameLoop(
     scheduleRequestedFrame();
   };
 
-  const handleVisibilityChange = (): void => {
-    visible = document.visibilityState !== 'hidden';
-    if (!visible && runtime.animationFrameRef.current !== null) {
+  const applyVisibility = (): void => {
+    if (!isVisible() && runtime.animationFrameRef.current !== null) {
       window.cancelAnimationFrame(runtime.animationFrameRef.current);
       runtime.animationFrameRef.current = null;
     }
-    if (visible && runtime.frameRequestedRef.current) scheduleRequestedFrame();
+    if (isVisible() && runtime.frameRequestedRef.current) scheduleRequestedFrame();
+  };
+  const handleVisibilityChange = (): void => {
+    documentVisible = document.visibilityState !== 'hidden';
+    applyVisibility();
   };
   document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -96,6 +102,10 @@ export function startOwnedGraphFrameLoop(
   runtime.requestFrameRef.current();
 
   return {
+    setHostVisible: (visible) => {
+      hostVisible = visible;
+      applyVisibility();
+    },
     dispose: () => {
       active = false;
       document.removeEventListener('visibilitychange', handleVisibilityChange);

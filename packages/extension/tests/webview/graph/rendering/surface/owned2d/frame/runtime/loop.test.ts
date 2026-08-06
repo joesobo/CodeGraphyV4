@@ -62,7 +62,7 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: null },
-      propsRef: { current: { showFps: false } },
+      propsRef: { current: { graphViewVisible: true, showFps: false } },
       publishPerformance,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
@@ -111,6 +111,7 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: { canRender: () => false } },
       layoutRef: { current: null },
+      propsRef: { current: { graphViewVisible: true } },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
     } as unknown as OwnedGraphFrameLoopRuntime;
@@ -138,11 +139,11 @@ describe('owned graph frame loop', () => {
     expect(requestAnimationFrame).toHaveBeenCalledOnce();
   });
 
-  it('performs zero graph frames and zero physics work while the hovered graph is hidden', () => {
+  it('cancels a running retained view and performs zero frames while host-hidden', () => {
 		vi.mocked(renderOwnedGraphFrame).mockClear();
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
-      value: 'hidden',
+      value: 'visible',
     });
     const requestAnimationFrame = vi.fn(() => 23);
     vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
@@ -156,6 +157,7 @@ describe('owned graph frame loop', () => {
       gpuRendererRef: { current: null },
       hoveredNodeRef: { current: { id: 'src/app.ts' } },
       layoutRef: { current: {} },
+      propsRef: { current: { graphViewVisible: true } },
       rendererOperationalRef: { current: true },
       requestFrameRef: { current: () => {} },
     } as unknown as OwnedGraphFrameLoopRuntime;
@@ -165,18 +167,16 @@ describe('owned graph frame loop', () => {
       document.createElement('canvas'),
       { current: undefined },
     );
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
+    loop.setHostVisible(false);
     runtime.requestFrameRef.current();
 
     expect(runtime.frameRequestedRef.current).toBe(true);
-    expect(requestAnimationFrame).not.toHaveBeenCalled();
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
     expect(renderOwnedGraphFrame).not.toHaveBeenCalled();
 
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      value: 'visible',
-    });
-    document.dispatchEvent(new Event('visibilitychange'));
-    expect(requestAnimationFrame).toHaveBeenCalledOnce();
+    loop.setHostVisible(true);
+    expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
 
     loop.dispose();
   });

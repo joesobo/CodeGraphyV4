@@ -14,7 +14,7 @@ type GraphContextMenuTooltipDependencies = Pick<
   | 'tooltipTimeoutRef'
   | 'setContextSelection'
   | 'setTooltipData'
-  | 'stopTooltipTracking'
+  | 'clearTooltipAnchor'
 > & Partial<Pick<
   GraphContextMenuRuntimeDependencies,
   | 'now'
@@ -42,7 +42,7 @@ export function createContextMenuTooltipRuntime(
     }
 
     dependencies.hoveredNodeRef.current = null;
-    dependencies.stopTooltipTracking();
+    dependencies.clearTooltipAnchor();
     dependencies.setTooltipData(hideGraphTooltipState);
   };
 

@@ -11,13 +11,13 @@ interface GraphTooltipTrackingOptions {
 	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>;
 }
 
-export function stopTooltipTracking(
+export function clearTooltipAnchorSnapshot(
 	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>,
 ): void {
 	tooltipRectRef.current = null;
 }
 
-export function startTooltipTracking({
+export function initializeTooltipAnchorSnapshot({
 	getNodeRect,
 	hoveredNodeRef,
 	tooltipRectRef,
@@ -35,7 +35,7 @@ function rectsEqual(
 		&& first.radius === second.radius;
 }
 
-export function updateTooltipTracking({
+export function updateTooltipAnchorSnapshot({
 	getNodeRect,
 	hoveredNodeRef,
 	setTooltipData,
@@ -46,7 +46,7 @@ export function updateTooltipTracking({
 	const node = hoveredNodeRef.current;
 	const rect = node ? getNodeRect(node) : null;
 	if (!rect) {
-		stopTooltipTracking(tooltipRectRef);
+		clearTooltipAnchorSnapshot(tooltipRectRef);
 		return;
 	}
 	if (tooltipRectRef.current && rectsEqual(tooltipRectRef.current, rect)) return;

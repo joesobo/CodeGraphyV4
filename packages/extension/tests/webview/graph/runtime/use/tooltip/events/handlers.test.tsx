@@ -68,6 +68,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData,
 			tooltipRectRef,
 			tooltipTimeoutRef: { current: null },
+			visible: true,
 		}));
 
 		act(() => {
@@ -97,6 +98,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 				setTooltipData,
 				tooltipRectRef,
 				tooltipTimeoutRef: { current: null },
+				visible: true,
 			}));
 
 			act(() => {
@@ -134,11 +136,37 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData: vi.fn(),
 			tooltipRectRef,
 			tooltipTimeoutRef: { current: null },
+			visible: true,
 		}));
 
 		unmount();
 
 		expect(tooltipRectRef.current).toBeNull();
+	});
+
+	it('cancels tooltip tracking when the Extension host hides the retained view', () => {
+		const hoveredNodeRef = { current: createNode() as FGNode | null };
+		const tooltipRectRef = { current: { x: 10, y: 20, radius: 8 } };
+		const options = {
+			containerRef: { current: document.createElement('div') },
+			dataRef: { current: { nodes: [], edges: [] } } as never,
+			fg2dRef: { current: undefined },
+			fileInfoCacheRef: { current: new Map() } as never,
+			hoveredNodeRef,
+			interactionHandlers: { setGraphCursor: vi.fn() },
+			postMessage: vi.fn(),
+			setTooltipData: vi.fn(),
+			tooltipRectRef,
+			tooltipTimeoutRef: { current: null },
+			visible: true,
+		};
+		const { rerender } = renderHook(useTooltipEvents, { initialProps: options });
+
+		rerender({ ...options, visible: false });
+
+		expect(hoveredNodeRef.current).toBeNull();
+		expect(tooltipRectRef.current).toBeNull();
+		expect(options.setTooltipData).toHaveBeenCalledWith(expect.any(Function));
 	});
 
 	it('uses the latest handlers after rerender instead of stale callback dependencies', () => {
@@ -163,6 +191,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData: firstSetTooltipData,
 			tooltipRectRef: { current: null },
 			tooltipTimeoutRef: { current: null },
+			visible: true,
 		};
 		const { result, rerender } = renderHook(useTooltipEvents, {
 			initialProps,

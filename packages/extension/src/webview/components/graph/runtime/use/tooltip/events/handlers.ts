@@ -16,9 +16,9 @@ import type { GraphTooltipInteractionDependencies } from '../hook';
 import { handleTooltipNodeHover } from '../../../tooltip/hover';
 import { getTooltipNodeRect } from '../../../tooltip/rect';
 import {
-	startTooltipTracking as beginTooltipTracking,
-	stopTooltipTracking as endTooltipTracking,
-	updateTooltipTracking,
+	clearTooltipAnchorSnapshot,
+	initializeTooltipAnchorSnapshot,
+	updateTooltipAnchorSnapshot,
 } from '../../../tooltip/tracking';
 
 export interface UseTooltipEventsOptions {
@@ -34,12 +34,13 @@ export interface UseTooltipEventsOptions {
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
 	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>;
 	tooltipTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
+	visible: boolean;
 }
 
 export interface UseTooltipEventsResult {
 	handleMouseLeave: (this: void) => void;
 	handleNodeHover: (this: void, node: FGNode | null) => void;
-	stopTooltipTracking: (this: void) => void;
+	clearTooltipAnchor: (this: void) => void;
 	updateTooltipAnchor: (this: void) => void;
 }
 
@@ -54,13 +55,13 @@ export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEv
 		}, node);
 	}, []);
 
-	const stopTooltipTracking = useCallback(() => {
-		endTooltipTracking(optionsRef.current.tooltipRectRef);
+	const clearTooltipAnchor = useCallback(() => {
+		clearTooltipAnchorSnapshot(optionsRef.current.tooltipRectRef);
 	}, []);
 
-	const startTooltipTracking = useCallback(() => {
+	const initializeTooltipAnchor = useCallback(() => {
 		const current = optionsRef.current;
-		beginTooltipTracking({
+		initializeTooltipAnchorSnapshot({
 			getNodeRect: getNodeScreenRect,
 			hoveredNodeRef: current.hoveredNodeRef,
 			tooltipRectRef: current.tooltipRectRef,
@@ -72,10 +73,10 @@ export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEv
 		handleTooltipNodeHover(node, {
 			...current,
 			getNodeRect: getNodeScreenRect,
-			startTracking: startTooltipTracking,
-			stopTracking: stopTooltipTracking,
+			startTracking: initializeTooltipAnchor,
+			stopTracking: clearTooltipAnchor,
 		});
-	}, [getNodeScreenRect, startTooltipTracking, stopTooltipTracking]);
+	}, [getNodeScreenRect, initializeTooltipAnchor, clearTooltipAnchor]);
 
 	const handleMouseLeave = useCallback(() => {
 		handleNodeHover(null);
@@ -83,7 +84,7 @@ export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEv
 
 	const updateTooltipAnchor = useCallback(() => {
 		const current = optionsRef.current;
-		updateTooltipTracking({
+		updateTooltipAnchorSnapshot({
 			getNodeRect: getNodeScreenRect,
 			hoveredNodeRef: current.hoveredNodeRef,
 			setTooltipData: current.setTooltipData,
@@ -106,16 +107,20 @@ export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEv
 					clearTimeout(current.tooltipTimeoutRef.current);
 					current.tooltipTimeoutRef.current = null;
 				}
-				endTooltipTracking(current.tooltipRectRef);
+				clearTooltipAnchorSnapshot(current.tooltipRectRef);
 			};
 		},
 		[handleMouseLeave, handleNodeHover],
 	);
 
+	useEffect(() => {
+		if (!options.visible) handleNodeHover(null);
+	}, [handleNodeHover, options.visible]);
+
 	return {
 		handleMouseLeave,
 		handleNodeHover,
-		stopTooltipTracking,
+		clearTooltipAnchor,
 		updateTooltipAnchor,
 	};
 }

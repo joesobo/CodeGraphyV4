@@ -74,6 +74,7 @@ describe('graph/runtime/useGraphInteractionRuntime delegation', () => {
       ({ graphContextSelection }) => useGraphInteractionRuntime({
         dataRef: { current: { edges: [], nodes: [] } as never },
         depthMode: false,
+        graphViewVisible: true,
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection,
         graphCursorRef: { current: 'pointer' as never },
@@ -193,6 +194,7 @@ describe('graph/runtime/useGraphInteractionRuntime delegation', () => {
       ({ depthMode }) => useGraphInteractionRuntime({
         dataRef: { current: { edges: [], nodes: [] } as never },
         depthMode,
+        graphViewVisible: true,
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection: createSelection(['src/one.ts']),
         graphCursorRef: { current: 'pointer' as never },
