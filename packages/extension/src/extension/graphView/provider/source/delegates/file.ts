@@ -11,6 +11,7 @@ export function createGraphViewProviderFileMethodDelegates(
 ): Pick<
   GraphViewProviderMethodSource,
   | '_openFile'
+  | '_compareFiles'
   | '_openSelectedNode'
   | '_activateNode'
   | '_revealInExplorer'
@@ -28,6 +29,7 @@ export function createGraphViewProviderFileMethodDelegates(
   return {
     _openFile: (filePath, behavior?: EditorOpenBehavior) =>
       owner._methodContainers.fileAction._openFile(filePath, behavior),
+    _compareFiles: paths => owner._methodContainers.fileAction._compareFiles(paths),
     _openSelectedNode: nodeId => owner._methodContainers.fileAction._openSelectedNode(nodeId),
     _activateNode: nodeId => owner._methodContainers.fileAction._activateNode(nodeId),
     _revealInExplorer: filePath => owner._methodContainers.fileAction._revealInExplorer(filePath),

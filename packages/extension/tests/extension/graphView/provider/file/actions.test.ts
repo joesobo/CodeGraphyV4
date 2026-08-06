@@ -36,6 +36,7 @@ describe('graphView/provider/file/actions', () => {
 
   it('delegates file navigation helpers through their extracted provider wrappers', async () => {
     const openFile = vi.fn(async () => undefined);
+    const compareFiles = vi.fn(async () => undefined);
     const revealFile = vi.fn(async () => undefined);
     const copyText = vi.fn(async () => undefined);
     const source = {
@@ -45,6 +46,7 @@ describe('graphView/provider/file/actions', () => {
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile,
+      compareFiles,
       revealFile,
       copyText,
       deleteFiles: vi.fn(async () => undefined),
@@ -65,6 +67,7 @@ describe('graphView/provider/file/actions', () => {
     });
 
     await methods._openFile('src/app.ts', { preview: true, preserveFocus: false });
+    await methods._compareFiles(['src/app.ts', 'src/utils.ts']);
     await methods._revealInExplorer('src/app.ts');
     await methods._copyToClipboard('hello');
 
@@ -78,6 +81,7 @@ describe('graphView/provider/file/actions', () => {
       },
     );
     expect(revealFile).toHaveBeenCalledWith('src/app.ts');
+    expect(compareFiles).toHaveBeenCalledWith(['src/app.ts', 'src/utils.ts']);
     expect(copyText).toHaveBeenCalledWith('hello');
   });
 
@@ -106,6 +110,7 @@ describe('graphView/provider/file/actions', () => {
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile: vi.fn(async () => undefined),
+      compareFiles: vi.fn(async () => undefined),
       revealFile: vi.fn(async () => undefined),
       copyText: vi.fn(async () => undefined),
       deleteFiles,
@@ -170,6 +175,7 @@ describe('graphView/provider/file/actions', () => {
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile: vi.fn(async () => undefined),
+      compareFiles: vi.fn(async () => undefined),
       revealFile: vi.fn(async () => undefined),
       copyText: vi.fn(async () => undefined),
       deleteFiles: vi.fn(async () => undefined),
@@ -222,6 +228,7 @@ describe('graphView/provider/file/actions', () => {
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile: vi.fn(async () => undefined),
+      compareFiles: vi.fn(async () => undefined),
       revealFile: vi.fn(async () => undefined),
       copyText: vi.fn(async () => undefined),
       deleteFiles: vi.fn(async () => undefined),
@@ -280,6 +287,7 @@ describe('graphView/provider/file/actions', () => {
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile: vi.fn(async () => undefined),
+      compareFiles: vi.fn(async () => undefined),
       revealFile: vi.fn(async () => undefined),
       copyText: vi.fn(async () => undefined),
       deleteFiles: vi.fn(async () => undefined),

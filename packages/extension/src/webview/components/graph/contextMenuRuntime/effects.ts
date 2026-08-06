@@ -25,6 +25,7 @@ export interface GraphContextMenuEffectRuntime {
 
 const NODE_ACTIONS = new Set<BuiltInContextMenuAction>([
   'open',
+  'compare',
   'reveal',
   'copyRelative',
   'copyAbsolute',

@@ -1,6 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 
 export interface GraphViewNodeFileNavigationHandlers {
+  compareFiles(paths: readonly [string, string]): Promise<void>;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;
   indexGraph(): Promise<void>;
@@ -13,6 +14,10 @@ export async function applyNodeFileNavigationMessage(
   handlers: GraphViewNodeFileNavigationHandlers,
 ): Promise<boolean> {
   switch (message.type) {
+    case 'COMPARE_FILES':
+      await handlers.compareFiles(message.payload.paths);
+      return true;
+
     case 'REVEAL_IN_EXPLORER':
       void handlers.revealInExplorer(message.payload.path);
       return true;

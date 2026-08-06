@@ -19,6 +19,14 @@ export function createClipboardEffects(text: string): GraphContextEffect[] {
   return [createPostMessageEffect({ type: 'COPY_TO_CLIPBOARD', payload: { text } })];
 }
 
+export function createCompareFilesEffects(paths: readonly string[]): GraphContextEffect[] {
+  if (paths.length !== 2) return [];
+  return [createPostMessageEffect({
+    type: 'COMPARE_FILES',
+    payload: { paths: [paths[0], paths[1]] },
+  })];
+}
+
 export function createOptionalClipboardEffects(
   path: string | undefined,
   transform: (value: string) => string = (value) => value,

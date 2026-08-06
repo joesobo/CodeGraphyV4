@@ -3,6 +3,7 @@ import type { GraphContextActionContext } from '../context';
 import type { GraphContextEffect } from '../effects';
 import {
   createClipboardEffects,
+  createCompareFilesEffects,
   createCreateFileEffects,
   createCreateFolderEffects,
   createOptionalClipboardEffects,
@@ -20,6 +21,7 @@ import {
 
 const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   open: (context: GraphContextActionContext) => createOpenFileEffects(context.targetIds),
+  compare: (context: GraphContextActionContext) => createCompareFilesEffects(context.targetIds),
   openEdgeSource: (context: GraphContextActionContext) =>
     createOpenFileEffects(context.edgeSourceId ? [context.edgeSourceId] : []),
   openEdgeTarget: (context: GraphContextActionContext) =>

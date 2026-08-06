@@ -2,6 +2,7 @@ import { buildBackgroundEntries } from '../background/entries';
 import type { BuildGraphContextMenuOptions, GraphContextMenuEntry } from '../contracts';
 import type { GraphContextMenuDecision } from '../decision/model';
 import { buildEdgeEntries } from '../edge/entries';
+import { builtInItem } from '../common/entryFactories';
 import { buildNodeEntries, buildSingleFolderNodeEntries, buildSinglePluginNodeEntries, buildSingleSymbolNodeEntries } from '../node/entries';
 
 function nodeTargetIds(decision: Exclude<GraphContextMenuDecision, { kind: 'background' | 'edge' | 'emptyNodeSelection' | 'singleFolderNode' | 'singleSymbolNode' }>): readonly string[] {
@@ -15,5 +16,9 @@ export function buildBaseGraphContextMenuEntries(decision: GraphContextMenuDecis
   if (decision.kind === 'singlePluginNode') return buildSinglePluginNodeEntries();
   if (decision.kind === 'edge') return buildEdgeEntries(decision.targets);
   if (decision.kind === 'emptyNodeSelection') return [];
-  return buildNodeEntries(nodeTargetIds(decision), options.favorites);
+  const entries = buildNodeEntries(nodeTargetIds(decision), options.favorites);
+  if (decision.kind === 'multiFileNodes' && decision.targets.length === 2) {
+    entries.splice(1, 0, builtInItem('node-compare-selected', 'Compare Selected', 'compare'));
+  }
+  return entries;
 }

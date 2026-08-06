@@ -12,6 +12,7 @@ function createHandlers(
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
+    compareFiles: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     deleteFiles: vi.fn(() => Promise.resolve()),

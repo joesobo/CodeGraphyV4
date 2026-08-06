@@ -38,6 +38,10 @@ export function createGraphViewProviderFileActionMethods(
     await dependencies.revealFile(filePath);
   };
 
+  const _compareFiles = async (paths: readonly [string, string]): Promise<void> => {
+    await dependencies.compareFiles(paths);
+  };
+
   const _copyToClipboard = async (text: string): Promise<void> => {
     await dependencies.copyText(text);
   };
@@ -159,6 +163,7 @@ export function createGraphViewProviderFileActionMethods(
     _openSelectedNode,
     _activateNode,
     _openFile,
+    _compareFiles,
     _revealInExplorer,
     _copyToClipboard,
     _deleteFiles,

@@ -9,6 +9,7 @@ import { createGraphViewFile, createGraphViewFolder, deleteGraphViewFiles } from
 import { renameGraphViewFile } from '../../files/rename';
 import { toggleGraphViewFavorites } from '../../favorites';
 import {
+  compareGraphViewProviderFiles,
   copyGraphViewProviderTextToClipboard,
   openGraphViewProviderFile,
   revealGraphViewProviderFileInExplorer,
@@ -25,6 +26,7 @@ function getCurrentWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
 
 export const DEFAULT_GRAPH_VIEW_FILE_ACTION_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
   openFile: openGraphViewProviderFile,
+  compareFiles: compareGraphViewProviderFiles,
   revealFile: revealGraphViewProviderFileInExplorer,
   copyText: copyGraphViewProviderTextToClipboard,
   deleteFiles: deleteGraphViewFiles,

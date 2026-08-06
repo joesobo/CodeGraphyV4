@@ -28,6 +28,7 @@ describe('Graph node context menu selection actions', () => {
 
     expect(screen.getByText('2 Nodes selected')).toBeInTheDocument();
     expect(screen.getByRole('menu')).toHaveAccessibleName('2 Nodes selected');
+    expect(screen.getByText('Compare Selected')).toBeInTheDocument();
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();
@@ -36,7 +37,7 @@ describe('Graph node context menu selection actions', () => {
     expect(screen.queryByText('Rename')).not.toBeInTheDocument();
   });
 
-  it('posts Open, Copy, Favorite, Filter, and Delete actions for all selected nodes', async () => {
+  it('posts Open, Compare, Copy, Favorite, Filter, and Delete actions for all selected nodes', async () => {
     const onAddFilterRequested = vi.fn();
     const { container } = render(
       <Graph data={selectionData} onAddFilterRequested={onAddFilterRequested} />,
@@ -53,6 +54,13 @@ describe('Graph node context menu selection actions', () => {
     });
     const openMessages = getSentMessages().filter(msg => msg.type === 'OPEN_FILE');
     expect(openMessages.map(msg => msg.payload.path)).toEqual(['nodeA.ts', 'nodeB.ts']);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Compare Selected'));
+    });
+    expect(findMessage('COMPARE_FILES')?.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
 
     await selectTwoNodesForMultiMenu(graphContainer);
     clearSentMessages();

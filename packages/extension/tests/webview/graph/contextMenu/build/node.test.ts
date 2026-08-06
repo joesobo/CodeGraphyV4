@@ -90,14 +90,42 @@ describe('graph/contextMenu/build/node', () => {
       kind: 'header',
       header: { kind: 'multiNode', count: 2 },
     });
-    expect(itemLabels(entries)).toHaveLength(5);
+    expect(itemLabels(entries)).toHaveLength(6);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',
+      'Compare Selected',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
       'Delete 2 Files',
     ]);
+  });
+
+  it('shows Compare Selected only for exactly two File Nodes', () => {
+    const labelsFor = (
+      targets: string[],
+      nodes?: Array<{ id: string; nodeType?: string; symbol?: { id: string; name: string; filePath: string } }>,
+    ): string[] => itemLabels(buildGraphContextMenuEntries({
+      selection: { kind: 'node', targets },
+      favorites: new Set(),
+      nodes,
+    }));
+
+    expect(labelsFor(['src/a.ts', 'src/b.ts'])).toContain('Compare Selected');
+    expect(labelsFor(['src/a.ts'])).not.toContain('Compare Selected');
+    expect(labelsFor(['src/a.ts', 'src/b.ts', 'src/c.ts'])).not.toContain('Compare Selected');
+    expect(labelsFor(['src', 'tests'], [
+      { id: 'src', nodeType: 'folder' },
+      { id: 'tests', nodeType: 'folder' },
+    ])).not.toContain('Compare Selected');
+    expect(labelsFor(['src/a.ts#run', 'src/b.ts#run'], [
+      { id: 'src/a.ts#run', nodeType: 'symbol' },
+      { id: 'src/b.ts#run', nodeType: 'symbol' },
+    ])).not.toContain('Compare Selected');
+    expect(labelsFor(['src/a.ts', 'src'], [
+      { id: 'src/a.ts', nodeType: 'file' },
+      { id: 'src', nodeType: 'folder' },
+    ])).not.toContain('Compare Selected');
   });
 
   it('keeps mixed selections with plugin nodes on generic public actions', () => {
