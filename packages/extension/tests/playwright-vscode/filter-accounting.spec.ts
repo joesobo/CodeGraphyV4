@@ -36,7 +36,7 @@ test('reports plugin default Filter effects in an Extension Development Host', a
     await frame.getByRole('button', { name: /^Filters,/ }).click();
     await expect(frame.getByText('Before analysis: 0 workspace files excluded')).toBeVisible();
     await expect(frame.getByText('In Graph View: 0 Nodes excluded')).toBeVisible();
-    await vscode.page.screenshot({
+    await frame.locator('[data-codegraphy-surface="app"]').screenshot({
       path: path.join(proofDirectory, 'trello-242-before.png'),
     });
 
@@ -56,7 +56,7 @@ test('reports plugin default Filter effects in an Extension Development Host', a
     await frame.getByRole('button', { name: /^Filters,/ }).click();
     await expect(frame.getByText('Before analysis: 1 workspace file excluded')).toBeVisible();
     await expect(frame.getByText('In Graph View: 0 Nodes excluded')).toBeVisible();
-    await vscode.page.screenshot({
+    await frame.locator('[data-codegraphy-surface="app"]').screenshot({
       path: path.join(proofDirectory, 'trello-242-after.png'),
     });
   } finally {
