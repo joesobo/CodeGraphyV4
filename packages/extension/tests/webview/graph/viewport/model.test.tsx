@@ -92,6 +92,7 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
       pluginSections: [],
     },
     tooltipTimeoutRef: { current: null },
+		updateTooltipAnchor: vi.fn(),
   } as unknown as UseGraphInteractionRuntimeResult;
 }
 
@@ -178,5 +179,41 @@ describe('graph/viewport/model', () => {
     expect(harness.buildSharedGraphProps).toHaveBeenLastCalledWith(expect.objectContaining({
       graphData: nextGraphData,
     }));
+  });
+
+  it('keeps graph surface props stable when only tooltip state changes', () => {
+    const interactions = createInteractions();
+    const graphData = createGraphData();
+    const handleEngineStop = vi.fn();
+    const viewportRuntime = { containerSize: { width: 480, height: 320 } };
+    const viewState = createViewState();
+    const { result, rerender } = renderHook(
+      ({ currentInteractions }) => useGraphViewportModel({
+        graphState: {
+          contextSelection: { kind: 'background', targets: [] },
+          graphData,
+        },
+        handleEngineStop,
+        interactions: currentInteractions,
+        viewportRuntime,
+        viewState,
+      }),
+      { initialProps: { currentInteractions: interactions } },
+    );
+    const initialSharedProps = result.current.sharedProps;
+
+    rerender({
+      currentInteractions: {
+        ...interactions,
+        tooltipData: {
+          ...interactions.tooltipData,
+          nodeRect: { x: 50, y: 60, radius: 12 },
+          visible: true,
+        },
+      },
+    });
+
+    expect(harness.buildSharedGraphProps).toHaveBeenCalledOnce();
+    expect(result.current.sharedProps).toBe(initialSharedProps);
   });
 });

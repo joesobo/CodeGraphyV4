@@ -49,21 +49,24 @@ afterEach(() => {
 });
 
 describe('graph/runtime/useTooltipEvents', () => {
-	it('sets the cursor back to default on mouse leave', () => {
+	it('cancels tooltip tracking on mouse leave', () => {
 		const setGraphCursor = vi.fn();
+		const hoveredNodeRef = { current: createNode() as FGNode | null };
+		const tooltipRectRef = { current: { x: 10, y: 20, radius: 8 } };
+		const setTooltipData = vi.fn();
 
 		const { result } = renderHook(() => useTooltipEvents({
 			containerRef: { current: document.createElement('div') },
 			dataRef: { current: { nodes: [], edges: [] } } as never,
 			fg2dRef: { current: undefined },
 			fileInfoCacheRef: { current: new Map() } as never,
-			hoveredNodeRef: { current: null },
+			hoveredNodeRef,
 			interactionHandlers: {
 				setGraphCursor,
 			},
 			postMessage: vi.fn(),
-			setTooltipData: vi.fn(),
-			tooltipRafRef: { current: null },
+			setTooltipData,
+			tooltipRectRef,
 			tooltipTimeoutRef: { current: null },
 		}));
 
@@ -72,6 +75,70 @@ describe('graph/runtime/useTooltipEvents', () => {
 		});
 
 		expect(setGraphCursor).toHaveBeenCalledWith('default');
+		expect(hoveredNodeRef.current).toBeNull();
+		expect(tooltipRectRef.current).toBeNull();
+		expect(setTooltipData).toHaveBeenCalledWith(expect.any(Function));
+	});
+
+	it.each(['window blur', 'hidden document'] as const)(
+		'cancels tooltip tracking on %s',
+		(trigger) => {
+			const hoveredNodeRef = { current: createNode() as FGNode | null };
+			const tooltipRectRef = { current: { x: 10, y: 20, radius: 8 } };
+			const setTooltipData = vi.fn();
+			renderHook(() => useTooltipEvents({
+				containerRef: { current: document.createElement('div') },
+				dataRef: { current: { nodes: [], edges: [] } } as never,
+				fg2dRef: { current: undefined },
+				fileInfoCacheRef: { current: new Map() } as never,
+				hoveredNodeRef,
+				interactionHandlers: { setGraphCursor: vi.fn() },
+				postMessage: vi.fn(),
+				setTooltipData,
+				tooltipRectRef,
+				tooltipTimeoutRef: { current: null },
+			}));
+
+			act(() => {
+				if (trigger === 'window blur') {
+					window.dispatchEvent(new Event('blur'));
+					return;
+				}
+				Object.defineProperty(document, 'visibilityState', {
+					configurable: true,
+					value: 'hidden',
+				});
+				document.dispatchEvent(new Event('visibilitychange'));
+			});
+
+			expect(hoveredNodeRef.current).toBeNull();
+			expect(tooltipRectRef.current).toBeNull();
+			expect(setTooltipData).toHaveBeenCalledWith(expect.any(Function));
+			Object.defineProperty(document, 'visibilityState', {
+				configurable: true,
+				value: 'visible',
+			});
+		},
+	);
+
+	it('cancels tooltip tracking on disposal', () => {
+		const tooltipRectRef = { current: { x: 10, y: 20, radius: 8 } };
+		const { unmount } = renderHook(() => useTooltipEvents({
+			containerRef: { current: document.createElement('div') },
+			dataRef: { current: { nodes: [], edges: [] } } as never,
+			fg2dRef: { current: undefined },
+			fileInfoCacheRef: { current: new Map() } as never,
+			hoveredNodeRef: { current: createNode() },
+			interactionHandlers: { setGraphCursor: vi.fn() },
+			postMessage: vi.fn(),
+			setTooltipData: vi.fn(),
+			tooltipRectRef,
+			tooltipTimeoutRef: { current: null },
+		}));
+
+		unmount();
+
+		expect(tooltipRectRef.current).toBeNull();
 	});
 
 	it('uses the latest handlers after rerender instead of stale callback dependencies', () => {
@@ -94,7 +161,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 			},
 			postMessage: firstPostMessage,
 			setTooltipData: firstSetTooltipData,
-			tooltipRafRef: { current: null },
+			tooltipRectRef: { current: null },
 			tooltipTimeoutRef: { current: null },
 		};
 		const { result, rerender } = renderHook(useTooltipEvents, {

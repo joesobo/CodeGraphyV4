@@ -34,6 +34,7 @@ export interface UseGraphTooltipResult {
 	stopTooltipTracking: (this: void) => void;
 	tooltipData: GraphTooltipState;
 	tooltipTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
+	updateTooltipAnchor: (this: void) => void;
 }
 
 export function useGraphTooltip({
@@ -50,13 +51,14 @@ export function useGraphTooltip({
 		hoveredNodeRef,
 		setTooltipData,
 		tooltipData,
-		tooltipRafRef,
+		tooltipRectRef,
 		tooltipTimeoutRef,
 	} = useTooltipState();
 	const {
 		handleMouseLeave,
 		handleNodeHover,
 		stopTooltipTracking,
+		updateTooltipAnchor,
 	} = useTooltipEvents({
 		containerRef,
 		dataRef,
@@ -68,7 +70,7 @@ export function useGraphTooltip({
 		pluginHost,
 		postMessage,
 		setTooltipData,
-		tooltipRafRef,
+		tooltipRectRef,
 		tooltipTimeoutRef,
 	});
 
@@ -80,5 +82,6 @@ export function useGraphTooltip({
 		stopTooltipTracking,
 		tooltipData,
 		tooltipTimeoutRef,
+		updateTooltipAnchor,
 	};
 }

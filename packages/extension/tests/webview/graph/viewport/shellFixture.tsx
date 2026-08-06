@@ -176,6 +176,7 @@ export function createInteractions(): UseGraphInteractionRuntimeResult {
     hoveredNodeRef: { current: null },
     stopTooltipTracking: vi.fn(),
     tooltipTimeoutRef: { current: null },
+		updateTooltipAnchor: vi.fn(),
   } as unknown as UseGraphInteractionRuntimeResult;
 }
 

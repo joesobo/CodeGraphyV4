@@ -69,4 +69,5 @@ export interface UseGraphInteractionRuntimeResult {
   stopTooltipTracking: ReturnType<typeof useGraphTooltip>['stopTooltipTracking'];
   tooltipData: ReturnType<typeof useGraphTooltip>['tooltipData'];
   tooltipTimeoutRef: ReturnType<typeof useGraphTooltip>['tooltipTimeoutRef'];
+  updateTooltipAnchor: ReturnType<typeof useGraphTooltip>['updateTooltipAnchor'];
 }

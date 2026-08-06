@@ -111,6 +111,7 @@ export function useGraphInteractionRuntime({
     stopTooltipTracking,
     tooltipData,
     tooltipTimeoutRef,
+    updateTooltipAnchor,
   } = useGraphTooltip({
     containerRef: refs.containerRef,
     dataRef,
@@ -135,6 +136,7 @@ export function useGraphInteractionRuntime({
     interactionHandlers,
     selectedNodesSetRef: refs.selectedNodesSetRef,
   });
+  const { clearMarqueeSelection } = marqueeRuntime;
 
   const getActionContext = useCallback(
     (selection: GraphContextSelection) => resolveGraphContextActionContext(selection, {
@@ -144,22 +146,27 @@ export function useGraphInteractionRuntime({
     [graphDataRef, refs.fg2dRef],
   );
 
-  function handleNodeDragEnd(node: FGNode): void {
+  const handleNodeDragEnd = useCallback((node: FGNode): void => {
     postDraggedNodesDragEndMessages(node, nodeDragGroupRef.current, {
       graphData: graphDataRef.current,
       graphViewContributions,
     });
     nodeDragGroupRef.current = null;
-  }
+  }, [graphDataRef, graphViewContributions]);
 
-  function handleNodeDrag(node: FGNode, translate: NodeDragTranslate): void {
+  const handleNodeDrag = useCallback((node: FGNode, translate: NodeDragTranslate): void => {
     nodeDragGroupRef.current = applyNodeDrag(node, translate, {
       graphData: graphDataRef.current,
       selectedNodeIds: refs.selectedNodesSetRef.current,
     }, nodeDragGroupRef.current);
 
-    marqueeRuntime.clearMarqueeSelection();
-  }
+    clearMarqueeSelection();
+  }, [clearMarqueeSelection, graphDataRef, refs.selectedNodesSetRef]);
+
+  const handleEngineStop = useCallback(
+    () => postMessage({ type: 'PHYSICS_STABILIZED' }),
+    [],
+  );
 
   const contextMenuOpeningRuntime = useMemo(
     () => createGraphContextMenuOpeningRuntime({
@@ -244,7 +251,7 @@ export function useGraphInteractionRuntime({
     ...contextMenuOpeningRuntime,
     handleBackgroundRightClick: suppressedContextMenuHandlers.handleBackgroundRightClick,
     handleContextMenu: suppressedContextMenuHandlers.handleContextMenu,
-    handleEngineStop: () => postMessage({ type: 'PHYSICS_STABILIZED' }),
+    handleEngineStop,
     handleLinkRightClick: suppressedContextMenuHandlers.handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
     handleNodeHover,
@@ -261,5 +268,6 @@ export function useGraphInteractionRuntime({
     stopTooltipTracking,
     tooltipData,
     tooltipTimeoutRef,
+    updateTooltipAnchor,
   };
 }

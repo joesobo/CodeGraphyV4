@@ -20,6 +20,8 @@ vi.mock('@codegraphy-dev/graph-renderer', async importOriginal => ({
 }));
 
 import { OwnedGraphSurface2d } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/render';
+import { startTooltipTracking } from '../../../../../../../../src/webview/components/graph/runtime/tooltip/tracking';
+import type { FGNode } from '../../../../../../../../src/webview/components/graph/model/build';
 
 describe('OwnedGraphSurface2d performance presentation', () => {
   afterEach(() => {
@@ -34,6 +36,74 @@ describe('OwnedGraphSurface2d performance presentation', () => {
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     vi.stubGlobal('PointerEvent', MouseEvent);
   });
+
+	it('submits zero repeated graph frames for a settled stationary Node tooltip', async () => {
+		const frames: FrameRequestCallback[] = [];
+		vi.mocked(requestAnimationFrame).mockImplementation(callback => {
+			frames.push(callback);
+			return frames.length;
+		});
+		const context = {
+			clearRect: vi.fn(),
+			restore: vi.fn(),
+			save: vi.fn(),
+			scale: vi.fn(),
+			setTransform: vi.fn(),
+			translate: vi.fn(),
+		} as unknown as CanvasRenderingContext2D;
+		rendererHarness.render.mockReturnValue(1);
+		rendererHarness.create.mockResolvedValue({
+			canRender: () => true,
+			dispose: rendererHarness.dispose,
+			render: rendererHarness.render,
+			setSecondarySurface: rendererHarness.setSecondarySurface,
+		});
+		const props = createDefaultSurfaceProps();
+		props.showMinimap = false;
+		const rendered = render(<OwnedGraphSurface2d {...props} />);
+		const overlay = rendered.container.querySelectorAll('canvas')[1];
+		Object.defineProperty(overlay, 'getContext', { value: () => context });
+		await waitFor(() => {
+			expect(rendered.container.firstElementChild).toHaveAttribute(
+				'data-codegraphy-renderer',
+				'webgpu',
+			);
+		});
+
+		let timestamp = 0;
+		let drainedFrames = 0;
+		while (frames.length > 0 && drainedFrames < 100) {
+			const frame = frames.shift();
+			act(() => frame?.(timestamp));
+			timestamp += 1000 / 60;
+			drainedFrames += 1;
+		}
+		expect(drainedFrames).toBeLessThan(100);
+		expect(frames).toHaveLength(0);
+		const settledSubmissions = rendererHarness.render.mock.calls.length;
+		const settledFrameRequests = vi.mocked(requestAnimationFrame).mock.calls.length;
+
+		const hoveredNode: FGNode = {
+			baseOpacity: 1,
+			borderColor: '#000',
+			borderWidth: 1,
+			color: '#fff',
+			id: 'src/app.ts',
+			isFavorite: false,
+			isPinned: false,
+			label: 'app.ts',
+			size: 12,
+		};
+		startTooltipTracking({
+			getNodeRect: () => ({ x: 120, y: 80, radius: 12 }),
+			hoveredNodeRef: { current: hoveredNode },
+			tooltipRectRef: { current: null },
+		});
+
+		expect(rendererHarness.render).toHaveBeenCalledTimes(settledSubmissions);
+		expect(requestAnimationFrame).toHaveBeenCalledTimes(settledFrameRequests);
+		expect(frames).toHaveLength(0);
+	});
 
   it('shows actual rendered FPS separately from CPU frame cost while tracking remains always on', async () => {
     const frames: FrameRequestCallback[] = [];

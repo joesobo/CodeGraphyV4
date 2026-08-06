@@ -137,4 +137,47 @@ describe('owned graph frame loop', () => {
     runtime.requestFrameRef.current();
     expect(requestAnimationFrame).toHaveBeenCalledOnce();
   });
+
+  it('performs zero graph frames and zero physics work while the hovered graph is hidden', () => {
+		vi.mocked(renderOwnedGraphFrame).mockClear();
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'hidden',
+    });
+    const requestAnimationFrame = vi.fn(() => 23);
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.stubGlobal('ResizeObserver', ResizeObserverHarness);
+    const runtime = {
+      animationFrameRef: { current: null },
+      cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
+      engineStopNotifiedRef: { current: false },
+      frameRequestedRef: { current: false },
+      gpuRendererRef: { current: null },
+      hoveredNodeRef: { current: { id: 'src/app.ts' } },
+      layoutRef: { current: {} },
+      rendererOperationalRef: { current: true },
+      requestFrameRef: { current: () => {} },
+    } as unknown as OwnedGraphFrameLoopRuntime;
+
+    const loop = startOwnedGraphFrameLoop(
+      runtime,
+      document.createElement('canvas'),
+      { current: undefined },
+    );
+    runtime.requestFrameRef.current();
+
+    expect(runtime.frameRequestedRef.current).toBe(true);
+    expect(requestAnimationFrame).not.toHaveBeenCalled();
+    expect(renderOwnedGraphFrame).not.toHaveBeenCalled();
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
+
+    loop.dispose();
+  });
 });

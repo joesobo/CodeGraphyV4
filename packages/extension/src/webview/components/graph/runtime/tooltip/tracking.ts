@@ -8,36 +8,51 @@ import type { FGNode } from '../../model/build';
 interface GraphTooltipTrackingOptions {
 	getNodeRect(this: void, node: FGNode): GraphTooltipRect | null;
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
-	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
-	tooltipRafRef: MutableRefObject<number | null>;
+	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>;
 }
 
 export function stopTooltipTracking(
-	tooltipRafRef: MutableRefObject<number | null>,
+	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>,
 ): void {
-	if (tooltipRafRef.current !== null) {
-		cancelAnimationFrame(tooltipRafRef.current);
-		tooltipRafRef.current = null;
-	}
+	tooltipRectRef.current = null;
 }
 
 export function startTooltipTracking({
 	getNodeRect,
 	hoveredNodeRef,
-	setTooltipData,
-	tooltipRafRef,
+	tooltipRectRef,
 }: GraphTooltipTrackingOptions): void {
-	const tick = (): void => {
-		const node = hoveredNodeRef.current;
-		if (!node) return;
+	const node = hoveredNodeRef.current;
+	tooltipRectRef.current = node ? getNodeRect(node) : null;
+}
 
-		const rect = getNodeRect(node);
-		if (rect) {
-			setTooltipData(previous => previous.visible ? { ...previous, nodeRect: rect } : previous);
-		}
+function rectsEqual(
+	first: GraphTooltipRect,
+	second: GraphTooltipRect,
+): boolean {
+	return first.x === second.x
+		&& first.y === second.y
+		&& first.radius === second.radius;
+}
 
-		tooltipRafRef.current = requestAnimationFrame(tick);
-	};
+export function updateTooltipTracking({
+	getNodeRect,
+	hoveredNodeRef,
+	setTooltipData,
+	tooltipRectRef,
+}: GraphTooltipTrackingOptions & {
+	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
+}): void {
+	const node = hoveredNodeRef.current;
+	const rect = node ? getNodeRect(node) : null;
+	if (!rect) {
+		stopTooltipTracking(tooltipRectRef);
+		return;
+	}
+	if (tooltipRectRef.current && rectsEqual(tooltipRectRef.current, rect)) return;
 
-	tooltipRafRef.current = requestAnimationFrame(tick);
+	tooltipRectRef.current = rect;
+	setTooltipData(previous => previous.visible
+		? { ...previous, nodeRect: rect }
+		: previous);
 }

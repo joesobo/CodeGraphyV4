@@ -1,5 +1,7 @@
 import {
+	useCallback,
 	useEffect,
+	useRef,
 	type MutableRefObject,
 } from 'react';
 import type { OwnedGraph2dControls } from '../../../../rendering/surface/owned2d/view/surface/contracts';
@@ -8,7 +10,7 @@ import type { IGraphData } from '../../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../../shared/protocol/webviewToExtension';
 import type { IGroup } from '../../../../../../../shared/settings/groups';
 import type { FGNode } from '../../../../model/build';
-import type { GraphTooltipState } from '../../../../tooltip/model';
+import type { GraphTooltipRect, GraphTooltipState } from '../../../../tooltip/model';
 import type { WebviewPluginHost } from '../../../../../../pluginHost/manager';
 import type { GraphTooltipInteractionDependencies } from '../hook';
 import { handleTooltipNodeHover } from '../../../tooltip/hover';
@@ -16,6 +18,7 @@ import { getTooltipNodeRect } from '../../../tooltip/rect';
 import {
 	startTooltipTracking as beginTooltipTracking,
 	stopTooltipTracking as endTooltipTracking,
+	updateTooltipTracking,
 } from '../../../tooltip/tracking';
 
 export interface UseTooltipEventsOptions {
@@ -29,7 +32,7 @@ export interface UseTooltipEventsOptions {
 	pluginHost?: WebviewPluginHost;
 	postMessage: (this: void, message: WebviewToExtensionMessage) => void;
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
-	tooltipRafRef: MutableRefObject<number | null>;
+	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>;
 	tooltipTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
 }
 
@@ -37,75 +40,82 @@ export interface UseTooltipEventsResult {
 	handleMouseLeave: (this: void) => void;
 	handleNodeHover: (this: void, node: FGNode | null) => void;
 	stopTooltipTracking: (this: void) => void;
+	updateTooltipAnchor: (this: void) => void;
 }
 
-export function useTooltipEvents({
-	containerRef,
-	dataRef,
-	fg2dRef,
-	fileInfoCacheRef,
-	hoveredNodeRef,
-	interactionHandlers,
-	legends,
-	pluginHost,
-	postMessage,
-	setTooltipData,
-	tooltipRafRef,
-	tooltipTimeoutRef,
-}: UseTooltipEventsOptions): UseTooltipEventsResult {
-	const getNodeScreenRect = (node: FGNode) => getTooltipNodeRect({
-		containerRef,
-		fg2dRef,
-	}, node);
+export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEventsResult {
+	const optionsRef = useRef(options);
+	optionsRef.current = options;
+	const getNodeScreenRect = useCallback((node: FGNode) => {
+		const current = optionsRef.current;
+		return getTooltipNodeRect({
+			containerRef: current.containerRef,
+			fg2dRef: current.fg2dRef,
+		}, node);
+	}, []);
 
-	const stopTooltipTracking = () => {
-		endTooltipTracking(tooltipRafRef);
-	};
+	const stopTooltipTracking = useCallback(() => {
+		endTooltipTracking(optionsRef.current.tooltipRectRef);
+	}, []);
 
-	const startTooltipTracking = () => {
+	const startTooltipTracking = useCallback(() => {
+		const current = optionsRef.current;
 		beginTooltipTracking({
 			getNodeRect: getNodeScreenRect,
-			hoveredNodeRef,
-			setTooltipData,
-			tooltipRafRef,
+			hoveredNodeRef: current.hoveredNodeRef,
+			tooltipRectRef: current.tooltipRectRef,
 		});
-	};
+	}, [getNodeScreenRect]);
 
-	const handleNodeHover = (node: FGNode | null) => {
+	const handleNodeHover = useCallback((node: FGNode | null) => {
+		const current = optionsRef.current;
 		handleTooltipNodeHover(node, {
-			dataRef,
-			fileInfoCacheRef,
+			...current,
 			getNodeRect: getNodeScreenRect,
-			hoveredNodeRef,
-			interactionHandlers,
-			legends,
-			pluginHost,
-			postMessage,
-			setTooltipData,
 			startTracking: startTooltipTracking,
 			stopTracking: stopTooltipTracking,
-			tooltipTimeoutRef,
 		});
-	};
+	}, [getNodeScreenRect, startTooltipTracking, stopTooltipTracking]);
 
-	const handleMouseLeave = () => {
-		interactionHandlers.setGraphCursor('default');
-	};
+	const handleMouseLeave = useCallback(() => {
+		handleNodeHover(null);
+	}, [handleNodeHover]);
+
+	const updateTooltipAnchor = useCallback(() => {
+		const current = optionsRef.current;
+		updateTooltipTracking({
+			getNodeRect: getNodeScreenRect,
+			hoveredNodeRef: current.hoveredNodeRef,
+			setTooltipData: current.setTooltipData,
+			tooltipRectRef: current.tooltipRectRef,
+		});
+	}, [getNodeScreenRect]);
 
 	useEffect(
-		() => () => {
-			if (tooltipTimeoutRef.current) {
-				clearTimeout(tooltipTimeoutRef.current);
-				tooltipTimeoutRef.current = null;
-			}
-			endTooltipTracking(tooltipRafRef);
+		() => {
+			const stopForVisibility = (): void => {
+				if (document.visibilityState === 'hidden') handleNodeHover(null);
+			};
+			window.addEventListener('blur', handleMouseLeave);
+			document.addEventListener('visibilitychange', stopForVisibility);
+			return () => {
+				window.removeEventListener('blur', handleMouseLeave);
+				document.removeEventListener('visibilitychange', stopForVisibility);
+				const current = optionsRef.current;
+				if (current.tooltipTimeoutRef.current) {
+					clearTimeout(current.tooltipTimeoutRef.current);
+					current.tooltipTimeoutRef.current = null;
+				}
+				endTooltipTracking(current.tooltipRectRef);
+			};
 		},
-		[tooltipRafRef, tooltipTimeoutRef],
+		[handleMouseLeave, handleNodeHover],
 	);
 
 	return {
 		handleMouseLeave,
 		handleNodeHover,
 		stopTooltipTracking,
+		updateTooltipAnchor,
 	};
 }

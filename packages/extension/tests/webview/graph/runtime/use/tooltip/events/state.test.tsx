@@ -8,7 +8,7 @@ describe('graph/runtime/useTooltipState', () => {
 
 		expect(result.current.hoveredNodeRef.current).toBeNull();
 		expect(result.current.tooltipTimeoutRef.current).toBeNull();
-		expect(result.current.tooltipRafRef.current).toBeNull();
+		expect(result.current.tooltipRectRef.current).toBeNull();
 		expect(result.current.tooltipData).toEqual({
 			visible: false,
 			nodeRect: { x: 0, y: 0, radius: 0 },
