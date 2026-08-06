@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
-  normalizeHexColor,
   DEFAULT_NODE_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_DIRECTION_COLOR,
   FILE_TYPE_COLORS,
   getFileColor,
-} from '../../src/shared/fileColors';
+} from '@codegraphy-dev/graph-visuals';
+import { normalizeHexColor } from '../../src/shared/normalizeHexColor';
 
 describe('normalizeHexColor', () => {
   it('returns the default color when value is undefined', () => {

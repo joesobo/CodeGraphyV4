@@ -1,7 +1,7 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGraphNodeTypeDefinition } from '../../../../../shared/graphControls/contracts';
 import { CORE_GRAPH_NODE_TYPES } from '../../../../../shared/graphControls/defaults/definitions';
-import { normalizeHexColor } from '../../../../../shared/fileColors';
+import { normalizeHexColor } from '../../../../../shared/normalizeHexColor';
 import type { GraphNodeTypeCapabilityLike, GraphNodeTypeLike } from './contracts';
 
 const STRUCTURAL_NODE_TYPE_IDS = new Set(['file', 'folder', 'package']);

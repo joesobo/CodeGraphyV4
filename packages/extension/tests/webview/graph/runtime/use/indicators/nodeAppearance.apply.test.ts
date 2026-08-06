@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  DEFAULT_NODE_SIZE,
-  FAVORITE_BORDER_COLOR,
-} from '../../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
+import { FAVORITE_BORDER_COLOR } from '../../../../../../src/webview/components/graph/model/build';
 import { applyNodeAppearance } from '../../../../../../src/webview/components/graph/runtime/use/indicators/nodeAppearance';
 import { adjustColorForLightTheme } from '../../../../../../src/webview/theme/useTheme';
 import {

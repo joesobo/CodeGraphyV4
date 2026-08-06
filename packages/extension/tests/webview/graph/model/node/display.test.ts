@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
 import {
-  DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
   getDepthOpacity,
   getDepthSizeMultiplier,

@@ -1,4 +1,4 @@
-import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import type { IGroup } from '../../shared/settings/groups';
 import type { NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createGraphStore } from '../../../../../src/webview/store/state';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import { clearSentMessages } from '../../../../helpers/sentMessages';
 
 describe('GraphStore graph messages',()=>{

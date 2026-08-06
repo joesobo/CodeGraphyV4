@@ -1,7 +1,7 @@
 import type {
   IGraphNodeTypeDefinition,
 } from '../../../../../shared/graphControls/contracts';
-import { normalizeHexColor } from '../../../../../shared/fileColors';
+import { normalizeHexColor } from '../../../../../shared/normalizeHexColor';
 
 export function resolveVisibilityMap<TDefinition extends { id: string; defaultVisible: boolean }>(
   definitions: TDefinition[],

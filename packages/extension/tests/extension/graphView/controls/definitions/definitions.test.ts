@@ -1,15 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mergeEdgeTypes, mergeNodeTypes } from '../../../../../src/extension/graphView/controls/send/definitions/merge';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphControls/defaults/definitions';
-import { normalizeHexColor } from '../../../../../src/shared/fileColors';
+import { normalizeHexColor } from '../../../../../src/shared/normalizeHexColor';
 import { prettifyIdentifier } from '../../../../../src/extension/graphView/controls/send/definitions/identifiers';
 
-vi.mock('../../../../../src/shared/fileColors', async () => {
-  const actual = await vi.importActual('../../../../../src/shared/fileColors');
-  return {
-    ...actual,
-    normalizeHexColor: vi.fn(),
-  };
+vi.mock('../../../../../src/shared/normalizeHexColor', () => {
+  return { normalizeHexColor: vi.fn() };
 });
 
 vi.mock('../../../../../src/extension/graphView/controls/send/definitions/identifiers', () => ({

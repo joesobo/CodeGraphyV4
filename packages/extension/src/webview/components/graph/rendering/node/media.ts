@@ -1,4 +1,5 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
+import { fileIconSize, folderIconSize } from '@codegraphy-dev/graph-visuals';
 import { getImage } from '../imageCache';
 import { drawShape } from '../shapes/draw/twoDimensional';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
@@ -26,7 +27,9 @@ export function renderNodeImageOverlay(
     drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size * 0.8);
     ctx.clip();
   }
-  const imageSize = node.nodeType === 'folder' ? node.size * 2 : node.size * 1.2;
+  const imageSize = node.nodeType === 'folder'
+    ? folderIconSize(node.size)
+    : fileIconSize(node.size);
   ctx.drawImage(image, node.x! - imageSize / 2, node.y! - imageSize / 2, imageSize, imageSize);
   ctx.restore();
 }

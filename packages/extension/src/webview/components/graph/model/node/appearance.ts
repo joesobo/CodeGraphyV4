@@ -1,4 +1,5 @@
 import type { IGraphNode } from '../../../../../shared/graph/contracts';
+import { GRAPH_NODE_BORDER_WIDTH } from '@codegraphy-dev/graph-visuals';
 import type { GraphAppearance } from '../../appearance/model';
 import { FALLBACK_MUTED_NODE_COLOR, FAVORITE_BORDER_COLOR } from './display';
 
@@ -54,5 +55,5 @@ export function graphNodeBorderColor({
 
 export function graphNodeBorderWidth(isFocused: boolean, isFavorite: boolean): number {
   if (isFocused) return 4;
-  return isFavorite ? 3 : 2;
+  return isFavorite ? 3 : GRAPH_NODE_BORDER_WIDTH;
 }

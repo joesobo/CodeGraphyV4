@@ -1,17 +1,19 @@
 import type { FGLink } from '../../model/build';
+import {
+  CONNECTED_LINK_OPACITY,
+  LINK_BASE_WIDTH,
+  MUTED_LINK_OPACITY,
+  ORDINARY_LINK_OPACITY,
+} from '@codegraphy-dev/graph-visuals';
 import { resolveLinkEndpointId } from '../../support/linkTargets';
 import type { LinkRenderingDependencies } from './contracts';
-
-const ORDINARY_LINK_OPACITY = 0.3;
-const CONNECTED_LINK_OPACITY = 0.9;
-const MUTED_LINK_OPACITY = 0.12;
 
 export function getBaseGraphLinkOpacity(): number {
   return ORDINARY_LINK_OPACITY;
 }
 
 export function getBaseGraphLinkWidth(): number {
-  return 1;
+  return LINK_BASE_WIDTH;
 }
 
 function linkConnectsNode(link: FGLink, nodeId: string): boolean {
@@ -47,6 +49,6 @@ export function getGraphLinkWidth(
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
   if (decoration?.width !== undefined) return decoration.width;
   const highlighted = dependencies.highlightedNodeRef.current;
-  if (!highlighted) return 1;
-  return linkConnectsNode(link, highlighted) ? 2 : 1;
+  if (!highlighted) return LINK_BASE_WIDTH;
+  return linkConnectsNode(link, highlighted) ? 2 : LINK_BASE_WIDTH;
 }

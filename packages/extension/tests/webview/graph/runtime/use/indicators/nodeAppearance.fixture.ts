@@ -1,9 +1,9 @@
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import {
-  DEFAULT_NODE_SIZE,
   type FGNode,
 } from '../../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
 
 export const DARK_APPEARANCE = {
   ...DEFAULT_GRAPH_APPEARANCE,

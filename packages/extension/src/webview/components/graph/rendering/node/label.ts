@@ -1,6 +1,7 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import { graphDetailOpacity } from '@codegraphy-dev/graph-renderer';
+import { graphNodeLabelTop } from '@codegraphy-dev/graph-visuals';
 import type { FGNode } from '../../model/build';
 import type { NodeLabelSpriteProvider } from './labelSprite';
 
@@ -50,7 +51,7 @@ export function renderNodeLabel({
   ctx.drawImage(
     sprite.image,
     node.x! - width / 2,
-    node.y! + nodeHalfHeight + 2 / globalScale,
+    graphNodeLabelTop(node.y!, nodeHalfHeight, globalScale),
     width,
     height,
   );

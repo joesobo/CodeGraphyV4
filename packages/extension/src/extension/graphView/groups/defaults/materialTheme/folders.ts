@@ -1,16 +1,19 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import {
+  findMaterialMatch,
+  MATERIAL_TRANSPARENT_NODE_COLOR,
+  type MaterialIconManifest,
+  type MaterialMatch,
+} from '@codegraphy-dev/graph-visuals';
 import { collectFolderPaths } from '../../../../../shared/graphControls/nests/folders';
 import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
 import type { MaterialThemeCacheEntry } from './model';
 import {
   createGenericFolderGroup,
   createMaterialGroup,
-  MATERIAL_TRANSPARENT_NODE_COLOR,
 } from './groups';
 import { resolveIconData } from './icons';
-import { findMaterialMatch } from './match';
-import type { MaterialIconManifest, MaterialMatch } from './model';
 
 function getDefaultFolderIconName(
   _folderPath: string,

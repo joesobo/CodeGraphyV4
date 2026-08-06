@@ -1,7 +1,8 @@
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_NODE_COLOR,
-} from '../../../../../shared/fileColors';
+  GRAPH_NODE_SELECTION_BORDER_WIDTH,
+} from '@codegraphy-dev/graph-visuals';
 import type { FGNode } from '../../model/build';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/view/surface/contracts';
@@ -79,7 +80,9 @@ export function getNodeCanvasStyle(dependencies: NodeCanvasRendererDependencies,
   const selected = dependencies.selectedNodesSetRef.current.has(node.id);
   return {
     borderColor: borderColor(dependencies, node, selected),
-    borderWidth: selected ? Math.max(node.borderWidth, 3) : node.borderWidth,
+    borderWidth: selected
+      ? Math.max(node.borderWidth, GRAPH_NODE_SELECTION_BORDER_WIDTH)
+      : node.borderWidth,
     cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
     fillColor: fillColor(dependencies, node),
     fillOpacity: normalizedNodeFillOpacity(node.fillOpacity2D),

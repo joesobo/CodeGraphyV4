@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import { collectMaterialFileGroups } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/files';
 import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
-import { createMaterialPathRuleMatcher } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/pathMatch';
+import { createMaterialPathRuleMatcher } from '@codegraphy-dev/graph-visuals';
 
 const tempDirs: string[] = [];
 

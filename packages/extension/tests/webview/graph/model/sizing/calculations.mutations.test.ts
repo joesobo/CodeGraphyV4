@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeConnectionSizes } from '../../../../../src/webview/components/graph/model/sizing/calculations';
+import { computeConnectionSizes } from '@codegraphy-dev/graph-visuals';
 
 function relatedGraph(relatedNodeCount: number) {
   const leaves = Array.from({ length: relatedNodeCount }, (_, index) => ({

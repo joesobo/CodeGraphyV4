@@ -8,9 +8,10 @@
     "node": "^22.14.0 || >=23.6.0"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "pnpm run build:icons && vite build",
     "build:bundle": "tauri build",
     "build:bundle:ad-hoc": "tauri build --target aarch64-apple-darwin --bundles app,dmg --config src-tauri/tauri.ad-hoc.conf.json",
+    "build:icons": "node scripts/stage-material-icons.mjs",
     "build:sidecar": "node scripts/stage-sidecar.mjs",
     "check:bundle": "node scripts/verify-release-bundle.mjs",
     "dev": "tauri dev --no-watch",
@@ -26,9 +27,11 @@
     "@codemirror/state": "^6.7.1",
     "@codemirror/view": "^6.43.8",
     "@codegraphy-dev/core": "workspace:*",
+    "@codegraphy-dev/graph-visuals": "workspace:*",
     "@codegraphy-dev/graph-renderer": "workspace:*",
     "@lezer/highlight": "^1.2.3",
     "@tauri-apps/api": "^2.11.1",
+    "material-icon-theme": "5.33.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

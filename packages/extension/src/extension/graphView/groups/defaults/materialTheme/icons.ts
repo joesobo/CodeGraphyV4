@@ -1,7 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import {
+  extractPrimaryColor,
+  toSvgDataUrl,
+  toWhiteSvgDataUrl,
+} from '@codegraphy-dev/graph-visuals';
 import type { MaterialIconData, MaterialThemeCacheEntry } from './model';
-import { extractPrimaryColor, toSvgDataUrl, toWhiteSvgDataUrl } from './svg';
 
 export function resolveIconData(
   theme: MaterialThemeCacheEntry,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import { DEFAULT_MAX_FILES } from '../../../../src/shared/settings/defaults';
 import { createGraphStore } from '../../../../src/webview/store/state';
 

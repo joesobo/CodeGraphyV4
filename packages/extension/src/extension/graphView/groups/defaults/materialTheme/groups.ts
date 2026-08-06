@@ -1,7 +1,9 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
-import type { MaterialIconData, MaterialMatch } from './model';
-
-export const MATERIAL_TRANSPARENT_NODE_COLOR = 'rgba(0, 0, 0, 0)';
+import {
+  MATERIAL_TRANSPARENT_NODE_COLOR,
+  type MaterialMatch,
+} from '@codegraphy-dev/graph-visuals';
+import type { MaterialIconData } from './model';
 
 export function createMaterialGroup(
   match: MaterialMatch,

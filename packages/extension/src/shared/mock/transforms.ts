@@ -3,7 +3,7 @@
  * @module shared/mockDataTransforms
  */
 
-import { getFileColor } from '../fileColors';
+import { getFileColor } from '@codegraphy-dev/graph-visuals';
 import type { IFileData } from './fileData';
 import type { IGraphEdge, IGraphNode } from '../graph/contracts';
 

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import { collectMaterialFolderGroups } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/folders';
 import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
-import { MATERIAL_TRANSPARENT_NODE_COLOR } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/groups';
+import { MATERIAL_TRANSPARENT_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
 
 const tempDirs: string[] = [];
 

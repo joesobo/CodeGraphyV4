@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "dev.codegraphy.desktop",
   "build": {
-    "beforeDevCommand": "pnpm run build:sidecar && pnpm exec vite",
+    "beforeDevCommand": "pnpm run build:sidecar && pnpm run build:icons && pnpm exec vite",
     "beforeBuildCommand": "pnpm run build:sidecar && pnpm run build",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
@@ -33,7 +33,7 @@
     "copyright": "Copyright © 2026 Joe Soboleski",
     "externalBin": ["binaries/codegraphy-core"],
     "icon": ["icons/icon.icns"],
-    "longDescription": "A fast local code navigator for Files, Symbols, and their Relationships.",
+    "longDescription": "A fast local code navigator for Files, Folders, and their Relationships.",
     "macOS": {
       "entitlements": "Entitlements.plist",
       "hardenedRuntime": true,

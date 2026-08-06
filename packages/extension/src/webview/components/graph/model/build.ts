@@ -13,7 +13,6 @@ import {
 export { processEdges } from './edgeProcessing';
 import { calculateNodeSizes } from './node/sizing';
 export {
-  DEFAULT_NODE_SIZE,
   FALLBACK_MUTED_NODE_COLOR,
   FAVORITE_BORDER_COLOR,
   getDepthOpacity,

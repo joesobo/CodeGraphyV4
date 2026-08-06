@@ -104,6 +104,9 @@ importers:
       '@codegraphy-dev/graph-renderer':
         specifier: workspace:*
         version: link:../../packages/graph-renderer
+      '@codegraphy-dev/graph-visuals':
+        specifier: workspace:*
+        version: link:../../packages/graph-visuals
       '@codemirror/commands':
         specifier: ^6.10.4
         version: 6.10.4
@@ -128,6 +131,9 @@ importers:
       '@tauri-apps/api':
         specifier: ^2.11.1
         version: 2.11.1
+      material-icon-theme:
+        specifier: 5.33.1
+        version: 5.33.1
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -343,6 +349,9 @@ importers:
       '@codegraphy-dev/graph-renderer':
         specifier: workspace:*
         version: link:../graph-renderer
+      '@codegraphy-dev/graph-visuals':
+        specifier: workspace:*
+        version: link:../graph-visuals
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
@@ -560,6 +569,15 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
+
+  packages/graph-visuals:
+    devDependencies:
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@20.19.37)(jiti@2.7.0)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3)
 
   packages/plugin-api: {}
 

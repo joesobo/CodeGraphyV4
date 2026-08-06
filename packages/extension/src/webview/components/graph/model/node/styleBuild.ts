@@ -1,10 +1,14 @@
 import type { IGraphNode } from '../../../../../shared/graph/contracts';
-import { DEFAULT_NODE_COLOR } from '../../../../../shared/fileColors';
+import {
+  DEFAULT_NODE_COLOR,
+  DEFAULT_NODE_SIZE,
+  MAX_NODE_SIZE,
+  MIN_NODE_SIZE,
+} from '@codegraphy-dev/graph-visuals';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import type { GraphAppearance } from '../../appearance/model';
-import { MAX_NODE_SIZE, MIN_NODE_SIZE } from '../sizing/calculations';
 import { graphNodeBorderColor, graphNodeBorderWidth, graphNodeDisplayColor } from './appearance';
-import { DEFAULT_NODE_SIZE, getDepthOpacity, getDepthSizeMultiplier } from './display';
+import { getDepthOpacity, getDepthSizeMultiplier } from './display';
 
 export interface GraphNodeStyle { baseOpacity: number; borderColor: string; borderWidth: number; color: string; isFavorite: boolean; size: number }
 

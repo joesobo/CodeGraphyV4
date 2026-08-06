@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR, normalizeHexColor } from '../../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
+import { normalizeHexColor } from '../../../shared/normalizeHexColor';
 import type { BidirectionalEdgeMode, DirectionMode } from '../../../shared/settings/modes';
 import { DEFAULT_SHOW_MINIMAP } from '../../../shared/settings/defaults';
 

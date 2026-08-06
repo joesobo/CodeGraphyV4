@@ -3,11 +3,9 @@ import type { MutableRefObject } from 'react';
 import type {
 	GraphTooltipRect,
 } from '../../tooltip/model';
-import {
-	DEFAULT_NODE_SIZE,
-	type FGNode,
-} from '../../model/build';
+import type { FGNode } from '../../model/build';
 import { graphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
+import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
 
 interface GraphTooltipRectOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;

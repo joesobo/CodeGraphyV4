@@ -1,11 +1,14 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import {
+  findMaterialMatch,
+  getMaterialBaseName,
+  type MaterialMatch,
+} from '@codegraphy-dev/graph-visuals';
 import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
-import type { MaterialMatch, MaterialThemeCacheEntry } from './model';
+import type { MaterialThemeCacheEntry } from './model';
 import { createMaterialGroup } from './groups';
 import { resolveIconData } from './icons';
-import { findMaterialMatch } from './match';
-import { getMaterialBaseName } from './paths';
 
 function hasPathSpecificFileNameRules(
   baseName: string,

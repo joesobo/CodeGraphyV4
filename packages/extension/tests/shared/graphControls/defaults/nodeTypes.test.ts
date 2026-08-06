@@ -3,7 +3,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,
-} from '../../../../src/shared/fileColors';
+} from '@codegraphy-dev/graph-visuals';
 import {
   CORE_GRAPH_NODE_TYPES,
   createCoreGraphNodeTypes,

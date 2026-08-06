@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
+import { findMaterialMatch } from '@codegraphy-dev/graph-visuals';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import { createMaterialGroup, getManualGroups, getSpecificityScore, sortMaterialGroups } from './groups';
 import { collectMaterialFileGroups } from './files';
 import { collectMaterialFolderGroups } from './folders';
 import { loadMaterialTheme } from './manifest';
-import { findMaterialMatch } from './match';
 
 export { createMaterialGroup, getSpecificityScore, findMaterialMatch };
 

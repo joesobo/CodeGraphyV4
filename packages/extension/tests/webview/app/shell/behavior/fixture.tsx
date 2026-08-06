@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import { graphStore } from '../../../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({

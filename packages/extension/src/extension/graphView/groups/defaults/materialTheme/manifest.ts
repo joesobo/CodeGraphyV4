@@ -1,9 +1,12 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import type { MaterialThemeCacheEntry, MaterialIconManifest } from './model';
-import { createMaterialExtensionMatcher } from './extensionMatch';
-import { createMaterialPathRuleMatcher } from './pathMatch';
+import {
+  createMaterialExtensionMatcher,
+  createMaterialPathRuleMatcher,
+  type MaterialIconManifest,
+} from '@codegraphy-dev/graph-visuals';
+import type { MaterialThemeCacheEntry } from './model';
 import { materialIconManifestSchema } from './schema';
 
 const materialThemeCache = new Map<string, MaterialThemeCacheEntry | null>();

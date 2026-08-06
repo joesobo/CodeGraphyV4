@@ -1,6 +1,6 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
 import type { NodeSizeMode } from '../../../../../shared/settings/modes';
-import { computeConnectionSizes } from '../sizing/calculations';
+import { computeConnectionSizes } from '@codegraphy-dev/graph-visuals';
 import { computeFileSizeSizes } from '../sizing/fileSize';
 
 export function calculateNodeSizes(

@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OwnedGraphSurface from '../../../__mocks__/ownedGraphSurface';
 import Graph from '../../../../src/webview/components/graph/view/component';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { graphStore } from '../../../../src/webview/store/state';
 

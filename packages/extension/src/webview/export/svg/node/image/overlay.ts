@@ -2,6 +2,7 @@ import { getImage } from '../../../../components/graph/rendering/imageCache';
 import { svgShapePath } from '../../shape/shapes';
 import type { SvgExportNode, SvgPosition } from '../../contracts';
 import type { NodeShape2D } from '../../../../../shared/settings/modes';
+import { fileIconSize } from '@codegraphy-dev/graph-visuals';
 
 function buildClipShape(node: SvgExportNode, position: SvgPosition, shape: NodeShape2D): string {
   if (shape === 'circle') {
@@ -28,7 +29,7 @@ export function appendNodeImageOverlay(
   }
 
   const clipId = `clip-${node.id.replace(/[^a-zA-Z0-9]/g, '_')}`;
-  const imageSize = node.size * 1.2;
+  const imageSize = fileIconSize(node.size);
   definitions.push(`<clipPath id="${clipId}">${buildClipShape(node, position, shape)}</clipPath>`);
 
   const canvas = document.createElement('canvas');

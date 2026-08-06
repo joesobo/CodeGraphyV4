@@ -11,7 +11,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,
-} from '../../../../src/shared/fileColors';
+} from '@codegraphy-dev/graph-visuals';
 
 function node(id: string, nodeType?: string, color = ''): IGraphNode {
   return {
@@ -105,7 +105,7 @@ describe('webview/graphControls/filtering nodes', () => {
 
   it('uses node-type-specific fallback colors when no color is configured', async () => {
     vi.resetModules();
-    vi.doMock('../../../../src/shared/fileColors', () => ({
+    vi.doMock('@codegraphy-dev/graph-visuals', () => ({
       DEFAULT_FOLDER_NODE_COLOR: '#folder',
       DEFAULT_NODE_COLOR: '#file',
       DEFAULT_PACKAGE_NODE_COLOR: '#package',
@@ -126,7 +126,7 @@ describe('webview/graphControls/filtering nodes', () => {
         { ...node('a.ts'), color: '#file' },
       ]);
     } finally {
-      vi.doUnmock('../../../../src/shared/fileColors');
+      vi.doUnmock('@codegraphy-dev/graph-visuals');
       vi.resetModules();
     }
   });

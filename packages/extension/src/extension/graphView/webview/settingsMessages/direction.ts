@@ -1,6 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { DirectionMode } from '../../../../shared/settings/modes';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
 import { normalizeDirectionColor } from '../../settings/reader';
 import type {
   GraphViewSettingsMessageHandlers,

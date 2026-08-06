@@ -3,7 +3,7 @@ import {
   createMaterialPathRuleMatcher,
   findLongestPathMatch,
   findLongestPathMatchWithMatcher,
-} from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/pathMatch';
+} from '@codegraphy-dev/graph-visuals';
 
 describe('graphView/materialTheme/pathMatch', () => {
   it('matches basename rules case-insensitively', () => {
