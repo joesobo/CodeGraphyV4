@@ -26,6 +26,10 @@ export default defineConfig(
     ...tseslint.configs.disableTypeChecked,
   },
   {
+    files: ['**/*.d.{ts,mts,cts}'],
+    ...tseslint.configs.disableTypeChecked,
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
