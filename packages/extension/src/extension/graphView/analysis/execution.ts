@@ -12,6 +12,7 @@ interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
   syncWorkspacePlugins(): Promise<void>;
   hasIndex(): boolean;
+  getFilterExcludedFileCount?(): number;
   getIndexStatus?(): {
     freshness: CodeGraphyIndexFreshness;
     detail: string;

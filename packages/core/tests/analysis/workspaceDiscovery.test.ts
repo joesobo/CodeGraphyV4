@@ -10,6 +10,7 @@ describe('pipeline/discovery', () => {
     const discover = vi.fn(async () => ({
       durationMs: 2,
       files: ['src/index.ts'],
+      filterExcludedPaths: [],
       limitReached: false,
       totalFound: 1,
     }));

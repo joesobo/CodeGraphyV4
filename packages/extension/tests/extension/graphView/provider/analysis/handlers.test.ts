@@ -73,7 +73,9 @@ describe('graphView/provider/analysis/handlers', () => {
   });
 
   it('builds execution handlers that update provider state and delegate callbacks', () => {
-    const source = createSource();
+    const source = createSource({
+      _analyzer: { getFilterExcludedFileCount: vi.fn(() => 3) } as never,
+    });
     const dependencies = createDependencies();
     const callbacks = {
       isAnalysisStale: vi.fn(() => true),
@@ -113,6 +115,10 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: graphData,
+    });
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'FILTER_ACCOUNTING_UPDATED',
+      payload: { excludedFileCount: 3 },
     });
     expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
       source._rawGraphData,

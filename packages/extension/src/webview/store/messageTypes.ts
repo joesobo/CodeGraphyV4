@@ -52,6 +52,7 @@ export interface IStoreFields {
   optimisticLegendUpdates: PendingGroupUpdates;
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
+  filterExcludedFileCount: number;
   pluginFilterPatterns: string[];
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];

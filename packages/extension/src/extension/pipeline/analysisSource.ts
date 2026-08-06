@@ -46,6 +46,7 @@ export interface WorkspacePipelineSourceOwner {
   _completeGraphData: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
+  _lastFilterExcludedPaths: string[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastGitIgnoredPaths: string[];
@@ -133,6 +134,12 @@ export function createWorkspacePipelineAnalysisSource(
       get: () => owner._lastDiscoveredDirectories,
       set: (directories: string[]) => {
         owner._lastDiscoveredDirectories = directories;
+      },
+    },
+    _lastFilterExcludedPaths: {
+      get: () => owner._lastFilterExcludedPaths,
+      set: (paths: string[]) => {
+        owner._lastFilterExcludedPaths = paths;
       },
     },
     _lastFileConnections: {

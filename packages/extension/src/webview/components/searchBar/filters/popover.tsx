@@ -10,7 +10,7 @@ import {
   getDisabledFilterPatterns,
   getEnabledFilterCount,
 } from './model';
-import { formatExcludedCount } from './countState';
+import { formatExcludedFileCount, formatExcludedNodeCount } from './countState';
 import { handleAddPatterns } from './popover/actions';
 import { CustomFiltersSection } from './popover/customSection';
 import { useFilterDraftState } from './popover/draftState';
@@ -23,7 +23,8 @@ export function FilterPopover({
   disabledCustomPatterns,
   disabledPluginPatterns,
   customPatterns,
-  excludedCount,
+  excludedFileCount,
+  excludedNodeCount,
   onDisabledCustomPatternsChange,
   onDisabledPluginPatternsChange,
   onOpenChange,
@@ -106,7 +107,7 @@ export function FilterPopover({
         className="h-7 px-2 text-xs"
         aria-expanded={isOpen}
         aria-label={`Filters, ${enabledCount} enabled`}
-        title={formatExcludedCount(excludedCount)}
+        title={`${formatExcludedFileCount(excludedFileCount)}\n${formatExcludedNodeCount(excludedNodeCount)}`}
         onClick={() => setOpen(!isOpen)}
       >
         <MdiIcon path={mdiFilterVariant} size={14} />
@@ -123,7 +124,8 @@ export function FilterPopover({
               <h2 className="text-sm font-medium">Filters</h2>
               <span className="text-xs text-muted-foreground">{enabledCount} enabled</span>
             </div>
-            <p className="text-[11px] text-muted-foreground">{formatExcludedCount(excludedCount)}</p>
+            <p className="text-[11px] text-muted-foreground">{formatExcludedFileCount(excludedFileCount)}</p>
+            <p className="text-[11px] text-muted-foreground">{formatExcludedNodeCount(excludedNodeCount)}</p>
           </header>
 
           <div className="max-h-[min(320px,35vh)] space-y-3 overflow-y-auto p-3" data-codegraphy-region="panel-body">

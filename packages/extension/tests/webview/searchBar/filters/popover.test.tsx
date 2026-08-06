@@ -14,7 +14,8 @@ function renderPopover(overrides: Partial<React.ComponentProps<typeof FilterPopo
     disabledCustomPatterns: [],
     disabledPluginPatterns: [],
     customPatterns: ['existing/**'],
-    excludedCount: 4,
+    excludedFileCount: 4,
+    excludedNodeCount: 2,
     onDisabledCustomPatternsChange: vi.fn(),
     onDisabledPluginPatternsChange: vi.fn(),
     onOpenChange: vi.fn(),
@@ -40,10 +41,19 @@ describe('searchBar/filters/popover', () => {
 
     expect(screen.getByText('Filters')).toBeInTheDocument();
     expect(screen.getByText('2 enabled')).toBeInTheDocument();
-    expect(screen.getByText('4 excluded from graph')).toBeInTheDocument();
+    expect(screen.getByText('Before analysis: 4 workspace files excluded')).toBeInTheDocument();
+    expect(screen.getByText('In Graph View: 2 Nodes excluded')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Filters, 2 enabled' }).className).toContain('bg-secondary');
+  });
+
+  it('reports pre-analysis File and Graph View Node exclusions without reconciling overlap', () => {
+    renderPopover({ excludedFileCount: 1, excludedNodeCount: 1 });
+
+    expect(screen.getByText('Before analysis: 1 workspace file excluded')).toBeInTheDocument();
+    expect(screen.getByText('In Graph View: 1 Node excluded')).toBeInTheDocument();
+    expect(screen.queryByText(/2 .*excluded/)).not.toBeInTheDocument();
   });
 
   it('opens and closes from its own trigger when uncontrolled', () => {

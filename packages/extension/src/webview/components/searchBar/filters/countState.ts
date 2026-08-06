@@ -43,10 +43,18 @@ export function getFilterCountState({
   return { kind: 'idle', label: null };
 }
 
-export function formatExcludedCount(count: number): string {
+export function formatExcludedFileCount(count: number): string {
   if (count === 1) {
-    return '1 excluded from graph';
+    return 'Before analysis: 1 workspace file excluded';
   }
 
-  return `${count} excluded from graph`;
+  return `Before analysis: ${count} workspace files excluded`;
+}
+
+export function formatExcludedNodeCount(count: number): string {
+  if (count === 1) {
+    return 'In Graph View: 1 Node excluded';
+  }
+
+  return `In Graph View: ${count} Nodes excluded`;
 }

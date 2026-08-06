@@ -60,6 +60,12 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       ...this._getEffectivePluginFilterPatterns(disabledPlugins),
     ];
     const gitIgnoredPaths = new Set(cachedDiscovery.gitIgnoredPaths);
+    this._lastFilterExcludedPaths = cachedDiscovery.files
+      .filter(file => (
+        !gitIgnoredPaths.has(file.relativePath)
+        && matchesAnyPattern(file.relativePath, activeFilterPatterns)
+      ))
+      .map(file => file.relativePath);
     const eligibleFiles = cachedDiscovery.files.filter(file => (
       !gitIgnoredPaths.has(file.relativePath)
       && !matchesAnyPattern(file.relativePath, activeFilterPatterns)

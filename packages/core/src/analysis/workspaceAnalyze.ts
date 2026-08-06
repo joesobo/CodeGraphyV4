@@ -41,6 +41,7 @@ export interface WorkspacePipelineAnalysisSource {
   _completeGraphData?: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
+  _lastFilterExcludedPaths?: string[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastGitIgnoredPaths?: string[];
@@ -164,6 +165,7 @@ export async function analyzeWorkspaceWithAnalyzer(
   source._lastFileConnections = analysisResult.fileConnections;
   source._lastDiscoveredDirectories = discoveryResult.directories ?? [];
   source._lastDiscoveredFiles = discoveryResult.files;
+  source._lastFilterExcludedPaths = discoveryResult.filterExcludedPaths;
   source._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
   source._lastWorkspaceRoot = workspaceRoot;
 

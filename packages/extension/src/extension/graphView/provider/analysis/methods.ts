@@ -31,6 +31,7 @@ export interface GraphViewProviderWorkspaceReadyRegistryLike {
 
 interface GraphViewProviderAnalysisAnalyzerLike {
   registry?: GraphViewProviderWorkspaceReadyRegistryLike;
+  getFilterExcludedFileCount?(): number;
 }
 
 export interface GraphViewProviderAnalysisMethodsSource {

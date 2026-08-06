@@ -83,7 +83,41 @@ describe('FileDiscovery discover', () => {
     });
 
     expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+    expect(result.filterExcludedPaths).toEqual([path.join('filtered', 'one.ts')]);
+    expect(result.filterExcludedPaths).not.toContain(path.join('ignored', 'file-0.ts'));
     expect(onProgress.mock.calls.map(([progress]) => progress.current)).toEqual([1]);
+  });
+
+  it('accounts for mixed TypeScript, Godot, and Unity plugin Filters separately from Git ignored state', async () => {
+    initGitRepo();
+    createFile('.gitignore', 'ignored/**\n');
+    createFile('src/app.ts');
+    createFile('dist/app.js');
+    createFile('.godot/editor/project_metadata.cfg');
+    createFile('Assets/Player.prefab');
+    createFile('Assets/Player.prefab.meta');
+    createFile('ProjectSettings/ProjectSettings.asset');
+    createFile('ignored/generated.ts');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filter: [
+        '**/dist/**',
+        '**/.godot/**',
+        '**/*.meta',
+        '**/[Pp]roject[Ss]ettings/**',
+      ],
+    });
+
+    expect(result.filterExcludedPaths).toEqual([
+      '.godot/editor/project_metadata.cfg',
+      'Assets/Player.prefab.meta',
+      'ProjectSettings/ProjectSettings.asset',
+    ]);
+    expect(result.files.map(file => file.relativePath)).toContain('src/app.ts');
+    expect(result.files.map(file => file.relativePath)).toContain('Assets/Player.prefab');
+    expect(result.gitIgnoredPaths).toContain('ignored');
+    expect(result.filterExcludedPaths).not.toContain('ignored/generated.ts');
   });
 
   it('uses Git paths without recursively reading ignored or filtered workspace trees', async () => {

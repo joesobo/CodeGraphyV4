@@ -6,7 +6,8 @@ export interface FilterPopoverProps {
   disabledCustomPatterns: string[];
   disabledPluginPatterns: string[];
   customPatterns: string[];
-  excludedCount: number;
+  excludedFileCount: number;
+  excludedNodeCount: number;
   onDisabledCustomPatternsChange: (patterns: string[]) => void;
   onDisabledPluginPatternsChange: (patterns: string[]) => void;
   onOpenChange?: (open: boolean) => void;

@@ -5,6 +5,7 @@ import {
   handleDepthLimitUpdated,
   handleDepthModeUpdated,
   handleDirectionSettingsUpdated,
+  handleFilterAccountingUpdated,
   handleFilterPatternsUpdated,
   handleLegendsUpdated,
   handleMaxFilesUpdated,
@@ -43,6 +44,11 @@ describe('graph message handlers: settings',()=>{
         disabledCustomFilterPatterns: ['custom/**'],
         disabledPluginFilterPatterns: [],
       });
+
+      expect(handleFilterAccountingUpdated({
+        type: 'FILTER_ACCOUNTING_UPDATED',
+        payload: { excludedFileCount: 3 },
+      })).toEqual({ filterExcludedFileCount: 3 });
     });
 
   it('maps depth, direction, physics, labels, max-files, and active-file payloads', () => {

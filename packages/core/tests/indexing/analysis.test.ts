@@ -51,6 +51,7 @@ describe('indexing/analysis', () => {
       discoveryResult: {
         durationMs: 1,
         files,
+        filterExcludedPaths: [],
         directories: [],
         gitIgnoredPaths: [],
         limitReached: false,

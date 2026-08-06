@@ -136,6 +136,7 @@ async function getChangedFileDiscoveryState(
     files: discovered.discoveryResult.files,
     limitReached: discovered.discoveryResult.limitReached,
   };
+  facade._lastFilterExcludedPaths = discovered.discoveryResult.filterExcludedPaths;
   facade._lastGitIgnoredPaths = discovered.discoveryResult.gitIgnoredPaths ?? [];
   return discoveryResult;
 }

@@ -24,6 +24,7 @@ export interface IGraphNodeMetricsUpdate {
 
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
+  | { type: 'FILTER_ACCOUNTING_UPDATED'; payload: { excludedFileCount: number } }
   | { type: 'GRAPH_NODE_METRICS_UPDATED'; payload: { nodes: IGraphNodeMetricsUpdate[] } }
   | { type: 'APP_BOOTSTRAP_COMPLETE' }
   | {

@@ -34,6 +34,7 @@ export async function refreshAnalysisScopeForFacade(
     signal: input.signal,
     workspaceRoot,
   });
+  facade._lastFilterExcludedPaths = discoveryResult.filterExcludedPaths;
   facade._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
 
   if (canReuseCurrentAnalysisForScope({

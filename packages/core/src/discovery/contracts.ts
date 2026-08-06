@@ -49,6 +49,8 @@ export interface IDiscoveredFile {
 export interface IDiscoveryResult {
   /** Eligible discovered files, capped by maxFiles */
   files: IDiscoveredFile[];
+  /** Workspace file paths excluded by active Filters, excluding Git ignored state. */
+  filterExcludedPaths: string[];
   /** Discovered directory paths relative to the workspace root */
   directories: string[];
   /** Discovered file and directory paths reported by Git as ignored */

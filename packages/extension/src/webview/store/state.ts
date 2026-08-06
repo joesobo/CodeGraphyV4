@@ -56,6 +56,7 @@ export interface GraphState {
   optimisticLegendUpdates: PendingGroupUpdates;
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
+  filterExcludedFileCount: number;
   pluginFilterPatterns: string[];
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];

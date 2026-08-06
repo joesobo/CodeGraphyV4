@@ -27,6 +27,7 @@ export interface RefreshFacadeContext
   _captureRefreshState(): WorkspacePipelineRefreshState;
   _getWorkspaceRoot(): string | undefined;
   _lastGitIgnoredPaths: string[];
+  _lastFilterExcludedPaths: string[];
   _persistCache(): void;
   _persistCachePatch(patch: WorkspacePipelineCachePatch): Promise<void>;
   _persistIndexMetadata(resolvedChangedFilePaths?: readonly string[]): Promise<void>;

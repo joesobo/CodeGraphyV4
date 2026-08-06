@@ -36,6 +36,7 @@ function createSource() {
     _completeGraphData: undefined as IGraphData | undefined,
     _lastDiscoveredDirectories: [] as string[],
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
+    _lastFilterExcludedPaths: [] as string[],
     _lastFileAnalysis: new Map(),
     _lastFileConnections: new Map<string, IProjectedConnection[]>(),
     _lastGitIgnoredPaths: [] as string[],
@@ -51,6 +52,7 @@ function createDependencies() {
       directories: [] as string[],
       durationMs: 3,
       files: [] as IDiscoveredFile[],
+      filterExcludedPaths: [] as string[],
       gitIgnoredPaths: [] as string[],
       limitReached: false,
       totalFound: 0,
@@ -134,6 +136,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: ['src/new-folder'],
       durationMs: 4,
       files,
+      filterExcludedPaths: ['dist/app.js'],
       gitIgnoredPaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
@@ -185,6 +188,7 @@ describe('pipeline/analysis/analyze', () => {
       new Set<string>(['plugin.python']),
     );
     expect(source._lastDiscoveredFiles).toEqual(files);
+    expect(source._lastFilterExcludedPaths).toEqual(['dist/app.js']);
     expect(source._lastDiscoveredDirectories).toEqual(['src/new-folder']);
     expect(source._lastGitIgnoredPaths).toEqual(['src/index.ts']);
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
@@ -254,6 +258,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 5,
       files: [] as IDiscoveredFile[],
+      filterExcludedPaths: [] as string[],
       limitReached: true,
       totalFound: 27,
     });
@@ -276,6 +281,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 4,
       files,
+      filterExcludedPaths: [] as string[],
       limitReached: false,
       totalFound: 1,
     });
@@ -330,6 +336,7 @@ describe('pipeline/analysis/analyze', () => {
         directories: [],
         durationMs: 4,
         files: [] as IDiscoveredFile[],
+        filterExcludedPaths: [] as string[],
         limitReached: false,
         totalFound: 0,
       };
@@ -358,6 +365,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: [],
       durationMs: 2,
       files: [] as IDiscoveredFile[],
+      filterExcludedPaths: [] as string[],
       limitReached: false,
       totalFound: 0,
     });

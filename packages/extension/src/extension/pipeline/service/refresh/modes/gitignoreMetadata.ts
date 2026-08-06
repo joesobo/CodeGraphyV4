@@ -31,6 +31,7 @@ export async function refreshGitignoreMetadataForFacade(
 
   facade._lastDiscoveredDirectories = discoveryResult.directories ?? [];
   facade._lastDiscoveredFiles = discoveryResult.files;
+  facade._lastFilterExcludedPaths = discoveryResult.filterExcludedPaths;
   facade._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
   facade._lastWorkspaceRoot = workspaceRoot;
 

@@ -58,6 +58,8 @@ export abstract class WorkspacePipelineEngineStateBase {
   protected set _lastDiscoveredFiles(value: IDiscoveredFile[]) {
     this._engineState.discoveredFiles = value;
   }
+  protected get _lastFilterExcludedPaths(): string[] { return this._engineState.filterExcludedPaths; }
+  protected set _lastFilterExcludedPaths(value: string[]) { this._engineState.filterExcludedPaths = value; }
   protected get _lastGitIgnoredPaths(): string[] { return this._engineState.gitIgnoredPaths; }
   protected set _lastGitIgnoredPaths(value: string[]) { this._engineState.gitIgnoredPaths = value; }
   protected get _lastWorkspaceRoot(): string { return this._engineState.workspaceRoot; }

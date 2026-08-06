@@ -79,6 +79,10 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
     return getPipelinePluginFilterGroups(this._registry, disabledPlugins);
   }
 
+  getFilterExcludedFileCount(): number {
+    return this._lastFilterExcludedPaths.length;
+  }
+
   protected _getEffectiveCustomFilterPatterns(filterPatterns: string[]): string[] {
     return getEffectiveCustomFilterPatterns(this._config, filterPatterns);
   }

@@ -9,6 +9,7 @@ import {
   handleSettingsUpdated,
   handleLegendsUpdated,
   handleFilterPatternsUpdated,
+  handleFilterAccountingUpdated,
   handleDepthModeUpdated,
   handlePhysicsSettingsUpdated,
   handleDepthLimitUpdated,
@@ -73,6 +74,10 @@ export const MESSAGE_HANDLERS: Record<
     ),
   FILTER_PATTERNS_UPDATED: (msg) =>
     handleFilterPatternsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FILTER_PATTERNS_UPDATED' }>),
+  FILTER_ACCOUNTING_UPDATED: (msg) =>
+    handleFilterAccountingUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'FILTER_ACCOUNTING_UPDATED' }>,
+    ),
   PHYSICS_SETTINGS_UPDATED: (msg) =>
     handlePhysicsSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PHYSICS_SETTINGS_UPDATED' }>),
   DEPTH_LIMIT_UPDATED: (msg) =>
