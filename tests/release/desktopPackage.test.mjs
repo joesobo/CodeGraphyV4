@@ -9,6 +9,8 @@ const releaseWorkflow = readFileSync('.github/workflows/desktop-release.yml', 'u
 const releaseEntitlements = readFileSync('apps/desktop/src-tauri/Entitlements.plist', 'utf8');
 const adHocConfiguration = JSON.parse(readFileSync('apps/desktop/src-tauri/tauri.ad-hoc.conf.json', 'utf8'));
 const adHocEntitlements = readFileSync('apps/desktop/src-tauri/Entitlements.ad-hoc.plist', 'utf8');
+const websiteLinks = readFileSync('apps/web/content/links.ts', 'utf8');
+const websiteDesktopCallToAction = readFileSync('apps/web/app/_components/get-started.tsx', 'utf8');
 
 function cargoPackageVersion() {
   const packageSection = cargoManifest.match(/^\[package\]\n([\s\S]*?)(?=^\[)/mu)?.[1];
@@ -43,4 +45,12 @@ test('desktop release stays gated until signed artifacts pass verification', () 
   assert.match(releaseWorkflow, /stapler staple "\$dmg"/u);
   assert.match(releaseWorkflow, /gh release create "\$RELEASE_TAG" --draft/u);
   assert.doesNotMatch(releaseWorkflow, /gh release edit .*--draft=false/u);
+});
+
+test('website does not advertise an unavailable desktop artifact', () => {
+  assert.match(websiteLinks, /available: false/u);
+  assert.match(websiteLinks, /Signed macOS download pending/u);
+  assert.doesNotMatch(websiteLinks, /releases\/download/u);
+  assert.match(websiteDesktopCallToAction, /Read the release status/u);
+  assert.doesNotMatch(websiteDesktopCallToAction, /Download for macOS/u);
 });

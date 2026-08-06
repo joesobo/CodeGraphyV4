@@ -4,7 +4,7 @@ const defaultSiteOrigin = 'https://codegraphy.dev';
 export const siteOrigin = resolvePublicOrigin(process.env.NEXT_PUBLIC_SITE_URL);
 export const siteUrl = new URL(siteOrigin);
 export const siteDescription =
-  'A local Relationship Graph for exploring files, symbols, packages, and their connections in VS Code or from the command line.';
+  'A local Relationship Graph for exploring files, symbols, packages, and their connections. Use VS Code or the Core CLI today. The macOS desktop release is in signing verification.';
 
 function resolvePublicOrigin(configuredOrigin: string | undefined): string {
   const candidate = configuredOrigin ?? defaultSiteOrigin;

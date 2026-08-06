@@ -35,7 +35,7 @@
 
 CodeGraphy indexes a folder and projects its files and declarations into Nodes. It renders imports, calls, references, inheritance, containment, tests, and plugin-defined Relationships.
 
-Explore the graph inside VS Code or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view. The Core engine also supports the terminal CLI and agent queries.
+Explore the graph in the macOS desktop app, inside VS Code, or as native shapes in tldraw offline. Search, Graph Scope, and persistent filters narrow the VS Code view. The Core engine also supports the terminal CLI and agent queries.
 
 ![CodeGraphy Relationship Graph interaction demo](./docs/media/readme/relationship-graph-demo.gif)
 
@@ -48,6 +48,7 @@ Join the [CodeGraphy Discord](https://discord.gg/Z75vbkt4Ry) for installation he
 | Capability | What it provides |
 |---|---|
 | Relationship Graph | File, folder, package, Symbol, and plugin-defined Nodes connected by typed Edges. |
+| macOS desktop app | A three-pane File hierarchy, CodeMirror editor, and WebGPU Relationship Graph backed by local Core. |
 | Search and filters | Temporary search plus workspace-local include and exclude rules. |
 | Graph Scope | One panel for Node Type and Edge Type visibility. |
 | Symbol Nodes | Functions, classes, interfaces, types, variables, constants, and language-specific declarations. |
@@ -71,6 +72,12 @@ Join the [CodeGraphy Discord](https://discord.gg/Z75vbkt4Ry) for installation he
 | ![Search and filter controls](./docs/media/readme/search-filter-panel.png) | ![Relationship Graph with Symbol Nodes](./docs/media/readme/symbol-nodes-graph.png) |
 
 ## Install
+
+### macOS desktop app
+
+The Apple Silicon desktop app requires macOS 26 or later. The source, app bundle, DMG path, and release checks are in this repository, but there is no public download yet. Developer ID signing, notarization, and the installed-app acceptance check still gate the first release.
+
+Do not treat an ad-hoc development DMG as a production artifact. See the [desktop app guide](./apps/desktop/README.md) for current behavior and the exact release gate.
 
 ### VS Code Extension
 
@@ -199,12 +206,13 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 `@codegraphy-dev/core` owns File Discovery, built-in analysis, Graph Cache watching, plugin activation, SQLite storage, Graph Query, and the CLI. It does not own rendering.
 
-The VS Code extension connects Core to the editor lifecycle and React Graph View. It changes cached source facts only after an explicit Index or Re-index Workspace action. The tldraw interface connects Core data and shared physics to native tldraw shapes.
+The macOS desktop app runs Core in a bundled local process and keeps File access and child-process control in Rust. Its webview combines a File hierarchy, CodeMirror, and the existing renderer. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes.
 
 `@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|
+| [`@codegraphy-dev/desktop`](./apps/desktop/README.md) | Tauri macOS app, local Core process boundary, File hierarchy, and editor. |
 | [`@codegraphy-dev/core`](./packages/core/README.md) | Shared indexing, cache, plugin, query, and CLI engine. |
 | [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
 | [`@codegraphy-dev/tldraw`](./packages/tldraw/README.md) | macOS launcher and native tldraw offline canvas integration. |

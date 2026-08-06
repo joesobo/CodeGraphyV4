@@ -127,6 +127,7 @@ Full and incremental updates acquire writer ownership before their final discove
 | Surface | Ownership |
 |---|---|
 | **Core Package** | `@codegraphy-dev/core` owns headless Indexing, Graph Cache storage, plugin processing, Graph Query, and the `codegraphy` CLI. |
+| **macOS Desktop App** | `@codegraphy-dev/desktop` owns the Tauri window, File and Folder hierarchy, lightweight editor, safe File access, Core process lifecycle, and adapters over Core and the graph renderer. |
 | **VS Code Extension** | Owns VS Code lifecycle, the Graph View, editor actions, workspace settings UI, and adapters over Core and the renderer. |
 | **tldraw Interface** | `@codegraphy-dev/tldraw` owns its launcher, tldraw document lifecycle, native shapes, controls, and adapters over Core and renderer physics. |
 | **Graph Renderer** | `@codegraphy-dev/graph-renderer` owns WebGPU drawing and deterministic WebAssembly physics. It does not own product settings, persistence, or plugins. |
@@ -185,6 +186,7 @@ Extension chrome inherits the active VS Code theme. Graph Data Color may encode 
 
 ## Package Boundaries
 
+- `apps/desktop` owns the macOS product surface and its local Core process boundary.
 - `packages/core` owns shared engine behavior and the CLI.
 - `packages/extension` owns the VS Code product surface.
 - `packages/tldraw` owns the tldraw offline product surface and launcher.

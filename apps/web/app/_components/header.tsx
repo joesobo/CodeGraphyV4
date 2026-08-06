@@ -5,7 +5,7 @@ import { Liquid } from '@/components/canvasui/Liquid';
 import { Link } from '@/components/link';
 import { ThemeHeroImage } from '@/components/theme-hero-image';
 import { buttonVariants } from '@/components/ui/button';
-import { examplesHref, githubHref, vscodeExtensionHref } from '@/content/links';
+import { desktopRelease, examplesHref, githubHref, vscodeExtensionHref } from '@/content/links';
 import { cn } from '@/lib/utils';
 import { useRef } from 'react';
 import { HeroGraph } from './hero-graph';
@@ -76,6 +76,9 @@ export function Header(): React.ReactElement {
               Explore the source
             </Link>
           </div>
+          <p className="mt-4 font-mono text-xs uppercase tracking-[0.12em] text-white/68">
+            {desktopRelease.minimumSystemVersion} · {desktopRelease.label}
+          </p>
           <div className="hero-console mt-8" aria-label="CodeGraphy command preview">
             <div className="hero-console-command">
               <code><span>$</span> npm i -g @codegraphy-dev/core</code>

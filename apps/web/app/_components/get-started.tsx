@@ -3,12 +3,21 @@ import { CopyButton } from '@/components/copy-button';
 import { Link } from '@/components/link';
 import { SectionHeader } from '@/components/section-header';
 import { buttonVariants } from '@/components/ui/button';
-import { githubBlobHref, marketplaceHref, pluginsHref, vscodeExtensionHref } from '@/content/links';
+import { desktopRelease, githubBlobHref, marketplaceHref, pluginsHref, vscodeExtensionHref } from '@/content/links';
 import { cn } from '@/lib/utils';
 
 const paths = [
   {
     number: '01',
+    title: 'Navigate on macOS',
+    summary: 'Open a local workspace in the three-pane desktop app. Browse Files, make a lightweight edit, and inspect the Core-owned Relationship Graph.',
+    href: desktopRelease.sourceHref,
+    label: 'Read the release status',
+    status: desktopRelease.label,
+    icon: 'github' as const,
+  },
+  {
+    number: '02',
     title: 'See it in VS Code',
     summary: 'Install the extension, open a CodeGraphy Workspace, run Indexing, and explore the Relationship Graph beside your code.',
     href: vscodeExtensionHref,
@@ -16,7 +25,7 @@ const paths = [
     icon: 'vscode' as const,
   },
   {
-    number: '02',
+    number: '03',
     title: 'Query it from the terminal',
     summary: 'Install @codegraphy-dev/core when you want headless Indexing, diagnostics, Graph Query, Graph Scope, and Filter commands.',
     href: `${githubBlobHref}/packages/core/README.md`,
@@ -24,7 +33,7 @@ const paths = [
     icon: 'github' as const,
   },
   {
-    number: '03',
+    number: '04',
     title: 'Teach it more',
     summary: 'Enable official Plugins or build a typed Plugin Package to add framework, engine, document, or language-specific graph meaning.',
     href: pluginsHref,
@@ -40,8 +49,8 @@ export function GetStarted(): React.ReactElement {
         <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
           <div>
             <SectionHeader
-              title="Start at the surface. Go as deep as you need."
-              description="The extension is the fastest way in. The CLI and Plugin API are there when your workflow needs more."
+              title="Start with the app you use. Keep the same graph."
+              description="VS Code is available now. The macOS app is built, but the signed download stays gated until release verification passes."
             />
           </div>
           <div className="flex flex-wrap gap-3 lg:justify-end">
@@ -50,12 +59,17 @@ export function GetStarted(): React.ReactElement {
           </div>
         </div>
 
-        <ol className="mt-10 grid gap-4 lg:grid-cols-3">
+        <ol className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {paths.map((path) => (
             <li className="start-path flex min-h-64 flex-col rounded-3xl bg-card p-6 shadow-xs sm:p-7" key={path.number}>
               <p className="font-heading text-6xl font-medium leading-none text-primary/35">{path.number}</p>
               <h3 className="mt-8 text-3xl font-medium leading-tight">{path.title}</h3>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">{path.summary}</p>
+              {'status' in path ? (
+                <p className="mt-5 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-amber-700 dark:text-amber-300">
+                  {path.status}
+                </p>
+              ) : null}
               <Link className={cn('mt-auto justify-start px-0 pt-8 text-primary hover:bg-transparent active:scale-100', buttonVariants({ variant: 'ghost' }))} href={path.href} icon={path.icon}>
                 {path.label} <span aria-hidden="true">↗</span>
               </Link>

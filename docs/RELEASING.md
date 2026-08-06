@@ -1,11 +1,12 @@
 # Releasing
 
-CodeGraphy publishes one VS Code extension plus Core and plugin npm packages. The Agent Skill currently ships as source in this repository and is prepared for a future dedicated repository.
+CodeGraphy publishes a macOS desktop app, one VS Code extension, Core, and plugin npm packages. The Agent Skill currently ships as source in this repository and is prepared for a future dedicated repository.
 
 ## Release Surfaces
 
 | Surface | Source of version and metadata |
 |---|---|
+| macOS desktop app | `apps/desktop/package.json`, `apps/desktop/src-tauri/Cargo.toml`, and `apps/desktop/src-tauri/tauri.conf.json` must have the same version. |
 | VS Code extension | Root `package.json` supplies Marketplace metadata; `packages/extension/package.json` supplies the release version. |
 | Core CLI | `packages/core/package.json` |
 | Graph renderer | `packages/graph-renderer/package.json` |
@@ -14,6 +15,75 @@ CodeGraphy publishes one VS Code extension plus Core and plugin npm packages. Th
 | Agent Skill | `skills/codegraphy/` in this repo. Copy it to the separate `codegraphy/skills` repository after publishing that repository. |
 
 The root package version stays pinned as monorepo workspace metadata. `scripts/release-core.mjs` builds the Marketplace manifest with the extension package version.
+
+## macOS desktop release
+
+The desktop workflow creates an Apple Silicon DMG for macOS 26 or later. It does not publish the GitHub Release. A maintainer must finish the installed-app check and publish the draft.
+
+### Required release state
+
+- Run from `main` with no uncommitted changes.
+- Keep the desktop package, Cargo, and Tauri versions identical.
+- Use the `desktop-v<version>` tag, for example `desktop-v0.1.0`.
+- Use the protected `desktop-release` GitHub environment.
+- Keep the website download control in its pending state until the draft passes the installed-app check and becomes public.
+
+The workflow needs these GitHub environment secrets:
+
+- `APPLE_CERTIFICATE`: base64-encoded Developer ID Application `.p12` file
+- `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12` file
+- `APPLE_API_ISSUER`: App Store Connect API issuer ID
+- `APPLE_API_KEY`: App Store Connect API key ID
+- `APPLE_API_KEY_P8`: complete private API key file contents
+
+Only the Apple Developer Account Holder can create the Developer ID Application certificate. Keep the certificate and API private key out of the repository.
+
+### Local package check
+
+The local command uses an ad-hoc identity. It proves the package structure and runtime, but it does not create a distributable artifact.
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  pnpm --filter @codegraphy-dev/desktop build:bundle:ad-hoc
+pnpm --filter @codegraphy-dev/desktop check:bundle
+```
+
+Use Xcode 26. The workflow runs on GitHub's Apple Silicon `macos-26` image and rejects a different Xcode major version. The verifier requires arm64-only executables, macOS 26.0, matching versions, a valid app and DMG, a mounted-image app, a complete native Core import, and no symbolic links in the bundle.
+
+Never upload the ad-hoc DMG to a release or link it from the website.
+
+### Build the draft
+
+Run the `Desktop release` workflow from `main` and enter the exact desktop tag. The workflow:
+
+1. Confirms the tag, branch, Apple Silicon host, and Xcode 26.
+2. Runs desktop unit tests, TypeScript typecheck, and Rust tests.
+3. Imports the Developer ID certificate into a temporary keychain.
+4. Builds Core and the React app, stages pinned Node 22.23.2, prunes the Core runtime, and signs all native modules with the bundle identity.
+5. Builds and signs the app with Hardened Runtime, then notarizes and staples it through Tauri.
+6. Signs the final DMG, submits it to `notarytool`, and staples the accepted ticket.
+7. Checks nested signatures and team IDs, Gatekeeper, stapling, DMG integrity, mounted-image integrity, architecture, versions, and native module loading.
+8. Creates or updates a draft GitHub Release and uploads the verified DMG plus its SHA-256 file.
+
+The workflow refuses an existing non-draft release. It removes the temporary signing keychain even when a previous step fails.
+
+### Installed-app acceptance check
+
+Run this check on the draft asset before you publish it:
+
+1. Download the DMG and `.sha256` file from the draft GitHub Release on another Apple Silicon Mac that runs macOS 26 or later.
+2. Verify the SHA-256 file, mount the DMG, and copy `CodeGraphy.app` to `/Applications`.
+3. Run `codesign --verify --deep --strict --verbose=2 /Applications/CodeGraphy.app`.
+4. Run `spctl --assess --type execute --verbose=4 /Applications/CodeGraphy.app`.
+5. Run `xcrun stapler validate /Applications/CodeGraphy.app` and validate the downloaded DMG too.
+6. Launch the installed app through Finder. Confirm macOS shows no unsigned or damaged-app warning.
+7. Open a real CodeGraphy Workspace. Confirm the File and Folder hierarchy appears.
+8. Open a source File, edit it, save it, and confirm Core reports one-File incremental Indexing.
+9. Turn on Symbol Nodes and confirm the right pane draws the Core-owned Relationship Graph with WebGPU.
+10. Change the open File outside CodeGraphy, then confirm the app rejects an overwrite until the File is reopened.
+11. Close the app and confirm its `codegraphy-core` child process exits.
+
+Keep the release as a draft if any step fails. After all steps pass, publish the GitHub Release, update the website to link the exact public DMG, and verify that link from a clean browser session. The website must not point at a draft, a workflow artifact, or an ad-hoc build.
 
 ## Prepare a Release
 

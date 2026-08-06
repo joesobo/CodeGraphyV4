@@ -5,7 +5,7 @@ export function renderLlmsTxt(siteUrl: URL): string {
 
 > CodeGraphy builds a local Relationship Graph of the files, symbols, packages, and connections in a CodeGraphy Workspace.
 
-CodeGraphy provides one graph for the VS Code extension, Core CLI, coding agents, and Plugins. Indexing writes a SQLite Graph Cache on disk. Source code stays in the workspace.
+CodeGraphy provides one graph for the macOS desktop app, VS Code extension, Core CLI, coding agents, and Plugins. Indexing writes a SQLite Graph Cache on disk. Source code stays in the workspace. The desktop source and package checks are available, but the signed macOS download is pending release verification.
 
 ## Start here
 
@@ -27,7 +27,7 @@ The CodeGraphy Agent Skill teaches shell-capable agents to use the narrowest use
 
 ## Website
 
-- [Home](${siteOrigin}/): Product overview and VS Code installation.
+- [Home](${siteOrigin}/): Product overview, VS Code installation, and macOS release status.
 - [Docs](${siteOrigin}/docs): Product, CLI, settings, and Plugin documentation.
 - [Plugins](${siteOrigin}/plugins): Official Plugin packages and installation steps.
 - [Examples](${siteOrigin}/examples): Runnable example workspaces and their graphs.
@@ -35,6 +35,7 @@ The CodeGraphy Agent Skill teaches shell-capable agents to use the narrowest use
 ## Primary documentation
 
 - [Project docs](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/README.md)
+- [macOS desktop app](https://github.com/joesobo/CodeGraphyV4/blob/main/apps/desktop/README.md)
 - [Core CLI](https://github.com/joesobo/CodeGraphyV4/blob/main/packages/core/README.md)
 - [Commands](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/COMMANDS.md)
 - [Settings](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/SETTINGS.md)

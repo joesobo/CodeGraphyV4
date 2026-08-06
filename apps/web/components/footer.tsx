@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { Link, type LinkIcon } from '@/components/link';
 import {
   docsHref,
+  desktopRelease,
   discordHref,
   examplesHref,
   githubHref,
@@ -91,6 +92,7 @@ export function Footer(): React.ReactElement {
 
         <div className="mt-6 flex flex-col gap-2 border-t border-white/14 pt-4 text-xs text-white/68 sm:flex-row sm:items-center sm:justify-between">
           <p>© {year} Joe Soboleski</p>
+          <p className="font-mono uppercase tracking-widest">{desktopRelease.label}</p>
           <p className="font-mono uppercase tracking-widest">MIT licensed</p>
         </div>
       </div>

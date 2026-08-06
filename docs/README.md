@@ -6,6 +6,7 @@ Start with the root [README](../README.md) for installation, the product overvie
 
 | Document | Covers |
 |---|---|
+| [macOS desktop app](../apps/desktop/README.md) | Three-pane app behavior, Core process boundary, development, packaging, and release gate. |
 | [Settings](./SETTINGS.md) | `.codegraphy/settings.json`, Graph Scope, Display, Forces, Performance, CSS Snippets, and workspace state. |
 | [Interactions](./INTERACTIONS.md) | Node, Graph Stage, minimap, context menu, tool rail, panel, and export behavior. |
 | [Commands](./COMMANDS.md) | VS Code Command Palette commands and IDs. |
@@ -21,6 +22,7 @@ The root [domain glossary](../CONTEXT.md) defines shared CodeGraphy language and
 
 | Area | Where to start |
 |---|---|
+| macOS desktop app | [`apps/desktop/README.md`](../apps/desktop/README.md) |
 | Core engine and CLI | [`packages/core/README.md`](../packages/core/README.md) |
 | VS Code extension | [`packages/extension/docs/README.md`](../packages/extension/docs/README.md) |
 | Graph renderer | [`packages/graph-renderer/README.md`](../packages/graph-renderer/README.md) |

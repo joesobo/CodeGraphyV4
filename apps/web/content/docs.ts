@@ -23,6 +23,12 @@ export const docsGroups: readonly DocsGroup[] = [
         summary: 'Start here for the project docs index and the main reference map.',
       },
       {
+        id: 'desktop',
+        title: 'macOS desktop app',
+        href: `${githubBlobHref}/apps/desktop/README.md`,
+        summary: 'Current three-pane behavior, macOS requirements, local packaging, and the signed-download gate.',
+      },
+      {
         id: 'commands',
         title: 'Commands',
         href: `${githubBlobHref}/docs/COMMANDS.md`,
@@ -106,6 +112,12 @@ export const docsGroups: readonly DocsGroup[] = [
     title: 'Packages',
     summary: 'READMEs for the packages that make up the monorepo.',
     links: [
+      {
+        id: 'desktop-package',
+        title: 'Desktop app',
+        href: `${githubBlobHref}/apps/desktop/README.md`,
+        summary: 'Tauri shell, local Core process, File editor, Relationship Graph, and macOS package checks.',
+      },
       {
         id: 'core-package',
         title: 'Core package',
