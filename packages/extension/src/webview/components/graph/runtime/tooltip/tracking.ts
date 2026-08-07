@@ -8,36 +8,51 @@ import type { FGNode } from '../../model/build';
 interface GraphTooltipTrackingOptions {
 	getNodeRect(this: void, node: FGNode): GraphTooltipRect | null;
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
-	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
-	tooltipRafRef: MutableRefObject<number | null>;
+	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>;
 }
 
-export function stopTooltipTracking(
-	tooltipRafRef: MutableRefObject<number | null>,
+export function clearTooltipAnchorSnapshot(
+	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>,
 ): void {
-	if (tooltipRafRef.current !== null) {
-		cancelAnimationFrame(tooltipRafRef.current);
-		tooltipRafRef.current = null;
-	}
+	tooltipRectRef.current = null;
 }
 
-export function startTooltipTracking({
+export function initializeTooltipAnchorSnapshot({
+	getNodeRect,
+	hoveredNodeRef,
+	tooltipRectRef,
+}: GraphTooltipTrackingOptions): void {
+	const node = hoveredNodeRef.current;
+	tooltipRectRef.current = node ? getNodeRect(node) : null;
+}
+
+function rectsEqual(
+	first: GraphTooltipRect,
+	second: GraphTooltipRect,
+): boolean {
+	return first.x === second.x
+		&& first.y === second.y
+		&& first.radius === second.radius;
+}
+
+export function updateTooltipAnchorSnapshot({
 	getNodeRect,
 	hoveredNodeRef,
 	setTooltipData,
-	tooltipRafRef,
-}: GraphTooltipTrackingOptions): void {
-	const tick = (): void => {
-		const node = hoveredNodeRef.current;
-		if (!node) return;
+	tooltipRectRef,
+}: GraphTooltipTrackingOptions & {
+	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
+}): void {
+	const node = hoveredNodeRef.current;
+	const rect = node ? getNodeRect(node) : null;
+	if (!rect) {
+		clearTooltipAnchorSnapshot(tooltipRectRef);
+		return;
+	}
+	if (tooltipRectRef.current && rectsEqual(tooltipRectRef.current, rect)) return;
 
-		const rect = getNodeRect(node);
-		if (rect) {
-			setTooltipData(previous => previous.visible ? { ...previous, nodeRect: rect } : previous);
-		}
-
-		tooltipRafRef.current = requestAnimationFrame(tick);
-	};
-
-	tooltipRafRef.current = requestAnimationFrame(tick);
+	tooltipRectRef.current = rect;
+	setTooltipData(previous => previous.visible
+		? { ...previous, nodeRect: rect }
+		: previous);
 }

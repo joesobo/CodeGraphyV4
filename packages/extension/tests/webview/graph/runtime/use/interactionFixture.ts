@@ -32,7 +32,7 @@ export function createTooltipRuntime() {
     handleNodeHover: vi.fn(),
     hoveredNodeRef: { current: null },
     setTooltipData: vi.fn(),
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     tooltipData: { visible: false },
     tooltipTimeoutRef: { current: null },
   };
@@ -90,6 +90,7 @@ export function createRuntimeOptions(
   return {
     dataRef: { current: { edges: [], nodes: [] } as never },
     depthMode: false,
+    graphViewVisible: true,
     fileInfoCacheRef: { current: new Map() } as never,
     graphContextSelection: createSelection([]),
     graphCursorRef: { current: 'pointer' as never },
@@ -109,4 +110,3 @@ export function createRuntimeOptions(
     ...rest,
   };
 }
-

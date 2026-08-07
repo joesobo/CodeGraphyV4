@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { publishGraphViewVisibility } from './webview/visibility';
 
 interface OpenGraphViewInEditorOptions {
   viewType: string;
@@ -46,7 +47,11 @@ export function openGraphViewInEditor({
   };
   setWebviewMessageListener(panel.webview);
   panel.webview.html = getHtmlForWebview(panel.webview);
+  publishGraphViewVisibility(panel.webview, panel.visible);
   registerPanel(panel);
+  panel.onDidChangeViewState(({ webviewPanel }) => {
+    publishGraphViewVisibility(webviewPanel.webview, webviewPanel.visible);
+  });
   panel.onDidDispose(() => {
     unregisterPanel(panel);
   });

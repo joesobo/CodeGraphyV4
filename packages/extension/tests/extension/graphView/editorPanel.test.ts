@@ -5,9 +5,15 @@ import { openGraphViewInEditor } from '../../../src/extension/graphView/editorPa
 describe('graph view editor panel helper', () => {
   it('opens a panel, sets its icon/html, and unregisters it on dispose', () => {
     let disposeHandler: (() => void) | undefined;
+    let viewStateHandler: Parameters<vscode.WebviewPanel['onDidChangeViewState']>[0] | undefined;
     const panel = {
-      webview: { html: '', options: {} },
+      visible: true,
+      webview: { html: '', options: {}, postMessage: vi.fn() },
       iconPath: undefined,
+      onDidChangeViewState: vi.fn((handler: Parameters<vscode.WebviewPanel['onDidChangeViewState']>[0]) => {
+        viewStateHandler = handler;
+        return { dispose: () => {} };
+      }),
       onDidDispose: vi.fn((handler: () => void) => {
         disposeHandler = handler;
         return { dispose: () => {} };
@@ -28,6 +34,8 @@ describe('graph view editor panel helper', () => {
       registerPanel,
       unregisterPanel,
     });
+    panel.visible = false;
+    viewStateHandler?.({ webviewPanel: panel as unknown as vscode.WebviewPanel });
     disposeHandler?.();
 
     expect(createPanel).toHaveBeenCalledWith(
@@ -42,6 +50,14 @@ describe('graph view editor panel helper', () => {
     );
     expect(registerPanel).toHaveBeenCalledWith(panel);
     expect(panel.webview.html).toBe('<div id="root"></div>');
+    expect(panel.webview.postMessage).toHaveBeenNthCalledWith(1, {
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+      payload: { visible: true },
+    });
+    expect(panel.webview.postMessage).toHaveBeenNthCalledWith(2, {
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+      payload: { visible: false },
+    });
     expect(panel.iconPath).toEqual({
       dark: vscode.Uri.file('/extension/assets/icon-dark.svg'),
       light: vscode.Uri.file('/extension/assets/icon-light.svg'),

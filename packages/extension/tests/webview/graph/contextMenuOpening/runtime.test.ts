@@ -75,7 +75,7 @@ function createOpeningOptions(overrides: Record<string, unknown> = {}) {
     },
     setContextSelection: vi.fn(),
     setTooltipData: vi.fn(),
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     tooltipTimeoutRef: { current: null },
     ...overrides,
   };
@@ -109,7 +109,7 @@ describe('graph/contextMenuOpening/runtime', () => {
     dependencies.postMessage({ type: 'REFRESH_GRAPH' });
     dependencies.setContextSelection({ kind: 'background', targets: [] });
     dependencies.setTooltipData({ visible: true });
-    dependencies.stopTooltipTracking();
+    dependencies.clearTooltipAnchor();
 
     expect(options.fileInfoCacheRef.current.has('src/stale.ts')).toBe(false);
     expect(options.interactionHandlers.fitView).toHaveBeenCalledTimes(1);
@@ -120,7 +120,7 @@ describe('graph/contextMenuOpening/runtime', () => {
     expect(openingHarness.postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
     expect(options.setContextSelection).toHaveBeenCalledWith({ kind: 'background', targets: [] });
     expect(options.setTooltipData).toHaveBeenCalledWith({ visible: true });
-    expect(options.stopTooltipTracking).toHaveBeenCalledTimes(1);
+    expect(options.clearTooltipAnchor).toHaveBeenCalledTimes(1);
   });
 
   it('translates menu opening handlers and menu actions', () => {

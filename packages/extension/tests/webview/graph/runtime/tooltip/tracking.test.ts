@@ -3,40 +3,36 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import type { GraphTooltipState } from '../../../../../src/webview/components/graph/tooltip/model';
 import {
-  startTooltipTracking,
-  stopTooltipTracking,
+  clearTooltipAnchorSnapshot,
+  initializeTooltipAnchorSnapshot,
+  updateTooltipAnchorSnapshot,
 } from '../../../../../src/webview/components/graph/runtime/tooltip/tracking';
 
-describe('tooltipTracking', () => {
-  it('cancels an in-flight animation frame', () => {
-    const cancelAnimationFrameSpy = vi.fn();
-    vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrameSpy);
-    const tooltipRafRef = { current: 42 };
+describe('tooltip anchor snapshots', () => {
+  it('clears the tracked anchor', () => {
+    const tooltipRectRef = { current: { x: 10, y: 20, radius: 30 } };
 
-    stopTooltipTracking(tooltipRafRef);
+    clearTooltipAnchorSnapshot(tooltipRectRef);
 
-    expect(cancelAnimationFrameSpy).toHaveBeenCalledWith(42);
-    expect(tooltipRafRef.current).toBeNull();
+    expect(tooltipRectRef.current).toBeNull();
   });
 
-  it('does not cancel an animation frame when none is active', () => {
-    const cancelAnimationFrameSpy = vi.fn();
-    vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrameSpy);
-    const tooltipRafRef = { current: null };
+  it('initializes the anchor snapshot without owning an animation frame', () => {
+    const requestAnimationFrameSpy = vi.fn();
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrameSpy);
+    const tooltipRectRef = { current: null };
 
-    stopTooltipTracking(tooltipRafRef);
-
-    expect(cancelAnimationFrameSpy).not.toHaveBeenCalled();
-    expect(tooltipRafRef.current).toBeNull();
-  });
-
-  it('updates the tooltip rect while the tooltip stays visible', () => {
-    let frameCallback: FrameRequestCallback | undefined;
-    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-      frameCallback = callback;
-      return 7;
+    initializeTooltipAnchorSnapshot({
+      getNodeRect: () => ({ x: 10, y: 20, radius: 30 }),
+      hoveredNodeRef: { current: { id: 'node' } as FGNode },
+      tooltipRectRef,
     });
 
+    expect(tooltipRectRef.current).toEqual({ x: 10, y: 20, radius: 30 });
+    expect(requestAnimationFrameSpy).not.toHaveBeenCalled();
+  });
+
+  it('updates visible tooltip state only after its anchor changes', () => {
     const setTooltipData = vi.fn(
       (update: SetStateAction<GraphTooltipState>) => {
         const nextState =
@@ -52,104 +48,59 @@ describe('tooltipTracking', () => {
         expect(nextState.nodeRect).toEqual({ x: 10, y: 20, radius: 30 });
       },
     ) as Dispatch<SetStateAction<GraphTooltipState>>;
-    const tooltipRafRef = { current: null as number | null };
+    const tooltipRectRef = { current: { x: 1, y: 2, radius: 3 } };
 
-    startTooltipTracking({
+    updateTooltipAnchorSnapshot({
       getNodeRect: () => ({ x: 10, y: 20, radius: 30 }),
       hoveredNodeRef: { current: { id: 'node' } as FGNode },
       setTooltipData,
-      tooltipRafRef,
+      tooltipRectRef,
     });
-
-    frameCallback?.(0);
 
     expect(setTooltipData).toHaveBeenCalledOnce();
-    expect(tooltipRafRef.current).toBe(7);
+    expect(tooltipRectRef.current).toEqual({ x: 10, y: 20, radius: 30 });
   });
 
-  it('does not continue tracking after the hovered node disappears', () => {
-    let frameCallback: FrameRequestCallback | undefined;
-    const requestAnimationFrameSpy = vi.fn((callback: FrameRequestCallback) => {
-      frameCallback = callback;
-      return 11;
-    });
+  it('does not update a stationary tooltip across repeated graph frames', () => {
     const getNodeRect = vi.fn();
-
-    vi.stubGlobal('requestAnimationFrame', requestAnimationFrameSpy);
-
-    const tooltipRafRef = { current: null as number | null };
-
-    startTooltipTracking({
+    const setTooltipData = vi.fn();
+    const rect = { x: 10, y: 20, radius: 30 };
+    getNodeRect.mockReturnValue(rect);
+    const options = {
       getNodeRect,
-      hoveredNodeRef: { current: null },
-      setTooltipData: vi.fn(),
-      tooltipRafRef,
-    });
+      hoveredNodeRef: { current: { id: 'node' } as FGNode },
+      setTooltipData,
+      tooltipRectRef: { current: rect },
+    };
 
-    frameCallback?.(0);
+    updateTooltipAnchorSnapshot(options);
+    updateTooltipAnchorSnapshot(options);
 
-    expect(getNodeRect).not.toHaveBeenCalled();
-    expect(requestAnimationFrameSpy).toHaveBeenCalledOnce();
-    expect(tooltipRafRef.current).toBe(11);
+    expect(getNodeRect).toHaveBeenCalledTimes(2);
+    expect(setTooltipData).not.toHaveBeenCalled();
   });
 
-  it('does not update tooltip state when the node rect is unavailable', () => {
-    let frameCallback: FrameRequestCallback | undefined;
-    const requestAnimationFrameSpy = vi.fn((callback: FrameRequestCallback) => {
-      frameCallback = callback;
-      return requestAnimationFrameSpy.mock.calls.length + 20;
-    });
+  it('stops when the hovered node disappears or its rect is unavailable', () => {
     const setTooltipData = vi.fn();
+    const tooltipRectRef = { current: { x: 10, y: 20, radius: 30 } };
 
-    vi.stubGlobal('requestAnimationFrame', requestAnimationFrameSpy);
+    updateTooltipAnchorSnapshot({
+      getNodeRect: vi.fn(),
+      hoveredNodeRef: { current: null },
+      setTooltipData,
+      tooltipRectRef,
+    });
+    expect(tooltipRectRef.current).toBeNull();
 
-    const tooltipRafRef = { current: null as number | null };
-
-    startTooltipTracking({
+    tooltipRectRef.current = { x: 10, y: 20, radius: 30 };
+    updateTooltipAnchorSnapshot({
       getNodeRect: () => null,
       hoveredNodeRef: { current: { id: 'node' } as FGNode },
       setTooltipData,
-      tooltipRafRef,
+      tooltipRectRef,
     });
 
-    frameCallback?.(0);
-
+    expect(tooltipRectRef.current).toBeNull();
     expect(setTooltipData).not.toHaveBeenCalled();
-    expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(2);
-    expect(tooltipRafRef.current).toBe(22);
-  });
-
-  it('keeps hidden tooltip state unchanged while tracking continues', () => {
-    let frameCallback: FrameRequestCallback | undefined;
-    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-      frameCallback = callback;
-      return 15;
-    });
-
-    const hiddenState: GraphTooltipState = {
-      info: null,
-      nodeRect: { radius: 1, x: 1, y: 1 },
-      path: 'node',
-      pluginSections: [],
-      visible: false,
-    };
-    const setTooltipData = vi.fn(
-      (update: SetStateAction<GraphTooltipState>) => {
-        if (typeof update === 'function') {
-          expect(update(hiddenState)).toBe(hiddenState);
-        }
-      },
-    ) as Dispatch<SetStateAction<GraphTooltipState>>;
-
-    startTooltipTracking({
-      getNodeRect: () => ({ x: 10, y: 20, radius: 30 }),
-      hoveredNodeRef: { current: { id: 'node' } as FGNode },
-      setTooltipData,
-      tooltipRafRef: { current: null },
-    });
-
-    frameCallback?.(0);
-
-    expect(setTooltipData).toHaveBeenCalledOnce();
   });
 });

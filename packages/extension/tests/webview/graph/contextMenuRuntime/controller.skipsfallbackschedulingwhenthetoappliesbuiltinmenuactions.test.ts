@@ -47,7 +47,7 @@ function createDependencies(
     setTooltipData: vi.fn((updater) => {
       tooltipState = updater(tooltipState);
     }),
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     ...overrides,
   };
 
@@ -130,7 +130,7 @@ describe('graph/contextMenuRuntime', () => {
       });
       expect(dependencies.tooltipTimeoutRef.current).toBeNull();
       expect(dependencies.hoveredNodeRef.current).toBeNull();
-      expect(dependencies.stopTooltipTracking).toHaveBeenCalledOnce();
+      expect(dependencies.clearTooltipAnchor).toHaveBeenCalledOnce();
       expect(getTooltipState()).toMatchObject({
         visible: false,
         pluginSections: [],
@@ -151,7 +151,7 @@ describe('graph/contextMenuRuntime', () => {
       expect(dependencies.setContextSelection).not.toHaveBeenCalled();
       expect(dependencies.tooltipTimeoutRef.current).toBeNull();
       expect(dependencies.hoveredNodeRef.current).toBeNull();
-      expect(dependencies.stopTooltipTracking).toHaveBeenCalledOnce();
+      expect(dependencies.clearTooltipAnchor).toHaveBeenCalledOnce();
       expect(getTooltipState()).toMatchObject({
         visible: false,
         pluginSections: [],

@@ -1,4 +1,5 @@
 import {
+	useCallback,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -24,10 +25,10 @@ export function useGraphMarqueeSelectionRuntime(
   const marqueeDragRef = useRef<MarqueeDragState | null>(null);
   const [marqueeSelection, setMarqueeSelection] = useState<GraphMarqueeSelectionState | null>(null);
 
-  function clearMarqueeSelection(): void {
+  const clearMarqueeSelection = useCallback((): void => {
     marqueeDragRef.current = null;
     setMarqueeSelection(null);
-  }
+  }, []);
 
   function handleMouseDownCapture(event: ReactMouseEvent<HTMLDivElement>): void {
     if (!canStartMarqueeSelection(event, options.hoveredNodeRef.current)) {

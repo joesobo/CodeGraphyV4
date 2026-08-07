@@ -60,7 +60,7 @@ export interface GraphContextMenuOpeningOptions {
   >;
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setTooltipData: GraphContextMenuRuntimeDependencies<FGNode>['setTooltipData'];
-  stopTooltipTracking: GraphContextMenuRuntimeDependencies<FGNode>['stopTooltipTracking'];
+  clearTooltipAnchor: GraphContextMenuRuntimeDependencies<FGNode>['clearTooltipAnchor'];
   tooltipTimeoutRef: GraphContextMenuRuntimeDependencies<FGNode>['tooltipTimeoutRef'];
 }
 
@@ -75,7 +75,7 @@ function createGraphContextMenuOpeningDependencies({
   refs,
   setContextSelection,
   setTooltipData,
-  stopTooltipTracking,
+  clearTooltipAnchor,
   tooltipTimeoutRef,
 }: Omit<GraphContextMenuOpeningOptions, 'getActionContext'>): GraphContextMenuRuntimeDependencies<FGNode> {
   return {
@@ -99,7 +99,7 @@ function createGraphContextMenuOpeningDependencies({
     },
     setContextSelection,
     setTooltipData,
-    stopTooltipTracking,
+    clearTooltipAnchor,
     toggleFavoritesOptimistically: paths =>
       graphStore.getState().toggleFavoritesOptimistically(paths),
   };

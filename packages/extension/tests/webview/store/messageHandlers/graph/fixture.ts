@@ -5,6 +5,7 @@ export function createState(
 ): IStoreFields {
   return {
     graphData: null,
+    graphViewVisible: true,
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,

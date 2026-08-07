@@ -142,6 +142,7 @@ export function GraphViewportShell({
   };
 
   renderFramePostRef.current = (ctx, globalScale) => {
+    interactions.updateTooltipAnchor();
     publishGraphViewportScale(globalScale);
     publishGraphViewViewportState(globalScale);
     publishGraphAccessibilityItems();

@@ -10,7 +10,7 @@ function shouldRequestFileInfo(node: FGNode): boolean {
 
 export function scheduleTooltipHover(node: FGNode, options: Pick<TooltipHoverOptions,
   'dataRef' | 'fileInfoCacheRef' | 'getNodeRect' | 'pluginHost' | 'postMessage'
-  | 'legends' | 'setTooltipData' | 'startTracking' | 'tooltipTimeoutRef'>): void {
+  | 'legends' | 'setTooltipData' | 'initializeAnchorSnapshot' | 'tooltipTimeoutRef'>): void {
   options.tooltipTimeoutRef.current = setTimeout(() => {
     const pluginTooltip = options.pluginHost?.getTooltipContent(buildGraphTooltipContext({ node, snapshot: options.dataRef.current }));
     const tooltipState = buildGraphTooltipState({
@@ -23,6 +23,6 @@ export function scheduleTooltipHover(node: FGNode, options: Pick<TooltipHoverOpt
     if (tooltipState.shouldRequestFileInfo && shouldRequestFileInfo(node)) {
       options.postMessage({ type: 'GET_FILE_INFO', payload: { path: node.id } });
     }
-    options.startTracking();
+    options.initializeAnchorSnapshot();
   }, 500);
 }

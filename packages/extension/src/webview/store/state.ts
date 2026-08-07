@@ -25,6 +25,7 @@ import type {
 
 export interface GraphState {
   graphData: IGraphData | null;
+  graphViewVisible: boolean;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;

@@ -76,6 +76,7 @@ describe('graph/runtime/useGraphInteractionRuntime lifecycle', () => {
     const { unmount } = renderHook(() => useGraphInteractionRuntime({
       dataRef: { current: { edges: [], nodes: [] } as never },
       depthMode: false,
+      graphViewVisible: true,
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection([]),
       graphCursorRef: { current: 'crosshair' as never },
@@ -199,6 +200,7 @@ describe('graph/runtime/useGraphInteractionRuntime lifecycle', () => {
     renderHook(() => useGraphInteractionRuntime({
       dataRef: { current: { edges: [], nodes: [] } as never },
       depthMode: false,
+      graphViewVisible: true,
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection([]),
       graphCursorRef: { current: 'pointer' as never },

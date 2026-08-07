@@ -62,7 +62,7 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: null },
-      propsRef: { current: { showFps: false } },
+      propsRef: { current: { graphViewVisible: true, showFps: false } },
       publishPerformance,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
@@ -111,6 +111,7 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: { canRender: () => false } },
       layoutRef: { current: null },
+      propsRef: { current: { graphViewVisible: true } },
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
     } as unknown as OwnedGraphFrameLoopRuntime;
@@ -136,5 +137,47 @@ describe('owned graph frame loop', () => {
     expect(controlsRef.current).toBeUndefined();
     runtime.requestFrameRef.current();
     expect(requestAnimationFrame).toHaveBeenCalledOnce();
+  });
+
+  it('cancels a running retained view and performs zero frames while host-hidden', () => {
+		vi.mocked(renderOwnedGraphFrame).mockClear();
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
+    const requestAnimationFrame = vi.fn(() => 23);
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.stubGlobal('ResizeObserver', ResizeObserverHarness);
+    const runtime = {
+      animationFrameRef: { current: null },
+      cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
+      engineStopNotifiedRef: { current: false },
+      frameRequestedRef: { current: false },
+      gpuRendererRef: { current: null },
+      hoveredNodeRef: { current: { id: 'src/app.ts' } },
+      layoutRef: { current: {} },
+      propsRef: { current: { graphViewVisible: true } },
+      rendererOperationalRef: { current: true },
+      requestFrameRef: { current: () => {} },
+    } as unknown as OwnedGraphFrameLoopRuntime;
+
+    const loop = startOwnedGraphFrameLoop(
+      runtime,
+      document.createElement('canvas'),
+      { current: undefined },
+    );
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
+    loop.setHostVisible(false);
+    runtime.requestFrameRef.current();
+
+    expect(runtime.frameRequestedRef.current).toBe(true);
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
+    expect(renderOwnedGraphFrame).not.toHaveBeenCalled();
+
+    loop.setHostVisible(true);
+    expect(requestAnimationFrame).toHaveBeenCalledTimes(2);
+
+    loop.dispose();
   });
 });

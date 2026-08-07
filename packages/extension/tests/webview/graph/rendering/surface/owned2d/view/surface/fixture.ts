@@ -7,6 +7,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
     backgroundColor: '#1e1e1e',
     directionMode: 'arrows',
     fg2dRef: { current: undefined },
+    graphViewVisible: true,
     getBaseLinkColor: vi.fn(() => '#888888'),
     getBaseLinkOpacity: vi.fn(() => 0.3),
     getBaseLinkWidth: vi.fn(() => 1),

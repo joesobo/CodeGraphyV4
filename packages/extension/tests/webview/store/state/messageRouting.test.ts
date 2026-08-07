@@ -12,6 +12,15 @@ describe('GraphStore message routing', () => {
     clearSentMessages();
   });
 
+  it('tracks Extension-owned Graph View visibility', () => {
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+      payload: { visible: false },
+    });
+
+    expect(store.getState().graphViewVisible).toBe(false);
+  });
+
   it('handles DECORATIONS_UPDATED messages', () => {
     const nodeDecorations: Record<string, NodeDecorationPayload> = {
       'src/app.ts': { color: '#00ff00' },

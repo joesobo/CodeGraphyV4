@@ -21,11 +21,17 @@ export type OwnedGraphFrameLoopRuntime = Omit<
 
 export interface OwnedGraphFrameLoop {
   dispose(): void;
+  setHostVisible(visible: boolean): void;
 }
 
-function canScheduleFrame(runtime: OwnedGraphFrameLoopRuntime, active: boolean): boolean {
+function canScheduleFrame(
+  runtime: OwnedGraphFrameLoopRuntime,
+  active: boolean,
+  visible: boolean,
+): boolean {
   const renderer = runtime.gpuRendererRef.current;
   return active
+    && visible
     && runtime.animationFrameRef.current === null
     && (!renderer || renderer.canRender());
 }
@@ -36,6 +42,9 @@ export function startOwnedGraphFrameLoop(
   controlsRef: MutableRefObject<OwnedGraph2dControls | undefined>,
 ): OwnedGraphFrameLoop {
   let active = true;
+  let hostVisible = runtime.propsRef.current.graphViewVisible;
+  let documentVisible = document.visibilityState !== 'hidden';
+  const isVisible = (): boolean => hostVisible && documentVisible;
   const frameRuntime: OwnedGraphFrameRuntime = {
     ...runtime,
     recordRenderedFrame(submissionId, timestamp, simulationMs, renderMs) {
@@ -54,17 +63,34 @@ export function startOwnedGraphFrameLoop(
 
   const renderFrame = (timestamp: number): void => {
     runtime.animationFrameRef.current = null;
+    if (!active || !isVisible()) return;
     runtime.frameRequestedRef.current = false;
-    if (!active) return;
     renderOwnedGraphFrame(frameRuntime, canvas, timestamp);
+  };
+
+  const scheduleRequestedFrame = (): void => {
+    if (canScheduleFrame(runtime, active, isVisible())) {
+      runtime.animationFrameRef.current = window.requestAnimationFrame(renderFrame);
+    }
   };
 
   runtime.requestFrameRef.current = () => {
     runtime.frameRequestedRef.current = true;
-    if (canScheduleFrame(runtime, active)) {
-      runtime.animationFrameRef.current = window.requestAnimationFrame(renderFrame);
-    }
+    scheduleRequestedFrame();
   };
+
+  const applyVisibility = (): void => {
+    if (!isVisible() && runtime.animationFrameRef.current !== null) {
+      window.cancelAnimationFrame(runtime.animationFrameRef.current);
+      runtime.animationFrameRef.current = null;
+    }
+    if (isVisible() && runtime.frameRequestedRef.current) scheduleRequestedFrame();
+  };
+  const handleVisibilityChange = (): void => {
+    documentVisible = document.visibilityState !== 'hidden';
+    applyVisibility();
+  };
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
   const controls = createOwnedGraphControls(runtime, canvas);
   controlsRef.current = controls;
@@ -76,8 +102,13 @@ export function startOwnedGraphFrameLoop(
   runtime.requestFrameRef.current();
 
   return {
+    setHostVisible: (visible) => {
+      hostVisible = visible;
+      applyVisibility();
+    },
     dispose: () => {
       active = false;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       resizeObserver.disconnect();
       stopObservingDevicePixelRatio();
       if (runtime.animationFrameRef.current !== null) {

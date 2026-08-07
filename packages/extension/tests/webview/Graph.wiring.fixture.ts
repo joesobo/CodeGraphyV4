@@ -94,6 +94,7 @@ export function createInteractionRuntime() {
       pluginActions: [],
       pluginSections: [],
     },
+		updateTooltipAnchor: vi.fn(),
   };
 }
 

@@ -24,6 +24,7 @@ export interface UseGraphInteractionRuntimeOptions {
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: GraphRuntime['renderer']['graphDataRef'];
+  graphViewVisible: boolean;
   graphViewContributions?: ExtensionGraphViewContributionSet;
   highlightedNeighborsRef: GraphRuntime['highlightedNeighborsRef'];
   highlightedNodeRef: GraphRuntime['highlightedNodeRef'];
@@ -66,7 +67,8 @@ export interface UseGraphInteractionRuntimeResult {
   interactionHandlers: GraphInteractionHandlersRuntime;
   marqueeSelection: import('../../../marqueeSelection/model').GraphMarqueeSelectionState | null;
   setTooltipData: ReturnType<typeof useGraphTooltip>['setTooltipData'];
-  stopTooltipTracking: ReturnType<typeof useGraphTooltip>['stopTooltipTracking'];
+  clearTooltipAnchor: ReturnType<typeof useGraphTooltip>['clearTooltipAnchor'];
   tooltipData: ReturnType<typeof useGraphTooltip>['tooltipData'];
   tooltipTimeoutRef: ReturnType<typeof useGraphTooltip>['tooltipTimeoutRef'];
+  updateTooltipAnchor: ReturnType<typeof useGraphTooltip>['updateTooltipAnchor'];
 }
