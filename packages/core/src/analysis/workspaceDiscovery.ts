@@ -1,3 +1,4 @@
+import type { WorkspaceFilterAccounting } from '../discovery/contracts';
 import { DEFAULT_EXCLUDE } from '../discovery/pathMatching';
 
 export interface WorkspacePipelineDiscoveryConfig {
@@ -10,6 +11,7 @@ export interface WorkspacePipelineDiscoveryResult<TFile> {
   directories?: string[];
   durationMs: number;
   files: TFile[];
+  filterAccounting: Extract<WorkspaceFilterAccounting, { kind: 'current' }>;
   gitIgnoredPaths?: string[];
   limitReached: boolean;
   totalFound: number;

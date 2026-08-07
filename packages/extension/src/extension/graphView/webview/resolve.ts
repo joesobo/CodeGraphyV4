@@ -1,3 +1,5 @@
+import { publishGraphViewVisibility } from './visibility';
+
 interface GraphViewWebviewLike {
   options: {
     enableScripts?: boolean;
@@ -5,6 +7,7 @@ interface GraphViewWebviewLike {
     retainContextWhenHidden?: boolean;
   };
   html: string;
+  postMessage(message: unknown): unknown;
 }
 
 interface GraphViewWebviewViewLike {
@@ -42,8 +45,10 @@ export function resolveGraphViewWebviewView(
   webviewView.webview.html = html;
 
   void executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
+  publishGraphViewVisibility(webviewView.webview, webviewView.visible);
 
   webviewView.onDidChangeVisibility(() => {
     void executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
+    publishGraphViewVisibility(webviewView.webview, webviewView.visible);
   });
 }

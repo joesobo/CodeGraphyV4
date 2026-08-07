@@ -100,6 +100,7 @@ export default function Graph({
     graphContextSelection: graphRuntime.context.selection,
     graphCursorRef: graphRuntime.graphCursorRef,
     graphDataRef: graphRuntime.renderer.graphDataRef,
+    graphViewVisible: viewState.graphViewVisible,
     graphViewContributions,
     highlightedNeighborsRef: graphRuntime.highlightedNeighborsRef,
     highlightedNodeRef: graphRuntime.highlightedNodeRef,

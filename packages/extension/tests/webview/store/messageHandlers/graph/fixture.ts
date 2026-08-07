@@ -5,6 +5,7 @@ export function createState(
 ): IStoreFields {
   return {
     graphData: null,
+    graphViewVisible: true,
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,
@@ -37,6 +38,7 @@ export function createState(
     optimisticLegendUpdates: {},
     optimisticUserLegends: null,
     filterPatterns: [],
+    filterAccounting: { kind: 'unavailable' },
     pluginFilterPatterns: [],
     pluginFilterGroups: [],
     disabledCustomFilterPatterns: [],

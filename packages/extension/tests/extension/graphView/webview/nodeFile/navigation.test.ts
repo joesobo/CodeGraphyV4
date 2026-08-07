@@ -8,6 +8,7 @@ function createHandlers(
   overrides: Partial<GraphViewNodeFileNavigationHandlers> = {},
 ): GraphViewNodeFileNavigationHandlers {
   return {
+    compareFiles: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     indexGraph: vi.fn(() => Promise.resolve()),
@@ -18,6 +19,18 @@ function createHandlers(
 }
 
 describe('graph view node/file navigation message', () => {
+  it('dispatches both paths to the compare handler in order', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyNodeFileNavigationMessage(
+      { type: 'COMPARE_FILES', payload: { paths: ['src/first.ts', 'src/second.ts'] } },
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.compareFiles).toHaveBeenCalledWith(['src/first.ts', 'src/second.ts']);
+  });
+
   it('reveals a file in the explorer', async () => {
     const handlers = createHandlers();
 

@@ -18,10 +18,13 @@ describe('GraphViewProvider public API', () => {
     const createWebviewPanelMock = vi.fn(() => ({
       webview: {
         html: '',
+        postMessage: vi.fn(),
         onDidReceiveMessage: vi.fn(() => ({ dispose: () => {} })),
         asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
         cspSource: 'test-csp',
       },
+      visible: true,
+      onDidChangeViewState: vi.fn(() => ({ dispose: () => {} })),
       onDidDispose: vi.fn(() => ({ dispose: () => {} })),
       reveal: vi.fn(),
       dispose: vi.fn(),

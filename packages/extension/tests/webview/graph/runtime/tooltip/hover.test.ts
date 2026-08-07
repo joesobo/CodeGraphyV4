@@ -24,8 +24,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage: vi.fn(),
       setTooltipData: vi.fn(),
-      startTracking: vi.fn(),
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot: vi.fn(),
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: existingTimeout },
     });
 
@@ -46,8 +46,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage: vi.fn(),
       setTooltipData: vi.fn(),
-      startTracking: vi.fn(),
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot: vi.fn(),
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: null },
     });
 
@@ -60,7 +60,7 @@ describe('handleTooltipNodeHover', () => {
       setGraphCursor: vi.fn(),
     };
     const setTooltipData = vi.fn();
-    const stopTracking = vi.fn();
+    const clearAnchorSnapshot = vi.fn();
 
     handleTooltipNodeHover(null, {
       dataRef: { current: { edges: [], nodes: [] } as IGraphData },
@@ -71,14 +71,14 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage: vi.fn(),
       setTooltipData,
-      startTracking: vi.fn(),
-      stopTracking,
+      initializeAnchorSnapshot: vi.fn(),
+      clearAnchorSnapshot,
       tooltipTimeoutRef: { current: null },
     });
 
     expect(interactionHandlers.setGraphCursor).toHaveBeenCalledWith('default');
     expect(hoveredNodeRef.current).toBeNull();
-    expect(stopTracking).toHaveBeenCalledOnce();
+    expect(clearAnchorSnapshot).toHaveBeenCalledOnce();
     expect(setTooltipData).toHaveBeenCalledOnce();
   });
 
@@ -88,7 +88,7 @@ describe('handleTooltipNodeHover', () => {
     };
     const postMessage = vi.fn();
     const setTooltipData = vi.fn();
-    const startTracking = vi.fn();
+    const initializeAnchorSnapshot = vi.fn();
     const hoveredNodeRef = { current: null as FGNode | null };
     const node = { color: '#123456', id: 'src/App.ts', label: 'App' } as FGNode;
 
@@ -110,8 +110,8 @@ describe('handleTooltipNodeHover', () => {
       } as unknown as NonNullable<Parameters<typeof handleTooltipNodeHover>[1]['pluginHost']>,
       postMessage,
       setTooltipData,
-      startTracking,
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot,
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: null },
     });
 
@@ -123,7 +123,7 @@ describe('handleTooltipNodeHover', () => {
       payload: { path: 'src/App.ts' },
       type: 'GET_FILE_INFO',
     });
-    expect(startTracking).toHaveBeenCalledOnce();
+    expect(initializeAnchorSnapshot).toHaveBeenCalledOnce();
     expect(hoveredNodeRef.current).toBe(node);
   });
 
@@ -131,7 +131,7 @@ describe('handleTooltipNodeHover', () => {
     const cachedInfo = { path: 'src/App.ts' } as IFileInfo;
     const postMessage = vi.fn();
     const setTooltipData = vi.fn();
-    const startTracking = vi.fn();
+    const initializeAnchorSnapshot = vi.fn();
     const node = { color: '#123456', id: 'src/App.ts', label: 'App' } as FGNode;
 
     handleTooltipNodeHover(node, {
@@ -150,8 +150,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage,
       setTooltipData,
-      startTracking,
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot,
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: null },
     });
 
@@ -168,7 +168,7 @@ describe('handleTooltipNodeHover', () => {
       visible: true,
     });
     expect(postMessage).not.toHaveBeenCalled();
-    expect(startTracking).toHaveBeenCalledOnce();
+    expect(initializeAnchorSnapshot).toHaveBeenCalledOnce();
   });
 
   it('does not request file info for synthetic package nodes', () => {
@@ -201,8 +201,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage,
       setTooltipData: vi.fn(),
-      startTracking: vi.fn(),
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot: vi.fn(),
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: null },
     });
 
@@ -236,8 +236,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage,
       setTooltipData,
-      startTracking: vi.fn(),
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot: vi.fn(),
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: null },
     });
 
@@ -275,8 +275,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage,
       setTooltipData,
-      startTracking: vi.fn(),
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot: vi.fn(),
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef: { current: null },
     });
 
@@ -289,7 +289,7 @@ describe('handleTooltipNodeHover', () => {
   it('clears the previous hover timeout when a second node is hovered before the first delay elapses', () => {
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
     const setTooltipData = vi.fn();
-    const startTracking = vi.fn();
+    const initializeAnchorSnapshot = vi.fn();
     const firstNode = { color: '#123456', id: 'src/first.ts', label: 'First' } as FGNode;
     const secondNode = { color: '#654321', id: 'src/second.ts', label: 'Second' } as FGNode;
     const tooltipTimeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
@@ -305,8 +305,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage: vi.fn(),
       setTooltipData,
-      startTracking,
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot,
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef,
     });
 
@@ -321,8 +321,8 @@ describe('handleTooltipNodeHover', () => {
       pluginHost: undefined,
       postMessage: vi.fn(),
       setTooltipData,
-      startTracking,
-      stopTracking: vi.fn(),
+      initializeAnchorSnapshot,
+      clearAnchorSnapshot: vi.fn(),
       tooltipTimeoutRef,
     });
 
@@ -331,7 +331,7 @@ describe('handleTooltipNodeHover', () => {
     vi.advanceTimersByTime(500);
 
     expect(setTooltipData).toHaveBeenCalledOnce();
-    expect(startTracking).toHaveBeenCalledOnce();
+    expect(initializeAnchorSnapshot).toHaveBeenCalledOnce();
     expect(tooltipTimeoutRef.current).not.toBeNull();
   });
 });

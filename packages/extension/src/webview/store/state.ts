@@ -17,6 +17,7 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -24,6 +25,7 @@ import type {
 
 export interface GraphState {
   graphData: IGraphData | null;
+  graphViewVisible: boolean;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;
@@ -56,6 +58,7 @@ export interface GraphState {
   optimisticLegendUpdates: PendingGroupUpdates;
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
+  filterAccounting: WorkspaceFilterAccounting;
   pluginFilterPatterns: string[];
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];

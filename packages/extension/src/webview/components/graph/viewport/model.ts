@@ -62,7 +62,15 @@ export function useGraphViewportModel({
     [
       graphState.graphData,
       handleEngineStop,
-      interactions,
+      interactions.handleBackgroundRightClick,
+      interactions.handleLinkRightClick,
+      interactions.handleNodeDrag,
+      interactions.handleNodeDragEnd,
+      interactions.handleNodeHover,
+      interactions.handleNodeRightClick,
+      interactions.interactionHandlers.handleBackgroundClick,
+      interactions.interactionHandlers.handleLinkClick,
+      interactions.interactionHandlers.handleNodeClick,
       viewportRuntime.containerSize.width,
     ],
   );

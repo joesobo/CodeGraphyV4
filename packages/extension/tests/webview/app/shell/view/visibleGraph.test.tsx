@@ -149,6 +149,7 @@ describe('App visible graph',()=>{
           { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['**/generated/**'] },
         ],
         pluginFilterPatterns: ['**/generated/**'],
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 1 },
         disabledPluginFilterPatterns: [],
         showOrphans: true,
       });
@@ -156,11 +157,13 @@ describe('App visible graph',()=>{
       render(<App />);
   
       fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 enabled' }));
-      expect(screen.getByText('1 excluded from graph')).toBeInTheDocument();
+      expect(screen.getByText('Before analysis: 3 workspace files excluded')).toBeInTheDocument();
+      expect(screen.getByText('In Graph View: 1 Node excluded')).toBeInTheDocument();
   
       fireEvent.click(screen.getByLabelText('Disable plugin Plugin One filters'));
   
-      expect(screen.getByText('0 excluded from graph')).toBeInTheDocument();
+      expect(screen.getByText('Before analysis: 3 workspace files excluded')).toBeInTheDocument();
+      expect(screen.getByText('In Graph View: 0 Nodes excluded')).toBeInTheDocument();
     });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {

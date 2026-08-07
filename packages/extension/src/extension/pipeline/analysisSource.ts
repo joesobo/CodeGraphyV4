@@ -2,7 +2,7 @@ import type {
   IProjectedConnection,
   IFileAnalysisResult,
 } from '../../core/plugins/types/contracts';
-import type { IDiscoveredFile } from '@codegraphy-dev/core';
+import type { IDiscoveredFile, WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import type { EventBus } from '../events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { FileDiscovery } from '@codegraphy-dev/core';
@@ -46,6 +46,7 @@ export interface WorkspacePipelineSourceOwner {
   _completeGraphData: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
+  _filterAccounting: WorkspaceFilterAccounting;
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastGitIgnoredPaths: string[];
@@ -133,6 +134,12 @@ export function createWorkspacePipelineAnalysisSource(
       get: () => owner._lastDiscoveredDirectories,
       set: (directories: string[]) => {
         owner._lastDiscoveredDirectories = directories;
+      },
+    },
+    _filterAccounting: {
+      get: () => owner._filterAccounting,
+      set: (accounting: WorkspaceFilterAccounting) => {
+        owner._filterAccounting = accounting;
       },
     },
     _lastFileConnections: {

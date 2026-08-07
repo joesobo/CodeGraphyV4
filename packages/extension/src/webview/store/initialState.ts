@@ -8,6 +8,7 @@ import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/d
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
+  graphViewVisible: true,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,
   graphIndexDetail: null,
@@ -40,6 +41,7 @@ export const INITIAL_STATE: GraphStateFields = {
   optimisticLegendUpdates: {},
   optimisticUserLegends: null,
   filterPatterns: [],
+  filterAccounting: { kind: 'unavailable' as const },
   pluginFilterPatterns: [],
   pluginFilterGroups: [],
   disabledCustomFilterPatterns: [],

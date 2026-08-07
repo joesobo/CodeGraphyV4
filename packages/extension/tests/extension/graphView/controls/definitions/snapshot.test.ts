@@ -16,6 +16,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: [] },
     );
 
@@ -56,6 +57,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       {
         nodeTypes: ['symbol:function', 'symbol:struct', 'symbol:enum', 'symbol:constant'],
         edgeTypes: [],
@@ -108,6 +110,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: ['import', 'reexport'] },
     );
 
@@ -140,6 +143,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: ['symbol:function'], edgeTypes: [] },
     );
 
@@ -182,6 +186,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       {
         nodeTypes: [
           'symbol:function',
@@ -254,6 +259,7 @@ describe('extension/graphView/controls/snapshot', () => {
           defaultVisible: true,
         },
       ],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: ['import', 'plugin:route'] },
     );
 
@@ -289,6 +295,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: ['reference'] },
     );
 
@@ -317,6 +324,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
     );
 
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
@@ -347,6 +355,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: ['include', 'call', 'contains', 'inherit', 'overrides'] },
     );
 
@@ -382,6 +391,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: ['using', 'type', 'call', 'inherit', 'implements', 'contains'] },
     );
 
@@ -421,6 +431,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: [] },
     );
 
@@ -482,6 +493,7 @@ describe('extension/graphView/controls/snapshot', () => {
           },
         },
       ],
+      { kind: 'unavailable' },
       { nodeTypes: ['route'], edgeTypes: ['plugin:route'] },
     );
 
@@ -541,6 +553,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { kind: 'unavailable' },
       { nodeTypes: [], edgeTypes: [] },
     );
 

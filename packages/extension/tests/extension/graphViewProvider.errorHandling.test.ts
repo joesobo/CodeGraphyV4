@@ -47,6 +47,7 @@ describe('GraphViewProvider error handling', () => {
         hasIndex(): boolean;
         initialize(): Promise<void>;
         discoverGraph(): Promise<IGraphData>;
+        getFilterAccounting(): { kind: 'unavailable' };
         registry: { notifyPostAnalyze(graph: IGraphData): void };
       };
     })._analyzer = {
@@ -54,6 +55,7 @@ describe('GraphViewProvider error handling', () => {
       hasIndex: () => true,
       initialize: vi.fn().mockResolvedValue(undefined),
       discoverGraph: vi.fn().mockResolvedValue({ nodes: [], edges: [] }),
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
       registry: {
         notifyPostAnalyze: () => {},
       },
@@ -78,6 +80,7 @@ describe('GraphViewProvider error handling', () => {
     (provider as unknown as {
       _analyzer: {
         analyze: () => Promise<IGraphData>;
+        getFilterAccounting(): { kind: 'unavailable' };
         registry: {
           extensionPlugins: {
             list(): unknown[];
@@ -89,6 +92,7 @@ describe('GraphViewProvider error handling', () => {
       };
     })._analyzer = {
       analyze: vi.fn().mockRejectedValueOnce(new Error('analysis failed')),
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
       registry: {
         extensionPlugins: {
           list: () => [],

@@ -74,6 +74,7 @@ describe('graph/runtime/useGraphInteractionRuntime drag', () => {
     const { result } = renderHook(() => useGraphInteractionRuntime({
       dataRef: { current: { edges: [], nodes: [] } as never },
       depthMode: false,
+      graphViewVisible: true,
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection(['src/app.ts', 'src/util.ts']),
       graphCursorRef: { current: 'default' as never },

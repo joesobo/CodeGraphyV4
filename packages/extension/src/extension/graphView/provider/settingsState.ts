@@ -13,9 +13,11 @@ import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
 import { sendGraphControlsUpdated } from '../controls/send';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import { resolveCssSnippetStylesheets } from '../cssSnippets/resolve';
 
 interface GraphViewProviderSettingsAnalyzerLike {
+  getFilterAccounting(): WorkspaceFilterAccounting;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
   registry?: unknown;

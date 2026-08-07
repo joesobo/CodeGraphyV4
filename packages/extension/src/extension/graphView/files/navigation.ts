@@ -28,9 +28,21 @@ export interface GraphViewClipboardHandlers {
   writeText(text: string): PromiseLike<void>;
 }
 
-export interface GraphViewExplorerHandlers {
+export interface GraphViewCommandHandlers {
   workspaceFolder?: GraphViewWorkspaceFolderRef;
   executeCommand(command: string, ...args: unknown[]): PromiseLike<unknown>;
+}
+
+export async function compareGraphViewFiles(
+  paths: readonly [string, string],
+  handlers: GraphViewCommandHandlers,
+): Promise<void> {
+  if (!handlers.workspaceFolder) return;
+
+  const [leftPath, rightPath] = paths;
+  const leftUri = vscode.Uri.joinPath(handlers.workspaceFolder.uri, leftPath);
+  const rightUri = vscode.Uri.joinPath(handlers.workspaceFolder.uri, rightPath);
+  await handlers.executeCommand('vscode.diff', leftUri, rightUri);
 }
 
 export async function openGraphViewFile(
@@ -64,7 +76,7 @@ export async function openGraphViewFile(
 
 export async function revealGraphViewFileInExplorer(
   filePath: string,
-  handlers: GraphViewExplorerHandlers,
+  handlers: GraphViewCommandHandlers,
 ): Promise<void> {
   if (!handlers.workspaceFolder) return;
 

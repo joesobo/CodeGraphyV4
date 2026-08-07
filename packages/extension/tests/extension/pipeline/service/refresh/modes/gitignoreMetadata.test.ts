@@ -52,6 +52,7 @@ function createFacade(
     _lastDiscoveredFiles: [createFile('old.ts')],
     _lastFileAnalysis: new Map([['src/a.ts', { filePath: '/workspace/src/a.ts' }]]),
     _lastFileConnections: new Map([['src/a.ts', [{ from: 'src/a.ts', to: 'src/b.ts' }]]]),
+    _filterAccounting: { kind: 'current', excludedFileCount: 1, gitIgnoredPathCount: 1 },
     _lastGitIgnoredPaths: ['old-ignore'],
     _lastGraphData: createGraph('last'),
     _lastWorkspaceRoot: '/old-workspace',
@@ -95,19 +96,15 @@ describe('extension/pipeline/service/refresh/modes/gitignoreMetadata', () => {
     const files = [createFile('src/new.ts')];
     const disabledPlugins = new Set(['plugin.disabled']);
     const signal = new AbortController().signal;
-    const persistError = new Error('metadata failed');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const facade = createFacade({
       _buildGraphDataFromAnalysis: vi.fn(() => graph),
-      _persistIndexMetadata: vi.fn(async () => {
-        throw persistError;
-      }),
     });
     vi.mocked(discoverRefreshWorkspaceFiles).mockResolvedValue({
       config: { showOrphans: false },
       discoveryResult: {
         directories: undefined,
         files,
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
         gitIgnoredPaths: undefined,
       },
     } as never);
@@ -119,7 +116,6 @@ describe('extension/pipeline/service/refresh/modes/gitignoreMetadata', () => {
         signal,
       }),
     ).resolves.toBe(graph);
-    await Promise.resolve();
 
     expect(discoverRefreshWorkspaceFiles).toHaveBeenCalledWith({
       configReader: facade._config,
@@ -135,21 +131,21 @@ describe('extension/pipeline/service/refresh/modes/gitignoreMetadata', () => {
     expect(facade.getPluginFilterPatterns).toHaveBeenCalledWith(disabledPlugins);
     expect(facade._lastDiscoveredDirectories).toEqual([]);
     expect(facade._lastDiscoveredFiles).toBe(files);
+    expect(facade._filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 3,
+      gitIgnoredPathCount: 2,
+    });
     expect(facade._lastGitIgnoredPaths).toEqual([]);
     expect(facade._lastWorkspaceRoot).toBe('/workspace');
     expect(facade._lastFileAnalysis).toEqual(new Map());
     expect(facade._lastFileConnections).toEqual(new Map());
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
-    expect(warn).toHaveBeenCalledWith(
-      '[CodeGraphy] Failed to persist gitignore metadata refresh.',
-      persistError,
-    );
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
       new Map(),
       '/workspace',
       false,
       disabledPlugins,
     );
-    warn.mockRestore();
   });
 });

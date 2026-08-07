@@ -1,12 +1,36 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import {
+  compareGraphViewFiles,
   copyGraphViewTextToClipboard,
   openGraphViewFile,
   revealGraphViewFileInExplorer,
 } from '../../../../src/extension/graphView/files/navigation';
 
 describe('graphView/files/navigation', () => {
+  it('dispatches VS Code diff with the first selected file on the left', async () => {
+    const executeCommand = vi.fn(async () => undefined);
+
+    await compareGraphViewFiles(['src/first.ts', 'src/second.ts'], {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      executeCommand,
+    });
+
+    expect(executeCommand).toHaveBeenCalledWith(
+      'vscode.diff',
+      vscode.Uri.file('/workspace/src/first.ts'),
+      vscode.Uri.file('/workspace/src/second.ts'),
+    );
+  });
+
+  it('does not dispatch a diff when no workspace exists', async () => {
+    const executeCommand = vi.fn(async () => undefined);
+
+    await compareGraphViewFiles(['src/first.ts', 'src/second.ts'], { executeCommand });
+
+    expect(executeCommand).not.toHaveBeenCalled();
+  });
+
   it('shows a mock-file message when no workspace folder exists', async () => {
     const showInformationMessage = vi.fn();
 

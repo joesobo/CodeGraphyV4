@@ -12,6 +12,7 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -20,6 +21,7 @@ import type {
 /** All fields that the store can hold — used to type partial state updates. */
 export interface IStoreFields {
   graphData: IGraphData | null;
+  graphViewVisible: boolean;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;
@@ -52,6 +54,7 @@ export interface IStoreFields {
   optimisticLegendUpdates: PendingGroupUpdates;
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
+  filterAccounting: WorkspaceFilterAccounting;
   pluginFilterPatterns: string[];
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];

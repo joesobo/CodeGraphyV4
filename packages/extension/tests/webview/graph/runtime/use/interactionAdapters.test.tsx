@@ -80,6 +80,7 @@ describe('graph/runtime/useGraphInteractionRuntime adapters', () => {
     renderHook(() => useGraphInteractionRuntime({
       dataRef: { current: { edges: [], nodes: [] } as never },
       depthMode: false,
+      graphViewVisible: true,
       fileInfoCacheRef: fileInfoCacheRef as never,
       graphContextSelection: createSelection(['src/selected.ts']),
       graphCursorRef: { current: 'pointer' as never },
@@ -113,7 +114,7 @@ describe('graph/runtime/useGraphInteractionRuntime adapters', () => {
     contextMenuOptions.openBackgroundContextMenu({ type: 'contextmenu' });
     contextMenuOptions.setContextSelection({ kind: 'background', targets: [] });
     contextMenuOptions.setTooltipData({ visible: true });
-    contextMenuOptions.stopTooltipTracking();
+    contextMenuOptions.clearTooltipAnchor();
 
     expect(fileInfoCacheRef.current.has('src/stale.ts')).toBe(false);
     expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
@@ -121,7 +122,7 @@ describe('graph/runtime/useGraphInteractionRuntime adapters', () => {
     expect(interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith({ type: 'contextmenu' });
     expect(setContextSelection).toHaveBeenCalledWith({ kind: 'background', targets: [] });
     expect(tooltipRuntime.setTooltipData).toHaveBeenCalledWith({ visible: true });
-    expect(tooltipRuntime.stopTooltipTracking).toHaveBeenCalledTimes(1);
+    expect(tooltipRuntime.clearTooltipAnchor).toHaveBeenCalledTimes(1);
   });
 
   it('passes viewport pan and marquee runtimes the shared graph interaction options', () => {

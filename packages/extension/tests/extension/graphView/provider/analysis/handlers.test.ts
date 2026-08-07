@@ -73,7 +73,13 @@ describe('graphView/provider/analysis/handlers', () => {
   });
 
   it('builds execution handlers that update provider state and delegate callbacks', () => {
-    const source = createSource();
+    const source = createSource({
+      _analyzer: { getFilterAccounting: vi.fn(() => ({
+        kind: 'current',
+        excludedFileCount: 3,
+        gitIgnoredPathCount: 2,
+      })) } as never,
+    });
     const dependencies = createDependencies();
     const callbacks = {
       isAnalysisStale: vi.fn(() => true),
@@ -151,6 +157,7 @@ describe('graphView/provider/analysis/handlers', () => {
       sendMessage({
         type: 'GRAPH_CONTROLS_UPDATED',
         payload: {
+          filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
           nodeTypes: [],
           edgeTypes: [],
           nodeColors: {},
@@ -179,6 +186,7 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_CONTROLS_UPDATED',
       payload: {
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
         nodeTypes: [],
         edgeTypes: [],
         nodeColors: {},
@@ -189,6 +197,7 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'GRAPH_CONTROLS_UPDATED',
       payload: {
+        filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
         nodeTypes: [],
         edgeTypes: [],
         nodeColors: {},

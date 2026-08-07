@@ -3,6 +3,7 @@ import type { ViewportSurfaceProps } from './view';
 const SURFACE_2D_PROP_KEYS = [
   'fg2dRef',
   'graphViewContributions',
+  'graphViewVisible',
   'getArrowColor',
   'getLinkColor',
   'getLinkOpacity',

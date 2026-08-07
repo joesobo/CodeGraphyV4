@@ -305,6 +305,12 @@ export class FileDiscovery {
           directories,
         )
         : new Set<string>();
+    const filterExcludedFileCount = candidateFiles
+      .filter(file => (
+        !gitIgnoredPaths.has(file.relativePath)
+        && matchesAnyPattern(file.relativePath, filterPatterns)
+      ))
+      .length;
     const eligibleFiles = candidateFiles.filter(file => (
       !matchesAnyPattern(file.relativePath, filterPatterns)
       && !gitIgnoredPaths.has(file.relativePath)
@@ -339,6 +345,11 @@ export class FileDiscovery {
       cacheFilePaths,
       cachePathPrefixes: gitWorkspacePaths?.ignoredPathPrefixes ?? [],
       directories: eligibleDirectories,
+      filterAccounting: {
+        kind: 'current',
+        excludedFileCount: filterExcludedFileCount,
+        gitIgnoredPathCount: gitIgnoredPaths.size + (gitWorkspacePaths?.ignoredPathPrefixes.length ?? 0),
+      },
       gitIgnoredPaths: [
         ...gitIgnoredPaths,
         ...(gitWorkspacePaths?.ignoredPathPrefixes ?? []),

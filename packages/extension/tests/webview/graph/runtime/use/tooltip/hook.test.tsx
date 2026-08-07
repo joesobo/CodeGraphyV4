@@ -36,6 +36,7 @@ describe('graph/runtime/useGraphTooltip', () => {
 					setGraphCursor,
 			},
 			postMessage: vi.fn(),
+			graphViewVisible: true,
 		}));
 
 		act(() => {

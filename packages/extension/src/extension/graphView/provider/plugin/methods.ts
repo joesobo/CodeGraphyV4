@@ -4,6 +4,7 @@ import type { ViewRegistry } from '../../../../core/views/registry';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 import { sendGraphViewPluginWebviewInjections } from '../../webview/plugins/contributionDispatch';
 import {
   sendGraphViewDecorations,
@@ -19,7 +20,8 @@ const DEFAULT_DEPTH_LIMIT = 1;
 
 type GraphViewPluginAnalyzerLike =
   NonNullable<Parameters<typeof sendGraphViewPluginWebviewInjections>[0]>
-  & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
+  & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>
+  & { getFilterAccounting(): WorkspaceFilterAccounting };
 
 type GraphViewDecorationManagerLike =
   Parameters<typeof sendGraphViewDecorations>[0];

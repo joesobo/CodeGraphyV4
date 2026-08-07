@@ -9,6 +9,7 @@ import {
   projectFileAnalysisConnections,
   throwIfWorkspaceAnalysisAborted,
 } from '@codegraphy-dev/core';
+import { readCodeGraphyWorkspaceMeta } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import {
   collectCachedDirectoryPaths,
@@ -55,11 +56,12 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       cachedFilePaths,
     );
 
+    this._filterAccounting = readCodeGraphyWorkspaceMeta(workspaceRoot).filterAccounting;
+    const gitIgnoredPaths = new Set(cachedDiscovery.gitIgnoredPaths);
     const activeFilterPatterns = [
       ...this._getEffectiveCustomFilterPatterns(filterPatterns),
       ...this._getEffectivePluginFilterPatterns(disabledPlugins),
     ];
-    const gitIgnoredPaths = new Set(cachedDiscovery.gitIgnoredPaths);
     const eligibleFiles = cachedDiscovery.files.filter(file => (
       !gitIgnoredPaths.has(file.relativePath)
       && !matchesAnyPattern(file.relativePath, activeFilterPatterns)

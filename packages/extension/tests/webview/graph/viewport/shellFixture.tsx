@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ComponentProps, type ReactElement } from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
@@ -7,6 +7,7 @@ import type { GraphViewStoreState } from '../../../../src/webview/components/gra
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import type { GraphRuntime } from '../../../../src/webview/components/graph/runtime/use/state';
 import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
+import type { ViewportProps } from '../../../../src/webview/components/graph/viewport/contracts';
 import { graphStore } from '../../../../src/webview/store/state';
 
 const shellHarness = vi.hoisted(() => ({
@@ -14,7 +15,8 @@ const shellHarness = vi.hoisted(() => ({
   useGraphEventEffects: vi.fn(),
   useGraphRenderingRuntime: vi.fn(),
   useGraphViewportModel: vi.fn(),
-  viewport: vi.fn((_props: Record<string, unknown>) => <div data-testid="graph-viewport" />),
+  renderActualViewport: false,
+  viewport: vi.fn((_props: ViewportProps) => <div data-testid="graph-viewport" />),
 }));
 
 vi.mock('../../../../src/webview/vscodeApi', () => ({
@@ -33,12 +35,20 @@ vi.mock('../../../../src/webview/components/graph/viewport/model', () => ({
   useGraphViewportModel: shellHarness.useGraphViewportModel,
 }));
 
-vi.mock('../../../../src/webview/components/graph/viewport/view', () => ({
-  Viewport: (props: Record<string, unknown>) => {
-    shellHarness.viewport(props);
-    return <div data-testid="graph-viewport" />;
-  },
-}));
+vi.mock('../../../../src/webview/components/graph/viewport/view', async importOriginal => {
+  const actual = await importOriginal<
+    typeof import('../../../../src/webview/components/graph/viewport/view')
+  >();
+  return {
+    ...actual,
+    Viewport: (props: Parameters<typeof actual.Viewport>[0]) => {
+      shellHarness.viewport(props);
+      return shellHarness.renderActualViewport
+        ? <actual.Viewport {...props} />
+        : <div data-testid="graph-viewport" />;
+    },
+  };
+});
 
 export function createGraphData(): GraphRuntime['renderer']['graphData'] {
   return {
@@ -174,8 +184,9 @@ export function createInteractions(): UseGraphInteractionRuntimeResult {
     },
     contextMenuRuntime: {} as never,
     hoveredNodeRef: { current: null },
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     tooltipTimeoutRef: { current: null },
+		updateTooltipAnchor: vi.fn(),
   } as unknown as UseGraphInteractionRuntimeResult;
 }
 
@@ -206,7 +217,7 @@ export function createCallbacks() {
 
 export function createViewState(): Pick<
   GraphViewStoreState,
-  'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps' | 'showLabels' | 'showMinimap'
+  'bidirectionalMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewVisible' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'showFps' | 'showLabels' | 'showMinimap'
 > {
   const physicsSettings: GraphPhysicsSettings = {
     centerForce: 0.1,
@@ -220,6 +231,7 @@ export function createViewState(): Pick<
     depthMode: false,
     directionMode: 'arrows',
     favorites: new Set(['src/app.ts']),
+    graphViewVisible: true,
     nodeSizeMode: 'connections',
     particleSize: 3,
     particleSpeed: 0.2,
@@ -236,6 +248,7 @@ export function resetShellHarness(): void {
   shellHarness.useGraphRenderingRuntime.mockReset();
   shellHarness.useGraphViewportModel.mockReset();
   shellHarness.viewport.mockReset();
+  shellHarness.renderActualViewport = false;
   graphStore.getState().setGraphViewportScale(null);
   shellHarness.useGraphRenderingRuntime.mockReturnValue({
     containerSize: { height: 320, width: 480 },
@@ -253,6 +266,16 @@ export function resetShellHarness(): void {
       onNodeRightClick: vi.fn(), width: 480,
     },
   });
+}
+
+export function renderActualViewport(): void {
+  shellHarness.renderActualViewport = true;
+}
+
+export function createGraphViewportShellElement(
+  props: ComponentProps<typeof GraphViewportShell>,
+): ReactElement {
+  return <GraphViewportShell {...props} />;
 }
 
 export function renderGraphViewportShell(options: {

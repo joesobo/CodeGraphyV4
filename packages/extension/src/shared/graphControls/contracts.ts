@@ -2,6 +2,7 @@ import type {
   GraphEdgeKind,
   NodeType,
 } from '../graph/contracts';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 
 export interface IGraphNodeTypeDefinition {
   id: NodeType;
@@ -38,6 +39,7 @@ export interface IGraphTypeDescription {
 }
 
 export interface IGraphControlsSnapshot {
+  filterAccounting: WorkspaceFilterAccounting;
   nodeTypes: IGraphNodeTypeDefinition[];
   edgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;

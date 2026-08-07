@@ -1,3 +1,5 @@
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
+
 export interface FilterCountInput {
   excludedCount: number;
   filterVisibleCount: number;
@@ -43,10 +45,23 @@ export function getFilterCountState({
   return { kind: 'idle', label: null };
 }
 
-export function formatExcludedCount(count: number): string {
-  if (count === 1) {
-    return '1 excluded from graph';
+export function formatExcludedFileCount(accounting: WorkspaceFilterAccounting): string {
+  if (accounting.kind === 'unavailable') {
+    return 'Before analysis: re-index to calculate excluded workspace files';
   }
 
-  return `${count} excluded from graph`;
+  const count = accounting.excludedFileCount;
+  if (count === 1) {
+    return 'Before analysis: 1 workspace file excluded';
+  }
+
+  return `Before analysis: ${count} workspace files excluded`;
+}
+
+export function formatExcludedNodeCount(count: number): string {
+  if (count === 1) {
+    return 'In Graph View: 1 Node excluded';
+  }
+
+  return `In Graph View: ${count} Nodes excluded`;
 }

@@ -28,7 +28,7 @@ function createDependencies(
     postMessage: vi.fn(),
     setContextSelection: vi.fn(),
     setTooltipData: vi.fn(),
-    stopTooltipTracking: vi.fn(),
+    clearTooltipAnchor: vi.fn(),
     ...overrides,
   };
 

@@ -2,16 +2,18 @@ import * as path from 'node:path';
 import {
   createDefaultCodeGraphyWorkspaceMeta,
   readCodeGraphyWorkspaceMeta,
+  type WorkspaceFilterAccounting,
 } from '@codegraphy-dev/core';
 
 export interface ICodeGraphyRepoMeta {
-  version: 1;
+  version: 2;
   lastIndexedAt: string | null;
   lastIndexedCommit: string | null;
   pluginBuildSignature: string | null;
   pluginSignature: string | null;
   settingsSignature: string | null;
   pendingChangedFiles: string[];
+  filterAccounting: WorkspaceFilterAccounting;
 }
 
 export function createDefaultCodeGraphyRepoMeta(): ICodeGraphyRepoMeta {
@@ -28,12 +30,13 @@ export function readCodeGraphyRepoMeta(workspaceRoot: string): ICodeGraphyRepoMe
 
 function toRepoMeta(meta: ReturnType<typeof readCodeGraphyWorkspaceMeta>): ICodeGraphyRepoMeta {
   return {
-    version: 1,
+    version: 2,
     lastIndexedAt: meta.lastIndexedAt,
     lastIndexedCommit: meta.lastIndexedCommit ?? null,
     pluginBuildSignature: meta.pluginBuildSignature,
     pluginSignature: meta.pluginSignature,
     settingsSignature: meta.settingsSignature,
     pendingChangedFiles: [...meta.pendingChangedFiles],
+    filterAccounting: meta.filterAccounting,
   };
 }

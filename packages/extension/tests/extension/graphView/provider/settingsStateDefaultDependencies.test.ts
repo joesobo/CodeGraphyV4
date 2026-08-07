@@ -198,7 +198,10 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
   it('sends settings through the default provider message bridge', () => {
     const source = createSource({
-      _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
+      _analyzer: {
+        getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+        getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
+      },
     });
     const settingsMessage = {
       type: 'SETTINGS_UPDATED',
@@ -253,7 +256,10 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
   it('sends all settings through the default snapshot bridge', () => {
     const source = createSource({
-      _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
+      _analyzer: {
+        getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+        getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
+      },
     });
     const allSettingsMessage = {
       type: 'ALL_SETTINGS_UPDATED',

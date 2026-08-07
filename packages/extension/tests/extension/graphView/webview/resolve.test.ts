@@ -11,6 +11,7 @@ describe('graphView/webview/resolve', () => {
       webview: {
         options: {},
         html: '',
+        postMessage: vi.fn(),
       },
       onDidChangeVisibility: vi.fn((handler: () => void) => {
         visibilityHandler = handler;
@@ -33,6 +34,10 @@ describe('graphView/webview/resolve', () => {
     expect(setWebviewMessageListener).toHaveBeenCalledWith(webviewView.webview);
     expect(webviewView.webview.html).toBe('<div id="root"></div>');
     expect(executeCommand).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', false);
+    expect(webviewView.webview.postMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+      payload: { visible: false },
+    });
     expect(visibilityHandler).toBeTypeOf('function');
   });
 
@@ -44,6 +49,7 @@ describe('graphView/webview/resolve', () => {
       webview: {
         options: {},
         html: '',
+        postMessage: vi.fn(),
       },
       onDidChangeVisibility: vi.fn((handler: () => void) => {
         visibilityHandler = handler;
@@ -62,6 +68,7 @@ describe('graphView/webview/resolve', () => {
 
     expect(executeCommand).toHaveBeenCalledTimes(2);
     expect(executeCommand).toHaveBeenLastCalledWith('setContext', 'codegraphy.viewVisible', true);
+    expect(webviewView.webview.postMessage).toHaveBeenCalledTimes(2);
   });
 
   it('updates visibility context while the view stays hidden', () => {
@@ -72,6 +79,7 @@ describe('graphView/webview/resolve', () => {
       webview: {
         options: {},
         html: '',
+        postMessage: vi.fn(),
       },
       onDidChangeVisibility: vi.fn((handler: () => void) => {
         visibilityHandler = handler;
@@ -90,5 +98,9 @@ describe('graphView/webview/resolve', () => {
 
     expect(executeCommand).toHaveBeenCalledTimes(2);
     expect(executeCommand).toHaveBeenLastCalledWith('setContext', 'codegraphy.viewVisible', false);
+    expect(webviewView.webview.postMessage).toHaveBeenLastCalledWith({
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+      payload: { visible: false },
+    });
   });
 });

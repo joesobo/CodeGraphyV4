@@ -33,6 +33,12 @@ export const MESSAGE_HANDLERS: Record<
   string,
   (msg: ExtensionToWebviewMessage, ctx: IHandlerContext) => PartialState | void
 > = {
+  GRAPH_VIEW_VISIBILITY_UPDATED: (msg) => ({
+    graphViewVisible: (msg as Extract<
+      ExtensionToWebviewMessage,
+      { type: 'GRAPH_VIEW_VISIBILITY_UPDATED' }
+    >).payload.visible,
+  }),
   GRAPH_DATA_UPDATED: (msg, ctx) =>
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>, ctx),
   GRAPH_NODE_METRICS_UPDATED: (msg, ctx) =>

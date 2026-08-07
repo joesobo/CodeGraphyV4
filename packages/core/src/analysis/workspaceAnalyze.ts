@@ -1,5 +1,5 @@
 import type { IFileAnalysisResult, IPluginNodeType } from '@codegraphy-dev/plugin-api';
-import type { IDiscoveredFile } from '../discovery/contracts';
+import type { IDiscoveredFile, WorkspaceFilterAccounting } from '../discovery/contracts';
 import type { IGraphData } from '../graph/contracts';
 import { throwIfWorkspaceAnalysisAborted } from './abort';
 import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
@@ -41,6 +41,7 @@ export interface WorkspacePipelineAnalysisSource {
   _completeGraphData?: IGraphData;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
+  _filterAccounting: WorkspaceFilterAccounting;
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastGitIgnoredPaths?: string[];
@@ -164,6 +165,7 @@ export async function analyzeWorkspaceWithAnalyzer(
   source._lastFileConnections = analysisResult.fileConnections;
   source._lastDiscoveredDirectories = discoveryResult.directories ?? [];
   source._lastDiscoveredFiles = discoveryResult.files;
+  source._filterAccounting = discoveryResult.filterAccounting;
   source._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
   source._lastWorkspaceRoot = workspaceRoot;
 
