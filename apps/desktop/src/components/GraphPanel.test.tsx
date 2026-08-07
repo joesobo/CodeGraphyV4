@@ -245,10 +245,14 @@ describe('GraphPanel', () => {
     await act(async () => animationFrames.splice(0).forEach(callback => callback(32)));
     const zoomBeforeControl = renderedZoom(rendererMocks.render.mock.lastCall?.[0]);
     await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Zoom In"]')?.click());
-    await act(async () => animationFrames.splice(0).forEach(callback => callback(48)));
+    await act(async () => animationFrames.shift()?.(48));
+    expect(renderedZoom(rendererMocks.render.mock.lastCall?.[0])).toBe(zoomBeforeControl);
+    await act(async () => animationFrames.shift()?.(128));
     expect(renderedZoom(rendererMocks.render.mock.lastCall?.[0])).toBeGreaterThan(zoomBeforeControl);
+    await act(async () => animationFrames.shift()?.(224));
     await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Fit to Screen"]')?.click());
-    await act(async () => animationFrames.splice(0).forEach(callback => callback(64)));
+    await act(async () => animationFrames.shift()?.(240));
+    await act(async () => animationFrames.shift()?.(400));
     expect(renderedZoom(rendererMocks.render.mock.lastCall?.[0])).toBe(zoomBeforeControl);
     await act(async () => root.unmount());
   });
@@ -382,6 +386,11 @@ describe('GraphPanel', () => {
     expect(rendererMocks.render.mock.calls[0]?.[0]).toMatchObject({
       backgroundColor: 'rgb(10, 11, 12)',
     });
+    expect(animationFrames).toHaveLength(0);
+    const zoomBefore = renderedZoom(rendererMocks.render.mock.lastCall?.[0]);
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Zoom In"]')?.click());
+    await act(async () => animationFrames.shift()?.(16));
+    expect(renderedZoom(rendererMocks.render.mock.lastCall?.[0])).toBeGreaterThan(zoomBefore);
     expect(animationFrames).toHaveLength(0);
     await act(async () => root.unmount());
   });

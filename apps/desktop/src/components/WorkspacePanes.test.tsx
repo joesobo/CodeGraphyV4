@@ -72,4 +72,36 @@ describe('Workspace pane splitters', () => {
     expect(JSON.parse(window.localStorage.getItem(PANE_LAYOUT_STORAGE_KEY) ?? 'null')).toEqual(DEFAULT_PANE_LAYOUT);
     await act(async () => root.unmount());
   });
+
+  it('collapses either side pane without discarding the editor or saved proportions', async () => {
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    const panes = (filesVisible: boolean, graphVisible: boolean) => (
+      <WorkspacePanes
+        editorPane={<section data-pane="editor">Editor</section>}
+        filesPane={<aside data-pane="files">Files</aside>}
+        filesVisible={filesVisible}
+        graphPane={<aside data-pane="graph">Graph</aside>}
+        graphVisible={graphVisible}
+      />
+    );
+
+    await act(async () => root.render(panes(false, true)));
+    expect(host.querySelector('[data-pane="files"]')).toBeNull();
+    expect(host.querySelector('[data-pane="editor"]')).not.toBeNull();
+    expect(host.querySelector('[data-pane="graph"]')).not.toBeNull();
+    expect(host.querySelectorAll('[role="separator"]')).toHaveLength(1);
+
+    await act(async () => root.render(panes(true, false)));
+    expect(host.querySelector('[data-pane="files"]')).not.toBeNull();
+    expect(host.querySelector('[data-pane="graph"]')).toBeNull();
+    expect(host.querySelectorAll('[role="separator"]')).toHaveLength(1);
+
+    await act(async () => root.render(panes(false, false)));
+    expect(host.querySelector('[data-pane="editor"]')).not.toBeNull();
+    expect(host.querySelectorAll('[role="separator"]')).toHaveLength(0);
+    expect(window.localStorage.getItem(PANE_LAYOUT_STORAGE_KEY)).toBeNull();
+    await act(async () => root.unmount());
+  });
 });

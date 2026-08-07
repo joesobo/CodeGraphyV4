@@ -1,19 +1,22 @@
+import { loadEditorLanguage } from './editorLanguage';
+
+export interface CreateCodeEditorOptions {
+  content: string;
+  onChange: (content: string) => void;
+  onSave: () => void;
+  parent: HTMLElement;
+  path: string;
+}
+
 export async function createCodeEditor({
   content,
   onChange,
   onSave,
   parent,
   path,
-}: {
-  content: string;
-  onChange: (content: string) => void;
-  onSave: () => void;
-  parent: HTMLElement;
-  path: string;
-}): Promise<() => void> {
+}: CreateCodeEditorOptions): Promise<() => void> {
   const [
     { defaultKeymap, history, historyKeymap, indentWithTab },
-    { javascript },
     {
       bracketMatching,
       indentOnInput,
@@ -31,21 +34,16 @@ export async function createCodeEditor({
       keymap,
       lineNumbers,
     },
+    language,
   ] = await Promise.all([
     import('@codemirror/commands'),
-    import('@codemirror/lang-javascript'),
     import('@codemirror/language'),
     import('@codemirror/search'),
     import('@codemirror/state'),
     import('@codemirror/theme-one-dark'),
     import('@codemirror/view'),
+    loadEditorLanguage(path),
   ]);
-  const language = /\.[cm]?[jt]sx?$/iu.test(path)
-    ? javascript({
-        jsx: /x$/iu.test(path),
-        typescript: /\.[cm]?tsx?$/iu.test(path),
-      })
-    : [];
   const view = new EditorView({
     parent,
     state: EditorState.create({
@@ -62,7 +60,7 @@ export async function createCodeEditor({
         syntaxHighlighting(oneDarkHighlightStyle),
         highlightSelectionMatches(),
         highlightActiveLine(),
-        language,
+        language ?? [],
         keymap.of([
           { key: 'Mod-s', run: () => { onSave(); return true; } },
           indentWithTab,

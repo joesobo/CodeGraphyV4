@@ -84,6 +84,7 @@ describe('File hierarchy keyboard and filter behavior', () => {
     expect(document.activeElement).toBe(
       host.querySelector('[data-tree-path="src/graph/camera.ts"]'),
     );
+    expect(onSelect).toHaveBeenLastCalledWith('src/graph/camera.ts');
     expect(host.querySelectorAll('[role="treeitem"][tabindex="0"]')).toHaveLength(1);
     await act(async () => root.unmount());
   });

@@ -34,11 +34,15 @@ function savePaneLayout(layout: PaneLayout): void {
 export function WorkspacePanes({
   editorPane,
   filesPane,
+  filesVisible,
   graphPane,
+  graphVisible,
 }: {
   editorPane: React.ReactNode;
   filesPane: React.ReactNode;
+  filesVisible?: boolean;
   graphPane: React.ReactNode;
+  graphVisible?: boolean;
 }): React.ReactElement {
   const [containerWidth, setContainerWidth] = useState(() => window.innerWidth);
   const [layout, setLayout] = useState(() => readPaneLayout(window.localStorage));
@@ -47,6 +51,8 @@ export function WorkspacePanes({
   const dragRef = useRef<PaneDrag>();
   const layoutRef = useRef(layout);
   const pixels = clampPaneLayout(layout, containerWidth);
+  const showFiles = filesVisible ?? true;
+  const showGraph = graphVisible ?? true;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -180,14 +186,20 @@ export function WorkspacePanes({
       className="workspace-grid"
       ref={containerRef}
       style={{
-        gridTemplateColumns: `${pixels.files}px ${PANE_SEPARATOR_WIDTH}px ${pixels.editor}px ${PANE_SEPARATOR_WIDTH}px minmax(${MIN_GRAPH_PANE}px, 1fr)`,
+        gridTemplateColumns: showFiles && showGraph
+          ? `${pixels.files}px ${PANE_SEPARATOR_WIDTH}px ${pixels.editor}px ${PANE_SEPARATOR_WIDTH}px minmax(${MIN_GRAPH_PANE}px, 1fr)`
+          : showFiles
+            ? `${pixels.files}px ${PANE_SEPARATOR_WIDTH}px minmax(${MIN_EDITOR_PANE}px, 1fr)`
+            : showGraph
+              ? `minmax(${MIN_EDITOR_PANE}px, 1fr) ${PANE_SEPARATOR_WIDTH}px ${pixels.graph}px`
+              : 'minmax(0, 1fr)',
       }}
     >
-      {filesPane}
-      {separator('files', 'Resize File hierarchy and editor panes')}
+      {showFiles ? filesPane : null}
+      {showFiles ? separator('files', 'Resize File hierarchy and editor panes') : null}
       {editorPane}
-      {separator('graph', 'Resize editor and Relationship Graph panes')}
-      {graphPane}
+      {showGraph ? separator('graph', 'Resize editor and Relationship Graph panes') : null}
+      {showGraph ? graphPane : null}
     </div>
   );
 }

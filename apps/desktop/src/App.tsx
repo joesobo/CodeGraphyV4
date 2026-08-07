@@ -1,4 +1,5 @@
 import brandIconUrl from '../../../assets/icon-dark.svg?url';
+import { useState } from 'react';
 import { CodeEditor } from './components/CodeEditor';
 import { FileTree } from './components/FileTree';
 import { GraphPanel } from './components/GraphPanel';
@@ -7,10 +8,30 @@ import { UnsavedFileDialog } from './components/UnsavedFileDialog';
 import { WorkspacePanes } from './components/WorkspacePanes';
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
 import { formatGraphCounts } from './model';
+import {
+  readDesktopInterfacePreferences,
+  saveDesktopInterfacePreferences,
+  type DesktopInterfacePreferences,
+} from './interfacePreferences';
 import { useDesktopWorkspace } from './useDesktopWorkspace';
 
 export function App(): React.ReactElement {
   const workspace = useDesktopWorkspace();
+  const [interfacePreferences, setInterfacePreferences] = useState(() => (
+    readDesktopInterfacePreferences(window.localStorage)
+  ));
+  const updateInterfacePreference = <Key extends keyof DesktopInterfacePreferences>(
+    key: Key,
+    value: DesktopInterfacePreferences[Key],
+  ): void => {
+    const next = { ...interfacePreferences, [key]: value };
+    try {
+      saveDesktopInterfacePreferences(window.localStorage, next);
+    } catch {
+      // Keep the current window usable when the webview denies local persistence.
+    }
+    setInterfacePreferences(next);
+  };
 
   return (
     <main className="desktop-shell">
@@ -32,6 +53,42 @@ export function App(): React.ReactElement {
         />
         <div className="toolbar-actions">
           <button
+            aria-pressed={interfacePreferences.filesPaneVisible}
+            className={`toolbar-button ${interfacePreferences.filesPaneVisible ? 'is-active' : ''}`}
+            onClick={() => updateInterfacePreference(
+              'filesPaneVisible',
+              !interfacePreferences.filesPaneVisible,
+            )}
+            title={`${interfacePreferences.filesPaneVisible ? 'Hide' : 'Show'} File hierarchy`}
+            type="button"
+          >
+            Files
+          </button>
+          <button
+            aria-pressed={interfacePreferences.graphPaneVisible}
+            className={`toolbar-button ${interfacePreferences.graphPaneVisible ? 'is-active' : ''}`}
+            onClick={() => updateInterfacePreference(
+              'graphPaneVisible',
+              !interfacePreferences.graphPaneVisible,
+            )}
+            title={`${interfacePreferences.graphPaneVisible ? 'Hide' : 'Show'} Relationship Graph`}
+            type="button"
+          >
+            Graph
+          </button>
+          <button
+            aria-pressed={interfacePreferences.profilingVisible}
+            className={`toolbar-button ${interfacePreferences.profilingVisible ? 'is-active' : ''}`}
+            onClick={() => updateInterfacePreference(
+              'profilingVisible',
+              !interfacePreferences.profilingVisible,
+            )}
+            title="Toggle local performance profiling"
+            type="button"
+          >
+            Profile
+          </button>
+          <button
             className="toolbar-button"
             disabled={!workspace.workspaceRoot || workspace.status.kind === 'busy'}
             onClick={workspace.reindex}
@@ -44,6 +101,7 @@ export function App(): React.ReactElement {
 
       {workspace.graph ? (
         <WorkspacePanes
+          filesVisible={interfacePreferences.filesPaneVisible}
           filesPane={(
             <aside aria-label="Workspace Files" className="files-pane">
               <div className="pane-heading"><span>Files</span><span>{workspace.fileCount}</span></div>
@@ -115,6 +173,7 @@ export function App(): React.ReactElement {
               />
             </aside>
           )}
+          graphVisible={interfacePreferences.graphPaneVisible}
         />
       ) : (
         <section className="welcome-state">
@@ -131,7 +190,15 @@ export function App(): React.ReactElement {
       <footer aria-live="polite" className={`status-bar status-${workspace.status.kind}`} role="status">
         <span aria-hidden="true" className="status-dot" />
         <span>{workspace.status.message}</span>
-        {workspace.metricsSummary ? <span className="status-performance" title={`Last opened ${workspace.fileSwitchMetrics?.lastPath}`}>{workspace.metricsSummary}</span> : null}
+        {interfacePreferences.profilingVisible ? (
+          <span
+            className="status-performance"
+            title="Measured from the Rust File read through React, CodeMirror, and two painted frames"
+          >
+            {workspace.graph ? `${formatGraphCounts(workspace.graph)} · ` : ''}
+            {workspace.metricsSummary ?? 'Switch Files to record open latency'}
+          </span>
+        ) : null}
         <span className="status-local">Local only · macOS 26+</span>
       </footer>
 

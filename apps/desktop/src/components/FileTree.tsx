@@ -169,6 +169,12 @@ export function FileTree({
     });
   };
 
+  const focusAndOpenItem = (item: HTMLButtonElement | undefined): void => {
+    const path = item?.dataset.treePath;
+    focusPath(path);
+    if (path && item?.dataset.treeKind === 'file' && path !== selectedPath) onSelect(path);
+  };
+
   const togglePath = (path: string): void => {
     if (filterActive) return;
     setCollapsedPaths(current => {
@@ -213,7 +219,7 @@ export function FileTree({
         : event.key === 'End'
           ? items.length - 1
           : Math.min(items.length - 1, Math.max(0, currentIndex + (event.key === 'ArrowDown' ? 1 : -1)));
-      focusPath(items[nextIndex]?.dataset.treePath);
+      focusAndOpenItem(items[nextIndex]);
       return;
     }
 
@@ -222,7 +228,7 @@ export function FileTree({
       event.preventDefault();
       if (expanded === 'false') togglePath(event.target.dataset.treePath ?? '');
       else if (visibleRows[currentIndex + 1]?.depth === (visibleRows[currentIndex]?.depth ?? 0) + 1) {
-        focusPath(items[currentIndex + 1]?.dataset.treePath);
+        focusAndOpenItem(items[currentIndex + 1]);
       }
       return;
     }

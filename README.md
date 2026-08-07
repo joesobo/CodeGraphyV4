@@ -48,7 +48,7 @@ Join the [CodeGraphy Discord](https://discord.gg/Z75vbkt4Ry) for installation he
 | Capability | What it provides |
 |---|---|
 | Relationship Graph | File, folder, package, Symbol, and plugin-defined Nodes connected by typed Edges. |
-| macOS desktop app | A three-pane File hierarchy, CodeMirror editor, and WebGPU Relationship Graph backed by local Core. |
+| macOS desktop app | A focused File hierarchy, multi-language CodeMirror editor with Markdown preview, and WebGPU Relationship Graph backed by local Core. |
 | Search and filters | Temporary search plus workspace-local include and exclude rules. |
 | Graph Scope | One panel for Node Type and Edge Type visibility. |
 | Symbol Nodes | Functions, classes, interfaces, types, variables, constants, and language-specific declarations. |
@@ -208,7 +208,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 The macOS desktop app runs Core in a bundled local process and keeps File access and child-process control in Rust. Its webview combines a File hierarchy, CodeMirror, and the existing renderer. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes.
 
-`@codegraphy-dev/graph-renderer` owns WebGPU drawing and WebAssembly physics. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/graph-renderer` owns product-neutral WebGPU drawing and WebAssembly physics. The private `@codegraphy-dev/graph-visuals` package owns CodeGraphy-specific Node appearance, Material icon matching, connection sizing, and force-control semantics shared by the desktop app and VS Code extension. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|
@@ -217,6 +217,7 @@ The macOS desktop app runs Core in a bundled local process and keeps File access
 | [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
 | [`@codegraphy-dev/tldraw`](./packages/tldraw/README.md) | macOS launcher and native tldraw offline canvas integration. |
 | [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | WebGPU graph renderer and WebAssembly physics. |
+| `@codegraphy-dev/graph-visuals` | Private CodeGraphy visual and force-control semantics shared by interfaces. |
 | [`@codegraphy-dev/plugin-api`](./packages/plugin-api/README.md) | Public TypeScript contracts for Core plugins. |
 | [`@codegraphy-dev/extension-plugin-api`](./packages/extension-plugin-api/README.md) | Public TypeScript contracts for VS Code Extension plugins. |
 | `@codegraphy-dev/plugin-*` | Optional plugins for Core or an interface host. |

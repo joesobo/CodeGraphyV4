@@ -68,6 +68,27 @@ interface DesktopGraphViewportControls {
   zoomBy(factor: number): void;
 }
 
+interface CameraTransition {
+  from: GraphRendererCamera;
+  startedAt?: number;
+  to: GraphRendererCamera;
+}
+
+const CAMERA_TRANSITION_DURATION_MS = 160;
+
+function interpolateCamera(
+  from: GraphRendererCamera,
+  to: GraphRendererCamera,
+  progress: number,
+): GraphRendererCamera {
+  const eased = 1 - (1 - progress) ** 3;
+  return {
+    centerX: from.centerX + (to.centerX - from.centerX) * eased,
+    centerY: from.centerY + (to.centerY - from.centerY) * eased,
+    zoom: from.zoom + (to.zoom - from.zoom) * eased,
+  };
+}
+
 const GRAPH_APPEARANCE_DEFAULTS: DesktopGraphAppearance = {
   labelForeground: 'CanvasText',
   labelMutedForeground: 'GrayText',
@@ -291,6 +312,7 @@ export function useDesktopGraphRenderer({
     let styleVersion = 0;
     let visibleFrameRequested = true;
     let camera: GraphRendererCamera = { centerX: 0, centerY: 0, zoom: 1 };
+    let cameraTransition: CameraTransition | undefined;
     let pointer: PointerState | undefined;
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const forcedColors = matchMedia('(forced-colors: active)').matches;
@@ -360,9 +382,9 @@ export function useDesktopGraphRenderer({
     const schedule = (): void => {
       if (!active || framePending) return;
       framePending = true;
-      animationFrame = requestAnimationFrame(() => {
+      animationFrame = requestAnimationFrame((timestamp) => {
         framePending = false;
-        draw();
+        draw(timestamp);
       });
     };
     const scheduleVisible = (): void => {
@@ -472,7 +494,7 @@ export function useDesktopGraphRenderer({
       });
       drawOverlay();
     };
-    const draw = (): void => {
+    const draw = (timestamp: number): void => {
       if (!renderer?.canRender() || !active) return;
       const tick = layout.tick();
       if (tick.steps > 0) positionVersion += 1;
@@ -486,6 +508,17 @@ export function useDesktopGraphRenderer({
         camera = fitCamera(layout.x, layout.y, canvas.clientWidth, canvas.clientHeight);
         fitFrames -= 1;
       }
+      let cameraAnimating = false;
+      if (cameraTransition) {
+        cameraTransition.startedAt ??= timestamp;
+        const progress = Math.min(
+          1,
+          Math.max(0, (timestamp - cameraTransition.startedAt) / CAMERA_TRANSITION_DURATION_MS),
+        );
+        camera = interpolateCamera(cameraTransition.from, cameraTransition.to, progress);
+        cameraAnimating = progress < 1;
+        if (!cameraAnimating) cameraTransition = undefined;
+      }
       if (reduceMotion && !tick.settled) {
         if (visibleFrameRequested) {
           visibleFrameRequested = false;
@@ -496,23 +529,31 @@ export function useDesktopGraphRenderer({
         }
         return;
       }
-      continueAfterFrame = !tick.settled;
+      continueAfterFrame = !tick.settled || cameraAnimating;
       visibleFrameRequested = false;
       renderFrame();
+      if (cameraAnimating) schedule();
     };
     const restyle = (): void => {
       styleVersion += 1;
       scheduleVisible();
     };
-    const zoomBy = (factor: number): void => {
+    const transitionCamera = (nextCamera: GraphRendererCamera): void => {
       fitFrames = 0;
-      camera = zoomDesktopGraphBy(camera, factor);
+      if (reduceMotion) {
+        cameraTransition = undefined;
+        camera = nextCamera;
+      } else {
+        cameraTransition = { from: camera, to: nextCamera };
+      }
       scheduleVisible();
     };
+    const zoomBy = (factor: number): void => {
+      const base = cameraTransition?.to ?? camera;
+      transitionCamera(zoomDesktopGraphBy(base, factor));
+    };
     const fitToGraph = (): void => {
-      fitFrames = 0;
-      camera = fitCamera(layout.x, layout.y, canvas.clientWidth, canvas.clientHeight);
-      scheduleVisible();
+      transitionCamera(fitCamera(layout.x, layout.y, canvas.clientWidth, canvas.clientHeight));
     };
     redrawRef.current = restyle;
     viewportControlsRef.current = { fitToScreen: fitToGraph, zoomBy };
@@ -526,6 +567,7 @@ export function useDesktopGraphRenderer({
     const onWheel = (event: WheelEvent): void => {
       event.preventDefault();
       fitFrames = 0;
+      cameraTransition = undefined;
       const bounds = canvas.getBoundingClientRect();
       camera = zoomDesktopGraphAtPointer(
         camera,
@@ -539,6 +581,7 @@ export function useDesktopGraphRenderer({
     };
     const onPointerDown = (event: PointerEvent): void => {
       if (event.button !== 0) return;
+      cameraTransition = undefined;
       const bounds = canvas.getBoundingClientRect();
       const world = screenToDesktopGraph(
         camera,
@@ -659,6 +702,7 @@ export function useDesktopGraphRenderer({
     };
     const onKeyDown = (event: KeyboardEvent): void => {
       const panDistance = 40 / camera.zoom;
+      if (event.key.startsWith('Arrow')) cameraTransition = undefined;
       if (event.key === 'ArrowLeft') camera.centerX -= panDistance;
       else if (event.key === 'ArrowRight') camera.centerX += panDistance;
       else if (event.key === 'ArrowUp') camera.centerY -= panDistance;

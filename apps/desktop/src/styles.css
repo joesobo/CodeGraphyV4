@@ -124,6 +124,8 @@ button:focus-visible,
   padding-right: 10px;
 }
 
+.toolbar-actions .toolbar-button { padding-inline: 8px; }
+
 .toolbar-button,
 .save-button {
   min-height: 28px;
