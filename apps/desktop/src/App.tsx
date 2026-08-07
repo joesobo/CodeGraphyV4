@@ -193,7 +193,7 @@ export function App(): React.ReactElement {
         {interfacePreferences.profilingVisible ? (
           <span
             className="status-performance"
-            title="Measured from the Rust File read through React, CodeMirror, and two painted frames"
+            title="Measured from the Rust File request through two animation frames"
           >
             {workspace.graph ? `${formatGraphCounts(workspace.graph)} · ` : ''}
             {workspace.metricsSummary ?? 'Switch Files to record open latency'}

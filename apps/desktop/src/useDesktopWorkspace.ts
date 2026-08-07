@@ -185,7 +185,7 @@ function formatFileSwitchMetrics(metrics: FileSwitchMetrics | undefined): string
   const last = metrics.samples.at(-1) ?? 0;
   const median = percentile(metrics.samples, 0.5);
   const p95 = percentile(metrics.samples, 0.95);
-  return `File open ${last.toFixed(1)} ms · median ${median.toFixed(1)} · p95 ${p95.toFixed(1)} · n=${metrics.samples.length}`;
+  return `File request ${last.toFixed(1)} ms · median ${median.toFixed(1)} · p95 ${p95.toFixed(1)} · n=${metrics.samples.length}`;
 }
 
 export function useDesktopWorkspace() {

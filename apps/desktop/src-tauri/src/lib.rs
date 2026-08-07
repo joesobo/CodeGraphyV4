@@ -783,6 +783,14 @@ pub fn run() {
                 .map_err(std::io::Error::other)?;
             refresh_app_menu(app.handle(), &recents).map_err(std::io::Error::other)?;
             app.manage(recents);
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let core = app_handle.state::<CoreService>();
+                let mut state = core.inner.lock().await;
+                if state.process.is_none() {
+                    state.process = spawn_core_process(&app_handle).ok();
+                }
+            });
             Ok(())
         })
         .on_menu_event(|app, event| handle_menu_event(app, event.id().as_ref()))
