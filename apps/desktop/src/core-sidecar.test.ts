@@ -53,7 +53,7 @@ describe('Core desktop sidecar', () => {
     });
 
     expect(result.status).toBe(0);
-    expect(result.stdout.trim().split('\n').map(line => JSON.parse(line))).toEqual([
+    expect(result.stdout.trim().split('\n').map(line => JSON.parse(line) as unknown)).toEqual([
       expect.objectContaining({ kind: 'response', id: 1, outcome: 'success' }),
     ]);
     expect(result.stderr).toContain('[plugin] initialized');
