@@ -13,6 +13,8 @@ import {
   readWorkspaceAnalysisDatabaseRecordCounts as readWorkspaceAnalysisDatabaseRecordCountsImpl,
 } from './recordCounts/model';
 import {
+  readWorkspaceAnalysisDatabaseFileGraph as readWorkspaceAnalysisDatabaseFileGraphImpl,
+  readWorkspaceAnalysisDatabaseGraph as readWorkspaceAnalysisDatabaseGraphImpl,
   readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
   type WorkspaceAnalysisDatabaseSnapshot as WorkspaceAnalysisDatabaseSnapshotImpl,
 } from './snapshot';
@@ -70,6 +72,14 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
   workspaceRoot: string,
 ): WorkspaceAnalysisDatabaseSnapshot {
   return readWorkspaceAnalysisDatabaseSnapshotImpl(workspaceRoot);
+}
+
+export function readWorkspaceAnalysisDatabaseGraph(workspaceRoot: string) {
+  return readWorkspaceAnalysisDatabaseGraphImpl(workspaceRoot);
+}
+
+export function readWorkspaceAnalysisDatabaseFileGraph(workspaceRoot: string) {
+  return readWorkspaceAnalysisDatabaseFileGraphImpl(workspaceRoot);
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(

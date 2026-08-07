@@ -4,12 +4,50 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
 import { requestCodeGraphyWorkspaceGraph } from '../../src/workspace/requestGraph';
+import { readWorkspaceQueryGraph } from '../../src/workspace/queryGraph';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src/workspace/settings';
+import { deriveVisibleGraph } from '../../src/visibleGraph';
 
 describe('workspace/requestGraph', () => {
+  it('keeps the File and Folder projection equal to the complete Core query path', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-file-graph-'));
+    await fs.mkdir(path.join(workspaceRoot, 'src'));
+    await fs.writeFile(
+      path.join(workspaceRoot, 'src', 'entry.ts'),
+      "import { modelValue } from './model';\nexport function entry() { return modelValue; }\n",
+    );
+    await fs.writeFile(
+      path.join(workspaceRoot, 'src', 'model.ts'),
+      'export const modelValue = 1;\n',
+    );
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const projection = { nodeTypes: ['file', 'folder'] };
+    const complete = readWorkspaceQueryGraph(
+      workspaceRoot,
+      { version: 3, plugins: [] },
+      projection,
+    );
+    const expected = deriveVisibleGraph(complete.graphData, {
+      scope: {
+        nodes: Object.entries(complete.scope.nodes).map(([type, enabled]) => ({ type, enabled })),
+        edges: Object.entries(complete.scope.edges).map(([type, enabled]) => ({ type, enabled })),
+        nodeTypes: complete.nodeTypes,
+      },
+      showOrphans: true,
+    }).graphData;
+
+    const result = requestCodeGraphyWorkspaceGraph({
+      workspacePath: workspaceRoot,
+      projection,
+    });
+
+    expect(result.kind).toBe('ready');
+    if (result.kind === 'ready') expect(result.graph).toEqual(expected);
+  });
+
   it('loads the saved Core Graph Scope and Filters without running Indexing', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-graph-'));
     await fs.writeFile(

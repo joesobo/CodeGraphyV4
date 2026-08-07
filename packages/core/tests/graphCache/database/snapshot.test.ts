@@ -1,6 +1,9 @@
 import * as fs from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/graphCache/database/snapshot';
+import {
+  readWorkspaceAnalysisDatabaseGraph,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../../src/graphCache/database/snapshot';
 import * as connectionModule from '../../../src/graphCache/database/io/connection';
 import * as pathModule from '../../../src/graphCache/database/io/paths';
 import {
@@ -73,6 +76,39 @@ describe('graphCache/database/snapshot', () => {
       symbols: [{ id: 'symbol-1', name: 'App' }],
       relations: [],
     });
+  });
+
+  it('reads only canonical graph records for a projected Relationship Graph', () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(connectionModule.withReadOnlyConnection).mockImplementation(
+      (_path, callback) => callback('connection' as never),
+    );
+    vi.mocked(connectionModule.readRowsSync).mockImplementation((_connection, query) => {
+      if (query === NODE_ROWS_QUERY) return [
+        { id: 1, key: 'a.ts', type: 'file', label: 'a.ts', filePath: 'a.ts' },
+        { id: 2, key: 'b.ts', type: 'file', label: 'b.ts', filePath: 'b.ts' },
+      ];
+      if (query === SYMBOL_ROWS_QUERY) return [];
+      if (query === EDGE_ROWS_QUERY) return [{
+        key: 'a.ts->b.ts#import',
+        sourceNodeKey: 'a.ts',
+        targetNodeKey: 'b.ts',
+        type: 'import',
+      }];
+      throw new Error(`Unexpected query: ${query}`);
+    });
+
+    expect(readWorkspaceAnalysisDatabaseGraph('/workspace')).toEqual({
+      nodes: [
+        expect.objectContaining({ id: 'a.ts', nodeType: 'file' }),
+        expect.objectContaining({ id: 'b.ts', nodeType: 'file' }),
+      ],
+      edges: [expect.objectContaining({ id: 'a.ts->b.ts#import', kind: 'import' })],
+    });
+    expect(connectionModule.readRowsSync).not.toHaveBeenCalledWith(
+      expect.anything(),
+      FILE_ROWS_QUERY,
+    );
   });
 
   it('warns and returns an empty snapshot when reading fails', () => {

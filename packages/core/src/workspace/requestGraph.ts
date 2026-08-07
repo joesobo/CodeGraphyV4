@@ -1,12 +1,8 @@
 import * as path from 'node:path';
 import { inspectWorkspaceAnalysisDatabase } from '../graphCache/database/storage';
 import type { IGraphData } from '../graph/contracts';
-import {
-  readCodeGraphyInstalledPluginCache,
-  type CodeGraphyInstalledPluginCache,
-} from '../plugins/installedCache';
 import { deriveVisibleGraph } from '../visibleGraph';
-import { readWorkspaceQueryGraph } from './queryGraph';
+import { readWorkspaceProjectedGraph } from './queryGraph';
 import { resolveCodeGraphyWorkspacePath } from './requestPaths';
 import type { WorkspaceGraphQueryProjection, WorkspacePathInput } from './requestTypes';
 import { readCodeGraphyWorkspaceStatus } from './status';
@@ -40,12 +36,10 @@ export type WorkspaceGraphResult =
 
 export interface WorkspaceGraphDependencies {
   cwd(): string;
-  readInstalledPluginCache(): CodeGraphyInstalledPluginCache;
 }
 
 const DEFAULT_DEPENDENCIES: WorkspaceGraphDependencies = {
   cwd: () => process.cwd(),
-  readInstalledPluginCache: () => readCodeGraphyInstalledPluginCache(),
 };
 
 /**
@@ -72,11 +66,7 @@ export function requestCodeGraphyWorkspaceGraph(
     };
   }
 
-  const projected = readWorkspaceQueryGraph(
-    workspaceRoot,
-    dependencies.readInstalledPluginCache(),
-    input.projection,
-  );
+  const projected = readWorkspaceProjectedGraph(workspaceRoot, input.projection);
   const graph = deriveVisibleGraph(projected.graphData, {
     scope: {
       nodes: Object.entries(projected.scope.nodes).map(([type, enabled]) => ({ type, enabled })),

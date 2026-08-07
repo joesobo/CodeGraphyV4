@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../../src/analysis/cache';
-import { parseDatabaseRecords } from '../../../../src/graphCache/database/records/parser';
+import {
+  parseDatabaseFileGraphRecords,
+  parseDatabaseGraphRecords,
+  parseDatabaseRecords,
+} from '../../../../src/graphCache/database/records/parser';
 import { serializeDatabaseRecords } from '../../../../src/graphCache/database/records/serializer';
 
 describe('graphCache/database/parser', () => {
@@ -63,6 +67,78 @@ describe('graphCache/database/parser', () => {
     });
     expect(hydrated.graph.nodes.map(node => node.nodeType)).not.toContain('codegraphy:cache-tier');
     expect(hydrated.graph.edges.map(edge => edge.kind)).not.toContain('codegraphy:has-cache-tier');
+  });
+
+  it('reads the same canonical Relationship Graph without hydrating analysis facts', () => {
+    const cache: IWorkspaceAnalysisCache = {
+      version: '1',
+      files: {
+        'src/a.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/a.ts',
+            relations: [{
+              kind: 'import',
+              sourceId: 'a-imports-b',
+              fromFilePath: '/workspace/src/a.ts',
+              toFilePath: '/workspace/src/b.ts',
+            }],
+          },
+        },
+        'src/b.ts': { mtime: 1, analysis: { filePath: '/workspace/src/b.ts' } },
+      },
+    };
+    const records = serializeDatabaseRecords(cache);
+
+    expect(parseDatabaseGraphRecords(records.nodes, records.symbols, records.edges)).toEqual(
+      parseDatabaseRecords(
+        records.files,
+        records.nodes,
+        records.symbols,
+        records.edges,
+        '/workspace',
+      ).graph,
+    );
+  });
+
+  it('projects Symbol Relationships to Files while preserving File Relationships', () => {
+    const graph = parseDatabaseFileGraphRecords(
+      [
+        { key: 'a.ts', type: 'file', label: 'a.ts', filePath: 'a.ts' },
+        { key: 'b.ts', type: 'file', label: 'b.ts', filePath: 'b.ts' },
+      ],
+      [
+        {
+          key: 'original-file-edge',
+          originalSourceNodeKey: 'a.ts',
+          sourceNodeKey: 'a.ts',
+          originalTargetNodeKey: 'b.ts',
+          targetNodeKey: 'b.ts',
+          type: 'import',
+        },
+        {
+          key: 'a.ts#run->b.ts#run#call',
+          originalSourceNodeKey: 'a.ts#run',
+          sourceNodeKey: 'a.ts',
+          originalTargetNodeKey: 'b.ts#run',
+          targetNodeKey: 'b.ts',
+          type: 'call',
+        },
+        {
+          key: 'a.ts#one->a.ts#two#call',
+          originalSourceNodeKey: 'a.ts#one',
+          sourceNodeKey: 'a.ts',
+          originalTargetNodeKey: 'a.ts#two',
+          targetNodeKey: 'a.ts',
+          type: 'call',
+        },
+      ],
+    );
+
+    expect(graph.edges).toEqual([
+      expect.objectContaining({ id: 'original-file-edge', from: 'a.ts', to: 'b.ts' }),
+      expect.objectContaining({ id: 'a.ts->b.ts#call', from: 'a.ts', to: 'b.ts' }),
+    ]);
   });
 
   it('hydrates one canonical Edge row without serialized provenance', () => {

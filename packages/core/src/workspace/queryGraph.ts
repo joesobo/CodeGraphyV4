@@ -2,7 +2,11 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
 import { StringDecoder } from 'node:string_decoder';
-import { readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
+import {
+  readWorkspaceAnalysisDatabaseGraph,
+  readWorkspaceAnalysisDatabaseFileGraph,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../graphCache/database/storage';
 import { filterInactivePluginSnapshotFacts } from '../plugins/activityState/analysisFacts';
 import { createPluginActivityState } from '../plugins/activityState/model';
 import type { CodeGraphyInstalledPluginCache } from '../plugins/installedCache';
@@ -167,8 +171,13 @@ export function readWorkspaceQuerySource(
   };
 }
 
-export function projectWorkspaceQueryGraph(
-  source: ReturnType<typeof readWorkspaceQuerySource>,
+type WorkspaceGraphProjectionSource = Pick<
+  ReturnType<typeof readWorkspaceQuerySource>,
+  'declarations' | 'graphData' | 'settings'
+>;
+
+function projectWorkspaceGraph(
+  source: WorkspaceGraphProjectionSource,
   projection: WorkspaceGraphQueryProjection = {},
 ) {
   const disabledFilterPatterns = new Set(source.settings.disabledCustomFilterPatterns);
@@ -201,8 +210,33 @@ export function projectWorkspaceQueryGraph(
     nodeTypes: source.declarations.nodes,
     scope,
     settings: source.settings,
-    snapshotFacts: filterSnapshotFactsToGraph(source.snapshotFacts, graphData),
   };
+}
+
+export function projectWorkspaceQueryGraph(
+  source: ReturnType<typeof readWorkspaceQuerySource>,
+  projection: WorkspaceGraphQueryProjection = {},
+) {
+  const projected = projectWorkspaceGraph(source, projection);
+  return {
+    ...projected,
+    snapshotFacts: filterSnapshotFactsToGraph(source.snapshotFacts, projected.graphData),
+  };
+}
+
+export function readWorkspaceProjectedGraph(
+  workspaceRoot: string,
+  projection: WorkspaceGraphQueryProjection = {},
+) {
+  const fileGraphOnly = projection.nodeTypes?.length
+    && projection.nodeTypes.every(nodeType => nodeType === 'file' || nodeType === 'folder');
+  return projectWorkspaceGraph({
+    declarations: { nodes: [], edges: [] },
+    graphData: fileGraphOnly
+      ? readWorkspaceAnalysisDatabaseFileGraph(workspaceRoot)
+      : readWorkspaceAnalysisDatabaseGraph(workspaceRoot),
+    settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+  }, projection);
 }
 
 export function readWorkspaceQueryGraph(

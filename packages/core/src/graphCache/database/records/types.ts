@@ -98,3 +98,8 @@ export interface GraphEdgeRow {
   targetFilePath?: unknown;
   type?: unknown;
 }
+
+export interface FileGraphEdgeRow extends GraphEdgeRow {
+  originalSourceNodeKey?: unknown;
+  originalTargetNodeKey?: unknown;
+}

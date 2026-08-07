@@ -2,6 +2,13 @@
 
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
+import { format } from 'node:util';
+
+for (const method of ['debug', 'error', 'info', 'log', 'warn']) {
+  console[method] = (...values) => {
+    process.stderr.write(`${format(...values)}\n`);
+  };
+}
 
 const coreModuleUrl = process.env.CODEGRAPHY_DESKTOP_CORE_MODULE
   ? pathToFileURL(process.env.CODEGRAPHY_DESKTOP_CORE_MODULE)
@@ -152,11 +159,9 @@ async function runRequest(request) {
     event: 'indexing',
     workspaceRoot: request.workspaceRoot,
   });
-  const result = await core.indexCodeGraphyWorkspace({
-    workspaceRoot: request.workspaceRoot,
-  });
+  const record = startWorkspaceEngine(request.workspaceRoot);
+  const result = await record.ready;
   const response = indexResult(result, core.requestCodeGraphyWorkspaceGraph(graphRequest(request)));
-  warmWorkspaceEngine(request.workspaceRoot);
   return response;
 }
 

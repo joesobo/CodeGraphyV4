@@ -568,8 +568,13 @@ async fn request_core(
     while let Some(event) = process.events.recv().await {
         match event {
             CommandEvent::Stdout(line) => {
-                let message: CoreMessage = serde_json::from_slice(&line)
-                    .map_err(|error| format!("Core service returned invalid data: {error}"))?;
+                let message: CoreMessage = match serde_json::from_slice(&line) {
+                    Ok(message) => message,
+                    Err(error) => {
+                        state.process = None;
+                        return Err(format!("Core service returned invalid data: {error}"));
+                    }
+                };
                 match message {
                     CoreMessage::Event { event, mut details } => {
                         details.insert("event".to_string(), Value::String(event));
@@ -583,6 +588,7 @@ async fn request_core(
                         };
                     }
                     CoreMessage::Response { .. } => {
+                        state.process = None;
                         return Err("Core service returned a mismatched response.".to_string());
                     }
                 }
