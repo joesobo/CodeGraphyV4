@@ -3,8 +3,8 @@ import { CodeEditor } from './components/CodeEditor';
 import { FileTree } from './components/FileTree';
 import { GraphPanel } from './components/GraphPanel';
 import { GraphSettingsPopover } from './components/GraphSettingsPopover';
+import { UnsavedFileDialog } from './components/UnsavedFileDialog';
 import { WorkspacePanes } from './components/WorkspacePanes';
-import { WorkspaceSwitchDialog } from './components/WorkspaceSwitchDialog';
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
 import { formatGraphCounts } from './model';
 import { useDesktopWorkspace } from './useDesktopWorkspace';
@@ -135,9 +135,21 @@ export function App(): React.ReactElement {
         <span className="status-local">Local only · macOS 26+</span>
       </footer>
 
-      {workspace.pendingWorkspaceAction && workspace.document ? (
-        <WorkspaceSwitchDialog
+      {workspace.pendingFileAction && workspace.document ? (
+        <UnsavedFileDialog
           filePath={workspace.document.path}
+          intent={workspace.pendingFileAction.kind === 'close' ? 'close-file' : 'open-file'}
+          onCancel={workspace.cancelPendingFileAction}
+          onDiscard={() => void workspace.finishPendingFileAction(false)}
+          onSave={() => void workspace.finishPendingFileAction(true)}
+          saving={workspace.saving}
+        />
+      ) : null}
+
+      {workspace.pendingWorkspaceAction && workspace.document ? (
+        <UnsavedFileDialog
+          filePath={workspace.document.path}
+          intent="switch-workspace"
           onCancel={workspace.cancelPendingWorkspaceAction}
           onDiscard={() => void workspace.finishPendingWorkspaceAction(false)}
           onSave={() => void workspace.finishPendingWorkspaceAction(true)}

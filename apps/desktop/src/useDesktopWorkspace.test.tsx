@@ -77,8 +77,7 @@ describe('desktop document and graph selection ownership', () => {
     await act(async () => root.unmount());
   });
 
-  it('uses the existing dirty confirmation before Close File discards a draft', async () => {
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('keeps dirty File actions pending until the user cancels or discards', async () => {
     const host = document.createElement('div');
     document.body.append(host);
     const root = createRoot(host);
@@ -87,10 +86,14 @@ describe('desktop document and graph selection ownership', () => {
     await act(async () => current().setDraft('unsaved'));
     await act(async () => current().closeCurrentDocument());
     expect(current().document?.path).toBe('src/main.ts');
-    expect(confirm).toHaveBeenCalledWith('Discard the unsaved edit and close this File?');
+    expect(current().pendingFileAction).toEqual({ kind: 'close' });
 
-    confirm.mockReturnValue(true);
+    await act(async () => current().cancelPendingFileAction());
+    expect(current().pendingFileAction).toBeUndefined();
+    expect(current().document?.path).toBe('src/main.ts');
+
     await act(async () => current().closeCurrentDocument());
+    await act(async () => current().finishPendingFileAction(false));
     expect(current().document).toBeUndefined();
     expect(current().dirty).toBe(false);
     await act(async () => root.unmount());

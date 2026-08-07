@@ -46,7 +46,6 @@ export function WorkspacePanes({
   const containerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<PaneDrag>();
   const layoutRef = useRef(layout);
-  layoutRef.current = layout;
   const pixels = clampPaneLayout(layout, containerWidth);
 
   useEffect(() => {
@@ -61,13 +60,17 @@ export function WorkspacePanes({
 
   const updateFromPixels = (next: Pick<PanePixelLayout, 'files' | 'editor'>): void => {
     const normalized = clampPaneLayout(paneLayoutFromPixels(next, containerWidth), containerWidth);
-    setLayout(paneLayoutFromPixels(normalized, containerWidth));
+    const nextLayout = paneLayoutFromPixels(normalized, containerWidth);
+    layoutRef.current = nextLayout;
+    setLayout(nextLayout);
   };
 
   const commitLayout = (): void => savePaneLayout(layoutRef.current);
 
   const resetLayout = (): void => {
-    setLayout({ ...DEFAULT_PANE_LAYOUT });
+    const nextLayout = { ...DEFAULT_PANE_LAYOUT };
+    layoutRef.current = nextLayout;
+    setLayout(nextLayout);
     savePaneLayout(DEFAULT_PANE_LAYOUT);
   };
 
@@ -156,7 +159,9 @@ export function WorkspacePanes({
           if (!drag || drag.pointerId !== event.pointerId) return;
           dragRef.current = undefined;
           setActiveSeparator(undefined);
-          setLayout(paneLayoutFromPixels(drag.layout, containerWidth));
+          const restoredLayout = paneLayoutFromPixels(drag.layout, containerWidth);
+          layoutRef.current = restoredLayout;
+          setLayout(restoredLayout);
           if (event.currentTarget.hasPointerCapture(event.pointerId)) {
             event.currentTarget.releasePointerCapture(event.pointerId);
           }

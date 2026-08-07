@@ -32,6 +32,10 @@ type WorkspaceAction =
   | { kind: 'close' }
   | { kind: 'open'; path: string };
 
+type FileAction =
+  | { kind: 'close' }
+  | { kind: 'open'; path: string };
+
 interface FileSwitchMetrics {
   lastPath: string;
   samples: number[];
@@ -44,6 +48,7 @@ interface DesktopWorkspaceState {
   graphRevision: number;
   graphResult?: WorkspaceGraphResult;
   graphSettings: GraphPhysicsSettings;
+  pendingFileAction?: FileAction;
   pendingFilePath?: string;
   pendingWorkspaceAction?: WorkspaceAction;
   recentWorkspaces: RecentWorkspace[];
@@ -58,6 +63,7 @@ type DesktopWorkspaceEvent =
   | { type: 'file_metrics'; elapsed: number; path: string }
   | { type: 'file_closed' }
   | { type: 'file_opened'; document: FileDocument }
+  | { type: 'file_action'; action?: FileAction }
   | { type: 'file_pending'; path?: string }
   | { type: 'file_saved'; document: FileDocument }
   | { type: 'graph_settings'; settings: GraphPhysicsSettings }
@@ -102,6 +108,7 @@ function desktopWorkspaceReducer(
         ...state,
         document: undefined,
         draft: '',
+        pendingFileAction: undefined,
         pendingFilePath: undefined,
       };
     case 'file_opened':
@@ -111,6 +118,8 @@ function desktopWorkspaceReducer(
         draft: event.document.content,
         pendingFilePath: undefined,
       };
+    case 'file_action':
+      return { ...state, pendingFileAction: event.action };
     case 'file_pending':
       return { ...state, pendingFilePath: event.path };
     case 'file_saved':
@@ -147,6 +156,7 @@ function desktopWorkspaceReducer(
               draft: '',
               fileSwitchMetrics: undefined,
               graphSettings: DEFAULT_GRAPH_PHYSICS_SETTINGS,
+              pendingFileAction: undefined,
               pendingFilePath: undefined,
             }
           : {}),
@@ -300,9 +310,7 @@ export function useDesktopWorkspace() {
       .catch(reportError);
   }, [openGraph, refreshRecentWorkspaces, reportError]);
 
-  const selectFile = useCallback(async (path: string): Promise<void> => {
-    if (state.document?.path === path || state.pendingFilePath === path) return;
-    if (dirty && !window.confirm('Discard the unsaved edit and open another File?')) return;
+  const openFile = useCallback(async (path: string): Promise<void> => {
     const requestId = ++fileRequestRef.current;
     const startedAt = performance.now();
     dispatch({ type: 'file_pending', path });
@@ -320,7 +328,16 @@ export function useDesktopWorkspace() {
       dispatch({ type: 'file_pending' });
       reportError(error);
     }
-  }, [dirty, reportError, state.document?.path, state.pendingFilePath]);
+  }, [reportError]);
+
+  const selectFile = useCallback(async (path: string): Promise<void> => {
+    if (state.document?.path === path || state.pendingFilePath === path) return;
+    if (dirty) {
+      dispatch({ type: 'file_action', action: { kind: 'open', path } });
+      return;
+    }
+    await openFile(path);
+  }, [dirty, openFile, state.document?.path, state.pendingFilePath]);
 
   const selectGraphNode = useCallback((id: string | undefined): void => {
     dispatch({ type: 'graph_selected', id });
@@ -329,12 +346,19 @@ export function useDesktopWorkspace() {
     if (node && node.nodeType !== 'folder') void selectFile(id);
   }, [graph?.nodes, selectFile]);
 
-  const closeCurrentDocument = useCallback((): void => {
-    if ((!state.document && !state.pendingFilePath) || state.saving) return;
-    if (dirty && !window.confirm('Discard the unsaved edit and close this File?')) return;
+  const discardCurrentDocument = useCallback((): void => {
     fileRequestRef.current += 1;
     dispatch({ type: 'file_closed' });
-  }, [dirty, state.document, state.pendingFilePath, state.saving]);
+  }, []);
+
+  const closeCurrentDocument = useCallback((): void => {
+    if ((!state.document && !state.pendingFilePath) || state.saving) return;
+    if (dirty) {
+      dispatch({ type: 'file_action', action: { kind: 'close' } });
+      return;
+    }
+    discardCurrentDocument();
+  }, [dirty, discardCurrentDocument, state.document, state.pendingFilePath, state.saving]);
 
   const saveCurrentDocument = useCallback(async (): Promise<boolean> => {
     if (!state.document || !dirty || state.saving || !workspaceRootRef.current) return !dirty;
@@ -449,6 +473,15 @@ export function useDesktopWorkspace() {
     await executeWorkspaceAction(action);
   }, [executeWorkspaceAction, saveCurrentDocument, state.pendingWorkspaceAction]);
 
+  const finishPendingFileAction = useCallback(async (save: boolean): Promise<void> => {
+    const action = state.pendingFileAction;
+    if (!action) return;
+    if (save && !await saveCurrentDocument()) return;
+    dispatch({ type: 'file_action' });
+    if (action.kind === 'open') await openFile(action.path);
+    else discardCurrentDocument();
+  }, [discardCurrentDocument, openFile, saveCurrentDocument, state.pendingFileAction]);
+
   return {
     ...state,
     dirty,
@@ -457,10 +490,12 @@ export function useDesktopWorkspace() {
     metricsSummary,
     selectedPath,
     tree,
+    cancelPendingFileAction: () => dispatch({ type: 'file_action' }),
     cancelPendingWorkspaceAction: () => dispatch({ type: 'workspace_action' }),
     clearRecent,
     clearGraphSelection: () => dispatch({ type: 'graph_selected' }),
     closeCurrentDocument,
+    finishPendingFileAction,
     finishPendingWorkspaceAction,
     flushGraphSettings,
     openRecentWorkspace: (path: string) => requestWorkspaceAction({ kind: 'open', path }),
