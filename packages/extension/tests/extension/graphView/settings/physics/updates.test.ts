@@ -12,7 +12,17 @@ describe('graph view physics update helpers', () => {
       getConfiguration: () => ({ update }),
     });
 
-    expect(update).toHaveBeenCalledWith('physics.repelForce', 25);
+    expect(update).toHaveBeenCalledWith('physics.repelForce', 20);
+  });
+
+  it('clamps Link Distance before persistence', async () => {
+    const update = vi.fn(() => Promise.resolve());
+
+    await updateGraphViewPhysicsSetting('linkDistance', 500, {
+      getConfiguration: () => ({ update }),
+    });
+
+    expect(update).toHaveBeenCalledWith('physics.linkDistance', 150);
   });
 
   it('updates a single physics setting at the requested configuration target', async () => {

@@ -3,6 +3,7 @@ import {
   passedDesktopGraphDragThreshold,
   pickDesktopGraphNode,
   screenToDesktopGraph,
+  zoomDesktopGraphBy,
   zoomDesktopGraphAtPointer,
 } from './desktopGraphInteraction';
 
@@ -23,6 +24,14 @@ describe('desktop graph interaction adapter', () => {
 
     expect(screenToDesktopGraph(zoomed, 800, 600, 680, 220)).toEqual(before);
     expect(zoomed.zoom).toBeGreaterThan(camera.zoom);
+  });
+
+  it('zooms controls around the current center and clamps the viewport range', () => {
+    const camera = { centerX: 20, centerY: -10, zoom: 1 };
+
+    expect(zoomDesktopGraphBy(camera, 1.2)).toEqual({ centerX: 20, centerY: -10, zoom: 1.2 });
+    expect(zoomDesktopGraphBy(camera, 100)).toEqual({ centerX: 20, centerY: -10, zoom: 5 });
+    expect(zoomDesktopGraphBy(camera, 0.001)).toEqual({ centerX: 20, centerY: -10, zoom: 0.05 });
   });
 
   it('uses the extension three-pixel cumulative drag threshold', () => {

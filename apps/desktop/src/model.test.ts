@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFileTree, parseWorkspaceGraphResult } from './model';
+import { buildFileTree, formatGraphCounts, parseWorkspaceGraphResult } from './model';
 
 const graphResult = {
   kind: 'ready',
@@ -20,6 +20,19 @@ const graphResult = {
 } satisfies unknown;
 
 describe('desktop workspace graph model', () => {
+  it('counts displayed File and Folder Nodes plus every displayed Relationship', () => {
+    expect(formatGraphCounts({
+      nodes: [
+        { id: 'src', label: 'src', nodeType: 'folder' },
+        { id: 'src/index.ts', label: 'index.ts', nodeType: 'file' },
+      ],
+      edges: [
+        { id: 'a', from: 'src', to: 'src/index.ts', kind: 'nests' },
+        { id: 'b', from: 'src', to: 'src/index.ts', kind: 'contains' },
+      ],
+    })).toBe('2 Nodes · 2 Relationships');
+  });
+
   it('parses a File and Folder-only graph and builds the File hierarchy', () => {
     const result = parseWorkspaceGraphResult(graphResult);
 

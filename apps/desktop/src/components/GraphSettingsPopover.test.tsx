@@ -44,14 +44,14 @@ describe('GraphSettingsPopover', () => {
     const trigger = host.querySelector<HTMLButtonElement>('[aria-label="Graph Settings"]');
     await act(async () => trigger?.click());
 
-    expect(host.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(host.querySelector('dialog')).not.toBeNull();
     const repel = host.querySelector<HTMLInputElement>('#graph-setting-repelForce');
     const center = host.querySelector<HTMLInputElement>('#graph-setting-centerForce');
     const distance = host.querySelector<HTMLInputElement>('#graph-setting-linkDistance');
     expect(document.activeElement).toBe(repel);
     expect([repel?.min, repel?.max, repel?.step]).toEqual(['0', '20', '1']);
     expect([center?.min, center?.max, center?.step]).toEqual(['0', '1', '0.01']);
-    expect([distance?.min, distance?.max, distance?.step]).toEqual(['30', '500', '10']);
+    expect([distance?.min, distance?.max, distance?.step]).toEqual(['30', '150', '10']);
 
     await act(async () => {
       if (!repel) return;
@@ -66,7 +66,7 @@ describe('GraphSettingsPopover', () => {
       repel?.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
     });
     await act(async () => undefined);
-    expect(host.querySelector('[role="dialog"]')).toBeNull();
+    expect(host.querySelector('dialog')).toBeNull();
     expect(document.activeElement).toBe(trigger);
     await act(async () => root.unmount());
   });

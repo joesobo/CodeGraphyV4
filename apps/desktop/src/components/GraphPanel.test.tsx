@@ -72,6 +72,17 @@ const physicsSettings = {
   centerForce: 0.1,
 };
 
+function renderedZoom(frame: unknown): number {
+  if (typeof frame !== 'object' || frame === null || !('camera' in frame)) {
+    throw new Error('Renderer frame has no camera.');
+  }
+  const camera = frame.camera;
+  if (typeof camera !== 'object' || camera === null || !('zoom' in camera) || typeof camera.zoom !== 'number') {
+    throw new Error('Renderer frame has no zoom.');
+  }
+  return camera.zoom;
+}
+
 describe('GraphPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -102,7 +113,7 @@ describe('GraphPanel', () => {
     const root = createRoot(host);
 
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
+      root.render(<GraphPanel graph={graph} onSelectionChange={() => undefined} physicsSettings={physicsSettings} revision={1} />);
     });
 
     expect(rendererMocks.prepareGraphPhysics).toHaveBeenCalledOnce();
@@ -134,12 +145,12 @@ describe('GraphPanel', () => {
     const root = createRoot(host);
 
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
+      root.render(<GraphPanel graph={graph} onSelectionChange={() => undefined} physicsSettings={physicsSettings} revision={1} />);
     });
     const firstCanvases = [...host.querySelectorAll('canvas')];
 
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={2} />);
+      root.render(<GraphPanel graph={graph} onSelectionChange={() => undefined} physicsSettings={physicsSettings} revision={2} />);
     });
     const secondCanvases = [...host.querySelectorAll('canvas')];
 
@@ -148,7 +159,7 @@ describe('GraphPanel', () => {
     await act(async () => root.unmount());
   });
 
-  it('routes hover and Node drag through the shared renderer engine', async () => {
+  it('routes hover, drag, background deselection, pan, and viewport controls through the renderer', async () => {
     const animationFrames: FrameRequestCallback[] = [];
     rendererMocks.setRendererEnabled(true);
     vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
@@ -182,7 +193,7 @@ describe('GraphPanel', () => {
     const onSelect = vi.fn();
 
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={onSelect} physicsSettings={physicsSettings} revision={1} />);
+      root.render(<GraphPanel graph={graph} onSelectionChange={onSelect} physicsSettings={physicsSettings} revision={1} />);
     });
     await act(async () => {
       rendererMocks.resolvePhysics();
@@ -215,6 +226,59 @@ describe('GraphPanel', () => {
     expect(rendererMocks.layout.setNodePosition).toHaveBeenCalledWith(0, expect.any(Number), expect.any(Number));
     expect(rendererMocks.layout.release).toHaveBeenCalledWith(0);
     expect(rendererMocks.layout.setAlphaTarget).toHaveBeenLastCalledWith(0);
+
+    onSelect.mockClear();
+    await act(async () => {
+      canvas?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 95, clientY: 95 }));
+      canvas?.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 95, clientY: 95 }));
+    });
+    expect(onSelect).toHaveBeenCalledWith(undefined);
+
+    onSelect.mockClear();
+    await act(async () => {
+      canvas?.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 95, clientY: 95 }));
+      canvas?.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 88, clientY: 95 }));
+      canvas?.dispatchEvent(new MouseEvent('pointerup', { bubbles: true, button: 0, clientX: 88, clientY: 95 }));
+    });
+    expect(onSelect).not.toHaveBeenCalled();
+
+    await act(async () => animationFrames.splice(0).forEach(callback => callback(32)));
+    const zoomBeforeControl = renderedZoom(rendererMocks.render.mock.lastCall?.[0]);
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Zoom In"]')?.click());
+    await act(async () => animationFrames.splice(0).forEach(callback => callback(48)));
+    expect(renderedZoom(rendererMocks.render.mock.lastCall?.[0])).toBeGreaterThan(zoomBeforeControl);
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Fit to Screen"]')?.click());
+    await act(async () => animationFrames.splice(0).forEach(callback => callback(64)));
+    expect(renderedZoom(rendererMocks.render.mock.lastCall?.[0])).toBe(zoomBeforeControl);
+    await act(async () => root.unmount());
+  });
+
+  it('keeps Folder Nodes selectable in the desktop Relationship inspector', async () => {
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    const onSelectionChange = vi.fn();
+    const graphWithFolder: DesktopGraph = {
+      nodes: [
+        { id: 'src/index.ts', label: 'index.ts', nodeType: 'file' },
+        { id: 'src', label: 'src', nodeType: 'folder' },
+      ],
+      edges: [{ id: 'nested', from: 'src', to: 'src/index.ts', kind: 'nests' }],
+    };
+    await act(async () => root.render(
+      <GraphPanel
+        graph={graphWithFolder}
+        onSelectionChange={onSelectionChange}
+        physicsSettings={physicsSettings}
+        revision={1}
+        selectedId="src/index.ts"
+      />,
+    ));
+
+    const folder = host.querySelector<HTMLButtonElement>('.relationship-list button');
+    expect(folder?.disabled).toBe(false);
+    await act(async () => folder?.click());
+    expect(onSelectionChange).toHaveBeenCalledWith('src');
     await act(async () => root.unmount());
   });
 
@@ -240,7 +304,7 @@ describe('GraphPanel', () => {
     const root = createRoot(host);
 
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
+      root.render(<GraphPanel graph={graph} onSelectionChange={() => undefined} physicsSettings={physicsSettings} revision={1} />);
     });
     await act(async () => {
       rendererMocks.resolvePhysics();
@@ -252,7 +316,7 @@ describe('GraphPanel', () => {
       root.render(
         <GraphPanel
           graph={graph}
-          onSelect={() => undefined}
+          onSelectionChange={() => undefined}
           physicsSettings={{ ...physicsSettings, repelForce: 20 }}
           revision={1}
           selectedId="src/index.ts"
@@ -305,7 +369,7 @@ describe('GraphPanel', () => {
     document.body.append(host);
     const root = createRoot(host);
     await act(async () => {
-      root.render(<GraphPanel graph={graph} onSelect={() => undefined} physicsSettings={physicsSettings} revision={1} />);
+      root.render(<GraphPanel graph={graph} onSelectionChange={() => undefined} physicsSettings={physicsSettings} revision={1} />);
     });
     await act(async () => {
       rendererMocks.resolvePhysics();

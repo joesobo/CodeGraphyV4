@@ -3,6 +3,8 @@ import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
   GRAPH_PHYSICS_CONTROL_LIMITS,
   applyGraphPhysicsSettings,
+  normalizeGraphPhysicsSetting,
+  normalizeGraphPhysicsSettings,
   toGraphPhysicsLayoutConfig,
   type GraphPhysicsSettings,
 } from '../src/index.js';
@@ -19,7 +21,7 @@ describe('graph physics contract', () => {
     expect(GRAPH_PHYSICS_CONTROL_LIMITS).toEqual({
       repelForce: { min: 0, max: 20, step: 1 },
       centerForce: { min: 0, max: 1, step: 0.01 },
-      linkDistance: { min: 30, max: 500, step: 10 },
+      linkDistance: { min: 30, max: 150, step: 10 },
       linkForce: { min: 0, max: 2, step: 0.01 },
     });
   });
@@ -50,6 +52,23 @@ describe('graph physics contract', () => {
       linkStrength: 2,
       velocityDecay: 0.4,
     });
+  });
+
+  it('normalizes persisted settings through the shared visible ranges', () => {
+    expect(normalizeGraphPhysicsSettings({
+      repelForce: -4,
+      centerForce: 2,
+      linkDistance: 500,
+      linkForce: 3,
+      damping: -1,
+    })).toEqual({
+      repelForce: 0,
+      centerForce: 1,
+      linkDistance: 150,
+      linkForce: 2,
+      damping: 0,
+    });
+    expect(normalizeGraphPhysicsSetting('linkDistance', 500)).toBe(150);
   });
 
   it('applies the mapped config through the renderer boundary', () => {

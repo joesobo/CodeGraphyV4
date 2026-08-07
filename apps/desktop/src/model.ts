@@ -186,3 +186,7 @@ export function buildFileTree(graph: DesktopGraph): FileTreeEntry[] {
 export function countFiles(graph: DesktopGraph): number {
   return graph.nodes.filter(node => node.nodeType !== 'folder').length;
 }
+
+export function formatGraphCounts(graph: DesktopGraph): string {
+  return `${graph.nodes.length} Nodes · ${graph.edges.length} Relationships`;
+}

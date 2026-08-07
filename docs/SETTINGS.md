@@ -100,6 +100,8 @@ Edge colors come from Edge Type definitions and Legend layers. There is no curre
 ```
 
 The Settings > Forces controls apply these values to the live WebAssembly layout.
+Link Distance accepts 30 through 150 in both the Extension and desktop Graph View.
+The shared settings boundary clamps older finite values into that range before use or persistence.
 
 The macOS desktop app uses the same defaults, ranges, and force mapping. Its first
 Graph Settings surface exposes Repel Force, Center Force, and Link Distance and

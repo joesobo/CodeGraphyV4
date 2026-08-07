@@ -75,7 +75,7 @@ suite('Settings: Physics', function () {
     // Should not throw
     await api.dispatchWebviewMessage({
       type: 'UPDATE_PHYSICS_SETTING',
-      payload: { key: 'linkDistance', value: 200 },
+      payload: { key: 'linkDistance', value: 150 },
     });
 
     await sleep(500);

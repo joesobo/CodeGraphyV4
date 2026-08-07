@@ -41,6 +41,19 @@ export function zoomDesktopGraphAtPointer(
   };
 }
 
+export function zoomDesktopGraphBy(
+  camera: GraphRendererCamera,
+  factor: number,
+): GraphRendererCamera {
+  return {
+    ...camera,
+    zoom: Math.min(
+      DESKTOP_GRAPH_MAX_ZOOM,
+      Math.max(DESKTOP_GRAPH_MIN_ZOOM, camera.zoom * factor),
+    ),
+  };
+}
+
 export function passedDesktopGraphDragThreshold(
   originX: number,
   originY: number,

@@ -19,12 +19,14 @@ const RECENT_WORKSPACES_FILE_NAME: &str = "recent-workspaces.json";
 const MENU_OPEN_WORKSPACE: &str = "file.open-workspace";
 const MENU_OPEN_RECENT_PREFIX: &str = "file.open-recent.";
 const MENU_CLEAR_RECENT: &str = "file.clear-recent";
+const MENU_CLOSE_FILE: &str = "file.close-file";
 const MENU_CLOSE_WORKSPACE: &str = "file.close-workspace";
 const MENU_SAVE: &str = "file.save";
 
 const EVENT_OPEN_WORKSPACE: &str = "desktop-open-workspace";
 const EVENT_OPEN_RECENT_WORKSPACE: &str = "desktop-open-recent";
 const EVENT_RECENT_WORKSPACES_CHANGED: &str = "desktop-recent-workspaces-changed";
+const EVENT_CLOSE_FILE: &str = "desktop-close-file";
 const EVENT_CLOSE_WORKSPACE: &str = "desktop-close-workspace";
 const EVENT_SAVE: &str = "desktop-save";
 
@@ -226,6 +228,7 @@ fn build_app_menu(
         true,
         None::<&str>,
     )?;
+    let close_file = MenuItem::with_id(app, MENU_CLOSE_FILE, "Close File", true, None::<&str>)?;
     let save = MenuItem::with_id(app, MENU_SAVE, "Save", true, Some("CmdOrCtrl+S"))?;
     let file = Submenu::with_items(
         app,
@@ -235,8 +238,10 @@ fn build_app_menu(
             &open_workspace,
             &open_recent,
             &PredefinedMenuItem::separator(app)?,
-            &close_workspace,
             &save,
+            &PredefinedMenuItem::separator(app)?,
+            &close_file,
+            &close_workspace,
         ],
     )?;
     let edit = Submenu::with_items(
@@ -288,6 +293,7 @@ fn handle_menu_event(app: &AppHandle, menu_id: &str) {
                 emit(EVENT_RECENT_WORKSPACES_CHANGED);
             }
         }
+        MENU_CLOSE_FILE => emit(EVENT_CLOSE_FILE),
         MENU_CLOSE_WORKSPACE => emit(EVENT_CLOSE_WORKSPACE),
         MENU_SAVE => emit(EVENT_SAVE),
         _ => {

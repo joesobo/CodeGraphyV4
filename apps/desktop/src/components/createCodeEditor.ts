@@ -16,12 +16,12 @@ export async function createCodeEditor({
     { javascript },
     {
       bracketMatching,
-      defaultHighlightStyle,
       indentOnInput,
       syntaxHighlighting,
     },
     { highlightSelectionMatches, searchKeymap },
     { EditorState },
+    { oneDarkHighlightStyle },
     {
       drawSelection,
       dropCursor,
@@ -37,6 +37,7 @@ export async function createCodeEditor({
     import('@codemirror/language'),
     import('@codemirror/search'),
     import('@codemirror/state'),
+    import('@codemirror/theme-one-dark'),
     import('@codemirror/view'),
   ]);
   const language = /\.[cm]?[jt]sx?$/iu.test(path)
@@ -58,7 +59,7 @@ export async function createCodeEditor({
         EditorState.allowMultipleSelections.of(true),
         indentOnInput(),
         bracketMatching(),
-        syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        syntaxHighlighting(oneDarkHighlightStyle),
         highlightSelectionMatches(),
         highlightActiveLine(),
         language,
@@ -74,24 +75,23 @@ export async function createCodeEditor({
           if (update.docChanged) onChange(update.state.doc.toString());
         }),
         EditorView.theme({
-          '&': { height: '100%', backgroundColor: '#0c161d', color: '#dbe8ee' },
-          '.cm-content': { caretColor: '#73e2c4', padding: '18px 0 40px' },
-          '.cm-cursor, .cm-dropCursor': { borderLeftColor: '#73e2c4' },
+          '&': { height: '100%', backgroundColor: 'var(--cg-editor)', color: '#abb2bf' },
+          '.cm-content': { caretColor: 'var(--cg-accent)', padding: '18px 0 40px' },
+          '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--cg-accent)' },
           '.cm-gutters': {
-            backgroundColor: '#0c161d',
-            borderRight: '1px solid rgba(149, 180, 190, .1)',
-            color: '#49616d',
+            backgroundColor: 'var(--cg-editor-gutter)',
+            borderRight: '1px solid var(--cg-divider)',
+            color: 'var(--cg-text-quiet)',
           },
-          '.cm-activeLine': { backgroundColor: 'rgba(110, 221, 193, .045)' },
-          '.cm-activeLineGutter': { backgroundColor: 'rgba(110, 221, 193, .07)', color: '#88a5af' },
+          '.cm-activeLine': { backgroundColor: 'var(--cg-editor-active-line)' },
+          '.cm-activeLineGutter': { backgroundColor: 'var(--cg-editor-active-gutter)', color: 'var(--cg-text-secondary)' },
           '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
-            backgroundColor: 'rgba(69, 141, 168, .35)',
+            backgroundColor: 'var(--cg-editor-selection)',
           },
-          '.cm-scroller': { fontFamily: 'var(--font-code)', fontSize: '12.5px', lineHeight: '1.68' },
+          '.cm-scroller': { fontFamily: 'var(--cg-font-mono)', fontSize: '12.5px', lineHeight: '1.68' },
         }),
       ],
     }),
   });
-  view.focus();
   return () => view.destroy();
 }

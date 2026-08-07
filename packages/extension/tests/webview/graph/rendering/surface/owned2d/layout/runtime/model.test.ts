@@ -61,13 +61,13 @@ describe('owned graph layout settings', () => {
     expect(toGraphPhysicsLayoutConfig({
       centerForce: 1,
       damping: 0.4,
-      linkDistance: 500,
+      linkDistance: 150,
       linkForce: 1,
       repelForce: 20,
     })).toEqual({
       centralGravity: 1,
       chargeStrength: -500,
-      linkDistance: 500,
+      linkDistance: 150,
       linkStrength: 1,
       velocityDecay: 0.4,
     });
@@ -93,7 +93,7 @@ describe('owned graph layout settings', () => {
     run(short);
 
     const long = twoNodeEngine(300);
-    long.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 500, linkForce: 1 }));
+    long.setConfig(toGraphPhysicsLayoutConfig({ ...DEFAULT_SETTINGS, centerForce: 0, repelForce: 0, linkDistance: 150, linkForce: 1 }));
     run(long);
 
     const disabled = twoNodeEngine(300);

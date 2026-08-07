@@ -1,5 +1,6 @@
 import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
+  normalizeGraphPhysicsSetting,
   type GraphPhysicsSettings,
 } from '@codegraphy-dev/graph-visuals';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
@@ -47,6 +48,7 @@ interface DesktopWorkspaceState {
   pendingWorkspaceAction?: WorkspaceAction;
   recentWorkspaces: RecentWorkspace[];
   saving: boolean;
+  selectedGraphNodeId?: string;
   status: AppStatus;
   workspaceRoot?: string;
 }
@@ -54,10 +56,12 @@ interface DesktopWorkspaceState {
 type DesktopWorkspaceEvent =
   | { type: 'close_workspace' }
   | { type: 'file_metrics'; elapsed: number; path: string }
+  | { type: 'file_closed' }
   | { type: 'file_opened'; document: FileDocument }
   | { type: 'file_pending'; path?: string }
   | { type: 'file_saved'; document: FileDocument }
   | { type: 'graph_settings'; settings: GraphPhysicsSettings }
+  | { type: 'graph_selected'; id?: string }
   | { type: 'recent_workspaces'; workspaces: RecentWorkspace[] }
   | { type: 'saving'; saving: boolean }
   | { type: 'set_draft'; draft: string }
@@ -93,6 +97,13 @@ function desktopWorkspaceReducer(
           samples: [...(state.fileSwitchMetrics?.samples ?? []), event.elapsed].slice(-24),
         },
       };
+    case 'file_closed':
+      return {
+        ...state,
+        document: undefined,
+        draft: '',
+        pendingFilePath: undefined,
+      };
     case 'file_opened':
       return {
         ...state,
@@ -106,6 +117,8 @@ function desktopWorkspaceReducer(
       return { ...state, document: event.document, draft: event.document.content };
     case 'graph_settings':
       return { ...state, graphSettings: event.settings };
+    case 'graph_selected':
+      return { ...state, selectedGraphNodeId: event.id };
     case 'recent_workspaces':
       return { ...state, recentWorkspaces: event.workspaces };
     case 'saving':
@@ -122,6 +135,12 @@ function desktopWorkspaceReducer(
         graphRevision: state.graphRevision + 1,
         workspaceRoot: event.result.workspaceRoot,
         graphResult: event.result,
+        selectedGraphNodeId: !event.changed
+          && event.result.kind === 'ready'
+          && state.selectedGraphNodeId
+          && event.result.graph.nodes.some(node => node.id === state.selectedGraphNodeId)
+          ? state.selectedGraphNodeId
+          : undefined,
         ...(event.changed
           ? {
               document: undefined,
@@ -253,7 +272,10 @@ export function useDesktopWorkspace() {
     key: keyof GraphPhysicsSettings,
     value: number,
   ): void => {
-    const settings = { ...graphSettingsRef.current, [key]: value };
+    const settings = {
+      ...graphSettingsRef.current,
+      [key]: normalizeGraphPhysicsSetting(key, value),
+    };
     graphSettingsRef.current = settings;
     graphSettingsDirtyRef.current = true;
     dispatch({ type: 'graph_settings', settings });
@@ -288,6 +310,7 @@ export function useDesktopWorkspace() {
       const document = await readWorkspaceFile(path);
       if (requestId !== fileRequestRef.current) return;
       dispatch({ type: 'file_opened', document });
+      dispatch({ type: 'graph_selected', id: path });
       requestAnimationFrame(() => requestAnimationFrame(() => {
         if (requestId !== fileRequestRef.current) return;
         dispatch({ type: 'file_metrics', elapsed: performance.now() - startedAt, path });
@@ -298,6 +321,20 @@ export function useDesktopWorkspace() {
       reportError(error);
     }
   }, [dirty, reportError, state.document?.path, state.pendingFilePath]);
+
+  const selectGraphNode = useCallback((id: string | undefined): void => {
+    dispatch({ type: 'graph_selected', id });
+    if (!id) return;
+    const node = graph?.nodes.find(candidate => candidate.id === id);
+    if (node && node.nodeType !== 'folder') void selectFile(id);
+  }, [graph?.nodes, selectFile]);
+
+  const closeCurrentDocument = useCallback((): void => {
+    if ((!state.document && !state.pendingFilePath) || state.saving) return;
+    if (dirty && !window.confirm('Discard the unsaved edit and close this File?')) return;
+    fileRequestRef.current += 1;
+    dispatch({ type: 'file_closed' });
+  }, [dirty, state.document, state.pendingFilePath, state.saving]);
 
   const saveCurrentDocument = useCallback(async (): Promise<boolean> => {
     if (!state.document || !dirty || state.saving || !workspaceRootRef.current) return !dirty;
@@ -362,17 +399,20 @@ export function useDesktopWorkspace() {
   }, [dirty, executeWorkspaceAction]);
 
   const requestWorkspaceActionRef = useRef(requestWorkspaceAction);
+  const closeCurrentDocumentRef = useRef(closeCurrentDocument);
   const saveCurrentDocumentRef = useRef(saveCurrentDocument);
 
   useEffect(() => {
     requestWorkspaceActionRef.current = requestWorkspaceAction;
+    closeCurrentDocumentRef.current = closeCurrentDocument;
     saveCurrentDocumentRef.current = saveCurrentDocument;
-  }, [requestWorkspaceAction, saveCurrentDocument]);
+  }, [closeCurrentDocument, requestWorkspaceAction, saveCurrentDocument]);
 
   useEffect(() => {
     let active = true;
     let stop: (() => void) | undefined;
     void listenToDesktopMenu({
+      closeFile: () => closeCurrentDocumentRef.current(),
       closeWorkspace: () => requestWorkspaceActionRef.current({ kind: 'close' }),
       openRecent: path => requestWorkspaceActionRef.current({ kind: 'open', path }),
       openWorkspace: () => requestWorkspaceActionRef.current({ kind: 'choose' }),
@@ -419,6 +459,8 @@ export function useDesktopWorkspace() {
     tree,
     cancelPendingWorkspaceAction: () => dispatch({ type: 'workspace_action' }),
     clearRecent,
+    clearGraphSelection: () => dispatch({ type: 'graph_selected' }),
+    closeCurrentDocument,
     finishPendingWorkspaceAction,
     flushGraphSettings,
     openRecentWorkspace: (path: string) => requestWorkspaceAction({ kind: 'open', path }),
@@ -427,6 +469,7 @@ export function useDesktopWorkspace() {
     resetGraphSettings,
     saveCurrentDocument,
     selectFile,
+    selectGraphNode,
     setDraft: (draft: string) => dispatch({ type: 'set_draft', draft }),
     updateGraphSetting,
   };

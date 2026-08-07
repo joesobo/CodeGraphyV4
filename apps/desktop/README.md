@@ -16,14 +16,16 @@ Intel is not a supported release target yet. The graph renderer has no non-WebGP
 
 - Open any local folder as a CodeGraphy Workspace.
 - Switch workspaces from the toolbar or the native `File > Open Recent` menu. Missing recent folders stay visible as unavailable until the user clears the menu.
-- Browse a thin File and Folder hierarchy.
-- Open UTF-8 text Files up to 5 MiB in CodeMirror.
+- Browse and filter a thin semantic File and Folder hierarchy. Arrow keys, Home, End, Enter, Space, type-ahead, `/`, and `Cmd+F` work while the hierarchy has focus. Opening a File keeps that focus for rapid switching.
+- Open UTF-8 text Files up to 5 MiB in CodeMirror with the maintained One Dark highlight theme. Close File clears only the editor after the same dirty-edit confirmation used for switching Files.
 - Save through an atomic replacement that preserves permissions and rejects an external edit conflict.
 - Read or rebuild the workspace-owned `.codegraphy/graph.sqlite` Graph Cache through Core.
 - Apply one-File incremental Indexing after a save.
 - Show File and Folder Nodes with the extension's Material colors, icons, sizes, shapes, strokes, selection, labels, and Relationships through the existing WebGPU and WebAssembly graph renderer. The extension keeps its full Symbol support; the desktop Graph View is intentionally narrower for this release.
-- Choose a File Node or drag any File or Folder Node, pan the Graph Stage, zoom at the pointer, and let the shared WebAssembly simulation settle after release.
-- Tune Repel Force, Center Force, and Link Distance live from Graph Settings. Reset restores the extension defaults. The desktop record persists in the workspace without restarting Core or Indexing.
+- Choose a File or Folder Node, drag any Node, pan the Graph Stage, zoom at the pointer, use Zoom In, Zoom Out, or Fit to Screen, and let the shared WebAssembly simulation settle after release. Clicking empty graph background clears graph selection without closing the editor File.
+- Read the live `<N> Nodes · <M> Relationships` count for the displayed File and Folder graph.
+- Resize all three panes with pointer or keyboard separators. Pane proportions persist in local interface state and clamp to usable widths when the window changes.
+- Tune Repel Force, Center Force, and Link Distance from 30 to 150 live from Graph Settings. Reset restores the extension defaults. The desktop record persists in the workspace without restarting Core or Indexing.
 
 Source Files and the Graph Cache stay in the workspace. The app does not upload them.
 

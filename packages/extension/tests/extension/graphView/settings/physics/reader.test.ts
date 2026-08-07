@@ -20,8 +20,8 @@ describe('graphView/settings/physics/reader', () => {
       repelForce: 11,
       linkDistance: 81,
       linkForce: 1.15,
-      damping: 1.7,
-      centerForce: 1.1,
+      damping: 1,
+      centerForce: 1,
     });
     expect(get.mock.calls.map(([key]) => key)).toEqual([
       'physics.repelForce',
@@ -30,5 +30,13 @@ describe('graphView/settings/physics/reader', () => {
       'physics.damping',
       'physics.centerForce',
     ]);
+  });
+
+  it('clamps a stored Link Distance through the shared settings boundary', () => {
+    const config = {
+      get: vi.fn((key: string, fallback: number) => key === 'physics.linkDistance' ? 500 : fallback),
+    } as unknown as vscode.WorkspaceConfiguration;
+
+    expect(readGraphViewPhysicsSettings(config, defaults).linkDistance).toBe(150);
   });
 });

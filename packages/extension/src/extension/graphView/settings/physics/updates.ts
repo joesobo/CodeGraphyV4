@@ -1,4 +1,7 @@
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import {
+  normalizeGraphPhysicsSetting,
+  type GraphPhysicsSettings,
+} from '@codegraphy-dev/graph-visuals';
 
 interface GraphViewPhysicsConfigurationLike {
   update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
@@ -32,7 +35,12 @@ export async function updateGraphViewPhysicsSetting(
   value: number,
   { getConfiguration, getConfigTarget }: GraphViewPhysicsConfigOptions,
 ): Promise<void> {
-  await updatePhysicsSetting(getConfiguration(), key, value, getConfigTarget?.());
+  await updatePhysicsSetting(
+    getConfiguration(),
+    key,
+    normalizeGraphPhysicsSetting(key, value),
+    getConfigTarget?.(),
+  );
 }
 
 export async function resetGraphViewPhysicsSettings(

@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
-  GRAPH_PHYSICS_CONTROL_LIMITS,
+  normalizeGraphPhysicsSettings,
   type GraphPhysicsSettings,
 } from '@codegraphy-dev/graph-visuals';
 import { parseWorkspaceGraphResult, type WorkspaceGraphResult } from './model';
@@ -20,6 +20,7 @@ export interface RecentWorkspace {
 }
 
 export interface DesktopMenuHandlers {
+  closeFile(this: void): void;
   closeWorkspace(this: void): void;
   openRecent(this: void, path: string): void;
   openWorkspace(this: void): void;
@@ -51,11 +52,8 @@ function parseRecentWorkspace(value: unknown): RecentWorkspace {
   return { path: value.path, name: value.name, available: value.available };
 }
 
-function isNumberInRange(value: unknown, minimum: number, maximum: number): value is number {
-  return typeof value === 'number'
-    && Number.isFinite(value)
-    && value >= minimum
-    && value <= maximum;
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
 export function parseDesktopGraphSettings(value: unknown): GraphPhysicsSettings {
@@ -63,36 +61,20 @@ export function parseDesktopGraphSettings(value: unknown): GraphPhysicsSettings 
   const expectedKeys = ['centerForce', 'damping', 'linkDistance', 'linkForce', 'repelForce'];
   if (!isRecord(value)
     || Object.keys(value).sort().join(',') !== expectedKeys.join(',')
-    || !isNumberInRange(
-      value.repelForce,
-      GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.min,
-      GRAPH_PHYSICS_CONTROL_LIMITS.repelForce.max,
-    )
-    || !isNumberInRange(
-      value.centerForce,
-      GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.min,
-      GRAPH_PHYSICS_CONTROL_LIMITS.centerForce.max,
-    )
-    || !isNumberInRange(
-      value.linkDistance,
-      GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.min,
-      GRAPH_PHYSICS_CONTROL_LIMITS.linkDistance.max,
-    )
-    || !isNumberInRange(
-      value.linkForce,
-      GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.min,
-      GRAPH_PHYSICS_CONTROL_LIMITS.linkForce.max,
-    )
-    || !isNumberInRange(value.damping, 0, 1)) {
+    || !isFiniteNumber(value.repelForce)
+    || !isFiniteNumber(value.centerForce)
+    || !isFiniteNumber(value.linkDistance)
+    || !isFiniteNumber(value.linkForce)
+    || !isFiniteNumber(value.damping)) {
     throw new Error('Core returned invalid desktop Graph Settings.');
   }
-  return {
+  return normalizeGraphPhysicsSettings({
     repelForce: value.repelForce,
     centerForce: value.centerForce,
     linkDistance: value.linkDistance,
     linkForce: value.linkForce,
     damping: value.damping,
-  };
+  });
 }
 
 export async function chooseWorkspace(): Promise<string | undefined> {
@@ -149,6 +131,7 @@ export async function listenToDesktopMenu(handlers: DesktopMenuHandlers): Promis
       if (typeof event.payload === 'string') handlers.openRecent(event.payload);
     }),
     listen('desktop-recent-workspaces-changed', handlers.recentWorkspacesChanged),
+    listen('desktop-close-file', handlers.closeFile),
     listen('desktop-close-workspace', handlers.closeWorkspace),
     listen('desktop-save', handlers.save),
   ]);

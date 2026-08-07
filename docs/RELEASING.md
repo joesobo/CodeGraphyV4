@@ -80,8 +80,11 @@ Run this check on the draft asset before you publish it:
 7. Open a real CodeGraphy Workspace. Confirm the File and Folder hierarchy appears.
 8. Open a source File, edit it, save it, and confirm Core reports one-File incremental Indexing.
 9. Confirm the right pane draws the Core-owned File and Folder Relationship Graph with WebGPU.
-10. Change the open File outside CodeGraphy, then confirm the app rejects an overwrite until the File is reopened.
-11. Close the app and confirm its `codegraphy-core` child process exits.
+10. Filter the File hierarchy, switch Files with only the keyboard, resize both pane separators, and confirm focus stays in the hierarchy.
+11. Select a Node, click empty graph background, and confirm the editor File stays open. Verify Zoom In, Zoom Out, and Fit to Screen.
+12. Close the editor File and confirm the workspace and Relationship Graph stay open. Repeat with a dirty File and confirm the discard prompt appears.
+13. Change the open File outside CodeGraphy, then confirm the app rejects an overwrite until the File is reopened.
+14. Close the app and confirm its `codegraphy-core` child process exits.
 
 Keep the release as a draft if any step fails. After all steps pass, publish the GitHub Release, update the website to link the exact public DMG, and verify that link from a clean browser session. The website must not point at a draft, a workflow artifact, or an ad-hoc build.
 

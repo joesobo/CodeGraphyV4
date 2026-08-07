@@ -22,14 +22,13 @@ import {
   toGraphPhysicsLayoutConfig,
   type GraphPhysicsSettings,
 } from '@codegraphy-dev/graph-visuals';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DESKTOP_GRAPH_HOVER_SCALE,
-  DESKTOP_GRAPH_MAX_ZOOM,
-  DESKTOP_GRAPH_MIN_ZOOM,
   passedDesktopGraphDragThreshold,
   pickDesktopGraphNode,
   screenToDesktopGraph,
+  zoomDesktopGraphBy,
   zoomDesktopGraphAtPointer,
 } from './desktopGraphInteraction';
 import {
@@ -62,6 +61,11 @@ interface DesktopGraphNodeVisuals {
   highlighted: DesktopGraphNodeVisual;
   muted: DesktopGraphNodeVisual;
   selected: DesktopGraphNodeVisual;
+}
+
+interface DesktopGraphViewportControls {
+  fitToScreen(): void;
+  zoomBy(factor: number): void;
 }
 
 const GRAPH_APPEARANCE_DEFAULTS: DesktopGraphAppearance = {
@@ -183,24 +187,28 @@ export function useDesktopGraphRenderer({
   graph,
   physicsSettings,
   selectedId,
-  onSelect,
+  onSelectionChange,
 }: {
   graph: DesktopGraph;
   physicsSettings: GraphPhysicsSettings;
   selectedId?: string;
-  onSelect: (id: string) => void;
+  onSelectionChange: (id: string | undefined) => void;
 }): {
   canvasRef: React.RefObject<HTMLCanvasElement>;
+  fitToScreen: () => void;
   overlayRef: React.RefObject<HTMLCanvasElement>;
   rendererError: string | undefined;
+  zoomIn: () => void;
+  zoomOut: () => void;
 } {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
-  const onSelectRef = useRef(onSelect);
+  const onSelectionChangeRef = useRef(onSelectionChange);
   const physicsSettingsRef = useRef(physicsSettings);
   const selectedIdRef = useRef(selectedId);
   const applyPhysicsSettingsRef = useRef<((settings: GraphPhysicsSettings) => void) | undefined>();
   const redrawRef = useRef<(() => void) | undefined>(undefined);
+  const viewportControlsRef = useRef<DesktopGraphViewportControls>();
   const [materialIcons, setMaterialIcons] = useState<ResolvedMaterialIcons>();
   const [physicsReady, setPhysicsReady] = useState(false);
   const [rendererError, setRendererError] = useState<string>();
@@ -211,8 +219,18 @@ export function useDesktopGraphRenderer({
   }, [selectedId]);
 
   useEffect(() => {
-    onSelectRef.current = onSelect;
-  }, [onSelect]);
+    onSelectionChangeRef.current = onSelectionChange;
+  }, [onSelectionChange]);
+
+  const fitToScreen = useCallback((): void => {
+    viewportControlsRef.current?.fitToScreen();
+  }, []);
+  const zoomIn = useCallback((): void => {
+    viewportControlsRef.current?.zoomBy(1.2);
+  }, []);
+  const zoomOut = useCallback((): void => {
+    viewportControlsRef.current?.zoomBy(1 / 1.2);
+  }, []);
 
   useEffect(() => {
     physicsSettingsRef.current = physicsSettings;
@@ -486,7 +504,18 @@ export function useDesktopGraphRenderer({
       styleVersion += 1;
       scheduleVisible();
     };
+    const zoomBy = (factor: number): void => {
+      fitFrames = 0;
+      camera = zoomDesktopGraphBy(camera, factor);
+      scheduleVisible();
+    };
+    const fitToGraph = (): void => {
+      fitFrames = 0;
+      camera = fitCamera(layout.x, layout.y, canvas.clientWidth, canvas.clientHeight);
+      scheduleVisible();
+    };
     redrawRef.current = restyle;
+    viewportControlsRef.current = { fitToScreen: fitToGraph, zoomBy };
     applyPhysicsSettingsRef.current = (settings): void => {
       applyGraphPhysicsSettings(layout, settings);
       continueAfterFrame = true;
@@ -576,14 +605,16 @@ export function useDesktopGraphRenderer({
         return;
       }
 
-      const deltaX = event.clientX - pointer.x;
-      const deltaY = event.clientY - pointer.y;
-      pointer.moved ||= passedDesktopGraphDragThreshold(
+      const passedThreshold = pointer.moved || passedDesktopGraphDragThreshold(
         pointer.originX,
         pointer.originY,
         event.clientX,
         event.clientY,
       );
+      if (!passedThreshold) return;
+      pointer.moved = true;
+      const deltaX = event.clientX - pointer.x;
+      const deltaY = event.clientY - pointer.y;
       camera.centerX -= deltaX / camera.zoom;
       camera.centerY -= deltaY / camera.zoom;
       pointer.x = event.clientX;
@@ -594,14 +625,19 @@ export function useDesktopGraphRenderer({
       const currentPointer = pointer;
       pointer = undefined;
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-      if (!currentPointer || currentPointer.nodeIndex === undefined) return;
+      if (!currentPointer) return;
+      if (currentPointer.nodeIndex === undefined) {
+        if (!currentPointer.moved) onSelectionChangeRef.current(undefined);
+        scheduleVisible();
+        return;
+      }
       const source = graph.nodes[currentPointer.nodeIndex];
       if (currentPointer.moved) {
         layout.release(currentPointer.nodeIndex);
         layout.setAlphaTarget(0);
         continueAfterFrame = true;
-      } else if (source?.nodeType !== 'folder' && source) {
-        onSelectRef.current(source.id);
+      } else if (source) {
+        onSelectionChangeRef.current(source.id);
       }
       scheduleVisible();
     };
@@ -628,19 +664,16 @@ export function useDesktopGraphRenderer({
       else if (event.key === 'ArrowUp') camera.centerY -= panDistance;
       else if (event.key === 'ArrowDown') camera.centerY += panDistance;
       else if (event.key === '+' || event.key === '=') {
-        camera.zoom = Math.min(DESKTOP_GRAPH_MAX_ZOOM, camera.zoom * 1.2);
+        zoomBy(1.2);
       } else if (event.key === '-' || event.key === '_') {
-        camera.zoom = Math.max(DESKTOP_GRAPH_MIN_ZOOM, camera.zoom / 1.2);
-      } else if (event.key === '0') camera = fitCamera(
-        layout.x,
-        layout.y,
-        canvas.clientWidth,
-        canvas.clientHeight,
-      );
+        zoomBy(1 / 1.2);
+      } else if (event.key === '0') fitToGraph();
       else return;
       event.preventDefault();
-      fitFrames = 0;
-      scheduleVisible();
+      if (event.key.startsWith('Arrow')) {
+        fitFrames = 0;
+        scheduleVisible();
+      }
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('pointerdown', onPointerDown);
@@ -672,6 +705,7 @@ export function useDesktopGraphRenderer({
     return () => {
       active = false;
       redrawRef.current = undefined;
+      viewportControlsRef.current = undefined;
       applyPhysicsSettingsRef.current = undefined;
       if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
       resize.disconnect();
@@ -687,5 +721,5 @@ export function useDesktopGraphRenderer({
     };
   }, [graph, materialIcons, physicsReady]);
 
-  return { canvasRef, overlayRef, rendererError };
+  return { canvasRef, fitToScreen, overlayRef, rendererError, zoomIn, zoomOut };
 }

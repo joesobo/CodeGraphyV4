@@ -3,8 +3,10 @@ import { CodeEditor } from './components/CodeEditor';
 import { FileTree } from './components/FileTree';
 import { GraphPanel } from './components/GraphPanel';
 import { GraphSettingsPopover } from './components/GraphSettingsPopover';
+import { WorkspacePanes } from './components/WorkspacePanes';
 import { WorkspaceSwitchDialog } from './components/WorkspaceSwitchDialog';
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher';
+import { formatGraphCounts } from './model';
 import { useDesktopWorkspace } from './useDesktopWorkspace';
 
 export function App(): React.ReactElement {
@@ -41,58 +43,79 @@ export function App(): React.ReactElement {
       </header>
 
       {workspace.graph ? (
-        <div className="workspace-grid">
-          <aside aria-label="Workspace Files" className="files-pane">
-            <div className="pane-heading"><span>Files</span><span>{workspace.fileCount}</span></div>
-            <FileTree entries={workspace.tree} onSelect={path => void workspace.selectFile(path)} selectedPath={workspace.selectedPath} />
-          </aside>
-
-          <section aria-label="File editor" className="editor-pane">
-            <div className="pane-heading editor-heading">
-              <span>{workspace.document?.path ?? 'Editor'}</span>
-              <button
-                aria-label={workspace.dirty ? `Save ${workspace.document?.path ?? 'File'}` : 'File is saved'}
-                className={`save-button ${workspace.dirty ? 'has-changes' : ''}`}
-                disabled={!workspace.dirty || workspace.saving}
-                onClick={() => void workspace.saveCurrentDocument()}
-                type="button"
-              >
-                {workspace.saving ? 'Saving…' : workspace.dirty ? 'Save ⌘S' : 'Saved'}
-              </button>
-            </div>
-            {workspace.document ? (
-              <CodeEditor document={workspace.document} onChange={workspace.setDraft} onSave={() => void workspace.saveCurrentDocument()} />
-            ) : (
-              <div className="empty-editor">
-                <span aria-hidden="true" className="empty-glyph">{`{ }`}</span>
-                <h2>Choose a File</h2>
-                <p>Browse the workspace hierarchy, make a lightweight edit, and save it back to the source File.</p>
+        <WorkspacePanes
+          filesPane={(
+            <aside aria-label="Workspace Files" className="files-pane">
+              <div className="pane-heading"><span>Files</span><span>{workspace.fileCount}</span></div>
+              <FileTree
+                entries={workspace.tree}
+                key={workspace.workspaceRoot}
+                onSelect={path => void workspace.selectFile(path)}
+                selectedPath={workspace.selectedPath}
+              />
+            </aside>
+          )}
+          editorPane={(
+            <section aria-label="File editor" className="editor-pane">
+              <div className="pane-heading editor-heading">
+                <span>{workspace.document?.path ?? 'Editor'}</span>
+                <div className="editor-heading-actions">
+                  <button
+                    aria-label={workspace.dirty ? `Save ${workspace.document?.path ?? 'File'}` : 'File is saved'}
+                    className={`save-button ${workspace.dirty ? 'has-changes' : ''}`}
+                    disabled={!workspace.dirty || workspace.saving}
+                    onClick={() => void workspace.saveCurrentDocument()}
+                    type="button"
+                  >
+                    {workspace.saving ? 'Saving…' : workspace.dirty ? 'Save ⌘S' : 'Saved'}
+                  </button>
+                  <button
+                    aria-label={`Close ${workspace.document?.path ?? 'File'}`}
+                    className="close-file-button"
+                    disabled={!workspace.document || workspace.saving}
+                    onClick={workspace.closeCurrentDocument}
+                    title="Close File"
+                    type="button"
+                  >
+                    <span aria-hidden="true">×</span>
+                  </button>
+                </div>
               </div>
-            )}
-          </section>
-
-          <aside aria-label="Relationship Graph" className="graph-pane">
-            <div className="pane-heading">
-              <span>Relationship Graph</span>
-              <div className="graph-heading-actions">
-                <span>Files + Folders</span>
-                <GraphSettingsPopover
-                  onChange={workspace.updateGraphSetting}
-                  onCommit={() => void workspace.flushGraphSettings()}
-                  onReset={workspace.resetGraphSettings}
-                  settings={workspace.graphSettings}
-                />
+              {workspace.document ? (
+                <CodeEditor document={workspace.document} onChange={workspace.setDraft} onSave={() => void workspace.saveCurrentDocument()} />
+              ) : (
+                <div className="empty-editor">
+                  <span aria-hidden="true" className="empty-glyph">{`{ }`}</span>
+                  <h2>Choose a File</h2>
+                  <p>Browse the workspace hierarchy, make a lightweight edit, and save it back to the source File.</p>
+                </div>
+              )}
+            </section>
+          )}
+          graphPane={(
+            <aside aria-label="Relationship Graph" className="graph-pane">
+              <div className="pane-heading">
+                <span>Relationship Graph</span>
+                <div className="graph-heading-actions">
+                  <span>{formatGraphCounts(workspace.graph)}</span>
+                  <GraphSettingsPopover
+                    onChange={workspace.updateGraphSetting}
+                    onCommit={() => void workspace.flushGraphSettings()}
+                    onReset={workspace.resetGraphSettings}
+                    settings={workspace.graphSettings}
+                  />
+                </div>
               </div>
-            </div>
-            <GraphPanel
-              graph={workspace.graph}
-              onSelect={id => void workspace.selectFile(id)}
-              physicsSettings={workspace.graphSettings}
-              revision={workspace.graphRevision}
-              selectedId={workspace.selectedPath}
-            />
-          </aside>
-        </div>
+              <GraphPanel
+                graph={workspace.graph}
+                onSelectionChange={workspace.selectGraphNode}
+                physicsSettings={workspace.graphSettings}
+                revision={workspace.graphRevision}
+                selectedId={workspace.selectedGraphNodeId}
+              />
+            </aside>
+          )}
+        />
       ) : (
         <section className="welcome-state">
           <div aria-hidden="true" className="welcome-mark">

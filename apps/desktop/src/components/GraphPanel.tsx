@@ -7,18 +7,25 @@ export function GraphPanel({
   graph,
   physicsSettings,
   selectedId,
-  onSelect,
+  onSelectionChange,
   revision,
 }: {
   graph: DesktopGraph;
   physicsSettings: GraphPhysicsSettings;
   selectedId?: string;
-  onSelect: (id: string) => void;
+  onSelectionChange: (id: string | undefined) => void;
   revision: number;
 }): React.ReactElement {
-  const { canvasRef, overlayRef, rendererError } = useDesktopGraphRenderer({
+  const {
+    canvasRef,
+    fitToScreen,
+    overlayRef,
+    rendererError,
+    zoomIn,
+    zoomOut,
+  } = useDesktopGraphRenderer({
     graph,
-    onSelect,
+    onSelectionChange,
     physicsSettings,
     selectedId,
   });
@@ -43,15 +50,17 @@ export function GraphPanel({
           ref={overlayRef}
         />
         {rendererError ? <div className="graph-error">{rendererError}</div> : null}
-        <div className="graph-legend">
-          <span><i className="legend-file" />Files</span>
-          <span><i className="legend-folder" />Folders</span>
+        <div aria-label="Graph viewport controls" className="graph-viewport-controls" role="toolbar">
+          <button aria-label="Zoom In" onClick={zoomIn} title="Zoom In" type="button">+</button>
+          <button aria-label="Zoom Out" onClick={zoomOut} title="Zoom Out" type="button">−</button>
+          <button aria-label="Fit to Screen" onClick={fitToScreen} title="Fit to Screen" type="button">
+            <span aria-hidden="true" className="fit-screen-icon">⌗</span>
+          </button>
         </div>
       </div>
       <div className="relationship-inspector">
         <div className="inspector-heading">
           <span>{selectedId ? 'Relationships' : 'Graph summary'}</span>
-          <span>{graph.nodes.length} Nodes · {graph.edges.length} Relationships</span>
         </div>
         {selectedId ? (
           <>
@@ -60,14 +69,11 @@ export function GraphPanel({
               {relationships.length === 0 ? <span className="quiet">No visible Relationships</span> : relationships.map(edge => {
                 const outgoing = edge.from === selectedId;
                 const target = outgoing ? edge.to : edge.from;
-                const targetNode = graph.nodes.find(node => node.id === target);
-                const targetIsFile = targetNode?.nodeType !== 'folder';
                 return (
                   <button
-                    disabled={!targetIsFile}
                     key={edge.id}
-                    onClick={() => onSelect(target)}
-                    title={targetIsFile ? `Open ${target}` : `${target} is a Folder`}
+                    onClick={() => onSelectionChange(target)}
+                    title={`Select ${target}`}
                     type="button"
                   >
                     <span className="relationship-kind">{edge.kind}</span>
@@ -78,7 +84,7 @@ export function GraphPanel({
               })}
             </div>
           </>
-        ) : <p className="quiet">Choose a File to inspect its incoming and outgoing Relationships.</p>}
+        ) : <p className="quiet">Choose a Node to inspect its incoming and outgoing Relationships.</p>}
       </div>
     </section>
   );

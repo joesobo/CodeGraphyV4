@@ -81,16 +81,16 @@ export function GraphSettingsPopover({
       </button>
 
       {open ? (
-        <div
+        <dialog
           aria-labelledby="graph-settings-title"
           className="graph-settings-popover"
           id="graph-settings-popover"
+          open
           onKeyDown={(event) => {
             if (event.key !== 'Escape') return;
             event.preventDefault();
             close(true);
           }}
-          role="dialog"
         >
           <div className="graph-settings-heading">
             <div>
@@ -135,7 +135,7 @@ export function GraphSettingsPopover({
               );
             })}
           </div>
-        </div>
+        </dialog>
       ) : null}
     </div>
   );

@@ -83,7 +83,7 @@ describe('ForcesSection', () => {
     expect(screen.getByTestId('center-force-slider-change')).toHaveAttribute('data-maximum', '1');
     expect(screen.getByTestId('center-force-slider-change')).toHaveAttribute('data-step', '0.01');
     expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-minimum', '30');
-    expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-maximum', '500');
+    expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-maximum', '150');
     expect(screen.getByTestId('link-distance-slider-change')).toHaveAttribute('data-step', '10');
     expect(screen.getByTestId('link-force-slider-change')).toHaveAttribute('data-maximum', '2');
     expect(screen.getByTestId('link-force-slider-change')).toHaveAttribute('data-step', '0.01');
