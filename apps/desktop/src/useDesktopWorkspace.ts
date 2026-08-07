@@ -41,6 +41,12 @@ interface FileSwitchMetrics {
   samples: number[];
 }
 
+interface FileOpenIntent {
+  path: string;
+  requestId: number;
+  startedAt: number;
+}
+
 interface DesktopWorkspaceState {
   document?: FileDocument;
   draft: string;
@@ -186,6 +192,9 @@ export function useDesktopWorkspace() {
   const [state, dispatch] = useReducer(desktopWorkspaceReducer, initialState);
   const workspaceRequestRef = useRef(0);
   const fileRequestRef = useRef(0);
+  const fileOpenQueueRef = useRef<FileOpenIntent>();
+  const fileReadPromiseRef = useRef<Promise<void>>();
+  const requestedFilePathRef = useRef<string>();
   const graphSettingsDirtyRef = useRef(false);
   const graphSettingsRef = useRef<GraphPhysicsSettings>(DEFAULT_GRAPH_PHYSICS_SETTINGS);
   const graphSettingsTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -232,7 +241,11 @@ export function useDesktopWorkspace() {
       if (requestId !== workspaceRequestRef.current) return false;
       const changed = workspaceRootRef.current !== result.workspaceRoot;
       workspaceRootRef.current = result.workspaceRoot;
-      if (changed) fileRequestRef.current += 1;
+      if (changed) {
+        fileRequestRef.current += 1;
+        fileOpenQueueRef.current = undefined;
+        requestedFilePathRef.current = undefined;
+      }
       dispatch({ type: 'workspace_loaded', changed, result });
       if (changed) {
         const settings = await readDesktopGraphSettings();
@@ -312,32 +325,59 @@ export function useDesktopWorkspace() {
 
   const openFile = useCallback(async (path: string): Promise<void> => {
     const requestId = ++fileRequestRef.current;
-    const startedAt = performance.now();
+    requestedFilePathRef.current = path;
+    fileOpenQueueRef.current = { path, requestId, startedAt: performance.now() };
     dispatch({ type: 'file_pending', path });
-    try {
-      const document = await readWorkspaceFile(path);
-      if (requestId !== fileRequestRef.current) return;
-      dispatch({ type: 'file_opened', document });
-      dispatch({ type: 'graph_selected', id: path });
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        if (requestId !== fileRequestRef.current) return;
-        dispatch({ type: 'file_metrics', elapsed: performance.now() - startedAt, path });
-      }));
-    } catch (error) {
-      if (requestId !== fileRequestRef.current) return;
-      dispatch({ type: 'file_pending' });
-      reportError(error);
+    if (!fileReadPromiseRef.current) {
+      const readFiles = async (): Promise<void> => {
+        while (fileOpenQueueRef.current) {
+          const intent = fileOpenQueueRef.current;
+          fileOpenQueueRef.current = undefined;
+          try {
+            const document = await readWorkspaceFile(intent.path);
+            if (intent.requestId !== fileRequestRef.current) continue;
+            dispatch({ type: 'file_opened', document });
+            dispatch({ type: 'graph_selected', id: intent.path });
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              if (intent.requestId !== fileRequestRef.current) return;
+              dispatch({
+                type: 'file_metrics',
+                elapsed: performance.now() - intent.startedAt,
+                path: intent.path,
+              });
+            }));
+          } catch (error) {
+            if (intent.requestId !== fileRequestRef.current) continue;
+            requestedFilePathRef.current = undefined;
+            dispatch({ type: 'file_pending' });
+            reportError(error);
+          }
+        }
+      };
+      const readPromise = readFiles();
+      fileReadPromiseRef.current = readPromise;
+      void readPromise.finally(() => {
+        if (fileReadPromiseRef.current === readPromise) fileReadPromiseRef.current = undefined;
+      });
     }
+    await fileReadPromiseRef.current;
   }, [reportError]);
 
   const selectFile = useCallback(async (path: string): Promise<void> => {
-    if (state.document?.path === path || state.pendingFilePath === path) return;
+    if (requestedFilePathRef.current === path) return;
     if (dirty) {
       dispatch({ type: 'file_action', action: { kind: 'open', path } });
       return;
     }
+    if (state.document?.path === path) {
+      fileRequestRef.current += 1;
+      fileOpenQueueRef.current = undefined;
+      requestedFilePathRef.current = path;
+      dispatch({ type: 'file_pending' });
+      return;
+    }
     await openFile(path);
-  }, [dirty, openFile, state.document?.path, state.pendingFilePath]);
+  }, [dirty, openFile, state.document?.path]);
 
   const selectGraphNode = useCallback((id: string | undefined): void => {
     dispatch({ type: 'graph_selected', id });
@@ -348,6 +388,8 @@ export function useDesktopWorkspace() {
 
   const discardCurrentDocument = useCallback((): void => {
     fileRequestRef.current += 1;
+    fileOpenQueueRef.current = undefined;
+    requestedFilePathRef.current = undefined;
     dispatch({ type: 'file_closed' });
   }, []);
 
@@ -385,6 +427,8 @@ export function useDesktopWorkspace() {
     await flushGraphSettings();
     workspaceRequestRef.current += 1;
     fileRequestRef.current += 1;
+    fileOpenQueueRef.current = undefined;
+    requestedFilePathRef.current = undefined;
     try {
       await closeWorkspace();
       workspaceRootRef.current = undefined;

@@ -98,4 +98,53 @@ describe('desktop document and graph selection ownership', () => {
     expect(current().dirty).toBe(false);
     await act(async () => root.unmount());
   });
+
+  it('coalesces rapid File selections to the latest Rust read', async () => {
+    const pendingReads = new Map<string, (document: {
+      path: string;
+      content: string;
+      revision: string;
+    }) => void>();
+    bridge.readWorkspaceFile.mockImplementation((path: string) => new Promise((resolve) => {
+      pendingReads.set(path, resolve);
+    }));
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    await act(async () => root.render(<Harness />));
+    const paths = Array.from({ length: 20 }, (_, index) => `src/file-${index}.ts`);
+
+    await act(async () => {
+      for (const path of paths) void current().selectFile(path);
+      await Promise.resolve();
+    });
+
+    expect(bridge.readWorkspaceFile).toHaveBeenCalledTimes(1);
+    expect(bridge.readWorkspaceFile).toHaveBeenLastCalledWith(paths[0]);
+    await act(async () => {
+      pendingReads.get(paths[0])?.({
+        path: paths[0],
+        content: '// superseded',
+        revision: 'revision-first',
+      });
+      await Promise.resolve();
+    });
+    expect(bridge.readWorkspaceFile).toHaveBeenCalledTimes(2);
+    expect(bridge.readWorkspaceFile).toHaveBeenLastCalledWith(paths.at(-1));
+
+    const lastPath = paths.at(-1);
+    if (!lastPath) throw new Error('The rapid selection fixture is empty.');
+    await act(async () => {
+      pendingReads.get(lastPath)?.({
+        path: lastPath,
+        content: '// latest',
+        revision: 'revision-last',
+      });
+      await Promise.resolve();
+    });
+    expect(current().document?.path).toBe(lastPath);
+    expect(current().draft).toBe('// latest');
+    expect(bridge.readWorkspaceFile).toHaveBeenCalledTimes(2);
+    await act(async () => root.unmount());
+  });
 });

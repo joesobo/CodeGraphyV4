@@ -125,6 +125,7 @@ export function FileTree({
   const browserRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLInputElement>(null);
   const treeRef = useRef<HTMLDivElement>(null);
+  const scrollFrameRef = useRef<number>();
   const typeAheadRef = useRef('');
   const typeAheadTimerRef = useRef<number>();
   const expandedPaths = useMemo(() => {
@@ -155,16 +156,22 @@ export function FileTree({
       : allPaths[0];
 
   useEffect(() => () => {
+    if (scrollFrameRef.current !== undefined) cancelAnimationFrame(scrollFrameRef.current);
     if (typeAheadTimerRef.current !== undefined) window.clearTimeout(typeAheadTimerRef.current);
   }, []);
 
   const focusPath = (path: string | undefined): void => {
     if (!path) return;
     setFocusedPath(path);
-    requestAnimationFrame(() => {
-      const target = treeItems(treeRef.current ?? browserRef.current ?? document.body)
-        .find(item => item.dataset.treePath === path);
-      target?.focus();
+    const findTarget = (): HTMLButtonElement | undefined => treeItems(
+      treeRef.current ?? browserRef.current ?? document.body,
+    ).find(item => item.dataset.treePath === path);
+    findTarget()?.focus();
+    if (scrollFrameRef.current !== undefined) cancelAnimationFrame(scrollFrameRef.current);
+    scrollFrameRef.current = requestAnimationFrame(() => {
+      scrollFrameRef.current = undefined;
+      const target = findTarget();
+      if (document.activeElement?.closest('[role="tree"]') !== treeRef.current) target?.focus();
       target?.scrollIntoView?.({ block: 'nearest' });
     });
   };
@@ -186,7 +193,7 @@ export function FileTree({
   };
 
   const focusTreeFromFilter = (): void => {
-    requestAnimationFrame(() => focusPath(activePath));
+    focusPath(activePath);
   };
 
   const clearFilterAndRestoreFocus = (): void => {

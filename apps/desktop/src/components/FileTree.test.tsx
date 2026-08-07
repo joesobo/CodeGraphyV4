@@ -38,15 +38,25 @@ function setInputValue(input: HTMLInputElement, value: string): void {
 }
 
 describe('File hierarchy keyboard and filter behavior', () => {
-  const animationFrames: FrameRequestCallback[] = [];
+  const animationFrames = new Map<number, FrameRequestCallback>();
+  let animationFrameId = 0;
+
+  const flushAnimationFrames = (): void => {
+    const callbacks = [...animationFrames.values()];
+    animationFrames.clear();
+    callbacks.forEach(callback => callback(0));
+  };
 
   beforeEach(() => {
-    animationFrames.length = 0;
+    animationFrames.clear();
+    animationFrameId = 0;
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-      animationFrames.push(callback);
-      return animationFrames.length;
+      const id = ++animationFrameId;
+      animationFrames.set(id, callback);
+      return id;
     });
+    vi.stubGlobal('cancelAnimationFrame', (id: number) => animationFrames.delete(id));
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: vi.fn(),
@@ -76,16 +86,46 @@ describe('File hierarchy keyboard and filter behavior', () => {
     );
 
     await act(async () => { if (main) key(main, 'ArrowDown'); });
-    await act(async () => animationFrames.splice(0).forEach(callback => callback(0)));
+    await act(async () => flushAnimationFrames());
     const graphFolder = host.querySelector<HTMLButtonElement>('[data-tree-path="src/graph"]');
     expect(document.activeElement).toBe(graphFolder);
     await act(async () => { if (graphFolder) key(graphFolder, 'ArrowRight'); });
-    await act(async () => animationFrames.splice(0).forEach(callback => callback(0)));
+    await act(async () => flushAnimationFrames());
     expect(document.activeElement).toBe(
       host.querySelector('[data-tree-path="src/graph/camera.ts"]'),
     );
     expect(onSelect).toHaveBeenLastCalledWith('src/graph/camera.ts');
     expect(host.querySelectorAll('[role="treeitem"][tabindex="0"]')).toHaveLength(1);
+    await act(async () => root.unmount());
+  });
+
+  it('coalesces rapid keyboard navigation without replaying focus after key release', async () => {
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    const onSelect = vi.fn();
+    await act(async () => root.render(
+      <FileTree entries={entries} onSelect={onSelect} selectedPath="src/main.ts" />,
+    ));
+    const src = host.querySelector<HTMLButtonElement>('[data-tree-path="src"]');
+    await act(async () => src?.focus());
+
+    await act(async () => {
+      for (let index = 0; index < 3; index += 1) {
+        const activeItem = document.activeElement;
+        if (activeItem) key(activeItem, 'ArrowDown', { repeat: index > 0 });
+      }
+    });
+
+    expect(document.activeElement).toBe(
+      host.querySelector('[data-tree-path="src/graph/camera.ts"]'),
+    );
+    expect(onSelect).toHaveBeenLastCalledWith('src/graph/camera.ts');
+    expect(animationFrames).toHaveLength(1);
+    await act(async () => flushAnimationFrames());
+    expect(document.activeElement).toBe(
+      host.querySelector('[data-tree-path="src/graph/camera.ts"]'),
+    );
     await act(async () => root.unmount());
   });
 
@@ -115,7 +155,7 @@ describe('File hierarchy keyboard and filter behavior', () => {
     });
     expect(host.textContent).toContain('No Files or Folders match');
     await act(async () => { if (filter) keyUp(filter, 'Escape'); });
-    await act(async () => animationFrames.splice(0).forEach(callback => callback(0)));
+    await act(async () => flushAnimationFrames());
     expect(host.querySelectorAll('[role="treeitem"]')).toHaveLength(4);
     expect(document.activeElement).toBe(
       host.querySelector('[data-tree-path="src/main.ts"]'),
