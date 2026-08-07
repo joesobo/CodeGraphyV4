@@ -20,6 +20,22 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('preserves selection order in the compare-files message', () => {
+    expect(getBuiltInContextActionEffects('compare', nodeContext(['src/first.ts', 'src/second.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'COMPARE_FILES',
+          payload: { paths: ['src/first.ts', 'src/second.ts'] },
+        },
+      },
+    ]);
+  });
+
+  it('does not create a compare effect for a selection other than two paths', () => {
+    expect(getBuiltInContextActionEffects('compare', nodeContext(['src/only.ts']))).toEqual([]);
+  });
+
   it('uses the first selected path for reveal actions', () => {
     expect(getBuiltInContextActionEffects('reveal', nodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
       {

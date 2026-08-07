@@ -5,6 +5,7 @@ type GraphViewContextMenuContribution = ExtensionGraphViewContributionSet['conte
 
 export type BuiltInContextMenuAction =
   | 'open'
+  | 'compare'
   | 'openEdgeSource'
   | 'openEdgeTarget'
   | 'reveal'

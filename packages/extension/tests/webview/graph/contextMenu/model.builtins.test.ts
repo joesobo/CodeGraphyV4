@@ -94,6 +94,7 @@ describe('built-in graph context menus', () => {
     });
     expect(menuLabels(entries)).toEqual([
       'Open 2 Files',
+      'Compare Selected',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
@@ -136,6 +137,7 @@ describe('built-in graph context menus', () => {
     });
     expect(builtInActions(multiLive)).toEqual([
       'open',
+      'compare',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
