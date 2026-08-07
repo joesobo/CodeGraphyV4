@@ -31,6 +31,7 @@ function createAnalyzer(overrides: Partial<NonNullable<GraphViewProviderAnalysis
     initialize: vi.fn(async () => undefined),
     syncWorkspacePlugins: vi.fn(async () => undefined),
     hasIndex: vi.fn(() => true),
+    getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
     hasRecoverableGraphState: vi.fn(() => true),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
     registry: {

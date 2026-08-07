@@ -367,13 +367,14 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     } as unknown as vscode.ExtensionContext);
 
     vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
-      version: 1,
+      version: 2,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       lastIndexedCommit: 'abc123',
       pluginBuildSignature: 'plugin-build-signature',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
       pendingChangedFiles: [],
+      filterAccounting: { kind: 'current', excludedFileCount: 2, gitIgnoredPathCount: 1 },
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -396,13 +397,14 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     expect(analyzer.hasIndex()).toBe(true);
 
     vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
-      version: 1,
+      version: 2,
       lastIndexedAt: null,
       lastIndexedCommit: null,
       pluginBuildSignature: null,
       pluginSignature: null,
       settingsSignature: null,
       pendingChangedFiles: [],
+      filterAccounting: { kind: 'unavailable' },
     });
     expect(analyzer.hasIndex()).toBe(false);
   });
@@ -543,7 +545,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
     } as unknown as vscode.ExtensionContext);
     writeWorkspaceMetaFixture(workspaceRoot, {
-      version: 1,
+      version: 2,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       pluginBuildSignature: null,
       pluginSignature: 'old-plugin-signature',
@@ -551,6 +553,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
       failedPluginIds: [],
+      filterAccounting: { kind: 'current', excludedFileCount: 2, gitIgnoredPathCount: 1 },
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -584,7 +587,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
     } as unknown as vscode.ExtensionContext);
     writeWorkspaceMetaFixture(workspaceRoot, {
-      version: 1,
+      version: 2,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       pluginBuildSignature: null,
       pluginSignature: 'plugin-signature',
@@ -592,6 +595,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
       failedPluginIds: [],
+      filterAccounting: { kind: 'current', excludedFileCount: 2, gitIgnoredPathCount: 1 },
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -625,7 +629,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
     } as unknown as vscode.ExtensionContext);
     writeWorkspaceMetaFixture(workspaceRoot, {
-      version: 1,
+      version: 2,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       pluginBuildSignature: null,
       pluginSignature: 'plugin-signature',
@@ -633,6 +637,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       analysisVersion: 'old-analysis-version',
       pendingChangedFiles: [],
       failedPluginIds: [],
+      filterAccounting: { kind: 'current', excludedFileCount: 2, gitIgnoredPathCount: 1 },
     });
     vi.spyOn(
       analyzer as unknown as {

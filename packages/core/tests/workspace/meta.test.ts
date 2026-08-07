@@ -42,7 +42,7 @@ describe('workspace/meta', () => {
   it('writes and reads workspace metadata', () => {
     const workspaceRoot = createTempWorkspace();
     const meta = {
-      version: 1 as const,
+      version: 2 as const,
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
       lastIndexedCommit: 'abc123',
       pluginSignature: 'codegraphy.markdown@1.0.0',
@@ -51,6 +51,7 @@ describe('workspace/meta', () => {
       analysisVersion: null,
       pendingChangedFiles: ['src/index.ts'],
       failedPluginIds: ['acme.failed'],
+      filterAccounting: { kind: 'current' as const, excludedFileCount: 3, gitIgnoredPathCount: 2 },
     };
 
     writeWorkspaceMetaFixture(workspaceRoot, meta);
@@ -110,6 +111,7 @@ describe('workspace/meta', () => {
     });
 
     await persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
+      filterAccounting: { kind: 'current', excludedFileCount: 2, gitIgnoredPathCount: 1 },
       pluginSignature: 'plugins-sha',
       settingsSignature: 'settings-sha',
       resolvedChangedFilePaths: ['src/resolved.ts'],
@@ -122,7 +124,7 @@ describe('workspace/meta', () => {
     });
   });
 
-  it('filters invalid persisted metadata fields through the workspace meta schema', () => {
+  it('requires re-indexing when persisted metadata cannot provide current accounting', () => {
     const workspaceRoot = createTempWorkspace();
     const metaPath = getWorkspaceMetaPath(workspaceRoot);
 
@@ -141,14 +143,7 @@ describe('workspace/meta', () => {
       'utf8',
     );
 
-    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual({
-      ...createDefaultCodeGraphyWorkspaceMeta(),
-      analysisVersion: null,
-      pluginSignature: 'plugins-sha',
-      pendingChangedFiles: ['src/app.ts', 'src/index.ts'],
-      failedPluginIds: ['acme.failed'],
-      version: 1,
-    });
+    expect(readCodeGraphyWorkspaceMeta(workspaceRoot)).toEqual(createDefaultCodeGraphyWorkspaceMeta());
   });
 
   it('falls back to defaults when metadata JSON is invalid', () => {

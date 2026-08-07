@@ -43,12 +43,22 @@ export interface IDiscoveredFile {
   gitIgnored?: boolean;
 }
 
+export type WorkspaceFilterAccounting =
+  | {
+      kind: 'current';
+      excludedFileCount: number;
+      gitIgnoredPathCount: number;
+    }
+  | { kind: 'unavailable' };
+
 /**
  * Result of a discovery operation.
  */
 export interface IDiscoveryResult {
   /** Eligible discovered files, capped by maxFiles */
   files: IDiscoveredFile[];
+  /** Filter and Git ignored state accounting captured by this discovery. */
+  filterAccounting: Extract<WorkspaceFilterAccounting, { kind: 'current' }>;
   /** Discovered directory paths relative to the workspace root */
   directories: string[];
   /** Discovered file and directory paths reported by Git as ignored */

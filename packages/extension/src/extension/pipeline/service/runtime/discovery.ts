@@ -18,6 +18,7 @@ export function createWorkspacePipelineDiscoveryDependencies(
         directories: result.directories,
         durationMs: result.durationMs,
         files: result.files,
+        filterAccounting: result.filterAccounting,
         gitIgnoredPaths: result.gitIgnoredPaths,
         limitReached: result.limitReached,
         totalFound: result.totalFound ?? result.files.length,

@@ -9,6 +9,7 @@ import {
   createCodeGraphyWorkspaceSettingsSignature,
 } from '../workspace/signatures';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
+import type { WorkspaceFilterAccounting } from '../discovery/contracts';
 import type { IndexCodeGraphyWorkspacePlugin } from './contracts';
 
 function runtimeSignaturePlugins(registry: CorePluginRegistry): IPlugin[] {
@@ -70,6 +71,7 @@ export function createWorkspaceIndexPluginBuildSignature(
 }
 
 export async function persistWorkspaceIndexMetadata(input: {
+  filterAccounting: WorkspaceFilterAccounting;
   pluginSignature: string | null;
   pluginBuildSignature: string | null;
   failedPluginIds: ReadonlySet<string>;
@@ -79,6 +81,7 @@ export async function persistWorkspaceIndexMetadata(input: {
   workspaceRoot: string;
 }): Promise<void> {
   await persistCodeGraphyWorkspaceIndexMetadata(input.workspaceRoot, {
+    filterAccounting: input.filterAccounting,
     pluginSignature: input.pluginSignature,
     pluginBuildSignature: input.pluginBuildSignature,
     failedPluginIds: [...input.failedPluginIds].sort((left, right) => left.localeCompare(right)),

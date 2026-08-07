@@ -43,6 +43,7 @@ describe('graph message handlers: settings',()=>{
         disabledCustomFilterPatterns: ['custom/**'],
         disabledPluginFilterPatterns: [],
       });
+
     });
 
   it('maps depth, direction, physics, labels, max-files, and active-file payloads', () => {

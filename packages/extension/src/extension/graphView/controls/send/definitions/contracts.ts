@@ -1,4 +1,5 @@
 import type { GraphEdgeKind } from '../../../../../shared/graph/contracts';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 
 export interface GraphNodeTypeLike {
   id: string;
@@ -29,6 +30,7 @@ export interface GraphTypeDescriptionLike {
 
 export interface GraphControlsAnalyzerLike {
   registry?: unknown;
+  getFilterAccounting(): WorkspaceFilterAccounting;
 }
 
 export interface GraphControlsConfigurationLike {

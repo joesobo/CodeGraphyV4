@@ -88,6 +88,7 @@ describe('workspace metadata concurrency', () => {
       reportOwnership?.();
       await ownedCommitGate;
       await persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
+        filterAccounting: { kind: 'current', excludedFileCount: 2, gitIgnoredPathCount: 1 },
         pluginSignature: 'plugins-sha',
         settingsSignature: 'settings-sha',
         resolvedChangedFilePaths: ['src/resolved.ts'],

@@ -54,6 +54,7 @@ function createFacade(
     _lastDiscoveredFiles: [],
     _lastFileAnalysis: new Map(),
     _lastFileConnections: new Map(),
+    _filterAccounting: { kind: 'current', excludedFileCount: 1, gitIgnoredPathCount: 1 },
     _lastGitIgnoredPaths: ['old-ignore'],
     _lastGraphData: createGraph('last'),
     _lastWorkspaceRoot: '/workspace',
@@ -122,6 +123,7 @@ describe('extension/pipeline/service/refresh/modes/pluginFiles', () => {
       discoveryResult: {
         directories: undefined,
         files,
+        filterAccounting: { kind: 'current', excludedFileCount: 1, gitIgnoredPathCount: 0 },
         gitIgnoredPaths: undefined,
       },
     } as never);
@@ -149,6 +151,11 @@ describe('extension/pipeline/service/refresh/modes/pluginFiles', () => {
     const getPluginFilterPatterns = vi.mocked(discoverRefreshWorkspaceFiles).mock.calls[0][0].getPluginFilterPatterns;
     expect(getPluginFilterPatterns(disabledPlugins)).toEqual(['plugin/**']);
     expect(facade.getPluginFilterPatterns).toHaveBeenCalledWith(disabledPlugins);
+    expect(facade._filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 1,
+      gitIgnoredPathCount: 0,
+    });
     expect(facade._lastGitIgnoredPaths).toEqual([]);
     expect(createWorkspaceIndexRefreshSource).toHaveBeenCalledWith(facade, disabledPlugins);
     expect(facade._registry.list).toHaveBeenCalledOnce();

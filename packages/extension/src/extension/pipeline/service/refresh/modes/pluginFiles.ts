@@ -31,6 +31,7 @@ export async function refreshPluginFilesForFacade(
     signal: input.signal,
     workspaceRoot,
   });
+  facade._filterAccounting = discoveryResult.filterAccounting;
   facade._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
 
   return refreshWorkspacePipelinePluginFiles(createWorkspaceIndexRefreshSource(

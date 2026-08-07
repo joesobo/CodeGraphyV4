@@ -31,12 +31,11 @@ export async function refreshGitignoreMetadataForFacade(
 
   facade._lastDiscoveredDirectories = discoveryResult.directories ?? [];
   facade._lastDiscoveredFiles = discoveryResult.files;
+  facade._filterAccounting = discoveryResult.filterAccounting;
   facade._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
   facade._lastWorkspaceRoot = workspaceRoot;
 
-  void facade._persistIndexMetadata().catch(error => {
-    console.warn('[CodeGraphy] Failed to persist gitignore metadata refresh.', error);
-  });
+  await facade._persistIndexMetadata();
 
   const eligibleFilePaths = new Set(
     discoveryResult.files.map(file => file.relativePath),

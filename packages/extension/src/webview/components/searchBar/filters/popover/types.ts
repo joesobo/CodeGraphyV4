@@ -1,12 +1,14 @@
 import type React from 'react';
 import type { IPluginFilterPatternGroup } from '../../../../../shared/protocol/extensionToWebview';
+import type { WorkspaceFilterAccounting } from '@codegraphy-dev/core';
 
 export interface FilterPopoverProps {
   buttonRef?: React.Ref<HTMLButtonElement>;
   disabledCustomPatterns: string[];
   disabledPluginPatterns: string[];
   customPatterns: string[];
-  excludedCount: number;
+  filterAccounting: WorkspaceFilterAccounting;
+  excludedNodeCount: number;
   onDisabledCustomPatternsChange: (patterns: string[]) => void;
   onDisabledPluginPatternsChange: (patterns: string[]) => void;
   onOpenChange?: (open: boolean) => void;

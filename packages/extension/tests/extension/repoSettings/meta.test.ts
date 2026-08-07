@@ -47,7 +47,7 @@ describe('extension/repoSettings/meta', () => {
     expect(path.basename(getCodeGraphyRepoMetaPath('/workspace/project'))).toBe('meta.json');
   });
 
-  it('merges partial persisted meta with the default fields', () => {
+  it('resets incomplete persisted metadata to the current default snapshot', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const metaPath = getCodeGraphyRepoMetaPath(workspaceRoot);
@@ -63,13 +63,14 @@ describe('extension/repoSettings/meta', () => {
     );
 
     expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual({
-      version: 1,
+      version: 2,
       lastIndexedAt: null,
-      lastIndexedCommit: 'abc123',
+      lastIndexedCommit: null,
       pluginBuildSignature: null,
       pluginSignature: null,
       settingsSignature: null,
-      pendingChangedFiles: ['src/app.ts'],
+      pendingChangedFiles: [],
+      filterAccounting: { kind: 'unavailable' },
     });
   });
 
@@ -82,7 +83,9 @@ describe('extension/repoSettings/meta', () => {
     fs.writeFileSync(
       metaPath,
       JSON.stringify({
+        version: 2,
         lastIndexedCommit: 'abc123',
+        filterAccounting: { kind: 'unavailable' },
       }, null, 2),
       'utf8',
     );
@@ -110,13 +113,14 @@ describe('extension/repoSettings/meta', () => {
     );
 
     expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual({
-      version: 1,
+      version: 2,
       lastIndexedAt: null,
-      lastIndexedCommit: 'abc123',
+      lastIndexedCommit: null,
       pluginBuildSignature: null,
       pluginSignature: null,
       settingsSignature: null,
-      pendingChangedFiles: ['src/app.ts', 'src/index.ts'],
+      pendingChangedFiles: [],
+      filterAccounting: { kind: 'unavailable' },
     });
   });
 

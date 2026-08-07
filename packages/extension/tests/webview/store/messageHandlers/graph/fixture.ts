@@ -37,6 +37,7 @@ export function createState(
     optimisticLegendUpdates: {},
     optimisticUserLegends: null,
     filterPatterns: [],
+    filterAccounting: { kind: 'unavailable' },
     pluginFilterPatterns: [],
     pluginFilterGroups: [],
     disabledCustomFilterPatterns: [],

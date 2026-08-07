@@ -20,6 +20,7 @@ describe('extension/graphView/controls/send', () => {
         ],
       },
       {
+        getFilterAccounting: () => ({ kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 }),
         registry: {
           listNodeTypes: () => [
             null,
@@ -55,6 +56,11 @@ describe('extension/graphView/controls/send', () => {
 
     const payload = sendMessage.mock.calls[0][0].payload;
     expect(payload).toBeDefined();
+    expect(payload.filterAccounting).toEqual({
+      kind: 'current',
+      excludedFileCount: 3,
+      gitIgnoredPathCount: 2,
+    });
     expect(payload.nodeTypes.some((nodeType: { id: string }) => nodeType.id === 'bad-node')).toBe(false);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'bad-edge')).toBe(false);
   });
@@ -68,6 +74,7 @@ describe('extension/graphView/controls/send', () => {
         edges: [{ id: 'src/app.ts->src/lib.ts#import', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import', sources: [] }],
       },
       {
+        getFilterAccounting: () => ({ kind: 'unavailable' }),
         registry: {
           listNodeTypes: 'not-a-function',
           listEdgeTypes: () => 'not-an-array',
@@ -92,6 +99,7 @@ describe('extension/graphView/controls/send', () => {
         edges: [],
       },
       {
+        getFilterAccounting: () => ({ kind: 'unavailable' }),
         registry: {
           listEdgeTypes: () => [
             { id: 'plugin:route', label: 'Route', defaultColor: '#10B981', defaultVisible: true },
@@ -137,6 +145,7 @@ describe('extension/graphView/controls/send', () => {
         ],
       },
       {
+        getFilterAccounting: () => ({ kind: 'unavailable' }),
         registry: {
           listEdgeTypes: () => [],
           listGraphScopeCapabilities: () => ({
@@ -181,7 +190,7 @@ describe('extension/graphView/controls/send', () => {
         nodes: [{ id: 'game/player.gd', label: 'Player', color: '#111111', nodeType: 'file' }],
         edges: [],
       },
-      { registry },
+      { getFilterAccounting: () => ({ kind: 'unavailable' }), registry },
       sendMessage,
       { get: <T>(_key: string, defaultValue: T): T => defaultValue },
       disabledPlugins,
@@ -212,6 +221,7 @@ describe('extension/graphView/controls/send', () => {
         ],
       },
       {
+        getFilterAccounting: () => ({ kind: 'unavailable' }),
         registry: {
           listEdgeTypes: () => [],
           listGraphScopeCapabilities: () => ({ nodeTypes: [], edgeTypes: [] }),
@@ -246,12 +256,14 @@ describe('extension/graphView/controls/send', () => {
 
     const payload = sendMessage.mock.calls[0][0].payload;
     expect(payload).toBeDefined();
+    expect(payload.filterAccounting).toEqual({ kind: 'unavailable' });
     expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(STRUCTURAL_NODE_TYPE_IDS);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
 
   it('keeps the snapshot payload intact when building the outbound message', () => {
     const snapshot: IGraphControlsSnapshot = {
+      filterAccounting: { kind: 'current', excludedFileCount: 3, gitIgnoredPathCount: 2 },
       nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
       edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#60A5FA', defaultVisible: true }],
       nodeColors: { file: '#A1A1AA' },

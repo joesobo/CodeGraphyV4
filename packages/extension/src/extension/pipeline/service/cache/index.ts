@@ -11,6 +11,7 @@ interface WorkspacePipelineSignatureDependencies {
 
 interface WorkspacePipelinePersistIndexDependencies
   extends WorkspacePipelineSignatureDependencies {
+  getFilterAccounting(): Parameters<typeof persistCodeGraphyWorkspaceIndexMetadata>[1]['filterAccounting'];
   getCurrentCommitSha?: () => Promise<string | null> | string | null;
   persistIndexMetadata?: (
     workspaceRoot: string,
@@ -48,6 +49,7 @@ export async function persistWorkspacePipelineIndexMetadata(
   try {
     const currentCommitSha = await dependencies.getCurrentCommitSha?.();
     await (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
+      filterAccounting: dependencies.getFilterAccounting(),
       ...(dependencies.getCurrentCommitSha
         ? { lastIndexedCommit: currentCommitSha ?? null }
         : {}),

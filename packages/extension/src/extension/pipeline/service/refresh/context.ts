@@ -1,4 +1,8 @@
-import type { AnalysisCacheTier, FileDiscovery } from '@codegraphy-dev/core';
+import type {
+  AnalysisCacheTier,
+  FileDiscovery,
+  WorkspaceFilterAccounting,
+} from '@codegraphy-dev/core';
 import type { Configuration } from '../../../config/reader';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../../shared/graph/contracts';
@@ -27,6 +31,7 @@ export interface RefreshFacadeContext
   _captureRefreshState(): WorkspacePipelineRefreshState;
   _getWorkspaceRoot(): string | undefined;
   _lastGitIgnoredPaths: string[];
+  _filterAccounting: WorkspaceFilterAccounting;
   _persistCache(): void;
   _persistCachePatch(patch: WorkspacePipelineCachePatch): Promise<void>;
   _persistIndexMetadata(resolvedChangedFilePaths?: readonly string[]): Promise<void>;

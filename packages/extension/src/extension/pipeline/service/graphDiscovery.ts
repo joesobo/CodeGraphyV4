@@ -37,6 +37,7 @@ export abstract class WorkspacePipelineGraphDiscoveryFacade extends WorkspacePip
 
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
     this._lastDiscoveredFiles = discoveryResult.files;
+    this._filterAccounting = discoveryResult.filterAccounting;
     this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
     this._lastFileAnalysis = new Map();
     this._lastFileConnections = fileConnections;
