@@ -183,6 +183,11 @@ export function FileTree({
     requestAnimationFrame(() => focusPath(activePath));
   };
 
+  const clearFilterAndRestoreFocus = (): void => {
+    setFilter('');
+    focusPath(restorePath);
+  };
+
   const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLElement>): void => {
     const tree = treeRef.current;
     if (!tree || !(event.target instanceof HTMLButtonElement)) return;
@@ -251,26 +256,25 @@ export function FileTree({
         <input
           aria-label="Filter Files and Folders"
           onChange={event => setFilter(event.currentTarget.value)}
-          onKeyDown={(event) => {
+          onKeyDownCapture={(event) => {
             if (event.key === 'ArrowDown') {
               event.preventDefault();
               focusTreeFromFilter();
             } else if (event.key === 'Escape') {
               event.preventDefault();
-              setFilter('');
-              requestAnimationFrame(() => {
-                if (!restorePath) return;
-                setFocusedPath(restorePath);
-                const target = treeItems(browserRef.current ?? document.body)
-                  .find(item => item.dataset.treePath === restorePath);
-                target?.focus();
-                target?.scrollIntoView?.({ block: 'nearest' });
-              });
+              clearFilterAndRestoreFocus();
             }
           }}
+          onKeyUp={(event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            clearFilterAndRestoreFocus();
+          }}
+          inputMode="search"
           placeholder="Filter Files and Folders"
           ref={filterRef}
-          type="search"
+          role="searchbox"
+          type="text"
           value={filter}
         />
         <kbd>⌘F</kbd>

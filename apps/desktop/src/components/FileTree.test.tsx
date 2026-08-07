@@ -26,6 +26,10 @@ function key(target: Element, value: string, options: KeyboardEventInit = {}): v
   target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: value, ...options }));
 }
 
+function keyUp(target: Element, value: string): void {
+  target.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: value }));
+}
+
 function setInputValue(input: HTMLInputElement, value: string): void {
   const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
   if (!descriptor?.set) throw new Error('The input value setter is unavailable.');
@@ -94,7 +98,7 @@ describe('File hierarchy keyboard and filter behavior', () => {
     const main = host.querySelector<HTMLButtonElement>('[data-tree-path="src/main.ts"]');
     await act(async () => main?.focus());
     await act(async () => { if (main) key(main, 'f', { metaKey: true }); });
-    const filter = host.querySelector<HTMLInputElement>('input[type="search"]');
+    const filter = host.querySelector<HTMLInputElement>('[role="searchbox"]');
     expect(document.activeElement).toBe(filter);
 
     await act(async () => {
@@ -109,7 +113,7 @@ describe('File hierarchy keyboard and filter behavior', () => {
       setInputValue(filter, 'not-present');
     });
     expect(host.textContent).toContain('No Files or Folders match');
-    await act(async () => { if (filter) key(filter, 'Escape'); });
+    await act(async () => { if (filter) keyUp(filter, 'Escape'); });
     await act(async () => animationFrames.splice(0).forEach(callback => callback(0)));
     expect(host.querySelectorAll('[role="treeitem"]')).toHaveLength(4);
     expect(document.activeElement).toBe(
