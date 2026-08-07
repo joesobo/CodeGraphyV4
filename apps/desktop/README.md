@@ -17,6 +17,7 @@ Intel is not a supported release target yet. The graph renderer has no non-WebGP
 - Open any local folder as a CodeGraphy Workspace.
 - Switch workspaces from the toolbar or the native `File > Open Recent` menu. Missing recent folders stay visible as unavailable until the user clears the menu.
 - Browse and filter a thin semantic File and Folder hierarchy. Arrow keys, Home, End, Enter, Space, type-ahead, `/`, and `Cmd+F` work while the hierarchy has focus. Up, Down, Home, End, and Right open each focused File without moving focus into the editor, so keyboard switching stays continuous.
+- Keep rapid hierarchy navigation bounded to one active File request and one replaceable latest request. Repeated keys do not queue obsolete File reads or scroll frames after key release.
 - Open UTF-8 text Files up to 5 MiB in CodeMirror with the maintained One Dark highlight theme and maintained language support for common source and data formats. Close File clears only the editor after the same dirty-edit confirmation used for switching Files.
 - Edit Markdown as source, show a live rendered preview, or use a split source-and-preview view. Markdown preview code loads only for Markdown Files and stays independent of the Core plugin system.
 - Save through an atomic replacement that preserves permissions and rejects an external edit conflict.
@@ -27,14 +28,14 @@ Intel is not a supported release target yet. The graph renderer has no non-WebGP
 - Read the live `<N> Nodes · <M> Relationships` count for the displayed File and Folder graph.
 - Resize all three panes with pointer or keyboard separators. Pane proportions persist in local interface state and clamp to usable widths when the window changes.
 - Hide the File hierarchy or Relationship Graph independently to focus on the open File. These interface preferences stay local and restore on the next launch.
-- Show measured File-open latency only when Profile is enabled. The measurement starts before the Rust File read and ends after React, CodeMirror, and two painted frames; it reports the latest, median, and p95 sample instead of inferring speed from animation.
+- Show measured File-request latency only when Profile is enabled. The measurement starts before the Rust request and ends after two animation frames; it reports the latest, median, and p95 sample without claiming a CodeMirror-ready or GPU-frame-complete timestamp.
 - Tune Repel Force, Center Force, and Link Distance from 30 to 150 live from Graph Settings. Reset restores the extension defaults. The desktop record persists in the workspace without restarting Core or Indexing.
 
 Source Files and the Graph Cache stay in the workspace. The app does not upload them.
 
 ## Architecture
 
-The Tauri 2 Rust process owns the macOS window, folder picker, validated File reads and writes, and Core child-process lifecycle. The React webview owns the three-pane interface. A bundled Node 22.23.2 sidecar runs `@codegraphy-dev/core` over a JSON Lines request protocol.
+The Tauri 2 Rust process owns the macOS window, folder picker, validated File reads and writes, and Core child-process lifecycle. The React webview owns the three-pane interface. A bundled Node 22.23.2 sidecar runs `@codegraphy-dev/core` over a JSON Lines request protocol. Tauri starts the sidecar during app setup so the first workspace does not also pay the process and Core import cost.
 
 Core still owns File Discovery, Tree-sitter Analysis, plugins, Indexing, Graph Cache storage, and graph queries. Rust does not reimplement graph behavior. `@codegraphy-dev/graph-renderer` owns WebGPU drawing, WebAssembly physics, Material icon matching, Node appearance, connection sizing, and the named force-control contract shared with the extension. Desktop pointer handling, host theme resolution, and settings persistence stay in the desktop interface.
 
