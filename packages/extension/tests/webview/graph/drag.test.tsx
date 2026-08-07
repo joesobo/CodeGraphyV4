@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
-import { toGraphPhysicsLayoutConfig } from '@codegraphy-dev/graph-visuals';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { toGraphPhysicsLayoutConfig } from '@codegraphy-dev/graph-renderer/visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
 import OwnedGraphSurface from '../../__mocks__/ownedGraphSurface';

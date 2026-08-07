@@ -1,11 +1,11 @@
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGroup } from '../../shared/settings/groups';
 import type { NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   type CodeGraphyWorkspaceInterfaceSettings,

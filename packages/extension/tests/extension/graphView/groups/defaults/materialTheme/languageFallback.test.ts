@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchMaterialLanguageFallback } from '@codegraphy-dev/graph-visuals';
+import { matchMaterialLanguageFallback } from '@codegraphy-dev/graph-renderer/visuals';
 
 describe('graphView/materialTheme/languageFallback', () => {
   it('uses language fallback rules when the manifest defines the language id', () => {

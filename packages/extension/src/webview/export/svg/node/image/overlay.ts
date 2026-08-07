@@ -2,7 +2,7 @@ import { getImage } from '../../../../components/graph/rendering/imageCache';
 import { svgShapePath } from '../../shape/shapes';
 import type { SvgExportNode, SvgPosition } from '../../contracts';
 import type { NodeShape2D } from '../../../../../shared/settings/modes';
-import { fileIconSize } from '@codegraphy-dev/graph-visuals';
+import { fileIconSize } from '@codegraphy-dev/graph-renderer/visuals';
 
 function buildClipShape(node: SvgExportNode, position: SvgPosition, shape: NodeShape2D): string {
   if (shape === 'circle') {

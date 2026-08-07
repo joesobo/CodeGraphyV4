@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { MaterialIconManifest } from '@codegraphy-dev/graph-visuals';
+import type { MaterialIconManifest } from '@codegraphy-dev/graph-renderer/visuals';
 import { unknownRecordSchema } from '../../../../../shared/values';
 
 const materialStringRecordSchema = unknownRecordSchema.transform((record): Record<string, string> =>

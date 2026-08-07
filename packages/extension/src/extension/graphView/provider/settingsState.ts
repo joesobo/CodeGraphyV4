@@ -4,7 +4,7 @@ import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';

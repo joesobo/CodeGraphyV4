@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import {
   getGraphViewConfigTarget,
   normalizeDirectionColor,

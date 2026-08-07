@@ -191,7 +191,7 @@ Extension chrome inherits the active VS Code theme. Graph Data Color may encode 
 - `packages/extension` owns the VS Code product surface.
 - `packages/tldraw` owns the tldraw offline product surface and launcher.
 - `packages/graph-renderer` owns graph drawing and physics.
-- `packages/graph-visuals` owns deterministic visual semantics shared by interfaces, including Material Icon Theme matching, graph sizing metrics, icon geometry, and renderer input defaults. Each interface still owns and resolves its host theme colors.
+- `packages/graph-renderer` owns WebGPU drawing, WebAssembly physics, and deterministic visual semantics shared by interfaces, including Material Icon Theme matching, graph sizing metrics, icon geometry, and renderer input defaults. Each interface still owns and resolves its host theme colors.
 - `packages/plugin-api` owns public Core plugin contracts.
 - `packages/extension-plugin-api` owns public VS Code Extension plugin contracts.
 - `packages/plugin-*` own optional Core or interface plugins.

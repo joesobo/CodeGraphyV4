@@ -1,7 +1,7 @@
 import {
   GRAPH_PHYSICS_CONTROL_LIMITS,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { useEffect, useRef, useState } from 'react';
 
 interface GraphSettingsControl {

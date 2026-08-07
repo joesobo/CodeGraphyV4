@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { WorkspaceFolder } from 'vscode';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 
 const mocks = vi.hoisted(() => {
   let workspaceFolders: WorkspaceFolder[] | undefined = undefined;

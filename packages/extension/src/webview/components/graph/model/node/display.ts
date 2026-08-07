@@ -1,6 +1,6 @@
 import {
   DEFAULT_DIRECTION_COLOR,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 export const FAVORITE_BORDER_COLOR = '#EAB308';
 export const FALLBACK_MUTED_NODE_COLOR = '#6b7280';

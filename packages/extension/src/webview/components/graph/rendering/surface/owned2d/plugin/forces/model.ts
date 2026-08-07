@@ -1,5 +1,5 @@
 import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import {
   disposeInstalledForces,

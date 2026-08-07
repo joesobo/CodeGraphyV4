@@ -14,7 +14,7 @@ import {
   MUTED_LINK_OPACITY,
   ORDINARY_LINK_OPACITY,
   computeConnectionSizes,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { MaterialIconData } from './materialIconTheme';
 import type { DesktopGraph, DesktopGraphNode } from './model';
 

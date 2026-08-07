@@ -1,4 +1,4 @@
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { GraphEdgeKind, IGraphData } from '../../../../../../../../shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../../model/build';
 

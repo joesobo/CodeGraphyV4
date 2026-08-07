@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import {
   GRAPH_PHYSICS_CONTROL_LIMITS,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store/state';
 import { Label } from '../../ui/form/label';

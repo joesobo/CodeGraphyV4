@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import SettingsPanel from '../../../src/webview/components/settingsPanel/Drawer';
 import { graphStore } from '../../../src/webview/store/state';
 

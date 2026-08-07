@@ -4,7 +4,7 @@
  */
 
 import type { IUndoableAction } from '../undoManager';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { ISettingsSnapshot } from '../../shared/settings/snapshot';
 import { getCodeGraphyConfiguration } from '../repoSettings/current';
 

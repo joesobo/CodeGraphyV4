@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import { createGraphViewProviderPhysicsSettingsMethods } from '../../../../src/extension/graphView/provider/physicsSettings';
 
 describe('graphView/provider/physicsSettings', () => {

@@ -1,4 +1,4 @@
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import {
   resolveDirectionColor,
   type FGLink,

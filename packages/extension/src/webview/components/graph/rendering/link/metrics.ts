@@ -4,7 +4,7 @@ import {
   LINK_BASE_WIDTH,
   MUTED_LINK_OPACITY,
   ORDINARY_LINK_OPACITY,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { resolveLinkEndpointId } from '../../support/linkTargets';
 import type { LinkRenderingDependencies } from './contracts';
 

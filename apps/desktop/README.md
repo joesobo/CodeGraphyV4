@@ -36,7 +36,7 @@ Source Files and the Graph Cache stay in the workspace. The app does not upload 
 
 The Tauri 2 Rust process owns the macOS window, folder picker, validated File reads and writes, and Core child-process lifecycle. The React webview owns the three-pane interface. A bundled Node 22.23.2 sidecar runs `@codegraphy-dev/core` over a JSON Lines request protocol.
 
-Core still owns File Discovery, Tree-sitter Analysis, plugins, Indexing, Graph Cache storage, and graph queries. Rust does not reimplement graph behavior. `@codegraphy-dev/graph-visuals` owns CodeGraphy product policy shared with the extension: Material icon matching, Node appearance, connection sizing, and the named force-control contract. The smaller `@codegraphy-dev/graph-renderer` package remains product-neutral and owns only WebGPU drawing plus WebAssembly physics. Desktop pointer handling stays in the desktop interface.
+Core still owns File Discovery, Tree-sitter Analysis, plugins, Indexing, Graph Cache storage, and graph queries. Rust does not reimplement graph behavior. `@codegraphy-dev/graph-renderer` owns WebGPU drawing, WebAssembly physics, Material icon matching, Node appearance, connection sizing, and the named force-control contract shared with the extension. Desktop pointer handling, host theme resolution, and settings persistence stay in the desktop interface.
 
 This boundary keeps the existing TypeScript Core and WebGPU renderer intact while the small Rust shell provides native macOS integration and safe local File access.
 

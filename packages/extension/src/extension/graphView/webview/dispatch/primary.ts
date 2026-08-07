@@ -5,7 +5,7 @@ import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/exte
 import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { NodeSizeMode } from '../../../../shared/settings/modes';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
 import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';

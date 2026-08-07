@@ -6,8 +6,8 @@ import {
   MATERIAL_TRANSPARENT_NODE_COLOR,
   toSvgDataUrl,
   toWhiteSvg,
-} from '@codegraphy-dev/graph-visuals';
-import type { MaterialIconManifest } from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
+import type { MaterialIconManifest } from '@codegraphy-dev/graph-renderer/visuals';
 
 const MATERIAL_MANIFEST_URL = './material-icons/dist/material-icons.json';
 const MATERIAL_ASSET_ROOT = './material-icons/';

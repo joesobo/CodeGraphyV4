@@ -2,7 +2,7 @@ import type * as vscode from 'vscode';
 import {
   normalizeGraphPhysicsSettings,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 export function readGraphViewPhysicsSettings(
   config: Pick<vscode.WorkspaceConfiguration, 'get'>,

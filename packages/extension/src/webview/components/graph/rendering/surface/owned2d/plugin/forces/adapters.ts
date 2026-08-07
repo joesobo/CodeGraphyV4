@@ -1,7 +1,7 @@
 import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
 import { MAX_GRAPH_COORDINATE, MAX_GRAPH_VELOCITY } from '@codegraphy-dev/graph-renderer';
 import type { IGraphViewForceAdapter } from '@codegraphy-dev/extension-plugin-api';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGraphData } from '../../../../../../../../shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../../model/build';
 

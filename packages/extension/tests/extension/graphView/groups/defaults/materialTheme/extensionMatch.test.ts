@@ -3,7 +3,7 @@ import {
   createMaterialExtensionMatcher,
   findLongestExtensionMatch,
   findLongestExtensionMatchWithMatcher,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 describe('graphView/materialTheme/extensionMatch', () => {
   it('matches bare extension filenames', () => {

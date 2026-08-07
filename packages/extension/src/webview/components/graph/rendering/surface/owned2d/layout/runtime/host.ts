@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import { applyGraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import { applyGraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { OwnedGraphCamera } from '../../camera/runtime/model';
 import type { Surface2dProps } from '../../view/surface/contracts';
 import type { PointerSession } from '../../interaction/model';

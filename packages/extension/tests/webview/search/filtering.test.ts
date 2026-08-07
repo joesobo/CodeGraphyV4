@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 import {

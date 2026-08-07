@@ -8,7 +8,7 @@ import type {
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGroup } from '../settings/groups';
 
 export interface IPluginFilterPatternGroup {

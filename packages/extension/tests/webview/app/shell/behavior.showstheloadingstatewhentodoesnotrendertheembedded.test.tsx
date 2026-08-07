@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { graphStore } from '../../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({

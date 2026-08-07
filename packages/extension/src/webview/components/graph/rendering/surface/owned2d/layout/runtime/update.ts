@@ -1,7 +1,7 @@
 import {
   applyGraphPhysicsSettings,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import type { OwnedGraphLayout } from './model';
 import { sameOwnedGraphShape } from './comparison';

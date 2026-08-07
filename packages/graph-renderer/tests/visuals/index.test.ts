@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { Buffer } from 'node:buffer';
 import { describe, expect, it } from 'vitest';
 import {
@@ -30,7 +32,7 @@ import {
   getFileColor,
   toSvgDataUrl,
   toWhiteSvgDataUrl,
-} from '../src/index';
+} from '../../src/visuals/index.js';
 
 describe('graph visual semantics', () => {
   it('exports the shared palette and rendering metrics', () => {

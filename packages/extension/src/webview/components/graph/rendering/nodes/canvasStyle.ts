@@ -2,7 +2,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_NODE_COLOR,
   GRAPH_NODE_SELECTION_BORDER_WIDTH,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGNode } from '../../model/build';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import type { OwnedGraphNodeStyle } from '../surface/owned2d/view/surface/contracts';

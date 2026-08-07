@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchMaterialFileName } from '@codegraphy-dev/graph-visuals';
+import { matchMaterialFileName } from '@codegraphy-dev/graph-renderer/visuals';
 
 describe('graphView/materialTheme/fileName', () => {
   it('matches basename and nested suffix rules', () => {

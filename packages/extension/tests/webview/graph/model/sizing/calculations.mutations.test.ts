@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { computeConnectionSizes } from '@codegraphy-dev/graph-visuals';
+import { computeConnectionSizes } from '@codegraphy-dev/graph-renderer/visuals';
 
 function relatedGraph(relatedNodeCount: number) {
   const leaves = Array.from({ length: relatedNodeCount }, (_, index) => ({

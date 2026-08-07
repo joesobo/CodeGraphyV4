@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchMaterialFolderName } from '@codegraphy-dev/graph-visuals';
+import { matchMaterialFolderName } from '@codegraphy-dev/graph-renderer/visuals';
 
 describe('graphView/materialTheme/folderName', () => {
   it('matches basename folder rules across the tree', () => {

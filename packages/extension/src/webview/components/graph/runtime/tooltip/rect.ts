@@ -5,7 +5,7 @@ import type {
 } from '../../tooltip/model';
 import type { FGNode } from '../../model/build';
 import { graphNodeScreenRadius } from '@codegraphy-dev/graph-renderer';
-import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-renderer/visuals';
 
 interface GraphTooltipRectOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;

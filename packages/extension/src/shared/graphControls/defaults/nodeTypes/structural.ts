@@ -3,7 +3,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 export function createStructuralGraphNodeTypes(): IGraphNodeTypeDefinition[] {
   return [

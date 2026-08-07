@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { appendLinkElements } from '../../../../../src/webview/export/svg/link/links';
 import type { SvgExportLink } from '../../../../../src/webview/export/svg/contracts';
 

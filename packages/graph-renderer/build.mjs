@@ -24,8 +24,11 @@ execFileSync(
 );
 
 await build({
-  entryPoints: [path.join(packageRoot, 'src/index.ts')],
-  outfile: path.join(distRoot, 'index.js'),
+  entryPoints: {
+    index: path.join(packageRoot, 'src/index.ts'),
+    'visuals/index': path.join(packageRoot, 'src/visuals/index.ts'),
+  },
+  outdir: distRoot,
   bundle: true,
   format: 'esm',
   platform: 'node',

@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { graphStore } from '../../../../../src/webview/store/state';
 
 export const messageListeners: Array<(event: MessageEvent) => void> = [];

@@ -22,7 +22,6 @@
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
     "@codegraphy-dev/graph-renderer": "workspace:*",
-    "@codegraphy-dev/graph-visuals": "workspace:*",
     "@codemirror/commands": "^6.10.4",
     "@codemirror/language": "^6.12.4",
     "@codemirror/language-data": "^6.5.2",

@@ -1,5 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 
 export interface GraphViewPhysicsMessageHandlers {
   sendPhysicsSettings(): void;

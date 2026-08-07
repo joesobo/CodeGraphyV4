@@ -1,4 +1,4 @@
-import { DEFAULT_GRAPH_PHYSICS_SETTINGS } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_GRAPH_PHYSICS_SETTINGS } from '@codegraphy-dev/graph-renderer/visuals';
 import { isPlainObject } from './plainObject';
 
 const CURRENT_SETTINGS_VERSION = 4;

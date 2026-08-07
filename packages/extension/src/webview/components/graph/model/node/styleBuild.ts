@@ -4,7 +4,7 @@ import {
   DEFAULT_NODE_SIZE,
   MAX_NODE_SIZE,
   MIN_NODE_SIZE,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import type { GraphAppearance } from '../../appearance/model';
 import { graphNodeBorderColor, graphNodeBorderWidth, graphNodeDisplayColor } from './appearance';

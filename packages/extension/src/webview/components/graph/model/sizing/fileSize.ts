@@ -1,5 +1,5 @@
 import type { IGraphNode } from '../../../../../shared/graph/contracts';
-import { MAX_NODE_SIZE, MIN_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
+import { MAX_NODE_SIZE, MIN_NODE_SIZE } from '@codegraphy-dev/graph-renderer/visuals';
 
 export function computeFileSizeSizes(nodes: IGraphNode[]): Map<string, number> {
   const sizes = new Map<string, number>();

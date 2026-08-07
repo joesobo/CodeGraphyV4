@@ -5,7 +5,7 @@ import {
   createMaterialExtensionMatcher,
   createMaterialPathRuleMatcher,
   type MaterialIconManifest,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { MaterialThemeCacheEntry } from './model';
 import { materialIconManifestSchema } from './schema';
 

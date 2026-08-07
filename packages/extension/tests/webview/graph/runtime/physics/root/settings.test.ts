@@ -3,7 +3,7 @@ import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
   applyGraphPhysicsSettings,
   toGraphPhysicsLayoutConfig,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/collision/radius';
 import { createGraphLayoutEngine } from '@codegraphy-dev/graph-renderer';

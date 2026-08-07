@@ -21,7 +21,7 @@ import {
   graphNodeLabelTop,
   toGraphPhysicsLayoutConfig,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   DESKTOP_GRAPH_HOVER_SCALE,

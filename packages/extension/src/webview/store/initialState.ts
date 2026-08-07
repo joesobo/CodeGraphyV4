@@ -3,7 +3,7 @@ import { DEFAULT_SEARCH_OPTIONS } from './defaults';
 import {
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../shared/settings/defaults';
 
 export const INITIAL_STATE: GraphStateFields = {

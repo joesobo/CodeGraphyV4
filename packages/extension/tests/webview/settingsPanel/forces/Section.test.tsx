@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ForcesSection } from '../../../../src/webview/components/settingsPanel/forces/Section';
 import { graphStore } from '../../../../src/webview/store/state';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 
 vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
   Slider: ({

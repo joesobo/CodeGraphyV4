@@ -3,7 +3,7 @@ import {
 	type MutableRefObject,
 } from 'react';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
-import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { ThemeKind, adjustColorForLightTheme } from '../../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appearance/model';
 import type { FGLink, FGNode } from '../../../model/build';

@@ -1,7 +1,7 @@
 import {
   normalizeGraphPhysicsSetting,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 interface GraphViewPhysicsConfigurationLike {
   update(key: string, value: unknown, target?: unknown): PromiseLike<void>;

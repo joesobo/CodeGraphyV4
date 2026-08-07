@@ -1,5 +1,5 @@
 import type { IGraphNode } from '../../../../../shared/graph/contracts';
-import { GRAPH_NODE_BORDER_WIDTH } from '@codegraphy-dev/graph-visuals';
+import { GRAPH_NODE_BORDER_WIDTH } from '@codegraphy-dev/graph-renderer/visuals';
 import type { GraphAppearance } from '../../appearance/model';
 import { FALLBACK_MUTED_NODE_COLOR, FAVORITE_BORDER_COLOR } from './display';
 

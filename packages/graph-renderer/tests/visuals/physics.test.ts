@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
@@ -7,7 +9,7 @@ import {
   normalizeGraphPhysicsSettings,
   toGraphPhysicsLayoutConfig,
   type GraphPhysicsSettings,
-} from '../src/index.js';
+} from '../../src/visuals/index.js';
 
 describe('graph physics contract', () => {
   it('defines the shared defaults and visible control limits', () => {

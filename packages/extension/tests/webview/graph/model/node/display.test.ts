@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-renderer/visuals';
 import {
   FAVORITE_BORDER_COLOR,
   getDepthOpacity,

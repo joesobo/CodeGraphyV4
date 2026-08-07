@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import type { GraphRuntime } from '../../../../src/webview/components/graph/runtime/use/state';

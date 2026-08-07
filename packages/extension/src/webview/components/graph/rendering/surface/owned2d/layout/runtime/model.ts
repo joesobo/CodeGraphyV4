@@ -2,7 +2,7 @@ import { createGraphLayoutEngine, type GraphLayoutEngine } from '@codegraphy-dev
 import {
   toGraphPhysicsLayoutConfig,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import { buildOwnedGraphLayoutData } from './data';
 

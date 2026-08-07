@@ -4,7 +4,7 @@ import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
   normalizeGraphPhysicsSettings,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { parseWorkspaceGraphResult, type WorkspaceGraphResult } from './model';
 
 export interface FileDocument {

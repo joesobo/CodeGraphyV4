@@ -2,7 +2,7 @@ import type { NodeLabelSprite } from './labelSprite';
 import {
   GRAPH_NODE_LABEL_FONT,
   GRAPH_NODE_LABEL_PADDING,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 export function rasterizeNodeLabelSprite(createCanvas: () => HTMLCanvasElement, text: string, color: string, scale: number): { backingBytes: number; sprite: NodeLabelSprite } {
   const canvas = createCanvas();

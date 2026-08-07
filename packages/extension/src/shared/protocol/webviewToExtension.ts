@@ -4,7 +4,7 @@ import type {
   DirectionMode,
   NodeSizeMode,
 } from '../settings/modes';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 
 export interface GraphItemCreatePayload {
   directory: string;

@@ -1,5 +1,5 @@
 import type { FGNode } from '../../../../../model/build';
-import { OWNED_GRAPH_COLLISION_RADIUS_PADDING } from '@codegraphy-dev/graph-visuals';
+import { OWNED_GRAPH_COLLISION_RADIUS_PADDING } from '@codegraphy-dev/graph-renderer/visuals';
 
 type CollisionNode = Pick<FGNode, 'collisionRadius2D' | 'shapeSize2D' | 'size'>;
 

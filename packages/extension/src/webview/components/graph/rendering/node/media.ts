@@ -1,5 +1,5 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
-import { fileIconSize, folderIconSize } from '@codegraphy-dev/graph-visuals';
+import { fileIconSize, folderIconSize } from '@codegraphy-dev/graph-renderer/visuals';
 import { getImage } from '../imageCache';
 import { drawShape } from '../shapes/draw/twoDimensional';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';

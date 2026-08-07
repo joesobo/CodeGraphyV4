@@ -3,7 +3,7 @@ import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/componen
 import {
   type FGNode,
 } from '../../../../../../src/webview/components/graph/model/build';
-import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-renderer/visuals';
 
 export const DARK_APPEARANCE = {
   ...DEFAULT_GRAPH_APPEARANCE,

@@ -2,7 +2,7 @@ import type { IGroup } from '../../../../../shared/settings/groups';
 import {
   MATERIAL_TRANSPARENT_NODE_COLOR,
   type MaterialMatch,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { MaterialIconData } from './model';
 
 export function createMaterialGroup(

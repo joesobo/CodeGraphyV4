@@ -208,7 +208,7 @@ A public `codegraphy/skills` repository will host the skill once published.
 
 The macOS desktop app runs Core in a bundled local process and keeps File access and child-process control in Rust. Its webview combines a File hierarchy, CodeMirror, and the existing renderer. The VS Code extension connects Core to the editor lifecycle and React Graph View. The tldraw interface connects Core data and shared physics to native tldraw shapes.
 
-`@codegraphy-dev/graph-renderer` owns product-neutral WebGPU drawing and WebAssembly physics. The private `@codegraphy-dev/graph-visuals` package owns CodeGraphy-specific Node appearance, Material icon matching, connection sizing, and force-control semantics shared by the desktop app and VS Code extension. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
+`@codegraphy-dev/graph-renderer` owns WebGPU drawing, WebAssembly physics, Node geometry, Material icon matching, connection sizing, and force-control semantics shared by the desktop app and VS Code extension. Interfaces still own host theme color resolution, settings persistence, and interaction policy. Core plugins use `@codegraphy-dev/plugin-api`. VS Code Extension plugins use `@codegraphy-dev/extension-plugin-api`.
 
 | Package | Role |
 |---|---|
@@ -216,8 +216,7 @@ The macOS desktop app runs Core in a bundled local process and keeps File access
 | [`@codegraphy-dev/core`](./packages/core/README.md) | Shared indexing, cache, plugin, query, and CLI engine. |
 | [`@codegraphy-dev/extension`](./packages/extension/docs/README.md) | VS Code host and Graph View product integration. |
 | [`@codegraphy-dev/tldraw`](./packages/tldraw/README.md) | macOS launcher and native tldraw offline canvas integration. |
-| [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | WebGPU graph renderer and WebAssembly physics. |
-| `@codegraphy-dev/graph-visuals` | Private CodeGraphy visual and force-control semantics shared by interfaces. |
+| [`@codegraphy-dev/graph-renderer`](./packages/graph-renderer/README.md) | Shared graph rendering, visual geometry, Material icon matching, and WebAssembly physics. |
 | [`@codegraphy-dev/plugin-api`](./packages/plugin-api/README.md) | Public TypeScript contracts for Core plugins. |
 | [`@codegraphy-dev/extension-plugin-api`](./packages/extension-plugin-api/README.md) | Public TypeScript contracts for VS Code Extension plugins. |
 | `@codegraphy-dev/plugin-*` | Optional plugins for Core or an interface host. |

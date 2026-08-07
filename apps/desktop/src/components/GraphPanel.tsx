@@ -1,4 +1,4 @@
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import { useMemo } from 'react';
 import type { DesktopGraph } from '../model';
 import { useDesktopGraphRenderer } from '../useDesktopGraphRenderer';

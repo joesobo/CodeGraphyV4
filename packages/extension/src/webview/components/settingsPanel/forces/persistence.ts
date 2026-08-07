@@ -1,4 +1,4 @@
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 
 export type PendingPhysicsMap = Partial<Record<keyof GraphPhysicsSettings, number>>;
 export type PhysicsTimerMap = Partial<

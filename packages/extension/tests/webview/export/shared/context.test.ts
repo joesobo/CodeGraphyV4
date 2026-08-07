@@ -4,7 +4,7 @@ import {
   createImageExportDataUrl,
   resolveDirectionColor,
 } from '../../../../src/webview/export/shared/context';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 
 afterEach(() => {
   vi.restoreAllMocks();

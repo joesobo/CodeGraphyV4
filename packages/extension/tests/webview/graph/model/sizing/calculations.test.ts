@@ -3,7 +3,7 @@ import {
   MIN_NODE_SIZE,
   MAX_NODE_SIZE,
   computeConnectionSizes,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 describe('semantic node size range', () => {
   it('matches Obsidian’s bounded radius domain', () => {

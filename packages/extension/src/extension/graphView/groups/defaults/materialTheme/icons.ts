@@ -4,7 +4,7 @@ import {
   extractPrimaryColor,
   toSvgDataUrl,
   toWhiteSvgDataUrl,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { MaterialIconData, MaterialThemeCacheEntry } from './model';
 
 export function resolveIconData(

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { findMaterialMatch } from '@codegraphy-dev/graph-visuals';
+import { findMaterialMatch } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import { createMaterialGroup, getManualGroups, getSpecificityScore, sortMaterialGroups } from './groups';

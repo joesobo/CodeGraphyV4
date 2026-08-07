@@ -4,7 +4,7 @@ import {
   buildGraphViewSettingsMessages,
 } from '../../../../src/extension/graphView/settings/messages';
 import { captureGraphViewSettingsSnapshot } from '../../../../src/extension/graphView/settings/snapshot';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { DEFAULT_MAX_FILES } from '../../../../src/shared/settings/defaults';
 
 function createConfig(values: Record<string, unknown>) {

@@ -2,7 +2,7 @@ import type {
   MaterialExtensionMatcher,
   MaterialIconManifest,
   MaterialThemePathMatchers,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 
 export interface MaterialIconData {
   color: string;

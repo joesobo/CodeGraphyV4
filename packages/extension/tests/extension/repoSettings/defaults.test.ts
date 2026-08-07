@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '@codegraphy-dev/core';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
   createDefaultEdgeVisibility,

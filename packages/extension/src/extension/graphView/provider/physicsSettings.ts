@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { DEFAULT_GRAPH_PHYSICS_SETTINGS, type GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_GRAPH_PHYSICS_SETTINGS, type GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import { readGraphViewPhysicsSettings } from '../settings/physics/reader';
 import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from '../settings/physics/updates';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';

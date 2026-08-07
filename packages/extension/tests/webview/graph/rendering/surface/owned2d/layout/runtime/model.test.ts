@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   toGraphPhysicsLayoutConfig,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGLink, FGNode } from '../../../../../../../../src/webview/components/graph/model/build';
 import { ownedNodeCollisionRadius } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout/collision/radius';
 import {

@@ -5,7 +5,7 @@ import {
   DEFAULT_DIRECTION_COLOR,
   FILE_TYPE_COLORS,
   getFileColor,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { normalizeHexColor } from '../../src/shared/normalizeHexColor';
 
 describe('normalizeHexColor', () => {

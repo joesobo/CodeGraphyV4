@@ -5,7 +5,7 @@ import {
   getDepthSizeMultiplier,
   getNodeType,
 } from '../../../../../src/webview/components/graph/model/node/display';
-import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_DIRECTION_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 
 describe('nodeDisplay (mutation targets)', () => {
   describe('resolveDirectionColor', () => {

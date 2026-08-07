@@ -6,7 +6,7 @@ import {
   MATERIAL_TRANSPARENT_NODE_COLOR,
   MUTED_LINK_OPACITY,
   ORDINARY_LINK_OPACITY,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { describe, expect, it } from 'vitest';
 import {
   createDesktopGraphNodeVisual,

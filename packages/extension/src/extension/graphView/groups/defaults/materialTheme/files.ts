@@ -4,7 +4,7 @@ import {
   findMaterialMatch,
   getMaterialBaseName,
   type MaterialMatch,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
 import type { MaterialThemeCacheEntry } from './model';
 import { createMaterialGroup } from './groups';

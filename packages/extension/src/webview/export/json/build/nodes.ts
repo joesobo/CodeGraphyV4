@@ -1,5 +1,5 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import type { IGroup } from '../../../../shared/settings/groups';
 import { globMatch } from '../../../globMatch';
 

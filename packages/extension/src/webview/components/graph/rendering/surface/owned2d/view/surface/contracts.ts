@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import type { ExtensionGraphViewContributionSet } from '@codegraphy-dev/extension-plugin-api';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { DirectionMode, NodeShape2D } from '../../../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import type { GraphSurfaceSharedProps } from '../../../sharedProps';

@@ -1,6 +1,6 @@
 import type { IGroup } from './groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from './modes';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 
 export interface ISettingsSnapshot {
   physics: GraphPhysicsSettings;

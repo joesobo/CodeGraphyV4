@@ -1,5 +1,5 @@
 import { graphNodeSizeChargeMultiplier, GraphNodeFlag, type GraphLayoutInput } from '@codegraphy-dev/graph-renderer';
-import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_SIZE } from '@codegraphy-dev/graph-renderer/visuals';
 import type { FGLink, FGNode } from '../../../../../model/build';
 import { ownedNodeCollisionRadius } from '../collision/radius';
 

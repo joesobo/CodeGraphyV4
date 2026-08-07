@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { DEFAULT_GRAPH_PHYSICS_SETTINGS } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_GRAPH_PHYSICS_SETTINGS } from '@codegraphy-dev/graph-renderer/visuals';
 import type { Surface2dProps } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/view/surface/contracts';
 
 export function createDefaultSurfaceProps(): Surface2dProps {

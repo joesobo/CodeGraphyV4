@@ -5,7 +5,7 @@ import {
   MATERIAL_TRANSPARENT_NODE_COLOR,
   type MaterialIconManifest,
   type MaterialMatch,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { collectFolderPaths } from '../../../../../shared/graphControls/nests/folders';
 import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
 import type { MaterialThemeCacheEntry } from './model';

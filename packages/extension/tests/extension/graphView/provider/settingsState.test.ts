@@ -4,7 +4,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import {
   createGraphViewProviderSettingsStateMethods,
   type GraphViewProviderSettingsStateMethodDependencies,

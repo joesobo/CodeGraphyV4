@@ -2,7 +2,7 @@ import {
   DEFAULT_GRAPH_PHYSICS_SETTINGS,
   normalizeGraphPhysicsSetting,
   type GraphPhysicsSettings,
-} from '@codegraphy-dev/graph-visuals';
+} from '@codegraphy-dev/graph-renderer/visuals';
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import {
   chooseWorkspace,

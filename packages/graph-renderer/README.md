@@ -4,9 +4,10 @@ A browser graph engine for large, interactive force-directed graphs. It combines
 
 - WebGPU rendering for nodes, links, curves, self-links, and directional arrows.
 - A fast deterministic WebAssembly force simulation with Barnes–Hut charge, links, centering, collision, pinning, and hidden-node support.
+- Shared Node geometry, Material Icon Theme matching, connection sizing, and force-control semantics for CodeGraphy interfaces.
 - Typed-array data paths that keep graph indexes stable across physics, rendering, picking, and application state.
 
-The package owns graph rendering and graph physics only. Your application owns its graph model, labels, controls, interactions, picking policy, settings, persistence, tooltips, and UI. That boundary keeps the engine usable outside CodeGraphy.
+The package owns graph rendering, graph physics, and reusable visual semantics. Applications own their graph model, host theme resolution, interactions, settings persistence, tooltips, and UI.
 
 ## Install
 
@@ -188,11 +189,13 @@ There is intentionally no Canvas 2D or WebGL fallback in this package. A consumi
 | `GraphRenderer*` types | Renderer nodes, links, styles, cameras, and frames. |
 | `GraphNodeFlag` | Mark nodes as pinned or hidden. |
 | Geometry/visibility helpers | Keep application picking and detail UI aligned with rendering. |
+| Material and visual helpers | Keep icons, Node sizing, colors, and force controls consistent across interfaces. |
 
-The supported consumer entry point is the package root:
+The supported runtime entry point is the package root. Reusable CodeGraphy visual semantics use the `visuals` subpath of the same package:
 
 ```ts
 import { createGraphLayoutEngine, WebGpuGraphRenderer } from '@codegraphy-dev/graph-renderer';
+import { findMaterialMatch } from '@codegraphy-dev/graph-renderer/visuals';
 ```
 
 Internal WebGPU buffers, shaders, WASM storage, and test hooks are not public API.

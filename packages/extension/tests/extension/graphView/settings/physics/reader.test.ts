@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type * as vscode from 'vscode';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import { readGraphViewPhysicsSettings } from '../../../../../src/extension/graphView/settings/physics/reader';
 
 const defaults: GraphPhysicsSettings = {

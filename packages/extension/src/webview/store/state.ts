@@ -16,7 +16,7 @@ import type {
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,

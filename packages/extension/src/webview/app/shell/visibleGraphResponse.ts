@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { IGraphData } from '../../../shared/graph/contracts';
-import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-visuals';
+import { DEFAULT_NODE_COLOR } from '@codegraphy-dev/graph-renderer/visuals';
 import { postMessage as postWebviewMessage } from '../../vscodeApi';
 
 export function createVisibleGraphStatePayload(graphData: IGraphData | null | undefined) {

@@ -1,5 +1,5 @@
 import type { NodeSizeMode } from '../../../shared/settings/modes';
-import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-visuals';
+import type { GraphPhysicsSettings } from '@codegraphy-dev/graph-renderer/visuals';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { DEFAULT_MAX_FILES, DEFAULT_SHOW_MINIMAP } from '../../../shared/settings/defaults';
 import { readGraphViewSettings } from './reader';
