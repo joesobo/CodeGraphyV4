@@ -15,6 +15,7 @@ import {
 } from '../acceptance/graphView/workspace';
 
 const captureProof = process.env.CODEGRAPHY_CAPTURE_TOOLTIP_PROOF === '1';
+const explorerShortcut = process.platform === 'darwin' ? 'Meta+Shift+E' : 'Control+Shift+E';
 
 test.use({ video: captureProof ? 'on' : 'retain-on-failure' });
 
@@ -54,7 +55,7 @@ test('Hover performance: stationary and hidden Node tooltips stop graph frame wo
 			path: screenshotPath,
 		});
 
-    await vscode.page.keyboard.press('Meta+Shift+E');
+    await vscode.page.keyboard.press(explorerShortcut);
 		await expect(frameProbe(frame)).toHaveAttribute('data-graph-view-visible', 'false', {
 			timeout: 10_000,
 		});
