@@ -139,8 +139,16 @@ describe('GraphViewProvider lifecycle', () => {
     vi.spyOn(internals._fileInfoMethods, '_sendFavorites').mockImplementation(() => {});
 
     (provider as unknown as {
-      _analyzer: { clearCache: () => void; hasIndex: () => boolean };
-    })._analyzer = { clearCache, hasIndex: () => true };
+      _analyzer: {
+        clearCache: () => void;
+        getFilterAccounting(): { kind: 'unavailable' };
+        hasIndex: () => boolean;
+      };
+    })._analyzer = {
+      clearCache,
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+      hasIndex: () => true,
+    };
 
     await provider.clearCacheAndRefresh();
 
@@ -229,9 +237,15 @@ describe('GraphViewProvider lifecycle', () => {
     vi.spyOn(internals._pluginMethods, '_sendGroupsUpdated').mockImplementation(() => {});
 
     (provider as unknown as {
-      _analyzer: { analyze: () => Promise<IGraphData> };
+      _analyzer: {
+        analyze: () => Promise<IGraphData>;
+        getFilterAccounting(): { kind: 'unavailable' };
+      };
       _analyzerInitialized: boolean;
-    })._analyzer = { analyze: vi.fn() };
+    })._analyzer = {
+      analyze: vi.fn(),
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
+    };
     (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
     (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
 

@@ -292,6 +292,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     const notifyGraphRebuild = vi.fn();
     (provider as unknown as {
       _analyzer: {
+        getFilterAccounting(): { kind: 'unavailable' };
         rebuildGraph: typeof rebuildGraph;
         registry: {
           list(): [];
@@ -302,6 +303,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
         };
       };
     })._analyzer = {
+      getFilterAccounting: vi.fn(() => ({ kind: 'unavailable' as const })),
       rebuildGraph,
       registry: {
         list: () => [],
