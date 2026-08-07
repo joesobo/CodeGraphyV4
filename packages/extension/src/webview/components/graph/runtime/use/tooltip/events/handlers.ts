@@ -35,7 +35,7 @@ export interface UseTooltipEventsOptions {
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
 	tooltipRectRef: MutableRefObject<GraphTooltipRect | null>;
 	tooltipTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
-	visible: boolean;
+	graphViewVisible: boolean;
 }
 
 export interface UseTooltipEventsResult {
@@ -76,8 +76,8 @@ export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEv
 		handleTooltipNodeHover(node, {
 			...current,
 			getNodeRect: getNodeScreenRect,
-			startTracking: initializeTooltipAnchor,
-			stopTracking: clearTooltipAnchor,
+			initializeAnchorSnapshot: initializeTooltipAnchor,
+			clearAnchorSnapshot: clearTooltipAnchor,
 		});
 	}, [getNodeScreenRect, initializeTooltipAnchor, clearTooltipAnchor]);
 
@@ -117,8 +117,8 @@ export function useTooltipEvents(options: UseTooltipEventsOptions): UseTooltipEv
 	);
 
 	useEffect(() => {
-		if (!options.visible) handleNodeHover(null);
-	}, [handleNodeHover, options.visible]);
+		if (!options.graphViewVisible) handleNodeHover(null);
+	}, [handleNodeHover, options.graphViewVisible]);
 
 	return {
 		handleMouseLeave,

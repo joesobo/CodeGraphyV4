@@ -119,7 +119,7 @@ export function useGraphInteractionRuntime({
     fg2dRef: refs.fg2dRef,
     fileInfoCacheRef,
     interactionHandlers,
-    visible: graphViewVisible,
+    graphViewVisible,
     legends,
     pluginHost,
     postMessage,

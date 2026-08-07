@@ -23,8 +23,8 @@ export interface TooltipHoverOptions {
 	pluginHost?: WebviewPluginHost;
 	postMessage(this: void, message: WebviewToExtensionMessage): void;
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>;
-	startTracking(this: void): void;
-	stopTracking(this: void): void;
+	initializeAnchorSnapshot(this: void): void;
+	clearAnchorSnapshot(this: void): void;
 	tooltipTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
 }
 
@@ -32,11 +32,11 @@ function clearTooltipHoverState(
 	hoveredNodeRef: MutableRefObject<FGNode | null>,
 	interactionHandlers: GraphTooltipInteractionDependencies,
 	setTooltipData: React.Dispatch<React.SetStateAction<GraphTooltipState>>,
-	stopTracking: () => void,
+	clearAnchorSnapshot: () => void,
 ): void {
   interactionHandlers.setGraphCursor('default');
   hoveredNodeRef.current = null;
-  stopTracking();
+  clearAnchorSnapshot();
   setTooltipData(hideGraphTooltipState);
 }
 
@@ -52,8 +52,8 @@ export function handleTooltipNodeHover(
 		pluginHost,
 		postMessage,
 		setTooltipData,
-		startTracking,
-		stopTracking,
+		initializeAnchorSnapshot,
+		clearAnchorSnapshot,
 		tooltipTimeoutRef,
 	}: TooltipHoverOptions,
 ): void {
@@ -64,7 +64,7 @@ export function handleTooltipNodeHover(
 			hoveredNodeRef,
 			interactionHandlers,
 			setTooltipData,
-			stopTracking,
+			clearAnchorSnapshot,
 		);
 		return;
 	}
@@ -80,7 +80,7 @@ export function handleTooltipNodeHover(
 		pluginHost,
 		postMessage,
 		setTooltipData,
-		startTracking,
+		initializeAnchorSnapshot,
 		tooltipTimeoutRef,
 	});
 }

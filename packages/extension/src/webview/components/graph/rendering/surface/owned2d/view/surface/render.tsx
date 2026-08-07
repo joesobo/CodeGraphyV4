@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type MutableRefObject,
@@ -271,7 +272,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     simulationClockRef,
   ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     frameLoopRef.current?.setHostVisible(props.graphViewVisible);
   }, [props.graphViewVisible]);
 
@@ -358,7 +359,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       className="absolute inset-0"
       data-codegraphy-physics="wasm"
       data-codegraphy-renderer={rendererStatus}
-      data-codegraphy-view-visible={String(props.graphViewVisible)}
       style={{ backgroundColor: props.backgroundColor }}
     >
       <canvas

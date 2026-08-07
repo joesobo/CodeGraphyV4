@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ComponentProps, type ReactElement } from 'react';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
@@ -270,6 +270,12 @@ export function resetShellHarness(): void {
 
 export function renderActualViewport(): void {
   shellHarness.renderActualViewport = true;
+}
+
+export function createGraphViewportShellElement(
+  props: ComponentProps<typeof GraphViewportShell>,
+): ReactElement {
+  return <GraphViewportShell {...props} />;
 }
 
 export function renderGraphViewportShell(options: {

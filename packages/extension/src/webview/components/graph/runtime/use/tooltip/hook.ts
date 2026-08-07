@@ -24,7 +24,7 @@ export interface UseGraphTooltipOptions {
 	legends?: readonly IGroup[];
 	pluginHost?: WebviewPluginHost;
 	postMessage: (this: void, message: WebviewToExtensionMessage) => void;
-	visible: boolean;
+	graphViewVisible: boolean;
 }
 
 export interface UseGraphTooltipResult {
@@ -47,7 +47,7 @@ export function useGraphTooltip({
 	legends,
 	pluginHost,
 	postMessage,
-	visible,
+	graphViewVisible,
 }: UseGraphTooltipOptions): UseGraphTooltipResult {
 	const {
 		hoveredNodeRef,
@@ -74,7 +74,7 @@ export function useGraphTooltip({
 		setTooltipData,
 		tooltipRectRef,
 		tooltipTimeoutRef,
-		visible,
+		graphViewVisible,
 	});
 
 	return {

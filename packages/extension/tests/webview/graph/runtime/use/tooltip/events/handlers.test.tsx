@@ -68,7 +68,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData,
 			tooltipRectRef,
 			tooltipTimeoutRef: { current: null },
-			visible: true,
+			graphViewVisible: true,
 		}));
 
 		act(() => {
@@ -98,7 +98,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 				setTooltipData,
 				tooltipRectRef,
 				tooltipTimeoutRef: { current: null },
-				visible: true,
+				graphViewVisible: true,
 			}));
 
 			act(() => {
@@ -136,7 +136,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData: vi.fn(),
 			tooltipRectRef,
 			tooltipTimeoutRef: { current: null },
-			visible: true,
+			graphViewVisible: true,
 		}));
 
 		unmount();
@@ -158,11 +158,11 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData: vi.fn(),
 			tooltipRectRef,
 			tooltipTimeoutRef: { current: null },
-			visible: true,
+			graphViewVisible: true,
 		};
 		const { rerender } = renderHook(useTooltipEvents, { initialProps: options });
 
-		rerender({ ...options, visible: false });
+		rerender({ ...options, graphViewVisible: false });
 
 		expect(hoveredNodeRef.current).toBeNull();
 		expect(tooltipRectRef.current).toBeNull();
@@ -191,7 +191,7 @@ describe('graph/runtime/useTooltipEvents', () => {
 			setTooltipData: firstSetTooltipData,
 			tooltipRectRef: { current: null },
 			tooltipTimeoutRef: { current: null },
-			visible: true,
+			graphViewVisible: true,
 		};
 		const { result, rerender } = renderHook(useTooltipEvents, {
 			initialProps,

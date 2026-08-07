@@ -18,7 +18,7 @@ const captureProof = process.env.CODEGRAPHY_CAPTURE_TOOLTIP_PROOF === '1';
 
 test.use({ video: captureProof ? 'on' : 'retain-on-failure' });
 
-test('stationary and hidden Node tooltips stop graph frame work in an Extension Development Host', async ({}, testInfo) => {
+test('Hover performance: stationary and hidden Node tooltips stop graph frame work in an Extension Development Host', async ({}, testInfo) => {
   const workspaceTempRoot = createWorkspaceTempRoot();
   const workspacePath = copyExampleTypescriptWorkspace(workspaceTempRoot);
   const vscode = await launchVSCodeWithWorkspace(workspacePath);
@@ -55,7 +55,7 @@ test('stationary and hidden Node tooltips stop graph frame work in an Extension 
 		});
 
     await vscode.page.keyboard.press('Meta+Shift+E');
-		await expect(frame.locator('[data-codegraphy-view-visible="false"]')).toHaveCount(1, {
+		await expect(frameProbe(frame)).toHaveAttribute('data-graph-view-visible', 'false', {
 			timeout: 10_000,
 		});
 		expect(await readDocumentVisibility(frame)).toBe('visible');
@@ -67,7 +67,7 @@ test('stationary and hidden Node tooltips stop graph frame work in an Extension 
     expect(await readGraphFps(frame)).toBeNull();
 
 		await openGraphView(vscode.page);
-		await expect(frame.locator('[data-codegraphy-view-visible="true"]')).toHaveCount(1, {
+		await expect(frameProbe(frame)).toHaveAttribute('data-graph-view-visible', 'true', {
 			timeout: 10_000,
 		});
 		await graphNode(frame, 'src/index.ts').dispatchEvent('mouseover', { bubbles: true });
@@ -109,8 +109,17 @@ async function installFrameProbe(frame: Frame): Promise<void> {
     const output = document.createElement('output');
     output.dataset.codegraphyTooltipFrameProbe = 'true';
     output.dataset.frameRequests = '0';
+		output.dataset.graphViewVisible = 'true';
     output.hidden = true;
     document.body.append(output);
+		window.addEventListener('message', (event: MessageEvent<unknown>) => {
+			const message = event.data;
+			if (!message || typeof message !== 'object') return;
+			if (!('type' in message) || message.type !== 'GRAPH_VIEW_VISIBILITY_UPDATED') return;
+			if (!('payload' in message) || !message.payload || typeof message.payload !== 'object') return;
+			if (!('visible' in message.payload) || typeof message.payload.visible !== 'boolean') return;
+			output.dataset.graphViewVisible = String(message.payload.visible);
+		});
     const requestFrame = window.requestAnimationFrame.bind(window);
     window.requestAnimationFrame = callback => {
       output.dataset.frameRequests = String(
@@ -196,11 +205,11 @@ async function showFrameEvidence(frame: Frame, evidence: {
     ].join(';');
     output.textContent = [
       'Stationary Node tooltip',
-      `1.5 s graph RAF requests: ${currentEvidence.stationaryFrameRequests}`,
+      `1.5 s webview RAF requests: ${currentEvidence.stationaryFrameRequests}`,
       'Physics/render FPS: idle',
 			...(currentEvidence.hiddenFrameRequests === undefined
 				? []
-				: [`Hidden Graph View RAF requests: ${currentEvidence.hiddenFrameRequests}`]),
+				: [`Hidden Graph View webview RAF requests: ${currentEvidence.hiddenFrameRequests}`]),
     ].join('\n');
   }, evidence);
 }

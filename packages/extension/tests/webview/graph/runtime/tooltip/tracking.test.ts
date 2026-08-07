@@ -8,7 +8,7 @@ import {
   updateTooltipAnchorSnapshot,
 } from '../../../../../src/webview/components/graph/runtime/tooltip/tracking';
 
-describe('tooltipTracking', () => {
+describe('tooltip anchor snapshots', () => {
   it('clears the tracked anchor', () => {
     const tooltipRectRef = { current: { x: 10, y: 20, radius: 30 } };
 
@@ -17,7 +17,7 @@ describe('tooltipTracking', () => {
     expect(tooltipRectRef.current).toBeNull();
   });
 
-  it('starts tracking without owning an animation frame', () => {
+  it('initializes the anchor snapshot without owning an animation frame', () => {
     const requestAnimationFrameSpy = vi.fn();
     vi.stubGlobal('requestAnimationFrame', requestAnimationFrameSpy);
     const tooltipRectRef = { current: null };
@@ -32,7 +32,7 @@ describe('tooltipTracking', () => {
     expect(requestAnimationFrameSpy).not.toHaveBeenCalled();
   });
 
-  it('updates visible tooltip state only after its tracked anchor changes', () => {
+  it('updates visible tooltip state only after its anchor changes', () => {
     const setTooltipData = vi.fn(
       (update: SetStateAction<GraphTooltipState>) => {
         const nextState =

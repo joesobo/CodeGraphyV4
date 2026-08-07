@@ -44,6 +44,15 @@ describe('VS Code Playwright config', () => {
     expect(grepInvert?.test('Graph Scope Edge Types - C++ Include edge type shows C++ include relationships')).toBe(false);
   });
 
+  it('assigns the tooltip frame lifecycle regression to one CI Playwright slice', () => {
+    const title = 'Hover performance: stationary and hidden Node tooltips stop graph frame work in an Extension Development Host';
+    const labels = readPlaywrightMatrixSlices()
+      .filter(slice => isTitleIncludedInSlice(title, slice))
+      .map(slice => slice.label);
+
+    expect(labels).toEqual(['Graph interactions - hover and selection']);
+  });
+
   it('assigns every generated acceptance scenario to exactly one CI Playwright slice', () => {
     const matrix = readPlaywrightMatrixSlices();
     const titles = readGeneratedAcceptanceTitles();
